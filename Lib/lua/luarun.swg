@@ -543,6 +543,24 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State* L)
   return 0;
 }
 
+/* Constructor proxy. Used when class name entry in module is not class constructor,
+but special table instead */
+SWIGINTERN int SWIG_Lua_constructor_proxy(lua_State* L)
+{
+  /* unlimited number of parameters
+     First one is our proxy table and we should remove it
+     Other we should pass to real constructor
+   */
+   assert(lua_istable(L,1));
+   lua_pushstring(L,".constructor");
+   lua_rawget(L,1);
+   assert(!lua_isnil(L,-1));
+   lua_copy(L,-1,1); /* replace our table with real constructor */
+   lua_pop(L,1);
+   lua_call(L,lua_gettop(L)-1,1);
+   return 1;
+}
+
 /* gets the swig class registry (or creates it) */
 SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State* L)
 {
@@ -570,7 +588,21 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
   lua_remove(L,-2);    /* tidy up (remove registry) */
 }
 
-/* helper add a variable to a registered class */
+SWIGINTERN void SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]); // forward declaration
+
+/* helper recursively add class constants */
+SWIGINTERN void SWIG_Lua_add_class_constants(lua_State* L, swig_lua_class* clss)
+{
+  /* call all the base classes first: we can then override these later: */
+  for(int i=0;clss->bases[i];i++)
+  {
+    SWIG_Lua_add_class_constants(L,clss->bases[i]);
+  }
+  SWIG_Lua_InstallConstants( L, clss->cls_constants );
+}
+
+
+/* helper add a variable to a registered class */ // TODO:REMOVE
 SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
   assert(lua_istable(L,-1));  /* just in case */
@@ -587,6 +619,30 @@ SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_C
   }
 }
 
+/* helper ro recursively add class static details( static attributes, operations and consants */
+SWIGINTERN void SWIG_Lua_add_class_static_details( lua_State* L, swig_lua_class* clss )
+{
+  int i = 0;
+  /* The class registry table metatable must be on the top of the stack */
+  assert( lua_istable(L,-1) );
+  /* call all the base classes first: we can then override these later: */
+  for(i=0;clss->bases[i];i++)
+  {
+    SWIG_Lua_add_class_static_details(L,clss->bases[i]);
+  }
+  /* add fns */
+  for(i=0;clss->cls_attributes[i].name;i++){
+    SWIG_Lua_add_class_variable(L,clss->cls_attributes[i].name,clss->cls_attributes[i].getmethod,clss->cls_attributes[i].setmethod);
+  }
+
+  /* add methods to the metatable */
+  SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
+  assert(lua_istable(L,-1));  /* just in case */
+  for(i=0;clss->cls_methods[i].name;i++){
+    SWIG_Lua_add_function(L,clss->cls_methods[i].name,clss->cls_methods[i].method);
+  }
+}
+
 /* helper to recursively add class details (attributes & operations) */
 SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
 {
@@ -600,6 +656,7 @@ SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
   for(i=0;clss->attributes[i].name;i++){
     SWIG_Lua_add_class_variable(L,clss->attributes[i].name,clss->attributes[i].getmethod,clss->attributes[i].setmethod);
   }
+
   /* add methods to the metatable */
   SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
   assert(lua_istable(L,-1));  /* just in case */
@@ -640,6 +697,55 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
   }
 }
 
+/* helper create class name registry in module. E.g. for clas MyClass creates
+a table-functor so you can do MyClass(...) (and that is equal to new_MyClass) to create new
+objects as well as do MyClass.EnumValue1 to access enum values */
+SWIGINTERN void SWIG_Lua_add_class_name_registry_entry(lua_State* L, swig_lua_class* clss)
+{
+  lua_checkstack(L,5); /* just in case */
+  assert(lua_istable(L,-1));  /* just in case */
+  lua_pushstring(L, clss->name);
+  lua_newtable(L); /* actual table - name registry entry */
+  bool need_metatable =
+    clss->constructor != 0 || clss->cls_methods != 0
+    || clss->cls_attributes != 0 || clss->cls_constants != 0;
+
+  if( need_metatable )
+  {
+    lua_newtable(L); /* metatable for entry */
+    if (clss->constructor)
+    {
+      SWIG_Lua_add_function(L,".constructor", clss->constructor);
+      SWIG_Lua_add_function(L,"__call", SWIG_Lua_constructor_proxy );
+    }
+    /* add a table called ".get" */
+    lua_pushstring(L,".get");
+    lua_newtable(L);
+    lua_rawset(L,-3);
+    /* add a table called ".set" */
+    lua_pushstring(L,".set");
+    lua_newtable(L);
+    lua_rawset(L,-3);
+    /* add a table called ".fn" */
+    lua_pushstring(L,".fn");
+    lua_newtable(L);
+    lua_rawset(L,-3);
+
+    /* add accessor fns for using the .get,.set&.fn */
+    SWIG_Lua_add_function(L,"__index",SWIG_Lua_class_get);
+    SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_class_set);
+
+    SWIG_Lua_add_class_static_details(L, clss );
+
+    lua_setmetatable(L,-2);
+  }
+  assert(lua_istable(L,-1)); /* just in case */
+  SWIG_Lua_add_class_constants(L,clss);
+  /* assign entry */
+  lua_rawset(L,-3);
+  /* clear stack */
+}
+
 /* performs the entire class registration process */
 SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
 {
@@ -648,7 +754,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
   BUT only if a constructor is defined
   (this overcomes the problem of pure virtual classes without constructors)*/
   if (clss->constructor)
-    SWIG_Lua_add_function(L,clss->name,clss->constructor);
+    SWIG_Lua_add_class_name_registry_entry(L,clss);
 
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->name);  /* get the name */
