@@ -402,7 +402,7 @@ SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,lua_
 SWIGINTERN int SWIG_Lua_namespace_get(lua_State* L)
 {
 /*  there should be 2 params passed in
-  (1) userdata (not the meta table)
+  (1) table (not the meta table)
   (2) string name of the attribute
 */
   assert( lua_istable(L,-2) );  /* just in case */
