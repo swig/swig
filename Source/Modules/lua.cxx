@@ -52,11 +52,11 @@
   This helps me search the parse tree & figure out what is going on inside SWIG
   (because its not clear or documented)
 */
-//#define REPORT(T,D)		// no info:
+#define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
 //#define REPORT(T,D)		{Printf(stdout,T" %p\n",n);} // title & pointer
 //#define REPORT(T,D)   {Printf(stdout,T"\n");display_mapping(D);}      // the works
-#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
+//#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
 
 void display_mapping(DOH *d) {
   if (d == 0 || !DohIsMapping(d))
@@ -746,11 +746,15 @@ public:
       //REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+        String* wrapname = Swig_name_wrapper(iname);
         if(elua_ltr || eluac_ltr)
           Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", Swig_name_wrapper(iname), ")", "},\n", NIL);
         else
           Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
       //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
+        if( getCurrentClass() ) { 
+          Setattr(n,"luaclassobj:wrap:name", wrapname );
+        }
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
@@ -831,10 +835,15 @@ public:
     if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
       Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
 
+    if( getCurrentClass() ) { 
+      Setattr(n,"luaclassobj:wrap:name", wname);
+    } else {
+      Delete(wname);
+    }
+
     DelWrapper(f);
     Delete(dispatch);
     Delete(tmp);
-    Delete(wname);
   }
 
 
@@ -887,8 +896,13 @@ public:
     } else {
       Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
     }
-    Delete(getName);
-    Delete(setName);
+    if( getCurrentClass() ) {
+      Setattr(n, "luaclassobj:wrap:get", getName );
+      Setattr(n, "luaclassobj:wrap:set", setName );
+    } else {
+      Delete(getName);
+      Delete(setName);
+    }
     return result;
   }
 
@@ -1314,10 +1328,11 @@ public:
     REPORT("staticmemberfunctionHandler", n);
     current = STATIC_FUNC;
     String *symname = Getattr(n, "sym:name");
+    /*
     if( cparse_cplusplus && getCurrentClass() ) { // TODO: REMOVE, we are certainly in c++ mode
       Swig_save("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:symname", NIL );
       Setattr(n, "luaclassobj:symname", symname );
-    }
+    }*/
     int result = Language::staticmemberfunctionHandler(n);
 
     if( cparse_cplusplus && getCurrentClass() ) {
@@ -1328,19 +1343,16 @@ public:
       return result;
     }
 
-    Printf( stdout, "WTF?" ); // TODO: REMOVE
-    if( cparse_cplusplus && getCurrentClass() ) { // TODO: REMOVE, we are certainly in c++ mode
-      if (Getattr(n, "sym:nextSibling")) {
-        return SWIG_OK;
-      }
-      String *name = Getattr(n, "name");
-      String *rname, *realname;
-      realname = symname? symname : name;
-      rname = Swig_name_wrapper( symname );
-      Printf( stdout, "static class wrp. realname %s rname %s \n", realname, rname ); // TODO:REMOVE
-      Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
-      Delete(rname);
+    if (Getattr(n, "sym:nextSibling")) {
+      return SWIG_OK;
     }
+    Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL );
+    String *name = Getattr(n, "name");
+    String *rname, *realname;
+    realname = symname? symname : name;
+    rname = Getattr( n, "luaclassobj:wrap:name" );
+    Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
+    Swig_restore(n);
 
     /* // TODO:REMOVE
     String *name = Getattr(n, "name");
@@ -1380,7 +1392,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    //    REPORT("staticmembervariableHandler",n);
+        REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
     String* symname = Getattr(n, "sym:name" );
     int result = Language::staticmembervariableHandler(n);
@@ -1393,10 +1405,18 @@ public:
       return SWIG_OK;
     }
 
+    /*
     String *gname, *sname;
-    gname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
-    if (!GetFlag(n, "feature:immutable")) {
-      sname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+    gname = Swig_name_wrapper(Getattr(n,"sym:name"));
+    Printf(stdout, "sym:name: %s\n", gname ); 
+    bool assignable=is_assignable(n) ? true : false;
+    SwigType *type = Getattr(n, "type");
+    String *tm = Swig_typemap_lookup("globalin", n, Getattr(n,"sym:name"), 0);
+    if (!tm && SwigType_isarray(type))
+      assignable=false;
+    Delete(tm);
+    if (assignable) {
+      sname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, Getattr(n,"sym:name"))));
     } else {
       //sname = NewString("0");
       sname = NewString("SWIG_Lua_set_immutable"); // error message
@@ -1404,6 +1424,10 @@ public:
     Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,gname,sname);
     Delete(gname);
     Delete(sname);
+    */
+    Swig_require("luaclassobj_staticmembervariableHandler", n, "luaclassobj:wrap:get", "luaclassobj:wrap:set", NIL );
+    Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,Getattr(n,"luaclassobj:wrap:get"), Getattr(n,"luaclassobj:wrap:set") );
+    Swig_restore(n);
     return SWIG_OK;
   }
 
