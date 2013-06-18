@@ -2,6 +2,10 @@
  * C-type: char
  * Scilab type: string
  */
+
+/*
+ * CHAR
+*/
 %fragment(SWIG_AsVal_frag(char), "header", fragment="SwigScilabStringToChar") {
 #define SWIG_AsVal_char(scilabValue, valuePointer) SwigScilabStringToChar(pvApiCtx, scilabValue, valuePointer, fname)
 }
@@ -86,9 +90,10 @@ SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
 %fragment("SWIG_FromCharPtr", "header", fragment = "SwigScilabStringFromCharPtr") {
 #define SWIG_FromCharPtr(charPtr) SwigScilabStringFromCharPtr(pvApiCtx, $result, charPtr)
 }
-%fragment("SWIG_FromCharPtrAndSize", "header", fragment = "SwigScilabStringFromCharPtrAndSize") {
-#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SwigScilabStringFromCharPtrAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), charPtr)
+%fragment("SWIG_FromCharPtrAndSize", "header", fragment = "SwigScilabStringFromCharPtr") {
+#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SwigScilabStringFromCharPtr(pvApiCtx, SWIG_Scilab_GetOutputPosition(), charPtr)
 }
+
 %fragment("SwigScilabStringToCharPtr", "header") {
 SWIGINTERN int
 SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLength, char *_fname) {
@@ -203,26 +208,6 @@ SwigScilabStringToCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, si
 %fragment("SwigScilabStringFromCharPtr", "header") {
 SWIGINTERN int
 SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue) {
-  SciErr sciErr;
-  char **pstData = NULL;
-
-  pstData = (char **)malloc(sizeof(char *));
-  pstData[0] = strdup(_pchValue);
-
-  sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-
-  free(pstData[0]);
-
-  return Rhs + _iVarOut;
-}
-}
-%fragment("SwigScilabStringFromCharPtrAndSize", "header") {
-SWIGINTERN int
-SwigScilabStringFromCharPtrAndSize(void *_pvApiCtx, int _iVarOut, const char *_pchValue) {
   SciErr sciErr;
   char **pstData = NULL;
 

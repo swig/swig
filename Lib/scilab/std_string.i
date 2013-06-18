@@ -29,10 +29,10 @@ SWIG_AsPtr_dec(std::string)(int _iVar, std::string **_pstValue) {
 }
 }
 
-%fragment(SWIG_From_frag(std::string), "header", fragment="SwigScilabStringFromCharPtrAndSize") {
+%fragment(SWIG_From_frag(std::string), "header", fragment="SwigScilabStringFromCharPtr") {
 SWIGINTERN int
 SWIG_From_dec(std::string)(std::string _pstValue) {
-    return SwigScilabStringFromCharPtrAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _pstValue.c_str());
+    return SwigScilabStringFromCharPtr(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _pstValue.c_str());
 }
 }
 
