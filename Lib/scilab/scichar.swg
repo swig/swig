@@ -98,49 +98,23 @@ SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
 SWIGINTERN int
 SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLength, char *_fname) {
   SciErr sciErr;
-  int iRows = 0;
-  int iCols = 0;
-  int iType = 0;
   int *piAddrVar = NULL;
-  char *pstStrings = NULL;
-  int piLength = 0;
+  int iRet;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iType != sci_strings) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), _fname, _iVar);
+  if (_pcValue == NULL) {
     return SWIG_ERROR;
   }
 
-  sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, NULL);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  iRet = getAllocatedSingleString(_pvApiCtx, piAddrVar, &_pcValue);
+  if (iRet) {
     return SWIG_ERROR;
   }
-  if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
-
-  pstStrings = (char *)malloc(sizeof(char) * (piLength + 1));
-  sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, (char **)&pstStrings);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-
-  strcpy(_pcValue, pstStrings);
-
-  free(pstStrings);
 
   return SWIG_OK;
 }
