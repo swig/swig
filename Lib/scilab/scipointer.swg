@@ -6,7 +6,7 @@
 }
 
 %fragment("SWIG_NewPointerObj", "header") {
-#define SWIG_NewPointerObj(pointer, pointerDescriptor, flags) SwigScilabPtrFromObject(pvApiCtx, $result, pointer, pointerDescriptor, flags)
+#define SWIG_NewPointerObj(pointer, pointerDescriptor, flags) SwigScilabPtrFromObject(pvApiCtx, SWIG_Scilab_GetOutputPosition(), pointer, pointerDescriptor, flags)
 }
 
 /*
@@ -17,7 +17,7 @@
 }
 
 %fragment("SWIG_NewFunctionPtrObj", "header") {
-#define SWIG_NewFunctionPtrObj(pointer, pointerDescriptor) SwigScilabPtrFromObject(pvApiCtx, $result, pointer, pointerDescriptor, 0)
+#define SWIG_NewFunctionPtrObj(pointer, pointerDescriptor) SwigScilabPtrFromObject(pvApiCtx, SWIG_Scilab_GetOutputPosition(), pointer, pointerDescriptor, 0)
 }
 // No fragment used here, the functions "SwigScilabPtrToObject" and "SwigScilabPtrFromObject" are defined in sciruntime.swg
 
