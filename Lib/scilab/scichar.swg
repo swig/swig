@@ -175,3 +175,77 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
   return Rhs + _iVarOut;
 }
 }
+
+/*
+ * CHAR * ARRAY
+*/
+%fragment("SwigScilabStringToCharPtrArrayAndSize", "header") {
+SWIGINTERN int
+SwigScilabStringToCharPtrArrayAndSize(void *_pvApiCtx, int _iVar, char ***_charPtrArray, int* _charPtrArraySize, char *_fname) {
+  SciErr sciErr;
+  int i = 0;
+  int *piAddrVar = NULL;
+  int iRows = 0;
+  int iCols = 0;
+  int* piLength = NULL;
+
+  if ((_charPtrArray == NULL) || (_charPtrArraySize == NULL)) {
+    return SWIG_ERROR;
+  }
+
+  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, NULL, NULL);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  piLength = (int*) malloc(iRows * iCols * sizeof(int));
+
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, piLength, NULL);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  *_charPtrArray = (char**) malloc(iRows * iCols * sizeof(char*));
+  for(i = 0 ; i < iRows * iCols ; i++)
+  {
+    (*_charPtrArray)[i] = (char*) malloc(sizeof(char) * (piLength[i] + 1));
+  }
+
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, piLength, *_charPtrArray);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  *_charPtrArraySize = iRows * iCols;
+
+  free(piLength);
+
+  return SWIG_OK;
+}
+}
+%fragment("SwigScilabStringFromCharPtrArray", "header") {
+SWIGINTERN int
+SwigScilabStringFromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrArray, int _charPtrArraySize) {
+  SciErr sciErr;
+
+  if (_charPtrArray == NULL) {
+    return SWIG_ERROR;
+  }
+
+  sciErr = createMatrixOfString(_pvApiCtx, nbInputArgument(pvApiCtx) + _iVarOut, _charPtrArraySize, 1, _charPtrArray);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  return nbInputArgument(pvApiCtx) + _iVarOut;
+}
+}
