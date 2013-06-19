@@ -5,9 +5,9 @@
 
 %include <sciint.swg>
 
-// (int* matrixAsInput, int rows, int cols)
+// in (int* matrixIn, int matrixInRowCount, int matrixInColCount)
 
-%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") (int* matrixAsInput, int rows, int cols)
+%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") (int* matrixIn, int matrixInRowCount, int matrixInColCount)
 {
   if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, fname) == SWIG_ERROR)
   {
@@ -16,9 +16,9 @@
 }
 
 
-// (int rows, int cols, int* matrixAsInput)
+// in (int matrixInRowCount, int matrixInColCount, int* matrixIn)
 
-%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") (int rows, int cols, int* matrixAsInput)
+%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") (int matrixInRowCount, int matrixInColCount, int* matrixIn)
 {
   if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) == SWIG_ERROR)
   {
@@ -27,15 +27,15 @@
 }
 
 
-// (int* matrixAsInput, int size)
+// in (int* vectorIn, int vectorInSize)
 
-%typemap(in) (int* matrixAsInput, int size)
+%typemap(in) (int* vectorIn, int vectorInSize)
 {
-    int nbRows;
-    int nbCols;
-    if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &$1, fname) != SWIG_ERROR)
+    int rowCount;
+    int colCount;
+    if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) != SWIG_ERROR)
     {
-        $2 = nbRows * nbCols;
+        $2 = rowCount * colCount;
     }
     else
     {
@@ -44,15 +44,15 @@
 }
 
 
-// (int size, int* matrixAsInput)
+// in (int vectorInSize, int* vectorInSize)
 
-%typemap(in) (int size, int* matrixAsInput)
+%typemap(in) (int vectorInSize, int* vectorInSize)
 {
-    int nbRows;
-    int nbCols;
-    if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &$2, fname) != SWIG_ERROR)
+    int rowCount;
+    int colCount;
+    if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) != SWIG_ERROR)
     {
-        $1 = nbRows * nbCols;
+        $1 = rowCount * colCount;
     }
     else
     {
@@ -60,20 +60,20 @@
     }
 }
 
-// (int** matrixAsOutput, int* rows, int* cols)
+// out (int** matrixOut, int* matrixOutRowCount, int* matrixOutColCount)
 
-%typemap(in, numinputs=0) (int** matrixAsOutput, int* rows, int* cols)
+%typemap(in, numinputs=0) (int** matrixOut, int* matrixOutRowCount, int* matrixOutColCount)
 {
 }
 
-%typemap(arginit) (int** matrixAsOutput, int* rows, int* cols)
+%typemap(arginit) (int** matrixOut, int* matrixOutRowCount, int* matrixOutColCount)
 {
   $1 = (int**) malloc(sizeof(int*));
   $2 = (int*) malloc(sizeof(int));
   $3 = (int*) malloc(sizeof(int));
 }
 
-%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int** matrixAsOutput, int* rows, int* cols)
+%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int** matrixOut, int* matrixOutRowCount, int* matrixOutColCount)
 {
   if (SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$3, *$1) != SWIG_ERROR)
   {
@@ -85,7 +85,7 @@
   }
 }
 
-%typemap(freearg) (int** matrixAsOutput, int* rows, int* cols)
+%typemap(freearg) (int** matrixOut, int* matrixOutRowCount, int* matrixOutColCount)
 {
   free(*$1);
   free($1);
@@ -94,20 +94,20 @@
 }
 
 
-// (int* rows, int* cols, int** matrixAsOutput)
+// out (int* matrixOutRowCount, int* matrixOutColCount, int** matrixOut)
 
-%typemap(in, numinputs=0) (int* rows, int* cols, int** matrixAsOutput)
+%typemap(in, numinputs=0) (int* matrixOutRowCount, int* matrixOutColCount, int** matrixOut)
 {
 }
 
-%typemap(arginit) (int* rows, int* cols, int** matrixAsOutput)
+%typemap(arginit) (int* matrixOutRowCount, int* matrixOutColCount, int** matrixOut)
 {
   $1 = (int*) malloc(sizeof(int));
   $2 = (int*) malloc(sizeof(int));
   $3 = (int**) malloc(sizeof(int*));
 }
 
-%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int* rows, int* cols, int** matrixAsOutput)
+%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int* matrixOutRowCount, int* matrixOutColCount, int** matrixOut)
 {
   if (SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2, *$3) != SWIG_ERROR)
   {
@@ -119,7 +119,7 @@
   }
 }
 
-%typemap(freearg) (int* rows, int* cols, int** matrixAsOutput)
+%typemap(freearg) (int* matrixOutRowCount, int* matrixOutColCount, int** matrixOut)
 {
   free($1);
   free($2);
@@ -128,21 +128,20 @@
 }
 
 
-// (int** matrixAsOutput, int* size)
+// out (int** vectorOut, int* vectorOutSize)
 
-%typemap(in, numinputs=0) (int** matrixAsOutput, int* size)
+%typemap(in, numinputs=0) (int** vectorOut, int* vectorOutSize)
 {
 }
 
-%typemap(arginit) (int** matrixAsOutput, int* size)
+%typemap(arginit) (int** vectorOut, int* vectorOutSize)
 {
   $1 = (int**) malloc(sizeof(int*));
   $2 = (int*) malloc(sizeof(int));
 }
 
-%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int** matrixAsOutput, int* size)
+%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int** vectorOut, int* vectorOutSize)
 {
-
   if (SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) != SWIG_ERROR)
   {
     AssignOutputVariable(pvApiCtx, outputPosition) = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
@@ -153,7 +152,7 @@
   }
 }
 
-%typemap(freearg) (int** matrixAsOutput, int* size)
+%typemap(freearg) (int** vectorOut, int* vectorOutSize)
 {
   free(*$1);
   free($1);
@@ -161,21 +160,20 @@
 }
 
 
-// (int* size, int** matrixAsOutput)
+// out (int* vectorOutSize, int** vectorOut)
 
-%typemap(in, numinputs=0) (int* size, int** matrixAsOutput)
+%typemap(in, numinputs=0) (int* vectorOutSize, int** vectorOut)
 {
 }
 
-%typemap(arginit) (int* size, int** matrixAsOutput)
+%typemap(arginit) (int* vectorOutSize, int** vectorOut)
 {
   $1 = (int*) malloc(sizeof(int));
   $2 = (int**) malloc(sizeof(int*));
 }
 
-%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int* size, int** matrixAsOutput)
+%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") (int* vectorOutSize, int** vectorOut)
 {
-
   if (SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) != SWIG_ERROR)
   {
     AssignOutputVariable(pvApiCtx, outputPosition) = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
@@ -186,7 +184,7 @@
   }
 }
 
-%typemap(freearg) (int* size, int** matrixAsOutput)
+%typemap(freearg) (int* vectorInSize, int** vectorOut)
 {
   free($1);
   free(*$2);
