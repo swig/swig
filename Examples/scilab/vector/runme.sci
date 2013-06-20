@@ -27,11 +27,11 @@ disp(iv3);
 disp("now an example with vectors of string.");
 disp("create the vector of string {''aa'', ''aa''}:");
 sv = create_svector(2, "aa");
-disp(sv);
+print_svector(sv);
 sv2 = create_svector(2, "bb");
 disp("concat this vector with the vector of string {''bb'', ''bb''}:");
 sv3 = concat_svector(sv, sv2);
-disp(sv3);
+print_svector(sv3);
 
 
 
