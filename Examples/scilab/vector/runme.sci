@@ -20,9 +20,18 @@ is = sum_ivector(iv);
 disp("sum of this vector elements is:");
 disp(is);
 iv2 = create_ivector(2, 1);
-disp("concat this vector with the vector of int {1, 1}:");
+disp("concat this vector with the vector of ints {1, 1}:");
 iv3 = concat_ivector(iv, iv2);
 disp(iv3);
+
+disp("now an example with vectors of string.");
+disp("create the vector of string {''aa'', ''aa''}:");
+sv = create_svector(2, "aa");
+disp(sv);
+sv2 = create_svector(2, "bb");
+disp("concat this vector with the vector of string {''bb'', ''bb''}:");
+sv3 = concat_svector(sv, sv2);
+disp(sv3);
 
 
 
