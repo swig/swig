@@ -1,6 +1,8 @@
 #include <stdlib.h>
 
-double sumMatrixElements(double *inputMatrix, int nbRow, int nbCol)
+// Double matrix functions
+
+double sumDoubleMatrix(double *inputMatrix, int nbRow, int nbCol)
 {
 	int i;
 	double total = 0.0;
@@ -11,7 +13,7 @@ double sumMatrixElements(double *inputMatrix, int nbRow, int nbCol)
 	return total;
 }
 
-void squareMatrixElements(double *inputMatrix, int nbRow, int nbCol, double** resultMatrix, int* nbRowRes, int* nbColRes)
+void squareDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, double** resultMatrix, int* nbRowRes, int* nbColRes)
 {
 	int i;
 	int size = nbRow * nbCol;
@@ -24,7 +26,7 @@ void squareMatrixElements(double *inputMatrix, int nbRow, int nbCol, double** re
  	}
 }
 
-void getMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes)
+void getDoubleMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes)
 {
 	int i;
 	int size;
@@ -37,3 +39,77 @@ void getMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes)
 		(*resultMatrix)[i] = i*2;
 	}
 }
+
+// Integer matrix functions
+
+int sumIntegerMatrix(int *inputMatrix, int nbRow, int nbCol)
+{
+	int i;
+	int total = 0;
+	for (i=0; i<nbRow*nbCol; i++)
+	{
+		total += inputMatrix[i];
+	}
+	return total;
+}
+
+void squareIntegerMatrix(int *inputMatrix, int nbRow, int nbCol, int** resultMatrix, int* nbRowRes, int* nbColRes)
+{
+	int i;
+	int size = nbRow * nbCol;
+	*nbRowRes = nbRow;
+	*nbColRes = nbCol;
+	*resultMatrix = (int*) malloc(size * sizeof(int));
+	for (i=0; i<size; i++)
+	{
+		(*resultMatrix)[i] = inputMatrix[i] * inputMatrix[i];
+ 	}
+}
+
+void getIntegerMatrix(int **resultMatrix, int *nbRowRes, int *nbColRes)
+{
+	int i;
+	int size;
+	*nbRowRes = 5;
+	*nbColRes = 3;
+	size = (*nbRowRes) * (*nbColRes);
+   	*resultMatrix = (int*) malloc(size * sizeof(int));
+	for (i=0; i<size; i++)
+	{
+		(*resultMatrix)[i] = i*2;
+	}
+}
+
+// String matrix functions
+
+char* concatStringVector(char **inputVector, int size)
+{
+	int i;
+	int resultSize;
+	char *result;
+	resultSize = 3 * size + 1;
+	result = calloc(resultSize, sizeof(char));
+	strcpy(result, inputVector[0]);
+	for (i=1; i<size; i++)
+	{
+		strcat(result, " ");
+		strcat(result, (const char*) inputVector[i]);
+   	}
+   	return result;
+}
+
+void getStringVector(char ***resultVector, int *sizeRes)
+{
+	int i;
+	*sizeRes = 12;
+   	*resultVector = (char**) malloc((*sizeRes) * sizeof(char*));
+	for (i=0; i<*sizeRes; i++)
+	{
+		char* pc = (char*) calloc(3, sizeof(char));
+		sprintf(pc, "%d", i);
+		(*resultVector)[i] = pc;
+	}
+}
+
+
+
