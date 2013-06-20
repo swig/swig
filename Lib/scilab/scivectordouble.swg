@@ -28,7 +28,7 @@
   }
 }
 
-%typemap(in, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") std::vector<double>&(std::vector<double> temp)
+%typemap(in, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") std::vector<double>& (std::vector<double> temp)
 {
   double* dmatrix;
   int nbRows;
@@ -70,7 +70,7 @@
   }
 }
 
-%typemap(argout, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") std::vector<double>&
+%typemap(argout, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") std::vector<double> &INOUT
 {
   int nbCols = $1->size();
   double* dmatrix = new double[nbCols];

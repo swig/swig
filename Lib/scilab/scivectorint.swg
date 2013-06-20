@@ -28,7 +28,7 @@
   }
 }
 
-%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") std::vector<int>&(std::vector<int> temp)
+%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") std::vector<int>& (std::vector<int> temp)
 {
   int* imatrix;
   int nbRows;
@@ -70,7 +70,7 @@
   }
 }
 
-%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") std::vector<int>&
+%typemap(argout, fragment="SWIG_SciInt32_FromIntArrayAndSize") std::vector<int> &INOUT
 {
   int nbCols = $1->size();
   int* imatrix = new int[nbCols];

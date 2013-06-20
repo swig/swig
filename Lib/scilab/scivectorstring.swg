@@ -5,7 +5,7 @@
 
 %include <scichar.swg>
 
-%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string>(std::vector<std::string> temp)
+%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string> (std::vector<std::string> temp)
 {
   char** charArray;
   int charArraySize;
@@ -27,7 +27,7 @@
   }
 }
 
-%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string>&(std::vector<std::string> temp)
+%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string>& (std::vector<std::string> temp)
 {
   char** charArray;
   int charArraySize;
@@ -75,7 +75,7 @@
   }
 }
 
-%typemap(argout, fragment="SwigScilabStringFromCharPtrArray") std::vector<std::string>&
+%typemap(argout, fragment="SwigScilabStringFromCharPtrArray") std::vector<std::string> &INOUT
 {
   int pCharArraySize = $1->size();
   char** pCharArray = new char*[pCharArraySize];
@@ -100,6 +100,9 @@
     return SWIG_ERROR;
   }
 }
+
+
+
 
 
 
