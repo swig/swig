@@ -1,26 +1,25 @@
 /*
- * C++ type: std::vector<string>
- * Scilab 5 type: double matrix
+ * C++ type: std::vector<std::string>
+ * Scilab 5 type: string matrix
  */
 
-%include <scidouble.swg>
+%include <scichar.swg>
 
-%typemap(in, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") std::vector<string>(std::vector<string> temp)
+%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string>(std::vector<std::string> temp)
 {
-  double* dmatrix;
-  int nbRows;
-  int nbCols;
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &dmatrix, fname) != SWIG_ERROR)
-  {
-    if ((nbRows > 1) && (nbCols > 1))
-    {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A real vector expected.\n"), fname, $input);
-      return SWIG_ERROR;
-    }
+  char** charArray;
+  int charArraySize;
 
+  int ret = SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, $input, &charArray, &charArraySize, fname);
+  if (ret == SWIG_OK)
+  {
     $1 = temp;
-    $1.reserve(nbRows * nbCols);
-    std::copy(dmatrix, dmatrix + nbRows * nbCols, std::back_inserter((std::vector<string>&)$1));
+    $1.reserve(charArraySize);
+    std::copy(charArray, charArray + charArraySize, std::back_inserter((std::vector<std::string>&)$1));
+
+    for (int i=0; i<charArraySize; i++)
+      free(charArray[i]);
+    free(charArray);
   }
   else
   {
@@ -28,22 +27,21 @@
   }
 }
 
-%typemap(in, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") std::vector<string>&(std::vector<string> temp)
+%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") std::vector<std::string>&(std::vector<std::string> temp)
 {
-  double* dmatrix;
-  int nbRows;
-  int nbCols;
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &dmatrix, fname) != SWIG_ERROR)
-  {
-    if ((nbRows > 1) && (nbCols > 1))
-    {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A real vector expected.\n"), fname, $input);
-      return SWIG_ERROR;
-    }
+  char** charArray;
+  int charArraySize;
 
+  int ret = SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, $input, &charArray, &charArraySize, fname);
+  if (ret == SWIG_OK)
+  {
     $1 = &temp;
-    $1->reserve(nbRows * nbCols);
-    std::copy(dmatrix, dmatrix + nbRows * nbCols, std::back_inserter(*$1));
+    $1->reserve(charArraySize);
+    std::copy(charArray, charArray + charArraySize, std::back_inserter(*$1));
+
+    for (int i=0; i<charArraySize; i++)
+      free(charArray[i]);
+    free(charArray);
   }
   else
   {
@@ -51,14 +49,21 @@
   }
 }
 
-%typemap(out, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") std::vector<string>
+%typemap(out, fragment="SwigScilabStringFromCharPtrArray") std::vector<std::string>
 {
-  int nbCols = $1.size();
-  double* dmatrix = new double[nbCols];
-  std::copy($1.begin(), $1.end(), dmatrix);
+  int pCharArraySize = $1.size();
+  char** pCharArray = new char*[pCharArraySize];
+  char** p = pCharArray;
+  for (std::vector<std::string>::iterator it = $1.begin(); it != $1.end(); it++)
+  {
+    char* pChar = new char(it->size()+1);
+    strcpy(pChar, it->c_str());
+    *p = pChar;
+    p++;
+  }
 
-  int ret = SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, nbCols, dmatrix);
-  delete[] dmatrix;
+  int ret = SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), pCharArray, pCharArraySize);
+  delete[] pCharArray;
 
   if (ret != SWIG_ERROR)
   {
@@ -70,14 +75,21 @@
   }
 }
 
-%typemap(argout, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") std::vector<string>&
+%typemap(argout, fragment="SwigScilabStringFromCharPtrArray") std::vector<std::string>&
 {
-  int nbCols = $1->size();
-  double* dmatrix = new double[nbCols];
-  std::copy($1->begin(), $1->end(), dmatrix);
+  int pCharArraySize = $1->size();
+  char** pCharArray = new char*[pCharArraySize];
+  char** p = pCharArray;
+  for (std::vector<std::string>::iterator it = $1->begin(); it != $1->end(); it++)
+  {
+    char* pChar = new char(it->size()+1);
+    strcpy(pChar, it->c_str());
+    *p = pChar;
+    p++;
+  }
 
-  int ret = SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, nbCols, dmatrix);
-  delete[] dmatrix;
+  int ret = SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), pCharArray, pCharArraySize);
+  delete[] pCharArray;
 
   if (ret != SWIG_ERROR)
   {

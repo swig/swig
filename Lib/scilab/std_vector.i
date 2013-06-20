@@ -27,6 +27,7 @@
 
 %include <scivectordouble.swg>
 %include <scivectorint.swg>
+%include <scivectorstring.swg>
 
 %include <std/std_vector.i>
 
