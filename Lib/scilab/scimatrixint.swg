@@ -44,9 +44,9 @@
 }
 
 
-// in (int vectorInSize, int* vectorInSize)
+// in (int vectorInSize, int* vectorIn)
 
-%typemap(in) (int vectorInSize, int* vectorInSize)
+%typemap(in) (int vectorInSize, int* vectorIn)
 {
     int rowCount;
     int colCount;
