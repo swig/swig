@@ -1742,7 +1742,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyObject *descr;
   PyObject *encoded_name;
   descrsetfunc f;
-  int res;
+  int res = -1;
 
 # ifdef Py_USING_UNICODE
   if (PyString_Check(name)) {
@@ -1765,7 +1765,6 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       goto done;
   }
 
-  res = -1;
   descr = _PyType_Lookup(tp, name);
   f = NULL;
   if (descr != NULL)
