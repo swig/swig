@@ -6,7 +6,6 @@ import "template_typedef_import"
 func main() {
 	// this is OK
 
-
 	s := template_typedef_import.NewSin()
 	s.Get_base_value()
 	s.Get_value()

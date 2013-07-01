@@ -3,8 +3,8 @@
 package main
 
 import (
-	"fmt"
 	. "./example"
+	"fmt"
 )
 
 type CEO struct{}
