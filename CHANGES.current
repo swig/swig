@@ -6,6 +6,10 @@ Version 2.0.11 (in progress)
 ============================
 
 2013-08-01: wsfulton
+            [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
+            when using -builtin.
+
+2013-08-01: wsfulton
             [Python, Ruby, Ocaml] Apply SF patch #341 - fix a const_cast in generated code that was generating
             a <:: digraph when using the unary scope operator (::) (global scope) in a template type.
 
