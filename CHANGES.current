@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-08-01: wsfulton
+            [Python] Add SF patch #342 from Christian Delbaere to fix some director classes crashing on
+            object deletion when using -builtin. Fixes SF bug #1301.
+
 2013-07-11: wsfulton
             [Python] Add SWIG_PYTHON_INTERPRETER_NO_DEBUG macro which can be defined to use the Release version
             of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
