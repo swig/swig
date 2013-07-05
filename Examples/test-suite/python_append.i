@@ -1,11 +1,10 @@
 /*
-Testcase to test %pythonprepend and %pythonappend
+Testcase to test %pythonprepend and %pythonappend %pythoncode %pythonbegin
 */
 
 %module python_append 
 
 %pythoncode %{
-  import os.path
   mypath = os.path.dirname("/a/b/c/d.txt")
   funcpath = None
   staticfuncpath = None
@@ -34,6 +33,10 @@ pass
     staticfuncpath = mypath
     pass
 }
+
+%pythonbegin %{
+import os.path
+%}
 
 %inline %{
 

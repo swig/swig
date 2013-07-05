@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-07-05: wsfulton
+            [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
+            added at the beginning of the generated .py file. This is primarily needed for importing from
+            __future__ statements required to be at the very beginning of the file. Example:
+
+              %pythonbegin %{
+              from __future__ import print_function
+              print("Loading", "Whizz", "Bang", sep=' ... ')
+              %}
+
 2013-07-01: wsfulton
             [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
             when using -builtin.
