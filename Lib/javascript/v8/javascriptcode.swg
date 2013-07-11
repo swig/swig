@@ -111,15 +111,14 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtor", "templates")
 %{
-void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
-  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+void $jswrapper(v8::Isolate *iso, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
   if(proxy->swigCMemOwn && proxy->swigCObject) {
     $jsfree proxy->swigCObject;
   }
   delete proxy;
 
-  object.Clear();
-  object.Dispose();
+  object->Dispose();
+  object->Clear();
 }
 %}
 
@@ -395,7 +394,7 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
   v8::HandleScope scope;
 
   // a class template for creating proxies of undefined types
-  SWIGV8_SWIGTYPE_Proxy_class_templ = SWIGV8_CreateClassTemplate("SwigProxy");
+  SWIGV8_SWIGTYPE_Proxy_class_templ.Reset(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
   
   /* create objects for namespaces */
   $jsv8nspaces
