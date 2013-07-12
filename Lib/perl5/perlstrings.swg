@@ -11,23 +11,6 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
      SvSetSV(tmp, obj);
      obj = tmp;
   }
-  if (SvPOK(obj)) {
-    STRLEN len = 0;
-    char *cstr = SvPV(obj, len); 
-    size_t size = len + 1;
-    if (cptr)  {
-      if (alloc) {
-	if (*alloc == SWIG_NEWOBJ) {
-	  *cptr = %new_copy_array(cstr, size, char);
-	} else {
-	  *cptr = cstr;
-	  *alloc = SWIG_OLDOBJ;
-	}
-      }
-    }
-    if (psize) *psize = size;
-    return SWIG_OK;
-  } else {
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
       char* vptr = 0; 
@@ -38,8 +21,26 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 	return SWIG_OK;
       }
     }
+
+  {
+  /* not char*, try to cast the scalar to string */
+    STRLEN len = 0;
+    char *cstr = SvPV(obj, len);
+	if (!cstr) {
+		return SWIG_TypeError;
+	}
+    size_t size = len + 1;
+	if (cptr && alloc)  {
+		if (*alloc == SWIG_NEWOBJ) {
+			*cptr = %new_copy_array(cstr, size, char);
+		} else {
+			*cptr = cstr;
+			*alloc = SWIG_OLDOBJ;
+		}
+	}
+    if (psize) *psize = size;
+    return SWIG_OK;
   }
-  return SWIG_TypeError;
 }
 }
 
