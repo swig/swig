@@ -403,7 +403,8 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_initializer", "templates") 
 %{
-extern "C" {
+// The extern "C" makes little sense here because the paramater is using C++ objects and templates.
+// extern "C" {
 
 void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 {
@@ -440,5 +441,5 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 
 }
 
-} // extern "C"
+// } // extern "C"
 %}
