@@ -114,8 +114,27 @@ fail:
 void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
   if(proxy->swigCMemOwn && proxy->swigCObject) {
-    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
+//    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
     $jsfree proxy->swigCObject;
+  }
+  delete proxy;
+}
+%}
+
+/* -----------------------------------------------------------------------------
+ * js_dtoroverride:  template for a destructor wrapper
+ *   - $jsmangledname:  mangled class name
+ *   - $jstype:         class type
+ *   - ${destructor_action}: The custom destructor action to invoke. 
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_dtoroverride", "templates")
+%{
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
+  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+  if(proxy->swigCMemOwn && proxy->swigCObject) {
+//    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
+    $jstype arg1 = ($jstype)t->swigCObject;
+    ${destructor_action}
   }
   delete proxy;
 }
