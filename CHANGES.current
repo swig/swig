@@ -4,6 +4,8 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.11 (in progress)
 ============================
+2013-07-14: joequant
+            [R] Change types file to allow for SEXP return values
 
 2013-07-05: wsfulton
             [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
