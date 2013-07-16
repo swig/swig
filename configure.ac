@@ -973,12 +973,10 @@ if test -n "$OCTAVE"; then
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
-fi
-if test -n "$OCTAVE"; then
    for octave_opt in --silent --norc --no-history --no-window-system; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
-      ${OCTAVE} ${octave_opt} /dev/null >/dev/null 2>&1
-      AS_IF([test $? -eq 0],[
+      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
+      AS_IF([test "x${octave_out}" != x],[
          AC_MSG_RESULT([yes])
          OCTAVE="${OCTAVE} ${octave_opt}"
       ],[
