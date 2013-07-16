@@ -976,7 +976,7 @@ if test -n "$OCTAVE"; then
    for octave_opt in --silent --norc --no-history --no-window-system; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
       octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
-      AS_IF([test "x${octave_out}" != x],[
+      AS_IF([test "x${octave_out}" = x],[
          AC_MSG_RESULT([yes])
          OCTAVE="${OCTAVE} ${octave_opt}"
       ],[
