@@ -230,11 +230,34 @@ SwigScilabRaise(const char *type) {
 
 %}
 
-//%insert(init) "swiginit.swg"
-%init %{
-/* -----------------------------------------------------------------------------*
- *  Partial Init method
- * -----------------------------------------------------------------------------*/
+%insert("init")
+%{
 
-SWIGEXPORT int SWIG_init(void) {
+#define SWIG_GetModule(clientdata) SWIG_Scilab_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Scilab_SetModule(pointer)
+
+SWIGRUNTIME swig_module_info*
+SWIG_Scilab_GetModule(void)
+{
+  return NULL;
+}
+
+SWIGRUNTIME void
+SWIG_Scilab_SetModule(swig_module_info *swig_module)
+{
+}
+
+%}
+
+%insert(init) "swiginit.swg"
+
+%init %{
+#ifdef __cplusplus
+extern "C" {
+int SWIG_Init(char *fname, unsigned long fname_len) {
+  SWIG_InitializeModule(NULL);
+  return 0;
+}
+}
+#endif
 %}

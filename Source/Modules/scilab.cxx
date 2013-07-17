@@ -22,6 +22,8 @@ Scilab Options (available with -scilab)\n\
      -addcflag - Additionnal path to includes for builder.sce file (Ex: -I/usr/includes/)\n\
      -addldlag - Additionnal library flag for builder.sce file (Ex: -lm)\n\n";
 
+const char* SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+
 class SCILAB : public Language {
 protected:
   /* General objects used for holding the strings */
@@ -174,6 +176,9 @@ public:
 
     Printf(builderCode, "table = [");
 
+    /* Add initialization function to builder table */
+    Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
+
     /* Emit code for children */
     if (CPlusPlus) {
       Printf(wrappersSection, "extern \"C\" {\n");
@@ -200,9 +205,6 @@ public:
     Printv(builderFile, builderCode, NIL);
     Close(builderFile);
     Delete(builderFile);
-
-    /* Close the init function and quit (opened in sciruntime.swg) */
-    Printf(initSection, "return 0;\n}\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection); // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
