@@ -1,84 +1,32 @@
 /*
- * C++ type: std::set<int>
- * Scilab 5 type: integer matrix
- */
+ *
+ * C++ type : STL set
+ * Scilab type : matrix (for sets of primitive types) or list (for sets of all other types : pointers...)
+ *
+*/
 
-%include <sciint.swg>
+%fragment("StdSetTraits", "header", fragment="StdSequenceTraits")
+%{
+  namespace swig {
+    template <class T>
+    struct traits_asptr<std::set<T> >  {
+      static int asptr(const SciObject &obj, std::set<T> **set) {
+        return traits_asptr_stdseq<std::set<T> >::asptr(obj, set);
+      }
+    };
 
-%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") std::set<int>(std::set<int> temp)
-{
-  int* imatrix;
-  int nbRows;
-  int nbCols;
-  if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &imatrix, fname) != SWIG_ERROR)
-  {
-    if ((nbRows > 1) && (nbCols > 1))
-    {
-      Scierror(999, _("%s: Wrong size for input argument #%d: An integer vector expected.\n"), fname, $input);
-      return SWIG_ERROR;
-    }
-
-    $1 = temp;
-    std::set<int>& tmpset = (std::set<int>&)$1;
-    std::copy(imatrix, imatrix + nbRows * nbCols, std::inserter(tmpset, tmpset.begin()));
+    template <class T>
+    struct traits_from<std::set<T> > {
+      static SciObject from(const std::set<T>& set) {
+        return traits_from_stdseq<std::set<T> >::from(set);
+      }
+    };
   }
-}
-
-%typemap(in, fragment="SWIG_SciInt32_AsIntArrayAndSize") std::set<int>& (std::set<int> temp)
-{
-  int* imatrix;
-  int nbRows;
-  int nbCols;
-  if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, $input, &nbRows, &nbCols, &imatrix, fname) != SWIG_ERROR)
-  {
-    if ((nbRows > 1) && (nbCols > 1))
-    {
-      Scierror(999, _("%s: Wrong size for input argument #%d: An integer vector expected.\n"), fname, $input);
-      return SWIG_ERROR;
-    }
-
-    $1 = &temp;
-    std::set<int>& tmpset = *$1;
-    std::copy(imatrix, imatrix + nbRows * nbCols, std::inserter(tmpset, tmpset.begin()));
-  }
-}
+%}
 
 
-%typemap(out, fragment="SWIG_SciInt32_FromIntArrayAndSize") std::set<int>
-{
-  int nbCols = $1.size();
-  int* imatrix = new int[nbCols];
-  std::copy($1.begin(), $1.end(), imatrix);
+#define %swig_set_methods(Type...) %swig_sequence_methods(Type)
+#define %swig_set_methods_val(Type...) %swig_sequence_methods_val(Type);
 
-  int ret = SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, nbCols, imatrix);
-  delete[] imatrix;
-
-  if (ret != SWIG_ERROR)
-  {
-    AssignOutputVariable(pvApiCtx, outputPosition) = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-  }
-  else
-  {
-    return SWIG_ERROR;
-  }
-}
-
-%typemap(argout) std::set<int>&
-{
-  int nbCols = $1->size();
-  int* imatrix = new int[nbCols];
-  std::copy($1->begin(), $1->end(), imatrix);
-
-  int ret = SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, nbCols, imatrix);
-  delete[] imatrix;
-
-  if (ret != SWIG_ERROR)
-  {
-    AssignOutputVariable(pvApiCtx, outputPosition) = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-  }
-  else
-  {
-    return SWIG_ERROR;
-  }
-}
+%include <std/std_set.i>
 
