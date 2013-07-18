@@ -1093,7 +1093,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
       .pretty_print(f_wrappers);
 
   // Delete the state variable
-  state.global(FUNCTION_DISPATCHERS, 0);
+  state.global(FUNCTION_DISPATCHERS, NewString(""));
   DelWrapper(wrapper);
 
   return SWIG_OK;
