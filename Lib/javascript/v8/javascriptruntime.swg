@@ -86,7 +86,7 @@ public:
 
 class SWIGV8_ClientData {
 public:
-  v8::Handle<v8::FunctionTemplate> class_templ;
+  v8::Persistent<v8::FunctionTemplate> class_templ;
   void (*dtor) (v8::Isolate *iso, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *parameter);
 };
 

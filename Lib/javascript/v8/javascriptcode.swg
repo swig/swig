@@ -261,7 +261,7 @@ fail:
 %fragment("jsv8_define_class_template", "templates") 
 %{
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
-  $jsmangledname_clientData.class_templ = $jsmangledname_class;
+  $jsmangledname_clientData.class_templ.Reset(v8::Isolate::GetCurrent(), $jsmangledname_class);
   $jsmangledname_clientData.dtor = $jsdtor;  
   SWIGTYPE$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
