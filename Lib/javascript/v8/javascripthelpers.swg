@@ -4,13 +4,14 @@
  * Creates a class template for a class with specified initialization function. 
  */
 v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
+    v8::HandleScope scope;
     v8::Local<v8::FunctionTemplate> class_templ = v8::FunctionTemplate::New();
     class_templ->SetClassName(v8::String::NewSymbol(symbol));
 
     v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
     inst_templ->SetInternalFieldCount(1);
 
-    return class_templ;
+    return scope.Close(class_templ);
 }
 
 /**
