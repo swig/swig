@@ -96,8 +96,7 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   v8::HandleScope scope;
   
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
-  v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
-  SWIGV8_Proxy *cdata = (SWIGV8_Proxy *) (!cdataRef.IsEmpty() && cdataRef->IsExternal()? cdataRef.As<v8::External>()->Value(): NULL);
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
   if(cdata == NULL) {
     return SWIG_ERROR;
   }
