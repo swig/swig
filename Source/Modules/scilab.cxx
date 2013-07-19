@@ -176,8 +176,10 @@ public:
 
     Printf(builderCode, "table = [");
 
-    /* Add initialization function to builder table */
-    Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
+    /* In C++ mode, add initialization function to builder table */
+    if (CPlusPlus) {
+      Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
+    }
 
     /* Emit code for children */
     if (CPlusPlus) {
