@@ -39,5 +39,7 @@ disp("Call lib function concatStringVector()");
 stringVector2 = concatStringVector(stringVector);
 disp(stringVector2);
 
+exit
+
 
 

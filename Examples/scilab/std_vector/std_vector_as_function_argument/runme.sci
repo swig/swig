@@ -77,3 +77,5 @@ disp("concat this vector with the vector of pointers on object {<classA* a:5>, <
 pv3 = concat_classAPtr_vector(pv, pv2);
 print_classAPtr_vector(pv3);
 
+exit
+

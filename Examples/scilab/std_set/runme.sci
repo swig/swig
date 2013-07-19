@@ -29,3 +29,5 @@ disp("concat this set with the set of string {''cc'', ''dd'', ''ee'', ''ff''} wi
 ss3 = concat_string_set(ss, ss2);
 disp(ss3);
 
+exit
+

@@ -33,3 +33,5 @@ disp(half(v));
 halve_in_place(v);
 disp(v);
 
+exit
+
