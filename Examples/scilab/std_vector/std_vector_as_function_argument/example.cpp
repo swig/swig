@@ -63,6 +63,18 @@ std::vector<std::string> concat_string_vector(const std::vector<std::string> vec
     return concat_vector<std::string>(vector, other_vector);
 }
 
+// bool vectors
+
+std::vector<bool> create_bool_vector(const int size, const bool value)
+{
+    return std::vector<bool>(size, value);
+}
+
+std::vector<bool> concat_bool_vector(const std::vector<bool> vector, const std::vector<bool> other_vector)
+{
+    return concat_vector<bool>(vector, other_vector);
+}
+
 // pointer (on objects) vectors
 
 std::vector<classA*> create_classA_vector(const int size, const int value)

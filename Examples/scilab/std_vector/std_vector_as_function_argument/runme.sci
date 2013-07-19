@@ -44,6 +44,17 @@ disp("concat this vector with the vector of string {''bb'', ''bb''} with concat_
 sv3 = concat_string_vector(sv, sv2);
 disp(sv3);
 
+// bool vectors
+
+disp("Example of passing matrices of bool as vector arguments of C++ functions.");
+disp("get a vector of bool {true, true} with create_bool_vector():");
+bv = create_bool_vector(2, %T);
+disp(bv);
+bv2 = create_bool_vector(3, %F);
+disp("concat this vector with the vector of bool {false, false, false} with concat_bool_vector():");
+bv3 = concat_bool_vector(bv, bv2);
+disp(bv3);
+
 // pointer (on object) vectors
 
 disp("Example of passing list of objects as vector arguments of C++ functions.");

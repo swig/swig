@@ -18,6 +18,10 @@ std::vector<int> concat_integer_vector(const std::vector<int> vector, const std:
 std::vector<std::string> create_string_vector(const int size, const char* value);
 std::vector<std::string> concat_string_vector(const std::vector<std::string> vector, const std::vector<std::string> other_vector);
 
+// bool vectors
+std::vector<bool> create_bool_vector(const int size, const bool value);
+std::vector<bool> concat_bool_vector(const std::vector<bool> vector, const std::vector<bool> other_vector);
+
 // pointer (on objects) vectors
 class classA
 {
