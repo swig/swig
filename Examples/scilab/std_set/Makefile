@@ -4,7 +4,7 @@ SRCS       = example.cpp
 TARGET     = example
 INTERFACE  = example.i
 
-all: run
+all: check
 
 loader.sce:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
@@ -13,7 +13,7 @@ loader.sce:
 clean:
 	$(MAKE) -f $(TOP)/Makefile scilab_clean
 
-run: loader.sce
+check: loader.sce
 	$(MAKE) -f $(TOP)/Makefile scilab_run
 
 debug: loader.sce
