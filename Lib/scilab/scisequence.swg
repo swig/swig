@@ -28,6 +28,7 @@
 %include <scisequenceint.swg>
 %include <scisequencedouble.swg>
 %include <scisequencestring.swg>
+%include <scisequencebool.swg>
 
 //
 // Sequence conversion
@@ -150,4 +151,5 @@ namespace swig {
 %add_traits_sequence(int, int);
 %add_traits_sequence(double, double);
 %add_traits_sequence(std::string, char*);
+%add_traits_sequence(bool, int);
 
