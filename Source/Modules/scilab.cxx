@@ -221,6 +221,8 @@ public:
     Close(beginSection);
     Delete(beginSection);
 
+    Delete(sourceFileList);
+
     return SWIG_OK;
   }
 
