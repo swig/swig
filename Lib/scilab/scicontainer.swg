@@ -55,7 +55,7 @@ namespace swig
     {
       if (traits_as_sequence<T>::get(_seq, &_piSeqAddr) != SWIG_OK)
       {
-        throw std::invalid_argument("Cannot getl sequence data.");
+        throw std::invalid_argument("Cannot get sequence data.");
       }
     }
 
