@@ -230,9 +230,7 @@ SwigScilabRaise(const char *type) {
 
 %}
 
-%insert("init")
-%{
-
+%init %{
 #define SWIG_GetModule(clientdata) SWIG_Scilab_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Scilab_SetModule(pointer)
 
@@ -246,18 +244,14 @@ SWIGRUNTIME void
 SWIG_Scilab_SetModule(swig_module_info *swig_module)
 {
 }
-
 %}
 
 %insert(init) "swiginit.swg"
 
 %init %{
 #ifdef __cplusplus
-extern "C" {
+extern "C"
 int SWIG_Init(char *fname, unsigned long fname_len) {
   SWIG_InitializeModule(NULL);
-  return 0;
-}
-}
 #endif
 %}
