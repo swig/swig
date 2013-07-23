@@ -359,7 +359,7 @@ public:
         maxOutputArguments++;
       }
 
-      Delete(functionReturnTypemap);
+      //Delete(functionReturnTypemap); // Makes SWIG crash on vararg test case.
 
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0), functionName);
