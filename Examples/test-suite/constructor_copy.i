@@ -5,13 +5,13 @@
 %nocopyctor Bar<double>;
 
 %inline %{
-  
+
 struct Foo1 {
   int x;
 
   Foo1(int _x = 2) : x(_x)
   {
-  }  
+  }
 };
 
 struct Foo2 {
@@ -25,7 +25,7 @@ struct Foo3 {
 
 struct Foo4 {
   Foo4() { }
-  
+
 protected:
   Foo4(const Foo4& ) { }
 };
@@ -33,7 +33,7 @@ protected:
 
 struct Foo4a {
   Foo4a() { }
-  
+
 private:
   Foo4a(const Foo4a& ) { }
 };
@@ -53,7 +53,7 @@ struct Foo8 {
 };
 
 template <class T>
-class Bar 
+class Bar
 {
 public:
   int x;
@@ -95,12 +95,14 @@ public:
 namespace Space {
 class Flow {
 public:
+  Flow() {}
   Flow(int i) {}
 };
 
 
 class FlowFlow {
 public:
+  FlowFlow() {}
   FlowFlow(int i) {}
 };
 
@@ -124,7 +126,7 @@ public:
       template <class T>
       struct ModelUtils_T {};
 
-    }    
+    }
   }
 %}
 
@@ -142,13 +144,13 @@ namespace Space1 {
     class TotalReturnSwap {
     public:
       TotalReturnSwap() {}
-    };    
+    };
 
     template <class T>
     class TotalReturnSwap_T {
     public:
       TotalReturnSwap_T() {}
-    };    
+    };
 
   }
 }
