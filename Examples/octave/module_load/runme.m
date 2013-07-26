@@ -1,89 +1,61 @@
 # file: runme_args.m
 
-# test module loading with arguments
-clear all
-
-# access module, no global load
-example = example;
-assert(example.cvar.ivar == example.ifunc());
-clear all
-example = example;
-assert(example.cvar.ivar == example.ifunc());
-clear all
-
-# load module globally
-example;
+# load module
+clear all;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
+assert(exist("swigexample","var"));
 clear all
-example;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
-clear all
-
-# access module in a function, no global load
-function testme
-  example = example;
-  assert(example.cvar.ivar == example.ifunc());
-endfunction
-testme
-testme
-example = example;
-assert(example.cvar.ivar == example.ifunc());
-clear all
-function testme
-  example = example;
-  assert(example.cvar.ivar == example.ifunc());
-endfunction
-testme
-testme
-example = example;
-assert(example.cvar.ivar == example.ifunc());
+assert(exist("swigexample","var"));
 clear all
 
 # load module in a function globally before base context
+clear all;
 function testme
-  example;
+  swigexample;
   assert(cvar.ivar == ifunc);
-  assert(exist("example","var"));
+  assert(exist("swigexample","var"));
 endfunction
 testme
 testme
-example;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
+assert(exist("swigexample","var"));
 clear all
 function testme
-  example;
+  swigexample;
   assert(cvar.ivar == ifunc);
-  assert(exist("example","var"));
+  assert(exist("swigexample","var"));
 endfunction
 testme
 testme
-example;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
+assert(exist("swigexample","var"));
 clear all
 
 # load module in a function globally after base context
-example;
+clear all;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
+assert(exist("swigexample","var"));
 function testme
-  example;
+  swigexample;
   assert(cvar.ivar == ifunc);
-  assert(exist("example","var"));
+  assert(exist("swigexample","var"));
 endfunction
 testme
 testme
 clear all
-example;
+swigexample;
 assert(cvar.ivar == ifunc);
-assert(exist("example","var"));
+assert(exist("swigexample","var"));
 function testme
-  example;
+  swigexample;
   assert(cvar.ivar == ifunc);
-  assert(exist("example","var"));
+  assert(exist("swigexample","var"));
 endfunction
 testme
 testme
@@ -95,24 +67,15 @@ if api_version < 37
   exit
 endif
 
-# access module with no cvar, no global load
-example2 = example2;
-assert(example2.ivar == example2.ifunc());
+# load module with no cvar
+clear all;
+swigexample2;
+assert(swigexample2.ivar == ifunc);
+assert(exist("swigexample2","var"));
 assert(!isglobal("cvar"))
 clear all
-example2 = example2;
-assert(example2.ivar == example2.ifunc());
-assert(!isglobal("cvar"))
-clear all
-
-# load module with no cvar globally
-example2;
-assert(example2.ivar == ifunc);
-assert(exist("example2","var"));
-assert(!isglobal("cvar"))
-clear all
-example2;
-assert(example2.ivar == ifunc);
-assert(exist("example2","var"));
+swigexample2;
+assert(swigexample2.ivar == ifunc);
+assert(exist("swigexample2","var"));
 assert(!isglobal("cvar"))
 clear all

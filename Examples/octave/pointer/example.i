@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 
 %{
 extern void add(int *, int *, int *);
@@ -24,7 +24,3 @@ extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
 
 %apply int *OUTPUT { int *r };
 extern int divide(int n, int d, int *r);
-
-
-
-

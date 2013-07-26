@@ -2,26 +2,45 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.8 (in progress)
-===========================
-2012-06-25: wsfulton
-            Fix using declarations combined with using directives so that types are correctly found in scope.
-            Example:
+Version 2.0.11 (in progress)
+============================
+2013-07-14: joequant
+            [R] Change types file to allow for SEXP return values
 
-              namespace Outer2 {
-                namespace Space2 {
-                  class Thing2 {};
-                }
-              }
-              using namespace Outer2; // using directive
-              using Space2::Thing2; // using declaration
-              void useit2(Thing2 t) {}
+2013-07-05: wsfulton
+            [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
+            added at the beginning of the generated .py file. This is primarily needed for importing from
+            __future__ statements required to be at the very beginning of the file. Example:
 
-2012-05-29: wsfulton
-            Fix #3529601 - seg fault when a protected method has the "director"
-            feature but the parent class does not. Also fix similar problems with
-            the allprotected feature.
+              %pythonbegin %{
+              from __future__ import print_function
+              print("Loading", "Whizz", "Bang", sep=' ... ')
+              %}
 
-2012-05-28: wsfulton
-            Fix seg fault when attempting to warn about an illegal destructor - #3530055, 3530078 and #3530118.
+2013-07-01: wsfulton
+            [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
+            when using -builtin.
+
+2013-07-01: wsfulton
+            [Python, Ruby, Ocaml] Apply SF patch #341 - fix a const_cast in generated code that was generating
+            a <:: digraph when using the unary scope operator (::) (global scope) in a template type.
+
+2013-07-01: wsfulton
+            [Python] Add SF patch #342 from Christian Delbaere to fix some director classes crashing on
+            object deletion when using -builtin. Fixes SF bug #1301.
+
+2013-06-11: wsfulton
+            [Python] Add SWIG_PYTHON_INTERPRETER_NO_DEBUG macro which can be defined to use the Release version
+            of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
+            files have been modified to use this so that Debug builds will now work without having
+            to install or build a Debug build of the interpreter.
+
+2013-06-07: wsfulton
+	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
+            versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
+            Also fix the Complex helper functions external visibility (to static by default).
+
+2013-06-04: olly
+	    [PHP] Fix SWIG_ZTS_ConvertResourcePtr() not to dereference NULL
+	    if the type lookup fails.
 

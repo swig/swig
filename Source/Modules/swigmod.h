@@ -120,6 +120,8 @@ public:
   virtual ~Language();
   virtual int emit_one(Node *n);
 
+  String *directorClassName(Node *n);
+
   /* Parse command line options */
 
   virtual void main(int argc, char *argv[]);

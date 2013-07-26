@@ -15,8 +15,10 @@ class Callback {
 public:
   virtual ~Callback() {}
   virtual void run(char* dataBufferAA, int sizeAA, char* dataBufferBB, int sizeBB) {
-    memset(dataBufferAA, -1, sizeAA);
-    memset(dataBufferBB, -1, sizeBB);
+    if (dataBufferAA)
+      memset(dataBufferAA, -1, sizeAA);
+    if (dataBufferBB)
+      memset(dataBufferBB, -1, sizeBB);
   }
 };
 
@@ -44,6 +46,9 @@ public:
       free(bb);
     }
     return sum;
+  }
+  void call_null() {
+    _callback->run(NULL, 0, NULL, 0);
   }
 };
 

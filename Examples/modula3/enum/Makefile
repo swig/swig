@@ -7,9 +7,10 @@ CONSTNUMERIC = example_const
 SWIGOPT      = -c++
 MODULA3SRCS  = *.[im]3
 
-all::	modula3
+check: build
+	$(MAKE) -f $(TOP)/Makefile modula3_run
 
-modula3::
+build:
 	$(SWIG) -modula3 $(SWIGOPT) -module Example -generateconst $(CONSTNUMERIC) $(TARGET).h
 	$(CXX) -Wall $(CONSTNUMERIC).c -o $(CONSTNUMERIC)
 	$(CONSTNUMERIC) >$(CONSTNUMERIC).i
@@ -20,7 +21,5 @@ modula3::
 	mv m3makefile $(MODULA3SRCS) src/
 	cm3
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile modula3_clean
-
-check: all

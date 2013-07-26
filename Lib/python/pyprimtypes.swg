@@ -109,6 +109,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
+%#if PY_VERSION_HEX < 0x03000000
   if (PyInt_Check(obj)) {
     long v = PyInt_AsLong(obj);
     if (v >= 0) {
@@ -117,13 +118,27 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
     } else {
       return SWIG_OverflowError;
     }
-  } else if (PyLong_Check(obj)) {
+  } else
+%#endif
+  if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
       PyErr_Clear();
+%#if PY_VERSION_HEX >= 0x03000000
+      {
+        long v = PyLong_AsLong(obj);
+        if (!PyErr_Occurred()) {
+          if (v < 0) {
+            return SWIG_OverflowError;
+          }
+        } else {
+          PyErr_Clear();
+        }
+      }
+%#endif
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE

@@ -5,12 +5,35 @@
  * ------------------------------------------------------------ */
 
 %insert(runtime) %{
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
-typedef struct { char *p; int n; } _gostring_;
-typedef struct { void* array; unsigned int len; unsigned int cap; } _goslice_;
+%}
+
+#if SWIGGO_INTGO_SIZE == 32
+%insert(runtime) %{
+typedef int intgo;
+typedef unsigned int uintgo;
+%}
+#elif SWIGGO_INTGO_SIZE == 64
+%insert(runtime) %{
+typedef long long intgo;
+typedef unsigned long long uintgo;
+%}
+#else
+%insert(runtime) %{
+typedef ptrdiff_t intgo;
+typedef size_t uintgo;
+%}
+#endif
+
+%insert(runtime) %{
+
+typedef struct { char *p; intgo n; } _gostring_;
+typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
 

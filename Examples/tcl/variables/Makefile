@@ -5,15 +5,16 @@ TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile tcl_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(DLTARGET)' INTERFACE='$(INTERFACE)' tcl
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tclsh
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile tcl_clean
-
-check: all

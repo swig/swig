@@ -7,7 +7,7 @@
 
 /*
   Use -DSWIG_DIRECTOR_NOUEH if you prefer to avoid the use of the
-  Undefined Exception Handler provided by swift
+  Undefined Exception Handler provided by swig.
 */
 #ifndef SWIG_DIRECTOR_NOUEH
 #ifndef SWIG_DIRECTOR_UEH

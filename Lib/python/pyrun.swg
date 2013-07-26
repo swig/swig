@@ -45,7 +45,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Python_GetModule()
+#define SWIG_GetModule(clientdata)                      SWIG_Python_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Python_SetModule(pointer)
 #define SWIG_NewClientData(obj)                         SwigPyClientData_New(obj)
 
@@ -668,7 +668,7 @@ SwigPyObject_own(PyObject *v, PyObject *args)
 static PyMethodDef
 swigobject_methods[] = {
   {(char *)"disown",  (PyCFunction)SwigPyObject_disown,  METH_NOARGS,  (char *)"releases ownership of the pointer"},
-  {(char *)"acquire", (PyCFunction)SwigPyObject_acquire, METH_NOARGS,  (char *)"aquires ownership of the pointer"},
+  {(char *)"acquire", (PyCFunction)SwigPyObject_acquire, METH_NOARGS,  (char *)"acquires ownership of the pointer"},
   {(char *)"own",     (PyCFunction)SwigPyObject_own,     METH_VARARGS, (char *)"returns/sets ownership of the pointer"},
   {(char *)"append",  (PyCFunction)SwigPyObject_append,  METH_O,       (char *)"appends another 'this' object"},
   {(char *)"next",    (PyCFunction)SwigPyObject_next,    METH_NOARGS,  (char *)"returns the next 'this' object"},
@@ -1331,23 +1331,29 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   } else {
 #if PY_VERSION_HEX >= 0x03000000
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
-    PyObject_SetAttr(inst, SWIG_This(), swig_this);
-    Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+    if (inst) {
+      PyObject_SetAttr(inst, SWIG_This(), swig_this);
+      Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+    }
 #else
     PyObject *dict = PyDict_New();
-    PyDict_SetItem(dict, SWIG_This(), swig_this);
-    inst = PyInstance_NewRaw(data->newargs, dict);
-    Py_DECREF(dict);
+    if (dict) {
+      PyDict_SetItem(dict, SWIG_This(), swig_this);
+      inst = PyInstance_NewRaw(data->newargs, dict);
+      Py_DECREF(dict);
+    }
 #endif
   }
   return inst;
 #else
 #if (PY_VERSION_HEX >= 0x02010000)
-  PyObject *inst;
+  PyObject *inst = 0;
   PyObject *dict = PyDict_New();
-  PyDict_SetItem(dict, SWIG_This(), swig_this);
-  inst = PyInstance_NewRaw(data->newargs, dict);
-  Py_DECREF(dict);
+  if (dict) {
+    PyDict_SetItem(dict, SWIG_This(), swig_this);
+    inst = PyInstance_NewRaw(data->newargs, dict);
+    Py_DECREF(dict);
+  }
   return (PyObject *) inst;
 #else
   PyInstanceObject *inst = PyObject_NEW(PyInstanceObject, &PyInstance_Type);
@@ -1454,12 +1460,10 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
   assert(!(flags & SWIG_BUILTIN_TP_INIT));
 
   robj = SwigPyObject_New(ptr, type, own);
-  if (clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
+  if (robj && clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
     PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
-    if (inst) {
-      Py_DECREF(robj);
-      robj = inst;
-    }
+    Py_DECREF(robj);
+    robj = inst;
   }
   return robj;
 }
@@ -1480,7 +1484,7 @@ void *SWIG_ReturnGlobalTypeList(void *);
 #endif
 
 SWIGRUNTIME swig_module_info *
-SWIG_Python_GetModule(void) {
+SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
@@ -1606,7 +1610,7 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = (swig_type_info *) PyCObject_AsVoidPtr(obj);
 #endif
   } else {
-    swig_module_info *swig_module = SWIG_Python_GetModule();
+    swig_module_info *swig_module = SWIG_GetModule(0);
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
 #ifdef SWIGPY_USE_CAPSULE
@@ -1738,7 +1742,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyObject *descr;
   PyObject *encoded_name;
   descrsetfunc f;
-  int res;
+  int res = -1;
 
 # ifdef Py_USING_UNICODE
   if (PyString_Check(name)) {
@@ -1761,7 +1765,6 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       goto done;
   }
 
-  res = -1;
   descr = _PyType_Lookup(tp, name);
   f = NULL;
   if (descr != NULL)

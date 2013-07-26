@@ -227,6 +227,7 @@ extern "C" {
   extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *node);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n);
   extern Symtab *Swig_symbol_cscope(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
@@ -353,6 +354,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String *self, int varcref);
 
   extern int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self);
+  extern void Swig_replace_special_variables(Node *n, Node *parentnode, String *code);
 
 /* --- Transformations --- */
 

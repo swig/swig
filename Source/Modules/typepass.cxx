@@ -16,8 +16,6 @@
  * and other information needed for compilation.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typepass_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 
@@ -40,7 +38,14 @@ class TypePass:private Dispatcher {
   Hash *classhash;
   List *normalize;
 
-  TypePass() {
+  TypePass() :
+    inclass(0),
+    module(0),
+    importmode(0),
+    nsname(0),
+    nssymname(0),
+    classhash(0),
+    normalize(0) {
   }
 
   /* Normalize a type. Replaces type with fully qualified version */
@@ -185,9 +190,14 @@ class TypePass:private Dispatcher {
 		bcls = 0;
 	      } else {
 		if (Getattr(bcls, "typepass:visit")) {
-		  if (!ilist)
-		    ilist = alist = NewList();
-		  Append(ilist, bcls);
+		  if (!Getattr(bcls, "feature:onlychildren")) {
+		    if (!ilist)
+		      ilist = alist = NewList();
+		    Append(ilist, bcls);
+		  } else {
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		  }
 		} else {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));
@@ -560,12 +570,9 @@ class TypePass:private Dispatcher {
     if (alias) {
       Typetab *ts = Getattr(n, "typescope");
       if (!ts) {
-	Node *ns;
-	/* Create a empty scope for the alias */
-	ns = Getattr(n, "namespace");
-	if (ns) {
-	  SwigType_scope_alias(name, Getattr(ns, "typescope"));
-	}
+	/* Create an empty scope for the alias */
+	Node *ns = Getattr(n, "namespace");
+	SwigType_scope_alias(name, Getattr(ns, "typescope"));
 	ts = Getattr(ns, "typescope");
 	Setattr(n, "typescope", ts);
       }
@@ -697,11 +704,6 @@ class TypePass:private Dispatcher {
     normalize_parms(Getattr(n, "parms"));
     normalize_parms(Getattr(n, "throws"));
 
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
     clean_overloaded(n);
     return SWIG_OK;
   }
@@ -710,12 +712,7 @@ class TypePass:private Dispatcher {
    * destructorDeclaration()
    * ------------------------------------------------------------ */
 
-  virtual int destructorDeclaration(Node *n) {
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
+  virtual int destructorDeclaration(Node *) {
     return SWIG_OK;
   }
 
@@ -1159,6 +1156,11 @@ class TypePass:private Dispatcher {
 	  SwigType_typedef_using(uname);
 	} else if (Strcmp(ntype, "enum") == 0) {
 	  SwigType_typedef_using(Getattr(n, "uname"));
+	} else if (Strcmp(ntype, "template") == 0) {
+	  /*
+	  Printf(stdout, "usingDeclaration template %s --- %s\n", Getattr(n, "name"), Getattr(n, "uname"));
+	  SwigType_typedef_using(Getattr(n, "uname"));
+	  */
 	}
       }
     }

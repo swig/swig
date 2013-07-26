@@ -33,7 +33,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Perl_GetModule()
+#define SWIG_GetModule(clientdata)                      SWIG_Perl_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Perl_SetModule(pointer)
 
 
@@ -578,7 +578,7 @@ typedef struct swig_constant_info {
 } swig_constant_info;
 
 SWIGRUNTIME swig_module_info *
-SWIG_Perl_GetModule(void) {
+SWIG_Perl_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   swig_perl_module_info *ptr = SWIG_Perl_RuntimeData();
   if (ptr) return ptr->module_info;
   return 0;

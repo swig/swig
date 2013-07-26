@@ -38,6 +38,14 @@ wchar_t* test_cvalue(wchar_t* x) {
 }
   
 
+wchar_t* test_wchar_overload() {
+   return 0;
+}
+
+wchar_t* test_wchar_overload(wchar_t *x) {
+   return x;
+}
+
 std::wstring test_value(std::wstring x) {
    return x;
 }

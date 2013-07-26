@@ -12,8 +12,6 @@
  * parse trees.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tree_c[] = "$Id$";
-
 #include "swig.h"
 #include <stdarg.h>
 #include <assert.h>
@@ -82,7 +80,7 @@ void Swig_print_node(Node *obj) {
       Printf(stdout, "%-12s - %s\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
     } else {
       DOH *o;
-      char *trunc = "";
+      const char *trunc = "";
       print_indent(2);
       if (DohIsString(Getattr(obj, k))) {
 	o = Str(Getattr(obj, k));
@@ -92,7 +90,7 @@ void Swig_print_node(Node *obj) {
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
       } else {
-	Printf(stdout, "%-12s - 0x%x\n", k, Getattr(obj, k));
+	Printf(stdout, "%-12s - %p\n", k, Getattr(obj, k));
       }
     }
     ki = Next(ki);

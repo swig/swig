@@ -11,8 +11,6 @@
  * clisp language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_clisp_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static const char *usage = (char *) "\
@@ -78,12 +76,12 @@ int CLISP::top(Node *n) {
   /* Get the output file name */
   String *outfile = Getattr(n, "outfile");
 
-  if (!outfile)
-    output_filename = outfile;
-  else {
-    output_filename = NewString("");
-    Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
+  if (!outfile) {
+    Printf(stderr, "Unable to determine outfile\n");
+    SWIG_exit(EXIT_FAILURE);
   }
+
+  output_filename = NewStringf("%s%s.lisp", SWIG_output_directory(), module);
 
   f_cl = NewFile(output_filename, "w+", SWIG_output_files());
   if (!f_cl) {
@@ -132,17 +130,16 @@ int CLISP::top(Node *n) {
 
   for (len--; len >= 0; len--) {
     end--;
-    Seek(f_cl, len, SEEK_SET);
+    (void)Seek(f_cl, len, SEEK_SET);
     int ch = Getc(f_cl);
-    Seek(f_cl, end, SEEK_SET);
+    (void)Seek(f_cl, end, SEEK_SET);
     Putc(ch, f_cl);
   }
 
   Seek(f_cl, 0, SEEK_SET);
   Write(f_cl, Char(header), Len(header));
 
-  Close(f_cl);
-  Delete(f_cl);			// Deletes the handle, not the file
+  Delete(f_cl);
 
   return SWIG_OK;
 }

@@ -147,7 +147,7 @@ PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib<br>
 
 
 <p>
-<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains python.h<br>
+<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains Python.h<br>
 <b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking<p>
 Example using Python 2.1.1:<br>
 <tt>
@@ -236,8 +236,8 @@ The short abbreviated instructions follow...
 </ul>
 
 <p>
-The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from SVN follow...
-Note that the instructions for obtaining SWIG from SVN are also online at <a href="http://www.swig.org/svn.html">SWIG SVN</a>.
+The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from Github follow...
+Note that the instructions for obtaining SWIG from Github are also online at <a href="http://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
 </p>
 
 <p>
@@ -300,15 +300,19 @@ tar -zxf bison-2.0-MSYS.tar.gz
   </li>
 
   <li>
-  To get the latest SWIG SVN (version from Subversion source control), type in the following:
+  The very latest development version of SWIG is available from <a href="https://github.com/swig/swig">SWIG on Github</a>
+  and can be downloaded as a zip file or if you have Git installed, via Git.
+  Either download the latest <a href="https://github.com/swig/swig/archive/master.zip">Zip file</a> snapshot and unzip and rename the top level folder to /usr/src/swig.
+
+  Otherwise if using Git, type in the following:
 <div class="shell"><pre>
 mkdir /usr/src
 cd /usr/src
-svn co https://swig.svn.sourceforge.net/svnroot/swig/trunk swig
+git clone https://github.com/swig/swig.git
 </pre></div>
 
   <b>Pitfall note:</b>
-If you want to check out SWIG to a different folder to the proposed
+If you want to place SWIG in a different folder to the proposed
 /usr/src/swig, do not use MSYS emulated windows drive letters, because
 the autotools will fail miserably on those.
   </li>

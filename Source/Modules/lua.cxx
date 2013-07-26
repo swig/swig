@@ -44,8 +44,6 @@
    Added support for embedded Lua. Try swig -lua -help for more information
 */
 
-char cvsroot_lua_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 /**** Diagnostics:
@@ -62,7 +60,7 @@ char cvsroot_lua_cxx[] = "$Id$";
 void display_mapping(DOH *d) {
   if (d == 0 || !DohIsMapping(d))
     return;
-  for (DohIterator it = DohFirst(d); it.item; it = DohNext(it)) {
+  for (Iterator it = First(d); it.item; it = Next(it)) {
     if (DohIsString(it.item))
       Printf(stdout, "  %s = %s\n", it.key, it.item);
     else if (DohIsMapping(it.item))
@@ -108,12 +106,11 @@ private:
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
-  String *PrefixPlusUnderscore;
   String *s_cmd_tab;		// table of command names
   String *s_var_tab;		// table of global variables
   String *s_const_tab;		// table of global constants
   String *s_methods_tab;	// table of class methods
-  String *s_attr_tab;		// table of class atributes
+  String *s_attr_tab;		// table of class attributes
   String *s_luacode;		// luacode to be called during init
   String *s_dot_get;            // table of variable 'get' functions
   String *s_dot_set;            // table of variable 'set' functions
@@ -145,17 +142,28 @@ public:
    * Initialize member data
    * --------------------------------------------------------------------- */
 
-  LUA() {
-    f_begin = 0;
-    f_runtime = 0;
-    f_header = 0;
-    f_wrappers = 0;
-    f_init = 0;
-    f_initbeforefunc = 0;
-    PrefixPlusUnderscore = 0;
-
-    s_cmd_tab = s_var_tab = s_const_tab = s_luacode = 0;
-    current=NO_CPP;
+  LUA() :
+    f_begin(0),
+    f_runtime(0),
+    f_header(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    s_cmd_tab(0),
+    s_var_tab(0),
+    s_const_tab(0),
+    s_methods_tab(0),
+    s_attr_tab(0),
+    s_luacode(0),
+    s_dot_get(0),
+    s_dot_set(0),
+    s_vars_meta_tab(0),
+    have_constructor(0),
+    have_destructor(0),
+    destructor_action(0),
+    class_name(0),
+    constructor_name(0),
+    current(NO_CPP) {
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
@@ -396,7 +404,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     Delete(s_dot_get);

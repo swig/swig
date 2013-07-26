@@ -11,8 +11,6 @@
  * Miscellaneous functions that don't really fit anywhere else.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_misc_c[] = "$Id$";
-
 #include "swig.h"
 #include <errno.h>
 #include <ctype.h>
@@ -167,44 +165,36 @@ static int is_directory(String *directory) {
  * Swig_new_subdirectory()
  *
  * Create the subdirectory only if the basedirectory already exists as a directory.
- * basedirectory can be NULL or empty to indicate current directory.
+ * basedirectory can be empty to indicate current directory but not NULL.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
   String *error = 0;
-  struct stat st;
-  int current_directory = basedirectory ? (Len(basedirectory) == 0 ? 1 : 0) : 0;
+  int current_directory = Len(basedirectory) == 0;
 
   if (current_directory || is_directory(basedirectory)) {
     Iterator it;
-    String *dir = basedirectory ? NewString(basedirectory) : NewString("");
+    String *dir = NewString(basedirectory);
     List *subdirs = Split(subdirectory, SWIG_FILE_DELIMITER[0], INT_MAX);
 
     for (it = First(subdirs); it.item; it = Next(it)) {
-      int statdir;
+      int result;
       String *subdirectory = it.item;
       Printf(dir, "%s", subdirectory);
-      statdir = stat(Char(dir), &st);
-      if (statdir == 0) {
-	Printf(dir, SWIG_FILE_DELIMITER);
-	if (S_ISDIR(st.st_mode)) {
-	  continue;
-	} else {
-	  error = NewStringf("Cannot create directory %s", dir);
-	  break;
-	}
-      } else {
 #ifdef _WIN32
-	int result = _mkdir(Char(dir));
+      result = _mkdir(Char(dir));
 #else
-	int result = mkdir(Char(dir), 0777);
+      result = mkdir(Char(dir), 0777);
 #endif
-	Printf(dir, SWIG_FILE_DELIMITER);
-	if (result != 0 && errno != EEXIST) {
-	  error = NewStringf("Cannot create directory %s", dir);
-	  break;
-	}
+      if (result != 0 && errno != EEXIST) {
+	error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
+	break;
       }
+      if (!is_directory(dir)) {
+	error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
+	break;
+      }
+      Printf(dir, SWIG_FILE_DELIMITER);
     }
   } else {
     error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.", subdirectory, basedirectory);
@@ -215,8 +205,8 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
 /* -----------------------------------------------------------------------------
  * Swig_filename_correct()
  *
- * Corrects filename paths by removing duplicate delimeters and on non-unix
- * systems use the correct delimeter across the whole name.
+ * Corrects filename paths by removing duplicate delimiters and on non-unix
+ * systems use the correct delimiter across the whole name.
  * ----------------------------------------------------------------------------- */
 
 void Swig_filename_correct(String *filename) {
@@ -880,8 +870,8 @@ String *Swig_scopename_last(const String *s) {
 
   while (*c) {
     if ((*c == ':') && (*(c + 1) == ':')) {
-      cc = c;
       c += 2;
+      cc = c;
     } else {
       if (*c == '<') {
 	int level = 1;
@@ -898,7 +888,7 @@ String *Swig_scopename_last(const String *s) {
       }
     }
   }
-  return NewString(cc + 2);
+  return NewString(cc);
 }
 
 /* -----------------------------------------------------------------------------

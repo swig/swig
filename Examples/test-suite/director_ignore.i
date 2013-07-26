@@ -21,6 +21,13 @@
 %ignore ProtectedPureVirtualMethod1;
 %ignore ProtectedPureVirtualMethod2;
 
+%typemap(imtype,
+  inattributes="[inattributes should not be used]",
+  outattributes="[outattributes should not be used]",
+  directorinattributes="[directorinattributes should not be used]",
+  directoroutattributes="[directoroutattributes should not be used]"
+ ) int& "imtype should not be used"
+
 %inline %{
 
 #include <string>
@@ -61,21 +68,6 @@ class DAbstractIgnores
     virtual double OverloadedProtectedMethod() = 0;
 };
 
-class DIgnoreConstructor
-{
-  public:
-    virtual ~DIgnoreConstructor() {}
-    DIgnoreConstructor(std::string s, int i) {}
-    DIgnoreConstructor(bool b) {}
-};
-
-class DIgnoreOnlyConstructor
-{
-  public:
-    virtual ~DIgnoreOnlyConstructor() {}
-    DIgnoreOnlyConstructor(bool b) {}
-};
-
 template <typename T> class DTemplateAbstractIgnores
 {
   T t;
@@ -93,4 +85,38 @@ template <typename T> class DTemplateAbstractIgnores
 %}
 
 %template(DTemplateAbstractIgnoresInt) DTemplateAbstractIgnores<int>;
+
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+    DIgnoreOnlyConstructor(bool b) {}
+};
+
+%{
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+  private: // Hide constructor
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+  private: // Hide constructor
+    DIgnoreOnlyConstructor(bool b) {}
+};
+%}
 

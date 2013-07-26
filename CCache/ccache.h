@@ -159,7 +159,7 @@ int asprintf(char **ptr, const char *format, ...);
 int snprintf(char *,size_t ,const char *, ...);
 #endif
 
-void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize);
+void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize, size_t minfiles);
 void cleanup_all(const char *dir);
 void wipe_all(const char *dir);
 

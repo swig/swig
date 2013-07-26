@@ -152,6 +152,7 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_values \
 	default_constructor \
@@ -177,12 +178,15 @@ CPP_TEST_CASES += \
 	director_keywords \
 	director_namespace_clash \
 	director_nspace \
+	director_nspace_director_name_collision \
 	director_nested \
 	director_overload \
+	director_overload2 \
 	director_primitives \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \
+	director_smartptr \
 	director_thread \
 	director_unroll \
 	director_using \
@@ -203,6 +207,7 @@ CPP_TEST_CASES += \
 	extend_constructor_destructor \
 	extend_default \
 	extend_placement \
+	extend_special_variables \
 	extend_template \
 	extend_template_ns \
 	extend_typedef_class \
@@ -229,10 +234,11 @@ CPP_TEST_CASES += \
 	inherit_void_arg \
 	inline_initializer \
 	insert_directive \
-        keyword_rename \
+	keyword_rename \
 	kind \
 	langobj \
 	li_attribute \
+	li_attribute_template \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
@@ -257,6 +263,7 @@ CPP_TEST_CASES += \
 	namespace_class \
 	namespace_enum \
 	namespace_extend \
+	namespace_forward_declaration \
 	namespace_nested \
 	namespace_spaces \
 	namespace_template \
@@ -275,7 +282,7 @@ CPP_TEST_CASES += \
 	operator_overload \
 	operator_overload_break \
 	operator_pointer_ref \
-        operbool \
+	operbool \
 	ordering \
 	overload_copy \
 	overload_method \
@@ -351,6 +358,7 @@ CPP_TEST_CASES += \
 	template_default \
 	template_default2 \
 	template_default_arg \
+	template_default_arg_virtual_destructor \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
 	template_default_inherit \
@@ -369,6 +377,8 @@ CPP_TEST_CASES += \
 	template_inherit_abstract \
 	template_int_const \
 	template_methods \
+	template_namespace_forward_declaration \
+	template_using_directive_and_declaration_forward \
 	template_nested \
 	template_nested_typemaps \
 	template_ns \
@@ -424,7 +434,9 @@ CPP_TEST_CASES += \
 	typedef_sizet \
 	typedef_struct \
 	typemap_arrays \
+	typemap_array_qualifiers \
 	typemap_delete \
+	typemap_directorout \
 	typemap_global_scope \
 	typemap_manyargs \
 	typemap_namespace \
@@ -443,6 +455,7 @@ CPP_TEST_CASES += \
 	using2 \
 	using_composition \
 	using_directive_and_declaration \
+	using_directive_and_declaration_forward \
 	using_extend \
 	using_inherit \
 	using_namespace \
@@ -472,8 +485,10 @@ CPP_STD_TEST_CASES += \
 	li_std_combinations \
 	li_std_deque \
 	li_std_except \
+	li_std_except_as_class \
 	li_std_map \
-        li_std_pair \
+	li_std_pair \
+	li_std_pair_using \
 	li_std_string \
 	li_std_vector \
 	li_std_vector_enum \
@@ -500,13 +515,14 @@ C_TEST_CASES += \
 	empty \
 	enums \
 	enum_forward \
+	enum_macro \
 	extern_declaration \
 	funcptr \
 	function_typedef \
 	immutable_values \
 	inctest \
 	integers \
-        keyword_rename \
+	keyword_rename \
 	lextype \
 	li_carrays \
 	li_cdata \

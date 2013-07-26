@@ -11,8 +11,6 @@
  * ALLEGROCL language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_allegrocl_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -48,7 +46,7 @@ static File *f_cxx_wrapper = 0;
 static String *module_name = 0;
 static String *swig_package = 0;
 
-const char *identifier_converter = "identifier-convert-null";
+static String *identifier_converter = NewString("identifier-convert-null");
 
 static bool CWrap = true;	// generate wrapper file for C code by default. most correct.
 static bool Generate_Wrapper = false;
@@ -162,51 +160,12 @@ String *namespaced_name(Node *n, String *ns = current_namespace) {
 
 // "Namespace::Nested::Class2::Baz" -> "Baz"
 static String *strip_namespaces(String *str) {
-  SwigType *new_type = Copy(str);
-  SwigType *leading_type = SwigType_pop(new_type);
-  char *result = Char(leading_type);
-
-  if(SwigType_istemplate(leading_type)) {
-    result = Char(SwigType_templateprefix(leading_type));
-  } else {
-    if (!SwigType_issimple(leading_type))
-	    return NewString(str);
-  }
-	  
-  String *stripped_one;
-  while ((stripped_one = Strstr(result, "::")))
-    result = Char(stripped_one) + 2;
-
-  if(SwigType_istemplate(leading_type)) {
-    SwigType_push(new_type, NewStringf("%s%s%s", result, SwigType_templateargs(leading_type),
-				       SwigType_templatesuffix(leading_type)));
-    return new_type;
-  }
-
-  return NewString(result);
-}
-
-static String *namespace_of(String *str) {
-  char *p = Char(str);
-  char *start = Char(str);
-  char *result = 0;
-  String *stripped_one;
-
-  while ((stripped_one = Strstr(p, "::"))) {
-    p = Char(stripped_one) + 2;
-  }
-  if (p > start) {
-    int len = p - start - 1;
-    result = (char *) malloc(len);
-    strncpy(result, start, len - 1);
-    result[len - 1] = 0;
-  }
-  return Char(result);
+  return Swig_scopename_last(str);
 }
 
 void add_linked_type(Node *n) {
 #ifdef ALLEGROCL_CLASS_DEBUG
-  Printf(stderr, "Adding linked node of type: %s(%s) %s(%x)\n\n", nodeType(n), Getattr(n, "storage"), Getattr(n, "name"), n);
+  Printf(stderr, "Adding linked node of type: %s(%s) %s(%p)\n\n", nodeType(n), Getattr(n, "storage"), Getattr(n, "name"), n);
   // Swig_print_node(n);
 #endif
   if (!first_linked_type) {
@@ -300,13 +259,13 @@ Node *get_primary_synonym_of(Node *n) {
   Node *p = Getattr(n, "allegrocl:synonym-of");
   Node *prim = n;
 
-  // Printf(stderr, "getting primary synonym of %x\n", n);
+  // Printf(stderr, "getting primary synonym of %p\n", n);
   while (p) {
-    // Printf(stderr, "   found one! %x\n", p);
+    // Printf(stderr, "   found one! %p\n", p);
     prim = p;
     p = Getattr(p, "allegrocl:synonym-of");
   }
-  // Printf(stderr,"get_primary_syn: DONE. returning %s(%x)\n", Getattr(prim,"name"),prim);
+  // Printf(stderr,"get_primary_syn: DONE. returning %s(%p)\n", Getattr(prim,"name"),prim);
   return prim;
 }
 
@@ -331,7 +290,7 @@ void add_forward_referenced_type(Node *n, int overwrite = 0) {
     //     , name);
 
 #ifdef ALLEGROCL_CLASS_DEBUG
-    Printf(stderr, "Linking forward reference type = %s(%x)\n", k, n);
+    Printf(stderr, "Linking forward reference type = %s(%p)\n", k, n);
 #endif
     add_linked_type(n);
   }
@@ -346,8 +305,8 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
   String *cDeclName = n ? Getattr(n, "name") : 0;
 
 #ifdef ALLEGROCL_CLASS_DEBUG
-  Printf(stderr, "IN A-D-F-T. (n=%x, ow=%d, k=%s, name=%s, ns=%s\n", n, overwrite, k, name, ns);
-  Printf(stderr, "    templated = '%x', classDecl = '%x'\n", templated, cDeclName);
+  Printf(stderr, "IN A-D-F-T. (n=%p, ow=%d, k=%s, name=%s, ns=%s\n", n, overwrite, k, name, ns);
+  Printf(stderr, "    templated = '%p', classDecl = '%p'\n", templated, cDeclName);
 #endif
   if (n) {
     if (!name)
@@ -456,11 +415,12 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
       }
     }
 #ifdef ALLEGROCL_CLASS_DEBUG
-    Printf(stderr, "looking to add %s/%s(%x) to linked_type_list...\n", k, name, n);
+    Printf(stderr, "looking to add %s/%s(%p) to linked_type_list...\n", k, name, n);
 #endif
     if (is_fwd_ref) {
       // Printf(stderr,"*** 1\n");
-      add_linked_type(n);
+      if (n)
+	add_linked_type(n);
     } else {
       // Printf(stderr,"*** 1-a\n");
       if (SwigType_istemplate(k)) {
@@ -509,7 +469,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 	  Setattr(new_node, "allegrocl:synonym:is-primary", "1");
 	} else {
 	  // a synonym type was found (held in variable 'match')
-	  // Printf(stderr, "setting primary synonym of %x to %x\n", new_node, match);
+	  // Printf(stderr, "setting primary synonym of %p to %p\n", new_node, match);
 	  if (new_node == match)
 	    Printf(stderr, "Hey-4 * - '%s' is a synonym of iteself!\n", Getattr(new_node, "name"));
 	  Setattr(new_node, "allegrocl:synonym-of", match);
@@ -556,8 +516,8 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 		Setattr(n, "allegrocl:synonym-of", match);
 		Setattr(n, "real-name", Copy(lookup_type));
 
-		// Printf(stderr, "*** pre-5: found match of '%s'(%x)\n", Getattr(match,"name"),match);
-		// if(n == match) Printf(stderr, "Hey-5 *** setting synonym of %x to %x\n", n, match);
+		// Printf(stderr, "*** pre-5: found match of '%s'(%p)\n", Getattr(match,"name"),match);
+		// if(n == match) Printf(stderr, "Hey-5 *** setting synonym of %p to %p\n", n, match);
 		// Printf(stderr,"*** 5\n");
 		add_linked_type(n);
 	      } else {
@@ -615,7 +575,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 	  match = find_linked_type_by_name(resolved);
 	  if (!match) {
 #ifdef ALLEGROCL_CLASS_DEBUG
-	    Printf(stderr, "found no implicit instantiation of %%template node %s(%x)\n", Getattr(n, "name"), n);
+	    Printf(stderr, "found no implicit instantiation of %%template node %s(%p)\n", Getattr(n, "name"), n);
 #endif
 	    add_linked_type(n);
 	  } else {
@@ -624,14 +584,14 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 	    Setattr(n, "allegrocl:synonym:is-primary", "1");
 	    Delattr(primary, "allegrocl:synonym:is-primary");
 	    if (n == match)
-	      Printf(stderr, "Hey-7 * setting synonym of %x to %x\n (match = %x)", primary, n, match);
+	      Printf(stderr, "Hey-7 * setting synonym of %p to %p\n (match = %p)", primary, n, match);
 	    Setattr(primary, "allegrocl:synonym-of", n);
 	    // Printf(stderr,"*** 7\n");
 	    add_linked_type(n);
 	  }
 	} else {
 #ifdef ALLEGROCL_CLASS_DEBUG
-	  Printf(stderr, "linking type '%s'(%x)\n", k, n);
+	  Printf(stderr, "linking type '%s'(%p)\n", k, n);
 #endif
 	  // Printf(stderr,"*** 8\n");
 	  add_linked_type(n);
@@ -663,7 +623,7 @@ void note_implicit_template_instantiation(SwigType *t) {
 #endif
   SwigType *type = Copy(t);
   SwigType *tok = SwigType_pop(type);
-  String *implicit_ns = SwigType_istemplate(tok) ? namespace_of(SwigType_templateprefix(tok)) : 0;
+  String *implicit_ns = SwigType_istemplate(tok) ? Swig_scopename_prefix(SwigType_templateprefix(tok)) : 0;
   add_defined_foreign_type(0, 0, t, t, implicit_ns ? implicit_ns : current_namespace);
 
   Delete(type);
@@ -821,7 +781,7 @@ String *compose_foreign_type(Node *n, SwigType *ty, String * /*id*/ = 0) {
   Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty);
   // Printf(stderr, "compose_foreign_type: ENTER (%s)(%s)...\n ", ty, (id ? id : 0));
   /* String *id_ref = SwigType_str(ty, id);
-  Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
+  Printf(stderr, "looking up typemap for %s, found '%s'(%p)\n",
 	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
   if (lookup_res) Swig_print_node(lookup_res);
   */
@@ -860,7 +820,7 @@ void update_package_if_needed(Node *n, File *f = f_clwrap) {
   Printf(stderr, "update_package: ENTER... \n");
   Printf(stderr, "  current_package = '%s'\n", current_package);
   Printf(stderr, "     node_package = '%s'\n", Getattr(n, "allegrocl:package"));
-  Printf(stderr, "   node(%x) = '%s'\n", n, Getattr(n, "name"));
+  Printf(stderr, "   node(%p) = '%s'\n", n, Getattr(n, "name"));
 #endif
   String *node_package = Getattr(n, "allegrocl:package");
   if (Strcmp(current_package, node_package)) {
@@ -1119,7 +1079,7 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
 void emit_stub_class(Node *n) {
 
 #ifdef ALLEGROCL_WRAP_DEBUG
-  Printf(stderr, "emit_stub_class: ENTER... '%s'(%x)\n", Getattr(n, "sym:name"), n);
+  Printf(stderr, "emit_stub_class: ENTER... '%s'(%p)\n", Getattr(n, "sym:name"), n);
   Swig_print_node(n);
 #endif
 
@@ -1157,7 +1117,7 @@ void emit_synonym(Node *synonym) {
   Printf(stderr, "emit_synonym: ENTER... \n");
 #endif
 
-  // Printf(stderr,"in emit_synonym for %s(%x)\n", Getattr(synonym,"name"),synonym);
+  // Printf(stderr,"in emit_synonym for %s(%p)\n", Getattr(synonym,"name"),synonym);
   int is_tempInst = !Strcmp(nodeType(synonym), "templateInst");
   String *synonym_type;
 
@@ -1181,13 +1141,14 @@ void emit_synonym(Node *synonym) {
   String *of_name = namespaced_name(of, of_ns);
 
   if (CPlusPlus && !Strcmp(nodeType(synonym), "cdecl")) {
-	  syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)",
-				 strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
-	  syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)",
-				strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
+    String *real_name = Getattr(synonym, "real-name");
+    if (!real_name)
+      real_name = NewString("Unknown"); // TODO: fix
+    syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)", strip_namespaces(real_name), synonym_ns);
+    syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)", strip_namespaces(real_name), synonym_ns);
   } else {
-	  syn_ltype = lookup_defined_foreign_ltype(synonym_type);
-	  syn_type = lookup_defined_foreign_type(synonym_type);
+    syn_ltype = lookup_defined_foreign_ltype(synonym_type);
+    syn_type = lookup_defined_foreign_type(synonym_type);
   }
 
   of_ltype = lookup_defined_foreign_ltype(of_name);
@@ -1214,7 +1175,7 @@ void emit_full_class(Node *n) {
   String *name = Getattr(n, "sym:name");
   String *kind = Getattr(n, "kind");
 
-  // Printf(stderr,"in emit_full_class: '%s'(%x).", Getattr(n,"name"),n);
+  // Printf(stderr,"in emit_full_class: '%s'(%p).", Getattr(n,"name"),n);
   if (Getattr(n, "allegrocl:synonym-of")) {
     // Printf(stderr,"but it's a synonym of something.\n");
     update_package_if_needed(n, f_clhead);
@@ -1262,7 +1223,7 @@ void emit_full_class(Node *n) {
       // hack. why would decl have a value of "variableHandler" and now "0"?
       String *childDecl = Getattr(c, "decl");
       // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
-      if (!Strcmp(childDecl, "0"))
+      if (!childDecl || !Strcmp(childDecl, "0"))
 	childDecl = NewString("");
 
       SwigType *childType;
@@ -1314,7 +1275,7 @@ void emit_full_class(Node *n) {
 void emit_class(Node *n) {
 
 #ifdef ALLEGROCL_WRAP_DEBUG
-  Printf(stderr, "emit_class: ENTER... '%s'(%x)\n", Getattr(n, "sym:name"), n);
+  Printf(stderr, "emit_class: ENTER... '%s'(%p)\n", Getattr(n, "sym:name"), n);
 #endif
 
   int is_tempInst = !Strcmp(nodeType(n), "templateInst");
@@ -1373,7 +1334,7 @@ void emit_typedef(Node *n) {
   Delete(type);
   Node *in_class = Getattr(n, "allegrocl:typedef:in-class");
 
-  // Printf(stderr,"in emit_typedef: '%s'(%x).",Getattr(n,"name"),n);
+  // Printf(stderr,"in emit_typedef: '%s'(%p).",Getattr(n,"name"),n);
   if (Getattr(n, "allegrocl:synonym-of")) {
     // Printf(stderr," but it's a synonym of something.\n");
     emit_synonym(n);
@@ -1536,11 +1497,11 @@ void dump_linked_types(File *f) {
   Node *n = first_linked_type;
   int i = 0;
   while (n) {
-    Printf(f, "%d: (%x) node '%s' name '%s'\n", i++, n, nodeType(n), Getattr(n, "sym:name"));
+    Printf(f, "%d: (%p) node '%s' name '%s'\n", i++, n, nodeType(n), Getattr(n, "sym:name"));
 
     Node *t = Getattr(n, "allegrocl:synonym-of");
     if (t)
-      Printf(f, "     synonym-of %s(%x)\n", Getattr(t, "name"), t);
+      Printf(f, "     synonym-of %s(%p)\n", Getattr(t, "name"), t);
     n = Getattr(n, "allegrocl:next_linked_type");
   }
 }
@@ -1556,7 +1517,7 @@ void emit_linked_types() {
   while (n) {
     String *node_type = nodeType(n);
 
-    // Printf(stderr,"emitting node %s(%x) of type %s.", Getattr(n,"name"),n, nodeType(n));
+    // Printf(stderr,"emitting node %s(%p) of type %s.", Getattr(n,"name"),n, nodeType(n));
     if (!Strcmp(node_type, "class") || !Strcmp(node_type, "templateInst")) {
       // may need to emit a stub, so it will update the package itself.
       // Printf(stderr," Passing to emit_class.");
@@ -1604,14 +1565,15 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 
       /* check for built-ins */
       if (!strcmp(conv, "lispify")) {
-	identifier_converter = "identifier-convert-lispify";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-lispify");
       } else if (!strcmp(conv, "null")) {
-	identifier_converter = "identifier-convert-null";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-null");
       } else {
 	/* Must be user defined */
-	char *idconv = new char[strlen(conv) + 1];
-	strcpy(idconv, conv);
-	identifier_converter = idconv;
+	Delete(identifier_converter);
+	identifier_converter = NewString(conv);
       }
     } else if (!strcmp(argv[i], "-cwrap")) {
       CWrap = true;
@@ -1653,7 +1615,6 @@ int ALLEGROCL::top(Node *n) {
   if (Generate_Wrapper) {
     f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_begin) {
-      Close(f_cl);
       Delete(f_cl);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -1710,15 +1671,13 @@ int ALLEGROCL::top(Node *n) {
   Printf(f_cl, "%s\n", f_clhead);
   Printf(f_cl, "%s\n", f_clwrap);
 
-  Close(f_cl);
-  Delete(f_cl);			// Delete the handle, not the file
+  Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
 
   Dump(f_runtime, f_begin);
   Printf(f_begin, "%s\n", f_cxx_wrapper);
 
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
   Delete(f_cxx_wrapper);
@@ -2049,7 +2008,7 @@ int emit_num_lin_arguments(ParmList *parms) {
   int nargs = 0;
 
   while (p) {
-    // Printf(stderr,"enla: '%s' lin='%x' numinputs='%s'\n", Getattr(p,"name"), Getattr(p,"tmap:lin"), Getattr(p,"tmap:lin:numinputs"));
+    // Printf(stderr,"enla: '%s' lin='%p' numinputs='%s'\n", Getattr(p,"name"), Getattr(p,"tmap:lin"), Getattr(p,"tmap:lin:numinputs"));
     if (Getattr(p, "tmap:lin")) {
       nargs += GetInt(p, "tmap:lin:numinputs");
       p = Getattr(p, "tmap:lin:next");
@@ -2283,7 +2242,7 @@ IDargs *id_converter_arguments(Node *n) {
     result->arity = NewStringf("%d",
 			       // emit_num_arguments(Getattr(n, "wrap:parms")));
 			       emit_num_lin_arguments(Getattr(n, "wrap:parms")));
-    // Printf(stderr, "got arity of '%s' node '%s' '%x'\n", result->arity, Getattr(n,"name"), Getattr(n,"wrap:parms"));
+    // Printf(stderr, "got arity of '%s' node '%s' '%p'\n", result->arity, Getattr(n,"name"), Getattr(n,"wrap:parms"));
   }
 
   SetVoid(n, "allegrocl:id-converter-args", result);
@@ -2361,7 +2320,7 @@ int ALLEGROCL::emit_dispatch_defun(Node *n) {
 #endif
   List *overloads = Swig_overload_rank(n, true);
 
-  // Printf(stderr,"\ndispatch node=%x\n\n", n);
+  // Printf(stderr,"\ndispatch node=%p\n\n", n);
   // Swig_print_node(n);
 
   Node *overloaded_from = Getattr(n,"sym:overloaded");
@@ -2669,7 +2628,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
     if (Getattr(n, "overload:ignore")) {
       // if we're the last overload, make sure to force the emit
       // of the rest of the overloads before we leave.
-      // Printf(stderr, "ignored overload %s(%x)\n", name, Getattr(n, "sym:nextSibling"));
+      // Printf(stderr, "ignored overload %s(%p)\n", name, Getattr(n, "sym:nextSibling"));
       if (!Getattr(n, "sym:nextSibling")) {
 	update_package_if_needed(n);
 	emit_buffered_defuns(n);
@@ -2749,7 +2708,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   String *tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
-  if (!is_void_return && tm) {
+  if (!is_void_return) {
     if (tm) { 
       Replaceall(tm, "$result", "lresult");
       Printf(f->code, "%s\n", tm);
@@ -2798,7 +2757,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
 int ALLEGROCL::namespaceDeclaration(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "namespaceDecl: '%s'(0x%x) (fc=0x%x)\n", Getattr(n, "sym:name"), n, firstChild(n));
+  Printf(stderr, "namespaceDecl: '%s'(%p) (fc=%p)\n", Getattr(n, "sym:name"), n, firstChild(n));
 #endif
 
   /* don't wrap a namespace with no contents. package bloat.
@@ -3018,7 +2977,7 @@ int ALLEGROCL::typedefHandler(Node *n) {
 
   if (in_class) {
 #ifdef ALLEGROCL_TYPE_DEBUG
-    Printf(stderr, "  typedef in class '%s'(%x)\n", Getattr(in_class, "sym:name"), in_class);
+    Printf(stderr, "  typedef in class '%s'(%p)\n", Getattr(in_class, "sym:name"), in_class);
 #endif
     Setattr(n, "allegrocl:typedef:in-class", in_class);
 
@@ -3036,7 +2995,7 @@ int ALLEGROCL::typedefHandler(Node *n) {
   String *lookup = lookup_defined_foreign_type(typedef_type);
 
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "** lookup='%s'(%x), typedef_type='%s', strcmp = '%d' strstr = '%d'\n", lookup, lookup, typedef_type, Strcmp(typedef_type,"void"), Strstr(ff_type,"__SWIGACL_FwdReference"));
+  Printf(stderr, "** lookup='%s'(%p), typedef_type='%s', strcmp = '%d' strstr = '%d'\n", lookup, lookup, typedef_type, Strcmp(typedef_type,"void"), Strstr(ff_type,"__SWIGACL_FwdReference"));
 #endif
 
   if(lookup || (!lookup && Strcmp(typedef_type,"void")) ||
@@ -3162,7 +3121,7 @@ int ALLEGROCL::cppClassHandler(Node *n) {
     SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"),
 				     Getattr(c, "type"));
 #ifdef ALLEGROCL_CLASS_DEBUG
-    Printf(stderr, "looking at child '%x' of type '%s' '%d'\n", c, childType, SwigType_isfunction(childType));
+    Printf(stderr, "looking at child '%p' of type '%s' '%d'\n", c, childType, SwigType_isfunction(childType));
     // Swig_print_node(c);
 #endif
     if (!SwigType_isfunction(childType))

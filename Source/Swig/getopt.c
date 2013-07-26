@@ -20,8 +20,6 @@
  *       Should have cleaner error handling in general.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_getopt_c[] = "$Id$";
-
 #include "swig.h"
 
 static char **args;

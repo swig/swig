@@ -38,6 +38,7 @@
 <li><a href="#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
 <li><a href="#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
+<li><a href="#CSharp_date_pre_post_directors">Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a>
 <li><a href="#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 <li><a href="#CSharp_enum_underlying_type">Underlying type for enums</a>
@@ -191,6 +192,20 @@ csattributes                C# attributes for attaching to proxy classes/enums
 </li>
 
 <li>
+<p>Additional typemap attributes:</p>
+
+<p>
+The "null" attribute in the "out" typemap can be specified to provide a value for <tt>$null</tt> to expand into for wrapped functions that return non-void. Normally the default value of <tt>0</tt> is used.
+For example this is needed if you change the return type to void:
+</p>
+<div class="code"><pre>
+%typemap(ctype) Status "void"
+%typemap(out, null="") Status { ... }
+</pre></div>
+
+</li>
+
+<li>
 <p>Feature equivalent names:</p>
 <div class="code"><pre>
 %javaconst                  -&gt; %csconst
@@ -227,10 +242,12 @@ $jnicall                    -&gt; $imcall
 <p>
 Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. 
 The "csin" typemap supports additional optional attributes called 'cshin' and 'terminator'. 
+The "csdirectorin" typemap supports additional optional attributes called 'terminator'. 
 The 'cshin' attribute should contain the parameter type and name whenever a <a href="Java.html#Java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. 
 The 'terminator' attribute normally just contains a closing brace for when the 'pre' attribute contains an opening brace, such as when a C# <tt>using</tt> or <tt>fixed</tt> block is started.
 Note that 'pre', 'post', 'terminator' and 'cshin' attributes are not used for marshalling the property set.
 Please see the <a href="#CSharp_date_marshalling">Date marshalling example</a> and <a href="#CSharp_date_properties">Date marshalling of properties example</a> for further understanding of these "csin" applicable attributes.
+Please see the <a href="#CSharp_date_pre_post_directors">Date marshalling director example</a> for further understanding of the "csdirectorin" attributes.
 </p>
 </li>
 
@@ -2040,13 +2057,13 @@ The typemaps to achieve this are shown below.
 
 <div class="code">
 <pre>
-%typemap(cstype) const CDate&amp; "System.DateTime"
+%typemap(cstype) const CDate &amp; "System.DateTime"
 %typemap(csin, 
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);"
         ) const CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
-%typemap(cstype) CDate&amp; "out System.DateTime"
+%typemap(cstype) CDate &amp; "out System.DateTime"
 %typemap(csin, 
          pre="    CDate temp$csinput = new CDate();", 
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
@@ -2257,7 +2274,7 @@ Console.WriteLine("Important date: " + importantDate);
 </div>
 
 <p>
-When SWIG wraps a variable that is a class/struct/union, it is wrapped using a pointer to the type for the reasons given in <a href="SWIG.html#SWIG_structure_data_members">Stucture data members</a>.
+When SWIG wraps a variable that is a class/struct/union, it is wrapped using a pointer to the type for the reasons given in <a href="SWIG.html#SWIG_structure_data_members">Structure data members</a>.
 The typemap type required is thus <tt>CDate *</tt>. Given that the previous section already designed <tt>CDate *</tt> typemaps, we'll use those same typemaps plus the 'csvarin' and 'csvarout' typemaps.
 
 <div class="code">
@@ -2329,8 +2346,69 @@ Some points to note:
   <li>The 'csin' typemap has 'pre', 'post' and 'cshin' attributes, and these are all ignored in the property set. The code in these attributes must instead be replicated within the 'csvarin' typemap. The line creating the <tt>temp$csinput</tt> variable is such an example; it is identical to what is in the 'pre' attribute.
 </ul>
 
+<H3><a name="CSharp_date_pre_post_directors"></a>19.8.5 Date example demonstrating the 'pre' and 'post' typemap attributes for directors</H3>
 
-<H3><a name="CSharp_partial_classes"></a>19.8.5 Turning wrapped classes into partial classes</H3>
+
+<p>
+The 'pre' and 'post' attributes in the "csdirectorin" typemap act like the attributes of the same name in the "csin" typemap.
+For example if we modify the <a href="#CSharp_date_marshalling">Date marshalling example</a> like this:
+</p>
+
+<div class="code"><pre>
+class CDate {
+  ...
+  void setYear(int);
+  void setMonth(int);
+  void setDay(int);
+};
+struct Action {
+  virtual void someCallback(CDate &amp;date);
+  virtual ~Action();
+  ...
+};
+</pre></div>
+
+<p>
+and declare <tt>%feature ("director")</tt> for the <tt>Action</tt> class, we would have to define additional
+marshalling rules for <tt>CDate &amp;</tt> parameter. The typemap may look like this:
+</p>
+
+<div class="code"><pre>
+%typemap(csdirectorin,
+         pre="System.DateTime temp$iminput = new System.DateTime();",
+         post="CDate temp2$iminput = new CDate($iminput, false);\n"
+              "temp2$iminput.setYear(tempdate.Year);\n"
+              "temp2$iminput.setMonth(tempdate.Month);\n"
+              "temp2$iminput.setDay(tempdate.Day);"
+         ) CDate &amp;date "out temp$iminput"
+</pre></div>
+
+<p>
+The generated proxy class code will then contain the following wrapper for calling user-overloaded <tt>someCallback()</tt>:
+</p>
+
+<div class="code"><pre>
+...
+  private void SwigDirectorsomeCallback(IntPtr date) {
+    System.DateTime tempdate = new System.DateTime();
+    try {
+      someCallback(out tempdate);
+    } finally {
+      // we create a managed wrapper around the existing C reference, just for convenience
+      CDate temp2date = new CDate(date, false);
+      temp2date.setYear(tempdate.Year);
+      temp2date.setMonth(tempdate.Month);
+      temp2date.setDay(tempdate.Day);
+    }
+  }
+...
+</pre></div>
+<p>
+Pay special attention to the memory management issues, using these attributes.
+</p>
+
+
+<H3><a name="CSharp_partial_classes"></a>19.8.6 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -2430,7 +2508,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="CSharp_extending_proxy_class"></a>19.8.6 Extending proxy classes with additional C# code</H3>
+<H3><a name="CSharp_extending_proxy_class"></a>19.8.7 Extending proxy classes with additional C# code</H3>
 
 
 <p>
@@ -2469,7 +2547,7 @@ public class ExtendMe : IDisposable {
 </pre>
 </div>
 
-<H3><a name="CSharp_enum_underlying_type"></a>19.8.7 Underlying type for enums</H3>
+<H3><a name="CSharp_enum_underlying_type"></a>19.8.8 Underlying type for enums</H3>
 
 
 <P>

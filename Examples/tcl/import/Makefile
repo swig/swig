@@ -3,7 +3,10 @@ SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    =
 LIBS       =
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile tcl_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' tcl_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
@@ -14,7 +17,5 @@ all::
 	LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' tcl_cpp
 
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile tcl_clean
-
-check: all

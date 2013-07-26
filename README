@@ -1,11 +1,13 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 2.0.8 (in progress)
+Version: 2.0.10 (in progress)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
-         including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
-         Scheme (Guile, MzScheme, CHICKEN), Pike, C#, Modula-3,
-         Common Lisp (CLISP, Allegro CL, CFFI, UFFI), Octave and R.
+         including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,
+         Octave, R, Scheme (Guile, MzScheme/Racket, CHICKEN), Ocaml,
+         Modula-3, Common Lisp (CLISP, Allegro CL, CFFI, UFFI) and Pike.
+         SWIG can also export its parse tree into Lisp s-expressions and
+         XML.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -22,7 +24,11 @@ A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
 License
 =======
-Please see the LICENSE file for details of the SWIG license.
+Please see the LICENSE file for details of the SWIG license. For
+further insight into the license including the license of SWIG's
+output code, please visit
+
+        http://www.swig.org/legal.html
 
 Release Notes
 =============
@@ -30,6 +36,22 @@ Please see the CHANGES.current file for a detailed list of bug fixes and
 new features for the current release. The CHANGES file contains bug fixes
 and new features for older versions. A summary of changes in each release
 can be found in the RELEASENOTES file.
+
+Documentation
+=============
+The Doc/Manual directory contains the most recent set of updated
+documentation for this release. The documentation is available in
+three different formats, each of which contains identical content.
+These format are, pdf (Doc/Manual/SWIGDocumentation.pdf), single
+page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
+(other files in Doc/Manual). Please select your chosen format and
+copy/install to wherever takes your fancy.
+
+There is some technical developer documentation available in the
+Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
+has some information on SWIG internals.
+
+Documentation is also online at http://www.swig.org/doc.html.
 
 Backwards Compatibility
 =======================
@@ -43,131 +65,17 @@ See the documentation for details of the SWIG_VERSION preprocessor
 symbol if you have backward compatibility issues and need to use more
 than one version of SWIG.
 
-Windows Installation
-====================
-Please see the Doc/Manual/Windows.html file for instructions on installing
-SWIG on Windows and running the examples. The Windows distribution is
-called swigwin and includes a prebuilt SWIG executable, swig.exe, included in
-the same directory as this README file. Otherwise it is exactly the same as
-the main SWIG distribution. There is no need to download anything else.
-
-Unix Installation
-=================
-You must use GNU `make' to build SWIG.
-
-http://www.gnu.org/software/make/
-
-PCRE needs to be installed on your system to build SWIG, in particular
-pcre-config must be available. If you have PCRE headers and libraries but not
-pcre-config itself or, alternatively, wish to override the compiler or linker
-flags returned by pcre-config, you may set PCRE_LIBS and PCRE_CFLAGS variables
-to be used instead. And if you don't have PCRE at all, the configure script
-will provide instructions for obtaining it.
-
-To build and install SWIG, simply type the following:
-
-     % ./configure
-     % make
-     % make install
-
-By default SWIG installs itself in /usr/local.  If you need to install SWIG in
-a different location or in your home directory, use the --prefix option
-to ./configure.  For example:
-
-     % ./configure --prefix=/home/yourname/projects
-     % make
-     % make install
-
-Note: the directory given to --prefix must be an absolute pathname.  Do *NOT* use
-the ~ shell-escape to refer to your home directory.  SWIG won't work properly
-if you do this.
-
-The file INSTALL details more about using configure. Also try
-
-     % ./configure --help.
-
-The configure script will attempt to locate various packages on your machine
-including Tcl, Perl5, Python and all the other target languages that SWIG
-uses.  Don't panic if you get 'not found' messages--SWIG does not need these
-packages to compile or run.   The configure script is actually looking for
-these packages so that you can try out the SWIG examples contained
-in the 'Examples' directory without having to hack Makefiles.
-Note that the --without-xxx options, where xxx is a target language, have 
-minimal effect. All they do is reduce the amount of testing done with 
-'make check'. The SWIG executable and library files installed cannot currently
-be configured with a subset of target languages.
-
-Please see the Documentation section below on installing documentation as
-none is installed by default.
-
-SWIG used to include a set of runtime libraries for some languages for working
-with multiple modules. These are no longer built during the installation stage.
-However, users can build them just like any wrapper module as described in
-the documentation, Doc/Manual/Modules.html. The CHANGES file also lists some
-examples which build the runtime library.
-
-Notes:
-
-(1) If you checked the code out via SVN, you will have to run ./autogen.sh
-    before typing 'configure'.  In addition, a full build of SWIG requires
-    the a number of packages to be installed.  Full instructions at
-    http://www.swig.org/svn.html
-
-Macintosh OS X Installation
-============================
-SWIG is known to work on various flavors of OS X.  Follow the Unix installation
-instructions above.   However, as of this writing, there is still great deal of
-inconsistency with how shared libaries are handled by various scripting languages
-on OS X.   We've tried to resolve these differences to the extent of our knowledge.
-
-Users of OS X should be aware that Darwin handles shared libraries and linking in 
-a radically different way than most Unix systems.  In order to test SWIG and run
-the examples, SWIG configures itself to use flat namespaces and to allow undefined 
-symbols (-flat_namespace -undefined suppress). This mostly closely follows the Unix 
-model and makes it more likely that the SWIG examples will work with whatever 
-installation of software you might have.  However, this is generally not the recommended
-technique for building larger extension modules.  Instead, you should utilize
-Darwin's two-level namespaces.  Some details about this can be found here
-
-http://developer.apple.com/documentation/ReleaseNotes/DeveloperTools/TwoLevelNamespaces.html
-
-Needless to say, you might have to experiment a bit to get things working at first.
+Installation
+============
+Please read the Doc/Manual/Preface.html#Preface_installation for
+full installation instructions for Windows, Unix and Mac OS X.
+The INSTALL file has generic build and installation instructions for
+Unix users.
 
 Testing
 =======
-If you want to test SWIG before installation, type the following:
-
-    % make -k check
-
-'make -k check' requires at least one of the target languages to be
-installed.  If it fails, it may mean that you have an uninstalled
-language module or that the file 'Examples/Makefile' has been
-incorrectly configured.  It may also fail due to compiler issues such
-as broken C++ compiler.  Even if 'make -k check' fails, there is a
-pretty good chance SWIG still works correctly---you will just have to
-mess around with one of the examples and some makefiles to get it to work.
-Some tests may also fail due to missing dependency packages, eg PCRE
-or Boost, but this will require careful analysis of the configure output.
-
-The testing suite executed by 'make -k check' is designed to stress-test
-many parts of the implementation including obscure corner cases. If some
-of these tests fail or generate warning messages, there is no reason for
-alarm---the test may be related to some new SWIG feature or a difficult bug
-that we're trying to resolve.  Chances are that SWIG will work just fine
-for you. Note that if you have more than one CPU/core, then you can use
-parallel make to speed up the check as it does take quite some time to run,
-for example:
-
-    % make -j2 -k check
-
-Also, SWIG's support for C++ is sufficiently advanced that certain
-tests may fail on older C++ compilers (for instance if your compiler
-does not support member templates).   These errors are harmless if you
-don't intend to use these features in your own programs.
-
-Note: The test-suite currently contains over 500 tests.  If you
-have many different target languages installed and a slow machine, it
-might take more than an hour to run the test-suite.
+The typical 'make -k check' can be performed on Unix operating systems.
+Please read Doc/Manual/Preface.html#Preface_testing for details.
 
 Examples
 ========
@@ -175,8 +83,9 @@ The Examples directory contains a variety of examples of using SWIG
 and it has some browsable documentation.  Simply point your browser to
 the file "Example/index.html".
 
-The Examples directory also includes Visual C++ project (.dsp) files for
-building some of the examples on Windows.
+The Examples directory also includes Visual C++ project 6 (.dsp) files for
+building some of the examples on Windows. Later versions of Visual Studio
+will convert these old style project files into a current solution file.
 
 Known Issues
 ============
@@ -188,7 +97,7 @@ Troubleshooting
 In order to operate correctly, SWIG relies upon a set of library
 files.  If after building SWIG, you get error messages like this,
 
-    % swig foo.i
+    $ swig foo.i
     :1. Unable to find 'swig.swg'
     :3. Unable to find 'tcl8.swg'
 
@@ -214,20 +123,6 @@ installed.  To fix this:
 
 If you are having other troubles, you might look at the SWIG Wiki at
 http://www.dabeaz.com/cgi-bin/wiki.pl.
-
-Documentation
-=============
-The Doc/Manual directory contains the most recent set of updated
-documentation for this release. The documentation is available in
-three different formats, each of which contains identical content.
-These format are, pdf (Doc/Manual/SWIGDocumentation.pdf), single
-page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
-(other files in Doc/Manual). Please select your chosen format and
-copy/install to wherever takes your fancy.
-
-There is some technical developer documentation available in the
-Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
-has some information on SWIG internals.
 
 Participate!
 ============
