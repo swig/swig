@@ -7,7 +7,7 @@ require_ok('return_const_value');
 
 # adapted from ../python/return_const_value_runme.py
 
-is(return_const_value::Foo_ptr::getPtr()->getVal(), 17);
+is(return_const_value::Foo_ptr->getPtr()->getVal(), 17);
 
-is(return_const_value::Foo_ptr::getConstPtr()->getVal(), 17);
+is(return_const_value::Foo_ptr->getConstPtr()->getVal(), 17);
 

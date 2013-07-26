@@ -114,7 +114,7 @@ namespace std {
                 T* ptr = new T(*i);
                 svs[j] = sv_newmortal();
                 SWIG_MakePtr(svs[j], (void*) ptr, 
-                             $descriptor(T *), $shadow|$owner);
+                             $descriptor(T *), $owner);
             }
             AV *myav = av_make(len, svs);
             delete[] svs;

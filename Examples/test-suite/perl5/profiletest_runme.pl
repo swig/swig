@@ -1,8 +1,12 @@
-use profiletest;
-$a = profiletestc::new_A();
-$b = profiletestc::new_B();
+use strict;
+use warnings;
+use Test::More 'no_plan';
+BEGIN { use_ok 'profiletest' }
+require_ok 'profiletest';
+my $a = profiletest::A->new();
+my $b = profiletest::B->new();
 
-for ($i = 0; $i < 100000; $i++) {
-    $a = profiletestc::B_fn($b, $a);
+for (my $i = 0; $i < 100000; $i++) {
+    $a = $b->fn($a);
 }
 

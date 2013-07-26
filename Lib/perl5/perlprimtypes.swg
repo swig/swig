@@ -41,7 +41,7 @@ SWIG_From_dec(long)(long value)
     sv = newSViv(value);
   else
     sv = newSVpvf("%ld", value);
-  return sv_2mortal(sv);
+  return sv;
 }
 }
 
@@ -106,7 +106,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
     sv = newSVuv(value);
   else
     sv = newSVpvf("%lu", value);
-  return sv_2mortal(sv);
+  return sv;
 }
 }
 
@@ -178,7 +178,7 @@ SWIG_From_dec(long long)(long long value)
     sprintf(temp, "%lld", value);
     sv = newSVpv(temp, 0);
   }
-  return sv_2mortal(sv);
+  return sv;
 }
 }
 
@@ -255,7 +255,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
     sprintf(temp, "%llu", value);
     sv = newSVpv(temp, 0);
   }
-  return sv_2mortal(sv);
+  return sv;
 }
 }
 
@@ -315,7 +315,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(double)(double value)
 {
-  return sv_2mortal(newSVnv(value));
+  return newSVnv(value);
 }
 }
 

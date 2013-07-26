@@ -16,7 +16,7 @@ sub ok_not ($;$) {
 pass("loaded");
 
 # first check all the operators are implemented correctly from pure C++ code
-operator_overloadc::Op_sanity_check();
+operator_overload::Op->sanity_check();
 
 my $op = operator_overload::Op->new();
 

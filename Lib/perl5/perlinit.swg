@@ -31,28 +31,6 @@ XS(SWIG_init) {
 
     SWIG_InitializeModule(0);
 
-    /* Install commands */
-    for (i = 0; swig_commands[i].name; i++) {
-      // Casts only needed for Perl < 5.10.
-#ifdef __cplusplus
-      newXS(const_cast<char*>(swig_commands[i].name), swig_commands[i].wrapper, const_cast<char*>(__FILE__));
-#else
-      newXS((char*)swig_commands[i].name, swig_commands[i].wrapper, (char*)__FILE__);
-#endif
-    }
-
-    /* Install variables */
-    for (i = 0; swig_variables[i].name; i++) {
-      SV *sv;
-      sv = get_sv(swig_variables[i].name, TRUE | 0x2 | GV_ADDMULTI);
-      if (swig_variables[i].type) {
-	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type,0);
-      } else {
-	sv_setiv(sv,(IV) 0);
-      }
-      swig_create_magic(sv, swig_variables[i].name, swig_variables[i].set, swig_variables[i].get); 
-    }
-
     /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;

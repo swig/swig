@@ -63,9 +63,9 @@ eval { $ex = default_args::Except->new($true, -2) };
 like($@, qr/-2/, "Except constructor 2");
 
 #Default parameters in static class methods
-is(default_args::Statics::staticmethod(), 60, "staticmethod 1");
-is(default_args::Statics::staticmethod(100), 150, "staticmethod 2");
-is(default_args::Statics::staticmethod(100,200,300), 600, "staticmethod 3");
+is(default_args::Statics->staticmethod(), 60, "staticmethod 1");
+is(default_args::Statics->staticmethod(100), 150, "staticmethod 2");
+is(default_args::Statics->staticmethod(100,200,300), 600, "staticmethod 3");
 
 my $tricky = new default_args::Tricky();
 is($tricky->privatedefault(), 200, "privatedefault");

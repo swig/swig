@@ -115,17 +115,17 @@ is($s->foo($b), "foo:Bar *", "Spam::foo(Bar *)");
 
 is($s->foo($v), "foo:void *", "Spam::foo(void *)");
 
-is(overload_simple::Spam::bar(3), "bar:int", "Spam::bar(int)");
+is(overload_simple::Spam->bar(3), "bar:int", "Spam::bar(int)");
 
-is(overload_simple::Spam::bar(3.0), "bar:double", "Spam::bar(double)");
+is(overload_simple::Spam->bar(3.0), "bar:double", "Spam::bar(double)");
 
-is(overload_simple::Spam::bar("hello"), "bar:char *", "Spam::bar(char *)");
+is(overload_simple::Spam->bar("hello"), "bar:char *", "Spam::bar(char *)");
 
-is(overload_simple::Spam::bar($f), "bar:Foo *", "Spam::bar(Foo *)");
+is(overload_simple::Spam->bar($f), "bar:Foo *", "Spam::bar(Foo *)");
 
-is(overload_simple::Spam::bar($b), "bar:Bar *", "Spam::bar(Bar *)");
+is(overload_simple::Spam->bar($b), "bar:Bar *", "Spam::bar(Bar *)");
 
-is(overload_simple::Spam::bar($v), "bar:void *", "Spam::bar(void *)");
+is(overload_simple::Spam->bar($v), "bar:void *", "Spam::bar(void *)");
 
 # Test constructors
 
