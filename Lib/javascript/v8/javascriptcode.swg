@@ -118,6 +118,11 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter)
 void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) 
 #endif
 {
+
+#ifdef BUILDING_NODE_EXTENSION
+  SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter); 
+#endif
+
   if(proxy->swigCMemOwn && proxy->swigCObject) {
 #ifdef SWIGRUNTIME_DEBUG
     printf("Deleting wrapped instance: %s\n", proxy->info->name);
@@ -126,11 +131,12 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   }
   delete proxy;
 
-  object->Clear();
 
 #ifdef BUILDING_NODE_EXTENSION
-  object->Dispose();
+  object.Clear();
+  object.Dispose();
 #else
+  object->Clear();
   object->Dispose(isolate);
 #endif
 }
@@ -275,7 +281,11 @@ fail:
 %fragment("jsv8_define_class_template", "templates") 
 %{
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
+#ifdef BUILDING_NODE_EXTENSION
+  $jsmangledname_clientData.class_templ = v8::Persistent<v8::FunctionTemplate>::New($jsmangledname_class);
+#else
   $jsmangledname_clientData.class_templ.Reset(v8::Isolate::GetCurrent(), $jsmangledname_class);
+#endif
   $jsmangledname_clientData.dtor = $jsdtor;  
   SWIGTYPE$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
@@ -423,7 +433,13 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
   v8::HandleScope scope;
 
   // a class template for creating proxies of undefined types
+
+#ifdef BUILDING_NODE_EXTENSION
+  SWIGV8_SWIGTYPE_Proxy_class_templ = v8::Persistent<v8::FunctionTemplate>::New(SWIGV8_CreateClassTemplate("SwigProxy"));
+#else
   SWIGV8_SWIGTYPE_Proxy_class_templ.Reset(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
+#endif
+
   
   /* create objects for namespaces */
   $jsv8nspaces
