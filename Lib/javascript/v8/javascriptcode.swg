@@ -300,7 +300,16 @@ fail:
 %{
   if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
   {
+#ifdef BUILDING_NODE_EXTENSION
     $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
+#else
+    $jsmangledname_class->Inherit(
+      v8::Handle<v8::FunctionTemplate>::New(
+        v8::Isolate::GetCurrent(),
+        static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ)
+     );
+#endif
+
 #ifdef SWIGRUNTIME_DEBUG
     printf("Inheritance successful $jsmangledname $jsbaseclass\n");
 #endif
