@@ -697,8 +697,7 @@ SWIGINTERN int SWIG_Lua_constructor_proxy(lua_State* L)
    lua_pushstring(L,".constructor");
    lua_rawget(L,1);
    assert(!lua_isnil(L,-1));
-   lua_copy(L,-1,1); /* replace our table with real constructor */
-   lua_pop(L,1);
+   lua_replace(L,1); /* replace our table with real constructor */
    lua_call(L,lua_gettop(L)-1,1);
    return 1;
 }
