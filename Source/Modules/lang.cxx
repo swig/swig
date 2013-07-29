@@ -2758,7 +2758,7 @@ int Language::destructorDeclaration(Node *n) {
 
   if (!CurrentClass)
     return SWIG_NOWRAP;
-  if (cplus_mode != PUBLIC && !Getattr(CurrentClass, "feature:unref"))
+  if (cplus_mode != PUBLIC && !Swig_unref_call(CurrentClass))
     return SWIG_NOWRAP;
   if (ImportMode)
     return SWIG_NOWRAP;
