@@ -6,8 +6,8 @@
 
 %include <modula3head.swg>
 
-/* The ctype, m3rawtype and m3wraptype typemaps work together and so there should be one of each. 
- * The ctype typemap contains the C type used in the signature of C wrappers for C++ functions. 
+/* The ctype, m3rawtype and m3wraptype typemaps work together and so there should be one of each.
+ * The ctype typemap contains the C type used in the signature of C wrappers for C++ functions.
  * The m3rawtype typemap contains the M3 type used in the raw interface.
  * The m3rawintype typemap contains the M3 type used as function argument.
  * The m3rawrettype typemap contains the M3 type used as return value.
@@ -365,19 +365,19 @@
 %typemap(in) bool
 %{ $1 = $input ? true : false; %}
 
-%typemap(in) char, 
-             signed char, 
-             unsigned char, 
-             short, 
-             unsigned short, 
-             int, 
-             unsigned int, 
-             long, 
-             unsigned long, 
-             long long, 
-             unsigned long long, 
-             float, 
-             double, 
+%typemap(in) char,
+             signed char,
+             unsigned char,
+             short,
+             unsigned short,
+             int,
+             unsigned int,
+             long,
+             unsigned long,
+             long long,
+             unsigned long long,
+             float,
+             double,
              enum SWIGTYPE
 %{ $1 = ($1_ltype)$input; %}
 
@@ -408,23 +408,23 @@
 
 /* primitive types by const reference */
 %typemap(in) const bool & (bool temp)
-%{ temp = $input ? true : false; 
+%{ temp = $input ? true : false;
    $1 = &temp; %}
 
-%typemap(in) const char & (char temp), 
-             const signed char & (signed char temp), 
-             const unsigned char & (unsigned char temp), 
-             const short & (short temp), 
-             const unsigned short & (unsigned short temp), 
-             const int & (int temp), 
-             const unsigned int & (unsigned int temp), 
-             const long & (long temp), 
-             const unsigned long & (unsigned long temp), 
-             const long long & ($*1_ltype temp), 
-             const unsigned long long & ($*1_ltype temp), 
-             const float & (float temp), 
+%typemap(in) const char & (char temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp),
+             const short & (short temp),
+             const unsigned short & (unsigned short temp),
+             const int & (int temp),
+             const unsigned int & (unsigned int temp),
+             const long & (long temp),
+             const unsigned long & (unsigned long temp),
+             const long long & ($*1_ltype temp),
+             const unsigned long long & ($*1_ltype temp),
+             const float & (float temp),
              const double & (double temp)
-%{ temp = ($*1_ltype)$input; 
+%{ temp = ($*1_ltype)$input;
 $1 = &temp; %}
 
 %typemap(out) const bool &               %{ $result = *$1; %}
@@ -444,13 +444,16 @@ $1 = &temp; %}
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = *($&1_ltype*)&$input; 
+%{ argp = *($&1_ltype*)&$input;
+/*
    if (!argp) {
 //     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
-     RETURN $null;
+     //RETURN $null;
+     return $null;
    }
+*/
    $1 = *argp; %}
-%typemap(out) SWIGTYPE 
+%typemap(out) SWIGTYPE
 #ifdef __cplusplus
 %{*($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1); %}
 #else
@@ -464,19 +467,23 @@ $1 = &temp; %}
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
-  if(!$1) {
+/*
+if(!$1) {
     //SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
-    RETURN $null;
-  } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
+    //RETURN $null;
+    return $null;
+  }
+*/
+%}
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %}
 
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
-%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %}
 
 /* char[ANY] - treat as String */
-%typemap(in) char[ANY] { 
+%typemap(in) char[ANY] {
     $1 = $input;
 }
 
@@ -485,7 +492,7 @@ $1 = &temp; %}
 %typemap(out) char[ANY] { if($1) $result = $1; }
 
 
-/* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
+/* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions
  * that cannot be overloaded in C# as more than one C++ type maps to a single C# type */
 
 %typecheck(SWIG_TYPECHECK_BOOL) /* Java boolean */
@@ -494,7 +501,7 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_CHAR) /* Java char */
-    char, 
+    char,
     const char &
     ""
 
@@ -504,28 +511,28 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_INT16) /* Java short */
-    unsigned char, 
-    short, 
-    const unsigned char &, 
+    unsigned char,
+    short,
+    const unsigned char &,
     const short &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT32) /* Java int */
-    unsigned short, 
-    int, 
-    long, 
-    const unsigned short &, 
-    const int &, 
+    unsigned short,
+    int,
+    long,
+    const unsigned short &,
+    const int &,
     const long &,
     enum SWIGTYPE
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Java long */
-    unsigned int, 
-    unsigned long, 
-    long long, 
-    const unsigned int &, 
-    const unsigned long &, 
+    unsigned int,
+    unsigned long,
+    long long,
+    const unsigned int &,
+    const unsigned long &,
     const long long &
     ""
 
@@ -549,20 +556,20 @@ $1 = &temp; %}
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER) /* Default */
-    SWIGTYPE, 
-    SWIGTYPE *, 
-    SWIGTYPE &, 
+    SWIGTYPE,
+    SWIGTYPE *,
+    SWIGTYPE &,
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
 
 /* Exception handling */
 
-%typemap(throws) int, 
-                 long, 
-                 short, 
-                 unsigned int, 
-                 unsigned long, 
+%typemap(throws) int,
+                 long,
+                 short,
+                 unsigned int,
+                 unsigned long,
                  unsigned short {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
@@ -584,7 +591,7 @@ $1 = &temp; %}
 
 /* Typemaps for code generation in proxy classes and C# type wrapper classes */
 
-/* The in typemap is used for converting function parameter types from the type 
+/* The in typemap is used for converting function parameter types from the type
  * used in the proxy, module or type wrapper class to the type used in the PInvoke class. */
 %typemap(m3in)     bool,               const bool &,
                  char,               const char &,
@@ -602,7 +609,7 @@ $1 = &temp; %}
                  double,             const double &,
                  char *,
                  char[ANY],
-                 enum SWIGTYPE 
+                 enum SWIGTYPE
     "$input"
 %typemap(m3in) SWIGTYPE "$&*1_type.getCPtr($input)"
 %typemap(m3in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$1_basetype.getCPtr($input)"
