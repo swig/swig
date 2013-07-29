@@ -42,6 +42,7 @@ static File *f_directors_h = 0;
 static File *f_init = 0;
 static File *f_shadow_py = 0;
 static String *f_shadow = 0;
+static String *f_shadow_begin = 0;
 static Hash *f_shadow_imports = 0;
 static String *f_shadow_builtin_imports = 0;
 static String *f_shadow_stubs = 0;
@@ -784,6 +785,7 @@ public:
       filen = NULL;
 
       f_shadow = NewString("");
+      f_shadow_begin = NewString("");
       f_shadow_imports = NewHash();
       f_shadow_builtin_imports = NewString("");
       f_shadow_stubs = NewString("");
@@ -977,6 +979,7 @@ public:
       if (!modern) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
+      Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
       Printv(f_shadow_py, "\n", f_shadow_builtin_imports, "\n", NIL);
       Printv(f_shadow_py, f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
@@ -4451,12 +4454,16 @@ public:
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
 
-    if ((!ImportMode) && ((Cmp(section, "python") == 0) || (Cmp(section, "shadow") == 0))) {
+    if (!ImportMode && (Cmp(section, "python") == 0 || Cmp(section, "shadow") == 0)) {
       if (shadow) {
 	String *pycode = pythoncode(code, shadow_indent);
 	Printv(f_shadow, pycode, NIL);
 	Delete(pycode);
       }
+    } else if (!ImportMode && (Cmp(section, "pythonbegin") == 0)) {
+      String *pycode = pythoncode(code, "");
+      Printv(f_shadow_begin, pycode, NIL);
+      Delete(pycode);
     } else {
       Language::insertDirective(n);
     }
@@ -4724,7 +4731,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  /* if necessary, cast away const since Python doesn't support it! */
 	  if (SwigType_isconst(nptype)) {
 	    nonconst = NewStringf("nc_tmp_%s", pname);
-	    String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
+	    String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
 	    Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
 	    Delete(nonconst_i);
 	    Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,

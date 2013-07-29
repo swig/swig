@@ -4,14 +4,38 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.11 (in progress)
 ============================
+2013-07-14: joequant
+            [R] Change types file to allow for SEXP return values
 
-2013-07-11: wsfulton
+2013-07-05: wsfulton
+            [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
+            added at the beginning of the generated .py file. This is primarily needed for importing from
+            __future__ statements required to be at the very beginning of the file. Example:
+
+              %pythonbegin %{
+              from __future__ import print_function
+              print("Loading", "Whizz", "Bang", sep=' ... ')
+              %}
+
+2013-07-01: wsfulton
+            [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
+            when using -builtin.
+
+2013-07-01: wsfulton
+            [Python, Ruby, Ocaml] Apply SF patch #341 - fix a const_cast in generated code that was generating
+            a <:: digraph when using the unary scope operator (::) (global scope) in a template type.
+
+2013-07-01: wsfulton
+            [Python] Add SF patch #342 from Christian Delbaere to fix some director classes crashing on
+            object deletion when using -builtin. Fixes SF bug #1301.
+
+2013-06-11: wsfulton
             [Python] Add SWIG_PYTHON_INTERPRETER_NO_DEBUG macro which can be defined to use the Release version
             of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
             files have been modified to use this so that Debug builds will now work without having
             to install or build a Debug build of the interpreter.
 
-2013-07-07: wsfulton
+2013-06-07: wsfulton
 	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
             versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
             Also fix the Complex helper functions external visibility (to static by default).

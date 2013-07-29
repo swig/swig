@@ -16,7 +16,8 @@ C_TEST_CASES += \
 
 CPP_TEST_CASES += \
 	r_double_delete \
-	r_overload_array
+	r_overload_array \
+	r_sexp
 
 include $(srcdir)/../common.mk
 

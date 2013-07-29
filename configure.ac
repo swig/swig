@@ -938,7 +938,7 @@ if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then
 
 # First figure out what the name of Octave is
 elif test "x$OCTAVEBIN" = xyes; then
-   AC_CHECK_PROGS(OCTAVE, octave)
+   AC_PATH_PROG(OCTAVE, [octave])
 
 else
    OCTAVE="$OCTAVEBIN"
@@ -946,31 +946,43 @@ fi
 
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for mkoctfile])
-   AS_IF([test "x`${OCTAVE} -qfH --eval 'mkoctfile -p CXX' 2>/dev/null`" != x],[
-     AC_MSG_RESULT([yes])
+   mkoctfile="`dirname ${OCTAVE}`/mkoctfile"
+   AS_IF([test -x "${mkoctfile}"],[
+      AC_MSG_RESULT([${mkoctfile}])
    ],[
-     AC_MSG_ERROR([mkoctfile is not installed])
+      AC_MSG_RESULT([not found, disabling Octave])
+      OCTAVE=
    ])
+fi
+if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for n in CPPFLAGS INCFLAGS; do
-     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_CPPFLAGS)
+   AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for n in ALL_CXXFLAGS; do
-     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_CXXFLAGS)
+   AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_LDFLAGS)
-else
-   AC_MSG_RESULT(could not figure out how to run octave)
+   AC_MSG_RESULT([$OCTAVE_LDFLAGS])
+   for octave_opt in --silent --norc --no-history --no-window-system; do
+      AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
+      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
+      AS_IF([test "x${octave_out}" = x],[
+         AC_MSG_RESULT([yes])
+         OCTAVE="${OCTAVE} ${octave_opt}"
+      ],[
+         AC_MSG_RESULT([no])
+      ])
+   done
 fi
 
 AC_SUBST(OCTAVE)

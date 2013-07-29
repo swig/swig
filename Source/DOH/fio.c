@@ -21,7 +21,7 @@ static DOH *encodings = 0;	/* Encoding hash */
 /* -----------------------------------------------------------------------------
  * Writen()
  *
- * Write's N characters of output and retries until all characters are
+ * Writes N characters of output and retries until all characters are
  * written.  This is useful should a write operation encounter a spurious signal.
  * ----------------------------------------------------------------------------- */
 
