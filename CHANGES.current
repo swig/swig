@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.11 (in progress)
 ============================
+2013-07-30: wsfulton
+            [Python, Ruby] Fix #64 #65: Missing code in std::multimap wrappers. Previously an instantiation
+            of a std::map was erroneously required in addition to an instantiation of std::multimap with the
+            same template parameters to prevent compilation errors for the wrappers of a std::multimap.
+
 2013-07-14: joequant
             [R] Change types file to allow for SEXP return values
 
