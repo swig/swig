@@ -82,3 +82,18 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *
   return SWIG_OK;
 }
 }
+
+%fragment("SWIG_SciBoolean_FromIntArrayAndSize", "header") {
+SWIGINTERN int
+SWIG_SciBoolean_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
+  SciErr sciErr;
+
+  sciErr = createMatrixOfBoolean(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _piData);
+  if(sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  return Rhs + _iVarOut;
+}
+}

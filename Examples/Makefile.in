@@ -1147,14 +1147,14 @@ R_CFLAGS=-fPIC
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
-	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
+	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
@@ -1217,19 +1217,26 @@ scilab_cpp: $(SRCS)
 		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' |$(SCILAB) -nwni -noatomsautoload -nb -f builder.sce; \
 	fi
 
-# ----------------------------------------------------------------- 
+# -----------------------------------------------------------------
 # Running a Scilab example
-# ----------------------------------------------------------------- 
+# -----------------------------------------------------------------
 
 scilab_run:
 	 @env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni -noatomsautoload -nb -f runme.sci
+
+# -----------------------------------------------------------------
+# Debugging a scilab example
+# -----------------------------------------------------------------
+
+scilab_debug:
+	 @env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -noatomsautoload -nb -debug -f runme.sci
 
 # -----------------------------------------------------------------
 # Cleaning the scilab examples
 # -----------------------------------------------------------------
 
 scilab_clean:
-	rm -f *.sce *.so lib*lib.c 
+	rm -f *.sce *.so lib*lib.c *_wrap.*
 
 ##################################################################
 #####                        Go                             ######

@@ -2,14 +2,25 @@
 
 %include matrix.i
 
-%apply (double *matrixAsInput, int rows, int cols) { (double *inputMatrix, int nbRow, int nbCol) }
-%apply (double **matrixAsOutput, int *rows, int *cols) { (double **resultMatrix, int *nbRowRes, int *nbColRes) }
+%apply (double *matrixIn, int matrixInRowCount, int matrixInColCount) { (double *inputMatrix, int nbRow, int nbCol) }
+%apply (double **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (double **resultMatrix, int *nbRowRes, int *nbColRes) }
 
+%apply (int *matrixIn, int matrixInRowCount, int matrixInColCount) { (int *inputMatrix, int nbRow, int nbCol) }
+%apply (int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (int **resultMatrix, int *nbRowRes, int *nbColRes) }
 
-%inline
-{
-  extern double sumMatrixElements(double *inputMatrix, int nbRow, int nbCol);
-  extern void squareMatrixElements(double *inputMatrix, int nbRow, int nbCol, double **resultMatrix, int *nbRowRes, int *nbColRes);
-  extern void getMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes);
-}
+%apply (char **vectorIn, int vectorInSize) { (char **inputVector, int size) }
+%apply (char ***vectorOut, int *vectorOutSize) { (char ***resultVector, int *sizeRes) }
+
+%inline %{
+  extern double sumDoubleMatrix(double *inputMatrix, int nbRow, int nbCol);
+  extern void squareDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, double **resultMatrix, int *nbRowRes, int *nbColRes);
+  extern void getDoubleMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes);
+
+  extern int sumIntegerMatrix(int *inputMatrix, int nbRow, int nbCol);
+  extern void squareIntegerMatrix(int *inputMatrix, int nbRow, int nbCol, int **resultMatrix, int *nbRowRes, int *nbColRes);
+  extern void getIntegerMatrix(int **resultMatrix, int *nbRowRes, int *nbColRes);
+
+  extern char* concatStringVector(char **inputVector, int size);
+  extern void getStringVector(char ***resultVector, int *sizeRes);
+%}
 
