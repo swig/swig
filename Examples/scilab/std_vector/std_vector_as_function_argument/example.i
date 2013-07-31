@@ -15,7 +15,6 @@ namespace std
     %template(DoubleVector) vector<double>;
     %template(StringVector) vector<std::string>;
     %template(BoolVector) vector<bool>;
-    %template(ClassAVector) vector<classA>;
     %template(ClassAPtrVector) vector<classA*>;
 }
 

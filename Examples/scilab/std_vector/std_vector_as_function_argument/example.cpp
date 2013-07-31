@@ -75,34 +75,6 @@ std::vector<bool> concat_bool_vector(const std::vector<bool> vector, const std::
     return concat_vector<bool>(vector, other_vector);
 }
 
-// object vectors
-
-std::vector<classA> create_classA_vector(const int size, const int value)
-{
-    std::vector<classA> out_vector;
-    for (int i=0; i<size; i++)
-    {
-        classA objA(value);
-        out_vector.push_back(objA);
-    }
-    return out_vector;
-}
-
-void print_classA_vector(const std::vector<classA>& vector)
-{
-   std::vector<classA>::const_iterator it;
-   std::cout << std::endl;
-   for (it = vector.begin(); it != vector.end(); ++it)
-   {
-        std::cout << "<classA a:" << it->a << ">" << std::endl;
-   }
-}
-
-std::vector<classA> concat_classA_vector(const std::vector<classA> vector, const std::vector<classA> other_vector)
-{
-    return concat_vector<classA>(vector, other_vector);
-}
-
 // pointer (on objects) vectors
 
 std::vector<classA*> create_classAPtr_vector(const int size, const int value)

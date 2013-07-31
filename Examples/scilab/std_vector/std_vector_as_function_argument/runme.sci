@@ -4,7 +4,6 @@ SWIG_Init();
 // This example shows how to use C++ fonctions with STL vectors arguments
 // Here, STL vectors are converted from/to Scilab matrices (SWIG_SCILAB_EXTRA_NATIVE_CONTAINERS is not defined)
 
-
 // double vectors
 
 disp("Example of passing matrices of double as vector arguments of C++ functions.");
@@ -54,17 +53,6 @@ bv2 = create_bool_vector(3, %F);
 disp("concat this vector with the vector of bool {false, false, false} with concat_bool_vector():");
 bv3 = concat_bool_vector(bv, bv2);
 disp(bv3);
-
-// object vectors
-
-disp("Example of passing lists of pointer on object as vector of objects arguments of C++ functions.");
-disp("get a vector of objects {<classA a:1>, <classA a:1>, <classA a:1>} with create_classA_vector():");
-pv = create_classA_vector(3, 1);
-print_classA_vector(pv);
-pv2 = create_classA_vector(2, 5);
-disp("concat this vector with the vector of objects {<classA a:5>, <classA a:5>} with concat_classA_vector():");
-pv3 = concat_classA_vector(pv, pv2);
-print_classA_vector(pv3);
 
 // pointer (on object) vectors
 

@@ -55,10 +55,10 @@ namespace swig {
   };
   template <typename T> struct traits_from_sequence {
     static int create(int size, void **sequence) {
-      return SWIG_FromCreate_Sequence_dec(ptr)(size, (long long **)sequence);
+      return SWIG_FromCreate_Sequence_dec(ptr)(size, (int ***)sequence);
     }
     static SciObject set(int size, void *sequence) {
-      return SWIG_FromSet_Sequence_dec(ptr)(size, (long long *)sequence);
+      return SWIG_FromSet_Sequence_dec(ptr)(size, (int **)sequence);
     }
   };
 }
@@ -107,32 +107,14 @@ namespace swig {
   fragment=SWIG_From_SequenceItem_frag(ptr)) {
 
 namespace swig {
-
-  // Default value container conversion of item
-
   template <typename T> struct traits_asval_sequenceitem {
     static int asval(SciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
-      T* tmp;
-      int ret = SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (void **)&tmp);
-      *pItemValue = *tmp;
+      return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (int **)pItemValue);
     }
   };
   template <typename T> struct traits_from_sequenceitem {
     static int from(void *pSequence, int iItemIndex, T itemValue) {
-      return SWIG_From_SequenceItem_dec(ptr)((long long *)pSequence, iItemIndex, (long long) &itemValue);
-    }
-  };
-
-  // Default pointer container conversion of item
-
-  template <typename T> struct traits_asval_sequenceitem<T*> {
-    static int asval(SciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {
-      return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (void **)pItemValue);
-    }
-  };
-  template <typename T> struct traits_from_sequenceitem<T*> {
-    static int from(void *pSequence, int iItemIndex, T *itemValue) {
-      return SWIG_From_SequenceItem_dec(ptr)((long long *)pSequence, iItemIndex, (long long) itemValue);
+      return SWIG_From_SequenceItem_dec(ptr)((int **)pSequence, iItemIndex, (int*)itemValue);
     }
   };
 }

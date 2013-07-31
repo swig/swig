@@ -22,22 +22,15 @@ std::vector<std::string> concat_string_vector(const std::vector<std::string> vec
 std::vector<bool> create_bool_vector(const int size, const bool value);
 std::vector<bool> concat_bool_vector(const std::vector<bool> vector, const std::vector<bool> other_vector);
 
-
+// pointer (on object) vectors
 class classA
 {
 public:
   classA() : a(0) {}
   classA(int _a) : a(_a) {}
+  classA(const classA& c) : a(c.a) {}
   int a;
 };
-
-// object vectors
-
-std::vector<classA> create_classA_vector(const int size, const int value);
-void print_classA_vector(const std::vector<classA>& pvector);
-std::vector<classA> concat_classA_vector(const std::vector<classA> vector, const std::vector<classA> other_vector);
-
-// pointer (on objects) vectors
 
 std::vector<classA*> create_classAPtr_vector(const int size, const int value);
 void print_classAPtr_vector(const std::vector<classA*>& pvector);
