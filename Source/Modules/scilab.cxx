@@ -17,10 +17,10 @@
 /*#define SWIG_DEBUG*/
 
 static const char *usage = (char*) "\
-Scilab Options (available with -scilab)\n\
-     -addsrc   - Additionnal source file for builder.sce file (Ex: myfile.cxx)\n\
-     -addcflag - Additionnal path to includes for builder.sce file (Ex: -I/usr/includes/)\n\
-     -addldlag - Additionnal library flag for builder.sce file (Ex: -lm)\n\n";
+Scilab options\n\
+     -addsrc <source files>  additionnal source files (separated by comma) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
+     -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
+     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\n";
 
 const char* SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 
