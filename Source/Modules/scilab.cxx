@@ -209,7 +209,7 @@ public:
     Delete(builderFile);
 
     /* Close the init function (opened in sciinit.swg) */
-    Printf(initSection, "return 0;\n}\n");
+    Printf(initSection, "return 0;\n}\n#endif\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection); // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)

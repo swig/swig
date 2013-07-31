@@ -253,5 +253,4 @@ SWIG_Scilab_SetModule(swig_module_info *swig_module)
 extern "C"
 int SWIG_Init(char *fname, unsigned long fname_len) {
   SWIG_InitializeModule(NULL);
-#endif
 %}
