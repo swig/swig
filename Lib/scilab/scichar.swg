@@ -99,7 +99,12 @@ SWIGINTERN int
 SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLength, char *_fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
+  char* pcTmpValue = NULL;
   int iRet;
+
+  if (_pcValue == NULL) {
+    return SWIG_ERROR;
+  }
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -107,14 +112,13 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
     return SWIG_ERROR;
   }
 
-  if (_pcValue == NULL) {
-    return SWIG_ERROR;
-  }
-
-  iRet = getAllocatedSingleString(_pvApiCtx, piAddrVar, &_pcValue);
+  iRet = getAllocatedSingleString(_pvApiCtx, piAddrVar, &pcTmpValue);
   if (iRet) {
     return SWIG_ERROR;
   }
+
+  strncpy(_pcValue, pcTmpValue, _iLength);
+  free(pcTmpValue);
 
   return SWIG_OK;
 }
