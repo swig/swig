@@ -30,3 +30,5 @@ delete_SquareDouble(s);
 
 printf("%i shapes remain\n", ShapeDouble_getNbShapes());
 
+exit
+

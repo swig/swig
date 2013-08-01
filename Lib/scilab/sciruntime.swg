@@ -69,7 +69,7 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 
 
 #define SWIG_fail                 return SWIG_ERROR;
-#define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)                                      
+#define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)
 #define SWIG_Error(code, msg)     SWIG_Scilab_ErrorMsg(code,msg)
 
 /* Used for C++ enums */
@@ -218,14 +218,39 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SciObject _output) {
   return SWIG_OK;
 }
 
-#define SwigScilabRaise(OBJ, TYPE, DESC) Scierror(999, "C++ side threw an exception of type %s.\n", TYPE)
+#define SWIG_Scilab_Raise(obj, type, desc) SwigScilabRaise(type)
+
+SWIGRUNTIME int
+SwigScilabRaise(const char *type) {
+  Scierror(999, "An exception of type %s has been thrown.\n", type);
+#ifdef __cplusplus
+  throw;
+#endif
+}
+
 %}
 
-//%insert(init) "swiginit.swg"
 %init %{
-/* -----------------------------------------------------------------------------*
- *  Partial Init method
- * -----------------------------------------------------------------------------*/
+#define SWIG_GetModule(clientdata) SWIG_Scilab_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Scilab_SetModule(pointer)
 
-SWIGEXPORT int SWIG_init(void) {
+SWIGRUNTIME swig_module_info*
+SWIG_Scilab_GetModule(void)
+{
+  return NULL;
+}
+
+SWIGRUNTIME void
+SWIG_Scilab_SetModule(swig_module_info *swig_module)
+{
+}
+%}
+
+%insert(init) "swiginit.swg"
+
+%init %{
+#ifdef __cplusplus
+extern "C"
+int SWIG_Init(char *fname, unsigned long fname_len) {
+  SWIG_InitializeModule(NULL);
 %}

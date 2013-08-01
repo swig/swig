@@ -5,10 +5,14 @@ contract
 enum
 funcptr
 matrix
-#matrix2
+matrix2
 pointer
 simple
+std_set
+std_vector/std_vector
+std_vector/std_vector_as_function_argument
 struct
+template
 variables
 
 

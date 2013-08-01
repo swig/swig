@@ -17,10 +17,12 @@
 /*#define SWIG_DEBUG*/
 
 static const char *usage = (char*) "\
-Scilab Options (available with -scilab)\n\
-     -addsrc   - Additionnal source file for builder.sce file (Ex: myfile.cxx)\n\
-     -addcflag - Additionnal path to includes for builder.sce file (Ex: -I/usr/includes/)\n\
-     -addldlag - Additionnal library flag for builder.sce file (Ex: -lm)\n\n";
+Scilab options\n\
+     -addsrc <source files>  additionnal source files (separated by comma) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
+     -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
+     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\n";
+
+const char* SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 
 class SCILAB : public Language {
 protected:
@@ -174,6 +176,11 @@ public:
 
     Printf(builderCode, "table = [");
 
+    /* In C++ mode, add initialization function to builder table */
+    if (CPlusPlus) {
+      Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
+    }
+
     /* Emit code for children */
     if (CPlusPlus) {
       Printf(wrappersSection, "extern \"C\" {\n");
@@ -201,8 +208,8 @@ public:
     Close(builderFile);
     Delete(builderFile);
 
-    /* Close the init function and quit (opened in sciruntime.swg) */
-    Printf(initSection, "return 0;\n}\n");
+    /* Close the init function (opened in sciinit.swg) */
+    Printf(initSection, "return 0;\n}\n#endif\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection); // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
@@ -218,6 +225,8 @@ public:
     Delete(initSection);
     Close(beginSection);
     Delete(beginSection);
+
+    Delete(sourceFileList);
 
     return SWIG_OK;
   }
@@ -350,7 +359,7 @@ public:
         maxOutputArguments++;
       }
 
-      Delete(functionReturnTypemap);
+      //Delete(functionReturnTypemap); // Makes SWIG crash on vararg test case.
 
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0), functionName);

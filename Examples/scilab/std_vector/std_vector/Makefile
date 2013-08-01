@@ -1,16 +1,20 @@
-TOP        = ../..
+TOP        = ../../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = example.cpp
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 
-all:
+all: check
+
+loader.sce:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' scilab_cpp
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile scilab_clean
-	rm -f *.sce *.so lib*lib.c *_wrap.cxx
 
-check: all
+check: loader.sce
 	$(MAKE) -f $(TOP)/Makefile scilab_run
+
+debug: loader.sce
+	$(MAKE) -f $(TOP)/Makefile scilab_debug
