@@ -23,7 +23,6 @@
 #define SWIG_From_SequenceItem_frag(Type...) %fragment_name(From_SequenceItem, Type)
 #define SWIG_From_SequenceItem_dec(Type...) %symbol_name(From_SequenceItem, Type)
 
-
 %include <scisequencepointer.swg>
 %include <scisequenceint.swg>
 %include <scisequencedouble.swg>
@@ -39,10 +38,35 @@
   fragment=SWIG_AsGet_Sequence_frag(ptr),
   fragment=SWIG_AsSize_Sequence_frag(ptr),
   fragment=SWIG_FromCreate_Sequence_frag(ptr),
-  fragment=SWIG_FromSet_Sequence_frag(ptr)) {
+  fragment=SWIG_FromSet_Sequence_frag(ptr),
+  fragment="StdTraits") {
 
 namespace swig {
+  // Returns an error for default (not specialized) value containers
+
   template <typename T> struct traits_as_sequence {
+    static int check(SciObject obj) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
+    }
+    static int get(SciObject obj, void **sequence) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
+    }
+    static int size(SciObject obj, int *size) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
+    }
+  };
+  template <typename T> struct traits_from_sequence {
+    static int create(int size, void **sequence) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
+    }
+    static SciObject set(int size, void *sequence) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
+    }
+  };
+
+  // But supports containers of pointers
+
+  template <typename T> struct traits_as_sequence<T*> {
     static int check(SciObject obj) {
       return SWIG_AsCheck_Sequence_dec(ptr)(obj);
     }
@@ -53,12 +77,12 @@ namespace swig {
       return SWIG_AsSize_Sequence_dec(ptr)(obj, size);
     }
   };
-  template <typename T> struct traits_from_sequence {
+  template <typename T> struct traits_from_sequence<T*> {
     static int create(int size, void **sequence) {
-      return SWIG_FromCreate_Sequence_dec(ptr)(size, (int ***)sequence);
+      return SWIG_FromCreate_Sequence_dec(ptr)(size, (long long **)sequence);
     }
     static SciObject set(int size, void *sequence) {
-      return SWIG_FromSet_Sequence_dec(ptr)(size, (int **)sequence);
+      return SWIG_FromSet_Sequence_dec(ptr)(size, (long long *)sequence);
     }
   };
 }
@@ -104,19 +128,35 @@ namespace swig {
 
 %fragment(SWIG_Traits_SequenceItem_frag(ptr), "header",
   fragment=SWIG_AsVal_SequenceItem_frag(ptr),
-  fragment=SWIG_From_SequenceItem_frag(ptr)) {
+  fragment=SWIG_From_SequenceItem_frag(ptr),
+  fragment="StdTraits") {
 
 namespace swig {
+  // Returns an error for default (not specialized) value containers
+
   template <typename T> struct traits_asval_sequenceitem {
     static int asval(SciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
-      return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (int **)pItemValue);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
   template <typename T> struct traits_from_sequenceitem {
     static int from(void *pSequence, int iItemIndex, T itemValue) {
-      return SWIG_From_SequenceItem_dec(ptr)((int **)pSequence, iItemIndex, (int*)itemValue);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
+
+  // But supports containers of pointers
+
+  template <typename T> struct traits_asval_sequenceitem<T*> {
+    static int asval(SciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {
+      return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (void **)pItemValue);
+    }
+  };
+  template <typename T> struct traits_from_sequenceitem<T*> {
+    static int from(void *pSequence, int iItemIndex, T *itemValue) {
+      return SWIG_From_SequenceItem_dec(ptr)((long long *)pSequence, iItemIndex, (long long) itemValue);
+     }
+   };
 }
 }
 
