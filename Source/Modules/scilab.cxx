@@ -205,7 +205,6 @@ public:
     Printf(builderCode, "exit");
     builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
     Printv(builderFile, builderCode, NIL);
-    Close(builderFile);
     Delete(builderFile);
 
     /* Close the init function (opened in sciinit.swg) */
@@ -223,7 +222,6 @@ public:
     Delete(headerSection);
     Delete(wrappersSection);
     Delete(initSection);
-    Close(beginSection);
     Delete(beginSection);
 
     Delete(sourceFileList);
