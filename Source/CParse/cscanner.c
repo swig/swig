@@ -9,13 +9,11 @@
  * scanner.c
  *
  * SWIG tokenizer.  This file is a wrapper around the generic C scanner
- * found in Swig/scanner.c.   Extra logic is added both to accomodate the
+ * found in Swig/scanner.c.   Extra logic is added both to accommodate the
  * bison-based grammar and certain peculiarities of C++ parsing (e.g.,
  * operator overloading, typedef resolution, etc.).  This code also splits
  * C identifiers up into keywords and SWIG directives.
  * ----------------------------------------------------------------------------- */
-
-char cvsroot_cscanner_c[] = "$Id$";
 
 #include "cparse.h"
 #include "parser.h"
@@ -103,10 +101,11 @@ void start_inline(char *text, int line) {
  * ----------------------------------------------------------------------------- */
 
 void skip_balanced(int startchar, int endchar) {
+  int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
   if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
-    Swig_error(Scanner_file(scan),Scanner_errline(scan), "Missing '%c'. Reached end of input.\n", endchar);
+    Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
     return;
   }
 
@@ -372,7 +371,7 @@ void scanner_clear_rename() {
   rename_active = 0;
 }
 
-/* Used to push a ficticious token into the scanner */
+/* Used to push a fictitious token into the scanner */
 static int next_token = 0;
 void scanner_next_token(int tok) {
   next_token = tok;

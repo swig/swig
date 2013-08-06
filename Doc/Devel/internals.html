@@ -42,6 +42,7 @@
 <li><a name="i7" href="#7">7. Debugging SWIG</a>
 <ul>
 <li><a name="i7.1" href="#7.1">7.1 Debugging DOH Types The Hard Way</a>
+<li><a name="i7.2" href="#7.2">7.2 Debugging DOH memory allocation problems</a>
 </ul>
 </ul>
 
@@ -1178,6 +1179,34 @@ Either <br>
 <br> will work depending on whether the underlying type is really a String * or char *.
 
 </ul>
+
+<a name="7.2" href="#i7.2">
+<h3>7.2 Debugging DOH memory allocation problems</h3>
+</a>
+
+<p>
+The DOH objects are reference counted and use pools for memory allocation.
+The implementation is in <tt>memory.c</tt>. When there are memory corruption problems,
+various memory allocator tools are normally used to diagnose problems. These can be used
+on SWIG and can be very useful. However, they won't necessarily find use of stale DOH objects,
+that is, DOH objects
+that are used after they have been deleted. This is because the DOH memory allocator
+grabs a chunk of memory from the C memory allocator and manages the usage internally.
+Stale DOH object usage can be checked for by defining <tt>DOH_DEBUG_MEMORY_POOLS</tt> in 
+<tt>memory.c</tt>. If an attempt to use an object is made after the reference count is
+zero, an assertion is triggered instead of quietly re-using the stale object...
+</p>
+
+<blockquote>
+<pre>
+swig: DOH/memory.c:91: DohCheck: Assertion `!DOH_object_already_deleted' failed.
+</pre>
+</blockquote>
+
+<p>
+This can be memory intensive as previously used memory in the pool is not re-used so is
+only recommended for diagnosing memory corruption problems.
+</p>
 
 <hr>
 Copyright (C) 1999-2010 SWIG Development Team.

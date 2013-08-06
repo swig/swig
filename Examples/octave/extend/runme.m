@@ -2,12 +2,12 @@
 
 # This file illustrates the cross language polymorphism using directors.
 
-example 
+swigexample
 
 
 # CEO class, which overrides Employee::getPosition().
 
-CEO=@(name) subclass(example.Manager(name),'getPosition',@(self) "CEO");
+CEO=@(name) subclass(swigexample.Manager(name),'getPosition',@(self) "CEO");
 
 # Create an instance of our employee extension class, CEO. The calls to
 # getName() and getPosition() are standard, the call to getTitle() uses
@@ -22,7 +22,7 @@ printf("----------------------\n");
 # Create a new EmployeeList instance.  This class does not have a C++
 # director wrapper, but can be used freely with other classes that do.
 
-list = example.EmployeeList();
+list = swigexample.EmployeeList();
 
 # EmployeeList owns its items, so we must surrender ownership of objects
 # we add. This involves first calling the __disown__ method to tell the
@@ -71,4 +71,3 @@ printf("----------------------\n");
 # All done.
 
 printf("octave exit\n");
-

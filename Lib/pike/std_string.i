@@ -25,7 +25,7 @@ namespace std {
       $1.assign(STR0($input.u.string));
     }
 
-    %typemap(in, pikedesc="tStr") const string & (std::string temp) {
+    %typemap(in, pikedesc="tStr") const string & ($*1_ltype temp) {
       if ($input.type != T_STRING)
         Pike_error("Bad argument: Expected a string.\n");
       temp.assign(STR0($input.u.string));
@@ -47,7 +47,7 @@ namespace std {
         throw Swig::DirectorTypeMismatchException("string expected");
     }
     
-    %typemap(directorout) const string & (std::string temp) {
+    %typemap(directorout) const string & ($*1_ltype temp) {
       if ($input.type == T_STRING) {
         temp.assign(STR0($input.u.string));
         $result = &temp;

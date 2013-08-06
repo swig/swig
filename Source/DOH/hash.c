@@ -11,8 +11,6 @@
  *     Implements a simple hash table object.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_hash_c[] = "$Id$";
-
 #include "dohint.h"
 
 extern DohObjInfo DohHashType;
@@ -415,12 +413,12 @@ static DOH *Hash_str(DOH *ho) {
 
   s = NewStringEmpty();
   if (ObjGetMark(ho)) {
-    Printf(s, "Hash(0x%x)", ho);
+    Printf(s, "Hash(%p)", ho);
     return s;
   }
   if (expanded >= max_expand) {
     /* replace each hash attribute with a '.' */
-    Printf(s, "Hash(0x%x) {", ho);
+    Printf(s, "Hash(%p) {", ho);
     for (i = 0; i < h->hashsize; i++) {
       n = h->hashtable[i];
       while (n) {
@@ -432,7 +430,7 @@ static DOH *Hash_str(DOH *ho) {
     return s;
   }
   ObjSetMark(ho, 1);
-  Printf(s, "Hash(0x%x) {\n", ho);
+  Printf(s, "Hash(%p) {\n", ho);
   for (i = 0; i < h->hashsize; i++) {
     n = h->hashtable[i];
     while (n) {

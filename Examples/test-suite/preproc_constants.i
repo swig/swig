@@ -39,6 +39,7 @@
 #define CONST_CHAR      'x'
 #define CONST_STRING1   "const string"
 #define CONST_STRING2   "const" " string"
+#define CONST_STRING3   "log-revprops"
 
 // Expressions - runtime tests check the type for any necessary type promotions of the expressions
 

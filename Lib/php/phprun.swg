@@ -12,6 +12,7 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/php_string.h"
+#include <stdlib.h> /* for abort(), used in generated code. */
 
 #ifdef ZEND_RAW_FENTRY
 /* ZEND_RAW_FENTRY was added somewhere between 5.2.0 and 5.2.3 */
@@ -78,7 +79,7 @@ static int default_error_code = E_ERROR;
   if (!(expr) ) { zend_printf("Contract Assert Failed %s\n",msg ); } else
 
 /* Standard SWIG API */
-#define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Php_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer)
 
 /* used to wrap returned objects in so we know whether they are newobject
@@ -251,7 +252,7 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
 }
 
 static char const_name[] = "swig_runtime_data_type_pointer";
-static swig_module_info *SWIG_Php_GetModule() {
+static swig_module_info *SWIG_Php_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   zval *pointer;
   swig_module_info *ret = 0;
 

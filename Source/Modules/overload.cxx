@@ -13,8 +13,6 @@
  * building a dispatch function.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_overload_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #define MAX_OVERLOAD 4096

@@ -1301,11 +1301,16 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(javain)  (char *STRING, size_t LENGTH) "$javainput"
 %typemap(freearg) (char *STRING, size_t LENGTH) ""
 %typemap(in)      (char *STRING, size_t LENGTH) {
+  if ($input) {
     $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
-    $2 = (size_t) JCALL1(GetArrayLength,       jenv, $input);
+    $2 = (size_t) JCALL1(GetArrayLength, jenv, $input);
+  } else {
+    $1 = 0;
+    $2 = 0;
+  }
 }
 %typemap(argout)  (char *STRING, size_t LENGTH) {
-    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
 }
 %typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
   jbyteArray jb = (jenv)->NewByteArray($2);

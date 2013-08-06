@@ -146,7 +146,7 @@ least work for Linux though):
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
-can load it for every script by adding this line the <tt>[PHP]</tt> section of
+can load it for every script by adding this line to the <tt>[PHP]</tt> section of
 <tt>php.ini</tt>:
 </p>
 
@@ -156,7 +156,7 @@ can load it for every script by adding this line the <tt>[PHP]</tt> section of
 
 <p>
 Alternatively, you can load it explicitly only for scripts which need it
-by adding this line:
+by adding this line to the start of each such PHP script::
 </p>
 
 <div class="code"><pre>
@@ -164,7 +164,7 @@ by adding this line:
 </pre></div>
 
 <p>
-to the start of each PHP file.  SWIG also generates a php module, which
+SWIG also generates a php module, which
 attempts to do the <tt>dl()</tt> call for you:
 </p>
 
@@ -506,6 +506,12 @@ this, one needs to include <b>phppointers.i</b> which defines the
 named typemap REFERENCE.
 </p>
 
+<p>
+However, this relies on call-time pass-by-reference, which has been
+deprecated in PHP for some time, and was finally <b>removed in PHP 5.4</b>.
+So you should avoid creating new wrappers which rely on this approach.
+</p>
+
 <div class="code"><pre>
 %module example
 %include "phppointers.i"
@@ -705,7 +711,7 @@ would be accessed in PHP as,
 <div class="code"><pre>
 include("example.php");
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
 
@@ -718,7 +724,7 @@ function, e.g.
 
 Ko::threats(10);
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
 <H4><a name="Php_nn2_6_4"></a>32.2.6.4 Static Member Functions</H4>
@@ -895,9 +901,6 @@ globally, to specific classes, and to specific methods, like this:
 
 // generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
-
-// generate a director for just Foo::bar()
-%feature("director") Foo::bar; 
 </pre>
 </div>
 

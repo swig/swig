@@ -1,15 +1,15 @@
 # file: runme.m
 
-example
+swigexample
 
 # Call some templated functions
-example.maxint(3,7)
-example.maxdouble(3.14,2.18)
+swigexample.maxint(3,7)
+swigexample.maxdouble(3.14,2.18)
 
 # Create some class
 
-iv = example.vecint(100)
-dv = example.vecdouble(1000)
+iv = swigexample.vecint(100)
+dv = swigexample.vecdouble(1000)
 
 for i=0:99,
   iv.setitem(i,2*i);
@@ -33,5 +33,3 @@ sum
 
 clear iv
 clear dv
-
-      

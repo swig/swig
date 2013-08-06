@@ -16,6 +16,35 @@ extern "C" {
 #include <assert.h>  /* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
+ * Lua flavors
+ * ----------------------------------------------------------------------------- */
+
+#define SWIG_LUA_FLAVOR_LUA 1
+#define SWIG_LUA_FLAVOR_ELUA 2
+#define SWIG_LUA_FLAVOR_ELUAC 3
+
+#if !defined(SWIG_LUA_TARGET)
+# error SWIG_LUA_TARGET not defined
+#endif
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
+#  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
+#else /* SWIG_LUA_FLAVOR_LUA */
+#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
+#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
+#  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
+#  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
+#endif
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+#  define LRO_STRVAL(v) {{.p = (char *) v}, LUA_TSTRING}
+#  define LSTRVAL LRO_STRVAL
+#endif
+
+/* -----------------------------------------------------------------------------
  * compatibility defines
  * ----------------------------------------------------------------------------- */
 
@@ -92,7 +121,7 @@ typedef struct swig_lua_class {
   const char **base_names;
 } swig_lua_class;
 
-/* this is the struct for wrappering all pointers in SwigLua
+/* this is the struct for wrapping all pointers in SwigLua
 */
 typedef struct {
   swig_type_info   *type;
@@ -100,7 +129,7 @@ typedef struct {
   void        *ptr;
 } swig_lua_userdata;
 
-/* this is the struct for wrapping arbitary packed binary data
+/* this is the struct for wrapping arbitrary packed binary data
 (currently it is only used for member function pointers)
 the data ordering is similar to swig_lua_userdata, but it is currently not possible
 to tell the two structures apart within SWIG, other than by looking at the type
@@ -184,7 +213,7 @@ SWIG_Lua_SetModule(lua_State* L, swig_module_info *module) {
  * ----------------------------------------------------------------------------- */
 
 /* this function is called when trying to set an immutable.
-default value is to print an error.
+default action is to print an error.
 This can removed with a compile flag SWIGLUA_IGNORE_SET_IMMUTABLE */
 SWIGINTERN int SWIG_Lua_set_immutable(lua_State* L)
 {
@@ -605,7 +634,7 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
       swig_type_info *info = SWIG_TypeQueryModule(module,module,clss->base_names[i]);
       if (info) clss->bases[i] = (swig_lua_class *) info->clientdata;
     }
-  }	
+  }
 }
 
 /* performs the entire class registration process */
@@ -853,8 +882,8 @@ SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
 #ifndef SWIG_DOSTRING_FAIL /* Allows redefining of error function */
 #define SWIG_DOSTRING_FAIL(S) fprintf(stderr,"%s\n",S)
 #endif
-/* Executes a C string in Lua a really simple way of calling lua from C
-Unfortunately lua keeps changing its API's, so we need a conditional compile
+/* Executes a C string in Lua which is a really simple way of calling lua from C
+Unfortunately lua keeps changing its APIs, so we need a conditional compile
 In lua 5.0.X its lua_dostring()
 In lua 5.1.X its luaL_dostring()
 */

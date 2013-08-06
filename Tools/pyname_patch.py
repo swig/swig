@@ -109,7 +109,7 @@ def main(fns):
             if patch_file(fn):
                 print "Patched file", fn
         except IOError:
-            print "Error occured during patching", fn
+            print "Error occurred during patching", fn
     return
 
 if __name__=="__main__":

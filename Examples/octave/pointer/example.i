@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 
 %{
 extern void add(int *, int *, int *);

@@ -108,7 +108,7 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #endif
 
 #define SWIG_NewPointerObj(p,type,flags) caml_val_ptr(p,type)
-#define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Ocaml_SetModule(pointer)
 
 #define SWIG_contract_assert(expr, msg) if(!(expr)) {failwith(msg);} else

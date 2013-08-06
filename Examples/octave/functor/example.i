@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 
 
 %inline %{
@@ -23,7 +23,3 @@ public:
 // Instantiate a few versions
 %template(intSum) Sum<int>;
 %template(doubleSum) Sum<double>;
-
-
-
-

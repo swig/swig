@@ -117,3 +117,22 @@ void hoop(WasCrashing was) {}
 enum BigNumbers { big=0x80000000, bigger };
 %}
 
+// Member variable qualification
+%typemap(cstype) bool "badtype1"
+%typemap(cstype) bool mvar "badtype2"
+%typemap(cstype) bool svar "badtype4"
+%typemap(cstype) bool gvar "badtype5"
+%typemap(cstype) bool MVar::mvar "bool"
+%typemap(cstype) bool MVar::svar "bool"
+%typemap(cstype) bool Glob::gvar "bool"
+%inline %{
+struct MVar {
+  bool mvar;
+  static bool svar;
+};
+namespace Glob {
+  bool gvar;
+}
+bool MVar::svar = false;
+%}
+

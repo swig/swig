@@ -19,7 +19,7 @@ extern "C" {
 #endif
 /* this is the initialization function
   added at the very end of the code
-  the function is always called SWIG_init, but an eariler #define will rename it
+  the function is always called SWIG_init, but an earlier #define will rename it
 */
 #if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
 LUALIB_API int SWIG_init(lua_State* L)
@@ -53,7 +53,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
-  /* set up base class pointers (the hierachy) */
+  /* set up base class pointers (the hierarchy) */
   for (i = 0; swig_types[i]; i++){
     if (swig_types[i]->clientdata){
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));

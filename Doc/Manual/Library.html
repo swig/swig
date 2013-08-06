@@ -66,18 +66,19 @@ Library files are included using the <tt>%include</tt> directive.
 When searching for files, directories are searched in the following order:
 </p>
 
-<ul>
+<ol>
 <li>The current directory
 <li>Directories specified with the <tt>-I</tt> command line option
 <li>.<tt>/swig_lib</tt>
 <li>SWIG library install location as reported by <tt>swig -swiglib</tt>, for example <tt>/usr/local/share/swig/1.3.30</tt>
 <li>On Windows, a directory <tt>Lib</tt> relative to the location of <tt>swig.exe</tt> is also searched.
-</ul>
+</ol>
 
 <p>
-Within each directory, SWIG first looks for a subdirectory corresponding to a target language (e.g., <tt>python</tt>,
-<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows
-for language-specific implementations of library files.
+Within directories mentioned in points 3-5, SWIG first looks for a subdirectory
+corresponding to a target language (e.g., <tt>python</tt>, <tt>tcl</tt>, etc.).
+If found, SWIG will search the language specific directory first. This allows
+for language-specific implementations of library files. 
 </p>
 
 <p>
@@ -1870,6 +1871,8 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 ... as before ...
 </pre>
 </div>
+
+<b>Note:</b> There is currently no support for <tt>%shared_ptr</tt> and the director feature.
 
 <H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
 
