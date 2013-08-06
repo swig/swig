@@ -18,7 +18,7 @@
 
 static const char *usage = (char*) "\
 Scilab options\n\
-     -addsrc <source files>  additionnal source files (separated by comma) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
+     -addsrc <source files>  additionnal source files (separated by space) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
      -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
      -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\n";
 
