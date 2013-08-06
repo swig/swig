@@ -30,6 +30,8 @@ matrix:
       env: SWIGLANG=ruby
     - compiler: gcc
       env: SWIGLANG=tcl
+    - compiler: gcc
+      env: SWIGLANG=scilab
   allow_failures:
       # None
 before_install:
@@ -41,6 +43,7 @@ before_install:
   - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
+  - if test "$SWIGLANG" = "scilab"; then sudo apt-get -qq install scilab; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
   - if test "$SWIGLANG" = "python" -a "$PY3"; then sudo apt-get install python3-dev; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
