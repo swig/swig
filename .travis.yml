@@ -7,29 +7,7 @@ env:
 matrix:
   include:
     - compiler: gcc
-      env: SWIGLANG=csharp
-    - compiler: gcc
-      env: SWIGLANG=go
-    - compiler: gcc
-      env: SWIGLANG=guile
-    - compiler: gcc
-      env: SWIGLANG=java
-    - compiler: gcc
-      env: SWIGLANG=lua
-    - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
-    - compiler: gcc
-      env: SWIGLANG=perl5
-    - compiler: gcc
-      env: SWIGLANG=php
-    - compiler: gcc
       env: SWIGLANG=python
-    - compiler: gcc
-      env: SWIGLANG=python PY3=1
-    - compiler: gcc
-      env: SWIGLANG=ruby
-    - compiler: gcc
-      env: SWIGLANG=tcl
     - compiler: gcc
       env: SWIGLANG=scilab
   allow_failures:
@@ -58,3 +36,4 @@ script:
 branches:
   only:
     - master
+    - gsoc2012-scilab
