@@ -44,7 +44,7 @@ public:
 	const Employee *get_item(int i) {
 		return list[i];
 	}
-	~EmployeeList() { 
+	~EmployeeList() {
 		std::vector<Employee*>::iterator i;
 		std::cout << "~EmployeeList, deleting " << list.size() << " employees." << std::endl;
 		for (i=list.begin(); i!=list.end(); i++) {
@@ -53,4 +53,3 @@ public:
 		std::cout << "~EmployeeList empty." << std::endl;
 	}
 };
-

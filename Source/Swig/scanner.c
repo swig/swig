@@ -14,8 +14,6 @@
  * to easily construct yacc-compatible scanners.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_scanner_c[] = "$Id$";
-
 #include "swig.h"
 #include <ctype.h>
 
@@ -65,6 +63,7 @@ Scanner *NewScanner(void) {
   s->text = NewStringEmpty();
   s->str = 0;
   s->error = 0;
+  s->error_line = 0;
   s->freeze_line = 0;
   return s;
 }
@@ -104,6 +103,12 @@ void Scanner_clear(Scanner * s) {
   s->nexttoken = -1;
   s->start_line = 0;
   s->yylen = 0;
+  /* Should these be cleared too?
+  s->idstart;
+  s->file;
+  s->error_line;
+  s->freeze_line;
+  */
 }
 
 /* -----------------------------------------------------------------------------
@@ -209,10 +214,8 @@ static char nextchar(Scanner * s) {
     if (Len(s->scanobjs) == 0)
       return 0;
     s->str = Getitem(s->scanobjs, 0);
-    if (s->str) {
-      s->line = Getline(s->str);
-      DohIncref(s->str);
-    }
+    s->line = Getline(s->str);
+    DohIncref(s->str);
   }
   if ((nc == '\n') && (!s->freeze_line)) 
     s->line++;
@@ -273,7 +276,7 @@ static void retract(Scanner * s, int n) {
     if (str[l - 1] == '\n') {
       if (!s->freeze_line) s->line--;
     }
-    Seek(s->str, -1, SEEK_CUR);
+    (void)Seek(s->str, -1, SEEK_CUR);
     Delitem(s->text, DOH_END);
   }
 }
@@ -1138,7 +1141,7 @@ void Scanner_skip_line(Scanner * s) {
     if ((c = nextchar(s)) == 0)
       return;
     if (c == '\\') {
-      c = nextchar(s);
+      nextchar(s);
     } else if (c == '\n') {
       done = 1;
     }
@@ -1319,7 +1322,7 @@ void Scanner_locator(Scanner *s, String *loc) {
   } else {
     int c;
     Locator *l;
-    Seek(loc, 7, SEEK_SET);
+    (void)Seek(loc, 7, SEEK_SET);
     c = Getc(loc);
     if (c == '@') {
       /* Empty locator.  We pop the last location off */

@@ -7,9 +7,10 @@ SWIGOPT    =
 MODULA3SRCS = *.[im]3
 MODULA3FLAGS= -o runme
 
-all::	modula3
+check: build
+	$(MAKE) -f $(TOP)/Makefile modula3_run
 
-modula3::
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' modula3_cpp
 #	$(MAKE) -f $(TOP)/Makefile MODULA3SRCS='$(MODULA3SRCS)' MODULA3FLAGS='$(MODULA3FLAGS)' modula3_compile
@@ -17,7 +18,5 @@ modula3::
 	mv m3makefile $(MODULA3SRCS) src/
 	cm3
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile modula3_clean
-
-check: all

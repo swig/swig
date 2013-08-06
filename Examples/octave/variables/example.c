@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "example.h"
 
-int              ivar = 0;                    
+int              ivar = 0;
 short            svar = 0;
 long             lvar = 0;
 unsigned int     uivar = 0;

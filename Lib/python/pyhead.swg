@@ -5,6 +5,7 @@
 #define PyInt_Check(x) PyLong_Check(x)
 #define PyInt_AsLong(x) PyLong_AsLong(x)
 #define PyInt_FromLong(x) PyLong_FromLong(x)
+#define PyInt_FromSize_t(x) PyLong_FromSize_t(x)
 #define PyString_Check(name) PyBytes_Check(name)
 #define PyString_FromString(x) PyUnicode_FromString(x)
 #define PyString_Format(fmt, args)  PyUnicode_Format(fmt, args)
@@ -172,6 +173,10 @@ static long PyNumber_AsSsize_t (PyObject *x, void *SWIGUNUSEDPARM(exc))
   }
   return result;
 }
+#endif
+
+#if PY_VERSION_HEX < 0x02050000
+#define PyInt_FromSize_t(x) PyInt_FromLong((long)x)
 #endif
 
 #if PY_VERSION_HEX < 0x02040000

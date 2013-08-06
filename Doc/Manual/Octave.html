@@ -63,7 +63,7 @@ The SWIG implemention was first based on Octave 2.9.12, so this is the minimum v
 </p>
 
 <p>
-As of SWIG 2.0.5, the Octave module should work with Octave versions 3.0.5, 3.2.4, and 3.4.0.
+As of SWIG 2.0.7, the Octave module has been tested with Octave versions 3.0.5, 3.2.4, 3.4.3, and 3.6.1.
 </p>
 
 <H2><a name="Octave_nn3"></a>30.2 Running SWIG</H2>
@@ -74,7 +74,7 @@ Let's start with a very simple SWIG interface file, example.i:
 </p>
 
 <div class="code"><pre>
-%module example
+%module swigexample
 %{
 #include "example.h"
 %}
@@ -95,7 +95,7 @@ The <tt>-c++</tt> option is also required when wrapping C++ code:
 <div class="shell"><pre>$ swig -octave -c++ -o example_wrap.cpp example.i </pre></div>
 
 <p>
-This creates a C++ source file <tt>example_wrap.cpp</tt>. A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
+This creates a C++ source file "example_wrap.cpp". A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
 </p>
 
 <H3><a name="Octave_nn4"></a>30.2.1 Command-line options</H3>
@@ -110,15 +110,12 @@ Options specific to the Octave module are:
 <pre>$ swig -octave -help
 ...
 Octave Options (available with -octave)
-     -global       - Load all symbols into the global namespace [default]
      -globals <em>name</em> - Set <em>name</em> used to access C global variables [default: 'cvar']
-                         - Use '.' to load C global variables into module namespace
-     -noglobal     - Do not load all symbols into the global namespace
+                     Use '.' to load C global variables into module namespace
      -opprefix <em>str</em> - Prefix <em>str</em> for global operator functions [default: 'op_']
 </pre></div>
 
 <p>
-The <em>-global</em> and <em>-noglobal</em> options determine whether the Octave module will load all symbols into the global namespace in addition to the global namespace.
 The <em>-globals</em> option sets the name of the variable which is the namespace for C global variables exported by the module.
 The special name "." loads C global variables into the module namespace, i.e. alongside C functions and structs exported by the module.
 The <em>-opprefix</em> options sets the prefix of the names of global/friend <a href="#Octave_nn18">operator</a> functions.
@@ -138,7 +135,7 @@ $ mkoctfile example_wrap.cpp example.c
 </pre></div>
 
 <p>
-        where example.c is the file containing the gcd() implementation. 
+        where "example.c" is the file containing the gcd() implementation. 
 </p>
 
 <p>
@@ -146,10 +143,10 @@ $ mkoctfile example_wrap.cpp example.c
 </p>
 
 <p>
-        mkoctfile will produce example.oct, which contains the compiled extension module. Loading it into Octave is then a matter of invoking 
+        mkoctfile will produce "swigexample.oct", which contains the compiled extension module. Loading it into Octave is then a matter of invoking 
 </p>
 
-          <div class="targetlang"><pre>octave:1&gt; example</pre></div>
+          <div class="targetlang"><pre>octave:1&gt; swigexample</pre></div>
 
 <H3><a name="Octave_nn6"></a>30.2.3 Using your module</H3>
 
@@ -160,13 +157,13 @@ Assuming all goes well, you will be able to do this:
 </p>
 
           <div class="targetlang"><pre>$ octave -q
-octave:1&gt; example
-octave:2&gt; example.gcd(4,6)
+octave:1&gt; swigexample
+octave:2&gt; swigexample.gcd(4,6)
 ans =  2
-octave:3&gt; example.cvar.Foo
+octave:3&gt; swigexample.cvar.Foo
 ans =  3
-octave:4&gt; example.cvar.Foo=4;
-octave:5&gt; example.cvar.Foo
+octave:4&gt; swigexample.cvar.Foo=4;
+octave:5&gt; swigexample.cvar.Foo
 ans =  4 </pre></div>
 
 <H2><a name="Octave_nn7"></a>30.3 A tour of basic C/C++ wrapping</H2>
@@ -176,59 +173,26 @@ ans =  4 </pre></div>
 
 
 <p>
-The SWIG module directive specifies the name of the Octave module. If you specify `module example', then in Octave everything in the module will be accessible under "example", as in the above example. When choosing a module name, make sure you don't use the same name as a built-in Octave command or standard module name.
+The SWIG module directive specifies the name of the Octave module. If you specify "module swigexample", then in Octave everything in the module will be accessible under "swigexample", as in the above example. When choosing a module name, make sure you don't use the same name as a built-in Octave command or standard module name.
 </p>
 
 <p>
-When Octave is asked to invoke <tt>example</tt>, it will try to find the .m or .oct file that defines the function "example". It will thusly find example.oct, that upon loading will register all of the module's symbols.
+When Octave is asked to invoke <tt>swigexample</tt>, it will try to find the ".m" or ".oct" file that defines the function "swigexample". You therefore need to make sure that "swigexample.oct" is in Octave's search path, which can be specified with the environment variable "OCTAVE_PATH".
 </p>
 
 <p>
-An Octave module takes three options, <em>-global</em>, <em>-noglobal</em>, and <em>-globals</em>, which behave the same as the corresponding swig <a href="#Octave_nn4">command-line options</a>.
-Here are some example usages:
+To load an Octave module, simply type its name:
 </p>
 
-    <div class="targetlang"><pre>
-octave:1&gt; example -help
-usage: example [-global|-noglobal] [-globals &lt;name&gt;]
-octave:2&gt; example -global
-octave:3&gt; gcd(4,6)
+<div class="targetlang"><pre>
+octave:1&gt; swigexample;
+octave:2&gt; gcd(4,6)
 ans =  2
-octave:4&gt; cvar.Foo
-ans =  3
-octave:5&gt; cvar.Foo=4;
-octave:6&gt; cvar.Foo
-ans =  4
-</pre></div>
-<br>
-    <div class="targetlang"><pre>
-octave:1&gt; example -noglobal
-octave:2&gt; gcd(6,9)
-ans =  3
 octave:3&gt; cvar.Foo
-error: `cvar' undefined near line 3 column 1
-octave:3&gt; example.cvar.Foo
 ans =  3
-</pre></div>
-<br>
-    <div class="targetlang"><pre>
-octave:1&gt; example -globals mycvar
-octave:2&gt; cvar.Foo
-error: `cvar' undefined near line 2 column 1
-octave:2&gt; mycvar.Foo
-ans =  3
-</pre></div>
-
-<p>
-     It is also possible to rename the module / global variables namespaces with an assignment, as in: <br>
-    <div class="targetlang"><pre>
-octave:1&gt; example
-octave:2&gt; c=example;
-octave:3&gt; c.gcd(10,4)
-ans =  2
-octave:4&gt; some_vars = cvar;
-octave:5&gt; some_vars.Foo
-ans =  3
+octave:4&gt; cvar.Foo=4;
+octave:5&gt; cvar.Foo
+ans =  4
 </pre></div>
 
 <p>
@@ -238,15 +202,15 @@ If the module is also used in the base context, however, it must first be loaded
 
 <div class="targetlang"><pre>
 octave:1&gt; function l = my_lcm(a,b)
-&gt; example
-&gt; l = abs(a*b)/example.gcd(a,b);
+&gt; swigexample
+&gt; l = abs(a*b)/swigexample.gcd(a,b);
 &gt; endfunction
 octave:2&gt; my_lcm(4,6)
 ans =  12
-octave:3&gt; example.gcd(4,6)
+octave:3&gt; swigexample.gcd(4,6)
 error: can't perform indexing operations for &lt;unknown type&gt; type
-octave:3&gt; example;
-octave:4&gt; example.gcd(4,6)
+octave:3&gt; swigexample;
+octave:4&gt; swigexample.gcd(4,6)
 ans =  2
 </pre></div>
 
@@ -257,14 +221,14 @@ ans =  2
 Global functions are wrapped as new Octave built-in functions. For example, 
 </p>
 
-      <div class="code"><pre>&#037;module example
+      <div class="code"><pre>&#037;module swigexample
 int fact(int n); </pre></div>
 
 <p>
-     creates a built-in function <tt>example.fact(n)</tt> that works exactly like you think it does: 
+     creates a built-in function <tt>swigexample.fact(n)</tt> that works exactly like you think it does: 
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example.fact(4)
+    <div class="targetlang"><pre>octave:1&gt; swigexample.fact(4)
 24 </pre></div>
 
 <H3><a name="Octave_nn10"></a>30.3.3 Global variables</H3>
@@ -274,28 +238,28 @@ int fact(int n); </pre></div>
      Global variables are a little special in Octave. Given a global variable: 
 </p>
 
-    <div class="code"><pre>%module example
+<div class="code"><pre>%module swigexample
 extern double Foo;
-      </pre></div>
+</pre></div>
 
 <p>
     To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_set would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example;
-octave:2&gt; c=example.cvar.Foo
+    <div class="targetlang"><pre>octave:1&gt; swigexample;
+octave:2&gt; c=swigexample.cvar.Foo
 c =  3
-octave:3&gt; example.cvar.Foo=4;
+octave:3&gt; swigexample.cvar.Foo=4;
 octave:4&gt; c
 c =  3
-octave:5&gt; example.cvar.Foo
+octave:5&gt; swigexample.cvar.Foo
 ans =  4</pre></div>
 
 <p>
 If a variable is marked with the %immutable directive then any attempts to set this variable will cause an Octave error. Given a global variable: 
 </p>
 
-    <div class="code"><pre>%module example
+    <div class="code"><pre>%module swigexample
 %immutable;
 extern double Foo;
 %mutable;
@@ -305,8 +269,8 @@ extern double Foo;
      SWIG will allow the reading of <tt>Foo</tt> but when a set attempt is made, an error function will be called. 
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example
-octave:2&gt; example.Foo=4
+    <div class="targetlang"><pre>octave:1&gt; swigexample
+octave:2&gt; swigexample.Foo=4
 error: attempt to set immutable member variable
 error: assignment failed, or no method for `swig_type = scalar'
 error: evaluating assignment expression near line 2, column 12 </pre></div>
@@ -315,9 +279,9 @@ error: evaluating assignment expression near line 2, column 12 </pre></div>
     It is possible to add new functions or variables to the module. This also allows the user to rename/remove existing functions and constants (but not linked variables, mutable or immutable). Therefore users are recommended to be careful when doing so. 
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example;
-octave:2&gt; example.PI=3.142;
-octave:3&gt; example.PI
+    <div class="targetlang"><pre>octave:1&gt; swigexample;
+octave:2&gt; swigexample.PI=3.142;
+octave:3&gt; swigexample.PI
 ans =  3.1420 </pre></div>
 
 <H3><a name="Octave_nn11"></a>30.3.4 Constants and enums</H3>
@@ -327,7 +291,7 @@ ans =  3.1420 </pre></div>
      Because Octave doesn't really have the concept of constants, C/C++ constants are not really constant in Octave. They are actually just a copy of the value into the Octave interpreter. Therefore they can be changed just as any other value. For example given some constants: 
 </p>
 
-    <div class="code"><pre>%module example
+    <div class="code"><pre>%module swigexample
 %constant int ICONST=42;
 #define    SCONST      "Hello World"
 enum Days{SUNDAY,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
@@ -337,9 +301,9 @@ enum Days{SUNDAY,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
     This is 'effectively' converted into the following Octave code: 
 </p>
 
-    <div class="targetlang"><pre>example.ICONST=42
-example.SCONST="Hello World"
-example.SUNDAY=0
+    <div class="targetlang"><pre>swigexample.ICONST=42
+swigexample.SCONST="Hello World"
+swigexample.SUNDAY=0
 .... </pre></div>
 
 <H3><a name="Octave_nn12"></a>30.3.5 Pointers</H3>
@@ -350,7 +314,7 @@ example.SUNDAY=0
        C/C++ pointers are fully supported by SWIG. Furthermore, SWIG has no problem working with incomplete type information. Given a wrapping of the &lt;file.h&gt; interface:
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>%module swigexample
 FILE *fopen(const char *filename, const char *mode);
 int fputs(const char *, FILE *);
 int fclose(FILE *);
@@ -361,18 +325,18 @@ When wrapped, you will be able to use the functions in a natural way from Octave
 </p>
 
 <div class="targetlang"><pre>
-octave:1&gt; example;
-octave:2&gt; f=example.fopen("w","junk");
-octave:3&gt; example.fputs("Hello world",f);
-octave:4&gt; example.fclose(f);
+octave:1&gt; swigexample;
+octave:2&gt; f=swigexample.fopen("w","junk");
+octave:3&gt; swigexample.fputs("Hello world",f);
+octave:4&gt; swigexample.fclose(f);
 </pre></div>
 
 <p>
      Simply printing the value of a wrapped C++ type will print it's typename. E.g., 
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example;
-octave:2&gt; f=example.fopen("junk","w");
+    <div class="targetlang"><pre>octave:1&gt; swigexample;
+octave:2&gt; f=swigexample.fopen("junk","w");
 octave:3&gt; f
 f =
 
@@ -384,8 +348,8 @@ f =
     As the user of the pointer, you are responsible for freeing it, or closing any resources associated with it (just as you would in a C program). This does not apply so strictly to classes and structs (see below).
 </p>
 
-    <div class="targetlang"><pre>octave:1&gt; example;
-octave:2&gt; f=example.fopen("not there","r");
+    <div class="targetlang"><pre>octave:1&gt; swigexample;
+octave:2&gt; f=swigexample.fopen("not there","r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
 
@@ -407,8 +371,8 @@ For each wrapped structure and class, a <tt>swig_ref</tt> will be exposed that h
 </p>
 
     <div class="targetlang">
-      <pre>octave:1&gt; example;
-octave:2&gt; p=example.Point();
+      <pre>octave:1&gt; swigexample;
+octave:2&gt; p=swigexample.Point();
 octave:3&gt; p.x=3;
 octave:4&gt; p.y=5;
 octave:5&gt; p.x, p.y
@@ -442,9 +406,9 @@ public:
 can be used from Octave like this
 </p>
     <div class="targetlang">
-      <pre>octave:1&gt; example;
-octave:2&gt; p1=example.Point(3,5);
-octave:3&gt; p2=example.Point(1,2);
+      <pre>octave:1&gt; swigexample;
+octave:2&gt; p1=swigexample.Point(3,5);
+octave:3&gt; p2=swigexample.Point(1,2);
 octave:4&gt; p1.distance(p2)
 ans =  3.6056
 </pre></div>
@@ -685,7 +649,7 @@ C++ class and function templates are fully supported as in other modules, in tha
 For example, function templates can be instantiated as follows:
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>%module swigexample
 %inline {
  template&lt;class __scalar&gt;
    __scalar mul(__scalar a,__scalar b) {
@@ -713,7 +677,7 @@ ans =  22 + 46i
 Similarly, class templates can be instantiated as in the following example,
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>%module swigexample
 %include &lt;std_complex.i&gt;
 %include &lt;std_string.i&gt;
 %inline {

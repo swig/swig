@@ -2839,6 +2839,12 @@ struct Derived : Base {
 </pre></div>
 
 <p>
+The following special variables are expanded if used within a %extend block: 
+$name, $symname, $overname, $decl, $fulldecl, $parentname and $parentsymname.
+The <a href="Customization.html#Customization_exception_special_variables">Special variables</a> section provides more information each of these special variables.
+</p>
+
+<p>
 The<tt> %extend</tt> directive follows all of the same conventions
 as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
 section for further details.
@@ -3121,8 +3127,8 @@ nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message 
 
 <div class="shell">
 <pre>
-example.h:42. Nothing known about class 'List&lt;int &gt;' (ignored). 
-example.h:42. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
+example.h:42: Warning 401. Nothing known about class 'List&lt;int &gt;'. Ignored. 
+example.h:42: Warning 401. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
 </pre>
 </div>
 
@@ -3163,7 +3169,7 @@ Don't worry--if you get the order wrong, SWIG should generate a warning message.
 Occasionally, you may need to tell SWIG about base classes that are defined by templates,
 but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
 instantiate templates for this purpose, you must do it manually.  To do this, simply
-use <tt>%template</tt> with no name.  For example:
+use the empty template instantiation, that is, <tt>%template</tt> with no name.  For example:
 </p>
 
 <div class="code">

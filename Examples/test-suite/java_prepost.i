@@ -83,7 +83,7 @@ struct PrePost2 {
 
 %inline %{
 struct PrePostThrows {
-  PrePostThrows(PrePostTest *ppt) {
+  PrePostThrows(PrePostTest *ppt, bool) {
   }
 };
 %}

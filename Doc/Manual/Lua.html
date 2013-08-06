@@ -236,7 +236,7 @@ More information on building and configuring eLua can be found here: <a href="ht
 
 
 <p>
-Most, but not all platforms support the dynamic loading of modules (Windows &amp; Linux do). Refer to the Lua manual to determine if your platform supports it. For compiling a dynamically loaded module the same wrapper can  be used. The commands will be something like this:
+Most, but not all platforms support the dynamic loading of modules (Windows &amp; Linux do). Refer to the Lua manual to determine if your platform supports it. For compiling a dynamically loaded module the same wrapper can  be used. Assuming you have code you need to link to in a file called <tt>example.c</tt>, the commands will be something like this:
 </p>
 <div class="shell"><pre>
 $ swig -lua example.i -o example_wrap.c
@@ -1359,7 +1359,7 @@ extern void sort_double(double* arr, int len);
 to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but it's a bit tedious.
 More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documentation.</p>
 
-<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %appy in the correct manner.</p>
+<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %apply in the correct manner.</p>
 
 <p>The wrapper file below, shows both the use of carrays as well as the use of the typemap to wrap arrays. </p>
 

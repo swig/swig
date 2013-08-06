@@ -4,15 +4,16 @@ SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile ruby_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' ruby
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='myruby' INTERFACE='$(INTERFACE)' ruby_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile ruby_clean
-
-check: all

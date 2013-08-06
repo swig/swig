@@ -12,8 +12,6 @@
  * the form of simple strings.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_stype_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -642,7 +640,6 @@ SwigType *SwigType_ltype(const SwigType *s) {
       if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
 	/* We need to use the typedef type */
 	Delete(tt);
-	tt = td;
 	break;
       } else if (td) {
 	Delete(tt);

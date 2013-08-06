@@ -54,6 +54,7 @@ pp_unterm_comment
 pp_unterm_string
 pp_variable_args
 swig_apply_nargs
+swig_extend
 swig_identifier
 swig_insert_bad
 swig_typemap_copy
@@ -70,6 +71,7 @@ cpp_extend_undefined
 cpp_inline_namespace
 cpp_inherit
 cpp_macro_locator
+cpp_missing_rparenthesis
 cpp_missing_rtemplate
 cpp_namespace_alias
 cpp_namespace_aliasnot

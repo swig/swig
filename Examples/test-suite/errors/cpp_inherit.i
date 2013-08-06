@@ -45,3 +45,11 @@ struct Recursive : Recursive
 {
 };
 %}
+
+
+template <typename T> class Base {};
+%template() Base<int>;
+class Derived : public Base<int> {};
+class Derived2 : public Base<double> {};
+%template(BaseDouble) Base<double>;
+

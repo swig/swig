@@ -6,19 +6,18 @@ INTERFACE  = example.i
 LIBS       =
 SWIGOPT    =
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile php_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
 	php
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='myphp' INTERFACE='$(INTERFACE)' \
 	php_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile php_clean
-	rm -f $(TARGET).php
-
-check: all
-	$(MAKE) -f $(TOP)/Makefile php_run

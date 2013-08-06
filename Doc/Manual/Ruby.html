@@ -398,7 +398,8 @@ can add this: </p>
 <p> to the end of the <tt>extconf.rb</tt> file. If
 for some reason you don't want to use the standard approach, you'll
 need to determine the correct compiler and linker flags for your build
-platform. For example, a typical sequence of commands for the Linux
+platform. For example, assuming you have code you need to link to in a file
+called <tt>example.c</tt>, a typical sequence of commands for the Linux
 operating system would look something like this: </p>
 
 
@@ -3214,7 +3215,7 @@ directive which is unique to the Ruby module and was introduced in SWIG
 
 
 <div class="code">
-<pre>%bang sort!(arr);<br><br>int sort(int arr[]); </pre>
+<pre>%bang sort(int arr[]);<br><br>int sort(int arr[]); </pre>
 
 
 
@@ -4925,7 +4926,7 @@ arguments. For example: </p>
 
 
 <div class="code">
-<pre>%typemap(in) (char *str, int len) {<br> $1 = STR2CSTR($input);<br> $2 = (int) RSTRING($input)-&gt;len;<br>};<br><br>int count(char c, char *str, int len);<br></pre>
+<pre>%typemap(in) (char *str, int len) {<br> $1 = StringValuePtr($input);<br> $2 = (int) RSTRING($input)-&gt;len;<br>};<br><br>int count(char c, char *str, int len);<br></pre>
 
 
 
@@ -7134,7 +7135,7 @@ Ruby_Format_TypeError( "$1_name", "$1_type","$symname", $argnum, $input
     </tr>
 
     <tr>
-      <td style="font-family: monospace;">char * STR2CSTR(String)</td>
+      <td style="font-family: monospace;">char * StringValuePtr(String)</td>
       <td style="font-family: monospace;">SWIG_AsCharPtrAndSize(VALUE, char*, size_t, int* alloc)</td>
     </tr>
 
@@ -7517,7 +7518,7 @@ Array instance to be used as a <tt>char **</tt> object. </p>
 
 
 <div class="code">
-<pre>%module argv<br><br>// This tells SWIG to treat char ** as a special case<br>%typemap(in) char ** {<br> /* Get the length of the array */<br> int size = RARRAY($input)-&gt;len; <br> int i;<br> $1 = (char **) malloc((size+1)*sizeof(char *));<br> /* Get the first element in memory */<br> VALUE *ptr = RARRAY($input)-&gt;ptr; <br> for (i=0; i &lt; size; i++, ptr++)<br> /* Convert Ruby Object String to char* */<br> $1[i]= STR2CSTR(*ptr); <br> $1[i]=NULL; /* End of list */<br>}<br><br>// This cleans up the char ** array created before <br>// the function call<br><br>%typemap(freearg) char ** {<br> free((char *) $1);<br>}<br><br>// Now a test function<br>%inline %{<br>int print_args(char **argv) {<br> int i = 0;<br> while (argv[i]) {<br> printf("argv[%d] = %s\n", i,argv[i]);<br> i++;<br> }<br> return i;<br>}<br>%}<br><br></pre>
+<pre>%module argv<br><br>// This tells SWIG to treat char ** as a special case<br>%typemap(in) char ** {<br> /* Get the length of the array */<br> int size = RARRAY($input)-&gt;len; <br> int i;<br> $1 = (char **) malloc((size+1)*sizeof(char *));<br> /* Get the first element in memory */<br> VALUE *ptr = RARRAY($input)-&gt;ptr; <br> for (i=0; i &lt; size; i++, ptr++)<br> /* Convert Ruby Object String to char* */<br> $1[i]= StringValuePtr(*ptr); <br> $1[i]=NULL; /* End of list */<br>}<br><br>// This cleans up the char ** array created before <br>// the function call<br><br>%typemap(freearg) char ** {<br> free((char *) $1);<br>}<br><br>// Now a test function<br>%inline %{<br>int print_args(char **argv) {<br> int i = 0;<br> while (argv[i]) {<br> printf("argv[%d] = %s\n", i,argv[i]);<br> i++;<br> }<br> return i;<br>}<br>%}<br><br></pre>
 
 
 
@@ -7795,7 +7796,7 @@ equivalents and store them in our local C arrays: </p>
 
 
 <div class="code">
-<pre>%typemap(in) (int nattributes, const char **names, const int *values)<br> (VALUE keys_arr, int i, VALUE key, VALUE val) {<br> Check_Type($input, T_HASH);<br> $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br> $2 = NULL;<br> $3 = NULL;<br> if ($1 &gt; 0) {<br> $2 = (char **) malloc($1*sizeof(char *));<br> $3 = (int *) malloc($1*sizeof(int));<br> keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br> for (i = 0; i &lt; $1; i++) {<br> key = rb_ary_entry(keys_arr, i);<br> val = rb_hash_aref($input, key);<br> Check_Type(key, T_STRING);<br> Check_Type(val, T_FIXNUM);<br> <b>$2[i] = STR2CSTR(key);<br> $3[i] = NUM2INT(val);</b><br>}<br>}<br>}<br></pre>
+<pre>%typemap(in) (int nattributes, const char **names, const int *values)<br> (VALUE keys_arr, int i, VALUE key, VALUE val) {<br> Check_Type($input, T_HASH);<br> $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br> $2 = NULL;<br> $3 = NULL;<br> if ($1 &gt; 0) {<br> $2 = (char **) malloc($1*sizeof(char *));<br> $3 = (int *) malloc($1*sizeof(int));<br> keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br> for (i = 0; i &lt; $1; i++) {<br> key = rb_ary_entry(keys_arr, i);<br> val = rb_hash_aref($input, key);<br> Check_Type(key, T_STRING);<br> Check_Type(val, T_FIXNUM);<br> <b>$2[i] = StringValuePtr(key);<br> $3[i] = NUM2INT(val);</b><br>}<br>}<br>}<br></pre>
 
 
 

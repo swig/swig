@@ -677,27 +677,6 @@ namespace swig
       return r;
     }
 
-    %alias reject_bang "delete_if";
-    Sequence* reject_bang() {
-      if ( !rb_block_given_p() )
-	rb_raise( rb_eArgError, "no block given" );
-
-      Sequence::iterator i = self->begin();
-      Sequence::iterator e = self->end();
-      for ( ; i != e; )
-	{
-	  VALUE r = swig::from< Sequence::value_type >(*i);
-	  if ( RTEST( rb_yield(r) ) ) {
-	    $self->erase(i++);
-            e = self->end();
-	  } else {
-	    ++i;
-          }
-	}
-	
-      return self;
-    }
-
     VALUE delete_at(difference_type i) {
       VALUE r = Qnil;
       try {
@@ -757,6 +736,19 @@ namespace swig
   }
 %enddef
 
+%define %swig_sequence_methods_extra(Sequence...)
+  %extend {
+    %alias reject_bang "delete_if";
+    Sequence* reject_bang() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
+
+      $self->erase( std::remove_if( $self->begin(), $self->end(),
+            swig::yield< Sequence::value_type >() ), $self->end() );
+      return $self;
+    }
+  }
+%enddef
 
 /**
  * Macro used to add functions for Sequences
@@ -764,6 +756,7 @@ namespace swig
  */
 %define %swig_sequence_methods(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence));
+  %swig_sequence_methods_extra(%arg(Sequence));
   %swig_sequence_back_inserters(%arg(Sequence));
 
   %extend {

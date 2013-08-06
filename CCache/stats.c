@@ -168,7 +168,8 @@ static void stats_update_size(enum stats stat, size_t size, size_t numfiles)
 
 	if (need_cleanup) {
 		char *p = dirname(stats_file);
-		cleanup_dir(p, counters[STATS_MAXFILES], counters[STATS_MAXSIZE]);
+		cleanup_dir(p, counters[STATS_MAXFILES], counters[STATS_MAXSIZE],
+			    numfiles);
 		free(p);
 	}
 }
