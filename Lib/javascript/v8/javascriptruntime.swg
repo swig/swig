@@ -40,6 +40,7 @@ void SWIG_V8_Raise(const char* msg) {
 */
 class V8ErrorHandler {
 public:
+  virtual ~V8ErrorHandler() {}
   virtual void error(int code, const char* msg) {
     SWIG_V8_Raise(msg);
   }
