@@ -18,9 +18,10 @@
 
 static const char *usage = (char*) "\
 Scilab options\n\
-     -addsrc <source files>  additionnal source files (separated by comma) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
+     -addsrc <source files>  additionnal source files (separated by space) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
      -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
-     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\n";
+     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\
+     -vbl <level>            sets the build verbose level (default 0)\n\n";
 
 const char* SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 
@@ -41,6 +42,8 @@ protected:
   String *cflag;
   String *ldflag;
 
+  String* verboseBuildLevel;
+
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -50,6 +53,7 @@ public:
     sourceFileList = NewList();
     ldflag = NULL;
     cflag = NULL;
+    verboseBuildLevel = NULL;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -82,8 +86,16 @@ public:
             ldflag = NewString(argv[argIndex+1]);
             Swig_mark_arg(argIndex+1);
           }
+        } else if (strcmp(argv[argIndex], "-vbl") == 0) {
+          Swig_mark_arg(argIndex);
+          verboseBuildLevel = NewString(argv[argIndex+1]);
+          Swig_mark_arg(argIndex+1);
         }
       }
+    }
+
+    if (verboseBuildLevel == NULL) {
+      verboseBuildLevel = NewString("0");
     }
 
     /* Set language-specific subdirectory in SWIG library */
@@ -138,12 +150,9 @@ public:
     builderCode = NewString("");
     Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n"); /* Useful for automatic tests */
-    #ifdef SWIG_DEBUG
-      Printf(builderCode, "try\n");
-      Printf(builderCode, "ilib_verbose(1);\n");
-    #else
-      Printf(builderCode, "ilib_verbose(0);\n");
-    #endif
+
+    Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
+
     Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
 
     Printf(builderCode, "libs = [];\n");
@@ -197,11 +206,7 @@ public:
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
     Printf(builderCode, "end\n");
-    #ifdef SWIG_DEBUG
-      Printf(builderCode, "catch\n");
-      Printf(builderCode, "  printf(\"\"*** builder.sce file execution FAILED ***\"\");\n");
-      Printf(builderCode, "end\n");
-    #endif
+
     Printf(builderCode, "exit");
     builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
     Printv(builderFile, builderCode, NIL);

@@ -38,11 +38,11 @@ include $(srcdir)/../common.mk
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
 		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) echo 'exit(1)' |$(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
-	fi; 
+	fi;
 
-# Clean: remove the generated .sci file
+# Clean: remove the generated files
 %.clean:
-	@rm -f $*.sci *_wrap.c *.h *_wrap.cxx
+	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.*
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean

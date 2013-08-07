@@ -1528,7 +1528,7 @@ R_SCRIPT=$(RUNME).R
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
@@ -1572,9 +1572,10 @@ r_clean:
 ##################################################################
 
 # Make sure these locate your Scilab installation
-SCILAB_INCLUDE= $(DEFS) @SCILABINCLUDE@
-SCILAB_LIB    = @SCILABLIB@
-SCILAB        = @SCILAB@
+SCILAB_INCLUDE = $(DEFS) @SCILABINCLUDE@
+SCILAB_LIB = @SCILABLIB@
+SCILAB = @SCILAB@
+SCILABOPT =
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1583,15 +1584,15 @@ SCILAB        = @SCILAB@
 scilab: $(SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -addsrc $(SRCS) -addcflag $(INCLUDES) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) -addcflag $(INCLUDES) $(INTERFACEPATH); \
 		else \
-			$(SWIG) -scilab -addsrc $(SRCS) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) $(INTERFACEPATH); \
 		fi \
 	else \
 		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -addcflag $(INCLUDES) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addcflag $(INCLUDES) $(INTERFACEPATH); \
 		else \
-			$(SWIG) -scilab $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) $(INTERFACEPATH); \
 		fi \
 	fi
 	@if [ -f builder.sce ]; then \
@@ -1605,15 +1606,15 @@ scilab: $(SRCS)
 scilab_cpp: $(SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -c++ -addsrc $(SRCS) -addcflag $(INCLUDES) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) -addcflag $(INCLUDES) $(INTERFACEPATH); \
 		else \
-			$(SWIG) -scilab -c++ -addsrc $(SRCS) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) $(INTERFACEPATH); \
 		fi \
 	else \
 		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -c++ -addcflag $(INCLUDES) $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addcflag $(INCLUDES) $(INTERFACEPATH); \
 		else \
-			$(SWIG) -scilab -c++ $(SWIGOPT) $(INTERFACEPATH); \
+			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) $(INTERFACEPATH); \
 		fi \
 	fi
 	@if [ -f builder.sce ]; then \
