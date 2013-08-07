@@ -171,14 +171,14 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
 
 #ifdef BUILDING_NODE_EXTENSION
   // clientdata must be set for owned data as we need to register the dtor
-  if(cdata->swigCMemOwn) {
+  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
   cdata->handle.MarkIndependent();
 #else
-  if(cdata->swigCMemOwn) {
+  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
