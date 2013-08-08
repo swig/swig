@@ -408,7 +408,7 @@ SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
   if (fields) {
     hv_iterinit(fields);
     HE *he;
-    while (he = hv_iternext(fields)) {
+    while ((he = hv_iternext(fields))) {
       hv_store_ent(hv, hv_iterkeysv(he), &PL_sv_placeholder, 0);
     }
   }
@@ -427,7 +427,6 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   swig_perl_wrap *wrap;
   SV *impl;
   swig_perl_type_ext *ext;
-  SV *tmp;
 
   if (!sv) sv = newSV(0);
 
