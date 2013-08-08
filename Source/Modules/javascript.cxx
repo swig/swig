@@ -1286,6 +1286,16 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
   String *tm;
 
   for (p = params; p;) {
+    if ((tm = Getattr(p, "tmap:argout"))) {
+      Replaceall(tm, "$input", Getattr(p, "emit:input"));
+      Printv(wrapper->code, tm, "\n", NIL);
+      p = Getattr(p, "tmap:argout:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  for (p = params; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       //addThrows(n, "tmap:freearg", p);
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
