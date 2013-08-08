@@ -971,10 +971,23 @@ public:
     //    REPORT("nativeWrapper", n);
     String *symname = Getattr(n, "sym:name");
     String *wrapname = Getattr(n, "wrap:name");
-    if (!addSymbol(wrapname, n))
-      return SWIG_ERROR;
+    // If inside class (%extend %native)
+    if( getClassName() != 0 ) {
+        String *rname = 0;
+        // TOOD: Remove rname
+        rname = Swig_name_wrapper( Swig_name_member( NSPACE_TODO, getClassName(), wrapname ) );
+        if( !addSymbol(rname, n) ) {
+            Delete(rname);
+            return SWIG_ERROR;
+        }
+        Printv( s_methods_tab, tab4, "{\"", symname, "\", ", wrapname, "}, \n", NIL );
+        Delete(rname);
+    } else {
+        if (!addSymbol(wrapname, n))
+          return SWIG_ERROR;
 
-    Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
+        Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
+    }
     //   return Language::nativeWrapper(n); // this does nothing...
     return SWIG_OK;
   }
