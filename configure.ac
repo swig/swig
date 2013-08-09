@@ -1036,9 +1036,9 @@ fi
 
 # Get Scilab version
 AC_MSG_CHECKING(for Scilab version)
-SCILABVERSION=`$SCILAB -version|sed -e 's|Scilab version \"\(.*\)\"|\1|g'|head -1`
-AC_MSG_RESULT($SCILABVERSION)
-SCILAB_MAJOR_VERSION=`echo $SCILABVERSION | cut -d. -f1`
+SCILAB_VERSION=`$SCILAB -version|sed -e 's|Scilab version \"\(.*\)\"|\1|g'|head -1`
+AC_MSG_RESULT($SCILAB_VERSION)
+SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
 SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
 
 # Set Scilab startup options depending on version
@@ -1059,7 +1059,6 @@ AC_SUBST(SCILABDYNAMICLINKING)
 AC_SUBST(SCILABLIB)
 AC_SUBST(SCILABCCFLAGS)
 AC_SUBST(SCILABSTARTOPT)
-AC_SUBST(SCILABVERSION)
 
 #----------------------------------------------------------------
 # Look for java
