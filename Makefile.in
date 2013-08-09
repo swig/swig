@@ -149,6 +149,7 @@ check-versions:					\
 	check-uffi-version			\
 	check-cffi-version			\
 	check-r-version				\
+	check-scilab-version	    \
 	check-go-version			\
 	check-d-version
 
@@ -470,7 +471,7 @@ lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml
 lib-modules = std
 
 
-install-lib: 
+install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
