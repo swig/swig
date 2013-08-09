@@ -318,7 +318,6 @@ public:
         } else {
           Printf(wrapper->code, "%s\n", paramTypemap);
         }
-        // Delete(paramTypemap); // Make SWIG crash with 'class' example
         param = Getattr(param, "tmap:in:next");
       } else {
         Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
@@ -361,8 +360,7 @@ public:
         minOutputArguments++;
         maxOutputArguments++;
       }
-
-      //Delete(functionReturnTypemap); // Makes SWIG crash on vararg test case.
+      Delete(functionReturnTypemap);
 
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0), functionName);
@@ -392,7 +390,6 @@ public:
 		if (tm && (Len(tm) != 0)) {
 		  Replaceall(tm, "$source", Getattr(param, "lname"));
           Printf(wrapper->code, "%s\n", tm);
-	      Delete(tm);
 		}
 		param= Getattr(param, "tmap:freearg:next");
       } else {
