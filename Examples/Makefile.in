@@ -1577,6 +1577,7 @@ SCILAB_LIB = @SCILABLIB@
 SCILAB = @SCILAB@
 SCILABOPT =
 SCILAB_START_OPT = @SCILABSTARTOPT@
+SCILAB_VERSION = @SCILABVERSION@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1635,6 +1636,13 @@ scilab_run:
 
 scilab_debug:
 	 @env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -noatomsautoload -nb -debug -f runme.sci
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+scilab_version:
+	echo $(SCILAB_VERSION)
 
 # -----------------------------------------------------------------
 # Cleaning the scilab examples
