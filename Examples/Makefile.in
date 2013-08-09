@@ -1576,7 +1576,6 @@ SCILAB_INCLUDE = $(DEFS) @SCILABINCLUDE@
 SCILAB_LIB = @SCILABLIB@
 SCILAB = @SCILAB@
 SCILABOPT =
-SCILAB_START_OPT = @SCILABSTARTOPT@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1597,7 +1596,7 @@ scilab: $(SRCS)
 		fi \
 	fi
 	@if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' |$(SCILAB) $(SCILAB_START_OPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' |$(SCILAB) -nwni -noatomsautoload -nb -f builder.sce; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1619,7 +1618,7 @@ scilab_cpp: $(SRCS)
 		fi \
 	fi
 	@if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' |$(SCILAB) $(SCILAB_START_OPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' |$(SCILAB) -nwni -noatomsautoload -nb -f builder.sce; \
 	fi
 
 # -----------------------------------------------------------------
