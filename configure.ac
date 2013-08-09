@@ -995,61 +995,57 @@ AC_ARG_WITH(scilabincl,[  --with-scilabincl=path  Set location of Scilab include
 if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Scilab])
 SCILAB=
-
 else
+# First figure out what the name of Scilab is
 
-# Check Scilab executable
-AC_MSG_CHECKING(for Scilab executable)
 if test "x$SCILABBIN" = xyes; then
    AC_CHECK_PROGS(SCILAB, scilab)
 else
    SCILAB="$SCILABBIN"
 fi
 
-if test -n "$SCILAB"; then
-  AC_MSG_RESULT([$SCILAB found])
-else
-  AC_MSG_RESULT([$SCILAB not found])
-fi
 
-# Check Scilab header files
 AC_MSG_CHECKING(for Scilab header files)
-if test "$SCILABINCDIR" != ""; then
-	dirs="$SCILABINCDIR"
-	SCILABEXT=""
-	for i in $dirs; do
-		if test -r $i/scilab/api_scilab.h; then
-			SCILABEXT="$i"
-			break;
+if test -n "$SCILAB"; then
+	if test "$SCILABINCDIR" != ""; then
+		dirs="$SCILABINCDIR"
+		SCILABEXT=""
+		for i in $dirs; do
+			if test -r $i/scilab/api_scilab.h; then
+				SCILABEXT="$i"
+				break;
+			fi
+			if test -r $i/scilab/scilab/api_scilab.h; then
+				SCILABEXT="$i/scilab"
+				break;
+			fi
+		done
+		if test "$SCILABEXT" = "" ; then
+			AC_MSG_RESULT(not found)
+		else
+			AC_MSG_RESULT($SCILABEXT)
 		fi
-		if test -r $i/scilab/scilab/api_scilab.h; then
-			SCILABEXT="$i/scilab"
-			break;
-		fi
-	done
-	if test "$SCILABEXT" = "" ; then
-		AC_MSG_RESULT(not found)
-	else
-		AC_MSG_RESULT($SCILABEXT)
+
+		AC_MSG_CHECKING(for Scilab compiler options)
+ 		SCILABCCFLAGS=""
+		AC_MSG_RESULT($SCILABCCFLAGS)
 	fi
+else
+  AC_MSG_RESULT(could not figure out how to run scilab)
 fi
 
-# Get Scilab version
-AC_MSG_CHECKING(for Scilab version)
+# Set Scilab startup options depending on version
 SCILAB_VERSION=`$SCILAB -version|sed -e 's|Scilab version \"\(.*\)\"|\1|g'|head -1`
-AC_MSG_RESULT($SCILAB_VERSION)
+AC_MSG_RESULT(Found Scilab version $SCILAB_VERSION)
 SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
 SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
 
-# Set Scilab startup options depending on version
-AC_MSG_CHECKING(for Scilab startup options)
 SCILABSTARTOPT="-nwni -nb"
 if test "$SCILAB_MAJOR_VERSION" -ge 5 ; then
   if test "$SCILAB_MINOR_VERSION" -ge 4 ; then
     SCILABSTARTOPT+=" -noatomsautoload"
   fi
 fi
-AC_MSG_RESULT($SCILABSTARTOPT)
 
 fi
 
