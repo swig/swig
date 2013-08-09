@@ -114,6 +114,25 @@ void $jswrapper(JSObjectRef thisObject)
 %}
 
 /* -----------------------------------------------------------------------------
+ * js_dtor:  template for a destructor wrapper
+ *   - $jsmangledname:  mangled class name
+ *   - $jstype:         class type
+ *   - ${destructor_action}: The custom destructor action to invoke.
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_dtoroverride", "templates")
+%{
+void $jswrapper(JSObjectRef thisObject)
+{
+  SWIG_PRV_DATA* t = (SWIG_PRV_DATA*) JSObjectGetPrivate(thisObject);
+  if(t && t->swigCMemOwn) {
+    $jstype* arg1 = ($jstype*)t->swigCObject;
+    ${destructor_action}
+  }
+  if(t) free(t);
+}
+%}
+
+/* -----------------------------------------------------------------------------
  * js_getter:  template for getter function wrappers
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper

@@ -1,5 +1,6 @@
 %insert(init) %{
 
+#include <assert.h>
 
 SWIGRUNTIME void
 SWIG_V8_SetModule(void *, swig_module_info *swig_module) {
