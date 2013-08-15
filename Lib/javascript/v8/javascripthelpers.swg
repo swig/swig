@@ -17,7 +17,7 @@ v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) 
 /**
  * Registers a class method with given name for a given class template. 
  */
-void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol, v8::InvocationCallback _func) {
+void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol, v8::FunctionCallback _func) {
     v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
     proto_templ->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func));    
 }
@@ -25,7 +25,7 @@ void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, cons
 /**
  * Registers a class property with given name for a given class template. 
  */
-void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol, v8::AccessorGetter getter, v8::AccessorSetter setter) {
+void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol, v8::AccessorGetterCallback getter, v8::AccessorSetterCallback setter) {
   v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
   proto_templ->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
 }
@@ -33,18 +33,18 @@ void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, cons
 /**
  * Registers a class method with given name for a given object. 
  */
-void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol, v8::InvocationCallback _func) {
+void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol, const v8::FunctionCallback& _func) {
   obj->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func)->GetFunction());
 }
 
 /**
  * Registers a class method with given name for a given object. 
  */
-void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol, v8::AccessorGetter getter, v8::AccessorSetter setter) {
+void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol, v8::AccessorGetterCallback getter, v8::AccessorSetterCallback setter) {
   obj->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
 }
 
-void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info)
 {
     char buffer[256];
     char msg[512];

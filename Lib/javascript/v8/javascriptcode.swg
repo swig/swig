@@ -7,19 +7,18 @@
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_ctor", "templates") %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");  
   $jscode
-  
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  return scope.Close(self);
 
-  goto fail;
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  args.GetReturnValue().Set(self);
+
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -30,10 +29,9 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::HandleScope scope;
   SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
-  return scope.Close(v8::Undefined());
 }
 %}
 
@@ -45,7 +43,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::HandleScope scope;
   OverloadErrorHandler errorHandler;
   v8::Handle<v8::Value> self;
@@ -57,7 +55,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
   
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -70,7 +68,7 @@ fail:
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args, V8ErrorHandler& SWIGV8_ErrorHandler) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args, V8ErrorHandler& SWIGV8_ErrorHandler) {
   v8::HandleScope scope;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
@@ -78,11 +76,11 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args, V8ErrorHandler& SWIG
   $jscode
   
   SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  return scope.Close(self);
+  args.GetReturnValue().Set(self);
 
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -97,10 +95,9 @@ fail:
 %{
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
-    self = $jswrapper(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) { 
-      return scope.Close(self);
-    }
+    $jswrapper(args, errorHandler);
+    if(errorHandler.err.IsEmpty())
+      return;
   }
 %}
 
@@ -171,15 +168,16 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
  * ----------------------------------------------------------------------------- */
 %fragment("js_getter", "templates") 
 %{
-v8::Handle<v8::Value> $jswrapper(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
+void $jswrapper(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   $jslocals
   $jscode
-  return scope.Close(jsresult);
+  info.GetReturnValue().Set(jsresult);
+  return;
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -191,7 +189,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_setter", "templates")
 %{
-void $jswrapper(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
+void $jswrapper(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info) {
   v8::HandleScope scope;
   $jslocals
   $jscode
@@ -209,17 +207,18 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function", "templates") 
 %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   $jslocals
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");  
-  
+
   $jscode
-  return scope.Close(jsresult);
+  args.GetReturnValue().Set(jsresult);
+  return;
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -232,7 +231,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_dispatcher", "templates")
 %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args) {
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
@@ -242,7 +241,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args) {
 
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  return;
 }
 %}
 
@@ -254,16 +253,17 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args, V8ErrorHandler& SWIGV8_ErrorHandler)
+void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args, V8ErrorHandler& SWIGV8_ErrorHandler)
 {
   v8::HandleScope scope;  
   v8::Handle<v8::Value> jsresult;
   $jslocals
   $jscode
-  return scope.Close(jsresult);  
+  args.GetReturnValue().Set(jsresult);
+  return;
   goto fail;
 fail:
-  return scope.Close(jsresult);
+  return;
 }
 %}
 
@@ -277,10 +277,9 @@ fail:
 %{
   if(args.Length() == $jsargcount) {
      errorHandler.err.Clear();
-     jsresult = $jswrapper(args, errorHandler);
-     if(errorHandler.err.IsEmpty()) {
-      return scope.Close(jsresult);
-     }
+     $jswrapper(args, errorHandler);
+     if(errorHandler.err.IsEmpty())
+      return;
   }
 %}
 
