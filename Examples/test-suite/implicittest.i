@@ -46,7 +46,6 @@
     Foo(double){ ii = 2;}
     explicit Foo(char *s){ii = 3;}
     Foo(const Foo& f){ ii = f.ii;}
-    
   };
 
   struct Bar 
@@ -57,11 +56,31 @@
     Bar(const Foo& ff){ ii = ff.ii;}
   };
 
-
   int get_b(const Bar&b) { return b.ii; }
   
   Foo foo;
-  
 }
 
 %template(A_int) A_T<int>;
+
+
+/****************** None handling *********************/
+
+%inline
+{
+  struct BB {};
+  struct AA
+  {
+    int ii;
+    AA(int i) { ii = 1; }
+    AA(double d) { ii = 2; }
+    AA(const B* b) { ii = 3; }
+    explicit AA(char *s) { ii = 4; }
+    AA(const BB& b) { ii = 5; }
+
+    int get() const { return ii; }
+  };
+
+  int get_AA_val(AA a) { return a.ii; }
+  int get_AA_ref(const AA& a) { return a.ii; }
+}
