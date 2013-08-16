@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-08-29: wsfulton
+            [C#] Pull Git patch #77: Allow exporting std::map using non-default comparison function.
+
 2013-08-28: wsfulton
             [Python] %implicitconv is improved for overloaded functions. Like in C++, the methods
             with the actual types are considered before trying implicit conversions. Example:
