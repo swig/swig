@@ -1700,6 +1700,7 @@ int JSCEmitter::exitClass(Node *n) {
       .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .replace(T_BASECLASS, base_name_mangled)
       .replace(T_CTOR, state.clazz(CTOR))
+      .replace(T_DTOR, state.clazz(DTOR))
       .pretty_print(state.global(INITIALIZER));
   Delete(base_name_mangled);
 

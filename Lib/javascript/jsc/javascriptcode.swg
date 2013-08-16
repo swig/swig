@@ -108,7 +108,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
 void $jswrapper(JSObjectRef thisObject)
 {
   SWIG_PRV_DATA* t = (SWIG_PRV_DATA*) JSObjectGetPrivate(thisObject);
-  if(t && t->swigCMemOwn) free (($jstype*)t->swigCObject);
+  if(t && t->swigCMemOwn) free (($jstype)t->swigCObject);
   if(t) free(t);
 }
 %}
@@ -125,7 +125,7 @@ void $jswrapper(JSObjectRef thisObject)
 {
   SWIG_PRV_DATA* t = (SWIG_PRV_DATA*) JSObjectGetPrivate(thisObject);
   if(t && t->swigCMemOwn) {
-    $jstype* arg1 = ($jstype*)t->swigCObject;
+    $jstype arg1 = ($jstype)t->swigCObject;
     ${destructor_action}
   }
   if(t) free(t);
@@ -385,6 +385,7 @@ JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_staticFunctions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_staticValues;
   $jsmangledname_classDefinition.callAsConstructor = $jsctor;
+  $jsmangledname_classDefinition.finalize = $jsdtor;
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
   $jsmangledname_objectDefinition.parentClass = $jsbaseclass_classRef;
