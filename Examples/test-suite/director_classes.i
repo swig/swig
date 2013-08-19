@@ -1,7 +1,8 @@
 // Tests classes passed by value, pointer and reference
 // Note: C# module has a large runtime test
 
-#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::Ref;
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Base::Ptr;
 
 %module(directors="1") director_classes
 
@@ -106,5 +107,22 @@ public:
   std::string DefaultParmsCall(int x, double y) { return m_base->DefaultParms(x, y); }
 };
 
+%}
+
+
+%feature(director) BaseClass;
+%feature(director) DerivedClass;
+
+%inline %{
+class BaseClass
+{
+public:
+virtual ~BaseClass() {};
+virtual int dofoo(int& one, int& two, int& three) {return 0;}
+};
+
+class DerivedClass : public BaseClass
+{
+};
 %}
 

@@ -398,6 +398,7 @@ SWIG_init(void) {
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
   md = d = PyModule_GetDict(m);
+  (void)md;
 
   SWIG_InitializeModule(0);
 

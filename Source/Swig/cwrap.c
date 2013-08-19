@@ -12,8 +12,6 @@
  * the naming of local variables, calling conventions, and so forth.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cwrap_c[] = "$Id$";
-
 #include "swig.h"
 
 extern int cparse_cplusplus;
@@ -765,6 +763,46 @@ String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String 
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_replace_special_variables()
+ *
+ * Replaces special variables with a value from the supplied node
+ * ----------------------------------------------------------------------------- */
+void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
+  Node *parentclass = parentnode;
+  String *overloaded = Getattr(n, "sym:overloaded");
+  Replaceall(code, "$name", Getattr(n, "name"));
+  Replaceall(code, "$symname", Getattr(n, "sym:name"));
+  Replaceall(code, "$wrapname", Getattr(n, "wrap:name"));
+  Replaceall(code, "$overname", overloaded ? Char(Getattr(n, "sym:overname")) : "");
+
+  if (Strstr(code, "$decl")) {
+    String *decl = Swig_name_decl(n);
+    Replaceall(code, "$decl", decl);
+    Delete(decl);
+  }
+  if (Strstr(code, "$fulldecl")) {
+    String *fulldecl = Swig_name_fulldecl(n);
+    Replaceall(code, "$fulldecl", fulldecl);
+    Delete(fulldecl);
+  }
+
+  if (parentclass && !Equal(nodeType(parentclass), "class"))
+    parentclass = 0;
+  if (Strstr(code, "$parentclasssymname")) {
+    String *parentclasssymname = 0;
+    if (parentclass)
+      parentclasssymname = Getattr(parentclass, "sym:name");
+    Replaceall(code, "$parentclasssymname", parentclasssymname ? parentclasssymname : "");
+  }
+  if (Strstr(code, "$parentclassname")) {
+    String *parentclassname = 0;
+    if (parentclass)
+      parentclassname = Getattr(parentclass, "name");
+    Replaceall(code, "$parentclassname", parentclassname ? parentclassname : "");
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * extension_code()
  *
  * Generates an extension function (a function defined in %extend)
@@ -772,14 +810,17 @@ String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String 
  *        return_type function_name(parms) code
  *
  * ----------------------------------------------------------------------------- */
-static String *extension_code(const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
+static String *extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-  String *sig = NewStringf("%s(%s)", function_name, parms_str);
+  String *sig = NewStringf("%s(%s)", function_name, (cplusplus || Len(parms_str)) ? parms_str : "void");
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
-  if (self)
-    Replaceall(body, "$self", self);
+  if (Strstr(body, "$")) {
+    Swig_replace_special_variables(n, parentNode(parentNode(n)), body);
+    if (self)
+      Replaceall(body, "$self", self);
+  }
   Delete(parms_str);
   Delete(sig);
   Delete(rt_sig);
@@ -798,7 +839,7 @@ static String *extension_code(const String *function_name, ParmList *parms, Swig
 int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *body;
   if (parms && Getattr(parms, "arg:classref")) parms = nextSibling(parms);
-  body = extension_code(function_name, parms, return_type, code, cplusplus, self);
+  body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, "wrap:code", body);
   Delete(body);
   return SWIG_OK;
@@ -819,6 +860,9 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   String *self = 0;
   int is_smart_pointer_overload = 0;
   String *qualifier = Getattr(n, "qualifier");
+  String *directorScope = NewString(nspace);
+
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
   
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
@@ -901,7 +945,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	/* If protected access (can only be if a director method) then call the extra public accessor method (language module must provide this) */
 	String *explicit_qualifier_tmp = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
 	explicitcall_name = NewStringf("%sSwigPublic", name);
-	explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
+        if (Len(directorScope) > 0)
+	  explicit_qualifier = NewStringf("SwigDirector_%s_%s", directorScope, explicit_qualifier_tmp);
+        else
+	  explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
 	Delete(explicit_qualifier_tmp);
       } else {
 	explicit_qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
@@ -1021,6 +1068,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   Delete(p);
   Delete(self);
   Delete(parms);
+  Delete(directorScope);
   return SWIG_OK;
 }
 
@@ -1071,6 +1119,9 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   ParmList *directorparms;
   SwigType *type;
   int use_director;
+  String *directorScope = NewString(nspace);
+ 
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
 
   use_director = Swig_directorclass(n);
 
@@ -1129,13 +1180,18 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
       /* if a C++ director class exists, create it rather than the original class */
       if (use_director) {
 	Node *parent = Swig_methodclass(n);
-	int abstract = Getattr(parent, "abstract") != 0;
+	int abstract = Getattr(parent, "abstracts") != 0;
 	String *name = Getattr(parent, "sym:name");
-	String *directorname = NewStringf("SwigDirector_%s", name);
+	String *directorname;
 	String *action = NewStringEmpty();
 	String *tmp_none_comparison = Copy(none_comparison);
 	String *director_call;
 	String *nodirector_call;
+
+        if (Len(directorScope) > 0)
+          directorname = NewStringf("SwigDirector_%s_%s", directorScope, name);
+        else 
+          directorname = NewStringf("SwigDirector_%s", name);
 
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 
@@ -1201,6 +1257,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   if (directorparms != parms)
     Delete(directorparms);
   Delete(parms);
+  Delete(directorScope);
   return SWIG_OK;
 }
 

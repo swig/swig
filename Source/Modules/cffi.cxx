@@ -11,8 +11,6 @@
  * cffi language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cffi_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -137,7 +135,6 @@ int CFFI::top(Node *n) {
   if (CPlusPlus || CWrap) {
     f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_begin) {
-      Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -147,7 +144,6 @@ int CFFI::top(Node *n) {
     Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
     f_clos = NewFile(clos_filename, "w", SWIG_output_files());
     if (!f_clos) {
-      Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -184,13 +180,11 @@ int CFFI::top(Node *n) {
   Printf(f_lisp, "%s\n", f_cl);
   Printf(f_lisp, "%s\n", f_clwrap);
 
-  Close(f_lisp);
-  Delete(f_lisp);   // Deletes the handle, not the file
+  Delete(f_lisp);
   Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
   Dump(f_runtime, f_begin);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
   Delete(f_cxx_wrapper);
@@ -326,7 +320,7 @@ void CFFI::emit_initialize_instance(Node *n) {
     else
       Printf(args_placeholder, " %s", argname);
 
-    if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
+    if (ffitype && Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
       Printf(args_call, " (ff-pointer %s)", argname);
     else
       Printf(args_call, " %s", argname);
@@ -462,10 +456,12 @@ int CFFI::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   String *result_convert = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
-  Replaceall(result_convert, "$result", "lresult");
-  Printf(f->code, "%s\n", result_convert);
-  if(!is_void_return) Printf(f->code, "    return lresult;\n");
-  Delete(result_convert);
+  if (result_convert) {
+    Replaceall(result_convert, "$result", "lresult");
+    Printf(f->code, "%s\n", result_convert);
+    if(!is_void_return) Printf(f->code, "    return lresult;\n");
+    Delete(result_convert);
+  }
   emit_return_variable(n, Getattr(n, "type"), f);
 
   Printf(f->code, "  } catch (...) {\n");
@@ -567,7 +563,13 @@ void CFFI::emit_defun(Node *n, String *name) {
 
 int CFFI::constantWrapper(Node *n) {
   String *type = Getattr(n, "type");
-  String *converted_value = convert_literal(Getattr(n, "value"), type);
+  String *converted_value;
+  if (SwigType_type(type) == T_STRING) {
+    converted_value = NewString(Getattr(n, "rawval"));
+  } else {
+    converted_value = convert_literal(Getattr(n, "value"), type);
+  }
+
   String *name = lispify_name(n, Getattr(n, "sym:name"), "'constant");
 
   if (Strcmp(name, "t") == 0 || Strcmp(name, "T") == 0)
@@ -671,7 +673,7 @@ int CFFI::enumDeclaration(Node *n) {
 void CFFI::emit_class(Node *n) {
 
 #ifdef CFFI_WRAP_DEBUG
-  Printf(stderr, "emit_class: ENTER... '%s'(%x)\n", Getattr(n, "sym:name"), n);
+  Printf(stderr, "emit_class: ENTER... '%s'(%p)\n", Getattr(n, "sym:name"), n);
 #endif
 
   String *name = Getattr(n, "sym:name");
@@ -837,7 +839,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       String *typespec = tm ? NewString(tm) : NewString("");
 
       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
-      if (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0)
+      if (slot_name && (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0))
 	slot_name = NewStringf("t_var");
 
       Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
@@ -1023,9 +1025,8 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return num;
   } else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    String* result = NewStringf("#\\%c", s[2]);
+    String* result = NewStringf("#\\%c", s[0]);
     Delete(num);
-    //    Printf(stderr, "%s  %c %d", s, s[2], s);
     return result;
   } else if (SwigType_type(type) == T_STRING) {
     /* Use CL syntax for string literals */
@@ -1034,10 +1035,14 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return result;
   } else if (SwigType_type(type) == T_INT || SwigType_type(type) == T_UINT) {
     // Printf(stderr, "Is a T_INT or T_UINT %s, before replaceall\n", s);
-    Replaceall(num, "u", "");
-    Replaceall(num, "U", "");
-    Replaceall(num, "l", "");
-    Replaceall(num, "L", "");
+    const char *num_start = Char(num);
+    bool is_literal = isdigit(*num_start) || (*num_start == '.') || (*num_start == '+') || (*num_start == '-');
+    if (is_literal) {
+      Replaceall(num, "u", "");
+      Replaceall(num, "U", "");
+      Replaceall(num, "l", "");
+      Replaceall(num, "L", "");
+    }
 
     int i, j;
     if (sscanf(s, "%d >> %d", &i, &j) == 2) {
@@ -1053,10 +1058,10 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
 
   if (Len(num) >= 2 && s[0] == '0') { /* octal or hex */
     if (s[1] == 'x'){
-      DohReplace(num,"0","#",DOH_REPLACE_FIRST);
+      Replace(num,"0","#",DOH_REPLACE_FIRST);
     }
     else{
-      DohReplace(num,"0","#o",DOH_REPLACE_FIRST);
+      Replace(num,"0","#o",DOH_REPLACE_FIRST);
     }
   }
   return num;

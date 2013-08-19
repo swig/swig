@@ -11,8 +11,6 @@
  * Octave language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_octave_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static String *global_name = 0;
@@ -58,9 +56,24 @@ private:
   }
 
 public:
-   OCTAVE():f_begin(0), f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
-	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
-	    s_global_tab(0), s_members_tab(0), class_name(0) {
+  OCTAVE():
+    f_begin(0),
+    f_runtime(0),
+    f_header(0),
+    f_doc(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    f_directors(0),
+    f_directors_h(0),
+    s_global_tab(0),
+    s_members_tab(0),
+    class_name(0),
+    have_constructor(0),
+    have_destructor(0),
+    constructor_name(0),
+    docs(0)
+  {
      /* Add code to manage protected constructors and directors */
      director_prot_ctor_code = NewString("");
      Printv(director_prot_ctor_code,
@@ -192,7 +205,7 @@ public:
     Printf(f_runtime, "\n");
 
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
-    Printf(f_init, "static void SWIG_init_user(octave_swig_type* module_ns)\n{\n");
+    Printf(f_init, "static bool SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
     if (!CPlusPlus)
       Printf(f_header,"extern \"C\" {\n");
@@ -208,7 +221,7 @@ public:
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
 
-    Printf(f_init, "}\n");
+    Printf(f_init, "return true;\n}\n");
     Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
@@ -232,7 +245,6 @@ public:
     Delete(f_header);
     Delete(f_directors);
     Delete(f_directors_h);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -276,7 +288,7 @@ public:
       String *escaped_doc_str = texinfo_escape(doc_str);
 
       if (Len(doc_str)>0) {
-	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
+	Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
 	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
 	if (Len(decl_info))
 	  Printf(f_doc,"\\n\\\n@end deftypefn");
@@ -343,14 +355,10 @@ public:
 
       SwigType *type = Getattr(n, "type");
       if (type && Strcmp(type, "void")) {
-	type = SwigType_base(type);
-	Node *lookup = Swig_symbol_clookup(type, 0);
-	if (lookup)
-	  type = Getattr(lookup, "sym:name");
+	Node *nn = classLookup(Getattr(n, "type"));
+	String *type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
 	Append(decl_info, "@var{retval} = ");
-	String *type_str = NewString("");
-	Printf(type_str, "@var{retval} is of type %s. ", type);
-	Append(args_str, type_str);
+	Printf(args_str, "%s@var{retval} is of type %s. ", args_str, type_str);
 	Delete(type_str);
       }
 
@@ -379,7 +387,7 @@ public:
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n, "module");
     if (modname)
-      Printf(f_init, "feval(\"%s\",octave_value_list(),1);\n", modname);
+      Printf(f_init, "if (!SWIG_Octave_LoadModule(\"%s\")) return false;\n", modname);
     return Language::importDirective(n);
   }
 
@@ -512,11 +520,7 @@ public:
       }
       if (Strcmp(v, "NULL") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("true");
-      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("false");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("true");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("false");
@@ -525,7 +529,6 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
-    Wrapper *f = NewWrapper();
     Parm *p;
     String *tm;
     int j;
@@ -552,6 +555,7 @@ public:
     if (!overloaded || last_overload)
       process_autodoc(n);
 
+    Wrapper *f = NewWrapper();
     Octave_begin_function(n, f->def, iname, overname, !overloaded);
 
     emit_parameter_variables(l, f);
@@ -740,9 +744,14 @@ public:
       Delete(tm);
     }
 
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
     Printf(f->code, "return _out;\n");
+    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "return octave_value_list();\n");
     Printf(f->code, "}\n");
+
+    /* Substitute the cleanup code */
+    Replaceall(f->code, "$cleanup", cleanup);
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);
@@ -860,6 +869,8 @@ public:
 
     Delete(getwname);
     Delete(setwname);
+    DelWrapper(setf);
+    DelWrapper(getf);
 
     return SWIG_OK;
   }
@@ -1247,18 +1258,17 @@ public:
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     int is_void = 0;
     int is_pointer = 0;
-    String *decl;
-    String *type;
-    String *name;
-    String *classname;
+    String *decl = Getattr(n, "decl");
+    String *returntype = Getattr(n, "type");
+    String *name = Getattr(n, "name");
+    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *symname = Getattr(n, "sym:name");
-    String *declaration;
-    ParmList *l;
-    Wrapper *w;
+    String *declaration = NewString("");
+    ParmList *l = Getattr(n, "parms");
+    Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *return_type;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
     bool pure_virtual = false;
@@ -1272,35 +1282,15 @@ public:
       }
     }
 
-    classname = Getattr(parent, "sym:name");
-    type = Getattr(n, "type");
-    name = Getattr(n, "name");
-
-    w = NewWrapper();
-    declaration = NewString("");
-
     // determine if the method returns a pointer
-    decl = Getattr(n, "decl");
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (!Cmp(type, "void") && !is_pointer);
-
-    // form complete return type
-    return_type = Copy(type);
-    {
-      SwigType *t = Copy(decl);
-      SwigType *f = 0;
-      f = SwigType_pop_function(t);
-      SwigType_push(return_type, t);
-      Delete(f);
-      Delete(t);
-    }
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
 
     // virtual method definition
-    l = Getattr(n, "parms");
     String *target;
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
-    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
@@ -1324,7 +1314,7 @@ public:
       if (throw_parm_list)
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
+	if (Getattr(p, "tmap:throws")) {
 	  if (gencomma++) {
 	    Append(w->def, ", ");
 	    Append(declaration, ", ");
@@ -1348,7 +1338,7 @@ public:
     // handle it, including declaration of c_result ($result).
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *cres = SwigType_lstr(return_type, "c_result");
+	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
       }
@@ -1382,7 +1372,6 @@ public:
 	outputs++;
 
       // build argument list and type conversion string
-      idx = 0;
       p = l;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
@@ -1449,9 +1438,7 @@ public:
 	       "method %s.%s failed to return the required number " "of arguments.\");\n", classname, method_name);
 	Printf(w->code, "}\n");
 
-	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-	Setattr(n, "type", type);
 	if (tm != 0) {
 	  char temp[24];
 	  sprintf(temp, "out(%d)", idx);
@@ -1467,7 +1454,7 @@ public:
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 		       "Unable to use return type %s in director method %s::%s (skipping method).\n",
-		       SwigType_str(return_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+		       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  status = SWIG_ERROR;
 	}
       }
@@ -1494,8 +1481,8 @@ public:
 
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(return_type, 0);
-	if (!SwigType_isreference(return_type)) {
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
 	  Printf(w->code, "return (%s) c_result;\n", rettype);
 	} else {
 	  Printf(w->code, "return (%s) *c_result;\n", rettype);
@@ -1531,7 +1518,6 @@ public:
     }
     // clean up
     Delete(wrap_args);
-    Delete(return_type);
     Delete(pclassname);
     DelWrapper(w);
     return status;

@@ -17,8 +17,6 @@
 
 #define yylex yylex
 
-char cvsroot_parser_y[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"
@@ -40,6 +38,7 @@ static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
+static Hash    *classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
 String  *ModuleName = 0;
@@ -205,7 +204,7 @@ static String *yyrename = 0;
 
 /* Forward renaming operator */
 
-static String *resolve_node_scope(String *cname);
+static String *resolve_create_node_scope(String *cname);
 
 
 Hash *Swig_cparse_features(void) {
@@ -720,7 +719,7 @@ static void check_extensions() {
   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
     if (!Strchr(ki.key,'<')) {
       SWIG_WARN_NODE_BEGIN(ki.item);
-      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
+      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", SwigType_namestr(ki.key));
       SWIG_WARN_NODE_END(ki.item);
     }
   }
@@ -728,33 +727,33 @@ static void check_extensions() {
 
 /* Check a set of declarations to see if any are pure-abstract */
 
-static List *pure_abstract(Node *n) {
-  List *abs = 0;
+static List *pure_abstracts(Node *n) {
+  List *abstracts = 0;
   while (n) {
     if (Cmp(nodeType(n),"cdecl") == 0) {
       String *decl = Getattr(n,"decl");
       if (SwigType_isfunction(decl)) {
 	String *init = Getattr(n,"value");
 	if (Cmp(init,"0") == 0) {
-	  if (!abs) {
-	    abs = NewList();
+	  if (!abstracts) {
+	    abstracts = NewList();
 	  }
-	  Append(abs,n);
-	  Setattr(n,"abstract","1");
+	  Append(abstracts,n);
+	  SetFlag(n,"abstract");
 	}
       }
     } else if (Cmp(nodeType(n),"destructor") == 0) {
       if (Cmp(Getattr(n,"value"),"0") == 0) {
-	if (!abs) {
-	  abs = NewList();
+	if (!abstracts) {
+	  abstracts = NewList();
 	}
-	Append(abs,n);
-	Setattr(n,"abstract","1");
+	Append(abstracts,n);
+	SetFlag(n,"abstract");
       }
     }
     n = nextSibling(n);
   }
-  return abs;
+  return abstracts;
 }
 
 /* Make a classname */
@@ -867,26 +866,85 @@ static Node *nscope = 0;
 static Node *nscope_inner = 0;
 
 /* Remove the scope prefix from cname and return the base name without the prefix.
- * The scopes specified in the prefix are found, or created in the current namespace.
- * So ultimately the scope is changed to that required for the base name.
+ * The scopes required for the symbol name are resolved and/or created, if required.
  * For example AA::BB::CC as input returns CC and creates the namespace AA then inner 
- * namespace BB in the current scope. If no scope separator (::) in the input, then nothing happens! */
-static String *resolve_node_scope(String *cname) {
+ * namespace BB in the current scope. If cname is found to already exist as a weak symbol
+ * (forward reference) then the scope might be changed to match, such as when a symbol match 
+ * is made via a using reference. */
+static String *resolve_create_node_scope(String *cname) {
   Symtab *gscope = 0;
+  Node *cname_node = 0;
+  int skip_lookup = 0;
   nscope = 0;
   nscope_inner = 0;  
+
+  if (Strncmp(cname,"::",2) == 0)
+    skip_lookup = 1;
+
+  cname_node = skip_lookup ? 0 : Swig_symbol_clookup_no_inherit(cname, 0);
+
+  if (cname_node) {
+    /* The symbol has been defined already or is in another scope.
+       If it is a weak symbol, it needs replacing and if it was brought into the current scope
+       via a using declaration, the scope needs adjusting appropriately for the new symbol.
+       Similarly for defined templates. */
+    Symtab *symtab = Getattr(cname_node, "sym:symtab");
+    Node *sym_weak = Getattr(cname_node, "sym:weak");
+    if ((symtab && sym_weak) || Equal(nodeType(cname_node), "template")) {
+      /* Check if the scope is the current scope */
+      String *current_scopename = Swig_symbol_qualifiedscopename(0);
+      String *found_scopename = Swig_symbol_qualifiedscopename(symtab);
+      int len;
+      if (!current_scopename)
+	current_scopename = NewString("");
+      if (!found_scopename)
+	found_scopename = NewString("");
+      len = Len(current_scopename);
+      if ((len > 0) && (Strncmp(current_scopename, found_scopename, len) == 0)) {
+	if (Len(found_scopename) > len + 2) {
+	  /* A matching weak symbol was found in non-global scope, some scope adjustment may be required */
+	  String *new_cname = NewString(Char(found_scopename) + len + 2); /* skip over "::" prefix */
+	  String *base = Swig_scopename_last(cname);
+	  Printf(new_cname, "::%s", base);
+	  cname = new_cname;
+	  Delete(base);
+	} else {
+	  /* A matching weak symbol was found in the same non-global local scope, no scope adjustment required */
+	  assert(len == Len(found_scopename));
+	}
+      } else {
+	String *base = Swig_scopename_last(cname);
+	if (Len(found_scopename) > 0) {
+	  /* A matching weak symbol was found in a different scope to the local scope - probably via a using declaration */
+	  cname = NewStringf("%s::%s", found_scopename, base);
+	} else {
+	  /* Either:
+	      1) A matching weak symbol was found in a different scope to the local scope - this is actually a
+	      symbol with the same name in a different scope which we don't want, so no adjustment required.
+	      2) A matching weak symbol was found in the global scope - no adjustment required.
+	  */
+	  cname = Copy(base);
+	}
+	Delete(base);
+      }
+      Delete(current_scopename);
+      Delete(found_scopename);
+    }
+  }
+
   if (Swig_scopename_check(cname)) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
     String *base = Swig_scopename_last(cname);
     if (prefix && (Strncmp(prefix,"::",2) == 0)) {
+/* I don't think we can use :: global scope to declare classes and hence neither %template. - consider reporting error instead - wsfulton. */
       /* Use the global scope */
       String *nprefix = NewString(Char(prefix)+2);
       Delete(prefix);
       prefix= nprefix;
       gscope = set_scope_to_global();
-    }    
-    if (!prefix || (Len(prefix) == 0)) {
+    }
+    if (Len(prefix) == 0) {
       /* Use the global scope, but we need to add a 'global' namespace.  */
       if (!gscope) gscope = set_scope_to_global();
       /* note that this namespace is not the "unnamed" one,
@@ -904,8 +962,7 @@ static String *resolve_node_scope(String *cname) {
     } else {
       Symtab *nstab = Getattr(ns,"symtab");
       if (!nstab) {
-	Swig_error(cparse_file,cparse_line,
-		   "'%s' is not defined as a valid scope.\n", prefix);
+	Swig_error(cparse_file,cparse_line, "'%s' is not defined as a valid scope.\n", prefix);
 	ns = 0;
       } else {
 	/* Check if the node scope is the current scope */
@@ -946,7 +1003,6 @@ static String *resolve_node_scope(String *cname) {
 	  } else {
 	    /* now this last part is a class */
 	    si = Next(si);
-	    ns1 = Swig_symbol_clookup(sname,0);
 	    /*  or a nested class tree, which is unrolled here */
 	    for (; si.item; si = Next(si)) {
 	      if (si.item) {
@@ -986,6 +1042,7 @@ static String *resolve_node_scope(String *cname) {
     }
     Delete(prefix);
   }
+
   return cname;
 }
  
@@ -1095,15 +1152,13 @@ static void nested_new_struct(const char *kind, String *struct_code, Node *cpp_o
  * nested class solution is implemented.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, const char *name, Node *cpp_opt_declarators) {
+static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
   Node *nn = 0;
   int warned = 0;
 
   if (sname) {
     /* Add forward declaration of the nested type */
     Node *n = new_node("classforward");
-    Setfile(n, cparse_file);
-    Setline(n, cparse_line);
     Setattr(n, "kind", kind);
     Setattr(n, "name", sname);
     Setattr(n, "storage", storage);
@@ -1120,7 +1175,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
     if (!variable_of_anonymous_type) {
       int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
       Node *n = cpp_opt_declarators;
-      SwigType *type = NewString(name);
+      SwigType *type = name;
       while (n) {
 	Setattr(n, "type", type);
 	Setattr(n, "storage", storage);
@@ -1130,7 +1185,6 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
 	}
 	n = nextSibling(n);
       }
-      Delete(type);
       add_symbols(cpp_opt_declarators);
 
       if (nn) {
@@ -1734,6 +1788,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
+%type <node>     optional_constant_directive;
 
 %%
 
@@ -1856,20 +1911,34 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
+	       if (!classes_typedefs) classes_typedefs = NewHash();
 	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($3);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
-		 /* No previous definition. Create a new scope */
-		 Node *am = Getattr(extendhash,clsname);
-		 if (!am) {
-		   Swig_symbol_newscope();
-		   Swig_symbol_setscopename($3);
-		   prev_symtab = 0;
+	         cls = Getattr(classes_typedefs, clsname);
+		 if (!cls) {
+		   /* No previous definition. Create a new scope */
+		   Node *am = Getattr(extendhash,clsname);
+		   if (!am) {
+		     Swig_symbol_newscope();
+		     Swig_symbol_setscopename($3);
+		     prev_symtab = 0;
+		   } else {
+		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   }
+		   current_class = 0;
 		 } else {
-		   prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   /* Previous typedef class definition.  Use its symbol table.
+		      Deprecated, just the real name should be used. 
+		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
+		   current_class = cls;
+		   extendmode = 1;
+		   SWIG_WARN_NODE_BEGIN(cls);
+		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
+		   SWIG_WARN_NODE_END(cls);
 		 }
-		 current_class = 0;
 	       } else {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
@@ -2784,7 +2853,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
 		  if (!inclass) {
-		    $5 = resolve_node_scope($5);
+		    $5 = resolve_create_node_scope($5);
 		  }
 
 		  /*
@@ -2944,7 +3013,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           if (Strcmp(nodeType(templnode),"class") == 0) {
 
                             /* Identify pure abstract methods */
-                            Setattr(templnode,"abstract", pure_abstract(firstChild(templnode)));
+                            Setattr(templnode,"abstracts", pure_abstracts(firstChild(templnode)));
 
                             /* Set up inheritance in symbol table */
                             {
@@ -2988,7 +3057,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               if (am) {
                                 Symtab *st = Swig_symbol_current();
                                 Swig_symbol_setscope(Getattr(templnode,"symtab"));
-                                /*			    Printf(stdout,"%s: %s %x %x\n", Getattr(templnode,"name"), clsname, Swig_symbol_current(), Getattr(templnode,"symtab")); */
+                                /*			    Printf(stdout,"%s: %s %p %p\n", Getattr(templnode,"name"), clsname, Swig_symbol_current(), Getattr(templnode,"symtab")); */
                                 merge_extensions(templnode,am);
                                 Swig_symbol_setscope(st);
 				append_previous_extension(templnode,am);
@@ -3081,7 +3150,7 @@ c_declaration   : c_decl {
 		    appendChild($$,n);
 		    while (n) {
 		      SwigType *decl = Getattr(n,"decl");
-		      if (SwigType_isfunction(decl) && Strcmp(Getattr(n, "storage"), "typedef") != 0) {
+		      if (SwigType_isfunction(decl) && !Equal(Getattr(n, "storage"), "typedef")) {
 			Setattr(n,"storage","externc");
 		      }
 		      n = nextSibling(n);
@@ -3406,7 +3475,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   prev_symtab = Swig_symbol_current();
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
-		   scope = resolve_node_scope($3);
+		   scope = resolve_create_node_scope($3);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
@@ -3516,7 +3585,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   inclass = 0;
 		   
 		   /* Check for pure-abstract class */
-		   Setattr($$,"abstract", pure_abstract($7));
+		   Setattr($$,"abstracts", pure_abstracts($7));
 		   
 		   /* This bit of code merges in a previously defined %extend directive (if any) */
 		   
@@ -3532,7 +3601,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (!classes) classes = NewHash();
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes,scpname,$$);
-		   Delete(scpname);
 
 		   appendChild($$,$7);
 		   
@@ -3553,7 +3621,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(p,"type",ty);
 		     p = nextSibling(p);
 		   }
-		   /* Dump nested classes */
+		   /* Class typedefs */
 		   {
 		     String *name = $3;
 		     if ($9) {
@@ -3573,8 +3641,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 			     Delete(class_rename);
 			     class_rename = NewString(name);
 			   }
-			   if (!Getattr(classes,tdscopename)) {
-			     Setattr(classes,tdscopename,$$);
+			   if (!classes_typedefs) classes_typedefs = NewHash();
+			   if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
+			     Setattr(classes_typedefs, tdscopename, $$);
 			   }
 			   Setattr($$,"decl",decltype);
 			   Delete(class_scope);
@@ -3585,6 +3654,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     }
 		     appendChild($$,dump_nested(Char(name)));
 		   }
+		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
@@ -3679,7 +3749,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       unnamed = Getattr($$,"unnamed");
 
 	       /* Check for pure-abstract class */
-	       Setattr($$,"abstract", pure_abstract($5));
+	       Setattr($$,"abstracts", pure_abstracts($5));
 
 	       n = new_node("cdecl");
 	       Setattr(n,"name",$7.id);
@@ -3777,8 +3847,6 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                 $$ = 0; 
 	      } else {
 		$$ = new_node("classforward");
-		Setfile($$,cparse_file);
-		Setline($$,cparse_line);
 		Setattr($$,"kind",$2);
 		Setattr($$,"name",$3);
 		Setattr($$,"sym:weak", "1");
@@ -4415,17 +4483,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 
               | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
 		String *name;
-		char *c = 0;
 		$$ = new_node("destructor");
-	       /* Check for template names.  If the class is a template
-		  and the constructor is missing the template part, we
-		  add it */
-	        if (Classprefix) {
-                  c = strchr(Char(Classprefix),'<');
-                  if (c && !Strchr($3,'<')) {
-                    $3 = NewStringf("%s%s",$3,c);
-                  }
-		}
 		Setattr($$,"storage","virtual");
 	        name = NewStringf("%s",$3);
 		if (*(Char(name)) != '~') Insert(name,0,"~");
@@ -4576,7 +4634,8 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    $$ = nested_forward_declaration($1, $2, $3, $3, $7);
+		    String *name = Copy($3);
+		    $$ = nested_forward_declaration($1, $2, $3, name, $7);
 		  } else if ($7) {
 		    nested_new_struct($2, $<str>6, $7);
 		  }
@@ -4602,7 +4661,7 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    const char *name = $6 ? Getattr($6, "name") : 0;
+		    String *name = $6 ? Copy(Getattr($6, "name")) : 0;
 		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
 		  } else {
 		    if ($6) {
@@ -5589,29 +5648,31 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 /* Some stuff for handling enums */
 
 ename          :  ID { $$ = $1; }
-               |  empty { $$ = (char *) 0;}
-               ;
+	       |  empty { $$ = (char *) 0;}
+	       ;
 
-enumlist       :  enumlist COMMA edecl { 
+optional_constant_directive : constant_directive { $$ = $1; }
+		           | empty { $$ = 0; }
+		           ;
 
-                  /* Ignore if there is a trailing comma in the enum list */
-                  if ($3) {
-                    Node *leftSibling = Getattr($1,"_last");
-                    if (!leftSibling) {
-                      leftSibling=$1;
-                    }
-                    set_nextSibling(leftSibling,$3);
-                    Setattr($1,"_last",$3);
-                  }
-		  $$ = $1;
-               }
-               |  edecl { 
-                   $$ = $1; 
-                   if ($1) {
-                     Setattr($1,"_last",$1);
-                   }
-               }
-               ;
+/* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
+enumlist       :  enumlist COMMA optional_constant_directive edecl optional_constant_directive {
+		 Node *leftSibling = Getattr($1,"_last");
+		 set_nextSibling(leftSibling,$4);
+		 Setattr($1,"_last",$4);
+		 $$ = $1;
+	       }
+	       | enumlist COMMA optional_constant_directive {
+		 $$ = $1;
+	       }
+	       | optional_constant_directive edecl optional_constant_directive {
+		 Setattr($2,"_last",$2);
+		 $$ = $2;
+	       }
+	       | optional_constant_directive {
+		 $$ = 0;
+	       }
+	       ;
 
 edecl          :  ID {
 		   SwigType *type = NewSwigType(T_INT);
@@ -5631,7 +5692,6 @@ edecl          :  ID {
 		   Setattr($$,"value",$1);
 		   Delete(type);
                  }
-                 | empty { $$ = 0; }
                  ;
 
 etype            : expr {

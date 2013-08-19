@@ -11,8 +11,6 @@
  * Ruby language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_ruby_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
@@ -128,7 +126,8 @@ enum autodoc_t {
   AUTODOC_FUNC,
   AUTODOC_METHOD,
   AUTODOC_GETTER,
-  AUTODOC_SETTER
+  AUTODOC_SETTER,
+  AUTODOC_NONE
 };
 
 static const char *usage = (char *) "\
@@ -203,13 +202,11 @@ private:
   autodoc_t last_mode;
   String*   last_autodoc;
 
-
-
   autodoc_l autodoc_level(String *autodoc) {
     autodoc_l dlevel = NO_AUTODOC;
-    if (autodoc) {
-      char *c = Char(autodoc);
-      if (c && isdigit(c[0])) {
+    char *c = Char(autodoc);
+    if (c) {
+      if (isdigit(c[0])) {
 	dlevel = (autodoc_l) atoi(c);
       } else {
 	if (strcmp(c, "extended") == 0) {
@@ -496,7 +493,7 @@ private:
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
-      if (class_name && Len(class_name) > 0)
+      if (Len(class_name) > 0)
        	Append(full_name, "::");
     }
     else
@@ -602,6 +599,8 @@ private:
 	case AUTODOC_SETTER:
  	  Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
 	  break;
+	case AUTODOC_NONE:
+	  break;
 	}
       }
 
@@ -689,6 +688,8 @@ private:
 	      Printf(doc, " -> %s", type_str);
 	    break;
 	  }
+	case AUTODOC_NONE:
+	  break;
 	}
       }
 
@@ -723,6 +724,8 @@ private:
       case AUTODOC_SETTER:
 	Printf(doc, "Set new value for attribute.\n");
 	break;
+      case AUTODOC_NONE:
+	break;
       }
     }
 
@@ -731,10 +734,6 @@ private:
     while ( n ) {
       String *autodoc = Getattr(n, "feature:autodoc");
       autodoc_l dlevel = autodoc_level(autodoc);
-
-      symname = Getattr(n, "sym:name");
-      if ( Getattr( special_methods, symname ) )
-	symname = Getattr( special_methods, symname );
 
       switch (dlevel) {
       case NO_AUTODOC:
@@ -791,11 +790,7 @@ private:
       }
       if (Strcmp(v, "NULL") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("true");
-      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("false");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("True");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
@@ -810,33 +805,38 @@ public:
    *
    * Initialize member data
    * --------------------------------------------------------------------- */
-
-   RUBY() {
-    module = 0;
-    modvar = 0;
-    feature = 0;
-    prefix = 0;
-    last_autodoc = NewString("");
-    current = NO_CPP;
-    classes = 0;
-    klass = 0;
-    special_methods = 0;
-    f_begin = 0;
-    f_runtime = 0;
-    f_header = 0;
-    f_wrappers = 0;
-    f_init = 0;
-    f_initbeforefunc = 0;
-    useGlobalModule = false;
-    multipleInheritance = false;
-    director_prot_ctor_code = NewString("");
-    Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n",
-	   "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
-    director_multiple_inheritance = 0;
-    director_language = 1;
-  }
+  RUBY() :
+    module(0),
+    modvar(0),
+    feature(0),
+    prefix(0),
+    current(0),
+    classes(0),
+    klass(0),
+    special_methods(0),
+    f_directors(0),
+    f_directors_h(0),
+    f_directors_helpers(0),
+    f_begin(0),
+    f_runtime(0),
+    f_runtime_h(0),
+    f_header(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    useGlobalModule(false),
+    multipleInheritance(false),
+    last_mode(AUTODOC_NONE),
+    last_autodoc(NewString("")) {
+      current = NO_CPP;
+      director_prot_ctor_code = NewString("");
+      Printv(director_prot_ctor_code,
+          "if ( $comparison ) { /* subclassed */\n",
+          "  $director_new \n",
+          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+      director_multiple_inheritance = 0;
+      director_language = 1;
+    }
 
   /* ---------------------------------------------------------------------
    * main()
@@ -1138,8 +1138,11 @@ public:
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
-      if (outfile_h)
-	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+      if (outfile_h) {
+	String *filename = Swig_file_filename(outfile_h);
+	Printf(f_directors, "#include \"%s\"\n\n", filename);
+	Delete(filename);
+      }
 
       Delete(module_macro);
     }
@@ -1185,7 +1188,7 @@ public:
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
-      Close(f_runtime_h);
+      Delete(f_runtime_h);
     }
 
     Dump(f_wrappers, f_begin);
@@ -1196,7 +1199,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -1271,13 +1273,15 @@ public:
 	  }
 	  m = Next(m);
 	}
-	if (feature == 0) {
-	  feature = Copy(last);
+	if (last) {
+	  if (feature == 0) {
+	    feature = Copy(last);
+	  }
+	  (Char(last))[0] = (char)toupper((Char(last))[0]);
+	  modvar = NewStringf("m%s", last);
 	}
-	(Char(last))[0] = (char)toupper((Char(last))[0]);
-	modvar = NewStringf("m%s", last);
-	Delete(modules);
       }
+      Delete(modules);
     }
     Delete(mod_name);
   }
@@ -3017,18 +3021,17 @@ public:
   virtual int classDirectorMethod(Node *n, Node *parent, String *super) {
     int is_void = 0;
     int is_pointer = 0;
-    String *decl;
-    String *type;
-    String *name;
-    String *classname;
+    String *decl = Getattr(n, "decl");
+    String *name = Getattr(n, "name");
+    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *symname = Getattr(n, "sym:name");
-    String *declaration;
-    ParmList *l;
-    Wrapper *w;
+    String *declaration = NewString("");
+    ParmList *l = Getattr(n, "parms");
+    Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *return_type;
+    String *returntype = Getattr(n, "type");
     Parm *p;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
@@ -3049,35 +3052,15 @@ public:
       Printf(overnametmp, "::%s", Getattr(n, "sym:overname"));
     }
 
-    classname = Getattr(parent, "sym:name");
-    type = Getattr(n, "type");
-    name = Getattr(n, "name");
-
-    w = NewWrapper();
-    declaration = NewString("");
-
     /* determine if the method returns a pointer */
-    decl = Getattr(n, "decl");
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (!Cmp(type, "void") && !is_pointer);
-
-    /* form complete return type */
-    return_type = Copy(type);
-    {
-      SwigType *t = Copy(decl);
-      SwigType *f = 0;
-      f = SwigType_pop_function(t);
-      SwigType_push(return_type, t);
-      Delete(f);
-      Delete(t);
-    }
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
 
     /* virtual method definition */
-    l = Getattr(n, "parms");
     String *target;
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
-    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
@@ -3100,7 +3083,7 @@ public:
       if (throw_parm_list)
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
+	if (Getattr(p, "tmap:throws")) {
 	  if (gencomma++) {
 	    Append(w->def, ", ");
 	    Append(declaration, ", ");
@@ -3128,7 +3111,7 @@ public:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
       }
     }
 
@@ -3218,7 +3201,7 @@ public:
 	    /* if necessary, cast away const since Ruby doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", parameterName);
-	      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(parameterType, 0), ppname);
+	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(parameterType, 0), ppname);
 	      Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
 	      Delete(nonconst_i);
 	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
@@ -3295,14 +3278,7 @@ public:
 
       /* Marshal return value */
       if (!is_void) {
-	/* This seems really silly.  The node's type excludes qualifier/pointer/reference markers,
-	 * which have to be retrieved from the decl field to construct return_type.  But the typemap
-	 * lookup routine uses the node's type, so we have to swap in and out the correct type.
-	 * It's not just me, similar silliness also occurs in Language::cDeclaration().
-	 */
-	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-	Setattr(n, "type", type);
 	if (tm != 0) {
 	  if (outputs > 1 && !asvoid ) {
 	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
@@ -3320,7 +3296,7 @@ public:
 	  Printv(w->code, tm, "\n", NIL);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0),
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
 		       SwigType_namestr(c_classname), SwigType_namestr(name));
 	  status = SWIG_ERROR;
 	}
@@ -3351,8 +3327,8 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(return_type, 0);
-	if (!SwigType_isreference(return_type)) {
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
 	  Printf(w->code, "return (%s) c_result;\n", rettype);
 	} else {
 	  Printf(w->code, "return (%s) *c_result;\n", rettype);
@@ -3390,7 +3366,6 @@ public:
 
     /* clean up */
     Delete(wrap_args);
-    Delete(return_type);
     Delete(pclassname);
     DelWrapper(w);
     return status;

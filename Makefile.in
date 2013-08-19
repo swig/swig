@@ -22,6 +22,7 @@ TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 CCACHE      = CCache
 DOCS        = Doc/Manual
+RUNPIPE     = \>/dev/null
 
 swig: libfiles source ccache
 
@@ -58,7 +59,6 @@ skip-tcl	= test -n "@SKIP_TCL@"
 skip-perl5	= test -n "@SKIP_PERL5@"
 skip-python	= test -n "@SKIP_PYTHON@"
 skip-java	= test -n "@SKIP_JAVA@"
-skip-guilescm   = test -n "@SKIP_GUILESCM@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
@@ -122,6 +122,45 @@ check-aliveness:
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
+
+# Checks / displays versions of each target language
+check-versions:					\
+	check-tcl-version			\
+	check-perl5-version			\
+	check-python-version			\
+	check-java-version			\
+	check-android-version			\
+	check-guile-version			\
+	check-mzscheme-version			\
+	check-ruby-version			\
+	check-ocaml-version			\
+	check-octave-version			\
+	check-php-version			\
+	check-pike-version			\
+	check-chicken-version			\
+	check-csharp-version			\
+	check-modula3-version			\
+	check-lua-version			\
+	check-allegrocl-version			\
+	check-clisp-version			\
+	check-uffi-version			\
+	check-cffi-version			\
+	check-r-version				\
+	check-go-version			\
+	check-d-version
+
+# all examples
+check-%-version :
+	@if test -z "$(skip-$*)"; then				\
+	  echo $* unknown;					\
+	  exit 1;						\
+	fi
+	@if $(skip-$*); then					\
+	  echo skipping $* version;				\
+	else							\
+	  echo showing $* version;				\
+	  (cd Examples && $(MAKE) -s $*_version)		\
+	fi
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
@@ -190,7 +229,7 @@ check-%-examples :
 # individual example
 %.actionexample:
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
@@ -207,7 +246,6 @@ check-test-suite:				\
 	check-perl5-test-suite			\
 	check-python-test-suite			\
 	check-java-test-suite			\
-	check-guilescm-test-suite		\
 	check-guile-test-suite			\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
@@ -252,7 +290,7 @@ partialcheck-test-suite:
 partialcheck-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
-check: check-aliveness check-ccache check-examples check-test-suite
+check: check-aliveness check-ccache check-versions check-examples check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
@@ -260,7 +298,6 @@ all-test-suite:					\
 	all-perl5-test-suite			\
 	all-python-test-suite			\
 	all-java-test-suite			\
-	all-guilescm-test-suite			\
 	all-guile-test-suite			\
 	all-mzscheme-test-suite			\
 	all-ruby-test-suite			\
@@ -289,7 +326,6 @@ broken-test-suite:				\
 	broken-perl5-test-suite			\
 	broken-python-test-suite		\
 	broken-java-test-suite			\
-	broken-guilescm-test-suite		\
 	broken-guile-test-suite			\
 	broken-mzscheme-test-suite		\
 	broken-ruby-test-suite			\
@@ -396,12 +432,8 @@ maintainer-clean:
 
 $(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
 	mkdir -p Lib
-	echo "/* Automatically generated file containing all the swig warning codes.  */" > $@
-	echo "/* Do not modify this file by hand, change 'Source/Include/swigwarn.h'  */" >> $@
-	echo "/* and use the command 'make Lib/swigwarn.swg' instead.                 */" >> $@
-	echo >> $@; echo >> $@
-	awk '/#define WARN/{$$1="%define"; $$2="SWIG"$$2; $$3=sprintf("%d %%enddef", $$3); print $$0; next;}\
-	      /#/{next;} {print $0}' < $? >> $@
+	echo "/* SWIG warning codes */" > $@
+	cat $? | grep "^#define WARN\|/\*.*\*/\|^[ \t]*$$" | sed 's/^#define \(WARN.*[0-9]\+\)\(.*\)$$/%define SWIG\1 %enddef\2/' >> $@
 
 #####################################################################
 # TARGETS: install & friends
@@ -494,7 +526,7 @@ dist:
 
 srcrpm:
 	rm -fr $(srpm) $(srpm).src.rpm
-	echo "TODO: update to use svn instead of cvs"
+	echo "TODO: update to use git instead of cvs"
 	cvs export -d $(srpm) -r HEAD SWIG
 	cp swig.spec $(srpm)
 	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
@@ -503,7 +535,7 @@ srcrpm:
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
-# can fetch them manually and will have to commit them to SVN.
+# can fetch them manually and will have to commit them to Git.
 configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess
@@ -514,13 +546,29 @@ configfiles:
 Makefile: $(srcdir)/Makefile.in config.status
 	$(SHELL) ./config.status
 
-# This target is usually called from Source/Makefile when configure.in has
+# This target is usually called from Source/Makefile when configure.ac has
 # changed.
 am--refresh: $(srcdir)/configure
 
-$(srcdir)/configure: $(srcdir)/configure.in
+$(srcdir)/configure: $(srcdir)/configure.ac
 	@echo "Build system is out of date.  If the following commands fail, please reconfigure by hand (rerun: ./autogen.sh && ./configure)"
 	cd $(srcdir) && ./autogen.sh
 	$(SHELL) ./config.status --recheck
+
+############################################################################
+# Tools
+############################################################################
+
+# Coverity static code analyser build and submit - EMAIL and PASSWORD need specifying
+# See http://scan.coverity.com/start/
+EMAIL=wsf@fultondesigns.co.uk
+PASSWORD=
+coverity:
+	test -n "$(PASSWORD)" || (echo "PASSWORD not set" && false)
+	$(MAKE) clean-source
+	rm -rf cov-int
+	cov-build --dir cov-int $(MAKE) source
+	tar czvf swig-coverity.tgz cov-int
+	curl --form file=@swig-coverity.tgz --form project=swig --form password=$(PASSWORD) --form email=$(EMAIL) http://scan5.coverity.com/cgi-bin/upload.py
 
 # Makefile ends here

@@ -1,25 +1,66 @@
-#
-# Patch managed by http://www.holgerschurig.de/patcher.html
-#
-# This patch is against htmldoc 1.8.24, and it hacks in support for
+# This patch is against htmldoc 1.8.27, and it hacks in support for
 # correctly indenting the <div class=""> sections in the SWIG manual.
 # This patch should only be used until the 1.9 branch of htmldoc
-# stabalizes, since the 1.9 branch includes true CSS1 support.
+# stabilizes, since the 1.9 branch includes true CSS1 support.
 #
 # This patch only affects the PDF generation, an unpatched htmldoc
 # creates the one-page html documentation just fine.
 #
---- htmldoc-1.8.24/htmldoc/ps-pdf.cxx~margin-left
-+++ htmldoc-1.8.24/htmldoc/ps-pdf.cxx
-@@ -158,6 +158,7 @@
+diff -Naur htmldoc-1.8.27/htmldoc/htmldoc.cxx htmldoc-1.8.27-margin-left/htmldoc/htmldoc.cxx
+--- htmldoc-1.8.27/htmldoc/htmldoc.cxx	2006-03-30 14:01:20.000000000 +0100
++++ htmldoc-1.8.27-margin-left/htmldoc/htmldoc.cxx	2013-05-11 10:11:47.428435647 +0100
+@@ -65,6 +65,8 @@
+ const char *__XOS2RedirRoot(const char *);
+ }
+ #endif
++
++extern void parse_style(char *);
+
+
+ /*
+@@ -1115,6 +1117,7 @@
+     else if (compare_strings(argv[i], "--version", 6) == 0)
+     {
+       puts(SVERSION);
++      puts("Patched with margin-left.patch");
+       return (0);
+     }
+     else if (compare_strings(argv[i], "--webpage", 3) == 0)
+@@ -2403,6 +2406,10 @@
+     }
+     else if (strcmp(temp, "--cookies") == 0)
+       file_cookies(temp2);
++    else if (strcmp(temp, "--stylesheet") == 0)
++    {
++      parse_style(temp2);
++    }
+   }
+ }
+
+diff -Naur htmldoc-1.8.27/htmldoc/Makefile htmldoc-1.8.27-margin-left/htmldoc/Makefile
+--- htmldoc-1.8.27/htmldoc/Makefile	2005-10-28 21:32:59.000000000 +0100
++++ htmldoc-1.8.27-margin-left/htmldoc/Makefile	2013-05-11 09:39:04.392367869 +0100
+@@ -36,7 +36,7 @@
+ OBJS	=	gui.o file.o html.o htmldoc.o htmllib.o htmlsep.o \
+		http.o http-addr.o http-addrlist.o http-support.o image.o \
+		iso8859.o license.o md5.o progress.o ps-pdf.o rc4.o \
+-		snprintf.o string.o toc.o util.o
++		snprintf.o string.o toc.o util.o style.o
+
+
+ #
+diff -Naur htmldoc-1.8.27/htmldoc/ps-pdf.cxx htmldoc-1.8.27-margin-left/htmldoc/ps-pdf.cxx
+--- htmldoc-1.8.27/htmldoc/ps-pdf.cxx	2006-08-01 17:58:50.000000000 +0100
++++ htmldoc-1.8.27-margin-left/htmldoc/ps-pdf.cxx	2013-05-11 09:37:40.096364957 +0100
+@@ -160,6 +160,7 @@
  #  undef page_t
  #endif // __hpux
  
 +extern int lookup_div_class(uchar *);
  
  /*
-  * Constants...
-@@ -4188,9 +4189,24 @@
+  * Output options...
+@@ -4230,9 +4231,24 @@
              para->child = para->last_child = NULL;
            }
  
@@ -45,30 +86,9 @@
            if (para->child != NULL)
            {
              parse_paragraph(para, *left, *right, *bottom, *top, x, y, page, *needspace);
---- htmldoc-1.8.24/htmldoc/htmldoc.cxx~margin-left
-+++ htmldoc-1.8.24/htmldoc/htmldoc.cxx
-@@ -62,6 +62,8 @@
- const char *__XOS2RedirRoot(const char *);
- }
- #endif
-+
-+extern void parse_style(char *);
-  
- 
- /*
-@@ -2140,6 +2142,10 @@
-     }
-     else if (strcmp(temp, "--cookies") == 0)
-       file_cookies(temp2);
-+    else if (strcmp(temp, "--stylesheet") == 0)
-+    {
-+      parse_style(temp2);
-+    }
-   }
- }
- 
---- /dev/null
-+++ htmldoc-1.8.24/htmldoc/style.cxx
+diff -Naur htmldoc-1.8.27/htmldoc/style.cxx htmldoc-1.8.27-margin-left/htmldoc/style.cxx
+--- htmldoc-1.8.27/htmldoc/style.cxx	1970-01-01 01:00:00.000000000 +0100
++++ htmldoc-1.8.27-margin-left/htmldoc/style.cxx	2013-05-11 09:37:40.096364957 +0100
 @@ -0,0 +1,185 @@
 +/* Extreamly simple parsing routines for CSS style sheets.
 + * We only parse div.class { } sections, and only look
@@ -255,15 +275,3 @@
 +
 +	fclose(f);
 +}
---- htmldoc-1.8.24/htmldoc/Makefile~margin-left
-+++ htmldoc-1.8.24/htmldoc/Makefile
-@@ -35,7 +35,7 @@
- 
- OBJS	=	gui.o file.o html.o htmldoc.o htmllib.o htmlsep.o http.o \
- 		http-addr.o http-support.o image.o iso8859.o license.o md5.o \
--		progress.o ps-pdf.o rc4.o snprintf.o string.o toc.o util.o
-+		progress.o ps-pdf.o rc4.o snprintf.o string.o toc.o util.o style.o
- 
- 
- #
-

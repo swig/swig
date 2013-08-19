@@ -795,7 +795,9 @@ If you need to build it on your own, the following notes are provided:
 You will need to create a DLL that can be loaded into the interpreter. 
 This section briefly describes the use of SWIG with Microsoft Visual
 C++.   As a starting point, many of SWIG's examples include project
-files.  You might want to take a quick look at these in addition to
+files (.dsp files) for Visual C++ 6. These can be opened by more 
+recent versions of Visual Studio.
+You might want to take a quick look at these examples in addition to
 reading this section.
 </p>
 
@@ -867,6 +869,24 @@ is often caused by linking your extension module against the wrong
 set of Win32 debug or thread libraries.  You will have to fiddle around with
 the build options of project to try and track this down.
 </p>
+
+<p>
+A 'Debug' build of the wrappers requires a debug build of the Python interpreter.
+This normally requires building the Python interpreter from source, which is not a
+job for the feint-hearted. Alternatively you can use the 'Release' build of the
+Python interpreter with a 'Debug' build of your wrappers by defining the <tt>SWIG_PYTHON_INTERPRETER_NO_DEBUG</tt>
+symbol under the preprocessor options. Or you can ensure this macro is defined at the beginning
+of the wrapper code using the following in your interface file, where <tt>_MSC_VER</tt> ensures it is
+only used by the Visual Studio compiler:
+</p>
+
+<div class="code"><pre>
+%begin %{
+#ifdef _MSC_VER
+#define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
+%}
+</pre></div>
 
 <p>
 Some users have reported success in building extension modules using Cygwin
@@ -2494,6 +2514,322 @@ structs.
 when the <tt>-builtin</tt> option is used.</p>
 
 <p>
+The <tt>-builtin</tt> option provides a significant performance improvement
+in the wrapped code.  To understand the difference between proxy classes
+and built-in types, let's take a look at what a wrapped object looks like
+under both circumstances.
+</p>
+
+<p>When proxy classes are used, each wrapped object in python is an instance
+of a pure python class.  As a reminder, here is what the <tt>__init__</tt> method looks
+like in a proxy class:
+</p>
+
+<div class="targetlang">
+<pre>
+class Foo(object):
+     def __init__(self):
+         self.this = _example.new_Foo()
+         self.thisown = 1
+</pre>
+</div>
+
+<p>When a <tt>Foo</tt> instance is created, the call to <tt>_example.new_Foo()</tt>
+creates a new C++ <tt>Foo</tt> instance; wraps that C++ instance inside an instance of 
+a python built-in type called <tt>SwigPyObject</tt>; and stores the <tt>SwigPyObject</tt>
+instance in the 'this' field of the python Foo object.  Did you get all that?  So, the
+python <tt>Foo</tt> object is composed of three parts:</p>
+
+<ul>
+<li> The python <tt>Foo</tt> instance, which contains...</li>
+<li> ... an instance of <tt>struct SwigPyObject</tt>, which contains...</li>
+<li> ... a C++ <tt>Foo</tt> instance</li>
+</ul>
+
+<p>When <tt>-builtin</tt> is used, the pure python layer is stripped off.  Each
+wrapped class is turned into a new python built-in type which inherits from
+<tt>SwigPyObject</tt>, and <tt>SwigPyObject</tt> instances are returned directly
+from the wrapped methods.  For more information about python built-in extensions,
+please refer to the python documentation:</p>
+
+<p><a href="http://docs.python.org/extending/newtypes.html">http://docs.python.org/extending/newtypes.html</a></p>
+
+<H4><a name="Python_builtin_limitations"></a>34.4.2.1 Limitations</H4>
+
+
+<p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
+<ul>
+  <li><p>python version support:</p>
+  <ul>
+    <li>Versions 2.5 and up are fully supported</li>
+    <li>Versions 2.3 and 2.4 are mostly supported; there are problems with director classes and/or sub-classing a wrapped type in python.</li>
+    <li>Versions older than 2.3 are not supported.</li>
+  </ul>
+  </li>
+  <li><p>Some legacy syntax is no longer supported; in particular:</p>
+  <ul>
+    <li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
+    <li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
+    They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
+  </ul>
+  </li>
+  <li><p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
+
+<div class="code">
+<pre>
+typedef struct {
+    PyObject_HEAD
+    PyObject *dict;
+    PyObject *args;
+    PyObject *message;
+} PyBaseExceptionObject;
+</pre>
+</div>
+
+<p>But swig-generated wrappers expect that all swig-wrapped classes will have this struct layout:</p>
+
+<div class="code">
+<pre>
+typedef struct {
+    PyObject_HEAD
+    void *ptr;
+    swig_type_info *ty;
+    int own;
+    PyObject *next;
+    PyObject *dict;
+} SwigPyObject;
+</pre>
+</div>
+
+<p>There are workarounds for this.  For example, if you wrap this class:
+
+<div class="code">
+<pre>
+class MyException {
+public:
+    MyException (const char *msg_);
+    ~MyException ();
+
+    const char *what () const;
+
+private:
+    char *msg;
+};
+</pre>
+</div>
+
+<p>... you can define this python class, which may be raised as an exception:</p>
+
+<div class="targetlang">
+<pre>
+class MyPyException (Exception) :
+    def __init__(self, msg, *args) :
+        Exception.__init__(self, *args)
+        self.myexc = MyException(msg)
+    def what (self) :
+        return self.myexc.what()
+</pre>
+</div>
+</li>
+<li><p>Reverse binary operators (e.g., <tt>__radd__</tt>) are not supported.</p>
+<p>To illustrate this point, if you have a wrapped class called <tt>MyString</tt>,
+and you want to use instances of <tt>MyString</tt> interchangeably with native python
+strings, you can define an <tt>'operator+ (const char*)'</tt> method :</p>
+
+<div class="code">
+<pre>
+class MyString {
+public:
+    MyString (const char *init);
+    MyString operator+ (const char *other) const;
+    ...
+};
+</pre>
+</div>
+
+<p>
+SWIG will automatically create an operator overload in python that will allow this:
+</p>
+
+<div class="targetlang">
+<pre>
+from MyModule import MyString
+
+mystr = MyString("No one expects")
+episode = mystr + " the Spanish Inquisition"
+</pre>
+</div>
+
+<p>
+This works because the first operand (<tt>mystr</tt>) defines a way
+to add a native string to itself.  However, the following will <b>not</b> work:
+</p>
+
+<div class="targetlang">
+<pre>
+from MyModule import MyString
+
+mystr = MyString("Parrot")
+episode = "Dead " + mystr
+</pre>
+</div>
+
+<p>
+The above code fails, because the first operand -- a native python string --
+doesn't know how to add an instance of <tt>MyString</tt> to itself.
+</p>
+</li>
+
+<li><p>If you have multiple SWIG modules that share type information (<a href="Modules.html#Modules_nn2">more info</a>),
+the <tt>-builtin</tt> option requires a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
+<ul>
+<li><p>There must be an unambiguous dependency graph for the modules.</p></li>
+<li><p>Module dependencies must be explicitly stated with <tt>%import</tt> statements in the SWIG interface file.</p>
+</ul>
+
+<p>As an example, suppose module <tt>A</tt> has this interface in <tt>A.i</tt> :</p>
+
+<div class="code"><pre>
+%module "A";
+
+class Base {
+...
+};
+</pre></div>
+
+<p>If you want to wrap another module containing a class that inherits from <tt>A</tt>, this is how it would look :</p>
+
+<div class="code"><pre>
+%module "B";
+
+%import "A.i"
+
+class Derived : public Base {
+...
+};
+</pre></div>
+
+<p>The <tt>import "A.i"</tt> statement is required, because module <tt>B</tt> depends on module <tt>A</tt>.</p>
+
+<p>As long as you obey these requirements, your python code may import the modules in any order :</p>
+
+<div class="targetlang"><pre>
+import B
+import A
+
+assert(issubclass(B.Derived, A.Base))
+</pre></div>
+</li>
+</ul>
+
+<H4><a name="Python_builtin_overloads"></a>34.4.2.2 Operator overloads -- use them!</H4>
+
+
+<p>The entire justification for the <tt>-builtin</tt> option is improved
+performance.  To that end, the best way to squeeze maximum performance out
+of your wrappers is to <b>use operator overloads.</b>
+Named method dispatch is slow in python, even when compared to other scripting languages.
+However, python built-in types have a large number of "slots",
+analogous to C++ operator overloads, which allow you to short-circuit named method dispatch
+for certain common operations.
+</p>
+
+<p>By default, SWIG will translate most C++ arithmetic operator overloads into python
+slot entries.  For example, suppose you have this class:
+
+<div class="code">
+<pre>
+class Twit {
+public:
+    Twit operator+ (const Twit&amp; twit) const;
+
+    // Forward to operator+
+    Twit add (const Twit&amp; twit) const
+    { return *this + twit; }
+};
+</pre>
+</div>
+
+<p>SWIG will automatically register <tt>operator+</tt> as a python slot operator for addition.  You may write python code like this:</p>
+
+<div class="targetlang">
+<pre>
+from MyModule import Twit
+
+nigel = Twit()
+emily = Twit()
+percival = nigel + emily
+percival = nigel.add(emily)
+</pre>
+</div>
+
+<p>The last two lines of the python code are equivalent,
+but <b>the line that uses the '+' operator is much faster</b>.
+</p>
+
+<p>In-place operators (e.g., <tt>operator+=</tt>) and comparison operators
+(<tt>operator==, operator&lt;</tt>, etc.) are also converted to python
+slot operators.  For a complete list of C++ operators that are
+automatically converted to python slot operators, refer to the file
+<tt>python/pyopers.swig</tt> in the SWIG library.
+</p>
+
+<p>There are other very useful python slots that you
+may explicitly define using <tt>%feature</tt> directives.  For example,
+suppose you want to use instances of a wrapped class as keys in a native python
+<tt>dict</tt>.  That will work as long as you define a hash function for
+instances of your class, and use it to define the python <tt>tp_hash</tt>
+slot:
+</p>
+
+<div class="code">
+<pre>
+%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+
+class Cheese {
+public:
+    Cheese (const char *name);
+    long cheeseHashFunc () const;
+};
+</pre>
+</div>
+
+<p>This will allow you to write python code like this:</p>
+
+<div class="targetlang">
+<pre>
+from my MyPackage import Cheese
+
+inventory = {
+    Cheese("cheddar") : 0,
+    Cheese("gouda") : 0,
+    Cheese("camembert") : 0
+}
+</pre>
+</div>
+
+<p>Because you defined the <tt>tp_hash</tt> slot, <tt>Cheese</tt> objects may
+be used as hash keys; and when the <tt>cheeseHashFunc</tt> method is invoked
+by a python <tt>dict</tt>, it will <b>not</b> go through named method dispatch.
+A more detailed discussion about <tt>%feature("python:slot")</tt> can be found
+in the file <tt>python/pyopers.swig</tt> in the SWIG library.
+You can read about all of the available python slots here:</p>
+
+<p><a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
+
+<p>You may override (almost) all of the slots defined in the <tt>PyTypeObject,
+PyNumberMethods, PyMappingMethods, PySequenceMethods</tt>, and <tt>PyBufferProcs</tt>
+structs.
+</p>
+
+
+<H3><a name="Python_nn30"></a>34.4.3 Memory management</H3>
+
+
+<p>NOTE: Although this section refers to proxy objects, everything here also applies
+when the <tt>-builtin</tt> option is used.</p>
+
+<p>
 Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
 flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
 the Python interpreter will destroy the C++ object when the proxy class is 
@@ -3294,6 +3630,53 @@ what can be done without having to rely on any of the more advanced
 customization features.
 </p>
 
+<p>
+There is also <tt>%pythonbegin</tt> which is another directive very similar to <tt>%pythoncode</tt>,
+but generates the given Python code at the beginning of the <tt>.py</tt> file.
+This directive works in the same way as <tt>%pythoncode</tt>, except the code is copied
+just after the SWIG banner (comment) at the top of the file, before any real code.
+This provides an opportunity to add your own description in a comment near the top of the file as well
+as Python imports that have to appear at the top of the file, such as "<tt>from __future__ import</tt>"
+statements.
+</p>
+
+<p>
+The following shows example usage for Python 2.6 to use <tt>print</tt> as it can in Python 3, that is, as a function instead of a statement:
+</p>
+
+<div class="code">
+<pre>
+%pythonbegin %{
+# This module provides wrappers to the Whizz Bang library
+%}
+
+%pythonbegin %{
+from __future__ import print_function
+print("Loading", "Whizz", "Bang", sep=' ... ')
+%}
+</pre>
+</div>
+
+<p>
+which can be seen when viewing the first few lines of the generated <tt>.py</tt> file:
+</p>
+
+<div class="code">
+<pre>
+# This file was automatically generated by SWIG (http://www.swig.org).
+# Version 2.0.11
+#
+# Do not make changes to this file unless you know what you are doing--modify
+# the SWIG interface file instead.
+
+# This module provides wrappers to the Whizz Bang library
+
+from __future__ import print_function
+print("Loading", "Whizz", "Bang", sep=' ... ')
+
+</pre>
+</div>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
@@ -3386,7 +3769,39 @@ public:
 </pre>
 </div>
 
+<p>
+Note that when the underlying C++ method is overloaded, there is only one proxy Python method
+for multiple C++ methods. In this case, only one of parsed methods is examined
+for the feature. You are better off specifying the feature without the argument list to ensure it will get used,
+as it will then get attached to all the overloaded C++ methods. For example:
+</p>
 
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar()
+
+%pythonprepend Foo::bar %{
+   #do something before C++ call
+%}
+
+%pythonappend Foo::bar %{
+   #do something after C++ call
+%}
+
+
+class Foo {
+public:
+    int bar(int x);
+    int bar();
+}
+</pre>
+</div>
+
+<p>
+The same applies for overloaded constructors.
+</p>
 
 
 <H3><a name="Python_nn43"></a>34.6.3 Class extension with %extend</H3>

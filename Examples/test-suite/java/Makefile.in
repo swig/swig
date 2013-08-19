@@ -3,8 +3,8 @@
 #######################################################################
 
 LANGUAGE     = java
-JAVA         = java
-JAVAC        = javac
+JAVA         = @JAVA@
+JAVAC        = @JAVAC@
 JAVAFLAGS    = -Xcheck:jni
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
@@ -23,10 +23,12 @@ CPP_TEST_CASES = \
 	intermediary_classname \
 	java_constants \
 	java_director \
+	java_director_assumeoverride \
 	java_enums \
+	java_jnitypes \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
-	java_jnitypes \
+	java_nspacewithoutpackage \
 	java_pgcpp \
 	java_pragmas \
 	java_prepost \
@@ -39,12 +41,15 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-SWIGOPT += -package $(JAVA_PACKAGE)
+JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
+SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
+java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
+director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest: 

@@ -100,7 +100,16 @@ namespace test {
 #endif
 #ifdef SWIGRUBY
 	%typemap(in) string_class * {
-	    $1 = new string_class(STR2CSTR($input));
+	    $1 = new string_class(StringValuePtr($input));
+	}
+	%typemap(freearg) string_class * {
+	    delete $1;
+	}
+#endif
+#ifdef SWIGGO
+	%typemap(gotype) string_class * "string"
+	%typemap(in) string_class * {
+            $1 = new string_class($input.p);
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

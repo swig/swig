@@ -1225,7 +1225,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = SvIV(tempsv);
   $target = &amp;dvalue;
@@ -1248,7 +1248,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = (short) SvIV(tempsv);
   $target = &amp;dvalue;
@@ -1271,7 +1271,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = (long) SvIV(tempsv);
   $target = &amp;dvalue;
@@ -1294,7 +1294,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = (unsigned int) SvIV(tempsv);
   $target = &amp;dvalue;
@@ -1317,7 +1317,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = (unsigned short) SvIV(tempsv);
   $target = &amp;dvalue;
@@ -1340,7 +1340,7 @@ void _ptrfree(SV *_PTRVALUE) {
   }
   tempsv = SvRV($source);
   if (!SvIOK(tempsv)) {
-    croak("expected a integer reference");
+    croak("expected an integer reference");
   }
   dvalue = (unsigned long) SvIV(tempsv);
   $target = &amp;dvalue;

@@ -94,6 +94,18 @@ swig -go -help
 </tr>
 
 <tr>
+<td>-intgo-type-size %lt;s%gt;</td>
+<td>Set the size for the Go type <tt>int</tt>.  This controls the size
+  that the C/C++ code expects to see.  The %lt;s%gt; argument should
+  be 32 or 64.  This option is currently required during the
+  transition from Go 1.0 to Go 1.1, as the size of <tt>int</tt> on
+  64-bit x86 systems changes between those releases (from 32 bits to
+  64 bits).  In the future the option may become optional, and SWIG
+  will assume that the size of <tt>int</tt> is the size of a C
+  pointer.</td>
+</tr>
+
+<tr>
 <td>-gccgo</td>
 <td>Generate code for gccgo.  The default is to generate code for
   6g/8g/5g.</td>
@@ -498,7 +510,7 @@ into Go types.
 <p>Because of limitations in the way output arguments are processed in swig,
 a function with output arguments will not have multiple return values.
 Instead, you must pass a pointer into the C++ function to tell it where to
-store the ouput value.  In go, you supply a slice in the place of the output
+store the output value.  In go, you supply a slice in the place of the output
 argument.</p>
 
 <p>For example, suppose you were trying to wrap the modf() function in the

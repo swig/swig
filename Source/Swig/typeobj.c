@@ -14,10 +14,9 @@
  * like typedef, namespaces, etc.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typeobj_c[] = "$Id$";
-
 #include "swig.h"
 #include <ctype.h>
+#include <limits.h>
 
 /* -----------------------------------------------------------------------------
  * Synopsis
@@ -427,62 +426,62 @@ int SwigType_isreference(const SwigType *t) {
  * Repeated qualifications have no effect.  Moreover, the order of qualifications
  * is alphabetical---meaning that "const volatile" and "volatile const" are
  * stored in exactly the same way as "q(const volatile)".
+ * 'qual' can be a list of multiple qualifiers in any order, separated by spaces.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
-  char temp[256], newq[256];
-  int sz, added = 0;
-  char *q, *cqual;
+  List *qlist;
+  String *allq, *newq;
+  int i, sz;
+  const char *cqprev = 0;
+  const char *c = Char(t);
+  const char *cqual = Char(qual);
 
-  char *c = Char(t);
-  cqual = Char(qual);
-
-  if (!(strncmp(c, "q(", 2) == 0)) {
-    sprintf(temp, "q(%s).", cqual);
+  /* if 't' has no qualifiers and 'qual' is a single qualifier, simply add it */
+  if ((strncmp(c, "q(", 2) != 0) && (strstr(cqual, " ") == 0)) {
+    String *temp = NewStringf("q(%s).", cqual);
     Insert(t, 0, temp);
+    Delete(temp);
     return t;
   }
 
-  /* The type already has a qualifier on it.  In this case, we first check to
-     see if the qualifier is already specified.  In that case do nothing.
-     If it is a new qualifier, we add it to the qualifier list in alphabetical
-     order */
-
-  sz = element_size(c);
-  strncpy(temp, c, (sz < 256) ? sz : 256);
-
-  if (strstr(temp, cqual)) {
-    /* Qualifier already added */
-    return t;
+  /* create string of all qualifiers */
+  if (strncmp(c, "q(", 2) == 0) {
+    allq = SwigType_parm(t);
+    Append(allq, " ");
+    SwigType_del_element(t);     /* delete old qualifier list from 't' */
+  } else {
+    allq = NewStringEmpty();
   }
+  Append(allq, qual);
 
-  /* Add the qualifier to the existing list. */
+  /* create list of all qualifiers from string */
+  qlist = Split(allq, ' ', INT_MAX);
+  Delete(allq);
 
-  strcpy(newq, "q(");
-  q = temp + 2;
-  q = strtok(q, " ).");
-  while (q) {
-    if (strcmp(cqual, q) < 0) {
-      /* New qualifier is less that current qualifier.  We need to insert it */
-      strcat(newq, cqual);
-      strcat(newq, " ");
-      strcat(newq, q);
-      added = 1;
-    } else {
-      strcat(newq, q);
-    }
-    q = strtok(NULL, " ).");
-    if (q) {
-      strcat(newq, " ");
+  /* sort in alphabetical order */
+  SortList(qlist, Strcmp);
+
+  /* create new qualifier string from unique elements of list */
+  sz = Len(qlist);
+  newq = NewString("q(");
+  for (i = 0; i < sz; ++i) {
+    String *q = Getitem(qlist, i);
+    const char *cq = Char(q);
+    if (cqprev == 0 || strcmp(cqprev, cq) != 0) {
+      if (i > 0) {
+        Append(newq, " ");
+      }
+      Append(newq, q);
+      cqprev = cq;
     }
   }
-  if (!added) {
-    strcat(newq, " ");
-    strcat(newq, cqual);
-  }
-  strcat(newq, ").");
-  Delslice(t, 0, sz);
+  Append(newq, ").");
+  Delete(qlist);
+
+  /* replace qualifier string with new one */
   Insert(t, 0, newq);
+  Delete(newq);
   return t;
 }
 
@@ -590,11 +589,11 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
-  char temp[512];
-  strcpy(temp, "a(");
-  strcat(temp, Char(size));
-  strcat(temp, ").");
+  String *temp = NewString("a(");
+  Append(temp, size);
+  Append(temp, ").");
   Insert(t, 0, temp);
+  Delete(temp);
   return t;
 }
 
@@ -627,8 +626,8 @@ int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
-    c++;
-    return (*c == 0);
+    if (c)
+      return (*(++c) == 0);
   }
   return 0;
 }
@@ -654,8 +653,10 @@ int SwigType_array_ndim(const SwigType *t) {
 
   while (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
-    c++;
-    ndim++;
+    if (c) {
+      c++;
+      ndim++;
+    }
   }
   return ndim;
 }
@@ -665,8 +666,10 @@ String *SwigType_array_getdim(const SwigType *t, int n) {
   char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
-    c++;
-    n--;
+    if (c) {
+      c++;
+      n--;
+    }
   }
   if (n == 0) {
     String *dim = SwigType_parm(c);
@@ -695,8 +698,10 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
 
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
-    c++;
-    n--;
+    if (c) {
+      c++;
+      n--;
+    }
   }
   if (n == 0) {
     temp = *c;
@@ -741,7 +746,6 @@ SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
 
   Insert(t, 0, ").");
   pstr = NewString("f(");
-  p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms)
       Putc(',', pstr);
@@ -839,7 +843,6 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
   Parm *p;
 
   Append(t, "<(");
-  p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     String *v;
     if (Getattr(p, "default"))

@@ -16,13 +16,23 @@
 <ul>
 <li><a href="Preface.html#Preface_nn2">Introduction</a>
 <li><a href="Preface.html#Preface_nn4">SWIG Versions</a>
+<li><a href="Preface.html#Preface_license">SWIG License</a>
 <li><a href="Preface.html#Preface_nn5">SWIG resources</a>
 <li><a href="Preface.html#Preface_nn6">Prerequisites</a>
 <li><a href="Preface.html#Preface_nn7">Organization of this manual</a>
 <li><a href="Preface.html#Preface_nn8">How to avoid reading the manual</a>
 <li><a href="Preface.html#Preface_nn9">Backwards compatibility</a>
+<li><a href="Preface.html#Preface_release_notes">Release notes</a>
 <li><a href="Preface.html#Preface_nn10">Credits</a>
 <li><a href="Preface.html#Preface_nn11">Bug reports</a>
+<li><a href="Preface.html#Preface_installation">Installation</a>
+<ul>
+<li><a href="Preface.html#Preface_windows_installation">Windows installation</a>
+<li><a href="Preface.html#Preface_unix_installation">Unix installation</a>
+<li><a href="Preface.html#Preface_osx_installation">Macintosh OS X installation</a>
+<li><a href="Preface.html#Preface_testing">Testing</a>
+<li><a href="Preface.html#Preface_examples">Examples</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -645,7 +655,9 @@
 <li><a href="Android.html#Android_examples_intro">Examples introduction</a>
 <li><a href="Android.html#Android_example_simple">Simple C example</a>
 <li><a href="Android.html#Android_example_class">C++ class example</a>
+<li><a href="Android.html#Android_examples_other">Other examples</a>
 </ul>
+<li><a href="Android.html#Android_stl">C++ STL</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -684,6 +696,7 @@
 <li><a href="CSharp.html#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="CSharp.html#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
 <li><a href="CSharp.html#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
+<li><a href="CSharp.html#CSharp_date_pre_post_directors">Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a>
 <li><a href="CSharp.html#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="CSharp.html#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 <li><a href="CSharp.html#CSharp_enum_underlying_type">Underlying type for enums</a>
@@ -800,8 +813,9 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
+<li><a href="Guile.html#Guile_nn1">Supported Guile Versions</a>
 <li><a href="Guile.html#Guile_nn2">Meaning of "Module"</a>
-<li><a href="Guile.html#Guile_nn3">Using the SCM or GH Guile API</a>
+<li><a href="Guile.html#Guile_nn3">Old GH Guile API</a>
 <li><a href="Guile.html#Guile_nn4">Linkage</a>
 <ul>
 <li><a href="Guile.html#Guile_nn5">Simple Linkage</a>
@@ -814,8 +828,7 @@
 <li><a href="Guile.html#Guile_nn11">Typemaps</a>
 <li><a href="Guile.html#Guile_nn12">Representation of pointers as smobs</a>
 <ul>
-<li><a href="Guile.html#Guile_nn13">GH Smobs</a>
-<li><a href="Guile.html#Guile_nn14">SCM Smobs</a>
+<li><a href="Guile.html#Guile_nn14">Smobs</a>
 <li><a href="Guile.html#Guile_nn15">Garbage Collection</a>
 </ul>
 <li><a href="Guile.html#Guile_nn16">Exception Handling</a>
@@ -912,6 +925,7 @@
 <li><a href="Java.html#Java_directors_overhead">Overhead and code bloat</a>
 <li><a href="Java.html#Java_directors_example">Simple directors example</a>
 <li><a href="Java.html#Java_directors_threading">Director threading issues</a>
+<li><a href="Java.html#Java_directors_performance">Director performance tuning</a>
 </ul>
 <li><a href="Java.html#Java_allprotected">Accessing protected members</a>
 <li><a href="Java.html#Java_common_customization">Common customization features</a>
@@ -1514,9 +1528,9 @@
 <li><a href="Ruby.html#Ruby_Placement_of_typemaps">Placement of typemaps</a>
 <li><a href="Ruby.html#Ruby_nn39">Ruby typemaps</a>
 <ul>
-<li><a href="Ruby.html#Ruby_in_typemap">&nbsp;"in" typemap</a>
+<li><a href="Ruby.html#Ruby_in_typemap">"in" typemap</a>
 <li><a href="Ruby.html#Ruby_typecheck_typemap">"typecheck" typemap</a>
-<li><a href="Ruby.html#Ruby_out_typemap">&nbsp;"out" typemap</a>
+<li><a href="Ruby.html#Ruby_out_typemap">"out" typemap</a>
 <li><a href="Ruby.html#Ruby_arginit_typemap">"arginit" typemap</a>
 <li><a href="Ruby.html#Ruby_default_typemap">"default" typemap</a>
 <li><a href="Ruby.html#Ruby_check_typemap">"check" typemap</a>

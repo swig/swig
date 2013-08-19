@@ -1,6 +1,9 @@
 SWIG = ../../../preinst-swig
 
-all: single multi
+check: build
+	cd eggs/install && csi ../../test.scm
+
+build: single multi
 
 # This creates an egg which contains only the single module.  Any additional implementation files
 # that implement the interface being wrapped should also be added to this egg
@@ -9,7 +12,7 @@ single: single_wrap.cxx
 	tar czf eggs/single.egg single.setup single.scm single_wrap.cxx
 	rm -f single.scm single_wrap.cxx
 
-# complie the single module with -nounit
+# compile the single module with -nounit
 single_wrap.cxx: single.i
 	$(SWIG) -chicken -c++ -proxy -nounit single.i
 
@@ -34,6 +37,3 @@ setup:
 	mkdir -p install && \
 	chicken-setup -repository `pwd`/install single.egg && \
 	chicken-setup -repository `pwd`/install multi.egg
-
-check:
-	cd eggs/install && csi ../../test.scm

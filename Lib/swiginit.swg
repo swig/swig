@@ -57,8 +57,6 @@ SWIG_InitializeModule(void *clientdata) {
   swig_module_info *module_head, *iter;
   int found, init;
 
-  clientdata = clientdata;
-
   /* check to see if the circular list has been setup, if not, set it up */
   if (swig_module.next==0) {
     /* Initialize the swig_module */
@@ -96,7 +94,7 @@ SWIG_InitializeModule(void *clientdata) {
     module_head->next = &swig_module;
   }
 
-  /* When multiple interpeters are used, a module could have already been initialized in
+  /* When multiple interpreters are used, a module could have already been initialized in
      a different interpreter, but not yet have a pointer in this interpreter.
      In this case, we do not want to continue adding types... everything should be
      set up already */

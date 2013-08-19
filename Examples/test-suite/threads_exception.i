@@ -20,6 +20,7 @@ public:
   Exc(int c, const char *m) {
     code = c;
     strncpy(msg,m,255);
+    msg[255] = 0;
   }
   int code;
   char msg[256];
