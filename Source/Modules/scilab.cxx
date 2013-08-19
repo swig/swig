@@ -285,9 +285,10 @@ public:
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
     int maxOutputArguments = 0;
+
     /* Insert calls to CheckInputArgument and CheckOutputArgument */
-    Printf(wrapper->code, "CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
-    Printf(wrapper->code, "CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
+    Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
+    Printf(wrapper->code, "SWIG_CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
     Printf(wrapper->code, "SWIG_Scilab_SetFname(fname);\n");
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
@@ -314,7 +315,7 @@ public:
         }
 
         if (paramIndex >= minInputArguments) { /* Optional input argument management */
-          Printf(wrapper->code, "if (Rhs > %d) {\n%s\n}\n", paramIndex, paramTypemap);
+          Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
         } else {
           Printf(wrapper->code, "%s\n", paramTypemap);
         }
@@ -461,7 +462,7 @@ public:
     Printv(wrapper->def, "int ", wrapperName, " (char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Get the number of the parameters */
-    Wrapper_add_local(wrapper, "argc", "int argc = Rhs");
+    Wrapper_add_local(wrapper, "argc", "int argc = SWIG_NbInputArgument(pvApiCtx)");
     Printf(tmp, "int argv[%d] = {", maxargs);
     for (int j = 0; j < maxargs; ++j) {
       Printf(tmp, "%s%d", j ? "," : " ", j + 1);
@@ -499,8 +500,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
     if (varoutTypemap != NULL) {
@@ -526,8 +527,8 @@ public:
       Printv(setFunctionWrapper->def, "int ", setFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
       /* Check the number of input and output */
-      Printf(setFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 1, 1);\n");
-      Printf(setFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
+      Printf(setFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 1, 1);\n");
+      Printf(setFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
@@ -575,8 +576,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
+    Printf(getFunctionWrapper->def, "SWIG_CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
     if (constantTypemap != NULL) {
