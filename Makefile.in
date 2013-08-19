@@ -149,6 +149,7 @@ check-versions:					\
 	check-uffi-version			\
 	check-cffi-version			\
 	check-r-version				\
+	check-scilab-version			\
 	check-go-version			\
 	check-d-version
 
