@@ -429,19 +429,6 @@ static DOH *Hash_str(DOH *ho) {
     Putc('}', s);
     return s;
   }
-  if (expanded >= max_expand) {
-    /* replace each hash attribute with a '.' */
-    Printf(s, "Hash(0x%x) {", ho);
-    for (i = 0; i < h->hashsize; i++) {
-      n = h->hashtable[i];
-      while (n) {
-	Putc('.', s);
-	n = n->next;
-      }
-    }
-    Putc('}', s);
-    return s;
-  }
   ObjSetMark(ho, 1);
   Printf(s, "Hash(%p) {\n", ho);
   for (i = 0; i < h->hashsize; i++) {

@@ -255,37 +255,6 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
         if (swig_globals[j].get_method)
           cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
     }
-    else {
-      for (int j=0;swig_globals[j].name;++j)
-        if (swig_globals[j].get_method)
-          module_ns->assign(swig_globals[j].name,&swig_globals[j]);
-    }
-    for (int j=0;swig_globals[j].name;++j)
-      if (swig_globals[j].method)
-        module_ns->assign(swig_globals[j].name,&swig_globals[j]);
-
-    // * need better solution here; swig_type -> octave_class mapping is
-    // * really n-to-1, in some cases such as template partial spec, etc.
-    // * see failing tests.
-    for (int j=0;swig_types[j];++j)
-      if (swig_types[j]->clientdata) {
-        swig_octave_class* c=(swig_octave_class*)swig_types[j]->clientdata;
-        module_ns->assign(c->name,
-                        Swig::swig_value_ref
-                        (new octave_swig_type(0,swig_types[j])));
-      }
-
-    SWIG_init_user(module_ns);
-
-    SWIG_InstallOps(octave_swig_ref::static_type_id());
-
-#if OCTAVE_API_VERSION_NUMBER < 37
-    mlock(me->name());
-#else
-    mlock();
-#endif
-
-  }
 
     module_ns=new octave_swig_type(0, 0, 0, true);
     if (std::string(SWIG_global_name) != ".") {

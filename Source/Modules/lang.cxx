@@ -2815,7 +2815,6 @@ int Language::destructorDeclaration(Node *n) {
 
   Setattr(CurrentClass, "has_destructor", "1");
   Swig_restore(n);
-  Delete(expected_name);
   return SWIG_OK;
 }
 

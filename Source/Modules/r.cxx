@@ -836,7 +836,6 @@ int R::top(Node *n) {
   Delete(f_init);
 
   Delete(s_header);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
 

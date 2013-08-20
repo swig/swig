@@ -369,10 +369,3 @@ String *Swig_file_dirname(const_String_or_char_ptr filename) {
 void Swig_file_debug_set() {
   file_debug = 1;
 }
-
-/*
- * Swig_file_debug()
- */
-void Swig_file_debug_set() {
-  file_debug = 1;
-}
