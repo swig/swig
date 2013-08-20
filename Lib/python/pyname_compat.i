@@ -67,10 +67,8 @@
 #define PySwigObject_next SwigPyObject_next
 #define PySwigObject_oct SwigPyObject_oct
 #define PySwigObject_own SwigPyObject_own
-#define PySwigObject_print SwigPyObject_print
 #define PySwigObject_repr SwigPyObject_repr
 #define PySwigObject_richcompare SwigPyObject_richcompare
-#define PySwigObject_str SwigPyObject_str
 #define PySwigObject_type SwigPyObject_type
 #define PySwigPacked SwigPyPacked
 #define PySwigPacked_Check SwigPyPacked_Check

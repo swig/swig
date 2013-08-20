@@ -4,6 +4,30 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.11 (in progress)
 ============================
+
+2013-08-07: wsfulton
+            [Python] SF Patch #326 from Kris Thielemans - Remove SwigPyObject_print and SwigPyObject_str and
+            make the generated wrapper use the default python implementations, which will fall back to repr
+            (for -builtin option).
+
+            Advantages:
+            - it avoids the swig user having to jump through hoops to get print to work as expected when
+              redefining repr/str slots.
+            - typing the name of a variable on the python prompt now prints the result of a (possibly redefined)
+              repr, without the swig user having to do any extra work.
+            - when redefining repr, the swig user doesn't necessarily have to redefine str as it will call the
+              redefined repr
+            - the behaviour is exactly the same as without the -builtin option while requiring no extra work
+              by the user (aside from adding the %feature("python:slot...) statements of course)
+
+            Disadvantage:
+            - default str() will give different (but clearer?) output on swigged classes
+
+2013-07-30: wsfulton
+            [Python, Ruby] Fix #64 #65: Missing code in std::multimap wrappers. Previously an instantiation
+            of a std::map was erroneously required in addition to an instantiation of std::multimap with the
+            same template parameters to prevent compilation errors for the wrappers of a std::multimap.
+
 2013-07-14: joequant
             [R] Change types file to allow for SEXP return values
 
