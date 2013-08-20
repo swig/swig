@@ -1,7 +1,5 @@
 lines(0);
-
-//loader the *.so
-exec loader.sce
+exec loader.sce;
 
 // Try to set the values of some global variables
 ivar_set(42);

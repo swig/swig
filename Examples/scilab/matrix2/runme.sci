@@ -1,4 +1,5 @@
-exec loader.sce
+lines(0);
+exec loader.sce;
 
 // Test lib double matrix functions
 disp("Call lib function getDoubleMatrix()");

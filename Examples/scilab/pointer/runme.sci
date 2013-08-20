@@ -1,5 +1,5 @@
-// loader the *.so
-exec loader.sce
+lines(0);
+exec loader.sce;
 
 // First create some objects using the pointer library.
 printf("Testing the pointer library\n")
