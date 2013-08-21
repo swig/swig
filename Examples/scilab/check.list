@@ -8,8 +8,6 @@ matrix
 matrix2
 pointer
 simple
-std_list
-std_set
 std_vector/std_vector
 std_vector/std_vector_as_function_argument
 struct
