@@ -102,10 +102,6 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
   char* pcTmpValue = NULL;
   int iRet;
 
-  if (_pcValue == NULL) {
-    return SWIG_ERROR;
-  }
-
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -117,7 +113,10 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
     return SWIG_ERROR;
   }
 
-  strncpy(_pcValue, pcTmpValue, _iLength);
+  if (_pcValue != NULL) {
+    strncpy(_pcValue, pcTmpValue, _iLength);
+  }
+
   free(pcTmpValue);
 
   return SWIG_OK;
