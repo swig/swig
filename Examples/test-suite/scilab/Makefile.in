@@ -57,7 +57,7 @@ run_testcase = \
 
 # Clean: remove the generated files
 %.clean:
-	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.* $(CONFIG_SITE) $(CONFIG_CACHE)
+	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.* $(CONFIG_SITE) $(CONF_CACHE)
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
