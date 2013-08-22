@@ -17,6 +17,9 @@ top_builddir = @top_builddir@
 
 include $(srcdir)/../common.mk
 
+CONFIG_SITE=$(CURDIR)/test-suite.config.site
+export CONFIG_SITE
+
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
