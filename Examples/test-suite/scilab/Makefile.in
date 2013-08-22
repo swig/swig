@@ -18,7 +18,7 @@ top_builddir = @top_builddir@
 include $(srcdir)/../common.mk
 
 # configure cache to speed up test run
-CONF_CACHE=/tmp/scilab-test-suite.config.cache
+CONF_CACHE=$(CURDIR)/test-suite.config.cache
 CONFIG_SITE=$(CURDIR)/test-suite.config.site
 export CONFIG_SITE
 
