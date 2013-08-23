@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-08-23: olly
+	    [Python] Fix clang++ warning in generated wrapper code.
+
 2013-08-07: wsfulton
             [Python] SF Patch #326 from Kris Thielemans - Remove SwigPyObject_print and SwigPyObject_str and
             make the generated wrapper use the default python implementations, which will fall back to repr
