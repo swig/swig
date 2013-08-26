@@ -15,8 +15,6 @@ top_builddir = @top_builddir@
 # - member_pointer (C++)
 # - typemap_variables (C++)
 
-include $(srcdir)/../common.mk
-
 # configure cache to speed up test run
 CONF_CACHE=$(CURDIR)/test-suite.config.cache
 CONFIG_SITE=$(CURDIR)/test-suite.config.site
@@ -25,9 +23,20 @@ export CONFIG_SITE
 enable_config_cache = \
 	echo 'cache_file=$(CONF_CACHE)' > $(CONFIG_SITE)
 
+disable_config_cache:
+	rm -f $(CONF_CACHE)
+	rm -f $(CONFIG_SITE)
+	CONFIG_SITE=
+
 # need reset cache before multicpptest
 reset_config_cache = \
 	rm -f $(CONF_CACHE)
+
+# disable cache at the end of test-suite
+# use trick for this: 'extra test cases' end target
+EXTRA_TEST_CASES = disable_config_cache
+
+include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
