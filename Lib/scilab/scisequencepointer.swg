@@ -49,7 +49,7 @@ SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
   SciErr sciErr;
   int *piListAddr;
 
-  int iVarOut = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
+  int iVarOut = SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
 
   sciErr = createList(pvApiCtx, iVarOut, _size, &piListAddr);
   if (sciErr.iErr)

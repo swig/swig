@@ -1,5 +1,11 @@
 %module constructor_exception
 
+#ifdef SWIGSCILAB
+%inline %{
+#undef Error
+%}
+#endif
+
 %inline %{
 class Error {
 };

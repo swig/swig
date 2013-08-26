@@ -15,21 +15,45 @@ top_builddir = @top_builddir@
 # - member_pointer (C++)
 # - typemap_variables (C++)
 
+# configure cache to speed up test run
+CONF_CACHE=$(CURDIR)/test-suite.config.cache
+CONFIG_SITE=$(CURDIR)/test-suite.config.site
+export CONFIG_SITE
+
+enable_config_cache = \
+	echo 'cache_file=$(CONF_CACHE)' > $(CONFIG_SITE)
+
+disable_config_cache:
+	rm -f $(CONF_CACHE)
+	rm -f $(CONFIG_SITE)
+	CONFIG_SITE=
+
+# need reset cache before multicpptest
+reset_config_cache = \
+	rm -f $(CONF_CACHE)
+
+# disable cache at the end of test-suite
+# use trick for this: 'extra test cases' end target
+EXTRA_TEST_CASES = disable_config_cache
+
 include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
+	$(enable_config_cache)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
+	$(enable_config_cache)
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
+	$(reset_config_cache)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
@@ -42,7 +66,7 @@ run_testcase = \
 
 # Clean: remove the generated files
 %.clean:
-	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.*
+	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.* $(CONFIG_SITE) $(CONF_CACHE)
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean

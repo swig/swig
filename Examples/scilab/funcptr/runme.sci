@@ -1,4 +1,4 @@
-// loader the *.so
+lines(0);
 exec loader.sce;
 
 a = 37

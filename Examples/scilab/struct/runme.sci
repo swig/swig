@@ -1,5 +1,5 @@
-//loader the *.so
-exec loader.sce
+lines(0);
+exec loader.sce;
 
 //create a struct
 a=new_Bar();

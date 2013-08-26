@@ -1,4 +1,4 @@
-// file: runme.sci
+lines(0);
 exec loader.sce;
 SWIG_Init();
 

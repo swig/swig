@@ -1,4 +1,4 @@
-// loader the *.so
+lines(0);
 exec loader.sce;
 
 printf("ICONST  = %i (should be 42)\n", ICONST_get());

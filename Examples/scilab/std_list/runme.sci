@@ -1,3 +1,4 @@
+lines(0);
 exec loader.sce;
 SWIG_Init();
 
@@ -28,4 +29,6 @@ ss2 = create_string_list("cc dd ee ff");
 disp("concat this list with the list of string {''cc'', ''dd'', ''ee'', ''ff''} with concat_string_list():");
 ss3 = concat_string_list(ss, ss2);
 disp(ss3);
+
+exit
 
