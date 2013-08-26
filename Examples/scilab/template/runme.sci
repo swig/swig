@@ -1,3 +1,6 @@
+lines(0);
+exec loader.sce;
+
 function printShape(shape, name)
     printf("\nShape %s position:\n", name);
     printf("  (x, y) = (%f, %f)\n", ShapeDouble_x_get(shape), ShapeDouble_y_get(shape))
@@ -8,8 +11,6 @@ function printShape(shape, name)
 
     printf("\n");
 endfunction
-
-exec loader.sce;
 
 printf("Creating some objects:\n");
 c = new_CircleDouble(10);

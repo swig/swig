@@ -102,10 +102,6 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
   char* pcTmpValue = NULL;
   int iRet;
 
-  if (_pcValue == NULL) {
-    return SWIG_ERROR;
-  }
-
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -117,7 +113,10 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
     return SWIG_ERROR;
   }
 
-  strncpy(_pcValue, pcTmpValue, _iLength);
+  if (_pcValue != NULL) {
+    strncpy(_pcValue, pcTmpValue, _iLength);
+  }
+
   free(pcTmpValue);
 
   return SWIG_OK;
@@ -244,12 +243,12 @@ SwigScilabStringFromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrA
     return SWIG_ERROR;
   }
 
-  sciErr = createMatrixOfString(_pvApiCtx, nbInputArgument(pvApiCtx) + _iVarOut, _charPtrArraySize, 1, _charPtrArray);
+  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _charPtrArraySize, 1, _charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return nbInputArgument(pvApiCtx) + _iVarOut;
+  return SWIG_NbInputArgument(pvApiCtx) + _iVarOut;
 }
 }

@@ -66,7 +66,10 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
    sciprint(_("SWIG/Scilab Error : %s\n%s"),SWIG_Scilab_ErrorType(code),mesg);
 }
 
-
+#define SCILAB_VERSION_54_OR_HIGHER (SCI_VERSION_MAJOR > 5) || ((SCI_VERSION_MAJOR == 5) && (SCI_VERSION_MINOR >= 4))
+#if !SCILAB_VERSION_54_OR_HIGHER
+#include "stack-c.h"
+#endif
 
 #define SWIG_fail                 return SWIG_ERROR;
 #define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)
@@ -74,6 +77,20 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 
 /* Used for C++ enums */
 //#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
+
+
+#if SCILAB_VERSION_54_OR_HIGHER
+#define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
+#define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
+#define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
+
+#else
+
+#define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
+#define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
+#define SWIG_NbInputArgument(pvApiCtx) Rhs
+#endif
+
 
 SWIGINTERN int
 SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
@@ -214,7 +231,11 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SciObject _output) {
   if (outputPosition < 0 || _output < 0) {
       return SWIG_ERROR;
   }
-  AssignOutputVariable(_pvApiCtx, outputPosition) = _output;
+  #if SCILAB_VERSION_54_OR_HIGHER
+  AssignOutputVariable(pvApiCtx, outputPosition) = _output;
+  #else
+  LhsVar(outputPosition) = _output;
+  #endif
   return SWIG_OK;
 }
 

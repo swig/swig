@@ -94,7 +94,7 @@ SWIG_From_dec(int)(int _iValue)
   double dblDoubleValue = (double) _iValue;
   int iRowsOut = 1;
   int iColsOut = 1;
-  int iVarOut = nbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
+  int iVarOut = SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
 
   sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
   if (sciErr.iErr)

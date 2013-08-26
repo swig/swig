@@ -38,12 +38,12 @@ SWIGINTERN int
 SwigScilabInt32FromEnum(void *_pvApiCtx, int _iVarOut, int _enumValue)
 {
   int iRet;
-  iRet = createScalarInteger32(pvApiCtx, nbInputArgument(pvApiCtx) + _iVarOut, _enumValue);
+  iRet = createScalarInteger32(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _enumValue);
   if (iRet)
   {
     return SWIG_ERROR;
   }
-  AssignOutputVariable(pvApiCtx, _iVarOut) = nbInputArgument(pvApiCtx) + _iVarOut;
+  SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut);
   return SWIG_OK;
 }
 }
