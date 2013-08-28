@@ -114,3 +114,12 @@ try:
     raise RuntimeError
 except TypeError:
     pass
+
+
+### overloading priority test ###
+
+ccc = CCC(B())
+check(ccc.checkvalue, 10)
+check(ccc.xx(123), 11)
+check(ccc.yy(123, 123), 111)
+

@@ -84,3 +84,33 @@
   int get_AA_val(AA a) { return a.ii; }
   int get_AA_ref(const AA& a) { return a.ii; }
 }
+
+
+/****************** Overloading priority *********************/
+
+%inline %{
+class BBB {
+  public:
+    BBB(const B &) {}
+};
+
+class CCC {
+  public:
+    CCC(const BBB &) : checkvalue(0) {}
+    int xx(int i) { return 11; }
+    int xx(const A& i) { return 22; }
+    int yy(int i, int j) { return 111; }
+    int yy(const A& i, const A& j) { return 222; }
+    int checkvalue;
+};
+%}
+
+// CCC(const BBB &) was being called instead of this constructor (independent of being added via %extend)
+%extend CCC {
+  CCC(const B& b) {
+    CCC* ccc = new CCC(b);
+    ccc->checkvalue = 10;
+    return ccc;
+  }
+};
+

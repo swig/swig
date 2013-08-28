@@ -5,6 +5,26 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-08-28: wsfulton
+            [Python] %implicitconv is improved for overloaded functions. Like in C++, the methods
+            with the actual types are considered before trying implicit conversions. Example:
+
+              %implicitconv A;
+              struct A {
+                A(int i);
+              };
+              class CCC {
+                public:
+                  int xx(int i) { return 11; }
+                  int xx(const A& i) { return 22; }
+              };
+
+            The following python code:
+
+              CCC().xx(-1)
+
+            will now return 11 instead of 22 - the implicit conversion is not done.
+
 2013-08-23: olly
 	    [Python] Fix clang++ warning in generated wrapper code.
 
