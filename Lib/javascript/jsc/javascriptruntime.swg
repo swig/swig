@@ -78,6 +78,23 @@ JSValueRef _wrap_SwigObject_getCPtr(JSContextRef context, JSObjectRef function, 
   return jsresult;
 }
 
+JSValueRef _wrap_SwigObject_equals(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+  JSValueRef jsresult;
+  bool result;
+    
+  JSObjectRef obj = JSValueToObject(context, thisObject, NULL);
+  SWIG_PRV_DATA *cdata = (SWIG_PRV_DATA*) JSObjectGetPrivate(obj);
+
+  JSObjectRef obj2 = JSValueToObject(context, argv[0], NULL);
+  SWIG_PRV_DATA *cdata2 = (SWIG_PRV_DATA*) JSObjectGetPrivate(obj2);
+  
+  result = (cdata->swigCObject == cdata2->swigCObject);
+  jsresult = JSValueMakeBoolean(context, result); 
+  
+  return jsresult;
+}
+
 JSStaticValue _SwigObject_values[] = {
   {
     0, 0, 0, 0 
@@ -87,7 +104,11 @@ JSStaticValue _SwigObject_values[] = {
 JSStaticFunction _SwigObject_functions[] = {
   {
     "disown",_wrap_SwigObject_disown, kJSPropertyAttributeNone
-  },{
+  },
+  {
+    "equals",_wrap_SwigObject_equals, kJSPropertyAttributeNone
+  },
+  {
     "getCPtr",_wrap_SwigObject_getCPtr, kJSPropertyAttributeNone
   },
   {

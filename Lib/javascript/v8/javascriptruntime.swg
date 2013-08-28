@@ -175,6 +175,28 @@ void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *objec
   delete proxy;
 }
 
+int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void** ptr) {
+  if(!valRef->IsObject()) {
+    return SWIG_TypeError;
+  }
+  v8::Handle<v8::Object> objRef = valRef->ToObject();
+
+  if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
+
+#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+  v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
+#else
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
+#endif
+
+  if(cdata == NULL) {
+    return SWIG_ERROR;
+  }
+
+  *ptr = cdata->swigCObject;
+}
+
 void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
   SWIGV8_Proxy* cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;
@@ -253,5 +275,56 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
 #define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_V8_ConvertPtr(obj, pptr, type, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_V8_NewPointerObj(ptr, type, 0)
 
+#define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
+
+v8::Handle<v8::Value> _wrap_equals(const v8::Arguments &args) {
+  v8::HandleScope scope;
+  v8::Handle<v8::Value> jsresult;
+  void *arg1 = (void *) 0 ;
+  void *arg2 = (void *) 0 ;
+  bool result;
+  int res1;
+  int res2;
+
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equals.");
+
+  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ERROR, "Could not get pointer from 'this' object for _wrap_equals.");
+  }
+  res2 = SWIG_GetInstancePtr(args[0], &arg2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "equals" "', argument " "1"" of type '" "void *""'");
+  }
+
+  result = (bool)(arg1 == arg2);
+  jsresult =  v8::Boolean::New(result);
+
+  return scope.Close(jsresult);
+  goto fail;
+fail:
+  return scope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> _wrap_getCPtr(const v8::Arguments &args) {
+  v8::HandleScope scope;
+  v8::Handle<v8::Value> jsresult;
+  void *arg1 = (void *) 0 ;
+  long result;
+  int res1;
+
+  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
+  }
+
+  result = (long)arg1;
+  jsresult = v8::Number::New(result);
+
+  return scope.Close(jsresult);
+  goto fail;
+fail:
+  return scope.Close(v8::Undefined());
+}
 %}
 

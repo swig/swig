@@ -24,6 +24,12 @@ v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) 
     v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
     inst_templ->SetInternalFieldCount(1);
 
+    v8::Handle<v8::ObjectTemplate> equals_templ = class_templ->PrototypeTemplate();
+    equals_templ->Set(v8::String::NewSymbol("equals"), v8::FunctionTemplate::New(_wrap_equals)); 
+
+    v8::Handle<v8::ObjectTemplate> cptr_templ = class_templ->PrototypeTemplate();
+    cptr_templ->Set(v8::String::NewSymbol("getCPtr"), v8::FunctionTemplate::New(_wrap_getCPtr));
+
     return scope.Close(class_templ);
 }
 
