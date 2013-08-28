@@ -376,3 +376,31 @@
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(isStringType)       }
 
 //%apply int { size_t };
+
+/* -----------------------------------------------------------------------------*/
+/* Constants
+/* -----------------------------------------------------------------------------*/
+
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) int
+%{
+  if (SWIG_CreateScilabVariable_int(pvApiCtx, "$result", $value) != SWIG_OK)
+    return SWIG_ERROR;
+%}
+
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(double)) double
+%{
+  if (SWIG_CreateScilabVariable_double(pvApiCtx, "$result", $value) != SWIG_OK)
+    return SWIG_ERROR;
+%}
+
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(char)) char
+%{
+  if (SWIG_CreateScilabVariable_char(pvApiCtx, "$result", $value) != SWIG_OK)
+    return SWIG_ERROR;
+%}
+
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(charptr)) char *
+%{
+  if (SWIG_CreateScilabVariable_charptr(pvApiCtx, "$result", $value) != SWIG_OK)
+    return SWIG_ERROR;
+%}
