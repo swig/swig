@@ -24,6 +24,7 @@ Scilab options\n\
      -vbl <level>            sets the build verbose level (default 0)\n\n";
 
 const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
 class SCILAB:public Language {
 protected:
@@ -34,6 +35,8 @@ protected:
   File *wrappersSection;
   File *initSection;
 
+  String *variablesCode;
+
   File *builderFile;
   String *builderCode;
   int builderFunctionCount;
@@ -41,9 +44,8 @@ protected:
   List *sourceFileList;
   String *cflag;
   String *ldflag;
-
+  
   String *verboseBuildLevel;
-
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -180,10 +182,12 @@ public:
 
     Printf(builderCode, "table = [");
 
-    /* In C++ mode, add initialization function to builder table */
-    if (CPlusPlus) {
-      Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
-    }
+    /* add initialization function to builder table */
+    addFunctionInBuilder(NewString(SWIG_INIT_FUNCTION_NAME), NewString(SWIG_INIT_FUNCTION_NAME));
+
+    // Open Scilab wrapper variables creation function
+    variablesCode = NewString("");
+    Printf(variablesCode, "int %s() {\n", SWIG_CREATE_VARIABLES_FUNCTION_NAME);
 
     /* Emit code for children */
     if (CPlusPlus) {
@@ -195,6 +199,9 @@ public:
     if (CPlusPlus) {
       Printf(wrappersSection, "}\n");
     }
+
+    // Close Scilab wrapper variables creation function
+    Printf(variablesCode, "  return SWIG_OK;\n}\n");
 
     /* Write all to the builder.sce file */
     Printf(builderCode, "];\n");
@@ -208,13 +215,14 @@ public:
     Delete(builderFile);
 
     /* Close the init function (opened in sciinit.swg) */
-    Printf(initSection, "return 0;\n}\n#endif\n");
+    Printf(initSection, "return 0;\n}\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
     Dump(wrappersSection, beginSection);
+    Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
     /* Cleanup files */
@@ -555,6 +563,23 @@ public:
     String *rawValue = Getattr(node, "rawval");
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
+
+    // Constants of simple type are wrapped to Scilab variables
+    if (GetFlag(node, "feature:scilab:const")) {
+      if ((SwigType_issimple(type)) || (SwigType_type(type) == T_STRING)) {
+        constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
+        if (constantTypemap != NULL) {
+          //String *wrapName = NewString("");
+          //Printf(wrapName, "Swig%s", constantName);
+          Setattr(node, "wrap:name", constantName);
+          Replaceall(constantTypemap, "$result", constantName);
+          Replaceall(constantTypemap, "$value", constantValue);
+          emit_action_code(node, variablesCode, constantTypemap);
+          Delete(constantTypemap);
+          return SWIG_OK;
+        }
+      }
+    }
 
     /* Create variables for member pointer constants, not suppported by typemaps (like Python wrapper does) */
     if (SwigType_type(type) == T_MPOINTER) {
