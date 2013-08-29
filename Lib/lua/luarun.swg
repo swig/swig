@@ -71,6 +71,36 @@ extern "C" {
 #endif
 
 
+/* --------------------------------------------------------------------------
+ * Helper functions for error handling
+ * -------------------------------------------------------------------------- */
+
+/* Push the string STR on the Lua stack, like lua_pushstring, but
+   prefixed with the the location of the innermost Lua call-point
+   (as formated by luaL_where).  */
+SWIGRUNTIME void
+SWIG_Lua_pusherrstring (lua_State *L, const char *str)
+{
+  luaL_where (L, 1);
+  lua_pushstring (L, str);
+  lua_concat (L, 2);
+}
+
+/* Push a formatted string generated from FMT and following args on
+   the Lua stack, like lua_pushfstring, but prefixed with the the
+   location of the innermost Lua call-point (as formated by luaL_where).  */
+SWIGRUNTIME void
+SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)
+{
+  va_list argp;
+  va_start(argp, fmt);
+  luaL_where(L, 1);
+  lua_pushvfstring(L, fmt, argp);
+  va_end(argp);
+  lua_concat(L, 2);
+}
+
+
 /* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
