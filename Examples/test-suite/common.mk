@@ -509,6 +509,7 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	bom_utf8 \
 	char_constant \
 	const_const \
 	constant_expr \
@@ -552,8 +553,7 @@ C_TEST_CASES += \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
-	unions \
-	utf8_bom
+	unions
 
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
