@@ -1031,7 +1031,7 @@ if test -n "$SCILAB"; then
   AC_MSG_CHECKING(for Scilab startup options)
   SCILABSTARTOPT="-nwni -nb"
   if test $SCILAB_VERSION -ge 54; then
-    SCILABSTARTOPT+=" -noatomsautoload"
+    SCILABSTARTOPT="$SCILABSTARTOPT -noatomsautoload"
   fi
   AC_MSG_RESULT($SCILABSTARTOPT)
 fi
