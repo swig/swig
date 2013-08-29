@@ -6,6 +6,10 @@ Version 2.0.11 (in progress)
 ============================
 
 2013-08-29: wsfulton
+            Pull Git patch #75: Handle UTF-8 files with BOM at beginning of file. Was giving an
+            'Illegal token' syntax error.
+
+2013-08-29: wsfulton
             [C#] Pull Git patch #77: Allow exporting std::map using non-default comparison function.
 
 2013-08-28: wsfulton
