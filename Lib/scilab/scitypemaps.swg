@@ -378,7 +378,7 @@
 //%apply int { size_t };
 
 /* -----------------------------------------------------------------------------*/
-/* Constants
+/* Constants and enums to Scilab variables
 /* -----------------------------------------------------------------------------*/
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) int
@@ -402,5 +402,11 @@
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(charptr)) char *
 %{
   if (SWIG_CreateScilabVariable_charptr(pvApiCtx, "$result", $value) != SWIG_OK)
+    return SWIG_ERROR;
+%}
+
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) enum SWIGTYPE
+%{
+  if (SWIG_CreateScilabVariable_int(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
