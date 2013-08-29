@@ -185,19 +185,20 @@ typedef struct {
 
 /* Contract support */
 #define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { lua_pushstring(L, (char *) msg); goto fail; } else
+  if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } else
+
 
 /* helper #defines */
 #define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(func_name,argnum,type) \
-  {lua_pushfstring(L,"Error in %s (arg %d), expected '%s' got '%s'",\
+  {SWIG_Lua_pushferrstring(L,"Error in %s (arg %d), expected '%s' got '%s'",\
   func_name,argnum,type,SWIG_Lua_typename(L,argnum));\
   goto fail;}
 #define SWIG_fail_ptr(func_name,argnum,type) \
   SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
 #define SWIG_check_num_args(func_name,a,b) \
   if (lua_gettop(L)<a || lua_gettop(L)>b) \
-  {lua_pushfstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
+  {SWIG_Lua_pushferrstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
   goto fail;}
 
 
@@ -250,8 +251,7 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State* L)
 /*  there should be 1 param passed in: the new value */
 #ifndef SWIGLUA_IGNORE_SET_IMMUTABLE
   lua_pop(L,1);  /* remove it */
-  lua_pushstring(L,"This variable is immutable");
-  lua_error(L);
+  luaL_error(L,"This variable is immutable");
 #endif
     return 0;   /* should not return anything */
 }
@@ -786,9 +786,8 @@ SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *typ
        int argnum,const char* func_name){
   void* result;
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,index,&result,type,flags))){
-    lua_pushfstring(L,"Error in %s, expected a %s at argument number %d\n",
-      func_name,(type && type->str)?type->str:"void*",argnum);
-    lua_error(L);
+    luaL_error (L,"Error in %s, expected a %s at argument number %d\n",
+		func_name,(type && type->str)?type->str:"void*",argnum);
   }
   return result;
 }
