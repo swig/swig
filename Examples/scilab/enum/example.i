@@ -1,6 +1,8 @@
 /* File : example.i */
 %module example
 
+%scilabconst(1);
+
 %{
 #include "example.h"
 %}

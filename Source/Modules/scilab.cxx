@@ -568,15 +568,19 @@ public:
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
 
-    // Constants of simple type are wrapped to Scilab variables
+    // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables
     if (GetFlag(node, "feature:scilab:const")) {
-      if ((SwigType_issimple(type)) || (SwigType_type(type) == T_STRING)) {
+      bool isConstant = ((SwigType_issimple(type)) || (SwigType_type(type) == T_STRING));
+      bool isEnum = (Cmp(nodeType(node), "enumitem") == 0);
+
+      if (isConstant || isEnum) {
         constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
         if (constantTypemap != NULL) {
-          //String *wrapName = NewString("");
-          //Printf(wrapName, "Swig%s", constantName);
           Setattr(node, "wrap:name", constantName);
           Replaceall(constantTypemap, "$result", constantName);
+          if (isEnum) {
+            constantValue = Getattr(node, "enumvalue");
+          }
           Replaceall(constantTypemap, "$value", constantValue);
           emit_action_code(node, variablesCode, constantTypemap);
           Delete(constantTypemap);
@@ -630,6 +634,30 @@ public:
    * enumvalueDeclaration()
    * --------------------------------------------------------------------- */
   virtual int enumvalueDeclaration(Node *node) {
+    static int iPreviousEnumValue = 0;
+
+    if (GetFlag(node, "feature:scilab:const")) {
+      // Compute the "absolute" value of enum if needed
+      // (most of time enum values are a linked list of relative values)
+      String *enumValue = Getattr(node, "enumvalue");
+      if (!enumValue) {
+        String *enumValueEx = Getattr(node, "enumvalueex");
+        if (enumValueEx) {
+          String *firstenumitem = Getattr(node, "firstenumitem");
+           if (firstenumitem) {
+             // First node, value is in enumValueEx
+            Setattr(node, "enumvalue", enumValueEx);
+            iPreviousEnumValue = atoi(Char(enumValueEx));
+          }
+          else {
+            enumValue = NewString("");
+            iPreviousEnumValue = iPreviousEnumValue + 1;
+            Printf(enumValue, "%d", iPreviousEnumValue);
+            Setattr(node, "enumvalue", enumValue);
+          }
+        }
+      }
+    }
 
     /* Force type to be an enum (See scitypemaps.swg) */
     Setattr(node, "type", "enum SWIG");
