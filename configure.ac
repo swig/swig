@@ -47,7 +47,7 @@ AC_LANG_POP([C++])
 
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
-if test x"${with_popen}" = xno ; then 
+if test x"${with_popen}" = xno ; then
 AC_MSG_NOTICE([Disabling popen])
 else
 AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
@@ -69,7 +69,7 @@ AC_MSG_CHECKING([whether to enable PCRE support])
 AC_MSG_RESULT([$with_pcre])
 
 dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
-if test x"${with_pcre}" = xyes ; then 
+if test x"${with_pcre}" = xyes ; then
   AC_MSG_CHECKING([whether to use local PCRE])
   local_pcre_config=no
   if test -z $PCRE_CONFIG; then
@@ -513,7 +513,7 @@ AC_ARG_WITH(tcllib,[  --with-tcllib=path      Set location of Tcl library direct
 	TCLLIB="-L$withval"], [TCLLIB=])
 
 # First, check for "--without-tcl" or "--with-tcl=no".
-if test x"${TCLPACKAGE}" = xno -o x"${with_alllang}" = xno; then 
+if test x"${TCLPACKAGE}" = xno -o x"${with_alllang}" = xno; then
 AC_MSG_NOTICE([Disabling Tcl])
 else
 AC_MSG_CHECKING([for Tcl configuration])
@@ -606,7 +606,7 @@ case $host in
 esac
 
 case $host in
-*-*-darwin*) 
+*-*-darwin*)
     TCLLDSHARED='$(CC) -dynamiclib -undefined suppress -flat_namespace'
     TCLCXXSHARED='$(CXX) -dynamiclib -undefined suppress -flat_namespace'
     ;;
@@ -636,7 +636,7 @@ AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
 AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN=yes])
 
 # First, check for "--without-python" or "--with-python=no".
-if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Python])
 else
   # First figure out the name of the Python executable
@@ -671,10 +671,10 @@ else
     PYLIBDIR=`($PYTHON -c "import sys; print sys.lib") 2>/dev/null`
     if test -z "$PYLIBDIR"; then
       # Fedora patch Python to add sys.lib, for other distros we assume "lib".
-      PYLIBDIR="lib" 
+      PYLIBDIR="lib"
     fi
     AC_MSG_RESULT($PYLIBDIR)
-    
+
     # Set the include directory
 
     AC_MSG_CHECKING(for Python header files)
@@ -737,7 +737,7 @@ AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x sup
 AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[ PY3BIN="$withval"], [PY3BIN=yes])
 
 # First, check for "--without-python3" or "--with-python3=no".
-if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Python 3.x support])
 else
   for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
@@ -760,7 +760,7 @@ else
 
     # Note: I could not think of a standard way to get the version string from different versions.
     # This trick pulls it out of the file location for a standard library file.
-    
+
     AC_MSG_CHECKING([for Python 3.x version])
 
     # Need to do this hack since autoconf replaces __file__ with the name of the configure file
@@ -774,10 +774,10 @@ else
     PY3LIBDIR=`($PYTHON3 -c "import sys; print(sys.lib)") 2>/dev/null`
     if test -z "$PY3LIBDIR"; then
       # some dists don't have sys.lib  so the best we can do is assume lib
-      PY3LIBDIR="lib" 
+      PY3LIBDIR="lib"
     fi
     AC_MSG_RESULT($PY3LIBDIR)
-    
+
     # Set the include directory
 
     AC_MSG_CHECKING([for Python 3.x header files])
@@ -828,7 +828,7 @@ AC_ARG_WITH(perl5, AS_HELP_STRING([--without-perl5], [Disable Perl5])
 AS_HELP_STRING([--with-perl5=path], [Set location of Perl5 executable]),[ PERLBIN="$withval"], [PERLBIN=yes])
 
 # First, check for "--without-perl5" or "--with-perl5=no".
-if test x"${PERLBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PERLBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Perl5])
 PERL=
 else
@@ -932,13 +932,13 @@ AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
 AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAVEBIN="$withval"], [OCTAVEBIN=yes])
 
 # First, check for "--without-octave" or "--with-octave=no".
-if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then
    AC_MSG_NOTICE([Disabling Octave])
    OCTAVE=
 
 # First figure out what the name of Octave is
 elif test "x$OCTAVEBIN" = xyes; then
-   AC_CHECK_PROGS(OCTAVE, octave)
+   AC_PATH_PROG(OCTAVE, [octave])
 
 else
    OCTAVE="$OCTAVEBIN"
@@ -946,31 +946,43 @@ fi
 
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for mkoctfile])
-   AS_IF([test "x`${OCTAVE} -qfH --eval 'mkoctfile -p CXX' 2>/dev/null`" != x],[
-     AC_MSG_RESULT([yes])
+   mkoctfile="`dirname ${OCTAVE}`/mkoctfile"
+   AS_IF([test -x "${mkoctfile}"],[
+      AC_MSG_RESULT([${mkoctfile}])
    ],[
-     AC_MSG_ERROR([mkoctfile is not installed])
+      AC_MSG_RESULT([not found, disabling Octave])
+      OCTAVE=
    ])
+fi
+if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for n in CPPFLAGS INCFLAGS; do
-     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_CPPFLAGS)
+   AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for n in ALL_CXXFLAGS; do
-     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_CXXFLAGS)
+   AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
    for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p $n`
    done
-   AC_MSG_RESULT($OCTAVE_LDFLAGS)
-else
-   AC_MSG_RESULT(could not figure out how to run octave)
+   AC_MSG_RESULT([$OCTAVE_LDFLAGS])
+   for octave_opt in --silent --norc --no-history --no-window-system; do
+      AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
+      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
+      AS_IF([test "x${octave_out}" = x],[
+         AC_MSG_RESULT([yes])
+         OCTAVE="${OCTAVE} ${octave_opt}"
+      ],[
+         AC_MSG_RESULT([no])
+      ])
+   done
 fi
 
 AC_SUBST(OCTAVE)
@@ -1083,7 +1095,7 @@ AS_HELP_STRING([--with-java=path], [Set location of java executable]),[JAVABIN="
 AC_ARG_WITH(javac, [  --with-javac=path       Set location of javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
 
 # First, check for "--without-java" or "--with-java=no".
-if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${JAVABIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Java])
 JAVA=
 else
@@ -1149,7 +1161,7 @@ case $host in
         JAVADYNAMICLINKING=""
         JAVACFLAGS=""
     fi ;;
-*-*-darwin*) 
+*-*-darwin*)
         JAVADYNAMICLINKING="-dynamiclib -framework JavaVM"
         JAVACFLAGS=""
         ;;
@@ -1167,7 +1179,7 @@ esac
 
 # Java on Mac OS X tweaks
 case $host in
-*-*-darwin*) 
+*-*-darwin*)
     JAVASO=".jnilib"
     JAVALDSHARED='$(CC)'
     JAVACXXSHARED='$(CXX)'
@@ -1199,7 +1211,7 @@ AS_HELP_STRING([--with-gcj=path], [Set location of gcj executable]),[GCJBIN="$wi
 AC_ARG_WITH(gcjh, [  --with-gcjh=path        Set location of gcjh executable],[GCJHBIN="$withval"], [GCJHBIN=])
 
 # First, check for "--without-gcj" or "--with-gcj=no".
-if test x"${GCJBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${GCJBIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling GCJ])
 else
   if test "x$GCJBIN" = xyes; then
@@ -1229,7 +1241,7 @@ AC_ARG_WITH(ant, [  --with-ant=path       Set location of ant executable for And
 AC_ARG_WITH(ndk-build, [  --with-ndk-build=path       Set location of Android ndk-build executable],[NDKBUILDBIN="$withval"], [NDKBUILDBIN=])
 
 # First, check for "--without-android" or "--with-android=no".
-if test x"${ANDROIDBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${ANDROIDBIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Android])
   ANDROID=
 else
@@ -1281,7 +1293,7 @@ AC_ARG_WITH(guile-libs,[  --with-guile-libs=ldflags    Set ldflags needed to lin
 	GUILE_LIBS="$withval"])
 
 # First, check for "--without-guile" or "--with-guile=no".
-if test x"${GUILE}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${GUILE}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Guile])
 else
   if test -z "$GUILE_CONFIG" ; then
@@ -1338,7 +1350,7 @@ AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ 
 AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
 
 # First, check for "--without-mzscheme" or "--with-mzscheme=no".
-if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling MzScheme])
   MZC=
 else
@@ -1347,13 +1359,13 @@ else
   else
      MZSCHEME="$MZSCHEMEBIN"
   fi
-  
+
   if test -z "$MZCBIN"; then
      AC_PATH_PROG(MZC, mzc)
   fi
 
   if test -n "$MZSCHEME"; then
-    AC_MSG_CHECKING(for MzScheme dynext object) 
+    AC_MSG_CHECKING(for MzScheme dynext object)
     MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
     if test -f "$MZDYNOBJ"; then
       :
@@ -1381,7 +1393,7 @@ AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
 AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=yes])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
-if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Ruby])
 RUBY=
 else
@@ -1440,10 +1452,10 @@ if test -n "$RUBY"; then
             else # 1.6.x
                 link = "-l" + c[["RUBY_INSTALL_NAME"]]
             end
-            
+
             # Get the target Ruby was built for
             target = c[["target"]]
-           
+
             if target == "i386-pc-mswin32"
               # Need to change msvcrt-ruby*.lib to -lmsvcrt-ruby*
               ext = File.extname(link)
@@ -1511,7 +1523,7 @@ AC_ARG_WITH(php, AS_HELP_STRING([--without-php], [Disable PHP])
 AS_HELP_STRING([--with-php=path], [Set location of PHP executable]),[ PHPBIN="$withval"], [PHPBIN=yes])
 
 # First, check for "--without-php" or "--with-php=no".
-if test x"${PHPBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PHPBIN}" = xno -o x"${with_alllang}" = xno ; then
     AC_MSG_NOTICE([Disabling PHP])
     PHP=
 else
@@ -1532,7 +1544,7 @@ else
     esac
     php_version=`$PHPCONFIG --version 2>/dev/null`
     case $php_version in
-    5*) 
+    5*)
 	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
 	if test -n "$PHPINC"; then
 	  AC_MSG_RESULT($PHPINC)
@@ -1559,7 +1571,7 @@ AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCA
 AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
-if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then
     AC_MSG_NOTICE([Disabling OCaml])
     OCAMLBIN=
 else
@@ -1645,7 +1657,7 @@ AC_ARG_WITH(pike, AS_HELP_STRING([--without-pike], [Disable Pike])
 AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="$withval"], [PIKEBIN=yes])
 
 # First, check for "--without-pike" or "--with-pike=no".
-if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then
     AC_MSG_NOTICE([Disabling Pike])
     PIKEBIN=
 else
@@ -1659,7 +1671,7 @@ fi
 
 # Check for pike-config
 # Priority: configure option, guessed from $PIKE, search from list
-AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path], 
+AC_ARG_WITH(pike-config, AS_HELP_STRING([--with-pike-config=path],
   	[Set location of pike-config script]),
   [PIKECONFIG="$withval"], [PIKECONFIG=""])
 
@@ -1670,7 +1682,7 @@ fi
 
 # Check for a --with-pikeincl option to configure
 # Priority: configure option, info from $PIKECONFIG, guessed by pike script
-AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path], 
+AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path],
 	[Set location of Pike include directory]),
   [PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
 
@@ -1715,7 +1727,7 @@ AC_ARG_WITH(chicken, AS_HELP_STRING([--without-chicken], [Disable CHICKEN])
 AS_HELP_STRING([--with-chicken=path], [Set location of CHICKEN executable]),[ CHICKENBIN="$withval"], [CHICKENBIN=yes])
 
 # First, check for "--without-chicken" or "--with-chicken=no".
-if test x"${CHICKENBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${CHICKENBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling CHICKEN])
 else
 
@@ -1811,7 +1823,7 @@ AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path     Set location of 
 AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
 
 # First, check for "--without-csharp" or "--with-csharp=no".
-if test x"${with_csharp}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${with_csharp}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling CSharp])
 CSHARPCOMPILER=
 else
@@ -1864,7 +1876,7 @@ if test -z "$CSHARPBIN" ; then
     if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER"; then
         AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
         CSHARPCILINTERPRETER_FLAGS="--debug"
-    else 
+    else
       if test "csc" = "$CSHARPCOMPILER"; then
           CSHARPPATHSEPARATOR="\\\\"
           CSHARPCYGPATH_W='cygpath -w'
@@ -1939,7 +1951,7 @@ AC_ARG_WITH(lualib,[  --with-lualib=path      Set location of Lua library direct
 	LUALIB="$withval"], [LUALIB=])
 
 # First, check for "--without-lua" or "--with-lua=no".
-if test x"${LUABIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${LUABIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Lua])
 else
 
@@ -1980,8 +1992,8 @@ if test "$LUABIN"; then
    else
      LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
    fi
-   
-   if test -z "$LUADYNAMICLOADLIB"; then 
+
+   if test -z "$LUADYNAMICLOADLIB"; then
      AC_MSG_RESULT(no)
    else
      AC_MSG_RESULT(yes)
@@ -2021,7 +2033,7 @@ fi
 # look for the library files & set LUALINK accordingly
 # will clear LUABIN if not present
 lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
-	
+
 if test -n "$LUALIB"; then
   AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
 else
@@ -2052,7 +2064,7 @@ AC_ARG_WITH(allegrocl, AS_HELP_STRING([--without-allegrocl], [Disable Allegro CL
 AS_HELP_STRING([--with-allegrocl=path], [Set location of Allegro CL executable (alisp)]),[ ALLEGROCLBIN="$withval"], [ALLEGROCLBIN=yes])
 
 # First, check for "--without-allegrocl" or "--with-allegrocl=no".
-if test x"${ALLEGROCLBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${ALLEGROCLBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Allegro CL])
 ALLEGROCLBIN=
 else
@@ -2075,7 +2087,7 @@ AC_ARG_WITH(clisp, AS_HELP_STRING([--without-clisp], [Disable CLISP])
 AS_HELP_STRING([--with-clisp=path], [Set location of CLISP executable (clisp)]),[ CLISPBIN="$withval"], [CLISPBIN=yes])
 
 # First, check for "--without-clisp" or "--with-clisp=no".
-if test x"${CLISPBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${CLISPBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling CLISP])
 CLISPBIN=
 else
@@ -2098,7 +2110,7 @@ AC_ARG_WITH(r, AS_HELP_STRING([--without-r], [Disable R])
 AS_HELP_STRING([--with-r=path], [Set location of R executable (r)]),[ RBIN="$withval"], [RBIN=yes])
 
 # First, check for "--without-r" or "--with-r=no".
-if test x"${RBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${RBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling R])
 RBIN=
 else
@@ -2118,7 +2130,7 @@ AC_SUBST(RBIN)
 AC_ARG_WITH(go, AS_HELP_STRING([--without-go], [Disable Go])
 AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval"], [GOBIN=yes])
 
-if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Go])
   GO=
   GOC=
