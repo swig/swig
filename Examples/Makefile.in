@@ -1627,7 +1627,7 @@ scilab_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 scilab_run:
-	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci
+	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Scilab version
