@@ -16,16 +16,16 @@
 
 /*#define SWIG_DEBUG*/
 
-static const char *usage = (char*) "\
+static const char *usage = (char *) "\
 Scilab options\n\
      -addsrc <source files>  additionnal source files (separated by space) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
      -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
      -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\
      -vbl <level>            sets the build verbose level (default 0)\n\n";
 
-const char* SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 
-class SCILAB : public Language {
+class SCILAB:public Language {
 protected:
   /* General objects used for holding the strings */
   File *beginSection;
@@ -42,13 +42,13 @@ protected:
   String *cflag;
   String *ldflag;
 
-  String* verboseBuildLevel;
+  String *verboseBuildLevel;
 
 public:
   /* ------------------------------------------------------------------------
    * main()
    * ----------------------------------------------------------------------*/
-  virtual void main(int argc, char* argv[]) {
+   virtual void main(int argc, char *argv[]) {
 
     sourceFileList = NewList();
     ldflag = NULL;
@@ -58,39 +58,38 @@ public:
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
-        if (strcmp(argv[argIndex], "-help") == 0) {
-          /* Display message */
-          fputs(usage, stderr);
-          /* Indicate arg as valid */
-          Swig_mark_arg(argIndex);
-        } else if (strcmp(argv[argIndex], "-addsrc") == 0) {
-          if (argv[argIndex+1] != NULL) {
-            Swig_mark_arg(argIndex);
-            char *sourceFile = strtok(argv[argIndex+1], " ");
-            while (sourceFile != NULL)
-            {
-              DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
-              sourceFile = strtok(NULL, " ");
-            }
-            Swig_mark_arg(argIndex+1);
-          }
-        } else if (strcmp(argv[argIndex], "-addcflag") == 0) {
-          Swig_mark_arg(argIndex);
-          if (argv[argIndex+1] != NULL) {
-            cflag = NewString(argv[argIndex+1]);
-            Swig_mark_arg(argIndex+1);
-          }
-        } else if (strcmp(argv[argIndex], "-addldflag") == 0) {
-          Swig_mark_arg(argIndex);
-          if (argv[argIndex+1] != NULL) {
-            ldflag = NewString(argv[argIndex+1]);
-            Swig_mark_arg(argIndex+1);
-          }
-        } else if (strcmp(argv[argIndex], "-vbl") == 0) {
-          Swig_mark_arg(argIndex);
-          verboseBuildLevel = NewString(argv[argIndex+1]);
-          Swig_mark_arg(argIndex+1);
-        }
+	if (strcmp(argv[argIndex], "-help") == 0) {
+	  /* Display message */
+	  fputs(usage, stderr);
+	  /* Indicate arg as valid */
+	  Swig_mark_arg(argIndex);
+	} else if (strcmp(argv[argIndex], "-addsrc") == 0) {
+	  if (argv[argIndex + 1] != NULL) {
+	    Swig_mark_arg(argIndex);
+	    char *sourceFile = strtok(argv[argIndex + 1], " ");
+	    while (sourceFile != NULL) {
+	      DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
+	      sourceFile = strtok(NULL, " ");
+	    }
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-addcflag") == 0) {
+	  Swig_mark_arg(argIndex);
+	  if (argv[argIndex + 1] != NULL) {
+	    cflag = NewString(argv[argIndex + 1]);
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-addldflag") == 0) {
+	  Swig_mark_arg(argIndex);
+	  if (argv[argIndex + 1] != NULL) {
+	    ldflag = NewString(argv[argIndex + 1]);
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-vbl") == 0) {
+	  Swig_mark_arg(argIndex);
+	  verboseBuildLevel = NewString(argv[argIndex + 1]);
+	  Swig_mark_arg(argIndex + 1);
+	}
       }
     }
 
@@ -119,10 +118,10 @@ public:
   virtual int top(Node *node) {
 
     /* Get the module name */
-    String* moduleName = Getattr(node, "name");
+    String *moduleName = Getattr(node, "name");
 
     /* Get the output file name */
-    String* outputFilename = Getattr(node, "outfile");
+    String *outputFilename = Getattr(node, "outfile");
 
     /* Initialize I/O */
     beginSection = NewFile(NewStringf("%s%s", SWIG_output_directory(), outputFilename), "w", SWIG_output_files());
@@ -149,7 +148,7 @@ public:
     builderFunctionCount = 0;
     builderCode = NewString("");
     Printf(builderCode, "mode(-1);\n");
-    Printf(builderCode, "lines(0);\n"); /* Useful for automatic tests */
+    Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
     Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
 
@@ -170,16 +169,12 @@ public:
     }
 
     DohInsertitem(sourceFileList, 0, outputFilename);
-    for (int i=0; i<Len(sourceFileList); i++)
-    {
-      String* sourceFile = Getitem(sourceFileList, i);
-      if (i==0)
-      {
-          Printf(builderCode, "files = \"%s\";\n", sourceFile);
-      }
-      else
-      {
-          Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+    for (int i = 0; i < Len(sourceFileList); i++) {
+      String *sourceFile = Getitem(sourceFileList, i);
+      if (i == 0) {
+	Printf(builderCode, "files = \"%s\";\n", sourceFile);
+      } else {
+	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
@@ -216,7 +211,7 @@ public:
     Printf(initSection, "return 0;\n}\n#endif\n");
 
     /* Write all to the wrapper file */
-    SwigType_emit_type_table(runtimeSection, wrappersSection); // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
+    SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
     Dump(wrappersSection, beginSection);
@@ -244,8 +239,8 @@ public:
     SwigType *functionReturnType = Getattr(node, "type");
     ParmList *functionParamsList = Getattr(node, "parms");
 
-    int paramIndex = 0; // Used for loops over ParmsList
-    Parm *param = NULL; // Used for loops over ParamsList
+    int paramIndex = 0;		// Used for loops over ParmsList
+    Parm *param = NULL;		// Used for loops over ParamsList
 
     /* Create the wrapper object */
     Wrapper *wrapper = NewWrapper();
@@ -261,11 +256,11 @@ public:
     bool isLastOverloaded = isOverloaded && !Getattr(node, "sym:nextSibling");
 
     if (!isOverloaded && !addSymbol(functionName, node)) {
-        return SWIG_ERROR;
+      return SWIG_ERROR;
     }
 
     if (isOverloaded) {
-        Append(overloadedName, Getattr(node, "sym:overname"));
+      Append(overloadedName, Getattr(node, "sym:overname"));
     }
 
     /* Write the wrapper function definition (standard Scilab gateway function prototype) */
@@ -295,34 +290,34 @@ public:
 
       // Ignore parameter if the typemap specifies numinputs=0
       while (checkAttribute(param, "tmap:in:numinputs", "0")) {
-        param = Getattr(param, "tmap:in:next");
+	param = Getattr(param, "tmap:in:next");
       }
 
       SwigType *paramType = Getattr(param, "type");
       String *paramTypemap = Getattr(param, "tmap:in");
 
       if (paramTypemap) {
-        // Replace $input by the position on Scilab stack
-        char source[64];
-        sprintf(source, "%d", paramIndex + 1);
-        Setattr(param, "emit:input", source);
-        Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
+	// Replace $input by the position on Scilab stack
+	char source[64];
+	sprintf(source, "%d", paramIndex + 1);
+	Setattr(param, "emit:input", source);
+	Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
 
-        if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
-          Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
-        } else {
-          Replaceall(paramTypemap, "$disown", "0");
-        }
+	if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
+	  Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
+	} else {
+	  Replaceall(paramTypemap, "$disown", "0");
+	}
 
-        if (paramIndex >= minInputArguments) { /* Optional input argument management */
-          Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
-        } else {
-          Printf(wrapper->code, "%s\n", paramTypemap);
-        }
-        param = Getattr(param, "tmap:in:next");
+	if (paramIndex >= minInputArguments) {	/* Optional input argument management */
+	  Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
+	} else {
+	  Printf(wrapper->code, "%s\n", paramTypemap);
+	}
+	param = Getattr(param, "tmap:in:next");
       } else {
-        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
-        break;
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
+	break;
       }
     }
 
@@ -334,7 +329,7 @@ public:
 
     /* Emit the function call */
     Swig_director_emit_dynamic_cast(node, wrapper);
-    String *functionActionCode = emit_action(node); /* Function code with standard args names (arg1, ...) */
+    String *functionActionCode = emit_action(node);	/* Function code with standard args names (arg1, ...) */
 
     /* Insert the return variable */
     emit_return_variable(node, functionReturnType, wrapper);
@@ -344,57 +339,58 @@ public:
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
       if (Len(functionReturnTypemap) > 0) {
-        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */ \n", 1);
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */ \n", 1);
       }
       Replaceall(functionReturnTypemap, "$result", "1");
 
       if (GetFlag(node, "feature:new")) {
-        Replaceall(functionReturnTypemap, "$owner", "1");
+	Replaceall(functionReturnTypemap, "$owner", "1");
       } else {
-        Replaceall(functionReturnTypemap, "$owner", "0");
+	Replaceall(functionReturnTypemap, "$owner", "0");
       }
 
       Printf(wrapper->code, "%s\n", functionReturnTypemap);
 
       /* If the typemap is not empty, the function return one more argument than the typemaps gives */
       if (Len(functionReturnTypemap) > 0) {
-        minOutputArguments++;
-        maxOutputArguments++;
+	minOutputArguments++;
+	maxOutputArguments++;
       }
       Delete(functionReturnTypemap);
 
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0), functionName);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0),
+		   functionName);
     }
 
     /* Write typemaps(out) */
     for (param = functionParamsList; param;) {
       String *paramTypemap = Getattr(param, "tmap:argout");
       if (paramTypemap) {
-        minOutputArguments++;
-        maxOutputArguments++;
-        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* paramTypemap */ \n", minOutputArguments);
-        char result[64] = {};
-        sprintf(result, "%d", minOutputArguments);
-        Replaceall(paramTypemap, "$result", result);
-        Printf(wrapper->code, "%s\n", paramTypemap);
-        Delete(paramTypemap);
-        param = Getattr(param, "tmap:argout:next");
+	minOutputArguments++;
+	maxOutputArguments++;
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* paramTypemap */ \n", minOutputArguments);
+	char result[64] = { };
+	sprintf(result, "%d", minOutputArguments);
+	Replaceall(paramTypemap, "$result", result);
+	Printf(wrapper->code, "%s\n", paramTypemap);
+	Delete(paramTypemap);
+	param = Getattr(param, "tmap:argout:next");
       } else {
-        param = nextSibling(param);
+	param = nextSibling(param);
       }
     }
     /* Add cleanup code */
     for (param = functionParamsList; param;) {
       String *tm;
       if ((tm = Getattr(param, "tmap:freearg"))) {
-		if (tm && (Len(tm) != 0)) {
-		  Replaceall(tm, "$source", Getattr(param, "lname"));
-          Printf(wrapper->code, "%s\n", tm);
-		}
-		param= Getattr(param, "tmap:freearg:next");
+	if (tm && (Len(tm) != 0)) {
+	  Replaceall(tm, "$source", Getattr(param, "lname"));
+	  Printf(wrapper->code, "%s\n", tm);
+	}
+	param = Getattr(param, "tmap:freearg:next");
       } else {
-		param = nextSibling(param);
+	param = nextSibling(param);
       }
     }
 
@@ -414,7 +410,7 @@ public:
     if (minOutputArguments == 0) {
       maxOutputArguments = 1;
     }
-    char argnumber[64] = {};
+    char argnumber[64] = { };
     sprintf(argnumber, "%d", minInputArguments);
     Replaceall(wrapper->code, "$mininputarguments", argnumber);
     sprintf(argnumber, "%d", maxInputArguments);
@@ -429,12 +425,12 @@ public:
 
     /* Update builder.sce contents */
     if (isLastOverloaded) {
-        addFunctionInBuilder(functionName, wrapperName);
-        dispatchFunction(node);
+      addFunctionInBuilder(functionName, wrapperName);
+      dispatchFunction(node);
     }
 
     if (!isOverloaded) {
-        addFunctionInBuilder(functionName, wrapperName);
+      addFunctionInBuilder(functionName, wrapperName);
     }
 
     /* tidy up */
@@ -489,8 +485,8 @@ public:
   virtual int variableWrapper(Node *node) {
 
     /* Get information about variable */
-    String *origVariableName = Getattr(node, "name"); // Ex: Shape::nshapes
-    String *variableName = Getattr(node, "sym:name"); // Ex; Shape_nshapes (can be used for function names, ...)
+    String *origVariableName = Getattr(node, "name");	// Ex: Shape::nshapes
+    String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
 
     /* Manage GET function */
     Wrapper *getFunctionWrapper = NewWrapper();
@@ -532,9 +528,9 @@ public:
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
-        Replaceall(varinTypemap, "$input", "1");
-        emit_action_code(node, setFunctionWrapper->code, varinTypemap);
-        Delete(varinTypemap);
+	Replaceall(varinTypemap, "$input", "1");
+	emit_action_code(node, setFunctionWrapper->code, varinTypemap);
+	Delete(varinTypemap);
       }
       Append(setFunctionWrapper->code, "return SWIG_OK;\n");
       Append(setFunctionWrapper->code, "}\n");
@@ -623,6 +619,6 @@ public:
   }
 };
 
-extern "C" Language* swig_scilab(void) {
+extern "C" Language *swig_scilab(void) {
   return new SCILAB();
 }
