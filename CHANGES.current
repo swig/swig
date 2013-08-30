@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-10-15: vadz
+            Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
+            inside %rename to change the case of the text being replaced.
+
 2013-10-12: wsfulton
             [Lua] Apply #92 - missing return statements for SWIG_Lua_add_namespace_details()
             and SWIG_Lua_namespace_register().
