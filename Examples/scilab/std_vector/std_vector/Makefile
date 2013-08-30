@@ -15,6 +15,3 @@ clean:
 
 check: loader.sce
 	$(MAKE) -f $(TOP)/Makefile scilab_run
-
-debug: loader.sce
-	$(MAKE) -f $(TOP)/Makefile scilab_debug
