@@ -126,13 +126,12 @@ Examples/test-suite/uffi/*/
 *_runme.exe.mdb
 *_runme.exe
 
-# Scratch directories
-Examples/scratch
-
 # Scilab generated files
 builder.sce
 loader.sce
 cleaner.sce
-*_wrap.c
-*_wrap.cxx
 lib*lib*.c
+
+# Scratch directories
+Examples/scratch
+
