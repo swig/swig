@@ -118,10 +118,9 @@ check-aliveness:
 	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
-	@$(skip-scilab) 	  || ./$(TARGET) -scilab          -help
-
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -189,9 +188,9 @@ check-examples:					\
 	check-uffi-examples			\
 	check-cffi-examples			\
 	check-r-examples			\
+	check-scilab-examples			\
 	check-go-examples			\
-	check-d-examples			\
-	check-scilab-examples
+	check-d-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -267,7 +266,7 @@ check-test-suite:				\
 	check-uffi-test-suite			\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
-	check-r-test-suite               	\
+	check-r-test-suite			\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
 	check-d-test-suite
@@ -320,7 +319,7 @@ all-test-suite:					\
 	all-uffi-test-suite			\
 	all-cffi-test-suite			\
 	all-chicken-test-suite			\
-	all-r-test-suite                   	\
+	all-r-test-suite			\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
 	all-d-test-suite
@@ -350,9 +349,8 @@ broken-test-suite:				\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
 	broken-r-test-suite			\
-	broken-go-test-suite
-	broken-go-test-suite			\
 	broken-scilab-test-suite           	\
+	broken-go-test-suite			\
 	broken-d-test-suite
 
 broken-%-test-suite:
@@ -466,7 +464,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d scilab
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r scilab go d
 
 lib-modules = std
 
