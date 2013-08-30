@@ -1,13 +1,13 @@
 /* File : example.i */
 %module example
 
-%scilabconst(1);
-
 %{
 #include "example.h"
+#include "scilabconst_example.h"
 %}
-
-/* Let's just grab the original header file here */
 
 %include "example.h"
 
+%scilabconst(1);
+
+%include "scilabconst_example.h"
