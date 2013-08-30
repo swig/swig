@@ -1,4 +1,3 @@
-#!/usr/bin/octave
 # file: runme.m
 
 swigexample

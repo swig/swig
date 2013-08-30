@@ -4,7 +4,7 @@ swigexample
 
 # Call our gcd() function
 
-x = -2;
+x = 42;
 y = 105;
 g = swigexample.gcd(x,y);
 printf("The gcd of %d and %d is %d\n",x,y,g);
