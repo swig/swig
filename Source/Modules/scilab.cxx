@@ -655,9 +655,6 @@ public:
       }
     }
 
-    /* Force type to be an enum (See scitypemaps.swg) */
-    Setattr(node, "type", "enum SWIG");
-
     return Language::enumvalueDeclaration(node);
   }
 
