@@ -116,6 +116,11 @@ Examples/test-suite/ruby/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 
+# SWIG generated files in examples
+Examples/**/*_wrap.c
+Examples/**/*_wrap.cxx
+Examples/**/*_wrap.cpp
+
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
