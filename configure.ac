@@ -1004,78 +1004,72 @@ AC_ARG_WITH(scilabincl,[  --with-scilabincl=path  Set location of Scilab include
 
 # First, check for "--without-scilab" or "--with-scilab=no".
 if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Scilab])
-SCILAB=
-
+  AC_MSG_NOTICE([Disabling Scilab])
+  SCILAB=
 else
-
-# Check for Scilab executable
-if test "x$SCILABBIN" = xyes; then
-  AC_CHECK_PROGS(SCILAB, scilab)
-else
-  AC_MSG_CHECKING(for scilab)
-  if test -f "$SCILABBIN"; then
-    AC_MSG_RESULT($SCILABBIN)
-    SCILAB="$SCILABBIN"
+  # Check for Scilab executable
+  if test "x$SCILABBIN" = xyes; then
+    AC_CHECK_PROGS(SCILAB, scilab)
   else
-    AC_MSG_RESULT(not found)
-  fi
-fi
-
-
-if test -n "$SCILAB"; then
-  # Check for Scilab version (needs api_scilab so needs version 5.2 or higher)
-  SCILAB_FULL_VERSION=`$SCILAB -version|head -1|sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
-  AC_MSG_NOTICE([Scilab version: $SCILAB_FULL_VERSION])
-
-  AC_MSG_CHECKING(for Scilab version is 5.2 or higher)
-  SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
-  SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
-  SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION"
-
-  if test $SCILAB_VERSION -ge 52; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no)
-  fi
-
-  # Set Scilab startup options depending on version
-  AC_MSG_CHECKING(for Scilab startup options)
-  SCILABSTARTOPT="-nwni -nb"
-  if test $SCILAB_VERSION -ge 54; then
-    SCILABSTARTOPT+=" -noatomsautoload"
-  fi
-  AC_MSG_RESULT($SCILABSTARTOPT)
-fi
-
-
-# Check for Scilab header files
-AC_MSG_CHECKING(for Scilab header files)
-if test "$SCILABINCDIR" != ""; then
-  dirs="$SCILABINCDIR"
-  SCILABEXT=""
-  for i in $dirs; do
-    if test -r $i/scilab/api_scilab.h; then
-      SCILABEXT="$i"
-      break;
+    AC_MSG_CHECKING(for scilab)
+    if test -f "$SCILABBIN"; then
+      AC_MSG_RESULT($SCILABBIN)
+      SCILAB="$SCILABBIN"
+    else
+      AC_MSG_RESULT(not found)
     fi
-    if test -r $i/scilab/scilab/api_scilab.h; then
-      SCILABEXT="$i/scilab"
-      break;
-    fi
-  done
-  if test "$SCILABEXT" = "" ; then
-    AC_MSG_RESULT(not found)
-  else
-    AC_MSG_RESULT($SCILABEXT)
   fi
 
-  AC_MSG_CHECKING(for Scilab compiler options)
-    SCILABCCFLAGS=""
-  AC_MSG_RESULT($SCILABCCFLAGS)
-fi
+  if test -n "$SCILAB"; then
+    # Check for Scilab version (needs api_scilab so needs version 5.2 or higher)
+    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    AC_MSG_NOTICE([Scilab version: $SCILAB_FULL_VERSION])
 
+    AC_MSG_CHECKING(for Scilab version is 5.2 or higher)
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
+    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION"
 
+    if test $SCILAB_VERSION -ge 52; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT(no)
+    fi
+
+    # Set Scilab startup options depending on version
+    AC_MSG_CHECKING(for Scilab startup options)
+    SCILABSTARTOPT="-nwni -nb"
+    if test $SCILAB_VERSION -ge 54; then
+      SCILABSTARTOPT+=" -noatomsautoload"
+    fi
+    AC_MSG_RESULT($SCILABSTARTOPT)
+  fi
+
+  # Check for Scilab header files
+  AC_MSG_CHECKING(for Scilab header files)
+  if test "$SCILABINCDIR" != ""; then
+    dirs="$SCILABINCDIR"
+    SCILABEXT=""
+    for i in $dirs; do
+      if test -r $i/scilab/api_scilab.h; then
+        SCILABEXT="$i"
+        break;
+      fi
+      if test -r $i/scilab/scilab/api_scilab.h; then
+        SCILABEXT="$i/scilab"
+        break;
+      fi
+    done
+    if test "$SCILABEXT" = "" ; then
+      AC_MSG_RESULT(not found)
+    else
+      AC_MSG_RESULT($SCILABEXT)
+    fi
+
+    AC_MSG_CHECKING(for Scilab compiler options)
+      SCILABCCFLAGS=""
+    AC_MSG_RESULT($SCILABCCFLAGS)
+  fi
 fi
 
 AC_SUBST(SCILAB)
