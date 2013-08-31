@@ -5,7 +5,9 @@
  * ----------------------------------------------------------------------------- */
 
 %insert(runtime) %{
+
 #include <v8.h>
+
 #include <errno.h>
 #include <limits.h>
 %}
@@ -60,7 +62,7 @@ public:
 
 %insert(runtime) %{
 
-// Note: to trigger the c8 gc more often one can tell v8 about the memory consumption
+// Note: to trigger the v8 gc more often one can tell v8 about the memory consumption
 // TODO: we could add a v8 specific parameter to control this value
 #define SWIGV8_AVG_OBJ_SIZE 1000
 
@@ -71,9 +73,19 @@ public:
   };
   
   ~SWIGV8_Proxy() { 
+#ifdef BUILDING_NODE_EXTENSION
     handle.ClearWeak();
+#else
+    handle.ClearWeak(v8::Isolate::GetCurrent());
+#endif
+
     //handle->SetInternalField(0, v8::Undefined());
+
+#ifdef BUILDING_NODE_EXTENSION
     handle.Dispose();
+#else
+    handle.Dispose(v8::Isolate::GetCurrent());
+#endif
     handle.Clear();
     v8::V8::AdjustAmountOfExternalAllocatedMemory(-SWIGV8_AVG_OBJ_SIZE);
   }
@@ -87,7 +99,12 @@ public:
 class SWIGV8_ClientData {
 public:
   v8::Persistent<v8::FunctionTemplate> class_templ;
-  void (*dtor) (v8::Isolate *iso, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *parameter);
+
+#ifdef BUILDING_NODE_EXTENSION
+  void (*dtor) (v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy);
+#else
+  void (*dtor) (v8::Isolate *isolate, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy);
+#endif
 };
 
 v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
@@ -101,15 +118,11 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
     return SWIG_ERROR;
   }
   if(cdata->info != info) {
-    bool type_valid = false;
-    swig_cast_info *t = info->cast; 
-    while(t != NULL) {
-      if(t->type == cdata->info) {
-        type_valid = true;
-        break;
-      }
-      t = t->next;
+    swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
+    if (!tc && cdata->info->name) {
+      tc = SWIG_TypeCheck(cdata->info->name, info);
     }
+    bool type_valid = tc != 0;
     if(!type_valid) {
       return SWIG_TypeError;
     }
@@ -121,8 +134,13 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   return SWIG_OK;
 }
 
-void SWIGV8_Proxy_DefaultDtor(v8::Isolate* isolate, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy) {
-  delete proxy;
+#ifdef BUILDING_NODE_EXTENSION
+void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy)
+#else
+void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy)
+#endif
+{
+    delete proxy;
 }
 
 void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
@@ -132,8 +150,13 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   cdata->info = info;
   obj->SetAlignedPointerInInternalField(0, cdata);
 
+#ifdef BUILDING_NODE_EXTENSION
+	#warning port me
+#else
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
+#endif
 
+#ifdef BUILDING_NODE_EXTENSION
   // clientdata must be set for owned data as we need to register the dtor
   if(cdata->swigCMemOwn) {
     cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
@@ -141,6 +164,14 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
   cdata->handle.MarkIndependent();
+#else
+  if(cdata->swigCMemOwn) {
+    cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+  } else {
+    cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
+  }
+  cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+#endif
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
@@ -175,4 +206,8 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_V8_ConvertInstancePtr(obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_V8_NewPointerObj(thisvalue, type, flags)
 
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_V8_ConvertPtr(obj, pptr, type, 0)
+#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_V8_NewPointerObj(ptr, type, 0)
+
 %}
+

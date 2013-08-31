@@ -73,7 +73,7 @@ namespace std {
 
   %typemap(out, fragment="SWIGV8_stringToValue") const string &
   %{
-     $result = SWIGV8_stringToValue($1);
+     $result = SWIGV8_stringToValue(*$1);
   %}
 
 }

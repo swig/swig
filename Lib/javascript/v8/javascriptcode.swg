@@ -111,14 +111,28 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtor", "templates")
 %{
-void $jswrapper(v8::Isolate *iso, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
+
+#ifdef BUILDING_NODE_EXTENSION
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) 
+#else
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) 
+#endif
+{
   if(proxy->swigCMemOwn && proxy->swigCObject) {
+#ifdef SWIGRUNTIME_DEBUG
+    printf("Deleting wrapped instance: %s\n", proxy->info->name);
+#endif
     $jsfree proxy->swigCObject;
   }
   delete proxy;
 
-  object->Dispose();
   object->Clear();
+
+#ifdef BUILDING_NODE_EXTENSION
+  object->Dispose();
+#else
+  object->Dispose(isolate);
+#endif
 }
 %}
 
@@ -266,6 +280,7 @@ fail:
   SWIGTYPE$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
 
+
 /* -----------------------------------------------------------------------------
  * jsv8_inherit:  template for an class inherit statement.
  *   - $jsmangledname:  mangled class name
@@ -273,7 +288,17 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_inherit", "templates") 
 %{
-  $jsmangledname_class->Inherit($jsbaseclass_class);
+  if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
+  {
+    $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
+#ifdef SWIGRUNTIME_DEBUG
+    printf("Inheritance successful $jsmangledname $jsbaseclass\n");
+#endif
+  } else {
+#ifdef SWIGRUNTIME_DEBUG
+    printf("Unable to inherit baseclass, it didn't exist $jsmangledname $jsbaseclass\n");
+#endif
+  }
 %}
 
 /* -----------------------------------------------------------------------------
@@ -387,9 +412,13 @@ fail:
 %{
 extern "C" {
 
+#ifdef BUILDING_NODE_EXTENSION
+void $jsname_initialize(v8::Handle<v8::Object> global_obj, v8::Handle<v8::Object> /*module*/)
+#else
 void $jsname_initialize(v8::Handle<v8::Object> global_obj)
+#endif
 {
-  SWIG_InitializeModule(0);
+  SWIG_InitializeModule(static_cast<void *>(&global_obj));
 
   v8::HandleScope scope;
 
@@ -419,8 +448,13 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
   
   /* create and register namespace objects */
   $jsv8registernspaces
-
 }
+
+#ifdef BUILDING_NODE_EXTENSION
+NODE_MODULE($jsname, $jsname_initialize);
+#endif
+
+
 
 } // extern "C"
 %}

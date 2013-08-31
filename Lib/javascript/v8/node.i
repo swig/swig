@@ -1,15 +1,12 @@
-%insert("init") %{
+%insert("begin") %{
 #ifndef BUILDING_NODE_EXTENSION
 #define BUILDING_NODE_EXTENSION
 #endif
-
-#include <node.h>
 %}
 
-%define %node(moduleName)
-%insert("post-init") %{
-extern "C" {
-    NODE_MODULE(moduleName, moduleName ## _initialize)
-}
+%insert("runtime") %{
+// we are including relative to the src folder because of issues
+// with other files which might be named "node.h"
+#include <src/node.h>
 %}
-%enddef
+
