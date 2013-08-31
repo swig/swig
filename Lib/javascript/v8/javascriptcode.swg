@@ -143,6 +143,27 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
 %}
 
 /* -----------------------------------------------------------------------------
+ * js_dtoroverride:  template for a destructor wrapper
+ *   - $jsmangledname:  mangled class name
+ *   - $jstype:         class type
+ *   - ${destructor_action}: The custom destructor action to invoke. 
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_dtoroverride", "templates")
+%{
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
+  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+  if(proxy->swigCMemOwn && proxy->swigCObject) {
+    $jstype arg1 = ($jstype)proxy->swigCObject;
+    ${destructor_action}
+  }
+  delete proxy;
+
+  object.Clear();
+  object.Dispose();
+}
+%}
+
+/* -----------------------------------------------------------------------------
  * js_getter:  template for getter function wrappers
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
@@ -429,7 +450,8 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_initializer", "templates") 
 %{
-extern "C" {
+// The extern "C" makes little sense here because the paramater is using C++ objects and templates.
+// extern "C" {
 
 #if defined(BUILDING_NODE_EXTENSION)
 void $jsname_initialize(v8::Handle<v8::Object> global_obj, v8::Handle<v8::Object> /*module*/)
@@ -481,5 +503,5 @@ NODE_MODULE($jsname, $jsname_initialize);
 
 
 
-} // extern "C"
+// } // extern "C"
 %}
