@@ -6,11 +6,16 @@
 #include <stdlib.h>
 
 #ifdef __GNUC__
+#ifdef __APPLE__
+#define LIBRARY_EXT ".dylib"
+#else
+#define LIBRARY_EXT ".so"
+#endif
 #include <dlfcn.h>
 #define LOAD_LIBRARY(name) dlopen(name, RTLD_LAZY)
 #define CLOSE_LIBRARY(handle) dlclose(handle)
 #define LIBRARY_ERROR dlerror
-#define LIBRARYFILE(name) std::string("lib").append(name).append(".so")
+#define LIBRARYFILE(name) std::string("lib").append(name).append(LIBRARY_EXT)
 #else
 #error "implement dll loading"
 #endif

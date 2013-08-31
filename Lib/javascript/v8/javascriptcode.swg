@@ -57,7 +57,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
   
 fail:
-  scope.Close(v8::Undefined());
+  return scope.Close(v8::Undefined());
 }
 %}
 
@@ -114,10 +114,12 @@ fail:
 void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
   if(proxy->swigCMemOwn && proxy->swigCObject) {
-//    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
     $jsfree proxy->swigCObject;
   }
   delete proxy;
+
+  object.Clear();
+  object.Dispose();
 }
 %}
 
@@ -132,11 +134,13 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
 void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
   if(proxy->swigCMemOwn && proxy->swigCObject) {
-//    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
     $jstype arg1 = ($jstype)proxy->swigCObject;
     ${destructor_action}
   }
   delete proxy;
+
+  object.Clear();
+  object.Dispose();
 }
 %}
 

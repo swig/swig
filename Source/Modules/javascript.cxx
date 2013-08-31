@@ -553,11 +553,13 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   case JSEmitter::V8:
     {
       emitter = swig_javascript_create_V8Emitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
       break;
     }
   case JSEmitter::JavascriptCore:
     {
       emitter = swig_javascript_create_JSCEmitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_JSC 1", 0);
       break;
     }
   case JSEmitter::QtScript:
@@ -667,7 +669,6 @@ int JSEmitter::initialize(Node *n) {
   namespaces = NewHash();
   Hash *global_namespace;
   if(State::IsSet(state.global(FLAG_NO_MODULE_OBJECT))) {
-      Printf(stdout, "AAAAAAAAAAAAAAAAAAAAAAAAAAA");
       global_namespace = createNamespaceEntry("global", 0);
   } else {
       global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");

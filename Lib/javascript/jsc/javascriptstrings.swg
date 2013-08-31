@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------
- *  utility methods for char strings 
+ *  utility methods for char strings
  * ------------------------------------------------------------ */
 %fragment("SWIG_AsCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
 SWIGINTERN int
@@ -8,14 +8,14 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
   if(JSValueIsString(context, valRef)) {
     JSStringRef js_str = JSValueToStringCopy(context, valRef, NULL);
     size_t len = JSStringGetMaximumUTF8CStringSize(js_str);
-    size_t abs_len = JSStringGetLength(js_str);
     char* cstr = (char*) malloc(len * sizeof(char));
-    JSStringGetUTF8CString(js_str, cstr, len);
-    
+    /* JSStringGetUTF8CString returns the length including 0-terminator */
+    len = JSStringGetUTF8CString(js_str, cstr, len);
+
     if(alloc) *alloc = SWIG_NEWOBJ;
-    if(psize) *psize = abs_len + 1;
+    if(psize) *psize = len;
     if(cptr) *cptr = cstr;
-    
+
     return SWIG_OK;
   } else {
     if(JSValueIsObject(context, valRef)) {
@@ -47,7 +47,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
     if (size > INT_MAX) {
       // TODO: handle extra long strings
       //swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
-      //return pchar_descriptor ? 
+      //return pchar_descriptor ?
       //  SWIG_InternalNewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
       return JSValueMakeUndefined(context);
     } else {
@@ -58,7 +58,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
         for(i=0;i<size;++i) {
           c[i] = carray[i];
         }
-        c[size] = 0; 
+        c[size] = 0;
         jsstring = JSStringCreateWithUTF8CString(c);
       } else {
         jsstring = JSStringCreateWithUTF8CString(carray);
@@ -81,19 +81,19 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
 			 SWIG_NewCopyCharArray,
 			 SWIG_DeleteCharArray,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
-  
+
 %fragment("SWIG_From"#CharName"Ptr","header",fragment=#SWIG_FromCharPtrAndSize) {
-SWIGINTERNINLINE SWIG_Object 
+SWIGINTERNINLINE SWIG_Object
 SWIG_JSC_From##CharName##Ptr(JSContextRef context, const Char *cptr)
-{ 
+{
   return SWIG_JSC_FromCharPtrAndSize(context, cptr, (cptr ? SWIG_CharPtrLen(cptr) : 0));
 }
 }
 
 %fragment("SWIG_From"#CharName"Array","header",fragment=#SWIG_FromCharPtrAndSize) {
-SWIGINTERNINLINE SWIG_Object 
+SWIGINTERNINLINE SWIG_Object
 SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t size)
-{ 
+{
   return SWIG_JSC_FromCharPtrAndSize(context, cptr, size);
 }
 }
@@ -105,7 +105,7 @@ SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t si
 %fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize) {
 SWIGINTERN int
 SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
-{ 
+{
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_JSC_AsCharPtrAndSize(context, obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
@@ -118,7 +118,7 @@ SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, s
       if (alloc == SWIG_NEWOBJ) {
         SWIG_DeleteCharArray(cptr);
         res = SWIG_DelNewMask(res);
-      }      
+      }
       return res;
     }
     if (alloc == SWIG_NEWOBJ) SWIG_DeleteCharArray(cptr);
@@ -133,8 +133,8 @@ SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, s
 
 %fragment(SWIG_From_frag(Char),"header",fragment=#SWIG_FromCharPtrAndSize) {
 SWIGINTERNINLINE SWIG_Object
-SWIG_From_dec(Char)(Char c) 
-{ 
+SWIG_From_dec(Char)(Char c)
+{
   return SWIG_JSC_FromCharPtrAndSize(context, &c,1);
 }
 }
@@ -145,7 +145,7 @@ SWIG_From_dec(Char)(Char c)
           fragment=SWIG_AsVal_frag(long)) {
 SWIGINTERN int
 SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
-{    
+{
   int res = SWIG_As##CharName##Array(obj, val, 1);
   if (!SWIG_IsOK(res)) {
     long v;
@@ -162,7 +162,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 }
 }
 
-%_typemap_string(StringCode, 
+%_typemap_string(StringCode,
                  Char,
                  SWIG_AsCharPtrAndSize,
                  SWIG_FromCharPtrAndSize,
