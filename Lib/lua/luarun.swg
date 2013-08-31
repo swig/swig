@@ -405,11 +405,11 @@ SWIGINTERN int SWIG_Lua_namespace_get(lua_State* L)
   (1) table (not the meta table)
   (2) string name of the attribute
 */
-  assert( lua_istable(L,-2) );  /* just in case */
-  lua_getmetatable(L,-2);    /* get the meta table */
-  assert(lua_istable(L,-1));  /* just in case */
+  assert(lua_istable(L,-2));  /* just in case */
+  lua_getmetatable(L,-2);
+  assert(lua_istable(L,-1));
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
-  assert(lua_istable(L,-1));  /* just in case */
+  assert(lua_istable(L,-1));
   /* look for the key in the .get table */
   lua_pushvalue(L,2);  /* key */
   lua_rawget(L,-2);
@@ -427,13 +427,13 @@ SWIGINTERN int SWIG_Lua_namespace_get(lua_State* L)
   lua_pushvalue(L,2);  /* key */
   lua_rawget(L,-2);  /* look for the fn */
   lua_remove(L,-2); /* stack tidy, remove .fn table */
-  if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
+  if (lua_isfunction(L,-1)) /* note: whether it's a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
     return 1;
   }
   lua_pop(L,1);  /* remove whatever was there */
-  return 0;  /* sorry not known */
+  return 0;
 }
 
 SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
@@ -442,14 +442,11 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
   (1) table (not the meta table)
   (2) string name of the attribute
   (3) any for the new value
-printf("SWIG_Lua_namespace_set %p(%s) '%s' %p(%s)\n",
-      lua_topointer(L,1),lua_typename(L,lua_type(L,1)),
-      lua_tostring(L,2),
-      lua_topointer(L,3),lua_typename(L,lua_type(L,3)));*/
+*/
 
-  assert(lua_istable(L,1));  /* just in case */
+  assert(lua_istable(L,1));
   lua_getmetatable(L,1);    /* get the meta table */
-  assert(lua_istable(L,-1));  /* just in case */
+  assert(lua_istable(L,-1));
 
   SWIG_Lua_get_table(L,".set"); /* find the .set table */
   if (lua_istable(L,-1))
@@ -476,11 +473,10 @@ SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_C
 SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* ns)
 {
   int i = 0;
-  assert( lua_istable(L,-1) );
+  assert(lua_istable(L,-1));
   /* There must be table at the top of the stack */
   SWIG_Lua_InstallConstants( L, ns->ns_constants );
 
-  /* get metatable */
   lua_getmetatable(L,-1);
 
   /* add fns */
@@ -496,7 +492,7 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* 
   }
   lua_pop(L,1);
 
-  /* clear stack - remote metatble */
+  /* clear stack - remove metatble */
   lua_pop(L,1);
 
 }
@@ -541,7 +537,7 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
   (1) userdata (not the meta table)
   (2) string name of the attribute
 */
-  assert( lua_isuserdata(L,-2) );  /* just in case */
+  assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
@@ -729,7 +725,6 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
   lua_remove(L,-2);    /* tidy up (remove registry) */
 }
 
-
 /* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
@@ -752,7 +747,7 @@ SWIGINTERN void SWIG_Lua_add_class_static_details( lua_State* L, swig_lua_class*
 {
   int i = 0;
   /* The class namespace table must be on the top of the stack */
-  assert( lua_istable(L,-1) );
+  assert(lua_istable(L,-1));
   /* call all the base classes first: we can then override these later: */
   for(i=0;clss->bases[i];i++)
   {
@@ -775,7 +770,6 @@ SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
   for(i=0;clss->attributes[i].name;i++){
     SWIG_Lua_add_class_variable(L,clss->attributes[i].name,clss->attributes[i].getmethod,clss->attributes[i].setmethod);
   }
-
   /* add methods to the metatable */
   SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
   assert(lua_istable(L,-1));  /* just in case */
@@ -826,7 +820,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* cls
   SWIG_Lua_namespace_register(L,&clss->cls_static);
 
   SWIG_Lua_get_table(L,clss->name); // Get namespace table back
-  assert( lua_istable(L,-1) ); /* just in case */
+  assert(lua_istable(L,-1)); /* just in case */
 
   /*  add its constructor to module with the name of the class
   so you can do MyClass(...) as well as new_MyClass(...)
@@ -836,7 +830,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* cls
   {
     SWIG_Lua_add_function(L,".constructor", clss->constructor);
     lua_getmetatable(L,-1);
-    assert( lua_istable(L,-1) ); /* just in case */
+    assert(lua_istable(L,-1)); /* just in case */
     SWIG_Lua_add_function(L,"__call", SWIG_Lua_constructor_proxy );
     lua_pop(L,1);
   }

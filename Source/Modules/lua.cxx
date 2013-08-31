@@ -835,11 +835,10 @@ public:
     if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
       Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
 
-    if( getCurrentClass() ) { 
+    if (getCurrentClass()) 
       Setattr(n,"luaclassobj:wrap:name", wname);
-    } else {
+    else
       Delete(wname);
-    }
 
     DelWrapper(f);
     Delete(dispatch);
@@ -896,7 +895,7 @@ public:
     } else {
       Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
     }
-    if( getCurrentClass() ) {
+    if (getCurrentClass()) {
       Setattr(n, "luaclassobj:wrap:get", getName );
       Setattr(n, "luaclassobj:wrap:set", setName );
     } else {
@@ -946,7 +945,7 @@ public:
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
-    if( cparse_cplusplus && getCurrentClass() ) {
+    if (cparse_cplusplus && getCurrentClass()) {
       // Additionally add to class constants
       Swig_require( "luaclassobj_constantWrapper", n, "*sym:name", "luaclassobj:symname", NIL );
       Setattr( n, "sym:name", Getattr( n, "luaclassobj:symname" ) );
@@ -1303,17 +1302,16 @@ public:
     String *symname = Getattr(n, "sym:name");
     int result = Language::staticmemberfunctionHandler(n);
 
-    if( cparse_cplusplus && getCurrentClass() ) {
+    if (cparse_cplusplus && getCurrentClass()) {
       Swig_restore(n);
     }
     current = NO_CPP;
-    if (result != SWIG_OK) {
+    if (result != SWIG_OK)
       return result;
-    }
 
-    if (Getattr(n, "sym:nextSibling")) {
+    if (Getattr(n, "sym:nextSibling"))
       return SWIG_OK;
-    }
+
     Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL );
     String *name = Getattr(n, "name");
     String *rname, *realname;
@@ -1334,14 +1332,14 @@ public:
   virtual int memberconstantHandler(Node *n) {
         REPORT("memberconstantHandler",n);
     String *symname = Getattr(n, "sym:name");
-    if( cparse_cplusplus && getCurrentClass() ) {
+    if (cparse_cplusplus && getCurrentClass()) {
       Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
       Setattr(n, "luaclassobj:symname", symname );
     }
     int result = Language::memberconstantHandler(n);
-    if( cparse_cplusplus && getCurrentClass() ) {
+    if (cparse_cplusplus && getCurrentClass())
       Swig_restore(n);
-    }
+
     return result;
   }
 
@@ -1355,14 +1353,13 @@ public:
     String* symname = Getattr(n, "sym:name" );
     int result = Language::staticmembervariableHandler(n);
 
-    if( result != SWIG_OK ) {
+    if (result != SWIG_OK)
       return result;
-    }
+ 
 
-    if( Getattr(n, "wrappedasconstant" ) ) {
+    if (Getattr(n, "wrappedasconstant" ))
       return SWIG_OK;
-    }
-
+ 
     Swig_require("luaclassobj_staticmembervariableHandler", n, "luaclassobj:wrap:get", "luaclassobj:wrap:set", NIL );
     Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,Getattr(n,"luaclassobj:wrap:get"), Getattr(n,"luaclassobj:wrap:set") );
     Swig_restore(n);
