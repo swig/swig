@@ -4028,7 +4028,7 @@ public:
     Delete(director_ctor_code);
     director_ctor_code = NewString("$director_new");
 
-    Java_director_declaration(n);
+    directorDeclaration(n);
 
     Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
     Printf(f_directors_h, "\npublic:\n");
@@ -4148,13 +4148,13 @@ public:
   }
 
   /*----------------------------------------------------------------------
-   * Java_director_declaration()
+   * directorDeclaration()
    *
    * Generate the director class's declaration
    * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
    *--------------------------------------------------------------------*/
  
-  void Java_director_declaration(Node *n) {
+  void directorDeclaration(Node *n) {
 
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");
