@@ -509,6 +509,7 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	bom_utf8 \
 	char_constant \
 	const_const \
 	constant_expr \

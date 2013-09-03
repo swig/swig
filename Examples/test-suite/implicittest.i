@@ -46,7 +46,6 @@
     Foo(double){ ii = 2;}
     explicit Foo(char *s){ii = 3;}
     Foo(const Foo& f){ ii = f.ii;}
-    
   };
 
   struct Bar 
@@ -57,11 +56,61 @@
     Bar(const Foo& ff){ ii = ff.ii;}
   };
 
-
   int get_b(const Bar&b) { return b.ii; }
   
   Foo foo;
-  
 }
 
 %template(A_int) A_T<int>;
+
+
+/****************** None handling *********************/
+
+%inline
+{
+  struct BB {};
+  struct AA
+  {
+    int ii;
+    AA(int i) { ii = 1; }
+    AA(double d) { ii = 2; }
+    AA(const B* b) { ii = 3; }
+    explicit AA(char *s) { ii = 4; }
+    AA(const BB& b) { ii = 5; }
+
+    int get() const { return ii; }
+  };
+
+  int get_AA_val(AA a) { return a.ii; }
+  int get_AA_ref(const AA& a) { return a.ii; }
+}
+
+
+/****************** Overloading priority *********************/
+
+%inline %{
+class BBB {
+  public:
+    BBB(const B &) {}
+};
+
+class CCC {
+  public:
+    CCC(const BBB &) : checkvalue(0) {}
+    int xx(int i) { return 11; }
+    int xx(const A& i) { return 22; }
+    int yy(int i, int j) { return 111; }
+    int yy(const A& i, const A& j) { return 222; }
+    int checkvalue;
+};
+%}
+
+// CCC(const BBB &) was being called instead of this constructor (independent of being added via %extend)
+%extend CCC {
+  CCC(const B& b) {
+    CCC* ccc = new CCC(b);
+    ccc->checkvalue = 10;
+    return ccc;
+  }
+};
+

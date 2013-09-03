@@ -35,6 +35,7 @@ matrix:
 before_install:
   - lsb_release -a
   - uname -a
+  - sudo apt-get -qq update
   - time sudo apt-get -qq install libboost-dev
   - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
   - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed

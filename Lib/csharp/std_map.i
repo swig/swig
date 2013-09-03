@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * std_map.i
  *
- * SWIG typemaps for std::map< K, T >
+ * SWIG typemaps for std::map< K, T, C >
  *
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.IDictionary<>.
  * 
@@ -26,10 +26,10 @@
 %}
 
 /* K is the C++ key type, T is the C++ value type */
-%define SWIG_STD_MAP_INTERNAL(K, T)
+%define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
-%typemap(cscode) std::map<K, T > %{
+%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
+%typemap(cscode) std::map<K, T, C > %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
     get {
@@ -221,14 +221,14 @@
     typedef T mapped_type;
 
     map();
-    map(const map< K, T > &other);
+    map(const map< K, T, C > &other);
     size_type size() const;
     bool empty() const;
     %rename(Clear) clear;
     void clear();
     %extend {
       const mapped_type& getitem(const key_type& key) throw (std::out_of_range) {
-        std::map< K,T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           return iter->second;
         else
@@ -240,19 +240,19 @@
       }
 
       bool ContainsKey(const key_type& key) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         return iter != $self->end();
       }
 
       void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           throw std::out_of_range("key already exists");
         $self->insert(std::pair< K, T >(key, val));
       }
 
       bool Remove(const key_type& key) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end()) {
           $self->erase(iter);
           return true;
@@ -261,20 +261,20 @@
       }
 
       // create_iterator_begin(), get_next_key() and destroy_iterator work together to provide a collection of keys to C#
-      %apply void *VOID_INT_PTR { std::map< K, T >::iterator *create_iterator_begin }
-      %apply void *VOID_INT_PTR { std::map< K, T >::iterator *swigiterator }
+      %apply void *VOID_INT_PTR { std::map< K, T, C >::iterator *create_iterator_begin }
+      %apply void *VOID_INT_PTR { std::map< K, T, C >::iterator *swigiterator }
 
-      std::map< K, T >::iterator *create_iterator_begin() {
-        return new std::map< K, T >::iterator($self->begin());
+      std::map< K, T, C >::iterator *create_iterator_begin() {
+        return new std::map< K, T, C >::iterator($self->begin());
       }
 
-      const key_type& get_next_key(std::map< K, T >::iterator *swigiterator) {
-        std::map< K, T >::iterator iter = *swigiterator;
+      const key_type& get_next_key(std::map< K, T, C >::iterator *swigiterator) {
+        std::map< K, T, C >::iterator iter = *swigiterator;
         (*swigiterator)++;
         return (*iter).first;
       }
 
-      void destroy_iterator(std::map< K, T >::iterator *swigiterator) {
+      void destroy_iterator(std::map< K, T, C >::iterator *swigiterator) {
         delete swigiterator;
       }
     }
@@ -291,8 +291,8 @@
 
 // Default implementation
 namespace std {   
-  template<class K, class T> class map {    
-    SWIG_STD_MAP_INTERNAL(K, T)
+  template<class K, class T, class C = std::less<K> > class map {
+    SWIG_STD_MAP_INTERNAL(K, T, C)
   };
 }
  
