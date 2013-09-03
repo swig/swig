@@ -1578,26 +1578,26 @@ SCILAB = @SCILAB@
 SCILABOPT =
 SCILAB_STARTOPT = @SCILABSTARTOPT@
 
+# Returns the Swig Scilab command line args
+define get_swig_scilab_args
+	SWIG_SCILAB_ARGS := -scilab $(SCILABOPT)
+	ifdef SRCS
+		SWIG_SCILAB_ARGS += -addsrc "$(SRCS)"
+	endif
+	ifdef INCLUDES
+		SWIG_SCILAB_ARGS += -addcflag "$(INCLUDES)"
+	endif
+endef
+
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab: $(SRCS)
-	if test ! -z "$(SRCS)"; then \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) -addcflag $(INCLUDES) $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) $(INTERFACEPATH); \
-		fi \
-	else \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) -addcflag $(INCLUDES) $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab $(SWIGOPT) $(SCILABOPT) $(INTERFACEPATH); \
-		fi \
-	fi
+	$(eval $(call get_swig_scilab_args))
+	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' | $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1605,21 +1605,10 @@ scilab: $(SRCS)
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCS)
-	if test ! -z "$(SRCS)"; then \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) -addcflag $(INCLUDES) $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addsrc $(SRCS) $(INTERFACEPATH); \
-		fi \
-	else \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) -addcflag $(INCLUDES) $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab -c++ $(SWIGOPT) $(SCILABOPT) $(INTERFACEPATH); \
-		fi \
-	fi
+	$(eval $(call get_swig_scilab_args))
+	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH echo 'exit(1)' | $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
 	fi
 
 # -----------------------------------------------------------------
@@ -1627,7 +1616,7 @@ scilab_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 scilab_run:
-	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE)
+	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Scilab version

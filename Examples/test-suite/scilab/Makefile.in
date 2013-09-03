@@ -4,10 +4,12 @@
 
 LANGUAGE     = scilab
 SCILAB       = @SCILAB@
+SCILAB_STARTOPT = @SCILABSTARTOPT@
 SCRIPTSUFFIX = _runme.sci
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+
 
 # Overridden variables here
 # None!
@@ -61,7 +63,7 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) echo 'exit(1)' |$(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	fi;
 
 # Clean: remove the generated files
