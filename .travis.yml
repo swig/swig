@@ -56,3 +56,4 @@ script:
 branches:
   only:
     - master
+    - talby-perl5-improvements
