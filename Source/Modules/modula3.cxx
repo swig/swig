@@ -128,8 +128,6 @@ char cvsroot_modula3_cxx[] = "$Id: modula3.cxx 12225 2010-09-21 06:07:06Z wsfult
 
 #include "swigmod.h"
 
-#include <regex.h>
-
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 
@@ -315,14 +313,6 @@ MODULA3():
     va_end(args);
   }
 
-//peter dummy function for 2.04 will need to be deleted
-/*
-String *Swig_cresult_name() {
-    String *result = NewString("result");
-    return result;
-}
-*/
-
   /* -----------------------------------------------------------------------------
    * getMappedType()
    *
@@ -443,6 +433,7 @@ String *Swig_cresult_name() {
    *
    * Check if a string have a given prefix.
    * ----------------------------------------------------------------------------- */
+   
   bool hasPrefix(const String *str, const String *prefix) {
     int len_prefix = Len(prefix);
     return (Len(str) > len_prefix)
@@ -491,6 +482,7 @@ String *Swig_cresult_name() {
    * Turn usual C identifiers like "this_is_an_identifier"
    * into usual Modula 3 identifier like "thisIsAnIdentifier"
    * ----------------------------------------------------------------------------- */
+   
   String *nameToModula3(const String *sym, bool leadingCap) {
     int len_sym = Len(sym);
     char *csym = Char(sym);
@@ -527,6 +519,7 @@ String *Swig_cresult_name() {
    *
    * Make the first character upper case.
    * ----------------------------------------------------------------------------- */
+   
   String *capitalizeFirst(const String *str) {
     return NewStringf("%c%s", toupper(*Char(str)), Char(str) + 1);
   }
@@ -539,6 +532,7 @@ String *Swig_cresult_name() {
    * then it is replaced by the 'newprefix'.
    * The rest is converted to Modula style.
    * ----------------------------------------------------------------------------- */
+   
   String *prefixedNameToModula3(Node *n, const String *sym, bool leadingCap) {
     String *oldPrefix = Getattr(n, "feature:modula3:oldprefix");
     String *newPrefix = Getattr(n, "feature:modula3:newprefix");
@@ -1349,11 +1343,13 @@ String *Swig_cresult_name() {
 	Setattr(n, "modula3:funcname", capname);
 	emitCWrapper(n, capname);
       }
+
       if (funcType == NIL) {
 	// no wrapper needed for plain functions
 
         //further changes for the static name change above
 	if (staticName == NIL) {
+
 	  emitM3RawPrototype(n, rawname, symname);
 	  emitM3Wrapper(n, symname);
 
@@ -1363,10 +1359,12 @@ String *Swig_cresult_name() {
 	}
 
       } else if (Strcmp(funcType, "method") == 0) {
+
 	Setattr(n, "modula3:funcname", capname);
 	emitCWrapper(n, capname);
 	emitM3RawPrototype(n, capname, capname);
 	emitM3Wrapper(n, capname);
+
       } else if (Strcmp(funcType, "accessor") == 0) {
 	/*
 	 * Generate the proxy class properties for public member variables.
@@ -1600,7 +1598,6 @@ String *Swig_cresult_name() {
       // below based on Swig_VargetToFunction()
       SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
 
-//peter 2.11 cresult_name
      Setattr(n, "wrap:action", NewStringf("%s = (%s)(%s);", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
     }
 
@@ -1881,6 +1878,7 @@ String *Swig_cresult_name() {
    * Considers node as an integer constant definition
    * and generate a Modula 3 constant definition.
    * ------------------------------------------------------------------------ */
+   
   void generateIntConstant(Node *n, String *name) {
 
     String *value = Getattr(n, "value");
@@ -1942,6 +1940,7 @@ String *Swig_cresult_name() {
    * Considers node as a set constant definition
    * and generate a Modula 3 constant definition.
    * ------------------------------------------------------------------------ */
+   
   void generateSetConstant(Node *n, String *name) {
 
     String *value = Getattr(n, "value");
@@ -2584,30 +2583,6 @@ String *Swig_cresult_name() {
 
 */
 
-/*
-char msgbuf[100];
-
-regex_t regex;
-int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
-       reti = regexec(&regex, "abc", 0, NULL, 0);
-        if( !reti ){
-                puts("Match");
-        }
-        else if( reti == REG_NOMATCH ){
-                puts("No match");
-        }
-        else{
-                regerror(reti, &regex, msgbuf, sizeof(msgbuf));
-                fprintf(stderr, "Regex match failed: %s\n", msgbuf);
-                exit(1);
-        }
-   regfree(&regex);
-
-       //String *p = Strstr(enumName,"::");
-      //strncpy (Char(p),"sample",6); //segv
-
-*/
-
 
   void ReplaceEnumVals(Hash *hash,String *s,String *className) {
 
@@ -2637,7 +2612,7 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
     //Still enum values from another eum defined in s. So continue searching
     //This only works if from the same class.
     //Since we chop off the classname prefix and search through the global
-    //enum hash enum_coll - which assumes collectEnumerations2 has been run
+    //enum hash enum_coll - which assumes collectEnumerations has been run
     //This needs rework since if we had regular expressions we could just chop off
     //all classname prefixes not just the one in which the enum is defined.
     //Also we could probably get away with not calling collectEnumerations2 and
@@ -2681,18 +2656,14 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
           String *name = NewString(el.item);
           String *value = Getattr(theEnums,name);
 
-          //String *altname = NewStringf("QSizePolicy::%s",name);
-
           Replaceall(s, name, value);
-          //Replaceall(s, altname, value);
 
-          //dbg("replace in %s name %s altname %s : value %s\n",Char(s),Char(name),Char(altname),Char(value));
+          //dbg("replace in %s name %s : value %s\n",Char(s),Char(name),Char(value));
         }
 
       }
     }
   }
-
 
 
   void collectEnumerations(Hash *enums, Node *n) {
@@ -3249,7 +3220,7 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
 
 	    bool process_private = (acc == acc_private);
 
-	    //fix class which no methods
+	    //fixes class with no methods
 	    //if (hasContent(methods[acc]) || process_private) {
 	    if ((acc == acc_public) || process_private) {
 
@@ -3385,7 +3356,6 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
 
       //if (!(isVirtual && isOverridden)) {
       if (!abstract) {
-
 	{
           int num_exceptions = 0;
           Hash *throws_hash = NewHash();
@@ -4018,6 +3988,7 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
     bool setter_flag = false;
     int multiretval = GetFlag(n, "feature:modula3:multiretval");
 
+
     String *abstract = Getattr(n, "abstract");
     //if abstract method dont emit
     if (abstract) return;
@@ -4508,6 +4479,7 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
       if ((num_returns > 0) || multiretval) {
 	Printf(header, ": %s", result_m3wraptype);
       }
+
       generateThrowsClause(throws_hash, header);
 
       Append(function_code, header);
@@ -4516,20 +4488,16 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
       String *funcType = Getattr(n, "modula3:functype");
 
 //String *staticName = Getattr(n,"staticmemberfunctionHandler:sym:name");
-//dbg("emitM3Wrapper functype %s func_name %s static %s staticname %s\n", Char(funcType), Char(func_name), Char(staticMember),Char(staticName));
+//dbg("emitM3Wrapper functype %s func_name %s static %s staticname %s type %s\n", Char(funcType), Char(func_name), Char(staticMember),Char(staticName),Char(type));
 
-      //If its static or a (method and not a constructor or destructor) print the header
-      if (funcType || staticMember) {
-        if ((Cmp(funcType, "method") != 0) &&
-           (!((Cmp(type, "constructor") == 0) || (Cmp(type, "destructor") == 0)))) {
-
-          //dbg("emitM3Wrapper functype is null yet header %s\n", Char(header));
-          m3wrap_intf.enterBlock(no_block);
-          Printf(m3wrap_intf.f, "%s;\n\n", header);
-        } else {
-          //dbg("emitM3Wrapper header %s\n", Char(header));
-        }
+      //Here we output the interface procedure
+      //functype is null or method we dont output methods theyre done in classes
+      //so anything thats cdecl is ok that includes statics but not constructs or destructors
+      if ((Cmp(type, "cdecl") == 0) && (!funcType)) {
+        m3wrap_intf.enterBlock(no_block);
+        Printf(m3wrap_intf.f, "%s;\n\n", header);
       }
+
     }
 
     {
@@ -4557,7 +4525,7 @@ int reti = regcomp(&regex, "^a[[:alnum:]]", 0);
 
     m3wrap_impl.enterBlock(no_block);
     if (proxy_flag && global_variable_flag) {
-//peter added from 2.11 no effect really
+
           setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, variable_name)) == 0);
 
       // Properties
