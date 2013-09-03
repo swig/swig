@@ -1,11 +1,10 @@
- print("Global variable Foo=" + example.nspace.Foo);
- example.nspace.Foo = 5;
- print("Variable Foo changed to " + example.nspace.Foo);
- print("GCD of number 6,18 is " + example.nspace.gcd(6,18));
+var example = require("./build/Release/example");
 
-print("Creating some objects:");
+console.log("Global variable Foo=" + example.nspace.Foo);
+example.nspace.Foo = 5;
+console.log("Variable Foo changed to " + example.nspace.Foo);
+console.log("GCD of number 6,18 is " + example.nspace.gcd(6,18));
+
+console.log("Creating some objects:");
 c = new example.nspace.Circle(10);
-print("area = " + c.area());
-
-
-
+console.log("area = " + c.area());

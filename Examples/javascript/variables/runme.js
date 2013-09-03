@@ -1,4 +1,4 @@
-// file: runme.js
+var example = require("./build/Release/example");
 
 // Try to set the values of some global variables
 example.ivar   =  42;
@@ -17,52 +17,52 @@ example.iptrvar= example.new_int(37);
 example.ptptr  = example.new_Point(37,42);
 example.name   = "Bill";
 
-// Now print out the values of the variables
-print("Variables (values printed from Python)" + "\n");
-print("ivar      = " + example.ivar  + "\n");
-print("svar      = " + example.svar  + "\n");
-print("lvar      = " + example.lvar  + "\n");
-print("uivar     = " + example.uivar + "\n");
-print("usvar     = " + example.usvar + "\n");
-print("ulvar     = " + example.ulvar + "\n");
-print("scvar     = " + example.scvar + "\n");
-print("ucvar     = " + example.ucvar + "\n");
-print("fvar      = " + example.fvar  + "\n");
-print("dvar      = " + example.dvar  + "\n");
-print("cvar      = " + example.cvar  + "\n");
-print("strvar    = " + example.strvar+ "\n");
-print("cstrvar   = " + example.cstrvar+ "\n");
-print("iptrvar   = " + example.iptrvar+ "\n");
-print("name      = " + example.name + "\n");
-print("ptptr     = " + example.ptptr + ": " + example.Point_print(example.ptptr) + "\n");
-print("pt        = " + example.pt + ": " + example.Point_print(example.pt) + "\n");
+// Now console.log out the values of the variables
+console.log("Variables (values console.loged from Python)" + "\n");
+console.log("ivar      = " + example.ivar  + "\n");
+console.log("svar      = " + example.svar  + "\n");
+console.log("lvar      = " + example.lvar  + "\n");
+console.log("uivar     = " + example.uivar + "\n");
+console.log("usvar     = " + example.usvar + "\n");
+console.log("ulvar     = " + example.ulvar + "\n");
+console.log("scvar     = " + example.scvar + "\n");
+console.log("ucvar     = " + example.ucvar + "\n");
+console.log("fvar      = " + example.fvar  + "\n");
+console.log("dvar      = " + example.dvar  + "\n");
+console.log("cvar      = " + example.cvar  + "\n");
+console.log("strvar    = " + example.strvar+ "\n");
+console.log("cstrvar   = " + example.cstrvar+ "\n");
+console.log("iptrvar   = " + example.iptrvar+ "\n");
+console.log("name      = " + example.name + "\n");
+console.log("ptptr     = " + example.ptptr + ": " + example.Point_print(example.ptptr) + "\n");
+console.log("pt        = " + example.pt + ": " + example.Point_print(example.pt) + "\n");
 
 
-print("\nVariables (values printed from C)");
+console.log("\nVariables (values console.loged from C)");
 
 example.print_vars();
 
-print("\nNow I'm going to try and modify some read only variables");
+console.log("\nNow I'm going to try and modify some read only variables");
 
-print("Tring to set 'path'");
+console.log("Tring to set 'path'");
 try{
     example.path = "Whoa!";
-    print("Hey, what's going on?!?! This shouldn't work");
+    console.log("Hey, what's going on?!?! This shouldn't work");
 }
 catch(e){
-    print("Good.");
+    console.log("Good.");
 }
 
-print("Trying to set 'status'");
+console.log("Trying to set 'status'");
 try{
     example.status = 0;
-    print("Hey, what's going on?!?! This shouldn't work");
+    console.log("Hey, what's going on?!?! This shouldn't work");
 } catch(e){
-    print("Good.");
+    console.log("Good.");
 }
 
-print("\nI'm going to try and update a structure variable.\n");
+console.log("\nI'm going to try and update a structure variable.\n");
 example.pt = example.ptptr;
-print("The new value is: ");
+console.log("The new value is: ");
 example.pt_print();
-print("You should see the value: " + example.Point_print(example.ptptr));
+console.log("You should see the value: " + example.Point_print(example.ptptr));

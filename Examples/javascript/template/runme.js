@@ -1,8 +1,8 @@
-// file: runme.js
+var example = require("./build/Release/example");
 
 //Call some templated functions
-print(example.maxint(3,7));
-print(example.maxdouble(3.14,2.18));
+console.log(example.maxint(3,7));
+console.log(example.maxdouble(3.14,2.18));
 
 // Create some class
 
@@ -19,14 +19,12 @@ sum = 0;
 for(i=0;i<=100;i++)
       sum = sum + iv.getitem(i);
 
-print(sum);
+console.log(sum);
 
 sum = 0.0;
 for(i=0;i<=1000;i++)
       sum = sum + dv.getitem(i);
-print(sum);
+console.log(sum);
 
 delete iv;
 delete dv;
-
-      

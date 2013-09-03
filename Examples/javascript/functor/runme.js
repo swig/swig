@@ -1,5 +1,4 @@
-// Operator overloading example
-
+var example = require("./build/Release/example");
 
 a = new example.intSum(0);
 b = new example.doubleSum(100.0);
@@ -11,6 +10,6 @@ for (i=1;i<=100;i++)
     a.call(i);                // Note: function call
     b.call(Math.sqrt(i));     // Note: function call
 
-print(a.result());
-print(b.result());
+console.log(a.result());
+console.log(b.result());
 

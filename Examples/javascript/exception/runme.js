@@ -1,7 +1,6 @@
-//file: runme.js
-// Throw a lot of exceptions
+var example = require("./build/Release/example");
 
-print("Trying to catch some exceptions.");
+console.log("Trying to catch some exceptions.");
 t = new example.Test();
 try{
   t.unknown();
@@ -9,9 +8,9 @@ try{
 } catch(error)
 {
   if(error == -1) {
-    print("t.unknown() didn't throw");
+    console.log("t.unknown() didn't throw");
   } else {
-    print("successfully catched throw in Test::unknown().");
+    console.log("successfully catched throw in Test::unknown().");
   }
 }
 
@@ -21,9 +20,9 @@ try{
 }
 catch(error){
   if(error == -1) {
-    print("t.simple() did not throw");
+    console.log("t.simple() did not throw");
   } else {
-    print("successfully catched throw in Test::simple().");
+    console.log("successfully catched throw in Test::simple().");
   }
 }
 
@@ -32,9 +31,9 @@ try{
   throw -1;
 } catch(error){
   if(error == -1) {
-    print("t.message() did not throw");
+    console.log("t.message() did not throw");
   } else {
-    print("successfully catched throw in Test::message().");
+    console.log("successfully catched throw in Test::message().");
   }
 }
     
@@ -44,9 +43,9 @@ try{
 }
 catch(error){ 
   if(error == -1) {
-    print("t.hosed() did not throw");
+    console.log("t.hosed() did not throw");
   } else {
-    print("successfully catched throw in Test::hosed().");
+    console.log("successfully catched throw in Test::hosed().");
   }
 }
 
@@ -57,9 +56,9 @@ for (var i=1; i<4; i++) {
   }
   catch(error){
     if(error == -1) {
-      print("t.multi(" + i + ") did not throw");
+      console.log("t.multi(" + i + ") did not throw");
     } else {
-      print("successfully catched throw in Test::multi().");
+      console.log("successfully catched throw in Test::multi().");
     }
   }
 }    

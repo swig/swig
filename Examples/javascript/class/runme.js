@@ -1,4 +1,3 @@
-// file: runme.js
 var example = require("./build/Release/example");
 
 // ----- Object creation -----

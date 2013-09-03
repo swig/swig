@@ -1,3 +1,5 @@
+var example = require("./build/Release/example");
+
 example.f();
 example.f(1);
 example.f(1, 2);
