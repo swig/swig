@@ -6,19 +6,37 @@
  *   - $jsargcount:       number of arguments
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
+
+%insert(runtime) %{
+#if (SWIG_V8_VERSION < 0x031900)
+typedef v8::Handle<v8::Value> SwigV8ReturnValue;
+typedef v8::Arguments SwigV8Arguments;
+typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) return scope.Close(val)
+#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
+#else
+typedef void SwigV8ReturnValue;
+typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
+typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) return args.GetReturnValue().Set(val)
+#define SWIGV8_RETURN_INFO(val, info) return args.GetReturnValue().Set(val)
+#endif
+%}
+
 %fragment("js_ctor", "templates") %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
-  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");  
+  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
   SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  args.GetReturnValue().Set(self);
+  SWIGV8_RETURN(self);
 
+  goto fail;
 fail:
-  return;
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -29,9 +47,10 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
   SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -43,18 +62,19 @@ void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
   OverloadErrorHandler errorHandler;
   v8::Handle<v8::Value> self;
-  
+
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
 
   // default:
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
-  
+
 fail:
+  SWIGV8_RETURN(v8::Undefined());
   return;
 }
 %}
@@ -68,19 +88,19 @@ fail:
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args, V8ErrorHandler& SWIGV8_ErrorHandler) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args, V8ErrorHandler& SWIGV8_ErrorHandler) {
   v8::HandleScope scope;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
-  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");  
+  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
-  
+
   SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  args.GetReturnValue().Set(self);
+  SWIGV8_RETURN(self);
 
   goto fail;
 fail:
-  return;
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -89,15 +109,23 @@ fail:
  *   - $jsargcount:       number of arguments of called ctor
  *   - $jswrapper:        wrapper of called ctor
  *
- *  Note: a try-catch-like mechanism is used to switch cases 
+ *  Note: a try-catch-like mechanism is used to switch cases
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
+#if SWIG_V8_VERSION < 0x031900
+    self = $jswrapper(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return scope.Close(self);
+    }
+#else
     $jswrapper(args, errorHandler);
-    if(errorHandler.err.IsEmpty())
+    if(errorHandler.err.IsEmpty()) {
       return;
+    }
+#endif
   }
 %}
 
@@ -109,15 +137,13 @@ fail:
 %fragment ("js_dtor", "templates")
 %{
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
-void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) 
-#else
-void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) 
-#endif
+#if (SWIG_V8_VERSION < 0x031900)
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter)
 {
-
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
-  SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter); 
+  SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
+#else
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy)
+{
 #endif
 
   if(proxy->swigCMemOwn && proxy->swigCObject) {
@@ -129,11 +155,10 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   delete proxy;
 
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
   object.Clear();
+#if (SWIG_V8_VERSION < 0x031900)
   object.Dispose();
 #else
-  object->Clear();
   object->Dispose(isolate);
 #endif
 }
@@ -143,7 +168,7 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
  * js_dtoroverride:  template for a destructor wrapper
  *   - $jsmangledname:  mangled class name
  *   - $jstype:         class type
- *   - ${destructor_action}: The custom destructor action to invoke. 
+ *   - ${destructor_action}: The custom destructor action to invoke.
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtoroverride", "templates")
 %{
@@ -166,18 +191,18 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
  * ----------------------------------------------------------------------------- */
-%fragment("js_getter", "templates") 
+%fragment("js_getter", "templates")
 %{
-void $jswrapper(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info) {
+SwigV8ReturnValue $jswrapper(v8::Local<v8::String> property, const SwigV8PropertyCallbackInfo& info) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   $jslocals
   $jscode
-  info.GetReturnValue().Set(jsresult);
-  return;
+  SWIGV8_RETURN_INFO(jsresult, info);
+
   goto fail;
 fail:
-  return;
+  SWIGV8_RETURN_INFO(v8::Undefined(), info);
 }
 %}
 
@@ -189,7 +214,8 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_setter", "templates")
 %{
-void $jswrapper(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info) {
+void $jswrapper(v8::Local<v8::String> property, v8::Local<v8::Value> value,
+  const SwigV8PropertyCallbackInfo& info) {
   v8::HandleScope scope;
   $jslocals
   $jscode
@@ -205,20 +231,20 @@ fail:
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
  * ----------------------------------------------------------------------------- */
-%fragment("js_function", "templates") 
+%fragment("js_function", "templates")
 %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   $jslocals
-  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");  
+  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
-  args.GetReturnValue().Set(jsresult);
-  return;
+  SWIGV8_RETURN(jsresult);
+
   goto fail;
 fail:
-  return;
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -231,7 +257,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_dispatcher", "templates")
 %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
@@ -241,7 +267,7 @@ void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
   goto fail;
 fail:
-  return;
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -253,17 +279,17 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
-void $jswrapper(const v8::FunctionCallbackInfo<v8::Value>& args, V8ErrorHandler& SWIGV8_ErrorHandler)
+SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args, V8ErrorHandler& SWIGV8_ErrorHandler)
 {
-  v8::HandleScope scope;  
+  v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   $jslocals
   $jscode
-  args.GetReturnValue().Set(jsresult);
-  return;
+  SWIGV8_RETURN(jsresult);
+
   goto fail;
 fail:
-  return;
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
 
@@ -275,11 +301,20 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
+
   if(args.Length() == $jsargcount) {
-     errorHandler.err.Clear();
-     $jswrapper(args, errorHandler);
-     if(errorHandler.err.IsEmpty())
+    errorHandler.err.Clear();
+#if (SWIG_V8_VERSION < 0x031900)
+    jsresult = $jswrapper(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return scope.Close(jsresult);
+    }
+#else
+    $jswrapper(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
       return;
+    }
+#endif
   }
 %}
 
@@ -287,7 +322,7 @@ fail:
  * jsv8_declare_class_template:  template for a class template declaration.
  *   - $jsmangledname:  mangled class name
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_declare_class_template", "templates") 
+%fragment("jsv8_declare_class_template", "templates")
 %{
   SWIGV8_ClientData $jsmangledname_clientData;
 %}
@@ -298,15 +333,15 @@ fail:
  *   - $jsmangledtype:  mangled class type
  *   - $jsdtor:         the dtor wrapper
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_define_class_template", "templates") 
+%fragment("jsv8_define_class_template", "templates")
 %{
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   $jsmangledname_clientData.class_templ = v8::Persistent<v8::FunctionTemplate>::New($jsmangledname_class);
 #else
   $jsmangledname_clientData.class_templ.Reset(v8::Isolate::GetCurrent(), $jsmangledname_class);
 #endif
-  $jsmangledname_clientData.dtor = $jsdtor;  
+  $jsmangledname_clientData.dtor = $jsdtor;
   SWIGTYPE$jsmangledtype->clientdata = &$jsmangledname_clientData;
 %}
 
@@ -316,11 +351,11 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jsbaseclass:    mangled name of the base class
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_inherit", "templates") 
+%fragment("jsv8_inherit", "templates")
 %{
   if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
   {
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
     $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
 #else
     $jsmangledname_class->Inherit(
@@ -345,7 +380,7 @@ fail:
  *   - $jsname:         class name
  *   - $jsmangledname:  mangled class name
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_create_class_instance", "templates") 
+%fragment("jsv8_create_class_instance", "templates")
 %{
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
   $jsmangledname_class_0->SetCallHandler($jsctor);
@@ -360,7 +395,7 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jsparent:       mangled name of parent namespace
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_register_class", "templates") 
+%fragment("jsv8_register_class", "templates")
 %{
   $jsparent_obj->Set(v8::String::NewSymbol("$jsname"), $jsmangledname_obj);
 %}
@@ -369,7 +404,7 @@ fail:
  * jsv8_create_namespace:  template for a statement that creates a namespace object.
  *   - $jsmangledname:  mangled namespace name
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_create_namespace", "templates") 
+%fragment("jsv8_create_namespace", "templates")
 %{
   v8::Handle<v8::Object> $jsmangledname_obj = v8::Object::New();
 %}
@@ -380,7 +415,7 @@ fail:
  *   - $jsmangledname:  mangled name of namespace
  *   - $jsparent:       mangled name of parent namespace
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_register_namespace", "templates") 
+%fragment("jsv8_register_namespace", "templates")
 %{
   $jsparent_obj->Set(v8::String::NewSymbol("$jsname"), $jsmangledname_obj);
 %}
@@ -391,7 +426,7 @@ fail:
  *   - $jsname:         name of the function
  *   - $jswrapper:      wrapper of the member function
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_register_member_function", "templates") 
+%fragment("jsv8_register_member_function", "templates")
 %{
   SWIGV8_AddMemberFunction($jsmangledname_class, "$jsname", $jswrapper);
 %}
@@ -416,7 +451,7 @@ fail:
  *
  * Note: this template is also used for global functions.
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_register_static_function", "templates") 
+%fragment("jsv8_register_static_function", "templates")
 %{
   SWIGV8_AddStaticFunction($jsparent_obj, "$jsname", $jswrapper);
 %}
@@ -430,7 +465,7 @@ fail:
  *
  * Note: this template is also used for global variables.
  * ----------------------------------------------------------------------------- */
-%fragment("jsv8_register_static_variable", "templates") 
+%fragment("jsv8_register_static_variable", "templates")
 %{
   SWIGV8_AddStaticVariable($jsparent_obj, "$jsname", $jsgetter, $jssetter);
 %}
@@ -447,10 +482,8 @@ fail:
  *   - $jsv8registerclasses:      part with code that registers class objects in namespaces
  *   - $jsv8registernspaces:      part with code that registers namespaces in parent namespaces
  * ----------------------------------------------------------------------------- */
-%fragment("js_initializer", "templates") 
+%fragment("js_initializer", "templates")
 %{
-// The extern "C" makes little sense here because the paramater is using C++ objects and templates.
-// extern "C" {
 
 #if defined(BUILDING_NODE_EXTENSION)
 void $jsname_initialize(v8::Handle<v8::Object> global_obj, v8::Handle<v8::Object> /*module*/)
@@ -464,34 +497,34 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 
   // a class template for creating proxies of undefined types
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   SWIGV8_SWIGTYPE_Proxy_class_templ = v8::Persistent<v8::FunctionTemplate>::New(SWIGV8_CreateClassTemplate("SwigProxy"));
 #else
   SWIGV8_SWIGTYPE_Proxy_class_templ.Reset(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
 #endif
 
-  
+
   /* create objects for namespaces */
   $jsv8nspaces
-  
+
   /* create class templates */
   $jsv8classtemplates
-  
+
   /* register wrapper functions */
   $jsv8wrappers
-  
+
   /* setup inheritances */
   $jsv8inheritance
-      
+
   /* class instances */
   $jsv8classinstances
-  
+
   /* add static class functions and variables */
   $jsv8staticwrappers
 
   /* register classes */
   $jsv8registerclasses
-  
+
   /* create and register namespace objects */
   $jsv8registernspaces
 }
@@ -500,7 +533,4 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 NODE_MODULE($jsname, $jsname_initialize);
 #endif
 
-
-
-// } // extern "C"
 %}

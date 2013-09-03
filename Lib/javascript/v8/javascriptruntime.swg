@@ -4,8 +4,28 @@
  * Javascript support code
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) %{
+%define %swig_v8_define_version(version)
+%begin %{
+#ifndef SWIG_V8_VERSION
+#define SWIG_V8_VERSION version
+#endif
+%}
+%enddef
 
+#ifdef SWIG_V8_VERSION
+%swig_v8_define_version(SWIG_V8_VERSION)
+#else
+// HACK: defining a default version
+%swig_v8_define_version(SWIG_V8_VERSION)
+#endif
+
+#ifdef BUILDING_NODE_EXTENSION
+%insert("runtime") %{
+#include <node.h>
+%}
+#endif
+
+%insert(runtime) %{
 #include <v8.h>
 
 #include <errno.h>
@@ -13,7 +33,7 @@
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
-%insert(runtime) "swigerrors.swg";      /* SWIG errors */   
+%insert(runtime) "swigerrors.swg";      /* SWIG errors */
 
 %insert(runtime) %{
 #define SWIG_Error(code, msg)     SWIGV8_ErrorHandler.error(code, msg)
@@ -25,16 +45,16 @@ void SWIG_V8_Raise(const char* msg) {
   v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
 }
 
-/* 
+/*
   Note: There are two contexts for handling errors.
   A static V8ErrorHandler is used in not overloaded methods.
   For overloaded methods the throwing type checking mechanism is used
   during dispatching. As V8 exceptions can not be resetted properly
   the trick is to use a dynamic ErrorHandler with same local name as the global
   one.
-  
+
   - See defintion of SWIG_Error above.
-  - See code templates 'JS_function_dispatcher', 'JS_functionwrapper_overload', 
+  - See code templates 'JS_function_dispatcher', 'JS_functionwrapper_overload',
     and 'JS_function_dispatch_case' in javascriptcode.swg
 
 */
@@ -72,8 +92,8 @@ public:
   SWIGV8_Proxy(): swigCMemOwn(false), swigCObject(0), info(0) {
     v8::V8::AdjustAmountOfExternalAllocatedMemory(SWIGV8_AVG_OBJ_SIZE);
   };
-  
-  ~SWIGV8_Proxy() { 
+
+  ~SWIGV8_Proxy() {
 #if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
     handle.ClearWeak();
 #else
@@ -90,7 +110,7 @@ public:
     handle.Clear();
     v8::V8::AdjustAmountOfExternalAllocatedMemory(-SWIGV8_AVG_OBJ_SIZE);
   }
-  
+
   bool swigCMemOwn;
   void *swigCObject;
   swig_type_info *info;
@@ -112,7 +132,7 @@ v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
 int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
-  
+
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
 #if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
@@ -157,7 +177,7 @@ void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *objec
 
 void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
   SWIGV8_Proxy* cdata = new SWIGV8_Proxy();
-  cdata->swigCObject = ptr;  
+  cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
 
@@ -210,7 +230,7 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
   }
 #else
   v8::Isolate *iso = v8::Isolate::GetCurrent();
-  
+
   if(info->clientdata != 0) {
     class_templ = v8::Handle<v8::FunctionTemplate>::New(iso, ((SWIGV8_ClientData*) info->clientdata)->class_templ);
   } else {
@@ -220,7 +240,7 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
 
   v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
   SWIGV8_SetPrivateData(result, ptr, info, flags);
-  
+
   return scope.Close(result);
 }
 
