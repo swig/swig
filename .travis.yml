@@ -1,8 +1,12 @@
-node_js:
-  -0.10.0
 language: c
 compiler:
   - gcc
-
-before_script: "./autogen.sh && ./configure && make"
+node_js:
+  -0.10.12
+before_script:
+  - "sudo add-apt-repository -y ppa:chris-lea/node.js"
+  - "sudo apt-get update"
+  - "sudo apt-get install -y nodejs"
+  - "sudo npm install -g node-gyp"
+  - "./autogen.sh && ./configure && make"
 script: "make check-javascript-test-suite"
