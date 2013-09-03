@@ -1128,10 +1128,11 @@ SWIGRUNTIME int
 SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   int res;
   SwigPyObject *sobj;
+  int implicit_conv = (flags & SWIG_POINTER_IMPLICIT_CONV) != 0;
 
   if (!obj)
     return SWIG_ERROR;
-  if (obj == Py_None) {
+  if (obj == Py_None && !implicit_conv) {
     if (ptr)
       *ptr = 0;
     return SWIG_OK;
@@ -1180,7 +1181,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     }
     res = SWIG_OK;
   } else {
-    if (flags & SWIG_POINTER_IMPLICIT_CONV) {
+    if (implicit_conv) {
       SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
       if (data && !data->implicitconv) {
         PyObject *klass = data->klass;
@@ -1214,6 +1215,13 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
           }
         }
       }
+    }
+    if (!SWIG_IsOK(res) && obj == Py_None) {
+      if (ptr)
+        *ptr = 0;
+      if (PyErr_Occurred())
+        PyErr_Clear();
+      res = SWIG_OK;
     }
   }
   return res;

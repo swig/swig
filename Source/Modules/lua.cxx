@@ -811,7 +811,7 @@ public:
       Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
       Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
-    Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
+    Printf(f->code, "SWIG_Lua_pusherrstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
         "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
     Delete(protoTypes);
 

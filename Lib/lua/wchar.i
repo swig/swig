@@ -31,7 +31,7 @@ wchar_t* str2wstr(const char *str, int len)
 %typemap(in, checkfn="SWIG_lua_isnilstring", fragment="SWIG_lua_isnilstring") wchar_t *
 %{
 $1 = str2wstr(lua_tostring( L, $input ),lua_rawlen( L, $input ));
-if ($1==0) {lua_pushfstring(L,"Error in converting to wchar (arg %d)",$input);goto fail;}
+if ($1==0) {SWIG_Lua_pushferrstring(L,"Error in converting to wchar (arg %d)",$input);goto fail;}
 %}
 
 %typemap(freearg) wchar_t *
