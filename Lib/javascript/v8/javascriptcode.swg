@@ -75,7 +75,6 @@ SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
 
 fail:
   SWIGV8_RETURN(v8::Undefined());
-  return;
 }
 %}
 
