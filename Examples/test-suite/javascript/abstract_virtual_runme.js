@@ -1,3 +1,5 @@
+var abstract_virtual = require("./abstract_virtual");
+
 d = new abstract_virtual.D()
 
 if (d == undefined)

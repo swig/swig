@@ -1,3 +1,5 @@
+var cpp_namespace = require("./cpp_namespace");
+
 var n = cpp_namespace.fact(4);
 if (n != 24){
     throw ("Bad return value error!");
@@ -16,7 +18,7 @@ if (cpp_namespace.do_method(t) != "Test::method"){
 
 if (cpp_namespace.do_method2(t) != "Test::method"){
     throw ("Bad return value error!");
-}    
+}
 cpp_namespace.weird("hello", 4);
 delete t;
 

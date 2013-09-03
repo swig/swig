@@ -1,3 +1,4 @@
+var constructor_copy = require("./constructor_copy");
 
 f1 = new constructor_copy.Foo1(3);
 f11 = new constructor_copy.Foo1(f1);

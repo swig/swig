@@ -75,6 +75,7 @@ Examples/test-suite/*/*.c
 Examples/test-suite/*/*.h
 Examples/test-suite/python/*.py
 Examples/javascript/*/*_wrap.c
+Examples/test-suite/javascript/*/*
 Tools/javascript/javascript
 Tools/javascript/javascript_d
 .settings

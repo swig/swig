@@ -1,3 +1,5 @@
+var array_member = require("./array_member");
+
 var f = new array_member.Foo();
 f.data = array_member.global_data;
 
