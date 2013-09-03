@@ -84,4 +84,5 @@ Examples/*/*/*.gdb
 *.orig
 *.kdev4
 *.geany
-/build
+Examples/javascript/*/build
+build
