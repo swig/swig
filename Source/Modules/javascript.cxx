@@ -145,8 +145,7 @@ public:
 
   enum JSEmitterType {
     JavascriptCore,
-    V8,
-    QtScript
+    V8
   };
 
   JSEmitter();
@@ -530,14 +529,16 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         mode = JSEmitter::V8;
         SWIG_library_directory("javascript/v8");
+      } else if (strcmp(argv[i], "-node") == 0) {
+        Swig_mark_arg(i);
+        mode = JSEmitter::V8;
+        SWIG_library_directory("javascript/v8");
+        createModuleObject = false;
+        Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
       } else if (strcmp(argv[i], "-jsc") == 0) {
         Swig_mark_arg(i);
         mode = JSEmitter::JavascriptCore;
         SWIG_library_directory("javascript/jsc");
-      } else if (strcmp(argv[i], "-qt") == 0) {
-        Swig_mark_arg(i);
-        mode = JSEmitter::QtScript;
-        SWIG_library_directory("javascript/qt");
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
@@ -559,12 +560,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     {
       emitter = swig_javascript_create_JSCEmitter();
       Preprocessor_define("SWIG_JAVASCRIPT_JSC 1", 0);
-      break;
-    }
-  case JSEmitter::QtScript:
-    {
-      Printf(stderr, "QtScript support is not yet implemented.");
-      SWIG_exit(-1);
       break;
     }
   default:
@@ -898,15 +893,15 @@ int JSEmitter::emitDtor(Node *n) {
          }
        }
      };
-     %newobject CreateData;	 
+     %newobject CreateData;
      struct MyData* CreateData(void);
      %delobject FreeData;
      void FreeData(struct MyData* the_data);
-	 
+
 	 where the use case is something like:
 	   var my_data = example.CreateData();
 	   my_data = null;
-     
+
 	 This function was not being generated:
 	 SWIGINTERN void delete_MyData(struct MyData *self){
        FreeData(self);
@@ -964,13 +959,13 @@ int JSEmitter::emitDtor(Node *n) {
 	 to decide if the user has a preferred destructor action.
 	 Based on that, I decide which fragment to use.
 	 And in the case of the custom action, I substitute that action in.
-	 I noticed that destructor_action has the form 
+	 I noticed that destructor_action has the form
        delete_MyData(arg1);
      The explicit arg1 is a little funny, so I structured the fragment to create a temporary variable called arg1 to make the generation easier.
      This might suggest this solution misunderstands a more complex case.
 
 	 Also, there is a problem where destructor_action is always true for me, even when not requesting %extend as above.
-	 So this code doesn't actually quite work as I expect. The end result is that the code still works because 
+	 So this code doesn't actually quite work as I expect. The end result is that the code still works because
 	 destructor_action calls free like the original template. The one caveat is the string in destructor_action casts to char* which is wierd.
 	 I think there is a deeper underlying SWIG issue because I don't think it should be char*. However, it doesn't really matter for free.
 
@@ -1186,7 +1181,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
 //  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
 
-  
+
   String *fun_name = Getattr(n, "sym:name");
 
   Node *methodclass = Swig_methodclass(n);
