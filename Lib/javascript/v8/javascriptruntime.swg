@@ -195,6 +195,8 @@ int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void** ptr) {
   }
 
   *ptr = cdata->swigCObject;
+
+  return SWIG_OK;
 }
 
 void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
