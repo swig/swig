@@ -94,19 +94,14 @@ public:
   };
 
   ~SWIGV8_Proxy() {
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
     handle.ClearWeak();
-#else
-    handle.ClearWeak(v8::Isolate::GetCurrent());
-#endif
-
-    //handle->SetInternalField(0, v8::Undefined());
-
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
     handle.Dispose();
 #else
+    handle.ClearWeak(v8::Isolate::GetCurrent());
     handle.Dispose(v8::Isolate::GetCurrent());
 #endif
+
     handle.Clear();
     v8::V8::AdjustAmountOfExternalAllocatedMemory(-SWIGV8_AVG_OBJ_SIZE);
   }
@@ -121,7 +116,7 @@ class SWIGV8_ClientData {
 public:
   v8::Persistent<v8::FunctionTemplate> class_templ;
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   void (*dtor) (v8::Persistent< v8::Value> object, void *parameter);
 #else
   void (*dtor) (v8::Isolate *isolate, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy);
@@ -135,7 +130,7 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
 #else
@@ -162,13 +157,13 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   return SWIG_OK;
 }
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
 void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Value > object, void *parameter)
 #else
 void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy)
 #endif
 {
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
 #endif
 
@@ -183,7 +178,7 @@ int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void** ptr) {
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
 #else
@@ -205,7 +200,7 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   obj->SetPointerInInternalField(0, cdata);
   cdata->handle = v8::Persistent<v8::Object>::New(obj);
 #else
@@ -213,7 +208,7 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 #endif
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   // clientdata must be set for owned data as we need to register the dtor
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
@@ -246,7 +241,7 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
   v8::Handle<v8::FunctionTemplate> class_templ;
 
 
-#if defined(BUILDING_NODE_EXTENSION) || defined(V8_3_14)
+#if (SWIG_V8_VERSION < 0x031900)
   if(info->clientdata != 0) {
     class_templ = ((SWIGV8_ClientData*) info->clientdata)->class_templ;
   } else {
@@ -329,4 +324,3 @@ fail:
   return scope.Close(v8::Undefined());
 }
 %}
-
