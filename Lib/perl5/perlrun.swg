@@ -380,7 +380,10 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
 
 SWIGINTERN SV *
 SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
-  if (wrap) wrap->refcnt++;
+  if (wrap)
+    wrap->refcnt++;
+  if (!vtbl->svt_set)
+    SvREADONLY_on(sv);
   sv_magicext(sv, 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
   return sv;
 }
