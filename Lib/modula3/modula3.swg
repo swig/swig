@@ -759,3 +759,16 @@ FROM BlaBla IMPORT Bla;
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
 
+//added unsigned char
+
+%typemap("m3rawinmode")    unsigned char *        %{%}
+%typemap("m3wrapinmode")   unsigned char *        %{%}
+%typemap("m3rawintype")    unsigned char *        %{ADDRESS%}
+%typemap("m3wrapintype")   unsigned char *        %{ADDRESS%}
+%typemap("m3rawrettype")   unsigned char *        %{ADDRESS%}
+%typemap("m3wraprettype")  unsigned char *        %{ADDRESS%}
+%typemap("m3wrapouttype")  unsigned char *        %{ADDRESS%}
+
+
+%apply unsigned char* {const unsigned char *};
+
