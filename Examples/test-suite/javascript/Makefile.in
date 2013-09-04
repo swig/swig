@@ -27,7 +27,9 @@ CPP_TEST_CASES = \
 	char_binary \
 	class_ignore \
 	class_scope_weird \
+	complextest \
 	constover \
+	constructor_copy \
 	cpp_enum \
 	cpp_namespace \
 	cpp_static \
@@ -50,8 +52,6 @@ CPP_TEST_CASES = \
 	javascript_unicode
 
 BROKEN_TEST_CASES = \
-	complextest \
-	constructor_copy \
 	preproc_include
 
 SKIP_CPP_CASES = @SKIP_CPP_CASES@

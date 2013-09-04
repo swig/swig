@@ -2,5 +2,5 @@
 if [ ! -d $1 ]; then
   mkdir $1;
 fi
-echo "module.exports = require('./build/Release/$1')" > $1/index.js
-echo "{\"targets\":[{\"target_name\": \"$1\",\"sources\":[\"$1_wrap.cxx\"]}]}" > $1/binding.gyp
+sed s/\$testcase/$1/ node_template/binding.gyp.in > $1/binding.gyp
+sed s/\$testcase/$1/ node_template/index.js.in > $1/index.js
