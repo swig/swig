@@ -7,22 +7,6 @@
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) %{
-#if (SWIG_V8_VERSION < 0x031900)
-typedef v8::Handle<v8::Value> SwigV8ReturnValue;
-typedef v8::Arguments SwigV8Arguments;
-typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
-#define SWIGV8_RETURN(val) return scope.Close(val)
-#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
-#else
-typedef void SwigV8ReturnValue;
-typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
-typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
-#define SWIGV8_RETURN(val) return args.GetReturnValue().Set(val)
-#define SWIGV8_RETURN_INFO(val, info) return args.GetReturnValue().Set(val)
-#endif
-%}
-
 %fragment("js_ctor", "templates") %{
 SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
@@ -171,16 +155,25 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtoroverride", "templates")
 %{
-void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
-  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+#if (SWIG_V8_VERSION < 0x031900)
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter)
+{
+  SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
+#else
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy)
+{
+#endif
   if(proxy->swigCMemOwn && proxy->swigCObject) {
     $jstype arg1 = ($jstype)proxy->swigCObject;
     ${destructor_action}
   }
   delete proxy;
 
-  object.Clear();
+#if (SWIG_V8_VERSION < 0x031900)
   object.Dispose();
+#else
+  object->Dispose(isolate);
+#endif
 }
 %}
 
@@ -214,7 +207,7 @@ fail:
 %fragment("js_setter", "templates")
 %{
 void $jswrapper(v8::Local<v8::String> property, v8::Local<v8::Value> value,
-  const SwigV8PropertyCallbackInfo& info) {
+  const SwigV8PropertyCallbackInfoVoid& info) {
   v8::HandleScope scope;
   $jslocals
   $jscode

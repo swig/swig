@@ -36,6 +36,22 @@
 %insert(runtime) "swigerrors.swg";      /* SWIG errors */
 
 %insert(runtime) %{
+#if (SWIG_V8_VERSION < 0x031900)
+typedef v8::Handle<v8::Value> SwigV8ReturnValue;
+typedef v8::Arguments SwigV8Arguments;
+typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) return scope.Close(val)
+#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
+#else
+typedef void SwigV8ReturnValue;
+typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
+typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
+#define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
+#endif
+%}
+
+%insert(runtime) %{
 #define SWIG_Error(code, msg)     SWIGV8_ErrorHandler.error(code, msg)
 #define SWIG_exception(code, msg) SWIGV8_ErrorHandler.error(code, msg)
 #define SWIG_fail                 goto fail
@@ -274,7 +290,11 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
+#if (SWIG_V8_VERSION < 0x031900)
 v8::Handle<v8::Value> _wrap_equals(const v8::Arguments &args) {
+#else
+void _wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#endif
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
@@ -297,13 +317,17 @@ v8::Handle<v8::Value> _wrap_equals(const v8::Arguments &args) {
   result = (bool)(arg1 == arg2);
   jsresult =  v8::Boolean::New(result);
 
-  return scope.Close(jsresult);
+  SWIGV8_RETURN(jsresult);
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  SWIGV8_RETURN(v8::Undefined());
 }
 
+#if (SWIG_V8_VERSION < 0x031900)
 v8::Handle<v8::Value> _wrap_getCPtr(const v8::Arguments &args) {
+#else
+void _wrap_getCPtr(const v8::FunctionCallbackInfo<v8::Value>& args) {
+#endif
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
@@ -318,9 +342,9 @@ v8::Handle<v8::Value> _wrap_getCPtr(const v8::Arguments &args) {
   result = (long)arg1;
   jsresult = v8::Number::New(result);
 
-  return scope.Close(jsresult);
+  SWIGV8_RETURN(jsresult);
   goto fail;
 fail:
-  return scope.Close(v8::Undefined());
+  SWIGV8_RETURN(v8::Undefined());
 }
 %}
