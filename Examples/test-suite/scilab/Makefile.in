@@ -17,58 +17,74 @@ top_builddir = @top_builddir@
 # - member_pointer (C++)
 # - typemap_variables (C++)
 
-# configure cache to speed up test run
-CONF_CACHE=$(CURDIR)/test-suite.config.cache
-CONFIG_SITE=$(CURDIR)/test-suite.config.site
-export CONFIG_SITE
+define get_output_dir
+	OUTDIR := $(CURDIR)/$(1).build
+endef
 
-enable_config_cache = \
-	echo 'cache_file=$(CONF_CACHE)' > $(CONFIG_SITE)
-
-disable_config_cache:
-	rm -f $(CONF_CACHE)
-	rm -f $(CONFIG_SITE)
-	CONFIG_SITE=
-
-# need reset cache before multicpptest
-reset_config_cache = \
-	rm -f $(CONF_CACHE)
-
-# disable cache at the end of test-suite
-# use trick for this: 'extra test cases' end target
-EXTRA_TEST_CASES = disable_config_cache
+define get_runme_script
+	RUNME_SCRIPT := $(srcdir)/$(SCRIPTPREFIX)$(1)$(SCRIPTSUFFIX)
+endef
 
 include $(srcdir)/../common.mk
+
+# Override make commands to specify OUTDIR
+swig_and_compile_cpp =  \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	TARGET="$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	scilab_cpp
+
+swig_and_compile_c =  \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	TARGET="$*_wrap.c" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	scilab
+
+swig_and_compile_multi_cpp = \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	  INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	  TARGET="$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
+	  scilab_cpp; \
+	done
 
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
-	$(enable_config_cache)
+	$(eval $(call get_output_dir,$*))
+	mkdir -p $(OUTDIR)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	$(enable_config_cache)
+	$(eval $(call get_output_dir,$*))
+	mkdir -p $(OUTDIR)
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
-	$(reset_config_cache)
+	$(eval $(call get_output_dir,$*))
+	mkdir -p $(OUTDIR)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
-	fi;
+	$(eval $(call get_output_dir,$*)) \
+	$(eval $(call get_runme_script,$*)) \
+	if [ -f $(RUNME_SCRIPT) ]; then ( \
+		env LD_LIBRARY_PATH=$(OUTDIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME_SCRIPT); )\
+	fi
 
 # Clean: remove the generated files
 %.clean:
-	@rm -f builder.sce loader.sce cleaner.sce $*_wrap.c $*_wrap.cxx lib$*lib.* $(CONFIG_SITE) $(CONF_CACHE)
+	@rm -rf $*.build
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean

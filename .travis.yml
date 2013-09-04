@@ -9,7 +9,7 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python
     - compiler: gcc
-      env: SWIGLANG=scilab
+      env: SWIGLANG=scilab SWIGJOBS=-j4
   allow_failures:
       # None
 before_install:

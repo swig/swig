@@ -1587,10 +1587,23 @@ define get_swig_scilab_args
 	ifdef INCLUDES
 		SWIG_SCILAB_ARGS += -addcflag "$(INCLUDES)"
 	endif
+	ifdef OUTDIR
+		SWIG_SCILAB_ARGS += -outdir "$(OUTDIR)"
+	endif
 	ifdef TARGET
 		SWIG_SCILAB_ARGS += -o "$(TARGET)"
 	endif
 endef
+
+# Returns the output dir
+define get_output_dir
+	ifdef OUTDIR
+		OUTPUT_DIR := $(OUTDIR)
+	else
+		OUTPUT_DIR := .
+	endif
+endef
+
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1599,8 +1612,9 @@ endef
 scilab: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
-	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+	$(eval $(call get_output_dir))
+	if [ -f $(OUTPUT_DIR)/builder.sce ]; then \
+		env LD_LIBRARY_PATH=$(OUTPUT_DIR):$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(OUTPUT_DIR)/builder.sce; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1610,8 +1624,9 @@ scilab: $(SRCS)
 scilab_cpp: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
-	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+	$(eval $(call get_output_dir))
+	if [ -f $(OUTPUT_DIR)/builder.sce ]; then \
+		env LD_LIBRARY_PATH=$(OUTPUT_DIR):$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(OUTPUT_DIR)/builder.sce; \
 	fi
 
 # -----------------------------------------------------------------
@@ -1619,7 +1634,8 @@ scilab_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 scilab_run:
-	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE)
+	 $(eval $(call get_output_dir))
+	 env LD_LIBRARY_PATH=$(OUTPUT_DIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Scilab version

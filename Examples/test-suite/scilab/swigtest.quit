@@ -1,10 +1,13 @@
 // Clean files
-exec("cleaner.sce", -1);
-mdelete("builder.sce");
-mdelete("cleaner.sce");
-mdelete(swigtestname + "_wrap.c");
-mdelete(swigtestname + "_wrap.cxx");
-mdelete(swigtestname + ".i");
+
+exec(fullfile(testbuilddir, "cleaner.sce"), -1);
+
+mdelete(fullfile(testbuilddir, "builder.sce"));
+mdelete(fullfile(testbuilddir, "cleaner.sce"));
+mdelete(fullfile(testbuilddir, swigtestname + "_wrap.c"));
+mdelete(fullfile(testbuilddir, swigtestname + "_wrap.cxx"));
+mdelete(fullfile(testbuilddir, swigtestname + ".i"));
+removedir(testbuilddir);
 
 //mprintf("******************\n")
 //mprintf("* TEST SUCCEEDED *\n")

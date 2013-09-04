@@ -152,6 +152,11 @@ public:
     Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
+    // Scilab needs to be in the build directory
+    Printf(builderCode, "originaldir = pwd();\n");
+    Printf(builderCode, "builddir = get_absolute_file_path('builder.sce');\n");
+    Printf(builderCode, "cd(builddir);\n");
+
     Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
 
     Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
@@ -163,7 +168,7 @@ public:
       Printf(builderCode, "ldflags = \"\";\n");
     }
 
-    Printf(builderCode, "cflags = [\"-g -I\" + get_absolute_file_path(\"builder.sce\")];\n");
+    Printf(builderCode, "cflags = [\"-g -I\" + builddir];\n");
     if (cflag != NULL) {
       Printf(builderCode, "includepath = \"%s\";\n", cflag);
       Printf(builderCode, "includepath = fullpath(part(includepath, 3:length(includepath)));\n");
@@ -174,9 +179,9 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	Printf(builderCode, "files = \"%s\";\n", sourceFile);
+	       Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+	       Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
@@ -208,6 +213,7 @@ public:
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
     Printf(builderCode, "end\n");
+    Printf(builderCode, "cd(originaldir);\n");
 
     Printf(builderCode, "exit");
     builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
