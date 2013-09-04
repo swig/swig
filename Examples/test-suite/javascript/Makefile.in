@@ -91,7 +91,11 @@ generate_cpp_wrapper = \
 	$(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i
 
 build_module = \
-	cd $* && node-gyp configure build && cd ..
+	if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
+		cd $* && node-gyp configure build && cd ..; \
+	else \
+		cd $* && node-gyp build && cd ..; \
+	fi
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.js appended after the testcase name.
@@ -102,6 +106,6 @@ run_testcase = \
 
 # Clean
 %.clean:
+	rm -rf $*
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile javascript_clean
