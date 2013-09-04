@@ -6,9 +6,9 @@ LANGUAGE     = scilab
 SCILAB       = @SCILAB@
 SCILAB_STARTOPT = @SCILABSTARTOPT@
 SCRIPTSUFFIX = _runme.sci
-srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@
-top_builddir = @top_builddir@
+srcdir       = $(abspath @srcdir@)
+top_srcdir   = $(abspath @top_srcdir@)
+top_builddir = $(abspath @top_builddir@)
 
 
 # Overridden variables here
