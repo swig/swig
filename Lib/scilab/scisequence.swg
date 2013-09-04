@@ -34,6 +34,11 @@
 //
 
 %fragment(SWIG_Traits_Sequence_frag(ptr), "header",
+  fragment=SWIG_AsCheck_Sequence_frag(int),
+  fragment=SWIG_AsGet_Sequence_frag(int),
+  fragment=SWIG_AsSize_Sequence_frag(int),
+  fragment=SWIG_FromCreate_Sequence_frag(int),
+  fragment=SWIG_FromSet_Sequence_frag(int),
   fragment=SWIG_AsCheck_Sequence_frag(ptr),
   fragment=SWIG_AsGet_Sequence_frag(ptr),
   fragment=SWIG_AsSize_Sequence_frag(ptr),
@@ -42,29 +47,29 @@
   fragment="StdTraits") {
 
 namespace swig {
-  // Returns an error for default (not specialized) value containers
+  // For sequence of values, considers int as default type (so it works for enums)
 
   template <typename T> struct traits_as_sequence {
     static int check(SciObject obj) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_AsCheck_Sequence_dec(int)(obj);
     }
     static int get(SciObject obj, void **sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_AsGet_Sequence_dec(int)(obj, (int **)sequence);
     }
     static int size(SciObject obj, int *size) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_AsSize_Sequence_dec(int)(obj, size);
     }
   };
   template <typename T> struct traits_from_sequence {
     static int create(int size, void **sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_FromCreate_Sequence_dec(int)(size, (int **)sequence);
     }
     static SciObject set(int size, void *sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_FromSet_Sequence_dec(int)(size, (int *)sequence);
     }
   };
 
-  // But supports containers of pointers
+  // For sequence of pointers
 
   template <typename T> struct traits_as_sequence<T*> {
     static int check(SciObject obj) {
@@ -127,25 +132,27 @@ namespace swig {
 //
 
 %fragment(SWIG_Traits_SequenceItem_frag(ptr), "header",
+  fragment=SWIG_AsVal_SequenceItem_frag(int),
+  fragment=SWIG_From_SequenceItem_frag(int),
   fragment=SWIG_AsVal_SequenceItem_frag(ptr),
   fragment=SWIG_From_SequenceItem_frag(ptr),
   fragment="StdTraits") {
 
 namespace swig {
-  // Returns an error for default (not specialized) value containers
+  // For sequence of values, considers int as default type (so it works for enums)
 
   template <typename T> struct traits_asval_sequenceitem {
     static int asval(SciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_AsVal_SequenceItem_dec(int)(obj, (int *)pSequence, iItemIndex, (int *)pItemValue);
     }
   };
   template <typename T> struct traits_from_sequenceitem {
     static int from(void *pSequence, int iItemIndex, T itemValue) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      return SWIG_From_SequenceItem_dec(int)((int *)pSequence, iItemIndex, (int)itemValue);
     }
   };
 
-  // But supports containers of pointers
+  // Sequence of pointers
 
   template <typename T> struct traits_asval_sequenceitem<T*> {
     static int asval(SciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {

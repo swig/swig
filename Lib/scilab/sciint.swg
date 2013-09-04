@@ -196,3 +196,15 @@ SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int
   return Rhs + _iVarOut;
 }
 }
+%fragment(SWIG_CreateScilabVariable_frag(int), "wrapper") {
+SWIGINTERN int
+SWIG_CreateScilabVariable_dec(int)(void *_pvApiCtx, const char* _psVariableName, const int _iVariableValue) {
+  SciErr sciErr;
+  sciErr = createNamedMatrixOfInteger32(_pvApiCtx, _psVariableName, 1, 1, &_iVariableValue);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
+}
+}

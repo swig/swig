@@ -43,6 +43,27 @@ SWIG_GetScilabListSize(SciObject _obj, int *_piListSize)
   return SWIG_OK;
 }
 
+SWIGINTERN int
+SWIG_GetScilabListAndSize(SciObject _obj, int **_piListAddr, int *_piListSize)
+{
+  SciErr sciErr;
+
+  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, _piListAddr);
+  if (sciErr.iErr)
+  {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  sciErr = getListItemNumber(pvApiCtx, *_piListAddr, _piListSize);
+  if (sciErr.iErr)
+  {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  return SWIG_OK;
+}
 
 SWIGINTERN int
 SWIG_CheckScilabList(SciObject _obj)

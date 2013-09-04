@@ -24,5 +24,17 @@
 %constant int iconst = 37;
 %constant double fconst = 3.14;
 
+/* Now constants are wrapped to Scilab variables */
+%scilabconst(1);
+
+#define    ICONST2      12
+#define    FCONST2      4.60
+#define    CCONST3      'a'
+#define    CCONST4     '\n'
+#define    SCONST3      "Hello World"
+#define    SCONST4     "\"Hello World\""
+
+%constant int iconst2 = 73;
+%constant double fconst2 = 6.28;
 
 

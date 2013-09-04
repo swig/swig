@@ -24,6 +24,7 @@ Scilab options\n\
      -vbl <level>            sets the build verbose level (default 0)\n\n";
 
 const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
 class SCILAB:public Language {
 protected:
@@ -34,6 +35,8 @@ protected:
   File *wrappersSection;
   File *initSection;
 
+  String *variablesCode;
+
   File *builderFile;
   String *builderCode;
   int builderFunctionCount;
@@ -41,9 +44,8 @@ protected:
   List *sourceFileList;
   String *cflag;
   String *ldflag;
-
+  
   String *verboseBuildLevel;
-
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -150,6 +152,11 @@ public:
     Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
+    // Scilab needs to be in the build directory
+    Printf(builderCode, "originaldir = pwd();\n");
+    Printf(builderCode, "builddir = get_absolute_file_path('builder.sce');\n");
+    Printf(builderCode, "cd(builddir);\n");
+
     Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
 
     Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
@@ -161,7 +168,7 @@ public:
       Printf(builderCode, "ldflags = \"\";\n");
     }
 
-    Printf(builderCode, "cflags = [\"-g -I\" + get_absolute_file_path(\"builder.sce\")];\n");
+    Printf(builderCode, "cflags = [\"-g -I\" + builddir];\n");
     if (cflag != NULL) {
       Printf(builderCode, "includepath = \"%s\";\n", cflag);
       Printf(builderCode, "includepath = fullpath(part(includepath, 3:length(includepath)));\n");
@@ -172,18 +179,20 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	Printf(builderCode, "files = \"%s\";\n", sourceFile);
+	       Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+	       Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
     Printf(builderCode, "table = [");
 
-    /* In C++ mode, add initialization function to builder table */
-    if (CPlusPlus) {
-      Printf(builderCode, "\"%s\",\"%s\";", SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
-    }
+    /* add initialization function to builder table */
+    addFunctionInBuilder(NewString(SWIG_INIT_FUNCTION_NAME), NewString(SWIG_INIT_FUNCTION_NAME));
+
+    // Open Scilab wrapper variables creation function
+    variablesCode = NewString("");
+    Printf(variablesCode, "int %s() {\n", SWIG_CREATE_VARIABLES_FUNCTION_NAME);
 
     /* Emit code for children */
     if (CPlusPlus) {
@@ -196,11 +205,15 @@ public:
       Printf(wrappersSection, "}\n");
     }
 
+    // Close Scilab wrapper variables creation function
+    Printf(variablesCode, "  return SWIG_OK;\n}\n");
+
     /* Write all to the builder.sce file */
     Printf(builderCode, "];\n");
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
     Printf(builderCode, "end\n");
+    Printf(builderCode, "cd(originaldir);\n");
 
     Printf(builderCode, "exit");
     builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
@@ -208,13 +221,14 @@ public:
     Delete(builderFile);
 
     /* Close the init function (opened in sciinit.swg) */
-    Printf(initSection, "return 0;\n}\n#endif\n");
+    Printf(initSection, "return 0;\n}\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
     Dump(wrappersSection, beginSection);
+    Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
     /* Cleanup files */
@@ -556,6 +570,27 @@ public:
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
 
+    // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables
+    if (GetFlag(node, "feature:scilab:const")) {
+      bool isConstant = ((SwigType_issimple(type)) || (SwigType_type(type) == T_STRING));
+      bool isEnum = (Cmp(nodeType(node), "enumitem") == 0);
+
+      if (isConstant || isEnum) {
+        constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
+        if (constantTypemap != NULL) {
+          Setattr(node, "wrap:name", constantName);
+          Replaceall(constantTypemap, "$result", constantName);
+          if (isEnum) {
+            constantValue = Getattr(node, "enumvalue");
+          }
+          Replaceall(constantTypemap, "$value", constantValue);
+          emit_action_code(node, variablesCode, constantTypemap);
+          Delete(constantTypemap);
+          return SWIG_OK;
+        }
+      }
+    }
+
     /* Create variables for member pointer constants, not suppported by typemaps (like Python wrapper does) */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(constantName);
@@ -601,9 +636,30 @@ public:
    * enumvalueDeclaration()
    * --------------------------------------------------------------------- */
   virtual int enumvalueDeclaration(Node *node) {
+    static int iPreviousEnumValue = 0;
 
-    /* Force type to be an enum (See scitypemaps.swg) */
-    Setattr(node, "type", "enum SWIG");
+    if (GetFlag(node, "feature:scilab:const")) {
+      // Compute the "absolute" value of enum if needed
+      // (most of time enum values are a linked list of relative values)
+      String *enumValue = Getattr(node, "enumvalue");
+      if (!enumValue) {
+        String *enumValueEx = Getattr(node, "enumvalueex");
+        if (enumValueEx) {
+          String *firstenumitem = Getattr(node, "firstenumitem");
+           if (firstenumitem) {
+             // First node, value is in enumValueEx
+            Setattr(node, "enumvalue", enumValueEx);
+            iPreviousEnumValue = atoi(Char(enumValueEx));
+          }
+          else {
+            enumValue = NewString("");
+            iPreviousEnumValue = iPreviousEnumValue + 1;
+            Printf(enumValue, "%d", iPreviousEnumValue);
+            Setattr(node, "enumvalue", enumValue);
+          }
+        }
+      }
+    }
 
     return Language::enumvalueDeclaration(node);
   }

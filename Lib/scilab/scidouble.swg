@@ -118,3 +118,15 @@ SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows,
   return Rhs + _iVarOut;
 }
 }
+%fragment(SWIG_CreateScilabVariable_frag(double), "wrapper") {
+SWIGINTERN int
+SWIG_CreateScilabVariable_dec(double)(void *_pvApiCtx, const char* _psVariableName, const double _dVariableValue) {
+  SciErr sciErr;
+  sciErr = createNamedMatrixOfDouble(_pvApiCtx, _psVariableName, 1, 1, &_dVariableValue);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
+}
+}

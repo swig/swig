@@ -78,7 +78,6 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 /* Used for C++ enums */
 //#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
 
-
 #if SCILAB_VERSION_54_OR_HIGHER
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
@@ -272,6 +271,8 @@ SWIG_Scilab_SetModule(swig_module_info *swig_module)
 %init %{
 #ifdef __cplusplus
 extern "C"
+#endif
 int SWIG_Init(char *fname, unsigned long fname_len) {
   SWIG_InitializeModule(NULL);
+  SWIG_CreateScilabVariables();
 %}
