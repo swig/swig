@@ -7,22 +7,6 @@
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) %{
-#if (SWIG_V8_VERSION < 0x031900)
-typedef v8::Handle<v8::Value> SwigV8ReturnValue;
-typedef v8::Arguments SwigV8Arguments;
-typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
-#define SWIGV8_RETURN(val) return scope.Close(val)
-#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
-#else
-typedef void SwigV8ReturnValue;
-typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
-typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
-#define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
-#define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
-#endif
-%}
-
 %fragment("js_ctor", "templates") %{
 SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   v8::HandleScope scope;
