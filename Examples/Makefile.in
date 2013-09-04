@@ -1587,6 +1587,9 @@ define get_swig_scilab_args
 	ifdef INCLUDES
 		SWIG_SCILAB_ARGS += -addcflag "$(INCLUDES)"
 	endif
+	ifdef TARGET
+		SWIG_SCILAB_ARGS += -o "$(TARGET)"
+	endif
 endef
 
 # ----------------------------------------------------------------
