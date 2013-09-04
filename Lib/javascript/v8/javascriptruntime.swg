@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %define %swig_v8_define_version(version)
-%begin %{
+%insert("runtime") %{
 #ifndef SWIG_V8_VERSION
 #define SWIG_V8_VERSION version
 #endif
