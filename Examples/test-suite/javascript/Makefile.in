@@ -23,6 +23,7 @@ CPP_TEST_CASES = \
 	abstract_typedef2 \
 	abstract_virtual \
 	arrays_global \
+	array_member \
 	char_binary \
 	class_ignore \
 	class_scope_weird \
@@ -49,7 +50,6 @@ CPP_TEST_CASES = \
 	javascript_unicode
 
 BROKEN_TEST_CASES = \
-	array_member \
 	complextest \
 	constructor_copy \
 	preproc_include

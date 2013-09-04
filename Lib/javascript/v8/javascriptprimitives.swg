@@ -33,7 +33,7 @@ v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
 SWIGINTERN 
 int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
 {
-  if (!valRef->IsInt32()) {
+  if (!valRef->IsNumber()) {
     return SWIG_TypeError;
   }
   if(val) *val = valRef->IntegerValue();
