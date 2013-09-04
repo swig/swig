@@ -252,3 +252,37 @@ SwigScilabStringFromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrA
   return SWIG_NbInputArgument(pvApiCtx) + _iVarOut;
 }
 }
+%fragment(SWIG_CreateScilabVariable_frag(char), "wrapper") {
+SWIGINTERN int
+SWIG_CreateScilabVariable_dec(char)(void *_pvApiCtx, const char* _psVariableName, const char _cVariableValue) {
+  SciErr sciErr;
+  char sValue[2];
+  const char* psStrings[1];
+
+  sValue[0] = _cVariableValue;
+  sValue[1] = '\0';
+  psStrings[0] = sValue;
+
+  sciErr = createNamedMatrixOfString(_pvApiCtx, _psVariableName, 1, 1, psStrings);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
+}
+}
+%fragment(SWIG_CreateScilabVariable_frag(charptr), "wrapper") {
+SWIGINTERN int
+SWIG_CreateScilabVariable_dec(charptr)(void *_pvApiCtx, const char* _psVariableName, const char* _psVariableValue) {
+  SciErr sciErr;
+  const char* psStrings[1];
+  psStrings[0] = _psVariableValue;
+
+  sciErr = createNamedMatrixOfString(_pvApiCtx, _psVariableName, 1, 1, psStrings);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
+}
+}
