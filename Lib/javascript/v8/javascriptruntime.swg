@@ -12,11 +12,11 @@
 %}
 %enddef
 
-#ifdef SWIG_V8_VERSION
-%swig_v8_define_version(SWIG_V8_VERSION)
+#ifdef V8_VERSION
+%swig_v8_define_version(V8_VERSION)
 #else
 // HACK: defining a default version
-%swig_v8_define_version(SWIG_V8_VERSION)
+%swig_v8_define_version(0x031110)
 #endif
 
 #ifdef BUILDING_NODE_EXTENSION
