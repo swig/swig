@@ -17,11 +17,11 @@
 /*#define SWIG_DEBUG*/
 
 static const char *usage = (char *) "\
-Scilab options\n\
-     -addsrc <source files>  additionnal source files (separated by space) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
-     -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
-     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\
-     -vbl <level>            sets the build verbose level (default 0)\n\n";
+Scilab options (available with -scilab)\n\
+     -addcflag <opt> - Additional include options <opt> to include in build script\n\
+     -addldflag <opt>- Additional link options <opt> to include in build script\n\
+     -addsrc <files> - Additional space separated source <files> to include in build script\n\
+     -vbl <level>    - Sets the build verbose <level> (default 0)\n\n";
 
 const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
@@ -61,10 +61,7 @@ public:
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
 	if (strcmp(argv[argIndex], "-help") == 0) {
-	  /* Display message */
-	  fputs(usage, stderr);
-	  /* Indicate arg as valid */
-	  Swig_mark_arg(argIndex);
+	  Printf(stdout, "%s\n", usage);
 	} else if (strcmp(argv[argIndex], "-addsrc") == 0) {
 	  if (argv[argIndex + 1] != NULL) {
 	    Swig_mark_arg(argIndex);

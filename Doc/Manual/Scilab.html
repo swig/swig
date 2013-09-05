@@ -144,6 +144,57 @@ ans =  3
 --&gt; Foo_get
 ans =  4 </pre></div>
 
+
+<H3><a name="Scilab_options"></a>Additional commandline options</H3>
+
+<p>
+The following table list the additional commandline options available for the Scilab module. They can also be seen by using: 
+</p>
+
+<div class="code"><pre>
+swig -scilab -help 
+</pre></div>
+
+<table summary="Scilab specific options">
+
+<tr>
+<th>Scilab specific options</th>
+</tr>
+
+<tr>
+<td>-addcflag &lt;opt&gt;</td>
+<td>Additional include options &lt;opt&gt; to include in build script</td>
+</tr>
+
+<tr>
+<td>-addldflag &lt;opt&gt;</td>
+<td>Additional link options &lt;opt&gt; to include in build script</td>
+</tr>
+
+<tr>
+<td>-addsrc &lt;files&gt;</td>
+<td>Additional space separated source &lt;files&gt; to include in build script</td>
+</tr>
+
+<tr>
+<td>-vbl &lt;level&gt;</td>
+<td>Sets the build verbose &lt;level&gt; (default 0)</td>
+</tr>
+
+</table>
+
+<p>
+Some examples:
+</p>
+
+<div class="shell"><pre>
+$ swig -scilab -addcflag -I/usr/includes example.i
+$ swig -scilab -addldflag -lm example.i
+$ swig -scilab -addsrc file1.cxx file2.cxx example.i
+</pre></div>
+</p>
+
+
 <H2><a name="Scilab_tour_of_basic_c"></a>37.3 A tour of basic C wrapping</H2>
 
 
