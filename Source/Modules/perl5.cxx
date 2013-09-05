@@ -574,6 +574,15 @@ public:
 	     "  return;\n" "}");
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
+      /* This explicit disown binding is purely for reverse
+       * compatability.  Some of the Examples/perl5 samples showed
+       * explicit calls to $obj->DESTROY() so that method should
+       * release the object.  Normally, an undef($obj) would be the
+       * right way to let go as with other common perl objects. */
+      if(blessed)
+	Printf(f_init, "newXS((char *)\"%s::%s::DESTROY\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, ClassName);
+      else
+	Printf(f_init, "newXS((char *)\"%s::%s\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, pname);
       return SWIG_OK;
     }
     if (GetFlag(n, "perl5:instancevariable")) {

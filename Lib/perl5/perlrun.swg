@@ -596,6 +596,19 @@ SWIG_Perl_SetModule(swig_module_info *module) {
       strlen(SWIG_PERL_RUNTIME_KEY), newSViv(PTR2IV(&info)), 0);
 }
 
+XS(SWIG_Perl_Release) {
+  dXSARGS;
+  SV *self;
+
+  if (items > 0) {
+    self = ST(0);
+    if (SvROK(self) && !SvREADONLY(SvRV(self))) {
+      SvSetSV(SvRV(self), &PL_sv_undef);
+    }
+  }
+  XSRETURN_UNDEF;
+}
+
 XS(SWIG_Perl_Own) {
   dXSARGS;
   SV *self;

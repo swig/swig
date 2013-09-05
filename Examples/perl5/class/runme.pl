@@ -53,8 +53,8 @@ $s->DESTROY();
 
 print $example::Shape::nshapes," shapes remain\n";
 
-$square = example::CFoo::MakeSquare();
-$tsquare = example::CFoo::MakeTSquare();
+$square = example::CFoo->MakeSquare();
+$tsquare = example::CFoo->MakeTSquare();
 print "Areas ", $square->area(), " ", $tsquare->area(),"\n";
 
 print "Goodbye\n";

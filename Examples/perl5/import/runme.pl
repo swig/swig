@@ -77,7 +77,7 @@ print "\nTesting some dynamic casts\n";
 $x = $d->toBase();
 
 print " Spam -> Base -> Foo : ";
-$y = foo::Foo::fromBase($x);
+$y = foo::Foo->fromBase($x);
 if ($y) {
     print "bad swig\n";
 } else {
@@ -85,7 +85,7 @@ if ($y) {
 }
 
 print " Spam -> Base -> Bar : ";
-$y = bar::Bar::fromBase($x);
+$y = bar::Bar->fromBase($x);
 if ($y) {
     print "good swig\n";
 } else {
@@ -93,7 +93,7 @@ if ($y) {
 }
       
 print " Spam -> Base -> Spam : ";
-$y = spam::Spam::fromBase($x);
+$y = spam::Spam->fromBase($x);
 if ($y) {
     print "good swig\n";
 } else {
@@ -102,7 +102,7 @@ if ($y) {
 
 print " Foo -> Spam : ";
 #print $b;
-$y = spam::Spam::fromBase($b);
+$y = spam::Spam->fromBase($b);
 print $y;
 if ($y) {
     print "bad swig\n";

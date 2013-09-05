@@ -143,15 +143,16 @@ namespace Swig {
         }
       }
       void setSelf(SV *self) {
-        if (mSelf) croak("can not recycle directors");
-        if (!self || !SvOK(self)) croak("refusing to wrap bogus perl val");
+        if (mSelf)
+          croak("can not recycle directors");
+        if (!self || !SvOK(self))
+          croak("refusing to wrap bogus perl val");
         mSelf = newSVsv(self);
         sv_rvweaken(mSelf);
       }
       SV *getSelf() const {
-        if (!mSelf || !SvOK(mSelf)) {
+        if (!mSelf)
           croak("director has no identity %p(%p)", this, mSelf);
-        }
         return mSelf;
       }
       void swig_disown() {
