@@ -5,6 +5,7 @@
 #include <string>
 
 typedef void* HANDLE;
+typedef void* MODULE;
 
 class JSShell {
 
@@ -22,7 +23,7 @@ public:
 
   static JSShell* Create(Engine engine = JSC);
 
-  bool ImportModule(const std::string& name);
+  std::string LoadModule(const std::string& name, HANDLE* library);
 
   virtual bool RunScript(const std::string& scriptPath);
 
@@ -30,11 +31,9 @@ public:
 
 protected:
 
-  virtual bool RegisterModule(HANDLE library, const std::string& module_name) = 0;
-
   virtual bool InitializeEngine() = 0;
 
-  virtual bool ExecuteScript(const std::string& source, const std::string& name) = 0;
+  virtual bool ExecuteScript(const std::string& source, const std::string& scriptPath) = 0;
 
   virtual bool DisposeEngine() = 0;
 

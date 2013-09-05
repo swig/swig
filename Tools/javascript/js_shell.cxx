@@ -21,7 +21,6 @@
 #endif
 
 
-
 JSShell::~JSShell() {
 
   for(std::vector<HANDLE>::iterator it = loaded_modules.begin();
@@ -32,31 +31,45 @@ JSShell::~JSShell() {
 
 }
 
-bool JSShell::ImportModule(const std::string& name) {
+// TODO: this could be done more intelligent...
+// - can we achieve source file relative loading?
+// - better path resolution
+std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
 
-   std::string lib_name = LIBRARYFILE(name);
+  // works only for posix like OSs
+  size_t pathIdx = name.find_last_of("/");
 
-    HANDLE handle = LOAD_LIBRARY(lib_name.c_str());
-    if(handle == 0) {
-      std::cout << "Could not load library " << lib_name << ":"
-                << std::endl << LIBRARY_ERROR() << std::endl;
-      return false;
-    }
+  std::string lib_name;
+  std::string module_name;
+  if (pathIdx == std::string::npos) {
+    module_name = name;
+    lib_name = std::string(name).append(LIBRARY_EXT);
+  } else {
+    std::string path = name.substr(0, pathIdx+1);
+    module_name = name.substr(pathIdx+1);
+    lib_name = path.append(module_name).append(LIBRARY_EXT);
+  }
 
-    if(!RegisterModule(handle, name)) {
-      std::cout << "Could not find initializer function in " << lib_name << std::endl;
-      CLOSE_LIBRARY(handle);
-      return false;
-    }
+  HANDLE handle = LOAD_LIBRARY(lib_name.c_str());
+  if(handle == 0) {
+    std::cout << "Could not load library " << lib_name << ":"
+              << std::endl << LIBRARY_ERROR() << std::endl;
+    return 0;
+  }
 
-    loaded_modules.push_back(handle);
+  loaded_modules.push_back(handle);
 
-    return true;
+  *library = handle;
+
+  return module_name;
 }
 
 bool JSShell::RunScript(const std::string& scriptPath) {
   std::string source = ReadFile(scriptPath);
   if(!InitializeEngine()) return false;
+
+  // Node.js compatibility: make `print` available as `console.log()`
+  ExecuteScript("var console = {}; console.log = print;", "<console>");
 
   if(!ExecuteScript(source, scriptPath)) {
     return false;
@@ -126,7 +139,7 @@ V8Shell_Create,
 
 JSShell *JSShell::Create(Engine engine) {
   if(js_shell_factories[engine] == 0) {
-    throw "Engine not supported.";
+    throw "Engine not available.";
   }
   return js_shell_factories[engine]();
 }
