@@ -10,38 +10,38 @@ top_builddir = @top_builddir@
 SWIG  = $(top_builddir)/preinst_swig
 
 ifneq (, $(ENGINE))
-  JSENGINE = $(ENGINE)
+	JSENGINE = $(ENGINE)
 else
-  JSENGINE = "node"
+	JSENGINE = "node"
 endif
 
 include $(srcdir)/../common.mk
 
 SWIGOPT += -$(JSENGINE)
 
+
 ifeq ("node",$(JSENGINE))
 
-  setup = \
-    if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
-      echo "Setting up nodejs addon..."; \
-      sh ./setup_test.sh $*; \
-      $(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i; \
-    fi
+	setup = \
+		if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
+			echo "Setting up nodejs addon..."; \
+			sh ./setup_test.sh $*; \
+			$(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i; \
+		fi
 
-  nodejs_swig_and_compile = \
-    if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
-      echo "Configuring node add-on..."; \
-      node-gyp --directory $* configure; \
-    fi; \
-    echo "Building node add-on..."; \
-    node-gyp --directory $* build; \
+	nodejs_swig_and_compile = \
+		if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
+			echo "Configuring node add-on..."; \
+			node-gyp --directory $* configure; \
+		fi; \
+		echo "Building node add-on..."; \
+		node-gyp --directory $* build; \
 
-  run_testcase = \
-    if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-      node $(srcdir)/$*$(SCRIPTSUFFIX); \
-    fi
+	run_testcase = \
+		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+			node $(srcdir)/$*$(SCRIPTSUFFIX); \
+		fi
 
-  # Rules for the different types of tests
   %.cpptest:
 		$(setup)
 		$(nodejs_swig_and_compile)
@@ -57,26 +57,19 @@ ifeq ("node",$(JSENGINE))
 		$(nodejs_swig_and_compile)
 		$(run_testcase)
 
-  # Clean
   %.clean:
 		rm -rf $*
 
 else
 
-  run_testcase = \
-    if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-      $(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
-    fi
+	run_testcase = \
+		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+			$(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
+		fi
 
-  # Rules for the different types of tests
   %.cpptest:
 		$(setup)
 		+$(swig_and_compile_cpp)
-		$(run_testcase)
-
-  %.ctest:
-		$(setup)
-		+$(swig_and_compile_c)
 		$(run_testcase)
 
   %.multicpptest:
@@ -84,11 +77,23 @@ else
 		+$(swig_and_compile_multi_cpp)
 		$(run_testcase)
 
-  # Clean
   %.clean:
 		rm $*_wrap.cxx
 
 endif
 
+ifeq (v8,$(ENGINE))
+  %.ctest:
+		$(setup)
+		+$(swig_and_compile_cpp)
+		$(run_testcase)
+endif
+
+ifeq (jsc,$(ENGINE))
+  %.ctest:
+		$(setup)
+		+$(swig_and_compile_c)
+		$(run_testcase)
+endif
 
 clean:
