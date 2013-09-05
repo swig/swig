@@ -110,7 +110,7 @@ public:
   };
 
   ~SWIGV8_Proxy() {
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031900 || SWIG_V8_VERSION >= 0x032100)
     handle.ClearWeak();
     handle.Dispose();
 #else
@@ -238,7 +238,13 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   } else {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
   }
-  cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+
+#  if (SWIG_V8_VERSION < 0x032100)
+    cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+#  else
+    cdata->handle.MarkIndependent();
+#  endif
+
 #endif
 }
 
