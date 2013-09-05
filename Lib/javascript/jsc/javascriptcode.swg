@@ -279,10 +279,8 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
 extern "C" {
 #endif
 
-bool SWIGJSC_INIT (JSGlobalContextRef context) {
+bool SWIGJSC_INIT (JSGlobalContextRef context, JSObjectRef *exports) {
     SWIG_InitializeModule(0);
-
-    JSObjectRef global_object = JSContextGetGlobalObject(context);
 
     /* Initialize the base swig type object */
     _SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
@@ -297,6 +295,8 @@ bool SWIGJSC_INIT (JSGlobalContextRef context) {
 
     /* Register namespaces */
     $jsregisternamespaces
+
+    *exports = exports_object;
 
     return true;
 }

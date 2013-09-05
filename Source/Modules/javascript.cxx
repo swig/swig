@@ -521,7 +521,10 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
 
   int mode = -1;
 
-  bool createModuleObject = true;
+  // Note: creating a module object is not supported anymore.
+  // instead the initializer is called with an externally created object
+  // This makes it obsolete to handle node extensions differently
+  bool createModuleObject = false;
 
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
@@ -533,7 +536,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         mode = JSEmitter::V8;
         SWIG_library_directory("javascript/v8");
-        createModuleObject = false;
         Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
       } else if (strcmp(argv[i], "-jsc") == 0) {
         Swig_mark_arg(i);
@@ -544,7 +546,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         js_template_enable_debug = true;
       } else if (strcmp(argv[i], "-no-moduleobject") == 0) {
         Swig_mark_arg(i);
-        createModuleObject = false;
       }
     }
   }
@@ -655,18 +656,18 @@ JSEmitterState &JSEmitter::getState() {
   return state;
 }
 
-int JSEmitter::initialize(Node *n) {
+int JSEmitter::initialize(Node * /*n*/) {
 
   if(namespaces != NULL) {
     Delete(namespaces);
   }
   namespaces = NewHash();
   Hash *global_namespace;
-  if(State::IsSet(state.global(FLAG_NO_MODULE_OBJECT))) {
-      global_namespace = createNamespaceEntry("global", 0);
-  } else {
-      global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
-  }
+//  if(State::IsSet(state.global(FLAG_NO_MODULE_OBJECT))) {
+      global_namespace = createNamespaceEntry("exports", 0);
+//  } else {
+//      global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
+//  }
   Setattr(namespaces, "::", global_namespace);
   current_namespace = global_namespace;
 
@@ -1407,8 +1408,6 @@ private:
 
   String *NULL_STR;
   String *VETO_SET;
-  const char *GLOBAL_STR;
-
 
   // output file and major code parts
   File *f_wrap_cpp;
@@ -1433,7 +1432,6 @@ JSCEmitter::JSCEmitter()
 : JSEmitter(),
   NULL_STR(NewString("NULL")),
   VETO_SET(NewString("JS_veto_set_variable")),
-  GLOBAL_STR(NULL),
   f_wrap_cpp(NULL),
   f_runtime(NULL),
   f_header(NULL),
@@ -1735,6 +1733,8 @@ int JSCEmitter::emitNamespaces() {
     String *functions = Getattr(entry, "functions");
     String *variables = Getattr(entry, "values");
 
+    // skip the global namespace which is given by the application
+
     Template namespace_definition(getTemplate("jsc_nspace_declaration"));
     namespace_definition.replace("$jsglobalvariables", variables)
         .replace("$jsglobalfunctions", functions)
@@ -1745,11 +1745,15 @@ int JSCEmitter::emitNamespaces() {
     t_createNamespace.replace(T_NAME_MANGLED, name_mangled);
     Append(state.global(CREATE_NAMESPACES), t_createNamespace.str());
 
-    Template t_registerNamespace(getTemplate("jsc_nspace_registration"));
-    t_registerNamespace.replace(T_NAME_MANGLED, name_mangled)
-        .replace(T_NAME, name)
-        .replace(T_PARENT, parent_mangled);
-    Append(state.global(REGISTER_NAMESPACES), t_registerNamespace.str());
+    // Don't register 'exports' as namespace. It is return to the application.
+    if (!Equal("exports", name)) {
+      Template t_registerNamespace(getTemplate("jsc_nspace_registration"));
+      t_registerNamespace.replace(T_NAME_MANGLED, name_mangled)
+          .replace(T_NAME, name)
+          .replace(T_PARENT, parent_mangled);
+      Append(state.global(REGISTER_NAMESPACES), t_registerNamespace.str());
+    }
+
   }
 
   return SWIG_OK;
@@ -1809,7 +1813,6 @@ private:
   // the output cpp file
   File *f_wrap_cpp;
 
-  String* GLOBAL;
   String* NULL_STR;
   String *VETO_SET;
   String *moduleName;
@@ -1818,7 +1821,6 @@ private:
 
 V8Emitter::V8Emitter()
 : JSEmitter(),
-  GLOBAL(NewString("global")),
   NULL_STR(NewString("0")),
   VETO_SET(NewString("JS_veto_set_variable"))
 {
@@ -1826,7 +1828,6 @@ V8Emitter::V8Emitter()
 
 V8Emitter::~V8Emitter()
 {
-  Delete(GLOBAL);
   Delete(NULL_STR);
   Delete(VETO_SET);
 }
@@ -2161,7 +2162,9 @@ int V8Emitter::emitNamespaces() {
       do_register = false;
     }
 
-    if (Equal(name, "global")) {
+    // Note: 'exports' is by convention the name of the object where
+    // globals are stored into
+    if (Equal(name, "exports")) {
       do_create = false;
     }
 

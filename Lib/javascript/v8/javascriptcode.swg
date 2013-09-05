@@ -477,15 +477,19 @@ fail:
 %fragment("js_initializer", "templates")
 %{
 
-#if defined(BUILDING_NODE_EXTENSION)
-void $jsname_initialize(v8::Handle<v8::Object> global_obj, v8::Handle<v8::Object> /*module*/)
+// Note: 'extern "C"'' disables name mangling which makes it easier to load the symbol manually
+// TODO: is it ok to do that?
+extern "C"
+#if (NODE_MODULE_VERSION < 0x000C)
+void $jsname_initialize(v8::Handle<v8::Object> exports)
 #else
-void $jsname_initialize(v8::Handle<v8::Object> global_obj)
+void $jsname_initialize(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*module*/)
 #endif
 {
-  SWIG_InitializeModule(static_cast<void *>(&global_obj));
+  SWIG_InitializeModule(static_cast<void *>(&exports));
 
   v8::HandleScope scope;
+  v8::Handle<v8::Object> exports_obj = exports;
 
   // a class template for creating proxies of undefined types
 
@@ -494,7 +498,6 @@ void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 #else
   SWIGV8_SWIGTYPE_Proxy_class_templ.Reset(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
 #endif
-
 
   /* create objects for namespaces */
   $jsv8nspaces
