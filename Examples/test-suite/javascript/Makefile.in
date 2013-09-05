@@ -7,105 +7,88 @@ SCRIPTSUFFIX = _runme.js
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-JS_INCLUDE   = @JSCOREINC@
-JS_DLNK      = @JSCOREDYNAMICLINKING@
-JSCXXFLAGS  = @JSCXXFLAGS@
-JAVASCRIPT_EXE = node
-SWIG 				= $(top_builddir)/preinst_swig
+SWIG  = $(top_builddir)/preinst_swig
 
-C_TEST_CASES = \
-	preproc
-
-
-CPP_TEST_CASES = \
-	abstract_access \
-	abstract_typedef \
-	abstract_typedef2 \
-	abstract_virtual \
-	arrays_global \
-	array_member \
-	char_binary \
-	class_ignore \
-	class_scope_weird \
-	complextest \
-	constover \
-	constructor_copy \
-	cpp_enum \
-	cpp_namespace \
-	cpp_static \
-	director_alternating \
-	enum_template \
-	namespace_virtual_method \
-	overload_copy \
-	ret_by_value \
-	struct_value \
-	template_static \
-	typedef_class \
-	typedef_inherit \
-	typedef_scope \
-	typemap_arrays \
-	typemap_delete \
-	typemap_namespace \
-	typemap_ns_using \
-	using1 \
-	using2 \
-	javascript_unicode
-
-BROKEN_TEST_CASES = \
-	preproc_include
-
-SKIP_CPP_CASES = @SKIP_CPP_CASES@
-SKIP_C_CASES = @SKIP_C_CASES@
-SKIP_CPP_STD_CASES = @SKIP_CPP_STD_CASES@
-SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
+ifneq (, $(ENGINE))
+  JSENGINE = $(ENGINE)
+else
+  JSENGINE = "node"
+endif
 
 include $(srcdir)/../common.mk
 
-# Overridden variables here
+SWIGOPT += -$(JSENGINE)
 
-# Custom tests - tests with additional commandline options
+ifeq ("node",$(JSENGINE))
 
-# Rules for the different types of tests
-%.cpptest:
-	$(prepare_test)
-	$(generate_cpp_wrapper)
-	$(build_module)
-	$(run_testcase)
+  setup = \
+    if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
+      echo "Setting up nodejs addon..."; \
+      sh ./setup_test.sh $*; \
+      $(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i; \
+    fi
 
-%.ctest:
-	$(prepare_test)
-	$(generate_cpp_wrapper)
-	$(build_module)
-	$(run_testcase)
+  nodejs_swig_and_compile = \
+    if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
+      echo "Configuring node add-on..."; \
+      node-gyp --directory $* configure; \
+    fi; \
+    echo "Building node add-on..."; \
+    node-gyp --directory $* build; \
 
-%.multicpptest:
-	$(prepare_test)
-	$(generate_cpp_wrapper)
-	$(build_module)
-	$(run_testcase)
+  run_testcase = \
+    if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+      node $(srcdir)/$*$(SCRIPTSUFFIX); \
+    fi
 
-prepare_test = \
-	sh ./setup_test.sh $*
+  # Rules for the different types of tests
+  %.cpptest:
+		$(setup)
+		$(nodejs_swig_and_compile)
+		$(run_testcase)
 
-generate_cpp_wrapper = \
-	$(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i
+  %.ctest:
+		$(setup)
+		$(nodejs_swig_and_compile)
+		$(run_testcase)
 
-build_module = \
-	if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
-		cd $* && node-gyp configure build && cd ..; \
-	else \
-		cd $* && node-gyp build && cd ..; \
-	fi
+  %.multicpptest:
+		$(setup)
+		$(nodejs_swig_and_compile)
+		$(run_testcase)
 
-# Runs the testcase. A testcase is only run if
-# a file is found which has _runme.js appended after the testcase name.
-run_testcase = \
-	if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-	  node $(srcdir)/$*$(SCRIPTSUFFIX); \
-	fi
+  # Clean
+  %.clean:
+		rm -rf $*
 
-# Clean
-%.clean:
-	rm -rf $*
+else
+
+  run_testcase = \
+    if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+      $(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
+    fi
+
+  # Rules for the different types of tests
+  %.cpptest:
+		$(setup)
+		+$(swig_and_compile_cpp)
+		$(run_testcase)
+
+  %.ctest:
+		$(setup)
+		+$(swig_and_compile_c)
+		$(run_testcase)
+
+  %.multicpptest:
+		$(setup)
+		+$(swig_and_compile_multi_cpp)
+		$(run_testcase)
+
+  # Clean
+  %.clean:
+		rm $*_wrap.cxx
+
+endif
+
 
 clean:
