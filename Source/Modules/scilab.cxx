@@ -23,8 +23,8 @@ Scilab options (available with -scilab)\n\
      -addsrc <files> - Additional space separated source <files> to include in build script\n\
      -vbl <level>    - Sets the build verbose <level> (default 0)\n\n";
 
-const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
-const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
+static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
 class SCILAB:public Language {
 protected:
@@ -185,7 +185,7 @@ public:
     Printf(builderCode, "table = [");
 
     /* add initialization function to builder table */
-    addFunctionInBuilder(NewString(SWIG_INIT_FUNCTION_NAME), NewString(SWIG_INIT_FUNCTION_NAME));
+    addFunctionInBuilder(SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
 
     // Open Scilab wrapper variables creation function
     variablesCode = NewString("");
@@ -664,7 +664,7 @@ public:
   /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
    * ----------------------------------------------------------------------- */
-  void addFunctionInBuilder(String *scilabFunctionName, String *wrapperFunctionName) {
+  void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
     if (++builderFunctionCount % 10 == 0) {
       Printf(builderCode, "];\n\ntable = [table;");
     }
