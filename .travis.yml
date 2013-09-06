@@ -8,5 +8,11 @@ before_script:
   - "sudo apt-get update"
   - "sudo apt-get install -y nodejs"
   - "sudo npm install -g node-gyp"
+  - "sudo apt-get install libv8-3.7.12.22  libv8-dev"
+  - "sudo apt-get install libwebkitgtk-dev"
   - "./autogen.sh && ./configure && make"
-script: "make check-javascript-test-suite"
+  - "cd Examples && make javascript_exe && cd .."
+script:
+  - "make SMOKE=1 check-javascript-test-suite"
+  - "make SMOKE=1 ENGINE=jsc check-javascript-test-suite"
+  - "make SMOKE=1 ENGINE=v8 check-javascript-test-suite"
