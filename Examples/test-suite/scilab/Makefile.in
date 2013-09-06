@@ -25,6 +25,9 @@ define get_runme_script
 	RUNME_SCRIPT := $(srcdir)/$(SCRIPTPREFIX)$(1)$(SCRIPTSUFFIX)
 endef
 
+CPP_STD_TEST_CASES += \
+	li_std_vector_as_argument
+
 include $(srcdir)/../common.mk
 
 # Override make commands to specify OUTDIR
