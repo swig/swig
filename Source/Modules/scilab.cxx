@@ -207,12 +207,17 @@ public:
 
     /* Write all to the builder.sce file */
     Printf(builderCode, "];\n");
+    Printf(builderCode, "ret = 1;\n");
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
+    Printf(builderCode, "  libfilename = 'lib' + ilib_name + getdynlibext();\n");
+    Printf(builderCode, "  if isfile(libfilename) & isfile('loader.sce') then\n");
+    Printf(builderCode, "    ret = 0;\n");
+    Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");
 
-    Printf(builderCode, "exit");
+    Printf(builderCode, "exit(ret)");
     String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
     if (!builderFile) {

@@ -6,9 +6,9 @@ LANGUAGE     = scilab
 SCILAB       = @SCILAB@
 SCILAB_STARTOPT = @SCILABSTARTOPT@
 SCRIPTSUFFIX = _runme.sci
-srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@
-top_builddir = @top_builddir@
+srcdir       = $(abspath @srcdir@)
+top_srcdir   = $(abspath @top_srcdir@)
+top_builddir = $(abspath @top_builddir@)
 
 
 # Overridden variables here
@@ -32,14 +32,14 @@ swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
-	TARGET="$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	scilab_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
-	TARGET="$*_wrap.c" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	TARGET="$(OUTDIR)/$*_wrap.c" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	scilab
 
 swig_and_compile_multi_cpp = \
@@ -47,7 +47,7 @@ swig_and_compile_multi_cpp = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	  INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
-	  TARGET="$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
+	  TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  scilab_cpp; \
 	done
 
