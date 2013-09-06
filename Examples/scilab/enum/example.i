@@ -3,11 +3,11 @@
 
 %{
 #include "example.h"
-#include "scilabconst_example.h"
 %}
+
+/* Forces to wrap enums as Scilab variables (instead of functions) */
+%scilabconst(1);
 
 %include "example.h"
 
-%scilabconst(1);
 
-%include "scilabconst_example.h"
