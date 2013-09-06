@@ -12,7 +12,7 @@ testbuilddir = swigtestname + ".build";
 libname = "lib" + swigtestname + "lib" + getdynlibext();
 if ~isfile(fullfile(testbuilddir, libname)) then
     mprintf("*** LIBRARY NOT FOUND: %s ***\n", "lib" + swigtestname + "lib" + getdynlibext());
-    exit
+    exit(1)
 end
 
 // Load library
@@ -20,11 +20,19 @@ try
     exec(fullfile(testbuilddir, "loader.sce"), -1);
 catch
     mprintf("*** LOADER EXECUTION FAILED ***\n");
-    exit
+    exit(1)
+end
+
+// Module initialization
+try
+    SWIG_Init();
+catch
+    mprintf("*** MODULE INIT FAILED ***\n");
+    exit(1)
 end
 
 // Error management function
 function swigtesterror()
     mprintf("*** TEST FAILED ***\n")
-    exit
+    exit(1)
 endfunction
