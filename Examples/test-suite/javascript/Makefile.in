@@ -15,27 +15,85 @@ else
 	JSENGINE = "node"
 endif
 
+# Note: the javascript generator is not ready yet for the real game.
+# To be able keep the behavior continously tested that is expected to work already
+# we have a 'light' version of the test-suite
+# This will be removed and replaced by a list of 'BROKEN_TEST_CASES' when
+# the number gets smaller (currently we have about 65 broken tests for JSC, and 85 for V8)
+
+ifneq (,$(SMOKE))
+
+C_TEST_CASES = \
+  preproc
+
+CPP_TEST_CASES = \
+  abstract_access \
+  abstract_typedef \
+  abstract_typedef2 \
+  abstract_virtual \
+  arrays_global \
+  array_member \
+  char_binary \
+  class_ignore \
+  class_scope_weird \
+  complextest \
+  constover \
+  constructor_copy \
+  cpp_enum \
+  cpp_namespace \
+  cpp_static \
+  director_alternating \
+  enum_template \
+  namespace_virtual_method \
+  overload_copy \
+  ret_by_value \
+  struct_value \
+  template_static \
+  typedef_class \
+  typedef_inherit \
+  typedef_scope \
+  typemap_arrays \
+  typemap_delete \
+  typemap_namespace \
+  typemap_ns_using \
+  using1 \
+  using2 \
+  javascript_unicode
+
+BROKEN_TEST_CASES = \
+  preproc_include
+
+SKIP_CPP_CASES = @SKIP_CPP_CASES@
+SKIP_C_CASES = @SKIP_C_CASES@
+SKIP_CPP_STD_CASES = @SKIP_CPP_STD_CASES@
+SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
+
+endif
+
 include $(srcdir)/../common.mk
 
 SWIGOPT += -$(JSENGINE)
 
+_setup = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing testcase $* (with run test) under javascript ($(JSENGINE))" ; \
+	else								  \
+	  echo "$(ACTION)ing testcase $* under javascript ($(JSENGINE))" ;		  \
+	fi;
 
 ifeq ("node",$(JSENGINE))
 
-	setup = \
+	__setup = \
 		if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
-			echo "Setting up nodejs addon..."; \
 			sh ./setup_test.sh $*; \
 			$(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i; \
 		fi
 
 	nodejs_swig_and_compile = \
 		if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
-			echo "Configuring node add-on..."; \
-			node-gyp --directory $* configure; \
+			node-gyp --loglevel=silent --directory $* configure; \
 		fi; \
-		echo "Building node add-on..."; \
-		node-gyp --directory $* build; \
+		node-gyp --loglevel=silent --directory $* build; \
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
@@ -43,22 +101,22 @@ ifeq ("node",$(JSENGINE))
 		fi
 
   %.cpptest:
-		$(setup)
+		$(_setup)
+		$(__setup)
 		$(nodejs_swig_and_compile)
 		$(run_testcase)
 
   %.ctest:
-		$(setup)
+		$(_setup)
+		$(__setup)
 		$(nodejs_swig_and_compile)
 		$(run_testcase)
 
   %.multicpptest:
-		$(setup)
+		$(_setup)
+		$(__setup)
 		$(nodejs_swig_and_compile)
 		$(run_testcase)
-
-  %.clean:
-		rm -rf $*
 
 else
 
@@ -68,32 +126,35 @@ else
 		fi
 
   %.cpptest:
-		$(setup)
+		$(_setup)
 		+$(swig_and_compile_cpp)
 		$(run_testcase)
 
   %.multicpptest:
-		$(setup)
+		$(_setup)
 		+$(swig_and_compile_multi_cpp)
 		$(run_testcase)
-
-  %.clean:
-		rm $*_wrap.cxx
 
 endif
 
 ifeq (v8,$(ENGINE))
   %.ctest:
-		$(setup)
+		$(_setup)
 		+$(swig_and_compile_cpp)
 		$(run_testcase)
 endif
 
 ifeq (jsc,$(ENGINE))
   %.ctest:
-		$(setup)
+		$(_setup)
 		+$(swig_and_compile_c)
 		$(run_testcase)
 endif
 
+%.clean:
+	rm -rf $*
+
 clean:
+	rm -f *_wrap.cxx
+	rm -f *_wrap.c
+	rm -f *.so
