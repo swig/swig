@@ -17,14 +17,14 @@
 /*#define SWIG_DEBUG*/
 
 static const char *usage = (char *) "\
-Scilab options\n\
-     -addsrc <source files>  additionnal source files (separated by space) to include in build script (ex: myfile.cxx myfile2.cxx)\n\
-     -addcflag -I<path>      additionnal include path to include in build script (ex: -I/usr/includes/)\n\
-     -addldlag <flag>        additionnal link flag to include in build script (ex: -lm)\n\
-     -vbl <level>            sets the build verbose level (default 0)\n\n";
+Scilab options (available with -scilab)\n\
+     -addcflag <opt> - Additional include options <opt> to include in build script\n\
+     -addldflag <opt>- Additional link options <opt> to include in build script\n\
+     -addsrc <files> - Additional space separated source <files> to include in build script\n\
+     -vbl <level>    - Sets the build verbose <level> (default 0)\n\n";
 
-const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
-const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
+static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
+static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
 class SCILAB:public Language {
 protected:
@@ -61,10 +61,7 @@ public:
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
 	if (strcmp(argv[argIndex], "-help") == 0) {
-	  /* Display message */
-	  fputs(usage, stderr);
-	  /* Indicate arg as valid */
-	  Swig_mark_arg(argIndex);
+	  Printf(stdout, "%s\n", usage);
 	} else if (strcmp(argv[argIndex], "-addsrc") == 0) {
 	  if (argv[argIndex + 1] != NULL) {
 	    Swig_mark_arg(argIndex);
@@ -126,7 +123,7 @@ public:
     String *outputFilename = Getattr(node, "outfile");
 
     /* Initialize I/O */
-    beginSection = NewFile(NewStringf("%s%s", SWIG_output_directory(), outputFilename), "w", SWIG_output_files());
+    beginSection = NewFile(outputFilename, "w", SWIG_output_files());
     if (!beginSection) {
       FileErrorDisplay(outputFilename);
       SWIG_exit(EXIT_FAILURE);
@@ -188,7 +185,7 @@ public:
     Printf(builderCode, "table = [");
 
     /* add initialization function to builder table */
-    addFunctionInBuilder(NewString(SWIG_INIT_FUNCTION_NAME), NewString(SWIG_INIT_FUNCTION_NAME));
+    addFunctionInBuilder(SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
 
     // Open Scilab wrapper variables creation function
     variablesCode = NewString("");
@@ -221,7 +218,12 @@ public:
     Printf(builderCode, "cd(originaldir);\n");
 
     Printf(builderCode, "exit(ret)");
-    builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
+    if (!builderFile) {
+      FileErrorDisplay(builderFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
 
@@ -672,7 +674,7 @@ public:
   /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
    * ----------------------------------------------------------------------- */
-  void addFunctionInBuilder(String *scilabFunctionName, String *wrapperFunctionName) {
+  void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
     if (++builderFunctionCount % 10 == 0) {
       Printf(builderCode, "];\n\ntable = [table;");
     }
