@@ -123,7 +123,7 @@ public:
     String *outputFilename = Getattr(node, "outfile");
 
     /* Initialize I/O */
-    beginSection = NewFile(NewStringf("%s%s", SWIG_output_directory(), outputFilename), "w", SWIG_output_files());
+    beginSection = NewFile(outputFilename, "w", SWIG_output_files());
     if (!beginSection) {
       FileErrorDisplay(outputFilename);
       SWIG_exit(EXIT_FAILURE);
@@ -213,7 +213,12 @@ public:
     Printf(builderCode, "cd(originaldir);\n");
 
     Printf(builderCode, "exit");
-    builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
+    if (!builderFile) {
+      FileErrorDisplay(builderFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
 
