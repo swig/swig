@@ -141,8 +141,10 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   object.Clear();
 #if (SWIG_V8_VERSION < 0x031900)
   object.Dispose();
-#else
+#elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
+#else
+  object->Dispose();
 #endif
 }
 %}
@@ -171,8 +173,10 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
 
 #if (SWIG_V8_VERSION < 0x031900)
   object.Dispose();
-#else
+#elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
+#else
+  object->Dispose();
 #endif
 }
 %}
