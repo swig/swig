@@ -1037,6 +1037,7 @@ public:
 	       "tie %__", iname, "_hash,\"", is_shadow(type), "\", $",
 	       module, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(type), ";\n", NIL);
       } else if (do_constants) {
+	/* TODO: this should use newXS() to avoid the global scalar */
 	Printv(const_stubs, "sub ", name, " () { $", module, "::", name, " }\n", NIL);
 	num_consts++;
       }
@@ -1366,12 +1367,22 @@ public:
 
       List *opers = Getattr(n, "perl5:operators");
       if (opers) {
+	int assign = 0;
+	int deref = 0;
 	Printf(pm, "use overload\n");
 	for (Iterator ki = First(opers); ki.item; ki = Next(ki)) {
+	  String *name = Getattr(ki.item, "name");
 	  Printf(pm, "  '%s' => %s,\n", Getattr(ki.item, "oper"), Getattr(ki.item, "impl"));
+	  if (Strcmp(name, "__assign__") == 0) {
+	    assign = 1;
+	  } else if (Strcmp(name, "__deref__") == 0) {
+	    deref = 1;
+	  }
 	}
-	if (!Getattr(opers, "__assign__"))
+	if (!assign)
 	  Append(pm, "  '=' => sub { ref($_[0])->new($_[0]) },\n");
+	if (!deref)
+	  Append(pm, "  '${}' => sub { \\ ( $_[0]->_swig_this ) },\n");
 	Append(pm, "  'fallback' => 1;\n");
       }
 

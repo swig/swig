@@ -62,10 +62,8 @@
 <li><a href="#Perl5_nn40">Preliminaries</a>
 <li><a href="#Perl5_nn41">Structure and class wrappers</a>
 <li><a href="#Perl5_nn42">Object Ownership</a>
-<li><a href="#Perl5_nn43">Nested Objects</a>
-<li><a href="#Perl5_nn44">Proxy Functions</a>
 <li><a href="#Perl5_nn45">Inheritance</a>
-<li><a href="#Perl5_nn46">Modifying the proxy methods</a>
+<li><a href="#Perl5_nn46">Enabling directors</a>
 </ul>
 <li><a href="#Perl5_nn47">Adding additional Perl code</a>
 </ul>
@@ -91,21 +89,26 @@ Perl 5.6 seems to mostly work, while older versions don't.
 
 
 <p>
-To build Perl extension modules, SWIG uses a layered approach.  At
-the lowest level, simple procedural wrappers are generated for
-functions, classes, methods, and other declarations in the input file.
-Then, for structures and classes, an optional collection of Perl
-proxy classes can be generated in order to provide a more natural object oriented Perl
-interface. These proxy classes simply build upon the low-level interface.
+To build Perl extension modules, SWIG uses a layered approach in which
+parts of the extension module are defined in C and other parts are
+defined in Perl. The C layer contains low-level wrappers whereas Perl
+code is used to define high-level features.
+</p>
+
+<p>
+This layered approach recognizes the fact that certain aspects of
+extension building are better accomplished in each language (instead of
+trying to do everything in C or C++). Furthermore, by generating code in
+both languages, you get a lot more flexibility since you can enhance the
+extension module with support code in either language. 
 </p>
 
 <p>
 In describing the Perl interface, this chapter begins by covering the
-essentials. First, the problem of configuration, compiling,
-and installing Perl modules is discussed.  Next, the low-level
-procedural interface is presented.  Finally, proxy classes are
-described.  Advanced customization features, typemaps, and other
-options are found near the end of the chapter.
+essentials. First, the problem of configuration, compiling, and
+installing Perl modules is discussed.  Next, the low-level procedural
+interface is presented.  Advanced customization features, typemaps, and
+other options are found near the end of the chapter.
 </p>
 
 <H2><a name="Perl5_nn3"></a>31.2 Preliminaries</H2>
@@ -207,14 +210,19 @@ for you using the MakeMaker utility.  To do this, write a Perl
 script such as the following:</p>
 
 <div class="targetlang"><pre>
+#!/usr/bin/perl
 # File : Makefile.PL
 use ExtUtils::MakeMaker;
 WriteMakefile(
-	`NAME'    =&gt; `example',                  # Name of package
-	`LIBS'    =&gt; [`-lm'],                    # Name of custom libraries
-	`OBJECT'  =&gt; `example.o example_wrap.o'  # Object files
+    NAME   =&gt; 'example',                  # Name of package
+    LIBS   =&gt; ['-lm'],                    # Name of custom libraries
+    OBJECT =&gt; 'example.o example_wrap.o'  # Object files
 );
 
+sub MY::postamble { q{
+%.pm %_wrap.c: %.i
+	swig -perl5 $(INC) $&lt;
+} }
 </pre></div>
 
 <p>
@@ -236,7 +244,7 @@ and Randal Schwartz.</p>
 
 
 <p>
-If you machine does not support dynamic loading or if you've tried to
+If your machine does not support dynamic loading or if you've tried to
 use it without success, you can build a new version of the Perl
 interpreter with your SWIG extensions added to it. To build a static
 extension, you first need to invoke SWIG as follows:</p>
@@ -329,7 +337,7 @@ BEGIN failed--compilation aborted at - line 1.
 </div>
 
 <p>
-This error is almost caused when the name of the shared object file you created doesn't match the module name
+This error is typically caused when the name of the shared object file you created doesn't match the module name
 you specified with the <tt>%module</tt> directive.  
 </p>
 
@@ -736,7 +744,7 @@ Now, in Perl:
 
 <div class="targetlang"><pre>
 use example;
-$a = &amp;example::fact(2);
+$a = example::fact(2);
 </pre></div>
 
 <H3><a name="Perl5_nn16"></a>31.4.2 Global variables</H3>
@@ -761,7 +769,7 @@ is accessed as follows:</p>
 <div class="targetlang"><pre>
 use example;
 print $example::Spam,"\n";
-$example::Spam = $example::Spam + 4
+$example::Spam += 4;
 # ... etc ...
 
 </pre></div>
@@ -863,7 +871,7 @@ Matrix *new_Matrix(int n, int m);
 </pre></div>
 
 <p>
-The module returns a value generated as follows:
+The module returns a value not entirely unlike:
 </p>
 
 <div class="targetlang"><pre>
@@ -877,51 +885,37 @@ In the event of a mismatch, an error or warning message is
 generated.</p>
 
 <p>
-To check to see if a value is the NULL pointer, use the
-<tt>defined()</tt> command:</p>
-
-<div class="targetlang"><pre>
-if (defined($ptr)) {
-	print "Not a NULL pointer.";
-} else {
-	print "Is a NULL pointer.";
-}
-
-</pre></div>
-
-<p>
-To create a NULL pointer, you should pass the <tt>undef</tt> value to
-a function.
-</p>
-
-<p>
-The "value" of a Perl reference is not the same as the underlying C
-pointer that SWIG wrapper functions return.  Suppose that <tt>$a</tt>
-and <tt>$b</tt> are two references that point to the same C object.
-In general, <tt>$a</tt> and <tt>$b</tt> will be different--since they
-are different references.  Thus, it is a mistake to check the equality
-of <tt>$a</tt> and <tt>$b</tt> to check the equality of two C
-pointers.  The correct method to check equality of C pointers is to
-dereference them as follows:
+NULL pointers will be exposed to Perl as undef values.  The <tt>defined()</tt>
+function and friends will work to distinguish underlying NULLs:
 </p>
 
 <div class="targetlang"><pre>
-if ($$a == $$b) {
-	print "a and b point to the same thing in C";
+if (defined $ptr) {
+    print "pointer is not NULL\n";
 } else {
-	print "a and b point to different objects.";
+    print "pointer is NULL\n";
 }
-
 </pre></div>
 
 <p>
-As much as you might be inclined to modify a pointer value directly
-from Perl, don't.  Manipulating pointer values is architecture dependent and
-could cause your program to crash.  Similarly, don't try to manually cast
-a pointer to a new type by reblessing a pointer.  This 
-may not work like you expect and it is particularly dangerous when
-casting C++ objects. If you need to cast a pointer or
-change its value, consider writing some helper functions instead.  For
+Similarly, to create a NULL pointer, you should pass the <tt>undef</tt>
+value to SWIG generated functions.
+</p>
+
+<p>
+Much like in C++, pointer comparisons are best done using objects of the
+same type.  SWIG generated objects retain type information, so the same
+pointer can be exposed to Perl by different Perl objects even for plain
+C pointers.  However, the runtime minimizes the number of proxy classes
+so comparisons of the same type should work.
+</p>
+
+<p>
+Assignments to these values will not perform pointer arithmetic.
+Similarly, though it may seem tempting to rebless an object to achieve a
+pointer cast, this can be very dangerous because the object class will
+not match it's internal type annotation.  Generally you'll want to use
+helper functions to achieve pointer manipulations and casts.  For
 example:
 </p>
 
@@ -962,8 +956,8 @@ SWIG and XS, this is no longer supported.
 
 
 <p>
-Access to the contents of a structure are provided through a set of low-level
-accessor functions as described in the "SWIG Basics" chapter.  For example,
+Access to the contents of a structure are provided though
+hash keys on the object.  For example,
 </p>
 
 <div class="code"><pre>
@@ -973,29 +967,32 @@ struct Vector {
 </pre></div>
 
 <p>
-gets mapped into the following collection of accessor functions:
+gets mapped to an package similar in behaviour to:
 </p>
 
-<div class="code"><pre>
-struct Vector *new_Vector();
-void           delete_Vector(Vector *v);
-double         Vector_x_get(Vector *obj)
-void           Vector_x_set(Vector *obj, double x)
-double         Vector_y_get(Vector *obj)
-void           Vector_y_set(Vector *obj, double y)
-double         Vector_z_get(Vector *obj)
-void           Vector_z_set(Vector *obj, double z)
+<div class="targetlang"><pre>
+package example::Vector;
+use fields 'x', 'y', 'z';
+
+sub new {
+    my($class) = @_;
+    my $self = $class->fields::new();
+    ...
+    return $self;
+}
 
 </pre></div>
 
 <p>
-These functions are then used to access structure data from Perl as follows:
+The fields are bound to the underlying struct so that syntax like this
+will interact with the struct attributes.
 </p>
 
 <div class="targetlang"><pre>
-$v = example::new_Vector();
-print example::Vector_x_get($v),"\n";    # Get x component
-example::Vector_x_set($v,7.8);          # Change x component
+$v = example::Vector->new();
+$v-&gt;{x} = 7.8;         # Set x component
+print $v-&gt;{x},"\n";    # Get x component
+7.8
 </pre></div>
 
 <p>
@@ -1029,44 +1026,22 @@ a typemap (described later).
 </p>
 
 <p>
-Array members are normally wrapped as read-only.   For example,
-</p>
-
-<div class="code">
-<pre>
-struct Foo {
-   int  x[50];
-};
-</pre>
-</div>
-
-<p>
-produces a single accessor function like this:
-</p>
-
-<div class="code">
-<pre>
-int *Foo_x_get(Foo *self) {
-    return self-&gt;x;
-};
-</pre>
-</div>
-
-<p>
-If you want to set an array member, you will need to supply a "memberin" typemap
-described later in this chapter.  As a special case, SWIG does generate
-code to set array members of type <tt>char</tt> (allowing you to store a Python
+Array members are normally wrapped as opaque objects.  To interact with
+array elements you would need to supply a "memberin" typemap described
+later in this chapter.  However, as a special case, SWIG does generate
+code to set array members of type <tt>char</tt> (allowing you to store a C
 string in the structure).
 </p>
 
 <p>
-When structure members are wrapped, they are handled as pointers.   For example,
+When structure members are wrapped, they are handled as pointers.   For
+example, given
 </p>
 
 <div class="code">
 <pre>
 struct Foo {
-   ...
+   int v;
 };
 
 struct Bar {
@@ -1076,21 +1051,28 @@ struct Bar {
 </div>
 
 <p>
-generates accessor functions such as this:
+running Perl such as 
 </p>
 
-<div class="code">
-<pre>
-Foo *Bar_f_get(Bar *b) {
-    return &amp;b-&gt;f;
-}
+<div class="targetlang"><pre>
+$b = example::Bar->new();
+$b-&gt;{f} = example::Foo->new();
+$f = $b-&gt;{f};
+$f-&gt;{v} = 83;
+print $b-&gt;{f}{v}, "\n";
+83
+</pre></div>
 
-void Bar_f_set(Bar *b, Foo *val) {
-    b-&gt;f = *val;
-}
-</pre>
-</div>
-
+<p>
+will print 83 because <tt>$f</tt> is a reference to the "f" attribute of
+<tt>$b</tt>.  It should be noted that this means if the struct
+underneath <tt>$b</tt> is reclaimed, then <tt>$f</tt> would be pointing
+at a freed area of memory.  If this would be a problem, it may be
+suitable to declare a "memberout" typemap to pass by copy.
+Alternatively it may be suitable to keep a reference to the Perl object
+attribute; which can retain access to an attribute even after the object
+falls out of scope.
+</p>
 
 <H3><a name="Perl5_nn20"></a>31.4.6 C++ classes</H3>
 
@@ -1110,7 +1092,7 @@ public:
   void remove(char *item);
   char *get(int n);
   int  length;
-static void print(List *l);
+  static void print(List *l);
 };
 </pre></div>
 
@@ -1118,43 +1100,26 @@ static void print(List *l);
 When wrapped by SWIG, the following functions are created:
 </p>
 
-<div class="code"><pre>
-List    *new_List();
-void     delete_List(List *l);
-int      List_search(List *l, char *item);
-void     List_insert(List *l, char *item);
-void     List_remove(List *l, char *item);
-char    *List_get(List *l, int n);
-int      List_length_get(List *l);
-void     List_length_set(List *l, int n);
-void     List_print(List *l);
-
-</pre></div>
-
-<p>
-In Perl, these functions are used in a straightforward manner:
-</p>
-
 <div class="targetlang"><pre>
 use example;
-$l = example::new_List();
-example::List_insert($l,"Ale");
-example::List_insert($l,"Stout");
-example::List_insert($l,"Lager")
-example::List_print($l)
+$l = example::List-&gt;new();
+$l-&gt;insert("Ale");
+$l-&gt;insert("Stout");
+$l-&gt;insert("Lager");
+example::List-&gt;print($l);
 Lager
 Stout
 Ale
-print example::List_length_get($l),"\n";
+print $l-&gt;{length},"\n";
 3
 </pre></div>
 
 <p>
-At this low level, C++ objects are really just typed pointers.  Member
-functions are accessed by calling a C-like wrapper with an instance pointer
-as the first argument.   Although this interface is fairly primitive, it
-provides direct access to C++ objects.  A higher level interface using Perl proxy classes
-can be built using these low-level accessors.  This is described shortly.
+The Perl object is a proxy class instance containing a typed pointer.
+These objects attempt to provide calling conventions that mimic the C++
+interface.  A more primitive interface can be constructed by disabling
+proxy classes which may make sense if you wish to build a dramatically
+different object model in Perl.
 </p>
 
 <H3><a name="Perl5_nn21"></a>31.4.7 C++ classes and type-checking</H3>
@@ -1197,8 +1162,11 @@ multiple inheritance is used).
 
 
 <p>
-If you have a C++ program with overloaded functions or methods, you will need to disambiguate
-those methods using <tt>%rename</tt>.   For example:
+If you have a C++ program with overloaded functions or methods, SWIG
+will construct a dispatch function for you, however this can not resolve
+all ambiguities because Perl values are not strictly typed.  In some
+cases you may need to disambiguate those methods using <tt>%rename</tt>.
+For example:
 </p>
 
 <div class="code">
@@ -1227,9 +1195,9 @@ Now, in Perl, the methods are accessed as follows:
 <pre>
 use example;
 example::foo_i(3);
-$s = example::new_Spam();
-example::Spam_foo_i($s,3);
-example::Spam_foo_d($s,3.14);
+my $s = example::Spam-&gt;new();
+$s-&gt;foo_i(3);
+$s-&gt;foo_d(3.14);
 </pre>
 </div>
 
@@ -1336,28 +1304,6 @@ nested namespace simply provide the fully qualified name in your
       existing applications that are already using the class under the name
       <tt>XML::Xerces::SAXParser</tt>.
     </p>
-
-<!--
-<p>
-This can be changed by giving SWIG the -package
-option:
-</p>
-
-<div class="code"><pre>
-$ swig -perl -package Foo example.i
-</pre></div>
-
-<p>
-In this case, you still create a module called `<tt>example</tt>' exactly as before, but
-all of the functions in that module will be installed into the package
-`<tt>Foo</tt>.' For example:
-</p>
-
-<div class="targetlang"><pre>
-use example;   # Load the module like before
-print Foo::fact(4),"\n";        # Call a function in package FooBar
-</pre></div>
--->
 
 <H2><a name="Perl5_nn25"></a>31.5 Input and output parameters</H2>
 
@@ -2044,67 +1990,46 @@ The Perl name of the wrapper function being created.
 
 
 <p>
-When writing typemaps, it is necessary to work directly with Perl5
-objects.  This, unfortunately, can be a daunting task.  Consult the
-"perlguts" man-page for all of the really ugly details.  A short
-summary of commonly used functions is provided here for reference.  It
-should be stressed that SWIG can be used quite effectively without
-knowing any of these details--especially now that there are typemap
-libraries that can already been written.
+When writing typemaps, it is somtimes necessary to work directly with
+perl's data structures.  Consult the "perlguts" and "perlapi" perldocs
+for details on the C interface to Perl.  However, it is useful to note
+that effective use of SWIG's existing typemap library can often avoid
+direct interaction with the Perl API, making your interfaces easier
+to use in SWIG's other target languages.
 </p>
 
 <p>
-<b>Perl Integer Functions</b>
+Perl represents scalar values using the SV typedef, they can be created
+with newSV().  SVs can hold five types of values: integer (IV),
+unsigned integer (UV), double (NV), string (PV), and reference (SV *).
+SvTYPE() returns the type of an SV.
+</p>
+
+<p>
+<b>Reading Perl Scalars</b>
 </p>
 
 <div class="code">
 <pre>
-int   SvIV(SV *);
-void  sv_setiv(SV *sv, IV value);
-SV   *newSViv(IV value);
-int   SvIOK(SV *);
+IV    SvIV(SV *sv)
+UV    SvUV(SV *sv)
+NV    SvNV(SV *sv)
+char *SvPV(SV *sv, STRLEN len)
+SV *  SvRV(SV *sv)
 </pre>
 </div>
 
 <p>
-<b>Perl Floating Point Functions</b>
+<b>Setting Perl Scalars</b>
 </p>
 
 <div class="code">
 <pre>
-double SvNV(SV *);
-void   sv_setnv(SV *, double value);
-SV    *newSVnv(double value);
-int    SvNOK(SV *);
-</pre>
-</div>
-
-<p>
-<b>Perl String Functions</b>
-</p>
-
-<div class="code">
-<pre>
-char     *SvPV(SV *, STRLEN len);
-void      sv_setpv(SV *, char *val);
-void      sv_setpvn(SV *, char *val, STRLEN len);
-SV       *newSVpv(char *value, STRLEN len);
-int       SvPOK(SV *);
-void      sv_catpv(SV *, char *);
-void      sv_catpvn(SV *, char *, STRLEN);
-</pre>
-</div>
-
-<p>
-<b>Perl References</b>
-</p>
-
-<div class="code">
-<pre>
-void      sv_setref_pv(SV *, char *, void *ptr);
-int       sv_isobject(SV *);
-SV       *SvRV(SV *);
-int       sv_isa(SV *, char *0;
+void sv_setiv(SV *sv, IV);
+void sv_setuv(SV *sv, UV);
+void sv_setnv(SV *sv, double);
+void sv_setpvn(SV *sv, const char*, STRLEN);
+void SvRV_set(SV *sv, SV *);
 </pre>
 </div>
 
@@ -2113,9 +2038,10 @@ int       sv_isa(SV *, char *0;
 
 
 <p>
-This section includes a few examples of typemaps.  For more examples, you
-might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
-the SWIG library.
+This section includes a few examples of typemaps.  For more details, see
+the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.  For some
+examples, you might look at the files "<tt>perl5.swg</tt>" and
+"<tt>typemaps.i</tt>" in the SWIG library.
 </p>
 
 <H3><a name="Perl5_nn33"></a>31.8.1 Converting a Perl5 array to a char **</H3>
@@ -2131,66 +2057,58 @@ reference to be used as a char ** datatype.
 <div class="code"><pre>
 %module argv
 
-// This tells SWIG to treat char ** as a special case
+// SWIG will handle char ** arguments with this block
 %typemap(in) char ** {
-	AV *tempav;
-	I32 len;
-	int i;
-	SV  **tv;
-	if (!SvROK($input))
-	    croak("Argument $argnum is not a reference.");
-        if (SvTYPE(SvRV($input)) != SVt_PVAV)
-	    croak("Argument $argnum is not an array.");
-        tempav = (AV*)SvRV($input);
-	len = av_len(tempav);
-	$1 = (char **) malloc((len+2)*sizeof(char *));
-	for (i = 0; i &lt;= len; i++) {
-	    tv = av_fetch(tempav, i, 0);	
-	    $1[i] = (char *) SvPV(*tv,PL_na);
-        }
-	$1[i] = NULL;
+    AV *av;
+    I32 len;
+    int i;
+    SV  **elt;
+
+    if (!SvROK($input))
+        croak("Argument $argnum is not a reference.");
+    if (SvTYPE(SvRV($input)) != SVt_PVAV)
+        croak("Argument $argnum is not an array.");
+
+    av = (AV *)SvRV($input);
+    len = av_len(av) + 1;
+    $1 = (char **)malloc((len + 1) * sizeof(char *));
+    for (i = 0; i &lt; len; i++) {
+        elt = av_fetch(av, i, 0);
+        $1[i] = SvPV_nolen(*elt);
+    }
+    $1[i] = NULL;
 };
 
-// This cleans up the char ** array after the function call
+// Cleans up the char ** array after the function call
 %typemap(freearg) char ** {
-	free($1);
+    free($1);
 }
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {
-	AV *myav;
-	SV **svs;
-	int i = 0,len = 0;
-	/* Figure out how many elements we have */
-	while ($1[len])
-	   len++;
-	svs = (SV **) malloc(len*sizeof(SV *));
-	for (i = 0; i &lt; len ; i++) {
-	    svs[i] = sv_newmortal();
-	    sv_setpv((SV*)svs[i],$1[i]);
-	};
-	myav =	av_make(len,svs);
-	free(svs);
-        $result = newRV_noinc((SV*)myav);
-        sv_2mortal($result);
-        argvi++;
+    AV *av;
+    int i;
+    av = newAV();
+    for (i = 0; $1[i]; i++)
+        av_push(av, newSVpv($1[i], 0));
+    $result = newRV_noinc((SV*)av);
+    sv_2mortal($result);
+    argvi++;
 }
 
 // Now a few test functions
 %inline %{
 int print_args(char **argv) {
-    int i = 0;
-    while (argv[i]) {
-         printf("argv[%d] = %s\n", i,argv[i]);
-         i++;
-    }
+    int i;
+    for (i = 0; argv[i]; i++)
+        printf("argv[%d] = %s\n", i,argv[i]);
     return i;
 }
 
 // Returns a char ** list 
-char **get_args() {
-    static char *values[] = { "Dave", "Mike", "Susan", "John", "Michelle", 0};
-    return &amp;values[0];
+char **get_args(void) {
+    static char *list[] = { "Dave", "Mike", "Susan", "John", "Michelle", NULL };
+    return list;
 }
 %}
 
@@ -2209,6 +2127,52 @@ $b = argv::get_args();                           # Get array of strings from C
 print @$b,"\n";                                  # Print it out
 </pre></div>
 
+
+<H3><a name="Perl5_nn34"></a>31.8.2 Expanding a Perl value into multiple arguments</H3>
+
+
+<div class="code"><pre>
+int count_bits(char *s, int len) {
+    int bits = 0;
+    int i;
+    unsigned char c;
+
+    for(i = 0; i &lt; len; i++)
+      for(memcpy(&amp;c, s + i, 1); c; c &gt;&gt;= 1)
+        bits += c &amp; 1;
+    return bits;
+}
+</pre></div>
+
+<p>
+A function such as this one could be called from Perl using:
+</p>
+
+<div class="targetlang"><pre>
+my $c = count_bits($str, length($str));
+</pre></div>
+
+<p>
+However, the Perl variable already knows it's own string length.  It may
+be more natural to hide the "len" argument from Perl.
+</p>
+
+<div class="code"><pre>
+%typemap(in) (char *s, int len)  {
+  STRLEN len;
+  $1 = SvPV($input, len);
+  $2 = len;
+}
+</pre></div>
+
+<p>
+With a typemap like this in place, the second argument will be inferred
+from the first.
+</p>
+
+<div class="targetlang"><pre>
+my $c = count_bits($str);
+</pre></div>
 
 <H3><a name="Perl5_nn34"></a>31.8.2 Return values</H3>
 
@@ -2230,12 +2194,10 @@ can be done using the <tt>EXTEND()</tt> macro as in:
 
 <div class="code"><pre>
 %typemap(argout) int *OUTPUT {
-	if (argvi &gt;= items) {            
-		EXTEND(sp,1);              /* Extend the stack by 1 object */
-	}
-	$result = sv_newmortal();
-	sv_setiv($target,(IV) *($1));
-	argvi++;
+    if (argvi &gt;= items) /* Extend the stack by 1 object */
+        EXTEND(sp, 1);
+    $result = sv_2mortal(newSViv(*($1)));
+    argvi++;
 }
 </pre></div>
 
@@ -2254,24 +2216,23 @@ its arguments.  This example describes the implementation of the <tt>OUTPUT</tt>
 // an output value.  
 
 %typemap(argout) double *OUTPUT {
-	$result = sv_newmortal();
-	sv_setnv($result, *$input);
-	argvi++;                     /* Increment return count -- important! */
+    $result = sv_2mortal(newSVnv(*($1)));
+    argvi++;                     /* Increment return count -- important! */
 }
 
 // We don't care what the input value is. Ignore, but set to a temporary variable
 
 %typemap(in,numinputs=0) double *OUTPUT(double junk) {
-	$1 = &amp;junk;
+    $1 = &amp;junk;
 }
 
 // Now a function to test it
 %{
 /* Returns the first two input arguments */
 int multout(double a, double b, double *out1, double *out2) {
-	*out1 = a;
-	*out2 = b;
-	return 0;
+    *out1 = a;
+    *out2 = b;
+    return 0;
 };
 %}
 
@@ -2367,7 +2328,7 @@ have a C function that modifies its arguments like this:
 
 <div class="code"><pre>
 void add(double a, double b, double *c) {
-	*c = a + b;
+    *c = a + b;
 }
 </pre></div>
 
@@ -2389,22 +2350,18 @@ To make this work with a reference, you can use a typemap such as this:
 
 <div class="code"><pre>
 %typemap(in) double * (double dvalue) {
-  SV* tempsv;
-  if (!SvROK($input)) {
-    croak("expected a reference\n");
-  }
-  tempsv = SvRV($input);
-  if ((!SvNOK(tempsv)) &amp;&amp; (!SvIOK(tempsv))) {
-    croak("expected a double reference\n");
-  }
-  dvalue = SvNV(tempsv);
-  $1 = &amp;dvalue;
+    SV *sv;
+    if (!SvROK($input))
+        croak("expected a reference");
+    sv = SvRV($input);
+    if (!(SvNOK(sv) || SvIOK(sv)))
+        croak("expected numeric reference");
+    dvalue = SvNV(sv);
+    $1 = &amp;dvalue;
 }
 
 %typemap(argout) double * {
-  SV *tempsv;
-  tempsv = SvRV($input);
-  sv_setnv(tempsv, *$1);
+    sv_setnv(SvRV($input), *$1);
 }
 </pre></div>
 
@@ -2531,11 +2488,9 @@ $ swig -c++ -perl -noproxy example.i
 </div>
 
 <p>
-When proxy classes are used, SWIG moves all of the low-level procedural wrappers to
-another package name.  By default, this package is named 'modulec' where 'module' is the name of the module
-you provided with the <tt>%module</tt> directive.  Then, in place of the original module, 
-SWIG creates a collection of high-level Perl wrappers.  In your scripts, you will use these
-high level wrappers.  The wrappers, in turn, interact with the low-level procedural module.
+When proxy classes are used, SWIG builds Perl packages for each C++
+class and attempts to build a more object-oriented interface than the
+prodedural one that results when proxies are disabled.
 </p>
 
 <H3><a name="Perl5_nn41"></a>31.9.2 Structure and class wrappers</H3>
@@ -2548,95 +2503,33 @@ Suppose you have the following SWIG interface file:
 <div class="code"><pre>
 %module example
 struct Vector {
-	Vector(double x, double y, double z);
-	~Vector();
-	double x,y,z;
+    Vector(double x, double y, double z);
+    ~Vector();
+    void add(Vector v);
+    double x,y,z;
 };
 
 </pre></div>
 
 <p>
-When wrapped, SWIG creates the following set of low-level accessor
-functions as described in previous sections.
-</p>
-
-<div class="code"><pre>
-Vector *new_Vector(double x, double y, double z);
-void    delete_Vector(Vector *v);
-double  Vector_x_get(Vector *v);
-double  Vector_x_set(Vector *v, double value);
-double  Vector_y_get(Vector *v);
-double  Vector_y_set(Vector *v, double value);
-double  Vector_z_get(Vector *v);
-double  Vector_z_set(Vector *v, double value);
-
-</pre></div>
-
-<p>
-However, when proxy classes are enabled, these accessor functions are
-wrapped inside a Perl class like this:
+When wrapped with proxy classes disabled, SWIG creates a basic
+procedural style interface to interact with target functions.  A simple
+use example would look like:
 </p>
 
 <div class="targetlang"><pre>
-package example::Vector;
-@ISA = qw( example );
-%OWNER = ();
-%BLESSEDMEMBERS = ();
-
-sub new () {
-    my $self = shift;
-    my @args = @_;
-    $self = vectorc::new_Vector(@args);
-    return undef if (!defined($self));
-    bless $self, "example::Vector";
-    $OWNER{$self} = 1;
-    my %retval;
-    tie %retval, "example::Vector", $self;
-    return bless \%retval,"Vector";
-}
-
-sub DESTROY {
-    return unless $_[0]-&gt;isa('HASH');
-    my $self = tied(%{$_[0]});
-    delete $ITERATORS{$self};
-    if (exists $OWNER{$self}) {
-	 examplec::delete_Vector($self));
-	 delete $OWNER{$self};
-}
-
-sub FETCH {
-    my ($self,$field) = @_;
-    my $member_func = "vectorc::Vector_${field}_get";
-    my $val = &amp;$member_func($self);
-    if (exists $BLESSEDMEMBERS{$field}) {
-        return undef if (!defined($val));
-        my %retval;
-        tie %retval,$BLESSEDMEMBERS{$field},$val;
-        return bless \%retval, $BLESSEDMEMBERS{$field};
-    }
-    return $val;
-}
-
-sub STORE {
-    my ($self,$field,$newval) = @_;
-    my $member_func = "vectorc::Vector_${field}_set";
-    if (exists $BLESSEDMEMBERS{$field}) {
-        &amp;$member_func($self,tied(%{$newval}));
-    } else {
-        &amp;$member_func($self,$newval);
-    }
-}
+my $v1 = example::new_Vector(1.1, 2.2, 3.3);
+my $v2 = example::new_Vector(4.4, 5.5, 6.6);
+example::Vector_add($v1, $v2);
 </pre></div>
 
 <p>
-Each structure or class is mapped into a Perl package of the same
-name. The C++ constructors and destructors are mapped into
-constructors and destructors for the package and are always named
-"new" and "DESTROY".  The constructor always returns a tied hash
-table.  This hash table is used to access the member variables of a
-structure in addition to being able to invoke member functions.  The
-<tt>%OWNER</tt> and <tt>%BLESSEDMEMBERS</tt> hash tables are used
-internally and described shortly.
+However, when proxy classes are enabled, each structure or class is
+mapped into a Perl package of the same name. The C++ constructors and
+destructors are mapped into constructors and destructors for the
+package.  The constructor always returns a tied hash table.  This hash
+table is used to access the member variables of a structure in addition
+to being able to invoke member functions.
 </p>
 
 <p>
@@ -2645,22 +2538,24 @@ To use our new proxy class we can simply do the following:
 
 <div class="targetlang"><pre>
 # Perl code using Vector class
-$v = new Vector(2,3,4);
-$w = Vector-&gt;new(-1,-2,-3);
+$v = new example::Vector(2,3,4);
+$w = example::Vector-&gt;new(-1,-2,-3);
 
 # Assignment of a single member
 $v-&gt;{x} = 7.5;
 
 # Assignment of all members
-%$v = ( x=&gt;3,
-	 y=&gt;9,
-	 z=&gt;-2);
+%$v = (
+    x =&gt; 3,
+    y =&gt; 9,
+    z =&gt; -2,
+);
 
 # Reading members
 $x = $v-&gt;{x};
 
 # Destruction
-$v-&gt;DESTROY();
+undef $v;
 
 </pre></div>
 
@@ -2704,46 +2599,12 @@ done with it.
 </p>
 
 <p>
-To manage these problems, each class contains two methods that access
-an internal hash table called <tt>%OWNER</tt>.  This hash keeps a list
-of all of the objects that Perl knows that it has created.  This
-happens in two cases: (1) when the constructor has been called, and
-(2) when a function implicitly creates a new object (as is done when
-SWIG needs to return a complex datatype by value).  When the
-destructor is invoked, the Perl proxy class module checks the
-<tt>%OWNER</tt> hash to see if Perl created the object.  If so, the
-C/C++ destructor is invoked.  If not, we simply destroy the Perl
-object and leave the underlying C object alone (under the assumption
-that someone else must have created it).
-</p>
-
-<p>
-This scheme works remarkably well in practice but it isn't foolproof.
-In fact, it will fail if you create a new C object in Perl, pass it on
-to a C function that remembers the object, and then destroy the
-corresponding Perl object (this situation turns out to come up
-frequently when constructing objects like linked lists and trees).
-When C takes possession of an object, you can change Perl's ownership
-by simply deleting the object from the <tt>%OWNER</tt> hash.  This is
-done using the <tt>DISOWN</tt> method.
-</p>
-
-<div class="targetlang"><pre>
-# Perl code to change ownership of an object
-$v = new Vector(x,y,z);
-$v-&gt;DISOWN();     
-</pre></div>
-
-<p>
-To acquire ownership of an object, the <tt>ACQUIRE</tt> method can be used.
-</p>
-
-<div class="targetlang"><pre>
-# Given Perl ownership of a file
-$u = Vector_get($v);
-$u-&gt;ACQUIRE();
-
-</pre></div>
+To manage these problems, the Perl reference to an object keeps track of
+whether it is an owning reference or not.  C++ constructors get this by
+default, but you may need to use the %newobject directive to hint SWIG
+about other functions which have callee cleanup obligations.  Consult
+<a href="Customization.html#Customization_ownership">Ownership
+customization</a> for details.
 
 <p>
 As always, a little care is in order.  SWIG does not provide reference
@@ -2751,100 +2612,13 @@ counting, garbage collection, or advanced features one might find in
 sophisticated languages.
 </p>
 
-<H3><a name="Perl5_nn43"></a>31.9.4 Nested Objects</H3>
+<H3><a name="Perl5_nn45"></a>31.9.4 Inheritance</H3>
 
 
 <p>
-Suppose that we have a new object that looks like this:
-</p>
-
-<div class="code"><pre>
-struct Particle {
-	Vector r;
-	Vector v;
-	Vector f;
-	int	type;
-}
-
-</pre></div>
-
-<p>
-In this case, the members of the structure are complex objects that
-have already been encapsulated in a Perl proxy class.  To handle
-these correctly, we use the <tt>%BLESSEDMEMBERS</tt> hash which would
-look like this (along with some supporting code):
-</p>
-
-<div class="targetlang"><pre>
-package Particle;
-...
-%BLESSEDMEMBERS = (
-	r =&gt; `Vector',
-	v =&gt; `Vector',
-	f =&gt; `Vector',
-);
-
-</pre></div>
-
-<p>
-When fetching members from the structure, <tt>%BLESSEDMEMBERS</tt> is
-checked.  If the requested field is present, we create a tied-hash
-table and return it.  If not, we just return the corresponding member
-unmodified.
-</p>
-
-<p>
-This implementation allows us to operate on nested structures as follows:
-</p>
-
-<div class="targetlang"><pre>
-# Perl access of nested structure
-$p = new Particle();
-$p-&gt;{f}-&gt;{x} = 0.0;
-%${$p-&gt;{v}} = ( x=&gt;0, y=&gt;0, z=&gt;0);         
-</pre></div>
-
-<H3><a name="Perl5_nn44"></a>31.9.5 Proxy Functions</H3>
-
-
-<p>
-When functions take arguments involving a complex object, it is
-sometimes necessary to write a proxy function.  For example:
-</p>
-
-<div class="code"><pre>
-double dot_product(Vector *v1, Vector *v2);
-</pre></div>
-
-<p>
-Since Vector is an object already wrapped into a proxy class, we need
-to modify this function to accept arguments that are given in the form
-of tied hash tables.  This is done by creating a Perl function like
-this:
-</p>
-
-<div class="targetlang"><pre>
-sub dot_product {
-    my @args = @_;
-    $args[0] = tied(%{$args[0]});         # Get the real pointer values
-    $args[1] = tied(%{$args[1]});
-    my $result = vectorc::dot_product(@args);
-    return $result;
-}
-</pre></div>
-
-<p>
-This function replaces the original function, but operates in an
-identical manner.
-</p>
-
-<H3><a name="Perl5_nn45"></a>31.9.6 Inheritance</H3>
-
-
-<p>
-Simple C++ inheritance is handled using the Perl <tt>@ISA</tt> array
-in each class package. For example, if you have the following
-interface file:
+Simple C++ inheritance is handled using the Perl <tt>base</tt> module
+in child packages. For example, if you have the following interface
+file:
 </p>
 
 <div class="code"><pre>
@@ -2857,25 +2631,24 @@ interface file:
 
 class Shape {
 public:
-	virtual double area() = 0;
-	virtual double perimeter() = 0;
-	void    set_location(double x, double y);
+    virtual double area() = 0;
+    virtual double perimeter() = 0;
+    void    set_location(double x, double y);
 };
 class Circle : public Shape {
 public:
-	Circle(double radius);
-	~Circle();
-	double area();
-	double perimeter();
+    Circle(double radius);
+    ~Circle();
+    double area();
+    double perimeter();
 };
 class Square : public Shape {
 public:
-	Square(double size);
-	~Square();
-	double area();
-	double perimeter();
-}
-
+    Square(double size);
+    ~Square();
+    double area();
+    double perimeter();
+};
 </pre></div>
 
 <p>
@@ -2883,64 +2656,80 @@ The resulting, Perl wrapper class will create the following code:
 </p>
 
 <div class="targetlang"><pre>
-Package Shape;
-@ISA = (shapes);
+package shapes::Shape;
 ...
-Package Circle;
-@ISA = (shapes Shape);
+package shapes::Circle;
+use base 'shapes::Shape';
 ...
 Package Square;
-@ISA = (shapes Shape);
-
+use base 'shapes::Shape';
+...
 </pre></div>
 
 <p>
 The <tt>@ISA</tt> array determines where to look for methods of a
 particular class.  In this case, both the <tt>Circle</tt> and
 <tt>Square</tt> classes inherit functions from <tt>Shape</tt> so we'll
-want to look in the <tt>Shape</tt> base class for them.  All classes
-also inherit from the top-level module <tt>shapes</tt>.  This is
-because certain common operations needed to implement proxy classes
-are implemented only once and reused in the wrapper code for various
-classes and structures.
+want to look in the <tt>Shape</tt> base class for them.
 </p>
 
 <p>
-Since SWIG proxy classes are implemented in Perl, it is easy to
-subclass from any SWIG generated class.  To do this, simply put the
-name of a SWIG class in the <tt>@ISA</tt> array for your new
-class. However, be forewarned that this is not a trivial problem.  In
-particular, inheritance of data members is extremely tricky (and I'm
-not even sure if it really works).
+You are able to add your own child classes, however there will be
+problems with many use patterns unless directors are enabled.
 </p>
 
-<H3><a name="Perl5_nn46"></a>31.9.7 Modifying the proxy methods</H3>
+<H3><a name="Perl5_nn46"></a>31.9.5 Enabling directors</H3>
 
 
 <p>
-It is possible to override the SWIG generated proxy/shadow methods, using <tt>%feature("shadow")</tt>.
-It works like all the other <a href="Customization.html#Customization_features">%feature directives</a>.
-Here is a simple example showing how to add some Perl debug code to the constructor:
+The director feature is disabled by default.  To use directors you
+must make two changes to the interface file.  First, add the "directors"
+option to the %module directive.  Without this option no director code
+will be generated.  Second, you must use the %feature("director")
+directive to tell SWIG which classes and methods should get directors.
+Here is a simple example:
 </p>
 
-<div class="targetlang"><pre>
-/* Let's make the constructor of the class Square more verbose */
-%feature("shadow") Square(double w)
-%{
-  sub new {
-    my $pkg = shift;
-    my $self = examplec::new_Square(@_);
-    print STDERR "Constructed an @{[ref($self)]}\n";
-    bless $self, $pkg if defined($self);
-  }
-%}
-
-class Square {
-public:
-  Square(double w);
-  ...
+<div class="code"><pre>
+%module(directors="1") example
+%feature("director") Foo;
+class Foo {
+  public:
+    Foo(int);
+    virtual int one();
+    virtual int two();
+    int x, y;
 };
 </pre></div>
+
+<p>
+then in Perl you can declare:
+</p>
+
+<div class="targetlang">
+<pre>
+package MyFoo;
+use base 'example::Foo';
+use fields qw(z _MyFoo_private);
+
+sub one {
+    my($self) = @_;
+    print "one is overridden\n";
+    return $self-&gt;{x} + $self-&gt;{z};
+}
+</pre>
+</div>
+
+<p>
+which will call your overridden method even via dispatch from C++.
+Subclasses may add attributes using the fields module.  SWIG's wrapping
+code includes a C++ child class of each class directors are enabled on
+and a wrapping function for each virtual method to achieve this
+behavior.  Therefore, it is recommended that you selectively enable
+directors only for specific classes that are likely to be extended in
+Perl and used in C++. 
+</p>
+
 
 <H2><a name="Perl5_nn47"></a>31.10 Adding additional Perl code</H2>
 
