@@ -1,4 +1,4 @@
-TOP        = ../../..
+TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SRCS       =
 TARGET     = example_wrap.cxx
