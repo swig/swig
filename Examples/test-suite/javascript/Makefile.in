@@ -44,7 +44,6 @@ CPP_TEST_CASES = \
   cpp_static \
   director_alternating \
   enum_template \
-  infinity \
   namespace_virtual_method \
   overload_copy \
   rename1 \
@@ -68,6 +67,7 @@ CPP_TEST_CASES = \
   javascript_unicode
 
 BROKEN_TEST_CASES = \
+  infinity \
   preproc_include
 
 SKIP_CPP_CASES = @SKIP_CPP_CASES@

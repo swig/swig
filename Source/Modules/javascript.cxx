@@ -793,8 +793,18 @@ int JSEmitter::enterFunction(Node *n) {
 
 int JSEmitter::enterVariable(Node *n) {
 
+  // reset the state information for variables.
   state.variable(true);
-  state.variable(NAME, Swig_scopename_last(Getattr(n, "name")));
+
+  // Retrieve a pure symbol name. Using 'sym:name' as a basis, as it considers %renamings.
+
+  if (Equal(Getattr(n, "view"), "memberconstantHandler")) {
+    // Note: this is kind of hacky/experimental
+    // For constants/enums 'sym:name' contains e.g., 'Foo_Hello' instead of 'Hello'
+    state.variable(NAME, Getattr(n, "memberconstantHandler:sym:name"));
+  } else {
+    state.variable(NAME, Swig_scopename_last(Getattr(n, "sym:name")));
+  }
 
   if(Equal(Getattr(n, "storage"), "static")) {
     SetFlag(state.variable(), IS_STATIC);
