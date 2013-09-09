@@ -1636,7 +1636,7 @@ int JSCEmitter::exitVariable(Node *n) {
       .replace(T_SETTER, state.variable(SETTER));
 
   if (GetFlag(n, "ismember")) {
-    if (GetFlag(state.function(), IS_STATIC)
+    if (GetFlag(state.variable(), IS_STATIC)
         || Equal(Getattr(n, "nodeType"), "enumitem")) {
       Append(state.clazz(STATIC_VARIABLES), t_variable.str());
     } else {
