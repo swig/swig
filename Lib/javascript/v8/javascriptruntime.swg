@@ -297,9 +297,9 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
 #if (SWIG_V8_VERSION < 0x031900)
-v8::Handle<v8::Value> _wrap_equals(const v8::Arguments &args) {
+v8::Handle<v8::Value> _SWIGV8_wrap_equals(const v8::Arguments &args) {
 #else
-void _wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
+void _SWIGV8_wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
 #endif
   v8::HandleScope scope;
   v8::Handle<v8::Value> jsresult;
@@ -309,11 +309,11 @@ void _wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
   int res1;
   int res2;
 
-  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_equals.");
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for equals.");
 
   res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ERROR, "Could not get pointer from 'this' object for _wrap_equals.");
+    SWIG_exception_fail(SWIG_ERROR, "Could not get pointer from 'this' object for equals.");
   }
   res2 = SWIG_GetInstancePtr(args[0], &arg2);
   if (!SWIG_IsOK(res2)) {
