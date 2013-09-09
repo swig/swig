@@ -1875,6 +1875,7 @@ int V8Emitter::initialize(Node *n)
   Swig_register_filebyname("begin", f_wrap_cpp);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("header", f_header);
+  Swig_register_filebyname("wrapper", f_wrappers);
   Swig_register_filebyname("init", f_init);
   Swig_register_filebyname("post-init", f_post_init);
 
