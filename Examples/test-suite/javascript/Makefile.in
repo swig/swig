@@ -47,6 +47,10 @@ CPP_TEST_CASES = \
   infinity \
   namespace_virtual_method \
   overload_copy \
+  rename1 \
+  rename2 \
+  rename3 \
+  rename4 \
   ret_by_value \
   struct_value \
   template_static \
