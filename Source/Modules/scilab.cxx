@@ -20,7 +20,7 @@ static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
      -addcflag <opt> - Additional include options <opt> to include in build script\n\
      -addldflag <opt>- Additional link options <opt> to include in build script\n\
-     -addsrc <files> - Additional space separated source <files> to include in build script\n\
+     -addsrc <files> - Additional comma separated source <files> to include in build script\n\
      -vbl <level>    - Sets the build verbose <level> (default 0)\n\n";
 
 static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
@@ -65,7 +65,7 @@ public:
 	} else if (strcmp(argv[argIndex], "-addsrc") == 0) {
 	  if (argv[argIndex + 1] != NULL) {
 	    Swig_mark_arg(argIndex);
-	    char *sourceFile = strtok(argv[argIndex + 1], " ");
+	    char *sourceFile = strtok(argv[argIndex + 1], ",");
 	    while (sourceFile != NULL) {
 	      DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
 	      sourceFile = strtok(NULL, " ");
