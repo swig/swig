@@ -489,8 +489,10 @@ CPP_STD_TEST_CASES += \
 	li_std_map \
 	li_std_pair \
 	li_std_pair_using \
+	li_std_set_as_argument \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_as_argument \
 	li_std_vector_enum \
 	li_std_vector_member_var\
 	naturalvar \
