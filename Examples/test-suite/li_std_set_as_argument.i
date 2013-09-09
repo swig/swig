@@ -1,6 +1,8 @@
-/* File : example.cpp */
+%module li_std_set_as_argument
 
-#include "example.hxx"
+%{
+#include <set>
+#include <string>
 
 #include <iostream>
 #include <iterator>
@@ -8,7 +10,19 @@
 #include <numeric>
 #include <sstream>
 
+%}
 
+%include stl.i
+
+namespace std
+{
+    %template(IntSet) set<int>;
+    %template(StringSet) set<std::string>;
+}
+
+%ignore concat_set;
+
+%inline %{
 template <typename T>
 std::set<T> concat_set(const std::set<T> set, const std::set<T> other_set)
 {
@@ -58,4 +72,5 @@ std::set<std::string> concat_string_set(const std::set<std::string> set, const s
 {
     return concat_set<std::string>(set, other_set);
 }
+%}
 
