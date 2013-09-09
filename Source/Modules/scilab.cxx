@@ -533,7 +533,7 @@ public:
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
     /* Add function to builder table */
-    Printf(builderCode, "\"%s\",\"%s\";", getFunctionName, getFunctionName);
+    addFunctionInBuilder(getFunctionName, getFunctionName);
 
     /* Manage SET function */
     if (is_assignable(node)) {
