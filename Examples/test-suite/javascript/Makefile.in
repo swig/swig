@@ -51,6 +51,8 @@ CPP_TEST_CASES = \
   rename2 \
   rename3 \
   rename4 \
+  rename_simple \
+  rename_scope \
   ret_by_value \
   struct_value \
   template_static \
