@@ -24,7 +24,8 @@ endif
 ifneq (,$(SMOKE))
 
 C_TEST_CASES = \
-  preproc
+  preproc \
+  preproc_include
 
 CPP_TEST_CASES = \
   abstract_access \
@@ -42,14 +43,9 @@ CPP_TEST_CASES = \
   cpp_enum \
   cpp_namespace \
   cpp_static \
-  director_alternating \
   enum_template \
   namespace_virtual_method \
   overload_copy \
-  rename1 \
-  rename2 \
-  rename3 \
-  rename4 \
   rename_simple \
   rename_scope \
   ret_by_value \
@@ -67,8 +63,7 @@ CPP_TEST_CASES = \
   javascript_unicode
 
 BROKEN_TEST_CASES = \
-  infinity \
-  preproc_include
+  infinity
 
 SKIP_CPP_CASES = @SKIP_CPP_CASES@
 SKIP_C_CASES = @SKIP_C_CASES@
