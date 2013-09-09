@@ -1,4 +1,5 @@
 lines(0);
+ilib_verbose(0);
 exec loader.sce;
 SWIG_Init();
 
