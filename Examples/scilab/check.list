@@ -8,8 +8,7 @@ matrix
 matrix2
 pointer
 simple
-std_vector/std_vector
-std_vector/std_vector_as_function_argument
+std_vector
 struct
 template
 variables
