@@ -1021,16 +1021,16 @@ else
   fi
 
   if test -n "$SCILAB"; then
-    # Check for Scilab version (needs api_scilab so needs version 5.2 or higher)
+    # Check for Scilab version (needs api_scilab so needs version 5.3 or higher)
     SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
     AC_MSG_NOTICE([Scilab version: $SCILAB_FULL_VERSION])
 
-    AC_MSG_CHECKING(for Scilab version is 5.2 or higher)
+    AC_MSG_CHECKING(for Scilab version is 5.3 or higher)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
     SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
     SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION"
 
-    if test $SCILAB_VERSION -ge 52; then
+    if test $SCILAB_VERSION -ge 53; then
       AC_MSG_RESULT(yes)
     else
       AC_MSG_RESULT(no)
