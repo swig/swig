@@ -16,6 +16,7 @@ Active SWIG Developers:
  Joseph Wang (joequant@gmail.com)                       (R)
  Xavier Delacour (xavier.delacour@gmail.com)            (Octave)
  David Nadlinger (code@klickverbot.at)                  (D)
+ Simon Marchetto (simon.marchetto@scilab-enterprises.com) (Scilab)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
@@ -60,7 +61,10 @@ Past SWIG developers and major contributors include:
  Baozeng Ding  <sploving1@163.com>                      (Scilab)
  Ian Lance Taylor                                       (Go)
  Vadim Zeitlin                                          (PCRE)
- Stefan Zager (szager@gmail.com)			(Python)
+ Stefan Zager (szager@gmail.com)                        (Python)
+ Vincent Couvert                                        (Scilab)
+ Sylvestre Ledru                                        (Scilab)
+ Wolfgang Frisch                                        (Scilab)
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
