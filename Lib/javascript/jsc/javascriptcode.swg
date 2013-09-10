@@ -107,7 +107,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
 %{
 void $jswrapper(JSObjectRef thisObject)
 {
-  SWIG_PRV_DATA* t = (SWIG_PRV_DATA*) JSObjectGetPrivate(thisObject);
+  SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
   if(t && t->swigCMemOwn) free (($jstype)t->swigCObject);
   if(t) free(t);
 }
@@ -123,7 +123,7 @@ void $jswrapper(JSObjectRef thisObject)
 %{
 void $jswrapper(JSObjectRef thisObject)
 {
-  SWIG_PRV_DATA* t = (SWIG_PRV_DATA*) JSObjectGetPrivate(thisObject);
+  SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
   if(t && t->swigCMemOwn) {
     $jstype arg1 = ($jstype)t->swigCObject;
     ${destructor_action}
@@ -286,6 +286,12 @@ bool SWIGJSC_INIT (JSGlobalContextRef context, JSObjectRef *exports) {
     _SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
     _SwigObject_objectDefinition.staticValues = _SwigObject_values;
     _SwigObject_classRef = JSClassCreate(&_SwigObject_objectDefinition);
+
+    /* Initialize the PackedData class */
+    _SwigPackedData_objectDefinition.staticFunctions = _SwigPackedData_functions;
+    _SwigPackedData_objectDefinition.staticValues = _SwigPackedData_values;
+    _SwigPackedData_objectDefinition.finalize = _wrap_SwigPackedData_delete;
+    _SwigPackedData_classRef = JSClassCreate(&_SwigPackedData_objectDefinition);
 
     /* Create objects for namespaces */
     $jscreatenamespaces

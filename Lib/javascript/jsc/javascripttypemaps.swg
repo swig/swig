@@ -8,6 +8,7 @@
 
 /* These macros are necessary to provide an extra parameter
    to SWIG_AsVal_dec functions (JSContextRef context).
+   They must be defined before including `typemaps/fragments.swg`
 */
 #define SWIG_FROM_DECL_ARGS SWIG_JSC_FROM_DECL_ARGS
 #define SWIG_FROM_CALL_ARGS SWIG_JSC_FROM_CALL_ARGS
@@ -41,6 +42,13 @@
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)  SWIG_Javascript_Raise(context, exception, type)
+
+%insert("runtime") %{
+#define SWIG_JSC_FROM_DECL_ARGS(arg1)              (JSContextRef context, arg1)
+#define SWIG_JSC_FROM_CALL_ARGS(arg1)              (context, arg1)
+#define SWIG_JSC_AS_DECL_ARGS(arg1, arg2)          (JSContextRef context, arg1, arg2)
+#define SWIG_JSC_AS_CALL_ARGS(arg1, arg2)          (context, arg1, arg2)
+%}
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

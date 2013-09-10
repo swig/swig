@@ -137,7 +137,6 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   }
   delete proxy;
 
-
   object.Clear();
 #if (SWIG_V8_VERSION < 0x031900)
   object.Dispose();
