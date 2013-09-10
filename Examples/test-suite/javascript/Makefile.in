@@ -10,9 +10,9 @@ top_builddir = @top_builddir@
 SWIG  = $(top_builddir)/preinst_swig
 
 ifneq (, $(ENGINE))
-	JSENGINE = $(ENGINE)
+	JSENGINE=$(ENGINE)
 else
-	JSENGINE = "node"
+	JSENGINE=node
 endif
 
 # Note: the javascript generator is not ready yet for the real game.
@@ -74,8 +74,6 @@ endif
 
 include $(srcdir)/../common.mk
 
-SWIGOPT += -$(JSENGINE)
-
 _setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing testcase $* (with run test) under javascript ($(JSENGINE))" ; \
@@ -83,19 +81,16 @@ _setup = \
 	  echo "$(ACTION)ing testcase $* under javascript ($(JSENGINE))" ;		  \
 	fi;
 
-ifeq ("node",$(JSENGINE))
+ifeq (node,$(JSENGINE))
+
+  SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
 
 	__setup = \
-		if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
-			sh ./setup_test.sh $*; \
-			$(SWIG) -c++ -javascript -v8 -DBUILDING_NODE_EXTENSION=1 -I$(top_srcdir)/Examples/test-suite -includeall -o $*/$*_wrap.cxx ../$*.i; \
-		fi
+		sh ./setup_test.sh $*; \
+		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
 
 	nodejs_swig_and_compile = \
-		if [ ! -f $(srcdir)/$*/build/Makefile ]; then \
-			node-gyp --loglevel=silent --directory $* configure; \
-		fi; \
-		node-gyp --loglevel=silent --directory $* build; \
+		node-gyp --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
@@ -121,6 +116,8 @@ ifeq ("node",$(JSENGINE))
 		$(run_testcase)
 
 else
+
+  SWIGOPT += -$(JSENGINE)
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
