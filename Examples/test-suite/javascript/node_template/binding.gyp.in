@@ -4,6 +4,9 @@
       "target_name": "$testcase",
       "sources":[ "$testcase_wrap.cxx" ],
       "include_dirs": ["../.."],
+      'defines': [
+        'BUILDING_NODE_EXTENSION=1',
+      ],
       'conditions': [
         ['OS=="mac"',
           {

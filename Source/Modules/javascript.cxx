@@ -532,11 +532,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         mode = JSEmitter::V8;
         SWIG_library_directory("javascript/v8");
-      } else if (strcmp(argv[i], "-node") == 0) {
-        Swig_mark_arg(i);
-        mode = JSEmitter::V8;
-        SWIG_library_directory("javascript/v8");
-        Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
       } else if (strcmp(argv[i], "-jsc") == 0) {
         Swig_mark_arg(i);
         mode = JSEmitter::JavascriptCore;
@@ -544,8 +539,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
-      } else if (strcmp(argv[i], "-no-moduleobject") == 0) {
-        Swig_mark_arg(i);
       }
     }
   }

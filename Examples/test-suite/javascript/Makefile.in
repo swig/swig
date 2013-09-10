@@ -88,7 +88,7 @@ ifeq ("node",$(JSENGINE))
 	__setup = \
 		if [ ! -f $(srcdir)/$*/binding.gyp ]; then \
 			sh ./setup_test.sh $*; \
-			$(SWIG) -c++ -javascript -node -o $*/$*_wrap.cxx ../$*.i; \
+			$(SWIG) -c++ -javascript -v8 -DBUILDING_NODE_EXTENSION=1 -I$(top_srcdir)/Examples/test-suite -includeall -o $*/$*_wrap.cxx ../$*.i; \
 		fi
 
 	nodejs_swig_and_compile = \

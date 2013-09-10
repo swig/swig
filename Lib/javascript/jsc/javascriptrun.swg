@@ -1,7 +1,7 @@
-/*****************************************************************************/
-/*  Errors and exceptions
-/*
-/*****************************************************************************/
+/* ----------------------------------------------------------------------------
+ *  Errors and exceptions
+ *
+ * ---------------------------------------------------------------------------*/
 
 #define SWIG_Error(code, msg)     SWIG_JSC_exception(context, exception, code, msg)
 #define SWIG_exception(code, msg) SWIG_JSC_exception(context, exception, code, msg)
@@ -17,10 +17,10 @@ void SWIG_JSC_exception(JSContextRef context, JSValueRef *exception, int code, c
   SWIG_Javascript_Raise(context, exception, msg);
 }
 
-/*****************************************************************************/
-/*  The parent class of all Proxies
-/*
-/*****************************************************************************/
+/* ----------------------------------------------------------------------------
+ *  The parent class of all Proxies
+ *
+ * ---------------------------------------------------------------------------*/
 
 typedef struct {
   bool swigCMemOwn;
@@ -167,10 +167,10 @@ JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_in
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_JSC_ConvertInstancePtr(context, obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_JSC_NewPointerObj(context, thisvalue, type, flags)
 
-/*****************************************************************************/
-/*  A class for packed data
-/*
-/*****************************************************************************/
+/* ----------------------------------------------------------------------------
+ *  A class for packed data
+ *
+ * ---------------------------------------------------------------------------*/
 
 typedef struct {
   void *data;
