@@ -68,6 +68,7 @@ namespace swig
         {
           return value;
         }
+        else throw std::invalid_argument("Cannot get sequence item.");
       }
       catch (std::exception& e)
       {
@@ -437,10 +438,7 @@ namespace swig {
           }
           return traits_from_sequence<value_type>::set(size, data);
         }
-        else
-        {
-          return 0;
-        }
+        return 0;
       }
       catch (std::exception& e)
       {

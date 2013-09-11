@@ -117,5 +117,6 @@ SWIG_AsVal_SequenceItem_dec(ptr)(SciObject _obj, int *_piSequence, int _itemInde
 SWIGINTERN int
 SWIG_From_SequenceItem_dec(ptr)(long long *_pSequence, int _iItemIndex, long long _itemValue) {
   _pSequence[_iItemIndex] = _itemValue;
+  return SWIG_OK;
 }
 }
