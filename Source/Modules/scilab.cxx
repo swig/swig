@@ -18,10 +18,11 @@
 
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
-     -addcflag <opt> - Additional include options <opt> to include in build script\n\
-     -addldflag <opt>- Additional link options <opt> to include in build script\n\
-     -addsrc <files> - Additional comma separated source <files> to include in build script\n\
-     -vbl <level>    - Sets the build verbose <level> (default 0)\n\n";
+     -addcflag <opt>     - Additional include options <opt> to include in build script\n\
+     -addldflag <opt>    - Additional link options <opt> to include in build script\n\
+     -addsrc <files>     - Additional comma separated source <files> to include in build script\n\
+     -vbl <level>        - Sets the build verbose <level> (default 0)\n\
+     -flagscript <file>  - Uses a Scilab script to set build flags\n\n";
 
 static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
@@ -46,6 +47,7 @@ protected:
   String *ldflag;
   
   String *verboseBuildLevel;
+  String *buildFlagsScript;
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -56,6 +58,7 @@ public:
     ldflag = NULL;
     cflag = NULL;
     verboseBuildLevel = NULL;
+    buildFlagsScript = NULL;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -88,7 +91,11 @@ public:
 	  Swig_mark_arg(argIndex);
 	  verboseBuildLevel = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-	}
+  } else if (strcmp(argv[argIndex], "-flagscript") == 0) {
+    Swig_mark_arg(argIndex);
+    buildFlagsScript = NewString(argv[argIndex + 1]);
+    Swig_mark_arg(argIndex + 1);
+  }
       }
     }
 
@@ -159,19 +166,28 @@ public:
     Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
 
     Printf(builderCode, "libs = [];\n");
+
+    // Flags from command line arguments
+    Printf(builderCode, "cflags = \"-I\" + builddir;\n");
+    if (cflag != NULL) {
+      Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
+    }
+
     if (ldflag != NULL) {
       Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
-    } else {
-      Printf(builderCode, "ldflags = \"\";\n");
+    }
+    else {
+      Printf(builderCode, "ldflags = [];\n");
     }
 
-    Printf(builderCode, "cflags = [\"-g -I\" + builddir];\n");
-    if (cflag != NULL) {
-      Printf(builderCode, "includepath = \"%s\";\n", cflag);
-      Printf(builderCode, "includepath = fullpath(part(includepath, 3:length(includepath)));\n");
-      Printf(builderCode, "cflags = cflags + \" -I\" + includepath;\n");
+    // External script to set flags
+    if (buildFlagsScript) {
+      Printf(builderCode, "exec(\"%s\");\n", buildFlagsScript);
+      Printf(builderCode, "cflags = cflags + getCompilationFlags();\n");
+      Printf(builderCode, "ldflags = ldflags + getLinkFlags();\n");
     }
 
+    // Additional sources
     DohInsertitem(sourceFileList, 0, outputFilename);
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
