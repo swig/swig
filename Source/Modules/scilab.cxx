@@ -22,7 +22,8 @@ Scilab options (available with -scilab)\n\
      -addldflag <opt>    - Additional link options <opt> to include in build script\n\
      -addsrc <files>     - Additional comma separated source <files> to include in build script\n\
      -vbl <level>        - Sets the build verbose <level> (default 0)\n\
-     -flagscript <file>  - Uses a Scilab script to set build flags\n\n";
+     -flagscript <file>  - Uses a Scilab script to set build flags\n\
+     -nobuilder          - Do not generate builder script\n\n";
 
 static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
@@ -48,6 +49,8 @@ protected:
   
   String *verboseBuildLevel;
   String *buildFlagsScript;
+
+  bool generateBuilder;
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -59,6 +62,7 @@ public:
     cflag = NULL;
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
+    generateBuilder = true;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -95,6 +99,9 @@ public:
     Swig_mark_arg(argIndex);
     buildFlagsScript = NewString(argv[argIndex + 1]);
     Swig_mark_arg(argIndex + 1);
+  } else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
+    Swig_mark_arg(argIndex);
+    generateBuilder = false;
   }
       }
     }
@@ -150,55 +157,10 @@ public:
     /* Output module initialization code */
     Swig_banner(beginSection);
 
-    /* Initialize builder.sce contents */
-    builderFunctionCount = 0;
-    builderCode = NewString("");
-    Printf(builderCode, "mode(-1);\n");
-    Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
-
-    // Scilab needs to be in the build directory
-    Printf(builderCode, "originaldir = pwd();\n");
-    Printf(builderCode, "builddir = get_absolute_file_path('builder.sce');\n");
-    Printf(builderCode, "cd(builddir);\n");
-
-    Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
-
-    Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
-
-    Printf(builderCode, "libs = [];\n");
-
-    // Flags from command line arguments
-    Printf(builderCode, "cflags = \"-I\" + builddir;\n");
-    if (cflag != NULL) {
-      Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
+    // Add builder header code
+    if (generateBuilder) {
+      startBuilderCode(moduleName, outputFilename);
     }
-
-    if (ldflag != NULL) {
-      Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
-    }
-    else {
-      Printf(builderCode, "ldflags = [];\n");
-    }
-
-    // External script to set flags
-    if (buildFlagsScript) {
-      Printf(builderCode, "exec(\"%s\");\n", buildFlagsScript);
-      Printf(builderCode, "cflags = cflags + getCompilationFlags();\n");
-      Printf(builderCode, "ldflags = ldflags + getLinkFlags();\n");
-    }
-
-    // Additional sources
-    DohInsertitem(sourceFileList, 0, outputFilename);
-    for (int i = 0; i < Len(sourceFileList); i++) {
-      String *sourceFile = Getitem(sourceFileList, i);
-      if (i == 0) {
-	       Printf(builderCode, "files = \"%s\";\n", sourceFile);
-      } else {
-	       Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
-      }
-    }
-
-    Printf(builderCode, "table = [");
 
     /* add initialization function to builder table */
     addFunctionInBuilder(SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
@@ -221,27 +183,11 @@ public:
     // Close Scilab wrapper variables creation function
     Printf(variablesCode, "  return SWIG_OK;\n}\n");
 
-    /* Write all to the builder.sce file */
-    Printf(builderCode, "];\n");
-    Printf(builderCode, "ret = 1;\n");
-    Printf(builderCode, "if ~isempty(table) then\n");
-    Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
-    Printf(builderCode, "  libfilename = 'lib' + ilib_name + getdynlibext();\n");
-    Printf(builderCode, "  if isfile(libfilename) & isfile('loader.sce') then\n");
-    Printf(builderCode, "    ret = 0;\n");
-    Printf(builderCode, "  end\n");
-    Printf(builderCode, "end\n");
-    Printf(builderCode, "cd(originaldir);\n");
-
-    Printf(builderCode, "exit(ret)");
-    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
-    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
-    if (!builderFile) {
-      FileErrorDisplay(builderFilename);
-      SWIG_exit(EXIT_FAILURE);
+    // Add Builder footer code and save
+    if (generateBuilder) {
+      terminateBuilderCode();
+      saveBuilder();
     }
-    Printv(builderFile, builderCode, NIL);
-    Delete(builderFile);
 
     /* Close the init function (opened in sciinit.swg) */
     Printf(initSection, "return 0;\n}\n");
@@ -687,14 +633,94 @@ public:
     return Language::enumvalueDeclaration(node);
   }
 
+  void startBuilderCode(String *moduleName, String *outputFilename) {
+    builderFunctionCount = 0;
+    builderCode = NewString("");
+    Printf(builderCode, "mode(-1);\n");
+    Printf(builderCode, "lines(0);\n"); /* Useful for automatic tests */
+
+    // Scilab needs to be in the build directory
+    Printf(builderCode, "originaldir = pwd();\n");
+    Printf(builderCode, "builddir = get_absolute_file_path('builder.sce');\n");
+    Printf(builderCode, "cd(builddir);\n");
+
+    Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
+
+    Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
+
+    Printf(builderCode, "libs = [];\n");
+
+    // Flags from command line arguments
+    Printf(builderCode, "cflags = \"-I\" + builddir;\n");
+    if (cflag != NULL) {
+      Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
+    }
+
+    if (ldflag != NULL) {
+      Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
+    }
+    else {
+      Printf(builderCode, "ldflags = [];\n");
+    }
+
+    // External script to set flags
+    if (buildFlagsScript) {
+      Printf(builderCode, "exec(\"%s\");\n", buildFlagsScript);
+      Printf(builderCode, "cflags = cflags + getCompilationFlags();\n");
+      Printf(builderCode, "ldflags = ldflags + getLinkFlags();\n");
+    }
+
+    // Additional sources
+    DohInsertitem(sourceFileList, 0, outputFilename);
+    for (int i = 0; i < Len(sourceFileList); i++) {
+      String *sourceFile = Getitem(sourceFileList, i);
+      if (i == 0) {
+         Printf(builderCode, "files = \"%s\";\n", sourceFile);
+      } else {
+         Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+      }
+    }
+
+    Printf(builderCode, "table = [");
+  }
+
+  void terminateBuilderCode() {
+    Printf(builderCode, "];\n");
+    Printf(builderCode, "ret = 1;\n");
+    Printf(builderCode, "if ~isempty(table) then\n");
+    Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
+    Printf(builderCode, "  libfilename = 'lib' + ilib_name + getdynlibext();\n");
+    Printf(builderCode, "  if isfile(libfilename) & isfile('loader.sce') then\n");
+    Printf(builderCode, "    ret = 0;\n");
+    Printf(builderCode, "  end\n");
+    Printf(builderCode, "end\n");
+    Printf(builderCode, "cd(originaldir);\n");
+
+    Printf(builderCode, "exit(ret)");
+  }
+
+  void saveBuilder() {
+    // Save builder
+    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
+    if (!builderFile) {
+      FileErrorDisplay(builderFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    Printv(builderFile, builderCode, NIL);
+    Delete(builderFile);
+    }
+
   /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
    * ----------------------------------------------------------------------- */
   void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    if (++builderFunctionCount % 10 == 0) {
-      Printf(builderCode, "];\n\ntable = [table;");
+    if (generateBuilder) {
+      if (++builderFunctionCount % 10 == 0) {
+        Printf(builderCode, "];\n\ntable = [table;");
+      }
+      Printf(builderCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
     }
-    Printf(builderCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
   }
 };
 
