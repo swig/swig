@@ -6,6 +6,13 @@ Version 2.0.11 (in progress)
 ============================
 
 2013-09-12: wsfulton
+            [Lua] Pull Git patch #62.
+              1) Static members and static functions inside class can be accessed as
+                 ModuleName.ClassName.FunctionName (MemberName respectively). Old way such as
+                 ModuleName.ClassName_FunctionName still works.
+              2) Same goes for enums inside classes: ModuleName.ClassName.EnumValue1 etc.
+
+2013-09-12: wsfulton
             [UTL] Infinity is now by default an acceptable value for type 'float'. This fix makes
             the handling of type 'float' and 'double' the same. The implementation requires the
             C99 isfinite() macro, or otherwise some platform dependent equivalents, to be available.
