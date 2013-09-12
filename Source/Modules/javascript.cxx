@@ -673,6 +673,10 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
       bool is_static = GetFlag(state.variable(), IS_STATIC);
+      // HACK: smartpointeraccessed static variables are not treated as statics
+      if (GetFlag(n, "allocate:smartpointeraccess")) {
+        is_static = false;
+      }
       bool is_setter = GetFlag(n, "wrap:issetter");
       if (is_setter) {
         bool is_member = GetFlag(n, "memberset");
