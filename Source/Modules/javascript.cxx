@@ -1146,21 +1146,17 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
   } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
-
-
-
   Template t_function(getTemplate("js_function_dispatcher"));
 
-//  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
-
-
-  String *fun_name = Getattr(n, "sym:name");
-
-  Node *methodclass = Swig_methodclass(n);
-  String *class_name = Getattr(methodclass, "sym:name");
-
-  String *new_string = NewStringf("%s_%s", class_name, fun_name);
-  String *wrap_name = Swig_name_wrapper(new_string);
+  // Note: this dispatcher function gets called after the last overloaded function has been created.
+  // At this time, n.wrap:name contains the name of the last wrapper function.
+  // To get a valid function name for the dispatcher function we take the last wrapper name and
+  // substract the extension "sym:overname",
+  String *wrap_name = NewString(Getattr(n, "wrap:name"));
+  String *overname = Getattr(n, "sym:overname");
+  int l1 = Len(wrap_name);
+  int l2 = Len(overname);
+  Delslice(wrap_name, l1-l2, l1);
 
   Setattr(n, "wrap:name", wrap_name);
   state.function(WRAPPER_NAME, wrap_name);
