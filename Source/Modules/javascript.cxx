@@ -791,12 +791,15 @@ int JSEmitter::emitCtor(Node *n) {
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemap.
+  // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
+  Delete(wrapper->code);
+  wrapper->code = NewString("");
 
   Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
-  String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
-
+  String *action = emit_action(n);
   Printv(wrapper->code, action, "\n", 0);
 
   emitCleanupCode(n, wrapper, params);
@@ -1049,13 +1052,14 @@ int JSEmitter::emitConstant(Node *n) {
   Setattr(n, "wrap:name", wrap_name);
 
   // prepare code part
-  String *action = NewString("");
   String *value = Getattr(n, "rawval");
   if (value == NULL) {
     value = Getattr(n, "rawvalue");
     if (value == NULL) value = Getattr(n, "value");
   }
   assert(value != NULL);
+
+  String *action = NewString("");
   marshalOutput(n, wrapper, action, value, false);
 
   t_getter.replace("$jswrapper", wrap_name)
@@ -1091,9 +1095,13 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
 
-  // prepare code part
-  String *action = emit_action(n);
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemap.
+  // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
+  Delete(wrapper->code);
+  wrapper->code = NewString("");
+
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
+  String *action = emit_action(n);
   marshalOutput(n, wrapper, action);
 
   emitCleanupCode(n, wrapper, params);
