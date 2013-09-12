@@ -5,6 +5,22 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-09-12: wsfulton
+            [UTL] Infinity is now by default an acceptable value for type 'float'. This fix makes
+            the handling of type 'float' and 'double' the same. The implementation requires the
+            C99 isfinite() macro, or otherwise some platform dependent equivalents, to be available.
+
+            Users requiring the old behaviour of not accepting infinity, can define a 'check' typemap
+            wherever a float is used, such as:
+
+              %typemap(check,fragment="<float.h>") float, const float & %{
+                if ($1 < -FLT_MAX || $1 > FLT_MAX) {
+                  SWIG_exception_fail(SWIG_TypeError, "Overflow in type float");
+                }
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2013-08-30: wsfulton
             [Lua] Pull Git patch #81: Include Lua error locus in SWIG error messages.  
             This is standard information in Lua error messages, and makes it much
