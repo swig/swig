@@ -667,16 +667,18 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   String *kind = Getattr(n, "kind");
 
   if (kind) {
-    bool is_member = GetFlag(n, "ismember");
     if (Cmp(kind, "function") == 0) {
+      bool is_member = GetFlag(n, "ismember");
       bool is_static = GetFlag(state.function(), IS_STATIC);
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
       bool is_static = GetFlag(state.variable(), IS_STATIC);
       bool is_setter = GetFlag(n, "wrap:issetter");
       if (is_setter) {
+        bool is_member = GetFlag(n, "memberset");
         ret = emitSetter(n, is_member, is_static);
       } else {
+        bool is_member = GetFlag(n, "memberget");
         ret = emitGetter(n, is_member, is_static);
       }
     } else {
