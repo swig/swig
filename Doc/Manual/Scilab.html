@@ -173,12 +173,22 @@ swig -scilab -help
 
 <tr>
 <td>-addsrc &lt;files&gt;</td>
-<td>Additional space separated source &lt;files&gt; to include in build script</td>
+<td>Additional comma separated source &lt;files&gt; to include in build script</td>
 </tr>
 
 <tr>
 <td>-vbl &lt;level&gt;</td>
 <td>Sets the build verbose &lt;level&gt; (default 0)</td>
+</tr>
+
+<tr>
+<td>-buildflags &lt;file&gt;</td>
+<td>Uses a Scilab script in &lt;file&gt; to set build flags level</td>
+</tr>
+
+<tr>
+<td>-nobuilder</td>
+<td>Do not generate builder script</td>
 </tr>
 
 </table>
