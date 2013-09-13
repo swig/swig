@@ -18,12 +18,12 @@
 
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
-     -addcflag <opt>     - Additional include options <opt> to include in build script\n\
-     -addldflag <opt>    - Additional link options <opt> to include in build script\n\
-     -addsrc <files>     - Additional comma separated source <files> to include in build script\n\
-     -vbl <level>        - Sets the build verbose <level> (default 0)\n\
-     -flagscript <file>  - Uses a Scilab script to set build flags\n\
-     -nobuilder          - Do not generate builder script\n\n";
+     -addcflag <opt> - Additional include options <opt> to include in build script\n\
+     -addldflag <opt>- Additional link options <opt> to include in build script\n\
+     -addsrc <files> - Additional comma separated source <files> to include in build script\n\
+     -vbl <level>    - Sets the build verbose <level> (default 0)\n\
+     -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
+     -nobuilder      - Do not generate builder script\n\n";
 
 static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
@@ -95,7 +95,7 @@ public:
 	  Swig_mark_arg(argIndex);
 	  verboseBuildLevel = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-  } else if (strcmp(argv[argIndex], "-flagscript") == 0) {
+  } else if (strcmp(argv[argIndex], "-buildflags") == 0) {
     Swig_mark_arg(argIndex);
     buildFlagsScript = NewString(argv[argIndex + 1]);
     Swig_mark_arg(argIndex + 1);
