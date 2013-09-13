@@ -9,9 +9,9 @@
   --------------------------
 
     %arg(Arg)               Safe argument wrap
-    %str(Arg)               Stringtify the argument 
-    %begin_block            Begin a execution block  
-    %end_block              End a execution block   
+    %str(Arg)               Stringtify the argument
+    %begin_block            Begin a execution block
+    %end_block              End a execution block
     %block(Block)           Execute Block as a excecution block
     %define_as(Def, Val)    Define 'Def' as 'Val', expanding Def and Val first
     %ifcplusplus(V1, V2)    if C++ Mode; then V1; else V2; fi
@@ -19,7 +19,7 @@
 
   Casting Operations:
   -------------------
-  
+
   SWIG provides the following casting macros, which implement the
   corresponding C++ casting operations:
 
