@@ -322,7 +322,7 @@ public:
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
       if (Len(functionReturnTypemap) > 0) {
-	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */ \n", 1);
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */\n", 1);
       }
       Replaceall(functionReturnTypemap, "$result", "1");
 
