@@ -94,7 +94,7 @@ SWIG_InitializeModule(void *clientdata) {
     module_head->next = &swig_module;
   }
 
-  /* When multiple interpeters are used, a module could have already been initialized in
+  /* When multiple interpreters are used, a module could have already been initialized in
      a different interpreter, but not yet have a pointer in this interpreter.
      In this case, we do not want to continue adding types... everything should be
      set up already */

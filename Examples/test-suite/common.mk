@@ -285,8 +285,9 @@ CPP_TEST_CASES += \
 	operbool \
 	ordering \
 	overload_copy \
-	overload_method \
 	overload_extend \
+	overload_method \
+	overload_numeric \
 	overload_rename \
 	overload_return_type \
 	overload_simple \
@@ -511,6 +512,7 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	bom_utf8 \
 	char_constant \
 	const_const \
 	constant_expr \

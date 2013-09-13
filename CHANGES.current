@@ -5,3 +5,128 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-09-12: wsfulton
+            [Lua] Pull Git patch #62.
+              1) Static members and static functions inside class can be accessed as
+                 ModuleName.ClassName.FunctionName (MemberName respectively). Old way such as
+                 ModuleName.ClassName_FunctionName still works.
+              2) Same goes for enums inside classes: ModuleName.ClassName.EnumValue1 etc.
+
+2013-09-12: wsfulton
+            [UTL] Infinity is now by default an acceptable value for type 'float'. This fix makes
+            the handling of type 'float' and 'double' the same. The implementation requires the
+            C99 isfinite() macro, or otherwise some platform dependent equivalents, to be available.
+
+            Users requiring the old behaviour of not accepting infinity, can define a 'check' typemap
+            wherever a float is used, such as:
+
+              %typemap(check,fragment="<float.h>") float, const float & %{
+                if ($1 < -FLT_MAX || $1 > FLT_MAX) {
+                  SWIG_exception_fail(SWIG_TypeError, "Overflow in type float");
+                }
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2013-08-30: wsfulton
+            [Lua] Pull Git patch #81: Include Lua error locus in SWIG error messages.  
+            This is standard information in Lua error messages, and makes it much
+            easier to find bugs.
+
+2013-08-29: wsfulton
+            Pull Git patch #75: Handle UTF-8 files with BOM at beginning of file. Was giving an
+            'Illegal token' syntax error.
+
+2013-08-29: wsfulton
+            [C#] Pull Git patch #77: Allow exporting std::map using non-default comparison function.
+
+2013-08-28: wsfulton
+            [Python] %implicitconv is improved for overloaded functions. Like in C++, the methods
+            with the actual types are considered before trying implicit conversions. Example:
+
+              %implicitconv A;
+              struct A {
+                A(int i);
+              };
+              class CCC {
+                public:
+                  int xx(int i) { return 11; }
+                  int xx(const A& i) { return 22; }
+              };
+
+            The following python code:
+
+              CCC().xx(-1)
+
+            will now return 11 instead of 22 - the implicit conversion is not done.
+
+2013-08-23: olly
+	    [Python] Fix clang++ warning in generated wrapper code.
+
+2013-08-16: wsfulton
+            [Python] %implicitconv will now accept None where the implicit conversion takes a C/C++ pointer.
+            Problem highlighted by Bo Peng. Closes SF patch #230.
+
+2013-08-07: wsfulton
+            [Python] SF Patch #326 from Kris Thielemans - Remove SwigPyObject_print and SwigPyObject_str and
+            make the generated wrapper use the default python implementations, which will fall back to repr
+            (for -builtin option).
+
+            Advantages:
+            - it avoids the swig user having to jump through hoops to get print to work as expected when
+              redefining repr/str slots.
+            - typing the name of a variable on the python prompt now prints the result of a (possibly redefined)
+              repr, without the swig user having to do any extra work.
+            - when redefining repr, the swig user doesn't necessarily have to redefine str as it will call the
+              redefined repr
+            - the behaviour is exactly the same as without the -builtin option while requiring no extra work
+              by the user (aside from adding the %feature("python:slot...) statements of course)
+
+            Disadvantage:
+            - default str() will give different (but clearer?) output on swigged classes
+
+2013-07-30: wsfulton
+            [Python, Ruby] Fix #64 #65: Missing code in std::multimap wrappers. Previously an instantiation
+            of a std::map was erroneously required in addition to an instantiation of std::multimap with the
+            same template parameters to prevent compilation errors for the wrappers of a std::multimap.
+
+2013-07-14: joequant
+            [R] Change types file to allow for SEXP return values
+
+2013-07-05: wsfulton
+            [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
+            added at the beginning of the generated .py file. This is primarily needed for importing from
+            __future__ statements required to be at the very beginning of the file. Example:
+
+              %pythonbegin %{
+              from __future__ import print_function
+              print("Loading", "Whizz", "Bang", sep=' ... ')
+              %}
+
+2013-07-01: wsfulton
+            [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
+            when using -builtin.
+
+2013-07-01: wsfulton
+            [Python, Ruby, Ocaml] Apply SF patch #341 - fix a const_cast in generated code that was generating
+            a <:: digraph when using the unary scope operator (::) (global scope) in a template type.
+
+2013-07-01: wsfulton
+            [Python] Add SF patch #342 from Christian Delbaere to fix some director classes crashing on
+            object deletion when using -builtin. Fixes SF bug #1301.
+
+2013-06-11: wsfulton
+            [Python] Add SWIG_PYTHON_INTERPRETER_NO_DEBUG macro which can be defined to use the Release version
+            of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
+            files have been modified to use this so that Debug builds will now work without having
+            to install or build a Debug build of the interpreter.
+
+2013-06-07: wsfulton
+	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
+            versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
+            Also fix the Complex helper functions external visibility (to static by default).
+
+2013-06-04: olly
+	    [PHP] Fix SWIG_ZTS_ConvertResourcePtr() not to dereference NULL
+	    if the type lookup fails.
+

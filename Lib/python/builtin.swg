@@ -13,7 +13,11 @@ wrapper##_closure(PyObject *a) {		\
 	PyObject *o = wrapper(a, NULL);		\
 	Py_XDECREF(o);				\
     }						\
-    PyObject_Del(a);				\
+    if (PyType_IS_GC(a->ob_type)) {		\
+	PyObject_GC_Del(a);			\
+    } else {					\
+	PyObject_Del(a);			\
+    }						\
 }
 
 #define SWIGPY_INQUIRY_CLOSURE(wrapper)				\

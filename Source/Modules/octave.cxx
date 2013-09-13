@@ -288,7 +288,7 @@ public:
       String *escaped_doc_str = texinfo_escape(doc_str);
 
       if (Len(doc_str)>0) {
-	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
+	Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
 	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
 	if (Len(decl_info))
 	  Printf(f_doc,"\\n\\\n@end deftypefn");

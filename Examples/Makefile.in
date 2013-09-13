@@ -398,7 +398,7 @@ python_clean:
 ##################################################################
 
 # Make sure these locate your Octave installation
-OCTAVE        = OCTAVE_HISTFILE=/dev/null @OCTAVE@ -qfH
+OCTAVE        = OCTAVE_HISTFILE=/dev/null @OCTAVE@
 OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 
 # Extra Octave specific dynamic linking options

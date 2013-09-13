@@ -151,6 +151,8 @@ string &, std::string &
 #%typemap(scoerceout) SWIGTYPE *const
 #  %{ class($result) <- "$R_class"; %}
 
+ %typemap(scoerceout) SEXP %{ %}
+
  %typemap(scoerceout) SWIGTYPE 
  %{ $result <- new("$&R_class", ref=$result); %}
  
