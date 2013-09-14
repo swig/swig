@@ -392,7 +392,7 @@ void _wrap_SwigV8PackedData_delete(v8::Persistent< v8::Value > object, void *par
 {
   SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
 #else
-void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SwigV8PackedData *proxy)
+void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SwigV8PackedData *cdata)
 {
 #endif
 
