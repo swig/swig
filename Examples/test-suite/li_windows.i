@@ -4,6 +4,12 @@
 
 %{
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+  // Fix Tcl.h and Windows.h cat and mouse over definition of VOID
+  #if defined(_TCL) && defined(__CYGWIN__)
+    #ifdef VOID
+      #undef VOID
+    #endif
+  #endif
   #include <windows.h>
 #else
   // Use equivalent types for non-windows systems
