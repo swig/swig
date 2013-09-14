@@ -398,8 +398,8 @@ void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Obj
 
   delete cdata;
 
-  object.Clear();
 #if (SWIG_V8_VERSION < 0x031900)
+  object.Clear();
   object.Dispose();
 #elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
