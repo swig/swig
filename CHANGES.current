@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-09-15: wsfulton
+            [R] Fix attempt to free a non-heap object in OUTPUT typemaps for:
+              unsigned short *OUTPUT
+              unsigned long *OUTPUT
+              signed long long *OUTPUT
+              char *OUTPUT
+              signed char*OUTPUT
+              unsigned char*OUTPUT
+
 2013-09-12: wsfulton
             [Lua] Pull Git patch #62.
               1) Static members and static functions inside class can be accessed as
