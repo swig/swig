@@ -95,7 +95,9 @@ SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 /* long long */
 // Note: these are copied from 'long' and probably need fixing
 
-%fragment(SWIG_From_frag(long long),"header") {
+%fragment(SWIG_From_frag(long long),"header",
+    fragment=SWIG_From_frag(long),
+    fragment="<limits.h>") {
 SWIGINTERNINLINE JSValueRef
 SWIG_From_dec(long long)(long long value)
 {
@@ -104,7 +106,9 @@ SWIG_From_dec(long long)(long long value)
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+    fragment=SWIG_AsVal_frag(long),
+    fragment="SWIG_CanCastAsInteger",
+    fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 {
@@ -132,7 +136,9 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+    fragment=SWIG_AsVal_frag(unsigned long),
+    fragment="SWIG_CanCastAsInteger",
+    fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
