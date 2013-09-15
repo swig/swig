@@ -241,8 +241,6 @@ protected:
 
   virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
 
-  void registerProxyType(SwigType* type);
-
   /**
    * Helper function to retrieve the first parent class node.
    */
@@ -268,8 +266,6 @@ protected:
   // which are switched on namespace change
   Hash *namespaces;
   Hash *current_namespace;
-
-  Hash *undefined_types;
 
   String *defaultResultName;
 
@@ -562,7 +558,6 @@ JSEmitter::JSEmitter()
 : templates(NewHash()),
   namespaces(NULL),
   current_namespace(NULL),
-  undefined_types(NewHash()),
   defaultResultName(NewString("result")),
   f_wrappers(NULL)
 {
@@ -1176,20 +1171,6 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   return SWIG_OK;
 }
 
-void JSEmitter::registerProxyType(SwigType* type) {
-  SwigType *ftype = SwigType_typedef_resolve_all(type);
-  if(Language::instance()->classLookup(ftype)) return;
-
-  // TODO: confused... more try and error... understand and fix eventually
-  SwigType *p_ftype = SwigType_add_pointer(ftype);
-
-  // register undefined wrappers
-  SwigType_remember_clientdata(p_ftype, 0);
-  Setattr(undefined_types, SwigType_manglestr(p_ftype), p_ftype);
-
-  Delete(ftype);
-}
-
 void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
   // Get input typemap for current param
   String *tm = Getattr(p, "tmap:in");
@@ -1223,10 +1204,6 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
 
   tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
   bool should_own = GetFlag(n, "feature:new");
-  bool needs_proxy = GetFlag(n, "tmap:out:SWIGTYPE");
-  if(needs_proxy) {
-    registerProxyType(type);
-  }
 
   if (tm) {
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
@@ -1760,7 +1737,6 @@ protected:
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
   virtual int emitNamespaces();
-  virtual void emitUndefined();
 
 private:
 
@@ -1851,9 +1827,6 @@ int V8Emitter::dump(Node *)
   Swig_banner(f_wrap_cpp);
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
-
-  // This is important to have proxies for classes that have not been exposed to swig
-  // emitUndefined();
 
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
@@ -2161,53 +2134,6 @@ int V8Emitter::emitNamespaces() {
   }
 
   return SWIG_OK;
-}
-
-void V8Emitter::emitUndefined() {
-  Iterator ki;
-  for (ki = First(undefined_types); ki.item; ki = Next(ki)) {
-    String *mangled_name = NewStringf("SWIGTYPE%s", ki.key);
-    SwigType *type = ki.item;
-    String *dtor = Swig_name_destroy("", mangled_name);
-    String *type_mangled = ki.key;
-    String *ctype = SwigType_lstr(type, "");
-
-    String *free = NewString("");
-    if(SwigType_isarray(type)) {
-      Printf(free, "delete [] (%s)", ctype);
-    } else {
-      Printf(free, "delete (%s)", ctype);
-    }
-
-    // emit clientData declaration
-    Template clientDataDecl = getTemplate("jsv8_declare_class_template");
-    clientDataDecl.replace("$jsmangledname", mangled_name)
-        .trim()
-        .pretty_print(f_class_templates);
-
-    // emit an extra dtor for unknown types
-    Template t_dtor = getTemplate("js_dtor");
-    t_dtor.replace("$jsmangledname", mangled_name)
-        .replace("$jswrapper", dtor)
-        .replace("$jsfree", free)
-        .trim()
-        .pretty_print(f_wrappers);
-
-    // create a class template and initialize clientData
-    Template clientDataDef = getTemplate("jsv8_define_class_template");
-    clientDataDef.replace("$jsmangledname", mangled_name)
-        .replace("$jsname", mangled_name)
-        .replace("$jsmangledtype", type_mangled)
-        .replace("$jsdtor", dtor)
-        .trim()
-        .pretty_print(f_init_class_templates);
-
-    Delete(mangled_name);
-    Delete(dtor);
-    Delete(free);
-    Delete(ctype);
-
-  }
 }
 
 JSEmitter *swig_javascript_create_V8Emitter() {
