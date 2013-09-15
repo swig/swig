@@ -392,14 +392,14 @@ void _wrap_SwigV8PackedData_delete(v8::Persistent< v8::Value > object, void *par
 {
   SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
 #else
-void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SwigV8PackedData *proxy)
+void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SwigV8PackedData *cdata)
 {
 #endif
 
   delete cdata;
 
-  object.Clear();
 #if (SWIG_V8_VERSION < 0x031900)
+  object.Clear();
   object.Dispose();
 #elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
