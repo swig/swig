@@ -63,7 +63,7 @@ namespace std {
 
   %typemap(out) const string &
   %{
-     $result = SWIGJSC_stringToValue(context, $1);
+     $result = SWIGJSC_stringToValue(context, *$1);
   %}
 
 }
