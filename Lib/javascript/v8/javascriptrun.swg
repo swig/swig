@@ -442,3 +442,21 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
 
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIGV8_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIGV8_NewPackedObj(ptr, sz, type)
+
+
+/* ---------------------------------------------------------------------------
+ * Support for IN/OUTPUT typemaps (see Lib/typemaps/inoutlist.swg)
+ *
+ * ---------------------------------------------------------------------------*/
+
+SWIGRUNTIME
+v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
+  v8::HandleScope scope;
+  if (result->IsUndefined()) {
+    result = v8::Array::New();
+  }
+  v8::Handle<v8::Array> arr = v8::Handle<v8::Array>::Cast(result);
+  arr->Set(arr->Length(), obj);
+
+  return scope.Close(arr);
+}

@@ -235,9 +235,9 @@ protected:
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) = 0;
 
-  virtual void emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg);
+  virtual void emitInputTypemap(Node *n, Parm *params, Wrapper *wrapper, String *arg);
 
-  virtual void marshalOutput(Node *n, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
+  virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
 
   virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
 
@@ -984,7 +984,7 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
-  marshalOutput(n, wrapper, action);
+  marshalOutput(n, params, wrapper, action);
 
   emitCleanupCode(n, wrapper, params);
 
@@ -1064,7 +1064,7 @@ int JSEmitter::emitConstant(Node *n) {
   assert(value != NULL);
 
   String *action = NewString("");
-  marshalOutput(n, wrapper, action, value, false);
+  marshalOutput(n, 0, wrapper, action, value, false);
 
   t_getter.replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
@@ -1099,14 +1099,15 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
 
-  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemap.
-  // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generates an extra line of applied typemap.
+  // Deleting wrapper->code here fixes the problem, and seems to have no side effect elsewhere
   Delete(wrapper->code);
   wrapper->code = NewString("");
 
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *action = emit_action(n);
-  marshalOutput(n, wrapper, action);
+
+  marshalOutput(n, params, wrapper, action);
 
   emitCleanupCode(n, wrapper, params);
 
@@ -1210,9 +1211,11 @@ void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg
   }
 }
 
-void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
+void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   String *tm;
+  Parm *p;
+
   // adds a declaration for the result variable
   if(emitReturnVariable) emit_return_variable(n, type, wrapper);
   // if not given, use default result identifier ('result') for output typemap
@@ -1226,7 +1229,6 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
   }
 
   if (tm) {
-    Replaceall(tm, "$result", "jsresult");
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
 
     if (should_own) {
@@ -1242,21 +1244,25 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
   }
+
+  if (params) {
+    for (p = params; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(wrapper->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+  }
+
+  Replaceall(wrapper->code, "$result", "jsresult");
 }
 
 void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
   Parm *p;
   String *tm;
-
-  for (p = params; p;) {
-    if ((tm = Getattr(p, "tmap:argout"))) {
-      Replaceall(tm, "$input", Getattr(p, "emit:input"));
-      Printv(wrapper->code, tm, "\n", NIL);
-      p = Getattr(p, "tmap:argout:next");
-    } else {
-      p = nextSibling(p);
-    }
-  }
 
   for (p = params; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {

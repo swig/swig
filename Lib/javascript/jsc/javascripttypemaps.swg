@@ -35,7 +35,7 @@
 #define VOID_Object                     JSValueMakeUndefined(context)
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj) SWIGJSC_AppendOutput(context, result, obj)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)

@@ -253,3 +253,43 @@ void _wrap_SwigPackedData_delete(JSObjectRef obj)
 
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_JSC_ConvertPacked(context, obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIG_JSC_NewPackedObj(context, ptr, sz, type)
+
+
+/* ---------------------------------------------------------------------------
+ * Support for IN/OUTPUT typemaps (see Lib/typemaps/inoutlist.swg)
+ *
+ * ---------------------------------------------------------------------------*/
+
+unsigned int SWIGJSC_ArrayLength(JSContextRef context, JSObjectRef arr) {
+  static JSStringRef LENGTH = 0;
+  JSValueRef exception = NULL;
+  JSValueRef js_length;
+  double length;
+
+  if (LENGTH == 0) {
+    LENGTH = JSStringCreateWithUTF8CString("length");
+  }
+
+  js_length = JSObjectGetProperty(context, arr, LENGTH, &exception);
+  if (exception == 0 && JSValueIsNumber(context, js_length)) {
+    length = JSValueToNumber(context, js_length, 0);
+    return (unsigned int) length;
+  } else {
+    return 0;
+  }
+}
+
+SWIGRUNTIME
+JSValueRef SWIGJSC_AppendOutput(JSContextRef context, JSValueRef value, JSValueRef obj) {
+  JSObjectRef arr;
+  unsigned int length;
+
+  if (JSValueIsUndefined(context, value)) {
+    arr = JSObjectMakeArray(context, 0, 0, 0);
+  } else {
+    arr = JSValueToObject(context, value, 0);
+  }
+
+  length = SWIGJSC_ArrayLength(context, arr);
+  JSObjectSetPropertyAtIndex(context, arr, length, obj, 0);
+}

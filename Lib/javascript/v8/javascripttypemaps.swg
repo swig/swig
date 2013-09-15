@@ -31,13 +31,13 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj) SWIGV8_AppendOutput(result, obj)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)  SWIG_V8_Raise(type)
- 
+
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
