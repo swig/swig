@@ -1399,6 +1399,7 @@ if test -n "$RUBY"; then
 	esac
 
 	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
+	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
 	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
@@ -1416,6 +1417,7 @@ AC_SUBST(RUBYINCLUDE)
 AC_SUBST(RUBYLIB)
 AC_SUBST(RUBYLINK)
 AC_SUBST(RUBYCCDLFLAGS)
+AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------
