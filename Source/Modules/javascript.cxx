@@ -1638,19 +1638,26 @@ int JSCEmitter::exitClass(Node *n) {
   Template t_classtemplate(getTemplate("jsc_class_definition"));
 
   /* prepare registration of base class */
-  String *base_name_mangled = NewString("_SwigObject");
+  String *jsclass_inheritance = NewString("");
   Node *base_class = getBaseClass(n);
   if (base_class != NULL) {
-    Delete(base_name_mangled);
-    base_name_mangled = SwigType_manglestr(Getattr(base_class, "name"));
+    Template t_inherit(getTemplate("jsc_class_inherit"));
+    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsbaseclassmangled", SwigType_manglestr(Getattr(base_class, "name")))
+      .pretty_print(jsclass_inheritance);
+  } else {
+    Template t_inherit(getTemplate("jsc_class_noinherit"));
+    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .pretty_print(jsclass_inheritance);
   }
+
   t_classtemplate.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-      .replace("$jsbaseclass", base_name_mangled)
+      .replace("$jsclass_inheritance", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
       .replace("$jsdtor", state.clazz(DTOR))
       .pretty_print(state.global(INITIALIZER));
-  Delete(base_name_mangled);
+  Delete(jsclass_inheritance);
 
   /* Note: this makes sure that there is a swig_type added for this class */
   SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));

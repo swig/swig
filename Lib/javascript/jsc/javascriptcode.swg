@@ -394,10 +394,23 @@ JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_classDefinition.finalize = $jsdtor;
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
-  $jsmangledname_objectDefinition.parentClass = $jsbaseclass_classRef;
+  $jsclass_inheritance
   JSClassRef $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
   SWIGTYPE_$jsmangledtype->clientdata = $jsmangledname_classRef;
 %}
+
+%fragment ("jsc_class_inherit", templates)
+%{
+    if (SWIGTYPE_p$jsbaseclassmangled != NULL) {
+      $jsmangledname_objectDefinition.parentClass = (JSClassRef) SWIGTYPE_p$jsbaseclassmangled->clientdata;
+    }
+%}
+
+%fragment ("jsc_class_noinherit", templates)
+%{
+    $jsmangledname_objectDefinition.parentClass = _SwigObject_classRef;
+%}
+
 
 /* -----------------------------------------------------------------------------
  * jsc_register_class:  template for registration of a class
