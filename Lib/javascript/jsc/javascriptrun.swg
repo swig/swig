@@ -167,6 +167,9 @@ JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_in
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_JSC_ConvertInstancePtr(context, obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_JSC_NewPointerObj(context, thisvalue, type, flags)
 
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_JSC_ConvertPtr(context, obj, pptr, type, 0)
+#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_JSC_NewPointerObj(context, ptr, type, 0)
+
 /* ----------------------------------------------------------------------------
  *  A class for packed data
  *
