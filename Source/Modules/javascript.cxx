@@ -235,7 +235,7 @@ protected:
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) = 0;
 
-  virtual void emitInputTypemap(Node *n, Parm *params, Wrapper *wrapper, String *arg);
+  virtual String *emitInputTypemap(Node *n, Parm *params, Wrapper *wrapper, String *arg);
 
   virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
 
@@ -1179,7 +1179,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   return SWIG_OK;
 }
 
-void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
+String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
   // Get input typemap for current param
   String *tm = Getattr(p, "tmap:in");
   SwigType *type = Getattr(p, "type");
@@ -1197,7 +1197,10 @@ void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg
     Printf(wrapper->code, "%s\n", tm);
   } else {
     Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
+    Swig_print(p);
   }
+
+  return tm;
 }
 
 void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
@@ -1413,6 +1416,7 @@ JSCEmitter::~JSCEmitter() {
 
 void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
   Parm *p;
+  String *tm;
 
   // determine an offset index, as members have an extra 'this' argument
   // except: static members and ctors.
@@ -1429,7 +1433,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
 
   // process arguments
   int i = 0;
-  for (p = parms; p; p = nextSibling(p), i++) {
+  for (p = parms; p; i++) {
     String *arg = NewString("");
     switch (mode) {
     case Getter:
@@ -1453,8 +1457,13 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
     default:
       throw "Illegal state.";
     }
-    emitInputTypemap(n, p, wrapper, arg);
+    tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
   }
 }
 
@@ -2066,6 +2075,7 @@ int V8Emitter::exitFunction(Node* n)
 
 void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
   Parm *p;
+  String *tm;
 
   int startIdx = 0;
   if (is_member && !is_static && mode!=Ctor) {
@@ -2109,8 +2119,14 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
     default:
       throw "Illegal state.";
     }
-    emitInputTypemap(n, p, wrapper, arg);
+
+    tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
   }
 }
 
