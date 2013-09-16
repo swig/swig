@@ -1197,7 +1197,6 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
     Printf(wrapper->code, "%s\n", tm);
   } else {
     Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
-    Swig_print(p);
   }
 
   return tm;
@@ -2089,7 +2088,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   Setattr(n, ARGCOUNT, argcount);
 
   int i = 0;
-  for (p = parms; p; p = nextSibling(p), i++) {
+  for (p = parms; p; i++) {
     String *arg = NewString("");
     switch (mode) {
     case Getter:
@@ -2122,6 +2121,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
+
     if (tm) {
       p = Getattr(p, "tmap:in:next");
     } else {
