@@ -416,6 +416,10 @@ int JAVASCRIPT::constantWrapper(Node *n) {
   if (Equal(Getattr(n, "kind"), "function")) {
     return SWIG_OK;
   }
+  // TODO: the emitter for constants must be implemented in a cleaner way
+  // currently we treat it like a read-only variable
+  // however, there is a remaining bug with function pointer constants
+  // which could be fixed with a cleaner approach
   emitter->emitConstant(n);
 
   return SWIG_OK;
@@ -706,7 +710,8 @@ int JSEmitter::enterClass(Node *n) {
 
   state.clazz(true);
   state.clazz(NAME, Getattr(n, "sym:name"));
-  state.clazz(NAME_MANGLED, SwigType_manglestr(Getattr(n, "name")));
+  //state.clazz(NAME_MANGLED, SwigType_manglestr(Getattr(n, "name")));
+  state.clazz(NAME_MANGLED, Getattr(n, "sym:name"));
   state.clazz(TYPE, NewString(Getattr(n, "classtype")));
 
   String *type = SwigType_manglestr(Getattr(n, "classtypeobj"));
@@ -1921,7 +1926,9 @@ int V8Emitter::exitClass(Node *n)
   /* Note: this makes sure that there is a swig_type added for this class */
   String *clientData = NewString("");
   Printf(clientData, "&%s_clientData", state.clazz(NAME_MANGLED));
-  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), clientData);
+
+  /* Note: this makes sure that there is a swig_type added for this class */
+  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
 
   // emit definition of v8 class template
   Template t_def_class = getTemplate("jsv8_define_class_template");
