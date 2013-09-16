@@ -1828,10 +1828,16 @@ int V8Emitter::initialize(Node *n)
   return SWIG_OK;
 }
 
-int V8Emitter::dump(Node *)
+int V8Emitter::dump(Node *n)
 {
+  /* Get the module name */
+  String *module = Getattr(n, "name");
+
  // write the swig banner
   Swig_banner(f_wrap_cpp);
+
+  Template initializer_define(getTemplate("js_initializer_define"));
+  initializer_define.replace("$jsname", module).pretty_print(f_header);
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
 
@@ -1853,8 +1859,8 @@ int V8Emitter::dump(Node *)
       .replace("$jsv8classinstances",    f_init_class_instances)
       .replace("$jsv8staticwrappers",    f_init_static_wrappers)
       .replace("$jsv8registerclasses",   f_init_register_classes)
-      .replace("$jsv8registernspaces",        f_init_register_namespaces)
-      .pretty_print(f_init);
+      .replace("$jsv8registernspaces",        f_init_register_namespaces);
+  Printv(f_init, initializer.str(), 0);
 
   Printv(f_wrap_cpp, f_init, 0);
 
