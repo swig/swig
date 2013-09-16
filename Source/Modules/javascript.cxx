@@ -1081,7 +1081,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   bool is_overloaded = GetFlag(n, "sym:overloaded");
 
   // prepare the function wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  String *iname = Getattr(n, "sym:name");
+  String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
     t_function = getTemplate("js_overloaded_function");
     Append(wrap_name, Getattr(n, "sym:overname"));
@@ -1105,6 +1106,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   marshalOutput(n, params, wrapper, action);
 
   emitCleanupCode(n, wrapper, params);
+
+  Replaceall(wrapper->code, "$symname", iname);
 
   t_function.replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
