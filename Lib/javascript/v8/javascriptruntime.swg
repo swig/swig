@@ -29,6 +29,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <stdlib.h>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
