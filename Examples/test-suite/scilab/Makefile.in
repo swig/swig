@@ -26,7 +26,8 @@ define get_runme_script
 endef
 
 CPP_STD_TEST_CASES += \
-	li_std_vector_as_argument
+	scilab_typemaps \
+
 
 include $(srcdir)/../common.mk
 
