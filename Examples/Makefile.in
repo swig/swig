@@ -51,11 +51,6 @@ RUNPIPE=
 
 RUNME = runme
 
-# X11 options
-
-XLIB       = @XLIBSW@
-XINCLUDE   = @XINCLUDES@
-
 IWRAP      = $(INTERFACE:.i=_wrap.i)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
@@ -136,7 +131,6 @@ TCL_SCRIPT = $(RUNME).tcl
 # Build a new version of the tclsh shell
 # -----------------------------------------------------------
 
-
 tclsh: $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
@@ -146,21 +140,6 @@ tclsh_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-# -----------------------------------------------------------
-# Build a new copy of wish
-# -----------------------------------------------------------
-
-wish: $(SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
-	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-
-wish_cpp: $(SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
-	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
 # Build a Tcl dynamic loadable module (you might need to tweak this)
