@@ -1,7 +1,7 @@
 lines(0);
 ilib_verbose(0);
 exec loader.sce;
-SWIG_Init();
+example_Init();
 
 printf("\nConstants are wrapped by functions:\n");
 printf("ICONST  = %i (should be 42)\n", ICONST);

@@ -25,10 +25,11 @@ end
 
 // Module initialization
 try
-    SWIG_Init();
+    moduleInit = sprintf("%s_Init()", swigtestname);
+    ierr = execstr(moduleInit);
 catch
     mprintf("*** MODULE INIT FAILED ***\n");
-    exit(1)
+    exit(ierr)
 end
 
 // Error management function

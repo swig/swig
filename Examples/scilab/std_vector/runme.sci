@@ -1,7 +1,7 @@
 lines(0);
 ilib_verbose(0);
 exec loader.sce;
-SWIG_Init();
+example_Init();
 
 
 disp(mean([1,2,3,4]));

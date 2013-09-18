@@ -25,7 +25,6 @@ Scilab options (available with -scilab)\n\
      -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
      -nobuilder      - Do not generate builder script\n\n";
 
-static const char *SWIG_INIT_FUNCTION_NAME = "SWIG_Init";
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
 class SCILAB:public Language {
@@ -162,8 +161,12 @@ public:
       startBuilderCode(moduleName, outputFilename);
     }
 
-    /* add initialization function to builder table */
-    addFunctionInBuilder(SWIG_INIT_FUNCTION_NAME, SWIG_INIT_FUNCTION_NAME);
+    // Module initialization function
+    String *moduleInitFunctionName = NewString("");
+    Printf(moduleInitFunctionName, "%s_Init", moduleName);
+
+    /* Add initialization function to builder table */
+    addFunctionInBuilder(moduleInitFunctionName, moduleInitFunctionName);
 
     // Open Scilab wrapper variables creation function
     variablesCode = NewString("");
@@ -189,8 +192,15 @@ public:
       saveBuilder();
     }
 
-    /* Close the init function (opened in sciinit.swg) */
-    Printf(initSection, "return 0;\n}\n");
+    // Add initialization function to init section
+    Printf(initSection, "#ifdef __cplusplus\n");
+    Printf(initSection, "extern \"C\"\n");
+    Printf(initSection, "#endif\n");
+    Printf(initSection, "int %s(char *fname, unsigned long fname_len) {\n", moduleInitFunctionName);
+    Printf(initSection, "  SWIG_InitializeModule(NULL);\n");
+    Printf(initSection, "  SWIG_CreateScilabVariables();\n");
+    Printf(initSection, "return 0;\n");
+    Printf(initSection, "}\n");
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)

@@ -1,7 +1,7 @@
 lines(0);
 ilib_verbose(0);
 exec loader.sce;
-SWIG_Init();
+example_Init();
 
 // This example shows how to use C++ fonctions with STL lists arguments
 // Here, STL lists are converted from/to Scilab matrices (SWIG_SCILAB_EXTRA_NATIVE_CONTAINERS is not defined)
