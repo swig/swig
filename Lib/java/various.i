@@ -52,7 +52,7 @@
 
 %typemap(freearg) char **STRING_ARRAY {
   int i;
-  for (i=0; i<size$argnum-1; i++)
+  for (i=0; i<size$argnum; i++)
 #ifdef __cplusplus
     delete[] $1[i];
   delete[] $1;
