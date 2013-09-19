@@ -47,7 +47,7 @@ SWIGOPT       = -python
 SWIGCC        = $(CC) 
 
 # SWIG Library files.  Uncomment if rebuilding the Python interpreter
-#SWIGLIB       = -lembed.i
+#SWIGLIBS      = -lembed.i
 
 # Rules for creating .o files from source.
 
@@ -69,20 +69,10 @@ BUILD         = @LDSHARED@
 #DLL_LIBS      = -L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
              -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
-# X11 installation (needed if rebuilding Python + tkinter)
-
-XLIB          = @XLIBSW@
-XINCLUDE      = @XINCLUDES@
-
 # Python installation
 
 PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@ 
 PY_LIB        = @PYLIB@
-
-# Tcl installation.  Needed if rebuilding Python with tkinter.
-
-TCL_INCLUDE   = @TCLINCLUDE@
-TCL_LIB       = @TCLLIB@
 
 # Build libraries (needed for static builds)
 
@@ -90,11 +80,9 @@ LIBM          = @LIBM@
 LIBC          = @LIBC@
 SYSLIBS       = $(LIBM) $(LIBC) @LIBS@
 
-# Build options (uncomment only one these)
+# Build options
 
-#TKINTER      = $(TCL_LIB) -ltk -ltcl $(XLIB)
 BUILD_LIBS    = $(LIBS) # Dynamic loading
-#BUILD_LIBS    = $(PY_LIB) @PYLINK@ $(TKINTER) $(LIBS) $(SYSLIBS)
 
 # Compilation rules for non-SWIG components
 
@@ -122,7 +110,7 @@ $(WRAPOBJ) : $(WRAPFILE)
 	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDES) $(PY_INCLUDE) 
 
 $(WRAPFILE) : $(INTERFACE)
-	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
+	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIBS) $(INTERFACE)
 
 $(TARGET): $(WRAPOBJ) $(ALLOBJS)
 	$(BUILD) $(WRAPOBJ) $(ALLOBJS) $(BUILD_LIBS) -o $(TARGET)

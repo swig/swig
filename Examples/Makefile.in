@@ -51,11 +51,6 @@ RUNPIPE=
 
 RUNME = runme
 
-# X11 options
-
-XLIB       = @XLIBSW@
-XINCLUDE   = @XINCLUDES@
-
 IWRAP      = $(INTERFACE:.i=_wrap.i)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
@@ -136,7 +131,6 @@ TCL_SCRIPT = $(RUNME).tcl
 # Build a new version of the tclsh shell
 # -----------------------------------------------------------
 
-
 tclsh: $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
@@ -146,21 +140,6 @@ tclsh_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-# -----------------------------------------------------------
-# Build a new copy of wish
-# -----------------------------------------------------------
-
-wish: $(SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
-	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-
-wish_cpp: $(SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
-	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
 # Build a Tcl dynamic loadable module (you might need to tweak this)
@@ -913,6 +892,7 @@ RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
 RUBY_DLNK = @RUBYDYNAMICLINKING@
 RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
+RUBY_SO = @RUBYSO@
 RUBY = @RUBY@
 RUBY_SCRIPT = $(RUNME).rb
 
@@ -924,7 +904,7 @@ RUBY_SCRIPT = $(RUNME).rb
 ruby: $(SRCS)
 	$(SWIG) -ruby $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(RUBY_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -933,7 +913,7 @@ ruby: $(SRCS)
 ruby_cpp: $(SRCS)
 	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(RUBY_INCLUDE)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Ruby interpreter
