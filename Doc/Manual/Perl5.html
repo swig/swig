@@ -64,8 +64,9 @@
 <li><a href="#Perl5_nn42">Object Ownership</a>
 <li><a href="#Perl5_nn45">Inheritance</a>
 <li><a href="#Perl5_nn46">Enabling directors</a>
+<li><a href="#Perl5_nn47">Proxy internals</a>
 </ul>
-<li><a href="#Perl5_nn47">Adding additional Perl code</a>
+<li><a href="#Perl5_nn48">Adding additional Perl code</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -2731,7 +2732,35 @@ Perl and used in C++.
 </p>
 
 
-<H2><a name="Perl5_nn47"></a>31.10 Adding additional Perl code</H2>
+<H3><a name="Perl5_nn47"></a>31.9.6 Proxy internals</H3>
+
+
+<p>
+Proxy classes are implemented using "Magic Virtual Tables" heavily, see
+<tt>perlguts</tt> for details.  Perl's <tt>tie()</tt> feature uses this
+mechanism as well, and proxies have a lot in common with tied objects.
+</p>
+
+<p>
+The most basic struct contains a pointer, a reference count, and data
+type details.  Multiple Perl values can be bound to this pointer to
+represent the object handle and the attribute accessors.  The memory
+layout looks something like this:
+</p>
+
+<div class="code"><pre>
+  "$obj" SV &#9472;&#9472;&#9656; HV (~) &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9582;
+                 &#9500;&#9472; "$obj->{attr1}" SV (~) &#9472;&#9532;&#9472;&#9656; "proxy" &#9472;&#9472;&#9656; nativePtr
+                 &#9584;&#9472; "$obj->{attr2}" SV (~) &#9472;&#9583;
+</pre></div>
+
+<p>
+From Perl, these objects look and feel like native classes constructed
+using the <tt>base</tt> and <tt>fields</tt> pragmas.  
+</p>
+
+
+<H2><a name="Perl5_nn48"></a>31.10 Adding additional Perl code</H2>
 
 
 <p>
