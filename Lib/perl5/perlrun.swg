@@ -289,7 +289,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
     swig_cast_info *iter = ty->cast;
     while (iter) {
       const char *tpn = SWIG_Perl_TypeProxyName(iter->type);
-      if ( tpn && strcmp(tpn, c) == 0) {
+      if (tpn && strcmp(tpn, c) == 0) {
         if (iter == ty->cast)
           return iter;
         /* Move iter to the top of the linked list */
@@ -323,7 +323,7 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
     /* a typical pointer conversion is to extract a raw pointer out of
      * an SV that represents the pointer, but for certain kinds of
      * class/struct accesses (attributes and destructors) there are
-     * smipler, quicker conversions. */
+     * simpler, quicker conversions. */
     default:
       return SWIG_ERROR;
     case 0: {

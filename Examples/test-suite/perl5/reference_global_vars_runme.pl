@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 use strict;
 use warnings;
 use Test::More tests => 19;
@@ -7,74 +6,65 @@ require_ok('reference_global_vars');
 
 # adapted from ../python/reference_global_vars_runme.py
 
-my $cvar;
-{
-	# don't try this at home kids... sneaking an import of all symbols
-	# from reference_global_vars to main because my fingers are getting
-	# sore from qualifying all these names. ;)
-	my $cvar = *reference_global_vars::;
-	map { ${*::}{$_} = ${$cvar}{$_} } keys %{$cvar};
+BEGIN {
+  # don't try this at home kids... sneaking an import of all symbols
+  # from reference_global_vars to main because my fingers are getting
+  # sore from qualifying all these names. ;)
+  %{*::} = (%{*reference_global_vars::}, %{*::});
 }
 
-is(getconstTC()->{num}, 33);
+is(getconstTC()->{num}, 33, 'const class reference variable');
 
-# primitive reference variables
-$cvar->{var_bool} = createref_bool(0);
-is(value_bool($cvar->{var_bool}), '');
+$var_bool = createref_bool(0);
+is(value_bool($var_bool), '', 'bool false');
 
-$cvar->{var_bool} = createref_bool(1);
-is(value_bool($cvar->{var_bool}), 1);
+$var_bool = createref_bool(1);
+is(value_bool($var_bool), 1, 'bool true');
 
-$cvar->{var_char} = createref_char('w');
-is(value_char($cvar->{var_char}), 'w');
+$var_char = createref_char('w');
+is(value_char($var_char), 'w', 'char');
 
-$cvar->{var_unsigned_char} = createref_unsigned_char(10);
-is(value_unsigned_char($cvar->{var_unsigned_char}), 10);
+$var_unsigned_char = createref_unsigned_char(10);
+is(value_unsigned_char($var_unsigned_char), 10, 'uchar');
 
-$cvar->{var_signed_char} = createref_signed_char(10);
-is(value_signed_char($cvar->{var_signed_char}), 10);
+$var_signed_char = createref_signed_char(10);
+is(value_signed_char($var_signed_char), 10, 'schar');
 
-$cvar->{var_short} = createref_short(10);
-is(value_short($cvar->{var_short}), 10);
+$var_short = createref_short(10);
+is(value_short($var_short), 10, 'short');
 
-$cvar->{var_unsigned_short} = createref_unsigned_short(10);
-is(value_unsigned_short($cvar->{var_unsigned_short}), 10);
+$var_unsigned_short = createref_unsigned_short(10);
+is(value_unsigned_short($var_unsigned_short), 10, 'ushort');
 
-$cvar->{var_int} = createref_int(10);
-is(value_int($cvar->{var_int}), 10);
+$var_int = createref_int(10);
+is(value_int($var_int), 10, 'int');
 
-$cvar->{var_unsigned_int} = createref_unsigned_int(10);
-is(value_unsigned_int($cvar->{var_unsigned_int}), 10);
+$var_unsigned_int = createref_unsigned_int(10);
+is(value_unsigned_int($var_unsigned_int), 10, 'uint');
 
-$cvar->{var_long} = createref_long(10);
-is(value_long($cvar->{var_long}), 10);
+$var_long = createref_long(10);
+is(value_long($var_long), 10, 'long');
 
-$cvar->{var_unsigned_long} = createref_unsigned_long(10);
-is(value_unsigned_long($cvar->{var_unsigned_long}), 10);
+$var_unsigned_long = createref_unsigned_long(10);
+is(value_unsigned_long($var_unsigned_long), 10, 'ulong');
 
 SKIP: {
-	my $a = "6FFFFFFFFFFFFFF8";
-	skip "64 bit int support", 1 unless eval { pack 'q', 1 };
-	# using hex() here instead of a literal because non 64bit Perls will
-	# be noisy about big constants.
-	$cvar->{var_long_long} = createref_long_long(hex $a);
-	is(value_long_long($cvar->{var_long_long}), hex $a);
+  no warnings 'portable';
+  skip "64 bit int support", 1 unless eval { pack 'q', 1 };
+  my $ll = '6FFFFFFFFFFFFFF8';
+  $var_long_long = createref_long_long(hex $ll);
+  is(value_long_long($var_long_long), hex $ll, 'long long');
+
+  my $ull = 'FFFFFFF2FFFFFFF0';
+  $var_unsigned_long_long = createref_unsigned_long_long(hex $ull);
+  is(value_unsigned_long_long($var_unsigned_long_long), hex $ull, 'ulong long');
 }
 
-#ull = abs(0xFFFFFFF2FFFFFFF0)
-my $ull = 55834574864;
-$cvar->{var_unsigned_long_long} = createref_unsigned_long_long($ull);
-is(value_unsigned_long_long($cvar->{var_unsigned_long_long}), $ull);
+$var_float = createref_float(10.5);
+is(value_float($var_float), 10.5, 'float');
 
-$cvar->{var_float} = createref_float(10.5);
-is(value_float($cvar->{var_float}), 10.5);
+$var_double = createref_double(10.5);
+is(value_double($var_double), 10.5, 'double');
 
-$cvar->{var_double} = createref_double(10.5);
-is(value_double($cvar->{var_double}), 10.5);
-
-# class reference variable
-$cvar->{var_TestClass} = createref_TestClass(
-	TestClass->new(20)
-);
-is(value_TestClass($cvar->{var_TestClass})->{num}, 20);
-
+$var_TestClass = createref_TestClass(TestClass->new(20));
+is(value_TestClass($var_TestClass)->{num}, 20, 'class reference variable');
