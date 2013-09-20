@@ -1,35 +1,37 @@
 language: cpp
 compiler:
-  - clang
+#  - clang
   - gcc
 env:
   - SWIGLANG=
 matrix:
   include:
+#    - compiler: gcc
+#      env: SWIGLANG=csharp
+#    - compiler: gcc
+#      env: SWIGLANG=go
+#    - compiler: gcc
+#      env: SWIGLANG=guile
+#    - compiler: gcc
+#      env: SWIGLANG=java
+#    - compiler: gcc
+#      env: SWIGLANG=lua
     - compiler: gcc
-      env: SWIGLANG=csharp
-    - compiler: gcc
-      env: SWIGLANG=go
-    - compiler: gcc
-      env: SWIGLANG=guile
-    - compiler: gcc
-      env: SWIGLANG=java
-    - compiler: gcc
-      env: SWIGLANG=lua
-    - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
-    - compiler: gcc
-      env: SWIGLANG=perl5
-    - compiler: gcc
-      env: SWIGLANG=php
-    - compiler: gcc
-      env: SWIGLANG=python
-    - compiler: gcc
-      env: SWIGLANG=python PY3=1
-    - compiler: gcc
-      env: SWIGLANG=ruby
-    - compiler: gcc
-      env: SWIGLANG=tcl
+      env: SWIGLANG=objc
+#    - compiler: gcc
+#      env: SWIGLANG=octave SWIGJOBS=-j4
+#    - compiler: gcc
+#      env: SWIGLANG=perl5
+#    - compiler: gcc
+#      env: SWIGLANG=php
+#    - compiler: gcc
+#      env: SWIGLANG=python
+#    - compiler: gcc
+#      env: SWIGLANG=python PY3=1
+#    - compiler: gcc
+#      env: SWIGLANG=ruby
+#    - compiler: gcc
+#      env: SWIGLANG=tcl
   allow_failures:
       # None
 before_install:
@@ -41,6 +43,7 @@ before_install:
   - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
   - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
+  - if test "$SWIGLANG" = "objc"; then sudo apt-get -qq install gnustep-devel gobc++; fi
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
   - if test "$SWIGLANG" = "python" -a "$PY3"; then sudo apt-get install python3-dev; fi
@@ -48,11 +51,12 @@ before_install:
 script:
   - ./autogen.sh && ./configure
   - make -s $SWIGJOBS
-  - if test -z "$SWIGLANG"; then make -s check-ccache; fi
+#  - if test -z "$SWIGLANG"; then make -s check-ccache; fi
   - ./swig -version
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
+#  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
 branches:
   only:
     - master
+    - gsoc2012-objc
