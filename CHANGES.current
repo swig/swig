@@ -5,3 +5,6 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-09-20: wsfulton
+            [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
+
