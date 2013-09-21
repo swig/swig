@@ -260,7 +260,7 @@ By default SWIG includes code for dynamic loading, but the
 
 <p>
 Next, you will need to supply a <tt>main()</tt> function that
-initializes your extension and starts the Perl interpreter. While,
+initializes your extension and starts the Perl interpreter. While
 this may sound daunting, SWIG can do this for you automatically as
 follows:</p>
 
@@ -286,7 +286,7 @@ $ swig -perl -static -lperlmain.i example.i
 <p>
 The <tt>perlmain.i</tt> file inserts Perl's <tt>main()</tt> function
 into the wrapper code and automatically initializes the SWIG generated
-module. If you just want to make a quick a dirty module, this may be
+module. If you just want to make a quick and dirty module, this may be
 the easiest way. By default, the <tt>perlmain.i</tt> code does not
 initialize any other Perl extensions. If you need to use other
 packages, you will need to modify it appropriately. You can do this by
@@ -305,7 +305,7 @@ $ gcc example.o example_wrap.o -L/usr/lib/perl/5.14/CORE \
 
 <p>
 This will produce a new version of Perl called <tt>myperl</tt>. It
-should be functionality identical to Perl with your C/C++ extension
+should be functionally identical to Perl with your C/C++ extension
 added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 </p>
@@ -386,7 +386,7 @@ to the linker.
 </p>
 
 <p>
-Sometimes unresolved symbols occur because a wrapper has been created
+Sometimes unresolved symbol errors occur because a wrapper has been created
 for a function that doesn't actually exist in a library.  This usually
 occurs when a header file includes a declaration for a function that
 was never actually implemented or it was removed from a library
@@ -499,7 +499,7 @@ $ CC -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
 </pre></div>
 
 <p>
-Of course, the names of the extra libraries are completely non-portable---you will 
+Of course, the names of the extra libraries are completely non-portable&mdash;you will 
 probably need to do some experimentation.
 </p>
 
@@ -535,7 +535,7 @@ Sometimes people have suggested that it is necessary to relink the
 Perl interpreter using the C++ compiler to make C++ extension modules work.
 In the experience of this author, this has never actually appeared to be
 necessary on most platforms.   Relinking the interpreter with C++ really only includes the 
-special run-time libraries described above---as long as you link your extension 
+special run-time libraries described above&mdash;as long as you link your extension 
 modules with these libraries, it should not be necessary to rebuild Perl.
 </p>
 
@@ -661,7 +661,7 @@ files, and the name of the wrapper file that will be created by SWIG
 (ie. <tt>example_wrap.c</tt>).  Note: If using C++, choose a
 different suffix for the wrapper file such as
 <tt>example_wrap.cxx</tt>. Don't worry if the wrapper file doesn't
-exist yet--Developer studio will keep a reference to it around.
+exist yet&mdash;Developer studio will keep a reference to it around.
 
 <li>Select the SWIG interface file and go to the settings menu.  Under
 settings, select the "Custom Build" option.
@@ -696,7 +696,7 @@ Now, assuming you made it this far, SWIG will be automatically invoked when
 you build your project.  Any changes made to the interface file will
 result in SWIG being automatically invoked to produce a new version of
 the wrapper file.  To run your new Perl extension, simply run Perl and
-use the use command as normal. For example:
+use the <tt>use</tt> directive as normal. For example:
 </p>
 
 <div class="targetlang"><pre>
@@ -907,15 +907,16 @@ value to SWIG generated functions.
 Much like in C++, pointer comparisons are best done using objects of the
 same type.  SWIG generated objects retain type information, so the same
 pointer can be exposed to Perl by different Perl objects even for plain
-C pointers.  However, the runtime minimizes the number of proxy classes
-so comparisons of the same type should work.
+C pointers.  However, the runtime minimizes the number of
+<a href="#Perl5_nn39">proxy classes</a> so comparisons of the same type
+should work.
 </p>
 
 <p>
 Assignments to these values will not perform pointer arithmetic.
 Similarly, though it may seem tempting to rebless an object to achieve a
 pointer cast, this can be very dangerous because the object class will
-not match it's internal type annotation.  Generally you'll want to use
+not match its internal type annotation.  Generally you'll want to use
 helper functions to achieve pointer manipulations and casts.  For
 example:
 </p>
@@ -943,7 +944,7 @@ Foo *IncrFoo(Foo *f, int i) {
 <p>
 Also, if working with C++, you should always try
 to use the new C++ style casts.  For example, in the above code, the
-C-style cast may return a bogus result whereas as the C++-style cast will return
+C-style cast may return a bogus result whereas the C++-style cast will return
 <tt>NULL</tt> if the conversion can't be performed.
 </p>
 
@@ -957,7 +958,7 @@ SWIG and XS, this is no longer supported.
 
 
 <p>
-Access to the contents of a structure are provided though
+Access to the contents of a structure are provided through
 hash keys on the object.  For example,
 </p>
 
@@ -968,7 +969,7 @@ struct Vector {
 </pre></div>
 
 <p>
-gets mapped to an package similar in behaviour to:
+gets mapped to a package similar in behavior to:
 </p>
 
 <div class="targetlang"><pre>
@@ -1065,11 +1066,11 @@ print $b-&gt;{f}{v}, "\n";
 </pre></div>
 
 <p>
-will print 83 because <tt>$f</tt> is a reference to the "f" attribute of
-<tt>$b</tt>.  It should be noted that this means if the struct
-underneath <tt>$b</tt> is reclaimed, then <tt>$f</tt> would be pointing
-at a freed area of memory.  If this would be a problem, it may be
-suitable to declare a "memberout" typemap to pass by copy.
+will print 83 because <tt>$f</tt> is a reference to the <tt>f</tt>
+attribute of <tt>$b</tt>.  It should be noted that this means if the
+struct underneath <tt>$b</tt> is reclaimed, then <tt>$f</tt> would be
+pointing at a freed area of memory.  If this would be a problem, it may
+be suitable to declare a "memberout" typemap to pass by copy.
 Alternatively it may be suitable to keep a reference to the Perl object
 attribute; which can retain access to an attribute even after the object
 falls out of scope.
@@ -1164,7 +1165,7 @@ multiple inheritance is used).
 
 <p>
 If you have a C++ program with overloaded functions or methods, SWIG
-will construct a dispatch function for you, however this can not resolve
+will construct a dispatch function for you.  However, this can not resolve
 all ambiguities because Perl values are not strictly typed.  In some
 cases you may need to disambiguate those methods using <tt>%rename</tt>.
 For example:
@@ -1203,14 +1204,15 @@ $s-&gt;foo_d(3.14);
 </div>
 
 <p>
-Please refer to the "SWIG Basics" chapter for more information. 
+Please refer to the <a href="SWIG.html#SWIG">SWIG Basics</a> chapter for
+more information. 
 </p>
 
 <H3><a name="Perl5_nn23"></a>31.4.9 Operators</H3>
 
 
     <p>
-As of version 1.3.27 SWIG automatically renames the most common C++ operators, and maps them into the perl module with the proper 'use overload ...' so you don't need to do any work.
+As of version 1.3.27, SWIG automatically renames the most common C++ operators and maps them into the perl module with the proper <tt>use overload</tt> pragma so you don't need to do any work.
     </p>
 
     <p>
@@ -1254,7 +1256,7 @@ Usually, a module consists of a collection of code that is contained
 within a single file. A package, on the other hand, is the Perl
 equivalent of a namespace. A package is a lot like a module, except
 that it is independent of files. Any number of files may be part of
-the same package--or a package may be broken up into a collection of
+the same package&mdash;or a package may be broken up into a collection of
 modules if you prefer to think about it in this way.
 </p>
 
@@ -1609,7 +1611,7 @@ instead of forcing the entire program to terminate with an uncaught error.
 
 <p>
 As shown, the exception handling code will be added to every wrapper function.
-Since this is somewhat inefficient.  You might consider refining the 
+Since this is somewhat inefficient, you might consider refining the 
 exception handler to only apply to specific methods like this:
 </p>
 
@@ -1702,7 +1704,7 @@ as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 
 <p>
 Before proceeding, it should be stressed that typemaps are <em>not</em> a required 
-part of using SWIG---the default wrapping behavior is enough in most cases.
+part of using SWIG&mdash;the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Perl interface.
 </p>
@@ -1720,8 +1722,8 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-	$1 = (int) SvIV($input);
-	printf("Received an integer : %d\n", $1);
+    $1 = (int) SvIV($input);
+    printf("Received an integer : %d\n", $1);
 }
 ...
 %inline %{
@@ -1735,7 +1737,7 @@ Typemaps are always associated with some specific aspect of code generation.
 In this case, the "in" method refers to the conversion of input arguments
 to C/C++.  The datatype <tt>int</tt> is the datatype to which the typemap
 will be applied.  The supplied C code is used to convert values.  In this
-code a number of special variable prefaced by a <tt>$</tt> are used.  The
+code, a number of special variables prefaced by a <tt>$</tt> are used.  The
 <tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
 The <tt>$input</tt> variable is the input object (usually a <tt>SV *</tt>).
 </p>
@@ -1757,7 +1759,7 @@ Received an integer : 6
 
 <p>
 The application of a typemap to specific datatypes and argument names involves
-more than simple text-matching--typemaps are fully integrated into the
+more than simple text-matching&mdash;typemaps are fully integrated into the
 SWIG type-system.   When you define a typemap for <tt>int</tt>, that typemap
 applies to <tt>int</tt> and qualified variations such as <tt>const int</tt>.  In addition,
 the typemap system follows <tt>typedef</tt> declarations.  For example:
@@ -1992,7 +1994,7 @@ The Perl name of the wrapper function being created.
 
 <p>
 When writing typemaps, it is somtimes necessary to work directly with
-perl's data structures.  Consult the "perlguts" and "perlapi" perldocs
+Perl's data structures.  Consult the <tt>perlguts</tt> and <tt>perlapi</tt> perldocs
 for details on the C interface to Perl.  However, it is useful to note
 that effective use of SWIG's existing typemap library can often avoid
 direct interaction with the Perl API, making your interfaces easier
@@ -2001,9 +2003,9 @@ to use in SWIG's other target languages.
 
 <p>
 Perl represents scalar values using the SV typedef, they can be created
-with newSV().  SVs can hold five types of values: integer (IV),
+with <tt>newSV()</tt>.  SVs can hold five types of values: integer (IV),
 unsigned integer (UV), double (NV), string (PV), and reference (SV *).
-SvTYPE() returns the type of an SV.
+<tt>SvTYPE()</tt> returns the type of an SV.
 </p>
 
 <p>
@@ -2154,8 +2156,8 @@ my $c = count_bits($str, length($str));
 </pre></div>
 
 <p>
-However, the Perl variable already knows it's own string length.  It may
-be more natural to hide the "len" argument from Perl.
+However, the Perl variable already knows its own string length.  It may
+be more natural to hide the <tt>len</tt> argument from Perl.
 </p>
 
 <div class="code"><pre>
@@ -2245,7 +2247,7 @@ int multout(double a, double b, double *OUTPUT, double *OUTPUT);
 
 <p>
 When this function is called, the output arguments are appended to the stack used
-to return results.  This shows up an array in Perl.
+to return results.  This shows up as an array in Perl.
 For example:
 </p>
 
@@ -2272,8 +2274,8 @@ typedef struct {
 </pre></div>
 
 <p>
-By default, SWIG doesn't know how to the handle the values structure
-member it's an array, not a pointer.  In this case, SWIG makes the array member
+By default, SWIG doesn't know how to the handle the <tt>values</tt> structure
+member; it's an array, not a pointer.  In this case, SWIG makes the array member
 read-only.   Reading will simply return a pointer to the first item in the array.
 To make the member writable, a "memberin" typemap can be used.
 </p>
@@ -2395,10 +2397,12 @@ int SWIG_ConvertPtr(SV *obj, void **ptr, swig_type_info *ty, int flags)
 </p>
 
 <div class="indent">
-Converts a Perl object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
-into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
-<tt>flags</tt> is used to handle error checking and other aspects of conversion. <tt>flags</tt> is
-currently undefined and reserved for future expansion.  Returns 0 on success and -1 on error.
+Converts a Perl object <tt>obj</tt> to a C pointer.  The <tt>ptr</tt>
+pointer receives the result of the conversion.  <tt>ty</tt> is a SWIG
+type descriptor structure.  <tt>flags</tt> is used to handle error
+checking and other aspects of conversion. <tt>flags</tt> is currently
+undefined and reserved for future expansion.  Returns 0 on success and
+-1 on error.
 </div>
 
 <p>
@@ -2478,7 +2482,7 @@ details of the proxy interface.
 
 
 <p>
-Proxy classes, are generated by default. If you want to turn them off, use the <tt>-noproxy</tt> command line option.
+Proxy classes are generated by default. If you want to turn them off, use the <tt>-noproxy</tt> command line option.
 For example:
 </p>
 
@@ -2566,7 +2570,7 @@ undef $v;
 <p>
 In order for proxy classes to work properly, it is necessary for Perl
 to manage some mechanism of object ownership.  Here's the crux of the
-problem---suppose you had a function like this:
+problem&mdash;suppose you had a function like this:
 </p>
 
 <div class="code"><pre>
@@ -2594,7 +2598,7 @@ Vector *new_Vector(double x, double y, double z) {
 Both functions return a Vector, but the constructor is returning a
 brand-new Vector while the other function is returning a Vector that
 was already created (hopefully).  In Perl, both vectors will be
-indistinguishable---clearly a problem considering that we would
+indistinguishable&mdash;clearly a problem considering that we would
 probably like the newly created Vector to be destroyed when we are
 done with it.
 </p>
@@ -2602,7 +2606,7 @@ done with it.
 <p>
 To manage these problems, the Perl reference to an object keeps track of
 whether it is an owning reference or not.  C++ constructors get this by
-default, but you may need to use the %newobject directive to hint SWIG
+default, but you may need to use the <tt>%newobject</tt> directive to hint SWIG
 about other functions which have callee cleanup obligations.  Consult
 <a href="Customization.html#Customization_ownership">Ownership
 customization</a> for details.
@@ -2653,7 +2657,7 @@ public:
 </pre></div>
 
 <p>
-The resulting, Perl wrapper class will create the following code:
+The resulting Perl wrapper class will create the following code:
 </p>
 
 <div class="targetlang"><pre>
@@ -2675,7 +2679,7 @@ want to look in the <tt>Shape</tt> base class for them.
 </p>
 
 <p>
-You are able to add your own child classes, however there will be
+You are able to add your own child classes, but there will be
 problems with many use patterns unless directors are enabled.
 </p>
 
@@ -2683,12 +2687,12 @@ problems with many use patterns unless directors are enabled.
 
 
 <p>
-The director feature is disabled by default.  To use directors you
-must make two changes to the interface file.  First, add the "directors"
-option to the %module directive.  Without this option no director code
-will be generated.  Second, you must use the %feature("director")
-directive to tell SWIG which classes and methods should get directors.
-Here is a simple example:
+The director feature is disabled by default.  To use directors you must
+make two changes to the interface file.  First, add the "directors"
+option to the <tt>%module</tt> directive.  Without this option no
+director code will be generated.  Second, you must use the
+<tt>%feature("director")</tt> directive to tell SWIG which classes and
+methods should get directors.  Here is a simple example:
 </p>
 
 <div class="code"><pre>
@@ -2723,8 +2727,8 @@ sub one {
 
 <p>
 which will call your overridden method even via dispatch from C++.
-Subclasses may add attributes using the fields module.  SWIG's wrapping
-code includes a C++ child class of each class directors are enabled on
+Subclasses may add attributes using the <tt>fields</tt> module.  SWIG's wrapping
+code includes a C++ child class for each class directors is enabled on
 and a wrapping function for each virtual method to achieve this
 behavior.  Therefore, it is recommended that you selectively enable
 directors only for specific classes that are likely to be extended in
@@ -2765,7 +2769,7 @@ using the <tt>base</tt> and <tt>fields</tt> pragmas.
 
 <p>
 If writing support code in C isn't enough, it is also possible to write code in
-Perl.  This code gets inserted in to the <tt>.pm</tt> file created by SWIG.   One
+Perl.  This code gets inserted into the <tt>.pm</tt> file created by SWIG.   One
 use of Perl code might be to supply a high-level interface to certain functions.
 For example:
 </p>
