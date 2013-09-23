@@ -10,80 +10,46 @@ srcdir       = $(abspath @srcdir@)
 top_srcdir   = $(abspath @top_srcdir@)
 top_builddir = $(abspath @top_builddir@)
 
-
-# Overridden variables here
-# None!
-# - member_funcptr_galore (C++)
-# - member_pointer (C++)
-# - typemap_variables (C++)
-
-define get_output_dir
-	OUTDIR := $(CURDIR)/$(1).build
-endef
-
-define get_runme_script
-	RUNME_SCRIPT := $(srcdir)/$(SCRIPTPREFIX)$(1)$(SCRIPTSUFFIX)
-endef
-
 CPP_STD_TEST_CASES += \
 	scilab_typemaps \
 
+TEST_DIR = $*.dir
+RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 include $(srcdir)/../common.mk
-
-# Override make commands to specify OUTDIR
-swig_and_compile_cpp =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
-	TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
-	scilab_cpp
-
-swig_and_compile_c =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
-	TARGET="$(OUTDIR)/$*_wrap.c" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
-	scilab
-
-swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	  INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
-	  TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
-	  scilab_cpp; \
-	done
 
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
-	$(eval $(call get_output_dir,$*))
-	mkdir -p $(OUTDIR)
-	+$(swig_and_compile_cpp)
+	+(cd $(TEST_DIR) && $(swig_and_compile_cpp))
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	$(eval $(call get_output_dir,$*))
-	mkdir -p $(OUTDIR)
-	+$(swig_and_compile_c)
+	+(cd $(TEST_DIR) && $(swig_and_compile_c))
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
-	$(eval $(call get_output_dir,$*))
-	mkdir -p $(OUTDIR)
-	+$(swig_and_compile_multi_cpp)
+	+(cd $(TEST_DIR) && $(swig_and_compile_multi_cpp))
 	$(run_testcase)
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $(TEST_DIR) ]; then						  \
+	  mkdir $(TEST_DIR);							  \
+	fi
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
-	$(eval $(call get_output_dir,$*)) \
-	$(eval $(call get_runme_script,$*)) \
 	if [ -f $(RUNME_SCRIPT) ]; then ( \
-		env LD_LIBRARY_PATH=$(OUTDIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME_SCRIPT); )\
+		env LD_LIBRARY_PATH=$(srcdir)/$(TEST_DIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME_SCRIPT); )\
 	fi
 
 # Clean: remove the generated files
