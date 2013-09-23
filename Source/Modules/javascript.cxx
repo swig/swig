@@ -1044,30 +1044,37 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 int JSEmitter::emitConstant(Node *n) {
 
   Wrapper *wrapper = NewWrapper();
+  SwigType *type = Getattr(n, "type");
+  String *name = Getattr(n, "name");
+  String *iname = Getattr(n, "sym:name");
+  String *wname = Swig_name_wrapper(name);
+  String *rawval = Getattr(n, "rawval");
+  String *value = rawval ? rawval : Getattr(n, "value");
 
   Template t_getter(getTemplate("js_getter"));
 
   // call the variable methods as a constants are
   // registred in same way
   enterVariable(n);
+  state.variable(GETTER, wname);
+  // TODO: why do we need this?
+  Setattr(n, "wrap:name", wname);
 
-  // prepare function wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
-  state.variable(GETTER, wrap_name);
-  Setattr(n, "wrap:name", wrap_name);
-
-  // prepare code part
-  String *value = Getattr(n, "rawval");
-  if (value == NULL) {
-    value = Getattr(n, "rawvalue");
-    if (value == NULL) value = Getattr(n, "value");
+  // special treatment of member pointers
+  if (SwigType_type(type) == T_MPOINTER) {
+    // TODO: this could go into a code-template
+    String *mpointer_wname = NewString("");
+    Printf(mpointer_wname, "_wrapConstant_%s", iname);
+    Setattr(n, "memberpointer:constant:wrap:name", mpointer_wname);
+    String *str = SwigType_str(type, mpointer_wname);
+    Printf(f_wrappers, "static %s = %s;\n", str, value);
+    Delete(str);
+    value = mpointer_wname;
   }
-  assert(value != NULL);
 
-  String *action = NewString("");
-  marshalOutput(n, 0, wrapper, action, value, false);
+  marshalOutput(n, 0, wrapper, NewString(""), value, false);
 
-  t_getter.replace("$jswrapper", wrap_name)
+  t_getter.replace("$jswrapper", wname)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .pretty_print(f_wrappers);
