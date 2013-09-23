@@ -7,18 +7,18 @@ ilib_verbose(0);
 swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
 
 // Test build dir
-testbuilddir = swigtestname + ".build";
+testdir = swigtestname + ".dir";
 
 // Does the library exists? If not then exit!
 libname = "lib" + swigtestname + "lib" + getdynlibext();
-if ~isfile(fullfile(testbuilddir, libname)) then
+if ~isfile(fullfile(testdir, libname)) then
     mfprintf(0, "*** LIBRARY NOT FOUND: %s ***\n", libname);
     exit(1)
 end
 
 // Load library
 try
-    exec(fullfile(testbuilddir, "loader.sce"), -1);
+    exec(fullfile(testdir, "loader.sce"), -1);
 catch
     mfprintf(0, "*** LOADER EXECUTION FAILED ***\n");
     exit(1)
