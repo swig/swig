@@ -86,11 +86,7 @@ static int          verbose = 0;
 static int blessed = 1;		/* Enable object oriented features */
 static int do_constants = 0;	/* Constant wrapping */
 static List *classlist = 0;	/* List of classes */
-
-static Node *CurrentClass = 0;	/* class currently being processed */
-#define ClassName       Getattr(CurrentClass, "sym:name")
 static Hash *mangle_seen = 0;
-
 static String *pcode = 0;	/* Perl code associated with each class */
 static String *const_stubs = 0;	/* Constant stubs */
 static int num_consts = 0;	/* Number of constants */
@@ -537,11 +533,12 @@ public:
        * additionally, it doesn't assert "hidden" on it's self param,
        * and that musses our usage_func(), so let's fix that.
        */
-      if (CurrentClass) {
-	String *tmp = NewStringf("disown_%s", ClassName);
+      if (getCurrentClass()) {
+	String *classname = Getattr(getCurrentClass(), "sym:name");
+	String *tmp = NewStringf("disown_%s", classname);
 	if (Equal(iname, tmp)) {
-	  pname = NewStringf("%s::_swig_disown", ClassName);
-	  Setattr(n, "perl5:name", NewStringf("%s::disown", ClassName));
+	  pname = NewStringf("%s::_swig_disown", classname);
+	  Setattr(n, "perl5:name", NewStringf("%s::disown", classname));
 	  Setattr(Getattr(n, "parms"), "hidden", "1");
 	}
 	Delete(tmp);
@@ -581,7 +578,7 @@ public:
        * release the object.  Normally, an undef($obj) would be the
        * right way to let go as with other common perl objects. */
       if(blessed)
-	Printf(f_init, "newXS((char *)\"%s::%s::DESTROY\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, ClassName);
+	Printf(f_init, "newXS((char *)\"%s::%s::DESTROY\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, Getattr(getCurrentClass(), "sym:name"));
       else
 	Printf(f_init, "newXS((char *)\"%s::%s\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, pname);
       return SWIG_OK;
@@ -786,7 +783,7 @@ public:
 	  "}\n",
 	  NIL);
     }
-    if (CurrentClass && Swig_directorclass(CurrentClass)) {
+    if (getCurrentClass() && Swig_directorclass(getCurrentClass())) {
       Swig_require("perl5:functionWrapper", n, "?catchlist", NIL);
       /* TODO: the type system doesn't know about the DirectorException
        * class, so this is cheating. */
@@ -1066,21 +1063,22 @@ public:
     if (!pname)
       pname = Getattr(n, "sym:name");
 
-    if (p && CurrentClass) {
+    if (p && getCurrentClass()) {
+      String *classname = Getattr(getCurrentClass(), "sym:name");
       if (GetFlag(p, "arg:classref")) {
 	/* class method */
-	String *src = NewStringf("%s::", ClassName);
+	String *src = NewStringf("%s::", classname);
 	String *dst = NewStringf("%s::%s->",
-				 namespace_module, ClassName);
+				 namespace_module, classname);
 	pcall = NewStringf("%s(", pname);
 	Replace(pcall, src, dst, DOH_REPLACE_FIRST);
 	p = nextSibling(p);
 	Delete(src);
 	Delete(dst);
       } else if (GetFlag(p, "hidden") && Equal(Getattr(p, "name"), "self")) {
-	String *src = NewStringf("%s::", ClassName);
+	String *src = NewStringf("%s::", classname);
 	String *dst = NewStringf("[%s::%s object]->",
-				 namespace_module, ClassName);
+				 namespace_module, classname);
 	pcall = NewStringf("%s(", pname);
 	Replace(pcall, src, dst, DOH_REPLACE_FIRST);
 	p = nextSibling(p);
@@ -1232,20 +1230,19 @@ public:
     String *fullclassname = 0;
     String *outer_nc = 0;
 
-    Node *outer_class = CurrentClass;
-    CurrentClass = n;
     Setattr(n, "perl5:memberVariables", NewList());
 
     if (blessed) {
 
-      if (!addSymbol(ClassName, n))
+      String *classname = Getattr(n, "sym:name");
+      if (!addSymbol(classname, n))
 	return SWIG_ERROR;
 
       /* Use the fully qualified name of the Perl class */
       if (!compat) {
-	fullclassname = NewStringf("%s::%s", namespace_module, ClassName);
+	fullclassname = NewStringf("%s::%s", namespace_module, classname);
       } else {
-	fullclassname = NewString(ClassName);
+	fullclassname = NewString(classname);
       }
 
       outer_nc = none_comparison;
@@ -1392,13 +1389,13 @@ public:
       Delete(pcode);
 
       /* bind core swig class methods */
-      Printf(f_init, "newXS((char *)\"%s::%s::_swig_this\", SWIG_Perl_This, (char *)__FILE__);\n", namespace_module, ClassName);
-      Printf(f_init, "newXS((char *)\"%s::%s::_swig_own\", SWIG_Perl_Own, (char *)__FILE__);\n", namespace_module, ClassName);
+      String *classname = Getattr(n, "sym:name");
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_this\", SWIG_Perl_This, (char *)__FILE__);\n", namespace_module, classname);
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_own\", SWIG_Perl_Own, (char *)__FILE__);\n", namespace_module, classname);
 
       Delete(none_comparison);
       none_comparison = outer_nc;
     }
-    CurrentClass = outer_class;
     return SWIG_OK;
   }
 
@@ -1416,14 +1413,15 @@ public:
 
       if (shadow)
 	pfunc = Getattr(n, "feature:shadow");
-      pname = NewStringf("%s%s", pfunc ? "_swig_" : "", Equal(nodeType(n), "constructor") && Equal(symname, ClassName) ? "new" : symname);
+      String *classname = Getattr(getCurrentClass(), "sym:name");
+      pname = NewStringf("%s%s", pfunc ? "_swig_" : "", Equal(nodeType(n), "constructor") && Equal(symname, classname) ? "new" : symname);
       if (pfunc) {
 	String *pname_ref = NewStringf("do { \\&%s }", pname);
 	Replaceall(pfunc, "$action", pname_ref);
 	Delete(pname_ref);
 	Append(pcode, pfunc);
       }
-      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName, pname));
+      Setattr(n, "perl5:name", NewStringf("%s::%s", classname, pname));
     }
     return SWIG_OK;
   }
@@ -1438,10 +1436,10 @@ public:
       Hash *oper = Getattr(operators, Getattr(n, "sym:name"));
 
       if (oper) {
-	List *class_oper = Getattr(CurrentClass, "perl5:operators");
+	List *class_oper = Getattr(getCurrentClass(), "perl5:operators");
 	if (!class_oper) {
 	  class_oper = NewList();
-	  Setattr(CurrentClass, "perl5:operators", class_oper);
+	  Setattr(getCurrentClass(), "perl5:operators", class_oper);
 	}
 	Append(class_oper, oper);
       }
@@ -1456,7 +1454,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
+    Append(Getattr(getCurrentClass(), "perl5:memberVariables"), n);
     SetFlag(n, "perl5:instancevariable");
     return Language::membervariableHandler(n);
   }
@@ -1473,7 +1471,7 @@ public:
   virtual int constructorHandler(Node *n) {
     int restore = 0;
     memberfunctionCommon(n);
-    if (blessed && !Swig_directorclass(CurrentClass)) {
+    if (blessed && !Swig_directorclass(getCurrentClass())) {
       Swig_save("perl5memberfunctionimplicit", n, "parms", NIL);
       String *type = NewString("SV");
       SwigType_add_pointer(type);
@@ -1496,7 +1494,7 @@ public:
 
   virtual int destructorHandler(Node *n) {
     memberfunctionCommon(n);
-    Setattr(CurrentClass, "perl5:destructors", n);
+    Setattr(getCurrentClass(), "perl5:destructors", n);
     SetFlag(n, "perl5:destructor");
     return Language::destructorHandler(n);
   }
@@ -1531,7 +1529,7 @@ public:
 
   virtual int staticmembervariableHandler(Node *n) {
     memberfunctionCommon(n, 0);
-    Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
+    Append(Getattr(getCurrentClass(), "perl5:memberVariables"), n);
     return Language::staticmembervariableHandler(n);
   }
 
