@@ -1,4 +1,5 @@
 lines(0);
+warning('off');
 ilib_verbose(0);
 
 // Get test name (used in swigtest.quit file)
