@@ -342,7 +342,7 @@ public:
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
       if (Len(functionReturnTypemap) > 0) {
-	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */\n", 1);
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
       }
       Replaceall(functionReturnTypemap, "$result", "1");
 
@@ -372,7 +372,7 @@ public:
       if (paramTypemap) {
 	minOutputArguments++;
 	maxOutputArguments++;
-	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* paramTypemap */ \n", minOutputArguments);
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
 	char result[64] = { };
 	sprintf(result, "%d", minOutputArguments);
 	Replaceall(paramTypemap, "$result", result);
@@ -504,7 +504,7 @@ public:
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
     if (varoutTypemap != NULL) {
-      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* varoutTypemap */ \n", 1);
+      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
       Replaceall(varoutTypemap, "$value", origVariableName);
       Replaceall(varoutTypemap, "$result", "1");
       emit_action_code(node, getFunctionWrapper->code, varoutTypemap);
@@ -601,7 +601,7 @@ public:
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
     if (constantTypemap != NULL) {
-      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* constantTypemap */ \n", 1);
+      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
       Replaceall(constantTypemap, "$value", constantValue);
       Replaceall(constantTypemap, "$result", "1");
       emit_action_code(node, getFunctionWrapper->code, constantTypemap);
