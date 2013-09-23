@@ -6,6 +6,8 @@
 
 
 %insert(runtime) %{
+#define SCILAB_VERSION_54_OR_HIGHER (SCI_VERSION_MAJOR > 5) || ((SCI_VERSION_MAJOR == 5) && (SCI_VERSION_MINOR >= 4))
+
 /* Scilab standard headers */
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +18,9 @@ extern "C" {
 #include "api_scilab.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
+#if !SCILAB_VERSION_54_OR_HIGHER
+#include "stack-c.h"
+#endif
 #ifdef __cplusplus
 }
 #endif
@@ -65,11 +70,6 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 {
    sciprint(_("SWIG/Scilab Error : %s\n%s"),SWIG_Scilab_ErrorType(code),mesg);
 }
-
-#define SCILAB_VERSION_54_OR_HIGHER (SCI_VERSION_MAJOR > 5) || ((SCI_VERSION_MAJOR == 5) && (SCI_VERSION_MINOR >= 4))
-#if !SCILAB_VERSION_54_OR_HIGHER
-#include "stack-c.h"
-#endif
 
 #define SWIG_fail                 return SWIG_ERROR;
 #define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)
