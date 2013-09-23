@@ -50,6 +50,7 @@ protected:
   String *buildFlagsScript;
 
   bool generateBuilder;
+  bool extraWarning;
 public:
   /* ------------------------------------------------------------------------
    * main()
@@ -62,6 +63,7 @@ public:
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
     generateBuilder = true;
+    extraWarning = false;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -101,6 +103,9 @@ public:
   } else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
     Swig_mark_arg(argIndex);
     generateBuilder = false;
+  }
+  else if (strcmp(argv[argIndex], "-Wextra") == 0) {
+    extraWarning = true;
   }
       }
     }
@@ -241,6 +246,8 @@ public:
     String *functionName = Getattr(node, "sym:name");
     SwigType *functionReturnType = Getattr(node, "type");
     ParmList *functionParamsList = Getattr(node, "parms");
+
+    checkIdentifierName(functionName);
 
     int paramIndex = 0;		// Used for loops over ParmsList
     Parm *param = NULL;		// Used for loops over ParamsList
@@ -491,6 +498,8 @@ public:
     String *origVariableName = Getattr(node, "name");	// Ex: Shape::nshapes
     String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
 
+    checkIdentifierName(variableName);
+
     /* Manage GET function */
     Wrapper *getFunctionWrapper = NewWrapper();
     String *getFunctionName = Swig_name_get(NSPACE_TODO, variableName);
@@ -558,6 +567,8 @@ public:
     String *rawValue = Getattr(node, "rawval");
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
+
+    checkIdentifierName(constantName);
 
     // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables
     if (GetFlag(node, "feature:scilab:const")) {
@@ -651,6 +662,16 @@ public:
     }
 
     return Language::enumvalueDeclaration(node);
+  }
+
+  void checkIdentifierName(String *name) {
+    if (Len(name) > 24) {
+      if (extraWarning) {
+        // Warning on too long identifiers
+        Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
+          "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
+      }
+    }
   }
 
   void createBuilderFile() {

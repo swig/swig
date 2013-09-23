@@ -35,14 +35,14 @@ include $(srcdir)/../common.mk
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
 	TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	scilab_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
 	TARGET="$(OUTDIR)/$*_wrap.c" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	scilab
 
@@ -50,7 +50,7 @@ swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	  INCLUDES="$(INCLUDES)" SWIGOPT= OUTDIR="$(OUTDIR)" \
+	  INCLUDES="$(INCLUDES)" OUTDIR="$(OUTDIR)" \
 	  TARGET="$(OUTDIR)/$*_wrap.cxx" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  scilab_cpp; \
 	done
