@@ -6,7 +6,7 @@
 %fragment("SWIG_ScilabList", "header")
 {
 SWIGINTERN int
-SWIG_GetScilabList(SciObject _obj, int **_piListAddr)
+SWIG_GetScilabList(SwigSciObject _obj, int **_piListAddr)
 {
   SciErr sciErr;
 
@@ -21,7 +21,7 @@ SWIG_GetScilabList(SciObject _obj, int **_piListAddr)
 }
 
 SWIGINTERN int
-SWIG_GetScilabListSize(SciObject _obj, int *_piListSize)
+SWIG_GetScilabListSize(SwigSciObject _obj, int *_piListSize)
 {
   SciErr sciErr;
   int *piListAddr;
@@ -44,7 +44,7 @@ SWIG_GetScilabListSize(SciObject _obj, int *_piListSize)
 }
 
 SWIGINTERN int
-SWIG_GetScilabListAndSize(SciObject _obj, int **_piListAddr, int *_piListSize)
+SWIG_GetScilabListAndSize(SwigSciObject _obj, int **_piListAddr, int *_piListSize)
 {
   SciErr sciErr;
 
@@ -66,7 +66,7 @@ SWIG_GetScilabListAndSize(SciObject _obj, int **_piListAddr, int *_piListSize)
 }
 
 SWIGINTERN int
-SWIG_CheckScilabList(SciObject _obj)
+SWIG_CheckScilabList(SwigSciObject _obj)
 {
   SciErr sciErr;
   int *piListAddr;

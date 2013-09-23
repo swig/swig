@@ -4,7 +4,7 @@
  */
 %fragment(SWIG_AsVal_frag(long), "header", fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
-SWIG_AsVal_dec(long)(SciObject _iVar, long *_plValue) {
+SWIG_AsVal_dec(long)(SwigSciObject _iVar, long *_plValue) {
   double dblValue = 0.0;
   if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;
@@ -39,7 +39,7 @@ SWIG_From_dec(long)(long _lValue) {
  */
 %fragment(SWIG_AsVal_frag(unsigned long), "header", fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
-SWIG_AsVal_dec(unsigned long)(SciObject _iVar, unsigned long *_pulValue) {
+SWIG_AsVal_dec(unsigned long)(SwigSciObject _iVar, unsigned long *_pulValue) {
   double dblValue = 0.0;
   if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;

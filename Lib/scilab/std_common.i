@@ -17,13 +17,13 @@ namespace swig {
   };  
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(SciObject obj, value_type *val) { 
+    static int asval(SwigSciObject obj, value_type *val) {
       return SWIG_AsVal(Type)(obj, val);
     }
   };
   template <>  struct traits_from<Type > {
     typedef Type value_type;
-    static SciObject from(const value_type& val) {
+    static SwigSciObject from(const value_type& val) {
       return SWIG_From(Type)(val);
     }
   };
@@ -46,13 +46,13 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(SciObject obj, value_type *val) { 
+    static int asval(SwigSciObject obj, value_type *val) {
       return SWIG_AsVal(int)(obj, (int *)val);
     }
   };
   template <>  struct traits_from<Type > {
     typedef Type value_type;
-    static SciObject from(const value_type& val) {
+    static SwigSciObject from(const value_type& val) {
       return SWIG_From(int)((int)val);
     }
   };

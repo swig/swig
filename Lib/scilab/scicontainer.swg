@@ -50,7 +50,7 @@ namespace swig
   template <class T>
   struct SciSequence_Ref
   {
-    SciSequence_Ref(const SciObject& seq, int index)
+    SciSequence_Ref(const SwigSciObject& seq, int index)
       : _seq(seq), _index(index)
     {
       if (traits_as_sequence<T>::get(_seq, &_piSeqAddr) != SWIG_OK)
@@ -83,7 +83,7 @@ namespace swig
     }
 
     private:
-      SciObject _seq;
+      SwigSciObject _seq;
       int _index;
       void *_piSeqAddr;
   };
@@ -113,7 +113,7 @@ namespace swig
     {
     }
 
-    SciSequence_InputIterator(const SciObject& seq, int index)
+    SciSequence_InputIterator(const SwigSciObject& seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -189,7 +189,7 @@ namespace swig
     }
 
   private:
-    SciObject _seq;
+    SwigSciObject _seq;
     difference_type _index;
   };
 
@@ -206,7 +206,7 @@ namespace swig
     typedef SciSequence_InputIterator<T, reference> iterator;
     typedef SciSequence_InputIterator<T, const_reference> const_iterator;
 
-    SciSequence_Cont(const SciObject& seq) : _seq(seq)
+    SciSequence_Cont(const SwigSciObject& seq) : _seq(seq)
     {
     }
 
@@ -263,7 +263,7 @@ namespace swig
     }
 
   private:
-    SciObject _seq;
+    SwigSciObject _seq;
   };
 }
 }
@@ -297,7 +297,7 @@ namespace swig
     reverse_iterator(swig::SciSwigIterator *iter = 0, int res),
     const_iterator(swig::SciSwigIterator *iter = 0, int res),
     const_reverse_iterator(swig::SciSwigIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr((SciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
+    res = SWIG_ConvertPtr((SwigSciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
@@ -313,7 +313,7 @@ namespace swig
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="SciSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::SciSwigIterator *iter = 0;
-    int res = SWIG_ConvertPtr((SciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
+    int res = SWIG_ConvertPtr((SwigSciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SciSwigIterator_T<$type > *>(iter) != 0));
   }
 
@@ -369,7 +369,7 @@ namespace swig {
     typedef Seq sequence;
     typedef T value_type;
 
-    static int asptr(const SciObject& obj, sequence **seq)
+    static int asptr(const SwigSciObject& obj, sequence **seq)
     {
       swig_type_info *typeInfo = swig::type_info<sequence>();
       if (typeInfo)
@@ -414,7 +414,7 @@ namespace swig {
     typedef typename Seq::size_type size_type;
     typedef typename sequence::const_iterator const_iterator;
 
-    static SciObject from(const sequence& seq)
+    static SwigSciObject from(const sequence& seq)
     {
       %#ifdef SWIG_SCILAB_EXTRA_NATIVE_CONTAINERS
       swig_type_info *typeInfo = swig::type_info<sequence>();

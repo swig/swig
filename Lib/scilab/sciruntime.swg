@@ -23,7 +23,7 @@ extern "C" {
 #undef Max
 #undef Min
 
-typedef int SciObject;
+typedef int SwigSciObject;
 
 
 /* -----------------------------------------------------------------------------
@@ -225,7 +225,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_SetOutput(void *_pvApiCtx, SciObject _output) {
+SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
   int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
   if (outputPosition < 0 || _output < 0) {
       return SWIG_ERROR;

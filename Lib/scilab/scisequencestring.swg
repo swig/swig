@@ -10,7 +10,7 @@
   fragment="SwigScilabStringToCharPtrArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(std::string)(SciObject _obj) {
+SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
   SciErr sciErr;
   int *piAddrVar;
 
@@ -36,7 +36,7 @@ SWIG_AsCheck_Sequence_dec(std::string)(SciObject _obj) {
   fragment="SwigScilabStringToCharPtrArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(std::string)(SciObject _obj, char ***_pSequence) {
+SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject _obj, char ***_pSequence) {
   int iSize;
   return (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, _obj, _pSequence, &iSize, SWIG_Scilab_GetFname()));
 }
@@ -46,7 +46,7 @@ SWIG_AsGet_Sequence_dec(std::string)(SciObject _obj, char ***_pSequence) {
   fragment="SwigScilabStringToCharPtrArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(std::string)(SciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject _obj, int *_piSize) {
   char **pstMatrix;
   if (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, _obj, &pstMatrix, _piSize, SWIG_Scilab_GetFname()) == SWIG_OK) {
     return SWIG_OK;
@@ -67,9 +67,9 @@ SWIG_FromCreate_Sequence_dec(std::string)(int _size, char ***_sequence) {
 %fragment(SWIG_FromSet_Sequence_frag(std::string), "header",
   fragment="SwigScilabStringFromCharPtrArray") {
 
-SWIGINTERN SciObject
+SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
-  SciObject obj = SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _sequence, _size);
+  SwigSciObject obj = SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _sequence, _size);
   delete (char **)_sequence;
   return obj;
 }
@@ -78,7 +78,7 @@ SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(std::string), "header") {
 
 SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(std::string)(SciObject _obj, char **_pSequence, int _iItemIndex, std::string *_pItemValue) {
+SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject _obj, char **_pSequence, int _iItemIndex, std::string *_pItemValue) {
   *_pItemValue = std::string(_pSequence[_iItemIndex]);
   return SWIG_OK;
 }

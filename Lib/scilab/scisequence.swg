@@ -50,13 +50,13 @@ namespace swig {
   // For sequence of values, considers int as default type (so it works for enums)
 
   template <typename T> struct traits_as_sequence {
-    static int check(SciObject obj) {
+    static int check(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(int)(obj);
     }
-    static int get(SciObject obj, void **sequence) {
+    static int get(SwigSciObject obj, void **sequence) {
       return SWIG_AsGet_Sequence_dec(int)(obj, (int **)sequence);
     }
-    static int size(SciObject obj, int *size) {
+    static int size(SwigSciObject obj, int *size) {
       return SWIG_AsSize_Sequence_dec(int)(obj, size);
     }
   };
@@ -64,7 +64,7 @@ namespace swig {
     static int create(int size, void **sequence) {
       return SWIG_FromCreate_Sequence_dec(int)(size, (int **)sequence);
     }
-    static SciObject set(int size, void *sequence) {
+    static SwigSciObject set(int size, void *sequence) {
       return SWIG_FromSet_Sequence_dec(int)(size, (int *)sequence);
     }
   };
@@ -72,13 +72,13 @@ namespace swig {
   // For sequence of pointers
 
   template <typename T> struct traits_as_sequence<T*> {
-    static int check(SciObject obj) {
+    static int check(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(ptr)(obj);
     }
-    static int get(SciObject obj, void **sequence) {
+    static int get(SwigSciObject obj, void **sequence) {
       return SWIG_AsGet_Sequence_dec(ptr)(obj, (int **)sequence);
     }
-    static int size(SciObject obj, int *size) {
+    static int size(SwigSciObject obj, int *size) {
       return SWIG_AsSize_Sequence_dec(ptr)(obj, size);
     }
   };
@@ -86,7 +86,7 @@ namespace swig {
     static int create(int size, void **sequence) {
       return SWIG_FromCreate_Sequence_dec(ptr)(size, (long long **)sequence);
     }
-    static SciObject set(int size, void *sequence) {
+    static SwigSciObject set(int size, void *sequence) {
       return SWIG_FromSet_Sequence_dec(ptr)(size, (long long *)sequence);
     }
   };
@@ -104,13 +104,13 @@ namespace swig {
 
 namespace swig {
   template <> struct traits_as_sequence<CppType > {
-    static int check(SciObject obj) {
+    static int check(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(CppType)(obj);
     }
-    static int get(SciObject obj, void **sequence) {
+    static int get(SwigSciObject obj, void **sequence) {
       return SWIG_AsGet_Sequence_dec(CppType)(obj, (ScilabType **)sequence);
     }
-    static int size(SciObject obj, int *size) {
+    static int size(SwigSciObject obj, int *size) {
       return SWIG_AsSize_Sequence_dec(CppType)(obj, size);
     }
   };
@@ -118,7 +118,7 @@ namespace swig {
     static int create(int size, void **sequence) {
       return SWIG_FromCreate_Sequence_dec(CppType)(size, (ScilabType **)sequence);
     }
-    static SciObject set(int size, void *sequence) {
+    static SwigSciObject set(int size, void *sequence) {
       return SWIG_FromSet_Sequence_dec(CppType)(size, (ScilabType *)sequence);
     }
   };
@@ -142,7 +142,7 @@ namespace swig {
   // For sequence of values, considers int as default type (so it works for enums)
 
   template <typename T> struct traits_asval_sequenceitem {
-    static int asval(SciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
+    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
       return SWIG_AsVal_SequenceItem_dec(int)(obj, (int *)pSequence, iItemIndex, (int *)pItemValue);
     }
   };
@@ -155,7 +155,7 @@ namespace swig {
   // Sequence of pointers
 
   template <typename T> struct traits_asval_sequenceitem<T*> {
-    static int asval(SciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {
+    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {
       return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (void **)pItemValue);
     }
   };
@@ -175,7 +175,7 @@ namespace swig {
 
 namespace swig {
   template <> struct traits_asval_sequenceitem<CppType > {
-    static int asval(SciObject obj, void *pSequence, int iItemIndex, CppType *pItemValue) {
+    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, CppType *pItemValue) {
       return SWIG_AsVal_SequenceItem_dec(CppType)(obj, (ScilabType *)pSequence, iItemIndex, pItemValue);
     }
   };

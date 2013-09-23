@@ -7,14 +7,14 @@
   namespace swig {
     template <class T >
     struct traits_asptr<std::list<T> >  {
-      static int asptr(SciObject obj, std::list<T> **lis) {
+      static int asptr(SwigSciObject obj, std::list<T> **lis) {
 	      return traits_asptr_stdseq<std::list<T> >::asptr(obj, lis);
       }
     };
 
     template <class T>
     struct traits_from<std::list<T> > {
-      static SciObject from(const std::list<T> &lis) {
+      static SwigSciObject from(const std::list<T> &lis) {
 	      return traits_from_stdseq<std::list<T> >::from(lis);
       }
     };

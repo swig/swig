@@ -10,7 +10,7 @@
   fragment="SWIG_SciDouble_AsDoubleArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(double)(SciObject _obj) {
+SWIG_AsCheck_Sequence_dec(double)(SwigSciObject _obj) {
   SciErr sciErr;
   int *piAddrVar;
 
@@ -36,7 +36,7 @@ SWIG_AsCheck_Sequence_dec(double)(SciObject _obj) {
   fragment="SWIG_SciDouble_AsDoubleArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(double)(SciObject _obj, double **_pSequence) {
+SWIG_AsGet_Sequence_dec(double)(SwigSciObject _obj, double **_pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
   return (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, _pSequence, SWIG_Scilab_GetFname()));
@@ -47,7 +47,7 @@ SWIG_AsGet_Sequence_dec(double)(SciObject _obj, double **_pSequence) {
   fragment="SWIG_SciDouble_AsDoubleArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(double)(SciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(double)(SwigSciObject _obj, int *_piSize) {
   double *pdblMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
@@ -75,9 +75,9 @@ SWIG_FromCreate_Sequence_dec(double)(int _size, double **_sequence) {
 %fragment(SWIG_FromSet_Sequence_frag(double), "header",
   fragment="SWIG_SciDouble_FromDoubleArrayAndSize") {
 
-SWIGINTERN SciObject
+SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(double)(int _size, double *_sequence) {
-  SciObject obj = SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
+  SwigSciObject obj = SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
   delete (double *)_sequence;
   return obj;
 }
@@ -86,7 +86,7 @@ SWIG_FromSet_Sequence_dec(double)(int _size, double *_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(double), "header") {
 
 SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(double)(SciObject _obj, double *_pSequence, int _iItemIndex, double *_pItemValue) {
+SWIG_AsVal_SequenceItem_dec(double)(SwigSciObject _obj, double *_pSequence, int _iItemIndex, double *_pItemValue) {
   *_pItemValue = _pSequence[_iItemIndex];
   return SWIG_OK;
 }

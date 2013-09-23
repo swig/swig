@@ -4,7 +4,7 @@
  */
 %fragment(SWIG_AsVal_frag(short), "header", fragment=SWIG_AsVal_frag(int)) {
 SWIGINTERN int
-SWIG_AsVal_dec(short)(SciObject _iVar, short *_pshValue) {
+SWIG_AsVal_dec(short)(SwigSciObject _iVar, short *_pshValue) {
   int iValue = 0.0;
   if(SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK) {
     return SWIG_ERROR;

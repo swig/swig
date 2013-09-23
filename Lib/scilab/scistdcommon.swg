@@ -3,44 +3,44 @@
 namespace swig {  
 // Traits that provides the from method
   template <class Type> struct traits_from_ptr {
-    static SciObject from(Type *val, int owner = 0) {
+    static SwigSciObject from(Type *val, int owner = 0) {
         return 0; //SWIG_NewPointerObj(val, type_info<Type>(), owner);
     }
   };
 
   template <class Type> struct traits_from {
-    static SciObject from(const Type& val) {
+    static SwigSciObject from(const Type& val) {
       return traits_from_ptr<Type>::from(new Type(val), 1);
     }
   };
 
   template <class Type> struct traits_from<Type *> {
-    static SciObject from(Type* val) {
+    static SwigSciObject from(Type* val) {
       return traits_from_ptr<Type>::from(val, 0);
     }
   };
 
   template <class Type> struct traits_from<const Type *> {
-    static SciObject from(const Type* val) {
+    static SwigSciObject from(const Type* val) {
       return traits_from_ptr<Type>::from(const_cast<Type*>(val), 0);
     }
   };
 
 
   template <class Type>
-  inline SciObject from(const Type& val) {
+  inline SwigSciObject from(const Type& val) {
     return traits_from<Type>::from(val);
   }
 
   template <class Type>
-  inline SciObject from_ptr(Type* val, int owner) {
+  inline SwigSciObject from_ptr(Type* val, int owner) {
     return traits_from_ptr<Type>::from(val, owner);
   }
 
     // Traits that provides the asval/as/check method
   template <class Type>
   struct traits_asptr {   
-    static int asptr(const SciObject& obj, Type **val) {
+    static int asptr(const SwigSciObject& obj, Type **val) {
       Type *p;
       int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
@@ -51,13 +51,13 @@ namespace swig {
   }; 
 
   template <class Type>
-  inline int asptr(const SciObject& obj, Type **vptr) {
+  inline int asptr(const SwigSciObject& obj, Type **vptr) {
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 
   template <class Type> 
   struct traits_asval {
-    static int asval(const SciObject& obj, Type *val) {
+    static int asval(const SwigSciObject& obj, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
@@ -80,7 +80,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static int asval(const SciObject& obj, Type **val) {
+    static int asval(const SwigSciObject& obj, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
@@ -96,13 +96,13 @@ namespace swig {
   };
   
   template <class Type>
-  inline int asval(const SciObject& obj, Type *val) {
+  inline int asval(const SwigSciObject& obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(const SciObject& obj, bool throw_error) {
+    static Type as(const SwigSciObject& obj, bool throw_error) {
       Type v;
       int res = asval(obj, &v);
       //if (!obj.is_defined() || !SWIG_IsOK(res)) {
@@ -117,7 +117,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(const SciObject& obj, bool throw_error) {
+    static Type as(const SwigSciObject& obj, bool throw_error) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
@@ -143,7 +143,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(const SciObject& obj, bool throw_error) {
+    static Type* as(const SwigSciObject& obj, bool throw_error) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
@@ -159,13 +159,13 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(const SciObject& obj, bool te = false) {
+  inline Type as(const SwigSciObject& obj, bool te = false) {
     return traits_as<Type, typename traits<Type>::category>::as(obj, te);
   }
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(const SciObject& obj) {
+    static bool check(const SwigSciObject& obj) {
       int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
@@ -173,14 +173,14 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(const SciObject& obj) {
+    static bool check(const SwigSciObject& obj) {
       int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(const SciObject& obj) {
+  inline bool check(const SwigSciObject& obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -191,7 +191,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(const SciObject& obj, value_type *val) {
+    static int asval(const SwigSciObject& obj, value_type *val) {
       if (Check(obj)) {
 	if (val) *val = As(obj);
 	return SWIG_OK;
@@ -201,14 +201,14 @@ namespace swig {
   };
   template <>  struct traits_from<Type > {
     typedef Type value_type;
-    static SciObject from(const value_type& val) {
+    static SwigSciObject from(const value_type& val) {
       return From(val);
     }
   };
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(const SciObject& obj) {
+    static int check(const SwigSciObject& obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }

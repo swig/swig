@@ -10,7 +10,7 @@
   fragment="SWIG_SciInt32_AsIntArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(bool)(SciObject _obj) {
+SWIG_AsCheck_Sequence_dec(bool)(SwigSciObject _obj) {
   SciErr sciErr;
   int *piAddrVar;
 
@@ -36,7 +36,7 @@ SWIG_AsCheck_Sequence_dec(bool)(SciObject _obj) {
   fragment="SWIG_SciBoolean_AsIntArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(bool)(SciObject _obj, int **_pSequence) {
+SWIG_AsGet_Sequence_dec(bool)(SwigSciObject _obj, int **_pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
   return (SWIG_SciBoolean_AsIntArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, _pSequence, SWIG_Scilab_GetFname()));
@@ -47,7 +47,7 @@ SWIG_AsGet_Sequence_dec(bool)(SciObject _obj, int **_pSequence) {
   fragment="SWIG_SciBoolean_AsIntArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(bool)(SciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(bool)(SwigSciObject _obj, int *_piSize) {
   int *piMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
@@ -75,9 +75,9 @@ SWIG_FromCreate_Sequence_dec(bool)(int _size, int **_sequence) {
 %fragment(SWIG_FromSet_Sequence_frag(bool), "header",
   fragment="SWIG_SciBoolean_FromIntArrayAndSize") {
 
-SWIGINTERN SciObject
+SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(bool)(int _size, int *_sequence) {
-  SciObject obj = SWIG_SciBoolean_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
+  SwigSciObject obj = SWIG_SciBoolean_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
   delete (int *)_sequence;
   return obj;
 }
@@ -86,7 +86,7 @@ SWIG_FromSet_Sequence_dec(bool)(int _size, int *_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(bool), "header") {
 
 SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(bool)(SciObject _obj, int *_pSequence, int _iItemIndex, bool *_pItemValue) {
+SWIG_AsVal_SequenceItem_dec(bool)(SwigSciObject _obj, int *_pSequence, int _iItemIndex, bool *_pItemValue) {
   *_pItemValue = _pSequence[_iItemIndex];
   return SWIG_OK;
 }

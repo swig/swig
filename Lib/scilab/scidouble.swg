@@ -3,7 +3,7 @@
  */
 %fragment(SWIG_AsVal_frag(double), "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(double)(SciObject _iVar, double *_pdblValue) {
+SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;

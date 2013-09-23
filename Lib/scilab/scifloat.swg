@@ -3,7 +3,7 @@
  */
 %fragment(SWIG_AsVal_frag(float), "header", fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
-SWIG_AsVal_dec(float)(SciObject _iVar, float *_pfValue) {
+SWIG_AsVal_dec(float)(SwigSciObject _iVar, float *_pfValue) {
   double dblValue = 0.0;
   if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;

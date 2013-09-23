@@ -10,7 +10,7 @@
   fragment="SWIG_ScilabList") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(ptr)(SciObject _obj) {
+SWIG_AsCheck_Sequence_dec(ptr)(SwigSciObject _obj) {
   return SWIG_CheckScilabList(_obj);
 }
 }
@@ -19,7 +19,7 @@ SWIG_AsCheck_Sequence_dec(ptr)(SciObject _obj) {
   fragment="SWIG_ScilabList") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(ptr)(SciObject _obj, int **_piSequence) {
+SWIG_AsGet_Sequence_dec(ptr)(SwigSciObject _obj, int **_piSequence) {
   return SWIG_GetScilabList(_obj, _piSequence);
 }
 }
@@ -28,7 +28,7 @@ SWIG_AsGet_Sequence_dec(ptr)(SciObject _obj, int **_piSequence) {
   fragment="SWIG_ScilabList") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(ptr)(SciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(ptr)(SwigSciObject _obj, int *_piSize) {
   return SWIG_GetScilabListSize(_obj, _piSize);
 }
 }
@@ -44,7 +44,7 @@ SWIG_FromCreate_Sequence_dec(ptr)(int _size, long long **_sequence) {
 
 %fragment(SWIG_FromSet_Sequence_frag(ptr), "header") {
 
-SWIGINTERN SciObject
+SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
   SciErr sciErr;
   int *piListAddr;
@@ -75,7 +75,7 @@ SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(ptr), "header") {
 
 SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(ptr)(SciObject _obj, int *_piSequence, int _itemIndex, void **_pItemValue)
+SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject _obj, int *_piSequence, int _itemIndex, void **_pItemValue)
 {
   SciErr sciErr;
   int *piItemAddr;

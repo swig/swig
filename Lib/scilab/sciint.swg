@@ -4,7 +4,7 @@
  */
 %fragment(SWIG_AsVal_frag(int), "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(int)(SciObject _iVar, int *_piValue)
+SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
 {
   SciErr sciErr;
   int iRet = 0;
@@ -71,7 +71,7 @@ SWIG_AsVal_dec(int)(SciObject _iVar, int *_piValue)
 }
 %fragment(SWIG_AsVal_frag(size_t), "header", fragment=SWIG_AsVal_frag(int)) {
 SWIGINTERN int
-SWIG_AsVal_dec(size_t)(SciObject _iVar, size_t *_piValue)
+SWIG_AsVal_dec(size_t)(SwigSciObject _iVar, size_t *_piValue)
 {
   int iValue = 0;
   if (SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK)

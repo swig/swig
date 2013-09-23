@@ -4,7 +4,7 @@
  */
 %fragment(SWIG_AsVal_frag(bool), "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(bool)(SciObject _iVar, bool *_pbValue) {
+SWIG_AsVal_dec(bool)(SwigSciObject _iVar, bool *_pbValue) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;

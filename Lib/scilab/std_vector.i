@@ -10,14 +10,14 @@
   namespace swig {
     template <class T>
     struct traits_asptr<std::vector<T> >  {
-      static int asptr(const SciObject &obj, std::vector<T> **vec) {
+      static int asptr(const SwigSciObject &obj, std::vector<T> **vec) {
         return traits_asptr_stdseq<std::vector<T> >::asptr(obj, vec);
       }
     };
 
     template <class T>
     struct traits_from<std::vector<T> > {
-      static SciObject from(const std::vector<T>& vec) {
+      static SwigSciObject from(const std::vector<T>& vec) {
 	      return traits_from_stdseq<std::vector<T> >::from(vec);
       }
     };
