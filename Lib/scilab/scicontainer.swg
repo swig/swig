@@ -41,7 +41,7 @@
 
 %fragment("SciSequence_Cont", "header",
 	  fragment="StdTraits",
-	  fragment="SciSwigIterator_T")
+	  fragment="SwigSciIterator_T")
 {
 %#include <stdio.h>
 
@@ -99,9 +99,9 @@ namespace swig
   };
 
   template <class T, class Reference >
-  struct SciSequence_InputIterator
+  struct SwigSciSequence_InputIterator
   {
-    typedef SciSequence_InputIterator<T, Reference > self;
+    typedef SwigSciSequence_InputIterator<T, Reference > self;
 
     typedef std::random_access_iterator_tag iterator_category;
     typedef Reference reference;
@@ -109,11 +109,11 @@ namespace swig
     typedef T* pointer;
     typedef int difference_type;
 
-    SciSequence_InputIterator()
+    SwigSciSequence_InputIterator()
     {
     }
 
-    SciSequence_InputIterator(const SwigSciObject& seq, int index)
+    SwigSciSequence_InputIterator(const SwigSciObject& seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -203,8 +203,8 @@ namespace swig
     typedef int difference_type;
     typedef int size_type;
     typedef const pointer const_pointer;
-    typedef SciSequence_InputIterator<T, reference> iterator;
-    typedef SciSequence_InputIterator<T, const_reference> const_iterator;
+    typedef SwigSciSequence_InputIterator<T, reference> iterator;
+    typedef SwigSciSequence_InputIterator<T, const_reference> const_iterator;
 
     SciSequence_Cont(const SwigSciObject& seq) : _seq(seq)
     {
@@ -301,7 +301,7 @@ namespace swig
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
-      swig::SciSwigIterator_T<$type > *iter_t = dynamic_cast<swig::SciSwigIterator_T<$type > *>(iter);
+      swig::SwigSciIterator_T<$type > *iter_t = dynamic_cast<swig::SwigSciIterator_T<$type > *>(iter);
       if (iter_t) {
 	$1 = iter_t->get_current();
       } else {
@@ -314,7 +314,7 @@ namespace swig
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::SciSwigIterator *iter = 0;
     int res = SWIG_ConvertPtr((SwigSciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
-    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SciSwigIterator_T<$type > *>(iter) != 0));
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SwigSciIterator_T<$type > *>(iter) != 0));
   }
 
   %fragment("SciSequence_Cont");

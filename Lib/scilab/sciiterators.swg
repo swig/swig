@@ -3,7 +3,7 @@
  *
  * Users can derive form the SciSwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD
- * containers), the template SciSwigIterator_T does the
+ * containers), the template SwigSciIterator_T does the
  * implementation for generic C++ iterators.
  * ----------------------------------------------------------------------------- */
 
@@ -113,17 +113,17 @@ namespace swig {
 }
 }
 
-%fragment("SciSwigIterator_T","header",fragment="<stddef.h>",fragment="SciSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("SwigSciIterator_T","header",fragment="<stddef.h>",fragment="SciSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
   template<typename OutIterator>
-  class SciSwigIterator_T :  public SciSwigIterator
+  class SwigSciIterator_T :  public SciSwigIterator
   {
   public:
     typedef OutIterator out_iterator;
     typedef typename std::iterator_traits<out_iterator>::value_type value_type;
-    typedef SciSwigIterator_T<out_iterator> self_type;
+    typedef SwigSciIterator_T<out_iterator> self_type;
 
-    SciSwigIterator_T(out_iterator curr, SwigSciObject seq)
+    SwigSciIterator_T(out_iterator curr, SwigSciObject seq)
       : SciSwigIterator(seq), current(curr)
     {
     }
@@ -172,17 +172,17 @@ namespace swig {
   template<typename OutIterator,
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class SciSwigIteratorOpen_T :  public SciSwigIterator_T<OutIterator>
+  class SciSwigIteratorOpen_T :  public SwigSciIterator_T<OutIterator>
   {
   public:
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef SciSwigIterator_T<out_iterator>  base;
+    typedef SwigSciIterator_T<out_iterator>  base;
     typedef SciSwigIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
 
     SciSwigIteratorOpen_T(out_iterator curr, SwigSciObject seq)
-      : SciSwigIterator_T<OutIterator>(curr, seq)
+      : SwigSciIterator_T<OutIterator>(curr, seq)
     {
     }
 
@@ -215,17 +215,17 @@ namespace swig {
   template<typename OutIterator,
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class SciSwigIteratorClosed_T :  public SciSwigIterator_T<OutIterator>
+  class SciSwigIteratorClosed_T :  public SwigSciIterator_T<OutIterator>
   {
   public:
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef SciSwigIterator_T<out_iterator>  base;
+    typedef SwigSciIterator_T<out_iterator>  base;
     typedef SciSwigIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
 
     SciSwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, SwigSciObject seq)
-      : SciSwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
+      : SwigSciIterator_T<OutIterator>(curr, seq), begin(first), end(last)
     {
     }
 
