@@ -4,7 +4,11 @@
  * error objects.  Ideally the translations would be symmetric so that
  * C++ errors don't get mangled by a trip through the interpreter and
  * vice versa.
+ * This test uses DirectorException::getMessage which isn't implemented
+ * in all languages.
  */
+
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) msg;  // Setting a const char * variable may leak memory.
 
 %feature("director") Thing;
 %feature("director") Holder;
