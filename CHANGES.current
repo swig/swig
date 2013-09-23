@@ -12,6 +12,8 @@ Version 3.0.0 (in progress)
             functions, this means callers must use Class->method() syntax instead of Class::method()
             from Perl.
 
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2013-09-20: wsfulton
             [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
 
