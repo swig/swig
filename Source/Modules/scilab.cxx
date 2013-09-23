@@ -158,6 +158,7 @@ public:
 
     // Add builder header code
     if (generateBuilder) {
+      createBuilderFile();
       startBuilderCode(moduleName, outputFilename);
     }
 
@@ -189,7 +190,7 @@ public:
     // Add Builder footer code and save
     if (generateBuilder) {
       terminateBuilderCode();
-      saveBuilder();
+      saveBuilderFile();
     }
 
     // Add initialization function to init section
@@ -220,6 +221,15 @@ public:
     Delete(sourceFileList);
 
     return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------------------
+   * emitWrapper()
+   * ----------------------------------------------------------------------*/
+  void emitBanner(File *f) {
+    Printf(f, "// ----------------------------------------------------------------------------\n");
+    Swig_banner_target_lang(f, "// ");
+    Printf(f, "// ----------------------------------------------------------------------------- */\n\n");
   }
 
   /* ------------------------------------------------------------------------
@@ -643,6 +653,16 @@ public:
     return Language::enumvalueDeclaration(node);
   }
 
+  void createBuilderFile() {
+     String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
+     if (!builderFile) {
+       FileErrorDisplay(builderFilename);
+       SWIG_exit(EXIT_FAILURE);
+    }
+    emitBanner(builderFile);
+  }
+
   void startBuilderCode(String *moduleName, String *outputFilename) {
     builderFunctionCount = 0;
     builderCode = NewString("");
@@ -709,14 +729,8 @@ public:
     Printf(builderCode, "exit(ret)");
   }
 
-  void saveBuilder() {
+  void saveBuilderFile() {
     // Save builder
-    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
-    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
-    if (!builderFile) {
-      FileErrorDisplay(builderFilename);
-      SWIG_exit(EXIT_FAILURE);
-    }
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
     }
