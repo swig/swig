@@ -396,7 +396,6 @@ int JAVASCRIPT::variableHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int JAVASCRIPT::globalvariableHandler(Node *n) {
-
   emitter->switchNamespace(n);
   Language::globalvariableHandler(n);
 
@@ -410,6 +409,7 @@ int JAVASCRIPT::globalvariableHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int JAVASCRIPT::constantWrapper(Node *n) {
+  emitter->switchNamespace(n);
 
   // Note: callbacks trigger this wrapper handler
   // TODO: handle callback declarations
@@ -464,7 +464,6 @@ int JAVASCRIPT::fragmentDirective(Node *n) {
  * --------------------------------------------------------------------- */
 
 int JAVASCRIPT::top(Node *n) {
-
   emitter->initialize(n);
 
   Language::top(n);
@@ -482,7 +481,6 @@ int JAVASCRIPT::top(Node *n) {
  * --------------------------------------------------------------------- */
 
 void JAVASCRIPT::main(int argc, char *argv[]) {
-
   // Set javascript subdirectory in SWIG library
   SWIG_library_directory("javascript");
 
@@ -667,7 +665,7 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 
   if (kind) {
     if (Cmp(kind, "function") == 0) {
-      bool is_member = GetFlag(n, "ismember");
+      bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
       bool is_static = GetFlag(state.function(), IS_STATIC);
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
@@ -707,18 +705,23 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 }
 
 int JSEmitter::enterClass(Node *n) {
-
   state.clazz(true);
   state.clazz(NAME, Getattr(n, "sym:name"));
-  //state.clazz(NAME_MANGLED, SwigType_manglestr(Getattr(n, "name")));
-  state.clazz(NAME_MANGLED, Getattr(n, "sym:name"));
+  state.clazz("nspace", current_namespace);
+
+  // Creating a mangled name using the current namespace and the symbol name
+  String *mangled_name = NewString("");
+  Printf(mangled_name, "%s_%s", Getattr(current_namespace, NAME_MANGLED), Getattr(n, "sym:name"));
+  state.clazz(NAME_MANGLED, SwigType_manglestr(mangled_name));
+  Delete(mangled_name);
+
   state.clazz(TYPE, NewString(Getattr(n, "classtype")));
 
   String *type = SwigType_manglestr(Getattr(n, "classtypeobj"));
   String *classtype_mangled = NewString("");
   Printf(classtype_mangled, "p%s", type);
-  Delete(type);
   state.clazz(TYPE_MANGLED, classtype_mangled);
+  Delete(type);
 
   String *ctor_wrapper = NewString("_wrap_new_veto_");
   Append(ctor_wrapper, state.clazz(NAME));
@@ -734,23 +737,19 @@ int JSEmitter::enterClass(Node *n) {
 }
 
 int JSEmitter::enterFunction(Node *n) {
-
   state.function(true);
   state.function(NAME, Getattr(n, "sym:name"));
   if(Equal(Getattr(n, "storage"), "static")) {
     SetFlag(state.function(), IS_STATIC);
   }
-
   return SWIG_OK;
 }
 
 int JSEmitter::enterVariable(Node *n) {
-
   // reset the state information for variables.
   state.variable(true);
 
   // Retrieve a pure symbol name. Using 'sym:name' as a basis, as it considers %renamings.
-
   if (Equal(Getattr(n, "view"), "memberconstantHandler")) {
     // Note: this is kind of hacky/experimental
     // For constants/enums 'sym:name' contains e.g., 'Foo_Hello' instead of 'Hello'
@@ -763,10 +762,12 @@ int JSEmitter::enterVariable(Node *n) {
     SetFlag(state.variable(), IS_STATIC);
   }
 
-  if (!Language::instance()->is_assignable(n)
-      // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]
-      // probably some error in char[] typemap
-      || Equal(Getattr(n, "type"), "a().char")) {
+  if (!Language::instance()->is_assignable(n)) {
+    SetFlag(state.variable(), IS_IMMUTABLE);
+  }
+
+  // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]
+  if (Equal(Getattr(n, "type"), "a().char")) {
     SetFlag(state.variable(), IS_IMMUTABLE);
   }
 
@@ -1273,22 +1274,42 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
 }
 
 int JSEmitter::switchNamespace(Node *n) {
+  // HACK: somehow this gets called when member functions are processed...ignoring
+  if (GetFlag(n, "ismember")) {
+    return SWIG_OK;
+  }
 
+  String *nspace = Getattr(n, "sym:nspace");
+
+  // if nspace is deactivated, everything goes into the global scope
   if (!GetFlag(n, "feature:nspace")) {
     current_namespace = Getattr(namespaces, "::");
-  } else {
-    String *scope = Swig_scopename_prefix(Getattr(n, "name"));
-    if (scope) {
-      // if the scope is not yet registered
-      // create (parent) namespaces recursively
-      if (!Getattr(namespaces, scope)) {
-        createNamespace(scope);
-      }
-      current_namespace = Getattr(namespaces, scope);
-    } else {
-      current_namespace = Getattr(namespaces, "::");
+    return SWIG_OK;
+  }
+
+  if (nspace == NULL) {
+    // enums and constants do not have 'sym:nspace' set
+    // so we try to get the namespace from the qualified name
+    if(Equal(Getattr(n, "nodeType"), "enumitem")) {
+      nspace = Swig_scopename_prefix(Getattr(n, "name"));
     }
   }
+
+  if (nspace == NULL) {
+    current_namespace = Getattr(namespaces, "::");
+    return SWIG_OK;
+  }
+
+  String *scope = NewString(nspace);
+  // replace "." with "::" that we can use Swig_scopename_last
+  Replaceall(scope, ".", "::");
+
+  // if the scope is not yet registered
+  // create (parent) namespaces recursively
+  if (!Getattr(namespaces, scope)) {
+    createNamespace(scope);
+  }
+  current_namespace = Getattr(namespaces, scope);
 
   return SWIG_OK;
 }
@@ -1434,6 +1455,12 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   int i = 0;
   for (p = parms; p; i++) {
     String *arg = NewString("");
+    String *type = Getattr(p, "type");
+
+    // ignore varargs
+    if (SwigType_isvarargs(type))
+      break;
+
     switch (mode) {
     case Getter:
     case Function:
@@ -1556,7 +1583,7 @@ int JSCEmitter::enterFunction(Node *n) {
 int JSCEmitter::exitFunction(Node *n) {
   Template t_function = getTemplate("jsc_function_declaration");
 
-  bool is_member = GetFlag(n, "ismember");
+  bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
   bool is_overloaded = GetFlag(n, "sym:overloaded");
 
   // handle overloaded functions
@@ -1682,7 +1709,7 @@ int JSCEmitter::exitClass(Node *n) {
   Template t_registerclass(getTemplate("jsc_class_registration"));
   t_registerclass.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jsnspace", Getattr(current_namespace, NAME_MANGLED))
+      .replace("$jsnspace", Getattr(state.clazz("nspace"),NAME_MANGLED))
       .pretty_print(state.global(INITIALIZER));
 
   return SWIG_OK;
@@ -1973,7 +2000,7 @@ int V8Emitter::exitClass(Node *n)
   Template t_register = getTemplate("jsv8_register_class");
   t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname",   state.clazz(NAME))
-      .replace("$jsparent", Getattr(current_namespace, "name_mangled"))
+      .replace("$jsparent", Getattr(state.clazz("nspace"),NAME_MANGLED))
       .trim()
       .pretty_print(f_init_register_classes);
 
@@ -2014,7 +2041,7 @@ int V8Emitter::exitVariable(Node* n)
     // Note: a global variable is treated like a static variable
     //       with the parent being a nspace object (instead of class object)
     Template t_register = getTemplate("jsv8_register_static_variable");
-    t_register.replace("$jsparent", Getattr(current_namespace, NAME))
+    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
         .replace("$jsname", state.variable(NAME))
         .replace("$jsgetter", state.variable(GETTER))
         .replace("$jssetter", state.variable(SETTER))
@@ -2027,7 +2054,7 @@ int V8Emitter::exitVariable(Node* n)
 
 int V8Emitter::exitFunction(Node* n)
 {
-  bool is_member = GetFlag(n, "ismember");
+  bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
 
   // create a dispatcher for overloaded functions
   bool is_overloaded = GetFlag(n, "sym:overloaded");
@@ -2090,6 +2117,12 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   int i = 0;
   for (p = parms; p; i++) {
     String *arg = NewString("");
+    String *type = Getattr(p, "type");
+
+    // ignore varargs
+    if (SwigType_isvarargs(type))
+      break;
+
     switch (mode) {
     case Getter:
       if (is_member && !is_static && i == 0) {

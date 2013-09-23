@@ -15,10 +15,10 @@ namespace Bar
     FooBar() {}
     FooBar(const FooBar&) {}
     virtual ~FooBar() {}
-    
+
     std::string FooBarDo() { return "Bar::Foo2::Foo2Bar()"; }
   };
-  
+
   class Foo {
   public:
     virtual ~Foo() {}
@@ -37,7 +37,7 @@ namespace Bar
 %include <std_string.i>
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGJAVASCRIPT)
 %nspace Bar::Foo;
 %nspace Bar::FooBar;
 #else
@@ -47,17 +47,17 @@ namespace Bar
 %feature("director") Bar::Foo;
 
 namespace Bar
-{ 
+{
   class FooBar {
   public:
     FooBar();
     FooBar(const FooBar&);
     virtual ~FooBar();
-    
+
     std::string FooBarDo();
-    
+
   };
-  
+
   class Foo
   {
   public:
@@ -67,7 +67,7 @@ namespace Bar
     virtual std::string fooBar(FooBar* fb);
     virtual Foo makeFoo();
     virtual FooBar makeFooBar();
-   
+
     static Foo* get_self(Foo *self_);
   };
 }

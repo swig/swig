@@ -45,6 +45,8 @@ CPP_TEST_CASES = \
   cpp_static \
   enum_template \
   namespace_virtual_method \
+  nspace \
+  nspace_extend \
   overload_copy \
   rename_simple \
   rename_scope \
