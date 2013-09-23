@@ -12,7 +12,7 @@ testbuilddir = swigtestname + ".build";
 // Does the library exists? If not then exit!
 libname = "lib" + swigtestname + "lib" + getdynlibext();
 if ~isfile(fullfile(testbuilddir, libname)) then
-    mprintf("*** LIBRARY NOT FOUND: %s ***\n", "lib" + swigtestname + "lib" + getdynlibext());
+    mfprintf(0, "*** LIBRARY NOT FOUND: %s ***\n", libname);
     exit(1)
 end
 
@@ -20,21 +20,21 @@ end
 try
     exec(fullfile(testbuilddir, "loader.sce"), -1);
 catch
-    mprintf("*** LOADER EXECUTION FAILED ***\n");
+    mfprintf(0, "*** LOADER EXECUTION FAILED ***\n");
     exit(1)
 end
 
 // Module initialization
 try
     moduleInit = sprintf("%s_Init()", swigtestname);
-    ierr = execstr(moduleInit);
+    execstr(moduleInit);
 catch
-    mprintf("*** MODULE INIT FAILED ***\n");
-    exit(ierr)
+    mfprintf(0, "*** MODULE INIT FAILED ***\n");
+    exit(1)
 end
 
 // Error management function
 function swigtesterror()
-    mprintf("*** TEST FAILED ***\n")
+    mfprintf(0, "*** TEST FAILED ***\n")
     exit(1)
 endfunction
