@@ -664,7 +664,12 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   String *kind = Getattr(n, "kind");
 
   if (kind) {
-    if (Cmp(kind, "function") == 0) {
+
+    if (Equal(kind, "function")
+      // HACK: sneaky.ctest revealed that typedef'd (global) functions must be
+      // detected via the 'view' attribute.
+      || (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
+      ) {
       bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
       bool is_static = GetFlag(state.function(), IS_STATIC);
       ret = emitFunction(n, is_member, is_static);
