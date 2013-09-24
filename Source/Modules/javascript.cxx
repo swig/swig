@@ -78,6 +78,8 @@ public:
 
   Template& replace(const String *pattern, const String *repl);
 
+  Template& print(DOH *doh);
+
   Template& pretty_print(DOH *doh);
 
   void operator=(const Template& t);
@@ -1092,7 +1094,6 @@ int JSEmitter::emitConstant(Node *n) {
 }
 
 int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
-
   Wrapper *wrapper = NewWrapper();
   Template t_function(getTemplate("js_function"));
 
@@ -2038,8 +2039,8 @@ int V8Emitter::exitVariable(Node* n)
           .replace("$jsname", state.variable(NAME))
           .replace("$jsgetter", state.variable(GETTER))
           .replace("$jssetter", state.variable(SETTER))
-          .trim()
-          .pretty_print(f_init_static_wrappers);
+          .trim().
+          print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsv8_register_member_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -2047,7 +2048,7 @@ int V8Emitter::exitVariable(Node* n)
           .replace("$jsgetter", state.variable(GETTER))
           .replace("$jssetter", state.variable(SETTER))
           .trim()
-          .pretty_print(f_init_wrappers);
+          .print(f_init_wrappers);
     }
   } else {
     // Note: a global variable is treated like a static variable
@@ -2058,7 +2059,7 @@ int V8Emitter::exitVariable(Node* n)
         .replace("$jsgetter", state.variable(GETTER))
         .replace("$jssetter", state.variable(SETTER))
         .trim()
-        .pretty_print(f_init_wrappers);
+        .print(f_init_wrappers);
   }
 
   return SWIG_OK;
@@ -2088,14 +2089,14 @@ int V8Emitter::exitFunction(Node* n)
           .replace("$jsname", state.function(NAME))
           .replace("$jswrapper", state.function(WRAPPER_NAME))
           .trim()
-          .pretty_print(f_init_static_wrappers);
+          .print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsv8_register_member_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.function(NAME))
           .replace("$jswrapper", state.function(WRAPPER_NAME))
           .trim()
-          .pretty_print(f_init_wrappers);
+          .print(f_init_wrappers);
     }
   } else {
     // Note: a global function is treated like a static function
@@ -2420,6 +2421,11 @@ Template& Template::trim() {
 
 Template& Template::replace(const String *pattern, const String *repl) {
   Replaceall(code, pattern, repl);
+  return *this;
+}
+
+Template& Template::print(DOH *doh) {
+  Printv(doh, str(), 0);
   return *this;
 }
 
