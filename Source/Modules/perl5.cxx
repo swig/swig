@@ -148,6 +148,7 @@ public:
     add_operator("__mineq__", "-=", "sub { $_[0]->__mineq__($_[1]) }");
     add_operator("__neg__", "neg", "sub { $_[0]->__neg__() }");
     add_operator("__deref__", "${}", "sub { \\ $_[0]->__deref__() }");	// smart pointer unwrap
+    // TODO: operator bool(), see Examples/test-suite/operbool.i
   } ~PERL5() {
     Delete(director_prot_ctor_code);
     Delete(operators);
