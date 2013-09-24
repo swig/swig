@@ -198,15 +198,9 @@ public:
       saveBuilderFile();
     }
 
-    // Add initialization function to init section
-    Printf(initSection, "#ifdef __cplusplus\n");
-    Printf(initSection, "extern \"C\"\n");
-    Printf(initSection, "#endif\n");
-    Printf(initSection, "int %s(char *fname, unsigned long fname_len) {\n", moduleInitFunctionName);
-    Printf(initSection, "  SWIG_InitializeModule(NULL);\n");
-    Printf(initSection, "  SWIG_CreateScilabVariables();\n");
-    Printf(initSection, "return 0;\n");
-    Printf(initSection, "}\n");
+    /* Close the init function and rename with module name */
+    Printf(initSection, "return 0;\n}\n");
+    Replaceall(initSection, "<module>", moduleName);
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)

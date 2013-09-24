@@ -267,3 +267,12 @@ SWIG_Scilab_SetModule(swig_module_info *swig_module)
 %}
 
 %insert(init) "swiginit.swg"
+
+%init %{
+#ifdef __cplusplus
+extern "C"
+#endif
+int <module>_Init(char *fname, unsigned long fname_len) {
+  SWIG_InitializeModule(NULL);
+  SWIG_CreateScilabVariables();
+%}
