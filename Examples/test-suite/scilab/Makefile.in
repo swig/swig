@@ -54,7 +54,7 @@ run_testcase = \
 
 # Clean: remove the generated files
 %.clean:
-	@rm -rf $*.build
+	@rm -rf $(TEST_DIR)
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
