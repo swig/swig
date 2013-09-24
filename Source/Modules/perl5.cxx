@@ -1545,27 +1545,31 @@ public:
   /* ------------------------------------------------------------
    * a (sloppy) crack at directors
    * ------------------------------------------------------------ */
+
   virtual int classDirector(Node *n) {
     return Language::classDirector(n);
   }
+
   virtual int classDirectorInit(Node *n) {
     String *decl = Swig_director_declaration(n);
     Printv(Swig_filebyname("director_h"), decl, "\n  public:\n", NIL);
     Delete(decl);
     return Language::classDirectorInit(n);
   }
+
   virtual int classDirectorConstructors(Node *n) {
     return Language::classDirectorConstructors(n);
   }
+
   virtual int classDirectorConstructor(Node *n) {
     ParmList *parms = Getattr(n, "parms");
     String *mdecl = NewStringf("");
     String *mdefn = NewStringf("");
     String *signature;
-    String *name = NewStringf("SwigDirector_%s",
-			      Getattr(parentNode(n), "sym:name"));
+    String *name = NewStringf("SwigDirector_%s", Getattr(parentNode(n), "sym:name"));
 
-    {				/* resolve the function signature */
+    {
+      /* resolve the function signature */
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
@@ -1575,13 +1579,15 @@ public:
       Setattr(n, "parms", p);
       signature = Swig_method_decl(Getattr(n, "type"), Getattr(n, "decl"), "$name", p, 0, 0);
     }
-    {				/* prep method decl */
+    {
+      /* prep method decl */
       String *target = Copy(signature);
       Replaceall(target, "$name", name);
       Printf(mdecl, "    %s;\n", target);
       Delete(target);
     }
-    {				/* prep method defn */
+    {
+      /* prep method defn */
       String *qname;
       String *target;
       String *scall;
@@ -1601,15 +1607,19 @@ public:
     Delete(mdefn);
     return Language::classDirectorConstructor(n);
   }
+
   virtual int classDirectorDefaultConstructor(Node *n) {
     return Language::classDirectorDefaultConstructor(n);
   }
+
   virtual int classDirectorDestructor(Node *n) {
     return Language::classDirectorDestructor(n);
   }
+
   virtual int classDirectorMethods(Node *n) {
     return Language::classDirectorMethods(n);
   }
+
   virtual int classDirectorMethod(Node *n, Node *parent, String *super) {
     int status = SWIG_OK;
     String *name = Getattr(n, "name");
@@ -1617,17 +1627,16 @@ public:
     String *type = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
-    String *target = Swig_method_decl(
-	Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type"),
-       	decl, "$name", l, 0, 0);
+    String *target = Swig_method_decl(Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type"),
+				      decl, "$name", l, 0, 0);
     String *mdecl;
     String *mdefn;
 
     {
       /* build method declaration */
       ParmList *throws = Getattr(n, "throws");
-     
-      if(throws || Getattr(n, "throw")) {
+
+      if (throws || Getattr(n, "throw")) {
 	String *tm;
 	String *tmp;
 	bool needComma = false;
@@ -1662,8 +1671,7 @@ public:
 	  String *pdecl = NewStringf("    virtual %s", target);
 
 	  Replaceall(pdecl, "$name", pname);
-	  Printf(pdecl, " { %s%s; }\n",
-	    (SwigType_type(type) != T_VOID ? "return " : ""), upcall);
+	  Printf(pdecl, " { %s%s; }\n", (SwigType_type(type) != T_VOID ? "return " : ""), upcall);
 	  Append(mdecl, pdecl);
 
 	  Delete(pdecl);
@@ -1676,8 +1684,7 @@ public:
       /* build method definition */
       String *tm;
       Wrapper *w = NewWrapper();
-      String *qname = NewStringf("SwigDirector_%s::%s",
-	  Swig_class_name(parent), name);
+      String *qname = NewStringf("SwigDirector_%s::%s", Swig_class_name(parent), name);
       int pc = 0;
       int outputs = SwigType_type(type) != T_VOID ? 1 : 0;
       String *tmp;
@@ -1693,7 +1700,7 @@ public:
       Wrapper_add_local(w, "SP", "dSP");
       Printf(w->code, "  av[%d] = this->Swig::Director::getSelf();\n", pc++);
 
-      for(ParmList *p = l; p;) {
+      for (ParmList *p = l; p;) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
@@ -1706,10 +1713,8 @@ public:
 	  String *input = NewStringf("av[%d]", pc++);
 	  Replaceall(tm, "$input", input);
 	  Replaceall(tm, "$owner", "0");
-	  Printf(w->code,
-	      "  %s\n"
-	      "  sv_2mortal(%s);\n",
-	      tm, input);
+	  Printf(w->code, "  %s\n", tm);
+	  Printf(w->code, "  sv_2mortal(%s);\n", input);
 	  p = Getattr(p, "tmap:directorin:next");
 	  Delete(input);
 	  continue;
@@ -1721,8 +1726,8 @@ public:
 	}
 
 	Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-	    "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n",
-	    SwigType_str(Getattr(p, "type"), 0), Swig_class_name(parent), target);
+		     "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n",
+		     SwigType_str(Getattr(p, "type"), 0), Swig_class_name(parent), target);
 	status = SWIG_NOWRAP;
       }
 
@@ -1734,17 +1739,15 @@ public:
       tmp = NewStringf("SV *av[%d]", pc);
       Wrapper_add_local(w, "av", tmp);
       for (int i = 0; i < pc; i++)
-	Printf(w->code,
-	    "  XPUSHs(av[%d]);\n", i);
+	Printf(w->code, "  XPUSHs(av[%d]);\n", i);
       Delete(tmp);
-      Append(w->code,
-	  "  PUTBACK;\n");
+      Append(w->code, "  PUTBACK;\n");
 
       if (outputs) {
-	  Wrapper_add_local(w, "c_count", "I32 c_count");
-	  Printf(w->code, "c_count = call_method(\"%s\", G_EVAL | G_SCALAR);\n", name);
+	Wrapper_add_local(w, "c_count", "I32 c_count");
+	Printf(w->code, "c_count = call_method(\"%s\", G_EVAL | G_SCALAR);\n", name);
       } else {
-	  Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n", name);
+	Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n", name);
       }
 
       {
@@ -1775,7 +1778,7 @@ public:
 	    "  ax = (SP - PL_stack_base) + 1;\n");
 	if (SwigType_type(type) != T_VOID) {
 	  String *tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-	  if(tm) {
+	  if (tm) {
 	    String *tmp = NewStringf("ST(%d)", outnum++);
 	    Replaceall(tm, "$result", "c_result");
 	    Replaceall(tm, "$input", tmp);
@@ -1785,11 +1788,10 @@ public:
 	    Replaceall(tm, "$disown", "0");
 	    Delete(tmp);
 	    Printf(w->code, "{\n%s\n}\n", tm);
-	  //}
+	    //}
 	  } else {
 	    Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		"Unable to use return type %s in director method %s::%s (skipping method).\n",
-	       	SwigType_str(type, 0), Swig_class_name(parent), target);
+			 "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(type, 0), Swig_class_name(parent), target);
 	    status = SWIG_ERROR;
 	  }
 	}
@@ -1808,9 +1810,7 @@ public:
 	}
 	Append(w->code, "PUTBACK;\n");
       }
-      Append(w->code,
-	  "  FREETMPS;\n"
-	  "  LEAVE;\n");
+      Append(w->code, "  FREETMPS;\n" "  LEAVE;\n");
       if (SwigType_type(type) != T_VOID) {
 	String *rval = SwigType_lstr(type, "c_result");
 	String *cast = SwigType_str(type, 0);
@@ -1822,7 +1822,6 @@ public:
       } else {
 	Printf(w->code, "return;\n");
       }
-
 
       Printf(w->code, "}");
 
@@ -1843,10 +1842,12 @@ public:
     Delete(target);
     return status;
   }
+
   virtual int classDirectorEnd(Node *n) {
     Printf(Swig_filebyname("director_h"), "};\n");
     return Language::classDirectorEnd(n);
   }
+
   virtual int classDirectorDisown(Node *n) {
     return Language::classDirectorDisown(n);
   }

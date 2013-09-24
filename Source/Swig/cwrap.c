@@ -838,7 +838,8 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
  * ----------------------------------------------------------------------------- */
 int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *body;
-  if (parms && Getattr(parms, "arg:classref")) parms = nextSibling(parms);
+  if (parms && Getattr(parms, "arg:classref"))
+    parms = nextSibling(parms);
   body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, "wrap:code", body);
   Delete(body);
