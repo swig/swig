@@ -1,18 +1,19 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 
-all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+check: build
+	$(MAKE) -f $(TOP)/Makefile guile_run
+
+build:
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_cpp
 
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+static:
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='my-guile' INTERFACE='$(INTERFACE)' guile_static_cpp
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all

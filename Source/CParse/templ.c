@@ -317,14 +317,13 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     if (tp) {
       Symtab *tsdecl = Getattr(n, "sym:symtab");
       while (p && tp) {
-	String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
+	String *name, *value, *valuestr, *tmp, *tmpr;
 	int sz, i;
 	String *dvalue = 0;
 	String *qvalue = 0;
 
 	name = Getattr(tp, "name");
 	value = Getattr(p, "value");
-	tydef = Getattr(p, "typedef");
 
 	if (name) {
 	  if (!value)
@@ -365,9 +364,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    /*      Printf(stdout,"'%s'\n", s); */
 	  }
 
-	  if (!tydef) {
-	    tydef = dvalue;
-	  }
 	  tmp = NewStringf("#%s", name);
 	  tmpr = NewStringf("\"%s\"", valuestr);
 
@@ -375,7 +371,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(cpatchlist, i);
 	    Replace(s, tmp, tmpr, DOH_REPLACE_ID);
-	    /*  Replace(s,name,tydef, DOH_REPLACE_ID); */
 	    Replace(s, name, valuestr, DOH_REPLACE_ID);
 	  }
 	  Delete(tmp);

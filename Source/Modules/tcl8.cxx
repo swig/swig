@@ -744,6 +744,7 @@ public:
     have_constructor = 0;
     have_destructor = 0;
     destructor_action = 0;
+    constructor_name = 0;
 
     if (itcl) {
       constructor = NewString("");
@@ -1202,7 +1203,8 @@ public:
       }
     }
 
-    constructor_name = NewString(Getattr(n, "sym:name"));
+    if (!have_constructor)
+      constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
     return SWIG_OK;
   }

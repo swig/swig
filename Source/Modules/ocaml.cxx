@@ -1503,7 +1503,7 @@ public:
 	    /* if necessary, cast away const since Python doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", pname);
-	      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
+	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
 	      Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
 	      Delete(nonconst_i);
 	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
@@ -1582,8 +1582,6 @@ public:
 
       String *cleanup = NewString("");
       String *outarg = NewString("");
-
-      idx = 0;
 
       tm = Swig_typemap_lookup("directorout", n, "c_result", w);
       if (tm != 0) {
@@ -1742,7 +1740,6 @@ public:
     p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
-    parms = p;
 
     {
       Wrapper *w = NewWrapper();

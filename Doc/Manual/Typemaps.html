@@ -773,7 +773,7 @@ Here are some examples of valid typemap specifications:
 }
 
 /* Typemap with modifiers */
-%typemap(in,doc="integer") int "$1 = gh_scm2int($input);";
+%typemap(in,doc="integer") int "$1 = scm_to_int($input);";
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),

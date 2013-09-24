@@ -3704,23 +3704,14 @@ private:
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method,
     String *decl, String *overloaded_name, String *return_type, String *param_list) {
 
-    UpcallData *udata;
-    String *class_methodidx;
-    Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
 
     ++curr_class_dmethod;
 
-    /* Do we know about this director class already? */
-    if ((udata = Getattr(dmethods_table, key))) {
-      Delete(key);
-      return Getattr(udata, "methodoff");
-    }
-
-    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
-    new_udata = NewHash();
+    Hash *new_udata = NewHash();
     Append(dmethods_seq, new_udata);
     Setattr(dmethods_table, key, new_udata);
 
@@ -3752,7 +3743,7 @@ private:
       String *nspace = getNSpace();
       if (nspace) {
 	// Check the root package/outermost namespace (a class A in module
-	// A.B leads to problems if another module A.C is also imported)…
+	// A.B leads to problems if another module A.C is also imported)
 	if (Len(package) > 0) {
 	  String *dotless_package = NewStringWithSize(package, Len(package) - 1);
 	  if (Cmp(class_name, dotless_package) == 0) {

@@ -1452,6 +1452,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
+%type <node>     optional_constant_directive;
 
 %%
 
@@ -5172,29 +5173,31 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 /* Some stuff for handling enums */
 
 ename          :  ID { $$ = $1; }
-               |  empty { $$ = (char *) 0;}
-               ;
+	       |  empty { $$ = (char *) 0;}
+	       ;
 
-enumlist       :  enumlist COMMA edecl { 
+optional_constant_directive : constant_directive { $$ = $1; }
+		           | empty { $$ = 0; }
+		           ;
 
-                  /* Ignore if there is a trailing comma in the enum list */
-                  if ($3) {
-                    Node *leftSibling = Getattr($1,"_last");
-                    if (!leftSibling) {
-                      leftSibling=$1;
-                    }
-                    set_nextSibling(leftSibling,$3);
-                    Setattr($1,"_last",$3);
-                  }
-		  $$ = $1;
-               }
-               |  edecl { 
-                   $$ = $1; 
-                   if ($1) {
-                     Setattr($1,"_last",$1);
-                   }
-               }
-               ;
+/* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
+enumlist       :  enumlist COMMA optional_constant_directive edecl optional_constant_directive {
+		 Node *leftSibling = Getattr($1,"_last");
+		 set_nextSibling(leftSibling,$4);
+		 Setattr($1,"_last",$4);
+		 $$ = $1;
+	       }
+	       | enumlist COMMA optional_constant_directive {
+		 $$ = $1;
+	       }
+	       | optional_constant_directive edecl optional_constant_directive {
+		 Setattr($2,"_last",$2);
+		 $$ = $2;
+	       }
+	       | optional_constant_directive {
+		 $$ = 0;
+	       }
+	       ;
 
 edecl          :  ID {
 		   SwigType *type = NewSwigType(T_INT);
@@ -5214,7 +5217,6 @@ edecl          :  ID {
 		   Setattr($$,"value",$1);
 		   Delete(type);
                  }
-                 | empty { $$ = 0; }
                  ;
 
 etype            : expr {

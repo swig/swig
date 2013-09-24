@@ -7,6 +7,7 @@
 /* shadow code */
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
+#define %pythonbegin %insert("pythonbegin")
 
 
 /* ------------------------------------------------------------------------- */

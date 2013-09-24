@@ -138,24 +138,28 @@
               (set-m m1 i j (+ (get-m m1 i j) (get-m m2 i j)))
               (add-two m1 m2 i (+ j 1)))
 	    (add-two m1 m2 (+ i 1) 0))))
-  (if (null? ML) () (begin
-		      (add-two M (car ML) 0 0)
-		      (add-mat M (cdr ML)))))
+  (if (null? ML) *unspecified*
+		 (begin
+		   (add-two M (car ML) 0 0)
+		   (add-mat M (cdr ML)))))
 
 (define (cleanup ML)
-  (if (null? ML) () (begin
-		      (destroy-matrix (car ML))
-		      (cleanup (cdr ML)))))
+  (if (null? ML) *unspecified*
+		 (begin
+		   (destroy-matrix (car ML))
+		   (cleanup (cdr ML)))))
 
 (define (make-random ML)		; Put random values in them
-  (if (null? ML) () (begin
-		      (randmat (car ML))
-		      (make-random (cdr ML)))))
+  (if (null? ML) *unspecified*
+		 (begin
+		   (randmat (car ML))
+		   (make-random (cdr ML)))))
 
 (define (mul-mat m ML)
-  (if (null? ML) () (begin
-		      (mat-mult m (car ML) m)
-		      (mul-mat m (cdr ML)))))
+  (if (null? ML) *unspecified*
+		 (begin
+		   (mat-mult m (car ML) m)
+		   (mul-mat m (cdr ML)))))
 
 ;;; Now we'll hammer on things a little bit just to make
 ;;; sure everything works.
@@ -207,4 +211,3 @@
 
   (cleanup M-list))
 
-;;; matrix.scm ends here

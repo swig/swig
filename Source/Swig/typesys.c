@@ -820,7 +820,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 
       type_elem = SwigType_split(type);
       type_sz = Len(type_elem);
-      i = 0;
+
       for (i = 0; i < type_sz; ++i) {
         String *e = Getitem(type_elem, i);
         if (!SwigType_isarray(e))

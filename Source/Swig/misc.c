@@ -205,8 +205,8 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
 /* -----------------------------------------------------------------------------
  * Swig_filename_correct()
  *
- * Corrects filename paths by removing duplicate delimeters and on non-unix
- * systems use the correct delimeter across the whole name.
+ * Corrects filename paths by removing duplicate delimiters and on non-unix
+ * systems use the correct delimiter across the whole name.
  * ----------------------------------------------------------------------------- */
 
 void Swig_filename_correct(String *filename) {

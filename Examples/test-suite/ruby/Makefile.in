@@ -61,7 +61,7 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) -I. $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) -I$(srcdir):. $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean

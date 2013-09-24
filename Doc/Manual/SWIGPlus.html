@@ -4433,7 +4433,7 @@ around some other class.  For example:
 template&lt;class T&gt; class SmartPtr {
     T *pointee;
 public:
-    ...
+    SmartPtr(T *p) : pointee(p) { ... }
     T *operator-&gt;() {
         return pointee;
     }
@@ -4453,7 +4453,7 @@ typedef SmartPtr&lt;Foo_Impl&gt; Foo;
 
 // Create smart pointer Foo
 Foo make_Foo() {
-    return SmartPtr(new Foo_Impl());
+    return SmartPtr&lt;Foo_Impl&gt;(new Foo_Impl());
 }
 
 // Do something with smart pointer Foo
@@ -4461,6 +4461,9 @@ void do_something(Foo f) {
     printf("x = %d\n", f-&gt;x);
     f-&gt;bar();
 }
+
+// Call the wrapped smart pointer proxy class in the target language 'Foo'
+%template(Foo) SmartPtr&lt;Foo_Impl&gt;;
 </pre>
 </div>
 

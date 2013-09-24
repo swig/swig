@@ -106,7 +106,6 @@ private:
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
-  String *PrefixPlusUnderscore;
   String *s_cmd_tab;		// table of command names
   String *s_var_tab;		// table of global variables
   String *s_const_tab;		// table of global constants
@@ -150,7 +149,6 @@ public:
     f_wrappers(0),
     f_init(0),
     f_initbeforefunc(0),
-    PrefixPlusUnderscore(0),
     s_cmd_tab(0),
     s_var_tab(0),
     s_const_tab(0),
@@ -813,7 +811,7 @@ public:
       Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
       Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
-    Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
+    Printf(f->code, "SWIG_Lua_pusherrstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
         "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
     Delete(protoTypes);
 

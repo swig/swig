@@ -411,7 +411,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 SWIGINTERN
 int SWIG_Ruby_isCallable( VALUE proc )
 {
-  if ( rb_respond_to( proc, swig_call_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_call_id ) )
     return 1;
   return 0;
 }
@@ -424,7 +424,7 @@ int SWIG_Ruby_isCallable( VALUE proc )
 SWIGINTERN
 int SWIG_Ruby_arity( VALUE proc, int minimal )
 {
-  if ( rb_respond_to( proc, swig_arity_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_arity_id ) )
     {
       VALUE num = rb_funcall( proc, swig_arity_id, 0 );
       int arity = NUM2INT(num);

@@ -787,7 +787,6 @@ public:
     }
 
     f = NewWrapper();
-    numopt = 0;
 
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
@@ -1736,7 +1735,6 @@ public:
 	    if (!class_node) {
 	      /* This is needed when we're returning a pointer to a type
 	       * rather than returning the type by value or reference. */
-	      class_node = current_class;
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
@@ -2593,13 +2591,14 @@ done:
       }
 
       if (!idx) {
-	Printf(w->code, "zval **args = NULL;\n", idx);
+	Printf(w->code, "zval **args = NULL;\n");
       } else {
 	Printf(w->code, "zval *args[%d];\n", idx);
       }
       Printf(w->code, "zval *%s, funcname;\n", Swig_cresult_name());
       Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
-      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
+      const char * funcname = GetChar(n, "sym:name");
+      Printf(w->code, "ZVAL_STRINGL(&funcname, (char *)\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");

@@ -1,4 +1,4 @@
-(dynamic-call "scm_init_guilescm_ext_test_module" (dynamic-link "./libguilescm_ext_test.so"))
+(dynamic-call "scm_init_guile_ext_test_module" (dynamic-link "./libguile_ext_test"))
 
 ; This is a test for SF Bug 1573892
 ; If IsPointer is called before TypeQuery, the test-is-pointer will fail

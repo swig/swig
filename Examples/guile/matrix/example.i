@@ -1,7 +1,4 @@
-// FILE : package.i
-// See the SWIG users manual
-
-/*** Matrix and vector package ***/
+/*** Matrix and vector example ***/
 
 %module Matrix
 %{

@@ -39,6 +39,7 @@
 
 CLEAR_SWIGTYPE_TYPEMAPS;
 %typemap(in) SWIGTYPE [ANY] {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %inline %{
@@ -48,9 +49,11 @@ CLEAR_SWIGTYPE_TYPEMAPS;
 
 CLEAR_SWIGTYPE_TYPEMAPS;
 %typemap(in) const SWIGTYPE [ANY] {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %typemap(in) const volatile SWIGTYPE [ANY] {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %inline %{
@@ -61,9 +64,11 @@ CLEAR_SWIGTYPE_TYPEMAPS;
 
 CLEAR_SWIGTYPE_TYPEMAPS;
 %typemap(in) volatile SWIGTYPE **const [ANY] {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %typemap(in) volatile SWIGTYPE **const [ANY][ANY] {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %inline %{
@@ -72,6 +77,7 @@ CLEAR_SWIGTYPE_TYPEMAPS;
 
 CLEAR_SWIGTYPE_TYPEMAPS;
 %typemap(in) SWIGTYPE (*const) (ANY) {
+$1 = 0;
 /* Correct typemap for $symname: $type */
 }
 %inline %{

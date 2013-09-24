@@ -238,6 +238,7 @@ CPP_TEST_CASES += \
 	kind \
 	langobj \
 	li_attribute \
+	li_attribute_template \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
@@ -508,12 +509,14 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	bom_utf8 \
 	char_constant \
 	const_const \
 	constant_expr \
 	empty \
 	enums \
 	enum_forward \
+	enum_macro \
 	extern_declaration \
 	funcptr \
 	function_typedef \

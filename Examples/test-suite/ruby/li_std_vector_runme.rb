@@ -64,6 +64,11 @@ y = average([1, 2, 3, 4])
 half([10, 10.5, 11, 11.5])
 EOF
 
+iv = IntVector.new([0,1,2,3,4,5,6])
+iv.delete_if { |x| x == 0 || x == 3 || x == 6 }
+swig_assert_equal(iv.to_s, '1245', binding)
+
+
 dv = DoubleVector.new(10)
 
 swig_assert( "dv.respond_to? :each_with_index", binding )

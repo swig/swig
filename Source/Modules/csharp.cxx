@@ -655,23 +655,14 @@ public:
    *----------------------------------------------------------------------*/
 
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method, String *decl, String *overloaded_name) {
-    UpcallData *udata;
-    String *class_methodidx;
-    Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
 
     ++curr_class_dmethod;
 
-    /* Do we know about this director class already? */
-    if ((udata = Getattr(dmethods_table, key))) {
-      Delete(key);
-      return Getattr(udata, "methodoff");
-    }
-
-    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
-    new_udata = NewHash();
+    Hash *new_udata = NewHash();
     Append(dmethods_seq, new_udata);
     Setattr(dmethods_table, key, new_udata);
 
@@ -3451,8 +3442,11 @@ public:
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
+    String *dirClassName = directorClassName(n);
+    String *smartptr = Getattr(n, "feature:smartptr");
     if (!GetFlag(n, "feature:flatnested")) {
       for (Node* outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+
 	Push(qualified_classname, ".");
 	Push(qualified_classname, Getattr(outer_class, "sym:name"));
       }
@@ -3466,8 +3460,17 @@ public:
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
-    Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirclassname, dirclassname);
+    if (Len(smartptr)) {
+      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
+      Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+      Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    }
+    else {
+      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    }
+
     // TODO: if statement not needed?? - Java too
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(");
@@ -3735,7 +3738,7 @@ public:
 		Replaceall(pre, "$iminput", ln);
 		if (Len(pre_code) > 0)
 		  Printf(pre_code, "\n");
-		  Printv(pre_code, pre, NIL);
+		Printv(pre_code, pre, NIL);
 	      }
 	      String *post = Getattr(p, "tmap:csdirectorin:post");
 	      if (post) {
@@ -4091,7 +4094,7 @@ public:
     Delete(director_ctor_code);
     director_ctor_code = NewString("$director_new");
 
-    Java_director_declaration(n);
+    directorDeclaration(n);
 
     Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
     Printf(f_directors_h, "\npublic:\n");
@@ -4232,13 +4235,13 @@ public:
   }
 
   /*----------------------------------------------------------------------
-   * Java_director_declaration()
+   * directorDeclaration()
    *
    * Generate the director class's declaration
    * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
    *--------------------------------------------------------------------*/
  
-  void Java_director_declaration(Node *n) {
+  void directorDeclaration(Node *n) {
 
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");

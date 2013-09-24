@@ -88,7 +88,6 @@ extern int AddExtern;
  * ---------------------------------------------------------------------- */
 
 int Dispatcher::emit_one(Node *n) {
-  String *wrn;
   int ret = SWIG_OK;
 
   char *tag = Char(nodeType(n));
@@ -104,10 +103,9 @@ int Dispatcher::emit_one(Node *n) {
     return SWIG_OK;
 
   /* Look for warnings */
-  wrn = Getattr(n, "feature:warnfilter");
-  if (wrn) {
+  String *wrn = Getattr(n, "feature:warnfilter");
+  if (wrn)
     Swig_warnfilter(wrn, 1);
-  }
 
   /* ============================================================
    * C/C++ parsing
@@ -181,9 +179,8 @@ int Dispatcher::emit_one(Node *n) {
     Swig_error(input_file, line_number, "Unrecognized parse tree node type '%s'\n", tag);
     ret = SWIG_ERROR;
   }
-  if (wrn) {
+  if (wrn)
     Swig_warnfilter(wrn, 0);
-  }
   return ret;
 }
 
@@ -2061,6 +2058,10 @@ int Language::classDirectorMethods(Node *n) {
     if (GetFlag(method, "feature:nodirector"))
       continue;
 
+    String *wrn = Getattr(method, "feature:warnfilter");
+    if (wrn)
+      Swig_warnfilter(wrn, 1);
+
     String *type = Getattr(method, "nodeType");
     if (!Cmp(type, "destructor")) {
       classDirectorDestructor(method);
@@ -2072,6 +2073,8 @@ int Language::classDirectorMethods(Node *n) {
 	SetFlag(item, "director");
       Swig_restore(method);
     }
+    if (wrn)
+      Swig_warnfilter(wrn, 0);
   }
 
   return SWIG_OK;
