@@ -333,11 +333,10 @@ public:
     if (directorsEnabled()) {
       Append(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_banner(f_director_h);
-      Append(f_director,
-	  "/* ---------------------------------------------------\n"
-	  " * C++ director class methods\n"
-	  " * --------------------------------------------------- */\n"
-	  "\n");
+      Printf(f_director, "/* ---------------------------------------------------\n");
+      Printf(f_director, " * C++ director class methods\n");
+      Printf(f_director, " * --------------------------------------------------- */\n");
+      Printf(f_director, "\n");
     }
 
     /* Create a .pm file
@@ -772,16 +771,14 @@ public:
 
     if (is_member_director(n) && !is_smart_pointer()) {
       Wrapper_add_local(f, "upcall", "bool upcall");
-      Printv(f->code,
-	  "{\n",
-	  "  Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n",
-	  "  if (director) {\n",
-	  "    upcall = SvSTASH(SvRV(ST(0))) == SvSTASH(SvRV(director->getSelf()));\n",
-	  "  } else {\n",
-	  "    ", ((dirprot_mode() && !is_public(n)) ? "SWIG_croak(\"accessing protected member\")" : "upcall = false"), ";\n",
-	  "  }\n",
-	  "}\n",
-	  NIL);
+      Printf(f->code, "{\n");
+      Printf(f->code, "  Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n");
+      Printf(f->code, "  if (director) {\n");
+      Printf(f->code, "    upcall = SvSTASH(SvRV(ST(0))) == SvSTASH(SvRV(director->getSelf()));\n");
+      Printf(f->code, "  } else {\n");
+      Printv(f->code, "    ", ((dirprot_mode() && !is_public(n)) ? "SWIG_croak(\"accessing protected member\")" : "upcall = false"), ";\n", NIL);
+      Printf(f->code, "  }\n");
+      Printf(f->code, "}\n");
     }
     if (getCurrentClass() && Swig_directorclass(getCurrentClass())) {
       Swig_require("perl5:functionWrapper", n, "?catchlist", NIL);
@@ -838,11 +835,10 @@ public:
     }
 
     if (GetFlag(n, "feature:new") && is_directortype(d)) {
-      Append(f->code,
-	  "  {\n"
-	  "    Swig::Director *director = dynamic_cast<Swig::Director *>(result);\n"
-	  "    if (director) director->setSelf(ST(0));\n"
-	  "  }\n");
+      Append(f->code, "  {\n");
+      Append(f->code, "    Swig::Director *director = dynamic_cast<Swig::Director *>(result);\n");
+      Append(f->code, "    if (director) director->setSelf(ST(0));\n");
+      Append(f->code, "  }\n");
     }
 
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
@@ -1731,10 +1727,9 @@ public:
 	status = SWIG_NOWRAP;
       }
 
-      Append(w->code,
-	  "  ENTER;\n"
-	  "  SAVETMPS;\n"
-	  "  PUSHMARK(SP);\n");
+      Append(w->code, "  ENTER;\n");
+      Append(w->code, "  SAVETMPS;\n");
+      Append(w->code, "  PUSHMARK(SP);\n");
 
       tmp = NewStringf("SV *av[%d]", pc);
       Wrapper_add_local(w, "av", tmp);
@@ -1760,22 +1755,20 @@ public:
 	  tm = NewString("if ($error) Swig::DirectorMethodException::raise($error);");
 	}
 	Replaceall(tm, "$error", "err");
-	Printv(w->code,
-	  "if (SvTRUE(ERRSV)) {\n"
-	  "  SV *err = newSVsv(ERRSV);\n"
-	  "  FREETMPS;\n"
-	  "  LEAVE;\n",
-	  tm,
-	  "}\n", NIL);
+	Append(w->code, "if (SvTRUE(ERRSV)) {\n");
+	Append(w->code, "  SV *err = newSVsv(ERRSV);\n");
+	Append(w->code, "  FREETMPS;\n");
+	Append(w->code, "  LEAVE;\n");
+	Append(w->code, tm);
+	Append(w->code, "}\n");
       }
 
       if (outputs) {
 	int outnum = 0;
 	Wrapper_add_local(w, "ax", "I32 ax");
-	Append(w->code,
-	    "  SPAGAIN;\n"
-	    "  SP -= c_count;\n"
-	    "  ax = (SP - PL_stack_base) + 1;\n");
+	Append(w->code, "  SPAGAIN;\n");
+	Append(w->code, "  SP -= c_count;\n");
+	Append(w->code, "  ax = (SP - PL_stack_base) + 1;\n");
 	if (SwigType_type(type) != T_VOID) {
 	  String *tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	  if (tm) {
