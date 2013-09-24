@@ -5,9 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
-2013-09-19: talby
+2013-09-24: talby
             [Perl5] Perl proxy objects have been overhauled moving much of the mechanics to C
             instead of Perl.  This brings performance gains and enables director support for Perl5.
             Static member functions of C++ classes are now presented to Perl as methods instead of
             functions, this means callers must use Class->method() syntax instead of Class::method()
             from Perl.
+
+2013-09-20: wsfulton
+            [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
+
