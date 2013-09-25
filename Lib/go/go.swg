@@ -431,7 +431,7 @@
 %}
 
 /* Typecheck typemaps.  The purpose of these is merely to issue a
-   warning for overloaded C++ functions * that cannot be overloaded in
+   warning for overloaded C++ functions that cannot be overloaded in
    Go as more than one C++ type maps to a single Go type.  */
 
 %typecheck(SWIG_TYPECHECK_BOOL) /* Go bool */

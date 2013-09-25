@@ -3303,8 +3303,8 @@ Version 1.3.36 (24 June 2008)
             Makefile target being generated when generating makefiles with the -M family
             of options. For example:
 
-              $ swig -java -MM -MT overiddenname -c++  example.i
-              overiddenname: \
+              $ swig -java -MM -MT overriddenname -c++  example.i
+              overriddenname: \
                example.i \
                example.h 
 
