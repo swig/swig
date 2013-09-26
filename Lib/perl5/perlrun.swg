@@ -54,17 +54,13 @@
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
 
-/* Flags for pointer conversions */
-/* #define SWIG_POINTER_DISOWN        0x1 */
-/* #define SWIG_CAST_NEW_MEMORY       0x2 */
-#define SWIG_POINTER_MG            0x4
-#define SWIG_POINTER_WR            0x8
-/* These Perl specific pointer conversion flags handle two alternate
- * types of native pointer recovery, _MG handles wrapped variables and
- * object attributes, and _WR handles destructors.
- * 
- * TODO: document the shadow object memory layout.
- */
+/* Flags for pointer conversions.
+ * swigrun.swg uses some of the low bits, we leave some room for it to define
+ * more later.  In Perl, SWIG_ConvertPtr() ends up getting used to handle both
+ * object handles and attribute handles, but attribute lookups are a bit
+ * simpler.  The SWIG_POINTER_PERLMG flag triggers the faster access pattern for
+ * attributes. */
+#define SWIG_POINTER_PERLMG        0x4000
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
@@ -176,7 +172,7 @@ typedef struct swig_perl_wrap swig_perl_wrap;
 typedef struct swig_perl_type_ext {
   const char *name;
   MGVTBL vtbl;
-  void (*destroy)(swig_perl_wrap *);
+  void (*destroy)(MAGIC *);
   const int nattr;
   swig_perl_type_ext_var *attr;
 } swig_perl_type_ext;
@@ -232,7 +228,8 @@ SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
   SvREFCNT_dec(tmp);
 }
 
-SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
+SWIGINTERN void SWIG_Perl_ForgetPtr(MAGIC *mg) {
+  swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
   SV *tmp = newSViv(PTR2IV(wrap->ptr));
   /*warn("delete(%s:%p:%d)\n", HvNAME(wrap->stash), wrap->ptr, wrap->refcnt);*/
   hv_delete_ent(SWIG_Perl_WrapTbl(wrap->stash), tmp, G_DISCARD, 0);
@@ -242,7 +239,7 @@ SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
     /* TODO: allprotected.i had a case where we have an ext but no
      * destructor recorded, that is probably a bug. */
     swig_perl_type_ext *ext = (swig_perl_type_ext *)wrap->ti->clientdata;
-    if (ext->destroy) ext->destroy(wrap);
+    if (ext->destroy) ext->destroy(mg);
   }
 }
 
@@ -251,7 +248,7 @@ SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
   wrap->refcnt--;
   if (wrap->refcnt <= 0) {
-    SWIG_Perl_ForgetPtr(wrap);
+    SWIG_Perl_ForgetPtr(mg);
     /*warn("free(%p)\n", wrap);*/
     /*Safefree(wrap);*/
     free(wrap);
@@ -315,49 +312,40 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
   swig_perl_wrap *wrap = 0;
   swig_cast_info *tc = 0;
 
-  switch (flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)) {
-    /* a typical pointer conversion is to extract a raw pointer out of
-     * an SV that represents the pointer, but for certain kinds of
-     * class/struct accesses (attributes and destructors) there are
-     * simpler, quicker conversions. */
-    default:
-      return SWIG_ERROR;
-    case 0: {
-      sv = (SV *)obj;
-      if (own)
-        *own = 0;
-      SvGETMAGIC(sv);
-      if (!SvOK(sv)) {
-        if (ptr) *ptr = (void *) 0;
-        return SWIG_OK;
-      }
-      if (!SvROK(sv))
-        return SWIG_ERROR;
-      /* runtime type checks:
-       * t == 0 means no typecheck restrictions (void* style)
-       * TypeProxyCheck() succeeds on a c/c++ inheritance
-       * sv_derived_from succeeds on Perl inheritance
-       */
-      if (t) {
-        tc = SWIG_TypeProxyCheck(sv_reftype(SvRV(sv), 1), t);
-        if (!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
-          return SWIG_ERROR;
-      } else {
-        tc = 0;
-      }
-      mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
-      if (!mg) /* maybe an object, but not one of ours */
-        return SWIG_ERROR;
-      if (!ptr) /* just a type check request, okay to drop out now */
-        return SWIG_OK;
-      obj = mg;
+  if (!(flags & SWIG_POINTER_PERLMG)) {
+    /* if the PERLMG flag is set, perl has already done part of the 
+     * recovery work for us. */
+    sv = (SV *)obj;
+    if (own)
+      *own = 0;
+    SvGETMAGIC(sv);
+    if (!SvOK(sv)) {
+      if (ptr)
+        *ptr = (void *) 0;
+      return SWIG_OK;
     }
-    case SWIG_POINTER_MG:
-      obj = ((MAGIC *)obj)->mg_ptr;
-    case SWIG_POINTER_WR: /* no conversion necessary */
-      ;
+    if (!SvROK(sv))
+      return SWIG_ERROR;
+    /* runtime type checks:
+     * t == 0 means no typecheck restrictions (void* style)
+     * TypeProxyCheck() succeeds on a c/c++ inheritance
+     * sv_derived_from succeeds on Perl inheritance
+     */
+    if (t) {
+      tc = SWIG_TypeProxyCheck(sv_reftype(SvRV(sv), 1), t);
+      if (!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
+        return SWIG_ERROR;
+    } else {
+      tc = 0;
+    }
+    mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
+    if (!mg) /* maybe an object, but not one of ours */
+      return SWIG_ERROR;
+    if (!ptr) /* just a type check request, okay to drop out now */
+      return SWIG_OK;
+    obj = mg;
   }
-  wrap = (swig_perl_wrap *)obj;
+  wrap = (swig_perl_wrap *)((MAGIC *)obj)->mg_ptr;
   if (flags & SWIG_POINTER_DISOWN)
     wrap->own &= ~SWIG_POINTER_OWN;
   if (tc) {

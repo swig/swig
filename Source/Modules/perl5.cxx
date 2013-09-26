@@ -555,13 +555,13 @@ public:
     }
     Setattr(n, "wrap:name", wname);
     if (GetFlag(n, "perl5:destructor")) {
-      Printv(f->def, "SWIGCLASS_STATIC void ", wname, "(swig_perl_wrap *wrap) {\n", NIL);
+      Printv(f->def, "SWIGCLASS_STATIC void ", wname, "(MAGIC *mg) {\n", NIL);
       emit_parameter_variables(l, f);
       emit_return_variable(n, d, f);
       emit_attach_parmmaps(l, f);
       tm = Getattr(l, "tmap:in");
-      Replaceall(tm, "$input", "wrap");
-      Replaceall(tm, "$disown", "SWIG_POINTER_WR");
+      Replaceall(tm, "$input", "mg");
+      Replaceall(tm, "$disown", "SWIG_POINTER_PERLMG");
       emit_action_code(n, f->code, tm);
       l = nextSibling(l);
       String *actioncode = emit_action(n);
@@ -593,7 +593,7 @@ public:
       /* recover self pointer */
       tm = Getattr(l, "tmap:in");
       Replaceall(tm, "$input", "mg");
-      Replaceall(tm, "$disown", "SWIG_POINTER_MG");
+      Replaceall(tm, "$disown", "SWIG_POINTER_PERLMG");
       emit_action_code(n, f->code, tm);
       l = nextSibling(l);
 
