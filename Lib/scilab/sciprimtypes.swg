@@ -1,11 +1,13 @@
 %include <scidouble.swg>
-%include <scilong.swg>
 %include <scifloat.swg>
 
 %include <scilonglong.swg>
 
 %include <sciint.swg>
 %include <sciunsignedint.swg>
+
+%include <scilong.swg>
+%include <sciunsignedlong.swg>
 
 %include <scishort.swg>
 %include <sciunsignedshort.swg>

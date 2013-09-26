@@ -1,6 +1,12 @@
 %module scilab_typemaps
 
 %inline %{
+    /* Scilab string */
+    char returnChar()
+    {
+        return 'a';
+    }
+
     /* Scilab [u]int8 */
     signed char returnSignedChar()
     {
@@ -12,11 +18,11 @@
     }
 
     /* Scilab [u]int16 */
-    SCI_INT16_FROM_SHORT returnShortAsInt16()
+    short returnShortAsInt16()
     {
         return 42;
     }
-    SCI_INT16_FROM_SIGNED_SHORT returnSignedShortAsInt16()
+    signed short returnSignedShortAsInt16()
     {
         return (signed short) 42;
     }
@@ -26,19 +32,19 @@
     }
 
     /* Scilab [u]int32 */
-    SCI_INT32_FROM_INT returnIntAsInt32()
+    int returnIntAsInt32()
     {
         return 42;
     }
-    SCI_INT32_FROM_LONG returnLongAsInt32()
+    long returnLongAsInt32()
     {
         return (long) 42;
     }
-    SCI_INT32_FROM_SIGNED_INT returnSignedIntAsInt32()
+    signed int returnSignedIntAsInt32()
     {
         return (signed int) 42;
     }
-    SCI_INT32_FROM_SIGNED_LONG returnSignedLongAsInt32()
+    signed long returnSignedLongAsInt32()
     {
         return (signed long) 42;
     }
@@ -60,34 +66,5 @@
     {
         return (float) 42;
     }
-    int returnInt()
-    {
-        return 42;
-    }
-    signed int returnSignedInt()
-    {
-        return (signed int) 42;
-    }
-    long returnLong()
-    {
-        return (long) 42;
-    }
-    signed long returnSignedLong()
-    {
-        return (signed long) 42;
-    }
-    char returnChar()
-    {
-        return 'a';
-    }
-    short returnShort()
-    {
-        return (short) 42;
-    }
-    signed short returnSignedShort()
-    {
-        return (signed short) 42;
-    }
-
 %}
 

@@ -4,6 +4,8 @@ if typeof(returnSignedChar()) <> "int8" then swigtesterror(); end
 if returnSignedChar() <> int8(42) then swigtesterror(); end
 if typeof(returnUnsignedChar()) <> "uint8" then swigtesterror(); end
 if returnUnsignedChar() <> uint8(42) then swigtesterror(); end
+if typeof(returnChar()) <> "string" then swigtesterror(); end
+if returnChar() <> "a" then swigtesterror(); end
 
 if typeof(returnShortAsInt16()) <> "int16" then swigtesterror(); end
 if returnShortAsInt16() <> int16(42) then swigtesterror(); end
@@ -29,14 +31,7 @@ if typeof(returnDouble()) <> "constant" then swigtesterror(); end
 if returnDouble() <> 42.42 then swigtesterror(); end
 if typeof(returnFloat()) <> "constant" then swigtesterror(); end
 if returnFloat() <> 42 then swigtesterror(); end
-if typeof(returnInt()) <> "constant" then swigtesterror(); end
-if returnInt() <> 42 then swigtesterror(); end
-if typeof(returnLong()) <> "constant" then swigtesterror(); end
-if returnLong() <> 42 then swigtesterror(); end
-if typeof(returnShort()) <> "constant" then swigtesterror(); end
-if returnShort() <> 42 then swigtesterror(); end
-if typeof(returnChar()) <> "string" then swigtesterror(); end
-if returnChar() <> "a" then swigtesterror(); end
+
 
 
 exec("swigtest.quit", -1);

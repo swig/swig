@@ -1,70 +1,66 @@
 /*
  * C-type: long
- * Scilab type: double scalar
+ * Scilab type: int32
  */
-%fragment(SWIG_AsVal_frag(long), "header", fragment=SWIG_AsVal_frag(double)) {
+
+%fragment(SWIG_AsVal_frag(long), "header", fragment="SWIG_SciInt32_AsLong") {
+#define SWIG_AsVal_long(scilabValue, valuePointer) SWIG_SciInt32_AsLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname());
+}
+%fragment("SWIG_SciInt32_AsLong", "header", fragment="SWIG_SciInt32_AsInt") {
 SWIGINTERN int
-SWIG_AsVal_dec(long)(SwigSciObject _iVar, long *_plValue) {
-  double dblValue = 0.0;
-  if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
+SWIG_SciInt32_AsLong(void *_pvApiCtx, SwigSciObject _iVar, long *_plValue, char *_fname) {
+  int iValue = 0.0;
+  if(SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, _fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
-  *_plValue = (long) dblValue;
+  *_plValue = (long) iValue;
   return SWIG_OK;
 }
 }
 
-%fragment(SWIG_From_frag(long), "header") {
+%fragment(SWIG_From_frag(long), "header", fragment="SWIG_SciInt32_FromLong") {
+#define SWIG_From_long(scilabValue) SWIG_SciInt32_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+}
+%fragment("SWIG_SciInt32_FromLong", "header", fragment="SWIG_SciInt32_FromInt") {
 SWIGINTERN int
-SWIG_From_dec(long)(long _lValue) {
-  SciErr sciErr;
-  double dblDoubleValue = (double) _lValue;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
-
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-
-  return iVarOut;
+SWIG_SciInt32_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue) {
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_lValue);
 }
 }
 
 /*
- * C-type: unsigned long
- * Scilab type: double scalar
+ * C-type: ptrdiff_t
+ * Scilab type: int32
  */
-%fragment(SWIG_AsVal_frag(unsigned long), "header", fragment=SWIG_AsVal_frag(double)) {
+
+%fragment(SWIG_AsVal_frag(ptrdiff_t), "header", fragment="SWIG_SciInt32_AsPtrDiff") {
+#define SWIG_AsVal_ptrdiff_t(scilabValue, valuePointer) SWIG_SciInt32_AsPtrDiff(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+}
+%fragment("SWIG_SciInt32_AsPtrDiff", "header", fragment="SWIG_SciInt32_AsInt")
+{
 SWIGINTERN int
-SWIG_AsVal_dec(unsigned long)(SwigSciObject _iVar, unsigned long *_pulValue) {
-  double dblValue = 0.0;
-  if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
+SWIG_SciInt32_AsPtrDiff(void *_pvApiCtx, SwigSciObject _iVar, ptrdiff_t *_piValue, char *_fname)
+{
+  int iValue = 0;
+  if (SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, fname) != SWIG_OK)
+  {
     return SWIG_ERROR;
   }
-  *_pulValue = (unsigned long) dblValue;
+  if (_piValue)
+  {
+    *_piValue = (ptrdiff_t) iValue;
+  }
   return SWIG_OK;
 }
 }
 
-
-%fragment(SWIG_From_frag(unsigned long), "header") {
+%fragment(SWIG_From_frag(ptrdiff_t), "header", fragment="SWIG_SciInt32_FromPtrDiff") {
+#define SWIG_From_ptrdiff_t(scilabValue) SWIG_SciInt32_FromPtrDiff(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+}
+%fragment("SWIG_SciInt32_FromPtrDiff", "header", fragment="SWIG_SciInt32_FromInt") {
 SWIGINTERN int
-SWIG_From_dec(unsigned long)(unsigned long _ulValue) {
-  SciErr sciErr;
-  double dblDoubleValue = (double) _ulValue;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
-
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-
-  return iVarOut;
+SWIG_SciInt32_FromPtrDiff(void *_pvApiCtx, int _iVarOut, ptrdiff_t _iValue)
+{
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue);
 }
 }

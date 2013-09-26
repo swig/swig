@@ -2,12 +2,12 @@
  * C-type: unsigned int
  * Scilab type: uint32 scalar
  */
-%fragment(SWIG_AsVal_frag(unsigned int), "header", fragment="SwigScilabUint32ToUnsignedInt") {
-#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SwigScilabUint32ToUnsignedInt(pvApiCtx, scilabValue, valuePointer, fname)
+%fragment(SWIG_AsVal_frag(unsigned int), "header", fragment="SWIG_SciUint32_AsUnsignedInt") {
+#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SWIG_SciUint32_AsUnsignedInt(pvApiCtx, scilabValue, valuePointer, fname)
 }
-%fragment("SwigScilabUint32ToUnsignedInt", "header") {
+%fragment("SWIG_SciUint32_AsUnsignedInt", "header") {
 SWIGINTERN int
-SwigScilabUint32ToUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue, char *_fname) {
+SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -57,23 +57,24 @@ SwigScilabUint32ToUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValu
   return SWIG_OK;
 }
 }
-%fragment(SWIG_From_frag(unsigned int), "header", fragment="SwigScilabUint32FromUnsignedInt") {
-#define SWIG_From_unsigned_SS_int(value) SwigScilabUint32FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
+
+%fragment(SWIG_From_frag(unsigned int), "header", fragment="SWIG_SciUint32_FromUnsignedInt") {
+#define SWIG_From_unsigned_SS_int(scilabValue) SWIG_SciUint32_FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
 }
-%fragment("SwigScilabUint32FromUnsignedInt", "header") {
+%fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
 SWIGINTERN int
-SwigScilabUint32FromUnsignedInt(void *_pvApiCtx, int _iVarOut, unsigned int _uiValue) {
+SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int _iVarOut, unsigned int _uiValue) {
   SciErr sciErr;
   int iRowsOut = 1;
   int iColsOut = 1;
 
-  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, Rhs + _iVarOut, iRowsOut, iColsOut, &_uiValue);
+  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_uiValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 
@@ -129,13 +130,13 @@ SWIGINTERN int
 SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, unsigned int *_puiValue) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _puiValue);
+  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _iRows, _iCols, _puiValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(pvApiCtx) + _iVarOut;
 }
 }
 

@@ -3,7 +3,7 @@
  * Scilab type: uint16 scalar
  */
 %fragment(SWIG_AsVal_frag(unsigned short), "header", fragment="SWIG_SciUint16_AsUnsignedShort") {
-#define SWIG_AsVal_unsigned_SS_short(scilabValue, valuePointer) SWIG_SciUint16_AsUnsignedShort(pvApiCtx, scilabValue, valuePointer, fname)
+#define SWIG_AsVal_unsigned_short(scilabValue, valuePointer) SWIG_SciUint16_AsUnsignedShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciUint16_AsUnsignedShort", "header") {
 SWIGINTERN int
@@ -48,7 +48,7 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
     return SWIG_ERROR;
   }
   if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
@@ -59,7 +59,7 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
 }
 
 %fragment(SWIG_From_frag(unsigned short), "header", fragment="SWIG_SciUint16_FromUnsignedShort") {
-#define SWIG_From_unsigned_SS_short(value) SWIG_SciUint16_FromUnsignedShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
+#define SWIG_From_unsigned_SS_short(scilabValue) SWIG_SciUint16_FromUnsignedShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
 }
 %fragment("SWIG_SciUint16_FromUnsignedShort", "header") {
 SWIGINTERN int
@@ -68,13 +68,13 @@ SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _
   int iRowsOut = 1;
   int iColsOut = 1;
 
-  sciErr = createMatrixOfUnsignedInteger16(_pvApiCtx, Rhs + _iVarOut, iRowsOut, iColsOut, &_usValue);
+  sciErr = createMatrixOfUnsignedInteger16(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_usValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 
@@ -130,12 +130,12 @@ SWIGINTERN int
 SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, unsigned short *_pusValue) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfUnsignedInteger16(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _pusValue);
+  sciErr = createMatrixOfUnsignedInteger16(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _pusValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }

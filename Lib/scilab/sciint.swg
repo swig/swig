@@ -1,10 +1,14 @@
 /*
  * C-type: int
- * Scilab type: 32-bit signed integer or double scalar
+ * Scilab type: 32-bit signed integer
  */
-%fragment(SWIG_AsVal_frag(int), "header") {
+
+%fragment(SWIG_AsVal_frag(int), "header", fragment="SWIG_SciInt32_AsInt") {
+#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciInt32_AsInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+}
+%fragment("SWIG_SciInt32_AsInt", "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
+SWIG_SciInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_fname)
 {
   SciErr sciErr;
   int iRet = 0;
@@ -12,14 +16,14 @@ SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
   int iPrecision = 0;
   int iValue;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(pvApiCtx, piAddrVar))
+  if (!isScalar(_pvApiCtx, piAddrVar))
   {
     Scierror(999, _("%s: Wrong size for argument %d: a scalar expected.\n"),
       SWIG_Scilab_GetFname(),_iVar);
@@ -27,10 +31,10 @@ SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
   }
 
   // Accepts double or 32-bit signed integer
-  if (isDoubleType(pvApiCtx, piAddrVar) && !isVarComplex(pvApiCtx, piAddrVar))
+  if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar))
   {
     double dValue = 0.0;
-    iRet = getScalarDouble(pvApiCtx, piAddrVar, &dValue);
+    iRet = getScalarDouble(_pvApiCtx, piAddrVar, &dValue);
     if (iRet)
     {
       return SWIG_ERROR;
@@ -40,7 +44,7 @@ SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
   }
   else if (isIntegerType(pvApiCtx, piAddrVar))
   {
-    sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrecision);
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrecision);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -49,7 +53,7 @@ SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
 
     if (iPrecision == SCI_INT32)
     {
-      iRet = getScalarInteger32(pvApiCtx, piAddrVar, &iValue);
+      iRet = getScalarInteger32(_pvApiCtx, piAddrVar, &iValue);
     }
   }
 
@@ -69,12 +73,44 @@ SWIG_AsVal_dec(int)(SwigSciObject _iVar, int *_piValue)
   }
 }
 }
-%fragment(SWIG_AsVal_frag(size_t), "header", fragment=SWIG_AsVal_frag(int)) {
+
+%fragment(SWIG_From_frag(int), "header", fragment="SWIG_SciInt32_FromInt") {
+#define SWIG_From_int(scilabValue) SWIG_SciInt32_FromInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+}
+%fragment("SWIG_SciInt32_FromInt", "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(size_t)(SwigSciObject _iVar, size_t *_piValue)
+SWIG_SciInt32_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue)
+{
+  SciErr sciErr;
+  int iRowsOut = 1;
+  int iColsOut = 1;
+
+  sciErr = createMatrixOfInteger32(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_iValue);
+  if (sciErr.iErr)
+  {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+}
+}
+
+/*
+ * C-type: size_t
+ * Scilab type: 32-bit signed integer
+ */
+
+%fragment(SWIG_AsVal_frag(size_t), "header", fragment="SWIG_SciInt32_AsSize") {
+#define SWIG_AsVal_size_t(scilabValue, valuePointer) SWIG_SciInt32_AsSize(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+}
+%fragment("SWIG_SciInt32_AsSize", "header", fragment="SWIG_SciInt32_AsInt")
+{
+SWIGINTERN int
+SWIG_SciInt32_AsSize(void *_pvApiCtx, SwigSciObject _iVar, size_t *_piValue, char *_fname)
 {
   int iValue = 0;
-  if (SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK)
+  if (SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, fname) != SWIG_OK)
   {
     return SWIG_ERROR;
   }
@@ -86,34 +122,17 @@ SWIG_AsVal_dec(size_t)(SwigSciObject _iVar, size_t *_piValue)
 }
 }
 
-%fragment(SWIG_From_frag(int), "header") {
+%fragment(SWIG_From_frag(size_t), "header", fragment="SWIG_SciInt32_FromSize") {
+#define SWIG_From_size_t(scilabValue) SWIG_SciInt32_FromSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+}
+%fragment("SWIG_SciInt32_FromSize", "header", fragment="SWIG_SciInt32_FromInt") {
 SWIGINTERN int
-SWIG_From_dec(int)(int _iValue)
+SWIG_SciInt32_FromSize(void *_pvApiCtx, int _iVarOut, size_t _iValue)
 {
-  SciErr sciErr;
-  double dblDoubleValue = (double) _iValue;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-  int iVarOut = SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue);
+}
+}
 
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
-  if (sciErr.iErr)
-  {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-
-  return iVarOut;
-}
-}
-%fragment(SWIG_From_frag(size_t), "header", fragment=SWIG_From_frag(int))
-{
-SWIGINTERN int
-SWIG_From_dec(size_t)(size_t _iValue)
-{
-  return SWIG_From_dec(int)((int)_iValue);
-}
-}
 /*
  * C-type: int
  * Scilab type: 32-bit signed integer matrix
@@ -182,6 +201,7 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
   return SWIG_OK;
 }
 }
+
 %fragment("SWIG_SciInt32_FromIntArrayAndSize", "header") {
 SWIGINTERN int
 SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
@@ -196,6 +216,7 @@ SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int
   return Rhs + _iVarOut;
 }
 }
+
 %fragment(SWIG_CreateScilabVariable_frag(int), "wrapper") {
 SWIGINTERN int
 SWIG_CreateScilabVariable_dec(int)(void *_pvApiCtx, const char* _psVariableName, const int _iVariableValue) {
