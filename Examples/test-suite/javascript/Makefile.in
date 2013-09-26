@@ -101,11 +101,11 @@ ifeq (node,$(JSENGINE))
   # shut up some warnings
   # contract macro has an empty 'else' at the end...
   aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
-  contract_wrap.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+  contract.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
 
   # dunno... ignoring generously
-  apply_signed_char.cpptest: GYP_CFLAGS = \"Wno-ignored-qualifiers\"
-  constant_pointers.cpptest: GYP_CFLAGS = \"Wno-ignored-qualifiers\"
+  apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	__setup = \
