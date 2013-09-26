@@ -2513,7 +2513,7 @@ int Language::classHandler(Node *n) {
 	  Setattr(m, "parentNode", n);
 	  /*
 	   * There is a bug that needs fixing still... 
-	   * This area of code is creating methods which have not been overidden in a derived class (director methods that are protected in the base)
+	   * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
 	   * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
 	   * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
 	  Printf(stdout, "new method: %s::%s(%s)\n", Getattr(parentNode(m), "name"), Getattr(m, "name"), ParmList_str_defaultargs(Getattr(m, "parms")));
