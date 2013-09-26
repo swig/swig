@@ -35,6 +35,11 @@ end
 
 // Error management function
 function swigtesterror()
-    mfprintf(0, "*** TEST FAILED ***\n")
+    [lines, names] = where();
+    if size(lines, '*') > 1
+        mfprintf(0, "*** TEST FAILED (at line %d) ***\n", lines(2));
+    else
+        mfprintf(0, "*** TEST FAILED ***\n");
+    end;
     exit(1)
 endfunction
