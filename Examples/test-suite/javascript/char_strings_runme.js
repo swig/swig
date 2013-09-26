@@ -1,4 +1,4 @@
-var char_strings = require("char_strings");
+var char_strings = require("./char_strings");
 
 var assertIsEqual = function(expected, actual) {
   if (expected !== actual) {

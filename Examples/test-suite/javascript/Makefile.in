@@ -80,11 +80,11 @@ _setup = \
 	  echo "$(ACTION)ing testcase $* under javascript ($(JSENGINE))" ;		  \
 	fi;
 
-ifeq (v8,$(ENGINE))
+ifneq (jsc,$(ENGINE))
 
   # This test can not be run with v8 as it uses v8 API incompatible output typemaps
   typemap_variables.cpptest:
-		echo "skipping testcase typemap_variables under javascript (v8)."
+		echo "skipping testcase typemap_variables under javascript ($(JSENGINE))."
 
   # with v8 we have to generate C++ wrappers only
   # these tests did raise warnings which are ignored
@@ -98,8 +98,18 @@ ifeq (node,$(JSENGINE))
 
   SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
 
+  # shut up some warnings
+  # contract macro has an empty 'else' at the end...
+  aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+  contract_wrap.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+
+  # dunno... ignoring generously
+  apply_signed_char.cpptest: GYP_CFLAGS = \"Wno-ignored-qualifiers\"
+  constant_pointers.cpptest: GYP_CFLAGS = \"Wno-ignored-qualifiers\"
+  enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+
 	__setup = \
-		sh ./setup_test.sh $*; \
+		sh ./setup_test.sh $* $(GYP_CFLAGS); \
 		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
 
 	nodejs_swig_and_compile = \
@@ -124,9 +134,6 @@ ifeq (node,$(JSENGINE))
 
   %.multicpptest:
 		$(_setup)
-		$(__setup)
-		$(nodejs_swig_and_compile)
-		$(run_testcase)
 
 else
 
@@ -171,3 +178,4 @@ clean:
 	rm -f *_wrap.cxx
 	rm -f *_wrap.c
 	rm -f *.so
+	rm -f *.o
