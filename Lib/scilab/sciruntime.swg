@@ -6,7 +6,13 @@
 
 
 %insert(runtime) %{
-#define SCILAB_VERSION_54_OR_HIGHER (SCI_VERSION_MAJOR > 5) || ((SCI_VERSION_MAJOR == 5) && (SCI_VERSION_MINOR >= 4))
+
+/* Macro to test version of Scilab */
+#ifndef SWIG_SCILAB_VERSION_MIN
+#define SWIG_SCILAB_VERSION_MIN(major, minor, maintenance) \
+  ((SCI_VERSION_MAJOR << 16) + (SCI_VERSION_MINOR << 8) + SCI_VERSION_MAINTENANCE \
+  >= ((major) << 16) + ((minor) << 8) + maintenance)
+#endif
 
 /* Scilab standard headers */
 #ifdef __cplusplus
@@ -18,7 +24,7 @@ extern "C" {
 #include "api_scilab.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
-#if !SCILAB_VERSION_54_OR_HIGHER
+#if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
 #include "stack-c.h"
 #endif
 #ifdef __cplusplus
@@ -78,13 +84,11 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 /* Used for C++ enums */
 //#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
 
-#if SCILAB_VERSION_54_OR_HIGHER
+#if SWIG_SCILAB_VERSION_MIN(5, 4, 0)
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
-
 #else
-
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) Rhs
