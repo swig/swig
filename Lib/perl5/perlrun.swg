@@ -66,18 +66,14 @@
  * TODO: document the shadow object memory layout.
  */
 
-/* Flags for new pointer objects */
-/* #define SWIG_POINTER_OWN           0x1 */
-#define SWIG_POINTER_CLASS         0x2
-
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
+#define SWIG_OWNER              SWIG_POINTER_OWN
+#define SWIG_SHADOW             SWIG_POINTER_OWN
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define SWIG_OWNER   SWIG_POINTER_OWN
 
 /* SWIG Perl macros */
 
