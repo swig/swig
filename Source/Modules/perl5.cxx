@@ -529,7 +529,7 @@ public:
        * over the stuff in naming.c from here, and
        * Language::classDirectorDisown() constructs the node to pass
        * here internally.
-       * additionally, it doesn't assert "hidden" on it's self param,
+       * additionally, it doesn't assert "hidden" on its self param,
        * and that musses our usage_func(), so let's fix that.
        */
       if (getCurrentClass()) {
@@ -572,7 +572,7 @@ public:
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
       /* This explicit disown binding is purely for reverse
-       * compatability.  Some of the Examples/perl5 samples showed
+       * compatibility.  Some of the Examples/perl5 samples showed
        * explicit calls to $obj->DESTROY() so that method should
        * release the object.  Normally, an undef($obj) would be the
        * right way to let go as with other common perl objects. */
