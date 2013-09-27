@@ -3497,10 +3497,33 @@ public:
     // Delete(method_attr);
   }
 
+  /** Replace $packagepath using the javapackage typemap 
+      associated with passed parm or global package_path
+      if none.  "$pkg_path/" is replaced with "" if no
+      package path is set.
+  */
+  void substitutePackagePath(String *text, Parm *p, bool forceEmpty=false) {
+    String *pkg_path= 0;
+
+    if (p) 
+      pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
+    if (!pkg_path || Len(pkg_path) == 0)
+      pkg_path = package_path;
+
+    if (Len(pkg_path) > 0 && ! forceEmpty) {
+      Replaceall(text, "$packagepath", pkg_path);
+    } else {
+      Replaceall(text, "$packagepath/", empty_string);
+      Replaceall(text, "$packagepath", empty_string);
+    }
+    if (pkg_path != package_path)
+      Delete(pkg_path);
+  }
+
   /* ---------------------------------------------------------------
    * Canonicalize the JNI field descriptor
    *
-   * Replace the $javapackage and $javaclassname family of special
+   * Replace the $packagepath and $javaclassname 
    * variables with the desired package and Java proxy name as 
    * required in the JNI field descriptors.
    * 
@@ -3511,27 +3534,17 @@ public:
    * --------------------------------------------------------------- */
 
   String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
-    String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     SwigType *type = Getattr(p, "type");
 
-    if (!pkg_path || Len(pkg_path) == 0)
-      pkg_path = package_path;
-
     String *descriptor_out = Copy(descriptor_in);
-
     substituteClassname(type, descriptor_out, true);
 
-    if (Len(pkg_path) > 0 && Strchr(descriptor_out, '.') == NULL) {
-      Replaceall(descriptor_out, "$packagepath", pkg_path);
-    } else {
-      Replaceall(descriptor_out, "$packagepath/", empty_string);
-      Replaceall(descriptor_out, "$packagepath", empty_string);
-    }
-
+    // if descriptor_in ($javaclassname?) is in name space form, a.b.c, discard
+    //   packagepath from string like $packagepath/$javaclassname
+    bool forceEmpty = Strchr(descriptor_out, '.') != NULL;
+    substitutePackagePath(descriptor_out, p, forceEmpty);
+    
     Replaceall(descriptor_out, ".", "/");
-
-    if (pkg_path != package_path)
-      Delete(pkg_path);
 
     return descriptor_out;
   }
@@ -3934,8 +3947,10 @@ public:
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      if (throw_parm_list)
+      if (throw_parm_list) {
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+	Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
+      }
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if (Getattr(p, "tmap:throws")) {
 	  addThrows(n, "tmap:throws", p);
@@ -4001,7 +4016,8 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;\n");
+      // Generate code to handle any java exception thrown by director delegation
+      directorExceptHandler(n, throw_parm_list, w, c_classname, name);
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4042,7 +4058,8 @@ public:
 
       /* Terminate wrapper code */
       Printf(w->code, "} else {\n");
-      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
+      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
+	     SwigType_namestr(c_classname), SwigType_namestr(name));
       Printf(w->code, "}\n");
 
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
@@ -4096,6 +4113,125 @@ public:
     DelWrapper(w);
 
     return status;
+  }
+
+  /* ------------------------------------------------------------
+   * directorExcept handler: Emit code to map java exceptions
+   *  back to C++ exceptions when feature("director:except") is appied
+   *  to a method node
+   * ------------------------------------------------------------ */
+  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w, String *c_classname, String *name) {
+    // After director java method call, allow code for director method exception to be added
+    // Look for director:exceptfeature
+    Parm *p;
+    String * featdirexcp = Getattr(n, "feature:director:except");
+
+    if (featdirexcp && 0 != Len(featdirexcp) && 0 != Cmp(featdirexcp,"0")) {
+    
+      // noutils attribute.  If it is not set, or it is "0" DO NOT emit utility method code
+      // Utilities introduce dependency on std::string (which std::exception also introduces)
+      String * noutilattr = Getattr(n, "feature:director:except:noutils");
+      bool noutils = noutilattr && 0 != Len(noutilattr) && 0 != Cmp(noutilattr,"0");
+      // Emits the utilities code if noutils is not set
+      if (noutils) {
+	// typemap generated handlers require the generated utils
+	if (0 == Cmp(featdirexcp,"1")) {
+	  Swig_error(input_file, line_number, 
+		     "Feature director:except on %s::%s with noutils attribute must have a code handler block",
+		     SwigType_namestr(c_classname),SwigType_namestr(name));
+	}
+      } else {
+	static bool emitOneTime = false;
+	if (! emitOneTime) {
+	  emitOneTime = true;
+	  Swig_insert_file("director_except_utils.swg", f_runtime);
+	}
+      }
+
+      Printf(w->code,"jthrowable thrown_ = jenv->ExceptionOccurred();\n");
+      Printf(w->code,"if (thrown_) {\n");
+      Printf(w->code,"  jenv->ExceptionClear();  // Must clear exception to call later JNI methods\n");
+      Printf(w->code,"  try {\n");
+
+      // "director:except applies, but no code block -
+      // Auto generate exception remapping from directorthrows typemaps
+      if (0 == Cmp(featdirexcp,"1")) {
+	if (!throw_parm_list) {
+	  Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number, 
+		       "Feature director:except without code block, on %s::%s, requires throws() or %catches", 
+		       c_classname,name);
+	} else {
+	  
+	  // Once a java.lang.Throwable is handled, done
+	  bool throwableHandled = false;
+	  bool isfirst = true;
+	  for (p = throw_parm_list; p; p = nextSibling(p)) {
+	    String *tmapdirthrows = Getattr(p, "tmap:directorthrows");
+	    String *tmapdirthrowsmatches = Getattr(p, "tmap:directorthrows:matches");
+	    String * excptype = Getattr(p,"type");
+
+	    if (!tmapdirthrows) {
+	      Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number, 
+			   "Feature director:except on %s::%s with no code block requires directorthrows typemap for exception %s.\n",
+			   SwigType_namestr(c_classname),SwigType_namestr(name), excptype);
+	    } else {
+	      if (! tmapdirthrowsmatches) {
+		Swig_error(input_file, line_number, "Typemap directorthows on %s: missing required 'matches' attribute", excptype);
+	      }
+	      if (throwableHandled) {
+		Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number, 
+			     "Directorthrows declaration for %s on %s::%s ignored: already handled java.lang.Throwable",
+			     excptype,SwigType_namestr(c_classname),SwigType_namestr(name));
+		continue;
+	      }
+	      // Once throwable is handled, any other blocks will be dead code since all exceptions will match
+	      throwableHandled = (0 == Cmp("java.lang.Throwable",tmapdirthrowsmatches));
+
+	      // replace $packagepath if present, honoring exception javapackage typemap.
+	      tmapdirthrows = Copy(tmapdirthrows);
+	      substitutePackagePath(tmapdirthrows, p);
+	      Replaceall(tmapdirthrows, "$thrown", "thrown_"); 
+	      // replace $packagepath if present, honoring exception javapackage typemap.
+	      tmapdirthrowsmatches = Copy(tmapdirthrowsmatches);
+	      substitutePackagePath(tmapdirthrowsmatches, p);
+	      Replaceall(tmapdirthrowsmatches, ".", "/");  // Make path-like: java/lang/Exception
+	      // Use Swig::exception_matches defined in java/director.swg
+	      Printf(w->code, "    // Handle exception %s\n", excptype);
+	      // Don't bother with test, for Throwable. All must match, so just make "else {"
+	      if (throwableHandled) 
+		Printf(w->code, "    %s {\n",isfirst?"":"else");
+	      else
+		Printf(w->code, "    %s (Swig::exception_matches(jenv,thrown_,\"%s\")) {",isfirst?"if":"else if",tmapdirthrowsmatches);
+	      Printf(w->code, "    %s\n", tmapdirthrows);
+	      Printf(w->code, "    }\n");
+	      Delete(tmapdirthrows);
+	      Delete(tmapdirthrowsmatches);
+	      isfirst=false; // clauses after first are "else if"
+	    }
+	    // TODO: do something by default?  If throwableHandled == false?
+	  }
+	}
+      } else {
+	// director:except feature with a code block
+	// Replace variables and emit user director:except feature code
+	featdirexcp = Copy(featdirexcp);
+        substitutePackagePath(featdirexcp, 0); // always global package_path
+	Replaceall(featdirexcp, "$thrown", "thrown_");
+	Printf(w->code, "    {\n%s\n}\n", featdirexcp);
+      }
+      Printf(w->code, "  } catch (...) {");
+      Printf(w->code, "    // If typemap code correctly threw C++ exception, rethrow\n");
+      Printf(w->code, "    throw;\n");
+      Printf(w->code, "  }\n");
+      Printf(w->code, "  // TODO: direct:except did not properly throw.  Throw runtime_error?\n");
+      Printf(w->code, "  return $null;\n");
+      Printf(w->code, "}\n");
+
+      Delete(featdirexcp);
+    } else {
+      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;  // No director:except\n");
+    }
+
   }
 
   /* ------------------------------------------------------------

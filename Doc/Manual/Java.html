@@ -87,6 +87,7 @@
 <li><a href="#Java_directors_example">Simple directors example</a>
 <li><a href="#Java_directors_threading">Director threading issues</a>
 <li><a href="#Java_directors_performance">Director performance tuning</a>
+<li><a href="#Java_exceptions_from_directors">Java Exceptions from Directors</a>
 </ul>
 <li><a href="#Java_allprotected">Accessing protected members</a>
 <li><a href="#Java_common_customization">Common customization features</a>
@@ -3555,6 +3556,164 @@ However, if all director methods are expected to usually be overridden by Java s
 The disadvantage is that invocation of director methods from C++ when Java doesn't actually override the method will require an additional call up into Java and back to C++.  As such, this option is only useful when overrides are extremely common and instantiation is frequent enough that its performance is critical.
 </p>
 
+<H3><a name="Java_exceptions_from_directors"></a>24.5.7 Java Exceptions from Directors</H3>
+
+<p>
+With directors routing method calls to Java, and proxies routing them
+to C++, the handling of exceptions is an important concern. By default, the
+directors ignore exceptions that occur during method calls dispatched to the
+Java director class and simply return '$null' to the C++ caller.
+To handle such exceptions correctly, it is necessary to translate 
+them into C++ exceptions. This can be done with the %feature("director:except") 
+directive.  Two forms are available.  In the first, simply attach a code block to
+a method to handle the mapping of java exceptions into C++ exceptions.
+</p>
+
+<div class="code">
+<pre>
+// All the rules to associate a feature with an element apply
+%feature("director:except",fullname=1) MyClass::method(int x) {
+  if ($thrown) {
+    if (Swig::exception_matches(jenv,$thrown,"java/lang/IndexOutOfBoundsException")) 
+      throw std::out_of_range(Swig::get_exception_message(jenv,$thrown));
+    else if (Swig::exception_matches(jenv,$thrown,"$packagepath/MyJavaException")) 
+      throw MyCppException(Swig::get_exception_message(jenv,$thrown));
+    else 
+      throw std::runtime_error("Unexpected exception thrown by MyClass::method");
+  }
+}
+class MyClass {
+  void method(int x) throws (std::out_of_range, MyCppException);
+}  
+</pre>
+</div>
+<p>
+This approach allows mapping java exceptions thrown by director
+methods into C++ exceptions, to match the exceptions expected by a C++
+caller.  There need not be a throws() declaration on the method.  This
+approach gives complete flexibility to map exceptions thrown by a java
+director implementation into desired C++ exceptions.  The
+functions <code>Swig::exception_matches</code>
+and <code>Swig::get_exception_message</code> are utility functions,
+generated for wrappers using the <code>director:except</code>feature.
+These simplify testing the type of the java exception and constructing
+C++ exceptions.  The function <code>Swig::get_exception_message</code>
+extracts the message jstring out of the thrown java exception,
+converts it to a UTF8 char string, releases references to the jstring,
+returns the message copied into a std::string.  The
+function <code>Swig::exception_matches</code> matches the type of the
+<code>jthrowable</code> thrown against a <b>fully qualified</b> JNI style class
+name, like <code>"java/lang/IOError"</code>.  If the throwable class is the same
+type, or derives from the given type, it returns true.  Care must be taken to
+provide the correct fully qualified name, since for wrapped exceptions the
+generated proxy class will have additional package qualification, depending on
+the '-package" argument and use of <a href="#Java_namespaces">nspace
+feature</a>.  The variable $thrown is either NULL if no exception was thrown, or
+is the JNI jthrowable of the thrown exception.  The variable $packagepath is
+replaced by the outer package provided for swig generation by the -package
+option.  
+</p>
+
+<p><b>Note:</b> Using these utility functions introduces a dependency on
+<code>std::string</code>, returned by Swig::get_exception_message to
+ensure the proper life cycle and cleanup of the string message
+extracted from the thrown java exceptions.  This can be avoided by
+adding the attribute <code>noutils=1</code> to ALL
+the <code>director:except</code> features.  Then the utility functions
+(and their dependency on std::string) will not be emitted.  The
+handler block will then need to include JNI code to match exception
+type and extract strings from the thrown exception, as required.  See
+the file java/director_except_utils.swg to see their
+implementation.</p>
+
+<p>
+If many methods may throw different exceptions, using this approach to write
+handlers for a large number of methods will result in duplication of the code in
+the director:except feature code blocks.  So an alternative approach is
+provided, using typemaps in a fashion analagous to
+the <a href="Typemaps.html#throws_typemap">"throws" typemap.</a>  The "throws"
+typemap provides an approach to automatically map C++ exceptions into Java
+exceptions, for generated proxy classes.  To provide the inverse mapping, the
+"directorthrows" typemap is introduced.  In this case, a <code>director:except</code> feature
+is used to tag the method as handling director exception mapping, but the code
+for the mapping is automatically generated using code provided by the directorthrows 
+typemaps.
+</p>
+
+<div class="code">
+<pre>
+// Define exceptions in header section using std::runtime_error
+%define DEFINE_EXCP(NAME) 
+%{
+  #include &lt;exception&gt;
+  namespace MyNS {
+    struct NAME : public std::runtime_error { NAME(const std::string& what):runtime_error(what) {}; };
+  }
+%}
+%enddef
+// Expose c++ exceptions as java Exceptions with getMessage
+%define DECLARE_EXCP(NAME) 
+%typemap(javabase) MyNS::NAME "java.lang.Exception";
+%rename(getMessage,fullname=1) MyNS::NAME::what;
+namespace MyNS {
+  struct NAME {
+    NAME(const std::string& what);
+    const char * what();
+  };
+}
+%enddef
+
+DEFINE_EXCP(ExcpA)
+DEFINE_EXCP(ExcpB)
+DEFINE_EXCP(Unknown)
+
+// Mark three methods to map director-thrown exceptions.
+// Standard rules for feature matching apply
+%feature("director:except",fullname=1) MyClass::meth1(int);
+%feature("director:except",fullname=1) MyClass::meth2;
+%feature("director:except") meth3;
+
+%typemap(directorthrows, matches="$packagepath/ExcpA") MyNS::ExcpA {
+  throw MyNS::ExcpA(Swig::get_exception_message(jenv,$thrown));
+}
+%typemap(directorthrows, matches="$packagepath/ExcpB") MyNS::ExcpB {
+  throw MyNS::ExcpB(Swig::get_exception_message(jenv,$thrown)); 
+}
+// Any thrown java exception will match and be translated to a MyNS::Unexpected
+%typemap(directorthrows, matches="java/lang/Throwable") MyNS::Unexpected {
+  throw MyNS::Unexpected(Swig::get_exception_message(jenv,$thrown));
+}
+
+DECLARE_EXCP(ExcpA)
+DECLARE_EXCP(ExcpB)
+DECLARE_EXCP(Unexpected)
+
+%inline {
+  class MyClass {
+  public:
+    virtual void meth1(int x) throw(MyNS::ExcpA, MyNS::ExcpB) = 0;
+    virtual void meth2() throw(MyNS::ExcpA, MyNS::ExcpB, MyNS::Unexpected) = 0;
+    virtual void meth3(float x) throw(MyNS::Unexpected) = 0;
+    virtual ~MyClass() {};
+  };  
+}
+</pre>
+</div>
+
+<p>
+In this case the three different directorthrows typemaps will be used to
+generate the three different exception handlers
+for <code>meth1</code>, <code>meth2</code> and
+<code>meth3</code>.  The generated handlers will have if/else if blocks for each
+exception type listed in the <code>throw()</code> declaration
+(or <code>%catches</code> feature).  The code block in the directorthrows
+typemap should always throw a c++ exception.  The type test is generated using
+a call to </code>Swig::exception_matches</code> with the "matches" attribute from the
+directorthrows typemap.  If a directorthrows typemap specifies a "matches" value of
+"java/lang/Throwable" this will be generated as an "else" clause, and a warning will 
+be generated for any subsequent exceptions in the throw() declaration, which will be 
+ignored. 
+</p>
 
 <H2><a name="Java_allprotected"></a>24.6 Accessing protected members</H2>
 

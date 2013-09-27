@@ -170,6 +170,7 @@
 #define WARN_TYPEMAP_DIRECTOROUT_PTR   473
 #define WARN_TYPEMAP_OUT_OPTIMAL_IGNORED  474
 #define WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE 475
+#define WARN_TYPEMAP_DIRECTORTHROWS_UNDEF 476  /* may be used with director:except features */
 
 /* -- Fragments -- */
 #define WARN_FRAGMENT_NOT_FOUND       490
