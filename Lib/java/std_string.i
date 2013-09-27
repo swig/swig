@@ -38,7 +38,8 @@ class string;
 
 %typemap(directorout) string 
 %{ if(!$input) {
-     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+     if (!jenv->ExceptionCheck())
+       SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    } 
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 

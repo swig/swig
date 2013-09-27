@@ -24,6 +24,7 @@ CPP_TEST_CASES = \
 	java_constants \
 	java_director \
 	java_director_assumeoverride \
+	java_director_exception_feature \
 	java_enums \
 	java_jnitypes \
 	java_lib_arrays_dimensionless \
