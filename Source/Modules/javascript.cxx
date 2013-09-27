@@ -1571,18 +1571,12 @@ int JSCEmitter::dump(Node *n) {
 }
 
 int JSCEmitter::close() {
-  /* strings */
   Delete(f_runtime);
   Delete(f_header);
   Delete(f_wrappers);
   Delete(f_init);
-
   Delete(namespaces);
-
-  /* files */
-  Close(f_wrap_cpp);
   Delete(f_wrap_cpp);
-
   return SWIG_OK;
 }
 
@@ -1927,7 +1921,6 @@ int V8Emitter::dump(Node *n)
 
 int V8Emitter::close()
 {
-  // strings
   Delete(f_runtime);
   Delete(f_header);
   Delete(f_class_templates);
@@ -1941,11 +1934,7 @@ int V8Emitter::close()
   Delete(f_init_register_namespaces);
   Delete(f_init);
   Delete(f_post_init);
-
-  // files
-  Close(f_wrap_cpp);
   Delete(f_wrap_cpp);
-
   return SWIG_OK;
 }
 
