@@ -1,58 +1,18 @@
-language: cpp
+language: c
 compiler:
-  - clang
   - gcc
-env:
-  - SWIGLANG=
-matrix:
-  include:
-    - compiler: gcc
-      env: SWIGLANG=csharp
-    - compiler: gcc
-      env: SWIGLANG=go
-    - compiler: gcc
-      env: SWIGLANG=guile
-    - compiler: gcc
-      env: SWIGLANG=java
-    - compiler: gcc
-      env: SWIGLANG=lua
-    - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
-    - compiler: gcc
-      env: SWIGLANG=perl5
-    - compiler: gcc
-      env: SWIGLANG=php
-    - compiler: gcc
-      env: SWIGLANG=python
-    - compiler: gcc
-      env: SWIGLANG=python PY3=1
-    - compiler: gcc
-      env: SWIGLANG=ruby
-    - compiler: gcc
-      env: SWIGLANG=tcl
-  allow_failures:
-      # None
-before_install:
-  - lsb_release -a
-  - uname -a
-  - sudo apt-get -qq update
-  - time sudo apt-get -qq install libboost-dev
-  - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
-  - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
-  - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
-  - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
-  - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
-  - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
-  - if test "$SWIGLANG" = "python" -a "$PY3"; then sudo apt-get install python3-dev; fi
-  - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
+node_js:
+  -0.10.12
+before_script:
+  - "sudo apt-get install rlwrap"
+  - "wget https://launchpad.net/~chris-lea/+archive/node.js/+build/4936691/+files/nodejs_0.10.18-1chl1~precise1_amd64.deb"
+  - "sudo dpkg -i nodejs_0.10.18-1chl1~precise1_amd64.deb"
+  - "sudo npm install -g node-gyp"
+  - "sudo apt-get install libv8-3.7.12.22  libv8-dev"
+  - "sudo apt-get install libwebkitgtk-dev"
+  - "./autogen.sh && ./configure && make"
+  - "cd Examples && make javascript_exe && cd .."
 script:
-  - ./autogen.sh && ./configure
-  - make -s $SWIGJOBS
-  - if test -z "$SWIGLANG"; then make -s check-ccache; fi
-  - ./swig -version
-  - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
-branches:
-  only:
-    - master
+  - "make SMOKE=1 check-javascript-test-suite"
+  - "make SMOKE=1 ENGINE=jsc check-javascript-test-suite"
+  - "make SMOKE=1 ENGINE=v8 check-javascript-test-suite"
