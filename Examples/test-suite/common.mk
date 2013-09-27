@@ -95,6 +95,7 @@ C_TEST_BROKEN += \
 
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
+ifndef SKIP_CPP_CASES
 CPP_TEST_CASES += \
 	abstract_access \
 	abstract_inherit \
@@ -475,6 +476,7 @@ CPP_TEST_CASES += \
 	voidtest \
 	wallkw \
 	wrapmacro
+endif
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -507,6 +509,7 @@ endif
 
 
 # C test cases. (Can be run individually using: make testcase.ctest)
+ifndef SKIP_C_CASES
 C_TEST_CASES += \
 	arrays \
 	bom_utf8 \
@@ -554,9 +557,10 @@ C_TEST_CASES += \
 	typemap_subst \
 	union_parameter \
 	unions
-
+endif
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
+ifndef SKIP_MULTI_CPP_CASES
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
@@ -565,6 +569,7 @@ MULTI_CPP_TEST_CASES += \
 	mod \
 	template_typedef_import \
 	multi_import
+endif
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw

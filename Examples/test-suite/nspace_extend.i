@@ -2,7 +2,7 @@
 %module nspace_extend
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGJAVASCRIPT)
 
 #if defined(SWIGJAVA)
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)

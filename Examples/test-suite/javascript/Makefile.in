@@ -1,0 +1,181 @@
+#######################################################################
+# Makefile for javascript test-suite
+#######################################################################
+
+LANGUAGE     = javascript
+SCRIPTSUFFIX = _runme.js
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+SWIG  = $(top_builddir)/preinst_swig
+
+ifneq (, $(ENGINE))
+	JSENGINE=$(ENGINE)
+else
+	JSENGINE=node
+endif
+
+# Note: the javascript generator is not ready yet for the real game.
+# To be able keep the behavior continously tested that is expected to work already
+# we have a 'light' version of the test-suite
+# This will be removed and replaced by a list of 'BROKEN_TEST_CASES' when
+# the number gets smaller (currently we have about 65 broken tests for JSC, and 85 for V8)
+
+ifneq (,$(SMOKE))
+
+C_TEST_CASES = \
+  preproc \
+  preproc_include
+
+CPP_TEST_CASES = \
+  abstract_access \
+  abstract_typedef \
+  abstract_typedef2 \
+  abstract_virtual \
+  arrays_global \
+  array_member \
+  char_binary \
+  class_ignore \
+  class_scope_weird \
+  complextest \
+  constover \
+  constructor_copy \
+  cpp_enum \
+  cpp_namespace \
+  cpp_static \
+  enum_template \
+  namespace_virtual_method \
+  nspace \
+  nspace_extend \
+  overload_copy \
+  rename_simple \
+  rename_scope \
+  ret_by_value \
+  struct_value \
+  template_static \
+  typedef_class \
+  typedef_inherit \
+  typedef_scope \
+  typemap_arrays \
+  typemap_delete \
+  typemap_namespace \
+  typemap_ns_using \
+  using1 \
+  using2 \
+  javascript_unicode
+
+SKIP_CPP_CASES = @SKIP_CPP_CASES@
+SKIP_C_CASES = @SKIP_C_CASES@
+SKIP_CPP_STD_CASES = @SKIP_CPP_STD_CASES@
+SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
+
+endif
+
+include $(srcdir)/../common.mk
+
+_setup = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing testcase $* (with run test) under javascript ($(JSENGINE))" ; \
+	else								  \
+	  echo "$(ACTION)ing testcase $* under javascript ($(JSENGINE))" ;		  \
+	fi;
+
+ifneq (jsc,$(ENGINE))
+
+  # This test can not be run with v8 as it uses v8 API incompatible output typemaps
+  typemap_variables.cpptest:
+		echo "skipping testcase typemap_variables under javascript ($(JSENGINE))."
+
+  # with v8 we have to generate C++ wrappers only
+  # these tests did raise warnings which are ignored
+  nested.ctest: SWIGOPT += -w312,-325
+  nested_structs.ctest: SWIGOPT += -w312,-325
+  unions.ctest: SWIGOPT += -w312,-325
+
+endif
+
+ifeq (node,$(JSENGINE))
+
+  SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
+
+  # shut up some warnings
+  # contract macro has an empty 'else' at the end...
+  aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+  contract.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
+
+  # dunno... ignoring generously
+  apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+
+	__setup = \
+		sh ./setup_test.sh $* $(GYP_CFLAGS); \
+		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
+
+	nodejs_swig_and_compile = \
+		node-gyp --loglevel=silent --directory $* configure build 1>>/dev/null
+
+	run_testcase = \
+		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+			node $(srcdir)/$*$(SCRIPTSUFFIX); \
+		fi
+
+  %.cpptest:
+		$(_setup)
+		$(__setup)
+		$(nodejs_swig_and_compile)
+		$(run_testcase)
+
+  %.ctest:
+		$(_setup)
+		$(__setup)
+		$(nodejs_swig_and_compile)
+		$(run_testcase)
+
+  %.multicpptest:
+		$(_setup)
+
+else
+
+  SWIGOPT += -$(JSENGINE)
+
+	run_testcase = \
+		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+			$(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
+		fi
+
+  %.cpptest:
+		$(_setup)
+		+$(swig_and_compile_cpp)
+		$(run_testcase)
+
+  %.multicpptest:
+		$(_setup)
+		+$(swig_and_compile_multi_cpp)
+		$(run_testcase)
+
+endif
+
+ifeq (v8,$(ENGINE))
+  %.ctest:
+		$(_setup)
+		+$(swig_and_compile_cpp)
+		$(run_testcase)
+
+endif
+
+ifeq (jsc,$(ENGINE))
+  %.ctest:
+		$(_setup)
+		+$(swig_and_compile_c)
+		$(run_testcase)
+endif
+
+%.clean:
+	rm -rf $*
+
+clean:
+	rm -f *_wrap.cxx
+	rm -f *_wrap.c
+	rm -f *.so
+	rm -f *.o
