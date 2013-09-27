@@ -1,6 +1,8 @@
 // Scilab fragments for primitive types
 %include <sciprimtypes.swg>
 
+%include <scienum.swg>
+
 // Include fundamental fragments definitions
 %include <typemaps/fragments.swg>
 // Scilab types
@@ -260,23 +262,20 @@
 /* -----------------------------------------------------------------------------
  * --- Use enum from Scilab ---
  * ----------------------------------------------------------------------------- */
-%typemap(in, noblock=1, fragment="SwigScilabInt32ToEnum") enum SWIGTYPE (int val) {
-  if (SwigScilabInt32ToEnum(pvApiCtx, $input, &val, fname) != SWIG_OK) {
+%typemap(in, noblock=1, fragment="SWIG_SciInt32_AsEnum") enum SWIGTYPE (int val) {
+  if (SWIG_SciInt32_AsEnum(pvApiCtx, $input, &val, SWIG_Scilab_GetFname()) != SWIG_OK) {
     return 0;
   }
   $1 = %reinterpret_cast(val, $ltype);
-
 }
-//%scilab_in_typemap(in, SwigScilabInt32ToEnum, enum SWIGTYPE);
 
 /* -----------------------------------------------------------------------------
  * --- Return enum to Scilab ---
  * ----------------------------------------------------------------------------- */
 %scilab_varout_typemap(constcode, SwigScilabInt32FromEnum, enum SWIGTYPE);
 
-%typemap(out, fragment="SwigScilabInt32FromEnum") enum SWIGTYPE {
-  if (SwigScilabInt32FromEnum(pvApiCtx, $result, $1) != SWIG_OK)
-  {
+%typemap(out, fragment="SWIG_SciInt32_FromEnum") enum SWIGTYPE {
+  if (SWIG_SciInt32_FromEnum(pvApiCtx, $result, $1, SWIG_Scilab_GetFname()) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
