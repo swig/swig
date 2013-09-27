@@ -19,12 +19,12 @@ SWIG_SciInt32_AsLong(void *_pvApiCtx, SwigSciObject _iVar, long *_plValue, char 
 }
 
 %fragment(SWIG_From_frag(long), "header", fragment="SWIG_SciInt32_FromLong") {
-#define SWIG_From_long(scilabValue) SWIG_SciInt32_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+#define SWIG_From_long(scilabValue) SWIG_SciInt32_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt32_FromLong", "header", fragment="SWIG_SciInt32_FromInt") {
 SWIGINTERN int
-SWIG_SciInt32_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue) {
-  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_lValue);
+SWIG_SciInt32_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fname) {
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_lValue, _fname);
 }
 }
 
@@ -55,12 +55,12 @@ SWIG_SciInt32_AsPtrDiff(void *_pvApiCtx, SwigSciObject _iVar, ptrdiff_t *_piValu
 }
 
 %fragment(SWIG_From_frag(ptrdiff_t), "header", fragment="SWIG_SciInt32_FromPtrDiff") {
-#define SWIG_From_ptrdiff_t(scilabValue) SWIG_SciInt32_FromPtrDiff(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+#define SWIG_From_ptrdiff_t(scilabValue) SWIG_SciInt32_FromPtrDiff(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt32_FromPtrDiff", "header", fragment="SWIG_SciInt32_FromInt") {
 SWIGINTERN int
-SWIG_SciInt32_FromPtrDiff(void *_pvApiCtx, int _iVarOut, ptrdiff_t _iValue)
+SWIG_SciInt32_FromPtrDiff(void *_pvApiCtx, int _iVarOut, ptrdiff_t _iValue, char *_fname)
 {
-  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue);
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue, _fname);
 }
 }

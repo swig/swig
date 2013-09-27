@@ -60,11 +60,11 @@ SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname)
 }
 
 %fragment(SWIG_From_frag(short), "header", fragment="SWIG_SciInt16_FromShort") {
-#define SWIG_From_short(scilabValue) SWIG_SciInt16_FromShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+#define SWIG_From_short(scilabValue) SWIG_SciInt16_FromShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt16_FromShort", "header") {
 SWIGINTERN int
-SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, signed short _usValue) {
+SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, signed short _usValue, char *_fname) {
   SciErr sciErr;
   int iRowsOut = 1;
   int iColsOut = 1;
