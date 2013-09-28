@@ -361,11 +361,6 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
   }
   Delete(nname);
 
-  if (p && Getattr(p, "arg:classref")) {
-    i++;
-    p = nextSibling(p);
-  }
-
   while (p) {
     SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
@@ -837,10 +832,7 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
  *
  * ----------------------------------------------------------------------------- */
 int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
-  String *body;
-  if (parms && Getattr(parms, "arg:classref"))
-    parms = nextSibling(parms);
-  body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
+  String *body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, "wrap:code", body);
   Delete(body);
   return SWIG_OK;
@@ -1234,11 +1226,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Delete(action);
 	Delete(directorname);
       } else {
-	String *call;
-	if (parms && Getattr(parms, "arg:classref"))
-	  call = Swig_cppconstructor_nodirector_call(classname, parms);
-	else 
-	  call = Swig_cppconstructor_call(classname, parms);
+	String *call = Swig_cppconstructor_call(classname, parms);
 	String *cres = Swig_cresult(type, Swig_cresult_name(), call);
 	Setattr(n, "wrap:action", cres);
 	Delete(cres);

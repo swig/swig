@@ -11,7 +11,7 @@
 /* for raw pointers */
 #define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, 0)
 #define SWIG_ConvertPtrAndOwn(obj, pp, type, fl, own)   SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, fl, own)
-#define SWIG_NewPointerObjP(ptr, t, flags)              SWIG_Perl_MakePtr(0, ptr, t, flags, arg1)
+#define SWIG_NewPointerObjP(ptr, t, flags)              SWIG_Perl_MakePtr(0, ptr, t, flags, ST(0))
 #define SWIG_NewPointerObj(ptr, t, flags)               SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
 
 /* for raw packed data */

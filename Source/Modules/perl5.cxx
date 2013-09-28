@@ -517,6 +517,7 @@ public:
     int num_arguments, num_required;
     int varargs = 0;
     int dir_catch = 0;
+    int need_proto = GetFlag(n, "perl5:addproto") ? 1 : 0;
 
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
@@ -646,8 +647,8 @@ public:
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
 
-    num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
+    num_arguments = emit_num_arguments(l) + need_proto;
+    num_required = emit_num_required(l) + need_proto;
     varargs = emit_isvarargs(l);
 
     Wrapper_add_local(f, "argvi", "int argvi = 0");
@@ -665,7 +666,7 @@ public:
     }
 
     /* Write code to extract parameters. */
-    for (i = 0, p = l; i < num_arguments; i++) {
+    for (i = need_proto, p = l; i < num_arguments; i++) {
 
       /* Skip ignored arguments */
 
@@ -864,8 +865,13 @@ public:
       Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n", namespace_module, pname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
+      /* TODO: this is overly complicated by the lies about the argument count for need_proto */
       int maxargs;
-      String *dispatch = Swig_overload_dispatch_cast(n, "PUSHMARK(MARK); SWIG_CALLXS(%s); return;", &maxargs);
+      String *dispatch = Swig_overload_dispatch_cast(n,
+	need_proto
+	  ? "ax--; items++; PUSHMARK(MARK); SWIG_CALLXS(%s); return;"
+	  : "PUSHMARK(MARK); SWIG_CALLXS(%s); return;",
+	  &maxargs);
 
       /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -875,7 +881,11 @@ public:
       Printv(df->def, "XS(", dname, ") {\n", NIL);
 
       Wrapper_add_local(df, "dXSARGS", "dXSARGS");
+      if (need_proto)
+	Printv(df->code, "ax++; items--;\n", NIL);
       Printv(df->code, dispatch, "\n", NIL);
+      if (need_proto)
+	Printv(df->code, "ax--; items++;\n", NIL);
       Printf(df->code, "croak(\"No matching function for overloaded '%s'\");\n", pname);
       Printf(df->code, "XSRETURN(0);\n");
       Printv(df->code, "}\n", NIL);
@@ -1059,19 +1069,17 @@ public:
     if (!pname)
       pname = Getattr(n, "sym:name");
 
-    if (p && getCurrentClass()) {
+    pcall = NewStringf("%s::%s(", namespace_module, pname);
+    if (getCurrentClass()) {
       String *classname = Getattr(getCurrentClass(), "sym:name");
-      if (GetFlag(p, "arg:classref")) {
-	/* class method */
+      if (GetFlag(n, "perl5:addproto")) {
+	/* class method, change the last "::" to "->" */
 	String *src = NewStringf("%s::", classname);
-	String *dst = NewStringf("%s::%s->",
-				 namespace_module, classname);
-	pcall = NewStringf("%s(", pname);
+	String *dst = NewStringf("%s->", classname);
 	Replace(pcall, src, dst, DOH_REPLACE_FIRST);
-	p = nextSibling(p);
 	Delete(src);
 	Delete(dst);
-      } else if (GetFlag(p, "hidden") && Equal(Getattr(p, "name"), "self")) {
+      } else if (p && GetFlag(p, "hidden") && Equal(Getattr(p, "name"), "self")) {
 	String *src = NewStringf("%s::", classname);
 	String *dst = NewStringf("[%s::%s object]->",
 				 namespace_module, classname);
@@ -1082,8 +1090,6 @@ public:
 	Delete(dst);
       }
     }
-    if (!pcall)
-      pcall = NewStringf("%s::%s(", namespace_module, pname);
 
     /* Now go through and print parameters */
     for (int i = 0; p; p = nextSibling(p)) {
@@ -1337,7 +1343,7 @@ public:
 	  }
 	  Append(pm, ");\n");
 	  {
-	    Node *destroy = Getattr(n, "perl5:destructors");
+	    Node *destroy = Getattr(n, "perl5:destructor");
 	    if (nattr)
 	      Append(f_wrappers, "\n};\n");
 	    Printf(f_wrappers, "static swig_perl_type_ext _swigt_ext_%s = SWIG_Perl_TypeExt(\"%s\", %s, %d, ",
@@ -1465,23 +1471,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    int restore = 0;
     memberfunctionCommon(n);
-    if (blessed && !Swig_directorclass(getCurrentClass())) {
-      Swig_save("perl5memberfunctionimplicit", n, "parms", NIL);
-      String *type = NewString("SV");
-      SwigType_add_pointer(type);
-      Parm *p = NewParm(type, "proto", n);
-      Delete(type);
-      SetFlag(p, "arg:classref");
-      set_nextSibling(p, Getattr(n, "parms"));
-      Setattr(n, "parms", p);
-      restore = 1;
-    }
-    int rv = Language::constructorHandler(n);
-    if (restore)
-      Swig_restore(n);
-    return rv;
+    if (blessed && !Swig_directorclass(getCurrentClass()))
+      SetFlag(n, "perl5:addproto");
+    return Language::constructorHandler(n);
   }
 
   /* ------------------------------------------------------------ 
@@ -1490,7 +1483,7 @@ public:
 
   virtual int destructorHandler(Node *n) {
     memberfunctionCommon(n);
-    Setattr(getCurrentClass(), "perl5:destructors", n);
+    Setattr(getCurrentClass(), "perl5:destructor", n);
     SetFlag(n, "perl5:destructor");
     return Language::destructorHandler(n);
   }
@@ -1500,23 +1493,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    int restore = 0;
     memberfunctionCommon(n);
-    if (blessed && !GetFlag(n, "allocate:smartpointeraccess")) {
-      Swig_save("perl5memberfunctionimplicit", n, "parms", NIL);
-      String *type = NewString("SV");
-      SwigType_add_pointer(type);
-      Parm *p = NewParm(type, "proto", n);
-      Delete(type);
-      Setattr(p, "arg:classref", "1");
-      set_nextSibling(p, Getattr(n, "parms"));
-      Setattr(n, "parms", p);
-      restore = 1;
-    }
-    int rv = Language::staticmemberfunctionHandler(n);
-    if (restore)
-      Swig_restore(n);
-    return rv;
+    if (blessed && !GetFlag(n, "allocate:smartpointeraccess"))
+      SetFlag(n, "perl5:addproto");
+    return Language::staticmemberfunctionHandler(n);
   }
 
   /* ------------------------------------------------------------
@@ -1570,7 +1550,6 @@ public:
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
-      SetFlag(p, "arg:classref");
       set_nextSibling(p, Getattr(n, "parms"));
       Setattr(n, "parms", p);
       signature = Swig_method_decl(Getattr(n, "type"), Getattr(n, "decl"), "$name", p, 0, 0);
