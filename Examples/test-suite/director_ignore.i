@@ -54,6 +54,10 @@ class DIgnores
     virtual void ProtectedPureVirtualMethod2() = 0;
 };
 
+double runPublicMethod1(DIgnores *d) {
+  return d->PublicMethod1();
+}
+
 class DAbstractIgnores
 {
   public:

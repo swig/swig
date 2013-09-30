@@ -1,12 +1,15 @@
 use strict;
 use warnings;
-use Test::More 'no_plan';
+use Test::More tests => 8;
 BEGIN { use_ok 'director_ignore' }
 require_ok 'director_ignore';
 
 {
 	package DIgnoresDerived;
 	use base 'director_ignore::DIgnores';
+        sub PublicMethod1 {
+          return 18.75;
+        }
 }
 {
 	package DAbstractIgnoresDerived;
@@ -21,3 +24,6 @@ my $b = DAbstractIgnoresDerived->new();
 isa_ok $b, 'DAbstractIgnoresDerived';
 is $b->Quadruple(5), 20;
 
+# We have working classes, but did the %ignore directives work on directors?
+is($a->PublicMethod1(), 18.75, 'DIgnoresDerived.PublicMethod1() Perl');
+is(director_ignore::runPublicMethod1($a), 0.0, 'DIgnoresDerived.PublicMethod1() C++');
