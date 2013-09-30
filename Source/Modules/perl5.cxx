@@ -330,14 +330,6 @@ public:
       if (Getattr(options, "dirprot"))
 	allow_dirprot();
     }
-    if (directorsEnabled()) {
-      Append(f_runtime, "#define SWIG_DIRECTORS\n");
-      Swig_banner(f_director_h);
-      Printf(f_director, "/* ---------------------------------------------------\n");
-      Printf(f_director, " * C++ director class methods\n");
-      Printf(f_director, " * --------------------------------------------------- */\n");
-      Printf(f_director, "\n");
-    }
 
     /* Create a .pm file
      * Need to strip off any prefixes that might be found in
@@ -400,8 +392,10 @@ public:
     Language::top(n);
 
     /* TODO: shouldn't perlrun.swg handle this itself? */
-    if (directorsEnabled())
+    if (directorsEnabled()) {
+      Append(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_insert_file("director.swg", f_runtime);
+    }
 
     /* Dump out variable wrappers */
 
@@ -464,12 +458,34 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
     if (directorsEnabled()) {
-      Dump(f_director_h, f_begin);
-      Dump(f_director, f_begin);
+      if(Len(f_director_h) > 0) {
+	String *outfile_h = Getattr(n, "outfile_h");
+	File *f_hdr = NewFile(outfile_h, "w", SWIG_output_files());
+
+	if (!f_hdr) {
+	  FileErrorDisplay(outfile_h);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+
+	Swig_banner(f_hdr);
+	Printf(f_hdr, "#ifndef SWIG_%s_WRAP_H_\n", module);
+	Printf(f_hdr, "#define SWIG_%s_WRAP_H_\n", module);
+	Dump(f_director_h, f_hdr);
+	Printf(f_hdr, "#endif /* SWIG_%s_WRAP_H_ */\n", module);
+
+	String *filename = Swig_file_filename(outfile_h);
+	Printf(f_begin, "#include \"%s\"\n\n", filename);
+	Delete(filename);
+      }
+      if(Len(f_director) > 0) {
+	Printf(f_begin, "/* ---------------------------------------------------\n");
+	Printf(f_begin, " * C++ director class methods\n");
+	Printf(f_begin, " * --------------------------------------------------- */\n");
+	Printf(f_begin, "\n");
+	Dump(f_director, f_begin);
+      }
       Delete(f_director_h);
       Delete(f_director);
-      f_director_h = 0;
-      f_director = 0;
     }
     Dump(f_wrappers, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
