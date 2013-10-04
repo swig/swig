@@ -274,6 +274,7 @@ CPP_TEST_CASES += \
 	nspace \
 	nspace_extend \
 	naturalvar \
+	naturalvar_more \
 	nested_class \
 	nested_comment \
 	nested_workaround \
