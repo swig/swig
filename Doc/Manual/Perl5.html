@@ -2587,15 +2587,16 @@ Vector object:
 </p>
 
 <div class="code"><pre>
+%newobject new_Vector();
 Vector *new_Vector(double x, double y, double z) {
-	Vector *v;
-	v = new Vector(x,y,z);        // Call C++ constructor
-	return v;
+    Vector *v;
+    v = new Vector(x,y,z);        // Call C++ constructor
+    return v;
 }
 </pre></div>
 
 <p>
-Both functions return a Vector, but the constructor is returning a
+Both functions return a Vector, but new_Vector() is returning a
 brand-new Vector while the other function is returning a Vector that
 was already created (hopefully).  In Perl, both vectors will be
 indistinguishable&mdash;clearly a problem considering that we would
@@ -2610,6 +2611,24 @@ default, but you may need to use the <tt>%newobject</tt> directive to hint SWIG
 about other functions which have callee cleanup obligations.  Consult
 <a href="Customization.html#Customization_ownership">Ownership
 customization</a> for details.
+</p>
+
+<p>
+Similarly, some functions will take over responsibility of releasing an
+object passed as an argument.  Again, your interface will benefit if
+SWIG is aware of this change in ownership.  The <tt>DISOWN</tt> typemaps
+can assist here.
+<p>
+
+<div class="code"><pre>
+double Vector_magnitude(Vector *v) {
+    return sqrt(v-&gt;x * v-&gt;x + v-&gt;y * v-&gt;y + v-&gt;z * v-&gt;z);
+}
+
+void Vector_free(Vector *DISOWN) {
+    delete DISOWN;
+}
+</pre></div>
 
 <p>
 As always, a little care is in order.  SWIG does not provide reference
