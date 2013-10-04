@@ -34,7 +34,7 @@
 %}
 
 // Add an explicit handler for Foo::ping, mapping one java exception back to an 'int' 
-%feature("director:except",fullname=1) Foo::ping {
+%feature("director:except") Foo::ping {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
     //jenv->ExceptionClear();  // clear java exeption since mapping into a c++ exception
@@ -69,7 +69,7 @@
 %}
 
 // Override the director:except defaulthandler attribute for a particular method
-%feature("director:except:defaulthandler",fullname=1) Foo::pong %{
+%feature("director:except:defaulthandler") Foo::pong %{
   throw ::MyNS::Unexpected(Swig::JavaExceptionMessage(jenv,$error).message());
 %}
 

@@ -3574,7 +3574,7 @@ exceptions into C++ exceptions.
 <div class="code">
 <pre>
 // All the rules to associate a feature with an element apply
-%feature("director:except",fullname=1) MyClass::method(int x) {
+%feature("director:except") MyClass::method(int x) {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
     jenv->ExceptionClear();
@@ -3678,7 +3678,7 @@ default handler attribute can be overridden for specific methods.</p>
 
 <div class="code">
 <pre>
-%feature("director:except:defaulthandler",fullname=1) Foo::pong %{
+%feature("director:except:defaulthandler") Foo::pong %{
   throw std::runtime_error(Swig::JavaExceptionMessage(jenv,$error).message());
 %}
 </pre>
@@ -3734,8 +3734,8 @@ DEFINE_EXCEPTION(Unknown)
 
 // Mark three methods to map director-thrown exceptions.
 // Standard rules for feature matching apply
-%feature("director:except",fullname=1) MyClass::meth1(int);
-%feature("director:except",fullname=1) MyClass::meth2;
+%feature("director:except") MyClass::meth1(int);
+%feature("director:except") MyClass::meth2;
 %feature("director:except") meth3;
 
 %typemap(directorthrows, matches="$packagepath/ExceptionA") MyNS::ExceptionA {
