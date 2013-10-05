@@ -485,7 +485,6 @@ int Language::use_naturalvar_mode(Node *n) const {
 	Replaceall(tys, "class ", "");
       }
       Node *typenode = Swig_symbol_clookup(tys, 0);
-      assert(typenode);
       if (typenode)
 	nvar = GetFlag(typenode, "feature:naturalvar");
       Delete(tys);

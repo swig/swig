@@ -15,9 +15,15 @@
 template <typename X> struct T {};
 struct K {};
 struct Hidden;
+namespace Ace {
+  int glob;
+}
 %}
 %{
 struct Hidden {};
+namespace Ace {
+  template<typename> struct NoIdea {};
+}
 %}
 
 %inline %{
@@ -40,6 +46,7 @@ struct S {
   const std::vector<std::string>::value_type const_string_member; // check this resolves to std::string which has a naturalvar
   std::vector<std::string>::value_type string_member; // check this resolves to std::string which has a naturalvar
   Hidden hidden;
+  Ace::NoIdea<Hidden> noidea;
   S() : const_te(), const_string_member("initial string value") {}
 };
 }
