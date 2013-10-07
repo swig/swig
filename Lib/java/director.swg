@@ -193,125 +193,107 @@ namespace Swig {
   };
 }
 
+
 // Default exception handler for all director methods.
 // Can override this for specific methods
 // This just documents the default.  It is not actually attached as a feature
 // for efficiency reasons (and is defined in java.cxx)  It can be overridden
-// as a feature for specific methods or globally.  The default handler can also
-// be overridden for specific methods or globally, as %feature("director:except:defaulthandler")
-//%feature("director:except",defaulthandler="") %{
+// as a feature for specific methods or globally.
+
+//%feature("director:except") %{
 //  jthrowable $error = jenv->ExceptionOccurred();
 //  if ($error) {
 //    jenv->ExceptionClear();
 //    $directorthrowshandlers
-//    $defaulthandler
-//    /* If neither default handler or throws handlers raised a C++ exception
-//       set the java exception active again for backwards compatibility */
-//    jenv->Throw(jthrowable);
-//    return $null;
+//    throw Swig::DirectorException($error);
 //  }
 //%}
 
-// Define some utility methods and classes.  Cannot use fragments since these are used by %features
-// and in directorthrows typemaps
+// Define some utility methods and classes.  Cannot use fragments since 
+// these are used by %features and in directorthrows typemaps
 
 #include <exception>
 
 // Simple holder for exception messages, allowing access to a c-style string
 namespace Swig {
   struct JavaExceptionMessage {
-
-    JavaExceptionMessage(JNIEnv *jenv, jthrowable excp) : jenv_(jenv), jmsg_(0), cstr_(0) {
+    JavaExceptionMessage(JNIEnv * jenv, jthrowable excp):jenv_(jenv),
+	jmsg_(0), cstr_(0) {
       // No message, unexpected inputs.  assert, warn or something instead?
-      if (!jenv_ || !excp) return; 
-      jenv_ -> ExceptionClear();  // Cannot invoke other methods with pending exception
+      if (jenv_ && excp) {
+	jenv_->ExceptionClear();	// Cannot invoke other methods with pending exception
 
-      jclass thrwclz = jenv->GetObjectClass(excp);
-      // if no getMessage method or other exception, no msg available.  As above.
-      jmethodID getThrowableMessageMethodID = jenv_->GetMethodID(
-         thrwclz, "getMessage", "()Ljava/lang/String;");
-      if (jenv_->ExceptionCheck() || !getThrowableMessageMethodID) {
-        jenv_ -> ExceptionClear();
-	return;
+	jclass thrwclz = jenv->GetObjectClass(excp);
+	// if no getMessage method or other exception, no msg available.  As above.
+	jmethodID getThrowableMsgMethodID =
+	    jenv_->GetMethodID(thrwclz, "getMessage",
+			       "()Ljava/lang/String;");
+	if (jenv_->ExceptionCheck() || !getThrowableMsgMethodID) {
+	  jenv_->ExceptionClear();
+	} else {
+	  // if problem accessing exception message string, no msg available.  As above.
+	  jmsg_ = (jstring) jenv_->CallObjectMethod(excp,
+						    getThrowableMsgMethodID);
+	  if (jenv_->ExceptionCheck() || !jmsg_) {
+	    jenv_->ExceptionClear();
+	  } else {
+	    // Get the null-terminated c-string out, and hold it
+	    cstr_ = (const char *) jenv_->GetStringUTFChars(jmsg_, NULL);
+	  }
+	}
       }
-
-      // if problem accessing exception message string, no msg available.  As above.
-      jmsg_ = (jstring)jenv_->CallObjectMethod(excp, getThrowableMessageMethodID);
-      if (jenv_->ExceptionCheck() || !jmsg_) {
-        jenv_ -> ExceptionClear();
-        return;
-      }
-
-      // Get the null-terminated c-string out, and hold it
-      //TODO: handle better for non-ascii?  Need encoding and wchar std::wstring ...
-      cstr_ = (const char *)jenv_->GetStringUTFChars(jmsg_, NULL);
-    };
+    }
 
     ~JavaExceptionMessage() {
       if (jenv_ && jmsg_ && cstr_) {
-	jenv_->ReleaseStringUTFChars(jmsg_,cstr_);
+	jenv_->ReleaseStringUTFChars(jmsg_, cstr_);
       }
     }
-    
+
     const char *message() {
-      return cstr_?cstr_:"";
+      return cstr_ ? cstr_ : "";
     }
 
   private:
     // non-copyable
-    JavaExceptionMessage(const JavaExceptionMessage&);
-    JavaExceptionMessage& operator=(const JavaExceptionMessage&);
-    const char *cstr_;
-    JNIEnv* jenv_;
+    JavaExceptionMessage(const JavaExceptionMessage &);
+    JavaExceptionMessage & operator=(const JavaExceptionMessage &);
+    JNIEnv *jenv_;
     jstring jmsg_;
-  };
-
-  // function to resolve this methodID, once
-  jmethodID Class_isInstanceMethod(JNIEnv *jenv) {
-    jclass classclz = jenv->FindClass("java/lang/Class");
-    if (jenv->ExceptionCheck() || !classclz) {
-      jenv -> ExceptionClear();
-      return 0;
-    }
-    jmethodID isClassInstanceMethodID =
-      jenv->GetMethodID(classclz, "isInstance", "(Ljava/lang/Object;)Z");
-    if (jenv->ExceptionCheck() || !isClassInstanceMethodID)  {
-      jenv -> ExceptionClear();
-      return 0;
-    }
-    return isClassInstanceMethodID;
+    const char *cstr_;
   }
 
   // utility function to simplify testing and mapping exceptions
-  bool ExceptionMatches(JNIEnv *jenv, jthrowable excp, const char * otherclassname) {
-    if (!excp) return false;  // No exception occurred
-    if (!jenv) return false;  // unexpected, no jenv passed
-    // static: Only lookup isInstance method once.
- 
-    // Have to clear exceptions for correct behavior.  Code around ExceptionMatches
-    //   should restore pending exception if desired - obviously have throwable.
-    jenv -> ExceptionClear();    
+  bool ExceptionMatches(JNIEnv * jenv, jthrowable excp,
+			const char *otherclassname) {
+    jboolean matches = false;
 
-    static jmethodID isInstanceMethodID = Class_isInstanceMethod(jenv);
-    if (!isInstanceMethodID) return false;
+    if (excp && jenv) {
+      // Have to clear exceptions for correct behavior.  Code around ExceptionMatches
+      //   should restore pending exception if desired - already have throwable.
+      jenv->ExceptionClear();
 
-    jclass other = jenv->FindClass(otherclassname);
-    if (jenv->ExceptionCheck() || !other) {
-      // TODO: warn at runtime ?
-      //If otherclassname not found, false. Uncomment and add iostream include to debug ExceptionMatches.
-      //std::cerr<< "Error: ExceptionMatch '" << otherclassname << "': class not found"  << std::endl;
-      jenv -> ExceptionClear();
-      return false;
+      jclass other = jenv->FindClass(otherclassname);
+      if (jenv->ExceptionCheck() || !other) {
+	//If otherclassname not found, matches stays false. 
+	//std::cerr<< "Error: ExceptionMatch '" << otherclassname << "': class not found"  << std::endl;
+	jenv->ExceptionClear();
+      } else {
+	jmethodID isInstanceMethodID =
+	    jenv->GetMethodID(other, "isInstance",
+			      "(Ljava/lang/Object;)Z");
+	if (!isInstanceMethodID) {
+	  jenv->ExceptionClear();
+	} else {
+	  matches = (jboolean)
+	      jenv->CallBooleanMethod(other, isInstanceMethodID, excp);
+	  if (jenv->ExceptionCheck()) {
+	    jenv->ExceptionClear();
+	    matches = false;
+	  }
+	}
+      }
+      return matches;
     }
-
-    jboolean matches =
-      (jboolean)jenv->CallBooleanMethod(other, isInstanceMethodID, excp);
-    if (jenv->ExceptionCheck()) {
-      jenv -> ExceptionClear();
-      return false;
-    }
-    return matches;
   }
 }
-
-#endif /* __cplusplus */
