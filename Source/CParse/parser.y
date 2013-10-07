@@ -1710,7 +1710,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO
-%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE /* C++0x keywords */
+%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE /* C++11 keywords */
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -3258,7 +3258,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		set_nextSibling($$,$5);
 	      }
            }
-           /* Alternate function syntax introduced in C++0x:
+           /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
            | storage_class AUTO declarator ARROW cpp_alternate_rettype initializer c_decl_tail {
               $$ = new_node("cdecl");
@@ -5330,7 +5330,7 @@ declarator :  pointer notso_direct_declarator {
 	     }
            }
            | LAND notso_direct_declarator {
-	     /* Introduced in C++0x, move operator && */
+	     /* Introduced in C++11, move operator && */
              /* Adds one S/R conflict */
 	     $$ = $2;
 	     $$.type = NewStringEmpty();
@@ -5427,7 +5427,7 @@ declarator :  pointer notso_direct_declarator {
 	     }
            }
            | LAND PERIOD PERIOD PERIOD notso_direct_declarator {
-	     /* Introduced in C++0x, move operator && */
+	     /* Introduced in C++11, move operator && */
              /* Adds one S/R conflict */
 	     $$ = $5;
 	     $$.type = NewStringEmpty();
@@ -6673,7 +6673,7 @@ mem_initializer : idcolon LPAREN {
 		  skip_balanced('(',')');
 		  Clear(scanner_ccode);
 		}
-                /* Uniform initialization in C++0x.
+                /* Uniform initialization in C++11.
 		   Example:
                    struct MyStruct {
                      MyStruct(int x, double y) : x_{x}, y_{y} {}

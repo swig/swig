@@ -87,7 +87,7 @@ CPP_TEST_BROKEN += \
 	overload_complicated \
 	template_default_pointer \
 	template_expr \
-	$(CPP0X_TEST_BROKEN)
+	$(CPP11_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
@@ -97,7 +97,7 @@ C_TEST_BROKEN += \
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
-	$(CPP0X_TEST_CASES) \
+	$(CPP11_TEST_CASES) \
 	abstract_access \
 	abstract_inherit \
 	abstract_inherit_ok \
@@ -476,41 +476,41 @@ CPP_TEST_CASES += \
 	wallkw \
 	wrapmacro
 
-# C++0x test cases.
-CPP0X_TEST_CASES = \
-        cpp0x_alternate_function_syntax \
-	cpp0x_constexpr \
-	cpp0x_decltype \
-	cpp0x_default_delete \
-	cpp0x_delegating_constructors \
-	cpp0x_explicit_conversion_operators \
-	cpp0x_function_objects \
-	cpp0x_initializer_list \
-	cpp0x_initializer_list_extend \
-	cpp0x_lambda_functions \
-	cpp0x_null_pointer_constant \
-	cpp0x_raw_string_literals \
-	cpp0x_rvalue_reference \
-	cpp0x_rvalue_reference2 \
-	cpp0x_rvalue_reference3 \
-	cpp0x_sizeof_object \
-	cpp0x_static_assert \
-	cpp0x_strongly_typed_enumerations \
-	cpp0x_template_double_brackets \
-	cpp0x_template_explicit \
-	cpp0x_template_typedefs \
-        cpp0x_uniform_initialization \
-	cpp0x_unrestricted_unions \
-	cpp0x_userdefined_literals \
-	cpp0x_variadic_templates
+# C++11 test cases.
+CPP11_TEST_CASES = \
+        cpp11_alternate_function_syntax \
+	cpp11_constexpr \
+	cpp11_decltype \
+	cpp11_default_delete \
+	cpp11_delegating_constructors \
+	cpp11_explicit_conversion_operators \
+	cpp11_function_objects \
+	cpp11_initializer_list \
+	cpp11_initializer_list_extend \
+	cpp11_lambda_functions \
+	cpp11_null_pointer_constant \
+	cpp11_raw_string_literals \
+	cpp11_rvalue_reference \
+	cpp11_rvalue_reference2 \
+	cpp11_rvalue_reference3 \
+	cpp11_sizeof_object \
+	cpp11_static_assert \
+	cpp11_strongly_typed_enumerations \
+	cpp11_template_double_brackets \
+	cpp11_template_explicit \
+	cpp11_template_typedefs \
+        cpp11_uniform_initialization \
+	cpp11_unrestricted_unions \
+	cpp11_userdefined_literals \
+	cpp11_variadic_templates
 
-#	cpp0x_inheriting_constructors \ # not supported by gcc-4.7
-#	cpp0x_hash_tables \           # not fully implemented yet
-#	cpp0x_result_of \             # SWIG does not support
-#	cpp0x_thread_local \          # needs gcc-4.8
+#	cpp11_inheriting_constructors \ # not supported by gcc-4.7
+#	cpp11_hash_tables \           # not fully implemented yet
+#	cpp11_result_of \             # SWIG does not support
+#	cpp11_thread_local \          # needs gcc-4.8
 
-# Broken C++0x test cases.
-CPP0X_TEST_BROKEN = 
+# Broken C++11 test cases.
+CPP11_TEST_BROKEN = 
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -626,7 +626,7 @@ all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
 
-check-cpp11: $(CPP0X_TEST_CASES:=.cpptest)
+check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:
