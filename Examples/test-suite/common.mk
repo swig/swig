@@ -94,10 +94,8 @@ CPP_TEST_BROKEN += \
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
 
-
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
-	$(CPP11_TEST_CASES) \
 	abstract_access \
 	abstract_inherit \
 	abstract_inherit_ok \
@@ -541,6 +539,9 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
+ifneq (,$(HAVE_CXX11_COMPILER))
+CPP_TEST_CASES += $(CPP11_TEST_CASES)
+endif
 
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
