@@ -42,7 +42,7 @@ protected:
   int builderFunctionCount;
 
   List *sourceFileList;
-  String *cflag;
+  List *cflags;
   String *ldflag;
   
   String *verboseBuildLevel;
@@ -59,8 +59,8 @@ public:
    virtual void main(int argc, char *argv[]) {
 
     sourceFileList = NewList();
+    cflags = NewList();
     ldflag = NULL;
-    cflag = NULL;
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
     generateBuilder = true;
@@ -84,7 +84,7 @@ public:
 	} else if (strcmp(argv[argIndex], "-addcflag") == 0) {
 	  Swig_mark_arg(argIndex);
 	  if (argv[argIndex + 1] != NULL) {
-	    cflag = NewString(argv[argIndex + 1]);
+            DohInsertitem(cflags, Len(cflags), argv[argIndex + 1]);
 	    Swig_mark_arg(argIndex + 1);
 	  }
 	} else if (strcmp(argv[argIndex], "-addldflag") == 0) {
@@ -220,6 +220,7 @@ public:
     Delete(beginSection);
 
     Delete(sourceFileList);
+    Delete(cflags);
 
     return SWIG_OK;
   }
@@ -705,7 +706,8 @@ public:
 
     // Flags from command line arguments
     Printf(builderCode, "cflags = \"-I\" + builddir;\n");
-    if (cflag != NULL) {
+    for (int i = 0; i < Len(cflags); i++) {
+      String *cflag = Getitem(cflags, i);
       Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
     }
 
