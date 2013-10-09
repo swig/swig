@@ -995,9 +995,6 @@ AC_SUBST(OCTAVE_LDFLAGS)
 # Look for Scilab
 #----------------------------------------------------------------
 
-SCILABBIN=
-SCILABDYNAMICLINKING=
-
 AC_ARG_WITH(scilab, AS_HELP_STRING([--without-scilab], [Disable Scilab])
 AS_HELP_STRING([--with-scilab=path], [Set location of Scilab executable]),[SCILABBIN="$withval"], [SCILABBIN=yes])
 AC_ARG_WITH(scilab-inc, [  --with-scilab-inc=path  Set location of Scilab include directory], [SCILABINCDIR="$withval"], [SCILABINCDIR="/usr/include"])
@@ -1064,18 +1061,10 @@ else
     else
       AC_MSG_RESULT($SCILABINCLUDE)
     fi
-
-    AC_MSG_CHECKING(for Scilab compiler options)
-      SCILABCCFLAGS=""
-    AC_MSG_RESULT($SCILABCCFLAGS)
   fi
 fi
 
 AC_SUBST(SCILAB)
-AC_SUBST(SCILABINCLUDE)
-AC_SUBST(SCILABDYNAMICLINKING)
-AC_SUBST(SCILABLIB)
-AC_SUBST(SCILABCCFLAGS)
 AC_SUBST(SCILABSTARTOPT)
 
 
