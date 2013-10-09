@@ -42,7 +42,7 @@ SWIGINTERN int
 SWIG_SciInt32_AsPtrDiff(void *_pvApiCtx, SwigSciObject _iVar, ptrdiff_t *_piValue, char *_fname)
 {
   int iValue = 0;
-  if (SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, fname) != SWIG_OK)
+  if (SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, _fname) != SWIG_OK)
   {
     return SWIG_ERROR;
   }
