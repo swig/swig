@@ -129,7 +129,7 @@ SWIG_SciInt32_AsSize(void *_pvApiCtx, SwigSciObject _iVar, size_t *_piValue, cha
 SWIGINTERN int
 SWIG_SciInt32_FromSize(void *_pvApiCtx, int _iVarOut, size_t _iValue, char *_fname)
 {
-  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue);
+  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue, _fname);
 }
 }
 
