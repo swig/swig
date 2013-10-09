@@ -43,7 +43,7 @@ protected:
 
   List *sourceFileList;
   List *cflags;
-  String *ldflag;
+  List *ldflags;
   
   String *verboseBuildLevel;
   String *buildFlagsScript;
@@ -60,7 +60,7 @@ public:
 
     sourceFileList = NewList();
     cflags = NewList();
-    ldflag = NULL;
+    ldflags = NewList();
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
     generateBuilder = true;
@@ -90,7 +90,7 @@ public:
 	} else if (strcmp(argv[argIndex], "-addldflag") == 0) {
 	  Swig_mark_arg(argIndex);
 	  if (argv[argIndex + 1] != NULL) {
-	    ldflag = NewString(argv[argIndex + 1]);
+            DohInsertitem(ldflags, Len(ldflags), argv[argIndex + 1]);
 	    Swig_mark_arg(argIndex + 1);
 	  }
 	} else if (strcmp(argv[argIndex], "-vbl") == 0) {
@@ -221,6 +221,7 @@ public:
 
     Delete(sourceFileList);
     Delete(cflags);
+    Delete(ldflags);
 
     return SWIG_OK;
   }
@@ -711,8 +712,15 @@ public:
       Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
     }
 
-    if (ldflag != NULL) {
-      Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
+    if (Len(ldflags) > 0) {
+      for (int i = 0; i < Len(ldflags); i++) {
+        String *ldflag = Getitem(ldflags, i);
+        if (i == 0) {
+          Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
+        } else {
+          Printf(builderCode, "ldflags = ldflags + \" %s\";\n", ldflag);
+        }
+      }
     }
     else {
       Printf(builderCode, "ldflags = [];\n");
