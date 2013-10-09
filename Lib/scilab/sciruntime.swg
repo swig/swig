@@ -206,7 +206,6 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   char *r = result;
 
   SciErr sciErr;
-  char **pstData = NULL;
   if ((2*_sz + 1 + strlen(_type->name)) > 1000) {
     return SWIG_ERROR;
   }
@@ -214,18 +213,10 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   r = SWIG_PackData(r, _ptr, _sz);
   strcpy(r, _type->name);
 
-  pstData = (char **)malloc(sizeof(char *));
-  pstData[0] = strdup(r);
-
-  sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, r))
     return SWIG_ERROR;
-  }
 
-  free(pstData[0]);
-
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 
 SWIGRUNTIME int

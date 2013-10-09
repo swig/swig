@@ -60,21 +60,15 @@ SwigScilabStringToChar(void *_pvApiCtx, int _iVar, char *_pcValue, char *_fname)
 %fragment("SwigScilabStringFromChar", "header") {
 SWIGINTERN int
 SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
-  SciErr sciErr;
-
   char *pchValue = (char*)malloc(sizeof(char) * 2);
   pchValue[0] = _chValue;
   pchValue[1] = '\0';
 
-  sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, &pchValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, pchValue))
     return SWIG_ERROR;
-  }
 
   free(pchValue);
-
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 
