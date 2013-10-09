@@ -1000,7 +1000,7 @@ SCILABDYNAMICLINKING=
 
 AC_ARG_WITH(scilab, AS_HELP_STRING([--without-scilab], [Disable Scilab])
 AS_HELP_STRING([--with-scilab=path], [Set location of Scilab executable]),[SCILABBIN="$withval"], [SCILABBIN=yes])
-AC_ARG_WITH(scilabincl,[  --with-scilabincl=path  Set location of Scilab include directory],[SCILABINCDIR="$withval"], [SCILABINCDIR="/usr/include"])
+AC_ARG_WITH(scilab-inc, [  --with-scilab-inc=path  Set location of Scilab include directory], [SCILABINCDIR="$withval"], [SCILABINCDIR="/usr/include"])
 
 # First, check for "--without-scilab" or "--with-scilab=no".
 if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then 
@@ -1049,21 +1049,20 @@ else
   AC_MSG_CHECKING(for Scilab header files)
   if test "$SCILABINCDIR" != ""; then
     dirs="$SCILABINCDIR"
-    SCILABEXT=""
     for i in $dirs; do
       if test -r $i/scilab/api_scilab.h; then
-        SCILABEXT="$i"
+        SCILABINCLUDE="$i"
         break;
       fi
       if test -r $i/scilab/scilab/api_scilab.h; then
-        SCILABEXT="$i/scilab"
+        SCILABINCLUDE="$i/scilab"
         break;
       fi
     done
-    if test "$SCILABEXT" = "" ; then
+    if test "$SCILABINCLUDE" = "" ; then
       AC_MSG_RESULT(not found)
     else
-      AC_MSG_RESULT($SCILABEXT)
+      AC_MSG_RESULT($SCILABINCLUDE)
     fi
 
     AC_MSG_CHECKING(for Scilab compiler options)
@@ -1073,7 +1072,7 @@ else
 fi
 
 AC_SUBST(SCILAB)
-AC_SUBST(SCILABEEXT)
+AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABDYNAMICLINKING)
 AC_SUBST(SCILABLIB)
 AC_SUBST(SCILABCCFLAGS)
