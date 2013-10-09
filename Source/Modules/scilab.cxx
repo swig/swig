@@ -17,8 +17,8 @@
 
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
-     -addcflag <opt> - Additional include options <opt> to include in build script\n\
-     -addldflag <opt>- Additional link options <opt> to include in build script\n\
+     -addcflag <flag> - Additional compilation flag <flag> to include in build script\n\
+     -addldflag <flag>- Additional link flag <flag> to include in build script\n\
      -addsrc <files> - Additional comma separated source <files> to include in build script\n\
      -vbl <level>    - Sets the build verbose <level> (default 0)\n\
      -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
