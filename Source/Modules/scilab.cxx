@@ -77,7 +77,7 @@ public:
 	    char *sourceFile = strtok(argv[argIndex + 1], ",");
 	    while (sourceFile != NULL) {
 	      DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
-	      sourceFile = strtok(NULL, " ");
+	      sourceFile = strtok(NULL, ",");
 	    }
 	    Swig_mark_arg(argIndex + 1);
 	  }
