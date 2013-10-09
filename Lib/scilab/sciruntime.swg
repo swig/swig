@@ -88,10 +88,12 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
+#define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) AssignOutputVariable(pvApiCtx, outputArgumentPos) = argumentPos
 #else
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) Rhs
+#define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) LhsVar(outputArgumentPos) = argumentPos
 #endif
 
 
@@ -225,11 +227,7 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
   if (outputPosition < 0 || _output < 0) {
       return SWIG_ERROR;
   }
-  #if SCILAB_VERSION_54_OR_HIGHER
-  AssignOutputVariable(pvApiCtx, outputPosition) = _output;
-  #else
-  LhsVar(outputPosition) = _output;
-  #endif
+  SWIG_AssignOutputArgument(_pvApiCtx, outputPosition, _output);
   return SWIG_OK;
 }
 
