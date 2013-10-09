@@ -1,4 +1,3 @@
-
 /* ----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
@@ -52,9 +51,11 @@ protected:
   bool generateBuilder;
   bool extraWarning;
 public:
+
   /* ------------------------------------------------------------------------
    * main()
    * ----------------------------------------------------------------------*/
+
    virtual void main(int argc, char *argv[]) {
 
     sourceFileList = NewList();
@@ -132,6 +133,7 @@ public:
   /* ------------------------------------------------------------------------
    * top()
    * ----------------------------------------------------------------------*/
+
   virtual int top(Node *node) {
 
     /* Get the module name */
@@ -223,8 +225,9 @@ public:
   }
 
   /* ------------------------------------------------------------------------
-   * emitWrapper()
+   * emitBanner()
    * ----------------------------------------------------------------------*/
+
   void emitBanner(File *f) {
     Printf(f, "// ----------------------------------------------------------------------------\n");
     Swig_banner_target_lang(f, "// ");
@@ -234,6 +237,7 @@ public:
   /* ------------------------------------------------------------------------
    * functionWrapper()
    * ----------------------------------------------------------------------*/
+
   virtual int functionWrapper(Node *node) {
 
     /* Get some useful attributes of this function */
@@ -446,8 +450,9 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * dispatchFunctionWrapper()
+   * dispatchFunction()
    * ----------------------------------------------------------------------- */
+
   void dispatchFunction(Node *node) {
     Wrapper *wrapper = NewWrapper();
 
@@ -486,6 +491,7 @@ public:
   /* -----------------------------------------------------------------------
    * variableWrapper()
    * ----------------------------------------------------------------------- */
+
   virtual int variableWrapper(Node *node) {
 
     /* Get information about variable */
@@ -552,6 +558,7 @@ public:
   /* -----------------------------------------------------------------------
    * constantWrapper()
    * ----------------------------------------------------------------------- */
+
   virtual int constantWrapper(Node *node) {
 
     /* Get the useful information from the node */
@@ -629,6 +636,7 @@ public:
   /* ---------------------------------------------------------------------
    * enumvalueDeclaration()
    * --------------------------------------------------------------------- */
+
   virtual int enumvalueDeclaration(Node *node) {
     static int iPreviousEnumValue = 0;
 
@@ -669,11 +677,11 @@ public:
   }
 
   void createBuilderFile() {
-     String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
-     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
-     if (!builderFile) {
-       FileErrorDisplay(builderFilename);
-       SWIG_exit(EXIT_FAILURE);
+    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+    builderFile = NewFile(builderFilename, "w", SWIG_output_files());
+    if (!builderFile) {
+      FileErrorDisplay(builderFilename);
+      SWIG_exit(EXIT_FAILURE);
     }
     emitBanner(builderFile);
   }
@@ -753,6 +761,7 @@ public:
   /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
    * ----------------------------------------------------------------------- */
+
   void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
     if (generateBuilder) {
       if (++builderFunctionCount % 10 == 0) {
