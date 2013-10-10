@@ -4,7 +4,7 @@
  */
 
 %fragment(SWIG_AsVal_frag(int), "header", fragment="SWIG_SciInt32_AsInt") {
-#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciInt32_AsInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciInt32_AsInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt32_AsInt", "header") {
 SWIGINTERN int
@@ -75,7 +75,7 @@ SWIG_SciInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_
 }
 
 %fragment(SWIG_From_frag(int), "header", fragment="SWIG_SciInt32_FromInt") {
-#define SWIG_From_int(scilabValue) SWIG_SciInt32_FromInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%#define SWIG_From_int(scilabValue) SWIG_SciInt32_FromInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt32_FromInt", "header") {
 SWIGINTERN int
@@ -98,19 +98,19 @@ SWIG_SciInt32_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
 
 /*
  * C-type: size_t
- * Scilab type: 32-bit signed integer
+ * Scilab type: see int
  */
 
-%fragment(SWIG_AsVal_frag(size_t), "header", fragment="SWIG_SciInt32_AsSize") {
-#define SWIG_AsVal_size_t(scilabValue, valuePointer) SWIG_SciInt32_AsSize(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%fragment(SWIG_AsVal_frag(size_t), "header", fragment="SWIG_Int_AsSize") {
+%#define SWIG_AsVal_size_t(scilabValue, valuePointer) SWIG_Int_AsSize(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt32_AsSize", "header", fragment="SWIG_SciInt32_AsInt")
+%fragment("SWIG_Int_AsSize", "header", fragment=SWIG_AsVal_frag(int))
 {
 SWIGINTERN int
-SWIG_SciInt32_AsSize(void *_pvApiCtx, SwigSciObject _iVar, size_t *_piValue, char *_fname)
+SWIG_Int_AsSize(void *_pvApiCtx, SwigSciObject _iVar, size_t *_piValue, char *_fname)
 {
   int iValue = 0;
-  if (SWIG_SciInt32_AsInt(_pvApiCtx, _iVar, &iValue, _fname) != SWIG_OK)
+  if (SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK)
   {
     return SWIG_ERROR;
   }
@@ -122,14 +122,14 @@ SWIG_SciInt32_AsSize(void *_pvApiCtx, SwigSciObject _iVar, size_t *_piValue, cha
 }
 }
 
-%fragment(SWIG_From_frag(size_t), "header", fragment="SWIG_SciInt32_FromSize") {
-#define SWIG_From_size_t(scilabValue) SWIG_SciInt32_FromSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%fragment(SWIG_From_frag(size_t), "header", fragment="SWIG_Int_FromSize") {
+%#define SWIG_From_size_t(scilabValue) SWIG_Int_FromSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt32_FromSize", "header", fragment="SWIG_SciInt32_FromInt") {
+%fragment("SWIG_Int_FromSize", "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
-SWIG_SciInt32_FromSize(void *_pvApiCtx, int _iVarOut, size_t _iValue, char *_fname)
+SWIG_Int_FromSize(void *_pvApiCtx, int _iVarOut, size_t _iValue, char *_fname)
 {
-  return SWIG_SciInt32_FromInt(_pvApiCtx, _iVarOut, (int)_iValue, _fname);
+  return SWIG_From_dec(int)((int)_iValue);
 }
 }
 

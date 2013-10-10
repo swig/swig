@@ -4,7 +4,7 @@
  * Scilab 6 type: int64
  */
 %fragment(SWIG_AsVal_frag(long long), "header", fragment="SWIG_SciInt64_ToLongLong") {
-#define SWIG_AsVal_long_SS_long(scilabValue, valuePointer) SWIG_SciInt64_ToLongLong(pvApiCtx, scilabValue, valuePointer, fname)
+%#define SWIG_AsVal_long_SS_long(scilabValue, valuePointer) SWIG_SciInt64_ToLongLong(pvApiCtx, scilabValue, valuePointer, fname)
 }
 %fragment("SWIG_SciInt64_ToLongLong", "header") {
 SWIGINTERN int

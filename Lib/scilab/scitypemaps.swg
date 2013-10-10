@@ -262,8 +262,8 @@
 /* -----------------------------------------------------------------------------
  * --- Use enum from Scilab ---
  * ----------------------------------------------------------------------------- */
-%typemap(in, noblock=1, fragment="SWIG_SciInt32_AsEnum") enum SWIGTYPE (int val) {
-  if (SWIG_SciInt32_AsEnum(pvApiCtx, $input, &val, SWIG_Scilab_GetFname()) != SWIG_OK) {
+%typemap(in, noblock=1, fragment=SWIG_AsVal_frag(Enum)) enum SWIGTYPE (int val) {
+  if (SWIG_AsVal_dec(Enum)($input, &val) != SWIG_OK) {
     return 0;
   }
   $1 = %reinterpret_cast(val, $ltype);
@@ -272,10 +272,8 @@
 /* -----------------------------------------------------------------------------
  * --- Return enum to Scilab ---
  * ----------------------------------------------------------------------------- */
-%scilab_varout_typemap(constcode, SwigScilabInt32FromEnum, enum SWIGTYPE);
-
-%typemap(out, fragment="SWIG_SciInt32_FromEnum") enum SWIGTYPE {
-  if (SWIG_SciInt32_FromEnum(pvApiCtx, $result, $1, SWIG_Scilab_GetFname()) != SWIG_OK) {
+%typemap(out, fragment=SWIG_From_frag(Enum)) enum SWIGTYPE {
+  if (SWIG_From_dec(Enum)($1) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
