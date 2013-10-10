@@ -1,4 +1,4 @@
-%module guilescm_ext_test
+%module guile_ext_test
 
 /* just use the imports_a.h header... for this test we only need a class */
 %{

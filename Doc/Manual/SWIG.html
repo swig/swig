@@ -258,7 +258,7 @@ this option the default output directory is the path to the input file.
 If <tt>-o</tt> and
 <tt>-outcurrentdir</tt> are used together, <tt>-outcurrentdir</tt> is effectively ignored
 as the output directory for the language files is the same directory as the
-generated C/C++ file if not overidden with <tt>-outdir</tt>.
+generated C/C++ file if not overridden with <tt>-outdir</tt>.
 </p>
 
 <H3><a name="SWIG_nn5"></a>5.1.3 Comments</H3>
@@ -2699,7 +2699,7 @@ the following declaration :</p>
 <div class="code"><pre>
 /* file : vector.h */
 ...
-typedef struct {
+typedef struct Vector {
 	double x,y,z;
 } Vector;
 
@@ -2772,7 +2772,7 @@ of the Vector structure. For example:</p>
 #include "vector.h"
 %}
 
-typedef struct {
+typedef struct Vector {
 	double x,y,z;
 	%extend {
 		Vector(double x, double y, double z) { ... }
@@ -2783,7 +2783,7 @@ typedef struct {
 </pre></div>
 
 <p>
-Finally, <tt>%extend</tt> can be used to access externally written
+Note that <tt>%extend</tt> can be used to access externally written
 functions provided they follow the naming convention used in this
 example :</p>
 
@@ -2814,7 +2814,7 @@ double Vector_magnitude(Vector *v) {
 #include "vector.h"
 %}
 
-typedef struct {
+typedef struct Vector {
 	double x,y,z;
 	%extend {
                 Vector(int,int,int); // This calls new_Vector()
@@ -2825,6 +2825,37 @@ typedef struct {
 } Vector;
 </pre>
 </div>
+
+<p>
+The name used for %extend should be the name of the struct and not the name of any typedef to the struct.
+For example:
+</p>
+
+<div class="code"><pre>
+typedef struct Integer {
+	int value;
+} Int;
+%extend Integer { ...  } /* Correct name */
+%extend Int { ...  } /* Incorrect name */
+
+struct Float {
+	float value;
+};
+typedef struct Float FloatValue;
+%extend Float { ...  } /* Correct name */
+%extend FloatValue { ...  } /* Incorrect name */
+</pre></div>
+
+<p>
+There is one exception to this rule and that is when the struct is anonymously named such as:
+</p>
+
+<div class="code"><pre>
+typedef struct {
+	double value;
+} Double;
+%extend Double { ...  } /* Okay */
+</pre></div>
 
 <p>
 A little known feature of the <tt>%extend</tt> directive is that
@@ -2862,7 +2893,7 @@ For example, consider this interface:
 
 <div class="code">
 <pre>
-typedef struct {
+typedef struct Person {
   char name[50];
   ...
 } Person;
@@ -2876,7 +2907,7 @@ the interface as follows to ensure this occurs whenever a name is read or writte
 
 <div class="code">
 <pre>
-typedef struct {
+typedef struct Person {
   %extend {
     char name[50];
   }

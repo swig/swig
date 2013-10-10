@@ -659,7 +659,6 @@ SwigType *SwigType_ltype(const SwigType *s) {
       if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td) || SwigType_isrvalue_reference(td))) {
 	/* We need to use the typedef type */
 	Delete(tt);
-	tt = td;
 	break;
       } else if (td) {
 	Delete(tt);

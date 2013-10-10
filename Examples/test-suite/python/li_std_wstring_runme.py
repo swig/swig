@@ -13,6 +13,12 @@ if li_std_wstring.test_ccvalue(x) != x:
 if li_std_wstring.test_cvalue(x) != x:
   raise RuntimeError("bad string mapping")
 
+if li_std_wstring.test_wchar_overload(x) != x:
+  raise RuntimeError("bad string mapping")
+
+if li_std_wstring.test_wchar_overload("not unicode") != "not unicode":
+  raise RuntimeError("bad string mapping")
+
 if li_std_wstring.test_value(x) != x:
   print x, li_std_wstring.test_value(x)
   raise RuntimeError("bad string mapping")

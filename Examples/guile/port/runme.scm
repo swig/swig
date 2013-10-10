@@ -21,12 +21,15 @@
 	   (lambda ()
 	     (print-int (current-output-port) 314159))))
        (lambda args
+	 (display "Below shows that attempting to write to a string or soft port will result in a wrong-type-error...")
+	 (newline)
 	 (write args) (newline)))
 
 ;; Read from a file port. Note that it is a bad idea to mix Scheme and
-;; C input because of buffering.
+;; C input because of buffering, hence the call to seek to rewind the file.
 (with-input-from-file "test.out"
   (lambda ()
+    (seek (current-input-port) 0 SEEK_SET)
     (display (read-int (current-input-port)))
     (newline)))
 

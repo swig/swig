@@ -153,6 +153,29 @@
   #include <stddef.h>
 %}
 
+%fragment("SWIG_isfinite","header",fragment="<math.h>,<float.h>") %{
+/* Getting isfinite working pre C99 across multiple platforms is non-trivial. Users can provide SWIG_isfinite on older platforms. */
+#ifndef SWIG_isfinite
+# if defined(isfinite)
+#  define SWIG_isfinite(X) (isfinite(X))
+# elif defined(_MSC_VER)
+#  define SWIG_isfinite(X) (_finite(X))
+# elif defined(__sun) && defined(__SVR4)
+#  include <ieeefp.h>
+#  define SWIG_isfinite(X) (finite(X))
+# endif
+#endif
+%}
+
+%fragment("SWIG_Float_Overflow_Check","header",fragment="<float.h>,SWIG_isfinite") %{
+/* Accept infinite as a valid float value unless we are unable to check if a value is finite */
+#ifdef SWIG_isfinite
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX) && SWIG_isfinite(X))
+#else
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX))
+#endif
+%}
+
 /* -----------------------------------------------------------------------------
  * special macros for fragments
  * ----------------------------------------------------------------------------- */
@@ -213,11 +236,18 @@ SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
 %enddef
 
 
-/* Macro for 'double' derived types */
+/* Macro for floating point derived types (original macro) */
 
 %define %numeric_double(Type, Frag, Min, Max)
 %numeric_type_from(Type, double)
 %numeric_signed_type_asval(Type, double, Frag , Min, Max)
+%enddef
+
+/* Macro for floating point derived types */
+
+%define %numeric_float(Type, Frag, OverflowCond)
+%numeric_type_from(Type, double)
+%numeric_type_asval(Type, double, Frag, OverflowCond)
 %enddef
 
 

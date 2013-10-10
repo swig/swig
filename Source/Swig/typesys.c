@@ -792,6 +792,67 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
     goto return_result;
   }
   Delete(base);
+
+  /* If 'type' is an array, then the right-most qualifier in 'r' should
+     be added to 'type' after the array qualifier, so that given
+       a(7).q(volatile).double myarray     // typedef volatile double[7] myarray;
+     the type
+       q(const).myarray                    // const myarray
+     becomes
+       a(7).q(const volatile).double       // const volatile double[7]
+     and NOT
+       q(const).a(7).q(volatile).double    // non-sensical type
+  */
+  if (r && Len(r) && SwigType_isarray(type)) {
+    List *r_elem;
+    String *r_qual;
+    int r_sz;
+    r_elem = SwigType_split(r);
+    r_sz = Len(r_elem);
+    r_qual = Getitem(r_elem, r_sz-1);
+    if (SwigType_isqualifier(r_qual)) {
+      String *new_r;
+      String *new_type;
+      List *type_elem;
+      String *type_qual;
+      String *r_qual_arg;
+      int i, type_sz;
+
+      type_elem = SwigType_split(type);
+      type_sz = Len(type_elem);
+
+      for (i = 0; i < type_sz; ++i) {
+        String *e = Getitem(type_elem, i);
+        if (!SwigType_isarray(e))
+          break;
+      }
+      type_qual = Copy(Getitem(type_elem, i));
+      r_qual_arg = SwigType_parm(r_qual);
+      SwigType_add_qualifier(type_qual, r_qual_arg);
+      Delete(r_qual_arg);
+      Setitem(type_elem, i, type_qual);
+
+      new_r = NewStringEmpty();
+      for (i = 0; i < r_sz-1; ++i) {
+        Append(new_r, Getitem(r_elem, i));
+      }
+      new_type = NewStringEmpty();
+      for (i = 0; i < type_sz; ++i) {
+        Append(new_type, Getitem(type_elem, i));
+      }
+#ifdef SWIG_DEBUG
+      Printf(stdout, "r+type='%s%s' new_r+new_type='%s%s'\n", r, type, new_r, new_type);
+#endif
+
+      Delete(r);
+      r = new_r;
+      newtype = 1;
+      type = new_type;
+      Delete(type_elem);
+    }
+    Delete(r_elem);
+  }
+
   Append(r, type);
   if (newtype) {
     Delete(type);

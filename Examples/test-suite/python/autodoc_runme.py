@@ -1,4 +1,5 @@
 from autodoc import *
+import sys
 
 def check(got, expected):
   if expected != got:
@@ -121,22 +122,24 @@ check(A.func3static.__doc__,  "\n"
 "        "
 )
 
-check(A.variable_a.__doc__, "A_variable_a_get(self) -> int")
-check(A.variable_b.__doc__, "A_variable_b_get(A self) -> int")
-check(A.variable_c.__doc__, "\n"
-"A_variable_c_get(self) -> int\n"
-"\n"
-"Parameters:\n"
-"    self: A *\n"
-"\n"
-)
-check(A.variable_d.__doc__, "\n"
-"A_variable_d_get(A self) -> int\n"
-"\n"
-"Parameters:\n"
-"    self: A *\n"
-"\n"
-)
+if sys.version_info[0:2] > (2, 4):
+  # Python 2.4 does not seem to work
+  check(A.variable_a.__doc__, "A_variable_a_get(self) -> int")
+  check(A.variable_b.__doc__, "A_variable_b_get(A self) -> int")
+  check(A.variable_c.__doc__, "\n"
+  "A_variable_c_get(self) -> int\n"
+  "\n"
+  "Parameters:\n"
+  "    self: A *\n"
+  "\n"
+  )
+  check(A.variable_d.__doc__, "\n"
+  "A_variable_d_get(A self) -> int\n"
+  "\n"
+  "Parameters:\n"
+  "    self: A *\n"
+  "\n"
+  )
 
 check(B.__doc__, "Proxy of C++ B class")
 check(C.__init__.__doc__, "__init__(self, a, b, h) -> C")

@@ -238,6 +238,7 @@ CPP_TEST_CASES += \
 	kind \
 	langobj \
 	li_attribute \
+	li_attribute_template \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
@@ -273,6 +274,7 @@ CPP_TEST_CASES += \
 	nspace \
 	nspace_extend \
 	naturalvar \
+	naturalvar_more \
 	nested_class \
 	nested_comment \
 	nested_workaround \
@@ -284,8 +286,9 @@ CPP_TEST_CASES += \
 	operbool \
 	ordering \
 	overload_copy \
-	overload_method \
 	overload_extend \
+	overload_method \
+	overload_numeric \
 	overload_rename \
 	overload_return_type \
 	overload_simple \
@@ -433,6 +436,7 @@ CPP_TEST_CASES += \
 	typedef_sizet \
 	typedef_struct \
 	typemap_arrays \
+	typemap_array_qualifiers \
 	typemap_delete \
 	typemap_directorout \
 	typemap_global_scope \
@@ -546,12 +550,14 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	bom_utf8 \
 	char_constant \
 	const_const \
 	constant_expr \
 	empty \
 	enums \
 	enum_forward \
+	enum_macro \
 	extern_declaration \
 	funcptr \
 	function_typedef \

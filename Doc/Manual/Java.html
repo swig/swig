@@ -5662,7 +5662,7 @@ to make the method and constructor public:
 
 <p>
 The Java directors feature requires the "javadirectorin", "javadirectorout", "directorin" and the "directorout" typemaps in order to work properly.
-The "javapackage" typemap is an optional typemap used to identify the Java package path for individual SWIG generated proxy classes.
+The "javapackage" typemap is an optional typemap used to identify the Java package path for individual SWIG generated proxy classes used in director methods.
 </p>
 
 <p><tt>%typemap(directorin)</tt></p>
@@ -5803,6 +5803,7 @@ The target method is the method in the Java proxy class which overrides the virt
 <p>
 The "javapackage" typemap is optional; it serves to identify a class's Java package.
 This typemap should be used in conjunction with classes that are defined outside of the current SWIG interface file.
+The typemap is only used if the type is used in a director method, that is, in a virtual method in a director class.
 For example:
 </p>
 
@@ -5819,7 +5820,7 @@ For example:
   class Example {
   public:
     virtual ~Example();
-    void     ping(Foo *arg1, Bar *arg2);
+    virtual void ping(Foo *arg1, Bar *arg2);
   };
 }
 </pre>
@@ -5844,7 +5845,7 @@ The corrected interface file looks like:
   class Example {
   public:
     virtual ~Example();
-    void     ping(Foo *arg1, Bar *arg2);
+    virtual void ping(Foo *arg1, Bar *arg2);
   };
 }
 </pre>
@@ -7885,7 +7886,7 @@ where it is possible to step from Java code into a JNI method within one environ
 <p>
 Alternatively, debugging can involve placing debug printout statements in the JNI layer using the <tt>%exception</tt> directive.
 See the <a href="Customization.html#Customization_exception_special_variables">special variables for %exception</a> section.
-Many of the default typemaps can also be overidden and modified for adding in extra logging/debug display information.
+Many of the default typemaps can also be overridden and modified for adding in extra logging/debug display information.
 </p>
 
 <p>

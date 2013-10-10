@@ -1,18 +1,16 @@
-SRCS   = port.c
-TARGET = port
-IFILE  = port.i
-MKDIR  = ..
+TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+SRCS       = example.c
+TARGET     = port
+INTERFACE  = example.i
 
+check: build
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_augmented_run
 
-all::
-	$(MAKE) -f $(MKDIR)/Makefile		\
-		SRCS='$(SRCS)'			\
-		TARGET=$(TARGET)		\
-		IFILE=$(IFILE)			\
-		MODULE=$(MODULE)		\
-	  sub-all
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_augmented
 
-clean::
-	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all
+clean:
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_clean
+	rm -f test.out

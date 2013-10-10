@@ -1,4 +1,3 @@
-;;; example.scm
 
 (define (mdisplay-newline . args)       ; does guile-1.3.4 have `format #t'?
   (for-each display args)
@@ -25,4 +24,3 @@
 (exit (and (= 1932053504 (fact 13))
            (= 745470.0 (My-variable))))
 
-;;; example.scm ends here

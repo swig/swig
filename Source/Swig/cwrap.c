@@ -865,7 +865,7 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
  * ----------------------------------------------------------------------------- */
 static String *extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-  String *sig = NewStringf("%s(%s)", function_name, parms_str);
+  String *sig = NewStringf("%s(%s)", function_name, (cplusplus || Len(parms_str)) ? parms_str : "void");
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);

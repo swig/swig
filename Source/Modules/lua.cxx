@@ -45,6 +45,7 @@
 */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 /**** Diagnostics:
   With the #define REPORT(), you can change the amount of diagnostics given
@@ -106,12 +107,14 @@ private:
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
-  String *PrefixPlusUnderscore;
   String *s_cmd_tab;		// table of command names
   String *s_var_tab;		// table of global variables
   String *s_const_tab;		// table of global constants
   String *s_methods_tab;	// table of class methods
   String *s_attr_tab;		// table of class attributes
+  String *s_cls_attr_tab;	// table of class static attributes
+  String *s_cls_methods_tab;	// table of class static methods
+  String *s_cls_const_tab;	// tables of class constants(including enums)
   String *s_luacode;		// luacode to be called during init
   String *s_dot_get;            // table of variable 'get' functions
   String *s_dot_set;            // table of variable 'set' functions
@@ -150,12 +153,14 @@ public:
     f_wrappers(0),
     f_init(0),
     f_initbeforefunc(0),
-    PrefixPlusUnderscore(0),
     s_cmd_tab(0),
     s_var_tab(0),
     s_const_tab(0),
     s_methods_tab(0),
     s_attr_tab(0),
+    s_cls_attr_tab(0),
+    s_cls_methods_tab(0),
+    s_cls_const_tab(0),
     s_luacode(0),
     s_dot_get(0),
     s_dot_set(0),
@@ -738,13 +743,18 @@ public:
     NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
+      //REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+        String *wrapname = Swig_name_wrapper(iname);
         if(elua_ltr || eluac_ltr)
           Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", Swig_name_wrapper(iname), ")", "},\n", NIL);
         else
           Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
       //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
+        if (getCurrentClass()) {
+          Setattr(n,"luaclassobj:wrap:name", wrapname);
+        }
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
@@ -777,6 +787,7 @@ public:
   look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
   NEW LANGUAGE NOTE:END ************************************************/
   void dispatchFunction(Node *n) {
+    //REPORT("dispatchFunction", n);
     /* Last node in overloaded chain */
 
     int maxargs;
@@ -813,7 +824,7 @@ public:
       Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
       Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
-    Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
+    Printf(f->code, "SWIG_Lua_pusherrstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
         "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
     Delete(protoTypes);
 
@@ -824,10 +835,14 @@ public:
     if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
       Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
 
+    if (getCurrentClass())
+      Setattr(n,"luaclassobj:wrap:name", wname);
+    else
+      Delete(wname);
+
     DelWrapper(f);
     Delete(dispatch);
     Delete(tmp);
-    Delete(wname);
   }
 
 
@@ -880,8 +895,13 @@ public:
     } else {
       Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
     }
-    Delete(getName);
-    Delete(setName);
+    if (getCurrentClass()) {
+      Setattr(n, "luaclassobj:wrap:get", getName);
+      Setattr(n, "luaclassobj:wrap:set", setName);
+    } else {
+      Delete(getName);
+      Delete(setName);
+    }
     return result;
   }
 
@@ -889,7 +909,7 @@ public:
    * constantWrapper()
    * ------------------------------------------------------------ */
   virtual int constantWrapper(Node *n) {
-    //    REPORT("constantWrapper", n);
+    REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     String *nsname = Copy(iname);
@@ -924,6 +944,20 @@ public:
       Delete(nsname);
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
+    }
+    if (cparse_cplusplus && getCurrentClass()) {
+      // Additionally add to class constants
+      Swig_require("luaclassobj_constantWrapper", n, "*sym:name", "luaclassobj:symname", NIL);
+      Setattr(n, "sym:name", Getattr(n, "luaclassobj:symname"));
+      String *cls_nsname = Getattr(n, "sym:name");
+      if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+        Replaceall(tm, "$source", value);
+        Replaceall(tm, "$target", name);
+        Replaceall(tm, "$value", value);
+        Replaceall(tm, "$nsname", cls_nsname);
+        Printf(s_cls_const_tab, "    %s,\n", tm);
+      }
+      Swig_restore(n);
     }
     Delete(nsname);
     return SWIG_OK;
@@ -1011,6 +1045,19 @@ public:
     Printf(s_methods_tab, "static swig_lua_method swig_");
     Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
 
+    s_cls_methods_tab = NewString("");
+    Printf(s_cls_methods_tab, "static swig_lua_method swig_");
+    Printv(s_cls_methods_tab, mangled_classname, "_cls_methods[] = {\n", NIL);
+
+    s_cls_attr_tab = NewString("");
+    Printf(s_cls_attr_tab, "static swig_lua_attribute swig_");
+    Printv(s_cls_attr_tab, mangled_classname, "_cls_attributes[] = {\n", NIL);
+
+    s_cls_const_tab = NewString("");
+    Printf(s_cls_const_tab, "static swig_lua_const_info swig_");
+    Printv(s_cls_const_tab, mangled_classname, "_cls_constants[] = {\n", NIL);
+
+
     // Generate normal wrappers
     Language::classHandler(n);
 
@@ -1049,8 +1096,21 @@ public:
     Printf(s_attr_tab, "    {0,0,0}\n};\n");
     Printv(f_wrappers, s_attr_tab, NIL);
 
+    Printf(s_cls_attr_tab, "    {0,0,0}\n};\n");
+    Printv(f_wrappers, s_cls_attr_tab, NIL);
+
+    Printf(s_cls_methods_tab, "    {0,0}\n};\n");
+    Printv(f_wrappers, s_cls_methods_tab, NIL);
+
+    Printf(s_cls_const_tab, "    {0,0,0,0,0,0}\n};\n");
+    Printv(f_wrappers, s_cls_const_tab, NIL);
+
+
     Delete(s_methods_tab);
     Delete(s_attr_tab);
+    Delete(s_cls_methods_tab);
+    Delete(s_cls_attr_tab);
+    Delete(s_cls_const_tab);
 
     // Handle inheritance
     // note: with the idea of class hierarchies spread over multiple modules
@@ -1124,7 +1184,10 @@ public:
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, { \"%s\", swig_%s_cls_methods, swig_%s_cls_attributes, swig_%s_cls_constants }, swig_%s_bases, swig_%s_base_names };\n\n",
+        mangled_classname, mangled_classname,
+        class_name, mangled_classname, mangled_classname, mangled_classname,
+        mangled_classname, mangled_classname);
 
     //    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
     //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
@@ -1234,8 +1297,30 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    REPORT("staticmemberfunctionHandler", n);
     current = STATIC_FUNC;
-    return Language::staticmemberfunctionHandler(n);
+    String *symname = Getattr(n, "sym:name");
+    int result = Language::staticmemberfunctionHandler(n);
+
+    if (cparse_cplusplus && getCurrentClass()) {
+      Swig_restore(n);
+    }
+    current = NO_CPP;
+    if (result != SWIG_OK)
+      return result;
+
+    if (Getattr(n, "sym:nextSibling"))
+      return SWIG_OK;
+
+    Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL);
+    String *name = Getattr(n, "name");
+    String *rname, *realname;
+    realname = symname ? symname : name;
+    rname = Getattr(n, "luaclassobj:wrap:name");
+    Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
+    Swig_restore(n);
+
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
@@ -1245,8 +1330,17 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    //    REPORT("memberconstantHandler",n);
-    return Language::memberconstantHandler(n);
+    REPORT("memberconstantHandler",n);
+    String *symname = Getattr(n, "sym:name");
+    if (cparse_cplusplus && getCurrentClass()) {
+      Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL);
+      Setattr(n, "luaclassobj:symname", symname);
+    }
+    int result = Language::memberconstantHandler(n);
+    if (cparse_cplusplus && getCurrentClass())
+      Swig_restore(n);
+
+    return result;
   }
 
   /* ---------------------------------------------------------------------
@@ -1254,9 +1348,22 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    //    REPORT("staticmembervariableHandler",n);
+    REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
-    return Language::staticmembervariableHandler(n);
+    String *symname = Getattr(n, "sym:name");
+    int result = Language::staticmembervariableHandler(n);
+
+    if (result != SWIG_OK)
+      return result;
+
+
+    if (Getattr(n, "wrappedasconstant"))
+      return SWIG_OK;
+
+    Swig_require("luaclassobj_staticmembervariableHandler", n, "luaclassobj:wrap:get", "luaclassobj:wrap:set", NIL);
+    Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,Getattr(n,"luaclassobj:wrap:get"), Getattr(n,"luaclassobj:wrap:set"));
+    Swig_restore(n);
+    return SWIG_OK;
   }
 
   /* ---------------------------------------------------------------------

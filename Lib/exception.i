@@ -14,12 +14,8 @@
 
 #ifdef SWIGPHP
 %{
-#if PHP_MAJOR_VERSION < 5
-# define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
-#else
-# include "zend_exceptions.h"
-# define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
-#endif
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
 %}
 #endif
 
@@ -28,7 +24,7 @@
   SWIGINTERN void SWIG_exception_ (int code, const char *msg,
                                const char *subr) {
 #define ERROR(scmerr)					\
-	scm_error(gh_symbol2scm((char *) (scmerr)),	\
+	scm_error(scm_from_locale_string((char *) (scmerr)),	\
 		  (char *) subr, (char *) msg,		\
 		  SCM_EOL, SCM_BOOL_F)
 #define MAP(swigerr, scmerr)			\

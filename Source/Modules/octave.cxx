@@ -288,7 +288,7 @@ public:
       String *escaped_doc_str = texinfo_escape(doc_str);
 
       if (Len(doc_str)>0) {
-	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
+	Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
 	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
 	if (Len(decl_info))
 	  Printf(f_doc,"\\n\\\n@end deftypefn");
@@ -355,14 +355,10 @@ public:
 
       SwigType *type = Getattr(n, "type");
       if (type && Strcmp(type, "void")) {
-	type = SwigType_base(type);
-	Node *lookup = Swig_symbol_clookup(type, 0);
-	if (lookup)
-	  type = Getattr(lookup, "sym:name");
+	Node *nn = classLookup(Getattr(n, "type"));
+	String *type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
 	Append(decl_info, "@var{retval} = ");
-	String *type_str = NewString("");
-	Printf(type_str, "@var{retval} is of type %s. ", type);
-	Append(args_str, type_str);
+	Printf(args_str, "%s@var{retval} is of type %s. ", args_str, type_str);
 	Delete(type_str);
       }
 
@@ -524,11 +520,7 @@ public:
       }
       if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("true");
-      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("false");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("true");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("false");
@@ -752,9 +744,14 @@ public:
       Delete(tm);
     }
 
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
     Printf(f->code, "return _out;\n");
+    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "return octave_value_list();\n");
     Printf(f->code, "}\n");
+
+    /* Substitute the cleanup code */
+    Replaceall(f->code, "$cleanup", cleanup);
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);
@@ -1375,7 +1372,6 @@ public:
 	outputs++;
 
       // build argument list and type conversion string
-      idx = 0;
       p = l;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {

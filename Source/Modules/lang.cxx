@@ -88,7 +88,6 @@ extern int AddExtern;
  * ---------------------------------------------------------------------- */
 
 int Dispatcher::emit_one(Node *n) {
-  String *wrn;
   int ret = SWIG_OK;
 
   char *tag = Char(nodeType(n));
@@ -104,10 +103,9 @@ int Dispatcher::emit_one(Node *n) {
     return SWIG_OK;
 
   /* Look for warnings */
-  wrn = Getattr(n, "feature:warnfilter");
-  if (wrn) {
+  String *wrn = Getattr(n, "feature:warnfilter");
+  if (wrn)
     Swig_warnfilter(wrn, 1);
-  }
 
   /* ============================================================
    * C/C++ parsing
@@ -183,9 +181,8 @@ int Dispatcher::emit_one(Node *n) {
     Swig_error(input_file, line_number, "Unrecognized parse tree node type '%s'\n", tag);
     ret = SWIG_ERROR;
   }
-  if (wrn) {
+  if (wrn)
     Swig_warnfilter(wrn, 0);
-  }
   return ret;
 }
 
@@ -475,9 +472,9 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* --------------------------------------------------------------------------
- * use_naturalvar_mode()
+ * Language::use_naturalvar_mode()
  * -------------------------------------------------------------------------- */
-int use_naturalvar_mode(Node *n) {
+int Language::use_naturalvar_mode(Node *n) const {
   if (Getattr(n, "unnamed"))
     return 0;
   int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
@@ -486,12 +483,16 @@ int use_naturalvar_mode(Node *n) {
     SwigType *ty = Getattr(n, "type");
     SwigType *fullty = SwigType_typedef_resolve_all(ty);
     if (SwigType_isclass(fullty)) {
-      Node *m = Copy(n);
       SwigType *tys = SwigType_strip_qualifiers(fullty);
-      Swig_features_get(Swig_cparse_features(), 0, tys, 0, m);
-      nvar = GetFlag(m, "feature:naturalvar");
+      if (!CPlusPlus) {
+	Replaceall(tys, "struct ", "");
+	Replaceall(tys, "union ", "");
+	Replaceall(tys, "class ", "");
+      }
+      Node *typenode = Swig_symbol_clookup(tys, 0);
+      if (typenode)
+	nvar = GetFlag(typenode, "feature:naturalvar");
       Delete(tys);
-      Delete(m);
     }
     Delete(fullty);
   }
@@ -1448,6 +1449,7 @@ int Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup("memberin", nin, target, 0);
 	Delete(nin);
       }
+
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
@@ -1999,6 +2001,9 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (Cmp(nodeType, "constructor") == 0) {
+      if (GetFlag(ni, "feature:ignore"))
+        continue;
+
       Parm *parms = Getattr(ni, "parms");
       if (is_public(ni)) {
 	/* emit public constructor */
@@ -2064,6 +2069,10 @@ int Language::classDirectorMethods(Node *n) {
     if (GetFlag(method, "feature:nodirector"))
       continue;
 
+    String *wrn = Getattr(method, "feature:warnfilter");
+    if (wrn)
+      Swig_warnfilter(wrn, 1);
+
     String *type = Getattr(method, "nodeType");
     if (!Cmp(type, "destructor")) {
       classDirectorDestructor(method);
@@ -2075,6 +2084,8 @@ int Language::classDirectorMethods(Node *n) {
 	SetFlag(item, "director");
       Swig_restore(method);
     }
+    if (wrn)
+      Swig_warnfilter(wrn, 0);
   }
 
   return SWIG_OK;
@@ -2511,7 +2522,7 @@ int Language::classHandler(Node *n) {
 	  Setattr(m, "parentNode", n);
 	  /*
 	   * There is a bug that needs fixing still... 
-	   * This area of code is creating methods which have not been overidden in a derived class (director methods that are protected in the base)
+	   * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
 	   * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
 	   * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
 	  Printf(stdout, "new method: %s::%s(%s)\n", Getattr(parentNode(m), "name"), Getattr(m, "name"), ParmList_str_defaultargs(Getattr(m, "parms")));
@@ -2632,10 +2643,22 @@ int Language::constructorDeclaration(Node *n) {
       if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
 	bool illegal_name = true;
 	if (Extend) {
-	  // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+	  // Check for typedef names used as a constructor name in %extend. This is deprecated except for anonymous
+	  // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
 	  SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
 	  SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+
+	  if (!CPlusPlus) {
+	    if (Strncmp(name_resolved, "struct ", 7) == 0)
+	      Replace(name_resolved, "struct ", "", DOH_REPLACE_FIRST);
+	    else if (Strncmp(name_resolved, "union ", 6) == 0)
+	      Replace(name_resolved, "union ", "", DOH_REPLACE_FIRST);
+	  }
+
 	  illegal_name = !Equal(name_resolved, expected_name_resolved);
+	  if (!illegal_name)
+	    Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR, input_file, line_number, "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n", 
+		SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
 	  Delete(name_resolved);
 	  Delete(expected_name_resolved);
 	}
@@ -2771,10 +2794,22 @@ int Language::destructorDeclaration(Node *n) {
   if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
     bool illegal_name = true;
     if (Extend) {
-      // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+      // Check for typedef names used as a destructor name in %extend. This is deprecated except for anonymous
+      // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
       SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
       SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+
+      if (!CPlusPlus) {
+	if (Strncmp(name_resolved, "struct ", 7) == 0)
+	  Replace(name_resolved, "struct ", "", DOH_REPLACE_FIRST);
+	else if (Strncmp(name_resolved, "union ", 6) == 0)
+	  Replace(name_resolved, "union ", "", DOH_REPLACE_FIRST);
+      }
+
       illegal_name = !Equal(name_resolved, expected_name_resolved);
+      if (!illegal_name)
+	Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR, input_file, line_number, "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n", 
+	    SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
       Delete(name_resolved);
       Delete(expected_name_resolved);
     }
@@ -3065,7 +3100,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(const SwigType *s) {
+Node *Language::classLookup(const SwigType *s) const {
   Node *n = 0;
 
   /* Look in hash of cached values */

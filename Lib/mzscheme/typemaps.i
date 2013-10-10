@@ -287,7 +287,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 
 //%typemap(in) (char *STRING, int LENGTH) {
 //    int temp;
-//    $1 = ($1_ltype) gh_scm2newstr($input, &temp);
+//    $1 = ($1_ltype) SWIG_Guile_scm2newstr($input, &temp);
 //    $2 = ($2_ltype) temp;
 //}
 

@@ -163,7 +163,8 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
   String *filename;
   List *spath = 0;
   char *cname;
-  int i, ilen;
+  int i, ilen, nbytes;
+  char bom[3];
 
   if (!directories)
     directories = NewList();
@@ -191,6 +192,14 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
   if (f) {
     Delete(lastpath);
     lastpath = filename;
+
+    /* Skip the UTF-8 BOM if it's present */
+    nbytes = fread(bom, 1, 3, f);
+    if (nbytes == 3 && bom[0] == (char)0xEF && bom[1] == (char)0xBB && bom[2] == (char)0xBF) {
+      /* skip */
+    } else {
+      fseek(f, 0, SEEK_SET);
+    }
   }
   return f;
 }

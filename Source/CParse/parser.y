@@ -43,6 +43,7 @@ static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
+static Hash    *classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
 String  *ModuleName = 0;
@@ -723,7 +724,7 @@ static void check_extensions() {
   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
     if (!Strchr(ki.key,'<')) {
       SWIG_WARN_NODE_BEGIN(ki.item);
-      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
+      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", SwigType_namestr(ki.key));
       SWIG_WARN_NODE_END(ki.item);
     }
   }
@@ -1163,8 +1164,6 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
   if (sname) {
     /* Add forward declaration of the nested type */
     Node *n = new_node("classforward");
-    Setfile(n, cparse_file);
-    Setline(n, cparse_line);
     Setattr(n, "kind", kind);
     Setattr(n, "name", sname);
     Setattr(n, "storage", storage);
@@ -1800,6 +1799,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     featattr;
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
+%type <node>     optional_constant_directive;
 
 %%
 
@@ -1922,20 +1922,34 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
+	       if (!classes_typedefs) classes_typedefs = NewHash();
 	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($3);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
-		 /* No previous definition. Create a new scope */
-		 Node *am = Getattr(extendhash,clsname);
-		 if (!am) {
-		   Swig_symbol_newscope();
-		   Swig_symbol_setscopename($3);
-		   prev_symtab = 0;
+	         cls = Getattr(classes_typedefs, clsname);
+		 if (!cls) {
+		   /* No previous definition. Create a new scope */
+		   Node *am = Getattr(extendhash,clsname);
+		   if (!am) {
+		     Swig_symbol_newscope();
+		     Swig_symbol_setscopename($3);
+		     prev_symtab = 0;
+		   } else {
+		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   }
+		   current_class = 0;
 		 } else {
-		   prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   /* Previous typedef class definition.  Use its symbol table.
+		      Deprecated, just the real name should be used. 
+		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
+		   current_class = cls;
+		   extendmode = 1;
+		   SWIG_WARN_NODE_BEGIN(cls);
+		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
+		   SWIG_WARN_NODE_END(cls);
 		 }
-		 current_class = 0;
 	       } else {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
@@ -3816,7 +3830,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (!classes) classes = NewHash();
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes,scpname,$$);
-		   Delete(scpname);
 
 		   appendChild($$,$7);
 		   
@@ -3837,7 +3850,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(p,"type",ty);
 		     p = nextSibling(p);
 		   }
-		   /* Dump nested classes */
+		   /* Class typedefs */
 		   {
 		     String *name = $3;
 		     if ($9) {
@@ -3857,8 +3870,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 			     Delete(class_rename);
 			     class_rename = NewString(name);
 			   }
-			   if (!Getattr(classes,tdscopename)) {
-			     Setattr(classes,tdscopename,$$);
+			   if (!classes_typedefs) classes_typedefs = NewHash();
+			   if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
+			     Setattr(classes_typedefs, tdscopename, $$);
 			   }
 			   Setattr($$,"decl",decltype);
 			   Delete(class_scope);
@@ -3869,6 +3883,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     }
 		     appendChild($$,dump_nested(Char(name)));
 		   }
+		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
@@ -4061,8 +4076,6 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                 $$ = 0; 
 	      } else {
 		$$ = new_node("classforward");
-		Setfile($$,cparse_file);
-		Setline($$,cparse_line);
 		Setattr($$,"kind",$2);
 		Setattr($$,"name",$3);
 		Setattr($$,"sym:weak", "1");
@@ -6150,29 +6163,31 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 /* Some stuff for handling enums */
 
 ename          :  ID { $$ = $1; }
-               |  empty { $$ = (char *) 0;}
-               ;
+	       |  empty { $$ = (char *) 0;}
+	       ;
 
-enumlist       :  enumlist COMMA edecl { 
+optional_constant_directive : constant_directive { $$ = $1; }
+		           | empty { $$ = 0; }
+		           ;
 
-                  /* Ignore if there is a trailing comma in the enum list */
-                  if ($3) {
-                    Node *leftSibling = Getattr($1,"_last");
-                    if (!leftSibling) {
-                      leftSibling=$1;
-                    }
-                    set_nextSibling(leftSibling,$3);
-                    Setattr($1,"_last",$3);
-                  }
-		  $$ = $1;
-               }
-               |  edecl { 
-                   $$ = $1; 
-                   if ($1) {
-                     Setattr($1,"_last",$1);
-                   }
-               }
-               ;
+/* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
+enumlist       :  enumlist COMMA optional_constant_directive edecl optional_constant_directive {
+		 Node *leftSibling = Getattr($1,"_last");
+		 set_nextSibling(leftSibling,$4);
+		 Setattr($1,"_last",$4);
+		 $$ = $1;
+	       }
+	       | enumlist COMMA optional_constant_directive {
+		 $$ = $1;
+	       }
+	       | optional_constant_directive edecl optional_constant_directive {
+		 Setattr($2,"_last",$2);
+		 $$ = $2;
+	       }
+	       | optional_constant_directive {
+		 $$ = 0;
+	       }
+	       ;
 
 edecl          :  ID {
 		   SwigType *type = NewSwigType(T_INT);
@@ -6192,7 +6207,6 @@ edecl          :  ID {
 		   Setattr($$,"value",$1);
 		   Delete(type);
                  }
-                 | empty { $$ = 0; }
                  ;
 
 etype            : expr {

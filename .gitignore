@@ -44,6 +44,7 @@ CCache/autom4te.cache/
 CCache/config.h.in
 CCache/configure
 Source/Include/swigconfig.h.in
+Source/Include/swigconfig.h.in~
 Source/Makefile.in
 Tools/config/compile
 Tools/config/config.guess
@@ -80,6 +81,7 @@ swig.spec
 # Build Artifacts
 .dirstamp
 CCache/ccache-swig
+CCache/ccache-swig.1
 Source/CParse/parser.c
 Source/CParse/parser.h
 Source/eswig
@@ -100,7 +102,6 @@ Examples/test-suite/csharp/*/
 Examples/test-suite/d/*/
 Examples/test-suite/go/*/
 Examples/test-suite/guile/*/
-Examples/test-suite/guilescm/*/
 Examples/test-suite/java/*/
 Examples/test-suite/lua/*/
 Examples/test-suite/mzscheme/*/
@@ -125,3 +126,5 @@ Examples/test-suite/uffi/*/
 *_runme.exe.mdb
 *_runme.exe
 
+# Scratch directories
+Examples/scratch

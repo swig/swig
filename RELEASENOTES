@@ -4,6 +4,21 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.11 summary:
+- Minor bug fixes and enhancements mostly in Python, but also
+  C#, Lua, Ocaml, Octave, Perl, PHP, Python, R, Ruby, Tcl.
+
+SWIG-2.0.10 summary:
+- Ruby 1.9 support is now complete.
+- Add support for Guile 2.0 and Guile 1.6 support (GH interface) has
+  been dropped.
+- Various small language neutral improvements and fixes.
+- Various bug fixes and minor improvements specific to C#, CFFI, D,
+  Java, Octave, PHP, Python,
+- Minor bug fix in ccache-swig.
+- Development has moved to Github with Travis continuous integration
+  testing - patches using https://github.com/swig/swig are welcome.
+
 SWIG-2.0.9 summary:
 - Improved typemap matching.
 - Ruby 1.9 support is much improved.

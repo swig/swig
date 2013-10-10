@@ -295,6 +295,15 @@
   ZVAL_LONG($input, (long)$1_name);
 }
 
+%typemap(directorin) char *, char []
+{
+    if(!$1) {
+      ZVAL_NULL($input);
+    } else {
+      ZVAL_STRING($input, (char *)$1, 1);
+    }
+}
+
 %typemap(out) bool
 {
 	ZVAL_BOOL(return_value,($1)?1:0);

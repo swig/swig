@@ -68,21 +68,6 @@ class DAbstractIgnores
     virtual double OverloadedProtectedMethod() = 0;
 };
 
-class DIgnoreConstructor
-{
-  public:
-    virtual ~DIgnoreConstructor() {}
-    DIgnoreConstructor(std::string s, int i) {}
-    DIgnoreConstructor(bool b) {}
-};
-
-class DIgnoreOnlyConstructor
-{
-  public:
-    virtual ~DIgnoreOnlyConstructor() {}
-    DIgnoreOnlyConstructor(bool b) {}
-};
-
 template <typename T> class DTemplateAbstractIgnores
 {
   T t;
@@ -100,4 +85,38 @@ template <typename T> class DTemplateAbstractIgnores
 %}
 
 %template(DTemplateAbstractIgnoresInt) DTemplateAbstractIgnores<int>;
+
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+    DIgnoreOnlyConstructor(bool b) {}
+};
+
+%{
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+  private: // Hide constructor
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+  private: // Hide constructor
+    DIgnoreOnlyConstructor(bool b) {}
+};
+%}
 

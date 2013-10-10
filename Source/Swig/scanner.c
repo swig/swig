@@ -1405,7 +1405,7 @@ void Scanner_skip_line(Scanner * s) {
     if ((c = nextchar(s)) == 0)
       return;
     if (c == '\\') {
-      c = nextchar(s);
+      nextchar(s);
     } else if (c == '\n') {
       done = 1;
     }

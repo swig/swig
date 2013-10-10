@@ -54,6 +54,7 @@ pp_unterm_comment
 pp_unterm_string
 pp_variable_args
 swig_apply_nargs
+swig_extend
 swig_identifier
 swig_insert_bad
 swig_typemap_copy

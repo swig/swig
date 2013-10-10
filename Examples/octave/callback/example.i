@@ -1,5 +1,5 @@
 /* File : example.i */
-%module(directors="1") example
+%module(directors="1") swigexample
 %{
 #include "example.h"
 %}
@@ -10,4 +10,3 @@
 %feature("director") Callback;
 
 %include "example.h"
-

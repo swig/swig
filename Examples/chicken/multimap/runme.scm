@@ -1,4 +1,3 @@
-;; run with './multimap test-multimap.scm'
 ;; feel free to uncomment and comment sections
 
 (load-library 'example "multimap.so")

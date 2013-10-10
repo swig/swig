@@ -1,4 +1,4 @@
-;; run with mzscheme -r example.scm
+;; run with mzscheme -r runme.scm
 
 (load-extension "example.so")
 

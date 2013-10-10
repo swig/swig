@@ -1,5 +1,4 @@
 %module(directors="1") java_director_assumeoverride
-#pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
 
 %{
 class OverrideMe {

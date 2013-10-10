@@ -22,7 +22,7 @@
   You can use the SWIGRUNTIME and SWIGRUNTIMEINLINE macros for
   creating a static or dynamic library from the SWIG runtime code.
   In 99.9% of the cases, SWIG just needs to declare them as 'static'.
-  
+
   But only do this if strictly necessary, ie, if you have problems
   with your compiler or suchlike.
 */
@@ -48,16 +48,16 @@
 #define SWIG_POINTER_OWN           0x1
 
 
-/* 
+/*
    Flags/methods for returning states.
-   
-   The SWIG conversion methods, as ConvertPtr, return an integer 
+
+   The SWIG conversion methods, as ConvertPtr, return an integer
    that tells if the conversion was successful or not. And if not,
    an error code can be returned (see swigerrors.swg for the codes).
-   
+
    Use the following macros/flags to set or process the returning
    states.
-   
+
    In old versions of SWIG, code such as the following was usually written:
 
      if (SWIG_ConvertPtr(obj,vptr,ty.flags) != -1) {
@@ -90,23 +90,23 @@
     } else {
       // fail code
     }
-    
+
    I.e., now SWIG_ConvertPtr can return new objects and you can
    identify the case and take care of the deallocation. Of course that
    also requires SWIG_ConvertPtr to return new result values, such as
 
-      int SWIG_ConvertPtr(obj, ptr,...) {         
-        if (<obj is ok>) {			       
-          if (<need new object>) {		       
-            *ptr = <ptr to new allocated object>; 
-            return SWIG_NEWOBJ;		       
-          } else {				       
-            *ptr = <ptr to old object>;	       
-            return SWIG_OLDOBJ;		       
-          } 				       
-        } else {				       
-          return SWIG_BADOBJ;		       
-        }					       
+      int SWIG_ConvertPtr(obj, ptr,...) {
+        if (<obj is ok>) {
+          if (<need new object>) {
+            *ptr = <ptr to new allocated object>;
+            return SWIG_NEWOBJ;
+          } else {
+            *ptr = <ptr to old object>;
+            return SWIG_OLDOBJ;
+          }
+        } else {
+          return SWIG_BADOBJ;
+        }
       }
 
    Of course, returning the plain '0(success)/-1(fail)' still works, but you can be
@@ -120,17 +120,17 @@
        int fooi(int);
 
    and you call
- 
+
       food(1)   // cast rank '1'  (1 -> 1.0)
       fooi(1)   // cast rank '0'
 
    just use the SWIG_AddCast()/SWIG_CheckState()
 */
 
-#define SWIG_OK                    (0) 
+#define SWIG_OK                    (0)
 #define SWIG_ERROR                 (-1)
 #define SWIG_IsOK(r)               (r >= 0)
-#define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)  
+#define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)
 
 /* The CastRankLimit says how many bits are used for the cast rank */
 #define SWIG_CASTRANKLIMIT         (1 << 8)
@@ -161,14 +161,14 @@
 #  endif
 #  define SWIG_CASTRANKMASK          ((SWIG_CASTRANKLIMIT) -1)
 #  define SWIG_CastRank(r)           (r & SWIG_CASTRANKMASK)
-SWIGINTERNINLINE int SWIG_AddCast(int r) { 
+SWIGINTERNINLINE int SWIG_AddCast(int r) {
   return SWIG_IsOK(r) ? ((SWIG_CastRank(r) < SWIG_MAXCASTRANK) ? (r + 1) : SWIG_ERROR) : r;
 }
-SWIGINTERNINLINE int SWIG_CheckState(int r) { 
-  return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0; 
+SWIGINTERNINLINE int SWIG_CheckState(int r) {
+  return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0;
 }
 #else /* no cast-rank mode */
-#  define SWIG_AddCast
+#  define SWIG_AddCast(r) (r)
 #  define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
 #endif
 
@@ -212,7 +212,7 @@ typedef struct swig_module_info {
   void                    *clientdata;		/* Language specific module data */
 } swig_module_info;
 
-/* 
+/*
   Compare two type names skipping the space characters, therefore
   "char*" == "char *" and "Class<int>" == "Class<int >", etc.
 
@@ -232,18 +232,18 @@ SWIG_TypeNameComp(const char *f1, const char *l1,
 
 /*
   Check type equivalence in a name list like <name1>|<name2>|...
-  Return 0 if not equal, 1 if equal
+  Return 0 if equal, -1 if nb < tb, 1 if nb > tb
 */
 SWIGRUNTIME int
-SWIG_TypeEquiv(const char *nb, const char *tb) {
-  int equiv = 0;
+SWIG_TypeCmp(const char *nb, const char *tb) {
+  int equiv = 1;
   const char* te = tb + strlen(tb);
   const char* ne = nb;
-  while (!equiv && *ne) {
+  while (equiv != 0 && *ne) {
     for (nb = ne; *ne; ++ne) {
       if (*ne == '|') break;
     }
-    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
+    equiv = SWIG_TypeNameComp(nb, ne, tb, te);
     if (*ne) ++ne;
   }
   return equiv;
@@ -251,23 +251,12 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 
 /*
   Check type equivalence in a name list like <name1>|<name2>|...
-  Return 0 if equal, -1 if nb < tb, 1 if nb > tb
+  Return 0 if not equal, 1 if equal
 */
 SWIGRUNTIME int
-SWIG_TypeCompare(const char *nb, const char *tb) {
-  int equiv = 0;
-  const char* te = tb + strlen(tb);
-  const char* ne = nb;
-  while (!equiv && *ne) {
-    for (nb = ne; *ne; ++ne) {
-      if (*ne == '|') break;
-    }
-    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
-    if (*ne) ++ne;
-  }
-  return equiv;
+SWIG_TypeEquiv(const char *nb, const char *tb) {
+  return SWIG_TypeCmp(nb, tb) == 0 ? 1 : 0;
 }
-
 
 /*
   Check the typename
@@ -296,7 +285,7 @@ SWIG_TypeCheck(const char *c, swig_type_info *ty) {
   return 0;
 }
 
-/* 
+/*
   Identical to SWIG_TypeCheck, except strcmp is replaced with a pointer comparison
 */
 SWIGRUNTIME swig_cast_info *
@@ -331,7 +320,7 @@ SWIG_TypeCast(swig_cast_info *ty, void *ptr, int *newmemory) {
   return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr, newmemory);
 }
 
-/* 
+/*
    Dynamic pointer casting. Down an inheritance hierarchy
 */
 SWIGRUNTIME swig_type_info *
@@ -375,7 +364,7 @@ SWIG_TypePrettyName(const swig_type_info *type) {
     return type->name;
 }
 
-/* 
+/*
    Set the clientdata field for a type
 */
 SWIGRUNTIME void
@@ -383,14 +372,14 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_cast_info *cast = ti->cast;
   /* if (ti->clientdata == clientdata) return; */
   ti->clientdata = clientdata;
-  
+
   while (cast) {
     if (!cast->converter) {
       swig_type_info *tc = cast->type;
       if (!tc->clientdata) {
 	SWIG_TypeClientData(tc, clientdata);
       }
-    }    
+    }
     cast = cast->next;
   }
 }
@@ -399,18 +388,18 @@ SWIG_TypeNewClientData(swig_type_info *ti, void *clientdata) {
   SWIG_TypeClientData(ti, clientdata);
   ti->owndata = 1;
 }
-  
+
 /*
   Search for a swig_type_info structure only by mangled name
   Search is a O(log #types)
-  
-  We start searching at module start, and finish searching when start == end.  
+
+  We start searching at module start, and finish searching when start == end.
   Note: if start == end at the beginning of the function, we go all the way around
   the circular list.
 */
 SWIGRUNTIME swig_type_info *
-SWIG_MangledTypeQueryModule(swig_module_info *start, 
-                            swig_module_info *end, 
+SWIG_MangledTypeQueryModule(swig_module_info *start,
+                            swig_module_info *end,
 		            const char *name) {
   swig_module_info *iter = start;
   do {
@@ -419,11 +408,11 @@ SWIG_MangledTypeQueryModule(swig_module_info *start,
       register size_t r = iter->size - 1;
       do {
 	/* since l+r >= 0, we can (>> 1) instead (/ 2) */
-	register size_t i = (l + r) >> 1; 
+	register size_t i = (l + r) >> 1;
 	const char *iname = iter->types[i]->name;
 	if (iname) {
 	  register int compare = strcmp(name, iname);
-	  if (compare == 0) {	    
+	  if (compare == 0) {
 	    return iter->types[i];
 	  } else if (compare < 0) {
 	    if (i) {
@@ -448,14 +437,14 @@ SWIG_MangledTypeQueryModule(swig_module_info *start,
   Search for a swig_type_info structure for either a mangled name or a human readable name.
   It first searches the mangled names of the types, which is a O(log #types)
   If a type is not found it then searches the human readable names, which is O(#types).
-  
-  We start searching at module start, and finish searching when start == end.  
+
+  We start searching at module start, and finish searching when start == end.
   Note: if start == end at the beginning of the function, we go all the way around
   the circular list.
 */
 SWIGRUNTIME swig_type_info *
-SWIG_TypeQueryModule(swig_module_info *start, 
-                     swig_module_info *end, 
+SWIG_TypeQueryModule(swig_module_info *start,
+                     swig_module_info *end,
 		     const char *name) {
   /* STEP 1: Search the name field using binary search */
   swig_type_info *ret = SWIG_MangledTypeQueryModule(start, end, name);
@@ -474,12 +463,12 @@ SWIG_TypeQueryModule(swig_module_info *start,
       iter = iter->next;
     } while (iter != end);
   }
-  
+
   /* neither found a match */
   return 0;
 }
 
-/* 
+/*
    Pack binary data into a string
 */
 SWIGRUNTIME char *
@@ -495,7 +484,7 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
   return c;
 }
 
-/* 
+/*
    Unpack binary data from a string
 */
 SWIGRUNTIME const char *
@@ -509,21 +498,21 @@ SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
       uu = ((d - '0') << 4);
     else if ((d >= 'a') && (d <= 'f'))
       uu = ((d - ('a'-10)) << 4);
-    else 
+    else
       return (char *) 0;
     d = *(c++);
     if ((d >= '0') && (d <= '9'))
       uu |= (d - '0');
     else if ((d >= 'a') && (d <= 'f'))
       uu |= (d - ('a'-10));
-    else 
+    else
       return (char *) 0;
     *u = uu;
   }
   return c;
 }
 
-/* 
+/*
    Pack 'void *' into a string buffer.
 */
 SWIGRUNTIME char *

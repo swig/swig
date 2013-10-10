@@ -2,52 +2,13 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.10 (in progress)
+Version 3.0.0 (in progress)
 ============================
 
-2013-01-18: Brant Kyser
-            [Java] Patch #15 - Allow the use of the nspace feature without the -package commandline option.
-            This works as long and the new jniclasspackage pragma is used to place the JNI intermediate class
-            into a package and the nspace feature is used to place all exposed types into a package.
+2013-10-04: wsfulton
+            Fix %naturalvar not having any affect on templated classes instantiated with an
+            enum as the template parameter type. Problem reported by Vadim Zeitlin.
 
-2013-01-15: wsfulton
-            Fix Visual Studio examples to work when SWIG is unzipped into a directory containing spaces.
-
-2013-01-15: wsfulton
-            [C#] Fix cstype typemap lookup for member variables so that a fully qualified variable name
-            matches. For example:
-              %typemap(cstype) bool MVar::mvar "MyBool"
-              struct MVar {
-                bool mvar;
-              };
-
-2013-01-11: Brant Kyser
-	    [Java, C#, D] SF Bug #1299 - Fix generated names for when %nspace is used on
-            classes with the same name in two different namespaces.
-
-2013-01-11: Vladimir Kalinin
-	    [C#] Add support for csdirectorin 'pre', 'post' and 'terminator' attributes.
-
-2013-01-08: olly
-	    [PHP] Fix to work with a ZTS build of PHP (broken in 2.0.7).
-
-2013-01-07: olly
-	    Fix bashism in configure, introduced in 2.0.9.
-
-2013-01-06: wsfulton
-            Pull patch #4 from ptomulik to fix SF Bug #1296 - Fix incorrect warning for virtual destructors
-            in templates, such as:
-             Warning 521: Illegal destructor name B< A >::~B(). Ignored.
-
-2013-01-05: wsfulton
-            [Python] Pull patch #3 from ptomulik to fix SF Bug #1295 - standard exceptions as
-            classes using the SWIG_STD_EXCEPTIONS_AS_CLASSES macro.
-
-2013-01-04: wsfulton
-            [Java] Pull patch #2 from BrantKyser to fix SF Bug #1283 - fix smart pointers in conjuction
-            with directors.
-
-2013-01-03: wsfulton
-            [Java] Pull patch #1 from BrantKyser to fix SF Bug #1278 - fix directors and nspace feature when
-            multilevel namespaces are used.
+2013-09-20: wsfulton
+            [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
 
