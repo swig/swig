@@ -505,7 +505,7 @@ class TypePass:private Dispatcher {
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
     /* Inherit type definitions into the class */
-    if (name) {
+    if (name && !(GetFlag(n, "nested") && GetFlag(n, "feature:flatnested") && !checkAttribute(n, "access", "public"))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
@@ -1664,7 +1664,7 @@ void Swig_process_nested_classes(Node *n) {
     if (!Getattr(c,"templatetype")) {
       if (GetFlag(c, "nested") && GetFlag(c, "feature:flatnested")) {
         removeNode(c);
-        if (strcmp(Char(Getattr(c,"access")), "public") != 0)
+        if (!checkAttribute(c, "access", "public"))
   	  SetFlag(c, "feature:ignore");
 	else
 	  insertNodeAfter(n, c);
