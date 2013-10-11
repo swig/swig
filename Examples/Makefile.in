@@ -1520,7 +1520,7 @@ endif
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
-	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
+	$(CXX) -g -c $(CXXFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 

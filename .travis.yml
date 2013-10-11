@@ -56,4 +56,3 @@ script:
 branches:
   only:
     - master
-    - gsoc2009-matevz
