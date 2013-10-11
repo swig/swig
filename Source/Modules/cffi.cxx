@@ -676,7 +676,7 @@ void CFFI::emit_class(Node *n) {
       if (!first)
   Printf(supers, " ");
       String *s = Getattr(i.item, "name");
-      Printf(supers, "%s", lispify_name(i.item, s, "'classname"));
+      Printf(supers, "%s", lispify_name(i.item, lispy_name(Char(s)), "'classname"));
     }
   } else {
     // Printf(supers,"ff:foreign-pointer");
