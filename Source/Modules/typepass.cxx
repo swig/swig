@@ -1578,10 +1578,17 @@ static void insertNodeAfter(Node *n, Node* c)
 {
   Node* g = parentNode(n);
   set_parentNode(c, g);
-  if (lastChild(g) == n)
+  Node* ns = nextSibling(n);
+  if (Node* outer = Getattr(c, "nested:outer")) {
+    while (ns && outer == Getattr(ns, "nested:outer")) {
+      n = ns;
+      ns = nextSibling(n);
+    }
+  }
+  if (!ns) {
     set_lastChild(g, c);
+  }
   else {
-    Node* ns = nextSibling(n);
     set_nextSibling(c, ns);
     set_previousSibling(ns, c);
   }
@@ -1656,7 +1663,15 @@ void Swig_name_unnamed_c_structs(Node *n) {
     c = next;
   }
 }
-
+static void remove_outer_class_reference(Node *n)
+{
+  for (Node* c = firstChild(n); c; c = nextSibling(c)) {
+    if (GetFlag(c, "feature:flatnested")) {
+      Delattr(c, "nested:outer");
+      remove_outer_class_reference(c);
+    }
+  }
+}
 void Swig_process_nested_classes(Node *n) {
   Node* c = firstChild(n);
   while (c) {
@@ -1668,10 +1683,10 @@ void Swig_process_nested_classes(Node *n) {
   	  SetFlag(c, "feature:ignore");
 	else
 	  insertNodeAfter(n, c);
-	Delattr(c, "nested:outer");
       }
       Swig_process_nested_classes(c);
     }
     c = next;
   }
+  remove_outer_class_reference(n);
 }
