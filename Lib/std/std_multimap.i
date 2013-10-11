@@ -1,5 +1,5 @@
 //
-// std::map
+// std::multimap
 //
 
 %include <std_map.i>

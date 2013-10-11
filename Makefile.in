@@ -22,6 +22,7 @@ TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 CCACHE      = CCache
 DOCS        = Doc/Manual
+HAVE_CXX11_COMPILER = @HAVE_CXX11_COMPILER@
 RUNPIPE     = \>/dev/null
 
 swig: libfiles source ccache
@@ -278,7 +279,7 @@ check-%-test-suite:
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
 	  echo $(ACTION)ing $* test-suite;				\
-	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
+	  (cd $$dir && $(MAKE) -k -s $(ACTION) HAVE_CXX11_COMPILER=$(HAVE_CXX11_COMPILER)) \
 	  || passed=false;						\
 	fi;								\
 	test $$passed = true

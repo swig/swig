@@ -524,7 +524,7 @@ class TypePass:private Dispatcher {
   }
 
   /* ------------------------------------------------------------
-   * namespaceDeclaration()
+   * templateDeclaration()
    * ------------------------------------------------------------ */
 
   virtual int templateDeclaration(Node *n) {
@@ -540,6 +540,14 @@ class TypePass:private Dispatcher {
       Delete(rname);
       /*      SwigType_typedef_class(name); */
     }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * lambdaDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int lambdaDeclaration(Node *) {
     return SWIG_OK;
   }
 
@@ -844,16 +852,17 @@ class TypePass:private Dispatcher {
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
     String *value = Getattr(n, "value");
+    String *scopedenum = Getattr(parentNode(n), "scopedenum");
     if (!value)
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if ((nsname || inclass) && cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
       }
-      if ((nsname || inclass) && !cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && !cparse_cplusplus) {
 	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
 	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }
@@ -986,7 +995,7 @@ class TypePass:private Dispatcher {
 	      String *symname = Getattr(n, "sym:name");
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
-		  if (!(checkAttribute(c, "storage", "static")
+		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
 			|| checkAttribute(c, "storage", "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))

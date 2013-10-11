@@ -125,6 +125,10 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(imtype, out="IntPtr") SWIGTYPE & "HandleRef"
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
+%typemap(ctype) SWIGTYPE && "void *"
+%typemap(imtype, out="IntPtr") SWIGTYPE && "HandleRef"
+%typemap(cstype) SWIGTYPE && "$csclassname"
+
 /* pointer to a class member */
 %typemap(ctype) SWIGTYPE (CLASS::*) "char *"
 %typemap(imtype) SWIGTYPE (CLASS::*) "string"
@@ -401,6 +405,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
+%typemap(in, canthrow=1) SWIGTYPE && %{ $1 = ($1_ltype)$input;
+  if (!$1) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
+    return $null;
+  } %}
 %typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
 %typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
   char buf[128];
@@ -409,6 +418,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   $result = SWIG_csharp_string_callback(buf);
 %}
 %typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
+%typemap(out) SWIGTYPE && %{ $result = (void *)$1; %} 
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
@@ -426,12 +436,21 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
      return $null;
    }
    $result = ($1_ltype)$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Unexpected null return for type $1_type", 0);
+     return $null;
+   }
+   $result = ($1_ltype)$input; %}
 %typemap(directorin) SWIGTYPE &
+%{ $input = ($1_ltype) &$1; %}
+%typemap(directorin) SWIGTYPE &&
 %{ $input = ($1_ltype) &$1; %}
 
 %typemap(csdirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($iminput == IntPtr.Zero) ? null : new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE & "new $csclassname($iminput, false)"
-%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE & "$csclassname.getCPtr($cscall).Handle"
+%typemap(csdirectorin) SWIGTYPE && "new $csclassname($iminput, false)"
+%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$csclassname.getCPtr($cscall).Handle"
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
@@ -526,6 +545,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     SWIGTYPE, 
     SWIGTYPE *, 
     SWIGTYPE &, 
+    SWIGTYPE &&, 
     SWIGTYPE *const&, 
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
@@ -544,7 +564,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, error_msg);
    return $null; %}
 
-%typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY]
+%typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [ANY]
 %{ (void)$1;
    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, "C++ $1_type exception thrown");
    return $null; %}
@@ -575,7 +595,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     "$csinput"
 %typemap(csin) char *, char *&, char[ANY], char[] "$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
-%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE (CLASS::*) "$csclassname.getCMemberPtr($csinput)"
 
 /* The csout typemap is used for converting function return types from the return type
@@ -658,6 +678,10 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     $csclassname ret = new $csclassname($imcall, $owner);$excode
     return ret;
   }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE && {
+    $csclassname ret = new $csclassname($imcall, $owner);$excode
+    return ret;
+  }
 %typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [] {
     IntPtr cPtr = $imcall;
     $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
@@ -671,7 +695,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 
 /* Properties */
-%typemap(csvarin, excode=SWIGEXCODE2) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(csvarin, excode=SWIGEXCODE2) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
     set {
       $imcall;$excode
     } %}
@@ -772,6 +796,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
       $csclassname ret = new $csclassname($imcall, $owner);$excode
       return ret;
     } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE && %{
+    get {
+      $csclassname ret = new $csclassname($imcall, $owner);$excode
+      return ret;
+    } %}
 %typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE *, SWIGTYPE [] %{
     get {
       IntPtr cPtr = $imcall;
@@ -816,13 +845,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
-%typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
-%typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\nusing System.Runtime.InteropServices;\n"
+%typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
+%typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\nusing System.Runtime.InteropServices;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
-%typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
 
 // csbody typemaps... these are in macros so that the visibility of the methods can be easily changed by users.
@@ -859,7 +888,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %define SWIG_CSBODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
-%typemap(csbody) TYPE *, TYPE &, TYPE [] %{
+%typemap(csbody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
   private HandleRef swigCPtr;
 
   PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool futureUse) {
@@ -969,6 +998,7 @@ using System.Runtime.InteropServices;
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

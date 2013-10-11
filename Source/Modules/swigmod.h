@@ -99,6 +99,7 @@ public:
   virtual int usingDeclaration(Node *n);
   virtual int namespaceDeclaration(Node *n);
   virtual int templateDeclaration(Node *n);
+  virtual int lambdaDeclaration(Node *n);
 
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
 

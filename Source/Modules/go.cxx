@@ -1611,7 +1611,7 @@ private:
       return goComplexConstant(n, type);
     }
 
-    if (Getattr(n, "storage") && Strcmp(Getattr(n, "storage"), "static") == 0) {
+    if (Swig_storage_isstatic(n)) {
       return goComplexConstant(n, type);
     }
 
@@ -4860,7 +4860,7 @@ private:
 
   bool isStatic(Node *n) {
     String *storage = Getattr(n, "storage");
-    return (storage && (Strcmp(storage, "static") == 0 || Strcmp(storage, "friend") == 0) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
+    return (storage && (Swig_storage_isstatic(n) || Strcmp(storage, "friend") == 0) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
   }
 
   /* ----------------------------------------------------------------------

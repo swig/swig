@@ -771,7 +771,7 @@ Allocate():
       /* Check to see if this is a static member or not.  If so, we add an attribute
          cplus:staticbase that saves the current class */
 
-      if (checkAttribute(n, "storage", "static")) {
+      if (Swig_storage_isstatic(n)) {
 	Setattr(n, "cplus:staticbase", inclass);
       }
 

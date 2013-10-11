@@ -263,6 +263,49 @@ void Swig_filename_unescape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_storage_isextern()
+ *
+ * Determine if the storage class specifier is extern (but not externc)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isextern(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "extern") == 0 || Strncmp(storage, "extern ", 7) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isexternc()
+ *
+ * Determine if the storage class specifier is externc (but not plain extern)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isexternc(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "externc") == 0 || Strncmp(storage, "externc ", 8) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic_custom()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage_name) {
+  const String *storage = Getattr(n, storage_name);
+  return storage ? Strncmp(storage, "static", 6) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic(Node *n) {
+  return Swig_storage_isstatic_custom(n, "storage");
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.

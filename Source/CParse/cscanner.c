@@ -246,6 +246,8 @@ static int yylook(void) {
       return GREATERTHANOREQUALTO;
     case SWIG_TOKEN_RSHIFT:
       return RSHIFT;
+    case SWIG_TOKEN_ARROW:
+      return ARROW;
     case SWIG_TOKEN_PERIOD:
       return PERIOD;
     case SWIG_TOKEN_MODULO:
@@ -283,6 +285,10 @@ static int yylook(void) {
     case SWIG_TOKEN_STRING:
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return STRING;
+
+    case SWIG_TOKEN_WSTRING:
+      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      return WSTRING;
       
     case SWIG_TOKEN_CHAR:
       yylval.str = NewString(Scanner_text(scan));
@@ -291,7 +297,15 @@ static int yylook(void) {
 	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
       }
       return CHARCONST;
-      
+
+    case SWIG_TOKEN_WCHAR:
+      yylval.str = NewString(Scanner_text(scan));
+      if (Len(yylval.str) == 0) {
+	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
+      }
+      return WCHARCONST;
+
       /* Numbers */
       
     case SWIG_TOKEN_INT:
@@ -542,8 +556,16 @@ int yylex(void) {
 	  return (PROTECTED);
 	if (strcmp(yytext, "friend") == 0)
 	  return (FRIEND);
+	if (strcmp(yytext, "constexpr") == 0)
+	  return (CONSTEXPR);
+	if (strcmp(yytext, "thread_local") == 0)
+	  return (THREAD_LOCAL);
+	if (strcmp(yytext, "decltype") == 0)
+	  return (DECLTYPE);
 	if (strcmp(yytext, "virtual") == 0)
 	  return (VIRTUAL);
+	if (strcmp(yytext, "static_assert") == 0)
+	  return (STATIC_ASSERT);
 	if (strcmp(yytext, "operator") == 0) {
 	  int nexttok;
 	  String *s = NewString("operator ");
@@ -592,6 +614,11 @@ int yylex(void) {
 	      yylval.str = s;
 	      return OPERATOR;
 	    }
+	  } else if (nexttok == SWIG_TOKEN_STRING) {
+	    /* Operator "" or user-defined string literal ""_suffix */
+	    Append(s,"\"\"");
+	    yylval.str = s;
+	    return OPERATOR;
 	  } else if (nexttok == SWIG_TOKEN_ID) {
 	    /* We have an identifier.  This could be any number of things. It could be a named version of
                an operator (e.g., 'and_eq') or it could be a conversion operator.   To deal with this, we're
@@ -688,6 +715,8 @@ int yylex(void) {
 	  return (yylex());
 	if (strcmp(yytext, "explicit") == 0)
 	  return (EXPLICIT);
+	if (strcmp(yytext, "auto") == 0)
+	  return (AUTO);
 	if (strcmp(yytext, "export") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "typename") == 0)
