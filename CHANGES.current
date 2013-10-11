@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-10-12: wsfulton
+            Merge in C++11 support from the gsoc2009-matevz branch where Matevz Jekovec first
+            started the C++0x additions. Documentation of the C++11 features supported is in a
+            new Chapter of the documentation, "SWIG and C++11" in Doc/Manual/CPlusPlus11.html.
+
 2013-10-04: wsfulton
             Fix %naturalvar not having any affect on templated classes instantiated with an
             enum as the template parameter type. Problem reported by Vadim Zeitlin.
