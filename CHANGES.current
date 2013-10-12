@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-10-13: wsfulton
+            [CFFI] Apply #96 - superclass not lispify
+
 2013-10-12: wsfulton
             Merge in C++11 support from the gsoc2009-matevz branch where Matevz Jekovec first
             started the C++0x additions. Documentation of the C++11 features supported is in a
