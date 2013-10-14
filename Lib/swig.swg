@@ -258,7 +258,7 @@ static int NAME(TYPE x) {
 
      %rename("$ignore", %$isenumitem, %$classname="MyClass") "";
 
-   we use the prefix '%$' to avoid clashings with other swig
+   we use the prefix '%$' to avoid clashes with other swig
    macros/directives.
 
 */
