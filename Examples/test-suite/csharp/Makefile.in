@@ -17,6 +17,7 @@ CPP_TEST_CASES = \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \
+	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
 	enum_thorough_simple \
