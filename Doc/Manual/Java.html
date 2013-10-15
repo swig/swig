@@ -3560,15 +3560,16 @@ The disadvantage is that invocation of director methods from C++ when Java doesn
 
 <p>
 With directors routing method calls to Java, and proxies routing them
-to C++, the handling of exceptions is an important concern. By
-default, the director class methods ignore exceptions that occur
+to C++, the handling of exceptions is an important concern. In Swig
+2.0, the director class methods ignored java exceptions that occurred
 during method calls dispatched to the Java director class and simply
-return '$null' to the C++ caller.  To handle such exceptions
-correctly, it is necessary to translate thrown Java exceptions into
-C++ exceptions. This can be done in two different ways using the
-<code>%feature("director:except")</code> directive.  In the simplest approach, 
-simply attach a code block to a method to handle the mapping of java 
-exceptions into C++ exceptions.
+returned '$null' to the C++ caller.  The default behavior now throws a
+Swig-defined <code>DirectorException</code> C++ exception.  A facility
+is now provided to allow translation of thrown Java exceptions into
+C++ exceptions. This can be done in two different ways using
+the <code>%feature("director:except")</code> directive.  In the
+simplest approach, a code block is attached to each director method to
+handle the mapping of java exceptions into C++ exceptions.
 </p>
 
 <div class="code">
@@ -3706,8 +3707,14 @@ the <code>return&nbsp;$null;</code> could be changed to:
 may need to be attached to specific methods.
 </p>
 
-<p>Below is a more complete example demonstrating the use
-of <code>directorthrows</code> typemaps.
+<p>Below is a complete example demonstrating the use
+of <code>directorthrows</code> typemaps.  The <code>directorthrows</code> typemap
+provides a code fragment to test for a pending java exception type, and the 
+resulting C++ exception that will be thrown.  In this example, a 
+generic directorthrows typemap is appropriate for all three exceptions - all
+take single string constructors.  If the constructors had different constructors,
+it would be neccessary to have separate typemaps for each exception type.
+
 
 <!-- All the DEFINE_ and DECLARE_EXCEPTIONS CAN BE OMITTED to make
   this more succinct.  They are included to make this a complete
@@ -3777,18 +3784,20 @@ the exception specification or <code>%catches</code> feature.  The code block
 in the directorthrows typemap should always throw a c++ exception.  
 </p>
 
-<p>Note that the <code>directorthrows</code> typemaps are important only
-if it is important for the the exceptions passed through the C++ layer
-to be predictable.  If director methods are being called by C++ code
-that is itself using a Swig-generated java wrapper, the default
-Swig::DirectorException class provides enough information to
-reconstruct the original exception.  In this case removing the
-$directorthrowshandlers replacement variable and simply always
+<p>Note that the <code>directorthrows</code> typemaps are important
+only if it is important for the the exceptions passed through the C++
+layer to be mapped to distinct C++ exceptions.  If director methods
+are being called by C++ code that is itself wrapped in a
+Swig-generated java wrapper and access is always through this wrapper,
+the default Swig::DirectorException class provides enough information
+to reconstruct the original exception.  In this case removing the
+$directorthrowshandlers replacement variable from the
+default <code>director:except</code> feature and simply always
 throwing a Swig::DirectorException will achieve the desired result.
 Along with this a generic exception feature is added to convert any
 caught <code>Swig::DirectorException</code>s back into the underlying
-java exceptions, for each method which may get a generic DirectorException
-from a wrapped director method.</p>
+java exceptions, for each method which may get a generic
+DirectorException from a wrapped director method.</p>
 
 <div class="code">
 <pre>
@@ -3796,7 +3805,7 @@ from a wrapped director method.</p>
   try { $action }
   catch (Swig::DirectorException & direxcp) { 
     // jenv always available in JNI code
-    // construct and raise the java exception that orignally caused the director exception
+    // raise the java exception that originally caused the DirectorException
     direxcp.raiseJavaException(jenv);  
     return $null;
   }
