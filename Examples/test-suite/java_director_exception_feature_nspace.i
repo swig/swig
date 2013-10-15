@@ -1,6 +1,12 @@
-%module(directors="1") java_director_exception_feature
+%module(directors="1") java_director_exception_feature_nspace
 
 %include <std_except.i>
+
+%nspace;  // turn namespace feature on for everything.
+
+// When using namespaces with no -package, must put JNI classes into a namespace 
+%pragma(java) jniclasspackage=%{MyNS_JNI%}
+%warnfilter(826);
 
 %{
 #if defined(_MSC_VER)
@@ -38,9 +44,9 @@
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
     jenv->ExceptionClear();  // clear java exception since mapping to c++ exception
-    if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyJavaException1")) {
+    if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyNS/MyJavaException1")) {
       throw 1;
-    } else if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyJavaException2")) {
+    } else if (Swig::ExceptionMatches(jenv,$error,"$packagepath/MyNS/MyJavaException2")) {
       std::string msg(Swig::JavaExceptionMessage(jenv,$error).message());
       throw MyNS::Exception2(msg);
     } else {
@@ -77,32 +83,33 @@
 // $javaclassname or $packagepath  ("java_director_exception_feature" here) 
 
 // throws typemaps for c++->java exception conversions
-%typemap(throws,throws="MyJavaException1") MyNS::Exception1 %{
-  jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1");
+%typemap(throws,throws="MyNS.MyJavaException1") MyNS::Exception1 %{
+  jclass excpcls = jenv->FindClass("MyNS/MyJavaException1");  
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
    }
   return $null;
 %}
 
-%typemap(throws,throws="MyJavaException1") int %{
-  jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1"); 
+%typemap(throws,throws="MyNS.MyJavaException1") int %{
+  jclass excpcls = jenv->FindClass("MyNS/MyJavaException1"); 
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");
   }
   return $null;
 %}
 
-%typemap(throws,throws="MyJavaException2") MyNS::Exception2 %{
-  jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException2"); 
+%typemap(throws,throws="MyNS.MyJavaException2") MyNS::Exception2 %{
+  jclass excpcls = jenv->FindClass("MyNS/MyJavaException2"); 
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }
   return $null;
 %}
 
-%typemap(throws,throws="MyJavaUnexpected") MyNS::Unexpected %{
-  jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaUnexpected"); 
+
+%typemap(throws,throws="MyNS.MyJavaUnexpected") MyNS::Unexpected %{
+  jclass excpcls = jenv->FindClass("MyNS/MyJavaUnexpected"); 
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }

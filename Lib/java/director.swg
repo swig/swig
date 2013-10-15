@@ -205,95 +205,230 @@ namespace Swig {
 //  if ($error) {
 //    jenv->ExceptionClear();
 //    $directorthrowshandlers
-//    throw Swig::DirectorException($error);
+//    throw Swig::DirectorException(jenv, $error);
 //  }
 //%}
 
 // Define some utility methods and classes.  Cannot use fragments since 
-// these are used by %features and in directorthrows typemaps
+// these may be used by %features and in directorthrows typemaps
 
 #include <exception>
 
 // Simple holder for exception messages, allowing access to a c-style string
 namespace Swig {
-  struct JavaExceptionMessage {
-    JavaExceptionMessage(JNIEnv * jenv, jthrowable excp):jenv_(jenv),
-	jmsg_(0), cstr_(0) {
-      // No message, unexpected inputs.  assert, warn or something instead?
-      if (jenv_ && excp) {
-	jenv_->ExceptionClear();	// Cannot invoke other methods with pending exception
-
-	jclass thrwclz = jenv->GetObjectClass(excp);
-	// if no getMessage method or other exception, no msg available.  As above.
-	jmethodID getThrowableMsgMethodID =
-	    jenv_->GetMethodID(thrwclz, "getMessage",
-			       "()Ljava/lang/String;");
-	if (jenv_->ExceptionCheck() || !getThrowableMsgMethodID) {
-	  jenv_->ExceptionClear();
-	} else {
-	  // if problem accessing exception message string, no msg available.  As above.
-	  jmsg_ = (jstring) jenv_->CallObjectMethod(excp,
-						    getThrowableMsgMethodID);
-	  if (jenv_->ExceptionCheck() || !jmsg_) {
-	    jenv_->ExceptionClear();
-	  } else {
-	    // Get the null-terminated c-string out, and hold it
-	    cstr_ = (const char *) jenv_->GetStringUTFChars(jmsg_, NULL);
-	  }
-	}
+  struct JavaString {
+    JavaString(JNIEnv * jenv, jstring jstr):jenv_(jenv), jstr_(jstr), cstr_(0) {
+      if (jenv_ && jstr_) {
+	// Get the null-terminated c-string out, and hold it
+	cstr_ = (const char *) jenv_->GetStringUTFChars(jstr_, NULL);
       }
     }
-
-    ~JavaExceptionMessage() {
-      if (jenv_ && jmsg_ && cstr_) {
-	jenv_->ReleaseStringUTFChars(jmsg_, cstr_);
+    ~JavaString() {
+      if (jenv_ && jstr_ && cstr_) {
+	jenv_->ReleaseStringUTFChars(jstr_, cstr_);
       }
     }
-
-    const char *message() {
+    const char *cstr() {
       return cstr_ ? cstr_ : "";
     }
 
   private:
+    JNIEnv * jenv_;
+    jstring jstr_;
+    const char * cstr_;
+
+    // non-copyable
+    JavaString(const JavaString &);
+    JavaString & operator=(const JavaString &);
+  };
+
+  struct JavaExceptionMessage {
+    JavaExceptionMessage(JNIEnv * jenv, jthrowable excp) :
+      jstrholder_(jenv,exceptionMsgJstr(jenv,excp)) {
+    }
+    ~JavaExceptionMessage() {
+    }
+    const char *message() {
+      return jstrholder_.cstr();
+    }
+  
+  private:
+    JavaString jstrholder_;
+
     // non-copyable
     JavaExceptionMessage(const JavaExceptionMessage &);
     JavaExceptionMessage & operator=(const JavaExceptionMessage &);
-    JNIEnv *jenv_;
-    jstring jmsg_;
-    const char *cstr_;
-  }
 
-  // utility function to simplify testing and mapping exceptions
+    // Static method to initialize jstrholder_
+    static jstring exceptionMsgJstr(JNIEnv * jenv, jthrowable excp) {
+      jstring jmsg = NULL;
+      if (jenv && excp) {
+	jenv->ExceptionClear(); // Cannot invoke methods with pending exception
+	jclass thrwclz = jenv->GetObjectClass(excp); 
+	if (thrwclz) {
+	  // if no getMessage() or other exception, no msg available.
+	  jmethodID getThrowableMsgMethodID =
+	      jenv->GetMethodID(thrwclz, "getMessage", "()Ljava/lang/String;");
+	  if (getThrowableMsgMethodID && !jenv->ExceptionCheck()) {
+	    // if problem accessing exception message string, no msg available.
+	    jmsg = (jstring) 
+	      jenv->CallObjectMethod(excp, getThrowableMsgMethodID);
+	  }
+	}
+	if (jmsg == NULL && jenv->ExceptionCheck()) {
+	  jenv->ExceptionClear();
+	}
+      }
+      return jmsg;
+    }
+  };
+
+
+  ////////////////////////////////////
+
   bool ExceptionMatches(JNIEnv * jenv, jthrowable excp,
-			const char *otherclassname) {
+			const char *clzname) {
     jboolean matches = false;
 
-    if (excp && jenv) {
-      // Have to clear exceptions for correct behavior.  Code around ExceptionMatches
-      //   should restore pending exception if desired - already have throwable.
+    if (excp && jenv && clzname) {
+      // Have to clear exceptions for correct behavior.  Code around
+      //   ExceptionMatches should restore pending exception if
+      //   desired - already have throwable.
       jenv->ExceptionClear();
 
-      jclass other = jenv->FindClass(otherclassname);
-      if (jenv->ExceptionCheck() || !other) {
-	//If otherclassname not found, matches stays false. 
-	//std::cerr<< "Error: ExceptionMatch '" << otherclassname << "': class not found"  << std::endl;
-	jenv->ExceptionClear();
-      } else {
+      jclass clz = jenv->FindClass(clzname);
+      if (clz && ! jenv->ExceptionCheck()) {
+	jclass classclz = jenv->GetObjectClass(clz);
 	jmethodID isInstanceMethodID =
-	    jenv->GetMethodID(other, "isInstance",
-			      "(Ljava/lang/Object;)Z");
-	if (!isInstanceMethodID) {
-	  jenv->ExceptionClear();
-	} else {
+	    jenv->GetMethodID(classclz, "isInstance", "(Ljava/lang/Object;)Z");
+	if (isInstanceMethodID) {
 	  matches = (jboolean)
-	      jenv->CallBooleanMethod(other, isInstanceMethodID, excp);
-	  if (jenv->ExceptionCheck()) {
-	    jenv->ExceptionClear();
-	    matches = false;
+	      jenv->CallBooleanMethod(clz, isInstanceMethodID, excp);
+	}
+      }
+      // This may happen if user typemaps or director:except
+      // features call ExceptionMatches incorrectly, typically with
+      // an invalid clzname argument.  Uncommenting the debug lines
+      // may help to diagnose.
+      // As is, this leaves the underlying case as a pending exception
+      // which may not be that clear (e.g. ClassNotFoundException)
+
+      // if (jenv->ExceptionCheck()) {
+      // JavaExceptionMessage jstrmsg(jenv,jenv->ExceptionOccurred());
+      // std::cerr << "Error: ExceptionMatches: class '" << 
+      //   clzname << "' : " << jstrmsg.message() << std::endl;
+      // }
+    } 
+    return matches;
+  }
+
+  // Provide the class name to allow reconstruction of the original exception
+  struct DirectorException : std::exception {
+
+    // Construct a DirectorException from a java throwable
+    DirectorException(JNIEnv* jenv,jthrowable excp) : classname_(0), msg_(0) {
+      jstring jstr_classname = NULL;
+      jmethodID mid_getName = NULL;
+      jclass thrwclz;
+      jclass clzclz;
+
+      if (excp) {
+	// Get the exception class, like Exception
+	thrwclz = jenv->GetObjectClass(excp);
+	if (thrwclz) {
+	  // Get the java.lang.Class class
+	  clzclz = jenv->GetObjectClass(thrwclz);
+	  if (clzclz) {
+	    mid_getName = jenv->GetMethodID(clzclz, "getName", "()Ljava/lang/String;");
+	    if (mid_getName) {
+	      // Get the excp class name
+	      jstr_classname = (jstring)(jenv->CallObjectMethod(thrwclz, mid_getName));
+	    }
 	  }
 	}
       }
-      return matches;
+      // Copy strings, since no guarantee jenv will be active when handled
+      // If classname_ is 0, returned as "UnknownException"
+      if (jstr_classname) {
+	JavaString classname(jenv, jstr_classname);  
+	classname_ = copypath(classname.cstr());
+      }
+      JavaExceptionMessage exceptionmsg(jenv, excp);
+      msg_ = copystr(exceptionmsg.message());
     }
-  }
+
+    // Throw as a wrapped Runtime Error explicitly.
+    DirectorException(const char * msg) : classname_(0), msg_(0) {
+      classname_ = copypath("java/lang/RuntimeError");
+      msg_ = copystr(msg);
+    }
+
+    ~DirectorException() throw() { 
+      delete[] classname_;
+      delete[] msg_;
+    }
+    
+    // If there was problem finding classname, keep track of error
+    //  On raiseJavaException will be mapped to a RuntimeException
+    const char* classname() const throw() { 
+      return classname_ ? classname_ : "UnknownException";
+    }
+    const char* what() const throw() { 
+      return msg_ ? msg_ : ""; 
+    }
+
+    // Python director code provides static raise() methods
+    // Omitted here: Seems less good than 
+    //   throw DirectorException(jenv, excp) 
+    // from which compiler can infer a C++ exception is thrown.
+
+    // Reconstruct and raise the Java Exception that caused the DirectorException
+    void raiseJavaException(JNIEnv* jenv) {
+      if (jenv) {
+	jenv->ExceptionClear();
+
+	jmethodID strCtorID = 0;
+
+	jclass excpclz = jenv->FindClass(classname());
+
+	if (excpclz) {
+	  strCtorID = jenv->GetMethodID(excpclz,"<init>","(Ljava/lang/String;)V");
+	}
+
+	if (strCtorID) {
+	  // If exception has a string constructor, throw an instance
+	  jenv->ThrowNew(excpclz, what());
+	} else {
+	  // Else, throw a runtime
+	  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, what() );
+	}
+      }
+    }
+
+  private:
+    const char * classname_;
+    const char * msg_;
+    
+    static const char * copypath(const char * srcmsg) {
+      return copystr(srcmsg, 1);  
+    }
+    static const char * copystr(const char * srcmsg, int pathrepl=0) {
+      char * target = 0;
+      if (srcmsg) {
+	int msglen = 1+strlen(srcmsg); //+1 for null terminator
+	target = new char[msglen];
+	strncpy(target, srcmsg, msglen);
+      }
+      // If pathrepl, replace any '.' with '/'
+      if (pathrepl) {
+	for(char *c=target; *c; ++c) {
+	  if ('.' == *c) *c = '/';
+	}
+      }
+      return target;
+    }
+  };
+
 }
+
+#endif

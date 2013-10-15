@@ -45,7 +45,22 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 // Default for director exception warns about unmapped exceptions now in java
 // Suppress warnings for this older test
-%warnfilter(476) Bar;
+// %warnfilter(476) Bar;
+
+// Default for java is to throw Swig::DirectorException if no
+// direct:except feature.  Since methods below have exception specification
+// cannot throw director exception.  
+
+// Change back to old 2.0 default behavior
+
+%feature("director:except") {
+	jthrowable $error = jenv->ExceptionOccurred();
+	if ($error) {
+	  // Dont clear exception, still be active when return to java execution
+	  // Essentially ignore exception occurred -- old behavior.
+	  return $null;
+	}
+}
 
 #endif
 

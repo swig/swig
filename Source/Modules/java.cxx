@@ -11,6 +11,8 @@
  * Java language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
+#include <iostream>
+
 #include "swigmod.h"
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
@@ -205,6 +207,7 @@ public:
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
 	   if (nspace) {
+	     //  TODO: need to honor javapackage typemaps?
 	     if (package)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
 	     else
@@ -1998,6 +2001,9 @@ public:
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
 
+      // Allow use of global $packagepath in explicit throws typemaps  TODO unused?
+      substitutePackagePath(proxy_class_code, 0);
+
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the constants
@@ -2949,20 +2955,36 @@ public:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
    *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '.'
+   *   p - a parameter type, that may hold a javapackage typemap. If passed,
+   *       the $packagepath will be substituted, but call method below instead.
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false) {
+  bool substituteClassname(SwigType *pt, String *tm, 
+			   bool jnidescriptor = false, Parm * pkgpathparm = 0) 
+  {
+    return substituteClassnameAndPackagePath( pt, tm, jnidescriptor, pkgpathparm);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameAndPackagePath()
+   * Used to canonicalize JNI descriptors, including code emitting director throws typemaps.
+   *
+   * Only usage always has jnidescriptor AND p set.  Maybe collapse args.
+   * ----------------------------------------------------------------------------- */
+  bool substituteClassnameAndPackagePath(SwigType *pt, String *tm, 
+					 bool jnidescriptor, Parm * pkgpathparm) 
+  {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname", jnidescriptor);
+      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname", jnidescriptor, pkgpathparm);
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -2970,7 +2992,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-	substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor);
+	substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor, pkgpathparm);
 	substitution_performed = true;
       }
       Delete(classnametype);
@@ -2978,7 +3000,7 @@ public:
     if (Strstr(tm, "$&javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname", jnidescriptor);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname", jnidescriptor, pkgpathparm);
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -2992,27 +3014,46 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassnameSpecialVariable()
    * ----------------------------------------------------------------------------- */
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor, Parm * pkgpathparm) {
+    String * replacementname;
 
-  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor) {
     if (SwigType_isenum(classnametype)) {
-      String *enumname = getEnumName(classnametype, jnidescriptor);
-      if (enumname)
-	Replaceall(tm, classnamespecialvariable, enumname);
-      else
-	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
-    } else {
-      String *classname = getProxyName(classnametype);
-      if (classname) {
-	Replaceall(tm, classnamespecialvariable, classname);	// getProxyName() works for pointers to classes too
-      } else {			// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
-	Replaceall(tm, classnamespecialvariable, descriptor);
-
-	// Add to hash table so that the type wrapper classes can be created later
-	Setattr(swig_types_hash, descriptor, classnametype);
-	Delete(descriptor);
+      replacementname = Copy(getEnumName(classnametype, jnidescriptor));
+      if (!replacementname) {
+	replacementname = NewString("int");
       }
+    } else {
+      replacementname = Copy(getProxyName(classnametype));
+      if (! replacementname) {
+	// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+	replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+	// Add to hash table so that the type wrapper classes can be created later
+	Setattr(swig_types_hash, replacementname, classnametype);
+      }     
     }
+
+    if (pkgpathparm) {
+      if (Strchr(replacementname, '.') != NULL) {
+	// nspace feature in use, indicated by dots  (!?)
+	// if replacementname is in name space form, a.b.c, discard
+	//   packagepath from any string like $packagepath/$javaclassname
+	//   since IT WAS ADDED in getProxyName
+	// But $packagepath could still be used by itself in same string
+	//   since this is used to emit general code blocks for director 
+	//   exceptions
+	// So do this to get rid of all combined forms before subsitituting
+	Replaceall(tm, "$packagepath/$javaclassname","$javaclassname");
+	Replaceall(tm, "$packagepath/$*javaclassname","$*javaclassname");
+	Replaceall(tm, "$packagepath/$&javaclassname","$&javaclassname");
+      }
+      substitutePackagePath(tm, pkgpathparm);
+    }
+    if (jnidescriptor) {
+      Replaceall(replacementname,".","/");
+    }
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
   }
 
   /* -----------------------------------------------------------------------------
@@ -3190,8 +3231,9 @@ public:
     if (throws_list) {
       Iterator cls = First(throws_list);
       Printf(code, " throws %s", cls.item);
-      while ((cls = Next(cls)).item)
+      while ((cls = Next(cls)).item) {
 	Printf(code, ", %s", cls.item);
+      }
     }
   }
 
@@ -3512,7 +3554,7 @@ public:
       if none.  "$packagepath/" is replaced with "" if no
       package path is set.
   */
-  void substitutePackagePath(String *text, Parm *p, bool forceEmpty=false) {
+  void substitutePackagePath(String *text, Parm *p) {
     String *pkg_path= 0;
 
     if (p)
@@ -3520,14 +3562,12 @@ public:
     if (!pkg_path || Len(pkg_path) == 0)
       pkg_path = package_path;
 
-    if (Len(pkg_path) > 0 && ! forceEmpty) {
+    if (Len(pkg_path) > 0) {
       Replaceall(text, "$packagepath", pkg_path);
     } else {
       Replaceall(text, "$packagepath/", empty_string);
       Replaceall(text, "$packagepath", empty_string);
     }
-    if (pkg_path != package_path)
-      Delete(pkg_path);
   }
 
   /* ---------------------------------------------------------------
@@ -3547,14 +3587,8 @@ public:
     SwigType *type = Getattr(p, "type");
 
     String *descriptor_out = Copy(descriptor_in);
-    substituteClassname(type, descriptor_out, true);
-
-    // if descriptor_in ($javaclassname?) is in name space form, a.b.c, discard
-    //   packagepath from string like $packagepath/$javaclassname
-    bool forceEmpty = Strchr(descriptor_out, '.') != NULL;
-    substitutePackagePath(descriptor_out, p, forceEmpty);
-
-    Replaceall(descriptor_out, ".", "/");
+    // This returns a JNI descriptor, in path format
+    substituteClassnameAndPackagePath(type, descriptor_out, true, p);
 
     return descriptor_out;
   }
@@ -4151,16 +4185,12 @@ public:
 
     // "Default" feature, so that feature is not applied to every node, per W. Fulton
     static char const * DEFAULT_DIREXCP_FEATURE =
-	  "jthrowable $error = jenv->ExceptionOccurred();\n"
-	  "if ($error) {\n"
-	  "  jenv->ExceptionClear();\n"
-	  "  $directorthrowshandlers\n"
-	  "  $defaulthandler\n"
-          "  // If java exception not translated to C++ exception, reset\n" 
-          "  // pending java exception (compatible with swig 2.0.x behavior)\n"
-          "  jenv->Throw($error);\n"
-	  "  return $null;\n"
-	  "}\n";
+      "jthrowable $error = jenv->ExceptionOccurred();\n"
+      "if ($error) {\n"
+      "  jenv->ExceptionClear();\n"
+      "  $directorthrowshandlers\n"
+      "  throw Swig::DirectorException(jenv, $error);\n"
+      "}\n";
 
     String * featdirexcp = Getattr(n, "feature:director:except");
 
@@ -4172,18 +4202,15 @@ public:
     // Can explicitly disable director:except by setting to "" or "0"
     if (0 != Len(featdirexcp) && 0 != Cmp(featdirexcp,"0")) {
 
-      substitutePackagePath(featdirexcp, 0); // Replace any $packagepath with global -package package_path
+      // Replace any $packagepath with global -package package_path
+      substitutePackagePath(featdirexcp, 0); 
 
       // Replace $action with any defined typemap handlers (or nothing)
       if (Strstr(featdirexcp, "$directorthrowshandlers")) {
 	String *directorthrowshandlers_code = NewString("");
 
-	// TODO: Once a java.lang.Throwable is handled, done
-	// bool throwableHandled = false;  TODO: decide if this is useful...
-	bool isfirst = true;
 	for (p = throw_parm_list; p; p = nextSibling(p)) {
 	  String *tmapdirthrows = Getattr(p, "tmap:directorthrows");
-	  String *tmapdirthrowsmatches = Getattr(p, "tmap:directorthrows:matches");
 	  String * excptype = Getattr(p,"type");
 
 	  if (!tmapdirthrows) {
@@ -4191,44 +4218,31 @@ public:
 			 "Feature director:except on %s::%s with $directorthrowshandlers requires directorthrows typemap for exception %s.\n",
 			 SwigType_namestr(c_classname),SwigType_namestr(name), excptype);
 	  } else {
-	    if (! tmapdirthrowsmatches) {
-	      Swig_error(input_file, line_number, "Typemap directorthows on %s: missing required 'matches' attribute", excptype);
-	    }
-	    // replace $packagepath if present, honoring exception javapackage typemap.
+	    // replace $packagepath 
 	    tmapdirthrows = Copy(tmapdirthrows);
-	    substitutePackagePath(tmapdirthrows, p);
-	    // replace $packagepath if present, honoring exception javapackage typemap.
-	    tmapdirthrowsmatches = Copy(tmapdirthrowsmatches);
-	    substitutePackagePath(tmapdirthrowsmatches, p);
-	    Replaceall(tmapdirthrowsmatches, ".", "/");  // Make path-like: java/lang/Exception
-	    // Use Swig::exception_matches defined in java/director.swg
-	    Printf(directorthrowshandlers_code,
-		   "    // Handle exception %s\n"
-		   "    %s (Swig::ExceptionMatches(jenv,thrown_,\"%s\")) {\n"
-		   "    %s\n"
-		   "    }\n",
-		   excptype,
-		   isfirst?"if":"else if", tmapdirthrowsmatches,
-		   tmapdirthrows);
+            // TODO Improve use of $javaclassname?  $javaclassfullna1me?  Get rid of inconsistency and complexity?  Already done in Kalinin changes?
+	    substituteClassnameAndPackagePath(excptype, tmapdirthrows, true, p);
 
+	    Printf(directorthrowshandlers_code, 
+		   "// Handle exception %s using directorthrows typemap\n"
+		   "%s", 
+		   excptype, tmapdirthrows);
 	    Delete(tmapdirthrows);
-	    Delete(tmapdirthrowsmatches);
-	    isfirst=false; // clauses after first are "else if"
 	  }
 	}
-
-	Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);
+	// Delete extra new line if no handlers.  
+	while (Replaceall(featdirexcp, "$directorthrowshandlers ",
+			  "$directorthrowshandlers")) {}
+	if (0 == Len(directorthrowshandlers_code))
+	  Replaceall(featdirexcp, "$directorthrowshandlers\n", "");
+	else
+	  Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);
 	Delete(directorthrowshandlers_code);
       }
 
-      if (Strstr(featdirexcp, "$defaulthandler")) {
-	// Access feature attribute of director:except, or director:except:defaulthandler
-	String * defaulthandler = Getattr(n, "feature:director:except:defaulthandler");
-	Replaceall(featdirexcp, "$defaulthandler", defaulthandler ? defaulthandler : "");
-      }
-      // Replace all occurences of $error with a common var name.  No need for uniqueness, only one.
+      // Replace all occurrences of $error with common var name.
       Replaceall(featdirexcp, "$error", "thrown_");
-      Printf(w->code, "    {\n%s\n}\n", featdirexcp);
+      Printf(w->code, "    %s\n", featdirexcp);
     }
     Delete(featdirexcp);
   }
