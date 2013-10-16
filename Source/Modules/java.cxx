@@ -205,7 +205,6 @@ public:
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
 	   if (nspace) {
-	     //  TODO: need to honor javapackage typemaps?
 	     if (package)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
 	     else
@@ -1998,9 +1997,6 @@ public:
       Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
-
-      // Allow use of global $packagepath in explicit throws typemaps  TODO unused?
-      substitutePackagePath(proxy_class_code, 0);
 
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
@@ -4217,7 +4213,6 @@ public:
 	  } else {
 	    // replace $packagepath 
 	    tmapdirthrows = Copy(tmapdirthrows);
-            // TODO Improve use of $javaclassname?  $javaclassfullna1me?  Get rid of inconsistency and complexity?  Already done in Kalinin changes?
 	    substituteClassnameAndPackagePath(excptype, tmapdirthrows, true, p);
 
 	    Printf(directorthrowshandlers_code, 
