@@ -3225,7 +3225,7 @@ public:
     if (throws_list) {
       Iterator cls = First(throws_list);
       Printf(code, " throws %s", cls.item);
-      while ((cls = Next(cls)).item) 
+      while ((cls = Next(cls)).item)
 	Printf(code, ", %s", cls.item);
     }
   }
