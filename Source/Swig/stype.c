@@ -131,6 +131,7 @@ SwigType *NewSwigType(int t) {
     break;
   case T_STRING: {
       SwigType *t = NewString("char");
+      SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
       break;
