@@ -848,7 +848,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\nusing System.Runtime.InteropServices;\n"
+%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing global::System;\nusing global::System.Runtime.InteropServices;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
 %typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
@@ -982,13 +982,13 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %pragma(csharp) moduleclassmodifiers="public class"
 
 %pragma(csharp) moduleimports=%{
-using System;
-using System.Runtime.InteropServices;
+using global::System;
+using global::System.Runtime.InteropServices;
 %}
 
 %pragma(csharp) imclassimports=%{
-using System;
-using System.Runtime.InteropServices;
+using global::System;
+using global::System.Runtime.InteropServices;
 %}
 
 /* Some ANSI C typemaps */
@@ -1018,10 +1018,10 @@ using System.Runtime.InteropServices;
   public class SWIGStringMarshal : IDisposable {
     public readonly HandleRef swigCPtr;
     public SWIGStringMarshal(string str) {
-      swigCPtr = new HandleRef(this, System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str));
+      swigCPtr = new HandleRef(this, global::System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str));
     }
     public virtual void Dispose() {
-      System.Runtime.InteropServices.Marshal.FreeHGlobal(swigCPtr.Handle);
+      global::System.Runtime.InteropServices.Marshal.FreeHGlobal(swigCPtr.Handle);
       GC.SuppressFinalize(this);
     }
   }
@@ -1031,7 +1031,7 @@ using System.Runtime.InteropServices;
 %typemap(out) char *, char[ANY], char[] %{ $result = $1; %}
 %typemap(csin) char *, char[ANY], char[] "new $imclassname.SWIGStringMarshal($csinput).swigCPtr"
 %typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
-    string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
+    string ret = global::System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
     return ret;
   }
 %typemap(csvarin, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
@@ -1040,7 +1040,7 @@ using System.Runtime.InteropServices;
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     get {
-      string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
+      string ret = global::System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
       return ret;
     } %}
 */

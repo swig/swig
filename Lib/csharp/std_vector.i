@@ -26,9 +26,9 @@
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
+%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, global::System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
 %typemap(cscode) std::vector< CTYPE > %{
-  public $csclassname(System.Collections.ICollection c) : this() {
+  public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)
       throw new ArgumentNullException("c");
     foreach ($typemap(cstype, CTYPE) element in c) {
@@ -81,7 +81,7 @@
   }
 
 #if SWIG_DOTNET_1
-  public void CopyTo(System.Array array)
+  public void CopyTo(global::System.Array array)
 #else
   public void CopyTo($typemap(cstype, CTYPE)[] array)
 #endif
@@ -90,7 +90,7 @@
   }
 
 #if SWIG_DOTNET_1
-  public void CopyTo(System.Array array, int arrayIndex)
+  public void CopyTo(global::System.Array array, int arrayIndex)
 #else
   public void CopyTo($typemap(cstype, CTYPE)[] array, int arrayIndex)
 #endif
@@ -99,7 +99,7 @@
   }
 
 #if SWIG_DOTNET_1
-  public void CopyTo(int index, System.Array array, int arrayIndex, int count)
+  public void CopyTo(int index, global::System.Array array, int arrayIndex, int count)
 #else
   public void CopyTo(int index, $typemap(cstype, CTYPE)[] array, int arrayIndex, int count)
 #endif
@@ -121,12 +121,12 @@
   }
 
 #if !SWIG_DOTNET_1
-  System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
+  global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 #endif
 
-  System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+  global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
@@ -139,9 +139,9 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator
+  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator
 #if !SWIG_DOTNET_1
-    , System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
+    , global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
 #endif
   {
     private $csclassname collectionRef;
@@ -170,7 +170,7 @@
     }
 
     // Type-unsafe IEnumerator.Current
-    object System.Collections.IEnumerator.Current {
+    object global::System.Collections.IEnumerator.Current {
       get {
         return Current;
       }

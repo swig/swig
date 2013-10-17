@@ -27,7 +27,7 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
     public static extern void SWIGRegisterWStringCallback_$module(SWIGWStringDelegate wstringDelegate);
 
     static string CreateWString([MarshalAs(UnmanagedType.LPWStr)]IntPtr cString) {
-      return System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
+      return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
     }
 
     static SWIGWStringHelper() {
@@ -82,7 +82,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
 
 %typemap(csin) wchar_t * "$csinput"
 %typemap(csout, excode=SWIGEXCODE) wchar_t * {
-    string ret = System.Runtime.InteropServices.Marshal.PtrToStringUni($imcall);$excode
+    string ret = global::System.Runtime.InteropServices.Marshal.PtrToStringUni($imcall);$excode
     return ret;
   }
 %typemap(csvarin, excode=SWIGEXCODE2) wchar_t * %{

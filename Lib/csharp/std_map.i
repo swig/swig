@@ -28,7 +28,7 @@
 /* K is the C++ key type, T is the C++ value type */
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
+%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n#if !SWIG_DOTNET_1\n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
 %typemap(cscode) std::map<K, T, C > %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
@@ -64,9 +64,9 @@
 
 #if !SWIG_DOTNET_1
 
-  public System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
+  public global::System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
     get {
-      System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new System.Collections.Generic.List<$typemap(cstype, K)>();
+      global::System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new global::System.Collections.Generic.List<$typemap(cstype, K)>();
       int size = this.Count;
       if (size > 0) {
         IntPtr iter = create_iterator_begin();
@@ -79,21 +79,21 @@
     }
   }
 
-  public System.Collections.Generic.ICollection<$typemap(cstype, T)> Values {
+  public global::System.Collections.Generic.ICollection<$typemap(cstype, T)> Values {
     get {
-      System.Collections.Generic.ICollection<$typemap(cstype, T)> vals = new System.Collections.Generic.List<$typemap(cstype, T)>();
-      foreach (System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> pair in this) {
+      global::System.Collections.Generic.ICollection<$typemap(cstype, T)> vals = new global::System.Collections.Generic.List<$typemap(cstype, T)>();
+      foreach (global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> pair in this) {
         vals.Add(pair.Value);
       }
       return vals;
     }
   }
   
-  public void Add(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public void Add(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     Add(item.Key, item.Value);
   }
 
-  public bool Remove(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public bool Remove(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     if (Contains(item)) {
       return Remove(item.Key);
     } else {
@@ -101,7 +101,7 @@
     }
   }
 
-  public bool Contains(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public bool Contains(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     if (this[item.Key] == item.Value) {
       return true;
     } else {
@@ -109,11 +109,11 @@
     }
   }
 
-  public void CopyTo(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array) {
+  public void CopyTo(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array) {
     CopyTo(array, 0);
   }
 
-  public void CopyTo(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array, int arrayIndex) {
+  public void CopyTo(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array, int arrayIndex) {
     if (array == null)
       throw new ArgumentNullException("array");
     if (arrayIndex < 0)
@@ -123,18 +123,18 @@
     if (arrayIndex+this.Count > array.Length)
       throw new ArgumentException("Number of elements to copy is too large.");
 
-    System.Collections.Generic.IList<$typemap(cstype, K)> keyList = new System.Collections.Generic.List<$typemap(cstype, K)>(this.Keys);
+    global::System.Collections.Generic.IList<$typemap(cstype, K)> keyList = new global::System.Collections.Generic.List<$typemap(cstype, K)>(this.Keys);
     for (int i = 0; i < keyList.Count; i++) {
       $typemap(cstype, K) currentKey = keyList[i];
-      array.SetValue(new System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, this[currentKey]), arrayIndex+i);
+      array.SetValue(new global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, this[currentKey]), arrayIndex+i);
     }
   }
 
-  System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>.GetEnumerator() {
+  global::System.Collections.Generic.IEnumerator<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>> global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
-  System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+  global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
@@ -147,25 +147,25 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator, 
-      System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>
+  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator, 
+      global::System.Collections.Generic.IEnumerator<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>
   {
     private $csclassname collectionRef;
-    private System.Collections.Generic.IList<$typemap(cstype, K)> keyCollection;
+    private global::System.Collections.Generic.IList<$typemap(cstype, K)> keyCollection;
     private int currentIndex;
     private object currentObject;
     private int currentSize;
 
     public $csclassnameEnumerator($csclassname collection) {
       collectionRef = collection;
-      keyCollection = new System.Collections.Generic.List<$typemap(cstype, K)>(collection.Keys);
+      keyCollection = new global::System.Collections.Generic.List<$typemap(cstype, K)>(collection.Keys);
       currentIndex = -1;
       currentObject = null;
       currentSize = collectionRef.Count;
     }
 
     // Type-safe iterator Current
-    public System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> Current {
+    public global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> Current {
       get {
         if (currentIndex == -1)
           throw new InvalidOperationException("Enumeration not started.");
@@ -173,12 +173,12 @@
           throw new InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
           throw new InvalidOperationException("Collection modified.");
-        return (System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>)currentObject;
+        return (global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>)currentObject;
       }
     }
 
     // Type-unsafe IEnumerator.Current
-    object System.Collections.IEnumerator.Current {
+    object global::System.Collections.IEnumerator.Current {
       get {
         return Current;
       }
@@ -190,7 +190,7 @@
       if (moveOkay) {
         currentIndex++;
         $typemap(cstype, K) currentKey = keyCollection[currentIndex];
-        currentObject = new System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, collectionRef[currentKey]);
+        currentObject = new global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, collectionRef[currentKey]);
       } else {
         currentObject = null;
       }

@@ -170,51 +170,51 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 ExceptionArgumentDelegate argumentOutOfRangeDelegate);
 
     static void SetPendingApplicationException(string message) {
-      SWIGPendingException.Set(new System.ApplicationException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.ApplicationException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingArithmeticException(string message) {
-      SWIGPendingException.Set(new System.ArithmeticException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.ArithmeticException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingDivideByZeroException(string message) {
-      SWIGPendingException.Set(new System.DivideByZeroException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.DivideByZeroException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingIndexOutOfRangeException(string message) {
-      SWIGPendingException.Set(new System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingInvalidCastException(string message) {
-      SWIGPendingException.Set(new System.InvalidCastException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.InvalidCastException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingInvalidOperationException(string message) {
-      SWIGPendingException.Set(new System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingIOException(string message) {
-      SWIGPendingException.Set(new System.IO.IOException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.IO.IOException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingNullReferenceException(string message) {
-      SWIGPendingException.Set(new System.NullReferenceException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.NullReferenceException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingOutOfMemoryException(string message) {
-      SWIGPendingException.Set(new System.OutOfMemoryException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.OutOfMemoryException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingOverflowException(string message) {
-      SWIGPendingException.Set(new System.OverflowException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.OverflowException(message, SWIGPendingException.Retrieve()));
     }
     static void SetPendingSystemException(string message) {
-      SWIGPendingException.Set(new System.SystemException(message, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.SystemException(message, SWIGPendingException.Retrieve()));
     }
 
     static void SetPendingArgumentException(string message, string paramName) {
-      SWIGPendingException.Set(new System.ArgumentException(message, paramName, SWIGPendingException.Retrieve()));
+      SWIGPendingException.Set(new global::System.ArgumentException(message, paramName, SWIGPendingException.Retrieve()));
     }
     static void SetPendingArgumentNullException(string message, string paramName) {
       Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
-      SWIGPendingException.Set(new System.ArgumentNullException(paramName, message));
+      SWIGPendingException.Set(new global::System.ArgumentNullException(paramName, message));
     }
     static void SetPendingArgumentOutOfRangeException(string message, string paramName) {
       Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
-      SWIGPendingException.Set(new System.ArgumentOutOfRangeException(paramName, message));
+      SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(paramName, message));
     }
 
     static SWIGExceptionHelper() {
