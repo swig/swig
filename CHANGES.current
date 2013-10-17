@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.12 (9 Feb 2014)
 ===========================
 
+2013-10-17: wsfulton
+            [Python] Fix SF #1345 - Missing #include <stddef.h> for offsetof when using -builtin.
+
 2013-10-12: wsfulton
             [Lua] Apply #92 - missing return statements for SWIG_Lua_add_namespace_details()
             and SWIG_Lua_namespace_register().
