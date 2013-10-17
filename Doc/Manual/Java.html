@@ -1925,21 +1925,15 @@ When the nspace feature is used, the C++ namespaces are converted into Java pack
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
 As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier generally should be used to provide a parent package.
 So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.
-If you don't specify a package, you will get the following warning:
+If you do not specify a global outer package, you must use the %nspace feature for all generated classes AND you must provide a jniclasspackage for the generated intermediate classes, since otherwise the proxy classes will not be able to access the jni classes in an unnamed package.
 </p>
 
-<div class="shell">
+<div class="code">
 <pre>
-example.i:16: Warning 826: The nspace feature is used on 'MyWorld::Material::Color' without -package. The generated code 
-may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.
+%pragma(java) jniclasspackage="mypackage";
+%nspace; // Apply namespace feature to all classes
 </pre>
 </div>
-
-<p>
-If it is undesirable to have a single top level package, the nspace feature may be used without the <tt>-package</tt> commandline option
-(and the resulting warning ignored) if all of the types exposed using SWIG are placed in a package using the nspace feature and the
-'jniclasspackage' pragma is used to specify a package for the JNI intermediary class.
-</p>
 
 <p>
 If the resulting use of the nspace feature and hence packages results in a proxy class in one package deriving or using a proxy class from another package,
