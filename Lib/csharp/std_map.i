@@ -26,7 +26,7 @@
 /* K is the C++ key type, T is the C++ value type */
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
+%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
 %typemap(cscode) std::map<K, T, C > %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
@@ -65,7 +65,7 @@
       global::System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new global::System.Collections.Generic.List<$typemap(cstype, K)>();
       int size = this.Count;
       if (size > 0) {
-        IntPtr iter = create_iterator_begin();
+        global::System.IntPtr iter = create_iterator_begin();
         for (int i = 0; i < size; i++) {
           keys.Add(get_next_key(iter));
         }
@@ -111,13 +111,13 @@
 
   public void CopyTo(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array, int arrayIndex) {
     if (array == null)
-      throw new ArgumentNullException("array");
+      throw new global::System.ArgumentNullException("array");
     if (arrayIndex < 0)
-      throw new ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
+      throw new global::System.ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
     if (array.Rank > 1)
-      throw new ArgumentException("Multi dimensional array.", "array");
+      throw new global::System.ArgumentException("Multi dimensional array.", "array");
     if (arrayIndex+this.Count > array.Length)
-      throw new ArgumentException("Number of elements to copy is too large.");
+      throw new global::System.ArgumentException("Number of elements to copy is too large.");
 
     global::System.Collections.Generic.IList<$typemap(cstype, K)> keyList = new global::System.Collections.Generic.List<$typemap(cstype, K)>(this.Keys);
     for (int i = 0; i < keyList.Count; i++) {
@@ -164,11 +164,11 @@
     public global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> Current {
       get {
         if (currentIndex == -1)
-          throw new InvalidOperationException("Enumeration not started.");
+          throw new global::System.InvalidOperationException("Enumeration not started.");
         if (currentIndex > currentSize - 1)
-          throw new InvalidOperationException("Enumeration finished.");
+          throw new global::System.InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
-          throw new InvalidOperationException("Collection modified.");
+          throw new global::System.InvalidOperationException("Collection modified.");
         return (global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>)currentObject;
       }
     }
@@ -197,7 +197,7 @@
       currentIndex = -1;
       currentObject = null;
       if (collectionRef.Count != currentSize) {
-        throw new InvalidOperationException("Collection modified.");
+        throw new global::System.InvalidOperationException("Collection modified.");
       }
     }
 

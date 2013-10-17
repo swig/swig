@@ -94,7 +94,7 @@ Number times12(const Number* num) {
 %typemap(csvarin, excode=SWIGEXCODE2) int %{
     set {
       if ($csinput < 0)
-        throw new ApplicationException("number too small!");
+        throw new global::System.ApplicationException("number too small!");
       $imcall;$excode
     } %}
 

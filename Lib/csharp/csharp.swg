@@ -110,23 +110,23 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 /* Non primitive types */
 %typemap(ctype) SWIGTYPE "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE "$&csclassname"
 
 %typemap(ctype) SWIGTYPE [] "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE [] "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE [] "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE [] "$csclassname"
 
 %typemap(ctype) SWIGTYPE * "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE * "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE * "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE * "$csclassname"
 
 %typemap(ctype) SWIGTYPE & "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE & "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE & "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
 %typemap(ctype) SWIGTYPE && "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE && "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE && "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE && "$csclassname"
 
 /* pointer to a class member */
@@ -447,7 +447,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) SWIGTYPE &&
 %{ $input = ($1_ltype) &$1; %}
 
-%typemap(csdirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($iminput == IntPtr.Zero) ? null : new $csclassname($iminput, false)"
+%typemap(csdirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($iminput == global::System.IntPtr.Zero) ? null : new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE & "new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE && "new $csclassname($iminput, false)"
 %typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$csclassname.getCPtr($cscall).Handle"
@@ -683,8 +683,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [] {
-    IntPtr cPtr = $imcall;
-    $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*) {
@@ -803,8 +803,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE *, SWIGTYPE [] %{
     get {
-      IntPtr cPtr = $imcall;
-      $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+      global::System.IntPtr cPtr = $imcall;
+      $csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
       return ret;
     } %}
 
@@ -817,12 +817,12 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 /* Pointer reference typemaps */
 %typemap(ctype) SWIGTYPE *const& "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE *const& "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") SWIGTYPE *const& "global::System.Runtime.InteropServices.HandleRef"
 %typemap(cstype) SWIGTYPE *const& "$*csclassname"
 %typemap(csin) SWIGTYPE *const& "$*csclassname.getCPtr($csinput)"
 %typemap(csout, excode=SWIGEXCODE) SWIGTYPE *const& {
-    IntPtr cPtr = $imcall;
-    $*csclassname ret = (cPtr == IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $*csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
     return ret;
   }
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
@@ -831,15 +831,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %} 
 
-/* Marshal C/C++ pointer to IntPtr */
+/* Marshal C/C++ pointer to global::System.IntPtr */
 %typemap(ctype) void *VOID_INT_PTR "void *"
-%typemap(imtype) void *VOID_INT_PTR "IntPtr"
-%typemap(cstype) void *VOID_INT_PTR "IntPtr"
+%typemap(imtype) void *VOID_INT_PTR "global::System.IntPtr"
+%typemap(cstype) void *VOID_INT_PTR "global::System.IntPtr"
 %typemap(in) void *VOID_INT_PTR %{ $1 = ($1_ltype)$input; %}
 %typemap(out) void *VOID_INT_PTR %{ $result = (void *)$1; %} 
 %typemap(csin) void *VOID_INT_PTR "$csinput"
 %typemap(csout, excode=SWIGEXCODE) void *VOID_INT_PTR {
-    IntPtr ret = $imcall;$excode
+    global::System.IntPtr ret = $imcall;$excode
     return ret;
   }
 
@@ -848,8 +848,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing global::System;\nusing global::System.Runtime.InteropServices;\n"
-%typemap(csinterfaces)                SWIGTYPE "IDisposable"
+%typemap(csinterfaces)                SWIGTYPE "global::System.IDisposable"
 %typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
@@ -859,29 +858,29 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_CSBODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Proxy classes (base classes, ie, not derived classes)
 %typemap(csbody) TYPE %{
-  private HandleRef swigCPtr;
+  private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   protected bool swigCMemOwn;
 
-  PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool cMemoryOwn) {
+  PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
-    swigCPtr = new HandleRef(this, cPtr);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
-  CPTR_VISIBILITY static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
 // Derived proxy classes
 %typemap(csbody_derived) TYPE %{
-  private HandleRef swigCPtr;
+  private global::System.Runtime.InteropServices.HandleRef swigCPtr;
 
-  PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGUpcast(cPtr), cMemoryOwn) {
-    swigCPtr = new HandleRef(this, cPtr);
+  PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGUpcast(cPtr), cMemoryOwn) {
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
-  CPTR_VISIBILITY static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 %enddef
@@ -889,18 +888,18 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_CSBODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
 %typemap(csbody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
-  private HandleRef swigCPtr;
+  private global::System.Runtime.InteropServices.HandleRef swigCPtr;
 
-  PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool futureUse) {
-    swigCPtr = new HandleRef(this, cPtr);
+  PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool futureUse) {
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
   DEFAULTCTOR_VISIBILITY $csclassname() {
-    swigCPtr = new HandleRef(null, IntPtr.Zero);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
   }
 
-  CPTR_VISIBILITY static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
@@ -938,27 +937,27 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 %typemap(csdestruct, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
     lock(this) {
-      if (swigCPtr.Handle != IntPtr.Zero) {
+      if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
           swigCMemOwn = false;
           $imcall;
         }
-        swigCPtr = new HandleRef(null, IntPtr.Zero);
+        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      GC.SuppressFinalize(this);
+      global::System.GC.SuppressFinalize(this);
     }
   }
 
 %typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
     lock(this) {
-      if (swigCPtr.Handle != IntPtr.Zero) {
+      if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwn) {
           swigCMemOwn = false;
           $imcall;
         }
-        swigCPtr = new HandleRef(null, IntPtr.Zero);
+        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      GC.SuppressFinalize(this);
+      global::System.GC.SuppressFinalize(this);
       base.Dispose();
     }
   }
@@ -980,16 +979,6 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
-
-%pragma(csharp) moduleimports=%{
-using global::System;
-using global::System.Runtime.InteropServices;
-%}
-
-%pragma(csharp) imclassimports=%{
-using global::System;
-using global::System.Runtime.InteropServices;
-%}
 
 /* Some ANSI C typemaps */
 
@@ -1015,19 +1004,19 @@ using global::System.Runtime.InteropServices;
 /*
 // Alternative char * typemaps.
 %pragma(csharp) imclasscode=%{
-  public class SWIGStringMarshal : IDisposable {
-    public readonly HandleRef swigCPtr;
+  public class SWIGStringMarshal : global::System.IDisposable {
+    public readonly global::System.Runtime.InteropServices.HandleRef swigCPtr;
     public SWIGStringMarshal(string str) {
-      swigCPtr = new HandleRef(this, global::System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str));
+      swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, global::System.Runtime.InteropServices.Marshal.StringToHGlobalAnsi(str));
     }
     public virtual void Dispose() {
       global::System.Runtime.InteropServices.Marshal.FreeHGlobal(swigCPtr.Handle);
-      GC.SuppressFinalize(this);
+      global::System.GC.SuppressFinalize(this);
     }
   }
 %}
 
-%typemap(imtype, out="IntPtr") char *, char[ANY], char[]   "HandleRef"
+%typemap(imtype, out="global::System.IntPtr") char *, char[ANY], char[]   "global::System.Runtime.InteropServices.HandleRef"
 %typemap(out) char *, char[ANY], char[] %{ $result = $1; %}
 %typemap(csin) char *, char[ANY], char[] "new $imclassname.SWIGStringMarshal($csinput).swigCPtr"
 %typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {

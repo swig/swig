@@ -776,7 +776,7 @@ public:
       }
     }
 
-    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
 
     if (im_outattributes)
       Printf(imclass_class_code, "  %s\n", im_outattributes);
@@ -1699,7 +1699,7 @@ public:
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
-	Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
+	Replaceall(destruct, "$imcall", "throw new global::System.MethodAccessException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
 	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " ", derived ? "override" : "virtual", " void ", destruct_methodname, "() ", destruct, "\n",
 	       NIL);
@@ -1732,7 +1732,7 @@ public:
       if (first_class_dmethod < curr_class_dmethod) {
 	// Only emit if there is at least one director method
 	Printf(proxy_class_code, "\n");
-	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, Type[] methodTypes) {\n");
+	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, global::System.Type[] methodTypes) {\n");
 	Printf(proxy_class_code,
 	       "    global::System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
 	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
@@ -1798,8 +1798,8 @@ public:
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
-      Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-      Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
+      Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+      Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method);
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
@@ -3387,8 +3387,8 @@ public:
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
-    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-    Printf(imclass_class_code, "  public static extern void %s(HandleRef jarg1", swig_director_connect);
+    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printf(imclass_class_code, "  public static extern void %s(global::System.Runtime.InteropServices.HandleRef jarg1", swig_director_connect);
 
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
@@ -3917,7 +3917,7 @@ public:
 
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
       Printf(director_delegate_instances, "  private SwigDelegate%s_%s swigDelegate%s;\n", classname, methid, methid);
-      Printf(director_method_types, "  private static Type[] swigMethodTypes%s = new Type[] { %s };\n", methid, proxy_method_types);
+      Printf(director_method_types, "  private static global::System.Type[] swigMethodTypes%s = new global::System.Type[] { %s };\n", methid, proxy_method_types);
       Printf(director_connect_parms, "SwigDirector%s%s delegate%s", classname, methid, methid);
     }
 

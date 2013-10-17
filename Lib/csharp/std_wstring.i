@@ -23,7 +23,7 @@ class wstring;
 
 // wstring
 %typemap(ctype, out="void *") wstring "wchar_t *"
-%typemap(imtype, inattributes="[MarshalAs(UnmanagedType.LPWStr)]") wstring "string"
+%typemap(imtype, inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]") wstring "string"
 %typemap(cstype) wstring "string"
 %typemap(csdirectorin) wstring "$iminput"
 %typemap(csdirectorout) wstring "$cscall"
@@ -60,7 +60,7 @@ class wstring;
 
 // const wstring &
 %typemap(ctype, out="void *") const wstring & "wchar_t *"
-%typemap(imtype, inattributes="[MarshalAs(UnmanagedType.LPWStr)]") const wstring & "string"  
+%typemap(imtype, inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]") const wstring & "string"  
 %typemap(cstype) const wstring & "string"
 
 %typemap(csdirectorin) const wstring & "$iminput"
