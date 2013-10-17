@@ -4,8 +4,6 @@
  * SWIG typemaps for std::vector<T>
  * C# implementation
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.List<> collection.
- * For .NET 1 compatibility, define SWIG_DOTNET_1 when compiling the C# code; then the C# wrapper is 
- * made to look and feel like a typesafe C# System.Collections.ArrayList.
  *
  * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
  * C++ std::vector wrappers. The IList<> interface is also implemented to provide enhanced functionality
@@ -26,7 +24,7 @@
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, global::System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
+%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
 %typemap(cscode) std::vector< CTYPE > %{
   public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)
@@ -80,29 +78,17 @@
     }
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(global::System.Array array)
-#else
   public void CopyTo($typemap(cstype, CTYPE)[] array)
-#endif
   {
     CopyTo(0, array, 0, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(global::System.Array array, int arrayIndex)
-#else
   public void CopyTo($typemap(cstype, CTYPE)[] array, int arrayIndex)
-#endif
   {
     CopyTo(0, array, arrayIndex, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(int index, global::System.Array array, int arrayIndex, int count)
-#else
   public void CopyTo(int index, $typemap(cstype, CTYPE)[] array, int arrayIndex, int count)
-#endif
   {
     if (array == null)
       throw new ArgumentNullException("array");
@@ -120,11 +106,9 @@
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
   }
 
-#if !SWIG_DOTNET_1
   global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
-#endif
 
   global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
@@ -140,9 +124,7 @@
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
   public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator
-#if !SWIG_DOTNET_1
     , global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
-#endif
   {
     private $csclassname collectionRef;
     private int currentIndex;
@@ -196,12 +178,10 @@
       }
     }
 
-#if !SWIG_DOTNET_1
     public void Dispose() {
         currentIndex = -1;
         currentObject = null;
     }
-#endif
   }
 %}
 

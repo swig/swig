@@ -11,9 +11,7 @@
  *   %template(MapIntDouble) std::map<int, double>
  *
  * Notes:
- * 1) For .NET 1 compatibility, define SWIG_DOTNET_1 when compiling the C# code. In this case 
- *    the C# wrapper has only basic functionality.
- * 2) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
+ * 1) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
  *    C++ std::map wrappers.
  *
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
@@ -28,7 +26,7 @@
 /* K is the C++ key type, T is the C++ value type */
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n#if !SWIG_DOTNET_1\n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
+%typemap(csinterfaces) std::map< K, T, C > "IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
 %typemap(cscode) std::map<K, T, C > %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
@@ -61,8 +59,6 @@
       return false; 
     }
   }
-
-#if !SWIG_DOTNET_1
 
   public global::System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
     get {
@@ -210,7 +206,6 @@
       currentObject = null;
     }
   }
-#endif
   
 %}
 
