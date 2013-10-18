@@ -443,7 +443,6 @@ public:
     Append(s_header, "  zval **args[2];\n");
     Append(s_header, "  swig_object_wrapper *value;\n");
     Append(s_header, "  int type;\n");
-    Append(s_header, "  int thisown;\n");
     Append(s_header, "\n");
     Append(s_header, "  SWIG_ResetError();\n");
     Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
