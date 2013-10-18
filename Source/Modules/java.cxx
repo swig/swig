@@ -181,8 +181,8 @@ public:
 
     if (!nspace && !package) {
       String *name = Getattr(n, "name");
-      Swig_error(Getfile(n), Getline(n),
-		 "Generating '%s' without using %%nspace or -package \"pkgname\" creates java classes in an unnamed package, which cannot be used from other code", name ? name : "<unnamed>");
+      Swig_warning(WARN_JAVA_CLASSES_IN_UNNAMED_PACKAGE, Getfile(n), Getline(n),
+		 "Generating '%s' without %%nspace or -package \"pkgname\" creates java classes in unnamed package, which will be inaccessible from java classes in a package\n", name ? name : "<unnamed>");
     }
     if (nspace && !package && !imclass_package) {
       String *name = Getattr(n, "name");

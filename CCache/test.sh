@@ -288,63 +288,63 @@ swigtests() {
     genswigcode testswig1.i 1
 
     testname="BASIC"
-    $CCACHE_COMPILE -java testswig1.i
+    $CCACHE_COMPILE -java -w826 testswig1.i
     checkstat 'cache hit' 0
     checkstat 'cache miss' 1
     
     checkstat 'files in cache' 6
 
     testname="BASIC2"
-    $CCACHE_COMPILE -java testswig1.i
+    $CCACHE_COMPILE -java -w826 testswig1.i
     checkstat 'cache hit' 1
     checkstat 'cache miss' 1
     
     testname="output"
-    $CCACHE_COMPILE -java testswig1.i -o foo_wrap.c
+    $CCACHE_COMPILE -java -w826 testswig1.i -o foo_wrap.c
     checkstat 'cache hit' 1
     checkstat 'cache miss' 2
 
     testname="bad"
-    $CCACHE_COMPILE -java testswig1.i -I 2> /dev/null
+    $CCACHE_COMPILE -java -w826 testswig1.i -I 2> /dev/null
     checkstat 'bad compiler arguments' 1
 
     testname="stdout"
-    $CCACHE_COMPILE -v -java testswig1.i > /dev/null
+    $CCACHE_COMPILE -v -java -w826 testswig1.i > /dev/null
     checkstat 'compiler produced stdout' 1
 
     testname="non-regular"
     mkdir testd
-    $CCACHE_COMPILE -o testd -java testswig1.i > /dev/null 2>&1
+    $CCACHE_COMPILE -o testd -java -w826 testswig1.i > /dev/null 2>&1
     rm -rf testd
     checkstat 'output to a non-regular file' 1
 
     testname="no-input"
-    $CCACHE_COMPILE -java 2> /dev/null
+    $CCACHE_COMPILE -java -w826 2> /dev/null
     checkstat 'no input file' 1
 
 
     testname="CCACHE_DISABLE"
-    CCACHE_DISABLE=1 $CCACHE_COMPILE -java testswig1.i 2> /dev/null
+    CCACHE_DISABLE=1 $CCACHE_COMPILE -java -w826 testswig1.i 2> /dev/null
     checkstat 'cache hit' 1 
-    $CCACHE_COMPILE -java testswig1.i
+    $CCACHE_COMPILE -java -w826 testswig1.i
     checkstat 'cache hit' 2 
 
     testname="CCACHE_CPP2"
-    CCACHE_CPP2=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_CPP2=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 2 
     checkstat 'cache miss' 3
 
-    CCACHE_CPP2=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_CPP2=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 3 
     checkstat 'cache miss' 3
 
     testname="CCACHE_NOSTATS"
-    CCACHE_NOSTATS=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_NOSTATS=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 3
     checkstat 'cache miss' 3
     
     testname="CCACHE_RECACHE"
-    CCACHE_RECACHE=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_RECACHE=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 3 
     checkstat 'cache miss' 4
 
@@ -355,41 +355,41 @@ swigtests() {
 
 
     testname="CCACHE_HASHDIR"
-    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 3
     checkstat 'cache miss' 5
 
-    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 4
     checkstat 'cache miss' 5
 
     checkstat 'files in cache' 24
     
     testname="cpp call"
-    $CCACHE_COMPILE -java -E testswig1.i > testswig1-preproc.i
+    $CCACHE_COMPILE -java -w826 -E testswig1.i > testswig1-preproc.i
     checkstat 'cache hit' 4
     checkstat 'cache miss' 5
 
     testname="direct .i compile"
-    $CCACHE_COMPILE -java testswig1.i
+    $CCACHE_COMPILE -java -w826 testswig1.i
     checkstat 'cache hit' 5
     checkstat 'cache miss' 5
 
     # No cache hit due to different input file name, -nopreprocess should not be given twice to SWIG
-    $CCACHE_COMPILE -java -nopreprocess testswig1-preproc.i
+    $CCACHE_COMPILE -java -w826 -nopreprocess testswig1-preproc.i
     checkstat 'cache hit' 5
     checkstat 'cache miss' 6
 
-    $CCACHE_COMPILE -java -nopreprocess testswig1-preproc.i
+    $CCACHE_COMPILE -java -w826 -nopreprocess testswig1-preproc.i
     checkstat 'cache hit' 6
     checkstat 'cache miss' 6
 
     testname="stripc"
-    CCACHE_STRIPC=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    CCACHE_STRIPC=1 $CCACHE_COMPILE -java -w826 -O -O testswig1.i
     checkstat 'cache hit' 7
     checkstat 'cache miss' 6
 
-    CCACHE_STRIPC=1 $CCACHE_COMPILE -java -O -O -O testswig1.i
+    CCACHE_STRIPC=1 $CCACHE_COMPILE -java -w826 -O -O -O testswig1.i
     checkstat 'cache hit' 7
     checkstat 'cache miss' 7
 

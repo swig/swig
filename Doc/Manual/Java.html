@@ -1936,8 +1936,11 @@ If you do not specify a global outer package, you must use the %nspace feature f
 </div>
 
 <p>
-If the resulting use of the nspace feature and hence packages results in a proxy class in one package deriving or using a proxy class from another package,
-you will need to open up the visibility for the pointer constructor and <tt>getCPtr</tt> method from the default 'protected' to 'public' with the <tt>SWIG_JAVABODY_PROXY</tt> macro. See <a href="#Java_code_typemaps">Java code typemaps</a>.
+The use of the nspace feature will typically result in proxy classes in one package deriving or using proxy class from another package. In this case you will need to change visibility for the pointer constructor and <tt>getCPtr</tt> method from the default 'protected' to 'public' with the <tt>SWIG_JAVABODY_PROXY</tt> macro. See <a href="#Java_code_typemaps">Java code typemaps</a>.
+</p>
+
+<p>
+If you do not use %nspace OR a global outer package with "-package" all the classes are generated in an unnamed namespace.  Although this will compile, it will not be usable by any other classes except those in an unnamed namespace.  This is uncommon, so a warning is generated.
 </p>
 
 <H3><a name="Java_templates"></a>24.3.14 C++ templates</H3>
