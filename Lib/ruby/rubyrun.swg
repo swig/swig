@@ -151,14 +151,13 @@ SWIG_Ruby_InitRuntime(void)
 SWIGRUNTIME void
 SWIG_Ruby_define_class(swig_type_info *type)
 {
-  VALUE klass;
   char *klass_name = (char *) malloc(4 + strlen(type->name) + 1);
   sprintf(klass_name, "TYPE%s", type->name);
   if (NIL_P(_cSWIG_Pointer)) {
     _cSWIG_Pointer = rb_define_class_under(_mSWIG, "Pointer", rb_cObject);
     rb_undef_method(CLASS_OF(_cSWIG_Pointer), "new");
   }
-  klass = rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
+  rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
   free((void *) klass_name);
 }
 
