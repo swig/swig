@@ -173,6 +173,7 @@ typedef struct swig_perl_type_ext {
   const char *name;
   MGVTBL vtbl;
   void (*destroy)(MAGIC *);
+  void (*disown)(MAGIC *);
   const int nattr;
   swig_perl_type_ext_var *attr;
 } swig_perl_type_ext;
@@ -262,8 +263,8 @@ SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
 #define SWIG_Perl_VTBL(getf, setf) \
   { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free }
 
-#define SWIG_Perl_TypeExt(name, destructor, count, attrlist) \
-  { name, SWIG_Perl_VTBL(0, 0), destructor, count, attrlist }
+#define SWIG_Perl_TypeExt(name, destructor, disowner, count, attrlist) \
+  { name, SWIG_Perl_VTBL(0, 0), destructor, disowner, count, attrlist }
 
 SWIGRUNTIME const char *
 SWIG_Perl_TypeProxyName(const swig_type_info *type) {
@@ -426,6 +427,8 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
 
   if ((impl = SWIG_Perl_LookupPtr(stash, ptr))) {
     SvSetSV(sv, impl);
+    if (!(flags & SWIG_POINTER_OWN))
+      sv_rvweaken(sv);
     return sv;
   }
   ext = (swig_perl_type_ext *)t->clientdata;
@@ -580,19 +583,6 @@ SWIG_Perl_SetModule(swig_module_info *module) {
       strlen(SWIG_PERL_RUNTIME_KEY), newSViv(PTR2IV(&info)), 0);
 }
 
-XS(SWIG_Perl_Release) {
-  dXSARGS;
-  SV *self;
-
-  if (items > 0) {
-    self = ST(0);
-    if (SvROK(self) && !SvREADONLY(SvRV(self))) {
-      SvSetSV(SvRV(self), &PL_sv_undef);
-    }
-  }
-  XSRETURN_UNDEF;
-}
-
 XS(SWIG_Perl_Own) {
   dXSARGS;
   SV *self;
@@ -610,6 +600,12 @@ XS(SWIG_Perl_Own) {
             if (SvTRUE(ST(1))) {
               wrap->own |= SWIG_POINTER_OWN;
             } else {
+              if (wrap->own & SWIG_POINTER_OWN &&
+                  wrap->ti->clientdata &&
+                  ((swig_perl_type_ext *)wrap->ti->clientdata)->disown) {
+                ((swig_perl_type_ext *)wrap->ti->clientdata)->disown(mg);
+                sv_rvweaken(self);
+              }
               wrap->own &= ~SWIG_POINTER_OWN;
             }
           case 1:

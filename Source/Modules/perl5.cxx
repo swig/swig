@@ -534,31 +534,13 @@ public:
     int varargs = 0;
     int dir_catch = 0;
     int need_proto = GetFlag(n, "perl5:addproto") ? 1 : 0;
+    int is_implicit = 0;
 
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
       if (!addSymbol(iname, n))
 	return SWIG_ERROR;
-    }
-    if (!pname) {
-      /* TODO: this is kind of a hack because we don't have much control
-       * over the stuff in naming.c from here, and
-       * Language::classDirectorDisown() constructs the node to pass
-       * here internally.
-       * additionally, it doesn't assert "hidden" on its self param,
-       * and that musses our usage_func(), so let's fix that.
-       */
-      if (getCurrentClass()) {
-	String *classname = Getattr(getCurrentClass(), "sym:name");
-	String *tmp = NewStringf("disown_%s", classname);
-	if (Equal(iname, tmp)) {
-	  pname = NewStringf("%s::_swig_disown", classname);
-	  Setattr(n, "perl5:name", NewStringf("%s::disown", classname));
-	  Setattr(Getattr(n, "parms"), "hidden", "1");
-	}
-	Delete(tmp);
-      }
     }
 
     if (!pname)
@@ -571,7 +553,14 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
-    if (GetFlag(n, "perl5:destructor")) {
+    if (getCurrentClass() &&
+        GetFlag(getCurrentClass(), "perl5:directordisown")) {
+      Setattr(getCurrentClass(), "perl5:disowner", wname);
+      is_implicit = 1;
+    } else if (GetFlag(n, "perl5:destructor")) {
+      is_implicit = 1;
+    }
+    if(is_implicit) {
       Printv(f->def, "SWIGCLASS_STATIC void ", wname, "(MAGIC *mg) {\n", NIL);
       emit_parameter_variables(l, f);
       emit_return_variable(n, d, f);
@@ -588,15 +577,6 @@ public:
 	     "  return;\n" "}");
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
-      /* This explicit disown binding is purely for reverse
-       * compatibility.  Some of the Examples/perl5 samples showed
-       * explicit calls to $obj->DESTROY() so that method should
-       * release the object.  Normally, an undef($obj) would be the
-       * right way to let go as with other common perl objects. */
-      if(blessed)
-	Printf(f_init, "newXS((char *)\"%s::%s::DESTROY\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, Getattr(getCurrentClass(), "sym:name"));
-      else
-	Printf(f_init, "newXS((char *)\"%s::%s\", SWIG_Perl_Release, (char *)__FILE__);\n", namespace_module, pname);
       return SWIG_OK;
     }
     if (GetFlag(n, "perl5:instancevariable")) {
@@ -1360,10 +1340,14 @@ public:
 	  Append(pm, ");\n");
 	  {
 	    Node *destroy = Getattr(n, "perl5:destructor");
+	    String *disowner = Getattr(n, "perl5:disowner");
 	    if (nattr)
 	      Append(f_wrappers, "\n};\n");
-	    Printf(f_wrappers, "static swig_perl_type_ext _swigt_ext_%s = SWIG_Perl_TypeExt(\"%s\", %s, %d, ",
-		   mang, fullclassname, destroy ? Getattr(destroy, "wrap:name") : "0", nattr);
+	    Printf(f_wrappers, "static swig_perl_type_ext _swigt_ext_%s = SWIG_Perl_TypeExt(\"%s\", %s, %s, %d, ",
+		   mang, fullclassname,
+		   destroy ? Getattr(destroy, "wrap:name") : "0",
+		   disowner ? disowner : "0",
+		   nattr);
 	    if (nattr)
 	      Printf(f_wrappers, "_swigt_ext_var_%s);\n\n", mang);
 	    else
@@ -1844,7 +1828,12 @@ public:
   }
 
   virtual int classDirectorDisown(Node *n) {
-    return Language::classDirectorDisown(n);
+    int rv;
+    Swig_save("perl5classDirectorDisown", n, "perl5:directordisown", NIL);
+    SetFlag(n, "perl5:directordisown");
+    rv = Language::classDirectorDisown(n);
+    Swig_restore(n);
+    return rv;
   }
 
   /* ------------------------------------------------------------

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Scalar::Util ();
-use Test::More 'no_plan';
+use Test::More tests => 29;
 BEGIN { use_ok 'director_finalizer' }
 require_ok 'director_finalizer';
 
@@ -55,7 +55,6 @@ require_ok 'director_finalizer';
         $f = director_finalizer::launder($mf);
         isa_ok $f, 'director_finalizer::Foo';
         $mf->_swig_own('');
-        $mf->_swig_disown();
     }
     # letting go of $mf shouldn't change a thing
     is(director_finalizer::getStatus(), 0);

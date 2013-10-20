@@ -10,7 +10,9 @@ Version 3.0.0 (in progress)
             instead of Perl.  This brings performance gains and enables director support for Perl5.
             Static member functions of C++ classes are now presented to Perl as methods instead of
             functions, this means callers must use Class->method() syntax instead of Class::method()
-            from Perl.
+            from Perl.  Also, object destructors are now triggered implicitly when the last
+            reference falls out of scope or is undefined, calling the DESTROY method explicitly will
+            no longer trigger destructors.
 
             *** POTENTIAL INCOMPATIBILITY  ***
 

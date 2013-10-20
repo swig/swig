@@ -135,8 +135,7 @@ namespace Swig {
       Director() : mSelf(0) {
       }
       virtual ~Director() {
-        if (!SvWEAKREF(mSelf))
-          SvREFCNT_dec(mSelf);
+        SvREFCNT_dec(mSelf);
         for (hold_map::iterator cur = holdings.begin();
             cur != holdings.end(); cur++) {
           delete cur->second;
@@ -158,7 +157,9 @@ namespace Swig {
       void swig_disown() {
         /* perl will let go, so I need to hang on.  We can't
          * unweaken a ref, but we can copy it to a strong one. */
-        mSelf = newSVsv(mSelf);
+        SV *sv = newSVsv(mSelf);
+        SvREFCNT_dec(mSelf);
+        mSelf = sv;
       }
       /* swig_{acquire,release}* are fully functional yet and the api
        * not final.  There are almost certainly leaks, but should be no
