@@ -1,4 +1,6 @@
-# file: runme.pl
+#!/usr/bin/perl
+use strict;
+use warnings;
 
 # This file illustrates the manipulation of C++ references in Perl.
 # This uses the low-level interface.  Proxy classes work differently.
@@ -8,8 +10,8 @@ use example;
 # ----- Object creation -----
 
 print "Creating some objects:\n";
-$a = example::new_Vector(3,4,5);
-$b = example::new_Vector(10,11,12);
+my $a = example::new_Vector(3,4,5);
+my $b = example::new_Vector(10,11,12);
 
 print "    Created",example::Vector_print($a),"\n";
 print "    Created",example::Vector_print($b),"\n";
@@ -23,17 +25,17 @@ print "    Created",example::Vector_print($b),"\n";
 # It returns a new allocated object.
 
 print "Adding a+b\n";
-$c = example::addv($a,$b);
+my $c = example::addv($a,$b);
 print "    a+b =", example::Vector_print($c),"\n";
 
 # Note: Unless we free the result, a memory leak will occur
-example::delete_Vector($c);
+undef $c;
 
 # ----- Create a vector array -----
 
 # Note: Using the high-level interface here
 print "Creating an array of vectors\n";
-$va = example::new_VectorArray(10);
+my $va = example::new_VectorArray(10);
 print "    va = $va\n";
 
 # ----- Set some values in the array -----
@@ -50,25 +52,25 @@ example::VectorArray_set($va,2,example::addv($a,$b));
 
 $c = example::addv($a,$b);
 example::VectorArray_set($va,3,$c);
-example::delete_Vector($c);
+undef $c;
 
 # Get some values from the array
 
 print "Getting some array values\n";
-for ($i = 0; $i < 5; $i++) {
+for (my $i = 0; $i < 5; $i++) {
     print "    va($i) = ", example::Vector_print(example::VectorArray_get($va,$i)), "\n";
 }
 
 # Watch under resource meter to check on this
 print "Making sure we don't leak memory.\n";
-for ($i = 0; $i < 1000000; $i++) {
+for (my $i = 0; $i < 1000000; $i++) {
     $c = example::VectorArray_get($va,$i % 10);
 }
 
 # ----- Clean up -----
 print "Cleaning up\n";
 
-example::delete_VectorArray($va);
-example::delete_Vector($a);
-example::delete_Vector($b);
+undef $va;
+undef $a;
+undef $b;
 

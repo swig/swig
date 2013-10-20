@@ -1,4 +1,6 @@
-# file: runme.pl
+#!/usr/bin/perl
+use strict;
+use warnings;
 
 # This file illustrates the low-level C++ interface
 # created by SWIG.  In this case, all of our C++ classes
@@ -9,9 +11,9 @@ use example;
 # ----- Object creation -----
 
 print "Creating some objects:\n";
-$c = new example::Circle(10);
+my $c = example::Circle->new(10);
 print "    Created circle $c\n";
-$s = new example::Square(10);
+my $s = example::Square->new(10);
 print "    Created square $s\n";
 
 # ----- Access a static member -----
@@ -36,7 +38,7 @@ print "    Square = (",$s->{x},",", $s->{y},")\n";
 # ----- Call some methods -----
 
 print "\nHere are some properties of the shapes:\n";
-foreach $o ($c,$s) {
+foreach my $o ($c,$s) {
       print "    $o\n";
       print "        area      = ", $o->area(), "\n";
       print "        perimeter = ", $o->perimeter(), "\n";
@@ -48,13 +50,13 @@ print "\nGuess I'll clean up now\n";
 
 # Note: this invokes the virtual destructor
 
-$c->DESTROY();
-$s->DESTROY();
+undef $c;
+undef $s;
 
 print $example::Shape::nshapes," shapes remain\n";
 
-$square = example::CFoo->MakeSquare();
-$tsquare = example::CFoo->MakeTSquare();
+my $square = example::CFoo->MakeSquare();
+my $tsquare = example::CFoo->MakeTSquare();
 print "Areas ", $square->area(), " ", $tsquare->area(),"\n";
 
 print "Goodbye\n";
