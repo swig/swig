@@ -1,5 +1,5 @@
 //
-// std::set
+// std::multiset
 //
 
 %include <std_set.i>

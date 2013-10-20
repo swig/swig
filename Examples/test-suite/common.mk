@@ -86,13 +86,13 @@ CPP_TEST_BROKEN += \
 	li_boost_shared_ptr_template \
 	overload_complicated \
 	template_default_pointer \
-	template_expr
+	template_expr \
+	$(CPP11_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
-
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
@@ -274,6 +274,7 @@ CPP_TEST_CASES += \
 	nspace \
 	nspace_extend \
 	naturalvar \
+	naturalvar_more \
 	nested_class \
 	nested_comment \
 	nested_workaround \
@@ -477,6 +478,42 @@ CPP_TEST_CASES += \
 	wallkw \
 	wrapmacro
 
+# C++11 test cases.
+CPP11_TEST_CASES = \
+        cpp11_alternate_function_syntax \
+	cpp11_constexpr \
+	cpp11_decltype \
+	cpp11_default_delete \
+	cpp11_delegating_constructors \
+	cpp11_explicit_conversion_operators \
+	cpp11_function_objects \
+	cpp11_initializer_list \
+	cpp11_initializer_list_extend \
+	cpp11_lambda_functions \
+	cpp11_null_pointer_constant \
+	cpp11_raw_string_literals \
+	cpp11_rvalue_reference \
+	cpp11_rvalue_reference2 \
+	cpp11_rvalue_reference3 \
+	cpp11_sizeof_object \
+	cpp11_static_assert \
+	cpp11_strongly_typed_enumerations \
+	cpp11_template_double_brackets \
+	cpp11_template_explicit \
+	cpp11_template_typedefs \
+        cpp11_uniform_initialization \
+	cpp11_unrestricted_unions \
+	cpp11_userdefined_literals \
+	cpp11_variadic_templates
+
+#	cpp11_inheriting_constructors \ # not supported by gcc-4.7
+#	cpp11_hash_tables \           # not fully implemented yet
+#	cpp11_result_of \             # SWIG does not support
+#	cpp11_thread_local \          # needs gcc-4.8
+
+# Broken C++11 test cases.
+CPP11_TEST_BROKEN = 
+
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
 #
@@ -506,6 +543,9 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
+ifneq (,$(HAVE_CXX11_COMPILER))
+CPP_TEST_CASES += $(CPP11_TEST_CASES)
+endif
 
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
@@ -589,9 +629,11 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 #######################################################################
 # The following applies for all module languages
 #######################################################################
-all:	$(BROKEN_TEST_CASES) $(NOT_BROKEN_TEST_CASES)
+all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
+
+check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:

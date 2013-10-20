@@ -1,0 +1,788 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="20090712;16061100">
+	<META NAME="CHANGED" CONTENT="20090817;17311900">
+	<META NAME="Podatek 1" CONTENT="">
+	<META NAME="Podatek 2" CONTENT="">
+	<META NAME="Podatek 3" CONTENT="">
+	<META NAME="Podatek 4" CONTENT="">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 2cm }
+		H1 { margin-bottom: 0.21cm }
+		H1.western { font-family: "Liberation Serif", serif }
+		H1.cjk { font-family: "DejaVu Sans" }
+		H1.ctl { font-family: "DejaVu Sans" }
+		P { margin-bottom: 0.21cm }
+		H2 { margin-bottom: 0.21cm }
+		A:link { so-language: zxx }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1 CLASS="western"><U>C++0x/C++11 support for SWIG</U></H1>
+<H1 CLASS="western">Summary</H1>
+<P>This is a technical overview of the C++0x/C++11 support for the Swig.
+This area of Swig is a work in progress. Initial C++0x/C++11 support for
+Swig was written during the Google Summer of Code 2009 period by
+Matevž Jekovec.</P>
+<H1 CLASS="western">SVN branch</H1>
+<P>branches/gsoc2009-matevz</P>
+<H1 CLASS="western">New C++11 features status</H1>
+<P>Wikipedia article: <A HREF="http://en.wikipedia.org/wiki/C++0x">http://en.wikipedia.org/wiki/C%2B%2B0x</A>
+</P>
+<H2>Rvalue reference and move semantics [done]</H2>
+<P>The Rvalues are used in practice to speed up the move operations
+on different containers.</P>
+<P>In the following example, we want to swap the given elements:</P>
+<PRE>template &lt;class T&gt; swap(T&amp; a, T&amp; b) {
+    T tmp(a);   // now we have two copies of a
+    a = b;      // now we have two copies of b
+    b = tmp;    // now we have two copies of tmp (aka a)
+}</PRE><P>
+This can now be solved using the new function std::move():</P>
+<PRE>template &lt;class T&gt; swap(T&amp; a, T&amp; b) {
+    T tmp(std::move(a));
+    a = std::move(b);   
+    b = std::move(tmp);
+}</PRE><P STYLE="margin-bottom: 0cm">
+For the move function to take effect, user needs to reimplement the
+move constructor (taking ClassType&amp;&amp; as an argument) and
+operator=(ClassType&amp;&amp;):</P>
+<PRE>class MyClass {
+  MyClass(MyClass&amp;&amp; p) : ptr(p.ptr) {p.ptr = 0;}
+  MyClass&amp; operator=(MyClass&amp;&amp; p) {
+    std::swap(ptr, p.ptr);
+    return *this;
+  }
+};</PRE><P>
+In practice, the Rvalues are used for temporaries (when passing the
+result of one function as an argument to another).</P>
+<P>Done: Added type&amp;&amp; to Swig parser. Added testcase
+cpp11_rvalue_reference.i. Operator &amp;&amp; is treated the same as
+operator &amp;. R11450</P>
+<P STYLE="margin-bottom: 0cm">Article:
+<A HREF="http://www.artima.com/cppsource/rvalue.html">http://www.artima.com/cppsource/rvalue.html</A></P>
+<H2>Generalized constant expressions [done]</H2>
+<P>In C++11 you can define functions as constant expressions.
+Functions need to return constant value in form &quot;return expr&quot;,
+where expr is a constant expression. 
+</P>
+<P>A keyword &quot;constexpr&quot; is introduced for this. eg.:
+constexpr int getNumber() { return 5; } const int MY_CONSTANT =
+getNumber(); 
+</P>
+<P>Constants are treated as normal variables in interpreted languages
+because they are not compiled into the executable. Java &quot;final&quot;
+constants are defined runtime as well. C++ constants need to be
+declared in the header file and defined in the implementation file,
+so swig doesn't need to know about the constant values when parsing
+the header file. 
+</P>
+<P>Done: Added the “constexpr “ keyword to Swig. Added testcase
+cpp11_constexpr. R11322</P>
+<P>Problem: No compilers were known to support constexpr yet, so the
+testcase was temporarily commented out in common.mk. 
+</P>
+<H2>Extern template [done]</H2>
+<P>Extern template forces the GCC compiler to not instantiate the
+template in the translation unit at that time. It's a feature
+specifically aimed at compilers to speed up the compilation process. 
+</P>
+<P>Done: Added support for 'extern template class
+std::vector&lt;MyClass&gt;;'. Added testcase cpp11_template_explicit.
+R11385 , R11386</P>
+<H2>Initializer lists [done]</H2>
+<P>Initializer list is a new type in standard library:
+std::initializer_list&lt;T&gt;. New symbols {} are introduced for the
+initializer lists. 
+</P>
+<P>One can now use: 
+</P>
+<PRE> class A {
+ public:
+   A( std::initializer_list&lt;int&gt; );
+ };
+ A a1 = {1,2,3,4};</PRE><P>
+Languages like Java, C# and Python already support direct creation of
+lists natively.</P>
+<P>Problem: initializer_list cannot be treated as an ordinary list.
+The constructor containing initializer_list can only be accessed by
+assigning the value using the {} brackets. I also don't think there
+is a simple way to convert an ordinary list or a vector to the
+initializer_list.</P>
+<P>Done: Ignored the constructor having initializer_list as its
+argument. Show warning to the user. Added testcase
+cpp11_initializer_list. R11450</P>
+<P>Article:
+<A HREF="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1919.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1919.pdf</A></P>
+<H2>Uniform initialization [done]</H2>
+<P>The new C++11 standard will allow the following:</P>
+<PRE>struct IdString {
+  std::string name;
+  int identifier;
+};
+ 
+IdString GetString() {
+  return {&quot;SomeName&quot;, 4}; //Note the lack of explicit type.
+}</PRE><P>
+The feature works exactly as it did now for POD types only (eg. int
+a[] = {1,2,3};). The following declarations are the same in the new
+C++11:</P>
+<PRE>IdString str1 = {„SomeName“, 4};
+IdString str2{„SomeName“, 4};</PRE><P>
+The new way of using uniform initialization allows the following:</P>
+<PRE>struct BasicStruct {
+ int x;
+ double y;
+};
+ 
+struct AltStruct {
+  AltStruct(int x, double y) : x_{x}, y_{y} {}
+ 
+private:
+  int x_;
+  double y_;
+};
+ 
+BasicStruct var1{5, 3.2}; // only fills the struct components
+AltStruct var2{2, 4.3};   // calls the constructor</PRE><P>
+The new syntax is specific to C++. Java, C# and scripting languages
+do not support this behaviour, but always need constructors. They
+support {} brackets for declaration of arrays as C does + they add
+support for creation of arrays on-the-fly (what C++11 introduced with
+this feature and more).</P>
+<P>Done: Added syntax for {} member initialization in class
+constructor. Added testcase cpp11_uniform_initialization. R11413</P>
+<H2>Type inference [partially done]</H2>
+<P>A new keyword 'auto' is introduced in C++11:</P>
+<PRE>auto a1 = 100;
+auto a2 = myFunc();</PRE><P>
+The type of a1 and a2 is automatically determined according to the
+initialization value during the semantic phase of the compiler.</P>
+<P>Another macro 'decltype()' is introduced. The macro takes the
+concrete object as an argument and returns its type. User could use
+this as:</P>
+<PRE>int i = 100;
+decltype(i) j = 200; // decltype(i) = int</PRE><P STYLE="margin-bottom: 0cm">
+Calling operators are allowed as well:</P>
+<PRE STYLE="margin-bottom: 0.5cm">decltype(i+j) k = 300;</PRE><P>
+Done: Added support for decltype() syntax. Test cases for normal
+decltype members and alternate function members work fine. Currently
+only syntax in form decltype(variable name) work. No support for
+custom expresions eg. decltype(i+j) yet. R11525</P>
+<P>TODO: William proposed to support the hidden variables as well
+(ones not parsed by Swig and added to symbol table). This also allows
+Swig to parse custom expressions like decltype(i+j). The idea is to
+introduce a new SwigType for this.</P>
+<H2>Range-based for-loop [ignored]</H2>
+<P>This feature is always present inside the implementation block
+only. 
+</P>
+<H2>Lambda functions and expressions [done]</H2>
+<P>C++11 introduces lambda functions defined as:</P>
+<PRE STYLE="margin-bottom: 0.5cm">[](int x, int y) -&gt; int { return x + y; }</PRE><P>
+If the lambda function contains a single return statement only or the
+function doesn't return any type, the return type '-&gt;' can be
+omitted. Lambda functions are function objects.</P>
+<P>The following example prints the number of items stored in a list:</P>
+<PRE>std::vector&lt;int&gt; someList;
+int total = 0;
+std::for_each( someList.begin(), someList.end(), [&amp;total](int x) {total += x} );
+std::cout &lt;&lt; total;</PRE><P>
+Parameters inside the [] are the visible parameters of the lambda
+functions. These can be &amp; (references), = (copies), variable name
+(variable copy), &amp;variable name (variable reference) or this
+(copy of the current object).</P>
+<P>Lambda functions can be stored using:</P>
+<PRE STYLE="margin-bottom: 0.5cm">auto myLambdaFunc = [this]() { this-&gt;SomePrivateMemberFunction() };</PRE><P>
+Proposal: Lambda functions are most commonly used inside the function
+block to quickly define how the sort, find and similar functions
+should work (the other way would be overriding a class – the Java
+style). The latest GCC does not support lambda functions yet so it is
+difficult to test the feature once implemented. I would implement the
+syntax support for this feature, but produce no wrapper code. Lambda
+functions still work inside the function block though.</P>
+<P>Article:
+<A HREF="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2550.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2550.pdf</A></P>
+<P>Done: Added syntax support for the lambda functions. Added
+testcase cpp11_lambda_functions.i. R11491, R11492</P>
+<H2>Alternate function syntax [done]</H2>
+<P>The problem with decltype() is that the parameters need to be
+defined before the decltype. The following syntax is not valid,
+because lhs and rhs hasn't been defined at the time of decltype:</P>
+<PRE>template&lt; typename LHS, typename RHS&gt; 
+  decltype(lhs+rhs) AddingFunc(const LHS &amp;lhs, const RHS &amp;rhs) {return lhs + rhs;} //Not legal C++11</PRE><P>
+The solution C++11 offers is the combination of the 'auto' keyword
+before and '-&gt; rettype' after the function declaration:</P>
+<PRE>template&lt; typename LHS, typename RHS&gt; 
+  auto AddingFunc(const LHS &amp;lhs, const RHS &amp;rhs) -&gt; decltype(lhs+rhs) {return lhs + rhs;}</PRE><P>
+The new syntax only makes the job for the C++ compilers easier when
+parsing such functions. The new syntax can be used for ordinary
+functions as well:</P>
+<PRE>struct SomeStruct {
+  auto FuncName(int x, int y) -&gt; int;
+};
+ 
+auto SomeStruct::FuncName(int x, int y) -&gt; int {
+  return x + y;
+}</PRE><P>
+Done: Added support for the 'auto' return type. Added support for the
+'-&gt; type' after the funtion declaration. Added testcases
+cpp11_alternate_function_syntax.i and
+cpp11_alternate_function_syntax_runme.py. R11414</P>
+<H2>Concepts, Axioms [ignored]</H2>
+<P>In C++ there is a common problem when you use a template in the
+class which doesn't support all the operations the functions in the
+class actually do on the type. Compiler errors are usually very long
+and unreadable. C++11 adds support for the &quot;concepts&quot;. The
+idea is to define what operations and attributes should the template
+have. In contrast to class inheritance and polimorphism, all lookups
+are done in compile-time. 
+</P>
+<P>Basic syntax (note LessThanComparable<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=LessThanComparable">?</A>
+instead of &quot;class&quot; or &quot;typename&quot;): 
+</P>
+<PRE> template&lt;LessThanComparable<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=LessThanComparable">?</A> T&gt;
+ const T&amp; min(const T &amp;x, const T &amp;y) {
+   return y &lt; x ? y : x;
+ }</PRE><P>
+Extended syntax (requires conditions are separated with &amp;&amp;,
+|| or !): 
+</P>
+<PRE> template&lt; typename T&gt; requires LessThanComparable<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=LessThanComparable">?</A>&lt;T&gt;
+ const T&amp; min(const T &amp;x, const T &amp;y) {
+   return y &lt; x ? y : x;
+ }</PRE><P>
+Definition of the concepts: 
+</P>
+<PRE> concept LessThanComparable<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=LessThanComparable">?</A>&lt; typename T &gt; {
+   bool operator&lt;(T,T);
+   requires GreaterThanComparable<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=GreaterThanComparable">?</A>&lt;T&gt;;
+   typename value_type;
+   typename reference;
+ };</PRE><P>
+Concept maps allow usage of a specific type: 
+</P>
+<PRE> template&lt; typename T&gt;
+ concept_map InputIterator<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=InputIterator">?</A>&lt;T*&gt; {
+   typedef T value_type ;
+   typedef T&amp; reference ;
+   typedef T* pointer ;
+   typedef std::ptrdiff_t difference_type ;
+ };</PRE><P>
+Concept maps can act as mini-types, with function definitions and
+other constructs commonly associated with classes: 
+</P>
+<PRE> concept Stack&lt; typename X&gt; {
+   typename value_type;
+   void push(X&amp;, const value_type&amp;);
+   void pop(X&amp;);
+   value_type top(const X&amp;);
+   bool empty(const X&amp;);
+ };
+ template&lt; typename T&gt;
+ concept_map Stack&lt;std::vector&lt;T&gt; &gt; {
+   typedef T value_type;
+   void push(std::vector&lt;T&gt;&amp; v, const T&amp; x) { v.push_back(x); }
+   void pop(std::vector&lt;T&gt;&amp; v) { v.pop_back(); }
+   T top(const std::vector&lt;T&gt;&amp; v) { return v.back(); }
+   bool empty(const std::vector&lt;T&gt;&amp; v) { return v.empty(); }
+ };</PRE><P>
+Axioms are a facility pertaining to concepts supplied by C++11 to
+express the semantic properties of concepts. For example, the concept
+Semigroup can be defined with an axiom Associativity as: 
+</P>
+<PRE> concept Semigroup&lt; typename Op, typename T&gt; : CopyConstructible<A HREF="http://www.dabeaz.com/cgi-bin/wiki.pl?action=change1&amp;id=CopyConstructible">?</A>&lt;T&gt; {
+   T operator()(Op, T, T);
+   axiom Associativity(Op op, T x, T y, T z) {
+     op(x, op(y, z)) == op(op(x, y), z);
+   }
+ };</PRE><P>
+Axioms are more like hints to the compiler to speed-up the process of
+compilation. 
+</P>
+<P>Ignored: Concepts and axioms were removed from the C++11 standard.
+</P>
+<H2>Object construction improvement [done]</H2>
+<P>This feature allows classes constructors to call other
+constructors with different arguments (similar to Java and C#
+behaviour). 
+</P>
+<P>The syntax is as follows: 
+</P>
+<PRE> class SomeType {
+  int number;
+ public:
+   SomeType(int newNumber) : number(newNumber) {}
+   SomeType() : SomeType(42) {}
+ };</PRE><P>
+Also when using the inheritance, the feature introduces inheritance
+of all superclass constructors without being defined separately in
+the inherited class: 
+</P>
+<PRE> class BaseClass {
+ public:
+   BaseClass(int iValue);
+ };
+ class DerivedClass: public BaseClass {
+   public:
+   using BaseClass::BaseClass; // Adds DerivedClass(int) constructor
+ };</PRE><P>
+Swig already correctly parses and produces the correct wrapper for
+the “using” keyword.</P>
+<P>Done: Added testcase cpp11_constructors.i which covers both
+constructor delegation and constructor inheritance. R11532</P>
+<P>Problem: Constructor delegation and constructor inheritance is not
+supported by any compiler yet, so it's impossible to try and test
+this feature.</P>
+<H2>Null pointer constant [done]</H2>
+<P>nullptr is part of the standard library. 
+</P>
+<P>It's defined as typedef decltype(nullptr) nullptr_t; 
+</P>
+<P>nullptr_t is defined in &lt;cstddef&gt;. 
+</P>
+<P>As far as the C++ is compatible with 0 as the pointer value, swig
+values will work for the C++. And the other way around, nullptr
+behaves as the ordinary pointer (false, if empty, true, if not
+empty), so it's ok for swig to compare it.</P>
+<P>Done: Written a testcase cpp11_null_pointer_constant.i and
+cpp11_null_pointer_constant_runme.py to prove the nullptr
+functionality. R11484</P>
+<H2>Strongly typed enumerations [partially done]</H2>
+<P>C++11 introduces a new syntax for strongly typed enum declaration:
+</P>
+<PRE> enum class Enumeration {
+  Val1,
+  Val2,
+  Val3 = 100,
+  Val4 /* = 101 */
+ };</PRE><P>
+Typing if (Val4 == 101) will result in compilation error. 
+</P>
+<P>The enum itself can now be explicitely of type int, long, unsigned
+int etc.: 
+</P>
+<PRE STYLE="margin-bottom: 0.5cm"> enum class Enum2 : unsigned int {Val1, Val2};</PRE><P>
+And it can be forward declared as well: 
+</P>
+<PRE> enum Enum1;                   //Illegal in C++ and C++11; no size is explicitly specified.
+ enum Enum2 : unsigned int;    //Legal in C++11.
+ enum class Enum3;             //Legal in C++11, because enum class declarations have a default type of &quot;int&quot;.
+ enum class Enum4: unsigned int; //Legal C++11.
+ enum Enum2 : unsigned short;  //Illegal in C++11, because Enum2 was previously declared with a different type.</PRE><P>
+Done: Added syntax 'enum class Name' and forward declarators 'enum
+Name : inherited type' or 'enum class Name : inherited type' in
+R11449.</P>
+<P>TODO: Add semantic support for enum elements not clashing with
+enum elements in other enum classes. See cpp11_strongly_typed_enums.i
+warnings.</P>
+<P>Problem: Swig currently doesn't support nested classes. This
+feature should be implemented using a new nested class when using
+“enum class” with a single anonymous “enum {elements}”
+element inside. For example:</P>
+<PRE STYLE="margin-bottom: 0.5cm">class A { enum class EA { a,b,c,d }; };</PRE><P>
+should be mapped to</P>
+<PRE STYLE="margin-bottom: 0.5cm">class A { class EA { enum {a,b,c,d}; }; };</PRE><H2>
+Angle bracket [done]</H2>
+<P>Support for right angled brackets was implemented using the
+following article as a base:
+<A HREF="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1757.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1757.html</A>
+</P>
+<P>Done: Added support for angle brackets. Used the preferred
+&quot;Approach 1&quot;. Added a testcase named
+cpp11_template_double_brackets. R11245</P>
+<H2>Explicit conversion operators [done]</H2>
+<P>This is used when converting one type to another (eg. if
+(myObject) {}, where myObject is your custom class converted to
+bool). 
+</P>
+<P>Requires both operator and function overloading which is not
+supported in any target language (eg. python, php). 
+</P>
+<P>Done: Swig already supports the keyword &quot;explicit&quot; for
+function types as well. Added test case
+cpp11_explicit_conversion_operators. R11323</P>
+<H2>Template typedefs [partially done]</H2>
+<P>The new C++11 will allow creation of wrapper around the template.
+For example, if we want to do this:</P>
+<PRE>template&lt; typename first, typename second, int third&gt;
+class SomeType;
+ 
+template&lt; typename second&gt;
+typedef SomeType&lt;OtherType, second, 5&gt; TypedefName; //Illegal in C++</PRE><P>
+This is still illegal! But we can now use the new syntax for
+achieving the same effect:</P>
+<PRE>template&lt; typename first, typename second, int third&gt;
+class SomeType;
+
+template&lt; typename second&gt;
+using TypedefName = SomeType&lt;OtherType, second, 5&gt;;</PRE><P>
+Here we created a new wrapper TypedefName taking one template
+argument &lt;second&gt; which creates a type SomeType&lt;OtherType,
+second, 5&gt;. OtherType and 5 are predefined here and hidden from
+the user – the user only uses TypedefName type.</P>
+<P>The same goes for the following example:</P>
+<PRE>typedef void (*PFD)(double);            // Old style
+using PF = void (*)(double);            // New introduced syntax</PRE><P>
+Swig supports parsing typedefs for templates as well for example:</P>
+<PRE STYLE="margin-bottom: 0.5cm">typedef List&lt;int&gt; intList;</PRE><P>
+Done: Expanded support for the new 'using' syntax and template
+aliasing. Added testcase cpp11_template_typedefs. R11533</P>
+<P>TODO: Make Swig aware of the newly defined typedef. The TYPEDEF
+keyword is part of the storage_class rule and type+declarator (see
+c_decl rule) is the right part of the definition – for example void
+(*PFD)(double) cannot be transformed to void *(double) easily. To
+fully support the new 'using' form, we'll probably have to change the
+type, type_right rules and declarator, direct_declarator,
+notso_direct_declarator etc., which is PITA.</P>
+<H2>Unrestricted unions [done]</H2>
+<P>C++ currently offers usage of unions for types with trivial
+constructors only. The new C++11 standard allows usage of types with
+non-trivial constructors as well:</P>
+<PRE> struct point {
+  point() {}
+  point(int x, int y): x_(x), y_(y) {}
+  int x_, y_;
+ };
+ union P {
+  int z;
+  double w;
+  point p;  // Illegal in C++; point has a non-trivial constructor.  However, this is legal in C++11.
+ } p1;</PRE><P>
+Swig already parses the given syntax.</P>
+<P>Done: Added testcase cpp11_unrestricted_unions. R11435, R11447</P>
+<P>Problem: GCC doesn't support unrestricted unions yet so there is
+no way to actually test, if it works.</P>
+<H2>Variadic templates [partially done]</H2>
+<P>The new C++11 offers the following syntax:</P>
+<PRE STYLE="margin-bottom: 0.5cm">template&lt;typename... Values&gt; class tuple;</PRE><P>
+This can be used for example:</P>
+<PRE STYLE="margin-bottom: 0.5cm">class tuple&lt;int, std::vector&lt;int&gt;, std::map&lt;std::string, std::vector&lt;int&gt;&gt;&gt; someInstanceName;</PRE><P>
+The ... is used in two cases. One is in the template header where it
+marks on the left the keywords 'typename' or 'class' and a type name
+on the right. The second case is usually in the function block to
+decompose typename on the left of the ... . For example:</P>
+<PRE>void printf(const char *s) {
+  while (*s) {
+    if (*s == '%' &amp;&amp; *(++s) != '%')
+      throw std::runtime_error(&quot;invalid format string: missing arguments&quot;);
+    std::cout &lt;&lt; *s++;
+  }
+}
+ 
+template&lt;typename T, typename... Args&gt;
+void printf(const char* s, T value, Args... args) { // recursive action – split previous args to value + args
+  while (*s) {
+    if (*s == '%' &amp;&amp; *(++s) != '%') {
+      std::cout &lt;&lt; value;
+      printf(*s ? ++s : s, args...); // call even when *s == 0 to detect extra arguments
+      return;
+    }
+    std::cout &lt;&lt; *s++;
+  }
+  throw std::logic_error(&quot;extra arguments provided to printf&quot;);
+}</PRE><P>
+The tricky part is that variadic templates can unpack actually
+anywhere – including the class inheritance :(</P>
+<PRE>template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
+public:
+ 
+   ClassName (BaseClasses&amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+}</PRE><P>
+A new extension to sizeof is also introduced with this feature. The
+... after sizeof returns number of arguments:</P>
+<PRE>template&lt;typename ...Args&gt; struct SomeStruct {
+  static const int size = sizeof...(Args);
+}
+// SomeStruct&lt;Type1, Type2&gt;::size is 2 and SomeStruct&lt;&gt;::size is 0</PRE><P>
+Done: Added syntax support for 'typename' or 'class' + ... + id.
+Added testcase cpp11_variadic_templates. R11458</P>
+<P>Done: Added syntax support for BaseClass + ..., type + ... + id in
+parameters and baseclass + ... for intializers after constructor.
+Extended Swig syntax to support sizeof...(Args). R11467</P>
+<P>Done: Fixed %template to support variadic number of templates.</P>
+<P>TODO: Only (if present) first variadically defined argument is
+currently used in %template directive. The next ones are ignored.</P>
+<H2>New string literals [partially done]</H2>
+<P>Beside the implementation, the new C++11 Unicode and custom
+delimeter constants can occur in templates in the header file. 
+</P>
+<P>Done: Added symbols 'u', 'u8' and 'U' to mark the beginning of the
+UTF string. Also added test case cpp11_raw_string_literals. R11327</P>
+<P>Done: Added R&quot;DELIMITER[, ]DELIMITER&quot; for a custom
+delimiter for the beginning/end of the string. R11328</P>
+<P>TODO: Fix the Swig's C++ preprocessor bug when parsing an odd
+number of “ inside the string brackets. See
+Source/Preprocessor/cpp.c.</P>
+<H2>User-defined literals [partially done]</H2>
+<P>C++ has different suffix literals. eg. 12.5f marks the number 12.5
+as float. 
+</P>
+<P>C++11 allows user to define his own suffix for the strings always
+starting with the underscore (_). eg. int a = &quot;hello&quot;_mySuffix;
+</P>
+<P>The syntax is similar to other operator overloading functions: 
+</P>
+<PRE STYLE="margin-bottom: 0.5cm"> OutputType operator &quot;&quot; _mySuffix(const char * string_values);</PRE><P>
+The null terminated const char* is the string between the &quot;&quot;.
+The _mySuffix is the name of the suffix operator. And the OutputType
+is the outputType the operator returns. 
+</P>
+<P>Other forms are: 
+</P>
+<PRE> OutputType operator &quot;&quot; _mySuffix(const char * string_values, size_t num_chars);
+ OutputType operator &quot;&quot; _mySuffix(const wchar_t * string_values, size_t num_chars);
+ OutputType operator &quot;&quot; _mySuffix(const char16_t * string_values, size_t num_chars);
+ OutputType operator &quot;&quot; _mySuffix(const char32_t * string_values, size_t num_chars);
+ OutputType operator &quot;&quot; _mySuffix(int value); /* cooked version - ie. atoi() of string */</PRE><P>
+Another possibility is to use variadic templates: 
+</P>
+<PRE> template&lt;char...&gt; OutputType operator &quot;&quot; _mySuffix();
+ OutputType someVariable = &quot;1234&quot;_mySuffix;</PRE><P>
+This instantiates the literal processing function as
+operator&quot;&quot;_Suffix&lt;'1', '2', '3', '4'&gt;. In this form,
+there is no terminating null character to the string. The main
+purpose to doing this is to use C++11's constexpr keyword and the
+compiler to allow the literal to be transformed entirely at compile
+time, assuming OutputType is a constexpr-constructable and copyable
+type, and the literal processing function is a constexpr function.</P>
+<P>Article:
+<A HREF="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2765.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2765.pdf</A></P>
+<P>Done: Added syntax support for userdefined literals. Added
+testcase cpp11_userdefined_literals.i. R11494</P>
+<P>TODO: %rename doesn't parse operator”” yet.</P>
+<H2>Thread-local storage [done] 
+</H2>
+<P>New C++11 introduces keyword &quot;thread_local&quot; which marks
+the following variable dynamically located depending on the current
+thread when using the address-of (&amp;) operator. 
+</P>
+<P>Syntax: 
+</P>
+<PRE> struct A {
+   thread_local int val;
+ };</PRE><P>
+Done: Add &quot;thread_local&quot; keyword to Swig. Added testcase
+cpp11_thread_local. R11393</P>
+<H2>Defaulting/deleting of standard functions on C++ objects [done]</H2>
+<P>C++ automatically creates default constructor with empty
+parameters, copy constructor, operator= and destructor for any class.
+Sometimes user wants to explicitly remove one of them or enable them
+(eg. default constructor with empty parameters doesn't work any more,
+if any other constructor is defined). 
+</P>
+<P>Words &quot;default&quot; and &quot;delete&quot; are introduced.
+The syntax is similar to declaration of pure virtual function: 
+</P>
+<PRE> struct NonCopyable {
+   NonCopyable &amp; operator=(const NonCopyable&amp;) = delete; /* Removes operator= */
+   NonCopyable(const NonCopyable&amp;) = delete; /* Removed copy constructor */
+   NonCopyable() = default; /* Explicitly allows the empty constructor */
+   void *operator new(std::size_t) = delete; /* Removes new NonCopyable */
+ };</PRE><P>
+User has the ability by using keyword delete to disallow calling of
+the standard functions brought by C++ itself. 
+</P>
+<PRE> struct A1 {
+   void f(int i);
+   void f(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+ };
+ struct A2 {
+   void f(int i);
+   template&lt;class T&gt; void f(T) = delete; /* Only accept int */
+ };</PRE><P>
+Ignored: Swig already parses the keywords &quot;= delete&quot; and &quot;=
+default&quot;. These keywords are used for built-in functions (copy
+constructor, operator= etc.), which are ignored by Swig anyway.</P>
+<P>Done: Added testcase cpp11_default_delete. R11535</P>
+<H2>Type long long int [done]</H2>
+<P>Type long long int is an integer type that has at least 64 useful
+bits. C99 added it to its standard, but the C++ didn't adopt it until
+C++11. Most C++ compilers supported it though. 
+</P>
+<P>Done: Swig already parses the C code including the long long type.
+</P>
+<H2>Static assertions [done]</H2>
+<P>static_assert() can be used at class scope as well eg.: 
+</P>
+<PRE> template &lt;typename T&gt;
+ struct Check {
+  static_assert(sizeof(int) &lt;= sizeof(T), &quot;not big enough&quot;);
+ };</PRE><P>
+Done: Added syntax support for &quot;static_assert()&quot;. Added
+test case cpp11_static_assert. R11369</P>
+<H2>Allow sizeof to work on members of classes without an explicit
+object [done]</H2>
+<P>C++11 allows calls of sizeof to concrete objects as well: 
+</P>
+<PRE> struct A { int member; };
+ sizeof(A::member); //Does not work with C++03. Okay with C++11</PRE><P>
+This kind of syntax is already supported by Swig.</P>
+<P>Done: Added testcase cpp11_sizeof_objects. R11538 
+</P>
+<H2>Threading facilities [ignored]</H2>
+<P>C++11 will add the following classes to the standard library: 
+</P>
+<PRE> * std::thread
+ * std::mutex, std::recursive_mutex
+ * std::condition_variable, std::condition_variable_any
+ * std::lock_guard, std::unique_lock
+ * std::packaged_task</PRE><P>
+Ignored: No changes to the language itself is made. 
+</P>
+<H2>Tuple types [TODO]</H2>
+<P>Tuple is array of various types. C++11 introduced this feature
+using variadic templates. Tuple is defined as:</P>
+<PRE STYLE="margin-bottom: 0.5cm">template &lt;class ...Types&gt; class tuple;</PRE><P>
+Constructor is automatically generated filling the tuple elements.
+get&lt;X&gt; function is introduced to get the Xth element in the
+tuple.</P>
+<PRE>typedef tuple&lt; int, double, long &amp;, const char * &gt; test_tuple ;
+long lengthy = 12 ;
+test_tuple proof( 18, 6.5, lengthy, &quot;Ciao!&quot; ) ;
+lengthy = get&lt;0&gt;(proof) ;  // Assign to 'lengthy' the value 18.
+get&lt;3&gt;(proof) = &quot; Beautiful!&quot; ;  // Modify the tuple’s fourth element.</PRE><P>
+Tuples can be copied to each other, if all the elements are copiable:</P>
+<PRE>typedef tuple&lt; int , double, string       &gt; tuple_1 t1 ;
+typedef tuple&lt; char, short , const char * &gt; tuple_2 t2( 'X', 2, &quot;Hola!&quot; ) ;
+t1 = t2 ;  // Ok, first two elements can be converted,
+           // the third one can be constructed from a 'const char *'.</PRE><P>
+TODO: Implement wrappers for the tuplet&lt;&gt; class.</P>
+<H2>Hash tables [TODO]</H2>
+<P>C++11 introduces the &quot;unordered&quot; version of existing
+types, which in practice work faster than the linear types: 
+</P>
+<PRE> - unordered set
+ - unordered multiset
+ - unordered map
+ - unordered multimap</PRE><P>
+Swig should use the &quot;unordered&quot; types exactly the same as
+the original linear types.</P>
+<P>Problem: Unordered types do not contain exactly same members as
+ordered ones (eg. _Hashtable_iterator does not offer operator--() and
+constructor with compare function which is required). So simply
+aliasing unordered classes to ordered ones doesn't work.</P>
+<P>TODO: Implement wrappers for unordered_ types. Initial work is
+already done in Lib/std/unordered_*.i files.</P>
+<H2>Regular expressions [ignored]</H2>
+<P>Two new classes are introduced in C++11: basic_regex and
+match_results. Both are defined in regex header file. 
+</P>
+<P>Ignored: The new feature extends the standardy library only. No
+changes to Swig needed. 
+</P>
+<H2>General-purpose smart pointers [done]</H2>
+<P>This feature deprecates auto_ptr and adds shared_ptr, weak_ptr and
+unique_ptr to the standard library. 
+</P>
+<P>This feature only adds the smart pointers to the standard library
+and doesn't effect the C++ syntax.</P>
+<P>Done: Added test case which uses all three smart pointers in the
+class. R11394</P>
+<P>Problem: GCC standard library doesn't contain the new smart
+pointers yet. 
+</P>
+<H2>Extensible random number facility [ignored]</H2>
+<P>This feature standardize the pseudo random number algorithm
+(currently, the random number generator was dependent on the
+platform/compiler). It adds functions linear_congruential,
+subtract_with_carry and mersenne_twister and symbols
+uniform_int_distribution, bernoulli_distribution,
+geometric_distribution, poisson_distribution, binomial_distribution,
+uniform_real_distribution, exponential_distribution,
+normal_distribution and gamma_distribution to the standard library. 
+</P>
+<P>Ignored: The new feature extends the standardy library only. No
+changes to Swig needed. 
+</P>
+<H2>Wrapper reference [ignored]</H2>
+<P>This feature adds ref and cref classes to the standard library
+(#include &lt;utility&gt;) usually used in tempalte functions. 
+</P>
+<P>Ignored: The new feature extends the standardy library only. No
+changes to Swig needed. 
+</P>
+<H2>Polymorphous wrappers for function objects [done]</H2>
+<P>Two features are introduced: 
+</P>
+<UL>
+	<LI><P>The function template wrapper: 
+	</P>
+</UL>
+<PRE STYLE="margin-bottom: 0.5cm"> function&lt;int ( int, int )&gt; pF;</PRE>
+<UL>
+	<LI><P>and the function object: 
+	</P>
+</UL>
+<PRE> struct Test {
+   bool operator()( short x, short y );
+ };</PRE><P>
+Swig already supports the two.</P>
+<P>Done: Added a runtime testcase for function objects
+cpp11_function_objects. R11419.</P>
+<H2>Type traits for metaprogramming [ignored]</H2>
+<P>C++11 adds a new header file &lt;type_traits&gt; which includes
+helper functions to determine the template type while initializing
+the object at compile time. 
+</P>
+<P>Swig already supports the following code: 
+</P>
+<PRE> template&lt; int B, int N &gt;
+ struct Pow {
+  // recursive call and recombination.
+  enum{ value = B*Pow&lt; B, N-1 &gt;::value };
+ };
+ template&lt; int B &gt; struct Pow&lt; B, 0 &gt;  // <EM>N == 0</EM> condition of termination.
+ {
+  enum{ value = 1 };
+ };
+ int quartic_of_three = Pow&lt; 3, 4 &gt;::value ;</PRE><P>
+Functions is_convertible, is_integral, is_integral_const etc. are
+part of the new header: 
+</P>
+<PRE>// First way of operating.
+template&lt; bool B &gt; struct algorithm {
+  template&lt; class T1, class T2 &gt; int do_it( T1 &amp;, T2 &amp; )  { /*...*/ }
+};
+// Second way of operating.
+template&lt;&gt; struct algorithm&lt;true&gt; {
+  template&lt; class T1, class T2 &gt; int do_it( T1, T2 )  { /*...*/ }
+};
+// Instantiating 'elaborate' will automatically instantiate the correct way to operate.
+template&lt; class T1, class T2 &gt; int elaborate( T1 A, T2 B ) {
+  // Use the second way only if 'T1' is an integer and if 'T2' is
+  // in floating point, otherwise use the first way.
+  return algorithm&lt; is_integral&lt;T1&gt;::value &amp;&amp; is_floating_point&lt;T2&gt;::value &gt;::do_it( A, B );
+}</PRE><P>
+Swig correctly parses the syntax for template&lt;bool&gt;,
+template&lt;class T&gt; and template&lt;&gt;. 
+</P>
+<P>Ignored: Swig requires explicitly defined template class
+(%template directive) to export it to the target language.</P>
+<H2>Uniform method for computing return type of function objects
+[partially done]</H2>
+<P>The template function is introduced: std::result_of() which
+depends on decltype: 
+</P>
+<PRE>template&lt; class Obj &gt;
+class calculus_ver2 {
+ public:
+   template&lt; class Arg &gt;
+   typename std::result_of&lt;Obj(Arg)&gt;::type operator()( Arg&amp; a ) const { 
+     return member(a);
+   }
+ private:
+   Obj member;
+};</PRE><P>
+Swig correctly parses the result_of class.</P>
+<P>TODO: The return type (the result_of::type member) is not
+calculated by Swig. This needs a much more complex semantic parser.</P>
+<P>Done: Added testcase cpp11_result_of. R11534</P>
+</BODY>
+</HTML>

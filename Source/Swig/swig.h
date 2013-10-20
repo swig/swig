@@ -79,6 +79,7 @@ extern "C" {
 #define   T_FLTCPLX    23
 #define   T_DBLCPLX    24
 #define   T_NUMERIC    25
+#define   T_AUTO       26
 
 #define   T_COMPLEX    T_DBLCPLX
 
@@ -95,8 +96,12 @@ extern "C" {
 #define   T_FUNCTION   37
 #define   T_MPOINTER   38
 #define   T_VARARGS    39
+#define   T_RVALUE_REFERENCE  40
+#define   T_WSTRING    41
+
 #define   T_SYMBOL     98
 #define   T_ERROR      99
+
 
 
 /* --- File interface --- */
@@ -124,6 +129,8 @@ extern "C" {
   extern SwigType *SwigType_pop_arrays(SwigType *t);
   extern SwigType *SwigType_add_reference(SwigType *t);
   extern SwigType *SwigType_del_reference(SwigType *t);
+  extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
+  extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
   extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
   extern SwigType *SwigType_del_qualifier(SwigType *t);
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
@@ -147,6 +154,7 @@ extern "C" {
   extern int SwigType_ismemberpointer(const SwigType *t);
   extern int SwigType_isreference(const SwigType *t);
   extern int SwigType_isreference_return(const SwigType *t);
+  extern int SwigType_isrvalue_reference(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);
@@ -307,6 +315,10 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_filename_correct(String *filename);
   extern String *Swig_filename_escape(String *filename);
   extern void Swig_filename_unescape(String *filename);
+  extern int Swig_storage_isextern(Node *n);
+  extern int Swig_storage_isexternc(Node *n);
+  extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
+  extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
   extern String *Swig_string_mangle(const String *s);
   extern void Swig_scopename_split(const String *s, String **prefix, String **last);

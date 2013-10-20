@@ -4,6 +4,10 @@
 
 %insert(init) "swiginit.swg"
 
+#if defined(SWIGPYTHON_BUILTIN)
+%fragment("<stddef.h>"); // For offsetof
+#endif
+
 %init %{
 
 #ifdef __cplusplus

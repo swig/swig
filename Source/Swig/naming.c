@@ -938,8 +938,7 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
 
     /* static functions */
-    if ((Cmp(a_storage, "static") == 0)
-	|| (Cmp(b_storage, "static") == 0)) {
+    if (Swig_storage_isstatic(a) || Swig_storage_isstatic(b)) {
       if (Cmp(a_storage, b_storage) != 0)
 	return 0;
     }

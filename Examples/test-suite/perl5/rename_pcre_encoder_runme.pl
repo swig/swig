@@ -6,12 +6,12 @@ require_ok('rename_pcre_encoder');
 
 my $s = rename_pcre_encoder::SomeWidget->new();
 isa_ok($s, 'rename_pcre_encoder::SomeWidget');
-can_ok($s, 'putBorderWidth');
-$s->putBorderWidth(3);
-can_ok($s, 'getBorderWidth');
-is($s->getBorderWidth(), 3);
-can_ok($s, 'putSize');
-$s->putSize(4, 5);
+can_ok($s, 'put_borderWidth');
+$s->put_borderWidth(3);
+can_ok($s, 'get_borderWidth');
+is($s->get_borderWidth(), 3);
+can_ok($s, 'put_size');
+$s->put_size(4, 5);
 
 my $a = rename_pcre_encoder::AnotherWidget->new();
 isa_ok($a, 'rename_pcre_encoder::AnotherWidget');

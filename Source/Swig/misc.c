@@ -263,6 +263,49 @@ void Swig_filename_unescape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_storage_isextern()
+ *
+ * Determine if the storage class specifier is extern (but not externc)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isextern(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "extern") == 0 || Strncmp(storage, "extern ", 7) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isexternc()
+ *
+ * Determine if the storage class specifier is externc (but not plain extern)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isexternc(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "externc") == 0 || Strncmp(storage, "externc ", 8) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic_custom()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage_name) {
+  const String *storage = Getattr(n, storage_name);
+  return storage ? Strncmp(storage, "static", 6) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic(Node *n) {
+  return Swig_storage_isstatic_custom(n, "storage");
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.
@@ -1137,8 +1180,38 @@ err_out:
   exit(1);
 }
 
+/* This function copies len characters from src to dst, possibly applying case conversions to them: if convertCase is 1, to upper case and if it is -1, to lower
+ * case. If convertNextOnly is 1, only a single character is converted (and convertCase is reset), otherwise all of them are. */
+static void copy_with_maybe_case_conversion(String *dst, const char *src, int len, int *convertCase, int convertNextOnly)
+{
+  /* Deal with the trivial cases first. */
+  if (!len)
+    return;
+
+  if (!*convertCase) {
+      Write(dst, src, len);
+      return;
+  }
+
+  /* If we must convert only the first character, do it and write the rest at once. */
+  if (convertNextOnly) {
+    Putc(*convertCase == 1 ? toupper(*src) : tolower(*src), dst);
+    *convertCase = 0;
+    if (len > 1) {
+      Write(dst, src + 1, len - 1);
+    }
+  } else {
+    /* We need to convert all characters. */
+    int i;
+    for (i = 0; i < len; i++, src++) {
+      Putc(*convertCase == 1 ? toupper(*src) : tolower(*src), dst);
+    }
+  }
+}
+
 String *replace_captures(int num_captures, const char *input, String *subst, int captures[], String *pattern, String *s)
 {
+  int convertCase = 0, convertNextOnly = 0;
   String *result = NewStringEmpty();
   const char *p = Char(subst);
 
@@ -1146,10 +1219,10 @@ String *replace_captures(int num_captures, const char *input, String *subst, int
     /* Copy part without substitutions */
     const char *q = strchr(p, '\\');
     if (!q) {
-      Write(result, p, strlen(p));
+      copy_with_maybe_case_conversion(result, p, strlen(p), &convertCase, convertNextOnly);
       break;
     }
-    Write(result, p, q - p);
+    copy_with_maybe_case_conversion(result, p, q - p, &convertCase, convertNextOnly);
     p = q + 1;
 
     /* Handle substitution */
@@ -1160,12 +1233,39 @@ String *replace_captures(int num_captures, const char *input, String *subst, int
       if (group < num_captures) {
 	int l = captures[group*2], r = captures[group*2 + 1];
 	if (l != -1) {
-	  Write(result, input + l, r - l);
+	  copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
 	}
       } else {
 	Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
 	    Char(pattern), input, group, num_captures-1);
       }
+    } else {
+	/* Handle Perl-like case conversion escapes. */
+	switch (*p) {
+	case 'u':
+	  convertCase = 1;
+	  convertNextOnly = 1;
+	  break;
+	case 'U':
+	  convertCase = 1;
+	  convertNextOnly = 0;
+	  break;
+	case 'l':
+	  convertCase = -1;
+	  convertNextOnly = 1;
+	  break;
+	case 'L':
+	  convertCase = -1;
+	  convertNextOnly = 0;
+	  break;
+	case 'E':
+	  convertCase = 0;
+	  break;
+	default:
+	  Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n",
+	      *p, Char(subst));
+	}
+	p++;
     }
   }
 

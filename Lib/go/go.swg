@@ -273,6 +273,21 @@
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
 
+%typemap(gotype) SWIGTYPE &&
+%{$gotypename%}
+
+%typemap(in) SWIGTYPE &&
+%{ $1 = *($&1_ltype)&$input; %}
+
+%typemap(out) SWIGTYPE &&
+%{ *($&1_ltype)&$result = $1; %}
+
+%typemap(directorin) SWIGTYPE &&
+%{ $input = ($1_ltype)&$1_name; %}
+
+%typemap(directorout) SWIGTYPE &&
+%{ *($&1_ltype)&$result = $input; %}
+
 /* C arrays turn into Go pointers.  If we know the length we can use a
    slice.  */
 
@@ -424,7 +439,7 @@
 %typemap(throws) char *
 %{ _swig_gopanic($1); %}
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
 %{
   (void)$1;
   _swig_gopanic("C++ $1_type exception thrown");
@@ -530,6 +545,7 @@
     SWIGTYPE,
     SWIGTYPE *,
     SWIGTYPE &,
+    SWIGTYPE &&,
     SWIGTYPE *const&,
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)

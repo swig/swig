@@ -1324,6 +1324,7 @@ public:
 		break;
 	      }
 	      case T_REFERENCE:
+	      case T_RVALUE_REFERENCE:
 	      case T_USER:
 	      case T_ARRAY:
 		Clear(value);
@@ -1366,6 +1367,7 @@ public:
 		  }
 		}
 		if (Strcmp(value, "NULL") == 0 ||
+		    Strcmp(value, "nullptr") == 0 ||
 		    Strcmp(value, "0") == 0 ||
 		    Strcmp(value, "0L") == 0) {
 		  Clear(value);
@@ -2606,8 +2608,8 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
-      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
-      Printf(w->code, "  %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
+      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      Printf(w->code, " %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
       if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);

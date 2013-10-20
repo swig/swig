@@ -16,6 +16,33 @@ Version 3.0.0 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY  ***
 
+2013-10-17: wsfulton
+            [R] Fix SF #1340 - Visual Studio compile error in C++ wrappers due to #include <exception>
+            within extern "C" block.
+
+2013-10-17: wsfulton
+            [Python] Fix SF #1345 - Missing #include <stddef.h> for offsetof when using -builtin.
+
+2013-10-15: vadz
+            Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
+            inside %rename to change the case of the text being replaced.
+
+2013-10-12: wsfulton
+            [Lua] Apply #92 - missing return statements for SWIG_Lua_add_namespace_details()
+            and SWIG_Lua_namespace_register().
+
+2013-10-12: wsfulton
+            [CFFI] Apply #96 - superclass not lispify
+
+2013-10-12: wsfulton
+            Merge in C++11 support from the gsoc2009-matevz branch where Matevz Jekovec first
+            started the C++0x additions. Documentation of the C++11 features supported is in a
+            new Chapter of the documentation, "SWIG and C++11" in Doc/Manual/CPlusPlus11.html.
+
+2013-10-04: wsfulton
+            Fix %naturalvar not having any affect on templated classes instantiated with an
+            enum as the template parameter type. Problem reported by Vadim Zeitlin.
+
 2013-09-20: wsfulton
             [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
 

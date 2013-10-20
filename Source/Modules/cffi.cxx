@@ -506,11 +506,6 @@ int CFFI::functionWrapper(Node *n) {
 
 
 void CFFI::emit_defun(Node *n, String *name) {
-
-  //   String *storage=Getattr(n,"storage");
-  //   if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
-  //     return SWIG_OK;
-
   String *func_name = Getattr(n, "sym:name");
 
   ParmList *pl = Getattr(n, "parms");
@@ -583,12 +578,6 @@ int CFFI::constantWrapper(Node *n) {
 }
 
 int CFFI::variableWrapper(Node *n) {
-  //  String *storage=Getattr(n,"storage");
-  //  Printf(stdout,"\"%s\" %s)\n",storage,Getattr(n, "sym:name"));
-
-  //  if(!storage || (Strcmp(storage,"extern") && Strcmp(storage,"externc")))
-  //    return SWIG_OK;
-
   String *var_name = Getattr(n, "sym:name");
   String *lisp_type = Swig_typemap_lookup("cin", n, "", 0);
   String *lisp_name = lispify_name(n, var_name, "'variable");
@@ -687,7 +676,7 @@ void CFFI::emit_class(Node *n) {
       if (!first)
   Printf(supers, " ");
       String *s = Getattr(i.item, "name");
-      Printf(supers, "%s", lispify_name(i.item, s, "'classname"));
+      Printf(supers, "%s", lispify_name(i.item, lispy_name(Char(s)), "'classname"));
     }
   } else {
     // Printf(supers,"ff:foreign-pointer");

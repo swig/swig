@@ -318,16 +318,39 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATFLAGS)
+AC_MSG_CHECKING(PLATCFLAGS)
 case $host in
   *-*-solaris*) if test "$GCC" = yes
-    then PLATFLAGS=
-    else PLATFLAGS=
-      #    else PLATFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
+    then PLATCFLAGS=
+    else PLATCFLAGS=
+      #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
-  *) PLATFLAGS=
+  *) PLATCFLAGS=
 esac
-AC_MSG_RESULT($PLATFLAGS)
+AC_MSG_RESULT($PLATCFLAGS)
+
+# Add switch if necessary to enable C++11 support - just for tests
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
+AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_RESULT([$enable_cpp11_testing])
+
+PLATCXXFLAGS="$PLATCFLAGS"
+if test x"$enable_cpp11_testing" = xyes; then 
+  AC_LANG_PUSH([C++])
+  CXXFLAGS_SAVED=$CXXFLAGS
+  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
+  CXXFLAGS=$CXXFLAGS_SAVED
+  AC_LANG_POP([C++])
+  if test x"$CXX11FLAGS" != x; then
+    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
+  fi
+  AC_MSG_CHECKING([for C++11 enabled compiler])
+  if test x"$HAVE_CXX11_COMPILER" = x; then
+    AC_MSG_RESULT([no])
+  else
+    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+  fi
+fi
 
 # Set info about shared libraries.
 AC_SUBST(SO)
@@ -336,7 +359,9 @@ AC_SUBST(CCSHARED)
 AC_SUBST(CXXSHARED)
 AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
-AC_SUBST(PLATFLAGS)
+AC_SUBST(PLATCFLAGS)
+AC_SUBST(PLATCXXFLAGS)
+AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
