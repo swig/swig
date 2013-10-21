@@ -24,7 +24,7 @@ Guile Options (available with -guile)\n\
      -exportprimitive        - Add the (export ...) code from scmstub into the\n\
                                GOOPS file.\n\
      -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
-     -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
+     -Linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
                                passive linking (no C-level module-handling code),\n\
