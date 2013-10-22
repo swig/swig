@@ -24,6 +24,8 @@ CPP_TEST_CASES = \
 	java_constants \
 	java_director \
 	java_director_assumeoverride \
+	java_director_exception_feature \
+	java_director_exception_feature_nspace \
 	java_enums \
 	java_jnitypes \
 	java_lib_arrays_dimensionless \
@@ -44,8 +46,18 @@ JAVA_PACKAGE = $*
 JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
 
+RUNME_CLASSPATH = -classpath .
+ifeq (Cygwin,$(shell uname -o 2>/dev/null))
+SEP=;
+else
+SEP=:
+endif
+
 # Custom tests - tests with additional commandline options
 java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
+java_director_exception_feature_nspace.%: JAVA_PACKAGEOPT =
+java_director_exception_feature_nspace.%: RUNME_CLASSPATH = -classpath .$(SEP)./java_director_exception_feature_nspace
+
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
@@ -84,8 +96,8 @@ setup = \
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
+	  $(COMPILETOOL) $(JAVAC) $(RUNME_CLASSPATH) -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME_CLASSPATH) $*_runme; \
 	fi
 
 # Clean: remove testcase directories
