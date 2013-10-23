@@ -746,13 +746,6 @@ public:
 
     ++curr_class_dmethod;
 
-    /* Do we know about this director class already? */
-    UpcallData *udata = Getattr(dmethods_table, key);
-    if (udata) {
-      Delete(key);
-      return Getattr(udata, "methodoff");
-    }
-
     String *imclass_methodidx = NewStringf("%d", n_dmethods);
     String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
