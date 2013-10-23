@@ -4225,7 +4225,7 @@ public:
       }
 
       // Replace all occurrences of $error with common var name.
-      Replaceall(featdirexcp, "$error", "thrown_");
+      Replaceall(featdirexcp, "$error", "swigerror");
       Printf(w->code, "    %s\n", featdirexcp);
     }
     Delete(featdirexcp);
