@@ -742,25 +742,22 @@ public:
    *----------------------------------------------------------------------*/
 
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method, String *imclass_desc, String *class_desc, String *decl) {
-    UpcallData *udata;
-    String *imclass_methodidx;
-    String *class_methodidx;
-    Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
 
     ++curr_class_dmethod;
 
     /* Do we know about this director class already? */
-    if ((udata = Getattr(dmethods_table, key))) {
+    UpcallData *udata = Getattr(dmethods_table, key);
+    if (udata) {
       Delete(key);
       return Getattr(udata, "methodoff");
     }
 
-    imclass_methodidx = NewStringf("%d", n_dmethods);
-    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    String *imclass_methodidx = NewStringf("%d", n_dmethods);
+    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
-    new_udata = NewHash();
+    Hash *new_udata = NewHash();
     Append(dmethods_seq, new_udata);
     Setattr(dmethods_table, key, new_udata);
 
@@ -2957,9 +2954,7 @@ public:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteClassname(SwigType *pt, String *tm,
-			   bool jnidescriptor = false, Parm * pkgpathparm = 0)
-  {
+  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false, Parm *pkgpathparm = 0) {
     return substituteClassnameAndPackagePath( pt, tm, jnidescriptor, pkgpathparm);
   }
 
@@ -2969,9 +2964,8 @@ public:
    *
    * Only usage always has jnidescriptor AND p set.  Maybe collapse args.
    * ----------------------------------------------------------------------------- */
-  bool substituteClassnameAndPackagePath(SwigType *pt, String *tm,
-					 bool jnidescriptor, Parm * pkgpathparm)
-  {
+
+  bool substituteClassnameAndPackagePath(SwigType *pt, String *tm, bool jnidescriptor, Parm *pkgpathparm) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
@@ -3008,6 +3002,7 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassnameSpecialVariable()
    * ----------------------------------------------------------------------------- */
+
   void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor, Parm * pkgpathparm) {
     String * replacementname;
 
@@ -3042,9 +3037,8 @@ public:
       }
       substitutePackagePath(tm, pkgpathparm);
     }
-    if (jnidescriptor) {
+    if (jnidescriptor)
       Replaceall(replacementname,".","/");
-    }
     Replaceall(tm, classnamespecialvariable, replacementname);
 
     Delete(replacementname);
@@ -3542,11 +3536,14 @@ public:
     // Delete(method_attr);
   }
 
-  /** Replace $packagepath using the javapackage typemap
-      associated with passed parm or global package_path
-      if none.  "$packagepath/" is replaced with "" if no
-      package path is set.
-  */
+  /* -----------------------------------------------------------------------------
+   * substitutePackagePath()
+   *
+   * Replace $packagepath using the javapackage typemap associated with passed
+   * parm or global package_path if none. "$packagepath/" is replaced with "" if
+   * no package path is set.
+   * ----------------------------------------------------------------------------- */
+
   void substitutePackagePath(String *text, Parm *p) {
     String *pkg_path= 0;
 
@@ -4002,7 +3999,7 @@ public:
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if (Getattr(p, "tmap:throws")) {
 	  // If %catches feature, it overrides specified throws().
-	  if (! catches_list) {
+	  if (!catches_list) {
 	    addThrows(n, "tmap:throws", p);
 	  }
 
@@ -4067,8 +4064,8 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      // Generate code to handle any java exception thrown by director delegation
-      directorExceptHandler(n, catches_list?catches_list:throw_parm_list, w, c_classname, name);
+      // Generate code to handle any Java exception thrown by director delegation
+      directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w, c_classname, name);
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4167,44 +4164,42 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * directorExcept handler: Emit code to map java exceptions
-   *  back to C++ exceptions when feature("director:except") is appied
-   *  to a method node
+   * directorExceptHandler()
+   *
+   * Emit code to map Java exceptions back to C++ exceptions when
+   * feature("director:except") is applied to a method node
    * ------------------------------------------------------------ */
+
   void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w, String *c_classname, String *name) {
-    // After director java method call, allow code for director method exception to be added
+    // After director Java method call, allow code for director method exception to be added
     // Look for director:exceptfeature
-    Parm *p;
 
-    // "Default" feature, so that feature is not applied to every node, per W. Fulton
-    static char const * DEFAULT_DIREXCP_FEATURE =
-      "jthrowable $error = jenv->ExceptionOccurred();\n"
-      "if ($error) {\n"
-      "  jenv->ExceptionClear();\n"
-      "  $directorthrowshandlers\n"
-      "  throw Swig::DirectorException(jenv, $error);\n"
-      "}\n";
-
-    String * featdirexcp = Getattr(n, "feature:director:except");
-
+    String *featdirexcp = Getattr(n, "feature:director:except");
     if (!featdirexcp) {
-      featdirexcp = NewString(DEFAULT_DIREXCP_FEATURE);
+      featdirexcp = NewString("");
+      Printf(featdirexcp, "jthrowable $error = jenv->ExceptionOccurred();\n");
+      Printf(featdirexcp, "if ($error) {\n");
+      Printf(featdirexcp, "  jenv->ExceptionClear();\n");
+      Printf(featdirexcp, "  $directorthrowshandlers\n");
+      Printf(featdirexcp, "  throw Swig::DirectorException(jenv, $error);\n");
+      Printf(featdirexcp, "}\n");
     } else {
       featdirexcp = Copy(featdirexcp);
     }
-    // Can explicitly disable director:except by setting to "" or "0"
-    if (0 != Len(featdirexcp) && 0 != Cmp(featdirexcp,"0")) {
 
-      // Replace any $packagepath with global -package package_path
+    // Can explicitly disable director:except by setting to "" or "0"
+    if (Len(featdirexcp) != 0 && Cmp(featdirexcp, "0") != 0) {
+
+      // Replace $packagepath
       substitutePackagePath(featdirexcp, 0);
 
-      // Replace $action with any defined typemap handlers (or nothing)
+      // Replace $directorthrowshandlers with any defined typemap handlers (or nothing)
       if (Strstr(featdirexcp, "$directorthrowshandlers")) {
 	String *directorthrowshandlers_code = NewString("");
 
-	for (p = throw_parm_list; p; p = nextSibling(p)) {
+	for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
 	  String *tmapdirthrows = Getattr(p, "tmap:directorthrows");
-	  String * excptype = Getattr(p,"type");
+	  String *excptype = Getattr(p,"type");
 
 	  if (!tmapdirthrows) {
 	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number,
@@ -4215,17 +4210,14 @@ public:
 	    tmapdirthrows = Copy(tmapdirthrows);
 	    substituteClassnameAndPackagePath(excptype, tmapdirthrows, true, p);
 
-	    Printf(directorthrowshandlers_code,
-		   "// Handle exception %s using directorthrows typemap\n"
-		   "%s",
-		   excptype, tmapdirthrows);
+	    Printf(directorthrowshandlers_code, "// Handle exception %s using directorthrows typemap\n" "%s", excptype, tmapdirthrows);
 	    Delete(tmapdirthrows);
 	  }
 	}
 	// Delete extra new line if no handlers.
-	while (Replaceall(featdirexcp, "$directorthrowshandlers ",
-			  "$directorthrowshandlers")) {}
-	if (0 == Len(directorthrowshandlers_code))
+	while (Replaceall(featdirexcp, "$directorthrowshandlers ", "$directorthrowshandlers")) {
+	}
+	if (Len(directorthrowshandlers_code) == 0)
 	  Replaceall(featdirexcp, "$directorthrowshandlers\n", "");
 	else
 	  Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);
