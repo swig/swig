@@ -4198,7 +4198,7 @@ public:
       // Replace any $packagepath with global -package package_path
       substitutePackagePath(featdirexcp, 0); 
 
-      // Replace $action with any defined typemap handlers (or nothing)
+      // Replace $directorthrowshandlers with any defined typemap handlers (or nothing)
       if (Strstr(featdirexcp, "$directorthrowshandlers")) {
 	String *directorthrowshandlers_code = NewString("");
 
