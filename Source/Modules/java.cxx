@@ -4166,26 +4166,26 @@ public:
 
   void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w) {
 
-    String *featdirexcp = Getattr(n, "feature:director:except");
-    if (!featdirexcp) {
-      featdirexcp = NewString("");
-      Printf(featdirexcp, "jthrowable $error = jenv->ExceptionOccurred();\n");
-      Printf(featdirexcp, "if ($error) {\n");
-      Printf(featdirexcp, "  jenv->ExceptionClear();$directorthrowshandlers\n");
-      Printf(featdirexcp, "  throw Swig::DirectorException(jenv, $error);\n");
-      Printf(featdirexcp, "}\n");
+    String *directorexcept = Getattr(n, "feature:director:except");
+    if (!directorexcept) {
+      directorexcept = NewString("");
+      Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
+      Printf(directorexcept, "if ($error) {\n");
+      Printf(directorexcept, "  jenv->ExceptionClear();$directorthrowshandlers\n");
+      Printf(directorexcept, "  throw Swig::DirectorException(jenv, $error);\n");
+      Printf(directorexcept, "}\n");
     } else {
-      featdirexcp = Copy(featdirexcp);
+      directorexcept = Copy(directorexcept);
     }
 
     // Can explicitly disable director:except by setting to "" or "0"
-    if (Len(featdirexcp) > 0 && Cmp(featdirexcp, "0") != 0) {
+    if (Len(directorexcept) > 0 && Cmp(directorexcept, "0") != 0) {
 
       // Replace $packagepath
-      substitutePackagePath(featdirexcp, 0);
+      substitutePackagePath(directorexcept, 0);
 
       // Replace $directorthrowshandlers with any defined typemap handlers (or nothing)
-      if (Strstr(featdirexcp, "$directorthrowshandlers")) {
+      if (Strstr(directorexcept, "$directorthrowshandlers")) {
 	String *directorthrowshandlers_code = NewString("");
 
 	for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
@@ -4202,14 +4202,14 @@ public:
 	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
 	  }
 	}
-	Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);
+	Replaceall(directorexcept, "$directorthrowshandlers", directorthrowshandlers_code);
 	Delete(directorthrowshandlers_code);
       }
 
-      Replaceall(featdirexcp, "$error", "swigerror");
-      Printf(w->code, "    %s\n", featdirexcp);
+      Replaceall(directorexcept, "$error", "swigerror");
+      Printf(w->code, "    %s\n", directorexcept);
     }
-    Delete(featdirexcp);
+    Delete(directorexcept);
   }
 
   /* ------------------------------------------------------------
