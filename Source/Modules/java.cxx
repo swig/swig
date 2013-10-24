@@ -4058,7 +4058,7 @@ public:
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
       // Generate code to handle any Java exception thrown by director delegation
-      directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w, c_classname, name);
+      directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4164,7 +4164,7 @@ public:
    * This is generated after the Java method upcall.
    * ------------------------------------------------------------ */
 
-  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w, String *c_classname, String *name) {
+  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w) {
 
     String *featdirexcp = Getattr(n, "feature:director:except");
     if (!featdirexcp) {
@@ -4189,19 +4189,17 @@ public:
 	String *directorthrowshandlers_code = NewString("");
 
 	for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
-	  String *tmapdirthrows = Getattr(p, "tmap:directorthrows");
-	  String *excptype = Getattr(p,"type");
+	  String *tm = Getattr(p, "tmap:directorthrows");
+	  String *t = Getattr(p,"type");
 
-	  if (!tmapdirthrows) {
-	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number,
-			 "Feature director:except on %s::%s with $directorthrowshandlers requires directorthrows typemap for exception %s.\n",
-			 SwigType_namestr(c_classname),SwigType_namestr(name), excptype);
-	  } else {
+	  if (tm) {
+	    String *directorthrows = Copy(tm);
 	    // replace $packagepath
-	    tmapdirthrows = Copy(tmapdirthrows);
-	    substituteClassnameAndPackagePath(excptype, tmapdirthrows, true, p);
-	    Printv(directorthrowshandlers_code, tmapdirthrows, NIL);
-	    Delete(tmapdirthrows);
+	    substituteClassnameAndPackagePath(t, directorthrows, true, p);
+	    Printv(directorthrowshandlers_code, directorthrows, NIL);
+	    Delete(directorthrows);
+	  } else {
+	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
 	  }
 	}
 	Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);

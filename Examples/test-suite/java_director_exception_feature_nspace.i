@@ -6,7 +6,7 @@
 
 // When using namespaces with no -package, must put JNI classes into a namespace
 %pragma(java) jniclasspackage=%{MyNS_JNI%}
-%warnfilter(826);
+%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE);
 
 %{
 #if defined(_MSC_VER)

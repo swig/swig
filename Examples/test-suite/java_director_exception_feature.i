@@ -2,6 +2,8 @@
 
 %include <std_except.i>
 
+%warnfilter(SWIGWARN_TYPEMAP_DIRECTORTHROWS_UNDEF) MyNS::Foo::directorthrows_warning;
+
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
@@ -178,6 +180,7 @@ public:
   virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
+  virtual std::string directorthrows_warning(int excp) throw(double) {}
 };
 
 // Make a bar from a foo, so a call to Java Bar
