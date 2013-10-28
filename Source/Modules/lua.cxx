@@ -105,25 +105,27 @@ private:
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
+  File *f_wrappersForward; // forward declarations for wrappers, TODO: REMOVE
   File *f_init;
   File *f_initbeforefunc;
-  String *s_cmd_tab;		// table of command names
-  String *s_var_tab;		// table of global variables
-  String *s_const_tab;		// table of global constants
+  /*
+  String *s_ns_methods_tab;		// table of namespace methods
+  String *s_ns_var_tab;		// Lua only:table of namespace variables
+  String *s_ns_dot_get;		// eLua only:table of variable 'get' functions
+  String *s_ns_dot_set;		// eLua only:table of variable 'set' functions
+  String *s_ns_const_tab;		// table of namespace constants
+  */
   String *s_methods_tab;	// table of class methods
   String *s_attr_tab;		// table of class attributes
-  String *s_cls_attr_tab;	// table of class static attributes
-  String *s_cls_methods_tab;	// table of class static methods
-  String *s_cls_const_tab;	// tables of class constants(including enums)
   String *s_luacode;		// luacode to be called during init
-  String *s_dot_get;            // table of variable 'get' functions
-  String *s_dot_set;            // table of variable 'set' functions
-  String *s_vars_meta_tab;      // metatable for variables
+  String *module;		//name of the module
+  //String *s_vars_meta_tab;      // metatable for variables
+  Hash* namespaces_hash;
 
   int have_constructor;
   int have_destructor;
   String *destructor_action;
-  String *class_name;
+  String *class_symname;
   String *constructor_name;
 
   enum {
@@ -151,26 +153,35 @@ public:
     f_runtime(0),
     f_header(0),
     f_wrappers(0),
+    f_wrappersForward(0),
     f_init(0),
     f_initbeforefunc(0),
+    /*
     s_cmd_tab(0),
     s_var_tab(0),
     s_const_tab(0),
-    s_methods_tab(0),
-    s_attr_tab(0),
     s_cls_attr_tab(0),
     s_cls_methods_tab(0),
     s_cls_const_tab(0),
+    */
+    s_methods_tab(0),
+    s_attr_tab(0),
     s_luacode(0),
-    s_dot_get(0),
-    s_dot_set(0),
-    s_vars_meta_tab(0),
+    module(0),
+    //s_dot_get(0),
+    //s_dot_set(0),
+    //s_vars_meta_tab(0),
     have_constructor(0),
     have_destructor(0),
     destructor_action(0),
-    class_name(0),
+    class_symname(0),
     constructor_name(0),
     current(NO_CPP) {
+      namespaces_hash = NewHash();
+  }
+  ~LUA() {
+    if(namespaces_hash)
+      Delete(namespaces_hash);
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
@@ -246,7 +257,7 @@ public:
 
   virtual int top(Node *n) {
     /* Get the module name */
-    String *module = Getattr(n, "name");
+    module = Getattr(n, "name");
 
     /* Get the output file name */
     String *outfile = Getattr(n, "outfile");
@@ -260,6 +271,7 @@ public:
     f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
+    f_wrappersForward = NewString("");
     f_wrappers = NewString("");
     f_initbeforefunc = NewString("");
 
@@ -279,6 +291,8 @@ public:
      just before it is written to file
     NEW LANGUAGE NOTE:END ************************************************/
     // Initialize some variables for the object interface
+    // TODO: Replace with call to getNamespaceHash(0)
+    /*
     s_cmd_tab = NewString("");
     s_var_tab = NewString("");
     //    s_methods_tab    = NewString("");
@@ -287,6 +301,7 @@ public:
     s_dot_get = NewString("");
     s_dot_set = NewString("");
     s_vars_meta_tab = NewString("");
+    */
     
     s_luacode = NewString("");
     Swig_register_filebyname("luacode", s_luacode);
@@ -323,28 +338,34 @@ public:
     Printf(f_header, "#define SWIG_init_user luaopen_%s_user\n\n", module);
     Printf(f_header, "#define SWIG_LUACODE   luaopen_%s_luacode\n", module);
 
+    /*
     if (elua_ltr || eluac_ltr)
       Printf(f_header, "#define swig_commands  %s_map\n\n", module);
+      */
 
     if (elua_ltr || eluac_ltr) {
-      Printf(s_cmd_tab, "\n#define MIN_OPT_LEVEL 2\n#include \"lrodefs.h\"\n");
-      Printf(s_cmd_tab, "#include \"lrotable.h\"\n");
-      Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_constants[];\n");
-      if (elua_ltr)
-        Printf(s_cmd_tab, "const LUA_REG_TYPE mt[];\n");
+      Printf(f_header, "\n#define MIN_OPT_LEVEL 2\n#include \"lrodefs.h\"\n");
+      Printf(f_header, "#include \"lrotable.h\"\n");
+      //Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_constants[];\n");
+      /*if (elua_ltr)
+        Printf(s_cmd_tab, "const LUA_REG_TYPE mt[];\n");*/
 
-      Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_commands[] = {\n");
-      Printf(s_const_tab, "\nconst LUA_REG_TYPE swig_constants[] = {\n");
+      //Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_commands[] = {\n");
+      //Printf(s_const_tab, "\nconst LUA_REG_TYPE swig_constants[] = {\n");
       Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
-      if (elua_ltr) {
+      Printf(f_wrappersForward, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+      /*if (elua_ltr) {
         Printf(s_dot_get, "\nconst LUA_REG_TYPE dot_get[] = {\n");
         Printf(s_dot_set, "\nconst LUA_REG_TYPE dot_set[] = {\n");
-      }
+      }*/
     } else {
+      /*
       Printf(s_cmd_tab, "\nstatic const struct luaL_Reg swig_commands[] = {\n");
       Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
       Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
+      */
       Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+      Printf(f_wrappersForward, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
     }
 
     /* %init code inclusion, effectively in the SWIG_init function */
@@ -354,8 +375,10 @@ public:
     Printf(f_init, "}\n");
 
     Printf(f_wrappers, "#ifdef __cplusplus\n}\n#endif\n");
+    Printf(f_wrappersForward, "#ifdef __cplusplus\n}\n#endif\n");
 
     // Done.  Close up the module & write to the wrappers
+#if 0
     if (elua_ltr || eluac_ltr) {
       Printv(s_cmd_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(swig_constants)},\n", NIL);
       if (elua_ltr)
@@ -367,7 +390,9 @@ public:
       Printv(s_var_tab, tab4, "{0,0,0}\n", "};\n", NIL);
       Printv(s_const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", NIL);
     }
+#endif
 
+#if 0
     if (elua_ltr) {
       /* Generate the metatable */
       Printf(s_vars_meta_tab, "\nconst LUA_REG_TYPE mt[] = {\n");
@@ -380,13 +405,16 @@ public:
       Printv(s_dot_get, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
       Printv(s_dot_set, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
     }
+#endif
 
     if (elua_ltr || eluac_ltr) {
       /* Final close up of wrappers */
-      Printv(f_wrappers, s_cmd_tab, s_dot_get, s_dot_set, s_vars_meta_tab, s_var_tab, s_const_tab, NIL);
+      //Printv(f_wrappers, s_cmd_tab, s_dot_get, s_dot_set, s_vars_meta_tab, s_var_tab, s_const_tab, NIL);
+      closeNamespaces(f_wrappers, f_wrappersForward);
       SwigType_emit_type_table(f_runtime, f_wrappers);
     } else {
-      Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
+      //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
+      closeNamespaces(f_wrappers, f_wrappersForward);
       SwigType_emit_type_table(f_runtime, f_wrappers);
     }
 
@@ -396,6 +424,7 @@ public:
     NEW LANGUAGE NOTE:END ************************************************/
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
+    Dump(f_wrappersForward, f_begin);
     Dump(f_wrappers, f_begin);
     Dump(f_initbeforefunc, f_begin);
     /* for the Lua code it needs to be properly excaped to be added into the C/C++ code */
@@ -404,18 +433,19 @@ public:
     Wrapper_pretty_print(f_init, f_begin);
     /* Close all of the files */
     Delete(s_luacode);
-    Delete(s_cmd_tab);
-    Delete(s_var_tab);
-    Delete(s_const_tab);
+    //Delete(s_cmd_tab);
+    //Delete(s_var_tab);
+    //Delete(s_const_tab);
     Delete(f_header);
     Delete(f_wrappers);
+    Delete(f_wrappersForward);
     Delete(f_init);
     Delete(f_initbeforefunc);
     Delete(f_runtime);
     Delete(f_begin);
-    Delete(s_dot_get);
-    Delete(s_dot_set);
-    Delete(s_vars_meta_tab);
+    //Delete(s_dot_get);
+    //Delete(s_dot_set);
+    //Delete(s_vars_meta_tab);
 
     /* Done */
     return SWIG_OK;
@@ -461,7 +491,7 @@ public:
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n)) {
+      if (!addSymbol(iname, n, getNSpace())) {
         Printf(stderr,"addSymbol(%s) failed\n",iname);
         return SWIG_ERROR;
       }
@@ -479,6 +509,12 @@ public:
     if (overname) {
       Append(wname, overname);
     }
+    if (current == CONSTRUCTOR) {
+      if( constructor_name != 0)
+        Delete(constructor_name);
+      constructor_name = Copy(wname);
+    }
+    //Printf(stdout , "Function wrapper, name %s\n", wname); // TODO:REMOVE
 
     /* NEW LANGUAGE NOTE:***********************************************
        the format of a lua fn is:
@@ -656,7 +692,15 @@ public:
       }
     }
 
+    // Remember C name of the wrapping function
     Setattr(n, "wrap:name", wname);
+    // If it is getter/setter, then write wname under
+    // wrap:memberset/wrap:memberget accordingly
+    if( Getattr(n, "memberset") )
+      Setattr(n, "memberset:wrap:name", wname);
+    if( Getattr(n, "memberget") )
+      Setattr(n, "memberget:wrap:name", wname);
+
 
     /* Emit the function call */
     String *actioncode = emit_action(n);
@@ -746,14 +790,15 @@ public:
       //REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
-        String *wrapname = Swig_name_wrapper(iname);
+        Hash* nspaceHash = getNamespaceHash( getNSpace() );
+        String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
         if(elua_ltr || eluac_ltr)
-          Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", Swig_name_wrapper(iname), ")", "},\n", NIL);
+          Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
         else
-          Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
+          Printv(s_ns_methods_tab, tab4, "{ \"", iname, "\", ", wname, "},\n", NIL);
       //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
         if (getCurrentClass()) {
-          Setattr(n,"luaclassobj:wrap:name", wrapname);
+          Setattr(n,"luaclassobj:wrap:name", wname);
         }
       }
     } else {
@@ -832,13 +877,24 @@ public:
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     //add_method(symname,wname,0);
-    if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
-      Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
+    if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+      Hash* nspaceHash = getNamespaceHash( getNSpace() );
+      String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
+      Printv(s_ns_methods_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
+    }
+    if (current == CONSTRUCTOR) {
+      if( constructor_name != 0 )
+        Delete(constructor_name);
+      constructor_name = Copy(wname);
+    }
 
-    if (getCurrentClass())
-      Setattr(n,"luaclassobj:wrap:name", wname);
-    else
-      Delete(wname);
+    Setattr(n, "wrap:name", wname);
+    // If it is getter/setter, then write wname under
+    // wrap:memberset/wrap:memberget accordingly
+    if( Getattr(n, "memberset") )
+      Setattr(n, "memberset:wrap:name", wname);
+    if( Getattr(n, "memberget") )
+      Setattr(n, "memberget:wrap:name", wname);
 
     DelWrapper(f);
     Delete(dispatch);
@@ -866,7 +922,7 @@ public:
     current=NO_CPP;
     // normally SWIG will generate 2 wrappers, a get and a set
     // but in certain scenarios (immutable, or if its arrays), it will not
-    String *getName = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, iname));
+    String *getName = Swig_name_wrapper(Swig_name_get(getNSpace(), iname));
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
     // I referred to the Language::variableWrapper() to find this out
@@ -878,7 +934,7 @@ public:
     Delete(tm);
 
     if (assignable) {
-      setName = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, iname));
+      setName = Swig_name_wrapper(Swig_name_set(getNSpace(), iname));
     } else {
       // how about calling a 'this is not settable' error message?
       setName = NewString("SWIG_Lua_set_immutable"); // error message
@@ -886,14 +942,19 @@ public:
     }
 
     // register the variable
+    Hash* nspaceHash = getNamespaceHash( getNSpace() );
+    String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
+    String* s_ns_var_tab = Getattr(nspaceHash, "attributes");
     if (elua_ltr) {
-      Printf(s_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, getName);
-      Printf(s_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, setName);
+      String* s_ns_dot_get = Getattr(nspaceHash, "get");
+      String* s_ns_dot_set = Getattr(nspaceHash, "set");
+      Printf(s_ns_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, getName);
+      Printf(s_ns_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, setName);
     } else if (eluac_ltr) {
-      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
-      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", iname, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", iname, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
     } else {
-      Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
+      Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
     }
     if (getCurrentClass()) {
       Setattr(n, "luaclassobj:wrap:get", getName);
@@ -918,7 +979,7 @@ public:
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
 
-    if (!addSymbol(iname, n))
+    if (!addSymbol(iname, n, getNSpace()))
       return SWIG_ERROR;
 
     /* Special hook for member pointer */
@@ -933,6 +994,8 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
+      Hash *nspaceHash = getNamespaceHash( getNSpace() );
+      String *s_const_tab = Getattr(nspaceHash, "constants");
       Printf(s_const_tab, "    %s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
@@ -945,6 +1008,7 @@ public:
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
+    /* TODO: Fix
     if (cparse_cplusplus && getCurrentClass()) {
       // Additionally add to class constants
       Swig_require("luaclassobj_constantWrapper", n, "*sym:name", "luaclassobj:symname", NIL);
@@ -958,7 +1022,7 @@ public:
         Printf(s_cls_const_tab, "    %s,\n", tm);
       }
       Swig_restore(n);
-    }
+    }*/
     Delete(nsname);
     return SWIG_OK;
   }
@@ -971,10 +1035,12 @@ public:
     //    REPORT("nativeWrapper", n);
     String *symname = Getattr(n, "sym:name");
     String *wrapname = Getattr(n, "wrap:name");
-    if (!addSymbol(wrapname, n))
+    if (!addSymbol(wrapname, n, getNSpace()))
       return SWIG_ERROR;
 
-    Printv(s_cmd_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
+    Hash *nspaceHash = getNamespaceHash( getNSpace() );
+    String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
+    Printv(s_ns_methods_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
     //   return Language::nativeWrapper(n); // this does nothing...
     return SWIG_OK;
   }
@@ -1010,20 +1076,28 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    String *mangled_classname = 0;
-    String *real_classname = 0;
+    String *mangled_full_class_symname = 0;
+    String *full_class_symname = 0;
+    String* nspace = getNSpace();
+    String* destructor_name = 0;
 
     constructor_name = 0;
     have_constructor = 0;
     have_destructor = 0;
     destructor_action = 0;
 
-    class_name = Getattr(n, "sym:name");
-    if (!addSymbol(class_name, n))
+    class_symname = Getattr(n, "sym:name");
+    if (!addSymbol(class_symname, n, nspace))
       return SWIG_ERROR;
 
-    real_classname = Getattr(n, "name");
-    mangled_classname = Swig_name_mangle(real_classname);
+    if (nspace == 0)
+      full_class_symname = NewStringf("%s", class_symname);
+    else
+      full_class_symname = NewStringf("%s.%s", nspace, class_symname);
+
+    assert(full_class_symname != 0);
+    mangled_full_class_symname = Swig_name_mangle(full_class_symname);
+    Printf( stdout, "Mangled class symname %s\n", mangled_full_class_symname );
 
     // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
@@ -1033,50 +1107,88 @@ public:
     // * consider effect on template_specialization_defarg
 
     static Hash *emitted = NewHash();
-    if (Getattr(emitted, mangled_classname))
+    if (Getattr(emitted, mangled_full_class_symname))
       return SWIG_NOWRAP;
-    Setattr(emitted, mangled_classname, "1");
+    Setattr(emitted, mangled_full_class_symname, "1");
 
-    s_attr_tab = NewString("");
-    Printf(s_attr_tab, "static swig_lua_attribute swig_");
-    Printv(s_attr_tab, mangled_classname, "_attributes[] = {\n", NIL);
+    // We treat class T as both 'class' and 'namespace'. All static members, attributes
+    // and constants are considered part of namespace T, all members - part of the 'class'
+    // Now, here is a trick. Static methods, attributes and non-static methods and attributes
+    // are described with same structures - swig_lua_attribute/swig_lua_method. Instead of calling
+    // getNamespaceHash(class name) to initialize things for static methods/attributes and then
+    // manually doing same initialization for non-static methods, we call getNamespaceHash 2 times:
+    // 1) With name "class name" + "." + "__Static" to initialize static things
+    // 2) With "class name" to initialize non-static things
+    // And we can guarantee that there will not be any name collision because names starting with 2 underscores
+    // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
+    // any member or subclass with name "__Static". Thus, never any name clash.
+    Hash* non_static_cls = getNamespaceHash(full_class_symname, false);
+    assert(non_static_cls != 0);
+    s_attr_tab = Getattr(non_static_cls, "attributes");
+    s_methods_tab = Getattr(non_static_cls, "methods");
+    String* s_attr_tab_name = Getattr(non_static_cls, "attributes:name");
+    String* s_methods_tab_name = Getattr(non_static_cls, "methods:name");
+    Setattr(non_static_cls, "lua:no_namespaces", "1");
+    Setattr(non_static_cls, "lua:no_classes", "1");
 
-    s_methods_tab = NewString("");
-    Printf(s_methods_tab, "static swig_lua_method swig_");
-    Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
+    /* There is no use for "constants", "classes" and "namespaces" arrays.
+     * All constants are considered part of static part of class.
+     */
 
-    s_cls_methods_tab = NewString("");
-    Printf(s_cls_methods_tab, "static swig_lua_method swig_");
-    Printv(s_cls_methods_tab, mangled_classname, "_cls_methods[] = {\n", NIL);
+    String *static_cls_key = NewStringf("%s%s__Static", full_class_symname, NSPACE_SEPARATOR);
+    Hash *static_cls = getNamespaceHash(static_cls_key, false);
+    if (static_cls == 0) {
+      return SWIG_ERROR; // This cant be, so it is internal, implementation error
+    }
+    Setattr(static_cls, "lua:no_namespaces", "1");
+    /* TODO: REMOVE
+    s_cls_methods_tab = Getattr(static_cls, "methods");
+    s_cls_attr_tab = Getattr(static_cls, "attributes");
+    s_cls_const_tab = Getattr(static_cls, "constants");
+    */
 
-    s_cls_attr_tab = NewString("");
-    Printf(s_cls_attr_tab, "static swig_lua_attribute swig_");
-    Printv(s_cls_attr_tab, mangled_classname, "_cls_attributes[] = {\n", NIL);
+    /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
+     * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
+     */
+    assert(s_attr_tab != 0);
+    assert(s_methods_tab != 0);
+    /*
+    assert(s_cls_methods_tab != 0);
+    assert(s_cls_attr_tab != 0);
+    assert(s_cls_const_tab != 0);
+    */
 
-    s_cls_const_tab = NewString("");
-    Printf(s_cls_const_tab, "static swig_lua_const_info swig_");
-    Printv(s_cls_const_tab, mangled_classname, "_cls_constants[] = {\n", NIL);
-
-
+    // Replacing namespace with namespace + class in order to static
+    // member be put inside class static area
+    setNSpace(static_cls_key);
     // Generate normal wrappers
     Language::classHandler(n);
+    // Restore correct nspace
+    setNSpace(nspace);
 
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
+    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_full_class_symname);
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
+    // Adding class to apropriate namespace
+    Hash *nspaceHash = getNamespaceHash(nspace);
+    String *ns_classes = Getattr(nspaceHash, "classes");
+    Printv( ns_classes, wrap_class, ",\n", NIL );
+
     // Register the class structure with the type checker
-    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname);
+    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_full_class_symname);
  
     // emit a function to be called to delete the object 
+    // TODO: class_name -> full_class_name || mangled full_class_name
     if (have_destructor) {
-      Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NIL);
+      destructor_name = NewStringf("swig_delete_%s", mangled_full_class_symname);
+      Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
         Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
         Printv(f_wrappers, destructor_action, "\n", NIL);
@@ -1090,27 +1202,17 @@ public:
       Printf(f_wrappers, "}\n");
     }
 
-    Printf(s_methods_tab, "    {0,0}\n};\n");
-    Printv(f_wrappers, s_methods_tab, NIL);
-
-    Printf(s_attr_tab, "    {0,0,0}\n};\n");
-    Printv(f_wrappers, s_attr_tab, NIL);
-
-    Printf(s_cls_attr_tab, "    {0,0,0}\n};\n");
-    Printv(f_wrappers, s_cls_attr_tab, NIL);
-
-    Printf(s_cls_methods_tab, "    {0,0}\n};\n");
-    Printv(f_wrappers, s_cls_methods_tab, NIL);
-
-    Printf(s_cls_const_tab, "    {0,0,0,0,0,0}\n};\n");
-    Printv(f_wrappers, s_cls_const_tab, NIL);
+    closeNamespaceHash(full_class_symname, f_wrappers);
+    closeNamespaceHash(static_cls_key, f_wrappers);
 
 
+    /* TODO: REMOVE
     Delete(s_methods_tab);
     Delete(s_attr_tab);
     Delete(s_cls_methods_tab);
     Delete(s_cls_attr_tab);
     Delete(s_cls_const_tab);
+    */
 
     // Handle inheritance
     // note: with the idea of class hierarchies spread over multiple modules
@@ -1135,7 +1237,7 @@ public:
           b = Next(b);
           continue;
         }
-        // old code: (used the pointer to the base class)
+        // old code: (used the pointer to the base class) TODO:REMOVE
         //String *bmangle = Swig_name_mangle(bname);
         //Printf(base_class, "&_wrap_class_%s", bmangle);
         //Putc(',', base_class);
@@ -1149,24 +1251,30 @@ public:
       }
     }
 
-    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_classname, "_bases[] = {", base_class, "0};\n", NIL);
+    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_full_class_symname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static const char *swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_full_class_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_full_class_symname, " = { \"", class_symname, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
+    // TODO: Replace with constructor_name
     if (have_constructor) {
       if (elua_ltr) {
-        Printf(s_cmd_tab, "    {LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", class_name, \
-        Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
-        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+        String* ns_methods_tab = Getattr(nspaceHash, "methods");
+        // TODO: Contructor should be moved to __call method of static part of class
+        Printf(ns_methods_tab, "    {LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", class_symname, \
+        Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)));
+        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)));
       } else if (eluac_ltr) {
-        Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", "new_", class_name, "\")", ", LFUNCVAL(", \
-        Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)), ")", "},\n", NIL);
-        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+        String* ns_methods_tab = Getattr(nspaceHash, "methods");
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", class_symname, "\")", ", LFUNCVAL(", \
+        Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)), ")", "},\n", NIL);
+        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)));
       } else {
-        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+        //Printf( stdout, "Constructor.name %s declaration: %s\n", constructor_name, Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)));
+        //Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(nspace, constructor_name)));
+        Printv(f_wrappers, constructor_name, NIL);
       }
       Delete(constructor_name);
       constructor_name = 0;
@@ -1176,23 +1284,26 @@ public:
 
     if (have_destructor) {
       if (eluac_ltr) {
-        Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", "free_", class_name, "\")", ", LFUNCVAL(", "swig_delete_", class_name, ")", "},\n", NIL);
-        Printv(f_wrappers, ", swig_delete_", class_name, NIL);
+        String* ns_methods_tab = Getattr(nspaceHash, "methods");
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_class_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
+        Printv(f_wrappers, ", ", destructor_name, NIL);
       } else {
-         Printv(f_wrappers, ", swig_delete_", class_name, NIL);
+         Printv(f_wrappers, ", ", destructor_name, NIL);
       }
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, { \"%s\", swig_%s_cls_methods, swig_%s_cls_attributes, swig_%s_cls_constants }, swig_%s_bases, swig_%s_base_names };\n\n",
-        mangled_classname, mangled_classname,
-        class_name, mangled_classname, mangled_classname, mangled_classname,
-        mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", %s, %s, ", s_methods_tab_name, s_attr_tab_name );
+    // TODO: Replace class_symname with class_name
+    printNamespaceDefinition(static_cls_key, class_symname, f_wrappers);
+    Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n",
+        mangled_full_class_symname, mangled_full_class_symname);
 
-    //    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
-    //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
+    //    Printv(f_wrappers, ", swig_", mangled_full_class_symname, "_methods, swig_", mangled_full_class_symname, "_attributes, swig_", mangled_full_class_symname, "_bases };\n\n", NIL);
+    //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_full_class_symname, "},\n", NIL);
     Delete(t);
-    Delete(mangled_classname);
+    Delete(mangled_full_class_symname);
+    Delete(static_cls_key);
     return SWIG_OK;
   }
 
@@ -1221,7 +1332,8 @@ public:
     current = NO_CPP;
 
     realname = iname ? iname : name;
-    rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
+    rname = Getattr(n, "wrap:name");
+    assert(rname != 0);
     if (!Getattr(n, "sym:nextSibling")) {
       Printv(s_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     }
@@ -1236,27 +1348,29 @@ public:
   virtual int membervariableHandler(Node *n) {
     //    REPORT("membervariableHandler",n);
     String *symname = Getattr(n, "sym:name");
-    String *gname, *sname;
+    String *getter_name, *setter_name;
 
     current = MEMBER_VAR;
     Language::membervariableHandler(n);
     current = NO_CPP;
-    gname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+    getter_name = Getattr(n, "memberget:wrap:name");
+    assert(getter_name != 0);
     if (!GetFlag(n, "feature:immutable")) {
-      sname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+      setter_name = Getattr(n, "memberset:wrap:name");
+      assert(setter_name != 0);
     } else {
-      //sname = NewString("0");
-      sname = NewString("SWIG_Lua_set_immutable"); // error message
+      //setter_name = NewString("0");
+      setter_name = NewString("SWIG_Lua_set_immutable"); // error message
     }
-    Printf(s_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,gname,sname);
-    if (eluac_ltr) {
+    Printf(s_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,getter_name,setter_name);
+    /*if (eluac_ltr) { TODO: FIX for eluac and uncomments
       Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", class_name, "_", symname, "_get", "\")", \
-      ", LFUNCVAL(", gname, ")", "},\n", NIL);
+      ", LFUNCVAL(", getter_name, ")", "},\n", NIL);
       Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", class_name, "_", symname, "_set", "\")", \
-      ", LFUNCVAL(", sname, ")", "},\n", NIL);
-    }
-    Delete(gname);
-    Delete(sname);
+      ", LFUNCVAL(", setter_name, ")", "},\n", NIL);
+    }*/
+    Delete(getter_name);
+    Delete(setter_name);
     return SWIG_OK;
   }
 
@@ -1271,8 +1385,9 @@ public:
     current = CONSTRUCTOR;
     Language::constructorHandler(n);
     current = NO_CPP;
-    constructor_name = NewString(Getattr(n, "sym:name"));
+    //constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
+    //Printf( stdout, "Constructor %s\n", constructor_name); TODO: REMOVE
     return SWIG_OK;
   }
 
@@ -1299,7 +1414,7 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     REPORT("staticmemberfunctionHandler", n);
     current = STATIC_FUNC;
-    String *symname = Getattr(n, "sym:name");
+    //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmemberfunctionHandler(n);
 
     if (cparse_cplusplus && getCurrentClass()) {
@@ -1313,11 +1428,12 @@ public:
       return SWIG_OK;
 
     Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL);
-    String *name = Getattr(n, "name");
-    String *rname, *realname;
-    realname = symname ? symname : name;
-    rname = Getattr(n, "luaclassobj:wrap:name");
-    Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
+    //String *name = Getattr(n, "name");
+    //String *rname, *realname;
+    //realname = symname ? symname : name;
+    //rname = Getattr(n, "luaclassobj:wrap:name");
+    // TODO: Add backward compatibility here: add "ClassName_FuncName" to global table
+    //Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     Swig_restore(n);
 
     return SWIG_OK;
@@ -1350,7 +1466,7 @@ public:
   virtual int staticmembervariableHandler(Node *n) {
     REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
-    String *symname = Getattr(n, "sym:name");
+    //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmembervariableHandler(n);
 
     if (result != SWIG_OK)
@@ -1360,12 +1476,35 @@ public:
     if (Getattr(n, "wrappedasconstant"))
       return SWIG_OK;
 
+    /* TODO: Add backward compatibility here: add "ClassName_AttributeName" to class scope
     Swig_require("luaclassobj_staticmembervariableHandler", n, "luaclassobj:wrap:get", "luaclassobj:wrap:set", NIL);
     Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,Getattr(n,"luaclassobj:wrap:get"), Getattr(n,"luaclassobj:wrap:set"));
     Swig_restore(n);
+    */
     return SWIG_OK;
   }
 
+  /* TODO: REMOVE
+  virtual int namespaceDeclaration(Node *n) {
+    // Register namespace
+    String* name = Getattr(n, "sym:name");
+    Hash* parent = getNamespaceHash( getNSpace() );
+    String *parent_namespaces_tab = Getattr(parent, "namespaces");
+    String *mangled_name = Swig_name_mangle(name);
+    String *full_name = NewString("");
+    if (getNSpace() == 0)
+      Printv(full_name, name);
+    else
+      Printv(full_name, getNSpace(), NSPACE_SEPARATOR, name);
+    Hash *nspace = getNamespaceHash(full_name);
+    Setattr(nspace, "name", Copy(name));
+    Printv(parent_namespaces_tab, mangled_name, ",\n", NIL);
+    Printf(stdout, "NamespaceDeclaration %s, Parent %s, FQN %s\n", name, getNSpace(), full_name);
+    Delete(mangled_name);
+    Delete(full_name);
+    return Language::namespaceDeclaration(n);
+  }
+  */
   /* ---------------------------------------------------------------------
    * external runtime generation
    * --------------------------------------------------------------------- */
@@ -1428,6 +1567,307 @@ public:
     Replace(str,"\n","\\n\"\n  \"",DOH_REPLACE_ANY); // \n to \n"\n" (ie quoting every line)
     //Printf(f_runtime,"/* hacked luacode:[[[\n%s\n]]]\n*/\n",str);
   } 
+
+  /* Each namespace can be described with hash that stores C arrays
+   where members of the namespace should be added. All these hashes are stored
+   inside namespaces_hash.
+   nspace could be NULL (NSPACE_TODO), that means functions and variables and classes
+   that are not in any namespace (this is default for SWIG unless %nspace feature is used)
+   You can later set some attributes that will affect behaviour of functions that use this hash:
+   "lua:no_namespaces" will disable "namespaces" array.
+   "lua:no_classes" will disable "classes" array.
+   For every component ("attributes", "methods", etc) there are subcomponents:
+   * XXX:name - name of the C array that stores data for component
+   * XXX:decl - statement with forward declaration of this array;
+   */
+  Hash* getNamespaceHash(String *nspace, bool reg = true)
+  {
+    //Printf( stdout, "Request for %s. register: %d\n", nspace?nspace:"<global>", int(reg));
+    Hash* nspace_hash = Getattr(namespaces_hash, nspace?nspace:"" );
+    if (nspace_hash != 0)
+      return nspace_hash;
+    nspace_hash = NewHash();
+    String* mangled_name = 0;
+    if (nspace == 0 || Len(nspace) == 0)
+      mangled_name = NewString("__Global"); // C++ names can't start with "__ + capital letter"
+    else
+      mangled_name = Swig_name_mangle(nspace);
+    String* cname = NewStringf("swig_%s", mangled_name);
+
+    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(nspace_hash, "lua:no_reg") == 0) {
+      // Split names into components
+      List* components = Split(nspace, '.', -1);
+      String *parent_path = NewString("");
+      int len = Len(components);
+      String* name = Copy(Getitem(components, len-1));
+      for( int i = 0; i < len-1; i++ ) {
+        if (i > 0)
+          Printv(parent_path, NSPACE_SEPARATOR, NIL);
+        String* item = Getitem(components, i);
+        Printv(parent_path, item, NIL);
+      }
+      Printf(stdout, "Registering %s. User name %s. C-name %s, Parent is %s\n", mangled_name, name, cname, parent_path);
+      Hash* parent = getNamespaceHash(parent_path, true);
+      String* namespaces_tab = Getattr(parent, "namespaces");
+      Printv(namespaces_tab, "&", cname, ",\n", NIL);
+      Setattr(nspace_hash, "name", name);
+
+      Delete(components);
+      Delete(parent_path);
+    } else if (!reg) // This namespace shouldn't be registered. Lets remember it
+      Setattr(nspace_hash, "lua:no_reg", "1");
+
+
+    Setattr(nspace_hash, "cname", cname);
+
+    String *attr_tab = NewString("");
+    String *attr_tab_name = NewStringf("swig_%s_attributes", mangled_name );
+    String *attr_tab_decl = NewString("");
+    Printv(attr_tab, "static swig_lua_attribute ", NIL);
+    Printv(attr_tab, attr_tab_name, "[]", NIL);
+    Printv(attr_tab_decl, attr_tab, ";\n", NIL);
+    Printv(attr_tab, " = {\n", NIL);
+    Setattr(nspace_hash, "attributes", attr_tab);
+    Setattr(nspace_hash, "attributes:name", attr_tab_name);
+    Setattr(nspace_hash, "attributes:decl", attr_tab_decl);
+
+    String *methods_tab = NewString("");
+    String *methods_tab_name = NewStringf("swig_%s_methods", mangled_name );
+    String *methods_tab_decl = NewString("");
+    if (elua_ltr || eluac_ltr) // In this case methods array also acts as namespace rotable
+      Printf(methods_tab, "static LUA_REG_TYPE ");
+    else
+      Printf(methods_tab, "static swig_lua_method ");
+    Printv(methods_tab, methods_tab_name, "[]");
+    Printv(methods_tab_decl, methods_tab, ";\n", NIL);
+    Printv(methods_tab, "= {\n", NIL);
+    Setattr(nspace_hash, "methods", methods_tab );
+    Setattr(nspace_hash, "methods:name", methods_tab_name );
+    Setattr(nspace_hash, "methods:decl", methods_tab_decl );
+
+    String *const_tab = NewString("");
+    String *const_tab_name = NewStringf("swig_%s_constants", mangled_name );
+    String *const_tab_decl = NewString("");
+    if (elua_ltr || eluac_ltr) // In this case const array holds rotable with namespace constants
+      Printf(const_tab, "static LUA_REG_TYPE ");
+    else
+      Printf(const_tab, "static swig_lua_const_info ");
+    Printv(const_tab, const_tab_name, "[]", NIL);
+    Printv(const_tab_decl, const_tab, ";", NIL);
+    Printv(const_tab, "= {\n", NIL);
+    Setattr(nspace_hash, "constants", const_tab );
+    Setattr(nspace_hash, "constants:name", const_tab_name );
+    Setattr(nspace_hash, "constants:decl", const_tab_decl );
+
+    String *classes_tab = NewString("");
+    String *classes_tab_name = NewStringf("swig_%s_classes", mangled_name );
+    String *classes_tab_decl = NewString("");
+    Printf(classes_tab, "static swig_lua_class* ");
+    Printv(classes_tab, classes_tab_name, "[]");
+    Printv(classes_tab_decl, classes_tab, ";", NIL);
+    Printv(classes_tab, "= {\n", NIL);
+    Setattr(nspace_hash, "classes", classes_tab );
+    Setattr(nspace_hash, "classes:name", classes_tab_name );
+    Setattr(nspace_hash, "classes:decl", classes_tab_decl );
+
+    String* namespaces_tab = NewString("");
+    String* namespaces_tab_name = NewStringf("swig_%s_namespaces", mangled_name );
+    String* namespaces_tab_decl = NewString("");
+    Printf(namespaces_tab, "static swig_lua_namespace* ");
+    Printv(namespaces_tab, namespaces_tab_name, "[]");
+    Printv(namespaces_tab_decl, namespaces_tab, ";", NIL);
+    Printv(namespaces_tab, " = {\n", NIL);
+    Setattr(nspace_hash, "namespaces", namespaces_tab );
+    Setattr(nspace_hash, "namespaces:name", namespaces_tab_name );
+    Setattr(nspace_hash, "namespaces:decl", namespaces_tab_decl );
+
+    if (elua_ltr) {
+      // TODO: add xxx:decl here too
+      String *get_tab = NewString("");
+      String *get_tab_name = NewStringf("swig_%s_get", mangled_name);
+      Printv(get_tab, "const LUA_REG_TYPE ", get_tab_name, "[] = {\n", NIL);
+      Setattr(nspace_hash, "get", get_tab);
+      Setattr(nspace_hash, "get:name", get_tab_name);
+
+      String *set_tab = NewString("");
+      String *set_tab_name = NewStringf("swig_%s_set", mangled_name);
+      Printv(set_tab, "const LUA_REG_TYPE ", set_tab_name, "[] = {\n", NIL);
+      Setattr(nspace_hash, "set", set_tab);
+      Setattr(nspace_hash, "set:name", set_tab_name);
+
+      if (!eluac_ltr) {
+        String* metatable_tab = NewString("");
+        String* metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
+        Printv(metatable_tab, "const LUA_REG_TYPE ", metatable_tab_name, "[] = {\n");
+        Setattr(nspace_hash, "metatable", metatable_tab);
+        Setattr(nspace_hash, "metatable:name", metatable_tab_name);
+      }
+    }
+    String* key = 0;
+    if (nspace != 0)
+      key = Copy(nspace);
+    Setattr(namespaces_hash, key?key:"", nspace_hash);
+
+    Delete(mangled_name);
+    return nspace_hash;
+  }
+
+  /* Functions add end markers {0,0,...,0} to all arrays, prints them to
+   * output and marks hash as closed (lua:closed). Consequent attempts to
+   * close same hash will result in error
+   * closeNamespaceHash DOES NOT print structure that describes namespace, it only
+   * prints array. You can use printNamespaceDefinition to print structure.
+   * if "lua:no_namespaces" is set, then array for "namespaces" won't be printed
+   * if "lua:no_classes" is set, then array for "classes" won't be printed
+   * */
+  void closeNamespaceHash(String *nspace, File *output)
+  {
+    Hash* nspace_hash = Getattr(namespaces_hash, nspace );
+    assert(nspace_hash != 0);
+    assert(Getattr(nspace_hash, "lua:closed") == 0);
+
+    Setattr(nspace_hash, "lua:closed", "1");
+
+    String* attr_tab = Getattr(nspace_hash, "attributes");
+    Printf(attr_tab, "    {0,0,0}\n};\n");
+    Printv(output, attr_tab, NIL);
+
+    String* const_tab = Getattr(nspace_hash, "constants");
+    String* const_tab_name = Getattr(nspace_hash, "constants:name");
+    if (elua_ltr || eluac_ltr)
+      Printv(const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
+    else
+      Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
+    Printv(output, const_tab, NIL);
+
+    String* methods_tab = Getattr(nspace_hash, "methods");
+    String* metatable_tab_name = Getattr(nspace_hash, "metatable:name");
+    if (elua_ltr || eluac_ltr) {
+      Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
+      if (elua_ltr)
+        Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
+    } else
+      Printf(methods_tab, "    {0,0}\n};\n");
+    Printv(output, methods_tab, NIL);
+
+    if (!Getattr(nspace_hash, "lua:no_classes") ) {
+      String* classes_tab = Getattr(nspace_hash, "classes");
+      Printf(classes_tab, "    0\n};\n");
+      Printv(output, classes_tab, NIL);
+    }
+
+    if (!Getattr(nspace_hash, "lua:no_namespaces") ) {
+      String* namespaces_tab = Getattr(nspace_hash, "namespaces");
+      Printf(namespaces_tab, "    0\n};\n");
+      Printv(output, namespaces_tab, NIL);
+    }
+    if (elua_ltr) {
+      String *get_tab = Getattr(nspace_hash, "get");
+      String *get_tab_name = Getattr(nspace_hash, "get:name");
+      String *set_tab = Getattr(nspace_hash, "set");
+      String *set_tab_name = Getattr(nspace_hash, "set:name");
+      Printv(get_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+      Printv(set_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+      Printv(output, get_tab, NIL);
+      Printv(output, set_tab, NIL);
+
+      String *metatable_tab = Getattr(nspace_hash, "metatable");
+      assert(metatable_tab != 0);
+      Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_module_get)},\n", NIL);
+      Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_module_set)},\n", NIL);
+      Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
+      Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
+      Printv(metatable_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+      Printv(output, metatable_tab, NIL);
+    }
+    Printv(output, "\n", NIL);
+  }
+
+  static int compareByLen( const DOH* f, const DOH* s) { return Len(s) - Len(f); }
+  // Recursively close all non-closed namespaces. Prints data to dataOutput,
+  // forward declaration to declOutput
+  void closeNamespaces(File *dataOutput, File *declOutput)
+  {
+    Iterator ki = First(namespaces_hash);
+    List* to_close = NewList();
+    while (ki.key) {
+      if (Getattr(ki.item, "lua:closed") == 0)
+        Append(to_close, ki.key);
+      ki = Next(ki);
+    }
+    SortList(to_close, &compareByLen);
+    int len = Len(to_close);
+    for( int i = 0; i < len; i++ ) {
+      String* key = Getitem(to_close,i);
+      closeNamespaceHash(key, dataOutput);
+      Hash* nspace = Getattr(namespaces_hash, key);
+      String* cname = Getattr(nspace, "cname"); // cname - name of the C structure that describes namespace
+      assert(cname != 0);
+      Printf( stdout, "Closing namespace %s\n", cname );
+      //printNamespaceForwardDeclaration( ki.key, declOutput ); TODO: REMOVE
+      Printv(dataOutput, "static swig_lua_namespace ", cname, " = ", NIL);
+      String *name = 0; // name - name of the namespace as it should be visible in Lua
+      if (DohLen(key) == 0) // This is global module
+        name = module;
+      else
+        name = Getattr(nspace, "name");
+      assert(name != 0);
+      printNamespaceDefinition( key, name, dataOutput );
+      Printv(dataOutput, ";\n\n", NIL);
+    }
+    Delete(to_close);
+  }
+
+  // This function prints to output a definition of namespace in
+  // form of swig_lua_namespace: { attr_array, methods_array, ... , namespaces_array }.
+  // You can call this function as many times as necessary.
+  // 'name' is a user-visible name that this namespace will have in Lua. It shouldn't
+  // be fully qualified name, just it's own name.
+  void printNamespaceDefinition(String *nspace, String* name, File *output)
+  {
+    // TODO: Fix for get_tab/set_tab things (elua_ltr)
+    Hash *nspace_hash = getNamespaceHash(nspace, false);
+    String *null_string = NewString("0");
+    String *attr_tab_name = Getattr(nspace_hash, "attributes:name");
+    String *methods_tab_name = Getattr(nspace_hash, "methods:name");
+    String *const_tab_name = Getattr(nspace_hash, "constants:name");
+    String *classes_tab_name = Getattr(nspace_hash, "classes:name");
+    String *namespaces_tab_name = Getattr(nspace_hash, "namespaces:name");
+    bool has_classes = Getattr(nspace_hash, "lua:no_classes") == 0;
+    bool has_namespaces = Getattr(nspace_hash, "lua:no_namespaces") == 0;
+
+    Printf(output, "{\"%s\", %s, %s, %s, %s, %s}",
+        name,
+        methods_tab_name,
+        attr_tab_name,
+        const_tab_name,
+        (has_classes)?classes_tab_name:null_string,
+        (has_namespaces)?namespaces_tab_name:null_string
+        );
+  }
+
+  // This function prints forward declaration of namespace itself and all its arrays
+  // TODO: REMOVE
+  void printNamespaceForwardDeclaration(String* nspace, File* output)
+  {
+    Hash *nspace_hash = getNamespaceHash(nspace, false);
+    String *attr_tab_decl = Getattr(nspace_hash, "attributes:decl");
+    String *methods_tab_decl = Getattr(nspace_hash, "methods:decl");
+    String *const_tab_decl = Getattr(nspace_hash, "constants:decl");
+    String *classes_tab_decl = Getattr(nspace_hash, "classes:decl");
+    String *namespaces_tab_decl = Getattr(nspace_hash, "declspaces:decl");
+    bool has_classes = Getattr(nspace_hash, "lua:no_classes") == 0;
+    bool has_namespaces = Getattr(nspace_hash, "lua:no_namespaces") == 0;
+    Printv( output, attr_tab_decl, "\n", NIL );
+    Printv( output, methods_tab_decl, "\n", NIL );
+    Printv( output, const_tab_decl, "\n", NIL );
+    if( has_classes )
+      Printv( output, classes_tab_decl, "\n", NIL );
+    if( has_namespaces )
+      Printv( output, namespaces_tab_decl, "\n", NIL );
+
+    Printf( output, "static swig_lua_namespace %s;\n", Getattr(nspace_hash, "cname") );
+  }
 };
 
 /* NEW LANGUAGE NOTE:***********************************************

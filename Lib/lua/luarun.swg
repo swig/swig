@@ -129,10 +129,13 @@ typedef struct {
     swig_type_info **ptype;
 } swig_lua_const_info;
 
+/* TODO:REMOVE
 typedef struct {
   const char     *name;
   lua_CFunction   method;
 } swig_lua_method;
+*/
+typedef luaL_Reg swig_lua_method;
 
 typedef struct {
   const char     *name;
@@ -140,16 +143,20 @@ typedef struct {
   lua_CFunction   setmethod;
 } swig_lua_attribute;
 
+
+struct swig_lua_class;
 // Can be used to create namespaces. Currently used to
 // wrap class static methods/variables/constants
-typedef struct {
+struct swig_lua_namespace {
   const char            *name;
   swig_lua_method       *ns_methods;
   swig_lua_attribute    *ns_attributes;
   swig_lua_const_info   *ns_constants;
-} swig_lua_namespace;
+  swig_lua_class        **ns_classes;
+  swig_lua_namespace    **ns_namespaces;
+};
 
-typedef struct swig_lua_class {
+struct swig_lua_class {
   const char    *name;
   swig_type_info   **type;
   lua_CFunction  constructor;
@@ -159,7 +166,7 @@ typedef struct swig_lua_class {
   swig_lua_namespace    cls_static;
   struct swig_lua_class **bases;
   const char **base_names;
-} swig_lua_class;
+};
 
 /* this is the struct for wrapping all pointers in SwigLua
 */
@@ -497,28 +504,29 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
 }
 
 SWIGINTERN void SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]); // forward declaration
-SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn); // forward declaration
+SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn); // forward declaration
+SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss);
 
 /* helper function - register namespace methods and attributes into namespace */
 SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* ns)
 {
   int i = 0;
-  assert(lua_istable(L,-1));
   /* There must be table at the top of the stack */
+  assert(lua_istable(L,-1));
   SWIG_Lua_InstallConstants(L, ns->ns_constants);
 
   lua_getmetatable(L,-1);
 
   /* add fns */
   for(i=0;ns->ns_attributes[i].name;i++){
-    SWIG_Lua_add_class_variable(L,ns->ns_attributes[i].name,ns->ns_attributes[i].getmethod,ns->ns_attributes[i].setmethod);
+    SWIG_Lua_add_variable(L,ns->ns_attributes[i].name,ns->ns_attributes[i].getmethod,ns->ns_attributes[i].setmethod);
   }
 
   /* add methods to the metatable */
   SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
   assert(lua_istable(L,-1));  /* just in case */
   for(i=0;ns->ns_methods[i].name;i++){
-    SWIG_Lua_add_function(L,ns->ns_methods[i].name,ns->ns_methods[i].method);
+    SWIG_Lua_add_function(L,ns->ns_methods[i].name,ns->ns_methods[i].func);
   }
   lua_pop(L,1);
 
@@ -527,12 +535,29 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* 
   return 0;
 }
 
-/* helper function. creates namespace table and add it to module table */
-SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns)
+/* Register all classes in the namespace
+ */
+SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State* L, swig_lua_namespace* ns)
 {
-  assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table */
+  swig_lua_class** classes = ns->ns_classes;
+
+  if( classes != 0 ) {
+    while((*classes)->name != 0) {
+      SWIG_Lua_class_register(L, *classes);
+      classes++;
+    }
+  }
+}
+
+/* helper function. creates namespace table and add it to module table
+   if 'reg' is true, then will register namespace table to parent one (must be on top of the stack
+   when function is called)
+   Function always returns newly registered table on top of the stack
+*/
+SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns, bool reg)
+{
+  assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table or parent namespace table */
   lua_checkstack(L,5);
-  lua_pushstring(L, ns->name);
   lua_newtable(L); /* namespace itself */
   lua_newtable(L); /* metatable for namespace */
 
@@ -554,8 +579,23 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns)
   SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_namespace_set);
 
   lua_setmetatable(L,-2); /* set metatable */
-  lua_rawset(L,-3); /* add namespace to module table */
-  return 0;
+
+  // Register all functions, variables etc
+  SWIG_Lua_add_namespace_details(L,ns);
+
+  swig_lua_namespace** sub_namespace = ns->ns_namespaces;
+  if( sub_namespace != 0) {
+    while((*sub_namespace)->name != 0) {
+      SWIG_Lua_namespace_register(L, *sub_namespace, true);
+      sub_namespace++;
+    }
+  }
+
+  if (reg) {
+    lua_pushstring(L,ns->name);
+    lua_pushvalue(L,-2);
+    lua_rawset(L,-4); /* add namespace to module table */
+  }
 }
 /* -----------------------------------------------------------------------------
  * global variable support code: classes
@@ -757,7 +797,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
 }
 
 /* helper add a variable to a registered class */
-SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
+SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
   assert(lua_istable(L,-1));  /* just in case */
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
@@ -799,13 +839,13 @@ SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
   }
   /* add fns */
   for(i=0;clss->attributes[i].name;i++){
-    SWIG_Lua_add_class_variable(L,clss->attributes[i].name,clss->attributes[i].getmethod,clss->attributes[i].setmethod);
+    SWIG_Lua_add_variable(L,clss->attributes[i].name,clss->attributes[i].getmethod,clss->attributes[i].setmethod);
   }
   /* add methods to the metatable */
   SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
   assert(lua_istable(L,-1));  /* just in case */
   for(i=0;clss->methods[i].name;i++){
-    SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].method);
+    SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].func);
   }
   lua_pop(L,1);       /* tidy stack (remove table) */
   /*   add operator overloads
@@ -814,7 +854,7 @@ SWIGINTERN void  SWIG_Lua_add_class_details(lua_State* L,swig_lua_class* clss)
     (this might mess up is someone defines a method __gc (the destructor)*/
   for(i=0;clss->methods[i].name;i++){
     if (clss->methods[i].name[0]=='_' && clss->methods[i].name[1]=='_'){
-      SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].method);
+      SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].func);
     }
   }
 }
@@ -848,7 +888,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* cls
   assert(lua_istable(L,-1));  /* just in case */
   assert(strcmp(clss->name, clss->cls_static.name) == 0); /* in class those 2 must be equal */
 
-  SWIG_Lua_namespace_register(L,&clss->cls_static);
+  SWIG_Lua_namespace_register(L,&clss->cls_static, false);
 
   SWIG_Lua_get_table(L,clss->name); // Get namespace table back
   assert(lua_istable(L,-1)); /* just in case */

@@ -278,6 +278,7 @@ protected:
 
   /* Return the namespace for the class/enum - the nspace feature */
   String *getNSpace() const;
+  void setNSpace(String *nspace);
 
   /* Return the real name of the current class */
   String *getClassName() const;

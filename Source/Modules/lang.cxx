@@ -3049,6 +3049,7 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
+  //Printf( stdout, "addSymbol: %s %s\n", s, scope );
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
     // New scope which has not been added by the target language - lazily created.
@@ -3466,6 +3467,13 @@ Node *Language::getCurrentClass() const {
 
 String *Language::getNSpace() const {
   return NSpace;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::setNSpace()
+ * ----------------------------------------------------------------------------- */
+void Language::setNSpace(String *nspace) {
+    NSpace = nspace;
 }
 
 /* -----------------------------------------------------------------------------

@@ -40,16 +40,6 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
   /* add a global fn */
   SWIG_Lua_add_function(L,"swig_type",SWIG_Lua_type);
   SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_equal);
-  /* begin the module (its a table with the same name as the module) */
-  SWIG_Lua_module_begin(L,SWIG_name);
-  /* add commands/functions */
-  for (i = 0; swig_commands[i].name; i++){
-    SWIG_Lua_module_add_function(L,swig_commands[i].name,swig_commands[i].func);
-  }
-  /* add variables */
-  for (i = 0; swig_variables[i].name; i++){
-    SWIG_Lua_module_add_variable(L,swig_variables[i].name,swig_variables[i].get,swig_variables[i].set);
-  }
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
@@ -59,17 +49,16 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
     }
   }
-  /* additional registration structs & classes in lua */
-  for (i = 0; swig_types[i]; i++){
-    if (swig_types[i]->clientdata){
-      SWIG_Lua_class_register(L,(swig_lua_class*)(swig_types[i]->clientdata));
-    }
-  }
+  bool globalRegister = false;
+#ifdef SWIG_LUA_MODULE_GLOBAL
+  globalRegister = true;
+#endif
+  SWIG_Lua_namespace_register(L,&swig___Global, globalRegister);
 #endif
 
 #if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
   /* constants */
-  SWIG_Lua_InstallConstants(L,swig_constants);
+  /* TODO: REMOVE */
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
