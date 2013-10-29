@@ -192,28 +192,31 @@ public:
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
    * Return NULL if not otherwise the proxy class name, fully qualified with
-   * package name if the nspace feature is used.
+   * package name if the nspace feature is used, unless jnidescriptor is true as
+   * the package name is handled differently (unfortunately for legacy reasons).
    * ----------------------------------------------------------------------------- */
   
-   String *getProxyName(SwigType *t) {
+   String *getProxyName(SwigType *t, bool jnidescriptor = false) {
      String *proxyname = NULL;
      if (proxy_flag) {
        Node *n = classLookup(t);
        if (n) {
 	 proxyname = Getattr(n, "proxyname");
-	 if (!proxyname) {
+	 if (!proxyname || jnidescriptor) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
 	   if (nspace) {
-	     if (package)
+	     if (package && !jnidescriptor)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
 	     else
 	       proxyname = NewStringf("%s.%s", nspace, symname);
 	   } else {
 	     proxyname = Copy(symname);
 	   }
-	   Setattr(n, "proxyname", proxyname);
-	   Delete(proxyname);
+	   if (!jnidescriptor) {
+	     Setattr(n, "proxyname", proxyname); // Cache it
+	     Delete(proxyname);
+	   }
 	 }
        }
      }
@@ -2885,6 +2888,7 @@ public:
    * getEnumName()
    *
    * If jnidescriptor is set, inner class names are separated with '$' otherwise a '.'
+   * and the package is also not added to the name.
    * ----------------------------------------------------------------------------- */
 
   String *getEnumName(SwigType *t, bool jnidescriptor) {
@@ -2899,7 +2903,7 @@ public:
 	  String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
 	  String *proxyname = 0;
 	  if (scopename_prefix) {
-	    proxyname = getProxyName(scopename_prefix);
+	    proxyname = getProxyName(scopename_prefix, jnidescriptor);
 	  }
 	  if (proxyname) {
 	    const char *class_separator = jnidescriptor ? "$" : ".";
@@ -2908,7 +2912,7 @@ public:
 	    // global enum or enum in a namespace
 	    String *nspace = Getattr(n, "sym:nspace");
 	    if (nspace) {
-	      if (package)
+	      if (package && !jnidescriptor)
 		enumname = NewStringf("%s.%s.%s", package, nspace, symname);
 	      else
 		enumname = NewStringf("%s.%s", nspace, symname);
@@ -2916,8 +2920,8 @@ public:
 	      enumname = Copy(symname);
 	    }
 	  }
-	  if (!jnidescriptor) { // not cached
-	    Setattr(n, "enumname", enumname);
+	  if (!jnidescriptor) {
+	    Setattr(n, "enumname", enumname); // Cache it
 	    Delete(enumname);
 	  }
 	  Delete(scopename_prefix);
@@ -2935,37 +2939,25 @@ public:
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Note that the path separator is a '.' unless jnidescriptor is set.
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
-   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '.'
-   *   p - a parameter type, that may hold a javapackage typemap. If passed,
-   *       the $packagepath will be substituted, but call method below instead.
+   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '/' is used for the path separator
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false, Parm *pkgpathparm = 0) {
-    return substituteClassnameAndPackagePath( pt, tm, jnidescriptor, pkgpathparm);
-  }
-
-  /* -----------------------------------------------------------------------------
-   * substituteClassnameAndPackagePath()
-   * Used to canonicalize JNI descriptors, including code emitting director throws typemaps.
-   *
-   * Only usage always has jnidescriptor AND p set.  Maybe collapse args.
-   * ----------------------------------------------------------------------------- */
-
-  bool substituteClassnameAndPackagePath(SwigType *pt, String *tm, bool jnidescriptor, Parm *pkgpathparm) {
+  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname", jnidescriptor, pkgpathparm);
+      substituteClassnameSpecialVariable(classnametype, tm, "$javaclassname", jnidescriptor);
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -2973,7 +2965,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-	substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor, pkgpathparm);
+	substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor);
 	substitution_performed = true;
       }
       Delete(classnametype);
@@ -2981,7 +2973,7 @@ public:
     if (Strstr(tm, "$&javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname", jnidescriptor, pkgpathparm);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&javaclassname", jnidescriptor);
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -2996,39 +2988,26 @@ public:
    * substituteClassnameSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor, Parm * pkgpathparm) {
-    String * replacementname;
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor) {
+    String *replacementname;
 
     if (SwigType_isenum(classnametype)) {
-      replacementname = Copy(getEnumName(classnametype, jnidescriptor));
-      if (!replacementname) {
+      String *enumname = getEnumName(classnametype, jnidescriptor);
+      if (enumname)
+	replacementname = Copy(enumname);
+      else
 	replacementname = NewString("int");
-      }
     } else {
-      replacementname = Copy(getProxyName(classnametype));
-      if (! replacementname) {
+      String *classname = getProxyName(classnametype, jnidescriptor); // getProxyName() works for pointers to classes too
+      if (classname) {
+	replacementname = Copy(classname);
+      } else {
 	// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
 	replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+
 	// Add to hash table so that the type wrapper classes can be created later
 	Setattr(swig_types_hash, replacementname, classnametype);
       }
-    }
-
-    if (pkgpathparm) {
-      if (Strchr(replacementname, '.') != NULL) {
-	// nspace feature in use, indicated by dots  (!?)
-	// if replacementname is in name space form, a.b.c, discard
-	//   packagepath from any string like $packagepath/$javaclassname
-	//   since IT WAS ADDED in getProxyName
-	// But $packagepath could still be used by itself in same string
-	//   since this is used to emit general code blocks for director
-	//   exceptions
-	// So do this to get rid of all combined forms before subsitituting
-	Replaceall(tm, "$packagepath/$javaclassname","$javaclassname");
-	Replaceall(tm, "$packagepath/$*javaclassname","$*javaclassname");
-	Replaceall(tm, "$packagepath/$&javaclassname","$&javaclassname");
-      }
-      substitutePackagePath(tm, pkgpathparm);
     }
     if (jnidescriptor)
       Replaceall(replacementname,".","/");
@@ -3533,8 +3512,8 @@ public:
    * substitutePackagePath()
    *
    * Replace $packagepath using the javapackage typemap associated with passed
-   * parm or global package_path if none. "$packagepath/" is replaced with "" if
-   * no package path is set.
+   * parm or global package if p is 0. "$packagepath/" is replaced with "" if
+   * no package is set. Note that the path separator is a '/'.
    * ----------------------------------------------------------------------------- */
 
   void substitutePackagePath(String *text, Parm *p) {
@@ -3543,21 +3522,23 @@ public:
     if (p)
       pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     if (!pkg_path || Len(pkg_path) == 0)
-      pkg_path = package_path;
+      pkg_path = Copy(package_path);
 
     if (Len(pkg_path) > 0) {
+      Replaceall(pkg_path, ".", "/");
       Replaceall(text, "$packagepath", pkg_path);
     } else {
       Replaceall(text, "$packagepath/", empty_string);
       Replaceall(text, "$packagepath", empty_string);
     }
+    Delete(pkg_path);
   }
 
   /* ---------------------------------------------------------------
    * Canonicalize the JNI field descriptor
    *
-   * Replace the $packagepath and $javaclassname family of
-   * variables with the desired package and Java descriptor as
+   * Replace the $packagepath and $javaclassname family of special
+   * variables with the desired package and Java proxy name as 
    * required in the JNI field descriptors.
    * 
    * !!SFM!! If $packagepath occurs in the field descriptor, but
@@ -3568,10 +3549,10 @@ public:
 
   String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
     SwigType *type = Getattr(p, "type");
-
     String *descriptor_out = Copy(descriptor_in);
-    // This returns a JNI descriptor, in path format
-    substituteClassnameAndPackagePath(type, descriptor_out, true, p);
+
+    substituteClassname(type, descriptor_out, true);
+    substitutePackagePath(descriptor_out, p);
 
     return descriptor_out;
   }
@@ -3968,7 +3949,7 @@ public:
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
 
-    // May need to add throws to director classes if %catches defined
+    // May need to add Java throws clause to director methods if %catches defined
     // Get any Java exception classes in the throws typemap
     ParmList *catches_list = Getattr(n, "catchlist");
     if (catches_list) {
@@ -3991,7 +3972,7 @@ public:
       }
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if (Getattr(p, "tmap:throws")) {
-	  // If %catches feature, it overrides specified throws().
+	  // %catches replaces the specified exception specification
 	  if (!catches_list) {
 	    addThrows(n, "tmap:throws", p);
 	  }
@@ -4190,15 +4171,14 @@ public:
 
 	for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
 	  String *tm = Getattr(p, "tmap:directorthrows");
-	  String *t = Getattr(p,"type");
 
 	  if (tm) {
-	    String *directorthrows = Copy(tm);
-	    // replace $packagepath
-	    substituteClassnameAndPackagePath(t, directorthrows, true, p);
+	    // replace $packagepath/$javaclassname
+	    String *directorthrows = canonicalizeJNIDescriptor(tm, p);
 	    Printv(directorthrowshandlers_code, directorthrows, NIL);
 	    Delete(directorthrows);
 	  } else {
+	    String *t = Getattr(p,"type");
 	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
 	  }
 	}
