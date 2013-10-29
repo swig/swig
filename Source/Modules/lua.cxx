@@ -122,13 +122,20 @@ private:
   //String *s_vars_meta_tab;      // metatable for variables
   Hash* namespaces_hash;
 
+  // Parameters for current class. NIL if not parsing class
   int have_constructor;
   int have_destructor;
   String *destructor_action;
   String *class_symname;
+  String *class_fq_symname; // Fully qualified symname - NSpace + '.' + class_symname
+  String *class_static_nspace;
   String *constructor_name;
 
-  enum {
+  // Many wrappers forward calls to each other, for example staticmembervariableHandler
+  // forwards call to variableHandler, which, in turn, makes to call to functionWrapper.
+  // In order to access information about whether it is static member of class or just 
+  // plain old variable an array current is kept and used as 'log' of call stack.
+  enum TState {
     NO_CPP,
     VARIABLE,
     MEMBER_FUNC,
@@ -137,8 +144,12 @@ private:
     MEMBER_VAR,
     CLASS_CONST,
     STATIC_FUNC,
-    STATIC_VAR
-  }current;
+    STATIC_VAR,
+    STATIC_CONST, // enums and things like static const int x = 5;
+
+    STATES_COUNT
+  };
+  bool current[STATES_COUNT];
 
 public:
 
@@ -175,10 +186,14 @@ public:
     have_destructor(0),
     destructor_action(0),
     class_symname(0),
-    constructor_name(0),
-    current(NO_CPP) {
+    class_fq_symname(0),
+    class_static_nspace(0),
+    constructor_name(0)  {
       namespaces_hash = NewHash();
+      for(int i = 0; i < STATES_COUNT; i++ )
+        current[i] = false;
   }
+
   ~LUA() {
     if(namespaces_hash)
       Delete(namespaces_hash);
@@ -306,7 +321,9 @@ public:
     s_luacode = NewString("");
     Swig_register_filebyname("luacode", s_luacode);
     
-    current=NO_CPP;
+    current[NO_CPP] = true;
+    // Registering names schemes
+    Swig_name_register("member", "%m");
 
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_begin);
@@ -473,6 +490,21 @@ public:
    * Create a function declaration and register it with the interpreter.
    * --------------------------------------------------------------------- */
 
+  // Helper function. Remembers wrap name
+  void rememberWrapName(Node *n, String *wrapname) {
+    Setattr(n, "wrap:name", wrapname);
+    // If it is getter/setter, then write wrapname under
+    // wrap:memberset/wrap:memberget accordingly
+    if( Getattr(n, "memberset") )
+      Setattr(n, "memberset:wrap:name", wrapname);
+    if( Getattr(n, "varset") )
+      Setattr(n, "varset:wrap:name", wrapname);
+    if( Getattr(n, "memberget") )
+      Setattr(n, "memberget:wrap:name", wrapname);
+    if( Getattr(n, "varget") )
+      Setattr(n, "varget:wrap:name", wrapname);
+  }
+
   virtual int functionWrapper(Node *n) {
     REPORT("functionWrapper",n);
 
@@ -491,7 +523,7 @@ public:
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!addSymbol(iname, n, getNSpace())) {
+      if (!luaAddSymbol(iname, n)) {
         Printf(stderr,"addSymbol(%s) failed\n",iname);
         return SWIG_ERROR;
       }
@@ -505,11 +537,13 @@ public:
     Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = 0");
 
 
-    String *wname = Swig_name_wrapper(iname);
+    String* fqname = fully_qualified_name(iname);
+    String *wname = Swig_name_wrapper(fqname);
+    Delete(fqname);
     if (overname) {
       Append(wname, overname);
     }
-    if (current == CONSTRUCTOR) {
+    if (current[CONSTRUCTOR]) {
       if( constructor_name != 0)
         Delete(constructor_name);
       constructor_name = Copy(wname);
@@ -551,12 +585,6 @@ public:
       args_to_ignore = GetInt(n, "lua:ignore_args");
     }
 
-
-    /* Which input argument to start with? */
-    //    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
-
-    /* Offset to skip over the attribute name */
-    // int offset = (current == MEMBER_VAR) ? 1 : 0;
 
     /* NEW LANGUAGE NOTE:***********************************************
        from here on in, it gets rather hairy
@@ -693,14 +721,7 @@ public:
     }
 
     // Remember C name of the wrapping function
-    Setattr(n, "wrap:name", wname);
-    // If it is getter/setter, then write wname under
-    // wrap:memberset/wrap:memberget accordingly
-    if( Getattr(n, "memberset") )
-      Setattr(n, "memberset:wrap:name", wname);
-    if( Getattr(n, "memberget") )
-      Setattr(n, "memberget:wrap:name", wname);
-
+    rememberWrapName(n, wname);
 
     /* Emit the function call */
     String *actioncode = emit_action(n);
@@ -777,7 +798,7 @@ public:
     Therefore we go though the whole function, 
     but do not write the code into the wrapper
     */
-    if(current!=DESTRUCTOR) {
+    if(!current[DESTRUCTOR]) {
        Wrapper_print(f, f_wrappers);
     }
     
@@ -789,7 +810,7 @@ public:
     if (!Getattr(n, "sym:overloaded")) {
       //REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
-      if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+      if (current[NO_CPP] || current[STATIC_FUNC]) { // emit normal fns & static fns
         Hash* nspaceHash = getNamespaceHash( getNSpace() );
         String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
         if(elua_ltr || eluac_ltr)
@@ -877,24 +898,19 @@ public:
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     //add_method(symname,wname,0);
-    if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+    if (current[NO_CPP] || current[STATIC_FUNC]) { // emit normal fns & static fns
       Hash* nspaceHash = getNamespaceHash( getNSpace() );
       String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
       Printv(s_ns_methods_tab, tab4, "{ \"", symname, "\",", wname, "},\n", NIL);
     }
-    if (current == CONSTRUCTOR) {
+    if (current[CONSTRUCTOR]) {
       if( constructor_name != 0 )
         Delete(constructor_name);
       constructor_name = Copy(wname);
     }
 
-    Setattr(n, "wrap:name", wname);
-    // If it is getter/setter, then write wname under
-    // wrap:memberset/wrap:memberget accordingly
-    if( Getattr(n, "memberset") )
-      Setattr(n, "memberset:wrap:name", wname);
-    if( Getattr(n, "memberget") )
-      Setattr(n, "memberget:wrap:name", wname);
+    // Remember C name of the wrapping function
+    rememberWrapName(n, wname);
 
     DelWrapper(f);
     Delete(dispatch);
@@ -916,13 +932,14 @@ public:
     NEW LANGUAGE NOTE:END ************************************************/
     //    REPORT("variableWrapper", n);
     String *iname = Getattr(n, "sym:name");
-    current=VARIABLE;
+    String *unassignable = NewString("SWIG_Lua_set_immutable");
+    current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
-    current=NO_CPP;
+    current[VARIABLE] = false;
     // normally SWIG will generate 2 wrappers, a get and a set
     // but in certain scenarios (immutable, or if its arrays), it will not
-    String *getName = Swig_name_wrapper(Swig_name_get(getNSpace(), iname));
+    String *getName = Getattr(n,"varget:wrap:name");
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
     // I referred to the Language::variableWrapper() to find this out
@@ -934,14 +951,15 @@ public:
     Delete(tm);
 
     if (assignable) {
-      setName = Swig_name_wrapper(Swig_name_set(getNSpace(), iname));
+      setName = Getattr(n,"varset:wrap:name");
     } else {
       // how about calling a 'this is not settable' error message?
-      setName = NewString("SWIG_Lua_set_immutable"); // error message
-      //setName = NewString("0");
+      setName =  unassignable;// error message
     }
 
     // register the variable
+    assert(setName != 0);
+    assert(getName != 0);
     Hash* nspaceHash = getNamespaceHash( getNSpace() );
     String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String* s_ns_var_tab = Getattr(nspaceHash, "attributes");
@@ -956,12 +974,11 @@ public:
     } else {
       Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
     }
-    if (getCurrentClass()) {
+    if (getCurrentClass()) { // TODO: REMOVE
       Setattr(n, "luaclassobj:wrap:get", getName);
       Setattr(n, "luaclassobj:wrap:set", setName);
     } else {
-      Delete(getName);
-      Delete(setName);
+      Delete(unassignable);
     }
     return result;
   }
@@ -978,8 +995,9 @@ public:
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
+    //Printf( stdout, "Add constant %s, ns %s\n", iname, getNSpace() );// TODO: REMOVE
 
-    if (!addSymbol(iname, n, getNSpace()))
+    if (!luaAddSymbol(iname, n))
       return SWIG_ERROR;
 
     /* Special hook for member pointer */
@@ -1035,7 +1053,7 @@ public:
     //    REPORT("nativeWrapper", n);
     String *symname = Getattr(n, "sym:name");
     String *wrapname = Getattr(n, "wrap:name");
-    if (!addSymbol(wrapname, n, getNSpace()))
+    if (!luaAddSymbol(wrapname, n))
       return SWIG_ERROR;
 
     Hash *nspaceHash = getNamespaceHash( getNSpace() );
@@ -1050,7 +1068,23 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumDeclaration(Node *n) {
-    return Language::enumDeclaration(n);
+    // enumDeclaration supplied by Language is messing with NSpace.
+    // So this is the exact copy of function from Language with
+    // correct handling of namespaces
+      String *oldNSpace = getNSpace();
+      if( getCurrentClass() == 0 ) {
+        setNSpace(Getattr(n, "sym:nspace"));
+      }
+
+      if (!ImportMode) {
+        current[STATIC_CONST] = true;
+        emit_children(n);
+        current[STATIC_CONST] = false;
+      }
+
+      setNSpace(oldNSpace);
+
+      return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
@@ -1058,7 +1092,27 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumvalueDeclaration(Node *n) {
-    return Language::enumvalueDeclaration(n);
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
+    Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+    String *value = Getattr(n, "value");
+    String *name = Getattr(n, "name");
+    String *tmpValue;
+
+    if (value)
+      tmpValue = NewString(value);
+    else
+      tmpValue = NewString(name);
+    Setattr(n, "value", tmpValue);
+
+    Setattr(n, "name", tmpValue);	/* for wrapping of enums in a namespace when emit_action is used */
+    constantWrapper(n);
+
+    Delete(tmpValue);
+    Swig_restore(n);
+    // TODO: Backward compatibility: add ClassName_ConstantName member
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
@@ -1076,8 +1130,7 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    String *mangled_full_class_symname = 0;
-    String *full_class_symname = 0;
+    String *mangled_class_fq_symname = 0;
     String* nspace = getNSpace();
     String* destructor_name = 0;
 
@@ -1085,19 +1138,27 @@ public:
     have_constructor = 0;
     have_destructor = 0;
     destructor_action = 0;
+    assert(class_static_nspace == 0);
+    assert(class_fq_symname == 0);
+    assert(class_symname == 0);
+
+    current[NO_CPP] = false;
 
     class_symname = Getattr(n, "sym:name");
-    if (!addSymbol(class_symname, n, nspace))
+    // We have to enforce nspace here, because technically we are already
+    // inside class parsing (getCurrentClass != 0), but we should register
+    // class in the it's parent namespace
+    if (!luaAddSymbol(class_symname, n, nspace))
       return SWIG_ERROR;
 
     if (nspace == 0)
-      full_class_symname = NewStringf("%s", class_symname);
+      class_fq_symname = NewStringf("%s", class_symname);
     else
-      full_class_symname = NewStringf("%s.%s", nspace, class_symname);
+      class_fq_symname = NewStringf("%s.%s", nspace, class_symname);
 
-    assert(full_class_symname != 0);
-    mangled_full_class_symname = Swig_name_mangle(full_class_symname);
-    Printf( stdout, "Mangled class symname %s\n", mangled_full_class_symname );
+    assert(class_fq_symname != 0);
+    mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
+    Printf( stdout, "Mangled class symname %s\n", mangled_class_fq_symname );
 
     // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
@@ -1107,9 +1168,9 @@ public:
     // * consider effect on template_specialization_defarg
 
     static Hash *emitted = NewHash();
-    if (Getattr(emitted, mangled_full_class_symname))
+    if (Getattr(emitted, mangled_class_fq_symname))
       return SWIG_NOWRAP;
-    Setattr(emitted, mangled_full_class_symname, "1");
+    Setattr(emitted, mangled_class_fq_symname, "1");
 
     // We treat class T as both 'class' and 'namespace'. All static members, attributes
     // and constants are considered part of namespace T, all members - part of the 'class'
@@ -1122,7 +1183,7 @@ public:
     // And we can guarantee that there will not be any name collision because names starting with 2 underscores
     // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
     // any member or subclass with name "__Static". Thus, never any name clash.
-    Hash* non_static_cls = getNamespaceHash(full_class_symname, false);
+    Hash* non_static_cls = getNamespaceHash(class_fq_symname, false);
     assert(non_static_cls != 0);
     s_attr_tab = Getattr(non_static_cls, "attributes");
     s_methods_tab = Getattr(non_static_cls, "methods");
@@ -1135,11 +1196,9 @@ public:
      * All constants are considered part of static part of class.
      */
 
-    String *static_cls_key = NewStringf("%s%s__Static", full_class_symname, NSPACE_SEPARATOR);
-    Hash *static_cls = getNamespaceHash(static_cls_key, false);
-    if (static_cls == 0) {
-      return SWIG_ERROR; // This cant be, so it is internal, implementation error
-    }
+    class_static_nspace = NewStringf("%s%s__Static", class_fq_symname, NSPACE_SEPARATOR);
+    Hash *static_cls = getNamespaceHash(class_static_nspace, false);
+    assert(static_cls != 0);
     Setattr(static_cls, "lua:no_namespaces", "1");
     /* TODO: REMOVE
     s_cls_methods_tab = Getattr(static_cls, "methods");
@@ -1160,17 +1219,18 @@ public:
 
     // Replacing namespace with namespace + class in order to static
     // member be put inside class static area
-    setNSpace(static_cls_key);
+    setNSpace(class_static_nspace);
     // Generate normal wrappers
     Language::classHandler(n);
     // Restore correct nspace
     setNSpace(nspace);
+    //Printf( stdout, "Class finished\n" ); TODO:REMOVE
 
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_full_class_symname);
+    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname);
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
@@ -1182,12 +1242,12 @@ public:
     Printv( ns_classes, wrap_class, ",\n", NIL );
 
     // Register the class structure with the type checker
-    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_full_class_symname);
+    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_class_fq_symname);
  
     // emit a function to be called to delete the object 
     // TODO: class_name -> full_class_name || mangled full_class_name
     if (have_destructor) {
-      destructor_name = NewStringf("swig_delete_%s", mangled_full_class_symname);
+      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname);
       Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
         Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
@@ -1201,9 +1261,26 @@ public:
       }
       Printf(f_wrappers, "}\n");
     }
+    // Wrap constructor wrapper into one more proxy function. It will be used as class namespace __call method, thus
+    // allowing both
+    // Module.ClassName.StaticMethod to access static method/variable/constant
+    // Module.ClassName() to create new object
+    if (have_constructor) {
+      String* constructor_proxy_name = NewStringf("_proxy_%s", constructor_name);
+      Printv(f_wrappers, "static int ", constructor_proxy_name, "(lua_State *L) {\n", NIL);
+      Printv(f_wrappers,
+        tab4, "assert(lua_istable(L,1));\n",
+        tab4, "lua_pushcfunction(L,", constructor_name, ");\n",
+        tab4, "assert(!lua_isnil(L,-1));\n",
+        tab4, "lua_replace(L,1); /* replace our table with real constructor */\n",
+        tab4, "lua_call(L,lua_gettop(L)-1,1);\n",
+        tab4, "return 1;\n}\n", NIL);
+      Delete(constructor_name);
+      constructor_name = constructor_proxy_name;
+    }
 
-    closeNamespaceHash(full_class_symname, f_wrappers);
-    closeNamespaceHash(static_cls_key, f_wrappers);
+    closeNamespaceHash(class_fq_symname, f_wrappers);
+    closeNamespaceHash(class_static_nspace, f_wrappers);
 
 
     /* TODO: REMOVE
@@ -1251,12 +1328,12 @@ public:
       }
     }
 
-    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_full_class_symname, "_bases[] = {", base_class, "0};\n", NIL);
+    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static const char *swig_", mangled_full_class_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_full_class_symname, " = { \"", class_symname, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname, " = { \"", class_symname, "\", \"", class_fq_symname,"\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     // TODO: Replace with constructor_name
     if (have_constructor) {
@@ -1285,7 +1362,7 @@ public:
     if (have_destructor) {
       if (eluac_ltr) {
         String* ns_methods_tab = Getattr(nspaceHash, "methods");
-        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_class_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
         Printv(f_wrappers, ", ", destructor_name, NIL);
       } else {
          Printv(f_wrappers, ", ", destructor_name, NIL);
@@ -1295,15 +1372,21 @@ public:
     }
     Printf(f_wrappers, ", %s, %s, ", s_methods_tab_name, s_attr_tab_name );
     // TODO: Replace class_symname with class_name
-    printNamespaceDefinition(static_cls_key, class_symname, f_wrappers);
+    printNamespaceDefinition(class_static_nspace, class_symname, f_wrappers);
     Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n",
-        mangled_full_class_symname, mangled_full_class_symname);
+        mangled_class_fq_symname, mangled_class_fq_symname);
 
-    //    Printv(f_wrappers, ", swig_", mangled_full_class_symname, "_methods, swig_", mangled_full_class_symname, "_attributes, swig_", mangled_full_class_symname, "_bases };\n\n", NIL);
-    //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_full_class_symname, "},\n", NIL);
+    //    Printv(f_wrappers, ", swig_", mangled_class_fq_symname, "_methods, swig_", mangled_class_fq_symname, "_attributes, swig_", mangled_class_fq_symname, "_bases };\n\n", NIL);
+    //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_class_fq_symname, "},\n", NIL);
+
+    current[NO_CPP] = true;
     Delete(t);
-    Delete(mangled_full_class_symname);
-    Delete(static_cls_key);
+    Delete(mangled_class_fq_symname);
+    Delete(class_static_nspace);
+    class_static_nspace = 0;
+    Delete(class_fq_symname);
+    class_fq_symname = 0;
+    class_symname = 0;
     return SWIG_OK;
   }
 
@@ -1327,9 +1410,9 @@ public:
 
     String *realname, *rname;
 
-    current = MEMBER_FUNC;
+    current[MEMBER_FUNC] = true;
     Language::memberfunctionHandler(n);
-    current = NO_CPP;
+    current[MEMBER_FUNC] = false;
 
     realname = iname ? iname : name;
     rname = Getattr(n, "wrap:name");
@@ -1350,9 +1433,9 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *getter_name, *setter_name;
 
-    current = MEMBER_VAR;
+    current[MEMBER_VAR] = true;
     Language::membervariableHandler(n);
-    current = NO_CPP;
+    current[MEMBER_VAR] = false;
     getter_name = Getattr(n, "memberget:wrap:name");
     assert(getter_name != 0);
     if (!GetFlag(n, "feature:immutable")) {
@@ -1382,9 +1465,9 @@ public:
 
   virtual int constructorHandler(Node *n) {
     //    REPORT("constructorHandler", n);
-    current = CONSTRUCTOR;
+    current[CONSTRUCTOR] = true;
     Language::constructorHandler(n);
-    current = NO_CPP;
+    current[CONSTRUCTOR] = false;
     //constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
     //Printf( stdout, "Constructor %s\n", constructor_name); TODO: REMOVE
@@ -1397,9 +1480,9 @@ public:
 
   virtual int destructorHandler(Node *n) {
     REPORT("destructorHandler", n);
-    current = DESTRUCTOR;
+    current[DESTRUCTOR] = true;
     Language::destructorHandler(n);
-    current = NO_CPP;
+    current[DESTRUCTOR] = false;
     have_destructor = 1;
     destructor_action = Getattr(n, "wrap:action");
     return SWIG_OK;
@@ -1413,28 +1496,28 @@ public:
 
   virtual int staticmemberfunctionHandler(Node *n) {
     REPORT("staticmemberfunctionHandler", n);
-    current = STATIC_FUNC;
+    current[STATIC_FUNC] = true;
     //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmemberfunctionHandler(n);
 
     if (cparse_cplusplus && getCurrentClass()) {
       Swig_restore(n);
     }
-    current = NO_CPP;
+    current[STATIC_FUNC] = false;;
     if (result != SWIG_OK)
       return result;
 
     if (Getattr(n, "sym:nextSibling"))
       return SWIG_OK;
 
-    Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL);
+    //Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL);
     //String *name = Getattr(n, "name");
     //String *rname, *realname;
     //realname = symname ? symname : name;
     //rname = Getattr(n, "luaclassobj:wrap:name");
     // TODO: Add backward compatibility here: add "ClassName_FuncName" to global table
     //Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
-    Swig_restore(n);
+    //Swig_restore(n);
 
     return SWIG_OK;
   }
@@ -1454,7 +1537,7 @@ public:
     }
     int result = Language::memberconstantHandler(n);
     if (cparse_cplusplus && getCurrentClass())
-      Swig_restore(n);
+      Swig_restore(n); // TODO: WTF ?
 
     return result;
   }
@@ -1465,9 +1548,10 @@ public:
 
   virtual int staticmembervariableHandler(Node *n) {
     REPORT("staticmembervariableHandler",n);
-    current = STATIC_VAR;
+    current[STATIC_VAR] = true;
     //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmembervariableHandler(n);
+    current[STATIC_VAR] = false;
 
     if (result != SWIG_OK)
       return result;
@@ -1867,6 +1951,53 @@ public:
       Printv( output, namespaces_tab_decl, "\n", NIL );
 
     Printf( output, "static swig_lua_namespace %s;\n", Getattr(nspace_hash, "cname") );
+  }
+
+  // Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
+  int luaAddSymbol(const String *s, const Node *n) {
+    String* scope = 0;
+    // If ouside class, than NSpace is used.
+    if( !getCurrentClass())
+      scope = getNSpace();
+    else {
+      // If inside class, then either class static namespace or class fully qualified name is used
+      assert(!current[NO_CPP]);
+      if(current[STATIC_FUNC] || current[STATIC_VAR] || current[STATIC_CONST] ) {
+          scope = class_static_nspace;
+      } else if(current[MEMBER_VAR] || current[CLASS_CONST] ||  current[CONSTRUCTOR] || current[DESTRUCTOR]
+          || current[MEMBER_FUNC] ) {
+          scope = class_fq_symname;
+      } else {
+          assert(0); // Can't be. Implementation error
+      }
+      assert(scope != 0);
+    }
+    return Language::addSymbol(s,n,scope);
+  }
+
+  // Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
+  int luaAddSymbol(const String*s, const Node*n,  const_String_or_char_ptr scope) {
+    return Language::addSymbol(s,n,scope);
+  }
+
+  // Function creates fully qualified name of given symbol. Current NSpace and current class
+  // are used
+  String* fully_qualified_name(const_String_or_char_ptr name)
+  {
+    assert(name != 0);
+    String* scope= 0;
+    if( getCurrentClass() )
+      scope = class_fq_symname;
+    else
+      scope = getNSpace();
+
+    String *fqname = 0;
+    if( scope )
+      fqname = NewStringf("%s::%s",scope,name);
+    else
+      fqname = Copy(name);
+
+    return fqname;
   }
 };
 

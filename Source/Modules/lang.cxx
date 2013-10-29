@@ -1490,6 +1490,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "type", type);
       Setattr(n, "name", name);
       Setattr(n, "sym:name", symname);
+      Delattr(n, "memberset");
 
       /* Delete all attached typemaps and typemap attributes */
       Iterator ki;
@@ -1507,6 +1508,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "sym:name", mrename_get);
       Setattr(n, "memberget", "1");
       functionWrapper(n);
+      Delattr(n, "memberget");
     }
     Delete(mrename_get);
     Delete(mrename_set);
@@ -2951,10 +2953,13 @@ int Language::constantWrapper(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::variableWrapper(Node *n) {
-  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", NIL);
+  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", "?varset", "?varget", NIL);
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
+
+  Delattr(n,"varset");
+  Delattr(n,"varget");
 
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
@@ -2986,12 +2991,14 @@ int Language::variableWrapper(Node *n) {
       Delete(pname0);
     }
     if (make_set_wrapper) {
+      Setattr(n, "varset", "1");
       functionWrapper(n);
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
     Setattr(n, "type", type);
     Setattr(n, "name", name);
+    Delattr(n, "varset");
 
     /* Delete all attached typemaps and typemap attributes */
     Iterator ki;
@@ -3005,6 +3012,7 @@ int Language::variableWrapper(Node *n) {
   String *gname = Swig_name_get(NSpace, symname);
   Setattr(n, "sym:name", gname);
   Delete(gname);
+  Setattr(n, "varget", "1");
   functionWrapper(n);
   Swig_restore(n);
   return SWIG_OK;
