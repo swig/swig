@@ -11,9 +11,9 @@ der = spi.Derived(7)
 
 ptr = spi.SmartDerived(der)
 
-assert( ptr.val == 7 )
-assert( ptr:value() == 7 )
-assert( ptr:value2() == 7 )
-assert( ptr:value3() == 7 )
-assert( ptr:valuehide() == -1 )
+assert(ptr.val == 7)
+assert(ptr:value() == 7)
+assert(ptr:value2() == 7)
+assert(ptr:value3() == 7)
+assert(ptr:valuehide() == -1)
 

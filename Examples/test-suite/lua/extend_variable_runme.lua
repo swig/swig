@@ -9,9 +9,9 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 e1 = ev.ExtendMe()
 answ = 1.0
-assert( e1:set(7.0) )
---assert( e1:get(answ) ) -- doesn't work. Lua can't pass primitive type by non-const reference
---assert( answ == 7.0 )
+assert(e1:set(7.0))
+--assert(e1:get(answ)) -- doesn't work. Lua can't pass primitive type by non-const reference
+--assert(answ == 7.0)
 
 e1.ExtendVar = 5.0
 assert(e1.ExtendVar == 5.0)

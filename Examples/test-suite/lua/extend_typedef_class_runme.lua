@@ -7,7 +7,7 @@ local env = _ENV -- Lua 5.2
 if not env then env = getfenv () end -- Lua 5.1
 setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
-function test_obj( obj, const )
+function test_obj(obj, const)
   obj.membervar = const
   assert(obj:getvar() == const)
 end

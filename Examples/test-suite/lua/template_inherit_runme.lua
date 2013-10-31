@@ -9,16 +9,16 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 
 fi = ti.FooInt()
-assert( fi:blah() == "Foo" )
-assert( fi:foomethod() == "foomethod" )
+assert(fi:blah() == "Foo")
+assert(fi:foomethod() == "foomethod")
 
 bi = ti.BarInt()
-assert( bi:blah() == "Bar" )
-assert( bi:foomethod() == "foomethod" )
+assert(bi:blah() == "Bar")
+assert(bi:foomethod() == "foomethod")
 
-assert( ti.invoke_blah_int(fi) == "Foo" )
-assert( ti.invoke_blah_int(bi) == "Bar" )
+assert(ti.invoke_blah_int(fi) == "Foo")
+assert(ti.invoke_blah_int(bi) == "Bar")
 
 bd = ti.BarDouble()
-success = pcall( ti.invoke_blah_int, bd )
-assert( not success )
+success = pcall(ti.invoke_blah_int, bd)
+assert(not success)

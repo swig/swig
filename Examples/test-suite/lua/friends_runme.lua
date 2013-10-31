@@ -19,7 +19,7 @@ assert(f.get_val3(a1) == 30)
 
 assert(f.get_val1(100, 1, 2) == 100)
 
-assert( f.mix(a1,b1) == 15);
+assert(f.mix(a1,b1) == 15);
 
 d1 = f.D_i(7)
 assert(f.get_val1(d1) == 7)

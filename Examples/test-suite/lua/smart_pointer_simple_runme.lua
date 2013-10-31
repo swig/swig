@@ -9,8 +9,8 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 foo1 = sps.Foo()
 foo1.x = 5
-assert( foo1.x == 5 )
-assert( foo1:getx() == 5 )
+assert(foo1.x == 5)
+assert(foo1:getx() == 5)
 
 bar1 = sps.Bar(foo1)
 bar1.x = 3

@@ -7,12 +7,12 @@ local env = _ENV -- Lua 5.2
 if not env then env = getfenv () end -- Lua 5.1
 setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
-function test_obj( main, suppl )
+function test_obj(main, suppl)
   assert(main:spam() == 1)
   assert(main:spam("this_is_string") == 2)
   assert(main:spam(5) == 5)
   assert(main:spam(5,6) == 11)
-  assert(main:spam( 7,8,9) == 15)
+  assert(main:spam(7,8,9) == 15)
   assert(main:spam(suppl,12.0) == 0)
   assert(main:spam(suppl) == 0)
 end

@@ -9,16 +9,16 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 foo = spm.Foo()
 foo.x = 5
-assert( foo:getx() == 5 )
+assert(foo:getx() == 5)
 
 bar = spm.Bar(foo)
 spam = spm.Spam(bar)
 grok = spm.Grok(bar)
 
-assert( bar:getx() == 5 )
-assert( spam:getx() == 5 )
+assert(bar:getx() == 5)
+assert(spam:getx() == 5)
 spam.x = 7
-assert( grok:getx() == 7 )
+assert(grok:getx() == 7)
 grok.x = 10
-assert( foo:getx() == 10 )
+assert(foo:getx() == 10)
 
