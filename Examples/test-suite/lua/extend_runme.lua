@@ -24,5 +24,5 @@ assert(der1:method(5) == 10)
 der2 = e.Derived(17)
 assert(der2.value == 34)
 der2.extendval = 200.0
-assert( math.abs(der2.actualval - 2.0) < 0.001 )
-assert( math.abs(der2.extendval - 200.0) < 0.001 )
+assert(math.abs(der2.actualval - 2.0) < 0.001)
+assert(math.abs(der2.extendval - 200.0) < 0.001)

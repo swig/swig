@@ -17,8 +17,8 @@ foo2 = cn.create(1,2)
 cn.consume(foo1,foo2)
 
 bar1 = cn.Bar()
-bar1:consume( cn.gvar, foo2)
+bar1:consume(cn.gvar, foo2)
 foo3 = bar1:create(1,2)
 
 foo3.a = 6
-assert( foo3.a == 6 )
+assert(foo3.a == 6)

@@ -9,10 +9,10 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 
 foo = spr.Foo()
-assert( foo:ftest1(1) == 1 )
-assert( foo:ftest2(1,2) == 2 )
+assert(foo:ftest1(1) == 1)
+assert(foo:ftest2(1,2) == 2)
 
 bar = spr.Bar(foo)
-assert( bar:test() == 3 )
-assert( bar:ftest1(1) == 1 )
-assert( bar:ftest2(1,2) == 2 )
+assert(bar:test() == 3)
+assert(bar:ftest1(1) == 1)
+assert(bar:ftest2(1,2) == 2)
