@@ -1321,12 +1321,14 @@ public:
     assert(class_fq_symname != 0);
     mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
 
-    PtrGuard<SwigType> t = Copy(Getattr(n, "name"));
-    PtrGuard<SwigType> fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
-    PtrGuard<SwigType> t_tmp = SwigType_typedef_qualified(fr_t); // Temporal variable
+    PtrGuard<SwigType> t( Copy(Getattr(n, "name")) );
+    PtrGuard<SwigType> fr_t( SwigType_typedef_resolve_all(t) );	/* Create fully resolved type */
+    PtrGuard<SwigType> t_tmp;
+    t_tmp = SwigType_typedef_qualified(fr_t); // Temporal variable
     fr_t = 0;
     fr_t = SwigType_strip_qualifiers(t_tmp);
-    PtrGuard<String> mangled_fr_t = SwigType_manglestr(fr_t);
+    PtrGuard<String> mangled_fr_t;
+    mangled_fr_t = SwigType_manglestr(fr_t);
     //Printf( stdout, "Mangled class symname %s fr type%s\n", mangled_class_fq_symname, mangled_fr_t ); // TODO: REMOVE
     // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
@@ -1671,15 +1673,18 @@ public:
     //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmemberfunctionHandler(n);
 
-    if (cparse_cplusplus && getCurrentClass()) {
-      Swig_restore(n); // TODO: WTF ?
-    }
     current[STATIC_FUNC] = false;;
     if (result != SWIG_OK)
       return result;
 
     if(v2_compatibility) {
+      Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
+      String *target_name = Getattr(n, "lua:name");
+      PtrGuard<String> compat_name;
+      compat_name = Swig_name_member(0, class_symname, target_name);
+      Setattr(n, "lua:name", compat_name);
       registerMethod( class_parent_nspace, n );
+      Swig_restore(n);
     }
 
     if (Getattr(n, "sym:nextSibling"))
