@@ -75,6 +75,7 @@ void display_mapping(DOH *d) {
 
 // Holds the pointer. Call's Delete in destructor, assignment etc
 // TODO: REVIEW
+// Class won't work, TODO: REMOVE
 template<typename T> // T is ignored because everything is DOH*
 class DohPointer {
   public:
@@ -122,6 +123,74 @@ class DohPointer {
 };
 
 #define Pointer DohPointer
+
+template<typename T> // T is ignored because everything is DOH*
+class DohPtrGuard {
+  public:
+    DohPtrGuard( DOH* _ptr ):
+      p_ptr(_ptr)
+      {
+        assert( p_ptr != 0 );
+      }
+    DohPtrGuard():
+      p_ptr(0) {}
+
+    ~DohPtrGuard() {
+      release();
+    }
+
+    // Guard is empty, ptr - any: assigns new value for guard
+    // Guard is holding pointer, ptr == 0 - releases value that guard holds
+    // Any other combination - assert
+    void operator=( DOH* ptr ) {
+      attach(ptr);
+    }
+
+    DOH* ptr() { return p_ptr; }
+    const DOH* ptr() const { return p_ptr; }
+    operator DOH* () { return p_ptr; }
+    operator DOH* () const { return p_ptr; }
+
+  private:
+      DOH* p_ptr; // pointer to actual object
+
+      void attach(DOH* ptr) {
+        if( p_ptr != 0 ) { // If some object already attached, then we can't attach another one
+          assert(ptr == 0);
+          if( ptr == 0 ) {
+            release();
+          }
+        } else {
+          p_ptr = ptr;
+        }
+      }
+
+      void release() {
+        if( p_ptr != 0 ) {
+          Delete(p_ptr);
+          p_ptr = 0;
+        }
+      }
+    // Copying is forbiden
+    DohPtrGuard( const DohPtrGuard& rhs );
+    void operator=( const DohPtrGuard& rhs );
+
+};
+
+// Overloading DohDelete for DohPtrGuard. You might not call DohDelete on DohPtrGuard instances,
+// as it is supposed to manage underlying pointer by itself
+
+void DohDelete(const DohPtrGuard<DOH>& guard) {
+  Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
+  assert(false);
+}
+void DohDelete(DohPtrGuard<DOH>& guard) {
+  Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
+  assert(false);
+}
+
+
+#define PtrGuard DohPtrGuard
 
 /* NEW LANGUAGE NOTE:***********************************************
  most of the default options are handled by SWIG
@@ -1223,9 +1292,9 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    String *mangled_class_fq_symname = 0;
+    PtrGuard<String> mangled_class_fq_symname;
+    PtrGuard<String> destructor_name;
     String* nspace = getNSpace();
-    String* destructor_name = 0;
 
     constructor_name = 0;
     have_constructor = 0;
@@ -1252,13 +1321,12 @@ public:
     assert(class_fq_symname != 0);
     mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
 
-    SwigType *t = Copy(Getattr(n, "name"));
-    SwigType *fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
-    SwigType *t_tmp = SwigType_typedef_qualified(fr_t); // Temporal variable
-    Delete(fr_t);
+    PtrGuard<SwigType> t = Copy(Getattr(n, "name"));
+    PtrGuard<SwigType> fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
+    PtrGuard<SwigType> t_tmp = SwigType_typedef_qualified(fr_t); // Temporal variable
+    fr_t = 0;
     fr_t = SwigType_strip_qualifiers(t_tmp);
-    Delete(t_tmp);
-    String *mangled_fr_t = SwigType_manglestr(fr_t);
+    PtrGuard<String> mangled_fr_t = SwigType_manglestr(fr_t);
     //Printf( stdout, "Mangled class symname %s fr type%s\n", mangled_class_fq_symname, mangled_fr_t ); // TODO: REMOVE
     // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
@@ -1335,7 +1403,7 @@ public:
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname);
+    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname.ptr());
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
@@ -1352,8 +1420,8 @@ public:
     // emit a function to be called to delete the object 
     // TODO: class_name -> full_class_name || mangled full_class_name
     if (have_destructor) {
-      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname);
-      Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
+      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname.ptr());
+      Printv(f_wrappers, "static void ", destructor_name.ptr(), "(void *obj) {\n", NIL);
       if (destructor_action) {
         Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
         Printv(f_wrappers, destructor_action, "\n", NIL);
@@ -1433,12 +1501,12 @@ public:
       }
     }
 
-    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname, "_bases[] = {", base_class, "0};\n", NIL);
+    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname.ptr(), "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname.ptr(), "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname, " = { \"", class_symname, "\", \"", class_fq_symname,"\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname.ptr(), " = { \"", class_symname, "\", \"", class_fq_symname,"\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL); // TODO: SwigType_manglestr(t) - memory leak
 
     // TODO: Replace with constructor_name
     if (have_constructor) {
@@ -1467,10 +1535,10 @@ public:
     if (have_destructor) {
       if (eluac_ltr) {
         String* ns_methods_tab = Getattr(nspaceHash, "methods");
-        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
-        Printv(f_wrappers, ", ", destructor_name, NIL);
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname.ptr(), "\")", ", LFUNCVAL(", destructor_name.ptr(), ")", "},\n", NIL);
+        Printv(f_wrappers, ", ", destructor_name.ptr(), NIL);
       } else {
-         Printv(f_wrappers, ", ", destructor_name, NIL);
+         Printv(f_wrappers, ", ", destructor_name.ptr(), NIL);
       }
     } else {
       Printf(f_wrappers, ",0");
@@ -1479,14 +1547,12 @@ public:
     // TODO: Replace class_symname with class_name
     printNamespaceDefinition(class_static_nspace, class_symname, f_wrappers);
     Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n",
-        mangled_class_fq_symname, mangled_class_fq_symname);
+        mangled_class_fq_symname.ptr(), mangled_class_fq_symname.ptr());
 
     //    Printv(f_wrappers, ", swig_", mangled_class_fq_symname, "_methods, swig_", mangled_class_fq_symname, "_attributes, swig_", mangled_class_fq_symname, "_bases };\n\n", NIL);
     //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_class_fq_symname, "},\n", NIL);
 
     current[NO_CPP] = true;
-    Delete(t);
-    Delete(mangled_class_fq_symname);
     Delete(class_static_nspace);
     class_static_nspace = 0;
     Delete(class_fq_symname);
