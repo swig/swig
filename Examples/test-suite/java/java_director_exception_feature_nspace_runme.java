@@ -1,5 +1,5 @@
-import MyNS.*;
-import MyNS_JNI.*;
+import java_director_exception_feature_nspacePackage.*;
+import java_director_exception_feature_nspacePackage.MyNS.*;
 
 class java_director_exception_feature_nspace_Consts {
     public static final String PINGEXCP1 = "Ping MyJavaException1";  // should get translated through an int on ping
@@ -18,25 +18,25 @@ class java_director_exception_feature_nspace_Consts {
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
-class NewCheckedException extends Exception {
-    public NewCheckedException(String s) {
+class java_director_exception_feature_nspace_NewCheckedException extends Exception {
+    public java_director_exception_feature_nspace_NewCheckedException(String s) {
         super(s);
     }
 }
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
-class NewUncheckedException extends RuntimeException {
-    public NewUncheckedException(String s) {
+class java_director_exception_feature_nspace_NewUncheckedException extends RuntimeException {
+    public java_director_exception_feature_nspace_NewUncheckedException(String s) {
         super(s);
     }
 }
 
-// an exception not constructable from a string,
+// an exception not constructible from a string,
 // to test DirectorException fallback reconstruction
-class UnconstructableException extends Exception {
+class java_director_exception_feature_nspace_UnconstructibleException extends Exception {
     private int extrastate;
-    public UnconstructableException(int a, String s) {
+    public java_director_exception_feature_nspace_UnconstructibleException(int a, String s) {
         super(s);
         extrastate = a;
     }
@@ -62,15 +62,15 @@ class java_director_exception_feature_nspace_MyFooDirectorImpl extends Foo {
     }
 
     @Override
-    public String genericpong(int excp) throws MyJavaException1, NewCheckedException, UnconstructableException {
+    public String genericpong(int excp) throws MyJavaException1, java_director_exception_feature_nspace_NewCheckedException, java_director_exception_feature_nspace_UnconstructibleException {
 	if (excp == 1)
             throw new MyJavaException1(java_director_exception_feature_nspace_Consts.GENERICPONGEXCP1);
 	if (excp == 2)
-            throw new NewCheckedException(java_director_exception_feature_nspace_Consts.GENERICPONGEXCP2);
+            throw new java_director_exception_feature_nspace_NewCheckedException(java_director_exception_feature_nspace_Consts.GENERICPONGEXCP2);
 	if (excp == 3)
-            throw new NewUncheckedException(java_director_exception_feature_nspace_Consts.GENERICPONGEXCP3);
+            throw new java_director_exception_feature_nspace_NewUncheckedException(java_director_exception_feature_nspace_Consts.GENERICPONGEXCP3);
 	if (excp == 4)
-            throw new UnconstructableException(1, java_director_exception_feature_nspace_Consts.GENERICPONGEXCP4);
+            throw new java_director_exception_feature_nspace_UnconstructibleException(1, java_director_exception_feature_nspace_Consts.GENERICPONGEXCP4);
         return "GenericPong director returned";
     }
 }
@@ -128,11 +128,11 @@ public class java_director_exception_feature_nspace_runme {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP1.equals(e.getMessage()), "Expected exception has unexpected message: '" + e.getMessage() + "'");
           }
 	  try {  b.genericpong(2); fail("No exception thrown in genericpong(2)");}
-          catch (NewCheckedException e) {
+          catch (java_director_exception_feature_nspace_NewCheckedException e) {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP2.equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
           }
 	  try {  b.genericpong(3); fail("No exception thrown in genericpong(3)");}
-          catch (NewUncheckedException e) {
+          catch (java_director_exception_feature_nspace_NewUncheckedException e) {
               failif( ! java_director_exception_feature_nspace_Consts.GENERICPONGEXCP3.equals(e.getMessage()),  "Expected exception has unexpected message: '" + e.getMessage() + "'");
           }
 	  try {  b.genericpong(4); fail("No exception thrown in genericpong(4)");}

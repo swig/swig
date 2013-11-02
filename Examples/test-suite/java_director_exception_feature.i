@@ -138,26 +138,26 @@
 %feature("director") Foo;
 
 // Rename exceptions on java side to make translation of exceptions more clear
-%rename(MyJavaException1,fullname=1) MyNS::Exception1;
-%rename(MyJavaException2,fullname=1) MyNS::Exception2;
-%rename(MyJavaUnexpected,fullname=1) MyNS::Unexpected;
+%rename(MyJavaException1) MyNS::Exception1;
+%rename(MyJavaException2) MyNS::Exception2;
+%rename(MyJavaUnexpected) MyNS::Unexpected;
 
 %typemap(javabase) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected "java.lang.Exception";
-%rename(getMessage) what();  // Rename all what() methods
+%rename(getMessage) what() const;  // Rename all what() methods
 
 namespace MyNS {
 
   struct Exception1 {
       Exception1(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
   struct Exception2 {
       Exception2(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
   struct Unexpected {
       Unexpected(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
 
 }

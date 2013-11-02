@@ -4,9 +4,12 @@
 
 %nspace;  // turn namespace feature on for everything.
 
-// When using namespaces with no -package, must put JNI classes into a namespace
-%pragma(java) jniclasspackage=%{MyNS_JNI%}
-%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE);
+#define PACKAGEDOT "java_director_exception_feature_nspacePackage."
+#define PACKAGESLASH "java_director_exception_feature_nspacePackage/"
+%{
+#define PACKAGEDOT "java_director_exception_feature_nspacePackage."
+#define PACKAGESLASH "java_director_exception_feature_nspacePackage/"
+%}
 
 %{
 #if defined(_MSC_VER)
@@ -83,24 +86,24 @@
 // $javaclassname or $packagepath  ("java_director_exception_feature" here)
 
 // throws typemaps for c++->java exception conversions
-%typemap(throws,throws="MyNS.MyJavaException1") MyNS::Exception1 %{
-  jclass excpcls = jenv->FindClass("MyNS/MyJavaException1");
+%typemap(throws,throws=PACKAGEDOT"MyNS.MyJavaException1") MyNS::Exception1 %{
+  jclass excpcls = jenv->FindClass(PACKAGESLASH"MyNS/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
    }
   return $null;
 %}
 
-%typemap(throws,throws="MyNS.MyJavaException1") int %{
-  jclass excpcls = jenv->FindClass("MyNS/MyJavaException1");
+%typemap(throws,throws=PACKAGEDOT"MyNS.MyJavaException1") int %{
+  jclass excpcls = jenv->FindClass(PACKAGESLASH"MyNS/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");
   }
   return $null;
 %}
 
-%typemap(throws,throws="MyNS.MyJavaException2") MyNS::Exception2 %{
-  jclass excpcls = jenv->FindClass("MyNS/MyJavaException2");
+%typemap(throws,throws=PACKAGEDOT"MyNS.MyJavaException2") MyNS::Exception2 %{
+  jclass excpcls = jenv->FindClass(PACKAGESLASH"MyNS/MyJavaException2");
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }
@@ -108,8 +111,8 @@
 %}
 
 
-%typemap(throws,throws="MyNS.MyJavaUnexpected") MyNS::Unexpected %{
-  jclass excpcls = jenv->FindClass("MyNS/MyJavaUnexpected");
+%typemap(throws,throws=PACKAGEDOT"MyNS.MyJavaUnexpected") MyNS::Unexpected %{
+  jclass excpcls = jenv->FindClass(PACKAGESLASH"MyNS/MyJavaUnexpected");
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }
@@ -143,26 +146,26 @@
 %feature("director") Foo;
 
 // Rename exceptions on java side to make translation of exceptions more clear
-%rename(MyJavaException1,fullname=1) MyNS::Exception1;
-%rename(MyJavaException2,fullname=1) MyNS::Exception2;
-%rename(MyJavaUnexpected,fullname=1) MyNS::Unexpected;
+%rename(MyJavaException1) MyNS::Exception1;
+%rename(MyJavaException2) MyNS::Exception2;
+%rename(MyJavaUnexpected) MyNS::Unexpected;
 
 %typemap(javabase) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected "java.lang.Exception";
-%rename(getMessage) what();  // Rename all what() methods
+%rename(getMessage) what() const;  // Rename all what() methods
 
 namespace MyNS {
 
   struct Exception1 {
       Exception1(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
   struct Exception2 {
       Exception2(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
   struct Unexpected {
       Unexpected(const std::string& what);
-      const char * what();
+      const char * what() const;
   };
 
 }
