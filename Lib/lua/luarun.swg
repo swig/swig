@@ -879,13 +879,13 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
   unsigned long userData = (unsigned long)lua_touserdata(L,1); /* get the userdata address for later */
   lua_getmetatable(L,1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
-  
+
   lua_getfield(L, -1, ".type");
   const char* className = lua_tostring(L, -1);
-  
+
   char output[256];
-  sprintf(output, "<%s userdata: %lX>", className, userData);
-  
+  snprintf(output, 255, "<%s userdata: %lX>", className, userData);
+
   lua_pushstring(L, (const char*)output);
   return 1;
 }
@@ -1123,8 +1123,37 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State* L,swig_lua_class* c
 
 SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
 {
+  assert(lua_istable(L,-1)); /* This is table(module or namespace) where class will be added */
   SWIG_Lua_class_register_instance(L,clss);
   SWIG_Lua_class_register_static(L,clss);
+
+  /* Add links from static part to instance part and vice versa */
+  /* [SWIG registry]                                   [Module]
+   *    "MyClass" ----> [MyClass metatable] <=====     "MyClass" -+> [static part]
+   *                     ".get" ----> ...        |                |     getmetatable()----|
+   *                     ".set" ----> ...        |                |                       |
+   *                     ".static" --------------)----------------/           [static part metatable]
+   *                                             |                                ".get" --> ...
+   *                                             |                                ".set" --> ....
+   *                                             |=============================== ".instance"
+   */
+  int begin = lua_gettop(L);
+  lua_pushstring(L,clss->cls_static.name);
+  lua_rawget(L,-2); /* get class static table */
+  assert(lua_istable(L,-1));
+  lua_getmetatable(L,-1);
+  assert(lua_istable(L,-1)); /* get class static metatable */
+  lua_pushstring(L,".instance"); /* prepare key */
+
+  SWIG_Lua_get_class_metatable(L,clss->fqname); /* get class metatable */
+  assert(lua_istable(L,-1));
+  lua_pushstring(L,".static"); /* prepare key */
+  lua_pushvalue(L, -4); /* push static class TABLE */
+  assert(lua_istable(L,-1));
+  lua_rawset(L,-3); /* assign static class table(!NOT metatable) as ".static" member of class metatable */
+  lua_rawset(L,-3); /* assign class metatable as ".instance" member of class static METATABLE */
+  lua_pop(L,2);
+  assert(lua_gettop(L) == begin);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1348,6 +1377,149 @@ SWIG_Lua_dostring(lua_State *L, const char* str) {
 }    
 
 #ifdef __cplusplus
+}
+#endif
+
+/* -----------------------------------------------------------------------------
+ * runtime class manipulation
+ * ----------------------------------------------------------------------------- */
+ 
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
+/* Set of functions that allow manipulating class bindings from C/C++ and from lua
+ */
+
+SWIGINTERN bool
+SWIG_Lua_metaclass_add_table(lua_State *L, int metatable_index, const char *class_name, const char *metatable_name,
+    const char *metaclass_name)
+{
+  /* Table to add new field must be on to of the stack */
+  assert(lua_istable(L,-1));
+  lua_pushstring(L,metaclass_name);
+  lua_pushvalue(L,metatable_index);
+  lua_pushstring(L,metatable_name);
+  lua_rawget(L,-2);
+  if(!lua_istable(L,-1)) {
+    SWIG_Lua_pushferrstring(L,"Class %s metatable is corrupt. Table %s is missing or not a table", class_name, metatable_name);
+    return false;
+  }
+  lua_rawset(L,-2);
+  return true;
+}
+
+SWIGRUNTIME int
+SWIG_Lua_get_class_metaclass(lua_State *L)
+{
+  /* One argument:
+   *  - SWIG name of class as string
+   *  - or instance of class
+   *  - or class entry point in module
+   * metaclass( "MyClass<int,double>" )
+   * metaclass( myvar_of_type_MyClass_int_double )
+   * metaclass( module.MyClass_int_double )
+   */
+  const char *class_name = 0;
+  int metatable_index = 0;
+  int static_metatable_index = 0;
+  int static_table_index = 0;
+  int answer_index = 0;
+  SWIG_check_num_args("SWIG_Lua_metaclass", 1, 1);
+  lua_checkstack(L,15);
+  if(lua_type(L,1) == LUA_TSTRING) { // class name is given
+    class_name = lua_tostring(L,1);
+    SWIG_Lua_get_class_registry(L); /* get the registry */
+    assert(lua_istable(L,-1));
+    lua_pushvalue(L,1);
+    lua_rawget(L,-2); /* get class metatable */
+    if(!lua_istable(L,-1)) {
+      SWIG_Lua_pushferrstring(L,"There is no registered class with name %s", class_name );
+      SWIG_fail
+    }
+    metatable_index = lua_gettop(L);
+  } else if(lua_isuserdata(L,1)) { // class instance is given
+    /* We don't check that class is registered in SWIG because it can be user-created-in-lua class */
+    lua_getmetatable(L,1);
+    if(!lua_istable(L,-1)) {
+      SWIG_Lua_pushferrstring(L,"Userdata is passed, but it is not SWIG-wrapped class. There is no metatable.");
+      SWIG_fail;
+    }
+    metatable_index = lua_gettop(L);
+    lua_getfield(L,-1,".type");
+    if(lua_type(L,-1) != LUA_TSTRING) {
+      SWIG_Lua_pushferrstring(L,"Userdata is passed, but it is not SWIG-wrapped class. Metatable has different structure.");
+      SWIG_fail;
+    }
+    class_name = lua_tostring(L,-1);
+  } else { // class entry is given. Well, it is supposed to be a class entry :)
+    lua_getmetatable(L,1); /* get metatable */
+    if(!lua_istable(L,-1)) {
+      SWIG_Lua_pushferrstring(L, "Table is passed but it is not SWIG class entry point. There is no metatable");
+      SWIG_fail;
+    }
+    lua_getfield(L,-1, ".instance"); /* get class metatable */
+    if(lua_isnil(L,-1)) {
+      SWIG_Lua_pushferrstring(L, "Table is passed but it is not SWIG class entry point.  Metatable has different structure.");
+      SWIG_fail;
+    }
+    metatable_index = lua_gettop(L);
+    lua_getfield(L,-1,".type");
+    if(lua_type(L,-1) != LUA_TSTRING) {
+      SWIG_Lua_pushferrstring(L,"Userdata is passed, but it is not SWIG-wrapped class. Metatable has different structure.");
+      SWIG_fail;
+    }
+    class_name = lua_tostring(L,-1);
+  }
+
+  /* Get static table */
+  lua_getfield(L,metatable_index,".static");
+  assert(!lua_isnil(L,-1));
+  static_table_index = lua_gettop(L);
+  /* Get static metatable */
+  lua_getmetatable(L,-1);
+  assert(!lua_isnil(L,-1));
+  static_metatable_index = lua_gettop(L);
+  /* This will be our answer */
+  lua_newtable(L);
+  answer_index = lua_gettop(L);
+  /* Adding instance member manipulators
+   * .bases can't be edited
+   */
+  if(!SWIG_Lua_metaclass_add_table(L,metatable_index,class_name, ".fn", "methods") )
+    SWIG_fail;
+  if(!SWIG_Lua_metaclass_add_table(L,metatable_index,class_name, ".get", "getters") )
+    SWIG_fail;
+  if(!SWIG_Lua_metaclass_add_table(L,metatable_index,class_name, ".set", "setters") )
+    SWIG_fail;
+  /* Adding static members manipulators */
+  if(!SWIG_Lua_metaclass_add_table(L,static_metatable_index,class_name, ".get", "static_getters") )
+    SWIG_fail;
+  if(!SWIG_Lua_metaclass_add_table(L,static_metatable_index,class_name, ".set", "static_setters") )
+    SWIG_fail;
+  lua_pushstring(L, "static_methods");
+  lua_pushvalue(L, static_table_index);
+  lua_rawset(L,-3);
+
+  lua_pushstring(L, "static_constants");
+  lua_pushvalue(L, static_table_index);
+  lua_rawset(L,-3);
+
+  assert(lua_gettop(L) == answer_index);
+  return 1;
+
+fail:
+  lua_error(L);
+  return 0;
+}
+
+/* Creates new class in lua. Must inherit existing SWIG class */
+SWIGRUNTIME int
+SWIG_Lua_new_class(lua_State *L) {
+  SWIG_check_num_args("SWIG_Lua_new_class", 1, 1);
+  return 0;
+
+fail:
+  lua_error(L);
+  return 0;
+
 }
 #endif
 
