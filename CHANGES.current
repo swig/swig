@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-11-05: wsfulton
+            [Java] Fix some corner cases for the $packagepath/$javaclassname special variable substitution.
+
+2013-11-05: wsfulton
+            [Java] Apply patch #91 from Marvin Greenberg - Add director:except feature for improved
+            exception handling in director methods for Java.
+
 2013-10-17: wsfulton
             [R] Fix SF #1340 - Visual Studio compile error in C++ wrappers due to #include <exception>
             within extern "C" block.
