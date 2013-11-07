@@ -40,8 +40,6 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
   /* add a global fn */
   SWIG_Lua_add_function(L,"swig_type",SWIG_Lua_type);
   SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_equal);
-  SWIG_Lua_add_function(L,"swig_new_class",SWIG_Lua_new_class);
-  SWIG_Lua_add_function(L,"swig_metaclass",SWIG_Lua_get_class_metaclass);
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
