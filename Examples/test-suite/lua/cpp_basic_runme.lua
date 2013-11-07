@@ -59,6 +59,9 @@ cb.Bar_global_fval=cb.Foo(-34)
 assert(cb.Bar_global_fval.num==-34)
 assert(cb.Bar.global_fval.num==-34)
 
+assert(cb.Bar.global_cint == -4)
+assert(cb.Bar_global_cint == -4)
+
 -- Now test member function pointers
 func1_ptr=cb.get_func1_ptr()
 func2_ptr=cb.get_func2_ptr()
