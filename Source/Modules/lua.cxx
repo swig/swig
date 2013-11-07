@@ -321,8 +321,6 @@ public:
     /* Get the module name */
     module = Getattr(n, "name");
 
-    /* Some global settings */
-    director_language = 1;
     /* Get the output file name */
     String *outfile = Getattr(n, "outfile");
 
@@ -402,11 +400,11 @@ public:
 
     if (elua_ltr || eluac_ltr) {
       /* Final close up of wrappers */
-      closeNamespaces(f_wrappers, 0); // TODO: Remove last parameter
+      closeNamespaces(f_wrappers); // TODO: Remove last parameter
       SwigType_emit_type_table(f_runtime, f_wrappers);
     } else {
       //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
-      closeNamespaces(f_wrappers, 0);
+      closeNamespaces(f_wrappers);
       SwigType_emit_type_table(f_runtime, f_wrappers);
     }
 
@@ -1233,9 +1231,11 @@ public:
       constructor_name = constructor_proxy_name;
       if (elua_ltr) {
         String* static_cls_metatable_tab = Getattr(static_cls, "metatable");
+        assert(static_cls_metatable_tab != 0);
         Printf(static_cls_metatable_tab, "    {LSTRKEY(\"__call\"), LFUNCVAL(%s)},\n", constructor_name);
       } else if (eluac_ltr) {
         String* ns_methods_tab = Getattr(nspaceHash, "methods");
+        assert(ns_methods_tab != 0);
         Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", class_symname, "\")", ", LFUNCVAL(", \
         constructor_name, ")", "},\n", NIL);
       }
@@ -1243,6 +1243,7 @@ public:
     if (have_destructor) {
       if (eluac_ltr) {
         String* ns_methods_tab = Getattr(nspaceHash, "methods");
+        assert(ns_methods_tab != 0);
         Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname.ptr(), "\")", ", LFUNCVAL(", destructor_name.ptr(), ")", "},\n", NIL);
       }
     }
@@ -1400,7 +1401,6 @@ public:
     current[CONSTRUCTOR] = false;
     //constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
-    //Printf( stdout, "Constructor %s\n", constructor_name); TODO: REMOVE
     return SWIG_OK;
   }
 
@@ -1781,18 +1781,18 @@ public:
       Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_module_set)},\n", NIL);
       Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
       Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
-      if (Getattr(nspace_hash, "lua:class")) {
+      if (Getattr(nspace_hash, "lua:class_instance")) {
         String *static_cls = Getattr(nspace_hash, "lua:class_instance:static_hash");
         assert(static_cls != 0);
         String *static_cls_cname = Getattr(static_cls, "cname");
         assert(static_cls_cname != 0);
-        Printv(metatable_tab, tab4, "LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n");
+        Printv(metatable_tab, tab4, "LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
       } else if (Getattr(nspace_hash, "lua:class_static") ) {
         Hash *instance_cls = Getattr(nspace_hash, "lua:class_static:instance_hash");
         assert(instance_cls != 0);
         String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
         assert(instance_cls_metatable_name != 0);
-        Printv(metatable_tab, tab4, "LSTRKEY(\".static\"), LROVAL(", instance_cls_metatable_name, ")},\n");
+        Printv(metatable_tab, tab4, "LSTRKEY(\".static\"), LROVAL(", instance_cls_metatable_name, ")},\n", NIL);
       }
 
       Printv(metatable_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
@@ -1803,8 +1803,7 @@ public:
 
   static int compareByLen( const DOH* f, const DOH* s) { return Len(s) - Len(f); }
   // Recursively close all non-closed namespaces. Prints data to dataOutput,
-  // forward declaration to declOutput
-  void closeNamespaces(File *dataOutput, File *declOutput)
+  void closeNamespaces(File *dataOutput)
   {
     Iterator ki = First(namespaces_hash);
     List* to_close = NewList();
@@ -1867,15 +1866,16 @@ public:
 
   // Add method to the "methods" C array of given namespace/class
   void registerMethod(String *nspace_or_class_name, Node* n) {
-      Hash* nspaceHash = getNamespaceHash( nspace_or_class_name );
-      String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
-      String *wname = Getattr(n, "wrap:name");
-      String *iname = Getattr(n, "sym:name");
-      String *target_name = Getattr(n, "lua:name");
-      if(elua_ltr || eluac_ltr)
-        Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
-      else
-        Printv(s_ns_methods_tab, tab4, "{ \"", target_name, "\", ", wname, "},\n", NIL);
+    assert(n != 0);
+    Hash* nspaceHash = getNamespaceHash( nspace_or_class_name );
+    String* s_ns_methods_tab = Getattr(nspaceHash, "methods");
+    String *wname = Getattr(n, "wrap:name");
+    String *iname = Getattr(n, "sym:name");
+    String *target_name = Getattr(n, "lua:name");
+    if(elua_ltr || eluac_ltr)
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
+    else
+      Printv(s_ns_methods_tab, tab4, "{ \"", target_name, "\", ", wname, "},\n", NIL);
   }
 
   // Add variable to the "attributes" (or "get"/"set"  in
@@ -1924,7 +1924,7 @@ public:
       }
       assert(scope != 0);
     }
-    //Printf(stdout, "addSymbol: %s scope: %s'n", s, scope);
+    //Printf(stdout, "addSymbol: %s scope: %s\n", s, scope);
     return Language::addSymbol(s,n,scope);
   }
 
