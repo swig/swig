@@ -49,9 +49,9 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
     }
   }
-  bool globalRegister = false;
+  int globalRegister = 0;
 #ifdef SWIG_LUA_MODULE_GLOBAL
-  globalRegister = true;
+  globalRegister = 1;
 #endif
   SWIG_Lua_namespace_register(L,&swig___Global, globalRegister);
 #endif

@@ -91,14 +91,16 @@ class DohPtrGuard {
     // Guard is empty, ptr - any: assigns new value for guard
     // Guard is holding pointer, ptr == 0 - releases value that guard holds
     // Any other combination - assert
-    void operator=( DOH* ptr ) {
+    DOH* operator=( DOH* ptr ) {
       attach(ptr);
+      return ptr;
     }
 
     DOH* ptr() { return p_ptr; }
     const DOH* ptr() const { return p_ptr; }
     operator DOH* () { return p_ptr; }
     operator DOH* () const { return p_ptr; }
+    operator bool() const { return ptr != 0; }
 
   private:
       DOH* p_ptr; // pointer to actual object
@@ -129,11 +131,11 @@ class DohPtrGuard {
 // Overloading DohDelete for DohPtrGuard. You might not call DohDelete on DohPtrGuard instances,
 // as it is supposed to manage underlying pointer by itself
 
-void DohDelete(const DohPtrGuard<DOH>& guard) {
+void DohDelete(const DohPtrGuard<DOH>& /*guard*/) {
   Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
   assert(false);
 }
-void DohDelete(DohPtrGuard<DOH>& guard) {
+void DohDelete(DohPtrGuard<DOH>& /*guard*/) {
   Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
   assert(false);
 }
@@ -152,12 +154,23 @@ Lua Options (available with -lua)\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
+     -api-lvl-from NUM\n\
+                     - Force support for old-style bindings. All old-style bindings\n\
+                       from NUM to current new-style bindings will be supported. For example,\n\
+                       if current lua bindings API version is 10 and NUM==7 then SWIG will\n\
+                       generate bindings compatible with lua bindings versions 7,8,9 and,\n\
+                       of course current version of bindings, 10.\n\
+                       API levels:\n\
+                       2   -   SWIG 2.*\n\
+                       3   -   SWIG 3.*\n\
+                       Default NUM is 2.\n\
 \n";
 
 static int nomoduleglobal = 0;
 static int elua_ltr = 0;
 static int eluac_ltr = 0;
-static int v2_compatibility = 1;
+static int v2_compatibility = 0;
+static const int default_api_level = 2;
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -260,6 +273,7 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
+    int api_level = default_api_level; // Default api level
     /* Set location of SWIG library */
     SWIG_library_directory("lua");
 
@@ -277,9 +291,29 @@ public:
         } else if(strcmp(argv[i], "-eluac") == 0) {
           eluac_ltr = 1;
           Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-api-lvl-from") == 0) {
+          if(argv[i+1]) {
+            api_level = atoi(argv[i+1]);
+            if(api_level == 0)
+              Swig_arg_error();
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
         }
       }
     }
+
+    // Set API-compatibility options
+    if(api_level <= 2) // Must be compatible with SWIG 2.*
+      v2_compatibility = 1;
+  // template for further API breaks
+  //if(api_level <= 3)
+  //  v3_compatibility = 1;
+  //if(api_level <= 4)
+  //  v4_compatibility = 1;
+  
 
     /* NEW LANGUAGE NOTE:***********************************************
      This is the boilerplate code, setting a few #defines
@@ -400,7 +434,7 @@ public:
 
     if (elua_ltr || eluac_ltr) {
       /* Final close up of wrappers */
-      closeNamespaces(f_wrappers); // TODO: Remove last parameter
+      closeNamespaces(f_wrappers);
       SwigType_emit_type_table(f_runtime, f_wrappers);
     } else {
       //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
@@ -491,6 +525,16 @@ public:
       Setattr(n, "varget:wrap:name", wrapname);
   }
 
+  // Helper for functionWrapper - determines whether we should
+  // register method in the appropriate class/namespace/module
+  // table or not.
+  // (not => it is variable wrapper or something similar)
+  bool functionWrapperRegisterNow() const {
+    if (current[VARIABLE])
+      return false;
+    return (current[NO_CPP] || current[STATIC_FUNC]);
+  }
+
   virtual int functionWrapper(Node *n) {
     REPORT("functionWrapper",n);
 
@@ -503,14 +547,13 @@ public:
     Parm *p;
     String *tm;
     int i;
-    //Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current);
+    //Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current); // TODO: COMMENT BACK
 
     String *overname = 0;
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
       if (!luaAddSymbol(target_name, n)) {
-        Printf(stderr,"addSymbol(%s) failed\n",target_name);
         return SWIG_ERROR;
       }
     }
@@ -790,13 +833,14 @@ public:
     different language mappings seem to use different ideas
     NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
+    int result = SWIG_OK;
     if (!Getattr(n, "sym:overloaded")) {
-      if (current[NO_CPP] || current[STATIC_FUNC]) { // emit normal fns & static fns
-        registerMethod(getNSpace(), n);
+      if (functionWrapperRegisterNow()) { // emit normal fns & static fns
+        registerMethod(luaCurrentSymbolNSpace(), n);
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
-        dispatchFunction(n);
+        result = dispatchFunction(n);
       }
     }
 
@@ -808,7 +852,7 @@ public:
     //    Delete(description);
     DelWrapper(f);
 
-    return SWIG_OK;
+    return result;
   }
 
   /* ------------------------------------------------------------
@@ -823,7 +867,7 @@ public:
   nost of the real work in again typemaps:
   look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
   NEW LANGUAGE NOTE:END ************************************************/
-  void dispatchFunction(Node *n) {
+  int dispatchFunction(Node *n) {
     //REPORT("dispatchFunction", n);
     /* Last node in overloaded chain */
 
@@ -840,6 +884,10 @@ public:
     String *wname = symname_wrapper(symname);
 
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
+
+    if (!luaAddSymbol(target_name, n)) {
+      return SWIG_ERROR;
+    }
 
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
     Wrapper_add_local(f, "argc", "int argc");
@@ -870,8 +918,12 @@ public:
     Printf(f->code, "lua_error(L);return 0;\n");
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
-    if (current[NO_CPP] || current[STATIC_FUNC]) { // emit normal fns & static fns
-      registerMethod(getNSpace(), n);
+
+    // Remember C name of the wrapping function
+    rememberWrapName(n, wname);
+
+    if (functionWrapperRegisterNow()) { // emit normal fns & static fns
+      registerMethod(luaCurrentSymbolNSpace(), n);
     }
     if (current[CONSTRUCTOR]) {
       if( constructor_name != 0 )
@@ -879,12 +931,11 @@ public:
       constructor_name = Copy(wname);
     }
 
-    // Remember C name of the wrapping function
-    rememberWrapName(n, wname);
-
     DelWrapper(f);
     Delete(dispatch);
     Delete(tmp);
+
+    return SWIG_OK;
   }
 
 
@@ -906,8 +957,8 @@ public:
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
+    registerVariable( luaCurrentSymbolNSpace(), n, "varget:wrap:name", "varset:wrap:name" );
     current[VARIABLE] = false;
-    registerVariable( getNSpace(), n, "varget:wrap:name", "varset:wrap:name" );
     return result;
   }
 
@@ -926,9 +977,25 @@ public:
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
+    PtrGuard<String> target_name_v2;
+    PtrGuard<String> tm_v2;
+    PtrGuard<String> iname_v2;
+    PtrGuard<Node> n_v2;
 
     if (!luaAddSymbol(target_name, n))
       return SWIG_ERROR;
+
+    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
+    //Printf( stdout, "V2 compatible: %d\n", int(make_v2_compatible) ); // TODO: REMOVE
+    if( make_v2_compatible ) {
+      target_name_v2 = Swig_name_member(0, class_symname, target_name);
+      iname_v2 = Swig_name_member(0, class_symname, iname);
+      n_v2 = Copy(n);
+      //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
+      if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
+        return SWIG_ERROR;
+      }
+    }
 
     Swig_save("lua_constantMember", n, "sym:name", NIL);
     Setattr(n, "sym:name", target_name);
@@ -940,16 +1007,17 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+      //Printf(stdout, "tm v1: %s\n", tm); // TODO:REMOVE
       Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
+      Replaceall(tm, "$target", target_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
-      Hash *nspaceHash = getNamespaceHash( getNSpace() );
+      Hash *nspaceHash = getNamespaceHash( luaCurrentSymbolNSpace() );
       String *s_const_tab = Getattr(nspaceHash, "constants");
       Printf(s_const_tab, "    %s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", name);
+      Replaceall(tm, "$target", target_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(f_init, "%s\n", tm);
@@ -959,34 +1027,35 @@ public:
       Swig_restore(n);
       return SWIG_NOWRAP;
     }
-    /* TODO: Review
-    if( v2_compatibility && getCurrentClass() ) {
-      if (!luaAddSymbol(iname, n, class_parent_nspace))
-        return SWIG_ERROR;
 
-      Setattr(n, "sym:name", iname);
-      if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-        Replaceall(tm, "$source", value);
-        Replaceall(tm, "$target", name);
-        Replaceall(tm, "$value", value);
-        Replaceall(tm, "$nsname", nsname);
+    if( make_v2_compatible ) {
+      Setattr(n_v2, "sym:name", target_name_v2);
+      tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
+      if (tm_v2) {
+        //Printf(stdout, "tm v2: %s\n", tm_v2.ptr()); // TODO:REMOVE
+        Replaceall(tm_v2, "$source", value);
+        Replaceall(tm_v2, "$target", target_name_v2);
+        Replaceall(tm_v2, "$value", value);
+        Replaceall(tm_v2, "$nsname", nsname);
         Hash *nspaceHash = getNamespaceHash( class_parent_nspace );
         String *s_const_tab = Getattr(nspaceHash, "constants");
-        Printf(s_const_tab, "    %s,\n", tm);
-      } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-        Replaceall(tm, "$source", value);
-        Replaceall(tm, "$target", name);
-        Replaceall(tm, "$value", value);
-        Replaceall(tm, "$nsname", nsname);
-        Printf(f_init, "%s\n", tm);
+        Printf(s_const_tab, "    %s,\n", tm_v2.ptr());
       } else {
-        Delete(nsname);
-        Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-        Swig_restore(n);
-        return SWIG_NOWRAP;
+        tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
+        if( !tm_v2) {
+          // This can't be.
+          assert(false);
+          Swig_restore(n);
+          return SWIG_ERROR;
+        }
+        Replaceall(tm_v2, "$source", value);
+        Replaceall(tm_v2, "$target", target_name_v2);
+        Replaceall(tm_v2, "$value", value);
+        Replaceall(tm_v2, "$nsname", nsname);
+        Printf(f_init, "%s\n", tm_v2.ptr());
       }
     }
-    */
+
     Swig_restore(n);
     Delete(nsname);
     return SWIG_OK;
@@ -1019,9 +1088,11 @@ public:
     // So this is the exact copy of function from Language with
     // correct handling of namespaces
       String *oldNSpace = getNSpace();
+      /* TODO: REVIEW/REMOVE_and_replace_with_Language::enumDeclaration
       if( getCurrentClass() == 0 ) {
         setNSpace(Getattr(n, "sym:nspace"));
-      }
+      }*/
+      setNSpace(Getattr(n, "sym:nspace"));
 
       if (!ImportMode) {
         current[STATIC_CONST] = true;
@@ -1054,12 +1125,11 @@ public:
     Setattr(n, "value", tmpValue);
 
     Setattr(n, "name", tmpValue);	/* for wrapping of enums in a namespace when emit_action is used */
-    constantWrapper(n);
+    int result = constantWrapper(n);
 
     Delete(tmpValue);
     Swig_restore(n);
-    // TODO: Backward compatibility: add ClassName_ConstantName member
-    return SWIG_OK;
+    return result;
   }
 
   /* ------------------------------------------------------------
@@ -1173,11 +1243,11 @@ public:
     // Replacing namespace with namespace + class in order to static
     // member be put inside class static area
     class_parent_nspace = getNSpace();
-    setNSpace(class_static_nspace);
+    //setNSpace(class_static_nspace); TODO: REMOVE
     // Generate normal wrappers
     Language::classHandler(n);
     // Restore correct nspace
-    setNSpace(nspace);
+    //setNSpace(nspace); // TODO: REMOVE if remove above
     class_parent_nspace = 0;
 
     SwigType_add_pointer(t);
@@ -1418,6 +1488,22 @@ public:
     return SWIG_OK;
   }
 
+  /* ----------------------------------------------------------------------
+   * globalfunctionHandler()
+   * It can be called:
+   * 1. Usual C/C++ global function.
+   * 2. During class parsing for functions declared/defined as friend
+   * 3. During class parsing from staticmemberfunctionHandler
+   * ---------------------------------------------------------------------- */
+  int globalfunctionHandler(Node *n) {
+    bool oldVal = current[NO_CPP];
+    if(!current[STATIC_FUNC]) // If static funct, don't switch to NO_CPP
+      current[NO_CPP] = true;
+    int result = Language::globalfunctionHandler(n);
+    current[NO_CPP] = oldVal;
+    return result;
+  }
+
   /* -----------------------------------------------------------------------
    * staticmemberfunctionHandler()
    *
@@ -1427,7 +1513,6 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     REPORT("staticmemberfunctionHandler", n);
     current[STATIC_FUNC] = true;
-    //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmemberfunctionHandler(n);
 
     current[STATIC_FUNC] = false;;
@@ -1443,18 +1528,6 @@ public:
       registerMethod( class_parent_nspace, n );
       Swig_restore(n);
     }
-
-    if (Getattr(n, "sym:nextSibling"))
-      return SWIG_OK;
-
-    //Swig_require("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:wrap:name", NIL);
-    //String *name = Getattr(n, "name");
-    //String *rname, *realname;
-    //realname = symname ? symname : name;
-    //rname = Getattr(n, "luaclassobj:wrap:name");
-    // TODO: Add backward compatibility here: add "ClassName_FuncName" to global table
-    //Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
-    //Swig_restore(n);
 
     return SWIG_OK;
   }
@@ -1495,13 +1568,10 @@ public:
       if( !GetFlag(n,"wrappedasconstant") ) {
         Setattr(n, "lua:name", v2_name);
         registerVariable( class_parent_nspace, n, "varget:wrap:name", "varset:wrap:name");
-      } else {
-        Setattr(n, "lua:name", v2_name);
-        String* oldNSpace = getNSpace();
-        setNSpace(class_parent_nspace);
-        constantWrapper(n);
-        setNSpace(oldNSpace);
       }
+      // If static member variable was wrapped as constant, then
+      // constant wrapper has already performed all actions
+      // necessary for v2_compatibility
       Delete(v2_name);
       Swig_restore(n);
     }
@@ -1805,6 +1875,12 @@ public:
   // Recursively close all non-closed namespaces. Prints data to dataOutput,
   void closeNamespaces(File *dataOutput)
   {
+    // Special handling for empty module.
+    if( Getattr(namespaces_hash, "") == 0 ) {
+      // Module is empty. Create hash for global scope in order to have swig__Global
+      // variable in resulting file
+      getNamespaceHash(0);
+    }
     Iterator ki = First(namespaces_hash);
     List* to_close = NewList();
     while (ki.key) {
@@ -1904,14 +1980,19 @@ public:
       }
   }
 
-
-  // Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
-  int luaAddSymbol(const String *s, const Node *n) {
+  // This function determines actual namespace/scope where any symbol at the
+  // current moment should be placed. It looks at the 'current' array
+  // and depending on where are we - static class member/function,
+  // instance class member/function or just global functions decides
+  // where symbol should be put.
+  // The namespace/scope doesn't depend from symbol, only from 'current'
+  String* luaCurrentSymbolNSpace() {
     String* scope = 0;
     // If ouside class, than NSpace is used.
-    if( !getCurrentClass())
+    // If inside class, but current[NO_CPP], then this is friend function. It belongs to NSpace
+    if( !getCurrentClass() || current[NO_CPP]) {
       scope = getNSpace();
-    else {
+    } else {
       // If inside class, then either class static namespace or class fully qualified name is used
       assert(!current[NO_CPP]);
       if(current[STATIC_FUNC] || current[STATIC_VAR] || current[STATIC_CONST] ) {
@@ -1924,13 +2005,26 @@ public:
       }
       assert(scope != 0);
     }
-    //Printf(stdout, "addSymbol: %s scope: %s\n", s, scope);
-    return Language::addSymbol(s,n,scope);
+    return scope;
+  }
+
+  // Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
+  int luaAddSymbol(const String *s, const Node *n) {
+    String *scope = luaCurrentSymbolNSpace();
+    //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
+    int result = Language::addSymbol(s,n,scope);
+    if( !result )
+      Printf(stderr,"addSymbol(%s to scope %s) failed\n",s, scope);
+    return result;
   }
 
   // Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
   int luaAddSymbol(const String*s, const Node*n,  const_String_or_char_ptr scope) {
-    return Language::addSymbol(s,n,scope);
+    //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
+    int result = Language::addSymbol(s,n,scope);
+    if( !result )
+      Printf(stderr,"addSymbol(%s to scope %s) failed\n",s, scope);
+    return result;
   }
 
   // Function creates fully qualified name of given symbol. Current NSpace and current class
