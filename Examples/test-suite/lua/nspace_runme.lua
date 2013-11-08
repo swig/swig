@@ -10,7 +10,7 @@ ns = nspace
 
 -- Inheritance
 blue1 = ns.Outer.Inner3.Blue()
-debug.debug()
+
 -- blue1:blueInstanceMethod()
 blue1:colorInstanceMethod(60.0)
 blue1.instanceMemberVariable = 4

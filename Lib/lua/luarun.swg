@@ -70,6 +70,10 @@ extern "C" {
 # define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
 #endif
 
+/* lua_absindex was introduced in Lua 5.2 */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
+# define lua_absindex(L,i) ((i)>0 || (i) <= LUA_REGISTRYINDEX ? (i) : lua_gettop(L) + (i) + 1)
+#endif
 
 /* --------------------------------------------------------------------------
  * Helper functions for error handling

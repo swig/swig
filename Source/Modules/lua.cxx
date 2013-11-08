@@ -1712,7 +1712,7 @@ public:
       Printf(methods_tab, "static LUA_REG_TYPE ");
     else
       Printf(methods_tab, "static swig_lua_method ");
-    Printv(methods_tab, methods_tab_name, "[]");
+    Printv(methods_tab, methods_tab_name, "[]", NIL);
     Printv(methods_tab_decl, methods_tab, ";\n", NIL);
     Printv(methods_tab, "= {\n", NIL);
     Setattr(nspace_hash, "methods", methods_tab );
@@ -1737,7 +1737,7 @@ public:
     String *classes_tab_name = NewStringf("swig_%s_classes", mangled_name );
     String *classes_tab_decl = NewString("");
     Printf(classes_tab, "static swig_lua_class* ");
-    Printv(classes_tab, classes_tab_name, "[]");
+    Printv(classes_tab, classes_tab_name, "[]", NIL);
     Printv(classes_tab_decl, classes_tab, ";", NIL);
     Printv(classes_tab, "= {\n", NIL);
     Setattr(nspace_hash, "classes", classes_tab );
@@ -1748,7 +1748,7 @@ public:
     String* namespaces_tab_name = NewStringf("swig_%s_namespaces", mangled_name );
     String* namespaces_tab_decl = NewString("");
     Printf(namespaces_tab, "static swig_lua_namespace* ");
-    Printv(namespaces_tab, namespaces_tab_name, "[]");
+    Printv(namespaces_tab, namespaces_tab_name, "[]", NIL);
     Printv(namespaces_tab_decl, namespaces_tab, ";", NIL);
     Printv(namespaces_tab, " = {\n", NIL);
     Setattr(nspace_hash, "namespaces", namespaces_tab );
@@ -1772,7 +1772,7 @@ public:
       if (!eluac_ltr) {
         String* metatable_tab = NewString("");
         String* metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
-        Printv(metatable_tab, "const LUA_REG_TYPE ", metatable_tab_name, "[] = {\n");
+        Printv(metatable_tab, "const LUA_REG_TYPE ", metatable_tab_name, "[] = {\n", NIL);
         Setattr(nspace_hash, "metatable", metatable_tab);
         Setattr(nspace_hash, "metatable:name", metatable_tab_name);
       }
