@@ -188,7 +188,7 @@ namespace Space {
 
 #if defined(SWIGCSHARP)
 %typemap(cscode) Space::RenameMe %{
-  public static NewName factory(String s) {
+  public static NewName factory(System.String s) {
   //below should expand to:
   //return new NewName( new Name(s) );
     return new $typemap(cstype, Space::RenameMe)( new $typemap(cstype, Name)(s) ); 

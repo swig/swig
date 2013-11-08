@@ -4,8 +4,6 @@
  * SWIG typemaps for std::vector<T>
  * C# implementation
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.List<> collection.
- * For .NET 1 compatibility, define SWIG_DOTNET_1 when compiling the C# code; then the C# wrapper is 
- * made to look and feel like a typesafe C# System.Collections.ArrayList.
  *
  * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
  * C++ std::vector wrappers. The IList<> interface is also implemented to provide enhanced functionality
@@ -26,11 +24,11 @@
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
+%typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
 %typemap(cscode) std::vector< CTYPE > %{
-  public $csclassname(System.Collections.ICollection c) : this() {
+  public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)
-      throw new ArgumentNullException("c");
+      throw new global::System.ArgumentNullException("c");
     foreach ($typemap(cstype, CTYPE) element in c) {
       this.Add(element);
     }
@@ -63,7 +61,7 @@
     }
     set {
       if (value < size())
-        throw new ArgumentOutOfRangeException("Capacity");
+        throw new global::System.ArgumentOutOfRangeException("Capacity");
       reserve((uint)value);
     }
   }
@@ -80,53 +78,39 @@
     }
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(System.Array array)
-#else
   public void CopyTo($typemap(cstype, CTYPE)[] array)
-#endif
   {
     CopyTo(0, array, 0, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(System.Array array, int arrayIndex)
-#else
   public void CopyTo($typemap(cstype, CTYPE)[] array, int arrayIndex)
-#endif
   {
     CopyTo(0, array, arrayIndex, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(int index, System.Array array, int arrayIndex, int count)
-#else
   public void CopyTo(int index, $typemap(cstype, CTYPE)[] array, int arrayIndex, int count)
-#endif
   {
     if (array == null)
-      throw new ArgumentNullException("array");
+      throw new global::System.ArgumentNullException("array");
     if (index < 0)
-      throw new ArgumentOutOfRangeException("index", "Value is less than zero");
+      throw new global::System.ArgumentOutOfRangeException("index", "Value is less than zero");
     if (arrayIndex < 0)
-      throw new ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
+      throw new global::System.ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
     if (count < 0)
-      throw new ArgumentOutOfRangeException("count", "Value is less than zero");
+      throw new global::System.ArgumentOutOfRangeException("count", "Value is less than zero");
     if (array.Rank > 1)
-      throw new ArgumentException("Multi dimensional array.", "array");
+      throw new global::System.ArgumentException("Multi dimensional array.", "array");
     if (index+count > this.Count || arrayIndex+count > array.Length)
-      throw new ArgumentException("Number of elements to copy is too large.");
+      throw new global::System.ArgumentException("Number of elements to copy is too large.");
     for (int i=0; i<count; i++)
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
   }
 
-#if !SWIG_DOTNET_1
-  System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
+  global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
-#endif
 
-  System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+  global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
@@ -139,10 +123,8 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator
-#if !SWIG_DOTNET_1
-    , System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
-#endif
+  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator
+    , global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
   {
     private $csclassname collectionRef;
     private int currentIndex;
@@ -160,17 +142,17 @@
     public $typemap(cstype, CTYPE) Current {
       get {
         if (currentIndex == -1)
-          throw new InvalidOperationException("Enumeration not started.");
+          throw new global::System.InvalidOperationException("Enumeration not started.");
         if (currentIndex > currentSize - 1)
-          throw new InvalidOperationException("Enumeration finished.");
+          throw new global::System.InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
-          throw new InvalidOperationException("Collection modified.");
+          throw new global::System.InvalidOperationException("Collection modified.");
         return ($typemap(cstype, CTYPE))currentObject;
       }
     }
 
     // Type-unsafe IEnumerator.Current
-    object System.Collections.IEnumerator.Current {
+    object global::System.Collections.IEnumerator.Current {
       get {
         return Current;
       }
@@ -192,16 +174,14 @@
       currentIndex = -1;
       currentObject = null;
       if (collectionRef.Count != currentSize) {
-        throw new InvalidOperationException("Collection modified.");
+        throw new global::System.InvalidOperationException("Collection modified.");
       }
     }
 
-#if !SWIG_DOTNET_1
     public void Dispose() {
         currentIndex = -1;
         currentObject = null;
     }
-#endif
   }
 %}
 
