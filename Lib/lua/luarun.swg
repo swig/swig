@@ -32,11 +32,18 @@ extern "C" {
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
+    // Those two types of constants are not supported in elua
+#  define SWIG_LUA_CONSTTAB_POINTER(B,C,D) LSTRKEY(B), LNILVAL
+#  define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
 #else /* SWIG_LUA_FLAVOR_LUA */
 #  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
+#  define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
+       SWIG_LUA_POINTER, (char *)B, 0, 0, (void *)C, &D
+#  define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D)\
+       SWIG_LUA_BINARY,  (char *)B, S, 0, (void *)C, &D
 #endif
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
@@ -44,6 +51,10 @@ extern "C" {
 #  define LSTRVAL LRO_STRVAL
 #endif
 
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+#include "lrodefs.h"
+#include "lrotable.h"
+#endif
 /* -----------------------------------------------------------------------------
  * compatibility defines
  * ----------------------------------------------------------------------------- */
@@ -123,6 +134,12 @@ typedef struct {
   lua_CFunction set;
 } swig_lua_var_info;
 
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+typedef const LUA_REG_TYPE swig_lua_method;
+typedef const LUA_REG_TYPE swig_lua_const_info;
+#else // Normal lua
+typedef luaL_Reg swig_lua_method;
+
 /* Constant information structure */
 typedef struct {
     int type;
@@ -133,7 +150,7 @@ typedef struct {
     swig_type_info **ptype;
 } swig_lua_const_info;
 
-typedef luaL_Reg swig_lua_method;
+#endif
 
 typedef struct {
   const char     *name;
@@ -343,6 +360,7 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
   return 0;
 }
 
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) // In elua this is useless
 SWIGINTERN void SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]); // forward declaration
 SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn); // forward declaration
 SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss);
@@ -365,17 +383,6 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* 
   for(i=0;ns->ns_attributes[i].name;i++){
     SWIG_Lua_add_variable(L,ns->ns_attributes[i].name,ns->ns_attributes[i].getmethod,ns->ns_attributes[i].setmethod);
   }
-
-#if 0
-  // TODO: REMOVE. .fn table is unused
-  /* add methods to the metatable */
-  SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
-  assert(lua_istable(L,-1));  /* just in case */
-  for(i=0;ns->ns_methods[i].name;i++){
-    SWIG_Lua_add_function(L,ns->ns_methods[i].name,ns->ns_methods[i].func);
-  }
-  lua_pop(L,1);
-#endif
 
   /* clear stack - remove metatble */
   lua_pop(L,1);
@@ -452,6 +459,7 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns,
   }
   assert(lua_gettop(L) == begin+1);
 }
+#endif // SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA
 /* -----------------------------------------------------------------------------
  * global variable support code: classes
  * ----------------------------------------------------------------------------- */
@@ -601,7 +609,6 @@ printf("SWIG_Lua_class_set %p(%s) '%s' %p(%s)\n",
       lua_pushvalue(L,base+3);  /* value */
       lua_call(L,2,0);
       lua_remove(L,base+4); /*remove metatable*/
-      assert(lua_gettop(L) == base+3); // TODO:REMOVE
       return 0;
     }
     lua_pop(L,1);  /* remove the value */
@@ -776,6 +783,29 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
   lua_remove(L,-2);    /* tidy up (remove registry) */
 }
 
+/* set up the base classes pointers.
+Each class structure has a list of pointers to the base class structures.
+This function fills them.
+It cannot be done at compile time, as this will not work with hireachies
+spread over more than one swig file. 
+Therefore it must be done at runtime, querying the SWIG type system.
+*/
+SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
+{
+  int i=0;
+  swig_module_info* module=SWIG_GetModule(L);
+  for(i=0;clss->base_names[i];i++)
+  {
+    if (clss->bases[i]==0) /* not found yet */
+    {
+      /* lookup and cache the base class */
+      swig_type_info *info = SWIG_TypeQueryModule(module,module,clss->base_names[i]);
+      if (info) clss->bases[i] = (swig_lua_class *) info->clientdata;
+    }
+  }
+}
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) // In elua this is useless
 /* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
@@ -844,28 +874,6 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State* L,swig_lua_class
   for(i=0;clss->methods[i].name;i++){
     if (clss->methods[i].name[0]=='_' && clss->methods[i].name[1]=='_'){
       SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].func);
-    }
-  }
-}
-
-/* set up the base classes pointers.
-Each class structure has a list of pointers to the base class structures.
-This function fills them.
-It cannot be done at compile time, as this will not work with hireachies
-spread over more than one swig file. 
-Therefore it must be done at runtime, querying the SWIG type system.
-*/
-SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
-{
-  int i=0;
-  swig_module_info* module=SWIG_GetModule(L);
-  for(i=0;clss->base_names[i];i++)
-  {
-    if (clss->bases[i]==0) /* not found yet */
-    {
-      /* lookup and cache the base class */
-      swig_type_info *info = SWIG_TypeQueryModule(module,module,clss->base_names[i]);
-      if (info) clss->bases[i] = (swig_lua_class *) info->clientdata;
     }
   }
 }
@@ -1001,7 +1009,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
   lua_pop(L,2);
   assert(lua_gettop(L) == begin);
 }
-
+#endif // SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA
 /* -----------------------------------------------------------------------------
  * Class/structure conversion fns
  * ----------------------------------------------------------------------------- */
