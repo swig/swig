@@ -97,7 +97,7 @@
     for (int i = 0; i < swigValues.Length; i++)
       if (swigValues[i].swigValue == swigValue)
         return swigValues[i];
-    throw new System.ArgumentOutOfRangeException("No enum $csclassname with value " + swigValue);
+    throw new global::System.ArgumentOutOfRangeException("No enum $csclassname with value " + swigValue);
   }
 
   public override string ToString() {
