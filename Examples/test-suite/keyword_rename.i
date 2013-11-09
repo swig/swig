@@ -31,6 +31,12 @@ struct sealed {int i;};
 KW(go, defer)
 KW(chan, fallthrough)
 
+/* Lua keywords */
+#if defined(SWIGLUA)
+KW(end, function)
+KW(nil,local)
+#endif
+
 %}
 
 
