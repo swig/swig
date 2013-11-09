@@ -5,6 +5,25 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-11-09: wsfulton
+            [C#] Apply patch #79 from Brant Kyser
+              - Remove using directives from the generated C# code and fully qualify the use of all .NET
+                framework types in order to minimize potential name collisions from input files defining
+                types, namespace, etc with the same name as .NET framework members.
+              - Globally qualify the use of .NET framework types in the System namespace
+              - Remove .NET 1.1 support, .NET 2 is the minimum for the C# module
+
+            This is a potential backwards compatibility break if code has been added relying on these using
+            statements that used to be generated:
+
+              using System;
+              using System.Runtime.InteropServices;
+
+            The quick fix to add these back in is to add the -DSWIG2_CSHARP command line option when
+            executing SWIG. See CSharp.html documentation for more info.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2013-11-05: wsfulton
             [Java] Fix some corner cases for the $packagepath/$javaclassname special variable substitution.
 
