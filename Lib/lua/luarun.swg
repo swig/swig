@@ -464,17 +464,108 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns,
  * global variable support code: classes
  * ----------------------------------------------------------------------------- */
 
-/* the class.get method, performs the lookup of class attributes
- * Method can be called from Lua directly and recursively from itself. Thats why
- * we can't use absolute stack positions
+SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
+
+/* Macroses for iteration among class bases */
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+#define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
+  SWIG_Lua_get_table(L,".bases");\
+  assert(lua_istable(L,-1));\
+  bases_count = lua_rawlen(L,-1);\
+  int bases_table = lua_gettop(L);
+#define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
+  lua_rawgeti(L,bases_table,i+1);\
+  base_swig_type = 0;\
+  if(lua_isnil(L,-1)) {\
+    valid = false;\
+    lua_pop(L,1);\
+  } else\
+    valid = true;
+  
+#else // en elua .bases table doesn't exist. Use table from swig_lua_class
+
+#define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
+  swig_module_info* module=SWIG_GetModule(L);\
+  swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;\
+  const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;\
+  bases_count = 0;\
+  for(;base_names[bases_count];bases_count++);// get length of bases
+
+#define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
+  swig_lua_class *base_class = bases[i];\
+  if(!base_class)\
+    valid = false;\
+  else {\
+    valid = true;\
+    SWIG_Lua_get_class_metatable(L,base_class->fqname);\
+    base_swig_type = SWIG_TypeQueryModule(module,module,base_class->fqname);\
+  }
+
+#endif
+
+typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int& ret);
+
+int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_arg, swig_lua_base_iterator_func func, int& ret)
+{
+    // first_arg - position of the object in stack. Everything that is above are arguments
+    // and is passed to every evocation of the func
+    int last_argument = lua_gettop(L);// position of last argument
+    lua_getmetatable(L,first_arg);
+    int original_metatable = last_argument + 1;
+    int bases_count;
+    SWIG_LUA_INIT_BASE_SEARCH(bases_count);
+    int result = SWIG_OK;
+    ret = 0;
+    if(bases_count>0)
+    {
+      int i;
+      int j;
+      int subcall_start = lua_gettop(L) + 1;// Here a copy of first_arg and arguments begin
+      bool valid = true;
+      for(j=first_arg;j<=last_argument;j++)
+        lua_pushvalue(L,j);
+      int subcall_end = lua_gettop(L);
+      swig_type_info *base_swig_type = 0;
+
+      // Trick: temporaly replacing original metatable
+      // with metatable for base class and call getter
+      for(i=0;i<bases_count;i++) {
+        SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type,valid);
+        if(!valid)
+          continue;
+        assert(lua_istable(L,-1));
+        assert(lua_isuserdata(L, subcall_start));
+        lua_setmetatable(L,subcall_start); // Set new metatable
+        result = func(L, base_swig_type,subcall_start, ret); // Forward call
+        assert(lua_gettop(L) == subcall_end + ret); // 
+        if(result != SWIG_ERROR) {
+          break;
+        }
+      }
+      // Return original metatable back
+      lua_pushvalue(L,original_metatable);
+      lua_setmetatable(L,first_arg);
+      // Clear - remove everything between last_argument and subcall_end including
+      const int to_remove = subcall_end - last_argument - 1;
+      for(j=0;j<to_remove;j++)
+        lua_remove(L,last_argument+1);
+      assert(lua_gettop(L) == last_argument + ret);
+    }
+    return result;
+}
+
+/* the class.get method helper, performs the lookup of class attributes
+ * It returns error code. Number of function return values is passed inside 'ret'
+ * first_arg is not used in this function because function always has 2 arguments.
  */
-SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_do_get(lua_State* L, swig_type_info* type, int first_arg, int&ret)
 {
 /*  there should be 2 params passed in
   (1) userdata (not the meta table)
   (2) string name of the attribute
 */
-  int base = lua_gettop(L)-2;
+  int substack_start = lua_gettop(L)-2;
+  assert(first_arg == substack_start+1);
   lua_checkstack(L,5);
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
@@ -482,27 +573,29 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
   assert(lua_istable(L,-1));  /* just in case */
   /* look for the key in the .get table */
-  lua_pushvalue(L,base+2);  /* key */
+  lua_pushvalue(L,substack_start+2);  /* key */
   lua_rawget(L,-2);
   lua_remove(L,-2); /* stack tidy, remove .get table */
   if (lua_iscfunction(L,-1))
   {  /* found it so call the fn & return its value */
-    lua_pushvalue(L,base+1);  /* the userdata */
+    lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_call(L,1,1);  /* 1 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    return 1;
+    ret = 1;
+    return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
   /* ok, so try the .fn table */
   SWIG_Lua_get_table(L,".fn"); /* find the .fn table */
   assert(lua_istable(L,-1));  /* just in case */
-  lua_pushvalue(L,base+2);  /* key */
+  lua_pushvalue(L,substack_start+2);  /* key */
   lua_rawget(L,-2);  /* look for the fn */
   lua_remove(L,-2); /* stack tidy, remove .fn table */
   if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    return 1;
+    ret = 1;
+    return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
   /* NEW: looks for the __getitem() fn
@@ -510,179 +603,100 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
   SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
   if (lua_iscfunction(L,-1))  /* if its there */
   {  /* found it so call the fn & return its value */
-    lua_pushvalue(L,base+1);  /* the userdata */
-    lua_pushvalue(L,base+2);  /* the parameter */
+    lua_pushvalue(L,substack_start+1);  /* the userdata */
+    lua_pushvalue(L,substack_start+2);  /* the parameter */
     lua_call(L,2,1);  /* 2 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    return 1;
+    ret = 1;
+    return SWIG_OK;
   }
   lua_pop(L,1);
+  // Remove the metatable
+  lua_pop(L,1);
   // Search in base classes
-  // TODO: Different for elua_ltr
-  SWIG_Lua_get_table(L,".bases");
-  assert(lua_istable(L,-1));
-  int bases_count = lua_rawlen(L,-1);
-  if(bases_count>0)
-  {
-    int original_metatable = lua_absindex(L,-2);
-    int i;
-    int ret = 0; // Number of returned values
-    lua_pushvalue(L,base+1); // push userdata
-    lua_pushvalue(L,base+2); // Push key again
-    // Trick: temporaly replacing original metatable
-    // with metatable for base class and call getter
-    for(i=0;i<bases_count;i++) {
-      lua_rawgeti(L,-3,i+1); // get base metatable here
-      assert(lua_istable(L,-1));
-      assert(lua_isuserdata(L,-3));
-      lua_setmetatable(L,-3); // Set new metatable
-      assert(lua_isuserdata(L,-2));
-      ret = SWIG_Lua_class_get(L); // Forward call
-      assert(ret==0||ret==1);
-      if(ret>0)
-        break;
-    }
-    // Return original metatable back
-    lua_pushvalue(L,original_metatable);
-    lua_setmetatable(L,base+1);
-    if(ret>0)
-    {
-      // tidy stack. Stack currently is:
-      // --base--
-      // userdata
-      // key
-      // metatable
-      // .bases table
-      // userdata
-      // key : -2
-      // return value : -1
-      lua_remove(L,-2); // remove key
-      lua_remove(L,-2); // remove userdata
-      lua_remove(L,-2); // remove .bases
-      lua_remove(L,-2); // remove metatable
-      return 1;
-    } else {
-      lua_pop(L,2); // remove key and userdata
-    }
-  }
-  // Tidy stack:
-  // --base--
-  // userdata
-  // key
-  // metatable
-  // .bases table
-  lua_pop(L,2);
-  assert(lua_gettop(L)==base+2);
-  return 0;  /* sorry not known */
+  int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
+  return bases_search_result;  /* sorry not known */
+}
+
+/* the class.get method, performs the lookup of class attributes
+ */
+SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
+{
+/*  there should be 2 params passed in
+  (1) userdata (not the meta table)
+  (2) string name of the attribute
+*/
+  assert(lua_isuserdata(L,1));
+  swig_lua_userdata *usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+  swig_type_info *type = usr->type;
+  int ret = 0;
+  int result = SWIG_Lua_class_do_get(L,type,1,ret);
+  if(result == SWIG_OK)
+    return ret;
+
+  return 0;
 }
 
 /* helper for the class.set method, performs the lookup of class attributes
- * Method can be called from SWIG_Lua_class_set or recursively from itself
+ * It returns error code. Number of function return values is passed inside 'ret'
  */
-SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int first_arg, int& ret)
 {
 /*  there should be 3 params passed in
   (1) table (not the meta table)
   (2) string name of the attribute
   (3) any for the new value
-printf("SWIG_Lua_class_set %p(%s) '%s' %p(%s)\n",
-      lua_topointer(L,-3),lua_typename(L,lua_type(L,-3)),
-      lua_tostring(L,-2),
-      lua_topointer(L,-1),lua_typename(L,lua_type(L,-1)));*/
+  */
 
-  int base = lua_gettop(L) - 3;
+  int substack_start = lua_gettop(L) - 3;
   lua_checkstack(L,5);
-  assert(lua_isuserdata(L,base+1));  /* just in case */
-  lua_getmetatable(L,base+1);    /* get the meta table */
+  assert(lua_isuserdata(L,substack_start+1));  /* just in case */
+  lua_getmetatable(L,substack_start+1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
+  ret = 0; // it is setter - number of return values is always 0
 
   SWIG_Lua_get_table(L,".set"); /* find the .set table */
   if (lua_istable(L,-1))
   {
     /* look for the key in the .set table */
-    lua_pushvalue(L,base+2);  /* key */
+    lua_pushvalue(L,substack_start+2);  /* key */
     lua_rawget(L,-2);
     lua_remove(L,-2); /* tidy stack, remove .set table */
     if (lua_iscfunction(L,-1))
     {  /* found it so call the fn & return its value */
-      lua_pushvalue(L,base+1);  /* userdata */
-      lua_pushvalue(L,base+3);  /* value */
+      lua_pushvalue(L,substack_start+1);  /* userdata */
+      lua_pushvalue(L,substack_start+3);  /* value */
       lua_call(L,2,0);
-      lua_remove(L,base+4); /*remove metatable*/
-      return 0;
+      lua_remove(L,substack_start+4); /*remove metatable*/
+      return SWIG_OK;
     }
     lua_pop(L,1);  /* remove the value */
   } else {
     lua_pop(L,1);  /* remove the answer for .set table request*/
   }
-  assert(lua_gettop(L) == base + 4); // TODO: REMOVE
+  assert(lua_gettop(L) == substack_start + 4); // TODO: REMOVE
   /* NEW: looks for the __setitem() fn
   this is a user provided set fn */
   SWIG_Lua_get_table(L,"__setitem"); /* find the fn */
   if (lua_iscfunction(L,-1))  /* if its there */
   {  /* found it so call the fn & return its value */
-    lua_pushvalue(L,base+1);  /* the userdata */
-    lua_pushvalue(L,base+2);  /* the parameter */
-    lua_pushvalue(L,base+3);  /* the value */
+    lua_pushvalue(L,substack_start+1);  /* the userdata */
+    lua_pushvalue(L,substack_start+2);  /* the parameter */
+    lua_pushvalue(L,substack_start+3);  /* the value */
     lua_call(L,3,0);  /* 3 values in ,0 out */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    return 0;
+    return SWIG_OK;
   }
   lua_pop(L,1); // remove value
-  assert(lua_gettop(L) == base + 4); // TODO: REMOVE
-
-  // Search among bases
-  int original_metatable = base+4;
-  assert(lua_gettop(L) == original_metatable); // Check that stack is correct
-  SWIG_Lua_get_table(L,".bases");
-  assert(lua_istable(L,-1));
-  int bases_count = lua_rawlen(L,-1);
-  if(bases_count>0)
-  {
-    int i = 0;
-    int ret = 0;
-    lua_pushvalue(L,base+1); // push userdata
-    lua_pushvalue(L,base+2); // Push key again
-    lua_pushvalue(L,base+3); // Push value again
-    // Trick: temporaly replacing original metatable
-    // with metatable for base class and call getter
-    for(i=0;i<bases_count;i++) {
-      lua_rawgeti(L,-4,i+1); // get base metatable here
-      assert(lua_istable(L,-1));
-      assert(lua_isuserdata(L,-4));
-      lua_setmetatable(L,-4); // Set new metatable
-      assert(lua_isuserdata(L,-3));
-      ret = SWIG_Lua_class_do_set(L); // Forward call
-      assert(ret==0||ret==-1);
-      if(ret==0)
-        break;
-    }
-    // Return original metatable back
-    lua_pushvalue(L,original_metatable);
-    lua_setmetatable(L,base+1);
-    if(ret==0)
-    {
-      // tidy stack. Stack currently is:
-      // --base--
-      // userdata
-      // key
-      // value
-      // metatable
-      // .bases table
-      // userdata
-      // key : -2
-      // value: -1
-      lua_pop(L,5);
-      return 0;
-    } else {
-      lua_pop(L,3); // remove userdata, key and value
-    }
-  }
-  lua_pop(L,1); // remove .bases_table
+  assert(lua_gettop(L) == substack_start + 4); // TODO: REMOVE
 
   lua_pop(L,1); // remove metatable
-  assert(lua_gettop(L) == base+3);
-  return -1; // Indicator that search failed
+  // Search among bases
+  assert(lua_gettop(L) == first_arg+2); // TODO: REMOVE
+  int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
+  assert(ret == 0);
+  assert(lua_gettop(L) == substack_start + 3);
+  return bases_search_result;
 }
 
 /* This is actuall method exported to Lua. It calls SWIG_Lua_class_do_set and correctly
@@ -690,14 +704,21 @@ printf("SWIG_Lua_class_set %p(%s) '%s' %p(%s)\n",
  */
 SWIGINTERN int  SWIG_Lua_class_set(lua_State* L)
 {
-  int ret= SWIG_Lua_class_do_set(L);
-  if(ret==0)
-    return 0;
-  else if(ret==-1) {
+/*  there should be 3 params passed in
+  (1) table (not the meta table)
+  (2) string name of the attribute
+  (3) any for the new value
+  */
+  assert(lua_isuserdata(L,1));
+  swig_lua_userdata *usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+  swig_type_info *type = usr->type;
+  int ret = 0;
+  int result = SWIG_Lua_class_do_set(L,type,1,ret);
+  if(result != SWIG_OK) {
    SWIG_Lua_pushferrstring(L,"Assignment not possible. No setter/member with this name. For custom assignments implement __setitem method");
    lua_error(L);
   } else {
-    assert(0); // Internal implementation error
+    assert(ret==0);
     return 0;
   }
 }
