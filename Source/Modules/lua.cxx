@@ -1495,11 +1495,12 @@ public:
 
     current[MEMBER_FUNC] = true;
     Language::memberfunctionHandler(n);
-    current[MEMBER_FUNC] = false;
 
     if (!Getattr(n, "sym:nextSibling")) {
+      //Printf( stdout, "add member function: %s to %s\n", symname, luaCurrentSymbolNSpace());// TODO: REMOVE
       registerMethod( luaCurrentSymbolNSpace(), n);
     }
+    current[MEMBER_FUNC] = false;
     return SWIG_OK;
   }
 
@@ -1511,8 +1512,8 @@ public:
     //    REPORT("membervariableHandler",n);
     current[MEMBER_VAR] = true;
     Language::membervariableHandler(n);
-    current[MEMBER_VAR] = false;
     registerVariable( luaCurrentSymbolNSpace(), n, "memberget:wrap:name", "memberset:wrap:name" );
+    current[MEMBER_VAR] = false;
     return SWIG_OK;
   }
 
@@ -1612,29 +1613,28 @@ public:
     current[STATIC_VAR] = true;
     //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmembervariableHandler(n);
+
+    if (result == SWIG_OK) {
+      // This will add static member variable to the class namespace with name ClassName_VarName
+      if(v2_compatibility) {
+        Swig_save("lua_staticmembervariableHandler",n,"lua:name");
+        String *target_name = Getattr(n, "lua:name");
+        String *v2_name = Swig_name_member(NIL, class_symname, target_name);
+        //Printf( stdout, "Name %s, class %s, compt. name %s\n", target_name, class_symname, v2_name ); // TODO: REMOVE
+        if( !GetFlag(n,"wrappedasconstant") ) {
+          Setattr(n, "lua:name", v2_name);
+          registerVariable( class_parent_nspace, n, "varget:wrap:name", "varset:wrap:name");
+        }
+        // If static member variable was wrapped as constant, then
+        // constant wrapper has already performed all actions
+        // necessary for v2_compatibility
+        Delete(v2_name);
+        Swig_restore(n);
+      }
+    }
     current[STATIC_VAR] = false;
 
-    if (result != SWIG_OK)
-      return result;
-
-    // This will add static member variable to the class namespace with name ClassName_VarName
-    if(v2_compatibility) {
-      Swig_save("lua_staticmembervariableHandler",n,"lua:name");
-      String *target_name = Getattr(n, "lua:name");
-      String *v2_name = Swig_name_member(NIL, class_symname, target_name);
-      //Printf( stdout, "Name %s, class %s, compt. name %s\n", target_name, class_symname, v2_name ); // TODO: REMOVE
-      if( !GetFlag(n,"wrappedasconstant") ) {
-        Setattr(n, "lua:name", v2_name);
-        registerVariable( class_parent_nspace, n, "varget:wrap:name", "varset:wrap:name");
-      }
-      // If static member variable was wrapped as constant, then
-      // constant wrapper has already performed all actions
-      // necessary for v2_compatibility
-      Delete(v2_name);
-      Swig_restore(n);
-    }
-
-    return SWIG_OK;
+    return result;
   }
 
 
