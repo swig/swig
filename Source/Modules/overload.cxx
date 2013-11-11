@@ -765,7 +765,6 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
   for (i = 0; i < nfunc; i++) {
     Node *ni = Getitem(dispatch, i);
     Parm *pi = Getattr(ni, "wrap:parms");
-    //Printf(stdout , "Dispatch, wrapname %s\n", Getattr(ni,"wrap:name")); // TODO:REMOVE
     bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
@@ -819,7 +818,6 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
       j++;
     }
     String *lfmt = ReplaceFormat(fmt, num_arguments);
-    //Printf(stdout , "Dispatch, wrapname %s\n", Getattr(ni,"wrap:name")); // TODO:REMOVE
     Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
     Delete(lfmt);
     /* close braces */

@@ -3014,6 +3014,7 @@ int Language::variableWrapper(Node *n) {
   Delete(gname);
   Setattr(n, "varget", "1");
   functionWrapper(n);
+  Delattr(n, "varget");
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -3475,13 +3476,6 @@ Node *Language::getCurrentClass() const {
 
 String *Language::getNSpace() const {
   return NSpace;
-}
-
-/* -----------------------------------------------------------------------------
- * Language::setNSpace()
- * ----------------------------------------------------------------------------- */
-void Language::setNSpace(String *nspace) {
-    NSpace = nspace;
 }
 
 /* -----------------------------------------------------------------------------

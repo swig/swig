@@ -73,76 +73,6 @@ void display_mapping(DOH *d) {
   }
 }
 
-template<typename T> // T is ignored because everything is DOH*
-class DohPtrGuard {
-  public:
-    DohPtrGuard( DOH* _ptr ):
-      p_ptr(_ptr)
-      {
-        assert( p_ptr != 0 );
-      }
-    DohPtrGuard():
-      p_ptr(0) {}
-
-    ~DohPtrGuard() {
-      release();
-    }
-
-    // Guard is empty, ptr - any: assigns new value for guard
-    // Guard is holding pointer, ptr == 0 - releases value that guard holds
-    // Any other combination - assert
-    DOH* operator=( DOH* ptr ) {
-      attach(ptr);
-      return ptr;
-    }
-
-    DOH* ptr() { return p_ptr; }
-    const DOH* ptr() const { return p_ptr; }
-    operator DOH* () { return p_ptr; }
-    operator DOH* () const { return p_ptr; }
-    operator bool() const { return ptr != 0; }
-
-  private:
-      DOH* p_ptr; // pointer to actual object
-
-      void attach(DOH* ptr) {
-        if( p_ptr != 0 ) { // If some object already attached, then we can't attach another one
-          assert(ptr == 0);
-          if( ptr == 0 ) {
-            release();
-          }
-        } else {
-          p_ptr = ptr;
-        }
-      }
-
-      void release() {
-        if( p_ptr != 0 ) {
-          Delete(p_ptr);
-          p_ptr = 0;
-        }
-      }
-    // Copying is forbiden
-    DohPtrGuard( const DohPtrGuard& rhs );
-    void operator=( const DohPtrGuard& rhs );
-
-};
-
-// Overloading DohDelete for DohPtrGuard. You might not call DohDelete on DohPtrGuard instances,
-// as it is supposed to manage underlying pointer by itself
-
-void DohDelete(const DohPtrGuard<DOH>& /*guard*/) {
-  Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
-  assert(false);
-}
-void DohDelete(DohPtrGuard<DOH>& /*guard*/) {
-  Printf( stderr, "ERROR: Attempt to delete guarded pointer without deleting it's guardian\n" );
-  assert(false);
-}
-
-
-#define PtrGuard DohPtrGuard
-
 /* NEW LANGUAGE NOTE:***********************************************
  most of the default options are handled by SWIG
  you can add new ones here
@@ -215,7 +145,6 @@ private:
     CONSTRUCTOR,
     DESTRUCTOR,
     MEMBER_VAR,
-    CLASS_CONST, // TODO: What is this ?
     STATIC_FUNC,
     STATIC_VAR,
     STATIC_CONST, // enums and things like static const int x = 5;
@@ -437,19 +366,7 @@ public:
     Printf(f_header, "#define SWIG_init_user luaopen_%s_user\n\n", module);
     Printf(f_header, "#define SWIG_LUACODE   luaopen_%s_luacode\n", module);
 
-    if (elua_ltr || eluac_ltr) {
-      /* TODO: REMOVE
-      Printf(f_header,
-          "#ifndef MIN_OPT_LEVEL\n"\
-          "#define MIN_OPT_LEVEL %d\n"\
-          "#endif\n", elua_opt_lvl);
-      Printf(f_header, "#include \"lrodefs.h\"\n");
-      Printf(f_header, "#include \"lrotable.h\"\n");
-      */
-      Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
-    } else {
-      Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
-    }
+    Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
     /* %init code inclusion, effectively in the SWIG_init function */
     Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
@@ -461,15 +378,9 @@ public:
 
     // Done.  Close up the module & write to the wrappers
 
-    if (elua_ltr || eluac_ltr) {
-      /* Final close up of wrappers */
-      closeNamespaces(f_wrappers);
-      SwigType_emit_type_table(f_runtime, f_wrappers);
-    } else {
-      //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
-      closeNamespaces(f_wrappers);
-      SwigType_emit_type_table(f_runtime, f_wrappers);
-    }
+    //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
+    closeNamespaces(f_wrappers);
+    SwigType_emit_type_table(f_runtime, f_wrappers);
 
     /* NEW LANGUAGE NOTE:***********************************************
      this basically combines several of the strings together
@@ -590,7 +501,7 @@ public:
     Parm *p;
     String *tm;
     int i;
-    //Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current); // TODO: COMMENT BACK
+    //Printf(stdout,"functionWrapper %s %s %d\n",name,iname,current);
 
     String *overname = 0;
     if (Getattr(n, "sym:overloaded")) {
@@ -1071,25 +982,13 @@ public:
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
-    PtrGuard<String> target_name_v2;
-    PtrGuard<String> tm_v2;
-    PtrGuard<String> iname_v2;
-    PtrGuard<Node> n_v2;
+    String *target_name_v2 = 0;
+    String *tm_v2 = 0;
+    String *iname_v2 = 0;
+    Node *n_v2 = 0;
 
     if (!luaAddSymbol(target_name, n))
       return SWIG_ERROR;
-
-    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
-    //Printf( stdout, "V2 compatible: %d\n", int(make_v2_compatible) ); // TODO: REMOVE
-    if( make_v2_compatible ) {
-      target_name_v2 = Swig_name_member(0, class_symname, target_name);
-      iname_v2 = Swig_name_member(0, class_symname, iname);
-      n_v2 = Copy(n);
-      //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
-      if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
-        return SWIG_ERROR;
-      }
-    }
 
     Swig_save("lua_constantMember", n, "sym:name", NIL);
     Setattr(n, "sym:name", target_name);
@@ -1120,7 +1019,17 @@ public:
       return SWIG_NOWRAP;
     }
 
+    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
+
     if( make_v2_compatible ) {
+      target_name_v2 = Swig_name_member(0, class_symname, target_name);
+      iname_v2 = Swig_name_member(0, class_symname, iname);
+      n_v2 = Copy(n);
+      //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
+      if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
+        return SWIG_ERROR;
+      }
+
       Setattr(n_v2, "sym:name", target_name_v2);
       tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
       if (tm_v2) {
@@ -1129,7 +1038,7 @@ public:
         Replaceall(tm_v2, "$target", target_name_v2);
         Replaceall(tm_v2, "$value", value);
         Replaceall(tm_v2, "$nsname", nsname);
-        registerConstant( class_parent_nspace, tm_v2.ptr());
+        registerConstant( class_parent_nspace, tm_v2);
       } else {
         tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
         if( !tm_v2) {
@@ -1142,8 +1051,9 @@ public:
         Replaceall(tm_v2, "$target", target_name_v2);
         Replaceall(tm_v2, "$value", value);
         Replaceall(tm_v2, "$nsname", nsname);
-        Printf(f_init, "%s\n", tm_v2.ptr());
+        Printf(f_init, "%s\n", tm_v2);
       }
+      Delete(n_v2);
     }
 
     Swig_restore(n);
@@ -1174,25 +1084,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumDeclaration(Node *n) {
-    // enumDeclaration supplied by Language is messing with NSpace.
-    // So this is the exact copy of function from Language with
-    // correct handling of namespaces
-      String *oldNSpace = getNSpace();
-      /* TODO: REVIEW/REMOVE_and_replace_with_Language::enumDeclaration
-      if( getCurrentClass() == 0 ) {
-        setNSpace(Getattr(n, "sym:nspace"));
-      }*/
-      setNSpace(Getattr(n, "sym:nspace"));
-
-      if (!ImportMode) {
-        current[STATIC_CONST] = true;
-        emit_children(n);
-        current[STATIC_CONST] = false;
-      }
-
-      setNSpace(oldNSpace);
-
-      return SWIG_OK;
+      current[STATIC_CONST] = true;
+      int result = Language::enumDeclaration(n);
+      current[STATIC_CONST] = false;
+      return result;
   }
 
   /* ------------------------------------------------------------
@@ -1237,8 +1132,8 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    PtrGuard<String> mangled_class_fq_symname;
-    PtrGuard<String> destructor_name;
+    String *mangled_class_fq_symname;
+    String *destructor_name;
     String* nspace = getNSpace();
 
     constructor_name = 0;
@@ -1266,13 +1161,13 @@ public:
     assert(class_fq_symname != 0);
     mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
 
-    PtrGuard<SwigType> t( Copy(Getattr(n, "name")) );
-    PtrGuard<SwigType> fr_t( SwigType_typedef_resolve_all(t) );	/* Create fully resolved type */
-    PtrGuard<SwigType> t_tmp;
+    SwigType *t( Copy(Getattr(n, "name")) );
+    SwigType *fr_t( SwigType_typedef_resolve_all(t) );	/* Create fully resolved type */
+    SwigType *t_tmp = 0;
     t_tmp = SwigType_typedef_qualified(fr_t); // Temporal variable
-    fr_t = 0;
+    Delete(fr_t);
     fr_t = SwigType_strip_qualifiers(t_tmp);
-    PtrGuard<String> mangled_fr_t;
+    String *mangled_fr_t = 0;
     mangled_fr_t = SwigType_manglestr(fr_t);
     // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
@@ -1328,17 +1223,15 @@ public:
     // Replacing namespace with namespace + class in order to static
     // member be put inside class static area
     class_parent_nspace = getNSpace();
-    //setNSpace(class_static_nspace); TODO: REMOVE
     // Generate normal wrappers
     Language::classHandler(n);
     // Restore correct nspace
-    //setNSpace(nspace); // TODO: REMOVE if remove above
     class_parent_nspace = 0;
 
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname.ptr());
+    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname);
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
@@ -1354,8 +1247,8 @@ public:
  
     // emit a function to be called to delete the object 
     if (have_destructor) {
-      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname.ptr());
-      Printv(f_wrappers, "static void ", destructor_name.ptr(), "(void *obj) {\n", NIL);
+      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname);
+      Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
         Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
         Printv(f_wrappers, destructor_action, "\n", NIL);
@@ -1399,7 +1292,7 @@ public:
       if (eluac_ltr) {
         String* ns_methods_tab = Getattr(nspaceHash, "methods");
         assert(ns_methods_tab != 0);
-        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname.ptr(), "\")", ", LFUNCVAL(", destructor_name.ptr(), ")", "},\n", NIL);
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
       }
     }
 
@@ -1443,12 +1336,12 @@ public:
     printNamespaceDefinition(class_static_nspace, class_symname, f_wrappers);
 
     // Then print class isntance part
-    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname.ptr(), "_bases[] = {", base_class, "0};\n", NIL);
+    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname.ptr(), "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname.ptr(), " = { \"", class_symname, "\", \"", class_fq_symname,"\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname, " = { \"", class_symname, "\", \"", class_fq_symname,"\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
       Printv(f_wrappers, constructor_name, NIL);
@@ -1459,16 +1352,18 @@ public:
     }
 
     if (have_destructor) {
-       Printv(f_wrappers, ", ", destructor_name.ptr(), NIL);
+       Printv(f_wrappers, ", ", destructor_name, NIL);
     } else {
       Printf(f_wrappers, ",0");
     }
     Printf(f_wrappers, ", %s, %s, &%s", s_methods_tab_name, s_attr_tab_name, Getattr(static_cls, "cname") );
     Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n",
-        mangled_class_fq_symname.ptr(), mangled_class_fq_symname.ptr());
+        mangled_class_fq_symname, mangled_class_fq_symname);
 
     current[NO_CPP] = true;
     Delete(class_static_nspace);
+    Delete(mangled_class_fq_symname);
+    Delete(destructor_name);
     class_static_nspace = 0;
     Delete(class_fq_symname);
     class_fq_symname = 0;
@@ -1581,10 +1476,10 @@ public:
     if(v2_compatibility) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *target_name = Getattr(n, "lua:name");
-      PtrGuard<String> compat_name;
-      compat_name = Swig_name_member(0, class_symname, target_name);
+      String *compat_name = Swig_name_member(0, class_symname, target_name);
       Setattr(n, "lua:name", compat_name);
       registerMethod( class_parent_nspace, n );
+      Delete(compat_name);
       Swig_restore(n);
     }
 
@@ -1738,7 +1633,7 @@ public:
         String* item = Getitem(components, i);
         Printv(parent_path, item, NIL);
       }
-      //Printf(stdout, "Registering %s. User name %s. C-name %s, Parent is %s\n", mangled_name, name, cname, parent_path);
+      //Printf(stdout, "Registering %s. User name %s. C-name %s, Parent is %s\n", mangled_name, name, cname, parent_path); // TODO: REMOVE
       Hash* parent = getNamespaceHash(parent_path, true);
       String* namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
@@ -1814,7 +1709,6 @@ public:
     Setattr(nspace_hash, "namespaces:decl", namespaces_tab_decl );
 
     if (elua_ltr) {
-      // TODO: add xxx:decl here too
       String *get_tab = NewString("");
       String *get_tab_name = NewStringf("swig_%s_get", mangled_name);
       String *get_tab_decl = NewString("");
@@ -1993,14 +1887,13 @@ public:
   // be fully qualified name, just it's own name.
   void printNamespaceDefinition(String *nspace, String* name, File *output)
   {
-    // TODO: Fix for get_tab/set_tab things (elua_ltr)
     Hash *nspace_hash = getNamespaceHash(nspace, false);
 
     String* cname = Getattr(nspace_hash, "cname"); // cname - name of the C structure that describes namespace
     assert(cname != 0);
     Printv(output, "static swig_lua_namespace ", cname, " = ", NIL);
 
-    PtrGuard<String> null_string;
+    String *null_string;
     null_string = NewString("0");
     String *attr_tab_name = Getattr(nspace_hash, "attributes:name");
     String *methods_tab_name = Getattr(nspace_hash, "methods:name");
@@ -2015,10 +1908,11 @@ public:
         tab4, methods_tab_name, ",\n",
         tab4, attr_tab_name, ",\n",
         tab4, const_tab_name, ",\n",
-        tab4, (has_classes)?classes_tab_name:null_string.ptr(), ",\n",
-        tab4, (has_namespaces)?namespaces_tab_name:null_string.ptr(), "\n};\n",
+        tab4, (has_classes)?classes_tab_name:null_string, ",\n",
+        tab4, (has_namespaces)?namespaces_tab_name:null_string, "\n};\n",
         NIL
         );
+    Delete(null_string);
   }
 
   // This function determines actual namespace/scope where any symbol at the
@@ -2038,7 +1932,7 @@ public:
       assert(!current[NO_CPP]);
       if(current[STATIC_FUNC] || current[STATIC_VAR] || current[STATIC_CONST] ) {
           scope = class_static_nspace;
-      } else if(current[MEMBER_VAR] || current[CLASS_CONST] ||  current[CONSTRUCTOR] || current[DESTRUCTOR]
+      } else if(current[MEMBER_VAR] || current[CONSTRUCTOR] || current[DESTRUCTOR]
           || current[MEMBER_FUNC] ) {
           scope = class_fq_symname;
       } else { // Friend functions are handled this way
