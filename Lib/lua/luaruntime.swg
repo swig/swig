@@ -61,11 +61,6 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 
 #endif
 
-#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
-  /* constants */
-  /* TODO: REMOVE */
-#endif
-
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
   /* invoke user-specific initialization */
   SWIG_init_user(L);
