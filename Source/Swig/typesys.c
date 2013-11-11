@@ -1594,7 +1594,7 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   Delete(qr);
 
   /*Printf(stdout,"t = '%s'\n", t);
-     Printf(stdout,"fr= '%s'\n\n", fr);*/
+     Printf(stdout,"fr= '%s'\n\n", fr); */
 
   if (t) {
     char *ct = Char(t);
