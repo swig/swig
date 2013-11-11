@@ -13,6 +13,7 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	lua_no_module_global \
+	using_native_extend \
 
 
 C_TEST_CASES += \

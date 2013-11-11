@@ -1939,6 +1939,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
 		   }
 		   current_class = 0;
+		   extendmode = 1;
 		 } else {
 		   /* Previous typedef class definition.  Use its symbol table.
 		      Deprecated, just the real name should be used. 
@@ -4612,11 +4613,15 @@ cpp_members  : cpp_member cpp_members {
                   if (cplus_mode != CPLUS_PUBLIC) {
 		     Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
 		  }
-             } cpp_members RBRACE cpp_members {
+		  extendmode = 1;
+             } cpp_members RBRACE {
+		extendmode = 0;
+	     } 
+	      cpp_members {
 	       $$ = new_node("extend");
 	       tag_nodes($4,"feature:extend",(char*) "1");
 	       appendChild($$,$4);
-	       set_nextSibling($$,$6);
+	       set_nextSibling($$,$7);
 	     }
              | include_directive { $$ = $1; }
              | empty { $$ = 0;}
@@ -4639,7 +4644,7 @@ cpp_members  : cpp_member cpp_members {
 cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { 
                  $$ = $1; 
-		 if (extendmode) {
+		 if (extendmode && current_class != 0 ) {
 		   String *symname;
 		   symname= make_name($$,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
@@ -4670,6 +4675,11 @@ cpp_member   : c_declaration { $$ = $1; }
              | anonymous_bitfield { $$ = 0; }
              | fragment_directive {$$ = $1; }
              | types_directive {$$ = $1; }
+	     | native_directive {
+		if( extendmode == 0 ) {
+		     Swig_error(cparse_file,cparse_line,"%%native inside class/templates  can only be used inside an extend directive\n");
+		};
+	     }
              | SEMI { $$ = 0; }
              ;
 
