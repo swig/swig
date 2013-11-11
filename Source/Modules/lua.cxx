@@ -1129,7 +1129,7 @@ public:
         Replaceall(tm_v2, "$target", target_name_v2);
         Replaceall(tm_v2, "$value", value);
         Replaceall(tm_v2, "$nsname", nsname);
-        registerConstant( class_parent_nspace, tm);
+        registerConstant( class_parent_nspace, tm_v2.ptr());
       } else {
         tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
         if( !tm_v2) {

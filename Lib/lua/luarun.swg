@@ -477,10 +477,10 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
   lua_rawgeti(L,bases_table,i+1);\
   base_swig_type = 0;\
   if(lua_isnil(L,-1)) {\
-    valid = false;\
+    valid = 0;\
     lua_pop(L,1);\
   } else\
-    valid = true;
+    valid = 1;
   
 #else // en elua .bases table doesn't exist. Use table from swig_lua_class
 
@@ -494,18 +494,18 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
 #define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
   swig_lua_class *base_class = bases[i];\
   if(!base_class)\
-    valid = false;\
+    valid = 0;\
   else {\
-    valid = true;\
+    valid = 1;\
     SWIG_Lua_get_class_metatable(L,base_class->fqname);\
     base_swig_type = SWIG_TypeQueryModule(module,module,base_class->fqname);\
   }
 
 #endif
 
-typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int& ret);
+typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
-int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_arg, swig_lua_base_iterator_func func, int& ret)
+int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_arg, swig_lua_base_iterator_func func, int * const ret)
 {
     // first_arg - position of the object in stack. Everything that is above are arguments
     // and is passed to every evocation of the func
@@ -515,13 +515,13 @@ int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_ar
     int bases_count;
     SWIG_LUA_INIT_BASE_SEARCH(bases_count);
     int result = SWIG_ERROR;
-    ret = 0;
+    if(ret) *ret = 0;
     if(bases_count>0)
     {
       int i;
       int j;
       int subcall_first_arg = lua_gettop(L) + 1;// Here a copy of first_arg and arguments begin
-      bool valid = true;
+      int valid = 1;
       for(j=first_arg;j<=last_arg;j++)
         lua_pushvalue(L,j);
       int subcall_last_arg = lua_gettop(L);
@@ -538,7 +538,7 @@ int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_ar
         lua_setmetatable(L,subcall_first_arg); // Set new metatable
         assert(lua_gettop(L) == subcall_last_arg);
         result = func(L, base_swig_type,subcall_first_arg, ret); // Forward call
-        assert(lua_gettop(L) == subcall_last_arg + ret); // TODO: REMOVE 
+        if(ret) assert(lua_gettop(L) == subcall_last_arg + *ret); // TODO: REMOVE 
         if(result != SWIG_ERROR) {
           break;
         }
@@ -550,12 +550,12 @@ int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_ar
       const int to_remove = subcall_last_arg - last_arg;
       for(j=0;j<to_remove;j++)
         lua_remove(L,last_arg+1);
-      assert(lua_gettop(L) == last_arg + ret); // TODO: REMOVE
+      if(ret) assert(lua_gettop(L) == last_arg + *ret); // TODO: REMOVE
     } else {
       // Remove everything after last_arg
       lua_pop(L, lua_gettop(L) - last_arg);
     }
-    assert(lua_gettop(L) == last_arg + ret);
+    if(ret) assert(lua_gettop(L) == last_arg + *ret);
     return result;
 }
 
@@ -563,7 +563,7 @@ int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_ar
  * It returns error code. Number of function return values is passed inside 'ret'
  * first_arg is not used in this function because function always has 2 arguments.
  */
-SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int first_arg, int &ret)
+SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int first_arg, int *ret)
 {
 /*  there should be 2 params passed in
   (1) userdata (not the meta table)
@@ -591,7 +591,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_call(L,1,1);  /* 1 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    ret = 1;
+    if(ret) *ret = 1;
     return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
@@ -604,7 +604,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    ret = 1;
+    if(ret) *ret = 1;
     return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
@@ -617,7 +617,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
     lua_pushvalue(L,substack_start+2);  /* the parameter */
     lua_call(L,2,1);  /* 2 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    ret = 1;
+    if(ret) *ret = 1;
     return SWIG_OK;
   }
   lua_pop(L,1);
@@ -625,12 +625,12 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   lua_pop(L,1);
   // Search in base classes
   assert(lua_gettop(L) == substack_start + 2); // TODO: REMOVE
-  printf("failed, searching bases\n"); // TODO: REMOVE
+  //printf("failed, searching bases\n"); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
-  assert(lua_gettop(L) == substack_start + 2 + ret); // TODO: REMOVE
+  if(ret) assert(lua_gettop(L) == substack_start + 2 + *ret); // TODO: REMOVE
   // TODO: REMOVE
   if(bases_search_result != SWIG_OK) {
-    printf("failed.\n");
+    //printf("failed.\n"); 
   }
   // END OF REMOVE
   return bases_search_result;  /* sorry not known */
@@ -648,7 +648,7 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
   swig_lua_userdata *usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
   swig_type_info *type = usr->type;
   int ret = 0;
-  int result = SWIG_Lua_class_do_get(L,type,1,ret);
+  int result = SWIG_Lua_class_do_get(L,type,1,&ret);
   if(result == SWIG_OK)
     return ret;
 
@@ -658,7 +658,7 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
 /* helper for the class.set method, performs the lookup of class attributes
  * It returns error code. Number of function return values is passed inside 'ret'
  */
-SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int first_arg, int& ret)
+SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int first_arg, int *ret)
 {
 /*  there should be 3 params passed in
   (1) table (not the meta table)
@@ -671,7 +671,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int fi
   assert(lua_isuserdata(L,substack_start+1));  /* just in case */
   lua_getmetatable(L,substack_start+1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
-  ret = 0; // it is setter - number of return values is always 0
+  if(ret) *ret = 0; // it is setter - number of return values is always 0
 
   SWIG_Lua_get_table(L,".set"); /* find the .set table */
   if (lua_istable(L,-1))
@@ -712,7 +712,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int fi
   // Search among bases
   assert(lua_gettop(L) == first_arg+2); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
-  assert(ret == 0);
+  if(ret) assert(*ret == 0);
   assert(lua_gettop(L) == substack_start + 3);
   return bases_search_result;
 }
@@ -731,7 +731,7 @@ SWIGINTERN int  SWIG_Lua_class_set(lua_State* L)
   swig_lua_userdata *usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
   swig_type_info *type = usr->type;
   int ret = 0;
-  int result = SWIG_Lua_class_do_set(L,type,1,ret);
+  int result = SWIG_Lua_class_do_set(L,type,1,&ret);
   if(result != SWIG_OK) {
    SWIG_Lua_pushferrstring(L,"Assignment not possible. No setter/member with this name. For custom assignments implement __setitem method");
    lua_error(L);
