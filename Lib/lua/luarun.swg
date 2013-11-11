@@ -254,7 +254,7 @@ it gets the address, casts it, then dereferences it */
 
 /* storing/access of swig_module_info */
 SWIGRUNTIME swig_module_info *
-SWIG_Lua_GetModule(lua_State* L) {
+SWIG_Lua_GetModule(lua_State *L) {
   swig_module_info *ret = 0;
   lua_pushstring(L,"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   lua_rawget(L,LUA_REGISTRYINDEX);
@@ -265,7 +265,7 @@ SWIG_Lua_GetModule(lua_State* L) {
 }
 
 SWIGRUNTIME void
-SWIG_Lua_SetModule(lua_State* L, swig_module_info *module) {
+SWIG_Lua_SetModule(lua_State *L, swig_module_info *module) {
   /* add this all into the Lua registry: */
   lua_pushstring(L,"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   lua_pushlightuserdata(L,(void*)module);
@@ -279,7 +279,7 @@ SWIG_Lua_SetModule(lua_State* L, swig_module_info *module) {
 /* this function is called when trying to set an immutable.
 default action is to print an error.
 This can removed with a compile flag SWIGLUA_IGNORE_SET_IMMUTABLE */
-SWIGINTERN int SWIG_Lua_set_immutable(lua_State* L)
+SWIGINTERN int SWIG_Lua_set_immutable(lua_State *L)
 {
 /*  there should be 1 param passed in: the new value */
 #ifndef SWIGLUA_IGNORE_SET_IMMUTABLE
@@ -293,7 +293,7 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State* L)
  * global variable support code: namespaces and modules (which are the same thing)
  * ----------------------------------------------------------------------------- */
 
-SWIGINTERN int SWIG_Lua_namespace_get(lua_State* L)
+SWIGINTERN int SWIG_Lua_namespace_get(lua_State *L)
 {
 /*  there should be 2 params passed in
   (1) table (not the meta table)
@@ -330,7 +330,7 @@ SWIGINTERN int SWIG_Lua_namespace_get(lua_State* L)
   return 0;
 }
 
-SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
+SWIGINTERN int SWIG_Lua_namespace_set(lua_State *L)
 {
 /*  there should be 3 params passed in
   (1) table (not the meta table)
@@ -361,12 +361,12 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State* L)
 }
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) // In elua this is useless
-SWIGINTERN void SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]); // forward declaration
-SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn); // forward declaration
-SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss);
+SWIGINTERN void SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]); // forward declaration
+SWIGINTERN void  SWIG_Lua_add_variable(lua_State *L,const char *name,lua_CFunction getFn,lua_CFunction setFn); // forward declaration
+SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss);
 
 /* helper function - register namespace methods and attributes into namespace */
-SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* ns)
+SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State *L, swig_lua_namespace *ns)
 {
   int i = 0;
   /* There must be namespace table (not metatable) at the top of the stack */
@@ -391,12 +391,12 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* 
 
 /* Register all classes in the namespace
  */
-SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State* L, swig_lua_namespace* ns)
+SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace *ns)
 {
   // There must be module/namespace table at the top of the stack
   assert(lua_istable(L,-1));
 
-  swig_lua_class** classes = ns->ns_classes;
+  swig_lua_class **classes = ns->ns_classes;
 
   if( classes != 0 ) {
     while(*classes != 0) {
@@ -411,7 +411,7 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State* L, swig_lua_namespace*
    when function is called)
    Function always returns newly registered table on top of the stack
 */
-SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns, int reg)
+SWIGINTERN int SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
   int begin = lua_gettop(L);
   assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table or parent namespace table */
@@ -443,7 +443,7 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns,
   // Register classes
   SWIG_Lua_add_namespace_classes(L,ns);
 
-  swig_lua_namespace** sub_namespace = ns->ns_namespaces;
+  swig_lua_namespace **sub_namespace = ns->ns_namespaces;
   if( sub_namespace != 0) {
     while(*sub_namespace != 0) {
       SWIG_Lua_namespace_register(L, *sub_namespace, 1);
@@ -464,7 +464,7 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State* L, swig_lua_namespace* ns,
  * global variable support code: classes
  * ----------------------------------------------------------------------------- */
 
-SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
+SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
 /* Macroses for iteration among class bases */
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
@@ -485,7 +485,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
 #else // en elua .bases table doesn't exist. Use table from swig_lua_class
 
 #define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
-  swig_module_info* module=SWIG_GetModule(L);\
+  swig_module_info *module=SWIG_GetModule(L);\
   swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;\
   const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;\
   bases_count = 0;\
@@ -505,7 +505,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname);
 
 typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
-int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info* swig_type, int first_arg, swig_lua_base_iterator_func func, int * const ret)
+int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, int first_arg, swig_lua_base_iterator_func func, int  *const ret)
 {
     // first_arg - position of the object in stack. Everything that is above are arguments
     // and is passed to every evocation of the func
@@ -638,7 +638,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
 
 /* the class.get method, performs the lookup of class attributes
  */
-SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_get(lua_State *L)
 {
 /*  there should be 2 params passed in
   (1) userdata (not the meta table)
@@ -658,7 +658,7 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
 /* helper for the class.set method, performs the lookup of class attributes
  * It returns error code. Number of function return values is passed inside 'ret'
  */
-SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int first_arg, int *ret)
+SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int first_arg, int *ret)
 {
 /*  there should be 3 params passed in
   (1) table (not the meta table)
@@ -720,7 +720,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State* L, swig_type_info *type, int fi
 /* This is actuall method exported to Lua. It calls SWIG_Lua_class_do_set and correctly
  * handlers return value
  */
-SWIGINTERN int  SWIG_Lua_class_set(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_set(lua_State *L)
 {
 /*  there should be 3 params passed in
   (1) table (not the meta table)
@@ -742,12 +742,12 @@ SWIGINTERN int  SWIG_Lua_class_set(lua_State* L)
 }
 
 /* the class.destruct method called by the interpreter */
-SWIGINTERN int  SWIG_Lua_class_destruct(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_destruct(lua_State *L)
 {
 /*  there should be 1 params passed in
   (1) userdata (not the meta table) */
-  swig_lua_userdata* usr;
-  swig_lua_class* clss;
+  swig_lua_userdata *usr;
+  swig_lua_class *clss;
   assert(lua_isuserdata(L,-1));  /* just in case */
   usr=(swig_lua_userdata*)lua_touserdata(L,-1);  /* get it */
   /* if must be destroyed & has a destructor */
@@ -763,7 +763,7 @@ SWIGINTERN int  SWIG_Lua_class_destruct(lua_State* L)
 }
 
 /* the class.__tostring method called by the interpreter and print */
-SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
 {
 /*  there should be 1 param passed in
   (1) userdata (not the metatable) */
@@ -773,7 +773,7 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
   assert(lua_istable(L,-1));  /* just in case */
 
   lua_getfield(L, -1, ".type");
-  const char* className = lua_tostring(L, -1);
+  const char *className = lua_tostring(L, -1);
 
   char output[256];
   snprintf(output, 255, "<%s userdata: %lX>", className, userData);
@@ -783,11 +783,11 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
 }
 
 /* to manually disown some userdata */
-SWIGINTERN int  SWIG_Lua_class_disown(lua_State* L)
+SWIGINTERN int  SWIG_Lua_class_disown(lua_State *L)
 {
 /*  there should be 1 params passed in
   (1) userdata (not the meta table) */
-  swig_lua_userdata* usr;
+  swig_lua_userdata *usr;
   assert(lua_isuserdata(L,-1));  /* just in case */
   usr=(swig_lua_userdata*)lua_touserdata(L,-1);  /* get it */
   
@@ -796,7 +796,7 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State* L)
 }
 
 /* gets the swig class registry (or creates it) */
-SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State* L)
+SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State *L)
 {
   /* add this all into the swig registry: */
   lua_pushstring(L,"SWIG");
@@ -814,7 +814,7 @@ SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State* L)
 }
 
 /* helper fn to get the classes metatable from the register */
-SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
+SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname)
 {
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,cname);  /* get the name */
@@ -829,10 +829,10 @@ It cannot be done at compile time, as this will not work with hireachies
 spread over more than one swig file. 
 Therefore it must be done at runtime, querying the SWIG type system.
 */
-SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
+SWIGINTERN void SWIG_Lua_init_base_class(lua_State *L,swig_lua_class *clss)
 {
   int i=0;
-  swig_module_info* module=SWIG_GetModule(L);
+  swig_module_info *module=SWIG_GetModule(L);
   for(i=0;clss->base_names[i];i++)
   {
     if (clss->bases[i]==0) /* not found yet */
@@ -846,7 +846,7 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) // In elua this is useless
 /* helper add a variable to a registered class */
-SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
+SWIGINTERN void  SWIG_Lua_add_variable(lua_State *L,const char *name,lua_CFunction getFn,lua_CFunction setFn)
 {
   assert(lua_istable(L,-1));  /* just in case */
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
@@ -863,7 +863,7 @@ SWIGINTERN void  SWIG_Lua_add_variable(lua_State* L,const char* name,lua_CFuncti
 }
 
 /* helper to recursively add class static details (static attributes, operations and constants) */
-SWIGINTERN void SWIG_Lua_add_class_static_details(lua_State* L, swig_lua_class* clss)
+SWIGINTERN void SWIG_Lua_add_class_static_details(lua_State *L, swig_lua_class *clss)
 {
   int i = 0;
   /* The class namespace table must be on the top of the stack */
@@ -878,7 +878,7 @@ SWIGINTERN void SWIG_Lua_add_class_static_details(lua_State* L, swig_lua_class* 
 }
 
 /* helper to recursively add class details (attributes & operations) */
-SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State* L,swig_lua_class* clss)
+SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class *clss)
 {
   int i;
   // Add bases to .bases table
@@ -918,7 +918,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State* L,swig_lua_class
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */
-SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* clss)
+SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *clss)
 {
   int begin = lua_gettop(L);
   lua_checkstack(L,5); /* just in case */
@@ -952,7 +952,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* cls
 /* performs the instance(non-static) class registration process. Metatable for class is created
  * and added to the class registry.
  */
-SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State* L,swig_lua_class* clss)
+SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
 {
   int begin = lua_gettop(L);
   // if name already there (class is already registered) then do nothing
@@ -1014,7 +1014,7 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State* L,swig_lua_class* c
   assert( lua_gettop(L) == begin );
 }
 
-SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
+SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
 {
   assert(lua_istable(L,-1)); /* This is table(module or namespace) where class will be added */
   SWIG_Lua_class_register_instance(L,clss);
@@ -1054,7 +1054,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
  * ----------------------------------------------------------------------------- */
 
 /* helper to add metatable to new lua object */
-SWIGINTERN void _SWIG_Lua_AddMetatable(lua_State* L,swig_type_info *type)
+SWIGINTERN void _SWIG_Lua_AddMetatable(lua_State *L,swig_type_info *type)
 {
   if (type->clientdata)  /* there is clientdata: so add the metatable */
   {
@@ -1071,9 +1071,9 @@ SWIGINTERN void _SWIG_Lua_AddMetatable(lua_State* L,swig_type_info *type)
 }
 
 /* pushes a new object into the lua stack */
-SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type, int own)
+SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *type, int own)
 {
-  swig_lua_userdata* usr;
+  swig_lua_userdata *usr;
   if (!ptr){
     lua_pushnil(L);
     return;
@@ -1089,9 +1089,9 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *t
 
 /* takes a object from the lua stack & converts it into an object of the correct type
  (if possible) */
-SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type_info *type,int flags)
+SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type_info *type,int flags)
 {
-  swig_lua_userdata* usr;
+  swig_lua_userdata *usr;
   swig_cast_info *cast;
   if (lua_isnil(L,index)){*ptr=0; return SWIG_OK;}    /* special case: lua nil => NULL pointer */
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
@@ -1118,9 +1118,9 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State* L,int index,void** ptr,swig_type
   return SWIG_ERROR;  /* error */
 }
 
-SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *type,int flags,
-       int argnum,const char* func_name){
-  void* result;
+SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State *L,int index,swig_type_info *type,int flags,
+       int argnum,const char *func_name){
+  void *result;
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,index,&result,type,flags))){
     luaL_error (L,"Error in %s, expected a %s at argument number %d\n",
 		func_name,(type && type->str)?type->str:"void*",argnum);
@@ -1129,9 +1129,9 @@ SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State* L,int index,swig_type_info *typ
 }
 
 /* pushes a packed userdata. user for member fn pointers only */
-SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State* L,void* ptr,size_t size,swig_type_info *type)
+SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_type_info *type)
 {
-  swig_lua_rawdata* raw;
+  swig_lua_rawdata *raw;
   assert(ptr); /* not acceptable to pass in a NULL value */
   raw=(swig_lua_rawdata*)lua_newuserdata(L,sizeof(swig_lua_rawdata)-1+size);  /* alloc data */
   raw->type=type;
@@ -1141,9 +1141,9 @@ SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State* L,void* ptr,size_t size,swig_t
 }
     
 /* converts a packed userdata. user for member fn pointers only */
-SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State* L,int index,void* ptr,size_t size,swig_type_info *type)
+SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State *L,int index,void *ptr,size_t size,swig_type_info *type)
 {
-  swig_lua_rawdata* raw;
+  swig_lua_rawdata *raw;
   raw=(swig_lua_rawdata*)lua_touserdata(L,index);  /* get data */
   if (!raw) return SWIG_ERROR;  /* error */
   if (type==0 || type==raw->type) /* void* or identical type */
@@ -1157,7 +1157,7 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPacked(lua_State* L,int index,void* ptr,size_t 
 /* a function to get the typestring of a piece of data */
 SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
 {
-  swig_lua_userdata* usr;
+  swig_lua_userdata *usr;
   if (lua_isuserdata(L,tp))
   {
     usr=(swig_lua_userdata*)lua_touserdata(L,tp);  /* get data */
@@ -1169,7 +1169,7 @@ SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
 }
 
 /* lua callable function to get the userdata's type */
-SWIGRUNTIME int SWIG_Lua_type(lua_State* L)
+SWIGRUNTIME int SWIG_Lua_type(lua_State *L)
 {
   lua_pushstring(L,SWIG_Lua_typename(L,1));
   return 1;
@@ -1178,7 +1178,7 @@ SWIGRUNTIME int SWIG_Lua_type(lua_State* L)
 /* lua callable function to compare userdata's value
 the issue is that two userdata may point to the same thing
 but to lua, they are different objects */
-SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
+SWIGRUNTIME int SWIG_Lua_equal(lua_State *L)
 {
   int result;
   swig_lua_userdata *usr1,*usr2;
@@ -1199,7 +1199,7 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
 #if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
 /* Install Constants */
 SWIGINTERN void
-SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
+SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
   int i;
   for (i = 0; constants[i].type; i++) {
     switch(constants[i].type) {
@@ -1253,7 +1253,7 @@ In lua 5.0.X its lua_dostring()
 In lua 5.1.X its luaL_dostring()
 */
 SWIGINTERN int 
-SWIG_Lua_dostring(lua_State *L, const char* str) {
+SWIG_Lua_dostring(lua_State *L, const char *str) {
   int ok,top;
   if (str==0 || str[0]==0) return 0; /* nothing to do */
   top=lua_gettop(L); /* save stack */
