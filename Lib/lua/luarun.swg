@@ -357,6 +357,9 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State *L)
     lua_pop(L,1);  /* remove the value */
   }
   lua_pop(L,1);  /* remove the value .set table */
+  lua_pop(L,1); /* remote metatable */
+  assert(lua_gettop(L) == 3); // TODO: REMOVE
+  lua_rawset(L,-3);
   return 0;
 }
 
@@ -505,7 +508,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
 typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
-int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, int first_arg, swig_lua_base_iterator_func func, int  *const ret)
+SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, int first_arg, swig_lua_base_iterator_func func, int  *const ret)
 {
     // first_arg - position of the object in stack. Everything that is above are arguments
     // and is passed to every evocation of the func
