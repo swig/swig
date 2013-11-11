@@ -170,7 +170,13 @@ public:
       f_initbeforefunc(0),
       s_luacode(0),
       module(0),
-      have_constructor(0), have_destructor(0), destructor_action(0), class_symname(0), class_fq_symname(0), class_static_nspace(0), constructor_name(0) {
+      have_constructor(0),
+      have_destructor(0),
+      destructor_action(0),
+      class_symname(0),
+      class_fq_symname(0),
+      class_static_nspace(0),
+      constructor_name(0) {
     namespaces_hash = NewHash();
     for (int i = 0; i < STATES_COUNT; i++)
       current[i] = false;
@@ -415,7 +421,9 @@ public:
     // But we need to know what was the name of function/variable
     // etc that user desired, that's why we store correct symname
     // as lua:name
-    Setattr(n, "lua:name", Getattr(n, "sym:name"));
+    String *symname = Getattr(n, "sym:name");
+    if (symname)
+      Setattr(n, "lua:name", symname);
     return Language::cDeclaration(n);
   }
   virtual int constructorDeclaration(Node *n) {
@@ -1004,6 +1012,7 @@ public:
       Printf(f_init, "%s\n", tm);
     } else {
       Delete(nsname);
+      nsname = 0;
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       Swig_restore(n);
       return SWIG_NOWRAP;
@@ -1017,6 +1026,7 @@ public:
       n_v2 = Copy(n);
       //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
       if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
+	Swig_restore(n);
 	return SWIG_ERROR;
       }
 
@@ -1122,8 +1132,8 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    String *mangled_class_fq_symname;
-    String *destructor_name;
+    String *mangled_class_fq_symname = 0;
+    String *destructor_name = 0;
     String *nspace = getNSpace();
 
     constructor_name = 0;
@@ -1151,8 +1161,8 @@ public:
     assert(class_fq_symname != 0);
     mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
 
-    SwigType *t(Copy(Getattr(n, "name")));
-    SwigType *fr_t(SwigType_typedef_resolve_all(t));	/* Create fully resolved type */
+    SwigType *t = Copy(Getattr(n, "name"));
+    SwigType *fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
     SwigType *t_tmp = 0;
     t_tmp = SwigType_typedef_qualified(fr_t);	// Temporal variable
     Delete(fr_t);
@@ -1350,9 +1360,11 @@ public:
 
     current[NO_CPP] = true;
     Delete(class_static_nspace);
-    Delete(mangled_class_fq_symname);
-    Delete(destructor_name);
     class_static_nspace = 0;
+    Delete(mangled_class_fq_symname);
+    mangled_class_fq_symname = 0;
+    Delete(destructor_name);
+    destructor_name = 0;
     Delete(class_fq_symname);
     class_fq_symname = 0;
     class_symname = 0;
@@ -1538,7 +1550,7 @@ public:
 
     emitLuaFlavor(s);
 
-    String *sfile;
+    String *sfile = 0;
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
       if (!sfile) {
@@ -1733,6 +1745,7 @@ public:
     Setattr(namespaces_hash, key ? key : "", nspace_hash);
 
     Delete(mangled_name);
+    mangled_name = 0;
     return nspace_hash;
   }
 
@@ -1878,8 +1891,7 @@ public:
     assert(cname != 0);
     Printv(output, "static swig_lua_namespace ", cname, " = ", NIL);
 
-    String *null_string;
-    null_string = NewString("0");
+    String *null_string = NewString("0");
     String *attr_tab_name = Getattr(nspace_hash, "attributes:name");
     String *methods_tab_name = Getattr(nspace_hash, "methods:name");
     String *const_tab_name = Getattr(nspace_hash, "constants:name");
