@@ -202,7 +202,7 @@ namespace Swig {
   protected:
     SV *err;
   public:
-    DirectorMethodException(SV *sv)
+    DirectorMethodException(SV *sv = sv_mortalcopy(ERRSV))
       : err(sv)
     {
       SvREFCNT_inc(err);
