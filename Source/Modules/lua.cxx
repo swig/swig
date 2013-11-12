@@ -370,12 +370,10 @@ public:
     Printf(f_init, "/* exec Lua code if applicable */\nSWIG_Lua_dostring(L,SWIG_LUACODE);\n");
     Printf(f_init, "}\n");
 
+    // Done.  Close up the module & write to the wrappers
+    closeNamespaces(f_wrappers);
     Printf(f_wrappers, "#ifdef __cplusplus\n}\n#endif\n");
 
-    // Done.  Close up the module & write to the wrappers
-
-    //Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
-    closeNamespaces(f_wrappers);
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
     /* NEW LANGUAGE NOTE:***********************************************
@@ -1129,6 +1127,24 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
 
+  /* Helper function that adds record to appropriate
+   * C arrays
+   */
+  void registerClass(String *scope, Node *n) {
+    String *wrap_class = Getattr(n,"wrap:class_name");
+    assert(wrap_class != 0);
+    Hash *nspaceHash = getNamespaceHash(scope);
+    String *ns_classes = Getattr(nspaceHash, "classes");
+    Printv(ns_classes, "&", wrap_class, ",\n", NIL);
+    if (elua_ltr || eluac_ltr) {
+      String *ns_methods = Getattr(nspaceHash, "methods");
+      Hash *class_hash = getNamespaceHash(class_fq_symname);
+      assert(class_hash != 0);
+      String *cls_methods = Getattr(class_hash, "methods:name");
+      assert(cls_methods != 0);
+      Printv(ns_methods, tab4, "{LSTRKEY(\"", class_symname, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
+    }
+  }
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
@@ -1231,16 +1247,17 @@ public:
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_class_fq_symname);
+    String *wrap_class_name = NewStringf("_wrap_class_%s", mangled_class_fq_symname);
+    String *wrap_class = NewStringf("&%s", wrap_class_name);
+    Setattr(n, "wrap:class_name", wrap_class_name);
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Adding class to apropriate namespace
+    registerClass(nspace, n);
     Hash *nspaceHash = getNamespaceHash(nspace);
-    String *ns_classes = Getattr(nspaceHash, "classes");
-    Printv(ns_classes, wrap_class, ",\n", NIL);
 
     // Register the class structure with the type checker
     //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_class_fq_symname);
@@ -1635,6 +1652,10 @@ public:
       Hash *parent = getNamespaceHash(parent_path, true);
       String *namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
+      if (elua_ltr || eluac_ltr) {
+	String *methods_tab = Getattr(parent, "methods");
+	Printv(methods_tab, tab4, "{LSTRKEY(\"", name, "\")", ", LROVAL(", cname, ")", "},\n", NIL);
+      }
       Setattr(nspace_hash, "name", name);
 
       Delete(components);
