@@ -3620,3 +3620,21 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+
+// insert N tabs before each new line in s
+void Swig_offset_string(String* s, int N)
+{
+  char* tabs = (char*)malloc(N+1);
+  memset(tabs, '\t', N);
+  tabs[N] = 0;
+  int n = 0;
+  Insert(s, n, tabs);
+  for(;;) {
+    char* next = strchr(Char(s) + n, '\n');
+    if (!next || !*(next + 1)) // do not insert tabs after the last line
+      break;
+    n = (next - Char(s)) + 1; // insert tabs after new line
+    Insert(s, n, tabs);
+  }
+  free(tabs);
+}

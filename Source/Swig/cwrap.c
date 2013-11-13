@@ -1175,7 +1175,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Node *parent = Swig_methodclass(n);
 	int abstract = Getattr(parent, "abstracts") != 0;
 	String *name = Getattr(parent, "sym:name");
-	String *directorname = Getattr(parent, "director:classname") ? Copy(Getattr(parent, "director:classname")) : NewStringf("SwigDirector_%s", name);
+	String *directorname;
 	String *action = NewStringEmpty();
 	String *tmp_none_comparison = Copy(none_comparison);
 	String *director_call;

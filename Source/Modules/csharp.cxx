@@ -18,6 +18,8 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
+// insert N tabs before each new line in s
+void Swig_offset_string(String* s, int N);
 
 class CSHARP:public Language {
   static const char *usage;
@@ -86,6 +88,7 @@ class CSHARP:public Language {
   int n_directors;
   int first_class_dmethod;
   int curr_class_dmethod;
+  int nesting_depth;
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
@@ -153,6 +156,7 @@ public:
       dmethods_table(NULL),
       n_dmethods(0),
       n_directors(0),
+      nesting_depth(0),
       first_class_dmethod(0),
       curr_class_dmethod(0) {
     /* for now, multiple inheritance in directors is disabled, this
@@ -1938,7 +1942,8 @@ public:
 
 	addOpenNamespace(nspace, f_proxy);
       }
-
+      else
+	++nesting_depth;
       proxy_class_def = NewString("");
       proxy_class_code = NewString("");
       destructor_call = NewString("");
@@ -1976,7 +1981,9 @@ public:
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
+	Swig_offset_string(proxy_class_def, nesting_depth);
 	Append(old_proxy_class_code, proxy_class_def);
+	Swig_offset_string(proxy_class_code, nesting_depth);
 	Append(old_proxy_class_code, proxy_class_code);
       }
 
@@ -1984,16 +1991,22 @@ public:
       if (Len(proxy_class_constants_code) != 0) {
 	if (!has_outerclass)
 	  Printv(f_proxy, proxy_class_constants_code, NIL);
-	else
+	else {
+	  Swig_offset_string(proxy_class_constants_code, nesting_depth);
 	  Append(old_proxy_class_code, proxy_class_constants_code);
+	}
       }
       if (!has_outerclass) {
 	Printf(f_proxy, "}\n");
 	addCloseNamespace(nspace, f_proxy);
 	Delete(f_proxy);
 	f_proxy = NULL;
-      } else
+      } else {
+	for (int i = 0; i < nesting_depth; ++i)
+	  Append(old_proxy_class_code, "\t");
 	Append(old_proxy_class_code, "}\n");
+	--nesting_depth;
+      }
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
