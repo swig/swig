@@ -3633,17 +3633,41 @@ Hash *Language::getClassHash() const {
 // insert N tabs before each new line in s
 void Swig_offset_string(String* s, int N)
 {
-  char* tabs = (char*)malloc(N+1);
-  memset(tabs, '\t', N);
-  tabs[N] = 0;
-  int n = 0;
-  Insert(s, n, tabs);
-  for(;;) {
-    char* next = strchr(Char(s) + n, '\n');
-    if (!next || !*(next + 1)) // do not insert tabs after the last line
-      break;
-    n = (next - Char(s)) + 1; // insert tabs after new line
-    Insert(s, n, tabs);
+  // count a number of lines in s
+  int lines = 1;
+  int L = Len(s);
+  char* start = strchr(Char(s), '\n'); 
+  while (start) {
+    ++lines;
+    start = strchr(start + 1, '\n');
   }
-  free(tabs);
+  // do not count pending new line
+  if ((Char(s))[L-1] == '\n')
+    --lines;
+  // allocate a temporary storage for a padded string
+  char* res = (char*)malloc(L + lines * N + 1);
+  res[L + lines * N] = 0;
+
+  // copy lines to res, prepending tabs to each line
+  char* p = res; // output pointer
+  start = Char(s); // start of a current line
+  char* end = strchr(start, '\n'); // end of a current line
+  while (end) {
+    memset(p, '\t', N);
+    p += N;
+    memcpy(p, start, end - start + 1);
+    p += end - start + 1;
+    start = end + 1;
+    end = strchr(start, '\n');
+  }
+  // process the last line
+  if (*start) {
+    memset(p, '\t', N);
+    p += N;
+    strcpy(p, start);
+  }
+  // replace 's' contents with 'res'
+  Clear(s);
+  Append(s, res);
+  free(res);
 }
