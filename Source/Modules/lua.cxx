@@ -86,13 +86,17 @@ Lua Options (available with -lua)\n\
                        Optional NUM is default value for MIN_OPT_LEVEL\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -swig3       - Disable support for old-style bindings name generation.\n\
+     -swig3          - Disable support for old-style bindings name generation.\n\
+     -squash-bases   - Squashes symbols from all inheritance tree of a given class\n\
+                       into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly\n\
+                       speeds things up, but increases memory consumption.\n\
 \n";
 
 static int nomoduleglobal = 0;
 static int elua_ltr = 0;
 static int elua_opt_lvl = 2;
 static int eluac_ltr = 0;
+static int squash_bases = 0;
 static int v2_compatibility = 0;
 static const int default_api_level = 2;
 
@@ -232,6 +236,9 @@ public:
 	} else if (strcmp(argv[i], "-swig3") == 0) {
 	  Swig_mark_arg(i);
 	  api_level = 3;
+	} else if (strcmp(argv[i], "-squash-bases") == 0) {
+	  Swig_mark_arg(i);
+	  squash_bases = 1;
 	}
       }
     }
@@ -331,6 +338,8 @@ public:
     } else {
       Printf(f_runtime, "#define SWIG_LUA_MODULE_GLOBAL\n");
     }
+    if (squash_bases)
+      Printf(f_runtime, "#define SWIG_LUA_SQUASH_BASES\n");
 
     //    if (NoInclude) {
     //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");

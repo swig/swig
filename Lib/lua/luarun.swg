@@ -627,6 +627,15 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   lua_pop(L,1);
   /* Search in base classes */
   assert(lua_gettop(L) == substack_start + 2); // TODO: REMOVE
+  
+  /* TODO: REMOVE
+#ifdef SWIG_LUA_SQUASH_BASES
+  if(ret) *ret = 0;
+  return SWIG_ERROR; // TODO:ERROR:FIX:REMOVE!!!!
+//#warning REMOVE REMOVE REMOVE
+#endif
+  END OF REMOVE */
+
   //printf("failed, searching bases\n"); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
   if(ret) assert(lua_gettop(L) == substack_start + 2 + *ret); // TODO: REMOVE
@@ -846,6 +855,77 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State *L,swig_lua_class *clss)
   }
 }
 
+#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+/* Merges two tables  */
+SWIGINTERN int SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int source)
+{
+  /* iterating */
+  lua_pushnil(L);
+  while (lua_next(L,source) != 0) {
+    /* -1 - value, -2 - index */
+    /* have to copy to assign */
+    lua_pushvalue(L,-2); /* copy of index */
+    lua_pushvalue(L,-2); /* copy of value */
+    lua_rawset(L, target);
+    lua_pop(L,1);
+    /* only key is left */
+  }
+}
+
+/* Merges two tables with given name. original - index of target metatable, base - index of source metatable */
+SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int original, int base)
+{
+  int begin = lua_gettop(L); // TODO:REMOVE
+  /* push original[name], then base[name] */
+  lua_pushstring(L,name);
+  lua_rawget(L,original);
+  int original_table = lua_gettop(L);
+  lua_pushstring(L,name);
+  lua_rawget(L,base);
+  int base_table = lua_gettop(L);
+  SWIG_Lua_merge_tables_by_index(L, original_table, base_table);
+  /* clearing stack */
+  lua_pop(L,2);
+  assert(lua_gettop(L) == begin); // TODO: REMOVE
+}
+
+/* Function takes all symbols from base and adds it to derived class. It's just a helper*/
+SWIGINTERN int  SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
+{
+  int begin = lua_gettop(L); // TODO:REMOVE
+  /* There is one parameter - original, i.e. 'derived' class metatable */
+  assert(lua_istable(L,-1));
+  int original = lua_gettop(L);
+  SWIG_Lua_get_class_metatable(L,base_cls->fqname);
+  int base = lua_gettop(L);
+  SWIG_Lua_merge_tables(L, ".fn", original, base );
+  SWIG_Lua_merge_tables(L, ".set", original, base );
+  SWIG_Lua_merge_tables(L, ".get", original, base );
+  lua_pop(L,1);
+  assert(lua_gettop(L) == begin); // TODO: REMOVE
+}
+
+/* Function squashes all symbols from 'clss' bases into itself */
+SWIGINTERN int  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
+{
+  int begin = lua_gettop(L); // TODO: REMOVE
+  int i;
+  SWIG_Lua_get_class_metatable(L,clss->fqname);
+  for(i=0;clss->base_names[i];i++)
+  {
+    if (clss->bases[i]==0) /* Somehow it's not found. Skip it */
+      continue;
+    /* Thing is: all bases are already registered. Thus they have already executed
+     * this function. So we just need to squash them into us, because their bases
+     * are already squashed into them. No need for recursion here!
+     */
+    SWIG_Lua_class_squash_base(L, clss->bases[i]);
+  }
+  lua_pop(L,1); /*tidy stack*/
+  assert(lua_gettop(L) == begin); // TODO: REMOVE
+}
+#endif
+
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) /* In elua this is useless */
 /* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Lua_add_variable(lua_State *L,const char *name,lua_CFunction getFn,lua_CFunction setFn)
@@ -977,6 +1057,23 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
   lua_newtable(L);    /* create the metatable */
+#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+  /* If squashing is requested, then merges all bases metatable into this one.
+   * It would get us all special methods: __getitem, __add etc.
+   * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
+   */
+  int squash_begin = lua_gettop(L); // TODO:REMOVE
+  int new_metatable_index = lua_absindex(L,-1);
+  for(i=0;clss->bases[i];i++)
+  {
+    SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
+    int base_metatable = lua_absindex(L,-1);
+    SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
+    lua_pop(L,1);
+  }
+  assert(lua_gettop(L) == squash_begin); // TODO: REMOVE
+  /* And now we will overwrite all incorrectly set data */
+#endif
   /* add string of class name called ".type" */
   lua_pushstring(L,".type");
   lua_pushstring(L,clss->fqname);
@@ -1010,6 +1107,10 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   lua_pop(L,1);      /* tidy stack (remove registry) */
   assert(lua_gettop(L)==begin);
 
+#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+  /* Now merge all symbols from .fn, .set, .get etc from bases to our tables */
+  SWIG_Lua_class_squash_bases(L,clss);
+#endif
   SWIG_Lua_get_class_metatable(L,clss->fqname);
   SWIG_Lua_add_class_instance_details(L,clss);  /* recursive adding of details (atts & ops) */
   lua_pop(L,1);      /* tidy stack (remove class metatable) */
