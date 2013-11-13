@@ -139,6 +139,7 @@ private:
     STATIC_FUNC,
     STATIC_VAR,
     STATIC_CONST,		// enums and things like static const int x = 5;
+    ENUM_CONST, // This is only needed for backward compatibility in C mode
 
     STATES_COUNT
   };
@@ -1010,8 +1011,16 @@ public:
     bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
 
     if (make_v2_compatible) {
-      target_name_v2 = Swig_name_member(0, class_symname, target_name);
-      iname_v2 = Swig_name_member(0, class_symname, iname);
+      // Special handling for enums in C mode - they are not prefixed with structure name
+      if(!CPlusPlus && current[ENUM_CONST]) {
+	target_name_v2 = target_name;
+	DohIncref(target_name_v2);
+	iname_v2 = iname;
+	DohIncref(iname_v2);
+      } else {
+	target_name_v2 = Swig_name_member(0, class_symname, target_name);
+	iname_v2 = Swig_name_member(0, class_symname, iname);
+      }
       n_v2 = Copy(n);
       //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
       if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
@@ -1074,8 +1083,10 @@ public:
 
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
+    current[ENUM_CONST] = true;
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
+    current[ENUM_CONST] = false;
     return result;
   }
 
