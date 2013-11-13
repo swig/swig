@@ -1707,12 +1707,8 @@ public:
     String *saved_nc = none_comparison;
     none_comparison = NewStringf("strcmp(SvPV_nolen(ST(0)), \"%s::%s\") != 0", module, class_name);
     String *saved_director_prot_ctor_code = director_prot_ctor_code;
-    director_prot_ctor_code = NewStringf(
-	"if ($comparison) { /* subclassed */\n"
-	"  $director_new\n"
-	"} else {\n"
-	"  SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n"
-	"}\n");
+    director_prot_ctor_code = NewStringf( "if ($comparison) { /* subclassed */\n" "  $director_new\n" "} else {\n" "
+	SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n" "}\n");
     Language::constructorHandler(n);
     Delete(none_comparison);
     none_comparison = saved_nc;
@@ -2084,7 +2080,6 @@ public:
     int status = SWIG_OK;
     int idx;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    int addfail = 0;
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
@@ -2157,11 +2152,6 @@ public:
       }
     }
 
-    //if (builtin) {
-    //  Printv(w->code, "PyObject *self = NULL;\n", NIL);
-    //  Printv(w->code, "(void)self;\n", NIL);
-    //}
-
     if (ignored_method) {
       if (!pure_virtual) {
         if (!is_void)
@@ -2175,7 +2165,6 @@ public:
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> Perl) */
-      String *arglist = NewString("");
       String *parse_args = NewString("");
       String *pstack = NewString("");
 
@@ -2211,7 +2200,6 @@ public:
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
-      int use_parse = 0;
       while (p) {
         if (checkAttribute(p, "tmap:in:numinputs", "0")) {
           p = Getattr(p, "tmap:in:next");
@@ -2232,35 +2220,20 @@ public:
         String *pname = Getattr(p, "name");
         String *ptype = Getattr(p, "type");
 
-        Putc(',', arglist);
         if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-          String *parse = Getattr(p, "tmap:directorin:parse");
-          if (!parse) {
-            sprintf(source, "obj%d", idx++);
-            String *input = NewString(source);
-            Setattr(p, "emit:directorinput", input);
-            Replaceall(tm, "$input", input);
-            Delete(input);
-            Replaceall(tm, "$owner", "0");
-            Replaceall(tm, "$shadow", "0");
-            /* Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL); */
-            Printv(wrap_args, "SV *", source, ";\n", NIL);
+	  sprintf(source, "obj%d", idx++);
+	  String *input = NewString(source);
+	  Setattr(p, "emit:directorinput", input);
+	  Replaceall(tm, "$input", input);
+	  Delete(input);
+	  Replaceall(tm, "$owner", "0");
+	  Replaceall(tm, "$shadow", "0");
+	  /* Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL); */
+	  Printv(wrap_args, "SV *", source, ";\n", NIL);
 
-            Printv(wrap_args, tm, "\n", NIL);
-            Printv(arglist, "(PyObject *)", source, NIL);
-            Putc('O', parse_args);
-	    Printv(pstack, "XPUSHs(", source, ");\n", NIL);
-          } else {
-            use_parse = 1;
-            Append(parse_args, parse);
-            Setattr(p, "emit:directorinput", pname);
-            Replaceall(tm, "$input", pname);
-            Replaceall(tm, "$owner", "0");
-            Replaceall(tm, "$shadow", "0");
-            if (Len(tm) == 0)
-              Append(tm, pname);
-            Append(arglist, tm);
-          }
+	  Printv(wrap_args, tm, "\n", NIL);
+	  Putc('O', parse_args);
+	  Printv(pstack, "XPUSHs(", source, ");\n", NIL);
           p = Getattr(p, "tmap:directorin:next");
           continue;
         } else if (Cmp(ptype, "void")) {
@@ -2303,23 +2276,19 @@ public:
             if (target) {
               String *director = NewStringf("director_%s", mangle);
               Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-              Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
+              Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
               Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
               Printf(wrap_args, "if (!%s) {\n", director);
-              Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+              Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
               Append(wrap_args, "} else {\n");
               Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
-              Printf(wrap_args, "Py_INCREF((PyObject *)%s);\n", source);
+              Printf(wrap_args, "SvREFCNT_inc((SV *)%s);\n", source);
               Append(wrap_args, "}\n");
               Delete(director);
-              Printv(arglist, source, NIL);
             } else {
               Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
               Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
               Printf(pstack, "XPUSHs(sv_2mortal(%s));\n", source);
-              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
-              //       source, nonconst, base);
-              Printv(arglist, source, NIL);
             }
             Putc('O', parse_args);
             Delete(mangle);
@@ -2337,13 +2306,6 @@ public:
 
       /* add the method name as a PyString */
       String *pyname = Getattr(n, "sym:name");
-
-      //int allow_thread = threads_enable(n);
-      //
-      //if (allow_thread) {
-      //  thread_begin_block(n, w->code);
-      //  Append(w->code, "{\n");
-      //}
 
       /* wrap complex arguments to PyObjects */
       Printv(w->code, wrap_args, NIL);
@@ -2374,7 +2336,7 @@ public:
       Append(w->code, "if (SvTRUE(ERRSV)) {\n");
       Append(w->code, "  PUTBACK;\n  FREETMPS;\n  LEAVE;\n");
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-        Replaceall(tm, "$error", "error");
+        Replaceall(tm, "$error", "ERRSV");
         Printv(w->code, Str(tm), "\n", NIL);
       } else {
         Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n", classname, pyname);
@@ -2395,9 +2357,9 @@ public:
       String *outarg = NewString("");
 
       if (outputs > 1) {
-        Wrapper_add_local(w, "output", "PyObject *output");
-        Printf(w->code, "if (!PyTuple_Check(%s)) {\n", Swig_cresult_name());
-        Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Python method %s.%sfailed to return a tuple.\");\n", classname, pyname);
+        Wrapper_add_local(w, "output", "SV *output");
+        Printf(w->code, "if (count != %d) {\n", outputs);
+        Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Perl method %s.%sfailed to return a list.\");\n", classname, pyname);
         Append(w->code, "}\n");
       }
 
@@ -2410,7 +2372,7 @@ public:
         tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
         if (tm != 0) {
           if (outputs > 1) {
-            Printf(w->code, "output = PyTuple_GetItem(%s, %d);\n", Swig_cresult_name(), idx++);
+            Printf(w->code, "output = POPs;\n");
             Replaceall(tm, "$input", "output");
           } else {
             Replaceall(tm, "$input", Swig_cresult_name());
@@ -2425,14 +2387,10 @@ public:
           } else {
             Replaceall(tm, "$disown", "0");
           }
-          //if (Getattr(n, "tmap:directorout:implicitconv")) {
-          //  Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
-          //}
           Replaceall(tm, "$result", "c_result");
           Printv(w->code, tm, "\n", NIL);
           Delete(tm);
         } else {
-          Swig_print_node(n);
           Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
               "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname),
               SwigType_namestr(name));
@@ -2444,7 +2402,7 @@ public:
       for (p = l; p;) {
         if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
           if (outputs > 1) {
-            Printf(w->code, "output = PyTuple_GetItem(%s, %d);\n", Swig_cresult_name(), idx++);
+            Printf(w->code, "output = POPs;\n");
             Replaceall(tm, "$result", "output");
           } else {
             Replaceall(tm, "$result", Swig_cresult_name());
@@ -2457,14 +2415,7 @@ public:
         }
       }
 
-      /* any existing helper functions to handle this? */
-      //if (allow_thread) {
-      //  Append(w->code, "}\n");
-      //  thread_end_block(n, w->code);
-      //}
-
       Delete(parse_args);
-      Delete(arglist);
       Delete(cleanup);
       Delete(outarg);
     }
@@ -2485,11 +2436,6 @@ public:
         }
         Delete(rettype);
       }
-    }
-
-    if (addfail) {
-      Append(w->code, "fail:\n");
-      Printf(w->code, "  Swig::DirectorMethodException::raise(\"Error detected when calling '%s->%s'\");\n", classname, Getattr(n, "sym:name"));
     }
 
     Append(w->code, "}\n");
