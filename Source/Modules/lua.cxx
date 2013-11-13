@@ -86,16 +86,7 @@ Lua Options (available with -lua)\n\
                        Optional NUM is default value for MIN_OPT_LEVEL\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -api-lvl-from NUM\n\
-                     - Force support for old-style bindings. All old-style bindings\n\
-                       from NUM to current new-style bindings will be supported. For example,\n\
-                       if current lua bindings API version is 10 and NUM==7 then SWIG will\n\
-                       generate bindings compatible with lua bindings versions 7,8,9 and,\n\
-                       of course current version of bindings, 10.\n\
-                       API levels:\n\
-                       2   -   SWIG 2.*\n\
-                       3   -   SWIG 3.*\n\
-                       Default NUM is 2.\n\
+     -swig3       - Disable support for old-style bindings name generation.\n\
 \n";
 
 static int nomoduleglobal = 0;
@@ -186,12 +177,6 @@ public:
       Delete(namespaces_hash);
   }
 
-  /* NEW LANGUAGE NOTE:***********************************************
-     This is called to initalise the system & read any command line args
-     most of this is boilerplate code, except the command line args
-     which depends upon what args your code supports
-     NEW LANGUAGE NOTE:END *********************************************** */
-
   bool strToInt(const char *string, int &value) {
     long int tmp;
     char *p_end = 0;
@@ -203,6 +188,12 @@ public:
     value = tmp;
     return true;
   }
+  /* NEW LANGUAGE NOTE:***********************************************
+     This is called to initalise the system & read any command line args
+     most of this is boilerplate code, except the command line args
+     which depends upon what args your code supports
+     NEW LANGUAGE NOTE:END *********************************************** */
+
   /* ---------------------------------------------------------------------
    * main()
    *
@@ -237,15 +228,9 @@ public:
 	    Swig_mark_arg(i + 1);
 	    i++;
 	  }
-	} else if (strcmp(argv[i], "-api-lvl-from") == 0) {
-	  if (argv[i + 1]) {
-	    if (!strToInt(argv[i + 1], api_level))
-	      Swig_arg_error();
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
+	} else if (strcmp(argv[i], "-swig3") == 0) {
+	  Swig_mark_arg(i);
+	  api_level = 3;
 	}
       }
     }
@@ -409,6 +394,10 @@ public:
     return Language::importDirective(n);
   }
 
+  /* ------------------------------------------------------------
+   * cDeclaration()
+   * It copies sym:name to lua:name to preserve it's original value
+   * ------------------------------------------------------------ */
   virtual int cDeclaration(Node *n) {
     // class 'Language' is messing with symname in a really heavy way.
     // Although documentation states that sym:name is a name in
@@ -463,7 +452,7 @@ public:
 
   // Add method to the "methods" C array of given namespace/class
   void registerMethod(String *nspace_or_class_name, Node *n) {
-    assert(n != 0);
+    assert(n);
     Hash *nspaceHash = getNamespaceHash(nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *wname = Getattr(n, "wrap:name");
@@ -491,7 +480,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     String *target_name = Getattr(n, "lua:name");
-    assert(target_name != 0);
+    assert(target_name);
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
@@ -516,7 +505,7 @@ public:
     Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = 0");
 
 
-    String *wname = symname_wrapper(iname);
+    String *wname = symnameWrapper(iname);
     if (overname) {
       Append(wname, overname);
     }
@@ -830,8 +819,8 @@ public:
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
     String *target_name = Getattr(n, "lua:name");
-    assert(target_name != 0);
-    String *wname = symname_wrapper(symname);
+    assert(target_name);
+    String *wname = symnameWrapper(symname);
 
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
@@ -890,11 +879,9 @@ public:
 
 
   /* ------------------------------------------------------------
-   * variableWrapper()
+   * Add variable to the "attributes" (or "get"/"set"  in
+   * case of elua_ltr) C arrays of given namespace or class
    * ------------------------------------------------------------ */
-
-  // Add variable to the "attributes" (or "get"/"set"  in
-  // case of elua_ltr) C arrays of given namespace or class
   void registerVariable(String *nspace_or_class_name, Node *n, const char *getAttrName, const char *setAttrName) {
     String *unassignable = NewString("SWIG_Lua_set_immutable");
     String *getName = Getattr(n, getAttrName);
@@ -919,6 +906,10 @@ public:
     }
   }
 
+  /* ------------------------------------------------------------
+   * variableWrapper()
+   * ------------------------------------------------------------ */
+
   virtual int variableWrapper(Node *n) {
     /* NEW LANGUAGE NOTE:***********************************************
        Language::variableWrapper(n) will generate two wrapper fns
@@ -929,7 +920,7 @@ public:
        NEW LANGUAGE NOTE:END *********************************************** */
     //    REPORT("variableWrapper", n);
     String *target_name = Getattr(n, "lua:name");
-    assert(target_name != 0);
+    assert(target_name);
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
@@ -940,12 +931,9 @@ public:
 
 
   /* ------------------------------------------------------------
-   * constantWrapper()
-   * ------------------------------------------------------------ */
-
-  /* Add constant to appropriate C array. constantRecord is an array record.
+   * Add constant to appropriate C array. constantRecord is an array record.
    * Actually, in current implementation it is resolved consttab typemap
-   */
+   * ------------------------------------------------------------ */
   void registerConstant(String *nspace, String *constantRecord) {
     Hash *nspaceHash = getNamespaceHash(nspace);
     String *s_const_tab = 0;
@@ -955,17 +943,20 @@ public:
     else
       s_const_tab = Getattr(nspaceHash, "constants");
 
-    assert(s_const_tab != 0);
+    assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
     if ((eluac_ltr || elua_ltr) && v2_compatibility) {
       s_const_tab = Getattr(nspaceHash, "constants");
-      assert(s_const_tab != 0);
+      assert(s_const_tab);
       Printf(s_const_tab, "    %s,\n", constantRecord);
     }
 
   }
 
+  /* ------------------------------------------------------------
+   * constantWrapper()
+   * ------------------------------------------------------------ */
   virtual int constantWrapper(Node *n) {
     REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
@@ -990,7 +981,7 @@ public:
     Setattr(n, "sym:name", target_name);
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
-      String *wname = symname_wrapper(iname);
+      String *wname = symnameWrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = Char(wname);
     }
@@ -1123,28 +1114,29 @@ public:
     return Language::classDeclaration(n);
   }
 
-  /* ------------------------------------------------------------
-   * classHandler()
-   * ------------------------------------------------------------ */
 
-  /* Helper function that adds record to appropriate
+  /* ------------------------------------------------------------
+  * Helper function that adds record to appropriate
    * C arrays
-   */
+   * ------------------------------------------------------------ */
   void registerClass(String *scope, Node *n) {
     String *wrap_class = Getattr(n,"wrap:class_name");
-    assert(wrap_class != 0);
+    assert(wrap_class);
     Hash *nspaceHash = getNamespaceHash(scope);
     String *ns_classes = Getattr(nspaceHash, "classes");
     Printv(ns_classes, "&", wrap_class, ",\n", NIL);
     if (elua_ltr || eluac_ltr) {
       String *ns_methods = Getattr(nspaceHash, "methods");
       Hash *class_hash = getNamespaceHash(class_fq_symname);
-      assert(class_hash != 0);
+      assert(class_hash);
       String *cls_methods = Getattr(class_hash, "methods:name");
-      assert(cls_methods != 0);
+      assert(cls_methods);
       Printv(ns_methods, tab4, "{LSTRKEY(\"", class_symname, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
     }
   }
+  /* ------------------------------------------------------------
+   * classHandler()
+   * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
@@ -1174,7 +1166,7 @@ public:
     else
       class_fq_symname = NewStringf("%s.%s", nspace, class_symname);
 
-    assert(class_fq_symname != 0);
+    assert(class_fq_symname);
     mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
 
     SwigType *t = Copy(Getattr(n, "name"));
@@ -1212,7 +1204,7 @@ public:
     // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
     // any member or subclass with name "__Static". Thus, never any name clash.
     Hash *instance_cls = getNamespaceHash(class_fq_symname, false);
-    assert(instance_cls != 0);
+    assert(instance_cls);
     String *s_attr_tab_name = Getattr(instance_cls, "attributes:name");
     String *s_methods_tab_name = Getattr(instance_cls, "methods:name");
     Setattr(instance_cls, "lua:no_namespaces", "1");
@@ -1225,7 +1217,7 @@ public:
 
     class_static_nspace = NewStringf("%s%s__Static", class_fq_symname, NSPACE_SEPARATOR);
     Hash *static_cls = getNamespaceHash(class_static_nspace, false);
-    assert(static_cls != 0);
+    assert(static_cls);
     Setattr(static_cls, "lua:no_namespaces", "1");
     Setattr(static_cls, "lua:class_static", "1");
 
@@ -1296,18 +1288,18 @@ public:
       constructor_name = constructor_proxy_name;
       if (elua_ltr) {
 	String *static_cls_metatable_tab = Getattr(static_cls, "metatable");
-	assert(static_cls_metatable_tab != 0);
+	assert(static_cls_metatable_tab);
 	Printf(static_cls_metatable_tab, "    {LSTRKEY(\"__call\"), LFUNCVAL(%s)},\n", constructor_name);
       } else if (eluac_ltr) {
 	String *ns_methods_tab = Getattr(nspaceHash, "methods");
-	assert(ns_methods_tab != 0);
+	assert(ns_methods_tab);
 	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", class_symname, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
       }
     }
     if (have_destructor) {
       if (eluac_ltr) {
 	String *ns_methods_tab = Getattr(nspaceHash, "methods");
-	assert(ns_methods_tab != 0);
+	assert(ns_methods_tab);
 	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
       }
     }
@@ -1599,10 +1591,12 @@ public:
   }
 
 
-  /* This is to convert the string of Lua code into a proper string, which can then be
-     emitted into the C/C++ code.
-     Basically is is a lot of search & replacing of odd sequences
-   */
+  /* -----------------------------------------------------------------------------
+   * EscapeCode()
+   * This is to convert the string of Lua code into a proper string, which can then be
+   * emitted into the C/C++ code.
+   * Basically is is a lot of search & replacing of odd sequences
+   * ---------------------------------------------------------------------------- */
   void EscapeCode(String *str) {
     //Printf(f_runtime,"/* original luacode:[[[\n%s\n]]]\n*/\n",str);
     Chop(str);			// trim
@@ -1612,18 +1606,22 @@ public:
     //Printf(f_runtime,"/* hacked luacode:[[[\n%s\n]]]\n*/\n",str);
   }
 
-  /* Each namespace can be described with hash that stores C arrays
-     where members of the namespace should be added. All these hashes are stored
-     inside namespaces_hash.
-     nspace could be NULL (NSPACE_TODO), that means functions and variables and classes
-     that are not in any namespace (this is default for SWIG unless %nspace feature is used)
-     You can later set some attributes that will affect behaviour of functions that use this hash:
-     "lua:no_namespaces" will disable "namespaces" array.
-     "lua:no_classes" will disable "classes" array.
-     For every component ("attributes", "methods", etc) there are subcomponents:
-     * XXX:name - name of the C array that stores data for component
-     * XXX:decl - statement with forward declaration of this array;
-   */
+  /* -----------------------------------------------------------------------------
+   * getNamespaceHash()
+   * Each namespace can be described with hash that stores C arrays
+   * where members of the namespace should be added. All these hashes are stored
+   * inside namespaces_hash.
+   * nspace could be NULL (NSPACE_TODO), that means functions and variables and classes
+   * that are not in any namespace (this is default for SWIG unless %nspace feature is used)
+   * You can later set some attributes that will affect behaviour of functions that use this hash:
+   * "lua:no_namespaces" will disable "namespaces" array.
+   * "lua:no_classes" will disable "classes" array.
+   * For every component ("attributes", "methods", etc) there are subcomponents:
+   *   XXX:name - name of the C array that stores data for component
+   *   XXX:decl - statement with forward declaration of this array;
+   * Namespace could be automatically registered to it's parent if 'reg' == true. It can be done
+   * only at first call (a.k.a when nspace is created).
+   * ---------------------------------------------------------------------------- */
   Hash *getNamespaceHash(String *nspace, bool reg = true) {
     Hash *nspace_hash = Getattr(namespaces_hash, nspace ? nspace : "");
     if (nspace_hash != 0)
@@ -1770,17 +1768,19 @@ public:
     return nspace_hash;
   }
 
-  /* Functions add end markers {0,0,...,0} to all arrays, prints them to
+  /* -----------------------------------------------------------------------------
+   * closeNamespaceHash()
+   * Functions add end markers {0,0,...,0} to all arrays, prints them to
    * output and marks hash as closed (lua:closed). Consequent attempts to
    * close same hash will result in error
    * closeNamespaceHash DOES NOT print structure that describes namespace, it only
    * prints array. You can use printNamespaceDefinition to print structure.
    * if "lua:no_namespaces" is set, then array for "namespaces" won't be printed
    * if "lua:no_classes" is set, then array for "classes" won't be printed
-   * */
+   * ----------------------------------------------------------------------------- */
   void closeNamespaceHash(String *nspace, File *output) {
     Hash *nspace_hash = Getattr(namespaces_hash, nspace);
-    assert(nspace_hash != 0);
+    assert(nspace_hash);
     assert(Getattr(nspace_hash, "lua:closed") == 0);
 
     Setattr(nspace_hash, "lua:closed", "1");
@@ -1836,26 +1836,26 @@ public:
       Printv(output, set_tab, NIL);
 
       String *metatable_tab = Getattr(nspace_hash, "metatable");
-      assert(metatable_tab != 0);
+      assert(metatable_tab);
       Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_namespace_get)},\n", NIL);
       Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_namespace_set)},\n", NIL);
       Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
       Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
       if (Getattr(nspace_hash, "lua:class_instance")) {
 	String *static_cls = Getattr(nspace_hash, "lua:class_instance:static_hash");
-	assert(static_cls != 0);
+	assert(static_cls);
 	// static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
 	// Instead structure describing its methods isused
 	String *static_cls_cname = Getattr(static_cls, "methods:name");
-	assert(static_cls_cname != 0);
+	assert(static_cls_cname);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
 	// Put forward declaration of this array
 	Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
       } else if (Getattr(nspace_hash, "lua:class_static")) {
 	Hash *instance_cls = Getattr(nspace_hash, "lua:class_static:instance_hash");
-	assert(instance_cls != 0);
+	assert(instance_cls);
 	String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
-	assert(instance_cls_metatable_name != 0);
+	assert(instance_cls_metatable_name);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".instance\"), LROVAL(", instance_cls_metatable_name, ")},\n", NIL);
       }
 
@@ -1868,7 +1868,11 @@ public:
   static int compareByLen(const DOH *f, const DOH *s) {
     return Len(s) - Len(f);
   }
-  // Recursively close all non-closed namespaces. Prints data to dataOutput,
+
+  /* -----------------------------------------------------------------------------
+   * closeNamespaceHash()
+   * Recursively close all non-closed namespaces. Prints data to dataOutput.
+   * ----------------------------------------------------------------------------- */
   void closeNamespaces(File *dataOutput) {
     // Special handling for empty module.
     if (Getattr(namespaces_hash, "") == 0) {
@@ -1894,22 +1898,26 @@ public:
 	name = module;
       else
 	name = Getattr(nspace, "name");
-      assert(name != 0);
+      assert(name);
       printNamespaceDefinition(key, name, dataOutput);
     }
     Delete(to_close);
   }
 
-  // This function prints to output a definition of namespace in
-  // form of swig_lua_namespace: { attr_array, methods_array, ... , namespaces_array }.
-  // You can call this function as many times as necessary.
-  // 'name' is a user-visible name that this namespace will have in Lua. It shouldn't
-  // be fully qualified name, just it's own name.
+  /* -----------------------------------------------------------------------------
+   * printNamespaceDefinition()
+   * This function prints to output a definition of namespace in
+   * form
+   *  swig_lua_namespace $cname =  { attr_array, methods_array, ... , namespaces_array };
+   * You can call this function as many times as necessary.
+   * 'name' is a user-visible name that this namespace will have in Lua. It shouldn't
+   * be fully qualified name, just it's own name.
+   * ----------------------------------------------------------------------------- */
   void printNamespaceDefinition(String *nspace, String *name, File *output) {
     Hash *nspace_hash = getNamespaceHash(nspace, false);
 
     String *cname = Getattr(nspace_hash, "cname");	// cname - name of the C structure that describes namespace
-    assert(cname != 0);
+    assert(cname);
     Printv(output, "static swig_lua_namespace ", cname, " = ", NIL);
 
     String *null_string = NewString("0");
@@ -1931,12 +1939,15 @@ public:
     Delete(null_string);
   }
 
-  // This function determines actual namespace/scope where any symbol at the
-  // current moment should be placed. It looks at the 'current' array
-  // and depending on where are we - static class member/function,
-  // instance class member/function or just global functions decides
-  // where symbol should be put.
-  // The namespace/scope doesn't depend from symbol, only from 'current'
+  /* -----------------------------------------------------------------------------
+   * luaCurrentSymbolNSpace()
+   * This function determines actual namespace/scope where any symbol at the
+   * current moment should be placed. It looks at the 'current' array
+   * and depending on where are we - static class member/function,
+   * instance class member/function or just global functions decides
+   * where symbol should be put.
+   * The namespace/scope doesn't depend from symbol, only from 'current'
+   * ----------------------------------------------------------------------------- */
   String *luaCurrentSymbolNSpace() {
     String *scope = 0;
     // If ouside class, than NSpace is used.
@@ -1954,12 +1965,15 @@ public:
       } else {			// Friend functions are handled this way
 	scope = class_static_nspace;
       }
-      assert(scope != 0);
+      assert(scope);
     }
     return scope;
   }
 
-  // Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
+  /* -----------------------------------------------------------------------------
+   * luaAddSymbol()
+   * Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
+   * ----------------------------------------------------------------------------- */
   int luaAddSymbol(const String *s, const Node *n) {
     String *scope = luaCurrentSymbolNSpace();
     //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
@@ -1969,7 +1983,10 @@ public:
     return result;
   }
 
-  // Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
+  /* -----------------------------------------------------------------------------
+   * luaAddSymbol()
+   * Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
+   * ----------------------------------------------------------------------------- */
   int luaAddSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
     //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
     int result = Language::addSymbol(s, n, scope);
@@ -1978,15 +1995,14 @@ public:
     return result;
   }
 
-  // Function creates fully qualified name of given symbol. Current NSpace and current class
-  // are used
-  String *fully_qualified_name(const_String_or_char_ptr name) {
-    assert(name != 0);
-    String *scope = 0;
-    if (getCurrentClass())
-      scope = class_fq_symname;
-    else
-      scope = getNSpace();
+  /* -----------------------------------------------------------------------------
+   * fullyQualifiedName()
+   * Function creates fully qualified name of given symbol. The scope is deremined
+   * automatically based on luaCurrentSymbolNSpace()
+   * ----------------------------------------------------------------------------- */
+  String *fullyQualifiedName(const_String_or_char_ptr name) {
+    assert(name);
+    String *scope = luaCurrentSymbolNSpace();
 
     String *fqname = 0;
     if (scope)
@@ -1997,10 +2013,13 @@ public:
     return fqname;
   }
 
-  // Input: symname
-  // Output - wrapper around fully qualified form of symname
-  String *symname_wrapper(String *symname) {
-    String *fqname = fully_qualified_name(symname);
+  /* -----------------------------------------------------------------------------
+   * symnameWrapper()
+   * Input: symname
+   * Output - Swig_name_wrapper around fully qualified form of symname
+   * ----------------------------------------------------------------------------- */
+  String *symnameWrapper(String *symname) {
+    String *fqname = fullyQualifiedName(symname);
     String *wname = Swig_name_wrapper(fqname);
     Delete(fqname);
     return wname;
