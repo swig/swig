@@ -446,13 +446,8 @@ SWIG_Guile_Init ()
 SWIGINTERN swig_module_info *
 SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
-  SCM module;
-  SCM variable;
-
-  module = SWIG_Guile_Init();
-
-  variable = scm_module_variable(module,
-                 scm_from_locale_symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME));
+  SCM module = SWIG_Guile_Init();
+  SCM variable = scm_module_variable(module, scm_from_locale_symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME));
   if (scm_is_false(variable)) {
     return NULL;
   } else {
@@ -463,11 +458,7 @@ SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata))
 SWIGINTERN void
 SWIG_Guile_SetModule(swig_module_info *swig_module)
 {
-  SCM module;
-  SCM variable;
-
-  module = SWIG_Guile_Init();
-    
+  SCM module = SWIG_Guile_Init();
   scm_module_define(module,
                     scm_from_locale_symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME),
                     scm_from_ulong((unsigned long) swig_module));

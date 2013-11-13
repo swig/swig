@@ -84,6 +84,9 @@
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
     "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
 
+%typemap(varout,type="$1_descriptor") SWIGTYPE &&
+    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
     "sv_setiv(SvRV($result), PTR2IV(&$1));";
 

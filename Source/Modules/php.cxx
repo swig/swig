@@ -443,7 +443,6 @@ public:
     Append(s_header, "  zval **args[2];\n");
     Append(s_header, "  swig_object_wrapper *value;\n");
     Append(s_header, "  int type;\n");
-    Append(s_header, "  int thisown;\n");
     Append(s_header, "\n");
     Append(s_header, "  SWIG_ResetError();\n");
     Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
@@ -1324,6 +1323,7 @@ public:
 		break;
 	      }
 	      case T_REFERENCE:
+	      case T_RVALUE_REFERENCE:
 	      case T_USER:
 	      case T_ARRAY:
 		Clear(value);
@@ -1366,6 +1366,7 @@ public:
 		  }
 		}
 		if (Strcmp(value, "NULL") == 0 ||
+		    Strcmp(value, "nullptr") == 0 ||
 		    Strcmp(value, "0") == 0 ||
 		    Strcmp(value, "0L") == 0) {
 		  Clear(value);
@@ -2606,8 +2607,8 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
-      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
-      Printf(w->code, "  %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
+      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      Printf(w->code, " %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
       if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);

@@ -82,7 +82,7 @@ void copy_fd(int fd_in, int fd_out)
 
 #ifndef HAVE_MKSTEMP
 /* cheap and nasty mkstemp replacement */
-static int mkstemp(char *template)
+int mkstemp(char *template)
 {
 	mktemp(template);
 	return open(template, O_RDWR | O_CREAT | O_EXCL | O_BINARY, 0600);

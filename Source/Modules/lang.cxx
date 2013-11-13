@@ -137,6 +137,8 @@ int Dispatcher::emit_one(Node *n) {
     ret = namespaceDeclaration(n);
   } else if (strcmp(tag, "template") == 0) {
     ret = templateDeclaration(n);
+  } else if (strcmp(tag, "lambda") == 0) {
+    ret = lambdaDeclaration(n);
   }
 
   /* ===============================================================
@@ -280,6 +282,9 @@ int Dispatcher::classDeclaration(Node *n) {
   return defaultHandler(n);
 }
 int Dispatcher::templateDeclaration(Node *n) {
+  return defaultHandler(n);
+}
+int Dispatcher::lambdaDeclaration(Node *n) {
   return defaultHandler(n);
 }
 int Dispatcher::classforwardDeclaration(Node *n) {
@@ -467,9 +472,9 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* --------------------------------------------------------------------------
- * use_naturalvar_mode()
+ * Language::use_naturalvar_mode()
  * -------------------------------------------------------------------------- */
-int use_naturalvar_mode(Node *n) {
+int Language::use_naturalvar_mode(Node *n) const {
   if (Getattr(n, "unnamed"))
     return 0;
   int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
@@ -478,12 +483,16 @@ int use_naturalvar_mode(Node *n) {
     SwigType *ty = Getattr(n, "type");
     SwigType *fullty = SwigType_typedef_resolve_all(ty);
     if (SwigType_isclass(fullty)) {
-      Node *m = Copy(n);
       SwigType *tys = SwigType_strip_qualifiers(fullty);
-      Swig_features_get(Swig_cparse_features(), 0, tys, 0, m);
-      nvar = GetFlag(m, "feature:naturalvar");
+      if (!CPlusPlus) {
+	Replaceall(tys, "struct ", "");
+	Replaceall(tys, "union ", "");
+	Replaceall(tys, "class ", "");
+      }
+      Node *typenode = Swig_symbol_clookup(tys, 0);
+      if (typenode)
+	nvar = GetFlag(typenode, "feature:naturalvar");
       Delete(tys);
-      Delete(m);
     }
     Delete(fullty);
   }
@@ -947,7 +956,7 @@ int Language::cDeclaration(Node *n) {
 
       if (AddExtern) {
 	if (f_header) {
-	  if ((Cmp(storage, "extern") == 0) || (ForceExtern && !storage)) {
+	  if (Swig_storage_isextern(n) || (ForceExtern && !storage)) {
 	    /* we don't need the 'extern' part in the C/C++ declaration,
 	       and it produces some problems when namespace and SUN
 	       Studio is used.
@@ -977,7 +986,7 @@ int Language::cDeclaration(Node *n) {
 	      }
 	    }
 	    Printf(f_header, ";\n");
-	  } else if (Cmp(storage, "externc") == 0) {
+	  } else if (Swig_storage_isexternc(n)) {
 	    /* here 'extern "C"' is needed */
 	    String *str = SwigType_str(ty, name);
 	    Printf(f_header, "extern \"C\" %s;\n", str);
@@ -1007,12 +1016,12 @@ int Language::cDeclaration(Node *n) {
     String *declaration = Copy(decl);
     Delattr(n, "decl");
     if (!CurrentClass) {
-      if ((Cmp(storage, "extern") == 0) || ForceExtern) {
-	f_header = Swig_filebyname("header");
+      if (Swig_storage_isextern(n) || ForceExtern) {
 	if (AddExtern) {
+	  f_header = Swig_filebyname("header");
 	  if (f_header) {
 	    String *str = SwigType_str(ty, name);
-	    Printf(f_header, "extern %s;\n", str);
+	    Printf(f_header, "%s %s;\n", Getattr(n, "storage"), str);
 	    Delete(str);
 	  }
 	}
@@ -1048,7 +1057,7 @@ int Language::cDeclaration(Node *n) {
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
   int isfriend = CurrentClass && Cmp(storage, "friend") == 0;
-  int isstatic = CurrentClass && Cmp(storage, "static") == 0 && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
+  int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {
     /* the method acts like a delete operator, ie, we need to disown the parameter */
@@ -1356,7 +1365,6 @@ int Language::variableHandler(Node *n) {
   if (!CurrentClass) {
     globalvariableHandler(n);
   } else {
-    String *storage = Getattr(n, "storage");
     Swig_save("variableHandler", n, "feature:immutable", NIL);
     if (SmartPointer) {
       /* If a smart-pointer and it's a constant access, we have to set immutable */
@@ -1364,7 +1372,7 @@ int Language::variableHandler(Node *n) {
 	SetFlag(n, "feature:immutable");
       }
     }
-    if ((Cmp(storage, "static") == 0) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
+    if (Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
       staticmembervariableHandler(n);
     } else {
       membervariableHandler(n);
@@ -1418,7 +1426,7 @@ int Language::membervariableHandler(Node *n) {
       String *target = 0;
       if (!Extend) {
 	if (SmartPointer) {
-	  if (checkAttribute(n, "storage", "static")) {
+	  if (Swig_storage_isstatic(n)) {
 	    Node *sn = Getattr(n, "cplus:staticbase");
 	    String *base = Getattr(sn, "name");
 	    target = NewStringf("%s::%s", base, name);
@@ -1439,6 +1447,7 @@ int Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup("memberin", nin, target, 0);
 	Delete(nin);
       }
+
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
@@ -2527,7 +2536,7 @@ int Language::classHandler(Node *n) {
 	  Setattr(m, "parentNode", n);
 	  /*
 	   * There is a bug that needs fixing still... 
-	   * This area of code is creating methods which have not been overidden in a derived class (director methods that are protected in the base)
+	   * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
 	   * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
 	   * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
 	  Printf(stdout, "new method: %s::%s(%s)\n", Getattr(parentNode(m), "name"), Getattr(m, "name"), ParmList_str_defaultargs(Getattr(m, "parms")));
@@ -3105,7 +3114,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(const SwigType *s) {
+Node *Language::classLookup(const SwigType *s) const {
   Node *n = 0;
 
   /* Look in hash of cached values */

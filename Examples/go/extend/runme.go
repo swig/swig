@@ -42,7 +42,7 @@ func main() {
 	// treated the same.  For items 0, 1, and 2, all methods
 	// resolve in C++.  For item 3, our CEO, GetTitle calls
 	// GetPosition which resolves in Go.  The call to GetPosition
-	// is slightly different, however, because of the overidden
+	// is slightly different, however, because of the overridden
 	// GetPosition() call, since now the object reference has been
 	// "laundered" by passing through EmployeeList as an
 	// Employee*.  Previously, Go resolved the call immediately in

@@ -29,28 +29,28 @@
 #ifndef SWIGUNUSED
 # if defined(__GNUC__)
 #   if !(defined(__cplusplus)) || (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
-#     define SWIGUNUSED __attribute__ ((__unused__)) 
+#     define SWIGUNUSED __attribute__ ((__unused__))
 #   else
 #     define SWIGUNUSED
 #   endif
 # elif defined(__ICC)
-#   define SWIGUNUSED __attribute__ ((__unused__)) 
+#   define SWIGUNUSED __attribute__ ((__unused__))
 # else
-#   define SWIGUNUSED 
+#   define SWIGUNUSED
 # endif
 #endif
 
 #ifndef SWIG_MSC_UNSUPPRESS_4505
 # if defined(_MSC_VER)
 #   pragma warning(disable : 4505) /* unreferenced local function has been removed */
-# endif 
+# endif
 #endif
 
 #ifndef SWIGUNUSEDPARM
 # ifdef __cplusplus
 #   define SWIGUNUSEDPARM(p)
 # else
-#   define SWIGUNUSEDPARM(p) p SWIGUNUSED 
+#   define SWIGUNUSEDPARM(p) p SWIGUNUSED
 # endif
 #endif
 
@@ -93,7 +93,7 @@
 #   define SWIGSTDCALL __stdcall
 # else
 #   define SWIGSTDCALL
-# endif 
+# endif
 #endif
 
 /* Deal with Microsoft's attempt at deprecating C standard runtime functions */

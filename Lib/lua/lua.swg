@@ -40,7 +40,7 @@
 %typemap(consttab) long long, unsigned long long
        {SWIG_LUA_CONSTTAB_STRING("$symname", "$value")}
 
-%typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE []
+%typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}
 
 // member function pointers

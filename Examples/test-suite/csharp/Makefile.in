@@ -14,9 +14,11 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	csharp_attributes \
+	csharp_swig2_compatibility \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \
+	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
 	enum_thorough_simple \
@@ -35,6 +37,7 @@ CSHARPFLAGSSPECIAL =
 # Custom tests - tests with additional commandline options
 intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
+csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 
 # Rules for the different types of tests
 %.cpptest: 

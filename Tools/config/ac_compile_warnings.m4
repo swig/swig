@@ -4,7 +4,7 @@ dnl Set the maximum warning verbosity according to C and C++ compiler used.
 dnl Currently supports g++ and gcc.
 dnl
 dnl The compiler options are always added CFLAGS and CXXFLAGS even if
-dnl these are overidden at configure time. Removing the maximum warning
+dnl these are overridden at configure time. Removing the maximum warning
 dnl flags can be removed with --without-maximum-compile-warnings. For example:
 dnl
 dnl   ./configure --without-maximum-compile-warnings CFLAGS= CXXFLAGS=

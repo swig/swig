@@ -1563,7 +1563,7 @@ public:
 	return NewString("True");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
-      if (Strcmp(v, "NULL") == 0)
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
     }
     return 0;
@@ -3728,7 +3728,7 @@ public:
     if (builtin)
       builtin_pre_decl(n);
 
-    /* Overide the shadow file so we can capture its methods */
+    /* Override the shadow file so we can capture its methods */
     f_shadow = NewString("");
 
     // Set up type check for director class constructor

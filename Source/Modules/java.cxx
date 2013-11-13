@@ -196,16 +196,17 @@ public:
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
    * Return NULL if not otherwise the proxy class name, fully qualified with
-   * package name if the nspace feature is used.
+   * package name if the nspace feature is used, unless jnidescriptor is true as
+   * the package name is handled differently (unfortunately for legacy reasons).
    * ----------------------------------------------------------------------------- */
   
-   String *getProxyName(SwigType *t) {
+   String *getProxyName(SwigType *t, bool jnidescriptor = false) {
      String *proxyname = NULL;
      if (proxy_flag) {
        Node *n = classLookup(t);
        if (n) {
 	 proxyname = Getattr(n, "proxyname");
-	 if (!proxyname) {
+	 if (!proxyname || jnidescriptor) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
 	   if (!GetFlag(n, "feature:flatnested")) {
@@ -215,15 +216,17 @@ public:
 	     }
 	   }
 	   if (nspace) {
-	     if (package)
+	     if (package && !jnidescriptor)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
 	     else
 	       proxyname = NewStringf("%s.%s", nspace, symname);
 	   } else {
 	     proxyname = Copy(symname);
 	   }
-	   Setattr(n, "proxyname", proxyname);
-	   Delete(proxyname);
+	   if (!jnidescriptor) {
+	     Setattr(n, "proxyname", proxyname); // Cache it
+	     Delete(proxyname);
+	   }
 	   Delete(symname);
 	 }
        }
@@ -2960,6 +2963,7 @@ public:
    * getEnumName()
    *
    * If jnidescriptor is set, inner class names are separated with '$' otherwise a '.'
+   * and the package is also not added to the name.
    * ----------------------------------------------------------------------------- */
 
   String *getEnumName(SwigType *t, bool jnidescriptor) {
@@ -2974,7 +2978,7 @@ public:
 	  String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
 	  String *proxyname = 0;
 	  if (scopename_prefix) {
-	    proxyname = getProxyName(scopename_prefix);
+	    proxyname = getProxyName(scopename_prefix, jnidescriptor);
 	  }
 	  if (proxyname) {
 	    const char *class_separator = jnidescriptor ? "$" : ".";
@@ -2983,7 +2987,7 @@ public:
 	    // global enum or enum in a namespace
 	    String *nspace = Getattr(n, "sym:nspace");
 	    if (nspace) {
-	      if (package)
+	      if (package && !jnidescriptor)
 		enumname = NewStringf("%s.%s.%s", package, nspace, symname);
 	      else
 		enumname = NewStringf("%s.%s", nspace, symname);
@@ -2991,8 +2995,8 @@ public:
 	      enumname = Copy(symname);
 	    }
 	  }
-	  if (!jnidescriptor) { // not cached
-	    Setattr(n, "enumname", enumname);
+	  if (!jnidescriptor) {
+	    Setattr(n, "enumname", enumname); // Cache it
 	    Delete(enumname);
 	  }
 	  Delete(scopename_prefix);
@@ -3010,10 +3014,11 @@ public:
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Note that the path separator is a '.' unless jnidescriptor is set.
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
-   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '.'
+   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '/' is used for the path separator
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
    * Return:
@@ -3059,25 +3064,31 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor) {
+    String *replacementname;
+
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(classnametype, jnidescriptor);
       if (enumname)
-	Replaceall(tm, classnamespecialvariable, enumname);
+	replacementname = Copy(enumname);
       else
-	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+	replacementname = NewString("int");
     } else {
-      String *classname = getProxyName(classnametype);
+      String *classname = getProxyName(classnametype, jnidescriptor); // getProxyName() works for pointers to classes too
       if (classname) {
-	Replaceall(tm, classnamespecialvariable, classname);	// getProxyName() works for pointers to classes too
-      } else {			// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
-	Replaceall(tm, classnamespecialvariable, descriptor);
+	replacementname = Copy(classname);
+      } else {
+	// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+	replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 
 	// Add to hash table so that the type wrapper classes can be created later
-	Setattr(swig_types_hash, descriptor, classnametype);
-	Delete(descriptor);
+	Setattr(swig_types_hash, replacementname, classnametype);
       }
     }
+    if (jnidescriptor)
+      Replaceall(replacementname,".","/");
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
   }
 
   /* -----------------------------------------------------------------------------
@@ -3572,10 +3583,36 @@ public:
     // Delete(method_attr);
   }
 
+  /* -----------------------------------------------------------------------------
+   * substitutePackagePath()
+   *
+   * Replace $packagepath using the javapackage typemap associated with passed
+   * parm or global package if p is 0. "$packagepath/" is replaced with "" if
+   * no package is set. Note that the path separator is a '/'.
+   * ----------------------------------------------------------------------------- */
+
+  void substitutePackagePath(String *text, Parm *p) {
+    String *pkg_path= 0;
+
+    if (p)
+      pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
+    if (!pkg_path || Len(pkg_path) == 0)
+      pkg_path = Copy(package_path);
+
+    if (Len(pkg_path) > 0) {
+      Replaceall(pkg_path, ".", "/");
+      Replaceall(text, "$packagepath", pkg_path);
+    } else {
+      Replaceall(text, "$packagepath/", empty_string);
+      Replaceall(text, "$packagepath", empty_string);
+    }
+    Delete(pkg_path);
+  }
+
   /* ---------------------------------------------------------------
    * Canonicalize the JNI field descriptor
    *
-   * Replace the $javapackage and $javaclassname family of special
+   * Replace the $packagepath and $javaclassname family of special
    * variables with the desired package and Java proxy name as 
    * required in the JNI field descriptors.
    * 
@@ -3586,27 +3623,11 @@ public:
    * --------------------------------------------------------------- */
 
   String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
-    String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     SwigType *type = Getattr(p, "type");
-
-    if (!pkg_path || Len(pkg_path) == 0)
-      pkg_path = package_path;
-
     String *descriptor_out = Copy(descriptor_in);
 
     substituteClassname(type, descriptor_out, true);
-
-    if (Len(pkg_path) > 0 && Strchr(descriptor_out, '.') == NULL) {
-      Replaceall(descriptor_out, "$packagepath", pkg_path);
-    } else {
-      Replaceall(descriptor_out, "$packagepath/", empty_string);
-      Replaceall(descriptor_out, "$packagepath", empty_string);
-    }
-
-    Replaceall(descriptor_out, ".", "/");
-
-    if (pkg_path != package_path)
-      Delete(pkg_path);
+    substitutePackagePath(descriptor_out, p);
 
     return descriptor_out;
   }
@@ -4003,17 +4024,33 @@ public:
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
 
+    // May need to add Java throws clause to director methods if %catches defined
+    // Get any Java exception classes in the throws typemap
+    ParmList *catches_list = Getattr(n, "catchlist");
+    if (catches_list) {
+      Swig_typemap_attach_parms("throws", catches_list, 0);
+      Swig_typemap_attach_parms("directorthrows", catches_list, 0);
+      for (p = catches_list; p; p = nextSibling(p)) {
+	addThrows(n, "tmap:throws", p);
+      }
+    }
+
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      if (throw_parm_list)
+      if (throw_parm_list) {
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+	Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
+      }
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if (Getattr(p, "tmap:throws")) {
-	  addThrows(n, "tmap:throws", p);
+	  // %catches replaces the specified exception specification
+	  if (!catches_list) {
+	    addThrows(n, "tmap:throws", p);
+	  }
 
 	  if (gencomma++) {
 	    Append(w->def, ", ");
@@ -4076,7 +4113,8 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;\n");
+      // Generate code to handle any Java exception thrown by director delegation
+      directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4117,7 +4155,8 @@ public:
 
       /* Terminate wrapper code */
       Printf(w->code, "} else {\n");
-      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
+      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
+	     SwigType_namestr(c_classname), SwigType_namestr(name));
       Printf(w->code, "}\n");
 
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
@@ -4171,6 +4210,61 @@ public:
     DelWrapper(w);
 
     return status;
+  }
+
+  /* ------------------------------------------------------------
+   * directorExceptHandler()
+   *
+   * Emit code to map Java exceptions back to C++ exceptions when
+   * feature("director:except") is applied to a method node.
+   * This is generated after the Java method upcall.
+   * ------------------------------------------------------------ */
+
+  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w) {
+
+    String *directorexcept = Getattr(n, "feature:director:except");
+    if (!directorexcept) {
+      directorexcept = NewString("");
+      Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
+      Printf(directorexcept, "if ($error) {\n");
+      Printf(directorexcept, "  jenv->ExceptionClear();$directorthrowshandlers\n");
+      Printf(directorexcept, "  throw Swig::DirectorException(jenv, $error);\n");
+      Printf(directorexcept, "}\n");
+    } else {
+      directorexcept = Copy(directorexcept);
+    }
+
+    // Can explicitly disable director:except by setting to "" or "0"
+    if (Len(directorexcept) > 0 && Cmp(directorexcept, "0") != 0) {
+
+      // Replace $packagepath
+      substitutePackagePath(directorexcept, 0);
+
+      // Replace $directorthrowshandlers with any defined typemap handlers (or nothing)
+      if (Strstr(directorexcept, "$directorthrowshandlers")) {
+	String *directorthrowshandlers_code = NewString("");
+
+	for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
+	  String *tm = Getattr(p, "tmap:directorthrows");
+
+	  if (tm) {
+	    // replace $packagepath/$javaclassname
+	    String *directorthrows = canonicalizeJNIDescriptor(tm, p);
+	    Printv(directorthrowshandlers_code, directorthrows, NIL);
+	    Delete(directorthrows);
+	  } else {
+	    String *t = Getattr(p,"type");
+	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
+	  }
+	}
+	Replaceall(directorexcept, "$directorthrowshandlers", directorthrowshandlers_code);
+	Delete(directorthrowshandlers_code);
+      }
+
+      Replaceall(directorexcept, "$error", "swigerror");
+      Printf(w->code, "    %s\n", directorexcept);
+    }
+    Delete(directorexcept);
   }
 
   /* ------------------------------------------------------------

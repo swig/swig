@@ -258,7 +258,7 @@ this option the default output directory is the path to the input file.
 If <tt>-o</tt> and
 <tt>-outcurrentdir</tt> are used together, <tt>-outcurrentdir</tt> is effectively ignored
 as the output directory for the language files is the same directory as the
-generated C/C++ file if not overidden with <tt>-outdir</tt>.
+generated C/C++ file if not overridden with <tt>-outdir</tt>.
 </p>
 
 <H3><a name="SWIG_nn5"></a>5.1.3 Comments</H3>
@@ -1888,11 +1888,22 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
     by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions (PCRE)</a>)
     library and the <i>subst</i> string
-    can contain back-references introduced by <tt>'\'</tt> or, as backslashes need
-    to be escaped in C strings, rather by <tt>"\\"</tt>. For example, to remove
-    any alphabetic prefix before an underscore you could use the following directive:
-    <tt>%rename("regex:/(\\w+)_(.*)/\\2/")</tt></td>
-    <td><tt>Prefix_Print</tt></td><td><tt>Print</tt></td>
+    can contain back-references of the form <tt>\N</tt> where <tt>N</tt> is a digit
+    from 0 to 9, or one of the following escape sequences: <tt>\l</tt>, <tt>\L</tt>,
+    <tt>\u</tt>, <tt>\U</tt> or <tt>\E</tt>. The back-references are replaced with the
+    contents of the corresponding capture group while the escape sequences perform the
+    case conversion in the substitution string: <tt>\l</tt> and <tt>\L</tt> convert to
+    the lower case, while <tt>\u</tt> and <tt>\U</tt> convert to the upper case. The
+    difference between the elements of each pair is that <tt>\l</tt> and <tt>\u</tt>
+    change the case of the next character only, while <tt>\L</tt> and <tt>\U</tt> do
+    it for all the remaining characters or until <tt>\E</tt> is encountered.
+
+    Finally please notice that backslashes need to be escaped in C strings, so in
+    practice <tt>"\\"</tt> must be used in all these escape sequences. For example,
+    to remove any alphabetic prefix before an underscore and capitalize the remaining
+    part you could use the following directive:
+    <tt>%rename("regex:/(\\w+)_(.*)/\\u\\2/")</tt></td>
+    <td><tt>prefix_print</tt></td><td><tt>Print</tt></td>
 </tr>
 <tr>
     <td><tt>command:cmd</tt></td>

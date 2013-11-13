@@ -306,7 +306,6 @@ namespace std {
                     $1 = 1;
                 } else {
                     /* check the first element only */
-                    T* x;
                     SCM o = scm_vector_ref($input,scm_from_ulong(0));
                     $1 = CHECK(o) ? 1 : 0;
                 }
@@ -315,7 +314,6 @@ namespace std {
                 $1 = 1;
             } else if (scm_is_pair($input)) {
                 /* check the first element only */
-                T* x;
                 SCM head = SCM_CAR($input);
                 $1 = CHECK(head) ? 1 : 0;
             } else {
@@ -335,7 +333,6 @@ namespace std {
                     $1 = 1;
                 } else {
                     /* check the first element only */
-                    T* x;
                     SCM o = scm_vector_ref($input,scm_from_ulong(0));
                     $1 = CHECK(o) ? 1 : 0;
                 }
@@ -344,7 +341,6 @@ namespace std {
                 $1 = 1;
             } else if (scm_is_pair($input)) {
                 /* check the first element only */
-                T* x;
                 SCM head = SCM_CAR($input);
                 $1 = CHECK(head) ? 1 : 0;
             } else {

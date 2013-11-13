@@ -68,6 +68,9 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_QUESTION     30       /* ? */
 #define   SWIG_TOKEN_COMMENT      31       /* C or C++ comment */
 #define   SWIG_TOKEN_BOOL         32       /* true or false */
+#define   SWIG_TOKEN_WSTRING      33       /* L"str" */
+#define   SWIG_TOKEN_WCHAR        34       /* L'c' */
+
 #define   SWIG_TOKEN_ILLEGAL      99
 #define   SWIG_TOKEN_ERROR        -1
 

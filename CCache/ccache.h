@@ -200,6 +200,8 @@ typedef int (*COMPAR_FN_T)(const void *, const void *);
 
 /* mkstemp() on some versions of cygwin don't handle binary files, so
    override */
+/* Seems okay in Cygwin 1.7.0
 #ifdef __CYGWIN__
 #undef HAVE_MKSTEMP
 #endif
+*/

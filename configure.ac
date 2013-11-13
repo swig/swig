@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.11],[http://www.swig.org])
+AC_INIT([swig],[3.0.0],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -318,16 +318,39 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATFLAGS)
+AC_MSG_CHECKING(PLATCFLAGS)
 case $host in
   *-*-solaris*) if test "$GCC" = yes
-    then PLATFLAGS=
-    else PLATFLAGS=
-      #    else PLATFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
+    then PLATCFLAGS=
+    else PLATCFLAGS=
+      #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
-  *) PLATFLAGS=
+  *) PLATCFLAGS=
 esac
-AC_MSG_RESULT($PLATFLAGS)
+AC_MSG_RESULT($PLATCFLAGS)
+
+# Add switch if necessary to enable C++11 support - just for tests
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
+AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_RESULT([$enable_cpp11_testing])
+
+PLATCXXFLAGS="$PLATCFLAGS"
+if test x"$enable_cpp11_testing" = xyes; then 
+  AC_LANG_PUSH([C++])
+  CXXFLAGS_SAVED=$CXXFLAGS
+  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
+  CXXFLAGS=$CXXFLAGS_SAVED
+  AC_LANG_POP([C++])
+  if test x"$CXX11FLAGS" != x; then
+    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
+  fi
+  AC_MSG_CHECKING([for C++11 enabled compiler])
+  if test x"$HAVE_CXX11_COMPILER" = x; then
+    AC_MSG_RESULT([no])
+  else
+    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+  fi
+fi
 
 # Set info about shared libraries.
 AC_SUBST(SO)
@@ -336,7 +359,9 @@ AC_SUBST(CCSHARED)
 AC_SUBST(CXXSHARED)
 AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
-AC_SUBST(PLATFLAGS)
+AC_SUBST(PLATCFLAGS)
+AC_SUBST(PLATCXXFLAGS)
+AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
@@ -418,79 +443,8 @@ else AC_MSG_ERROR([proper usage is --with-libc=STRING])
 fi])
 
 #--------------------------------------------------------------------
-#	Locate the X11 header files and the X11 library archive.  Try
-#	the ac_path_x macro first, but if it doesn't find the X stuff
-#	(e.g. because there's no xmkmf program) then check through
-#	a list of possible directories.  Under some conditions the
-#	autoconf macro will return an include directory that contains
-#	no include files, so double-check its result just to be safe.
+# Target languages
 #--------------------------------------------------------------------
-
-AC_PATH_X
-not_really_there=""
-if test "$no_x" = ""; then
-    if test "$x_includes" = ""; then
-	AC_TRY_CPP([#include <X11/XIntrinsic.h>], , not_really_there="yes")
-    else
-	if test ! -r $x_includes/X11/Intrinsic.h; then
-	    not_really_there="yes"
-	fi
-    fi
-fi
-if test "$no_x" = "yes" -o "$not_really_there" = "yes"; then
-    AC_MSG_CHECKING(for X11 header files)
-    XINCLUDES="# no special path needed"
-    AC_TRY_CPP([#include <X11/Intrinsic.h>], , XINCLUDES="")
-    if test -z "$XINCLUDES"; then
-        dirs="/usr/unsupported/include /usr/local/include /usr/X386/include /usr/include/X11R4 /usr/X11R5/include /usr/include/X11R5 /usr/openwin/include /usr/X11/include /usr/sww/include /usr/X11R6/include /usr/include/X11R6"
-        for i in $dirs ; do
-	    if test -r $i/X11/Intrinsic.h; then
-	        XINCLUDES=" -I$i"
-		break
-	    fi
-        done
-    fi
-    AC_MSG_RESULT($XINCLUDES)
-else
-    if test "$x_includes" != ""; then
-	XINCLUDES=-I$x_includes
-    else
-	XINCLUDES="# no special path needed"
-    fi
-fi
-if test -z "$XINCLUDES"; then
-    AC_MSG_RESULT(couldn't find any!)
-    XINCLUDES="# no include files found"
-fi
-
-if test "$no_x" = yes; then
-    AC_MSG_CHECKING(for X11 libraries)
-    XLIBSW=
-    dirs="/usr/unsupported/lib /usr/local/lib /usr/X386/lib /usr/lib/X11R4 /usr/X11R5/lib /usr/lib/X11R5 /usr/X11R6/lib /usr/lib/X11R6 /usr/openwin/lib /usr/X11/lib /usr/sww/X11/lib"
-    for i in $dirs ; do
-	if test -r $i/libX11.a -o -r $i/libX11.so -o -r $i/libX11.sl; then
-	    AC_MSG_RESULT($i)
-	    XLIBSW="-L$i -lX11"
-	    break
-	fi
-    done
-else
-    if test "$x_libraries" = ""; then
-	XLIBSW=-lX11
-    else
-	XLIBSW="-L$x_libraries -lX11"
-    fi
-fi
-if test -z "$XLIBSW" ; then
-    AC_CHECK_LIB(Xwindow, XCreateWindow, XLIBSW=-lXwindow)
-fi
-if test -z "$XLIBSW" ; then
-    AC_MSG_RESULT(couldn't find any!  Using -lX11.)
-    XLIBSW=-lX11
-fi
-
-AC_SUBST(XINCLUDES)
-AC_SUBST(XLIBSW)
 
 AC_ARG_WITH(alllang, AS_HELP_STRING([--without-alllang], [Disable all languages]), with_alllang="$withval")
 
@@ -1399,6 +1353,7 @@ if test -n "$RUBY"; then
 	esac
 
 	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
+	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
 	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
@@ -1416,6 +1371,7 @@ AC_SUBST(RUBYINCLUDE)
 AC_SUBST(RUBYLIB)
 AC_SUBST(RUBYLINK)
 AC_SUBST(RUBYCCDLFLAGS)
+AC_SUBST(RUBYSO)
 AC_SUBST(RUBYDYNAMICLINKING)
 
 #-------------------------------------------------------------------------

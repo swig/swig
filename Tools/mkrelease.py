@@ -45,4 +45,4 @@ os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version 
 
 print "Finished"
 
-print "Now log in to SourceForge and set the operating systems applicable to the newly uploaded tarball and zip file. Also remember to do a 'git push'."
+print "Now log in to SourceForge and set the operating systems applicable to the newly uploaded tarball and zip file. Also remember to do a 'git push --tags'."
