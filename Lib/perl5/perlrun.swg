@@ -289,7 +289,11 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
     /* Now see if the types match */
     char *_c = HvNAME(SvSTASH(SvRV(sv)));
     tc = SWIG_TypeProxyCheck(_c,_t);
+#ifdef SWIG_DIRECTORS
     if (!tc && !sv_derived_from(sv,SWIG_Perl_TypeProxyName(_t))) {
+#else
+    if (!tc) {
+#endif
       return SWIG_ERROR;
     }
     {
