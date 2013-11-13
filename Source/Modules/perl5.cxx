@@ -1707,8 +1707,8 @@ public:
     String *saved_nc = none_comparison;
     none_comparison = NewStringf("strcmp(SvPV_nolen(ST(0)), \"%s::%s\") != 0", module, class_name);
     String *saved_director_prot_ctor_code = director_prot_ctor_code;
-    director_prot_ctor_code = NewStringf( "if ($comparison) { /* subclassed */\n" "  $director_new\n" "} else {\n" "
-	SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n" "}\n");
+    director_prot_ctor_code = NewStringf( "if ($comparison) { /* subclassed */\n" "  $director_new\n" "} else {\n"
+       	"SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n" "}\n");
     Language::constructorHandler(n);
     Delete(none_comparison);
     none_comparison = saved_nc;
