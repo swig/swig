@@ -1529,11 +1529,11 @@ public:
 	Delete(get_attr);
 
 	Printv(pm, "sub FETCH {\n", tab4, "my ($self,$field) = @_;\n", tab4, "my $member_func = \"swig_${field}_get\";\n", tab4,
-	       "if (not $self->can(\"$member_func\")) {\n", tab4, tab4, "my $h = ", cmodule, "::", mrename, "($self);\n", tab4, tab4,
-	       "return $h->{$field} if $h;\n", tab4, "}\n", tab4, "return $self->$member_func;\n", "}\n", "\n", "sub STORE {\n", tab4,
-	       "my ($self,$field,$newval) = @_;\n", tab4, "my $member_func = \"swig_${field}_set\";\n", tab4,
-	       "if (not $self->can(\"$member_func\")) {\n", tab4, tab4, "my $h = ", cmodule, "::", mrename, "($self);\n", tab4, tab4,
-	       "return $h->{$field} = $newval if $h;\n", tab4, "}\n", tab4, "return $self->$member_func($newval);\n", "}\n", NIL);
+	       "if (not $self->can($member_func)) {\n", tab8, "my $h = ", cmodule, "::", mrename, "($self);\n", tab8, "return $h->{$field} if $h;\n",
+	       tab4, "}\n", tab4, "return $self->$member_func;\n", "}\n", "\n", "sub STORE {\n", tab4, "my ($self,$field,$newval) = @_;\n", tab4,
+	       "my $member_func = \"swig_${field}_set\";\n", tab4, "if (not $self->can($member_func)) {\n", tab8, "my $h = ", cmodule, "::", mrename,
+	       "($self);\n", tab8, "return $h->{$field} = $newval if $h;\n", tab4, "}\n", tab4, "return $self->$member_func($newval);\n", "}\n", NIL);
+
        	Delete(mrename);
       }
     }
@@ -2493,8 +2493,9 @@ public:
     String *mangle = SwigType_manglestr(ptype);
 
     Printv(body, tab4, "dSP;\n", tab4, "SV *self = SWIG_NewPointerObj(SWIG_as_voidptr(this), SWIGTYPE", mangle, ", SWIG_SHADOW);\n", tab4, "\n", tab4,
-	"sv_bless(self, gv_stashpv(swig_get_class(), 0));\n", tab4, "ENTER;\n", tab4, "SAVETMPS;\n", tab4, "PUSHMARK(SP);\n", tab4, "XPUSHs(self);\n",
-	tab4, "PUTBACK;\n", tab4, "call_method(\"DIRECTOR_DESTROY\", G_EVAL | G_VOID);\n", tab4, "FREETMPS;\n", tab4, "LEAVE;\n", NIL);
+	   "sv_bless(self, gv_stashpv(swig_get_class(), 0));\n", tab4, "ENTER;\n", tab4, "SAVETMPS;\n", tab4, "PUSHMARK(SP);\n", tab4,
+	   "XPUSHs(self);\n", tab4, "XPUSHs(&PL_sv_yes);\n", tab4, "PUTBACK;\n", tab4, "call_method(\"DESTROY\", G_EVAL | G_VOID);\n", tab4,
+	   "FREETMPS;\n", tab4, "LEAVE;\n", NIL);
 
     Delete(mangle);
     Delete(ptype);

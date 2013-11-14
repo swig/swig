@@ -7,8 +7,9 @@ require_ok('director_finalizer');
 {
   package MyFoo;
   use base 'director_finalizer::Foo';
-  sub DIRECTOR_DESTROY { my($self) = @_;
-    $self->orStatus(2);
+  sub DESTROY { my($self, $final) = @_;
+    $self->orStatus(2) if $final;
+    shift->SUPER::DESTROY(@_);
   }
 }
 
