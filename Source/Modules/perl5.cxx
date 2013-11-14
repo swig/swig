@@ -238,47 +238,42 @@ public:
     {
       Node *mod = Getattr(n, "module");
       if (mod) {
-        Node *options = Getattr(mod, "options");
-        if (options) {
-          int dirprot = 0;
-          if (Getattr(options, "dirprot"))
-            dirprot = 1;
-          if (Getattr(options, "nodirprot"))
-            dirprot = 0;
-          if (Getattr(options, "directors")) {
-            int allow = 1;
-            if (export_all) {
-              Printv(stderr,
-                     "*** directors are not supported with -exportall\n", NIL);
-              allow = 0;
-            }
-            if (staticoption) {
-              Printv(stderr,
-                     "*** directors are not supported with -static\n", NIL);
-              allow = 0;
-            }
-            if (!blessed) {
-              Printv(stderr,
-                     "*** directors are not supported with -noproxy\n", NIL);
-              allow = 0;
-            }
-            if (no_pmfile) {
-              Printv(stderr,
-                     "*** directors are not supported with -nopm\n", NIL);
-              allow = 0;
-            }
-            if (compat) {
-              Printv(stderr,
-                     "*** directors are not supported with -compat\n", NIL);
-              allow = 0;
-            }
-            if (allow) {
-              allow_directors();
-              if (dirprot)
-                allow_dirprot();
-            }
-          }
-        }
+	Node *options = Getattr(mod, "options");
+	if (options) {
+	  int dirprot = 0;
+	  if (Getattr(options, "dirprot"))
+	    dirprot = 1;
+	  if (Getattr(options, "nodirprot"))
+	    dirprot = 0;
+	  if (Getattr(options, "directors")) {
+	    int allow = 1;
+	    if (export_all) {
+	      Printv(stderr, "*** directors are not supported with -exportall\n", NIL);
+	      allow = 0;
+	    }
+	    if (staticoption) {
+	      Printv(stderr, "*** directors are not supported with -static\n", NIL);
+	      allow = 0;
+	    }
+	    if (!blessed) {
+	      Printv(stderr, "*** directors are not supported with -noproxy\n", NIL);
+	      allow = 0;
+	    }
+	    if (no_pmfile) {
+	      Printv(stderr, "*** directors are not supported with -nopm\n", NIL);
+	      allow = 0;
+	    }
+	    if (compat) {
+	      Printv(stderr, "*** directors are not supported with -compat\n", NIL);
+	      allow = 0;
+	    }
+	    if (allow) {
+	      allow_directors();
+	      if (dirprot)
+		allow_dirprot();
+	    }
+	  }
+	}
       }
     }
 
@@ -301,8 +296,8 @@ public:
     if (directorsEnabled()) {
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
-        FileErrorDisplay(outfile_h);
-        SWIG_exit(EXIT_FAILURE);
+	FileErrorDisplay(outfile_h);
+	SWIG_exit(EXIT_FAILURE);
       }
     }
 
@@ -1477,8 +1472,7 @@ public:
 
       String *director_disown;
       if (Getattr(n, "perl5:directordisown")) {
-	director_disown = NewStringf("%s%s($self);\n",
-	    tab4, Getattr(n, "perl5:directordisown"));
+	director_disown = NewStringf("%s%s($self);\n", tab4, Getattr(n, "perl5:directordisown"));
       } else {
 	director_disown = NewString("");
       }
@@ -1511,7 +1505,8 @@ public:
 	type = NewString("SV");
 	SwigType_add_pointer(type);
 	String *action = NewString("");
-	Printv(action, "{\n", "  Swig::Director *director = SWIG_DIRECTOR_CAST(arg1);\n", "  result = sv_newmortal();\n" "  if (director) sv_setsv(result, director->swig_get_self());\n", "}\n", NIL);
+	Printv(action, "{\n", "  Swig::Director *director = SWIG_DIRECTOR_CAST(arg1);\n",
+	       "  result = sv_newmortal();\n" "  if (director) sv_setsv(result, director->swig_get_self());\n", "}\n", NIL);
 	Setfile(get_attr, Getfile(n));
 	Setline(get_attr, Getline(n));
 	Setattr(get_attr, "wrap:action", action);
@@ -1534,7 +1529,7 @@ public:
 	       "my $member_func = \"swig_${field}_set\";\n", tab4, "if (not $self->can($member_func)) {\n", tab8, "my $h = ", cmodule, "::", mrename,
 	       "($self);\n", tab8, "return $h->{$field} = $newval if $h;\n", tab4, "}\n", tab4, "return $self->$member_func($newval);\n", "}\n", NIL);
 
-       	Delete(mrename);
+	Delete(mrename);
       }
     }
     return SWIG_OK;
@@ -1707,8 +1702,8 @@ public:
     String *saved_nc = none_comparison;
     none_comparison = NewStringf("strcmp(SvPV_nolen(ST(0)), \"%s::%s\") != 0", module, class_name);
     String *saved_director_prot_ctor_code = director_prot_ctor_code;
-    director_prot_ctor_code = NewStringf( "if ($comparison) { /* subclassed */\n" "  $director_new\n" "} else {\n"
-       	"SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n" "}\n");
+    director_prot_ctor_code = NewStringf("if ($comparison) { /* subclassed */\n" "  $director_new\n" "} else {\n"
+					 "SWIG_exception_fail(SWIG_RuntimeError, \"accessing abstract class or protected constructor\");\n" "}\n");
     Language::constructorHandler(n);
     Delete(none_comparison);
     none_comparison = saved_nc;
@@ -1732,7 +1727,7 @@ public:
 	  Printv(pcode, "sub ", Swig_name_construct(NSPACE_TODO, symname), " {\n", NIL);
 	}
 
-	const char *pkg = getCurrentClass() && Swig_directorclass(getCurrentClass()) ? "$_[0]" : "shift";
+	const char *pkg = getCurrentClass() && Swig_directorclass(getCurrentClass())? "$_[0]" : "shift";
 	Printv(pcode,
 	       tab4, "my $pkg = ", pkg, ";\n",
 	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(NSPACE_TODO, symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
@@ -2083,7 +2078,7 @@ public:
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
-        pure_virtual = true;
+	pure_virtual = true;
       }
     }
 
@@ -2116,18 +2111,18 @@ public:
       Append(declaration, " throw(");
 
       if (throw_parm_list)
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-          String *str = SwigType_str(Getattr(p, "type"), 0);
-          Append(w->def, str);
-          Append(declaration, str);
-          Delete(str);
-        }
+	if (Getattr(p, "tmap:throws")) {
+	  if (gencomma++) {
+	    Append(w->def, ", ");
+	    Append(declaration, ", ");
+	  }
+	  String *str = SwigType_str(Getattr(p, "type"), 0);
+	  Append(w->def, str);
+	  Append(declaration, str);
+	  Delete(str);
+	}
       }
 
       Append(w->def, ")");
@@ -2143,9 +2138,9 @@ public:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-        String *cres = SwigType_lstr(returntype, "c_result");
-        Printf(w->code, "%s;\n", cres);
-        Delete(cres);
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
 	String *pres = NewStringf("SV *%s", Swig_cresult_name());
 	Wrapper_add_local(w, Swig_cresult_name(), pres);
 	Delete(pres);
@@ -2154,14 +2149,14 @@ public:
 
     if (ignored_method) {
       if (!pure_virtual) {
-        if (!is_void)
-          Printf(w->code, "return ");
-        String *super_call = Swig_method_call(super, l);
-        Printf(w->code, "%s;\n", super_call);
-        Delete(super_call);
+	if (!is_void)
+	  Printf(w->code, "return ");
+	String *super_call = Swig_method_call(super, l);
+	Printf(w->code, "%s;\n", super_call);
+	Delete(super_call);
       } else {
-        Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-            SwigType_namestr(name));
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+	       SwigType_namestr(name));
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> Perl) */
@@ -2195,32 +2190,32 @@ public:
 
       int outputs = 0;
       if (!is_void)
-        outputs++;
+	outputs++;
 
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
       while (p) {
-        if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-          p = Getattr(p, "tmap:in:next");
-          continue;
-        }
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	}
 
-        /* old style?  caused segfaults without the p!=0 check
-           in the for() condition, and seems dangerous in the
-           while loop as well.
-           while (Getattr(p, "tmap:ignore")) {
-           p = Getattr(p, "tmap:ignore:next");
-           }
-         */
+	/* old style?  caused segfaults without the p!=0 check
+	   in the for() condition, and seems dangerous in the
+	   while loop as well.
+	   while (Getattr(p, "tmap:ignore")) {
+	   p = Getattr(p, "tmap:ignore:next");
+	   }
+	 */
 
-        if (Getattr(p, "tmap:directorargout") != 0)
-          outputs++;
+	if (Getattr(p, "tmap:directorargout") != 0)
+	  outputs++;
 
-        String *pname = Getattr(p, "name");
-        String *ptype = Getattr(p, "type");
+	String *pname = Getattr(p, "name");
+	String *ptype = Getattr(p, "type");
 
-        if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
 	  sprintf(source, "obj%d", idx++);
 	  String *input = NewString(source);
 	  Setattr(p, "emit:directorinput", input);
@@ -2234,74 +2229,74 @@ public:
 	  Printv(wrap_args, tm, "\n", NIL);
 	  Putc('O', parse_args);
 	  Printv(pstack, "XPUSHs(", source, ");\n", NIL);
-          p = Getattr(p, "tmap:directorin:next");
-          continue;
-        } else if (Cmp(ptype, "void")) {
-          /* special handling for pointers to other C++ director classes.
-           * ideally this would be left to a typemap, but there is currently no
-           * way to selectively apply the dynamic_cast<> to classes that have
-           * directors.  in other words, the type "SwigDirector_$1_lname" only exists
-           * for classes with directors.  we avoid the problem here by checking
-           * module.wrap::directormap, but it's not clear how to get a typemap to
-           * do something similar.  perhaps a new default typemap (in addition
-           * to SWIGTYPE) called DIRECTORTYPE?
-           */
-          if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
-            Node *module = Getattr(parent, "module");
-            Node *target = Swig_directormap(module, ptype);
-            sprintf(source, "obj%d", idx++);
-            String *nonconst = 0;
-            /* strip pointer/reference --- should move to Swig/stype.c */
-            String *nptype = NewString(Char(ptype) + 2);
-            /* name as pointer */
-            String *ppname = Copy(pname);
-            if (SwigType_isreference(ptype)) {
-              Insert(ppname, 0, "&");
-            }
-            /* if necessary, cast away const since Python doesn't support it! */
-            if (SwigType_isconst(nptype)) {
-              nonconst = NewStringf("nc_tmp_%s", pname);
-              String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
-              Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
-              Delete(nonconst_i);
-              Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-                  "Target language argument '%s' discards const in director method %s::%s.\n",
-                  SwigType_str(ptype, pname), SwigType_namestr(c_classname), SwigType_namestr(name));
-            } else {
-              nonconst = Copy(ppname);
-            }
-            Delete(nptype);
-            Delete(ppname);
-            String *mangle = SwigType_manglestr(ptype);
-            if (target) {
-              String *director = NewStringf("director_%s", mangle);
-              Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-              Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
-              Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
-              Printf(wrap_args, "if (!%s) {\n", director);
-              Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-              Append(wrap_args, "} else {\n");
-              Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
-              Printf(wrap_args, "SvREFCNT_inc((SV *)%s);\n", source);
-              Append(wrap_args, "}\n");
-              Delete(director);
-            } else {
-              Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
-              Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-              Printf(pstack, "XPUSHs(sv_2mortal(%s));\n", source);
-            }
-            Putc('O', parse_args);
-            Delete(mangle);
-            Delete(nonconst);
-          } else {
-            Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-                "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
-                SwigType_namestr(c_classname), SwigType_namestr(name));
-            status = SWIG_NOWRAP;
-            break;
-          }
-        }
-        p = nextSibling(p);
+	  p = Getattr(p, "tmap:directorin:next");
+	  continue;
+	} else if (Cmp(ptype, "void")) {
+	  /* special handling for pointers to other C++ director classes.
+	   * ideally this would be left to a typemap, but there is currently no
+	   * way to selectively apply the dynamic_cast<> to classes that have
+	   * directors.  in other words, the type "SwigDirector_$1_lname" only exists
+	   * for classes with directors.  we avoid the problem here by checking
+	   * module.wrap::directormap, but it's not clear how to get a typemap to
+	   * do something similar.  perhaps a new default typemap (in addition
+	   * to SWIGTYPE) called DIRECTORTYPE?
+	   */
+	  if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
+	    Node *module = Getattr(parent, "module");
+	    Node *target = Swig_directormap(module, ptype);
+	    sprintf(source, "obj%d", idx++);
+	    String *nonconst = 0;
+	    /* strip pointer/reference --- should move to Swig/stype.c */
+	    String *nptype = NewString(Char(ptype) + 2);
+	    /* name as pointer */
+	    String *ppname = Copy(pname);
+	    if (SwigType_isreference(ptype)) {
+	      Insert(ppname, 0, "&");
+	    }
+	    /* if necessary, cast away const since Python doesn't support it! */
+	    if (SwigType_isconst(nptype)) {
+	      nonconst = NewStringf("nc_tmp_%s", pname);
+	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
+	      Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
+	      Delete(nonconst_i);
+	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
+			   "Target language argument '%s' discards const in director method %s::%s.\n",
+			   SwigType_str(ptype, pname), SwigType_namestr(c_classname), SwigType_namestr(name));
+	    } else {
+	      nonconst = Copy(ppname);
+	    }
+	    Delete(nptype);
+	    Delete(ppname);
+	    String *mangle = SwigType_manglestr(ptype);
+	    if (target) {
+	      String *director = NewStringf("director_%s", mangle);
+	      Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
+	      Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
+	      Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
+	      Printf(wrap_args, "if (!%s) {\n", director);
+	      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+	      Append(wrap_args, "} else {\n");
+	      Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
+	      Printf(wrap_args, "SvREFCNT_inc((SV *)%s);\n", source);
+	      Append(wrap_args, "}\n");
+	      Delete(director);
+	    } else {
+	      Wrapper_add_localv(w, source, "SV *", source, "= 0", NIL);
+	      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+	      Printf(pstack, "XPUSHs(sv_2mortal(%s));\n", source);
+	    }
+	    Putc('O', parse_args);
+	    Delete(mangle);
+	    Delete(nonconst);
+	  } else {
+	    Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+			 "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
+			 SwigType_namestr(c_classname), SwigType_namestr(name));
+	    status = SWIG_NOWRAP;
+	    break;
+	  }
+	}
+	p = nextSibling(p);
       }
 
       /* add the method name as a PyString */
@@ -2312,7 +2307,7 @@ public:
 
       /* pass the method call on to the Python object */
       if (dirprot_mode() && !is_public(n)) {
-        Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
+	Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
       }
 
       Append(w->code, "ENTER;\n");
@@ -2324,22 +2319,22 @@ public:
       Printf(w->code, "call_method(\"%s\", G_EVAL | G_SCALAR);\n", pyname);
 
       if (dirprot_mode() && !is_public(n))
-        Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
+	Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
-        tm = Getattr(n, "feature:director:except");
-        if (tm)
-          tm = Copy(tm);
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
       }
       Append(w->code, "if (SvTRUE(ERRSV)) {\n");
       Append(w->code, "  PUTBACK;\n  FREETMPS;\n  LEAVE;\n");
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-        Replaceall(tm, "$error", "ERRSV");
-        Printv(w->code, Str(tm), "\n", NIL);
+	Replaceall(tm, "$error", "ERRSV");
+	Printv(w->code, Str(tm), "\n", NIL);
       } else {
-        Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n", classname, pyname);
+	Printf(w->code, "  Swig::DirectorMethodException::raise(ERRSV);\n", classname, pyname);
       }
       Append(w->code, "}\n");
       Delete(tm);
@@ -2357,62 +2352,62 @@ public:
       String *outarg = NewString("");
 
       if (outputs > 1) {
-        Wrapper_add_local(w, "output", "SV *output");
-        Printf(w->code, "if (count != %d) {\n", outputs);
-        Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Perl method %s.%sfailed to return a list.\");\n", classname, pyname);
-        Append(w->code, "}\n");
+	Wrapper_add_local(w, "output", "SV *output");
+	Printf(w->code, "if (count != %d) {\n", outputs);
+	Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Perl method %s.%sfailed to return a list.\");\n", classname, pyname);
+	Append(w->code, "}\n");
       }
 
       idx = 0;
 
       /* marshal return value */
       if (!is_void) {
-        Append(w->code, "SPAGAIN;\n");
+	Append(w->code, "SPAGAIN;\n");
 	Printf(w->code, "%s = POPs;\n", Swig_cresult_name());
-        tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-        if (tm != 0) {
-          if (outputs > 1) {
-            Printf(w->code, "output = POPs;\n");
-            Replaceall(tm, "$input", "output");
-          } else {
-            Replaceall(tm, "$input", Swig_cresult_name());
-          }
-          char temp[24];
-          sprintf(temp, "%d", idx);
-          Replaceall(tm, "$argnum", temp);
+	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
+	if (tm != 0) {
+	  if (outputs > 1) {
+	    Printf(w->code, "output = POPs;\n");
+	    Replaceall(tm, "$input", "output");
+	  } else {
+	    Replaceall(tm, "$input", Swig_cresult_name());
+	  }
+	  char temp[24];
+	  sprintf(temp, "%d", idx);
+	  Replaceall(tm, "$argnum", temp);
 
-          /* TODO check this */
-          if (Getattr(n, "wrap:disown")) {
-            Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-          } else {
-            Replaceall(tm, "$disown", "0");
-          }
-          Replaceall(tm, "$result", "c_result");
-          Printv(w->code, tm, "\n", NIL);
-          Delete(tm);
-        } else {
-          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-              "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname),
-              SwigType_namestr(name));
-          status = SWIG_ERROR;
-        }
+	  /* TODO check this */
+	  if (Getattr(n, "wrap:disown")) {
+	    Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+	  } else {
+	    Replaceall(tm, "$disown", "0");
+	  }
+	  Replaceall(tm, "$result", "c_result");
+	  Printv(w->code, tm, "\n", NIL);
+	  Delete(tm);
+	} else {
+	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
+		       SwigType_namestr(c_classname), SwigType_namestr(name));
+	  status = SWIG_ERROR;
+	}
       }
 
       /* marshal outputs */
       for (p = l; p;) {
-        if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-          if (outputs > 1) {
-            Printf(w->code, "output = POPs;\n");
-            Replaceall(tm, "$result", "output");
-          } else {
-            Replaceall(tm, "$result", Swig_cresult_name());
-          }
-          Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
-          Printv(w->code, tm, "\n", NIL);
-          p = Getattr(p, "tmap:directorargout:next");
-        } else {
-          p = nextSibling(p);
-        }
+	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
+	  if (outputs > 1) {
+	    Printf(w->code, "output = POPs;\n");
+	    Replaceall(tm, "$result", "output");
+	  } else {
+	    Replaceall(tm, "$result", Swig_cresult_name());
+	  }
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+	  Printv(w->code, tm, "\n", NIL);
+	  p = Getattr(p, "tmap:directorargout:next");
+	} else {
+	  p = nextSibling(p);
+	}
       }
 
       Delete(parse_args);
@@ -2428,13 +2423,13 @@ public:
 
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-        String *rettype = SwigType_str(returntype, 0);
-        if (!SwigType_isreference(returntype)) {
-          Printf(w->code, "return (%s) c_result;\n", rettype);
-        } else {
-          Printf(w->code, "return (%s) *c_result;\n", rettype);
-        }
-        Delete(rettype);
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
+	  Printf(w->code, "return (%s) c_result;\n", rettype);
+	} else {
+	  Printf(w->code, "return (%s) *c_result;\n", rettype);
+	}
+	Delete(rettype);
       }
     }
 
@@ -2448,7 +2443,7 @@ public:
       Replaceall(inline_extra_method, name, extra_method_name);
       Replaceall(inline_extra_method, ";\n", " {\n      ");
       if (!is_void)
-        Printf(inline_extra_method, "return ");
+	Printf(inline_extra_method, "return ");
       String *methodcall = Swig_method_call(super, l);
       Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
       Delete(methodcall);
@@ -2458,10 +2453,10 @@ public:
     /* emit the director method */
     if (status == SWIG_OK) {
       if (!Getattr(n, "defaultargs")) {
-        Replaceall(w->code, "$symname", symname);
-        Wrapper_print(w, f_directors);
-        Printv(f_directors_h, declaration, NIL);
-        Printv(f_directors_h, inline_extra_method, NIL);
+	Replaceall(w->code, "$symname", symname);
+	Wrapper_print(w, f_directors);
+	Printv(f_directors_h, declaration, NIL);
+	Printv(f_directors_h, inline_extra_method, NIL);
       }
     }
 
@@ -2476,7 +2471,7 @@ public:
     member_func = 1;
     rv = Language::classDirectorDisown(n);
     member_func = 0;
-    if(rv == SWIG_OK && Swig_directorclass(n)) {
+    if (rv == SWIG_OK && Swig_directorclass(n)) {
       String *symname = Getattr(n, "sym:name");
       String *disown = Swig_name_disown(NSPACE_TODO, symname);
       Setattr(n, "perl5:directordisown", NewStringf("%s::%s", cmodule, disown));

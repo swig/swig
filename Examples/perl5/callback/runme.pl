@@ -1,40 +1,48 @@
-#!/usr/bin/perl
-use strict;
-use warnings;
+# file: runme.pl
+
+# This file illustrates the cross language polymorphism using directors.
+
 use example;
 
+
 {
-  package PerlCallback;
+  package PlCallback;
   use base 'example::Callback';
   sub run {
-    print "PerlCallback.run()\n";
+    print "PlCallback->run()\n";
   }
 }
+
+# Create an Caller instance
+
+$caller = example::Caller->new();
+
+# Add a simple C++ callback (caller owns the callback, so
+# we disown it first by clearing the .thisown flag).
 
 print "Adding and calling a normal C++ callback\n";
 print "----------------------------------------\n";
 
-my $caller = example::Caller->new();
-my $callback = example::Callback->new();
-
+$callback = example::Callback->new();
+$callback->DISOWN();
 $caller->setCallback($callback);
 $caller->call();
 $caller->delCallback();
 
-$callback = PerlCallback->new();
-
-print "\n";
+print
 print "Adding and calling a Perl callback\n";
-print "------------------------------------\n";
+print "----------------------------------\n";
 
+# Add a Perl callback (caller owns the callback, so we
+# disown it first by calling DISOWN).
+
+$callback = PlCallback->new();
+$callback->DISOWN();
 $caller->setCallback($callback);
 $caller->call();
 $caller->delCallback();
 
-# Note that letting go of $callback will not attempt to destroy the
-# object, ownership passed to $caller in the ->setCallback() call, and
-# $callback was already destroyed in ->delCallback().
-undef $callback;
+# All done.
 
 print "\n";
 print "perl exit\n";
