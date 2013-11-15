@@ -25,6 +25,7 @@ extern "C" {
 #include "localization.h"
 #include "freeArrayOfString.h"
 #if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
+#define __USE_DEPRECATED_STACK_FUNCTIONS__
 #include "stack-c.h"
 #endif
 #ifdef __cplusplus
@@ -207,7 +208,6 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   char result[1024];
   char *r = result;
 
-  SciErr sciErr;
   if ((2*_sz + 1 + strlen(_type->name)) > 1000) {
     return SWIG_ERROR;
   }
