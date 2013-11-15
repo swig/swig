@@ -13,22 +13,40 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="#Scilab_preliminaries">Preliminaries</a>
-<li><a href="#Scilab_running">Running SWIG</a>
+<li><a href="#Scilab_running_swig">Running SWIG</a>
 <ul>
-<li><a href="#Scilab_compiling_dynamic">Compiling a dynamic module</a>
-<li><a href="#Scilab_using_module">Using your module</a>
+<li><a href="#Scilab_running_swig_generating_module">Generating the module</a>
+<li><a href="#Scilab_running_swig_building_module">Building the module</a>
+<li><a href="#Scilab_running_swig_loading_module">Loading the module</a>
+<li><a href="#Scilab_running_swig_using_module">Using the module</a>
+<li><a href="#Scilab_running_swig_options">Additional command line options</a>
 </ul>
-<li><a href="#Scilab_tour_of_basic_c">A tour of basic C wrapping</a>
+<li><a href="#Scilab_wrapping">A basic tour of C/C++ wrapping</a>
 <ul>
-<li><a href="#Scilab_modules">Modules</a>
-<li><a href="#Scilab_functions">Functions</a>
-<li><a href="#Scilab_global_variables">Global variables</a>
-<li><a href="#Scilab_constants">Constants</a>
-<li><a href="#Scilab_enums">Enums</a>
-<li><a href="#Scilab_pointers">Pointers</a>
-<li><a href="#Scilab_structs">Structs</a>
-<li><a href="#Scilab_arrays">Arrays</a>
-<li><a href="#Scilab_matrices">Matrices</a>
+<li><a href="#Scilab_wrapping_overview">Overview</a>
+<li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
+<li><a href="#Scilab_wrapping_modules">Modules</a>
+<li><a href="#Scilab_wrapping_functions">Functions</a>
+<li><a href="#Scilab_wrapping_global_variables">Global variables</a>
+<li><a href="#Scilab_wrapping_constants">Constants</a>
+<li><a href="#Scilab_wrapping_enums">Enums</a>
+<li><a href="#Scilab_wrapping_pointers">Pointers</a>
+<li><a href="#Scilab_wrapping_structs">Structs</a>
+<li><a href="#Scilab_wrapping_arrays">Arrays</a>
+<li><a href="#Scilab_wrapping_matrices">Matrices</a>
+<li><a href="#Scilab_wrapping_classes">C++ classes</a>
+<li><a href="#Scilab_wrapping_templates">C++ templates</a>
+<li><a href="#Scilab_wrapping_stl">C++ STL</a>
+</ul>
+<li><a href="#Scilab_module">Module</a>
+<ul>
+<li><a href="#Scilab_module_structure">Structure</a>
+<li><a href="#Scilab_module_interface_file">Interface file</a>
+<li><a href="#Scilab_module_building">Building</a>
+<li><a href="#Scilab_module_builder">Builder script</a>
+<li><a href="#Scilab_module_loader">Loader script</a>
+</ul>
+<li><a href="#Scilab_other_resources">Other resources</a>
 </ul>
 </ul>
 </div>
@@ -41,129 +59,194 @@ Scilab is a scientific software package for numerical computations providing a p
 </p>
 
 <p>
-This chapter is intended to give an introduction to use the module.
-You should also read the SWIG documentation which is not specific to Scilab.
-Also, there are a dozen or so examples in the Examples/Scilab directory.
-As Scilab doesn't really have objects, so in this module, it supports mainly C features: 
-variables, functions, constants, enums, structs, unions, pointers, arrays and matrices.
+This chapter explains how to use SWIG for Scilab. After this introduction, you should be able to generate with SWIG a Scilab external module from a C/C++ library. 
 </p>
+
 
 <H2><a name="Scilab_preliminaries"></a>37.1 Preliminaries</H2>
 
-
 <p>
-The current SWIG implemention is based on Scilab 5.2.2. Support for later versions has not been tested, nor has support for any OS other than Linux.
+SWIG for Scilab supports Linux. Other operating sytems haven't been tested.
 </p>
 
-<H2><a name="Scilab_running"></a>37.2 Running SWIG</H2>
+<p>
+Scilab is supported from version 5.3.3.
+</p>
+
+<p>
+SWIG for Scilab supports C language. C++ is partially supported. See <a href="#Scilab_wrapping">A basic tour of C/C++ wrapping</a> for further details.
+</p>
+
+
+<H2><a name="Scilab_running_swig"></a>37.2 Running SWIG</H2>
+
+<p>
+Let's show how to use SWIG for Scilab on a small example, inspired from the "simple" example (found in the <tt>Examples/scilab/simple</tt> directory).
+<br>
+We want to bind from C a function and a global variable into Scilab.
+</p>
+
+
 
 
 <p>
-Let's start with a very simple SWIG interface file:
+The SWIG interface (in <tt>example.i</tt> file) is as following:
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>
+%module Example
 %{
-#include "example.h"
+double Foo = 3.0;
+int gcd(int x, int y) {
+  int g;
+  g = y;
+  while (x > 0) {
+    g = x;
+    x = y % x;
+    y = g;
+  }
+  return g;
+}
 %}
+
+/* A global variable */
+double Foo;
+
+/* Compute the greatest common divisor of positive integers */
 int gcd(int x, int y);
-extern double Foo;
 </pre></div>
 
 <p>
-To build a Scilab module, run SWIG using the <tt>-scilab</tt> option.
+Note: this is not the usual approach to write an interface file, it was used only for tightness and simplicity. See <a href="#Scilab_module">Module</a> to see the usual way to write the interface file.
 </p>
 
-<div class="shell"><pre>$ swig -scilab example.i </pre></div>
+
+<H3><a name="Scilab_running_swig_generating_module"></a>37.2.1 Generating the module</H3>
 
 <p>
-This creates a C source file <tt>example_wrap.c</tt> and a interface file <tt>builder.sce</tt>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C application (in this case, the gcd implementation) to create an extension module. And the builder.sce is used to generate the *.so file.
-</p>
-
-<p>
-The swig command line has a number of options you can use, like to redirect it's output. Use <tt>swig --help</tt> to learn about these.
-</p>
-
-<H3><a name="Scilab_compiling_dynamic"></a>37.2.1 Compiling a dynamic module</H3>
-
-
-<p>
-Scilab modules are shared objects having the ".so" suffix.
-Building such a file is usually done with the "exec" command (within Scilab itself) For example,
+The module must be first generated, using the program <tt>swig</tt> and its <tt>-scilab</tt> option.
 </p>
 
 <div class="shell"><pre>
-$ ./scilab
+$ swig -scilab example.i
+</pre></div>
+
+<p>
+This command generates two files:
+</p>
+<ul>
+<li>a C source file <tt>example_wrap.c</tt>: the generated C source file contains the wrapping code (and our in case, also the implementation of <tt>gcd</tt>).</li>
+<li>a Scilab script <tt>builder.sce</tt>: used to build the shared library (and other files).</li>
+</ul>
+
+<p>
+Note: if the following error is returned:
+<p>
+
+<div class="shell"><pre>
+:1: Error: Unable to find 'swig.swg'
+:3: Error: Unable to find 'scilab.swg'
+</pre></div>
+
+<p>
+It may be because the SWIG library is not found. Check the SWIG_LIB environment variable or your SWIG installation.
+</p>
+
+<p>
+The <tt>swig</tt> command line program has several other options you can use. See <a href="#Scilab_running_swig_options">Additional command line options</a> for further details.
+</p>
+
+
+<H3><a name="Scilab_running_swig_building_module"></a>37.2.2 Building the module</H3>
+
+<p>
+Scilab external modules are shared libraries (with the <tt>.so</tt> file extension).
+Building such a file is usually done by running the <tt>builder.sce</tt> script in Scilab:
+</p>
+
+<div class="shell"><pre>
+$ ./scilab-cli
 --&gt; exec builder.sce
 </pre></div>
 
 <p>
-        where builder.sce is the interface file generated by the swig. It looks like the following:
-</p>
-<div class="code"><pre>
-ilib_name = "examplelib";
-files = ["example_wrap.c"];
-libs = [];
-table = ["gcd","_wrap_gcd";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
-ilib_build(ilib_name,table,files,libs);
-</pre></div>
-
-<p>ilib_build(lib_name,table,files,libs) is used to create shared libraries and to generate a loader file which can be used to dynamically load the shared library into Scilab with addinter.
+This command will produce two important files:
 </p>
 
 <ul>
-<li><tt><b>ilib_name</b></tt>: a character string, the generic name of the library without path and extension.</li>
-<li><tt><b>files</b></tt>: string matrix giving objects files needed for shared library creation.</li>
-<li><tt><b>libs</b></tt>: string matrix giving extra libraries needed for shred library creation.</li>
-<li><tt><b>table</b></tt>: two column string matrix giving the table of pairs 'scilab-name', 'interface name'.</li>
+<li>the shared library <tt>libexample.so</tt>: it has the name of the module in the interface file, and it is prefixed by <tt>lib</tt>.</li>
+<li>the loader script <tt>loader.sce</tt>: this script is used to load the shared library in Scilab.</li>
 </ul>
 
 <p>
-      "exec builder.sce" will produce *.so,and a file called "loader.sce"  which contains how to load the module. Loading it into Scilab is then a matter of invoking 
+Note: two other files are generated:
 </p>
 
-<div class="shell"><pre>--&gt; exec loader.sce</pre></div>
+<ul>
+<li>the Scilab gateway source file <tt>libexample.c</tt>: it a file used during the build.</li>
+<li>the cleaner script <tt>cleaner.sce</tt>: used to clean (delete) the shared library.</li>
+</ul>
+</p>
 
-<H3><a name="Scilab_using_module"></a>37.2.2 Using your module</H3>
 
+<H3><a name="Scilab_running_swig_loading_module"></a>37.2.3 Loading the module</H3>
 
 <p>
-Assuming all goes well, you will be able to do this: 
-        <br>
+This is done by running the following command in Scilab:
+</p>
+
+<div class="shell"><pre>
+--&gt; exec loader.sce
+</pre></div>
+
+<p>
+Scilab should output the following messages:
+</p>
+
+<div class="shell"><pre>
+Shared archive loaded.
+Link done.
+</pre></div>
+
+<p>
+Which means that Scilab has sucessfully loaded the shared library. Its functions and other symbols are now available in Scilab.
+</p>
+
+<H3><a name="Scilab_running_swig_using_module"></a>37.2.4 Using the module</H3>
+
+<p>
+In Scilab, the function <tt>gcd()</tt> can be used simply like that:
 </p>
 
 <div class="targetlang"><pre>
 --&gt; gcd(4,6)
 ans =  2
+</pre></div>
 
+<p>For the <tt>Foo</tt> global variable, the accessors have to be used:
+
+<div class="targetlang"><pre>
 --&gt; Foo_get
 ans =  3
 
 --&gt; Foo_set(4);
 
 --&gt; Foo_get
-ans =  4 </pre></div>
+ans =  4
+</pre></div>
 
 
-<H3><a name="Scilab_options"></a>Additional commandline options</H3>
+<H3><a name="Scilab_running_swig_options"></a>37.2.5 Additional command line options</H3>
 
 <p>
-The following table list the additional commandline options available for the Scilab module. They can also be seen by using: 
+The following table lists the specific options for Scilab (of <tt>swig</tt> program):
 </p>
-
-<div class="code"><pre>
-swig -scilab -help 
-</pre></div>
 
 <table summary="Scilab specific options">
 
 <tr>
-<th>Scilab specific options</th>
-</tr>
-
-<tr>
 <td>-addcflag &lt;opt&gt;</td>
-<td>Additional include options &lt;opt&gt; to include in build script</td>
+<td>Additional compiler options &lt;opt&gt; to include in build script</td>
 </tr>
 
 <tr>
@@ -194,63 +277,46 @@ swig -scilab -help
 </table>
 
 <p>
+These options can be displayed with:
+</p>
+
+<div class="code"><pre>
+swig -scilab -help
+</pre></div>
+
+<p>
 Some examples:
 </p>
 
 <div class="shell"><pre>
 $ swig -scilab -addcflag -I/usr/includes example.i
-$ swig -scilab -addldflag -lm example.i
-$ swig -scilab -addsrc file1.cxx file2.cxx example.i
+$ swig -scilab -addldflag "-lm example.i"
+$ swig -scilab -addsrc file1.cxx,file2.cxx,example.i
 </pre></div>
 </p>
 
+<H2><a name="Scilab_wrapping"></a>37.3 A basic tour of C/C++ wrapping</H2>
 
-<H2><a name="Scilab_tour_of_basic_c"></a>37.3 A tour of basic C wrapping</H2>
-
-
-<H3><a name="Scilab_modules"></a>37.3.1 Modules</H3>
-
+<H3><a name="Scilab_wrapping_overview"></a>37.3.1 Overview</H3>
 
 <p>
-The SWIG module directive specifies the name of the Scilab module. If you want to load the module, you'll need a file called "loader.sce" which is usually generated by the command "exec builder.sce". The loader.sce looks as following:
+SWIG for Scilab provides only low-level C interface only for Scilab. This means that functions, structs, classes, variables, etc... are interfaced through C functions. These C functions are mapped as Scilab functions.
+<p>
+
+<H3><a name="Scilab_wrapping_identifiers"></a>37.3.2 Identifiers</H3>
+
+<p>
+In Scilab 5.x, identifier names can be composed of 24 chars maximum (this limitation disappears in future version of Scilab 6.0).
+<br>So long function or variables names can be truncated. It can be cause of conflict.
 </p>
+<p>It happens especially when wrapping structs/classes, for which the wrapping functions name are composed of the struct/class name and field names. In that case, the SWIG <tt>rename</tt> instruction, to choose a different wrapping name, can be useful.
+<p>
 
-<div class="code"><pre>
-// ------------------------------------------------------
-// generated by builder.sce: Please do not edit this file
-// ------------------------------------------------------
-
-libexamplelib_path = get_file_path('loader.sce');
-list_functions = [             'gcd';
-            'Foo_set';
-            'Foo_get';
-];
-addinter(libexamplelib_path+'/libexamplelib.so','libexamplelib',list_functions);
-// remove temp. variables on stack
-clear libexamplelib_path;
-clear list_functions;
-clear get_file_path;
-// ------------------------------------------------------
-</pre></div>
-
-<p>addinter (files,spname,fcts) performs dynamic linking of a compiled C new Scilab interface routine.
-</p>
-<ul>
-<li><tt><b>files</b></tt>: a character string or a vector of character string contain object files used to define the new Scilab interface routine (interface code, user routines or libraries, system libraries).</li>
-<li><tt><b>spname</b></tt>: a character string. Name of interface routine entry point.</li>
-<li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function implemented in the new interface.</li>
-</ul>
+<H3><a name="Scilab_wrapping_functions"></a>37.3.3 Functions</H3>
 
 
 <p>
-After you run the command "exec loader.sce", you can use the module.
-</pre>
-
-<H3><a name="Scilab_functions"></a>37.3.2 Functions</H3>
-
-
-<p>
-Global functions are wrapped as new Scilab built-in functions. For example, 
+Global functions are wrapped as new Scilab built-in functions. For example:
 </p>
 
 <div class="code"><pre>
@@ -259,7 +325,7 @@ int fact(int n);
 </pre></div>
 
 <p>
-     creates a built-in function <tt>fact(n)</tt> that works exactly like you think it does: 
+Creates a built-in function <tt>fact(n)</tt> that works exactly like you think it does:
 </p>
 
 <div class="targetlang"><pre>
@@ -267,7 +333,7 @@ int fact(int n);
 ans=24
 </pre></div>
 
-<H3><a name="Scilab_global_variables"></a>37.3.3 Global variables</H3>
+<H3><a name="Scilab_wrapping_global_variables"></a>37.3.4 Global variables</H3>
 
 
 <p>
@@ -287,7 +353,7 @@ c =  3
 ans =  4
 </pre></div>
 
-<H3><a name="Scilab_constants"></a>37.3.4 Constants</H3>
+<H3><a name="Scilab_wrapping_constants"></a>37.3.5 Constants</H3>
 
 
 <p>
@@ -329,7 +395,7 @@ ans= 37
 ans= 3.14
 </pre></div>
 
-<H3><a name="Scilab_enums"></a>37.3.5 Enums</H3>
+<H3><a name="Scilab_wrapping_enums"></a>37.3.6 Enums</H3>
 
 
 <p>  The way SWIG deals with the enums is similar to constants. For example: 
@@ -357,7 +423,7 @@ typedef enum  { RED, BLUE, GREEN } color;
 </pre></div>
 
 
-<H3><a name="Scilab_pointers"></a>37.3.6 Pointers</H3>
+<H3><a name="Scilab_wrapping_pointers"></a>37.3.7 Pointers</H3>
 
 
 <p>
@@ -405,7 +471,7 @@ extern int divide(int n, int d, int *r);
 we only need a real value instead. 
 </p>
 
-<H3><a name="Scilab_structs"></a>37.3.7 Structs</H3>
+<H3><a name="Scilab_wrapping_structs"></a>37.3.8 Structs</H3>
 
 
 <p>
@@ -433,7 +499,7 @@ ans  =
   100  
 </pre></div>
 
-<H3><a name="Scilab_arrays"></a>37.3.8 Arrays</H3>
+<H3><a name="Scilab_wrapping_arrays"></a>37.3.9 Arrays</H3>
 
 
 <p>
@@ -480,7 +546,7 @@ ans =
   0.    0.1428571    0.2857143    0.4285714    0.5714286    0.7142857   0.8571429
 </pre></div>
 
-<H3><a name="Scilab_matrices"></a>37.3.9 Matrices</H3>
+<H3><a name="Scilab_wrapping_matrices"></a>37.3.10 Matrices</H3>
 
 
 <p>
@@ -592,4 +658,253 @@ void mat_mult(double **m1, double **m2, double **m3) {
 	26	12	-2	-16
 	32	14	-4	-22
 </pre></div>
+
+
+<H3><a name="Scilab_wrapping_classes"></a>37.4.11 Classes</H3>
+
+<p>
+The classes are wrapped in the same manner as structs, through functions. For example, the following class:
+</p>
+
+<div class="targetlang"><pre>
+class Point {
+public:
+  int x,y;
+  Point(int _x,int _y) : x(_x),y(_y) {}
+  double distance(const Point& rhs) {
+    return sqrt(pow(x-rhs.x,2)+pow(y-rhs.y,2));
+  }
+  void set(int _x,int _y) {
+    x=_x; y=_y;
+  }
+};
+</pre></div>
+
+<p>
+can be used from Scilab like this:
+</p>
+
+<div class="targetlang"><pre>
+--&gt; p1 = Point_new(3, 5);
+--&gt; p2 = Point_new(1, 2);
+--&gt; p1.distance(p2)
+ans  =
+     3.6056
+</pre></div>
+
+
+
+<H3><a name="Scilab_wrapping_templates"></a>37.4.12 Templates</H3>
+
+<p>
+Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
+An example of templates can be found in <tt>Examples/scilab/templates</tt>.
+</p>
+
+<H3><a name="Scilab_wrapping_stl"></a>37.4.13 STL</H3>
+
+<p>
+Standard Template Library (STL) is partially supported.
+</p>
+
+<p>
+The following containers are usable:
+<p>
+
+<ul>
+<li><tt>std::vector</tt></li>
+<li><tt>std::list</tt></li>
+<li><tt>std::set</tt></li>
+</ul>
+
+<p>
+Each of these containers supports the following types:
+</p>
+
+<ul>
+<li><tt>double</tt></li>
+<li><tt>int</tt></li>
+<li><tt>string</tt></li>
+<li><tt>bool</tt></li>
+<li><tt>pointer</tt></li>
+</ul>
+
+<p>
+Some typemaps between Scilab and STL are available.
+<p>
+
+<ul>
+<li>
+
+<p>
+A STL vector or list is mapped from/to a Scilab matrix or list, depending on type.
+<p>
+
+<table summary="Typemaps vector-list", border="1">
+<tr>
+<th>STL type</th>
+<th>Header 2</th>
+<tr><td>vector/list of int</td><td>int matrix</td></tr>
+<tr><td>vector/list of double</td><td>double matrix</td></tr>
+<tr><td>vector/list of string</td><td>string matrix</td></tr>
+<tr><td>vector/list of bool</td><td>bool matrix</td></tr>
+<tr><td>vector/list of pointer</td><td>pointer list</td></tr>
+</table>
+
+</li>
+
+<li>A STL set is mapped from/to a Scilab list.</li>
+</ul>
+
+<p>
+In the SWIG interface file, the STL support can be enabled with:
+</p>
+
+<div class="code"><pre>
+%include stl.i
+</pre/></div>
+
+<p>As templates, for each specific type used, the STL container has the to be instantied:
+<div class="code"><pre>
+namespace std {
+    %template(IntVector)    vector<int>;
+    %template(DoubleVector)    vector<double>;
+</pre></div>
+
+<p>
+At last, a command has to be run in Scilab, so that all that types are known by Scilab.
+
+<div class="targetlang"><pre>
+SWIG_Init();
+</pre></div>
+
+
+<H2><a name="Scilab_module"></a>37.5 Module</H2>
+
+<p>
+In this part we describe how may be structured a module, how to build it, and give some details about the generated scripts.
+</p>
+
+<H3><a name="Scilab_module_structure"></a>37.5.1 Structure</H3>
+
+<p>
+Usually, one module is created to bind one library. Each library to be wrapped comes with the following files:
+</p>
+
+<ul>
+<li>header files (<tt>.h</tt>, <tt>.hpp</tt>,...) of the module, or of a third party library.</tt></li>
+<li>source files (<tt>.c</tt>, <tt>.cpp</tt>,...).</tt></li>
+<li>some third party libraries (<tt>.so</tt>) to link with.</tt></li>
+</ul>
+
+
+<H3><a name="Scilab_module_interface_file"></a>37.5.2 Interface file</H3>
+
+<p>
+To one module corresponds one interface file. Multi modules in an interface file are not supported.
+</p>
+
+<p>
+Usually the interface file will look like as following:
+</p>
+
+<div class="code"><pre>
+%module [module_name]
+%{
+#include [header]
+....
+%}
+
+#include [header]
+....
+</pre></div>
+
+<H3><a name="Scilab_module_building"></a>37.5.3 Building</H3>
+
+<p>
+SWIG for Scilab builds dynamic modules. This means shared libaries are built (.so), which are dynamically linked by Scilab.
+</p>
+
+<p>
+To generate the code and the builder script, the following options may be used with <tt>swig</tt>:
+</p>
+
+<ul>
+<li><tt><b>addsrc</b></tt>: to add in the compilation source files</li>
+<li><tt><b>addcflag</b></tt>: to set the header include paths</li>
+<li><tt><b>addldflag</b></tt>: to set the third party library paths and names</li>
+</ul>
+
+<p>
+The <tt>swig</tt> command to use may be something like this:
+</p>
+
+<div class="shell"><pre>
+swig -scilab -addcflag "-I[inc_path]..." -addsrc [source],... -addldflag "-L[lib_path] -l[lib_name]" [module_name].i
+</pre></div>
+
+<H3><a name="Scilab_module_builder"></a>37.5.4 Builder script</H3>
+
+<p>
+<tt>builder.sce</tt> is the script file generated by SWIG. It contains the following code:
+</p>
+<div class="code"><pre>
+
+ilib_name = "examplelib";
+files = ["example_wrap.c"];
+libs = [];
+table = ["gcd","_wrap_gcd";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
+ilib_build(ilib_name,table,files,libs);
+</pre></div>
+
+<p>
+<tt>ilib_build(lib_name,table,files,libs)</tt> is used to create shared libraries and to generate a loader file which can be used to dynamically load the shared library into Scilab with <tt>addinter</tt>.
+</p>
+
+<ul>
+<li><tt><b>ilib_name</b></tt>: a character string, the generic name of the library without path and extension.</li>
+<li><tt><b>files</b></tt>: string matrix giving objects files needed for shared library creation.</li>
+<li><tt><b>libs</b></tt>: string matrix giving extra libraries needed for shred library creation.</li>
+<li><tt><b>table</b></tt>: two column string matrix giving the table of pairs 'scilab-name', 'interface name'.</li>
+</ul>
+
+<H3><a name="Scilab_module_loader"></a>37.5.5 Loader script</H3>
+
+<p>
+The loader script <tt>loader.sce</tt> script looks as following:
+</p>
+
+<div class="code"><pre>
+// ------------------------------------------------------
+// generated by builder.sce: Please do not edit this file
+// ------------------------------------------------------
+
+libexamplelib_path = get_file_path('loader.sce');
+list_functions = [             'gcd';
+            'Foo_set';
+            'Foo_get';
+];
+addinter(libexamplelib_path+'/libexamplelib.so','libexamplelib',list_functions);
+// remove temp. variables on stack
+clear libexamplelib_path;
+clear list_functions;
+clear get_file_path;
+// ------------------------------------------------------
+</pre></div>
+
+<p>
+<tt>addinter(files,spname,fcts)</tt> performs dynamic linking of a compiled C new Scilab interface routine.
+</p>
+<ul>
+<li><tt><b>files</b></tt>: a character string or a vector of character string contain object files used to define the new Scilab interface routine (interface code, user routines or libraries, system libraries).</li>
+<li><tt><b>spname</b></tt>: a character string. Name of interface routine entry point.</li>
+<li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function implemented in the new interface.</li>
+</ul>
+
+<H2><a name="Scilab_other_resources"></a>37.6 Other resources</H2>
+
+<ul>
+<li>Examples can be found in the <tt>Examples/scilab directory</tt>, and they cover the different cases of wrapping.</li>
+<li>The test suite in the <tt>Examples/test-suite/scilab</tt> can be another source of wrapping use cases.</li>
+</ul>
 
