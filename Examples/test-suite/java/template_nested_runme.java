@@ -25,6 +25,12 @@ public class template_nested_runme {
     T_NestedOuterTemplateDouble tn = new T_NestedOuterTemplateDouble();
     if (tn.hohum(-12.3) != -12.3)
       throw new RuntimeException("it failed");
+    T_OuterClassInner1Int inner1 = new OuterClass().useInner1(new T_OuterClassInner1Int());
+    new T_OuterClassInner1IntSuperInner2Double().method1(1.0);
+    new T_OuterClassInner1DoubleSuperInner1Int().method1(10);
+    T_OuterClassInner2NormalClass inner2 = new T_OuterClassInner2NormalClass();
+    inner2.setEmbeddedVar(2);
+    T_OuterClassInner2NormalClass inner22 = new OuterClass().useInner2Again(inner2);
   }
 }
 

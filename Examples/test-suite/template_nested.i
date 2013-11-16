@@ -63,6 +63,7 @@ namespace ns {
       };
     };
     Inner2<int> useInner2(const Inner2<int>& inner) { return inner; }
+    Inner2<NormalClass> useInner2Again(const Inner2<NormalClass>& inner) { return inner; }
     int iii;
   };
   struct ABC {
@@ -106,4 +107,8 @@ namespace ns {
 %template(T_TemplateFuncs1Int) ns::TemplateFuncs::templateMethod1<int>;
 %template(T_TemplateFuncs2Double) ns::TemplateFuncs::templateMethod2<double>;
 %template(T_NestedOuterTemplateDouble) ns::OuterTemplate<double>;
-
+%template(T_OuterClassInner1DoubleSuperInner1Int) ns::OuterClass::Inner1<double>::SuperInner1<int>;
+%template(T_OuterClassInner1IntSuperInner2Double) ns::OuterClass::Inner1<int>::SuperInner2<double>;
+%template(T_OuterClassInner1Int) ns::OuterClass::Inner1<int>;
+%template(T_OuterClassInner2NormalClass) ns::OuterClass::Inner2<ns::NormalClass>;
+%template(T_OuterClassInner2Int) ns::OuterClass::Inner2<int>;
