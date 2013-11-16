@@ -2,13 +2,6 @@
 
 // Test nested templates - that is template classes and template methods within a class.
 
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterClass::Inner1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterClass::Inner2;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterTemplate::NestedInnerTemplate1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterTemplate::NestedInnerTemplate2;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterTemplate::NestedInnerTemplate3;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) ns::OuterTemplate::NestedStruct;
-
 namespace ns {
 template <class T> struct ForwardTemplate;
 }
