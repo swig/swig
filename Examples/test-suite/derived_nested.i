@@ -5,7 +5,10 @@ This was reported in bug #909389 */
 
 %inline %{
 
-class A { int x; };
+class A { 
+public:
+  int x; 
+};
 class B {
   class C { int y; }; //generates a warning
   class D : public A { int z; }; //ok
