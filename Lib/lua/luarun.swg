@@ -27,14 +27,80 @@ extern "C" {
 # error SWIG_LUA_TARGET not defined
 #endif
 
+#if defined(SWIG_LUA_ELUA_EMULATE)
+
+struct swig_elua_entry;
+
+typedef struct swig_elua_key {
+  int type;
+  union {
+    const char* strkey;
+    lua_Number numkey;
+  } key;
+} swig_elua_key;
+
+typedef struct swig_elua_val {
+  int type;
+  union {
+    lua_Number number;
+    const struct swig_elua_entry *table;
+    const char *string;
+    lua_CFunction function;
+    struct {
+      char member;
+      long lvalue;
+      void *pvalue;
+      swig_type_info **ptype;
+    } userdata;
+  } value;
+} swig_elua_val;
+
+typedef struct swig_elua_entry {
+  swig_elua_key key;
+  swig_elua_val value;
+} swig_elua_entry;
+
+#define LSTRKEY(x) {LUA_TSTRING, {.strkey = x} }
+#define LNUMKEY(x) {LUA_TNUMBER, {.numkey = x} }
+#define LNILKEY {LUA_TNIL, {.strkey = 0} }
+
+#define LNUMVAL(x) {LUA_TNUMBER, {.number = x} }
+#define LFUNCVAL(x) {LUA_TFUNCTION, {.function = x} }
+#define LROVAL(x) {LUA_TTABLE, {.table = x} }
+#define LNILVAL {LUA_TNIL, {.string = 0} }
+#define LSTRVAL(x) {LUA_TSTRING, {.string = x} }
+
+#define LUA_REG_TYPE swig_elua_entry
+
+#define SWIG_LUA_ELUA_EMUL_METATABLE_KEY "__metatable"
+
+#define lua_pushrotable(L,p)\
+  lua_newtable(L);\
+  SWIG_Lua_elua_emulate_register(L,p);
+
+#define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
+  LSTRKEY(B), {LUA_TUSERDATA, { .userdata={0,0,(void*)(C),&D} } }
+
+#define SWIG_LUA_CONSTTAB_BINARY(B,S,C,D)\
+  LSTRKEY(B), {LUA_TUSERDATA, { .userdata={1,S,(void*)(C),&D} } }
+#endif
+
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
 #  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
     /* Those two types of constants are not supported in elua */
-#  define SWIG_LUA_CONSTTAB_POINTER(B,C,D) LSTRKEY(B), LNILVAL
-#  define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
+
+#ifndef SWIG_LUA_CONSTTAB_POINTER
+#warning eLua does not support pointers as constants. By default, nil will be used as value
+#define SWIG_LUA_CONSTTAB_POINTER(B,C,D) LSTRKEY(B), LNILVAL
+#endif
+
+#ifndef SWIG_LUA_CONSTTAB_BINARY
+#warning eLua does not support pointers to member as constants. By default, nil will be used as value
+#define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
+#endif
 #else /* SWIG_LUA_FLAVOR_LUA */
 #  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
@@ -46,15 +112,19 @@ extern "C" {
        SWIG_LUA_BINARY,  (char *)B, S, 0, (void *)C, &D
 #endif
 
+#ifndef SWIG_LUA_ELUA_EMULATE
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
 #  define LRO_STRVAL(v) {{.p = (char *) v}, LUA_TSTRING}
 #  define LSTRVAL LRO_STRVAL
 #endif
+#endif /* SWIG_LUA_ELUA_EMULATE*/
 
+#ifndef SWIG_LUA_ELUA_EMULATE
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
 #include "lrodefs.h"
 #include "lrotable.h"
 #endif
+#endif /* SWIG_LUA_ELUA_EMULATE*/
 /* -----------------------------------------------------------------------------
  * compatibility defines
  * ----------------------------------------------------------------------------- */
@@ -84,6 +154,19 @@ extern "C" {
 /* lua_absindex was introduced in Lua 5.2 */
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
 # define lua_absindex(L,i) ((i)>0 || (i) <= LUA_REGISTRYINDEX ? (i) : lua_gettop(L) + (i) + 1)
+#endif
+
+/* lua_rawsetp was introduced in Lua 5.2 */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
+#define lua_rawsetp(L,index,ptr)\
+  lua_pushlightuserdata(L,(void*)(ptr));\
+  lua_insert(L,-2);\
+  lua_rawset(L,index);
+
+#define lua_rawgetp(L,index,ptr)\
+  lua_pushlightuserdata(L,(void*)(ptr));\
+  lua_rawget(L,index);
+
 #endif
 
 /* --------------------------------------------------------------------------
@@ -179,6 +262,7 @@ typedef struct swig_lua_class {
   swig_lua_method   *methods;
   swig_lua_attribute     *attributes;
   swig_lua_namespace    *cls_static;
+  swig_lua_method   *metatable; // only for eLua
   struct swig_lua_class **bases;
   const char **base_names;
 } swig_lua_class;
@@ -288,6 +372,179 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State *L)
     return 0;   /* should not return anything */
 }
 
+#ifdef SWIG_LUA_ELUA_EMULATE
+//#define report(...) printf(__VA_ARGS__) // TODO: REMOVE
+#define report(...) // TODO : REMOVE
+
+SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *type, int own);
+SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_type_info *type);
+static int swig_lua_elua_emulate_unique_key;
+/* This is function that emulates eLua rotables behaviour. It loads rotable definition
+ * into the usual lua table.
+ */
+SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_entry *table)
+{
+  assert(lua_istable(L,-1));
+  int target_table = lua_gettop(L);
+  /* Get the registry where we put all parsed tables to avoid loops */
+  lua_rawgetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
+  if(lua_isnil(L,-1)) {
+    lua_pop(L,1);
+    lua_newtable(L);
+    lua_pushvalue(L,-1);
+    lua_rawsetp(L,LUA_REGISTRYINDEX,(void*)(&swig_lua_elua_emulate_unique_key));
+  }
+  int parsed_tables_array = lua_gettop(L);
+  lua_pushvalue(L,target_table);
+  lua_rawsetp(L, parsed_tables_array, table);
+  int i;
+  int table_parsed = 0;
+  int pairs_start = lua_gettop(L);
+  static int tabs_count = 0; // TODO: REMOVE
+  for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
+  {
+    /* TODO: REMOVE */
+    int j = 0;
+    for(j=0;j<tabs_count;j++) report("  ");
+    /* END OF REMOVE */
+
+    report("Registering %d", int(i)); // TODO: REMOVE
+    const swig_elua_entry *entry = table + i;
+    int is_metatable = 0;
+    switch(entry->key.type) {
+      case LUA_TSTRING:
+        lua_pushstring(L,entry->key.key.strkey);
+        report(" %s :", entry->key.key.strkey); // TODO: REMOVE
+        if(strcmp(entry->key.key.strkey, SWIG_LUA_ELUA_EMUL_METATABLE_KEY) == 0)
+          is_metatable = 1;
+        break;
+      case  LUA_TNUMBER:
+        lua_pushnumber(L,entry->key.key.numkey);
+        report(" %f :", (double)(entry->key.key.numkey)); // TODO: REMOVE
+        break;
+      case LUA_TNIL:
+        report(" nil :"); // TODO: REMOVE
+        lua_pushnil(L);
+        break;
+      default:
+        assert(0);
+    }
+    switch(entry->value.type) {
+      case LUA_TSTRING:
+        lua_pushstring(L,entry->value.value.string);
+        report(" %s", entry->value.value.string); // TODO: REMOVE
+        break;
+      case  LUA_TNUMBER:
+        lua_pushnumber(L,entry->value.value.number);
+        report(" %f", (double)(entry->value.value.number)); // TODO: REMOVE
+        break;
+      case LUA_TFUNCTION:
+        report(" %p", (void*)(entry->value.value.function)); // TODO: REMOVE
+        lua_pushcfunction(L,entry->value.value.function);
+        break;
+      case LUA_TTABLE:
+        /* TODO: REMOVE */
+        report(" table"); 
+        tabs_count++;
+        /* END OF REMOVE */
+        lua_rawgetp(L,parsed_tables_array, entry->value.value.table);
+        table_parsed = !lua_isnil(L,-1);
+        if(!table_parsed) {
+          lua_pop(L,1); /*remove nil */
+          report("\n"); // TODO: REMOVE
+          lua_newtable(L);
+          SWIG_Lua_elua_emulate_register(L,entry->value.value.table);
+        } else {
+          report(" already parsed"); // TODO: REMOVE
+        }
+        if(is_metatable) {
+          report(" (registering metatable)"); // TODO: REMOVE
+          assert(lua_istable(L,-1));
+          lua_pushvalue(L,-1);
+          lua_setmetatable(L,target_table);
+        }
+
+        tabs_count--; /*TODO: REMOVE*/
+        break;
+      case LUA_TUSERDATA:
+        if(entry->value.value.userdata.member) 
+          SWIG_NewMemberObj(L,entry->value.value.userdata.pvalue,
+              entry->value.value.userdata.lvalue,
+              *(entry->value.value.userdata.ptype));
+        else 
+          SWIG_NewPointerObj(L,entry->value.value.userdata.pvalue,
+              *(entry->value.value.userdata.ptype),0);
+        break;
+      case LUA_TNIL:
+        report(" nil"); // TODO: REMOVE
+        lua_pushnil(L);
+        break;
+      default:
+        assert(0);
+    }
+    assert(lua_gettop(L) == pairs_start + 2);
+    lua_rawset(L,target_table);
+    report("\n"); // TODO: REMOVE
+  }
+  lua_pop(L,1); /* Removing parsed tables storage */
+  assert(lua_gettop(L) == target_table);
+}
+
+SWIGINTERN void SWIG_Lua_elua_emulate_register_clear(lua_State *L)
+{
+  lua_pushnil(L);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
+}
+
+/* TODO: REMOVE */
+SWIGINTERN void SWIG_Lua_get_class_registry(lua_State *L);
+
+SWIGINTERN int SWIG_Lua_emulate_elua_getmetatable(lua_State *L)
+{
+  SWIG_check_num_args("getmetatable(SWIG eLua emulation)", 1, 1);
+  SWIG_Lua_get_class_registry(L);
+  lua_getfield(L,-1,"lua_getmetatable");
+  lua_remove(L,-2); /* remove the registry*/
+  assert(!lua_isnil(L,-1));
+  lua_pushvalue(L,1);
+  assert(lua_gettop(L) == 3); /* object | function | object again */
+  lua_call(L,1,1);
+  if(!lua_isnil(L,-1)) /*There is an ordinary metatable */
+    return 1;
+  /*if it is a table, then emulate elua behaviour - check for __metatable attribute of a table*/
+  assert(lua_gettop(L) == 2);
+  if(lua_istable(L,-2)) {
+    printf("getmetatable: elua emulation part\n"); // TODO: REMOVE
+    lua_pop(L,1); /*remove the nil*/
+    lua_getfield(L,-1, SWIG_LUA_ELUA_EMUL_METATABLE_KEY);
+  }
+  assert(lua_gettop(L) == 2);
+  return 1;
+  
+fail:
+  lua_error(L);
+  return 0;
+}
+
+SWIGINTERN void SWIG_Lua_emulate_elua_swap_getmetatable(lua_State *L)
+{
+  int begin = lua_gettop(L); // TODO: REMOVE
+  SWIG_Lua_get_class_registry(L);
+  lua_pushglobaltable(L);
+  lua_pushstring(L,"lua_getmetatable");
+  lua_getfield(L,-2,"getmetatable");
+  assert(!lua_isnil(L,-1));
+  lua_rawset(L,-4);
+  lua_pushstring(L, "getmetatable");
+  lua_pushcfunction(L, SWIG_Lua_emulate_elua_getmetatable);
+  lua_rawset(L,-3);
+  lua_pop(L,2);
+  assert(lua_gettop(L) == begin); // TODO: REMOVE
+      
+}
+/* END OF REMOVE */
+
+#endif
 /* -----------------------------------------------------------------------------
  * global variable support code: namespaces and modules (which are the same thing)
  * ----------------------------------------------------------------------------- */
@@ -415,6 +672,7 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace 
 */
 SWIGINTERN int SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
+  /* 1 argument - table on the top of the stack */
   int begin = lua_gettop(L);
   assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table or parent namespace table */
   lua_checkstack(L,5);
@@ -487,6 +745,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 #else /* en elua .bases table doesn't exist. Use table from swig_lua_class */
 
 #define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
+  assert(swig_type!=0);\
   swig_module_info *module=SWIG_GetModule(L);\
   swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;\
   const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;\
@@ -500,7 +759,8 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
   else {\
     valid = 1;\
     SWIG_Lua_get_class_metatable(L,base_class->fqname);\
-    base_swig_type = SWIG_TypeQueryModule(module,module,base_class->fqname);\
+    base_swig_type = SWIG_TypeQueryModule(module,module,base_names[i]);\
+    assert(base_swig_type != 0);\
   }
 
 #endif
@@ -989,14 +1249,11 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
   }
   lua_pop(L,1);       /* tidy stack (remove table) */
   /*   add operator overloads
-    these look ANY method which start with "__" and assume they
-    are operator overloads & add them to the metatable
-    (this might mess up if someone defines a method __gc (the destructor)*/
-  for(i=0;clss->methods[i].name;i++){
-    if (clss->methods[i].name[0]=='_' && clss->methods[i].name[1]=='_'){
-      SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].func);
-    }
-  }
+    This adds methods from metatable array to metatable. Can mess up garbage
+    collectind if someone defines __gc method
+    */
+  for(i=0;clss->metatable[i].name;i++)
+    SWIG_Lua_add_function(L,clss->metatable[i].name,clss->metatable[i].func);
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */
@@ -1152,6 +1409,38 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
   assert(lua_gettop(L) == begin);
 }
 #endif /* SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA */
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_class *clss)
+{
+  int begin = lua_gettop(L);
+  /* if name already there (class is already registered) then do nothing */
+  SWIG_Lua_get_class_registry(L);  /* get the registry */
+  lua_pushstring(L,clss->fqname);  /* get the name */
+  lua_rawget(L,-2);
+  if(!lua_isnil(L,-1)) {
+    lua_pop(L,2);
+    assert(lua_gettop(L)==begin);
+    return;
+  }
+  lua_pop(L,2); /* tidy stack */
+  /* Recursively initialize all bases */
+  int i = 0;
+  for(i=0;clss->bases[i];i++)
+  {
+    SWIG_Lua_elua_class_register_instance(L,clss->bases[i]);
+  }
+  /* Again, get registry and push name */
+  SWIG_Lua_get_class_registry(L);  /* get the registry */
+  lua_pushstring(L,clss->fqname);  /* get the name */
+  assert(clss->metatable);
+  lua_pushrotable(L, (void*)(clss->metatable));    /* create the metatable */
+  lua_rawset(L,-3);
+  lua_pop(L,1);
+  assert(lua_gettop(L) == begin);
+}
+#endif // elua && eluac
+
 /* -----------------------------------------------------------------------------
  * Class/structure conversion fns
  * ----------------------------------------------------------------------------- */
