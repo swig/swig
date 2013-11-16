@@ -3645,16 +3645,16 @@ void Swig_offset_string(String* s, int N)
   if ((Char(s))[L-1] == '\n')
     --lines;
   // allocate a temporary storage for a padded string
-  char* res = (char*)malloc(L + lines * N + 1);
-  res[L + lines * N] = 0;
+  char* res = (char*)malloc(L + lines * N * 2 + 1);
+  res[L + lines * N * 2] = 0;
 
   // copy lines to res, prepending tabs to each line
   char* p = res; // output pointer
   start = Char(s); // start of a current line
   char* end = strchr(start, '\n'); // end of a current line
   while (end) {
-    memset(p, '\t', N);
-    p += N;
+    memset(p, ' ', N*2);
+    p += N*2;
     memcpy(p, start, end - start + 1);
     p += end - start + 1;
     start = end + 1;
@@ -3662,8 +3662,8 @@ void Swig_offset_string(String* s, int N)
   }
   // process the last line
   if (*start) {
-    memset(p, '\t', N);
-    p += N;
+    memset(p, ' ', N*2);
+    p += N*2;
     strcpy(p, start);
   }
   // replace 's' contents with 'res'
