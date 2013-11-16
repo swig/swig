@@ -26,7 +26,13 @@ namespace ns {
   template <class T> struct NormalTemplate {
     void tmethod(T t) {}
   };
+}
+%}
+%template(T_NormalTemplateNormalClass) ns::NormalTemplate<ns::NormalClass>;
+%template(T_NormalTemplateInt) ns::NormalTemplate<int>;
 
+%inline %{
+namespace ns {
   class OuterClass {
   public:
     template <class T> struct Inner1 {
@@ -102,13 +108,10 @@ namespace ns {
 
 %}
 
-%template(T_NormalTemplateNormalClass) ns::NormalTemplate<ns::NormalClass>;
 %template(T_OuterTMethodNormalClass) ns::OuterClass::InnerTMethod<ns::NormalClass>;
 %template(T_TemplateFuncs1Int) ns::TemplateFuncs::templateMethod1<int>;
 %template(T_TemplateFuncs2Double) ns::TemplateFuncs::templateMethod2<double>;
 %template(T_NestedOuterTemplateDouble) ns::OuterTemplate<double>;
-%template(T_OuterClassInner1DoubleSuperInner1Int) ns::OuterClass::Inner1<double>::SuperInner1<int>;
-%template(T_OuterClassInner1IntSuperInner2Double) ns::OuterClass::Inner1<int>::SuperInner2<double>;
 %template(T_OuterClassInner1Int) ns::OuterClass::Inner1<int>;
 %template(T_OuterClassInner2NormalClass) ns::OuterClass::Inner2<ns::NormalClass>;
 %template(T_OuterClassInner2Int) ns::OuterClass::Inner2<int>;
