@@ -16,7 +16,7 @@ wchar_t* str2wstr(const char *str, int len)
 {
   wchar_t* p;
   if (str==0 || len<1)  return 0;
-  p=(wchar *)malloc((len+1)*sizeof(wchar_t));
+  p=(wchar_t *)malloc((len+1)*sizeof(wchar_t));
   if (p==0)	return 0;
   if (mbstowcs(p, str, len)==(size_t)-1)
   {
