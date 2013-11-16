@@ -2067,7 +2067,7 @@ public:
         f_proxy = NULL;
       } else {
 	for (int i = 0; i < nesting_depth; ++i)
-	  Append(old_proxy_class_code, "\t");
+	  Append(old_proxy_class_code, "  ");
 	Append(old_proxy_class_code, "}\n");
 	--nesting_depth;
       }
