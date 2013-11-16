@@ -728,6 +728,9 @@ int yylex(void) {
 	if (strcmp(yytext, "delete") == 0) {
 	  return (DELETE_KW);
 	}
+	if (strcmp(yytext, "default") == 0) {
+	  return (DEFAULT);
+	}
 	if (strcmp(yytext, "using") == 0) {
 	  return (USING);
 	}

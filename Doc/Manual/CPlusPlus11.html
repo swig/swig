@@ -33,7 +33,7 @@
 <li><a href="#CPlusPlus11_New_string_literals">New string literals</a>
 <li><a href="#CPlusPlus11_User_defined_literals">User-defined literals</a>
 <li><a href="#CPlusPlus11_Thread_local_storage">Thread-local storage</a>
-<li><a href="#CPlusPlus11_Defaulting/deleting_of_standard_functions_on_C++_objects">Defaulting/deleting of standard functions on C++ objects</a>
+<li><a href="#CPlusPlus11_Defaulted_deleted">Defaulting/deleting of standard functions on C++ objects</a>
 <li><a href="#CPlusPlus11_Type_long_long_int">Type long long int</a>
 <li><a href="#CPlusPlus11_Static_assertions">Static assertions</a>
 <li><a href="#CPlusPlus11_Allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object">Allow sizeof to work on members of classes without an explicit object</a>
@@ -739,23 +739,27 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_Defaulting/deleting_of_standard_functions_on_C++_objects"></a>7.2.21 Defaulting/deleting of standard functions on C++ objects</H3>
+<H3><a name="CPlusPlus11_defaulted_deleted"></a>7.2.21 Explicitly defaulted functions and deleted functions</H3>
 
 
-<p>SWIG correctly parses the <tt>= delete</tt> and <tt>= default</tt>
-keywords. For example:</p>
+<p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
+For example:</p>
 
 <div class="code"><pre>
 struct NonCopyable {
   NonCopyable&amp; operator=(const NonCopyable&amp;) = delete; /* Removes operator= */
-  NonCopyable(const NonCopyable&amp;) = delete;            /* Removed copy constructor */
-  NonCopyable() = default;                             /* Explicitly allows the empty constructor */
-  void *operator new(std::size_t) = delete;            /* Removes new NonCopyable */
+  NonCopyable(const NonCopyable&amp;) = delete;                /* Removed copy constructor */
+  NonCopyable() = default;                                     /* Explicitly allows the empty constructor */
+  void *operator new(std::size_t) = delete;                    /* Removes new NonCopyable */
 };
 </pre></div>
 
-<p>This feature is specific to C++ only. The defaulting/deleting is currently ignored, because SWIG
-automatically produces wrappers for special constructors and operators specific to the target language.</p>
+<p>
+Wrappers for deleted functions will not be available in the target language.
+Wrappers for defaulted functions will of course be available in the target language.
+Explicitly defaulted functions have no direct effect for SWIG wrapping as the declaration is handled
+much like any other method declaration parsed by SWIG.
+</p>
 
 <H3><a name="CPlusPlus11_Type_long_long_int"></a>7.2.22 Type long long int</H3>
 

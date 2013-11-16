@@ -552,6 +552,8 @@ endif
 C_TEST_CASES += \
 	arrays \
 	bom_utf8 \
+	c_delete \
+	c_delete_function \
 	char_constant \
 	const_const \
 	constant_expr \

@@ -1,9 +1,12 @@
-/* This testcase checks whether SWIG correctly parses the default and delete
-   keywords which keep or remove default C++ object construction functions. */
+/* This testcase checks whether SWIG correctly parses C++11 explicitly defaulted functions and deleted functions */
 %module cpp11_default_delete
 
-%{
-#include <stdlib.h>
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::trivial(trivial&&);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::operator =(trivial&&);
+
+%rename(Assignment) *::operator=;
+
+%inline %{
 
 class NonCopyable {
 public:
@@ -14,11 +17,56 @@ public:
 };
 
 struct A1 {
-  void f(int i);
-  void f(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+  void func(int i) {}
+  A1() = default;
+  ~A1() = default;
+  void func(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+private:
+  A1(const A1&);
 };
+A1::A1(const A1&) = default;
+
 struct A2 {
-  void f(int i);
-  template<class T> void f(T) = delete; /* Only accept int */
+  void func(int i) {}
+  virtual void fff(int) = delete;
+  virtual ~A2() = default;
+  template<class T> void func(T) = delete;
+};
+
+struct trivial {
+  trivial() = default;
+  trivial(const trivial&) = default;
+  trivial(trivial&&) = default;
+  trivial& operator=(const trivial&) = default;
+  trivial& operator=(trivial&&) = default;
+  ~trivial() = default;
+};
+
+struct nontrivial1 {
+  nontrivial1();
+};
+nontrivial1::nontrivial1() = default;
+
+struct sometype {
+  sometype() = delete;
+  sometype(int) = delete;
+  sometype(double);
+};
+sometype::sometype(double) {}
+
+/* Not working with prerelease of gcc-4.8
+struct nonew {
+  void *operator new(std::size_t) = delete;
+  void *operator new[](std::size_t) = delete;
+};
+*/
+
+struct moveonly {
+  moveonly() = default;
+  moveonly(const moveonly&) = delete;
+  moveonly(moveonly&&) = default;
+  moveonly& operator=(const moveonly&) = delete;
+  moveonly& operator=(moveonly&&) = default;
+  ~moveonly() = default;
 };
 %}

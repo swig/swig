@@ -447,6 +447,14 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
+    if (cparse_cplusplus) {
+      String *value = Getattr(n, "value");
+      if (value && Strcmp(value, "delete") == 0) {
+	/* C++11 deleted definition / deleted function */
+        SetFlag(n,"deleted");
+        SetFlag(n,"feature:ignore");
+      }
+    }
     if (only_csymbol || GetFlag(n,"feature:ignore")) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
@@ -1715,7 +1723,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
-%token LESSTHAN GREATERTHAN DELETE_KW
+%token LESSTHAN GREATERTHAN DELETE_KW DEFAULT
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
 %token ARROW
 %token QUESTIONMARK
@@ -1775,7 +1783,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <str>      ellipsis variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
-%type <dtype>    definetype def_args etype;
+%type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    expr exprnum exprcompound valexpr;
 %type <id>       ename ;
 %type <id>       template_decl;
@@ -4696,6 +4704,8 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		  Delete(code);
 		}
 		SetFlag($$,"feature:new");
+		if ($6.defarg)
+		  Setattr($$,"value",$6.defarg);
 	      } else {
 		$$ = 0;
               }
@@ -4723,6 +4733,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       }
 	       Setattr($$,"throws",$6.throws);
 	       Setattr($$,"throw",$6.throwf);
+	       if ($6.val)
+	         Setattr($$,"value",$6.val);
 	       add_symbols($$);
 	      }
 
@@ -4738,9 +4750,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		Delete(name);
 		Setattr($$,"throws",$7.throws);
 		Setattr($$,"throw",$7.throwf);
-		if ($7.val) {
-		  Setattr($$,"value","0");
-		}
+		if ($7.val)
+		  Setattr($$,"value",$7.val);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
@@ -4982,11 +4993,19 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 
 cpp_end        : cpp_const SEMI {
 	            Clear(scanner_ccode);
+		    $$.val = 0;
+		    $$.throws = $1.throws;
+		    $$.throwf = $1.throwf;
+               }
+               | cpp_const EQUAL default_delete SEMI {
+	            Clear(scanner_ccode);
+		    $$.val = $3.val;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
                }
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
+		    $$.val = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
 	       }
@@ -6143,11 +6162,15 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   } else if ($$.type != T_CHAR && $$.type != T_WSTRING && $$.type != T_WCHAR) {
 		     $$.rawval = 0;
 		   }
+		   $$.qualifier = 0;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
 		   scanner_ignore_typedef();
                 }
+                | default_delete {
+		  $$ = $1;
+		}
 /*
                 | string {
                    $$.val = NewString($1);
@@ -6159,6 +6182,38 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		}
 */
                 ;
+
+default_delete : deleted_definition {
+		  $$ = $1;
+		}
+                | explicit_default {
+		  $$ = $1;
+		}
+		;
+
+/* For C++ deleted definition '= delete' */
+deleted_definition : DELETE_KW {
+		  $$.val = NewString("delete");
+		  $$.rawval = 0;
+		  $$.type = T_STRING;
+		  $$.qualifier = 0;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+		}
+		;
+
+/* For C++ explicitly defaulted functions '= default' */
+explicit_default : DEFAULT {
+		  $$.val = NewString("default");
+		  $$.rawval = 0;
+		  $$.type = T_STRING;
+		  $$.qualifier = 0;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+		}
+		;
 
 /* Some stuff for handling enums */
 
@@ -6711,6 +6766,7 @@ template_decl : LESSTHAN valparms GREATERTHAN {
                ;
 
 idstring       : ID { $$ = $1; }
+               | default_delete { $$ = $1.val; }
                | string { $$ = $1; }
                ;
 
