@@ -16,8 +16,7 @@ public class derived_nested_runme {
     BB outer = new BB();
     BB.DD d = new BB.DD();
     BB.EE e = new BB.EE();
-    outer.ff_instance.z = 0.0;
-    outer.ff_instance.x = 1.0;
+    outer.getFf_instance().setZ(outer.getFf_instance().getX());
     outer.useEE(e);
   }
 }
