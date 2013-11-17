@@ -76,6 +76,7 @@ typedef struct swig_elua_entry {
 
 #define lua_pushrotable(L,p)\
   lua_newtable(L);\
+  assert(p);\
   SWIG_Lua_elua_emulate_register(L,(swig_elua_entry*)(p));
 
 #define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
@@ -262,7 +263,7 @@ typedef struct swig_lua_class {
   swig_lua_method   *methods;
   swig_lua_attribute     *attributes;
   swig_lua_namespace    *cls_static;
-  swig_lua_method   *metatable; // only for eLua
+  swig_lua_method   *metatable; // 0 for -eluac
   struct swig_lua_class **bases;
   const char **base_names;
 } swig_lua_class;
@@ -1252,8 +1253,12 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
     This adds methods from metatable array to metatable. Can mess up garbage
     collectind if someone defines __gc method
     */
-  for(i=0;clss->metatable[i].name;i++)
-    SWIG_Lua_add_function(L,clss->metatable[i].name,clss->metatable[i].func);
+  if(clss->metatable) {
+    for(i=0;clss->metatable[i].name;i++) {
+      assert(clss->metatable[i].func != 0); // TODO: REMOVE
+      SWIG_Lua_add_function(L,clss->metatable[i].name,clss->metatable[i].func);
+    }
+  }
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */

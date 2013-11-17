@@ -1194,6 +1194,7 @@ public:
     assert(class_static_nspace == 0);
     assert(class_fq_symname == 0);
     assert(class_symname == 0);
+    assert(class_parent_nspace == 0);
 
     current[NO_CPP] = false;
 
@@ -1318,6 +1319,7 @@ public:
     // Module.ClassName.StaticMethod to access static method/variable/constant
     // Module.ClassName() to create new object
     if (have_constructor) {
+      assert(constructor_name);
       String *constructor_proxy_name = NewStringf("_proxy_%s", constructor_name);
       Printv(f_wrappers, "static int ", constructor_proxy_name, "(lua_State *L) {\n", NIL);
       Printv(f_wrappers,
@@ -1385,6 +1387,12 @@ public:
     // First, print class static part
     printNamespaceDefinition(class_static_nspace, class_symname, f_wrappers);
 
+    assert(mangled_class_fq_symname);
+    assert(base_class);
+    assert(base_class_names);
+    assert(class_symname);
+    assert(class_fq_symname);
+    
     // Then print class isntance part
     Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
@@ -1409,8 +1417,10 @@ public:
     }
     Printf(f_wrappers, ", %s, %s, &%s", s_methods_tab_name, s_attr_tab_name, Getattr(static_cls, "cname"));
     
-    if (!eluac_ltr)
+    if (!eluac_ltr) {
+      assert(Getattr(instance_cls, "metatable:name")); // TODO: REMOVE
       Printf(f_wrappers, ", %s", Getattr(instance_cls,"metatable:name"));
+    }
     else
       Printf(f_wrappers, ", 0");
 
@@ -1776,10 +1786,12 @@ public:
       String *metatable_tab = NewString("");
       String *metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
       String *metatable_tab_decl = NewString("");
-      if (elua_ltr || eluac_ltr)	// In this case const array holds rotable with namespace constants
+      if (elua_ltr) // In this case const array holds rotable with namespace constants
 	Printf(metatable_tab, "const LUA_REG_TYPE ");
       else
 	Printf(metatable_tab, "static swig_lua_method ");
+      assert(metatable_tab); // TODO: REMOVE
+      assert(metatable_tab_name); // TODO: REMOVE
       Printv(metatable_tab, metatable_tab_name, "[]", NIL);
       Printv(metatable_tab_decl, metatable_tab, ";", NIL);
       Printv(metatable_tab, " = {\n", NIL);
@@ -1861,11 +1873,14 @@ public:
     }
     String *methods_tab = Getattr(nspace_hash, "methods");
     String *metatable_tab_name = Getattr(nspace_hash, "metatable:name");
+    assert(methods_tab); // TODO: REMOVE
     if (elua_ltr || eluac_ltr) {
       if (v2_compatibility)
 	Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
-      if (elua_ltr)
+      if (elua_ltr) {
+	assert(metatable_tab_name); // TODO: REMOVE
 	Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
+      }
 
       Printv(methods_tab, tab4, "{LSTRKEY(\"__disown\"), LFUNCVAL(SWIG_Lua_class_disown)},\n", NIL);
       Printv(methods_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
