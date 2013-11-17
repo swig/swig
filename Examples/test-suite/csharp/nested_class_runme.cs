@@ -26,24 +26,24 @@ public class runme {
     iu5 = outer.makeInnerUnion5Typedef();
 
     {
-      Outer.InnerMultiple im1 = outer.getMultipleInstance1();
-      Outer.InnerMultiple im2 = outer.getMultipleInstance2();
-      Outer.InnerMultiple im3 = outer.getMultipleInstance3();
-      Outer.InnerMultiple im4 = outer.getMultipleInstance4();
+      Outer.InnerMultiple im1 = outer.MultipleInstance1;
+      Outer.InnerMultiple im2 = outer.MultipleInstance2;
+      Outer.InnerMultiple im3 = outer.MultipleInstance3;
+      Outer.InnerMultiple im4 = outer.MultipleInstance4;
     }
 
     {
-      Outer.InnerMultipleDerived im1 = outer.getMultipleDerivedInstance1();
-      Outer.InnerMultipleDerived im2 = outer.getMultipleDerivedInstance2();
-      Outer.InnerMultipleDerived im3 = outer.getMultipleDerivedInstance3();
-      Outer.InnerMultipleDerived im4 = outer.getMultipleDerivedInstance4();
+      Outer.InnerMultipleDerived im1 = outer.MultipleDerivedInstance1;
+      Outer.InnerMultipleDerived im2 = outer.MultipleDerivedInstance2;
+      Outer.InnerMultipleDerived im3 = outer.MultipleDerivedInstance3;
+      Outer.InnerMultipleDerived im4 = outer.MultipleDerivedInstance4;
     }
 
     {
-      Outer.InnerMultipleDerived im1 = outer.getMultipleDerivedInstance1();
-      Outer.InnerMultipleDerived im2 = outer.getMultipleDerivedInstance2();
-      Outer.InnerMultipleDerived im3 = outer.getMultipleDerivedInstance3();
-      Outer.InnerMultipleDerived im4 = outer.getMultipleDerivedInstance4();
+      Outer.InnerMultipleDerived im1 = outer.MultipleDerivedInstance1;
+      Outer.InnerMultipleDerived im2 = outer.MultipleDerivedInstance2;
+      Outer.InnerMultipleDerived im3 = outer.MultipleDerivedInstance3;
+      Outer.InnerMultipleDerived im4 = outer.MultipleDerivedInstance4;
     }
 
     {

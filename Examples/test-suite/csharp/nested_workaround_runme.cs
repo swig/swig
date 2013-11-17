@@ -8,7 +8,7 @@ public class runme {
       Outer outer = new Outer();
       Inner newInner = outer.doubleInnerValue(inner);
       if (newInner.getValue() != 10)
-        throw new RuntimeException("inner failed");
+        throw new Exception("inner failed");
     }
 
     {
@@ -16,7 +16,7 @@ public class runme {
       Inner inner = outer.createInner(3);
       Inner newInner = outer.doubleInnerValue(inner);
       if (outer.getInnerValue(newInner) != 6)
-        throw new RuntimeException("inner failed");
+        throw new Exception("inner failed");
     }
   }
 }
