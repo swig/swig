@@ -1,5 +1,6 @@
 using System;
 using template_nestedNamespace;
+#pragma warning disable 219
 
 public class runme {
   static void Main() {
@@ -17,7 +18,7 @@ public class runme {
       throw new Exception("it failed");
     OuterClass.T_OuterClassInner1Int inner1 = new OuterClass().useInner1(new OuterClass.T_OuterClassInner1Int());
     OuterClass.T_OuterClassInner2NormalClass inner2 = new OuterClass.T_OuterClassInner2NormalClass();
-    inner2.EmbeddedVar = 2;
+    inner2.embeddedVar = 2;
     OuterClass.T_OuterClassInner2NormalClass inner22 = new OuterClass().useInner2Again(inner2);
   }
 }

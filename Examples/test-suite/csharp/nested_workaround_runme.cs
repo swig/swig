@@ -1,5 +1,6 @@
 using System;
 using nested_workaroundNamespace;
+#pragma warning disable 219
 
 public class runme {
   static void Main() {

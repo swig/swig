@@ -1,5 +1,6 @@
 using System;
 using nested_structsNamespace;
+#pragma warning disable 219
 
 public class runme {
   static void Main() {
