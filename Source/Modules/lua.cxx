@@ -1776,7 +1776,11 @@ public:
       String *metatable_tab = NewString("");
       String *metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
       String *metatable_tab_decl = NewString("");
-      Printv(metatable_tab, "swig_lua_method ", metatable_tab_name, "[]", NIL);
+      if (elua_ltr || eluac_ltr)	// In this case const array holds rotable with namespace constants
+	Printf(metatable_tab, "const LUA_REG_TYPE ");
+      else
+	Printf(metatable_tab, "static swig_lua_method ");
+      Printv(metatable_tab, metatable_tab_name, "[]", NIL);
       Printv(metatable_tab_decl, metatable_tab, ";", NIL);
       Printv(metatable_tab, " = {\n", NIL);
       Setattr(nspace_hash, "metatable", metatable_tab);

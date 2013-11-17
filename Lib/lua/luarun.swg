@@ -76,7 +76,7 @@ typedef struct swig_elua_entry {
 
 #define lua_pushrotable(L,p)\
   lua_newtable(L);\
-  SWIG_Lua_elua_emulate_register(L,p);
+  SWIG_Lua_elua_emulate_register(L,(swig_elua_entry*)(p));
 
 #define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
   LSTRKEY(B), {LUA_TUSERDATA, { .userdata={0,0,(void*)(C),&D} } }
