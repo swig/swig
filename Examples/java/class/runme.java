@@ -21,9 +21,9 @@ public class runme {
     Square s = new Square(10);
     System.out.println( "    Created square " + s );
     
-    // ----- Access a static member -----
+    // ----- Access a static member of a nested class -----
     
-    System.out.println( "\nA total of " + Shape.getNshapes() + " shapes were created" );
+    System.out.println( "\nA total of " + Shape.Counter.getNshapes() + " shapes were created" );
     
     // ----- Member data access -----
     
@@ -64,7 +64,7 @@ public class runme {
     c.delete();
     s.delete();
     
-    System.out.println( Shape.getNshapes() + " shapes remain" );
+    System.out.println( Shape.Counter.getNshapes() + " shapes remain" );
     System.out.println( "Goodbye" );
   }
 }
