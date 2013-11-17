@@ -6,6 +6,8 @@ public class runme {
   static void Main() {
 
     Outer outer = new Outer();
+    outer.a = 1;
+		outer.b = 2;
     Outer.InnerStruct1 is1 = outer.makeInnerStruct1();
     Outer.InnerClass1 ic1 = outer.makeInnerClass1();
     Outer.InnerUnion1 iu1 = outer.makeInnerUnion1();

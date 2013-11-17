@@ -2415,6 +2415,7 @@ int Language::classDeclaration(Node *n) {
   InClass = 1;
   CurrentClass = n;
   NSpace = Getattr(n, "sym:nspace");
+  int oldAbstract = Abstract;
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -2456,14 +2457,15 @@ int Language::classDeclaration(Node *n) {
       classDirector(n);
     }
     /* check for abstract after resolving directors */
-    Abstract = abstractClassTest(n);
 
+    Abstract = abstractClassTest(n);
     classHandler(n);
   } else {
     Abstract = abstractClassTest(n);
     Language::classHandler(n);
   }
 
+  Abstract = oldAbstract; 
   cplus_mode = oldAccessMode;
   NSpace = oldNSpace;
   InClass = oldInClass;
