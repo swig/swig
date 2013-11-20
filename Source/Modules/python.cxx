@@ -866,16 +866,21 @@ public:
 #else
 	       tab4, "if (not static):\n",
 #endif
-	       tab4, tab4, "self.__dict__[name] = value\n",
+	       tab4, tab4, "object.__setattr__(self, name, value)\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
 	       "def _swig_setattr(self,class_type,name,value):\n", tab4, "return _swig_setattr_nondynamic(self,class_type,name,value,0)\n\n", NIL);
 
 	Printv(f_shadow,
-	       "def _swig_getattr(self,class_type,name):\n",
+	       "def _swig_getattr_nondynamic(self,class_type,name,static=1):\n",
 	       tab4, "if (name == \"thisown\"): return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name,None)\n",
-	       tab4, "if method: return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
+	       tab4, "if method: return method(self)\n",
+	       tab4, "if (not static):\n",
+	       tab4, tab4, "return object.__getattr__(self, name)\n",
+	       tab4, "else:\n",
+	       tab4, tab4, "raise AttributeError(name)\n\n",
+	       "def _swig_getattr(self,class_type,name):\n", tab4, "return _swig_getattr_nondynamic(self,class_type,name,0)\n\n", NIL);
 
 	Printv(f_shadow,
 	       "def _swig_repr(self):\n",
