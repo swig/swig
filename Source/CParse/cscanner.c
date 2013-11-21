@@ -705,6 +705,8 @@ int yylex(void) {
 	}
 	if (strcmp(yytext, "throw") == 0)
 	  return (THROW);
+	if (strcmp(yytext, "noexcept") == 0)
+	  return (NOEXCEPT);
 	if (strcmp(yytext, "try") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "catch") == 0)

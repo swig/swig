@@ -1669,6 +1669,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
     String *bitfield;
     Parm   *throws;
     String *throwf;
+    String *nexcept;
   } dtype;
   struct {
     char *type;
@@ -1683,6 +1684,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
     short      have_parms;
     ParmList  *throws;
     String    *throwf;
+    String    *nexcept;
   } decl;
   Parm         *tparms;
   struct {
@@ -1716,7 +1718,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO NOEXCEPT
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE /* C++11 keywords */
 %token USING
 %token <node> NAMESPACE
@@ -1771,7 +1773,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     kwargs options;
 
 /* Misc */
-%type <dtype>    initializer cpp_const ;
+%type <dtype>    initializer cpp_const exception_specification;
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
@@ -3234,6 +3236,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"value",$4.val);
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
+	      Setattr($$,"noexcept",$4.nexcept);
 	      if (!$5) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -3293,6 +3296,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      Setattr($$,"value",$6.val);
 	      Setattr($$,"throws",$6.throws);
 	      Setattr($$,"throw",$6.throwf);
+	      Setattr($$,"noexcept",$6.nexcept);
 	      if (!$7) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -3352,6 +3356,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"value",$3.val);
 		 Setattr($$,"throws",$3.throws);
 		 Setattr($$,"throw",$3.throwf);
+		 Setattr($$,"noexcept",$3.nexcept);
 		 if ($3.bitfield) {
 		   Setattr($$,"bitfield", $3.bitfield);
 		 }
@@ -3376,24 +3381,28 @@ initializer   : def_args {
                    $$.qualifier = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
+		   $$.nexcept = 0;
               }
               | type_qualifier def_args { 
                    $$ = $2; 
 		   $$.qualifier = $1;
 		   $$.throws = 0;
 		   $$.throwf = 0;
+		   $$.nexcept = 0;
 	      }
-              | THROW LPAREN parms RPAREN def_args { 
-		   $$ = $5; 
+              | exception_specification def_args { 
+		   $$ = $2; 
                    $$.qualifier = 0;
-		   $$.throws = $3;
-		   $$.throwf = NewString("1");
+		   $$.throws = $1.throws;
+		   $$.throwf = $1.throwf;
+		   $$.nexcept = $1.nexcept;
               }
-              | type_qualifier THROW LPAREN parms RPAREN def_args { 
-                   $$ = $6; 
+              | type_qualifier exception_specification def_args { 
+                   $$ = $3; 
                    $$.qualifier = $1;
-		   $$.throws = $4;
-		   $$.throwf = NewString("1");
+		   $$.throws = $2.throws;
+		   $$.throwf = $2.throwf;
+		   $$.nexcept = $2.nexcept;
               }
               ;
 
@@ -3669,6 +3678,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			}
 			Setattr($$,"throws",$6.throws);
 			Setattr($$,"throw",$6.throwf);
+			Setattr($$,"noexcept",$6.nexcept);
 			err = 0;
 		      }
 		    }
@@ -4698,6 +4708,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		Setattr($$,"decl",decl);
 		Setattr($$,"throws",$6.throws);
 		Setattr($$,"throw",$6.throwf);
+		Setattr($$,"noexcept",$6.nexcept);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
@@ -4733,6 +4744,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       }
 	       Setattr($$,"throws",$6.throws);
 	       Setattr($$,"throw",$6.throwf);
+	       Setattr($$,"noexcept",$6.nexcept);
 	       if ($6.val)
 	         Setattr($$,"value",$6.val);
 	       add_symbols($$);
@@ -4750,6 +4762,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		Delete(name);
 		Setattr($$,"throws",$7.throws);
 		Setattr($$,"throw",$7.throwf);
+		Setattr($$,"noexcept",$7.nexcept);
 		if ($7.val)
 		  Setattr($$,"value",$7.val);
 		if (Len(scanner_ccode)) {
@@ -4996,18 +5009,21 @@ cpp_end        : cpp_const SEMI {
 		    $$.val = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
+		    $$.nexcept = $1.nexcept;
                }
                | cpp_const EQUAL default_delete SEMI {
 	            Clear(scanner_ccode);
 		    $$.val = $3.val;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
+		    $$.nexcept = $1.nexcept;
                }
                | cpp_const LBRACE { 
 		    skip_balanced('{','}'); 
 		    $$.val = 0;
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
+		    $$.nexcept = $1.nexcept;
 	       }
                ;
 
@@ -5018,6 +5034,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws;
                      $$.throwf = $1.throwf;
+                     $$.nexcept = $1.nexcept;
                 }
                | cpp_const EQUAL definetype SEMI { 
                      Clear(scanner_ccode);
@@ -5026,6 +5043,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
+                     $$.nexcept = $1.nexcept; 
                }
                | cpp_const LBRACE { 
                      skip_balanced('{','}');
@@ -5034,6 +5052,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
+                     $$.nexcept = $1.nexcept; 
                }
                ;
 
@@ -5085,6 +5104,7 @@ storage_class  : EXTERN { $$ = "extern"; }
                | FRIEND { $$ = "friend"; }
                | EXPLICIT { $$ = "explicit"; }
                | CONSTEXPR { $$ = "constexpr"; }
+               | STATIC CONSTEXPR { $$ = "static constexpr"; }
                | THREAD_LOCAL { $$ = "thread_local"; }
                | THREAD_LOCAL STATIC { $$ = "static thread_local"; }
                | STATIC THREAD_LOCAL { $$ = "static thread_local"; }
@@ -5222,6 +5242,7 @@ def_args       : EQUAL definetype {
 		    $$.bitfield = 0;
 		    $$.throws = 0;
 		    $$.throwf = 0;
+		    $$.nexcept = 0;
 		  }
                }
                | EQUAL definetype LBRACKET expr RBRACKET { 
@@ -5234,6 +5255,7 @@ def_args       : EQUAL definetype {
 		    $$.bitfield = 0;
 		    $$.throws = 0;
 		    $$.throwf = 0;
+		    $$.nexcept = 0;
 		  } else {
 		    $$.val = NewStringf("%s[%s]",$2.val,$4.val); 
 		  }		  
@@ -5246,6 +5268,7 @@ def_args       : EQUAL definetype {
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
+		 $$.nexcept = 0;
 	       }
                | COLON expr { 
 		 $$.val = 0;
@@ -5254,6 +5277,7 @@ def_args       : EQUAL definetype {
 		 $$.bitfield = $2.val;
 		 $$.throws = 0;
 		 $$.throwf = 0;
+		 $$.nexcept = 0;
 	       }
                | empty {
                  $$.val = 0;
@@ -5262,6 +5286,7 @@ def_args       : EQUAL definetype {
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
+		 $$.nexcept = 0;
                }
                ;
 
@@ -6166,6 +6191,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
+		   $$.nexcept = 0;
 		   scanner_ignore_typedef();
                 }
                 | default_delete {
@@ -6179,6 +6205,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   $$.throwf = 0;
+		   $$.nexcept = 0;
 		}
 */
                 ;
@@ -6200,6 +6227,7 @@ deleted_definition : DELETE_KW {
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
+		  $$.nexcept = 0;
 		}
 		;
 
@@ -6212,6 +6240,7 @@ explicit_default : DEFAULT {
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
+		  $$.nexcept = 0;
 		}
 		;
 
@@ -6331,6 +6360,7 @@ valexpr        : exprnum { $$ = $1; }
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
+		  $$.nexcept = 0;
 	       }
                | WCHARCONST {
 		  $$.val = NewString($1);
@@ -6343,6 +6373,7 @@ valexpr        : exprnum { $$ = $1; }
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
+		  $$.nexcept = 0;
 	       }
 
 /* grouping */
@@ -6668,25 +6699,43 @@ opt_virtual    : VIRTUAL
                | empty
                ;
 
-cpp_const      : type_qualifier {
-                    $$.qualifier = $1;
-                    $$.throws = 0;
-                    $$.throwf = 0;
-               }
-               | THROW LPAREN parms RPAREN {
-                    $$.qualifier = 0;
+exception_specification : THROW LPAREN parms RPAREN {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
-               }
-               | type_qualifier THROW LPAREN parms RPAREN {
-                    $$.qualifier = $1;
-                    $$.throws = $4;
-                    $$.throwf = NewString("1");
-               }
-               | empty { 
-                    $$.qualifier = 0; 
+                    $$.nexcept = 0;
+	       }
+	       | NOEXCEPT {
                     $$.throws = 0;
                     $$.throwf = 0;
+                    $$.nexcept = NewString("true");
+	       }
+
+	       | NOEXCEPT LPAREN expr RPAREN {
+                    $$.throws = 0;
+                    $$.throwf = 0;
+                    $$.nexcept = $3.val;
+	       }
+	       ;	
+
+cpp_const      : type_qualifier {
+                    $$.throws = 0;
+                    $$.throwf = 0;
+                    $$.nexcept = 0;
+                    $$.qualifier = $1;
+               }
+               | exception_specification {
+		    $$ = $1;
+                    $$.qualifier = 0;
+               }
+               | type_qualifier exception_specification {
+		    $$ = $2;
+                    $$.qualifier = $1;
+               }
+               | empty { 
+                    $$.throws = 0;
+                    $$.throwf = 0;
+                    $$.nexcept = 0;
+                    $$.qualifier = 0; 
                }
                ;
 
@@ -6696,6 +6745,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.defarg = 0; 
 		    $$.throws = $1.throws;
 		    $$.throwf = $1.throwf;
+		    $$.nexcept = $1.nexcept;
                }
                | cpp_const ctor_initializer LBRACE { 
                     skip_balanced('{','}'); 
@@ -6703,6 +6753,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.defarg = 0; 
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
+                    $$.nexcept = $1.nexcept;
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
@@ -6711,6 +6762,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.defarg = 0; 
 		    $$.throws = 0;
 		    $$.throwf = 0;
+		    $$.nexcept = 0;
                }
                | LPAREN parms RPAREN LBRACE {
                     skip_balanced('{','}'); 
@@ -6719,12 +6771,14 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.defarg = 0; 
                     $$.throws = 0;
                     $$.throwf = 0;
+                    $$.nexcept = 0;
                }
                | EQUAL definetype SEMI { 
                     $$.have_parms = 0; 
                     $$.defarg = $2.val; 
                     $$.throws = 0;
                     $$.throwf = 0;
+                    $$.nexcept = 0;
                }
                ;
 

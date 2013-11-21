@@ -37,6 +37,7 @@
 <li><a href="#CPlusPlus11_type_long_long_int">Type long long int</a>
 <li><a href="#CPlusPlus11_static_assertions">Static assertions</a>
 <li><a href="#CPlusPlus11_allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object">Allow sizeof to work on members of classes without an explicit object</a>
+<li><a href="#CPlusPlus11_noexcept">Exception specifications and noexcept</a>
 </ul>
 <li><a href="#CPlusPlus11_standard_library_changes">Standard library changes</a>
 <ul>
@@ -583,7 +584,7 @@ struct point {
   int x_, y_;
 };
 
-#include <new> // For placement 'new' in the constructor below
+#include &lt;new&gt; // For placement 'new' in the constructor below
 union P {
   int z;
   double w;
@@ -800,6 +801,23 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
+<H3><a name="CPlusPlus11_noexcept"></a>7.2.25 Exception specifications and noexcept</H3>
+
+
+<p>
+C++11 added in the noexcept specification to exception specifications to indicate that a function simply may or may not throw an exception, without actually naming any exception.
+SWIG understands these, although there isn't any useful way that this information can be taken advantage of by target languages,
+so it is as good as ignored during the wrapping process.
+Below are some examples of noexcept in function declarations:
+</p>
+
+<div class="code"><pre>
+static void noex1() noexcept;
+int noex2(int) noexcept(true);
+int noex3(int, bool) noexcept(false);
+</pre></div>
+
+
 <H2><a name="CPlusPlus11_standard_library_changes"></a>7.3 Standard library changes</H2>
 
 
@@ -885,7 +903,7 @@ Example of supported usage of the plain functor from Python is shown below.
 It does not involve <tt>std::function</tt>.
 </p>
 
-<div class="targetlang">
+<div class="targetlang"><pre>
 t = Test()
 b = t(1,2) # invoke C++ function object
 </pre></div>
@@ -944,5 +962,6 @@ typename std::result_of&lt;Fun(Arg)&gt;::type test_result_impl(Fun fun, Arg arg)
 </pre></div>
 
 <p>Instead, please use <tt>decltype()</tt> where possible for now.</p>
+
 </body>
 </html>

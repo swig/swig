@@ -491,6 +491,7 @@ CPP11_TEST_CASES = \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
+	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
 	cpp11_rvalue_reference \
