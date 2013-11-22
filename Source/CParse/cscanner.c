@@ -705,6 +705,8 @@ int yylex(void) {
 	}
 	if (strcmp(yytext, "throw") == 0)
 	  return (THROW);
+	if (strcmp(yytext, "noexcept") == 0)
+	  return (NOEXCEPT);
 	if (strcmp(yytext, "try") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "catch") == 0)
@@ -727,6 +729,9 @@ int yylex(void) {
 	}
 	if (strcmp(yytext, "delete") == 0) {
 	  return (DELETE_KW);
+	}
+	if (strcmp(yytext, "default") == 0) {
+	  return (DEFAULT);
 	}
 	if (strcmp(yytext, "using") == 0) {
 	  return (USING);

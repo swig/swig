@@ -33,6 +33,7 @@ matrix:
   allow_failures:
       # None
 before_install:
+  - date -u
   - lsb_release -a
   - uname -a
   - sudo apt-get -qq update
