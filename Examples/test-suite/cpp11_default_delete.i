@@ -69,4 +69,13 @@ struct moveonly {
   moveonly& operator=(moveonly&&) = default;
   ~moveonly() = default;
 };
+
+struct ConstructorThrow {
+  ConstructorThrow() throw() = default;
+  ConstructorThrow(const ConstructorThrow&) throw() = delete;
+  ConstructorThrow(ConstructorThrow&&) throw() = delete;
+  ConstructorThrow& operator=(const ConstructorThrow&) throw() = delete;
+  ~ConstructorThrow() throw() = default;
+};
+
 %}

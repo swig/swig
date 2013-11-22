@@ -6780,6 +6780,13 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throwf = 0;
                     $$.nexcept = 0;
                }
+               | exception_specification EQUAL default_delete SEMI {
+                    $$.have_parms = 0;
+                    $$.defarg = $3.val;
+                    $$.throws = $1.throws;
+                    $$.throwf = $1.throwf;
+                    $$.nexcept = $1.nexcept;
+               }
                ;
 
 ctor_initializer : COLON mem_initializer_list

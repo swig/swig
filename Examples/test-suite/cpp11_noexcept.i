@@ -37,8 +37,9 @@ struct NoExceptAbstract {
 };
 
 struct NoExceptDefaultDelete {
-//  NoExceptDefaultDelete() noexcept = default;
-//  NoExceptDefaultDelete(const NoExceptDefaultDelete&) noexcept = delete;
+  template<typename T> NoExceptDefaultDelete(T) noexcept = delete;
+  NoExceptDefaultDelete() noexcept = default;
+  NoExceptDefaultDelete(const NoExceptDefaultDelete&) noexcept = delete;
   NoExceptDefaultDelete(NoExceptDefaultDelete&&) = delete;
   NoExceptDefaultDelete& operator=(const NoExceptDefaultDelete&) = delete;
   ~NoExceptDefaultDelete() noexcept = default;
