@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-11-27: vadz
+            Add std_auto_ptr.i defining typemaps for returning std::auto_ptr<>.
+
 2013-11-09: wsfulton
             [C#] Apply patch #79 from Brant Kyser
               - Remove using directives from the generated C# code and fully qualify the use of all .NET
