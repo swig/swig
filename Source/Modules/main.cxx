@@ -29,6 +29,10 @@
 
 static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
+extern "C"
+{
+  int CPlusPlusOut = 0;		// generate C++ declarations for C code
+};
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
 int GenerateDefault = 1;	// Generate default constructors
@@ -482,6 +486,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	CPlusPlus = 1;
 	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++out") == 0) {
+	CPlusPlusOut = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);

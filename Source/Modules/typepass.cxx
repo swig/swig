@@ -1518,22 +1518,29 @@ static void strip_comments(char *string) {
 
 // Create an %insert with a typedef to make a new name visible to C
 // the code is moved from parser.y, dump_nested() function with minor changes
-static Node* create_insert(Node* n) {
+static Node* create_insert(Node* n, bool noTypedef = false) {
   // format a typedef
   String* ccode = Getattr(n, "code");
   Push(ccode, " ");
-  Push(ccode, Getattr(n, "kind"));
-  Push(ccode, "typedef ");
-  Append(ccode, " ");
-  Append(ccode, Getattr(n, "tdname"));
+  if (noTypedef) {
+    Push(ccode, Getattr(n, "name"));
+    Push(ccode, " ");
+    Push(ccode, Getattr(n, "kind"));
+  } else {
+    Push(ccode, Getattr(n, "kind"));
+    Push(ccode, "typedef ");
+    Append(ccode, " ");
+    Append(ccode, Getattr(n, "tdname"));
+  } 
   Append(ccode, ";");
+
   
   /* Strip comments - further code may break in presence of comments. */
   strip_comments(Char(ccode));
 
   /* Make all SWIG created typedef structs/unions/classes unnamed else 
   redefinition errors occur - nasty hack alert.*/
-  {
+  if (!noTypedef) {
     const char* types_array[3] = {"struct", "union", "class"};
     for (int i = 0; i < 3; i++) {
       char* code_ptr = Char(ccode);
@@ -1665,6 +1672,13 @@ void Swig_name_unnamed_c_structs(Node *n) {
 	// global unnamed struct - ignore it
 	c = next;
 	continue;
+      }
+    } else if (CPlusPlusOut) {
+      if (Getattr(c, "nested:outer")) {
+	Node* ins = create_insert(c, true);
+	insertNodeAfter(c, ins);
+	Delete(ins);
+	Delattr(c, "nested:outer");
       }
     }
     // process children

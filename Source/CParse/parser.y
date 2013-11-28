@@ -59,7 +59,7 @@ static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
-
+extern int CPlusPlusOut;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -3353,6 +3353,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
+		   String *code;
 		   $<node>$ = new_node("class");
 		   Setline($<node>$,cparse_start_line);
 		   Setattr($<node>$,"kind",$2);
@@ -3428,6 +3429,11 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Delete(prefix);
 		   inclass = 1;
 		   currentOuterClass = $<node>$;
+		   if (CPlusPlusOut) { /* save the structure declaration to declare it in global scope for C++ to see*/
+		     code = get_raw_text_balanced('{', '}');
+		     Setattr($<node>$, "code", code);
+		     Delete(code);
+		   }
                } cpp_members RBRACE cpp_opt_declarators {
 		   Node *p;
 		   SwigType *ty;
@@ -3536,7 +3542,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
-		       Delattr($$, "nested:outer");
+		       if (!CPlusPlusOut)
+			 Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
 		       $$ = 0;
 		     } else {
