@@ -118,7 +118,13 @@ void skip_balanced(int startchar, int endchar) {
   return;
 }
 
-String* get_raw_text_balanced(int startchar, int endchar) {
+/* -----------------------------------------------------------------------------
+ * get_raw_text_balanced()
+ *
+ * Returns raw text between 2 braces
+ * ----------------------------------------------------------------------------- */
+
+String *get_raw_text_balanced(int startchar, int endchar) {
   return Scanner_get_raw_text_balanced(scan, startchar, endchar);
 }
 

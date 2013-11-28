@@ -559,7 +559,7 @@ Allocate():
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node* oldInclass = inclass;
+    Node *oldInclass = inclass;
     AccessMode oldAcessMode = cplus_mode;
 
     if (!CPlusPlus) {

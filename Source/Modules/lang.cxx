@@ -20,7 +20,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
-Language* Language::this_ = 0;
+Language *Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -2367,7 +2367,7 @@ int Language::classDeclaration(Node *n) {
   String *oldClassName = ClassName;
   String *oldDirectorClassName = DirectorClassName;
   String *oldNSpace = NSpace;
-  Node* oldCurrentClass = CurrentClass;
+  Node *oldCurrentClass = CurrentClass;
 
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
@@ -2390,7 +2390,7 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
   AccessMode oldAccessMode = cplus_mode;
-  Node* outerClass = Getattr(n, "nested:outer");
+  Node *outerClass = Getattr(n, "nested:outer");
   if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
     return SWIG_NOWRAP;
   ClassName = Copy(name);
@@ -3633,12 +3633,12 @@ Hash *Language::getClassHash() const {
 }
 
 // insert N tabs before each new line in s
-void Swig_offset_string(String* s, int N)
+void Swig_offset_string(String *s, int N)
 {
   // count a number of lines in s
   int lines = 1;
   int L = Len(s);
-  char* start = strchr(Char(s), '\n');
+  char *start = strchr(Char(s), '\n');
   while (start) {
     ++lines;
     start = strchr(start + 1, '\n');
@@ -3647,13 +3647,13 @@ void Swig_offset_string(String* s, int N)
   if ((Char(s))[L-1] == '\n')
     --lines;
   // allocate a temporary storage for a padded string
-  char* res = (char*)malloc(L + lines * N * 2 + 1);
+  char *res = (char*)malloc(L + lines * N * 2 + 1);
   res[L + lines * N * 2] = 0;
 
   // copy lines to res, prepending tabs to each line
-  char* p = res; // output pointer
+  char *p = res; // output pointer
   start = Char(s); // start of a current line
-  char* end = strchr(start, '\n'); // end of a current line
+  char *end = strchr(start, '\n'); // end of a current line
   while (end) {
     memset(p, ' ', N*2);
     p += N*2;

@@ -31,8 +31,8 @@ static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
 extern "C"
 {
-  int CPlusPlusOut = 0;		// generate C++ declarations for C code
-};
+  int CPlusPlusOut = 0;		// Generate C++ compatible code when wrapping C code
+}
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
 int GenerateDefault = 1;	// Generate default constructors
@@ -870,18 +870,6 @@ void Swig_flatten_nested() {
   Delete(fname);
   Delete(name);
   Delete(val);
-    /*
-  String* name = NewStringEmpty();
-  Hash* newname = NewHash();
-  Setattr(newname, "name", "$ignore");
-  Hash* match = NewHash();
-  Setattr(match, "name", "match$nested");
-  Setattr(match, "value", "1");
-  set_nextSibling(newname, match);
-  Swig_name_rename_add(0, name, 0, newname, 0);
-  Delete(name);
-  Delete(match);
-  Delete(newname);*/
 }
 
 

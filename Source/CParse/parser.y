@@ -51,7 +51,7 @@ static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
-static Node    *currentOuterClass = 0; /*for nested classes*/
+static Node    *currentOuterClass = 0; /* for nested classes */
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
@@ -233,7 +233,7 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
-static void set_access_mode(Node* n) {
+static void set_access_mode(Node *n) {
   if (cplus_mode == CPLUS_PUBLIC)
     Setattr(n, "access", "public");
   else if (cplus_mode == CPLUS_PROTECTED)
@@ -242,7 +242,7 @@ static void set_access_mode(Node* n) {
     Setattr(n, "access", "private");
 }
 
-static void restore_access_mode(Node* n) {
+static void restore_access_mode(Node *n) {
   char* mode = Char(Getattr(n, "access"));
   if (strcmp(mode, "private") == 0)
     cplus_mode = CPLUS_PRIVATE;
@@ -799,26 +799,26 @@ static String *make_class_name(String *name) {
 }
 
 /* Use typedef name as class name */
-void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope, String* scpname)
-{
-  String* class_rename = 0;
-  SwigType *decltype = Getattr(decl,"decl");
+
+void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscope, String *scpname) {
+  String *class_rename = 0;
+  SwigType *decltype = Getattr(decl, "decl");
   if (!decltype || !Len(decltype)) {
     String *cname;
     String *tdscopename;
     String *class_scope = Swig_symbol_qualifiedscopename(cscope);
-    String *name = Getattr(decl,"name");
+    String *name = Getattr(decl, "name");
     cname = Copy(name);
-    Setattr(n,"tdname",cname);
+    Setattr(n, "tdname", cname);
     tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
     class_rename = Getattr(n, "class_rename");
-    if (class_rename && (Strcmp(class_rename,oldName) == 0))
+    if (class_rename && (Strcmp(class_rename, oldName) == 0))
       Setattr(n, "class_rename", NewString(name));
     if (!classes_typedefs) classes_typedefs = NewHash();
     if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
       Setattr(classes_typedefs, tdscopename, n);
     }
-    Setattr(n,"decl",decltype);
+    Setattr(n, "decl", decltype);
     Delete(class_scope);
     Delete(cname);
     Delete(tdscopename);
@@ -1043,10 +1043,10 @@ static String *resolve_create_node_scope(String *cname) {
 }
  
 /* look for simple typedef name in typedef list */
-String* try_to_find_a_name_for_unnamed_structure(char* storage, Node* decls) {
-  String* name = 0;
-  Node* n = decls;
-  if (storage && (strcmp(storage,"typedef") == 0)) {
+String *try_to_find_a_name_for_unnamed_structure(char *storage, Node *decls) {
+  String *name = 0;
+  Node *n = decls;
+  if (storage && (strcmp(storage, "typedef") == 0)) {
     for (; n; n = nextSibling(n)) {
       if (!Len(Getattr(n, "decl"))) {
 	name = Copy(Getattr(n, "name"));
@@ -1058,9 +1058,9 @@ String* try_to_find_a_name_for_unnamed_structure(char* storage, Node* decls) {
 }
 
 /* traverse copied tree segment, and update outer class links*/
-void update_nested_classes(Node* n)
+void update_nested_classes(Node *n)
 {
-  Node* c = firstChild(n);
+  Node *c = firstChild(n);
   while (c) {
     if (Getattr(c, "nested:outer"))
       Setattr(c, "nested:outer", n);
@@ -1432,7 +1432,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
-%type <node>     cpp_swig_directive cpp_temp_possible /*cpp_nested*/ cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_temp_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
 
@@ -3447,7 +3447,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Delete(prefix);
 		   inclass = 1;
 		   currentOuterClass = $<node>$;
-		   if (CPlusPlusOut) { /* save the structure declaration to declare it in global scope for C++ to see*/
+		   if (CPlusPlusOut) {
+		     /* save the structure declaration to declare it in global scope for C++ to see */
 		     code = get_raw_text_balanced('{', '}');
 		     Setattr($<node>$, "code", code);
 		     Delete(code);
@@ -3550,7 +3551,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
-		       Node* outer = currentOuterClass;
+		       Node *outer = currentOuterClass;
 		       while (Getattr(outer, "nested:outer"))
 			 outer = Getattr(outer, "nested:outer");
 		       appendSibling(outer, $$);
@@ -4286,7 +4287,6 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
 	     | cpp_class_decl { $$ = $1; }
-/*	     | cpp_nested { $$ = $1; }*/
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }

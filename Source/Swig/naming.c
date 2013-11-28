@@ -1648,14 +1648,18 @@ void Swig_name_inherit(String *base, String *derived) {
   Swig_name_object_inherit(Swig_cparse_features(), base, derived);
 }
 
-void Swig_inherit_base_symbols(List* bases) {
+/* -----------------------------------------------------------------------------
+ * Swig_inherit_base_symbols()
+ * ----------------------------------------------------------------------------- */
+
+void Swig_inherit_base_symbols(List *bases) {
   if (bases) {
     Iterator s;
     for (s = First(bases); s.item; s = Next(s)) {
-      Symtab *st = Getattr(s.item,"symtab");
+      Symtab *st = Getattr(s.item, "symtab");
       if (st) {
-	Setfile(st,Getfile(s.item));
-	Setline(st,Getline(s.item));
+	Setfile(st, Getfile(s.item));
+	Setline(st, Getline(s.item));
 	Swig_symbol_inherit(st);
       }
     }
@@ -1663,40 +1667,46 @@ void Swig_inherit_base_symbols(List* bases) {
   }
 }
 
-List *Swig_make_inherit_list(String *clsname, List *names, String* Namespaceprefix) {
+/* -----------------------------------------------------------------------------
+ * Swig_make_inherit_list()
+ * ----------------------------------------------------------------------------- */
+
+List *Swig_make_inherit_list(String *clsname, List *names, String *Namespaceprefix) {
   int i, ilen;
   String *derived;
   List *bases = NewList();
 
-  if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
-  else derived = NewString(clsname);
+  if (Namespaceprefix)
+    derived = NewStringf("%s::%s", Namespaceprefix, clsname);
+  else
+    derived = NewString(clsname);
 
   ilen = Len(names);
   for (i = 0; i < ilen; i++) {
     Node *s;
     String *base;
-    String *n = Getitem(names,i);
+    String *n = Getitem(names, i);
     /* Try to figure out where this symbol is */
     s = Swig_symbol_clookup(n,0);
     if (s) {
-      while (s && (Strcmp(nodeType(s),"class") != 0)) {
+      while (s && (Strcmp(nodeType(s), "class") != 0)) {
 	/* Not a class.  Could be a typedef though. */
-	String *storage = Getattr(s,"storage");
-	if (storage && (Strcmp(storage,"typedef") == 0)) {
-	  String *nn = Getattr(s,"type");
-	  s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
+	String *storage = Getattr(s, "storage");
+	if (storage && (Strcmp(storage, "typedef") == 0)) {
+	  String *nn = Getattr(s, "type");
+	  s = Swig_symbol_clookup(nn, Getattr(s, "sym:symtab"));
 	} else {
 	  break;
 	}
       }
-      if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
+      if (s && ((Strcmp(nodeType(s), "class") == 0) || (Strcmp(nodeType(s), "template") == 0))) {
 	String *q = Swig_symbol_qualified(s);
-	Append(bases,s);
+	Append(bases, s);
 	if (q) {
-	  base = NewStringf("%s::%s", q, Getattr(s,"name"));
+	  base = NewStringf("%s::%s", q, Getattr(s, "name"));
 	  Delete(q);
 	} else {
-	  base = NewString(Getattr(s,"name"));
+	  base = NewString(Getattr(s, "name"));
 	}
       } else {
 	base = NewString(n);
@@ -1705,7 +1715,7 @@ List *Swig_make_inherit_list(String *clsname, List *names, String* Namespacepref
       base = NewString(n);
     }
     if (base) {
-      Swig_name_inherit(base,derived);
+      Swig_name_inherit(base, derived);
       Delete(base);
     }
   }

@@ -1545,13 +1545,18 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
   Delete(locator);
   return 0;
 }
-/* returns raw text between 2 braces, does not change scanner state in any way*/
-String* Scanner_get_raw_text_balanced(Scanner* s, int startchar, int endchar)
-{
-  String* result = 0;
+
+/* -----------------------------------------------------------------------------
+ * Scanner_get_raw_text_balanced()
+ *
+ * Returns raw text between 2 braces, does not change scanner state in any way
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
+  String *result = 0;
   char c;
   int old_line = s->line;
-  String* old_text = Copy(s->text);
+  String *old_text = Copy(s->text);
   int position = Tell(s->str);
 
   int num_levels = 1;

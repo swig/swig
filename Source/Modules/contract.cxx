@@ -343,7 +343,7 @@ int Contracts::namespaceDeclaration(Node *n) {
 int Contracts::classDeclaration(Node *n) {
   int ret = SWIG_OK;
   int oldInClass = InClass;
-  Node* oldClass = CurrentClass;
+  Node *oldClass = CurrentClass;
   InClass = 1;
   CurrentClass = n;
   emit_children(n);
