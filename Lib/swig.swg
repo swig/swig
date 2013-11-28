@@ -302,7 +302,7 @@ static int NAME(TYPE x) {
 %define %$ismemberset    "match$memberset"="1"  %enddef
 
 %define %$classname      %$ismember,"match$parentNode$name"  %enddef
-
+%define %$isnested       "match$nested"="1"  %enddef
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 
  * ----------------------------------------------------------------------------- */

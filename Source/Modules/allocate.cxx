@@ -559,6 +559,8 @@ Allocate():
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
+    Node* oldInclass = inclass;
+    AccessMode oldAcessMode = cplus_mode;
 
     if (!CPlusPlus) {
       /* Always have default constructors/destructors in C */
@@ -580,7 +582,6 @@ Allocate():
 	}
       }
     }
-
     inclass = n;
     String *kind = Getattr(n, "kind");
     if (Strcmp(kind, "class") == 0) {
@@ -728,7 +729,8 @@ Allocate():
 
     /* Only care about default behavior.  Remove temporary values */
     Setattr(n, "allocate:visit", "1");
-    inclass = 0;
+    inclass = oldInclass;
+    cplus_mode = oldAcessMode;
     Swig_symbol_setscope(symtab);
     return SWIG_OK;
   }

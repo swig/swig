@@ -1,25 +1,5 @@
 %module nested_class
 
-#pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass2;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct2;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion2;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass4Typedef;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct4Typedef;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion4Typedef;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass5;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct5;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion5;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerMultiple;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerMultipleDerived;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerMultipleAnonTypedef1;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerMultipleNamedTypedef;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerSameName;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer2::IgnoreMe;
-
 %inline %{
 struct Outer {
   typedef int Integer;
@@ -39,7 +19,7 @@ struct Outer {
   };
 
   ///////////////////////////////////////////
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER) || defined(SWIG)
 /* some compilers do not accept these */
   class {
   public:
@@ -154,7 +134,7 @@ struct Outer {
     Integer xx;
   } MultipleInstanceAnonDerived1, MultipleInstanceAnonDerived2, *MultipleInstanceAnonDerived3, MultipleInstanceAnonDerived4[2];
 
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER) || defined(SWIG)
 /* some compilers do not accept these */
   struct : public InnerMultiple {
     Integer xx;

@@ -118,6 +118,10 @@ void skip_balanced(int startchar, int endchar) {
   return;
 }
 
+String* get_raw_text_balanced(int startchar, int endchar) {
+  return Scanner_get_raw_text_balanced(scan, startchar, endchar);
+}
+
 /* ----------------------------------------------------------------------------
  * void skip_decl(void)
  *
