@@ -862,13 +862,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-void Swig_flatten_nested() {
-  String* name = NewString("");
-  String* fname = NewString("feature:flatnested");
-  String* val = NewString("1");
-  Swig_feature_set(Swig_cparse_features(),name,0,fname, val, 0);
-  Delete(fname);
-  Delete(name);
+static void flatten_nested() {
+  String *val = NewString("1");
+  Swig_feature_set(Swig_cparse_features(), "", 0, "feature:flatnested", val, 0);
   Delete(val);
 }
 
@@ -1167,7 +1163,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     // add "ignore" directive if nested classes are not supported
     if (!lang->nestedClassesSupported())
-      Swig_flatten_nested();
+      flatten_nested();
 
     Node *top = Swig_cparse(cpps);
 

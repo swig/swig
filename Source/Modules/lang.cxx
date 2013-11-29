@@ -2391,7 +2391,7 @@ int Language::classDeclaration(Node *n) {
   }
   AccessMode oldAccessMode = cplus_mode;
   Node *outerClass = Getattr(n, "nested:outer");
-  if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
+  if (outerClass && oldAccessMode != PUBLIC)
     return SWIG_NOWRAP;
   ClassName = Copy(name);
   ClassPrefix = Copy(symname);

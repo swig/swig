@@ -243,10 +243,10 @@ static void set_access_mode(Node *n) {
 }
 
 static void restore_access_mode(Node *n) {
-  char* mode = Char(Getattr(n, "access"));
-  if (strcmp(mode, "private") == 0)
+  String *mode = Getattr(n, "access");
+  if (Strcmp(mode, "private") == 0)
     cplus_mode = CPLUS_PRIVATE;
-  else if (strcmp(mode, "protected") == 0)
+  else if (Strcmp(mode, "protected") == 0)
     cplus_mode = CPLUS_PROTECTED;
   else
     cplus_mode = CPLUS_PUBLIC;
@@ -800,7 +800,7 @@ static String *make_class_name(String *name) {
 
 /* Use typedef name as class name */
 
-void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscope, String *scpname) {
+static void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscope, String *scpname) {
   String *class_rename = 0;
   SwigType *decltype = Getattr(decl, "decl");
   if (!decltype || !Len(decltype)) {
@@ -1043,7 +1043,7 @@ static String *resolve_create_node_scope(String *cname) {
 }
  
 /* look for simple typedef name in typedef list */
-String *try_to_find_a_name_for_unnamed_structure(char *storage, Node *decls) {
+static String *try_to_find_a_name_for_unnamed_structure(const char *storage, Node *decls) {
   String *name = 0;
   Node *n = decls;
   if (storage && (strcmp(storage, "typedef") == 0)) {
@@ -1058,7 +1058,7 @@ String *try_to_find_a_name_for_unnamed_structure(char *storage, Node *decls) {
 }
 
 /* traverse copied tree segment, and update outer class links*/
-void update_nested_classes(Node *n)
+static void update_nested_classes(Node *n)
 {
   Node *c = firstChild(n);
   while (c) {

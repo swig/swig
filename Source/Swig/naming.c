@@ -1683,11 +1683,10 @@ List *Swig_make_inherit_list(String *clsname, List *names, String *Namespacepref
 
   ilen = Len(names);
   for (i = 0; i < ilen; i++) {
-    Node *s;
     String *base;
     String *n = Getitem(names, i);
     /* Try to figure out where this symbol is */
-    s = Swig_symbol_clookup(n,0);
+    Node *s = Swig_symbol_clookup(n, 0);
     if (s) {
       while (s && (Strcmp(nodeType(s), "class") != 0)) {
 	/* Not a class.  Could be a typedef though. */
