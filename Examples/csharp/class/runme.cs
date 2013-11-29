@@ -17,9 +17,9 @@ public class runme
             Console.WriteLine( "    Created circle " + c );
             Console.WriteLine( "    Created square " + s );
 
-            // ----- Access a static member of a nested class -----
+            // ----- Access a static member -----
 
-            Console.WriteLine( "\nA total of " + Shape.Counter.nshapes + " shapes were created" );
+            Console.WriteLine( "\nA total of " + Shape.nshapes + " shapes were created" );
 
             // ----- Member data access -----
 
@@ -60,7 +60,7 @@ public class runme
         // Note: when this using scope is exited the C# Dispose() methods 
         // are called which in turn call the C++ destructors
 
-        Console.WriteLine( Shape.Counter.nshapes + " shapes remain" );
+        Console.WriteLine( Shape.nshapes + " shapes remain" );
         Console.WriteLine( "Goodbye" );
     }
 }
