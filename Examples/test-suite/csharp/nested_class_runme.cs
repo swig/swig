@@ -1,19 +1,13 @@
+using System;
+using nested_classNamespace;
+#pragma warning disable 219
 
-import nested_class.*;
+public class runme {
+  static void Main() {
 
-public class nested_class_runme {
-
-  static {
-    try {
-	System.loadLibrary("nested_class");
-    } catch (UnsatisfiedLinkError e) {
-      System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
-      System.exit(1);
-    }
-  }
-
-  public static void main(String argv[]) {
     Outer outer = new Outer();
+    outer.a = 1;
+		outer.b = 2;
     Outer.InnerStruct1 is1 = outer.makeInnerStruct1();
     Outer.InnerClass1 ic1 = outer.makeInnerClass1();
     Outer.InnerUnion1 iu1 = outer.makeInnerUnion1();
@@ -35,24 +29,24 @@ public class nested_class_runme {
     iu5 = outer.makeInnerUnion5Typedef();
 
     {
-      Outer.InnerMultiple im1 = outer.getMultipleInstance1();
-      Outer.InnerMultiple im2 = outer.getMultipleInstance2();
-      Outer.InnerMultiple im3 = outer.getMultipleInstance3();
-      Outer.InnerMultiple im4 = outer.getMultipleInstance4();
+      Outer.InnerMultiple im1 = outer.MultipleInstance1;
+      Outer.InnerMultiple im2 = outer.MultipleInstance2;
+      Outer.InnerMultiple im3 = outer.MultipleInstance3;
+      Outer.InnerMultiple im4 = outer.MultipleInstance4;
     }
 
     {
-      Outer.InnerMultipleDerived im1 = outer.getMultipleDerivedInstance1();
-      Outer.InnerMultipleDerived im2 = outer.getMultipleDerivedInstance2();
-      Outer.InnerMultipleDerived im3 = outer.getMultipleDerivedInstance3();
-      Outer.InnerMultipleDerived im4 = outer.getMultipleDerivedInstance4();
+      Outer.InnerMultipleDerived im1 = outer.MultipleDerivedInstance1;
+      Outer.InnerMultipleDerived im2 = outer.MultipleDerivedInstance2;
+      Outer.InnerMultipleDerived im3 = outer.MultipleDerivedInstance3;
+      Outer.InnerMultipleDerived im4 = outer.MultipleDerivedInstance4;
     }
 
     {
-      Outer.InnerMultipleDerived im1 = outer.getMultipleDerivedInstance1();
-      Outer.InnerMultipleDerived im2 = outer.getMultipleDerivedInstance2();
-      Outer.InnerMultipleDerived im3 = outer.getMultipleDerivedInstance3();
-      Outer.InnerMultipleDerived im4 = outer.getMultipleDerivedInstance4();
+      Outer.InnerMultipleDerived im1 = outer.MultipleDerivedInstance1;
+      Outer.InnerMultipleDerived im2 = outer.MultipleDerivedInstance2;
+      Outer.InnerMultipleDerived im3 = outer.MultipleDerivedInstance3;
+      Outer.InnerMultipleDerived im4 = outer.MultipleDerivedInstance4;
     }
 
     {

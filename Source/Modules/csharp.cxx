@@ -18,6 +18,8 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
+// insert N tabs before each new line in s
+void Swig_offset_string(String* s, int N);
 
 class CSHARP:public Language {
   static const char *usage;
@@ -53,7 +55,6 @@ class CSHARP:public Language {
   String *proxy_class_code;
   String *module_class_code;
   String *proxy_class_name;	// proxy class name
-  String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
   String *full_imclass_name;	// fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
   String *variable_name;	//Name of a variable being wrapped
   String *proxy_class_constants_code;
@@ -87,6 +88,7 @@ class CSHARP:public Language {
   int n_directors;
   int first_class_dmethod;
   int curr_class_dmethod;
+  int nesting_depth;
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
@@ -125,7 +127,6 @@ public:
       proxy_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
-      full_proxy_class_name(NULL),
       full_imclass_name(NULL),
       variable_name(NULL),
       proxy_class_constants_code(NULL),
@@ -156,7 +157,8 @@ public:
       n_dmethods(0),
       n_directors(0),
       first_class_dmethod(0),
-      curr_class_dmethod(0) {
+      curr_class_dmethod(0),
+      nesting_depth(0){
     /* for now, multiple inheritance in directors is disabled, this
        should be easy to implement though */
     director_multiple_inheritance = 0;
@@ -179,7 +181,13 @@ public:
 	 proxyname = Getattr(n, "proxyname");
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
-	   String *symname = Getattr(n, "sym:name");
+	   String *symname = Copy(Getattr(n, "sym:name"));
+	   if (!GetFlag(n, "feature:flatnested")) {
+	     for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
+	       Push(symname, ".");
+	       Push(symname, Getattr(outer_class, "sym:name"));
+	     }
+	   }
 	   if (nspace) {
 	     if (namespce)
 	       proxyname = NewStringf("%s.%s.%s", namespce, nspace, symname);
@@ -190,11 +198,32 @@ public:
 	   }
 	   Setattr(n, "proxyname", proxyname);
 	   Delete(proxyname);
+	   Delete(symname);
 	 }
        }
      }
      return proxyname;
    }
+
+  /* -----------------------------------------------------------------------------
+   * directorClassName()
+   * ----------------------------------------------------------------------------- */
+
+  String *directorClassName(Node *n) {
+    String *dirclassname;
+    const char *attrib = "director:classname";
+
+    if (!(dirclassname = Getattr(n, attrib))) {
+      String *classname = getClassPrefix();
+
+      dirclassname = NewStringf("SwigDirector_%s", classname);
+      Setattr(n, attrib, dirclassname);
+    }
+    else 
+      dirclassname = Copy(dirclassname);
+
+    return dirclassname;
+  }
 
   /* ------------------------------------------------------------
    * main()
@@ -1025,7 +1054,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable in the getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
@@ -1589,6 +1618,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
+    bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1648,7 +1678,8 @@ public:
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
+    if (!has_outerclass)
+      Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
     // Class attributes
@@ -1719,7 +1750,7 @@ public:
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
-      String *director_connect_method_name = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+      String *director_connect_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
       Printf(proxy_class_code, "    %s.%s(swigCPtr", imclass_name, director_connect_method_name);
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
@@ -1795,7 +1826,7 @@ public:
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
       String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
       Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1846,11 +1877,35 @@ public:
 
     String *nspace = getNSpace();
     File *f_proxy = NULL;
+    // save class local variables
+    String* old_proxy_class_name = proxy_class_name;
+    String* old_full_imclass_name = full_imclass_name;
+    String* old_destructor_call = destructor_call;
+    String* old_proxy_class_constants_code = proxy_class_constants_code;
+    String* old_proxy_class_def = proxy_class_def;
+    String* old_proxy_class_code = proxy_class_code;
+
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
+      if (Node* outer = Getattr(n, "nested:outer")) {
+	String* outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+	  Push(outerClassesPrefix, "::");
+	  Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+	}
+	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	if (!addSymbol(proxy_class_name, n, fnspace))
+	  return SWIG_ERROR;
+	if (nspace)
+	  Delete(fnspace);
+	Delete(outerClassesPrefix);
+      }
+      else {
+	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+      }
 
       if (!nspace) {
-	full_proxy_class_name = NewStringf("%s", proxy_class_name);
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
@@ -1863,36 +1918,34 @@ public:
 	}
       } else {
 	if (namespce) {
-	  full_proxy_class_name = NewStringf("%s.%s.%s", namespce, nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
 	} else {
-	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s", imclass_name);
 	}
       }
 
-      if (!addSymbol(proxy_class_name, n, nspace))
-	return SWIG_ERROR;
+      // inner class doesn't need this prologue
+      if (!Getattr(n, "nested:outer")) {
+	String *output_directory = outputDirectory(nspace);
+	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
+	f_proxy = NewFile(filen, "w", SWIG_output_files());
+	if (!f_proxy) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, Copy(filen));
+	Delete(filen);
+	filen = NULL;
 
-      String *output_directory = outputDirectory(nspace);
-      String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
-      f_proxy = NewFile(filen, "w", SWIG_output_files());
-      if (!f_proxy) {
-	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	// Start writing out the proxy class file
+	emitBanner(f_proxy);
+
+	addOpenNamespace(nspace, f_proxy);
       }
-      Append(filenames_list, Copy(filen));
-      Delete(filen);
-      filen = NULL;
-
-      // Start writing out the proxy class file
-      emitBanner(f_proxy);
-
-      addOpenNamespace(nspace, f_proxy);
-
-      Clear(proxy_class_def);
-      Clear(proxy_class_code);
-
+      else
+	++nesting_depth;
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -1903,7 +1956,7 @@ public:
 
       emitProxyClassDefAndCPPCasts(n);
 
-      String *csclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+      String *csclazzname = Swig_name_member(getNSpace(), getClassPrefix(), ""); // mangled full proxy class name
 
       Replaceall(proxy_class_def, "$csclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
@@ -1924,17 +1977,36 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-
-      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
+      if (!has_outerclass)
+	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      else {
+	Swig_offset_string(proxy_class_def, nesting_depth);
+	Append(old_proxy_class_code, proxy_class_def);
+	Swig_offset_string(proxy_class_code, nesting_depth);
+	Append(old_proxy_class_code, proxy_class_code);
+      }
 
       // Write out all the constants
-      if (Len(proxy_class_constants_code) != 0)
-	Printv(f_proxy, proxy_class_constants_code, NIL);
-
-      Printf(f_proxy, "}\n");
-      addCloseNamespace(nspace, f_proxy);
-      Delete(f_proxy);
-      f_proxy = NULL;
+      if (Len(proxy_class_constants_code) != 0) {
+	if (!has_outerclass)
+	  Printv(f_proxy, proxy_class_constants_code, NIL);
+	else {
+	  Swig_offset_string(proxy_class_constants_code, nesting_depth);
+	  Append(old_proxy_class_code, proxy_class_constants_code);
+	}
+      }
+      if (!has_outerclass) {
+	Printf(f_proxy, "}\n");
+	addCloseNamespace(nspace, f_proxy);
+	Delete(f_proxy);
+	f_proxy = NULL;
+      } else {
+	for (int i = 0; i < nesting_depth; ++i)
+	  Append(old_proxy_class_code, "  ");
+	Append(old_proxy_class_code, "}\n");
+	--nesting_depth;
+      }
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
@@ -1971,17 +2043,18 @@ public:
 
       Delete(csclazzname);
       Delete(proxy_class_name);
-      proxy_class_name = NULL;
-      Delete(full_proxy_class_name);
-      full_proxy_class_name = NULL;
+      proxy_class_name = old_proxy_class_name;
       Delete(full_imclass_name);
-      full_imclass_name = NULL;
+      full_imclass_name = old_full_imclass_name;
       Delete(destructor_call);
-      destructor_call = NULL;
+      destructor_call = old_destructor_call;
       Delete(proxy_class_constants_code);
-      proxy_class_constants_code = NULL;
+      proxy_class_constants_code = old_proxy_class_constants_code;
+      Delete(proxy_class_def);
+      proxy_class_def = old_proxy_class_def;
+      Delete(proxy_class_code);
+      proxy_class_code = old_proxy_class_code;
     }
-
     return SWIG_OK;
   }
 
@@ -1994,7 +2067,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2014,7 +2087,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2094,7 +2167,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
       if (setter_flag)
         Swig_typemap_attach_parms("csvarin", l, NULL);
     }
@@ -2264,7 +2337,7 @@ public:
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
+	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
@@ -3376,14 +3449,21 @@ public:
 
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+    String *dirclassname = directorClassName(n);
+    String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
     String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
     String *dirClassName = directorClassName(n);
     String *smartptr = Getattr(n, "feature:smartptr");
+    if (!GetFlag(n, "feature:flatnested")) {
+      for (Node* outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 
+	Push(qualified_classname, ".");
+	Push(qualified_classname, Getattr(outer_class, "sym:name"));
+      }
+    }
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
@@ -3415,7 +3495,7 @@ public:
       Printf(code_wrap->def, ", ");
       if (i != first_class_dmethod)
 	Printf(code_wrap->code, ", ");
-      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirClassName, methid, methid);
+      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
       Printf(code_wrap->code, "callback%s", methid);
       Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
     }
@@ -3432,7 +3512,7 @@ public:
     Delete(wname);
     Delete(swig_director_connect);
     Delete(qualified_classname);
-    Delete(dirClassName);
+    Delete(dirclassname);
   }
 
   /* ---------------------------------------------------------------
@@ -3485,7 +3565,7 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
+    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name));
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -3931,6 +4011,7 @@ public:
     Delete(proxy_method_types);
     Delete(callback_def);
     Delete(callback_code);
+    Delete(dirclassname);
     DelWrapper(w);
 
     return status;
@@ -3970,13 +4051,11 @@ public:
 	String *basetype = Getattr(parent, "classtype");
 	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
-	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "  swig_init_callbacks();\n");
 	Printf(f_directors, "}\n\n");
 
-	Delete(classtype);
 	Delete(target);
 	Delete(call);
       }
@@ -4046,6 +4125,26 @@ public:
 
     return Language::classDirectorInit(n);
   }
+  
+  int classDeclaration(Node *n) {
+    String *old_director_callback_typedefs = director_callback_typedefs;
+    String *old_director_callbacks = director_callbacks;
+    String *old_director_delegate_callback = director_delegate_callback;
+    String *old_director_delegate_definitions = director_delegate_definitions;
+    String *old_director_delegate_instances = director_delegate_instances;
+    String *old_director_method_types = director_method_types;
+    String *old_director_connect_parms = director_connect_parms;
+    int ret = Language::classDeclaration(n);
+    // these variables are deleted in emitProxyClassDefAndCPPCasts, hence no Delete here
+    director_callback_typedefs = old_director_callback_typedefs;
+    director_callbacks = old_director_callbacks;
+    director_delegate_callback = old_director_delegate_callback;
+    director_delegate_definitions = old_director_delegate_definitions;
+    director_delegate_instances = old_director_delegate_instances;
+    director_method_types = old_director_method_types;
+    director_connect_parms = old_director_connect_parms;
+    return ret;
+  }
 
   /* ----------------------------------------------------------------------
    * classDirectorDestructor()
@@ -4079,7 +4178,7 @@ public:
 
   int classDirectorEnd(Node *n) {
     int i;
-    String *director_classname = directorClassName(n);
+    String *dirclassname = directorClassName(n);
 
     Wrapper *w = NewWrapper();
 
@@ -4089,7 +4188,7 @@ public:
 
     Printf(f_directors_h, "    void swig_connect_director(");
 
-    Printf(w->def, "void %s::swig_connect_director(", director_classname);
+    Printf(w->def, "void %s::swig_connect_director(", dirclassname);
 
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -4116,7 +4215,7 @@ public:
     Printf(f_directors_h, "};\n\n");
     Printf(w->code, "}\n\n");
 
-    Printf(w->code, "void %s::swig_init_callbacks() {\n", director_classname);
+    Printf(w->code, "void %s::swig_init_callbacks() {\n", dirclassname);
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
@@ -4127,6 +4226,7 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
+    Delete(dirclassname);
 
     return Language::classDirectorEnd(n);
   }
@@ -4159,8 +4259,8 @@ public:
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");
 
-    String *directorname = directorClassName(n);
-    String *declaration = Swig_class_declaration(n, directorname);
+    String *dirclassname = directorClassName(n);
+    String *declaration = Swig_class_declaration(n, dirclassname);
 
     Printf(declaration, " : public %s, public Swig::Director", base);
 
@@ -4168,9 +4268,12 @@ public:
     Setattr(n, "director:decl", declaration);
     Setattr(n, "director:ctor", class_ctor);
 
-    Delete(directorname);
+    Delete(dirclassname);
   }
 
+  bool nestedClassesSupported() const { 
+    return true; 
+  }
 };				/* class CSHARP */
 
 /* -----------------------------------------------------------------------------

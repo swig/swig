@@ -2,17 +2,19 @@
 
 class Shape {
 public:
+  struct Counter{
+		static int nshapes;
+  };
   Shape() {
-    nshapes++;
+    Counter::nshapes++;
   }
   virtual ~Shape() {
-    nshapes--;
+    Counter::nshapes--;
   };
   double  x, y;   
   void    move(double dx, double dy);
   virtual double area(void) = 0;
   virtual double perimeter(void) = 0;
-  static  int nshapes;
 };
 
 class Circle : public Shape {

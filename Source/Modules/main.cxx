@@ -29,6 +29,10 @@
 
 static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
+extern "C"
+{
+  int CPlusPlusOut = 0;		// generate C++ declarations for C code
+};
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
 int GenerateDefault = 1;	// Generate default constructors
@@ -483,6 +487,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++out") == 0) {
+	CPlusPlusOut = 1;
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Swig_mark_arg(i);
@@ -855,8 +862,27 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-
-
+void Swig_flatten_nested() {
+  String* name = NewString("");
+  String* fname = NewString("feature:flatnested");
+  String* val = NewString("1");
+  Swig_feature_set(Swig_cparse_features(),name,0,fname, val, 0);
+  Delete(fname);
+  Delete(name);
+  Delete(val);
+    /*
+  String* name = NewStringEmpty();
+  Hash* newname = NewHash();
+  Setattr(newname, "name", "$ignore");
+  Hash* match = NewHash();
+  Setattr(match, "name", "match$nested");
+  Setattr(match, "value", "1");
+  set_nextSibling(newname, match);
+  Swig_name_rename_add(0, name, 0, newname, 0);
+  Delete(name);
+  Delete(match);
+  Delete(newname);*/
+}
 
 
 int SWIG_main(int argc, char *argv[], Language *l) {
@@ -1151,6 +1177,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fflush(stdout);
     }
 
+    // add "ignore" directive if nested classes are not supported
+    if (!lang->nestedClassesSupported())
+      Swig_flatten_nested();
+
     Node *top = Swig_cparse(cpps);
 
     if (dump_top & STAGE1) {
@@ -1160,6 +1190,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_module & STAGE1) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
+    }
+    if (!CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing unnamed structs...\n");
+      Swig_name_unnamed_c_structs(top);
     }
 
     if (Verbose) {
@@ -1180,6 +1215,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing nested classes...\n");
+      Swig_process_nested_classes(top);
+    }
 
     if (dump_top & STAGE3) {
       Printf(stdout, "debug-top stage 3\n");

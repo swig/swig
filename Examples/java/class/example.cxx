@@ -9,7 +9,7 @@ void Shape::move(double dx, double dy) {
   y += dy;
 }
 
-int Shape::nshapes = 0;
+int Shape::Counter::nshapes = 0;
 
 double Circle::area(void) {
   return M_PI*radius*radius;
