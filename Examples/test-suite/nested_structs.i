@@ -25,3 +25,17 @@ void setValues(struct Outer *outer, int val) {
 }
 %}
 
+/* 
+Below was causing problems in Octave as wrappers were compiled as C++.
+Solution requires regenerating the inner struct into
+the global C++ namespace (which is where it is intended to be in C).
+*/
+%inline %{
+int nestedByVal(struct Named s);
+int nestedByPtr(struct Named *s);
+%}
+%{
+int nestedByVal(struct Named s) { return s.val; }
+int nestedByPtr(struct Named *s) { return s->val; }
+%}
+
