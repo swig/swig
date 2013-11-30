@@ -3486,7 +3486,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   while (p) {
 		     Setattr(p,"storage",$1);
 		     Setattr(p,"type",ty);
-		     if (!cparse_cplusplus) {
+		     if (!cparse_cplusplus && currentOuterClass && !Getattr(currentOuterClass, "name")) {
 		       SetFlag(p,"hasconsttype");
 		       SetFlag(p,"feature:immutable");
 		     }
@@ -3638,7 +3638,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   while (n) {
 		     Setattr(n,"storage",$1);
 		     Setattr(n, "type", ty);
-		     if (!cparse_cplusplus) {
+		     if (!cparse_cplusplus && currentOuterClass && !Getattr(currentOuterClass, "name")) {
 		       SetFlag(n,"hasconsttype");
 		       SetFlag(n,"feature:immutable");
 		     }
