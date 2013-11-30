@@ -1200,7 +1200,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
  * creates the local variables.
  * ------------------------------------------------------------------------ */
 
-static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
+static void typemap_locals(String *s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
   char *new_name;
 
