@@ -84,6 +84,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
+	nested_private \
 	overload_complicated \
 	template_default_pointer \
 	template_expr \
