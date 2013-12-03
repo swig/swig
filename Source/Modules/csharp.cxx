@@ -182,7 +182,7 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   if (!GetFlag(n, "feature:flatnested")) {
+	   if (symname && !GetFlag(n, "feature:flatnested")) {
 	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 	       Push(symname, ".");
 	       Push(symname, Getattr(outer_class, "sym:name"));

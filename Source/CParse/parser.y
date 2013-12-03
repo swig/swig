@@ -3387,6 +3387,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($3);
+		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
+		   Setattr($<node>$, "nested:innerscope", nscope_inner);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
@@ -3462,6 +3464,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   (void) $<node>6;
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "nested:outer");
+		   nscope_inner = Getattr($<node>$, "nested:innerscope");
+		   Delattr($<node>$, "nested:innerscope");
+		   if (nscope_inner) /*actual parent class for this class*/
+		     Setattr($$, "nested:outer", nscope_inner);
 		   if (!currentOuterClass)
 		     inclass = 0;
 		   cscope = Getattr($$, "prev_symtab");
@@ -3490,14 +3496,16 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (am) append_previous_extension($$,am);
 
 		   p = $9;
-		   if (p) {
+		   if (p && !nscope_inner) {
 		     if (!cparse_cplusplus && currentOuterClass)
 		       appendChild(currentOuterClass, p);
 		     else
 		      appendSibling($$, p);
 		   }
 		   
-		   if (cparse_cplusplus && !cparse_externc) {
+		   if (nscope_inner) {
+		     ty = NewString(scpname); /* if the class is declared out of scope, let the declarator use fully qualified type*/
+		   } else if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString($3);
 		   } else {
 		     ty = NewStringf("%s %s", $2,$3);
@@ -3505,7 +3513,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   while (p) {
 		     Setattr(p,"storage",$1);
 		     Setattr(p,"type",ty);
-		     if (!cparse_cplusplus) {
+		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name") || CPlusPlusOut)) {
 		       SetFlag(p,"hasconsttype");
 		       SetFlag(p,"feature:immutable");
 		     }
@@ -3539,12 +3547,13 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     add_symbols($$);
-		     if (nscope) $$ = nscope;
 		     /* but the variable definition in the current scope */
 		     Swig_symbol_setscope(cscope);
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     add_symbols($9);
+		     nscope_inner = 0;
+		     $$ = $9;
 		   } else {
 		     Delete(yyrename);
 		     yyrename = 0;
@@ -3657,7 +3666,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   while (n) {
 		     Setattr(n,"storage",$1);
 		     Setattr(n, "type", ty);
-		     if (!cparse_cplusplus) {
+		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name") || CPlusPlusOut)) {
 		       SetFlag(n,"hasconsttype");
 		       SetFlag(n,"feature:immutable");
 		     }

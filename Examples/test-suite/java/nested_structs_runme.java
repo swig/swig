@@ -33,5 +33,12 @@ public class nested_structs_runme {
     if (inside2.getVal() != 200) throw new RuntimeException("failed inside2");
     if (inside3.getVal() != 200) throw new RuntimeException("failed inside3");
     if (inside4.getVal() != 400) throw new RuntimeException("failed inside4");
+		
+		outer.getInner1().setVal(11);
+    if (inner1.getVal() != 11) throw new RuntimeException("failed inner1 assignment");
+		Named named = new Named();
+		named.setVal(22);
+		outer.setInside2(named);
+		if (outer.getInside2().getVal() != 22) throw new RuntimeException("failed inside2 assignment");
   }
 }
