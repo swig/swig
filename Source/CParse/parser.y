@@ -6033,6 +6033,7 @@ decltype       : DECLTYPE LPAREN idcolon RPAREN {
                  Node *n = Swig_symbol_clookup($3,0);
                  if (!n) {
 		   Swig_error(cparse_file, cparse_line, "Identifier %s not defined.\n", $3);
+                   $$ = $3;
                  } else {
                    $$ = Getattr(n, "type");
                  }
