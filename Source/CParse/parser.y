@@ -3389,6 +3389,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   scope = resolve_create_node_scope($3);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
 		   Setattr($<node>$, "nested:innerscope", nscope_inner);
+		   Setattr($<node>$, "nested:nscope", nscope);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
@@ -3465,8 +3466,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "nested:outer");
 		   nscope_inner = Getattr($<node>$, "nested:innerscope");
+		   nscope = Getattr($<node>$, "nested:nscope");
 		   Delattr($<node>$, "nested:innerscope");
-		   if (nscope_inner) /*actual parent class for this class*/
+		   Delattr($<node>$, "nested:nscope");
+		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) /* actual parent class for this class */
 		     Setattr($$, "nested:outer", nscope_inner);
 		   if (!currentOuterClass)
 		     inclass = 0;
@@ -3546,14 +3549,21 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     yyrename = Copy(Getattr($<node>$, "class_rename"));
 		     add_symbols($$);
+		     Delattr($$, "class_rename");
 		     /* but the variable definition in the current scope */
 		     Swig_symbol_setscope(cscope);
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     add_symbols($9);
-		     nscope_inner = 0;
-		     $$ = $9;
+		     if (nscope) {
+		       $$ = nscope;
+		       if ($9)
+			appendSibling($$, $9);
+		     }
+		     else if (!SwigType_istemplate(ty) && template_parameters == 0)
+		       $$ = $9;
 		   } else {
 		     Delete(yyrename);
 		     yyrename = 0;
