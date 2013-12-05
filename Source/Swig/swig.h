@@ -304,7 +304,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl);
   extern void Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
   extern void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *n);
-  extern void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, String *value, Hash *featureattribs);
+  extern void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, const_String_or_char_ptr value, Hash *featureattribs);
 
 /* --- Misc --- */
   extern char *Swig_copy_string(const char *c);
