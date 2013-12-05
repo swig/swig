@@ -1147,6 +1147,55 @@ String *Swig_string_strip(String *s) {
   return ns;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_offset_string()
+ *
+ * Insert number tabs before each new line in s
+ * ----------------------------------------------------------------------------- */
+
+void Swig_offset_string(String *s, int number) {
+  char *res;
+  char *p;
+  char *end;
+  /* count a number of lines in s */
+  int lines = 1;
+  int len = Len(s);
+  char *start = strchr(Char(s), '\n');
+  while (start) {
+    ++lines;
+    start = strchr(start + 1, '\n');
+  }
+  /* do not count pending new line */
+  if ((Char(s))[len-1] == '\n')
+    --lines;
+  /* allocate a temporary storage for a padded string */
+  res = (char*)malloc(len + lines * number * 2 + 1);
+  res[len + lines * number * 2] = 0;
+
+  /* copy lines to res, prepending tabs to each line */
+  p = res; /* output pointer */
+  start = Char(s); /* start of a current line */
+  end = strchr(start, '\n'); /* end of a current line */
+  while (end) {
+    memset(p, ' ', number*2);
+    p += number*2;
+    memcpy(p, start, end - start + 1);
+    p += end - start + 1;
+    start = end + 1;
+    end = strchr(start, '\n');
+  }
+  /* process the last line */
+  if (*start) {
+    memset(p, ' ', number*2);
+    p += number*2;
+    strcpy(p, start);
+  }
+  /* replace 's' contents with 'res' */
+  Clear(s);
+  Append(s, res);
+  free(res);
+}
+
 
 #ifdef HAVE_PCRE
 #include <pcre.h>
