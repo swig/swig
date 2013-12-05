@@ -421,7 +421,7 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
-void Swig_process_nested_classes(Node *n);
-void Swig_name_unnamed_c_structs(Node *n);
+void Swig_nested_process_classes(Node *n);
+void Swig_nested_name_unnamed_c_structs(Node *n);
 
 #endif

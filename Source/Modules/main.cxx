@@ -1178,7 +1178,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (!CPlusPlus) {
       if (Verbose)
 	Printf(stdout, "Processing unnamed structs...\n");
-      Swig_name_unnamed_c_structs(top);
+      Swig_nested_name_unnamed_c_structs(top);
     }
 
     if (Verbose) {
@@ -1203,7 +1203,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (CPlusPlus) {
       if (Verbose)
 	Printf(stdout, "Processing nested classes...\n");
-      Swig_process_nested_classes(top);
+      Swig_nested_process_classes(top);
     }
 
     if (dump_top & STAGE3) {

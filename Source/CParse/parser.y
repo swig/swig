@@ -3537,58 +3537,62 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   if (currentOuterClass)
 		     restore_access_mode($$);
-
-		   Setattr($$,"symtab",Swig_symbol_popscope());
-
-		   Classprefix = Getattr($<node>$,"Classprefix");
-		   Delattr($<node>$,"Classprefix");
-		   if (nscope_inner) {
-		     /* this is tricky */
-		     /* we add the declaration in the original namespace */
-		     appendChild(nscope_inner,$$);
-		     Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
-		     Delete(Namespaceprefix);
-		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     yyrename = Copy(Getattr($<node>$, "class_rename"));
-		     add_symbols($$);
-		     Delattr($$, "class_rename");
-		     /* but the variable definition in the current scope */
-		     Swig_symbol_setscope(cscope);
-		     Delete(Namespaceprefix);
-		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     add_symbols($9);
-		     if (nscope) {
-		       $$ = nscope;
-		       if ($9)
-			appendSibling($$, $9);
-		     }
-		     else if (!SwigType_istemplate(ty) && template_parameters == 0)
-		       $$ = $9;
+		   if (cplus_mode == CPLUS_PRIVATE) {
+		     $$ = 0; /* skip private nested classes */
 		   } else {
-		     Delete(yyrename);
-		     yyrename = 0;
-		     Delete(Namespaceprefix);
-		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
-		       Node *outer = currentOuterClass;
-		       while (Getattr(outer, "nested:outer"))
-			 outer = Getattr(outer, "nested:outer");
-		       appendSibling(outer, $$);
-		       add_symbols($9);
-		       set_scope_to_global();
+		     Setattr($$,"symtab",Swig_symbol_popscope());
+
+		     Classprefix = Getattr($<node>$,"Classprefix");
+		     Delattr($<node>$,"Classprefix");
+		     if (nscope_inner) {
+		       /* this is tricky */
+		       /* we add the declaration in the original namespace */
+		       if (cplus_mode != CPLUS_PRIVATE)
+			 appendChild(nscope_inner,$$);
+		       Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
-		       if (!CPlusPlusOut)
-			 Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
-		       $$ = 0;
-		     } else {
-		       yyrename = Copy(Getattr($<node>$, "class_rename"));
-		       add_symbols($$);
+		       /* but the variable definition in the current scope */
+		       Swig_symbol_setscope(cscope);
+		       Delete(Namespaceprefix);
+		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       add_symbols($9);
-		       Delattr($$, "class_rename");
+		       if (nscope) {
+			 $$ = nscope;
+			 if ($9)
+			   appendSibling($$, $9);
+		       }
+		       else if (!SwigType_istemplate(ty) && template_parameters == 0)
+			 $$ = $9;
+		     } else {
+		       Delete(yyrename);
+		       yyrename = 0;
+		       Delete(Namespaceprefix);
+		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		       if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
+			 Node *outer = currentOuterClass;
+			 while (Getattr(outer, "nested:outer"))
+			   outer = Getattr(outer, "nested:outer");
+			 appendSibling(outer, $$);
+			 add_symbols($9);
+			 set_scope_to_global();
+			 Delete(Namespaceprefix);
+			 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+			 yyrename = Copy(Getattr($<node>$, "class_rename"));
+			 add_symbols($$);
+			 if (!CPlusPlusOut)
+			   Delattr($$, "nested:outer");
+			 Delattr($$, "class_rename");
+			 $$ = 0;
+		       } else {
+			 yyrename = Copy(Getattr($<node>$, "class_rename"));
+			 add_symbols($$);
+			 add_symbols($9);
+			 Delattr($$, "class_rename");
+		       }
 		     }
 		   }
 		   Swig_symbol_setscope(cscope);
