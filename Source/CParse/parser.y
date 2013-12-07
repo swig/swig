@@ -3483,20 +3483,21 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   
 		   if (extendhash) {
 		     String *clsname = Swig_symbol_qualifiedscopename(0);
-		     am = Getattr(extendhash,clsname);
+		     am = Getattr(extendhash, clsname);
 		     if (am) {
-		       merge_extensions($$,am);
-		       Delattr(extendhash,clsname);
+		       merge_extensions($$, am);
+		       Delattr(extendhash, clsname);
 		     }
 		     Delete(clsname);
 		   }
 		   if (!classes) classes = NewHash();
 		   scpname = Swig_symbol_qualifiedscopename(0);
-		   Setattr(classes,scpname,$$);
+		   Setattr(classes, scpname, $$);
 
-		   appendChild($$,$7);
+		   appendChild($$, $7);
 		   
-		   if (am) append_previous_extension($$,am);
+		   if (am) 
+		     append_previous_extension($$, am);
 
 		   p = $9;
 		   if (p && !nscope_inner) {
@@ -3511,14 +3512,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   } else if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString($3);
 		   } else {
-		     ty = NewStringf("%s %s", $2,$3);
+		     ty = NewStringf("%s %s", $2, $3);
 		   }
 		   while (p) {
-		     Setattr(p,"storage",$1);
-		     Setattr(p,"type",ty);
+		     Setattr(p, "storage", $1);
+		     Setattr(p, "type" ,ty);
 		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name") || CPlusPlusOut)) {
-		       SetFlag(p,"hasconsttype");
-		       SetFlag(p,"feature:immutable");
+		       SetFlag(p, "hasconsttype");
+		       SetFlag(p, "feature:immutable");
 		     }
 		     p = nextSibling(p);
 		   }
@@ -3530,71 +3531,68 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   /* we 'open' the class at the end, to allow %template
 		      to add new members */
 		     Node *pa = new_node("access");
-		     Setattr(pa,"kind","public");
+		     Setattr(pa, "kind", "public");
 		     cplus_mode = CPLUS_PUBLIC;
-		     appendChild($$,pa);
+		     appendChild($$, pa);
 		     Delete(pa);
 		   }
 		   if (currentOuterClass)
 		     restore_access_mode($$);
+		   Setattr($$, "symtab", Swig_symbol_popscope());
+		   Classprefix = Getattr($<node>$, "Classprefix");
+		   Delattr($<node>$, "Classprefix");
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
+		   } else if (nscope_inner) {
+		     /* this is tricky */
+		     /* we add the declaration in the original namespace */
+		     appendChild(nscope_inner, $$);
+		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     yyrename = Copy(Getattr($<node>$, "class_rename"));
+		     add_symbols($$);
+		     Delattr($$, "class_rename");
+		     /* but the variable definition in the current scope */
+		     Swig_symbol_setscope(cscope);
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     add_symbols($9);
+		     if (nscope) {
+		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
+		       if ($9)
+			 appendSibling($$, $9);
+		     }
+		     else if (!SwigType_istemplate(ty) && template_parameters == 0) /* for tempalte we need the class itself */
+		       $$ = $9;
 		   } else {
-		     Setattr($$,"symtab",Swig_symbol_popscope());
-
-		     Classprefix = Getattr($<node>$,"Classprefix");
-		     Delattr($<node>$,"Classprefix");
-		     if (nscope_inner) {
-		       /* this is tricky */
-		       /* we add the declaration in the original namespace */
-		       if (cplus_mode != CPLUS_PRIVATE)
-			 appendChild(nscope_inner,$$);
-		       Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
+		     Delete(yyrename);
+		     yyrename = 0;
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
+		       Node *outer = currentOuterClass;
+		       while (Getattr(outer, "nested:outer"))
+			 outer = Getattr(outer, "nested:outer");
+		       appendSibling(outer, $$);
+		       add_symbols($9);
+		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
+		       if (!CPlusPlusOut)
+			 Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
-		       /* but the variable definition in the current scope */
-		       Swig_symbol_setscope(cscope);
-		       Delete(Namespaceprefix);
-		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		       add_symbols($9);
-		       if (nscope) {
-			 $$ = nscope;
-			 if ($9)
-			   appendSibling($$, $9);
-		       }
-		       else if (!SwigType_istemplate(ty) && template_parameters == 0)
-			 $$ = $9;
+		       $$ = 0;
 		     } else {
-		       Delete(yyrename);
-		       yyrename = 0;
-		       Delete(Namespaceprefix);
-		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		       if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
-			 Node *outer = currentOuterClass;
-			 while (Getattr(outer, "nested:outer"))
-			   outer = Getattr(outer, "nested:outer");
-			 appendSibling(outer, $$);
-			 add_symbols($9);
-			 set_scope_to_global();
-			 Delete(Namespaceprefix);
-			 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-			 yyrename = Copy(Getattr($<node>$, "class_rename"));
-			 add_symbols($$);
-			 if (!CPlusPlusOut)
-			   Delattr($$, "nested:outer");
-			 Delattr($$, "class_rename");
-			 $$ = 0;
-		       } else {
-			 yyrename = Copy(Getattr($<node>$, "class_rename"));
-			 add_symbols($$);
-			 add_symbols($9);
-			 Delattr($$, "class_rename");
-		       }
+		       yyrename = Copy(Getattr($<node>$, "class_rename"));
+		       add_symbols($$);
+		       add_symbols($9);
+		       Delattr($$, "class_rename");
 		     }
 		   }
+		   Delete(ty);
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
