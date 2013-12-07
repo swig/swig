@@ -18,8 +18,6 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
-// insert N tabs before each new line in s
-void Swig_offset_string(String *s, int N);
 
 class JAVA:public Language {
   static const char *usage;
@@ -2068,7 +2066,7 @@ public:
       } else {
 	for (int i = 0; i < nesting_depth; ++i)
 	  Append(old_proxy_class_code, "  ");
-	Append(old_proxy_class_code, "}\n");
+	Append(old_proxy_class_code, "}\n\n");
 	--nesting_depth;
       }
 

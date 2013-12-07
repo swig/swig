@@ -863,9 +863,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
 }
 
 static void flatten_nested() {
-  String *val = NewString("1");
-  Swig_feature_set(Swig_cparse_features(), "", 0, "feature:flatnested", val, 0);
-  Delete(val);
+  Swig_feature_set(Swig_cparse_features(), "", 0, "feature:flatnested", "1", 0);
 }
 
 
