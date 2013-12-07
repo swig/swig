@@ -309,9 +309,6 @@ static void add_symbols(Node *n) {
     int isfriend = inclass && is_friend(n);
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     int only_csymbol = 0;
-    if (extendmode) {
-      Setattr(n,"isextension","1");
-    }
     
     if (inclass) {
       String *name = Getattr(n, "name");
@@ -1594,6 +1591,7 @@ swig_directive : extend_directive { $$ = $1; }
 extend_directive : EXTEND options idcolon LBRACE {
                Node *cls;
 	       String *clsname;
+	       extendmode = 1;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!classes_typedefs) classes_typedefs = NewHash();
@@ -1619,7 +1617,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
-		   extendmode = 1;
 		   SWIG_WARN_NODE_BEGIN(cls);
 		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
 		   SWIG_WARN_NODE_END(cls);
@@ -1628,7 +1625,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
-		 extendmode = 1;
 	       }
 	       Classprefix = NewString($3);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
@@ -4288,7 +4284,7 @@ cpp_members  : cpp_member cpp_members {
 cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { 
                  $$ = $1; 
-		 if (extendmode) {
+		 if (extendmode && current_class) {
 		   String *symname;
 		   symname= make_name($$,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
@@ -4329,7 +4325,7 @@ cpp_member   : c_declaration { $$ = $1; }
 */
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
-              if (Classprefix) {
+              if (inclass || extendmode) {
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$1);
