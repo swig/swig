@@ -23,6 +23,8 @@ void setValues(struct Outer *outer, int val) {
   outer->inside3 = &outer->inside2;
   outer->inside4[0].val = val * 4;
 }
+
+int getInside1Val(struct Outer *n) { return n->inside1.val; }
 %}
 
 /* 
