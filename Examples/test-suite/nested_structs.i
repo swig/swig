@@ -5,10 +5,10 @@
 struct Outer {
   struct {
     int val;
-  } inner1, inner2, *inner3, inner4[1];
+  } inner1, inner2, *inner3, inner4[1], **inner5;
   struct Named {
     int val;
-  } inside1, inside2, *inside3, inside4[1];
+  } inside1, inside2, *inside3, inside4[1], **inside5;
 } outer;
 
 void setValues(struct Outer *outer, int val) {
@@ -16,12 +16,14 @@ void setValues(struct Outer *outer, int val) {
   outer->inner2.val = val * 2;
   outer->inner3 = &outer->inner2;
   outer->inner4[0].val = val * 4;
+  outer->inner5 = &outer->inner3;
 
   val = val * 10;
   outer->inside1.val = val;
   outer->inside2.val = val * 2;
   outer->inside3 = &outer->inside2;
   outer->inside4[0].val = val * 4;
+  outer->inside5 = &outer->inside3;
 }
 %}
 
