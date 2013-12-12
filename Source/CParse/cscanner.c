@@ -37,6 +37,9 @@ int     cparse_start_line = 0;
 /* C++ mode */
 int cparse_cplusplus = 0;
 
+/* Generate C++ compatible code when wrapping C code */
+int cparse_cplusplusout = 0;
+
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
@@ -50,6 +53,14 @@ static int rename_active = 0;
 
 void Swig_cparse_cplusplus(int v) {
   cparse_cplusplus = v;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_cplusplusout()
+ * ----------------------------------------------------------------------------- */
+
+void Swig_cparse_cplusplusout(int v) {
+  cparse_cplusplusout = v;
 }
 
 /* ----------------------------------------------------------------------------

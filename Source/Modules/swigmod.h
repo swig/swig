@@ -32,7 +32,6 @@ extern String *input_file;
 extern int line_number;
 extern int start_line;
 extern int CPlusPlus;		// C++ mode
-extern "C" int CPlusPlusOut;	// generate C++ declarations for C code (currently used for Octave)
 extern int Extend;		// Extend mode
 extern int Verbose;
 extern int IsVirtual;

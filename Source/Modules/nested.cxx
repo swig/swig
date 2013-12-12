@@ -400,7 +400,7 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	c = next;
 	continue;
       }
-    } else if (CPlusPlusOut) {
+    } else if (cparse_cplusplusout) {
       if (Getattr(c, "nested:outer")) {
 	Node *ins = create_insert(c, true);
 	insertNodeAfter(c, ins);

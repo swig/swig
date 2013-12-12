@@ -13,9 +13,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include "cparse.h"
 
-extern int cparse_cplusplus;
-extern int CPlusPlusOut;
 static const char *cresult_variable_name = "result";
 
 static Parm *nonvoid_parms(Parm *p) {
@@ -777,7 +776,7 @@ String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, Stri
     if (!Strstr(type, "enum $unnamed")) {
       String *dref = Swig_wrapped_var_deref(type, pname1, varcref);
       int extra_cast = 0;
-      if (CPlusPlusOut) {
+      if (cparse_cplusplusout) {
 	/* Required for C nested structs compiled as C++ as a duplicate of the nested struct is put into the global namespace.
 	 * We could improve this by adding the extra casts just for nested structs rather than all structs. */
 	String *base = SwigType_base(type);

@@ -29,10 +29,6 @@
 
 static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
-extern "C"
-{
-  int CPlusPlusOut = 0;		// Generate C++ compatible code when wrapping C code
-}
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
 int GenerateDefault = 1;	// Generate default constructors
@@ -488,7 +484,8 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++out") == 0) {
-	CPlusPlusOut = 1;
+	// Undocumented
+	Swig_cparse_cplusplusout(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
@@ -954,6 +951,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
+
+  if (CPlusPlus && cparse_cplusplusout) {
+    Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
+    SWIG_exit(EXIT_FAILURE);
+  }
 
   install_opts(argc, argv);
 
