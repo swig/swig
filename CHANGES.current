@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-12: vmiklos
+	    [PHP] PHP's peculiar call-time pass-by-reference feature was
+	    deprecated in PHP 5.3 and removed in PHP 5.4, so update the REF
+	    typemaps in phppointers.i to specify pass-by-reference in the
+	    function definition.  Examples/php/pointer has been updated
+	    accordingly.
+
 2013-12-12: olly
 	    [PHP] The usage of $input in PHP directorout typemaps has been
 	    changed to be consistent with other languages.  The typemaps
