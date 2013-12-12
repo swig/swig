@@ -638,6 +638,10 @@ all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
 
+check-c: $(C_TEST_CASES:=.ctest)
+
+check-cpp: $(CPP_TEST_CASES:=.cpptest)
+
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
