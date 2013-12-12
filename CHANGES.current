@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-12: olly
+	    [PHP] The usage of $input in PHP directorout typemaps has been
+	    changed to be consistent with other languages.  The typemaps
+	    provided by SWIG have been updated accordingly, but if you
+	    have written your own directorout typemaps, you'll need to
+	    update $input to &$input (or make equivalent changes).
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2013-11-27: vadz
             [C#, Java, Python] Add std_auto_ptr.i defining typemaps for returning std::auto_ptr<>.
 

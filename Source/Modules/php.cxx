@@ -2626,8 +2626,7 @@ done:
       if (!is_void) {
 	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	if (tm != 0) {
-	  static const String *amp_result = NewStringf("&%s", Swig_cresult_name());
-	  Replaceall(tm, "$input", amp_result);
+	  Replaceall(tm, "$input", Swig_cresult_name());
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);
