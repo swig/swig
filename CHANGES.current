@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-12: jleveque
+	    [Lua] Fix typo (wchar instead of wchar_t) which made wchar.i
+	    for Lua useless.
+
 2013-12-12: vmiklos
 	    [PHP] PHP's peculiar call-time pass-by-reference feature was
 	    deprecated in PHP 5.3 and removed in PHP 5.4, so update the REF
