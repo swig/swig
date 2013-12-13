@@ -281,6 +281,7 @@ private:
 
     // Get filenames.
 
+    String *swig_filename = Getattr(n, "infile");
     String *c_filename = Getattr(n, "outfile");
     String *c_filename_h = Getattr(n, "outfile_h");
 
@@ -360,6 +361,11 @@ private:
     }
 
     Swig_banner(f_c_begin);
+    if (CPlusPlus) {
+      Printf(f_c_begin, "\n// source: %s\n\n", swig_filename);
+    } else {
+      Printf(f_c_begin, "\n/* source: %s */\n\n", swig_filename);
+    }
 
     Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
 
@@ -367,6 +373,8 @@ private:
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
 
       Swig_banner(f_c_directors_h);
+      Printf(f_c_directors_h, "\n// source: %s\n\n", swig_filename);
+
       Printf(f_c_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_c_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
 
@@ -377,9 +385,11 @@ private:
     }
 
     Swig_banner(f_go_begin);
+    Printf(f_go_begin, "\n// source: %s\n", swig_filename);
 
     if (!gccgo_flag) {
       Swig_banner(f_gc_begin);
+      Printf(f_gc_begin, "\n/* source: %s */\n\n", swig_filename);
       Printf(f_gc_begin, "\n/* This file should be compiled with 6c/8c.  */\n");
       Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
     }

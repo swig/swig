@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-13: iant
+	    [Go] Add SWIG source file name as comments in generated
+	    files.  This can be used by Go documentation tools.
+
 2013-12-12: jleveque
 	    [Lua] Fix typo (wchar instead of wchar_t) which made wchar.i
 	    for Lua useless.
