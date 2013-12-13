@@ -4992,11 +4992,27 @@ class Bar {
 
 <p>
 <b>Compatibility Note:</b>
-In SWIG 2.0 and earlier, nested classes were treated as opaque pointers.
-Also there was a workaround, implementing approximately the same behaviour as the
-%feature ("flatnested") with an additional help from the user:
-nested class had to be manually redeclared in the global scope, typedef name and %feature nestedworkaround
-added for the inner class.
+Prior to SWIG-3.0.0, there was limited nested class support. Nested classes were treated as opaque pointers.
+However, there was a workaround for nested class support in these older versions requiring the user to replicate
+the nested class in the global scope, adding in a typedef for the nested class in the global scope and
+using the "nestedworkaround" feature on the nested class. This resulted in approximately the
+same behaviour as the "flatnested" feature. With proper nested class support now available in SWIG-3.0.0, this
+feature has been deprecated and no longer works requiring code changes. If you see the following warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:8: Warning 126: The nestedworkaround feature is deprecated
+</pre>
+</div>
+
+<p>
+consider using the "flatnested" feature discussed above which generates a non-nested proxy class, like the 
+"nestedworkaround" feature did. Alternatively, use the default nested class code generation, which may generate an
+equivalent to a nested proxy class in the target language, depending on the target language support.
+</p>
+
+<p>
 SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
 and the generated code resulting from parsing nested classes did not always compile.
 Nested class warnings could also not be suppressed using %warnfilter.

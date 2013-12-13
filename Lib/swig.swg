@@ -9,7 +9,7 @@
  * User Directives 
  * ----------------------------------------------------------------------------- */
 
-/* Deprecated SWIG directives */
+/* Deprecated SWIG-1.1 directives */
 
 #define %disabledoc     %warn "104:%disabledoc is deprecated"
 #define %enabledoc      %warn "105:%enabledoc is deprecated"
@@ -136,10 +136,15 @@
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
 
-/* the %nestedworkaround directive */
+/* the %nestedworkaround directive (deprecated) */
 #define %nestedworkaround       %feature("nestedworkaround")
 #define %nonestedworkaround     %feature("nestedworkaround","0")
 #define %clearnestedworkaround  %feature("nestedworkaround","")
+
+/* the %flatnested directive */
+#define %flatnested       %feature("flatnested")
+#define %noflatnested     %feature("flatnested","0")
+#define %clearflatnested  %feature("flatnested","")
 
 /* the %fastdispatch directive */
 #define %fastdispatch        %feature("fastdispatch")

@@ -1080,6 +1080,10 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
 
   /* Printf(stdout, "single_new_feature: [%s] [%s] [%s] [%s] [%s] [%s]\n", featurename, val, declaratorid, t, ParmList_str_defaultargs(declaratorparms), qualifier); */
 
+  /* Warn about deprecated features */
+  if (strcmp(featurename, "nestedworkaround") == 0)
+    Swig_warning(WARN_DEPRECATED_NESTED_WORKAROUND, cparse_file, cparse_line, "The 'nestedworkaround' feature is deprecated.\n");
+
   fname = NewStringf("feature:%s",featurename);
   if (declaratorid) {
     fixname = feature_identifier_fix(declaratorid);
