@@ -34,10 +34,16 @@
      (check-range signed-int-identity signed-int-min signed-int-max)
      (check-range unsigned-int-identity 0 unsigned-int-max)
      (check-range signed-long-identity signed-long-min signed-long-max)
-     (check-range unsigned-long-identity 0 unsigned-long-max)
-     ;;; long long not implemented in Guile and MzScheme.
      (check-range signed-long-long-identity signed-long-long-min signed-long-long-max)
-     (check-range unsigned-long-long-identity 0 unsigned-long-long-max)
+
+     ;;; unsigned (long) long is broken in guile 1.8 on Mac OS X, skip test
+     (if (or (>= (string->number (major-version)) 2)
+             (not (equal? (utsname:sysname (uname)) "Darwin")))
+         (begin
+           (check-range unsigned-long-identity 0 unsigned-long-max)
+           (check-range unsigned-long-long-identity 0 unsigned-long-long-max))
+     )
+
 )
 
 (exit 0)
