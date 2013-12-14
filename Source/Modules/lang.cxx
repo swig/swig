@@ -20,7 +20,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
-Language* Language::this_ = 0;
+Language *Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -355,7 +355,7 @@ Language::~Language() {
     String *dirclassname;
     String *nspace = NewString(Getattr(n, "sym:nspace"));
     const char *attrib = "director:classname";
-    String *classname = Getattr(n, "sym:name");
+    String *classname = getClassPrefix();
 
     Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
     if (Len(nspace) > 0)
@@ -1015,8 +1015,6 @@ int Language::cDeclaration(Node *n) {
     /* Some kind of variable declaration */
     String *declaration = Copy(decl);
     Delattr(n, "decl");
-    if (Getattr(n, "nested"))
-      SetFlag(n, "feature:immutable");
     if (!CurrentClass) {
       if (Swig_storage_isextern(n) || ForceExtern) {
 	if (AddExtern) {
@@ -2362,6 +2360,15 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
+  // save class local variables for nested classes support
+  int oldInClass = InClass;
+  String *oldClassType = ClassType;
+  String *oldClassPrefix = ClassPrefix;
+  String *oldClassName = ClassName;
+  String *oldDirectorClassName = DirectorClassName;
+  String *oldNSpace = NSpace;
+  Node *oldCurrentClass = CurrentClass;
+
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
@@ -2370,6 +2377,8 @@ int Language::classDeclaration(Node *n) {
 
   int strip = CPlusPlus ? 1 : unnamed && tdname;
 
+  if (cplus_mode != PUBLIC)
+    return SWIG_NOWRAP;
   if (!name) {
     Swig_warning(WARN_LANG_CLASS_UNNAMED, input_file, line_number, "Can't generate wrappers for unnamed struct/class.\n");
     return SWIG_NOWRAP;
@@ -2380,15 +2389,21 @@ int Language::classDeclaration(Node *n) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
   }
-
+  AccessMode oldAccessMode = cplus_mode;
+  Node *outerClass = Getattr(n, "nested:outer");
+  if (outerClass && oldAccessMode != PUBLIC)
+    return SWIG_NOWRAP;
+  ClassName = Copy(name);
+  ClassPrefix = Copy(symname);
   if (Cmp(kind, "class") == 0) {
     cplus_mode = PRIVATE;
   } else {
     cplus_mode = PUBLIC;
   }
-
-  ClassName = Copy(name);
-  ClassPrefix = Copy(symname);
+  for (; outerClass; outerClass = Getattr(outerClass, "nested:outer")) {
+    Push(ClassPrefix, "_");
+    Push(ClassPrefix, Getattr(outerClass, "sym:name"));
+  }
   if (strip) {
     ClassType = Copy(name);
   } else {
@@ -2399,9 +2414,8 @@ int Language::classDeclaration(Node *n) {
 
   InClass = 1;
   CurrentClass = n;
-
-  String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
+  int oldAbstract = Abstract;
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -2443,25 +2457,27 @@ int Language::classDeclaration(Node *n) {
       classDirector(n);
     }
     /* check for abstract after resolving directors */
-    Abstract = abstractClassTest(n);
 
+    Abstract = abstractClassTest(n);
     classHandler(n);
   } else {
     Abstract = abstractClassTest(n);
     Language::classHandler(n);
   }
 
+  Abstract = oldAbstract;
+  cplus_mode = oldAccessMode;
   NSpace = oldNSpace;
-  InClass = 0;
-  CurrentClass = 0;
+  InClass = oldInClass;
+  CurrentClass = oldCurrentClass;
   Delete(ClassType);
-  ClassType = 0;
+  ClassType = oldClassType;
   Delete(ClassPrefix);
-  ClassPrefix = 0;
+  ClassPrefix = oldClassPrefix;
   Delete(ClassName);
-  ClassName = 0;
+  ClassName = oldClassName;
   Delete(DirectorClassName);
-  DirectorClassName = 0;
+  DirectorClassName = oldDirectorClassName;
   return SWIG_OK;
 }
 
@@ -2640,7 +2656,7 @@ int Language::constructorDeclaration(Node *n) {
       String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
       String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
       Delete(scope);
-      if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
+      if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name)) {
 	bool illegal_name = true;
 	if (Extend) {
 	  // Check for typedef names used as a constructor name in %extend. This is deprecated except for anonymous
@@ -3426,6 +3442,9 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
   return true;
 }
 
+bool Language::nestedClassesSupported() const {
+  return false;
+}
 /* -----------------------------------------------------------------------------
  * Language::is_wrapping_class()
  * ----------------------------------------------------------------------------- */
@@ -3612,3 +3631,4 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+

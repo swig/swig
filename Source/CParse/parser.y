@@ -51,7 +51,7 @@ static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
-static int      nested_template = 0; /* template class/function definition within a class */
+static Node    *currentOuterClass = 0; /* for nested classes */
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
@@ -59,10 +59,6 @@ static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
-
-static int      max_class_levels = 0;
-static int      class_level = 0;
-static Node   **class_decl = NULL;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -165,7 +161,6 @@ static Node *copy_node(Node *n) {
 static char  *typemap_lang = 0;    /* Current language setting */
 
 static int cplus_mode  = 0;
-static String  *class_rename = 0;
 
 /* C++ modes */
 
@@ -237,6 +232,25 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
+static void set_access_mode(Node *n) {
+  if (cplus_mode == CPLUS_PUBLIC)
+    Setattr(n, "access", "public");
+  else if (cplus_mode == CPLUS_PROTECTED)
+    Setattr(n, "access", "protected");
+  else
+    Setattr(n, "access", "private");
+}
+
+static void restore_access_mode(Node *n) {
+  String *mode = Getattr(n, "access");
+  if (Strcmp(mode, "private") == 0)
+    cplus_mode = CPLUS_PRIVATE;
+  else if (Strcmp(mode, "protected") == 0)
+    cplus_mode = CPLUS_PROTECTED;
+  else
+    cplus_mode = CPLUS_PUBLIC;
+}
+
 /* Generate the symbol table name for an object */
 /* This is a bit of a mess. Need to clean up */
 static String *add_oldname = 0;
@@ -283,13 +297,6 @@ static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
 
-  if (nested_template) {
-    if (!(n && Equal(nodeType(n), "template"))) {
-      return;
-    }
-    /* continue if template function, but not template class, declared within a class */
-  }
-
   if (inclass && n) {
     cparse_normalize_void(n);
   }
@@ -301,9 +308,6 @@ static void add_symbols(Node *n) {
     int isfriend = inclass && is_friend(n);
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     int only_csymbol = 0;
-    if (extendmode) {
-      Setattr(n,"isextension","1");
-    }
     
     if (inclass) {
       String *name = Getattr(n, "name");
@@ -349,9 +353,6 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-        /*
-	if (!Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
-        */
 	Setattr(n,"ismember","1");
       }
     }
@@ -793,53 +794,31 @@ static String *make_class_name(String *name) {
   return nname;
 }
 
-static List *make_inherit_list(String *clsname, List *names) {
-  int i, ilen;
-  String *derived;
-  List *bases = NewList();
+/* Use typedef name as class name */
 
-  if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
-  else derived = NewString(clsname);
-
-  ilen = Len(names);
-  for (i = 0; i < ilen; i++) {
-    Node *s;
-    String *base;
-    String *n = Getitem(names,i);
-    /* Try to figure out where this symbol is */
-    s = Swig_symbol_clookup(n,0);
-    if (s) {
-      while (s && (Strcmp(nodeType(s),"class") != 0)) {
-	/* Not a class.  Could be a typedef though. */
-	String *storage = Getattr(s,"storage");
-	if (storage && (Strcmp(storage,"typedef") == 0)) {
-	  String *nn = Getattr(s,"type");
-	  s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
-	} else {
-	  break;
-	}
-      }
-      if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
-	String *q = Swig_symbol_qualified(s);
-	Append(bases,s);
-	if (q) {
-	  base = NewStringf("%s::%s", q, Getattr(s,"name"));
-	  Delete(q);
-	} else {
-	  base = NewString(Getattr(s,"name"));
-	}
-      } else {
-	base = NewString(n);
-      }
-    } else {
-      base = NewString(n);
+static void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscope, String *scpname) {
+  String *class_rename = 0;
+  SwigType *decltype = Getattr(decl, "decl");
+  if (!decltype || !Len(decltype)) {
+    String *cname;
+    String *tdscopename;
+    String *class_scope = Swig_symbol_qualifiedscopename(cscope);
+    String *name = Getattr(decl, "name");
+    cname = Copy(name);
+    Setattr(n, "tdname", cname);
+    tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
+    class_rename = Getattr(n, "class_rename");
+    if (class_rename && (Strcmp(class_rename, oldName) == 0))
+      Setattr(n, "class_rename", NewString(name));
+    if (!classes_typedefs) classes_typedefs = NewHash();
+    if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
+      Setattr(classes_typedefs, tdscopename, n);
     }
-    if (base) {
-      Swig_name_inherit(base,derived);
-      Delete(base);
-    }
+    Setattr(n, "decl", decltype);
+    Delete(class_scope);
+    Delete(cname);
+    Delete(tdscopename);
   }
-  return bases;
 }
 
 /* If the class name is qualified.  We need to create or lookup namespace entries */
@@ -1059,350 +1038,31 @@ static String *resolve_create_node_scope(String *cname) {
   return cname;
 }
  
-
-
-/* Structures for handling code fragments built for nested classes */
-
-typedef struct Nested {
-  String   *code;        /* Associated code fragment */
-  int      line;         /* line number where it starts */
-  const char *name;      /* Name associated with this nested class */
-  const char *kind;      /* Kind of class */
-  int      unnamed;      /* unnamed class */
-  SwigType *type;        /* Datatype associated with the name */
-  struct Nested   *next; /* Next code fragment in list */
-} Nested;
-
-/* Some internal variables for saving nested class information */
-
-static Nested      *nested_list = 0;
-
-/* Add a function to the nested list */
-
-static void add_nested(Nested *n) {
-  if (!nested_list) {
-    nested_list = n;
-  } else {
-    Nested *n1 = nested_list;
-    while (n1->next)
-      n1 = n1->next;
-    n1->next = n;
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * nested_new_struct()
- *
- * Nested struct handling for C code only creates a global struct from the nested struct.
- *
- * Nested structure. This is a sick "hack". If we encounter
- * a nested structure, we're going to grab the text of its definition and
- * feed it back into the scanner.  In the meantime, we need to grab
- * variable declaration information and generate the associated wrapper
- * code later.  Yikes!
- *
- * This really only works in a limited sense.   Since we use the
- * code attached to the nested class to generate both C code
- * it can't have any SWIG directives in it.  It also needs to be parsable
- * by SWIG or this whole thing is going to puke.
- * ----------------------------------------------------------------------------- */
-
-static void nested_new_struct(const char *kind, String *struct_code, Node *cpp_opt_declarators) {
-  String *name;
-  String *decl;
-
-  /* Create a new global struct declaration which is just a copy of the nested struct */
-  Nested *nested = (Nested *) malloc(sizeof(Nested));
-  Nested *n = nested;
-
-  name = Getattr(cpp_opt_declarators, "name");
-  decl = Getattr(cpp_opt_declarators, "decl");
-
-  n->code = NewStringEmpty();
-  Printv(n->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
-  n->name = Swig_copy_string(Char(name));
-  n->line = cparse_start_line;
-  n->type = NewStringEmpty();
-  n->kind = kind;
-  n->unnamed = 0;
-  SwigType_push(n->type, decl);
-  n->next = 0;
-
-  /* Repeat for any multiple instances of the nested struct */
-  {
-    Node *p = cpp_opt_declarators;
-    p = nextSibling(p);
-    while (p) {
-      Nested *nn = (Nested *) malloc(sizeof(Nested));
-
-      name = Getattr(p, "name");
-      decl = Getattr(p, "decl");
-
-      nn->code = NewStringEmpty();
-      Printv(nn->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
-      nn->name = Swig_copy_string(Char(name));
-      nn->line = cparse_start_line;
-      nn->type = NewStringEmpty();
-      nn->kind = kind;
-      nn->unnamed = 0;
-      SwigType_push(nn->type, decl);
-      nn->next = 0;
-      n->next = nn;
-      n = nn;
-      p = nextSibling(p);
-    }
-  }
-
-  add_nested(nested);
-}
-
-/* -----------------------------------------------------------------------------
- * nested_forward_declaration()
- * 
- * Nested struct handling for C++ code only.
- *
- * Treat the nested class/struct/union as a forward declaration until a proper 
- * nested class solution is implemented.
- * ----------------------------------------------------------------------------- */
-
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
-  Node *nn = 0;
-  int warned = 0;
-
-  if (sname) {
-    /* Add forward declaration of the nested type */
-    Node *n = new_node("classforward");
-    Setattr(n, "kind", kind);
-    Setattr(n, "name", sname);
-    Setattr(n, "storage", storage);
-    Setattr(n, "sym:weak", "1");
-    add_symbols(n);
-    nn = n;
-  }
-
-  /* Add any variable instances. Also add in any further typedefs of the nested type.
-     Note that anonymous typedefs (eg typedef struct {...} a, b;) are treated as class forward declarations */
-  if (cpp_opt_declarators) {
-    int storage_typedef = (storage && (strcmp(storage, "typedef") == 0));
-    int variable_of_anonymous_type = !sname && !storage_typedef;
-    if (!variable_of_anonymous_type) {
-      int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
-      Node *n = cpp_opt_declarators;
-      SwigType *type = name;
-      while (n) {
-	Setattr(n, "type", type);
-	Setattr(n, "storage", storage);
-	if (anonymous_typedef) {
-	  Setattr(n, "nodeType", "classforward");
-	  Setattr(n, "sym:weak", "1");
-	}
-	n = nextSibling(n);
-      }
-      add_symbols(cpp_opt_declarators);
-
-      if (nn) {
-	set_nextSibling(nn, cpp_opt_declarators);
-      } else {
-	nn = cpp_opt_declarators;
+/* look for simple typedef name in typedef list */
+static String *try_to_find_a_name_for_unnamed_structure(const char *storage, Node *decls) {
+  String *name = 0;
+  Node *n = decls;
+  if (storage && (strcmp(storage, "typedef") == 0)) {
+    for (; n; n = nextSibling(n)) {
+      if (!Len(Getattr(n, "decl"))) {
+	name = Copy(Getattr(n, "name"));
+	break;
       }
     }
   }
-
-  if (nn && Equal(nodeType(nn), "classforward")) {
-    Node *n = nn;
-    if (GetFlag(n, "feature:nestedworkaround")) {
-      Swig_symbol_remove(n);
-      nn = 0;
-      warned = 1;
-    } else {
-      SWIG_WARN_NODE_BEGIN(n);
-      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
-      SWIG_WARN_NODE_END(n);
-      warned = 1;
-    }
-  }
-
-  if (!warned)
-    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
-
-  return nn;
+  return name;
 }
 
-/* Strips C-style and C++-style comments from string in-place. */
-static void strip_comments(char *string) {
-  int state = 0; /* 
-                  * 0 - not in comment
-                  * 1 - in c-style comment
-                  * 2 - in c++-style comment
-                  * 3 - in string
-                  * 4 - after reading / not in comments
-                  * 5 - after reading * in c-style comments
-                  * 6 - after reading \ in strings
-                  */
-  char * c = string;
-  while (*c) {
-    switch (state) {
-    case 0:
-      if (*c == '\"')
-        state = 3;
-      else if (*c == '/')
-        state = 4;
-      break;
-    case 1:
-      if (*c == '*')
-        state = 5;
-      *c = ' ';
-      break;
-    case 2:
-      if (*c == '\n')
-        state = 0;
-      else
-        *c = ' ';
-      break;
-    case 3:
-      if (*c == '\"')
-        state = 0;
-      else if (*c == '\\')
-        state = 6;
-      break;
-    case 4:
-      if (*c == '/') {
-        *(c-1) = ' ';
-        *c = ' ';
-        state = 2;
-      } else if (*c == '*') {
-        *(c-1) = ' ';
-        *c = ' ';
-        state = 1;
-      } else
-        state = 0;
-      break;
-    case 5:
-      if (*c == '/')
-        state = 0;
-      else 
-        state = 1;
-      *c = ' ';
-      break;
-    case 6:
-      state = 3;
-      break;
-    }
-    ++c;
+/* traverse copied tree segment, and update outer class links*/
+static void update_nested_classes(Node *n)
+{
+  Node *c = firstChild(n);
+  while (c) {
+    if (Getattr(c, "nested:outer"))
+      Setattr(c, "nested:outer", n);
+    update_nested_classes(c);
+    c = nextSibling(c);
   }
-}
-
-/* Dump all of the nested class declarations to the inline processor
- * However.  We need to do a few name replacements and other munging
- * first.  This function must be called before closing a class! */
-
-static Node *dump_nested(const char *parent) {
-  Nested *n,*n1;
-  Node *ret = 0;
-  Node *last = 0;
-  n = nested_list;
-  if (!parent) {
-    nested_list = 0;
-    return 0;
-  }
-  while (n) {
-    Node *retx;
-    SwigType *nt;
-    /* Token replace the name of the parent class */
-    Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
-
-    /* Fix up the name of the datatype (for building typedefs and other stuff) */
-    Append(n->type,parent);
-    Append(n->type,"_");
-    Append(n->type,n->name);
-
-    /* Add the appropriate declaration to the C++ processor */
-    retx = new_node("cdecl");
-    Setattr(retx,"name",n->name);
-    nt = Copy(n->type);
-    Setattr(retx,"type",nt);
-    Delete(nt);
-    Setattr(retx,"nested",parent);
-    if (n->unnamed) {
-      Setattr(retx,"unnamed","1");
-    }
-    
-    add_symbols(retx);
-    if (ret) {
-      set_nextSibling(last, retx);
-      Delete(retx);
-    } else {
-      ret = retx;
-    }
-    last = retx;
-
-    /* Strip comments - further code may break in presence of comments. */
-    strip_comments(Char(n->code));
-
-    /* Make all SWIG created typedef structs/unions/classes unnamed else 
-       redefinition errors occur - nasty hack alert.*/
-
-    {
-      const char* types_array[3] = {"struct", "union", "class"};
-      int i;
-      for (i=0; i<3; i++) {
-	char* code_ptr = Char(n->code);
-	while (code_ptr) {
-	  /* Replace struct name (as in 'struct name {...}' ) with whitespace
-	     name will be between struct and opening brace */
-	
-	  code_ptr = strstr(code_ptr, types_array[i]);
-	  if (code_ptr) {
-	    char *open_bracket_pos;
-	    code_ptr += strlen(types_array[i]);
-	    open_bracket_pos = strchr(code_ptr, '{');
-	    if (open_bracket_pos) { 
-	      /* Make sure we don't have something like struct A a; */
-	      char* semi_colon_pos = strchr(code_ptr, ';');
-	      if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
-		while (code_ptr < open_bracket_pos)
-		  *code_ptr++ = ' ';
-	    }
-	  }
-	}
-      }
-    }
-    
-    {
-      /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
-      char* code_ptr = Char(n->code);
-      while (code_ptr) {
-	code_ptr = strstr(code_ptr, "%constant");
-	if (code_ptr) {
-	  char* directive_end_pos = strchr(code_ptr, ';');
-	  if (directive_end_pos) { 
-            while (code_ptr <= directive_end_pos)
-              *code_ptr++ = ' ';
-	  }
-	}
-      }
-    }
-    {
-      Node *newnode = new_node("insert");
-      String *code = NewStringEmpty();
-      Wrapper_pretty_print(n->code, code);
-      Setattr(newnode,"code", code);
-      Delete(code);
-      set_nextSibling(last, newnode);
-      Delete(newnode);      
-      last = newnode;
-    }
-      
-    /* Dump the code to the scanner */
-    start_inline(Char(Getattr(last, "code")),n->line);
-
-    n1 = n->next;
-    Delete(n->code);
-    free(n);
-    n = n1;
-  }
-  nested_list = 0;
-  return ret;
 }
 
 Node *Swig_cparse(File *f) {
@@ -1419,6 +1079,10 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
   SwigType *t = Copy(type);
 
   /* Printf(stdout, "single_new_feature: [%s] [%s] [%s] [%s] [%s] [%s]\n", featurename, val, declaratorid, t, ParmList_str_defaultargs(declaratorparms), qualifier); */
+
+  /* Warn about deprecated features */
+  if (strcmp(featurename, "nestedworkaround") == 0)
+    Swig_warning(WARN_DEPRECATED_NESTED_WORKAROUND, cparse_file, cparse_line, "The 'nestedworkaround' feature is deprecated.\n");
 
   fname = NewStringf("feature:%s",featurename);
   if (declaratorid) {
@@ -1768,7 +1432,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
-%type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_temp_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
 
@@ -1930,6 +1594,7 @@ swig_directive : extend_directive { $$ = $1; }
 extend_directive : EXTEND options idcolon LBRACE {
                Node *cls;
 	       String *clsname;
+	       extendmode = 1;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!classes_typedefs) classes_typedefs = NewHash();
@@ -1955,7 +1620,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
-		   extendmode = 1;
 		   SWIG_WARN_NODE_BEGIN(cls);
 		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
 		   SWIG_WARN_NODE_END(cls);
@@ -1964,7 +1628,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
 		 current_class = cls;
-		 extendmode = 1;
 	       }
 	       Classprefix = NewString($3);
 	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
@@ -2999,6 +2662,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
 
                           templnode = copy_node(nn);
+			  update_nested_classes(templnode);
                           /* We need to set the node name based on name used to instantiate */
                           Setattr(templnode,"name",tname);
 			  Delete(tname);
@@ -3007,7 +2671,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           } else {
                             Setattr(templnode,"sym:typename","1");
                           }
-                          if ($3 && !inclass) {
+                          if ($3) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
@@ -3026,16 +2690,15 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:name",nname);
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
-
-			    if ($3) {
-			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
-			    }
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
+			  if (currentOuterClass) {
+			    SetFlag(templnode, "nested");
+			  }
 
                           add_symbols_copy(templnode);
 
@@ -3051,7 +2714,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               csyms = Swig_symbol_current();
                               Swig_symbol_setscope(Getattr(templnode,"symtab"));
                               if (baselist) {
-                                List *bases = make_inherit_list(Getattr(templnode,"name"),baselist);
+                                List *bases = Swig_make_inherit_list(Getattr(templnode,"name"),baselist, Namespaceprefix);
                                 if (bases) {
                                   Iterator s;
                                   for (s = First(bases); s.item; s = Next(s)) {
@@ -3703,10 +3366,10 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
 
 /* A simple class/struct/union definition */
 cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
-                 if (nested_template == 0) {
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
+		   String *code;
 		   $<node>$ = new_node("class");
 		   Setline($<node>$,cparse_start_line);
 		   Setattr($<node>$,"kind",$2);
@@ -3718,41 +3381,30 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$,"allows_typedef","1");
 
 		   /* preserve the current scope */
-		   prev_symtab = Swig_symbol_current();
+		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($3);
+		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
+		   Setattr($<node>$, "nested:innerscope", nscope_inner);
+		   Setattr($<node>$, "nested:nscope", nscope);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
-		   
-		   /* support for old nested classes "pseudo" support, such as:
-
-		         %rename(Ala__Ola) Ala::Ola;
-			class Ala::Ola {
-			public:
-			    Ola() {}
-		         };
-
-		      this should disappear when a proper implementation is added.
-		   */
-		   if (nscope_inner && Strcmp(nodeType(nscope_inner),"namespace") != 0) {
-		     if (Namespaceprefix) {
-		       String *name = NewStringf("%s::%s", Namespaceprefix, $3);		       
-		       $3 = name;
-		       Namespaceprefix = 0;
-		       nscope_inner = 0;
-		     }
-		   }
 		   Setattr($<node>$,"name",$3);
 
-		   Delete(class_rename);
-                   class_rename = make_name($<node>$,$3,0);
+		   if (currentOuterClass) {
+		     SetFlag($<node>$, "nested");
+		     Setattr($<node>$, "nested:outer", currentOuterClass);
+		     set_access_mode($<node>$);
+		   }
+		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
+		   Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
+		   Setattr($<node>$, "Classprefix", $3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
-		   if ($4) {
-		     bases = make_inherit_list($3,Getattr($4,"public"));
-		   }
+		   if ($4)
+		     bases = Swig_make_inherit_list($3,Getattr($4,"public"),Namespaceprefix);
 		   prefix = SwigType_istemplate_templateprefix($3);
 		   if (prefix) {
 		     String *fbase, *tbase;
@@ -3774,18 +3426,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
-		   if (bases) {
-		     Iterator s;
-		     for (s = First(bases); s.item; s = Next(s)) {
-		       Symtab *st = Getattr(s.item,"symtab");
-		       if (st) {
-			 Setfile(st,Getfile(s.item));
-			 Setline(st,Getline(s.item));
-			 Swig_symbol_inherit(st); 
-		       }
-		     }
-		     Delete(bases);
-		   }
+		   Swig_inherit_base_symbols(bases);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   cparse_start_line = cparse_line;
@@ -3804,31 +3445,34 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       Delete(tpname);
 		     }
 		   }
-		   if (class_level >= max_class_levels) {
-		       if (!max_class_levels) {
-			   max_class_levels = 16;
-		       } else {
-			   max_class_levels *= 2;
-		       }
-		       class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
-		       if (!class_decl) {
-			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
-		       }
-		   }
-		   class_decl[class_level++] = $<node>$;
 		   Delete(prefix);
 		   inclass = 1;
-		 }
+		   currentOuterClass = $<node>$;
+		   if (cparse_cplusplusout) {
+		     /* save the structure declaration to declare it in global scope for C++ to see */
+		     code = get_raw_text_balanced('{', '}');
+		     Setattr($<node>$, "code", code);
+		     Delete(code);
+		   }
                } cpp_members RBRACE cpp_opt_declarators {
-	         (void) $<node>6;
-		 if (nested_template == 0) {
 		   Node *p;
 		   SwigType *ty;
-		   Symtab *cscope = prev_symtab;
+		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
-		   $$ = class_decl[--class_level];
-		   inclass = 0;
+		   (void) $<node>6;
+		   $$ = currentOuterClass;
+		   currentOuterClass = Getattr($$, "nested:outer");
+		   nscope_inner = Getattr($<node>$, "nested:innerscope");
+		   nscope = Getattr($<node>$, "nested:nscope");
+		   Delattr($<node>$, "nested:innerscope");
+		   Delattr($<node>$, "nested:nscope");
+		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) /* actual parent class for this class */
+		     Setattr($$, "nested:outer", nscope_inner);
+		   if (!currentOuterClass)
+		     inclass = 0;
+		   cscope = Getattr($$, "prev_symtab");
+		   Delattr($$, "prev_symtab");
 		   
 		   /* Check for pure-abstract class */
 		   Setattr($$,"abstracts", pure_abstracts($7));
@@ -3837,131 +3481,144 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   
 		   if (extendhash) {
 		     String *clsname = Swig_symbol_qualifiedscopename(0);
-		     am = Getattr(extendhash,clsname);
+		     am = Getattr(extendhash, clsname);
 		     if (am) {
-		       merge_extensions($$,am);
-		       Delattr(extendhash,clsname);
+		       merge_extensions($$, am);
+		       Delattr(extendhash, clsname);
 		     }
 		     Delete(clsname);
 		   }
 		   if (!classes) classes = NewHash();
 		   scpname = Swig_symbol_qualifiedscopename(0);
-		   Setattr(classes,scpname,$$);
+		   Setattr(classes, scpname, $$);
 
-		   appendChild($$,$7);
+		   appendChild($$, $7);
 		   
-		   if (am) append_previous_extension($$,am);
+		   if (am) 
+		     append_previous_extension($$, am);
 
 		   p = $9;
-		   if (p) {
-		     set_nextSibling($$,p);
+		   if (p && !nscope_inner) {
+		     if (!cparse_cplusplus && currentOuterClass)
+		       appendChild(currentOuterClass, p);
+		     else
+		      appendSibling($$, p);
 		   }
 		   
-		   if (cparse_cplusplus && !cparse_externc) {
+		   if (nscope_inner) {
+		     ty = NewString(scpname); /* if the class is declared out of scope, let the declarator use fully qualified type*/
+		   } else if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString($3);
 		   } else {
-		     ty = NewStringf("%s %s", $2,$3);
+		     ty = NewStringf("%s %s", $2, $3);
 		   }
 		   while (p) {
-		     Setattr(p,"storage",$1);
-		     Setattr(p,"type",ty);
+		     Setattr(p, "storage", $1);
+		     Setattr(p, "type" ,ty);
+		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
+		       SetFlag(p, "hasconsttype");
+		       SetFlag(p, "feature:immutable");
+		     }
 		     p = nextSibling(p);
 		   }
-		   /* Class typedefs */
-		   {
-		     String *name = $3;
-		     if ($9) {
-		       SwigType *decltype = Getattr($9,"decl");
-		       if (Cmp($1,"typedef") == 0) {
-			 if (!decltype || !Len(decltype)) {
-			   String *cname;
-			   String *tdscopename;
-			   String *class_scope = Swig_symbol_qualifiedscopename(cscope);
-			   name = Getattr($9,"name");
-			   cname = Copy(name);
-			   Setattr($$,"tdname",cname);
-			   tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
-
-			   /* Use typedef name as class name */
-			   if (class_rename && (Strcmp(class_rename,$3) == 0)) {
-			     Delete(class_rename);
-			     class_rename = NewString(name);
-			   }
-			   if (!classes_typedefs) classes_typedefs = NewHash();
-			   if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
-			     Setattr(classes_typedefs, tdscopename, $$);
-			   }
-			   Setattr($$,"decl",decltype);
-			   Delete(class_scope);
-			   Delete(cname);
-			   Delete(tdscopename);
-			 }
-		       }
-		     }
-		     appendChild($$,dump_nested(Char(name)));
-		   }
+		   if ($9 && Cmp($1,"typedef") == 0)
+		     add_typedef_name($$, $9, $3, cscope, scpname);
 		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
 		      to add new members */
 		     Node *pa = new_node("access");
-		     Setattr(pa,"kind","public");
+		     Setattr(pa, "kind", "public");
 		     cplus_mode = CPLUS_PUBLIC;
-		     appendChild($$,pa);
+		     appendChild($$, pa);
 		     Delete(pa);
 		   }
-
-		   Setattr($$,"symtab",Swig_symbol_popscope());
-
-		   Classprefix = 0;
-		   if (nscope_inner) {
+		   if (currentOuterClass)
+		     restore_access_mode($$);
+		   Setattr($$, "symtab", Swig_symbol_popscope());
+		   Classprefix = Getattr($<node>$, "Classprefix");
+		   Delattr($<node>$, "Classprefix");
+		   if (cplus_mode == CPLUS_PRIVATE) {
+		     $$ = 0; /* skip private nested classes */
+		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
-		     appendChild(nscope_inner,$$);
-		     Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
+		     appendChild(nscope_inner, $$);
+		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     yyrename = Copy(Getattr($<node>$, "class_rename"));
 		     add_symbols($$);
-		     if (nscope) $$ = nscope;
+		     Delattr($$, "class_rename");
 		     /* but the variable definition in the current scope */
 		     Swig_symbol_setscope(cscope);
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     add_symbols($9);
+		     if (nscope) {
+		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
+		       if ($9)
+			 appendSibling($$, $9);
+		     }
+		     else if (!SwigType_istemplate(ty) && template_parameters == 0) /* for tempalte we need the class itself */
+		       $$ = $9;
 		   } else {
 		     Delete(yyrename);
-		     yyrename = Copy(class_rename);
+		     yyrename = 0;
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-
-		     add_symbols($$);
-		     add_symbols($9);
+		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
+		       Node *outer = currentOuterClass;
+		       while (Getattr(outer, "nested:outer"))
+			 outer = Getattr(outer, "nested:outer");
+		       appendSibling(outer, $$);
+		       add_symbols($9);
+		       set_scope_to_global();
+		       Delete(Namespaceprefix);
+		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		       yyrename = Copy(Getattr($<node>$, "class_rename"));
+		       add_symbols($$);
+		       if (!cparse_cplusplusout)
+			 Delattr($$, "nested:outer");
+		       Delattr($$, "class_rename");
+		       $$ = 0;
+		     } else {
+		       yyrename = Copy(Getattr($<node>$, "class_rename"));
+		       add_symbols($$);
+		       add_symbols($9);
+		       Delattr($$, "class_rename");
+		     }
 		   }
+		   Delete(ty);
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		 } else {
-		    $$ = new_node("class");
-		    Setattr($$,"kind",$2);
-		    Setattr($$,"name",NewString($3));
-		    SetFlag($$,"nestedtemplateclass");
-		 }
 	       }
 
 /* An unnamed struct, possibly with a typedef */
 
-             | storage_class cpptype LBRACE {
+             | storage_class cpptype inherit LBRACE {
 	       String *unnamed;
+	       String *code;
 	       unnamed = make_unnamed();
 	       $<node>$ = new_node("class");
 	       Setline($<node>$,cparse_start_line);
 	       Setattr($<node>$,"kind",$2);
+	       if ($3) {
+		 Setattr($<node>$,"baselist", Getattr($3,"public"));
+		 Setattr($<node>$,"protectedbaselist", Getattr($3,"protected"));
+		 Setattr($<node>$,"privatebaselist", Getattr($3,"private"));
+	       }
 	       Setattr($<node>$,"storage",$1);
 	       Setattr($<node>$,"unnamed",unnamed);
 	       Setattr($<node>$,"allows_typedef","1");
-	       Delete(class_rename);
-	       class_rename = make_name($<node>$,0,0);
+	       if (currentOuterClass) {
+		 SetFlag($<node>$, "nested");
+		 Setattr($<node>$, "nested:outer", currentOuterClass);
+		 set_access_mode($<node>$);
+	       }
+	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3969,108 +3626,111 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
-	       if (class_level >= max_class_levels) {
-		   if (!max_class_levels) {
-		       max_class_levels = 16;
-		   } else {
-		       max_class_levels *= 2;
-		   }
-		   class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
-		   if (!class_decl) {
-		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
-		   }
-	       }
-	       class_decl[class_level++] = $<node>$;
+	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-             } cpp_members RBRACE declarator initializer c_decl_tail {
+	       /* save the structure declaration to make a typedef for it later*/
+	       code = get_raw_text_balanced('{', '}');
+	       Setattr($<node>$, "code", code);
+	       Delete(code);
+	     } cpp_members RBRACE cpp_opt_declarators {
 	       String *unnamed;
+               List *bases = 0;
+	       String *name = 0;
 	       Node *n;
-	       (void) $<node>4;
 	       Classprefix = 0;
-	       $$ = class_decl[--class_level];
-	       inclass = 0;
+	       $$ = currentOuterClass;
+	       currentOuterClass = Getattr($$, "nested:outer");
+	       if (!currentOuterClass)
+		 inclass = 0;
+	       else
+		 restore_access_mode($$);
 	       unnamed = Getattr($$,"unnamed");
-
-	       /* Check for pure-abstract class */
-	       Setattr($$,"abstracts", pure_abstracts($5));
-
-	       n = new_node("cdecl");
-	       Setattr(n,"name",$7.id);
-	       Setattr(n,"unnamed",unnamed);
-	       Setattr(n,"type",unnamed);
-	       Setattr(n,"decl",$7.type);
-	       Setattr(n,"parms",$7.parms);
-	       Setattr(n,"storage",$1);
-	       if ($9) {
-		 Node *p = $9;
-		 set_nextSibling(n,p);
-		 while (p) {
-		   String *type = Copy(unnamed);
-		   Setattr(p,"name",$7.id);
-		   Setattr(p,"unnamed",unnamed);
-		   Setattr(p,"type",type);
-		   Delete(type);
-		   Setattr(p,"storage",$1);
-		   p = nextSibling(p);
-		 }
-	       }
-	       set_nextSibling($$,n);
-	       Delete(n);
-	       {
+               /* Check for pure-abstract class */
+	       Setattr($$,"abstracts", pure_abstracts($6));
+	       n = $8;
+	       if (n) {
+	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
-		 String *name = 0;
-		 if ($1 && (strcmp($1,"typedef") == 0)) {
-		   if (!Len($7.type)) {	
-		     String *scpname = 0;
-		     name = $7.id;
-		     Setattr($$,"tdname",name);
-		     Setattr($$,"name",name);
-		     Swig_symbol_setscopename(name);
+		 name = try_to_find_a_name_for_unnamed_structure($1, n);
+		 if (name) {
+		   String *scpname = 0;
+		   SwigType *ty;
+		   Setattr($$,"tdname",name);
+		   Setattr($$,"name",name);
+		   Swig_symbol_setscopename(name);
+		   if ($3)
+		     bases = Swig_make_inherit_list(name,Getattr($3,"public"),Namespaceprefix);
+		   Swig_inherit_base_symbols(bases);
 
 		     /* If a proper name was given, we use that as the typedef, not unnamed */
-		     Clear(unnamed);
-		     Append(unnamed, name);
-		     
-		     n = nextSibling(n);
-		     set_nextSibling($$,n);
-
-		     /* Check for previous extensions */
-		     if (extendhash) {
-		       String *clsname = Swig_symbol_qualifiedscopename(0);
-		       Node *am = Getattr(extendhash,clsname);
-		       if (am) {
-			 /* Merge the extension into the symbol table */
-			 merge_extensions($$,am);
-			 append_previous_extension($$,am);
-			 Delattr(extendhash,clsname);
-		       }
-		       Delete(clsname);
-		     }
-		     if (!classes) classes = NewHash();
-		     scpname = Swig_symbol_qualifiedscopename(0);
-		     Setattr(classes,scpname,$$);
-		     Delete(scpname);
+		   Clear(unnamed);
+		   Append(unnamed, name);
+		   if (cparse_cplusplus && !cparse_externc) {
+		     ty = NewString(name);
 		   } else {
-		     Swig_symbol_setscopename("<unnamed>");
+		     ty = NewStringf("%s %s", $2,name);
 		   }
+		   while (n) {
+		     Setattr(n,"storage",$1);
+		     Setattr(n, "type", ty);
+		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
+		       SetFlag(n,"hasconsttype");
+		       SetFlag(n,"feature:immutable");
+		     }
+		     n = nextSibling(n);
+		   }
+		   n = $8;
+		     /* Check for previous extensions */
+		   if (extendhash) {
+		     String *clsname = Swig_symbol_qualifiedscopename(0);
+		     Node *am = Getattr(extendhash,clsname);
+		     if (am) {
+			 /* Merge the extension into the symbol table */
+		       merge_extensions($$,am);
+		       append_previous_extension($$,am);
+		       Delattr(extendhash,clsname);
+		     }
+		     Delete(clsname);
+		   }
+		   if (!classes) classes = NewHash();
+		   scpname = Swig_symbol_qualifiedscopename(0);
+		   Setattr(classes,scpname,$$);
+		   Delete(scpname);
+		 } else { /* no suitable name was found for a struct */
+		   Setattr($$, "nested:unnamed", Getattr(n, "name")); /* save the name of the first declarator for later use in name generation*/
+		   while (n) { /* attach unnamed struct to the declarators, so that they would receive proper type later*/
+		     Setattr(n, "nested:unnamedtype", $$);
+		     Setattr(n, "storage", $1);
+		     n = nextSibling(n);
+		   }
+		   n = $8;
+		   Swig_symbol_setscopename("<unnamed>");
 		 }
-		 appendChild($$,$5);
-		 appendChild($$,dump_nested(Char(name)));
+		 appendChild($$,$6);
+		 /* Pop the scope */
+		 Setattr($$,"symtab",Swig_symbol_popscope());
+		 if (name) {
+		   Delete(yyrename);
+		   yyrename = Copy(Getattr($<node>$, "class_rename"));
+		   Delete(Namespaceprefix);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		   add_symbols($$);
+		   add_symbols(n);
+		   Delattr($$, "class_rename");
+		 }else if (cparse_cplusplus)
+		   $$ = 0; /* ignore unnamed structs for C++ */
+	         Delete(unnamed);
+	       } else { /* unnamed struct w/o declarator*/
+		 Swig_symbol_popscope();
+	         Delete(Namespaceprefix);
+		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		 add_symbols($6);
+		 Delete($$);
+		 $$ = $6; /* pass member list to outer class/namespace (instead of self)*/
 	       }
-	       /* Pop the scope */
-	       Setattr($$,"symtab",Swig_symbol_popscope());
-	       if (class_rename) {
-		 Delete(yyrename);
-		 yyrename = NewString(class_rename);
-	       }
-	       Delete(Namespaceprefix);
-	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-	       add_symbols($$);
-	       add_symbols(n);
-	       Delete(unnamed);
               }
              ;
 
@@ -4106,41 +3766,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    ------------------------------------------------------------ */
 
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
+		   if (currentOuterClass)
+		     Setattr(currentOuterClass, "template_parameters", template_parameters);
 		    template_parameters = $3; 
-		    if (inclass)
-		      nested_template++;
-
 		  } cpp_temp_possible {
-
-		    /* Don't ignore templated functions declared within a class, unless the templated function is within a nested class */
-		    if (nested_template <= 1) {
-		      int is_nested_template_class = $6 && GetFlag($6, "nestedtemplateclass");
-		      if (is_nested_template_class) {
-			$$ = 0;
-			/* Nested template classes would probably better be ignored like ordinary nested classes using cpp_nested, but that introduces shift/reduce conflicts */
-			if (cplus_mode == CPLUS_PUBLIC) {
-			  /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
-			  String *kind = Getattr($6, "kind");
-			  String *name = Getattr($6, "name");
-			  $$ = new_node("template");
-			  Setattr($$,"kind",kind);
-			  Setattr($$,"name",name);
-			  Setattr($$,"sym:weak", "1");
-			  Setattr($$,"templatetype","classforward");
-			  Setattr($$,"templateparms", $3);
-			  add_symbols($$);
-
-			  if (GetFlag($$, "feature:nestedworkaround")) {
-			    Swig_symbol_remove($$);
-			    $$ = 0;
-			  } else {
-			    SWIG_WARN_NODE_BEGIN($$);
-			    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested template %s not currently supported (%s ignored).\n", kind, name);
-			    SWIG_WARN_NODE_END($$);
-			  }
-			}
-			Delete($6);
-		      } else {
 			String *tname = 0;
 			int     error = 0;
 
@@ -4386,13 +4015,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			Delete(Namespaceprefix);
 			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 			if (error) $$ = 0;
-		      }
-		    } else {
-		      $$ = 0;
-		    }
-		    template_parameters = 0;
-		    if (inclass)
-		      nested_template--;
+			if (currentOuterClass)
+			  template_parameters = Getattr(currentOuterClass, "template_parameters");
+			else
+			  template_parameters = 0;
                 }
 
 		/* Explicit template instantiation */
@@ -4621,6 +4247,8 @@ cpp_members  : cpp_member cpp_members {
 		       p = nextSibling(p);
 		     }
 		     set_nextSibling(pp,$2);
+		     if ($2)
+		       set_previousSibling($2, pp);
 		   } else {
 		     $$ = $2;
 		   }
@@ -4656,7 +4284,7 @@ cpp_members  : cpp_member cpp_members {
 cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { 
                  $$ = $1; 
-		 if (extendmode) {
+		 if (extendmode && current_class) {
 		   String *symname;
 		   symname= make_name($$,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
@@ -4677,7 +4305,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
-             | cpp_nested { $$ = $1; }
+	     | cpp_class_decl { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
@@ -4697,7 +4325,7 @@ cpp_member   : c_declaration { $$ = $1; }
 */
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
-              if (Classprefix) {
+              if (inclass || extendmode) {
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$1);
@@ -4905,82 +4533,6 @@ cpp_protection_decl : PUBLIC COLON {
 		cplus_mode = CPLUS_PROTECTED;
 	      }
               ;
-
-
-/* ------------------------------------------------------------
-   Named nested structs:
-   struct sname { };
-   struct sname { } id;
-   struct sname : bases { };
-   struct sname : bases { } id;
-   typedef sname struct { } td;
-   typedef sname struct : bases { } td;
-
-   Adding inheritance, ie replacing 'ID' with 'idcolon inherit' 
-   added one shift/reduce
-   ------------------------------------------------------------ */
-
-cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
-		cparse_start_line = cparse_line;
-		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
-	      } cpp_opt_declarators {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (cparse_cplusplus) {
-		    String *name = Copy($3);
-		    $$ = nested_forward_declaration($1, $2, $3, name, $7);
-		  } else if ($7) {
-		    nested_new_struct($2, $<str>6, $7);
-		  }
-		}
-		Delete($<str>6);
-	      }
-
-/* ------------------------------------------------------------
-   Unnamed/anonymous nested structs:
-   struct { };
-   struct { } id;
-   struct : bases { };
-   struct : bases { } id;
-   typedef struct { } td;
-   typedef struct : bases { } td;
-   ------------------------------------------------------------ */
-
-              | storage_class cpptype inherit LBRACE {
-		cparse_start_line = cparse_line;
-		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
-	      } cpp_opt_declarators {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (cparse_cplusplus) {
-		    String *name = $6 ? Copy(Getattr($6, "name")) : 0;
-		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
-		  } else {
-		    if ($6) {
-		      nested_new_struct($2, $<str>5, $6);
-		    } else {
-		      Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
-		    }
-		  }
-		}
-		Delete($<str>5);
-	      }
-
-
-/* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
-/*
-              | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } SEMI {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
-		}
-	      }
-*/
-              ;
-
 /* These directives can be included inside a class definition */
 
 cpp_swig_directive: pragma_directive { $$ = $1; }

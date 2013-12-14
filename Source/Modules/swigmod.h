@@ -297,6 +297,16 @@ protected:
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
 
+public:
+  /* Does target language support nested classes? Default is 'false'. If 'false' is returned, then
+    %rename("$ignore", %$isnested) statement will be issued at the top, and the nested classes
+    will be ignored. Note that even if the target language does not support the notion of class
+    nesting, the language module may nevertheless return true from this function, and use
+    %feature "flatnested" to move nested classes to the global scope, instead of ignoring them.
+  */
+  virtual bool nestedClassesSupported() const;
+
+protected:
   /* Identifies if a protected members that are generated when the allprotected option is used.
      This does not include protected virtual methods as they are turned on with the dirprot option. */
   bool isNonVirtualProtectedAccess(Node *n) const;
@@ -410,5 +420,7 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
+void Swig_nested_process_classes(Node *n);
+void Swig_nested_name_unnamed_c_structs(Node *n);
 
 #endif

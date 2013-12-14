@@ -84,6 +84,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
+	nested_private \
 	overload_complicated \
 	template_default_pointer \
 	template_expr \
@@ -279,6 +280,7 @@ CPP_TEST_CASES += \
 	naturalvar_more \
 	nested_class \
 	nested_comment \
+	nested_scope \
 	nested_workaround \
 	newobject1 \
 	null_pointer \

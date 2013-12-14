@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 static String *global_name = 0;
 static String *op_prefix   = 0;
@@ -132,6 +133,10 @@ public:
     SWIG_config_file("octave.swg");
     SWIG_typemap_lang("octave");
     allow_overloading();
+
+    // Octave API is C++, so output must be C++ compatibile even when wrapping C code
+    if (!cparse_cplusplus)
+      Swig_cparse_cplusplusout(1);
   }
 
   virtual int top(Node *n) {

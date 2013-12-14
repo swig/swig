@@ -4,18 +4,22 @@
 
 // Testing that the typemaps invoked within a class via %template are picked up by appropriate methods
 
+%inline %{
 template <typename T> struct Typemap {
+#ifdef SWIG
   %typemap(in) T {
     $1 = -99;
   }
+#endif
 };
 template <> struct Typemap<short> { // Note explicit specialization
+#ifdef SWIG
   %typemap(in) short {
     $1 = -77;
   }
+#endif
 };
 
-%inline %{
 int globalInt1(int s) { return s; }
 short globalShort1(short s) { return s; }
 

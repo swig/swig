@@ -483,6 +483,10 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++out") == 0) {
+	// Undocumented
+	Swig_cparse_cplusplusout(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Swig_mark_arg(i);
@@ -855,8 +859,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-
-
+static void flatten_nested() {
+  Swig_feature_set(Swig_cparse_features(), "", 0, "feature:flatnested", "1", 0);
+}
 
 
 int SWIG_main(int argc, char *argv[], Language *l) {
@@ -946,6 +951,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
+
+  if (CPlusPlus && cparse_cplusplusout) {
+    Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
+    SWIG_exit(EXIT_FAILURE);
+  }
 
   install_opts(argc, argv);
 
@@ -1151,6 +1161,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fflush(stdout);
     }
 
+    // add "ignore" directive if nested classes are not supported
+    if (!lang->nestedClassesSupported())
+      flatten_nested();
+
     Node *top = Swig_cparse(cpps);
 
     if (dump_top & STAGE1) {
@@ -1160,6 +1174,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (dump_module & STAGE1) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
+    }
+    if (!CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing unnamed structs...\n");
+      Swig_nested_name_unnamed_c_structs(top);
     }
 
     if (Verbose) {
@@ -1180,6 +1199,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing nested classes...\n");
+      Swig_nested_process_classes(top);
+    }
 
     if (dump_top & STAGE3) {
       Printf(stdout, "debug-top stage 3\n");
