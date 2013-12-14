@@ -57,4 +57,3 @@ script:
 branches:
   only:
     - master
-    - nested
