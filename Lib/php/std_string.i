@@ -33,8 +33,8 @@ namespace std {
     %}
 
     %typemap(directorout) string %{
-        convert_to_string_ex($input);
-        $result.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
+        convert_to_string_ex(&$input);
+        $result.assign(Z_STRVAL_P($input), Z_STRLEN_P($input));
     %}
 
     %typemap(out) string %{
@@ -63,8 +63,8 @@ namespace std {
     %}
 
     %typemap(directorout) string & ($*1_ltype *temp) %{
-        convert_to_string_ex($input);
-        temp = new $*1_ltype(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
+        convert_to_string_ex(&$input);
+        temp = new $*1_ltype(Z_STRVAL_P($input), Z_STRLEN_P($input));
         swig_acquire_ownership(temp);
         $result = temp;
     %}

@@ -13,8 +13,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include "cparse.h"
 
-extern int cparse_cplusplus;
 static const char *cresult_variable_name = "result";
 
 static Parm *nonvoid_parms(Parm *p) {
@@ -775,7 +775,25 @@ String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, Stri
   if (SwigType_type(type) != T_ARRAY) {
     if (!Strstr(type, "enum $unnamed")) {
       String *dref = Swig_wrapped_var_deref(type, pname1, varcref);
-      Printf(func, "if (%s) %s%s = %s", pname0, self, name, dref);
+      int extra_cast = 0;
+      if (cparse_cplusplusout) {
+	/* Required for C nested structs compiled as C++ as a duplicate of the nested struct is put into the global namespace.
+	 * We could improve this by adding the extra casts just for nested structs rather than all structs. */
+	String *base = SwigType_base(type);
+	extra_cast = SwigType_isclass(base);
+	Delete(base);
+      }
+      if (extra_cast) {
+	String *lstr;
+	SwigType *ptype = Copy(type);
+	SwigType_add_pointer(ptype);
+	lstr = SwigType_lstr(ptype, 0);
+	Printf(func, "if (%s) *(%s)&%s%s = %s", pname0, lstr, self, name, dref);
+	Delete(lstr);
+	Delete(ptype);
+      } else {
+        Printf(func, "if (%s) %s%s = %s", pname0, self, name, dref);
+      }
       Delete(dref);
     } else {
       Printf(func, "if (%s && sizeof(int) == sizeof(%s%s)) *(int*)(void*)&(%s%s) = %s", pname0, self, name, self, name, pname1);

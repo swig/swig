@@ -5,6 +5,33 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-13: iant
+	    [Go] Add SWIG source file name as comments in generated
+	    files.  This can be used by Go documentation tools.
+
+2013-12-12: jleveque
+	    [Lua] Fix typo (wchar instead of wchar_t) which made wchar.i
+	    for Lua useless.
+
+2013-12-12: vmiklos
+	    [PHP] PHP's peculiar call-time pass-by-reference feature was
+	    deprecated in PHP 5.3 and removed in PHP 5.4, so update the REF
+	    typemaps in phppointers.i to specify pass-by-reference in the
+	    function definition.  Examples/php/pointer has been updated
+	    accordingly.
+
+2013-12-12: olly
+	    [PHP] The usage of $input in PHP directorout typemaps has been
+	    changed to be consistent with other languages.  The typemaps
+	    provided by SWIG have been updated accordingly, but if you
+	    have written your own directorout typemaps, you'll need to
+	    update $input to &$input (or make equivalent changes).
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2013-11-27: vadz
+            [C#, Java, Python] Add std_auto_ptr.i defining typemaps for returning std::auto_ptr<>.
+
 2013-11-09: wsfulton
             [C#] Apply patch #79 from Brant Kyser
               - Remove using directives from the generated C# code and fully qualify the use of all .NET

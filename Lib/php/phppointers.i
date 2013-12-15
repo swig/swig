@@ -1,5 +1,5 @@
 %define %pass_by_ref( TYPE, CONVERT_IN, CONVERT_OUT )
-%typemap(in) TYPE *REF ($*1_ltype tmp),
+%typemap(in, byref=1) TYPE *REF ($*1_ltype tmp),
              TYPE &REF ($*1_ltype tmp)
 %{
   /* First Check for SWIG wrapped type */

@@ -32,7 +32,6 @@ extern String *input_file;
 extern int line_number;
 extern int start_line;
 extern int CPlusPlus;		// C++ mode
-extern "C" int CPlusPlusOut;	// generate C++ declarations for C code (currently used for Octave)
 extern int Extend;		// Extend mode
 extern int Verbose;
 extern int IsVirtual;
@@ -300,9 +299,9 @@ protected:
 
 public:
   /* Does target language support nested classes? Default is 'false'. If 'false' is returned, then
-    %rename("$ignore", %$isnested) statement will be issued at the top, and the nested classes 
-    will be ignored. Note that even if the target language does not support the notion of class 
-    nesting, the language module may nevertheless return true from this function, and use 
+    %rename("$ignore", %$isnested) statement will be issued at the top, and the nested classes
+    will be ignored. Note that even if the target language does not support the notion of class
+    nesting, the language module may nevertheless return true from this function, and use
     %feature "flatnested" to move nested classes to the global scope, instead of ignoring them.
   */
   virtual bool nestedClassesSupported() const;
@@ -421,7 +420,7 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
-void Swig_process_nested_classes(Node *n);
-void Swig_name_unnamed_c_structs(Node *n);
+void Swig_nested_process_classes(Node *n);
+void Swig_nested_name_unnamed_c_structs(Node *n);
 
 #endif

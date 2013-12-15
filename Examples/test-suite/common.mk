@@ -84,6 +84,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
+	nested_private \
 	overload_complicated \
 	template_default_pointer \
 	template_expr \
@@ -246,6 +247,7 @@ CPP_TEST_CASES += \
 	li_carrays \
 	li_cdata \
 	li_cpointer \
+	li_std_auto_ptr \
 	li_stdint \
 	li_typemaps \
 	li_typemaps_apply \
@@ -278,6 +280,7 @@ CPP_TEST_CASES += \
 	naturalvar_more \
 	nested_class \
 	nested_comment \
+	nested_scope \
 	nested_workaround \
 	newobject1 \
 	null_pointer \
@@ -491,6 +494,7 @@ CPP11_TEST_CASES = \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
+	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
 	cpp11_rvalue_reference \
@@ -552,6 +556,8 @@ endif
 C_TEST_CASES += \
 	arrays \
 	bom_utf8 \
+	c_delete \
+	c_delete_function \
 	char_constant \
 	const_const \
 	constant_expr \
@@ -633,6 +639,10 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
+
+check-c: $(C_TEST_CASES:=.ctest)
+
+check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 

@@ -5,9 +5,9 @@ This was reported in bug #909389 */
 
 %inline %{
 
-class A { 
+class A {
 public:
-  int x; 
+  int x;
 };
 class B {
   class C { int y; }; //generates a warning

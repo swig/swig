@@ -20,7 +20,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
-Language* Language::this_ = 0;
+Language *Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -2367,7 +2367,7 @@ int Language::classDeclaration(Node *n) {
   String *oldClassName = ClassName;
   String *oldDirectorClassName = DirectorClassName;
   String *oldNSpace = NSpace;
-  Node* oldCurrentClass = CurrentClass;
+  Node *oldCurrentClass = CurrentClass;
 
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
@@ -2390,8 +2390,8 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
   AccessMode oldAccessMode = cplus_mode;
-  Node* outerClass = Getattr(n, "nested:outer");
-  if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
+  Node *outerClass = Getattr(n, "nested:outer");
+  if (outerClass && oldAccessMode != PUBLIC)
     return SWIG_NOWRAP;
   ClassName = Copy(name);
   ClassPrefix = Copy(symname);
@@ -2465,7 +2465,7 @@ int Language::classDeclaration(Node *n) {
     Language::classHandler(n);
   }
 
-  Abstract = oldAbstract; 
+  Abstract = oldAbstract;
   cplus_mode = oldAccessMode;
   NSpace = oldNSpace;
   InClass = oldInClass;
@@ -3442,8 +3442,8 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
   return true;
 }
 
-bool Language::nestedClassesSupported() const { 
-  return false; 
+bool Language::nestedClassesSupported() const {
+  return false;
 }
 /* -----------------------------------------------------------------------------
  * Language::is_wrapping_class()
@@ -3632,44 +3632,3 @@ Hash *Language::getClassHash() const {
   return classhash;
 }
 
-// insert N tabs before each new line in s
-void Swig_offset_string(String* s, int N)
-{
-  // count a number of lines in s
-  int lines = 1;
-  int L = Len(s);
-  char* start = strchr(Char(s), '\n'); 
-  while (start) {
-    ++lines;
-    start = strchr(start + 1, '\n');
-  }
-  // do not count pending new line
-  if ((Char(s))[L-1] == '\n')
-    --lines;
-  // allocate a temporary storage for a padded string
-  char* res = (char*)malloc(L + lines * N * 2 + 1);
-  res[L + lines * N * 2] = 0;
-
-  // copy lines to res, prepending tabs to each line
-  char* p = res; // output pointer
-  start = Char(s); // start of a current line
-  char* end = strchr(start, '\n'); // end of a current line
-  while (end) {
-    memset(p, ' ', N*2);
-    p += N*2;
-    memcpy(p, start, end - start + 1);
-    p += end - start + 1;
-    start = end + 1;
-    end = strchr(start, '\n');
-  }
-  // process the last line
-  if (*start) {
-    memset(p, ' ', N*2);
-    p += N*2;
-    strcpy(p, start);
-  }
-  // replace 's' contents with 'res'
-  Clear(s);
-  Append(s, res);
-  free(res);
-}

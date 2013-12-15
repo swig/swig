@@ -18,8 +18,6 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
-// insert N tabs before each new line in s
-void Swig_offset_string(String* s, int N);
 
 class CSHARP:public Language {
   static const char *usage;
@@ -182,8 +180,8 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   if (!GetFlag(n, "feature:flatnested")) {
-	     for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
+	   if (symname && !GetFlag(n, "feature:flatnested")) {
+	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 	       Push(symname, ".");
 	       Push(symname, Getattr(outer_class, "sym:name"));
 	     }
@@ -219,7 +217,7 @@ public:
       dirclassname = NewStringf("SwigDirector_%s", classname);
       Setattr(n, attrib, dirclassname);
     }
-    else 
+    else
       dirclassname = Copy(dirclassname);
 
     return dirclassname;
@@ -1878,22 +1876,22 @@ public:
     String *nspace = getNSpace();
     File *f_proxy = NULL;
     // save class local variables
-    String* old_proxy_class_name = proxy_class_name;
-    String* old_full_imclass_name = full_imclass_name;
-    String* old_destructor_call = destructor_call;
-    String* old_proxy_class_constants_code = proxy_class_constants_code;
-    String* old_proxy_class_def = proxy_class_def;
-    String* old_proxy_class_code = proxy_class_code;
+    String *old_proxy_class_name = proxy_class_name;
+    String *old_full_imclass_name = full_imclass_name;
+    String *old_destructor_call = destructor_call;
+    String *old_proxy_class_constants_code = proxy_class_constants_code;
+    String *old_proxy_class_def = proxy_class_def;
+    String *old_proxy_class_code = proxy_class_code;
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
-      if (Node* outer = Getattr(n, "nested:outer")) {
-	String* outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+      if (Node *outer = Getattr(n, "nested:outer")) {
+	String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
 	  Push(outerClassesPrefix, "::");
 	  Push(outerClassesPrefix, Getattr(outer, "sym:name"));
 	}
-	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	String *fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
 	if (nspace)
@@ -2004,7 +2002,7 @@ public:
       } else {
 	for (int i = 0; i < nesting_depth; ++i)
 	  Append(old_proxy_class_code, "  ");
-	Append(old_proxy_class_code, "}\n");
+	Append(old_proxy_class_code, "}\n\n");
 	--nesting_depth;
       }
 
@@ -3458,7 +3456,7 @@ public:
     String *dirClassName = directorClassName(n);
     String *smartptr = Getattr(n, "feature:smartptr");
     if (!GetFlag(n, "feature:flatnested")) {
-      for (Node* outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+      for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 
 	Push(qualified_classname, ".");
 	Push(qualified_classname, Getattr(outer_class, "sym:name"));
@@ -4125,7 +4123,7 @@ public:
 
     return Language::classDirectorInit(n);
   }
-  
+
   int classDeclaration(Node *n) {
     String *old_director_callback_typedefs = director_callback_typedefs;
     String *old_director_callbacks = director_callbacks;
@@ -4134,7 +4132,9 @@ public:
     String *old_director_delegate_instances = director_delegate_instances;
     String *old_director_method_types = director_method_types;
     String *old_director_connect_parms = director_connect_parms;
+
     int ret = Language::classDeclaration(n);
+
     // these variables are deleted in emitProxyClassDefAndCPPCasts, hence no Delete here
     director_callback_typedefs = old_director_callback_typedefs;
     director_callbacks = old_director_callbacks;
@@ -4143,6 +4143,7 @@ public:
     director_delegate_instances = old_director_delegate_instances;
     director_method_types = old_director_method_types;
     director_connect_parms = old_director_connect_parms;
+
     return ret;
   }
 
@@ -4271,8 +4272,8 @@ public:
     Delete(dirclassname);
   }
 
-  bool nestedClassesSupported() const { 
-    return true; 
+  bool nestedClassesSupported() const {
+    return true;
   }
 };				/* class CSHARP */
 

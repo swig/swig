@@ -286,8 +286,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *decl);
   extern void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *namewrn, ParmList *declaratorparms);
   extern void Swig_name_inherit(String *base, String *derived);
-  extern List *Swig_make_inherit_list(String *clsname, List *names, String* Namespaceprefix);
-  extern void Swig_inherit_base_symbols(List* bases);
+  extern List *Swig_make_inherit_list(String *clsname, List *names, String *Namespaceprefix);
+  extern void Swig_inherit_base_symbols(List *bases);
   extern int Swig_need_protected(Node *n);
   extern int Swig_need_name_warning(Node *n);
   extern int Swig_need_redefined_warn(Node *a, Node *b, int InClass);
@@ -304,7 +304,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl);
   extern void Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
   extern void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *n);
-  extern void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, String *value, Hash *featureattribs);
+  extern void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, const_String_or_char_ptr value, Hash *featureattribs);
 
 /* --- Misc --- */
   extern char *Swig_copy_string(const char *c);
@@ -332,6 +332,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);
   extern String *Swig_string_title(String *s);
+  extern void Swig_offset_string(String *s, int number);
   extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
   extern int Swig_value_wrapper_mode(int mode);

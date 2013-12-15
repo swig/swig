@@ -1381,13 +1381,13 @@ int SwigType_type(const SwigType *t) {
  *
  *  2.- swig doesn't mark 'type' as non-assignable.
  *
- *  3.- the user specify that the value wrapper is not needed by using
- *      the %feature("novaluewrapper"), in that case the user need to type
+ *  3.- the user specifies that the value wrapper is not needed by using
+ *      %feature("novaluewrapper") like so:
  *
  *        %feature("novaluewrapper") MyOpaqueClass;
  *        class MyOpaqueClass;
  *
- * Users can also force the use of the value wrapper by using the
+ * The user can also force the use of the value wrapper with
  * %feature("valuewrapper").
  * ----------------------------------------------------------------------------- */
 

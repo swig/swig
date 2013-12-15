@@ -201,7 +201,7 @@ Version 2.0.10 (27 May 2013)
             The macros are silently ignored.
 
 2013-04-17: wsfulton
-            [C#] Pull patch #34 from BrantKyser to fix smart pointers in conjuction with directors.
+            [C#] Pull patch #34 from BrantKyser to fix smart pointers in conjunction with directors.
 
 2013-04-15: kwwette
             [Octave] Fix bugs in output of cleanup code.
@@ -5206,7 +5206,7 @@ Version 1.3.29 (March 21, 2006)
               6146 _std_containers.so 
               174  _std_containers.so.hidden 
 
-	    Excecution times:
+	    Execution times:
 
 	      real 0m0.050s user 0m0.039s sys 0m0.005s   _std_containers.so
               real 0m0.039s user 0m0.026s sys 0m0.007s   _std_containers.so.hidden
@@ -5292,7 +5292,7 @@ Version 1.3.29 (March 21, 2006)
 	    protected methods by default. 
 
 	    In previous releases, you needed to use the 'dirprot'
-	    option to acheive the same.
+	    option to achieve the same.
 
 	    If you want, you can disable the new default behaviour,
 	    use the 'nodirprot' option: 

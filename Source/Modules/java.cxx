@@ -18,8 +18,6 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
-// insert N tabs before each new line in s
-void Swig_offset_string(String* s, int N);
 
 class JAVA:public Language {
   static const char *usage;
@@ -209,8 +207,8 @@ public:
 	 if (!proxyname || jnidescriptor) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   if (!GetFlag(n, "feature:flatnested")) {
-	     for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
+	   if (symname && !GetFlag(n, "feature:flatnested")) {
+	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 	       Push(symname, ".");
 	       Push(symname, Getattr(outer_class, "sym:name"));
 	     }
@@ -1923,21 +1921,21 @@ public:
   virtual int classHandler(Node *n) {
 
     File *f_proxy = NULL;
-    String* old_proxy_class_name = proxy_class_name;
-    String* old_full_proxy_class_name = full_proxy_class_name;
-    String* old_full_imclass_name = full_imclass_name;
-    String* old_destructor_call = destructor_call;
-    String* old_destructor_throws_clause = destructor_throws_clause;
-    String* old_proxy_class_constants_code = proxy_class_constants_code;
-    String* old_proxy_class_def = proxy_class_def;
-    String* old_proxy_class_code = proxy_class_code;
+    String *old_proxy_class_name = proxy_class_name;
+    String *old_full_proxy_class_name = full_proxy_class_name;
+    String *old_full_imclass_name = full_imclass_name;
+    String *old_destructor_call = destructor_call;
+    String *old_destructor_throws_clause = destructor_throws_clause;
+    String *old_proxy_class_constants_code = proxy_class_constants_code;
+    String *old_proxy_class_def = proxy_class_def;
+    String *old_proxy_class_code = proxy_class_code;
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
       constructIntermediateClassName(n);
 
-      String* outerClassesPrefix = 0;
-      if (Node* outer = Getattr(n, "nested:outer")) {
+      String *outerClassesPrefix = 0;
+      if (Node *outer = Getattr(n, "nested:outer")) {
 	outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
 	  Push(outerClassesPrefix, ".");
@@ -1962,7 +1960,7 @@ public:
 	    full_proxy_class_name = NewStringf("%s.%s.%s.%s", package, nspace, outerClassesPrefix, proxy_class_name);
 	  else
 	    full_proxy_class_name = NewStringf("%s.%s.%s", nspace, outerClassesPrefix, proxy_class_name);
-	}else {
+	} else {
 	  if (package)
 	    full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
 	  else
@@ -1972,7 +1970,7 @@ public:
 
       if (outerClassesPrefix) {
 	Replaceall(outerClassesPrefix, ".", "::");
-	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	String *fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
 	if (nspace)
@@ -2068,7 +2066,7 @@ public:
       } else {
 	for (int i = 0; i < nesting_depth; ++i)
 	  Append(old_proxy_class_code, "  ");
-	Append(old_proxy_class_code, "}\n");
+	Append(old_proxy_class_code, "}\n\n");
 	--nesting_depth;
       }
 
@@ -4594,8 +4592,8 @@ public:
     Setattr(n, "director:ctor", class_ctor);
   }
 
-  bool nestedClassesSupported() const { 
-    return true; 
+  bool nestedClassesSupported() const {
+    return true;
   }
 };				/* class JAVA */
 

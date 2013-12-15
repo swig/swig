@@ -559,7 +559,7 @@ Allocate():
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node* oldInclass = inclass;
+    Node *oldInclass = inclass;
     AccessMode oldAcessMode = cplus_mode;
 
     if (!CPlusPlus) {
@@ -660,7 +660,7 @@ Allocate():
     }
 
     if (!Getattr(n, "allocate:has_destructor")) {
-      /* No destructor was defined.  We need to check a few things here too */
+      /* No destructor was defined */
       List *bases = Getattr(n, "allbases");
       int allows_destruct = 1;
 
@@ -677,13 +677,13 @@ Allocate():
     }
 
     if (!Getattr(n, "allocate:has_assign")) {
-      /* No destructor was defined.  We need to check a few things here too */
+      /* No assignment operator was defined */
       List *bases = Getattr(n, "allbases");
       int allows_assign = 1;
 
       for (int i = 0; i < Len(bases); i++) {
 	Node *n = Getitem(bases, i);
-	/* If base class does not allow default destructor, we don't allow it either */
+	/* If base class does not allow assignment, we don't allow it either */
 	if (Getattr(n, "allocate:has_assign")) {
 	  allows_assign = !Getattr(n, "allocate:noassign");
 	}
@@ -694,13 +694,13 @@ Allocate():
     }
 
     if (!Getattr(n, "allocate:has_new")) {
-      /* No destructor was defined.  We need to check a few things here too */
+      /* No new operator was defined */
       List *bases = Getattr(n, "allbases");
       int allows_new = 1;
 
       for (int i = 0; i < Len(bases); i++) {
 	Node *n = Getitem(bases, i);
-	/* If base class does not allow default destructor, we don't allow it either */
+	/* If base class does not allow new operator, we don't allow it either */
 	if (Getattr(n, "allocate:has_new")) {
 	  allows_new = !Getattr(n, "allocate:nonew");
 	}
@@ -781,18 +781,26 @@ Allocate():
       if (cplus_mode != PUBLIC) {
 	if (Strcmp(name, "operator =") == 0) {
 	  /* Look for a private assignment operator */
-	  Setattr(inclass, "allocate:has_assign", "1");
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_assign", "1");
 	  Setattr(inclass, "allocate:noassign", "1");
 	} else if (Strcmp(name, "operator new") == 0) {
 	  /* Look for a private new operator */
-	  Setattr(inclass, "allocate:has_new", "1");
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_new", "1");
 	  Setattr(inclass, "allocate:nonew", "1");
 	}
       } else {
 	if (Strcmp(name, "operator =") == 0) {
-	  Setattr(inclass, "allocate:has_assign", "1");
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_assign", "1");
+	  else
+	    Setattr(inclass, "allocate:noassign", "1");
 	} else if (Strcmp(name, "operator new") == 0) {
-	  Setattr(inclass, "allocate:has_new", "1");
+	  if (!GetFlag(n, "deleted"))
+	    Setattr(inclass, "allocate:has_new", "1");
+	  else
+	    Setattr(inclass, "allocate:nonew", "1");
 	}
 	/* Look for smart pointer operator */
 	if ((Strcmp(name, "operator ->") == 0) && (!GetFlag(n, "feature:ignore"))) {

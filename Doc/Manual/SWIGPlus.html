@@ -1521,7 +1521,7 @@ multiple inheritance.
 spirit, and target language capabilities, as possible. In most
 cases, this means that SWIG will parse the non-public inheritance
 declarations, but that will have no effect in the generated code,
-besides the implicit policies derived for constructor and
+besides the implicit policies derived for constructors and
 destructors. 
 </p>
 
@@ -4965,16 +4965,16 @@ public:
 <H2><a name="SWIGPlus_nested_classes"></a>6.27 Nested classes</H2>
 
 <p>
-If the target language supports the nested classes concept (like Java), the nested C++ classes 
+If the target language supports the nested classes concept (like Java), the nested C++ classes
 are wrapped as nested target language proxy classes. (In case of Java - "static" nested classes.)
-Only public nested classes are wrapped. Otherwise there is little difference between nested and 
+Only public nested classes are wrapped. Otherwise there is little difference between nested and
 normal classes.
 </p>
 <p>
-If the target language doesn't support nested classes directly, or the support is not implemented in the 
-language module (like for python currently), then the visible nested classes are moved to the same name 
-space as the containing class (nesting hierarchy is "flattened"). The same behaviour may be turned on for 
-C# and Java by the %feature ("flatnested"); If there is a class with the same name in the outer namespace 
+If the target language doesn't support nested classes directly, or the support is not implemented in the
+language module (like for python currently), then the visible nested classes are moved to the same name
+space as the containing class (nesting hierarchy is "flattened"). The same behaviour may be turned on for
+C# and Java by the %feature ("flatnested"); If there is a class with the same name in the outer namespace
 the inner class (or the global one) may be renamed or ignored:
 </p>
 
@@ -4991,12 +4991,28 @@ class Bar {
 
 
 <p>
-<b>Compatibility Note:</b> 
-In SWIG 2.0 and earlier, nested classes were treated as opaque pointers. 
-Also there was a workaround, implementing approximately the same behaviour as the 
-%feature ("flatnested") with an additional help from the user:
-nested class had to be manually redeclared in the global scope, typedef name and %feature nestedworkaround
-added for the inner class.
+<b>Compatibility Note:</b>
+Prior to SWIG-3.0.0, there was limited nested class support. Nested classes were treated as opaque pointers.
+However, there was a workaround for nested class support in these older versions requiring the user to replicate
+the nested class in the global scope, adding in a typedef for the nested class in the global scope and
+using the "nestedworkaround" feature on the nested class. This resulted in approximately the
+same behaviour as the "flatnested" feature. With proper nested class support now available in SWIG-3.0.0, this
+feature has been deprecated and no longer works requiring code changes. If you see the following warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:8: Warning 126: The nestedworkaround feature is deprecated
+</pre>
+</div>
+
+<p>
+consider using the "flatnested" feature discussed above which generates a non-nested proxy class, like the 
+"nestedworkaround" feature did. Alternatively, use the default nested class code generation, which may generate an
+equivalent to a nested proxy class in the target language, depending on the target language support.
+</p>
+
+<p>
 SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
 and the generated code resulting from parsing nested classes did not always compile.
 Nested class warnings could also not be suppressed using %warnfilter.
