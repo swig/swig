@@ -2675,7 +2675,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           } else {
                             Setattr(templnode,"sym:typename","1");
                           }
-                          if ($3) {
+			  /* for now, nested %template is allowed only in the same scope as the template declaration */
+                          if ($3 && !(currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
@@ -2702,9 +2703,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Delete(temparms);
 			  if (currentOuterClass) {
 			    SetFlag(templnode, "nested");
-			    /* for now, nested %template is allowed only in the same scope as the template declaration */
-			    if (currentOuterClass == Getattr(nn, "nested:outer"))
-			      Setattr(templnode, "nested:outer", currentOuterClass);
+			    Setattr(templnode, "nested:outer", currentOuterClass);
 			  }
                           add_symbols_copy(templnode);
 
