@@ -146,6 +146,10 @@ static Node *copy_node(Node *n) {
       Delete(pl);
       continue;
     }
+    if (strcmp(ckey,"nested:outer") == 0) { /* don't copy outer classes links, they will be updated later */
+      Setattr(nn, key, k.item);
+      continue;
+    }
     /* Looks okay.  Just copy the data using Copy */
     ci = Copy(k.item);
     Setattr(nn, key, ci);
@@ -2662,7 +2666,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
 
                           templnode = copy_node(nn);
-			  update_nested_classes(templnode);
+			  update_nested_classes(templnode); /* update classes nested withing template */
                           /* We need to set the node name based on name used to instantiate */
                           Setattr(templnode,"name",tname);
 			  Delete(tname);
@@ -2698,8 +2702,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Delete(temparms);
 			  if (currentOuterClass) {
 			    SetFlag(templnode, "nested");
+			    /* for now, nested %template is allowed only in the same scope as the template declaration */
+			    if (currentOuterClass == Getattr(nn, "nested:outer"))
+			      Setattr(templnode, "nested:outer", currentOuterClass);
 			  }
-
                           add_symbols_copy(templnode);
 
                           if (Strcmp(nodeType(templnode),"class") == 0) {
