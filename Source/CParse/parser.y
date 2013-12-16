@@ -2675,7 +2675,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           } else {
                             Setattr(templnode,"sym:typename","1");
                           }
-                          if ($3) {
+			  /* for now, nested %template is allowed only in the same scope as the template declaration */
+                          if ($3 && !(currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
@@ -2694,6 +2695,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:name",nname);
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+			    if ($3) {
+			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
+			    }
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
@@ -2704,9 +2708,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			    SetFlag(templnode, "nested");
 			    Setattr(templnode, "nested:outer", currentOuterClass);
 			  }
-			  else
-			    Delattr(templnode, "nested:outer");
-
                           add_symbols_copy(templnode);
 
                           if (Strcmp(nodeType(templnode),"class") == 0) {
