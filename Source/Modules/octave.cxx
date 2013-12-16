@@ -87,7 +87,6 @@ public:
      director_multiple_inheritance = 1;
      director_language = 1;
      docs = NewHash();
-     CPlusPlusOut = 1;
    }
 
   virtual void main(int argc, char *argv[]) {
