@@ -183,11 +183,11 @@ private:
 	  } else {
 	    Swig_arg_error();
 	  }
-	} else if (strcmp(argv[i], "-longsize") == 0) {
+	} else if (strcmp(argv[i], "-golongsize") == 0) {
 	  if (argv[i + 1]) {
 	    long_type_size = atoi(argv[i + 1]);
 	    if (long_type_size != 32 && long_type_size != 64) {
-	      Printf(stderr, "-longsize not 32 or 64\n");
+	      Printf(stderr, "-golongsize not 32 or 64\n");
 	      Swig_arg_error();
 	    }
 	    Swig_mark_arg(i);
@@ -4967,7 +4967,7 @@ Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
-     -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
+     -golongsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
      -package <name>     - Set name of the Go package to <name>\n\
      -use-shlib          - Force use of a shared library\n\
