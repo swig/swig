@@ -171,6 +171,10 @@ struct Outer {
 
   InnerSameName* makeInnerSameName() { return 0; }
 };
+#if defined(SWIGCSHARP) || defined (SWIGJAVA)
+// place a class with the same name as Outer::InnerClass1 in global scope, to test language symbol table
+class InnerClass1 {}
+#endif
 %}
 
 // Ignore nested struct instance
@@ -188,5 +192,4 @@ struct Outer2 {
     int xx;
   } IgnoreMeInstance;
 };
-
 
