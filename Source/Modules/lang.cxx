@@ -2486,7 +2486,9 @@ int Language::classDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classHandler(Node *n) {
-
+  int oldExtend = Extend;
+  if (Getattr(n, "template"))
+    Extend = 0;
   bool hasDirector = Swig_directorclass(n) ? true : false;
 
   /* Emit all of the class members */
@@ -2552,6 +2554,7 @@ int Language::classHandler(Node *n) {
     }
   }
 
+  Extend = oldExtend;
   return SWIG_OK;
 }
 

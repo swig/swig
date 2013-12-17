@@ -167,13 +167,15 @@ struct Outer {
   ///////////////////////////////////////////
   typedef struct InnerSameName {
     Integer x;
+		struct InnerSameName2 {};
   } InnerSameName;
 
   InnerSameName* makeInnerSameName() { return 0; }
 };
 #if defined(SWIGCSHARP) || defined (SWIGJAVA)
-// place a class with the same name as Outer::InnerClass1 in global scope, to test language symbol table
-class InnerClass1 {};
+// place a class with the same name as in Outer in global scope, to test language symbol table
+class InnerSameName {};
+class InnerSameName2 {};
 #endif
 %}
 

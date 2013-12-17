@@ -1316,11 +1316,12 @@ static void default_arguments(Node *n) {
  * Used by the parser to mark subtypes with extra information.
  * ----------------------------------------------------------------------------- */
 
-static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
-  while (n) {
+static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value, const_String_or_char_ptr attr_to_skip) {
+  for (; n; n = nextSibling(n)) {
+    if (attr_to_skip && Getattr(n, attr_to_skip))
+      continue;
     Setattr(n, attrname, value);
-    tag_nodes(firstChild(n), attrname, value);
-    n = nextSibling(n);
+    tag_nodes(firstChild(n), attrname, value, attr_to_skip);
   }
 }
 
@@ -1650,7 +1651,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 
 	       /* Mark members as extend */
 
-	       tag_nodes($6,"feature:extend",(char*) "1");
+	       tag_nodes($6,"feature:extend",(char*) "1", "template");
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
 		 appendChild($$,$6);
@@ -4267,7 +4268,7 @@ cpp_members  : cpp_member cpp_members {
 		  }
              } cpp_members RBRACE cpp_members {
 	       $$ = new_node("extend");
-	       tag_nodes($4,"feature:extend",(char*) "1");
+	       tag_nodes($4,"feature:extend",(char*) "1", "template");
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }

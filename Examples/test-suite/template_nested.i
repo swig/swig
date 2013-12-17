@@ -30,6 +30,7 @@ namespace ns {
 %}
 %template(T_NormalTemplateNormalClass) ns::NormalTemplate<ns::NormalClass>;
 %template(T_NormalTemplateInt) ns::NormalTemplate<int>;
+%template(T_NormalTemplateDouble) ns::NormalTemplate<double>;
 
 %inline %{
 namespace ns {
@@ -108,8 +109,10 @@ namespace ns {
     NestedStruct useNestedStruct(const NestedStruct& inner) { return inner; }
   };
 }
-
 %}
+%extend ns::OuterClass {
+  %template(T_OuterClassInner2Double) Inner2<double>;
+}
 
 %template(T_OuterTMethodNormalClass) ns::OuterClass::InnerTMethod<ns::NormalClass>;
 %template(T_TemplateFuncs1Int) ns::TemplateFuncs::templateMethod1<int>;
