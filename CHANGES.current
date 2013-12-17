@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-16: iant
+	    [Go] Update for Go 1.2 release.  Add support for linking
+	    SWIG code directly into executable, rather than using a
+	    shared library.
+
 2013-12-13: iant
 	    [Go] Add SWIG source file name as comments in generated
 	    files.  This can be used by Go documentation tools.
