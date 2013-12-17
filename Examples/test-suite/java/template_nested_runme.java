@@ -30,7 +30,6 @@ public class template_nested_runme {
     inner2.setEmbeddedVar(2);
     OuterClass.T_OuterClassInner2NormalClass inner22 = new OuterClass().useInner2Again(inner2);
 		OuterClass.T_OuterClassInner1Double inner3 = new OuterClass.T_OuterClassInner1Double();
-		OuterClass.T_OuterClassInner2Double	inner4 = new OuterClass.T_OuterClassInner2Double();
   }
 }
 

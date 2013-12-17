@@ -1154,13 +1154,13 @@ String *Swig_string_strip(String *s) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_offset_string(String *s, int number) {
-  char *res;
-  char *p;
-  char *end;
+  char *res, *p, *end, *start;
   /* count a number of lines in s */
   int lines = 1;
   int len = Len(s);
-  char *start = strchr(Char(s), '\n');
+  if (len == 0)
+    return;
+  start = strchr(Char(s), '\n');
   while (start) {
     ++lines;
     start = strchr(start + 1, '\n');
