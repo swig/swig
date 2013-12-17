@@ -70,6 +70,9 @@ namespace ns {
     };
     Inner2<int> useInner2(const Inner2<int>& inner) { return inner; }
     Inner2<NormalClass> useInner2Again(const Inner2<NormalClass>& inner) { return inner; }
+#ifdef SWIG
+    %template(T_OuterClassInner1Double) Inner1<double>;
+#endif
     int iii;
   };
   struct ABC {
