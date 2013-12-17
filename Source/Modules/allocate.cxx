@@ -559,9 +559,11 @@ Allocate():
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node *oldInclass = inclass;
-    AccessMode oldAcessMode = cplus_mode;
-
+    save_value<Node*> oldInclass(inclass);
+    save_value<AccessMode> oldAcessMode(cplus_mode);
+    save_value<int> oldExtendMode(extendmode);
+    if (Getattr(n, "template"))
+      extendmode = 0;
     if (!CPlusPlus) {
       /* Always have default constructors/destructors in C */
       Setattr(n, "allocate:default_constructor", "1");
@@ -729,8 +731,6 @@ Allocate():
 
     /* Only care about default behavior.  Remove temporary values */
     Setattr(n, "allocate:visit", "1");
-    inclass = oldInclass;
-    cplus_mode = oldAcessMode;
     Swig_symbol_setscope(symtab);
     return SWIG_OK;
   }

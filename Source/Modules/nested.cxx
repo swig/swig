@@ -432,6 +432,8 @@ void Swig_nested_process_classes(Node *n) {
 	removeNode(c);
 	if (!checkAttribute(c, "access", "public"))
 	  SetFlag(c, "feature:ignore");
+	else if (Strcmp(nodeType(n),"extend") == 0 && Strcmp(nodeType(parentNode(n)),"class") == 0)
+	  insertNodeAfter(parentNode(n), c);
 	else
 	  insertNodeAfter(n, c);
       }
