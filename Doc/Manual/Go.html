@@ -135,9 +135,17 @@ swig -go -help
 </tr>
 
 <tr>
+<td>-go-pkgpath &lt;pkgpath&gt;</td>
+<td>When generating code for gccgo, set the pkgpath to use.  This
+  corresponds to the <tt>-fgo-pkgpath</tt> option to gccgo.</td>
+</tr>
+
+<tr>
 <td>-go-prefix &lt;prefix&gt;</td>
 <td>When generating code for gccgo, set the prefix to use.  This
-  corresponds to the <tt>-fgo-prefix</tt> option to gccgo.</td>
+  corresponds to the <tt>-fgo-prefix</tt> option to gccgo.
+  If <tt>-go-pkgpath</tt> is used, <tt>-go-prefix</tt> will be
+  ignored.</td>
 </tr>
 
 <tr>

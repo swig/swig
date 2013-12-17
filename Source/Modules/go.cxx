@@ -22,6 +22,10 @@ class GO:public Language {
   bool gccgo_flag;
   // Prefix to use with gccgo.
   String *go_prefix;
+  // -fgo-prefix option.
+  String *prefix_option;
+  // -fgo-pkgpath option.
+  String *pkgpath_option;
   // Whether to use a shared library.
   bool use_shlib;
   // Name of shared library to import.
@@ -88,6 +92,8 @@ public:
      module(NULL),
      gccgo_flag(false),
      go_prefix(NULL),
+     prefix_option(NULL),
+     pkgpath_option(NULL),
      use_shlib(false),
      soname(NULL),
      long_type_size(32),
@@ -149,7 +155,16 @@ private:
 	  gccgo_flag = true;
 	} else if (strcmp(argv[i], "-go-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    go_prefix = NewString(argv[i + 1]);
+	    prefix_option = NewString(argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if (strcmp(argv[i], "-go-pkgpath") == 0) {
+	  if (argv[i + 1]) {
+	    pkgpath_option = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -201,8 +216,8 @@ private:
       }
     }
 
-    if (gccgo_flag && !go_prefix) {
-      go_prefix = NewString("go");
+    if (gccgo_flag && !pkgpath_option && !prefix_option) {
+      prefix_option = NewString("go");
     }
 
     // Add preprocessor symbol to parser.
@@ -283,6 +298,27 @@ private:
     if (!soname && use_shlib) {
       soname = Copy(package);
       Append(soname, ".so");
+    }
+
+    if (gccgo_flag) {
+      String *pref;
+      if (pkgpath_option) {
+	pref = pkgpath_option;
+      } else {
+	pref = prefix_option;
+      }
+      go_prefix = NewString("");
+      for (char *p = Char(pref); *p != '\0'; p++) {
+	if ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || *p == '.' || *p == '$') {
+	  Putc(*p, go_prefix);
+	} else {
+	  Putc('_', go_prefix);
+	}
+      }
+      if (!pkgpath_option) {
+	Append(go_prefix, ".");
+	Append(go_prefix, package);
+      }
     }
 
     // Get filenames.
@@ -374,6 +410,9 @@ private:
     }
 
     Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
+    if (gccgo_flag) {
+      Printf(f_c_runtime, "#define SWIGGO_PREFIX %s\n", go_prefix);
+    }
 
     if (directorsEnabled()) {
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
@@ -404,14 +443,12 @@ private:
 
     Printf(f_go_begin, "\npackage %s\n\n", package);
 
-    Printf(f_go_runtime, "//extern %sSwigCgocall\n", module);
-    Printf(f_go_runtime, "func SwigCgocall()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallDone\n", module);
-    Printf(f_go_runtime, "func SwigCgocallDone()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallBack\n", module);
-    Printf(f_go_runtime, "func SwigCgocallBack()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallBackDone\n", module);
-    Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
+    if (gccgo_flag) {
+      Printf(f_go_runtime, "func SwigCgocall()\n");
+      Printf(f_go_runtime, "func SwigCgocallDone()\n");
+      Printf(f_go_runtime, "func SwigCgocallBack()\n");
+      Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
+    }
 
     // All the C++ wrappers should be extern "C".
 
@@ -1340,7 +1377,7 @@ private:
     // Start the function definition.
 
     String *fnname = NewString("");
-    Printv(fnname, go_prefix, "_", wname, "(", NULL);
+    Printv(fnname, "go_", wname, "(", NULL);
 
     if (parm_count > required_count) {
       Printv(fnname, "intgo _swig_optargc", NULL);
@@ -1369,17 +1406,21 @@ private:
 
     Printv(fnname, ")", NULL);
 
+    String *fndef = NewString("");
     if (SwigType_type(result) == T_VOID) {
-      Printv(f->def, "void ", fnname, NULL);
+      Printv(fndef, "void ", fnname, NULL);
     } else {
       String *ct = gccgoCTypeForGoValue(n, result, fnname);
-      Printv(f->def, ct, NULL);
+      Printv(fndef, ct, NULL);
       Delete(ct);
     }
 
-    Printv(f->def, " {\n", NULL);
+    Printv(f->def, fndef, " __asm__(\"", go_prefix, "_", wname, "\");\n", NULL);
+
+    Printv(f->def, fndef, " {\n", NULL);
 
     Delete(fnname);
+    Delete(fndef);
 
     if (SwigType_type(result) != T_VOID) {
       String *ln = NewString("go_result");
@@ -2811,7 +2852,7 @@ private:
       if (!gccgo_flag) {
 	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*, int);\n", NULL);
       } else {
-	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*) __asm__(\"", go_prefix, ".", package, ".", go_name, "\");\n", NULL);
+	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*) __asm__(\"", go_prefix, ".", go_name, "\");\n", NULL);
       }
     }
 
@@ -3453,7 +3494,7 @@ private:
 
 	Delete(fnname);
 
-	Printv(f_c_directors, " __asm__(\"", go_prefix, ".", package, ".", callback_name, "\");\n", NULL);
+	Printv(f_c_directors, " __asm__(\"", go_prefix, ".", callback_name, "\");\n", NULL);
       }
 
       Delete(go_with_over_name);
@@ -4924,6 +4965,7 @@ extern "C" Language *swig_go(void) {
 const char * const GO::usage = (char *) "\
 Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
+     -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
      -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\

@@ -115,13 +115,6 @@ extern void _cgo_panic(const char *);
    version.  We assume that the version of gcc used to compile this
    file is the same as the version of gccgo.  */
 
-#define SWIGCONCAT2(s1, s2) s1 ## s2
-#define SWIGCONCAT1(s1, s2) SWIGCONCAT2(s1, s2)
-#define SwigCgocall SWIGCONCAT1(SWIGMODULE, SwigCgocall)
-#define SwigCgocallDone SWIGCONCAT1(SWIGMODULE, SwigCgocallDone)
-#define SwigCgocallBack SWIGCONCAT1(SWIGMODULE, SwigCgocallBack)
-#define SwigCgocallBackDone SWIGCONCAT1(SWIGMODULE, SwigCgocallBackDone)
-
 #define SWIG_GCC_VERSION \
   (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC__PATH_LEVEL__)
 
@@ -142,21 +135,35 @@ void SwigDoCgocallBack(void) __asm__("syscall.CgocallBack");
 void SwigDoCgocallBackDone(void) __asm__("syscall.CgocallBackDone");
 #endif
 
+#define SWIGSTRINGIFY2(s) #s
+#define SWIGSTRINGIFY(s) SWIGSTRINGIFY2(s)
+
+void SwigCgocall()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocall");
 void SwigCgocall() {
   SwigDoCgocall();
 }
 
+void SwigCgocallDone()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallDone");
 void SwigCgocallDone() {
   SwigDoCgocallDone();
 }
 
+void SwigCgocallBack()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBack");
 void SwigCgocallBack() {
   SwigDoCgocallBack();
 }
 
+void SwigCgocallBackDone()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBackDone");
 void SwigCgocallBackDone() {
   SwigDoCgocallBackDone();
 }
+
+#undef SWIGSTRINGIFY
+#undef SWIGSTRINGIFY2
 
 #ifdef __cplusplus
 }
