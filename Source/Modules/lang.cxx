@@ -3049,12 +3049,6 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
     // New scope which has not been added by the target language - lazily created.
     symbols = NewHash();
     Setattr(symtabs, scope, symbols);
-
-    // Add the new scope as a symbol in the top level scope.
-    // Alternatively the target language must add it in before attempting to add symbols into the scope.
-    const_String_or_char_ptr top_scope = "";
-    Hash *topscope_symbols = Getattr(symtabs, top_scope);
-    Setattr(topscope_symbols, scope, NewHash());
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
