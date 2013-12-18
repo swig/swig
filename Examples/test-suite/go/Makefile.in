@@ -63,7 +63,7 @@ run_testcase = \
 	  elif $(GO12); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
@@ -76,7 +76,7 @@ run_testcase_cpp = \
 	  elif $(GO12); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
@@ -90,7 +90,7 @@ run_multi_testcase = \
 	  elif $(GO12); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi

@@ -1590,7 +1590,7 @@ go: $(SRCS)
 	fi
 	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
 	  rm -f $(GOPACKAGE); \
 	  if $(GO12); then \
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
@@ -1613,7 +1613,7 @@ go_cpp: $(SRCS)
 	fi
 	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
 	  rm -f $(GOPACKAGE); \
 	  if $(GO12); then \
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
@@ -1633,7 +1633,7 @@ go_run: runme.go
 	elif $(GO12); then \
 	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o runme runme.$(GOOBJEXT); \
 	else \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o runme runme.$(GOOBJEXT); \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
 
@@ -1648,7 +1648,7 @@ go_run_cpp: runme.go
 	elif $(GO12); then \
 	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o runme runme.$(GOOBJEXT); \
 	else \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o runme runme.$(GOOBJEXT); \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
 

@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-18: ianlancetaylor
+	    [Go] Don't require that Go environment variables be set
+	    when running examples or testsuite when using Go 1 or
+	    later.
+
 2013-12-17: ianlancetaylor
 	    [Go] Remove -longsize option (for backward compatibility,
 	    ignore it if seen).
