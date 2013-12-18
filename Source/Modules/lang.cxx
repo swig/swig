@@ -525,15 +525,9 @@ int Language::top(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::extendDirective(Node *n) {
-  int oldam = Extend;
-  AccessMode oldmode = cplus_mode;
-  Extend = CWRAP_EXTEND;
-  cplus_mode = PUBLIC;
-
+  save_value<int> oldam(Extend, CWRAP_EXTEND);
+  save_value<AccessMode> oldmode(cplus_mode, PUBLIC);
   emit_children(n);
-
-  Extend = oldam;
-  cplus_mode = oldmode;
   return SWIG_OK;
 }
 
@@ -2486,7 +2480,9 @@ int Language::classDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classHandler(Node *n) {
-
+  save_value<int> oldExtend(Extend);
+  if (Getattr(n, "template"))
+    Extend = 0;
   bool hasDirector = Swig_directorclass(n) ? true : false;
 
   /* Emit all of the class members */
@@ -2519,7 +2515,7 @@ int Language::classHandler(Node *n) {
     if (dirprot_mode() && extraDirectorProtectedCPPMethodsRequired()) {
       Node *vtable = Getattr(n, "vtable");
       String *symname = Getattr(n, "sym:name");
-      AccessMode old_mode = cplus_mode;
+      save_value<AccessMode> old_mode(cplus_mode);
       cplus_mode = PROTECTED;
       int len = Len(vtable);
       for (int i = 0; i < len; i++) {
@@ -2548,7 +2544,6 @@ int Language::classHandler(Node *n) {
 	}
 	Delete(wrapname);
       }
-      cplus_mode = old_mode;
     }
   }
 

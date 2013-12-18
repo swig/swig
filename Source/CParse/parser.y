@@ -1311,16 +1311,18 @@ static void default_arguments(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * tag_nodes()
+ * mark_nodes_as_extend()
  *
- * Used by the parser to mark subtypes with extra information.
+ * Used by the %extend to mark subtypes with "feature:extend".
+ * template instances declared within %extend are skipped
  * ----------------------------------------------------------------------------- */
 
-static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
-  while (n) {
-    Setattr(n, attrname, value);
-    tag_nodes(firstChild(n), attrname, value);
-    n = nextSibling(n);
+static void mark_nodes_as_extend(Node *n) {
+  for (; n; n = nextSibling(n)) {
+    if (Getattr(n, "template") && Strcmp(nodeType(n), "class") == 0)
+      continue;
+    Setattr(n, "feature:extend", "1");
+    mark_nodes_as_extend(firstChild(n));
   }
 }
 
@@ -1648,9 +1650,7 @@ extend_directive : EXTEND options idcolon LBRACE {
                clsname = make_class_name($3);
 	       Setattr($$,"name",clsname);
 
-	       /* Mark members as extend */
-
-	       tag_nodes($6,"feature:extend",(char*) "1");
+	       mark_nodes_as_extend($6);
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
 		 appendChild($$,$6);
@@ -4267,7 +4267,7 @@ cpp_members  : cpp_member cpp_members {
 		  }
              } cpp_members RBRACE cpp_members {
 	       $$ = new_node("extend");
-	       tag_nodes($4,"feature:extend",(char*) "1");
+	       mark_nodes_as_extend($4);
 	       appendChild($$,$4);
 	       set_nextSibling($$,$6);
 	     }

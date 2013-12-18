@@ -417,7 +417,7 @@ class TypePass:private Dispatcher {
     String *unnamed = Getattr(n, "unnamed");
     String *storage = Getattr(n, "storage");
     String *kind = Getattr(n, "kind");
-    Node *oldinclass = inclass;
+    save_value<Node*> oldinclass(inclass);
     List *olist = normalize;
     Symtab *symtab;
     String *nname = 0;
@@ -536,8 +536,6 @@ class TypePass:private Dispatcher {
     }
 
     normalize = olist;
-
-    inclass = oldinclass;
 
     /* If in a namespace, patch the class name */
     if (nname) {

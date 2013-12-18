@@ -1969,8 +1969,7 @@ public:
       }
 
       if (outerClassesPrefix) {
-	Replaceall(outerClassesPrefix, ".", "::");
-	String *fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
 	if (nspace)

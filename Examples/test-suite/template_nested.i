@@ -30,6 +30,7 @@ namespace ns {
 %}
 %template(T_NormalTemplateNormalClass) ns::NormalTemplate<ns::NormalClass>;
 %template(T_NormalTemplateInt) ns::NormalTemplate<int>;
+%template(T_NormalTemplateDouble) ns::NormalTemplate<double>;
 
 %inline %{
 namespace ns {
@@ -70,6 +71,9 @@ namespace ns {
     };
     Inner2<int> useInner2(const Inner2<int>& inner) { return inner; }
     Inner2<NormalClass> useInner2Again(const Inner2<NormalClass>& inner) { return inner; }
+#ifdef SWIG
+    %template(T_OuterClassInner1Double) Inner1<double>;
+#endif
     int iii;
   };
   struct ABC {
@@ -105,8 +109,10 @@ namespace ns {
     NestedStruct useNestedStruct(const NestedStruct& inner) { return inner; }
   };
 }
-
 %}
+%extend ns::OuterClass {
+  %template(T_OuterClassInner2Double) Inner2<double>;
+}
 
 %template(T_OuterTMethodNormalClass) ns::OuterClass::InnerTMethod<ns::NormalClass>;
 %template(T_TemplateFuncs1Int) ns::TemplateFuncs::templateMethod1<int>;
