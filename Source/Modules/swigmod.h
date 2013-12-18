@@ -427,7 +427,8 @@ template <class T> class save_value {
   T _value;
   T& _value_ptr;
 public:
-  save_value(T& value, T new_val = T()) : _value(value), _value_ptr(value){}
+  save_value(T& value) : _value(value), _value_ptr(value){}
+  save_value(T& value, T new_val) : _value(value), _value_ptr(value){ value = new_val; }
   ~save_value(){ _value_ptr = _value; }
 };
 
