@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-23: vadz
+            [Octave, Perl, Python, R, Ruby, Tcl] Change the length of strings created from fixed-size char
+            buffers in C code.
+
+            This is a potential backwards compatibility break: a "char buf[5]" containing "ho\0la" was
+            returned as a string of length 5 before, but is returned as a string of length 2 now. Apply
+            "char FIXSIZE[ANY]" typemaps to explicitly choose the old behaviour.
+
 2013-12-23: talby
             [Perl] Add support for directors.
 

@@ -22,6 +22,7 @@
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
+			 SWIG_CharBufLen,
 			 SWIG_AsCharPtr,
 			 SWIG_FromCharPtr,
 			 SWIG_AsCharArray,
@@ -276,12 +277,13 @@
 }
 %typemap(freearg) const Char (&)[ANY] "";
 
-%typemap(out,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(out,fragment=#SWIG_FromCharPtrAndSize,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char[ANY] 
 {
-  size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1[size - 1] == '\0')) --size;
+  size_t size = SWIG_CharBufLen($1, $1_dim0);
+%#else
+  size_t size = $1_dim0;
 %#endif
    %set_output(SWIG_FromCharPtrAndSize($1, size));
 }
@@ -298,23 +300,25 @@
 
 /* varout */
 
-%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(varout,noblock=1,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char [ANY] {
-  size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1[size - 1] == '\0')) --size;
+  size_t size = SWIG_CharBufLen($1, $1_dim0);
+%#else
+  size_t size = $1_dim0;
 %#endif
   %set_varoutput(SWIG_FromCharPtrAndSize($1, size));
 }
 
 /* constant */
 
-%typemap(constcode,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(constcode,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char [ANY]
 {
-  size_t size = $value_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($value[size - 1] == '\0')) --size;
+  size_t size = SWIG_CharBufLen($1, $1_dim0);
+%#else
+  size_t size = $value_dim0;
 %#endif
   %set_constant("$symname", SWIG_FromCharPtrAndSize($value,size));
 }
@@ -323,12 +327,13 @@
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorin */
-%typemap(directorin,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(directorin,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char [ANY] 
 {
-  size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1[size - 1] == '\0')) --size;
+  size_t size = SWIG_CharBufLen($1, $1_dim0);
+%#else
+  size_t size = $1_dim0;
 %#endif
   $input = SWIG_FromCharPtrAndSize($1, size);
 }
@@ -360,12 +365,13 @@
 
 /* throws */
 
-%typemap(throws,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(throws,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char[ANY]
 {
-  size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1[size - 1] == '\0')) --size;
+  size_t size = SWIG_CharBufLen($1, $1_dim0);
+%#else
+  size_t size = $1_dim0;
 %#endif
   %raise(SWIG_FromCharPtrAndSize($1, size), "$type", 0); 
 }
@@ -499,6 +505,7 @@
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
+			 SWIG_CharBufLen,
 			 SWIG_NewCopyCharArray,
 			 SWIG_DeleteCharArray,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
@@ -586,6 +593,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		 SWIG_AsCharPtrAndSize,
 		 SWIG_FromCharPtrAndSize,
 		 SWIG_CharPtrLen,
+		 SWIG_CharBufLen,
 		 SWIG_As##CharName##Ptr,
 		 SWIG_From##CharName##Ptr,
 		 SWIG_As##CharName##Array,
@@ -604,12 +612,14 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
+			 SWIG_CharBufLen,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
 %_typemap2_string(StringCode, CharCode,
 		  Char, CharName,
 		  SWIG_AsCharPtrAndSize,
 		  SWIG_FromCharPtrAndSize,
 		  SWIG_CharPtrLen,
+		  SWIG_CharBufLen,
 		  %new_copy_array,
 		  %delete_array,
 		  FragLimits, CHAR_MIN, CHAR_MAX)
@@ -624,6 +634,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 			       SWIG_AsCharPtrAndSize,
 			       SWIG_FromCharPtrAndSize,
 			       SWIG_CharPtrLen,
+			       SWIG_CharBufLen,
 			       SWIG_NewCopyCharArray,
 			       SWIG_DeleteCharArray,
 			       FragLimits, CHAR_MIN, CHAR_MAX)
@@ -632,6 +643,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		  SWIG_AsCharPtrAndSize,
 		  SWIG_FromCharPtrAndSize,
 		  SWIG_CharPtrLen,
+		  SWIG_CharBufLen,
 		  SWIG_NewCopyCharArray,
 		  SWIG_DeleteCharArray,
 		  FragLimits, CHAR_MIN, CHAR_MAX)
