@@ -185,7 +185,7 @@
   char* const def_pchar = (char *const)"hello";
   const char* const def_pcharc = "hija";
 
-  const namet def_namet = {'h','o',0, 'l','a'};
+  const namet def_namet = {'h','o','l','a', 0};
 
   extern namet gbl_namet;
 

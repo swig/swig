@@ -166,7 +166,7 @@ $t->{var_paramd} = $primitive_types::sct_paramd;
 $t->{var_paramc} = $primitive_types::sct_paramc;
 ok($t->v_check(), 'v_check');
 
-is($primitive_types::def_namet, "ho\0la", "namet");
+is($primitive_types::def_namet, "hola", "namet");
 $t->{var_namet} = $primitive_types::def_namet;
 is($t->{var_namet}, $primitive_types::def_namet, "namet");
 
