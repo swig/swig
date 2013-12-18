@@ -148,13 +148,6 @@ swig -go -help
   ignored.</td>
 </tr>
 
-<tr>
-<td>-long-type-size &lt;s&gt;</td>
-<td>Set the size for the C/C++ type <tt>long</tt>.  This controls
-  whether <tt>long</tt> is converted to the Go type <tt>int32</tt>
-  or <tt>int64</tt>.  The &lt;s&gt; argument should be 32 or 64.</td>
-</tr>
-
 </table>
 
 <H3><a name="Go_outputs"></a>22.2.2 Go Output Files</H3>
@@ -501,12 +494,12 @@ uses a given C/C++ type.
 
 <tr>
 <td>long</td>
-<td>int32 or int64, depending on <tt>-long-type-size</tt></td>
+<td>int64</td>
 </tr>
 
 <tr>
 <td>unsigned long</td>
-<td>uint32 or uint64, depending on <tt>-long-type-size</tt></td>
+<td>uint64</td>
 </tr>
 
 <tr>

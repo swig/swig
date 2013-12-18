@@ -14,15 +14,8 @@
 %typemap(gotype) unsigned short,     const unsigned short &     "uint16"
 %typemap(gotype) int,                const int &                "int"
 %typemap(gotype) unsigned int,       const unsigned int &       "uint"
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(gotype) long,               const long &               "int32"
-%typemap(gotype) unsigned long,      const unsigned long &      "uint32"
-#elif SWIGGO_LONG_TYPE_SIZE == 64
 %typemap(gotype) long,               const long &               "int64"
 %typemap(gotype) unsigned long,      const unsigned long &      "uint64"
-#else
-#error "SWIGGO_LONG_TYPE_SIZE not 32 or 64"
-#endif
 %typemap(gotype) long long,          const long long &          "int64"
 %typemap(gotype) unsigned long long, const unsigned long long & "uint64"
 %typemap(gotype) float,              const float &              "float32"
@@ -163,11 +156,7 @@
 
 /* The size_t type.  */
 
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(gotype) size_t, const size_t & %{int%}
-#else
 %typemap(gotype) size_t, const size_t & %{int64%}
-#endif
 
 %typemap(in) size_t
 %{ $1 = (size_t)$input; %}
@@ -486,32 +475,16 @@
     const unsigned int &
     ""
 
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typecheck(SWIG_TYPECHECK_INT32) /* Go int32 */
-    long,
-    const long &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT32) /* Go uint32 */
-    unsigned long,
-    const unsigned long &
-    ""
-#endif
-
 %typecheck(SWIG_TYPECHECK_INT64) /* Go int64 */
-#if SWIGGO_LONG_TYPE_SIZE == 64
     long, 
     const long &, 
-#endif
     long long,
     const long long &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Go uint64 */
-#if SWIGGO_LONG_TYPE_SIZE == 64
     unsigned long, 
     const unsigned long &, 
-#endif
     unsigned long long,
     const unsigned long long &
     ""

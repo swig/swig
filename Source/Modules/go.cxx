@@ -30,8 +30,6 @@ class GO:public Language {
   bool use_shlib;
   // Name of shared library to import.
   String *soname;
-  // Size in bits of the C type "long".
-  int long_type_size;
   // Size in bits of the Go type "int".  0 if not specified.
   int intgo_type_size;
 
@@ -96,7 +94,6 @@ public:
      pkgpath_option(NULL),
      use_shlib(false),
      soname(NULL),
-     long_type_size(32),
      intgo_type_size(0),
      f_c_begin(NULL),
      f_go_begin(NULL),
@@ -184,12 +181,8 @@ private:
 	    Swig_arg_error();
 	  }
 	} else if (strcmp(argv[i], "-longsize") == 0) {
+	  // Ignore for backward compatibility.
 	  if (argv[i + 1]) {
-	    long_type_size = atoi(argv[i + 1]);
-	    if (long_type_size != 32 && long_type_size != 64) {
-	      Printf(stderr, "-longsize not 32 or 64\n");
-	      Swig_arg_error();
-	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    ++i;
@@ -225,12 +218,6 @@ private:
 
     if (gccgo_flag) {
       Preprocessor_define("SWIGGO_GCCGO 1", 0);
-    }
-
-    if (long_type_size == 32) {
-      Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 32", 0);
-    } else {
-      Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 64", 0);
     }
 
     // This test may be removed in the future, when we can assume that
@@ -4967,7 +4954,6 @@ Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
-     -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
      -package <name>     - Set name of the Go package to <name>\n\
      -use-shlib          - Force use of a shared library\n\

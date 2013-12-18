@@ -5,15 +5,19 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
-2013-12-17: iant
+2013-12-17: ianlancetaylor
+	    [Go] Remove -longsize option (for backward compatibility,
+	    ignore it if seen).
+
+2013-12-17: ianlancetaylor
 	    [Go] Add -go-pkgpath option.
 
-2013-12-16: iant
+2013-12-16: ianlancetaylor
 	    [Go] Update for Go 1.2 release.  Add support for linking
 	    SWIG code directly into executable, rather than using a
 	    shared library.
 
-2013-12-13: iant
+2013-12-13: ianlancetaylor
 	    [Go] Add SWIG source file name as comments in generated
 	    files.  This can be used by Go documentation tools.
 
