@@ -286,7 +286,6 @@ cpp_inherit.i:54: Warning 401: 'Base< double >' must be defined before it is use
 :::::::::::::::::::::::::::::::: cpp_macro_locator.i :::::::::::::::::::::::::::::::::::
 cpp_macro_locator.i:66: Warning 204: CPP #warning, "inline warning message one".
 cpp_macro_locator.i:96: Warning 204: CPP #warning, "an inline warning message 2".
-cpp_macro_locator.i:50: Warning 325: Nested struct not currently supported (Inner ignored)
 cpp_macro_locator.i:53: Warning 509: Overloaded method overload1(int const *) effectively ignored,
 cpp_macro_locator.i:52: Warning 509: as it is shadowed by overload1(int *).
 cpp_macro_locator.i:61: Warning 509: Overloaded method overload2(int const *) effectively ignored,
@@ -322,9 +321,8 @@ cpp_namespace_aliasnot.i:4: Error: 'blah' is not a namespace
 :::::::::::::::::::::::::::::::: cpp_namespace_aliasundef.i :::::::::::::::::::::::::::::::::::
 cpp_namespace_aliasundef.i:3: Error: Unknown namespace 'blah'
 
-:::::::::::::::::::::::::::::::: cpp_nested.i :::::::::::::::::::::::::::::::::::
-cpp_nested.i:6: Warning 325: Nested class not currently supported (Bar ignored)
-cpp_nested.i:12: Warning 325: Nested class not currently supported (Grok ignored)
+:::::::::::::::::::::::::::::::: cpp_nested_template.i :::::::::::::::::::::::::::::::::::
+cpp_nested_template.i:9: Warning 324: Named nested template instantiations not supported. Processing as if no name was given to %template().
 
 :::::::::::::::::::::::::::::::: cpp_no_access.i :::::::::::::::::::::::::::::::::::
 cpp_no_access.i:3: Warning 319: No access specifier given for base class 'foo' (ignored).

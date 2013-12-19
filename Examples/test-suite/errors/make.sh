@@ -76,7 +76,7 @@ cpp_missing_rtemplate
 cpp_namespace_alias
 cpp_namespace_aliasnot
 cpp_namespace_aliasundef
-cpp_nested
+cpp_nested_template
 cpp_no_access
 cpp_no_return_type
 cpp_nobase
