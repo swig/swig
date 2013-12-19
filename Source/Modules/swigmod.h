@@ -426,10 +426,13 @@ void Swig_nested_name_unnamed_c_structs(Node *n);
 template <class T> class save_value {
   T _value;
   T& _value_ptr;
+  save_value(const save_value&);
+  save_value& operator=(const save_value&);
+
 public:
-  save_value(T& value) : _value(value), _value_ptr(value){}
-  save_value(T& value, T new_val) : _value(value), _value_ptr(value){ value = new_val; }
-  ~save_value(){ _value_ptr = _value; }
+  save_value(T& value) : _value(value), _value_ptr(value) {}
+  save_value(T& value, T new_val) : _value(value), _value_ptr(value) { value = new_val; }
+  ~save_value() { _value_ptr = _value; }
 };
 
 #endif
