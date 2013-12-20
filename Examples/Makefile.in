@@ -1252,7 +1252,7 @@ csharp_version:
 # -----------------------------------------------------------------
 
 csharp_clean:
-	rm -f *_wrap* *~ .~* runme runme.exe *.exe.mdb gc.log `find . -name \*.cs | grep -v runme.cs`
+	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe *.exe.mdb gc.log `find . -name \*.cs | grep -v $(RUNME).cs`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
@@ -1643,11 +1643,11 @@ go_cpp: $(SRCS)
 	fi
 
 # -----------------------------------------------------------------
-# Running a Go example (C)
+# Running Go example
 # -----------------------------------------------------------------
 
 go_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1661,7 +1661,7 @@ go_version:
 # -----------------------------------------------------------------
 
 go_clean:
-	rm -f *_wrap* *_gc* .~* runme $(GOSRCS)
+	rm -f *_wrap* *_gc* .~* $(RUNME) $(GOSRCS)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
 
@@ -1732,6 +1732,6 @@ d_version:
 # -----------------------------------------------------------------
 
 d_clean:
-	rm -f *_wrap* *~ .~* runme runme.exe `find . -name \*.d | grep -v runme.d`
+	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
