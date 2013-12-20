@@ -1598,6 +1598,16 @@ go: $(SRCS)
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	  fi; \
 	fi
+	if test -f $(RUNME).go; then \
+	  $(GO) $(GOCOMPILEARG) $(RUNME).go; \
+	  if $(GOGCC) ; then \
+	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
+	  elif $(GO12); then \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  else \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  fi; \
+	fi
 
 # ----------------------------------------------------------------
 # Build a Go module (C++)
@@ -1621,35 +1631,22 @@ go_cpp: $(SRCS)
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	  fi; \
 	fi
+	if test -f $(RUNME).go; then \
+	  $(GO) $(GOCOMPILEARG) $(RUNME).go; \
+	  if $(GOGCC) ; then \
+	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
+	  elif $(GO12); then \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  else \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  fi; \
+	fi
 
 # -----------------------------------------------------------------
 # Running a Go example (C)
 # -----------------------------------------------------------------
 
-go_run: runme.go
-	$(GO) $(GOCOMPILEARG) runme.go
-	if $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
-	elif $(GO12); then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o runme runme.$(GOOBJEXT); \
-	else \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o runme runme.$(GOOBJEXT); \
-	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Running a Go example (C++)
-# -----------------------------------------------------------------
-
-go_run_cpp: runme.go
-	$(GO) $(GOCOMPILEARG) runme.go
-	if $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
-	elif $(GO12); then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o runme runme.$(GOOBJEXT); \
-	else \
-	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o runme runme.$(GOOBJEXT); \
-	fi
+go_run:
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
 
 # -----------------------------------------------------------------

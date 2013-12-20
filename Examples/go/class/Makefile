@@ -6,7 +6,7 @@ INTERFACE  = example.i
 LIBS       = -lm
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run_cpp
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
