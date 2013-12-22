@@ -1,5 +1,11 @@
 %module li_std_auto_ptr
 
+%{
+#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations" // auto_ptr deprecation
+#endif
+%}
+
 #if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON)
 
 %include "std_auto_ptr.i"
