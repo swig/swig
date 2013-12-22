@@ -5,6 +5,27 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.12 (9 Feb 2014)
 ===========================
 
+2013-12-22: wsfulton
+            C++11 support for new versions of erase and insert in the STL containers.
+
+            The erase and insert methods in the containers use const_iterator instead
+            of iterator in C++11.  There are times when the methods wrapped must match
+            the parameters exactly. Specifically when full type information for
+            template types is missing or SWIG fails to look up the type correctly,
+            for example:
+
+              %include <std_vector.i>
+              typedef float Real;
+              %template(RealVector) std::vector<Real>;
+
+            SWIG does not find std::vector<Real>::iterator because %template using
+            typedefs does not always work and so SWIG doesn't know if the type is
+            copyable and so uses SwigValueWrapper<iterator> which does
+            not support conversion to another type (const_iterator). This resulted
+            in compilation errors when using the C++11 version of the containers.
+
+            Closes #73
+
 2013-10-17: wsfulton
             [R] Fix SF #1340 - Visual Studio compile error in C++ wrappers due to #include <exception>
             within extern "C" block.
