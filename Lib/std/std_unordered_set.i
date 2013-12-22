@@ -29,8 +29,11 @@
   iterator begin();
   iterator end();
 
-  void erase(iterator pos);
-  void erase(iterator first, iterator last);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  void erase(iterator pos) { $self->erase(pos); }
+  void erase(iterator first, iterator last) { $self->erase(first, last); }
+}
 
   iterator find(const key_type& x);
   std::pair<iterator,iterator> equal_range(const key_type& x);

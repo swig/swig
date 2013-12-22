@@ -29,8 +29,11 @@
   reverse_iterator rbegin();
   reverse_iterator rend();
 
-  void erase(iterator pos);
-  void erase(iterator first, iterator last);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  void erase(iterator pos) { $self->erase(pos); }
+  void erase(iterator first, iterator last) { $self->erase(first, last); }
+}
 
   iterator find(const key_type& x);
   iterator lower_bound(const key_type& x);
