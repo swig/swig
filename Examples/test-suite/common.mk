@@ -491,6 +491,7 @@ CPP11_TEST_CASES = \
 	cpp11_delegating_constructors \
 	cpp11_explicit_conversion_operators \
 	cpp11_function_objects \
+	cpp11_inheriting_constructors \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
@@ -502,7 +503,7 @@ CPP11_TEST_CASES = \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
-	cpp11_strongly_typed_enumerations \
+	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
 	cpp11_template_typedefs \
@@ -511,10 +512,9 @@ CPP11_TEST_CASES = \
 	cpp11_userdefined_literals \
 	cpp11_variadic_templates
 
-#	cpp11_inheriting_constructors \ # not supported by gcc-4.7
 #	cpp11_hash_tables \           # not fully implemented yet
 #	cpp11_result_of \             # SWIG does not support
-#	cpp11_thread_local \          # needs gcc-4.8
+#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = 
