@@ -537,7 +537,8 @@ SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    if ((csize == size + 1) && cptr && !(cptr[csize-1])) --csize;
+    /* special case of single char conversion when we don't need space for NUL */
+    if (size == 1 && csize == 2 && cptr && !cptr[1]) --csize;
     if (csize <= size) {
       if (val) {
 	if (csize) memcpy(val, cptr, csize*sizeof(Char));

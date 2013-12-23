@@ -10,8 +10,11 @@ Version 3.0.0 (in progress)
             buffers in C code.
 
             This is a potential backwards compatibility break: a "char buf[5]" containing "ho\0la" was
-            returned as a string of length 5 before, but is returned as a string of length 2 now. Apply
-            "char FIXSIZE[ANY]" typemaps to explicitly choose the old behaviour.
+            returned as a string of length 5 before, but is returned as a string of length 2 now. Also,
+            it was possible to assign a (non-NUL-terminated) string "hello" to such a buffer before but
+            now this fails and only "helo" can fit.
+
+            Apply "char FIXSIZE[ANY]" typemaps to explicitly choose the old behaviour.
 
 2013-12-22: wsfulton
             C++11 support for new versions of erase and insert in the STL containers.

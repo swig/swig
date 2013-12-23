@@ -170,9 +170,9 @@ is($primitive_types::def_namet, "hola", "namet");
 $t->{var_namet} = $primitive_types::def_namet;
 is($t->{var_namet}, $primitive_types::def_namet, "namet");
 
-$t->{var_namet} = 'holac';
+$t->{var_namet} = 'hola';
 
-is($t->{var_namet}, 'holac', "namet");
+is($t->{var_namet}, 'hola', "namet");
 
 $t->{var_namet} = 'hol';
 
