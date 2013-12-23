@@ -57,4 +57,3 @@ script:
 branches:
   only:
     - master
-    - perl5-directors-minimal

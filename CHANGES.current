@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2013-12-23: talby
+            [Perl] Add support for directors.
+
 2013-12-22: wsfulton
             C++11 support for new versions of erase and insert in the STL containers.
 

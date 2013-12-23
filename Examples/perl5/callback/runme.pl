@@ -29,7 +29,7 @@ $caller->setCallback($callback);
 $caller->call();
 $caller->delCallback();
 
-print
+print "\n";
 print "Adding and calling a Perl callback\n";
 print "----------------------------------\n";
 
