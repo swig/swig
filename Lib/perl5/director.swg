@@ -2,7 +2,7 @@
  * director.swg
  *
  * This file contains support for director classes that proxy
- * method calls from C++ to Python extensions.
+ * method calls from C++ to Perl extensions.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIG_DIRECTOR_PERL_HEADER_
@@ -67,37 +67,30 @@ extern "C" {
 namespace Swig {
 
   /* memory handler */
-  struct GCItem
-  {
+  struct GCItem {
     virtual ~GCItem() {}
 
-    virtual int get_own() const
-    {
+    virtual int get_own() const {
       return 0;
     }
   };
 
-  struct GCItem_var
-  {
-    GCItem_var(GCItem *item = 0) : _item(item)
-    {
+  struct GCItem_var {
+    GCItem_var(GCItem *item = 0) : _item(item) {
     }
 
-    GCItem_var& operator=(GCItem *item)
-    {
+    GCItem_var& operator=(GCItem *item) {
       GCItem *tmp = _item;
       _item = item;
       delete tmp;
       return *this;
     }
 
-    ~GCItem_var()
-    {
+    ~GCItem_var() {
       delete _item;
     }
 
-    GCItem * operator->() const
-    {
+    GCItem *operator->() const {
       return _item;
     }
 
@@ -105,18 +98,14 @@ namespace Swig {
     GCItem *_item;
   };
 
-  struct GCItem_Object : GCItem
-  {
-    GCItem_Object(int own) : _own(own)
-    {
+  struct GCItem_Object : GCItem {
+    GCItem_Object(int own) : _own(own) {
     }
 
-    virtual ~GCItem_Object()
-    {
+    virtual ~GCItem_Object() {
     }
 
-    int get_own() const
-    {
+    int get_own() const {
       return _own;
     }
 
@@ -125,14 +114,11 @@ namespace Swig {
   };
 
   template <typename Type>
-  struct GCItem_T : GCItem
-  {
-    GCItem_T(Type *ptr) : _ptr(ptr)
-    {
+  struct GCItem_T : GCItem {
+    GCItem_T(Type *ptr) : _ptr(ptr) {
     }
 
-    virtual ~GCItem_T()
-    {
+    virtual ~GCItem_T() {
       delete _ptr;
     }
 
@@ -141,14 +127,11 @@ namespace Swig {
   };
 
   template <typename Type>
-  struct GCArray_T : GCItem
-  {
-    GCArray_T(Type *ptr) : _ptr(ptr)
-    {
+  struct GCArray_T : GCItem {
+    GCArray_T(Type *ptr) : _ptr(ptr) {
     }
 
-    virtual ~GCArray_T()
-    {
+    virtual ~GCArray_T() {
       delete[] _ptr;
     }
 
@@ -162,30 +145,29 @@ namespace Swig {
     virtual const char *getMessage() const = 0;
     virtual SV *getNative() const = 0;
   };
+
   /* exceptions emitted by Perl */
   class DirectorMethodException : public Swig::DirectorException {
   protected:
     SV *err;
   public:
-    DirectorMethodException(SV *sv = sv_mortalcopy(ERRSV))
-      : err(sv)
-    {
+    DirectorMethodException(SV *sv = sv_mortalcopy(ERRSV)) : err(sv) {
       SvREFCNT_inc(err);
     }
-    ~DirectorMethodException()
-    {
+
+    ~DirectorMethodException() {
       SvREFCNT_dec(err);
     }
-    const char *getMessage() const
-    {
+
+    const char *getMessage() const {
       return SvPV_nolen(err);
     }
-    SV *getNative() const
-    {
+
+    SV *getNative() const {
       return sv_2mortal(newSVsv(err));
     }
-    static void raise(SV *sv)
-    {
+
+    static void raise(SV *sv) {
       throw DirectorMethodException(sv);
     }
   };
@@ -193,42 +175,38 @@ namespace Swig {
   class DirectorWrapException : public Swig::DirectorException {
   protected:
     std::string msg;
-    DirectorWrapException(const char *str)
-      : msg(str)
-    {
+    DirectorWrapException(const char *str) : msg(str) {
     }
+
   public:
-    virtual const char *getMessage() const
-    {
+    virtual const char *getMessage() const {
       return msg.c_str();
     }
+
     virtual SV *getNative() const {
       return sv_2mortal(newSVpvn(msg.data(), msg.size()));
     }
   };
+
   class DirectorTypeMismatchException : public Swig::DirectorWrapException {
   public:
-    DirectorTypeMismatchException(const char *str)
-      : DirectorWrapException(str)
-    {
+    DirectorTypeMismatchException(const char *str) : DirectorWrapException(str) {
     }
-    static void raise(const char *type, const char *msg)
-    {
+    static void raise(const char *type, const char *msg) {
       std::string err = std::string(type);
       err += ": ";
       err += msg;
       throw DirectorTypeMismatchException(err.c_str());
     }
   };
+
   class DirectorPureVirtualException : public Swig::DirectorWrapException {
   public:
     DirectorPureVirtualException(const char *name)
-      : DirectorWrapException("SWIG director pure virtual method called: ")
-    {
+      : DirectorWrapException("SWIG director pure virtual method called: ") {
       msg += name;
     }
-    static void raise(const char *name)
-    {
+    static void raise(const char *name) {
       throw DirectorPureVirtualException(name);
     }
   };
@@ -251,7 +229,7 @@ namespace Swig {
     }
 
   public:
-    /* wrap a python object, optionally taking ownership */
+    /* wrap a Perl object, optionally taking ownership */
     Director(SV *pkg) : swig_disown_flag(false) {
       STRLEN len;
       char *str = SvPV(pkg, len);
@@ -260,14 +238,12 @@ namespace Swig {
       swig_incref();
     }
 
-
     /* discard our reference at destruction */
     virtual ~Director() {
       swig_decref();
     }
 
-
-    /* return a pointer to the wrapped python object */
+    /* return a pointer to the wrapped Perl object */
     SV *swig_get_self() const {
       return swig_self;
     }
@@ -276,8 +252,7 @@ namespace Swig {
       return swig_class.c_str();
     }
 
-    /* acquire ownership of the wrapped python object (the sense of "disown"
-     * is from python) */
+    /* acquire ownership of the wrapped Perl object (the sense of "disown" is from perl) */
     void swig_disown() const {
       if (!swig_disown_flag) {
         swig_disown_flag=true;
@@ -285,7 +260,7 @@ namespace Swig {
       }
     }
 
-    /* increase the reference count of the wrapped python object */
+    /* increase the reference count of the wrapped Perl object */
     void swig_incref() const {
       if (swig_disown_flag) {
         SvREFCNT_inc(swig_self);
@@ -307,30 +282,26 @@ namespace Swig {
 
   public:
     template <typename Type>
-    void swig_acquire_ownership_array(Type *vptr)  const
-    {
+    void swig_acquire_ownership_array(Type *vptr) const {
       if (vptr) {
         swig_owner[vptr] = new GCArray_T<Type>(vptr);
       }
     }
 
     template <typename Type>
-    void swig_acquire_ownership(Type *vptr)  const
-    {
+    void swig_acquire_ownership(Type *vptr) const {
       if (vptr) {
         swig_owner[vptr] = new GCItem_T<Type>(vptr);
       }
     }
 
-    void swig_acquire_ownership_obj(void *vptr, int own) const
-    {
+    void swig_acquire_ownership_obj(void *vptr, int own) const {
       if (vptr && own) {
         swig_owner[vptr] = new GCItem_Object(own);
       }
     }
 
-    int swig_release_ownership(void *vptr) const
-    {
+    int swig_release_ownership(void *vptr) const {
       int own = 0;
       if (vptr) {
         swig_ownership_map::iterator iter = swig_owner.find(vptr);
@@ -341,7 +312,6 @@ namespace Swig {
       }
       return own;
     }
-
   };
 
 }

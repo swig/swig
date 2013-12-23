@@ -58,7 +58,7 @@
   could stop working when using this option.
 */
 #ifdef SWIG_DIRECTOR_NORTTI
-/* 
+/*
    When we don't use the native C++ RTTI, we implement a minimal one
    only for Directors.
 */
@@ -99,94 +99,77 @@ extern "C" {
   struct swig_type_info;
 }
 
-namespace Swig {  
+namespace Swig {
 
   /* memory handler */
-  struct GCItem 
-  {
+  struct GCItem {
     virtual ~GCItem() {}
 
-    virtual int get_own() const
-    {
+    virtual int get_own() const {
       return 0;
     }
   };
 
-  struct GCItem_var
-  {
-    GCItem_var(GCItem *item = 0) : _item(item)
-    {
+  struct GCItem_var {
+    GCItem_var(GCItem *item = 0) : _item(item) {
     }
 
-    GCItem_var& operator=(GCItem *item)
-    {
+    GCItem_var& operator=(GCItem *item) {
       GCItem *tmp = _item;
       _item = item;
       delete tmp;
       return *this;
     }
 
-    ~GCItem_var() 
-    {
+    ~GCItem_var() {
       delete _item;
     }
-    
-    GCItem * operator->() const
-    {
+
+    GCItem * operator->() const {
       return _item;
     }
-    
+
   private:
     GCItem *_item;
   };
-  
-  struct GCItem_Object : GCItem
-  {
-    GCItem_Object(int own) : _own(own)
-    {
-    }
-    
-    virtual ~GCItem_Object() 
-    {
+
+  struct GCItem_Object : GCItem {
+    GCItem_Object(int own) : _own(own) {
     }
 
-    int get_own() const
-    {
+    virtual ~GCItem_Object() {
+    }
+
+    int get_own() const {
       return _own;
     }
-    
+
   private:
     int _own;
   };
 
   template <typename Type>
-  struct GCItem_T : GCItem
-  {
-    GCItem_T(Type *ptr) : _ptr(ptr)
-    {
+  struct GCItem_T : GCItem {
+    GCItem_T(Type *ptr) : _ptr(ptr) {
     }
-    
-    virtual ~GCItem_T() 
-    {
+
+    virtual ~GCItem_T() {
       delete _ptr;
     }
-    
+
   private:
     Type *_ptr;
   };
 
   template <typename Type>
-  struct GCArray_T : GCItem
-  {
-    GCArray_T(Type *ptr) : _ptr(ptr)
-    {
+  struct GCArray_T : GCItem {
+    GCArray_T(Type *ptr) : _ptr(ptr) {
     }
-    
-    virtual ~GCArray_T() 
-    {
+
+    virtual ~GCArray_T() {
       delete[] _ptr;
     }
-    
+
   private:
     Type *_ptr;
   };
@@ -196,10 +179,8 @@ namespace Swig {
   protected:
     std::string swig_msg;
   public:
-    DirectorException(PyObject *error, const char *hdr ="", const char *msg ="") 
-      : swig_msg(hdr)
-    {
-      SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
+    DirectorException(PyObject *error, const char *hdr ="", const char *msg ="") : swig_msg(hdr) {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (strlen(msg)) {
         swig_msg += " ";
         swig_msg += msg;
@@ -207,30 +188,26 @@ namespace Swig {
       if (!PyErr_Occurred()) {
         PyErr_SetString(error, getMessage());
       }
-      SWIG_PYTHON_THREAD_END_BLOCK; 
+      SWIG_PYTHON_THREAD_END_BLOCK;
     }
 
-    const char *getMessage() const
-    { 
-      return swig_msg.c_str(); 
+    const char *getMessage() const {
+      return swig_msg.c_str();
     }
 
-    static void raise(PyObject *error, const char *msg) 
-    {
+    static void raise(PyObject *error, const char *msg) {
       throw DirectorException(error, msg);
     }
 
-    static void raise(const char *msg) 
-    {
+    static void raise(const char *msg) {
       raise(PyExc_RuntimeError, msg);
     }
   };
 
   /* unknown exception handler  */
-  class UnknownExceptionHandler 
-  {
+  class UnknownExceptionHandler {
 #ifdef SWIG_DIRECTOR_UEH
-    static void handler()  {
+    static void handler() {
       try {
         throw;
       } catch (DirectorException& e) {
@@ -241,12 +218,12 @@ namespace Swig {
       } catch (...) {
         std::cerr << "Unknown exception caught." << std::endl;
       }
-      
+
       std::cerr << std::endl
                 << "Python interpreter traceback:" << std::endl;
       PyErr_Print();
       std::cerr << std::endl;
-      
+
       std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
@@ -255,15 +232,13 @@ namespace Swig {
     }
 
   public:
-    
+
     std::unexpected_handler old;
-    UnknownExceptionHandler(std::unexpected_handler nh = handler)
-    {
+    UnknownExceptionHandler(std::unexpected_handler nh = handler) {
       old = std::set_unexpected(nh);
     }
 
-    ~UnknownExceptionHandler()
-    {
+    ~UnknownExceptionHandler() {
       std::set_unexpected(old);
     }
 #endif
@@ -272,23 +247,19 @@ namespace Swig {
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
-    DirectorTypeMismatchException(PyObject *error, const char *msg="") 
-      : Swig::DirectorException(error, "SWIG director type mismatch", msg)
-    {
+    DirectorTypeMismatchException(PyObject *error, const char *msg="")
+      : Swig::DirectorException(error, "SWIG director type mismatch", msg) {
     }
 
-    DirectorTypeMismatchException(const char *msg="") 
-      : Swig::DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg)
-    {
+    DirectorTypeMismatchException(const char *msg="")
+      : Swig::DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg) {
     }
 
-    static void raise(PyObject *error, const char *msg)
-    {
+    static void raise(PyObject *error, const char *msg) {
       throw DirectorTypeMismatchException(error, msg);
     }
 
-    static void raise(const char *msg)
-    {
+    static void raise(const char *msg) {
       throw DirectorTypeMismatchException(msg);
     }
   };
@@ -296,28 +267,23 @@ namespace Swig {
   /* any python exception that occurs during a director method call */
   class DirectorMethodException : public Swig::DirectorException {
   public:
-    DirectorMethodException(const char *msg = "") 
-      : DirectorException(PyExc_RuntimeError, "SWIG director method error.", msg)
-    {
-    }    
+    DirectorMethodException(const char *msg = "")
+      : DirectorException(PyExc_RuntimeError, "SWIG director method error.", msg) {
+    }
 
-    static void raise(const char *msg)
-    {
+    static void raise(const char *msg) {
       throw DirectorMethodException(msg);
     }
   };
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException
-  {
+  class DirectorPureVirtualException : public Swig::DirectorException {
   public:
-    DirectorPureVirtualException(const char *msg = "") 
-      : DirectorException(PyExc_RuntimeError, "SWIG director pure virtual method called", msg)
-    { 
+    DirectorPureVirtualException(const char *msg = "")
+      : DirectorException(PyExc_RuntimeError, "SWIG director pure virtual method called", msg) {
     }
 
-    static void raise(const char *msg) 
-    {
+    static void raise(const char *msg) {
       throw DirectorPureVirtualException(msg);
     }
   };
@@ -332,24 +298,21 @@ namespace Swig {
 
 #ifdef __THREAD__
 # include "pythread.h"
-  class Guard
-  {
-    PyThread_type_lock & mutex_;
-    
+  class Guard {
+    PyThread_type_lock &mutex_;
+
   public:
-    Guard(PyThread_type_lock & mutex) : mutex_(mutex)
-    {
+    Guard(PyThread_type_lock & mutex) : mutex_(mutex) {
       PyThread_acquire_lock(mutex_, WAIT_LOCK);
     }
-    
-    ~Guard()
-    {
+
+    ~Guard() {
       PyThread_release_lock(mutex_);
     }
   };
 # define SWIG_GUARD(mutex) Guard _guard(mutex)
 #else
-# define SWIG_GUARD(mutex) 
+# define SWIG_GUARD(mutex)
 #endif
 
   /* director base class */
@@ -361,11 +324,11 @@ namespace Swig {
     mutable bool swig_disown_flag;
 
     /* decrement the reference count of the wrapped python object */
-    void swig_decref() const { 
+    void swig_decref() const {
       if (swig_disown_flag) {
-        SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
-        Py_DECREF(swig_self); 
-        SWIG_PYTHON_THREAD_END_BLOCK; 
+        SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+        Py_DECREF(swig_self);
+        SWIG_PYTHON_THREAD_END_BLOCK;
       }
     }
 
@@ -375,31 +338,28 @@ namespace Swig {
       swig_incref();
     }
 
-
     /* discard our reference at destruction */
     virtual ~Director() {
-      swig_decref(); 
+      swig_decref();
     }
-
 
     /* return a pointer to the wrapped python object */
-    PyObject *swig_get_self() const { 
-      return swig_self; 
+    PyObject *swig_get_self() const {
+      return swig_self;
     }
 
-    /* acquire ownership of the wrapped python object (the sense of "disown"
-     * is from python) */
-    void swig_disown() const { 
-      if (!swig_disown_flag) { 
+    /* acquire ownership of the wrapped python object (the sense of "disown" is from python) */
+    void swig_disown() const {
+      if (!swig_disown_flag) {
         swig_disown_flag=true;
-        swig_incref(); 
-      } 
+        swig_incref();
+      }
     }
 
     /* increase the reference count of the wrapped python object */
-    void swig_incref() const { 
+    void swig_incref() const {
       if (swig_disown_flag) {
-        Py_INCREF(swig_self); 
+        Py_INCREF(swig_self);
       }
     }
 
@@ -407,7 +367,7 @@ namespace Swig {
     virtual bool swig_get_inner(const char * /* swig_protected_method_name */) const {
       return true;
     }
-    
+
     virtual void swig_set_inner(const char * /* swig_protected_method_name */, bool /* swig_val */) const {
     }
 
@@ -421,33 +381,29 @@ namespace Swig {
 
   public:
     template <typename Type>
-    void swig_acquire_ownership_array(Type *vptr)  const
-    {
+    void swig_acquire_ownership_array(Type *vptr) const {
       if (vptr) {
         SWIG_GUARD(swig_mutex_own);
         swig_owner[vptr] = new GCArray_T<Type>(vptr);
       }
     }
-    
+
     template <typename Type>
-    void swig_acquire_ownership(Type *vptr)  const
-    {
+    void swig_acquire_ownership(Type *vptr) const {
       if (vptr) {
         SWIG_GUARD(swig_mutex_own);
         swig_owner[vptr] = new GCItem_T<Type>(vptr);
       }
     }
 
-    void swig_acquire_ownership_obj(void *vptr, int own) const
-    {
+    void swig_acquire_ownership_obj(void *vptr, int own) const {
       if (vptr && own) {
         SWIG_GUARD(swig_mutex_own);
         swig_owner[vptr] = new GCItem_Object(own);
       }
     }
-    
-    int swig_release_ownership(void *vptr) const
-    {
+
+    int swig_release_ownership(void *vptr) const {
       int own = 0;
       if (vptr) {
         SWIG_GUARD(swig_mutex_own);
@@ -461,8 +417,7 @@ namespace Swig {
     }
 
     template <typename Type>
-    static PyObject *swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
-    {
+    static PyObject *swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args)) {
       SwigPyObject *sobj = (SwigPyObject *)pyobj;
       sobj->own = 0;
       Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<Type *>(sobj->ptr));
@@ -470,7 +425,6 @@ namespace Swig {
         d->swig_disown();
       return PyWeakref_NewProxy(pyobj, NULL);
     }
-
   };
 
 #ifdef __THREAD__

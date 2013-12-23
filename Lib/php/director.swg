@@ -23,38 +23,33 @@
 #endif
 
 namespace Swig {
-  /* memory handler */
-  struct GCItem
-  {
-    virtual ~GCItem() {}
 
-    virtual int get_own() const
-    {
+  /* memory handler */
+  struct GCItem {
+    virtual ~GCItem() {
+    }
+
+    virtual int get_own() const {
       return 0;
     }
   };
 
-  struct GCItem_var
-  {
-    GCItem_var(GCItem *item = 0) : _item(item)
-    {
+  struct GCItem_var {
+    GCItem_var(GCItem *item = 0) : _item(item) {
     }
 
-    GCItem_var& operator=(GCItem *item)
-    {
+    GCItem_var& operator=(GCItem *item) {
       GCItem *tmp = _item;
       _item = item;
       delete tmp;
       return *this;
     }
 
-    ~GCItem_var()
-    {
+    ~GCItem_var() {
       delete _item;
     }
 
-    GCItem * operator->() const
-    {
+    GCItem * operator->() const {
       return _item;
     }
 
@@ -62,18 +57,14 @@ namespace Swig {
     GCItem *_item;
   };
 
-  struct GCItem_Object : GCItem
-  {
-    GCItem_Object(int own) : _own(own)
-    {
+  struct GCItem_Object : GCItem {
+    GCItem_Object(int own) : _own(own) {
     }
 
-    virtual ~GCItem_Object()
-    {
+    virtual ~GCItem_Object() {
     }
 
-    int get_own() const
-    {
+    int get_own() const {
       return _own;
     }
 
@@ -82,14 +73,11 @@ namespace Swig {
   };
 
   template <typename Type>
-  struct GCItem_T : GCItem
-  {
-    GCItem_T(Type *ptr) : _ptr(ptr)
-    {
+  struct GCItem_T : GCItem {
+    GCItem_T(Type *ptr) : _ptr(ptr) {
     }
 
-    virtual ~GCItem_T()
-    {
+    virtual ~GCItem_T() {
       delete _ptr;
     }
 
@@ -100,14 +88,14 @@ namespace Swig {
   class Director {
     protected:
       zval *swig_self;
-      typedef std::map<void*, GCItem_var> swig_ownership_map;
+      typedef std::map<void *, GCItem_var> swig_ownership_map;
       mutable swig_ownership_map swig_owner;
 #ifdef ZTS
       // Store the ZTS context so it's available when C++ calls back to PHP.
       void *** swig_zts_ctx;
-#endif 
+#endif
     public:
-      Director(zval* self TSRMLS_DC) : swig_self(self) {
+      Director(zval *self TSRMLS_DC) : swig_self(self) {
         TSRMLS_SET_CTX(swig_zts_ctx);
       }
 
@@ -116,11 +104,11 @@ namespace Swig {
         zend_class_entry **ce;
         zend_function *mptr;
         int name_len = strlen(lc_fname);
-        
+
         if (zend_lookup_class(cname, strlen(cname), &ce TSRMLS_CC) != SUCCESS) {
           return false;
         }
-        if (zend_hash_find(&(*ce)->function_table, lc_fname, name_len + 1, (void**) &mptr) != SUCCESS) {
+        if (zend_hash_find(&(*ce)->function_table, lc_fname, name_len + 1, (void **) &mptr) != SUCCESS) {
           return false;
         }
         // common.scope points to the declaring class
@@ -128,8 +116,7 @@ namespace Swig {
       }
 
       template <typename Type>
-      void swig_acquire_ownership(Type *vptr) const
-      {
+      void swig_acquire_ownership(Type *vptr) const {
         if (vptr) {
           swig_owner[vptr] = new GCItem_T<Type>(vptr);
         }
@@ -141,9 +128,7 @@ namespace Swig {
   protected:
     std::string swig_msg;
   public:
-    DirectorException(int code, const char *hdr, const char* msg TSRMLS_DC)
-      : swig_msg(hdr)
-    {
+    DirectorException(int code, const char *hdr, const char *msg TSRMLS_DC) : swig_msg(hdr) {
       if (strlen(msg)) {
         swig_msg += " ";
         swig_msg += msg;
@@ -152,23 +137,19 @@ namespace Swig {
       SWIG_ErrorMsg() = swig_msg.c_str();
     }
 
-    static void raise(int code, const char *hdr, const char* msg TSRMLS_DC)
-    {
+    static void raise(int code, const char *hdr, const char *msg TSRMLS_DC) {
       throw DirectorException(code, hdr, msg TSRMLS_CC);
     }
   };
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException
-  {
+  class DirectorPureVirtualException : public Swig::DirectorException {
   public:
-    DirectorPureVirtualException(const char* msg TSRMLS_DC)
-      : DirectorException(E_ERROR, "SWIG director pure virtual method called", msg TSRMLS_CC)
-    {
+    DirectorPureVirtualException(const char *msg TSRMLS_DC)
+      : DirectorException(E_ERROR, "SWIG director pure virtual method called", msg TSRMLS_CC) {
     }
 
-    static void raise(const char *msg TSRMLS_DC)
-    {
+    static void raise(const char *msg TSRMLS_DC) {
       throw DirectorPureVirtualException(msg TSRMLS_CC);
     }
   };
@@ -176,13 +157,11 @@ namespace Swig {
   class DirectorMethodException : public Swig::DirectorException
   {
   public:
-    DirectorMethodException(const char* msg TSRMLS_DC)
-      : DirectorException(E_ERROR, "SWIG director method error", msg TSRMLS_CC)
-    {
+    DirectorMethodException(const char *msg TSRMLS_DC)
+      : DirectorException(E_ERROR, "SWIG director method error", msg TSRMLS_CC) {
     }
 
-    static void raise(const char *msg TSRMLS_DC)
-    {
+    static void raise(const char *msg TSRMLS_DC) {
       throw DirectorMethodException(msg TSRMLS_CC);
     }
   };

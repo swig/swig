@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes so that C# proxy 
+ * This file contains support for director classes so that C# proxy
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
@@ -23,13 +23,16 @@ namespace Swig {
     std::string swig_msg;
 
   public:
-    DirectorException(const char* msg) : swig_msg(msg) {
+    DirectorException(const char *msg) : swig_msg(msg) {
     }
+
     DirectorException(const std::string &msg) : swig_msg(msg) {
     }
+
     const std::string& what() const {
       return swig_msg;
     }
+
     virtual ~DirectorException() {
     }
   };
@@ -37,7 +40,7 @@ namespace Swig {
   /* Pure virtual method exception */
   class DirectorPureVirtualException : public Swig::DirectorException {
   public:
-    DirectorPureVirtualException(const char* msg) : DirectorException(std::string("Attempt to invoke pure virtual method ") + msg) {
+    DirectorPureVirtualException(const char *msg) : DirectorException(std::string("Attempt to invoke pure virtual method ") + msg) {
     }
   };
 }

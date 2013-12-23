@@ -18,18 +18,21 @@ namespace Swig {
     protected:
       std::string swig_msg;
     public:
-      DirectorException(const char* msg="") {
+      DirectorException(const char *msg="") {
       }
-      const char *getMessage() const { 
-        return swig_msg.c_str(); 
+
+      const char *getMessage() const {
+        return swig_msg.c_str();
       }
-      virtual ~DirectorException() {}
+
+      virtual ~DirectorException() {
+      }
   };
 
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
     public:
-      DirectorTypeMismatchException(const char* msg="") {
+      DirectorTypeMismatchException(const char *msg="") {
       }
   };
 
@@ -39,7 +42,7 @@ namespace Swig {
   /* attempt to call a pure virtual method via a director method */
   class DirectorPureVirtualException : public Swig::DirectorException {
     public:
-      DirectorPureVirtualException(const char* msg="") {
+      DirectorPureVirtualException(const char *msg="") {
       }
 
       static void raise(const char *msg) {
@@ -57,7 +60,7 @@ namespace Swig {
 #define MUTEX_INIT(var) CRITICAL_SECTION var
 #else
 #include <pthread.h>
-#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER 
+#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
 #endif
 #endif
 
@@ -78,23 +81,21 @@ namespace Swig {
       /* discard our reference at destruction */
       virtual ~Director() {
         remove_global_root(&swig_self);
-        swig_disown(); 
-        // Disown is safe here because we're just divorcing a reference that
-        // points to us.  
+        swig_disown();
+        // Disown is safe here because we're just divorcing a reference that points to us.
       }
 
       /* return a pointer to the wrapped ocaml object */
-      CAML_VALUE swig_get_self() const { 
+      CAML_VALUE swig_get_self() const {
 	  return swig_self;
       }
 
-      /* acquire ownership of the wrapped ocaml object (the sense of "disown"
-       * is from ocaml) */
-      void swig_disown() const { 
-        if (!swig_disown_flag) { 
+      /* acquire ownership of the wrapped ocaml object (the sense of "disown" is from ocaml) */
+      void swig_disown() const {
+        if (!swig_disown_flag) {
           swig_disown_flag=true;
           callback(*caml_named_value("caml_obj_disown"),swig_self);
-        } 
+        }
       }
   };
 }

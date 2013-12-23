@@ -13,6 +13,7 @@
 #include <string>
 
 namespace Swig {
+
   // Director base class – not used in D directors.
   class Director {
   };
@@ -23,13 +24,16 @@ namespace Swig {
     std::string swig_msg;
 
   public:
-    DirectorException(const char* msg) : swig_msg(msg) {
+    DirectorException(const char *msg) : swig_msg(msg) {
     }
+
     DirectorException(const std::string &msg) : swig_msg(msg) {
     }
+
     const std::string& what() const {
       return swig_msg;
     }
+
     virtual ~DirectorException() {
     }
   };
@@ -38,7 +42,7 @@ namespace Swig {
   // from D code thorugh the director layer.
   class DirectorPureVirtualException : public Swig::DirectorException {
   public:
-    DirectorPureVirtualException(const char* msg) : DirectorException(std::string("Attempted to invoke pure virtual method ") + msg) {
+    DirectorPureVirtualException(const char *msg) : DirectorException(std::string("Attempted to invoke pure virtual method ") + msg) {
     }
   };
 }
