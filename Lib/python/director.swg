@@ -8,8 +8,6 @@
 #ifndef SWIG_DIRECTOR_PYTHON_HEADER_
 #define SWIG_DIRECTOR_PYTHON_HEADER_
 
-#ifdef __cplusplus
-
 #include <string>
 #include <iostream>
 #include <exception>
@@ -431,8 +429,5 @@ namespace Swig {
   PyThread_type_lock Director::swig_mutex_own = PyThread_allocate_lock();
 #endif
 }
-
-#endif /* __cplusplus */
-
 
 #endif

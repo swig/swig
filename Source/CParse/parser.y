@@ -2024,6 +2024,9 @@ module_directive: MODULE options idstring {
 		   Setattr($$,"options",$2);
 		   if (Getattr($2,"directors")) {
 		     Wrapper_director_mode_set(1);
+		     if (!cparse_cplusplus) {
+		       Swig_error(cparse_file, cparse_line, "Directors are not supported for C code and require the -c++ option\n");
+		     }
 		   } 
 		   if (Getattr($2,"dirprot")) {
 		     Wrapper_director_protected_mode_set(1);

@@ -6,8 +6,6 @@
  *
  * ----------------------------------------------------------------------------- */
 
-#ifdef __cplusplus
-
 #include <string>
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
@@ -100,4 +98,3 @@ namespace Swig {
   };
 }
 
-#endif /* __cplusplus */

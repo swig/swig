@@ -8,8 +8,6 @@
 #ifndef SWIG_DIRECTOR_PERL_HEADER_
 #define SWIG_DIRECTOR_PERL_HEADER_
 
-#ifdef __cplusplus
-
 #include <string>
 #include <iostream>
 #include <exception>
@@ -316,7 +314,5 @@ namespace Swig {
 
 }
 
-#endif /* __cplusplus */
-
-
 #endif
+

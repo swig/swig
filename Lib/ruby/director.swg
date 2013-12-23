@@ -15,8 +15,6 @@
 #endif
 #endif
 
-#ifdef __cplusplus
-
 #include <string>
 #include <iostream>
 #include <map>
@@ -340,7 +338,4 @@ namespace Swig {
     }
   };
 }
-
-#endif /* __cplusplus */
-
 

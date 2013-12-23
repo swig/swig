@@ -5,8 +5,6 @@
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
-#ifdef __cplusplus
-
 #if defined(DEBUG_DIRECTOR_OWNED)
 #include <iostream>
 #endif
@@ -47,4 +45,3 @@ namespace Swig {
   };
 }
 
-#endif /* __cplusplus */

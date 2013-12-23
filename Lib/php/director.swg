@@ -8,8 +8,6 @@
 #ifndef SWIG_DIRECTOR_PHP_HEADER_
 #define SWIG_DIRECTOR_PHP_HEADER_
 
-#ifdef __cplusplus
-
 #include <string>
 #include <map>
 
@@ -170,7 +168,5 @@ namespace Swig {
 // DirectorMethodException() is documented to be callable with no parameters
 // so use a macro to insert TSRMLS_CC so any ZTS context gets passed.
 #define DirectorMethodException() DirectorMethodException("" TSRMLS_CC)
-
-#endif /* __cplusplus */
 
 #endif

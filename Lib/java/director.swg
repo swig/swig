@@ -5,8 +5,6 @@
  * method calls from C++ to Java extensions.
  * ----------------------------------------------------------------------------- */
 
-#ifdef __cplusplus
-
 #if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)
 #include <iostream>
 #endif
@@ -384,4 +382,3 @@ namespace Swig {
 
 }
 
-#endif /* __cplusplus */

@@ -5,7 +5,6 @@
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
-
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
 
 namespace Swig {
