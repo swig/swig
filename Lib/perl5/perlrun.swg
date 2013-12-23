@@ -20,6 +20,7 @@
 #define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(SWIG_PERL_OBJECT_CALL obj, pp, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj, pp, type, flags,own) SWIG_Perl_ConvertPtrAndOwn(SWIG_PERL_OBJECT_CALL obj, pp, type, flags, own)
 #define SWIG_NewPointerObj(p, type, flags)              SWIG_Perl_NewPointerObj(SWIG_PERL_OBJECT_CALL p, type, flags)
+#define swig_owntype                                    int
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(SWIG_PERL_OBJECT_CALL obj, p, s, type)
@@ -288,7 +289,11 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
     /* Now see if the types match */
     char *_c = HvNAME(SvSTASH(SvRV(sv)));
     tc = SWIG_TypeProxyCheck(_c,_t);
+#ifdef SWIG_DIRECTORS
+    if (!tc && !sv_derived_from(sv,SWIG_Perl_TypeProxyName(_t))) {
+#else
     if (!tc) {
+#endif
       return SWIG_ERROR;
     }
     {
