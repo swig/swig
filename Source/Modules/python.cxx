@@ -3074,22 +3074,23 @@ public:
 
          But for now, this seems to be the least intrusive way.
        */
-      Printf(f_directors_h, "\n\n");
-      Printf(f_directors_h, "/* Internal Director utilities */\n");
+      Printf(f_directors_h, "\n");
+      Printf(f_directors_h, "/* Internal director utilities */\n");
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "    bool swig_get_inner(const char* swig_protected_method_name) const {\n");
+      Printf(f_directors_h, "    bool swig_get_inner(const char *swig_protected_method_name) const {\n");
       Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(swig_protected_method_name);\n");
       Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
-      Printf(f_directors_h, "    }\n\n");
+      Printf(f_directors_h, "    }\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char* swig_protected_method_name, bool val) const\n");
-      Printf(f_directors_h, "    { swig_inner[swig_protected_method_name] = val;}\n\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool val) const {\n");
+      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = val;\n");
+      Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
       Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");
 
     }
     if (director_method_index) {
-      Printf(f_directors_h, "\n\n");
+      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
       Printf(f_directors_h, "/* VTable implementation */\n");
       Printf(f_directors_h, "    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");

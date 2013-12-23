@@ -33,8 +33,8 @@
 
 namespace Swig {
   class Director;
-  SWIGINTERN std::map<void*,Director*>& get_rtdir_map() {
-    static std::map<void*,Director*> rtdir_map;
+  SWIGINTERN std::map<void *, Director *>& get_rtdir_map() {
+    static std::map<void *, Director *> rtdir_map;
     return rtdir_map;
   }
 
@@ -43,15 +43,15 @@ namespace Swig {
   }
 
   SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
-    std::map<void*,Director*>::const_iterator pos = get_rtdir_map().find(vptr);
+    std::map<void *, Director *>::const_iterator pos = get_rtdir_map().find(vptr);
     Director *rtdir = (pos != get_rtdir_map().end()) ? pos->second : 0;
     return rtdir;
   }
 }
 # endif /* SWIG_DIRECTOR_RTDIR */
 
-# define SWIG_DIRECTOR_CAST(ARG) Swig::get_rtdir(static_cast<void*>(ARG))
-# define SWIG_DIRECTOR_RGTR(ARG1, ARG2) Swig::set_rtdir(static_cast<void*>(ARG1), ARG2)
+# define SWIG_DIRECTOR_CAST(ARG) Swig::get_rtdir(static_cast<void *>(ARG))
+# define SWIG_DIRECTOR_RGTR(ARG1, ARG2) Swig::set_rtdir(static_cast<void *>(ARG1), ARG2)
 
 #else
 
@@ -293,16 +293,16 @@ namespace Swig {
     }
 
     /* methods to implement pseudo protected director members */
-    virtual bool swig_get_inner(const char* /* swig_protected_method_name */) const {
+    virtual bool swig_get_inner(const char * /* swig_protected_method_name */) const {
       return true;
     }
 
-    virtual void swig_set_inner(const char* /* swig_protected_method_name */, bool /* swig_val */) const {
+    virtual void swig_set_inner(const char * /* swig_protected_method_name */, bool /* swig_val */) const {
     }
 
   /* ownership management */
   private:
-    typedef std::map<void*, GCItem_var> swig_ownership_map;
+    typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
 
   public:

@@ -68,8 +68,8 @@
 
 namespace Swig {
   class Director;
-  SWIGINTERN std::map<void*,Director*>& get_rtdir_map() {
-    static std::map<void*,Director*> rtdir_map;
+  SWIGINTERN std::map<void *, Director *>& get_rtdir_map() {
+    static std::map<void *, Director *> rtdir_map;
     return rtdir_map;
   }
 
@@ -78,15 +78,15 @@ namespace Swig {
   }
 
   SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
-    std::map<void*,Director*>::const_iterator pos = get_rtdir_map().find(vptr);
+    std::map<void *, Director *>::const_iterator pos = get_rtdir_map().find(vptr);
     Director *rtdir = (pos != get_rtdir_map().end()) ? pos->second : 0;
     return rtdir;
   }
 }
 # endif /* SWIG_DIRECTOR_RTDIR */
 
-# define SWIG_DIRECTOR_CAST(ARG) Swig::get_rtdir(static_cast<void*>(ARG))
-# define SWIG_DIRECTOR_RGTR(ARG1, ARG2) Swig::set_rtdir(static_cast<void*>(ARG1), ARG2)
+# define SWIG_DIRECTOR_CAST(ARG) Swig::get_rtdir(static_cast<void *>(ARG))
+# define SWIG_DIRECTOR_RGTR(ARG1, ARG2) Swig::set_rtdir(static_cast<void *>(ARG1), ARG2)
 
 #else
 
@@ -196,7 +196,7 @@ namespace Swig {
   protected:
     std::string swig_msg;
   public:
-    DirectorException(PyObject *error, const char* hdr ="", const char* msg ="") 
+    DirectorException(PyObject *error, const char *hdr ="", const char *msg ="") 
       : swig_msg(hdr)
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK; 
@@ -272,12 +272,12 @@ namespace Swig {
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
-    DirectorTypeMismatchException(PyObject *error, const char* msg="") 
+    DirectorTypeMismatchException(PyObject *error, const char *msg="") 
       : Swig::DirectorException(error, "SWIG director type mismatch", msg)
     {
     }
 
-    DirectorTypeMismatchException(const char* msg="") 
+    DirectorTypeMismatchException(const char *msg="") 
       : Swig::DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg)
     {
     }
@@ -296,7 +296,7 @@ namespace Swig {
   /* any python exception that occurs during a director method call */
   class DirectorMethodException : public Swig::DirectorException {
   public:
-    DirectorMethodException(const char* msg = "") 
+    DirectorMethodException(const char *msg = "") 
       : DirectorException(PyExc_RuntimeError, "SWIG director method error.", msg)
     {
     }    
@@ -311,7 +311,7 @@ namespace Swig {
   class DirectorPureVirtualException : public Swig::DirectorException
   {
   public:
-    DirectorPureVirtualException(const char* msg = "") 
+    DirectorPureVirtualException(const char *msg = "") 
       : DirectorException(PyExc_RuntimeError, "SWIG director pure virtual method called", msg)
     { 
     }
@@ -356,7 +356,7 @@ namespace Swig {
   class Director {
   private:
     /* pointer to the wrapped python object */
-    PyObject* swig_self;
+    PyObject *swig_self;
     /* flag indicating whether the object is owned by python or c++ */
     mutable bool swig_disown_flag;
 
@@ -371,7 +371,7 @@ namespace Swig {
 
   public:
     /* wrap a python object, optionally taking ownership */
-    Director(PyObject* self) : swig_self(self), swig_disown_flag(false) {
+    Director(PyObject *self) : swig_self(self), swig_disown_flag(false) {
       swig_incref();
     }
 
@@ -404,16 +404,16 @@ namespace Swig {
     }
 
     /* methods to implement pseudo protected director members */
-    virtual bool swig_get_inner(const char* /* swig_protected_method_name */) const {
+    virtual bool swig_get_inner(const char * /* swig_protected_method_name */) const {
       return true;
     }
     
-    virtual void swig_set_inner(const char* /* swig_protected_method_name */, bool /* swig_val */) const {
+    virtual void swig_set_inner(const char * /* swig_protected_method_name */, bool /* swig_val */) const {
     }
 
   /* ownership management */
   private:
-    typedef std::map<void*, GCItem_var> swig_ownership_map;
+    typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
 #ifdef __THREAD__
     static PyThread_type_lock swig_mutex_own;
@@ -461,7 +461,7 @@ namespace Swig {
     }
 
     template <typename Type>
-    static PyObject* swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
+    static PyObject *swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
     {
       SwigPyObject *sobj = (SwigPyObject *)pyobj;
       sobj->own = 0;
