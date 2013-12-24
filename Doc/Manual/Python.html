@@ -5551,7 +5551,15 @@ from __future__ import absolute_import
 </div>
 
 <p>at the very beginning of his proxy <tt>*.py</tt> file. In SWIG, it may be
-accomplished with <tt>%pythonbegin</tt> directive.</p>
+accomplished with <tt>%pythonbegin</tt> directive as follows:</p>
+
+<div class="code">
+<pre>
+%pythonbegin %{
+from __future__ import absolute_import
+%}
+</pre>
+</div>
 
 <H3><a name="Python_importfrominit"></a>34.11.4 Importing from __init__.py</H3>
 
