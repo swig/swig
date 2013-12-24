@@ -2676,8 +2676,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:typename","1");
                           }
 			  /* for now, nested %template is allowed only in the same scope as the template declaration */
-                          if ($3 && !((currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))
-			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer"))))) {
+                          if ($3 && !(nnisclass && ((currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))
+			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer")))))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
