@@ -319,8 +319,7 @@ overloading(0),
 multiinput(0),
 cplus_runtime(0),
 directors(0) {
-  Hash *symbols = NewHash();
-  Setattr(symtabs, "", symbols); // create top level/global symbol table scope
+  addScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -3061,9 +3060,7 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   //Printf( stdout, "addSymbol: %s %s\n", s, scope );
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
-    // New scope which has not been added by the target language - lazily created.
-    symbols = NewHash();
-    Setattr(symtabs, scope, symbols);
+    symbols = addScope(scope);
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
@@ -3077,6 +3074,71 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   }
   Setattr(symbols, s, n);
   return 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Lanugage::addScope( const_String_or_char_ptr scopeName )
+ *
+ * Creates a scope (symbols Hash) for given name. This method is auxilary,
+ * you don't have to call it - addSymbols will lazily create scopes automatically.
+ * If scope with given name already exists, then do nothing.
+ * Returns newly created (or already existing) scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::addScope(const_String_or_char_ptr scope) {
+  Hash *symbols = scopeLookup(scope);
+  if(!symbols) {
+    // Order in which to following parts are executed is important. In Lanugage
+    // constructor addScope("") is called to create a top level scope itself.
+    // Thus we must first add symbols hash to symtab and only then add pseudo
+    // symbol to top-level scope
+
+    // New scope which has not been added by the target language - lazily created.
+    symbols = NewHash();
+    Setattr(symtabs, scope, symbols);
+
+    // Add the new scope as a symbol in the top level scope.
+    // Alternatively the target language must add it in before attempting to add symbols into the scope.
+    const_String_or_char_ptr top_scope = "";
+    Hash *topscope_symbols = Getattr(symtabs, top_scope);
+    Hash *pseudo_symbol = NewHash();
+    Setattr(pseudo_symbol, "sym:is_scope", "1");
+    Setattr(topscope_symbols, scope, pseudo_symbol);
+  }
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Lanugage::scopeLookup( const_String_or_char_ptr scope )
+ *
+ * Lookup and returns a symtable (hash) representing given scope. Hash contains
+ * all symbols in this scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::scopeLookup( const_String_or_char_ptr scope ) {
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Lanugage::scopeSymbolLookup( const_String_or_char_ptr scope )
+ *
+ * For every scope there is a special pseudo-symbol in the top scope (""). It
+ * exists solely to detect name clashes. This pseudo symbol may contain a few properties,
+ * but you can more if you need to. This is also true fro top level scope ("").
+ * It contains a pseudo symbol with name "" (empty). Pseudo symbol contains the
+ * following properties:
+ *   sym:scope = "1" - a flag that this is scope pseudo symbol
+ *
+ * Pseudo symbols are a Hash*, not a Node* (not that there is a difference
+ * in DOH)
+ * There is no difference from symbolLookup() method except for signature
+ * and return type.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::scopeSymbolLookup( const_String_or_char_ptr scope )
+{
+  /* Getting top scope */
+  const_String_or_char_ptr top_scope = "";
+  Hash *symbols = Getattr(symtabs, top_scope);
+  return Getattr(symbols, scope);
 }
 
 /* -----------------------------------------------------------------------------

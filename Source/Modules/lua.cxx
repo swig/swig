@@ -120,7 +120,6 @@ private:
   File *f_initbeforefunc;
   String *s_luacode;		// luacode to be called during init
   String *module;		//name of the module
-  Hash *namespaces_hash;
 
   // Parameters for current class. NIL if not parsing class
   int have_constructor;
@@ -176,13 +175,10 @@ public:
       class_fq_symname(0),
       class_static_nspace(0),
       constructor_name(0) {
-    namespaces_hash = NewHash();
     for (int i = 0; i < STATES_COUNT; i++)
       current[i] = false;
   }
   ~LUA() {
-    if (namespaces_hash)
-      Delete(namespaces_hash);
   }
 
   bool strToInt(const char *string, int &value) {
@@ -477,7 +473,7 @@ public:
   // Add method to the "methods" C array of given namespace/class
   void registerMethod(String *nspace_or_class_name, Node *n) {
     assert(n);
-    Hash *nspaceHash = getNamespaceHash(nspace_or_class_name);
+    Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *wname = Getattr(n, "wrap:name");
     String *target_name = Getattr(n, "lua:name");
@@ -922,7 +918,7 @@ public:
     if (setName == 0 || GetFlag(n, "feature:immutable")) {
       setName = unassignable;
     }
-    Hash *nspaceHash = getNamespaceHash(nspace_or_class_name);
+    Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *s_ns_var_tab = Getattr(nspaceHash, "attributes");
     String *target_name = Getattr(n, "lua:name");
@@ -968,7 +964,7 @@ public:
    * Actually, in current implementation it is resolved consttab typemap
    * ------------------------------------------------------------ */
   void registerConstant(String *nspace, String *constantRecord) {
-    Hash *nspaceHash = getNamespaceHash(nspace);
+    Hash *nspaceHash = getCArraysHash(nspace);
     String *s_const_tab = 0;
     if (eluac_ltr || elua_ltr)
       // In elua everything goes to "methods" tab
@@ -1102,7 +1098,7 @@ public:
     if (!luaAddSymbol(wrapname, n))
       return SWIG_ERROR;
 
-    Hash *nspaceHash = getNamespaceHash(getNSpace());
+    Hash *nspaceHash = getCArraysHash(getNSpace());
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     Printv(s_ns_methods_tab, tab4, "{ \"", symname, "\",", wrapname, "},\n", NIL);
     //   return Language::nativeWrapper(n); // this does nothing...
@@ -1165,12 +1161,12 @@ public:
   void registerClass(String *scope, Node *n) {
     String *wrap_class = Getattr(n,"wrap:class_name");
     assert(wrap_class);
-    Hash *nspaceHash = getNamespaceHash(scope);
+    Hash *nspaceHash = getCArraysHash(scope);
     String *ns_classes = Getattr(nspaceHash, "classes");
     Printv(ns_classes, "&", wrap_class, ",\n", NIL);
     if (elua_ltr || eluac_ltr) {
       String *ns_methods = Getattr(nspaceHash, "methods");
-      Hash *class_hash = getNamespaceHash(class_static_nspace);
+      Hash *class_hash = getCArraysHash(class_static_nspace);
       assert(class_hash);
       String *cls_methods = Getattr(class_hash, "methods:name");
       assert(cls_methods);
@@ -1240,14 +1236,14 @@ public:
     // and constants are considered part of namespace T, all members - part of the 'class'
     // Now, here is a trick. Static methods, attributes and non-static methods and attributes
     // are described with same structures - swig_lua_attribute/swig_lua_method. Instead of calling
-    // getNamespaceHash(class name) to initialize things for static methods/attributes and then
-    // manually doing same initialization for non-static methods, we call getNamespaceHash 2 times:
+    // getCArraysHash(class name) to initialize things for static methods/attributes and then
+    // manually doing same initialization for non-static methods, we call getCArraysHash 2 times:
     // 1) With name "class name" + "." + "__Static" to initialize static things
     // 2) With "class name" to initialize non-static things
     // And we can guarantee that there will not be any name collision because names starting with 2 underscores
     // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
     // any member or subclass with name "__Static". Thus, never any name clash.
-    Hash *instance_cls = getNamespaceHash(class_fq_symname, false);
+    Hash *instance_cls = getCArraysHash(class_fq_symname, false);
     assert(instance_cls);
     String *s_attr_tab_name = Getattr(instance_cls, "attributes:name");
     String *s_methods_tab_name = Getattr(instance_cls, "methods:name");
@@ -1260,7 +1256,7 @@ public:
      */
 
     class_static_nspace = NewStringf("%s%s__Static", class_fq_symname, NSPACE_SEPARATOR);
-    Hash *static_cls = getNamespaceHash(class_static_nspace, false);
+    Hash *static_cls = getCArraysHash(class_static_nspace, false);
     assert(static_cls);
     Setattr(static_cls, "lua:no_namespaces", "1");
     Setattr(static_cls, "lua:class_static", "1");
@@ -1272,8 +1268,6 @@ public:
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
      * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
      */
-    // Replacing namespace with namespace + class in order to static
-    // member be put inside class static area
     class_parent_nspace = getNSpace();
     // Generate normal wrappers
     Language::classHandler(n);
@@ -1293,7 +1287,7 @@ public:
 
     // Adding class to apropriate namespace
     registerClass(nspace, n);
-    Hash *nspaceHash = getNamespaceHash(nspace);
+    Hash *nspaceHash = getCArraysHash(nspace);
 
     // Register the class structure with the type checker
     //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_class_fq_symname);
@@ -1349,8 +1343,8 @@ public:
       }
     }
 
-    closeNamespaceHash(class_fq_symname, f_wrappers);
-    closeNamespaceHash(class_static_nspace, f_wrappers);
+    closeCArraysHash(class_fq_symname, f_wrappers);
+    closeCArraysHash(class_static_nspace, f_wrappers);
 
 
     // Handle inheritance
@@ -1385,7 +1379,7 @@ public:
       }
     }
     // First, print class static part
-    printNamespaceDefinition(class_static_nspace, class_symname, f_wrappers);
+    printCArraysDefinition(class_static_nspace, class_symname, f_wrappers);
 
     assert(mangled_class_fq_symname);
     assert(base_class);
@@ -1670,10 +1664,24 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * getNamespaceHash()
+   * rawGetCArraysHash(String *name)
+   *
+   * A small helper to hide impelementation of how CArrays hashes are stored
+   * ---------------------------------------------------------------------------- */
+  Hash *rawGetCArraysHash(const_String_or_char_ptr name) {
+    Hash *scope = scopeLookup( name ? name : "" );
+    if(!scope)
+      return 0;
+
+    Hash *carrays_hash = Getattr(scope, "lua:cdata");
+    return carrays_hash;
+  }
+   
+  /* -----------------------------------------------------------------------------
+   * getCArraysHash()
    * Each namespace can be described with hash that stores C arrays
    * where members of the namespace should be added. All these hashes are stored
-   * inside namespaces_hash.
+   * inside symbols table, in pseudo-symbol for every namespace.
    * nspace could be NULL (NSPACE_TODO), that means functions and variables and classes
    * that are not in any namespace (this is default for SWIG unless %nspace feature is used)
    * You can later set some attributes that will affect behaviour of functions that use this hash:
@@ -1685,11 +1693,17 @@ public:
    * Namespace could be automatically registered to it's parent if 'reg' == true. It can be done
    * only at first call (a.k.a when nspace is created).
    * ---------------------------------------------------------------------------- */
-  Hash *getNamespaceHash(String *nspace, bool reg = true) {
-    Hash *nspace_hash = Getattr(namespaces_hash, nspace ? nspace : "");
-    if (nspace_hash != 0)
-      return nspace_hash;
-    nspace_hash = NewHash();
+  Hash *getCArraysHash(String *nspace, bool reg = true) {
+    Hash *scope = scopeLookup(nspace ? nspace : "");
+    if(!scope) {
+      addScope( nspace ? nspace : "" );
+      scope = scopeLookup(nspace ? nspace : "");
+      assert(scope);
+    }
+    Hash *carrays_hash = Getattr(scope, "lua:cdata");
+    if (carrays_hash != 0)
+      return carrays_hash;
+    carrays_hash = NewHash();
     String *mangled_name = 0;
     if (nspace == 0 || Len(nspace) == 0)
       mangled_name = NewString("__Module");	// C++ names can't start with "__ + capital letter"
@@ -1697,7 +1711,7 @@ public:
       mangled_name = Swig_name_mangle(nspace);
     String *cname = NewStringf("swig_%s", mangled_name);
 
-    Setattr(nspace_hash, "cname", cname);
+    Setattr(carrays_hash, "cname", cname);
 
     String *attr_tab = NewString("");
     String *attr_tab_name = NewStringf("swig_%s_attributes", mangled_name);
@@ -1706,9 +1720,9 @@ public:
     Printv(attr_tab, attr_tab_name, "[]", NIL);
     Printv(attr_tab_decl, attr_tab, ";\n", NIL);
     Printv(attr_tab, " = {\n", NIL);
-    Setattr(nspace_hash, "attributes", attr_tab);
-    Setattr(nspace_hash, "attributes:name", attr_tab_name);
-    Setattr(nspace_hash, "attributes:decl", attr_tab_decl);
+    Setattr(carrays_hash, "attributes", attr_tab);
+    Setattr(carrays_hash, "attributes:name", attr_tab_name);
+    Setattr(carrays_hash, "attributes:decl", attr_tab_decl);
 
     String *methods_tab = NewString("");
     String *methods_tab_name = NewStringf("swig_%s_methods", mangled_name);
@@ -1720,9 +1734,9 @@ public:
     Printv(methods_tab, methods_tab_name, "[]", NIL);
     Printv(methods_tab_decl, methods_tab, ";\n", NIL);
     Printv(methods_tab, "= {\n", NIL);
-    Setattr(nspace_hash, "methods", methods_tab);
-    Setattr(nspace_hash, "methods:name", methods_tab_name);
-    Setattr(nspace_hash, "methods:decl", methods_tab_decl);
+    Setattr(carrays_hash, "methods", methods_tab);
+    Setattr(carrays_hash, "methods:name", methods_tab_name);
+    Setattr(carrays_hash, "methods:decl", methods_tab_decl);
 
     String *const_tab = NewString("");
     String *const_tab_name = NewStringf("swig_%s_constants", mangled_name);
@@ -1734,9 +1748,9 @@ public:
     Printv(const_tab, const_tab_name, "[]", NIL);
     Printv(const_tab_decl, const_tab, ";", NIL);
     Printv(const_tab, "= {\n", NIL);
-    Setattr(nspace_hash, "constants", const_tab);
-    Setattr(nspace_hash, "constants:name", const_tab_name);
-    Setattr(nspace_hash, "constants:decl", const_tab_decl);
+    Setattr(carrays_hash, "constants", const_tab);
+    Setattr(carrays_hash, "constants:name", const_tab_name);
+    Setattr(carrays_hash, "constants:decl", const_tab_decl);
 
     String *classes_tab = NewString("");
     String *classes_tab_name = NewStringf("swig_%s_classes", mangled_name);
@@ -1745,9 +1759,9 @@ public:
     Printv(classes_tab, classes_tab_name, "[]", NIL);
     Printv(classes_tab_decl, classes_tab, ";", NIL);
     Printv(classes_tab, "= {\n", NIL);
-    Setattr(nspace_hash, "classes", classes_tab);
-    Setattr(nspace_hash, "classes:name", classes_tab_name);
-    Setattr(nspace_hash, "classes:decl", classes_tab_decl);
+    Setattr(carrays_hash, "classes", classes_tab);
+    Setattr(carrays_hash, "classes:name", classes_tab_name);
+    Setattr(carrays_hash, "classes:decl", classes_tab_decl);
 
     String *namespaces_tab = NewString("");
     String *namespaces_tab_name = NewStringf("swig_%s_namespaces", mangled_name);
@@ -1756,9 +1770,9 @@ public:
     Printv(namespaces_tab, namespaces_tab_name, "[]", NIL);
     Printv(namespaces_tab_decl, namespaces_tab, ";", NIL);
     Printv(namespaces_tab, " = {\n", NIL);
-    Setattr(nspace_hash, "namespaces", namespaces_tab);
-    Setattr(nspace_hash, "namespaces:name", namespaces_tab_name);
-    Setattr(nspace_hash, "namespaces:decl", namespaces_tab_decl);
+    Setattr(carrays_hash, "namespaces", namespaces_tab);
+    Setattr(carrays_hash, "namespaces:name", namespaces_tab_name);
+    Setattr(carrays_hash, "namespaces:decl", namespaces_tab_decl);
 
     if (elua_ltr) {
       String *get_tab = NewString("");
@@ -1767,9 +1781,9 @@ public:
       Printv(get_tab, "const LUA_REG_TYPE ", get_tab_name, "[]", NIL);
       Printv(get_tab_decl, get_tab, ";", NIL);
       Printv(get_tab, " = {\n", NIL);
-      Setattr(nspace_hash, "get", get_tab);
-      Setattr(nspace_hash, "get:name", get_tab_name);
-      Setattr(nspace_hash, "get:decl", get_tab_decl);
+      Setattr(carrays_hash, "get", get_tab);
+      Setattr(carrays_hash, "get:name", get_tab_name);
+      Setattr(carrays_hash, "get:decl", get_tab_decl);
 
       String *set_tab = NewString("");
       String *set_tab_name = NewStringf("swig_%s_set", mangled_name);
@@ -1777,9 +1791,9 @@ public:
       Printv(set_tab, "const LUA_REG_TYPE ", set_tab_name, "[]", NIL);
       Printv(set_tab_decl, set_tab, ";", NIL);
       Printv(set_tab, " = {\n", NIL);
-      Setattr(nspace_hash, "set", set_tab);
-      Setattr(nspace_hash, "set:name", set_tab_name);
-      Setattr(nspace_hash, "set:decl", set_tab_decl);
+      Setattr(carrays_hash, "set", set_tab);
+      Setattr(carrays_hash, "set:name", set_tab_name);
+      Setattr(carrays_hash, "set:decl", set_tab_decl);
 
     }
     if (!eluac_ltr) {
@@ -1795,16 +1809,15 @@ public:
       Printv(metatable_tab, metatable_tab_name, "[]", NIL);
       Printv(metatable_tab_decl, metatable_tab, ";", NIL);
       Printv(metatable_tab, " = {\n", NIL);
-      Setattr(nspace_hash, "metatable", metatable_tab);
-      Setattr(nspace_hash, "metatable:name", metatable_tab_name);
-      Setattr(nspace_hash, "metatable:decl", metatable_tab_decl);
+      Setattr(carrays_hash, "metatable", metatable_tab);
+      Setattr(carrays_hash, "metatable:name", metatable_tab_name);
+      Setattr(carrays_hash, "metatable:decl", metatable_tab_decl);
     }
-    String *key = 0;
-    if (nspace != 0)
-      key = Copy(nspace);
-    Setattr(namespaces_hash, key ? key : "", nspace_hash);
 
-    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(nspace_hash, "lua:no_reg") == 0) {
+    Setattr(scope, "lua:cdata", carrays_hash);
+    assert(rawGetCArraysHash(nspace));
+
+    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(carrays_hash, "lua:no_reg") == 0) {
       // Split names into components
       List *components = Split(nspace, '.', -1);
       String *parent_path = NewString("");
@@ -1817,50 +1830,49 @@ public:
 	Printv(parent_path, item, NIL);
       }
       //Printf(stdout, "Registering %s. User name %s. C-name %s, Parent is %s\n", mangled_name, name, cname, parent_path); // TODO: REMOVE
-      Hash *parent = getNamespaceHash(parent_path, true);
+      Hash *parent = getCArraysHash(parent_path, true);
       String *namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
       if (elua_ltr || eluac_ltr) {
 	String *methods_tab = Getattr(parent, "methods");
 	Printv(methods_tab, tab4, "{LSTRKEY(\"", name, "\")", ", LROVAL(", methods_tab_name, ")", "},\n", NIL);
       }
-      Setattr(nspace_hash, "name", name);
+      Setattr(carrays_hash, "name", name);
 
       Delete(components);
       Delete(parent_path);
     } else if (!reg)		// This namespace shouldn't be registered. Lets remember it
-      Setattr(nspace_hash, "lua:no_reg", "1");
-
+      Setattr(carrays_hash, "lua:no_reg", "1");
 
 
     Delete(mangled_name);
     mangled_name = 0;
-    return nspace_hash;
+    return carrays_hash;
   }
 
   /* -----------------------------------------------------------------------------
-   * closeNamespaceHash()
+   * closeCArraysHash()
    * Functions add end markers {0,0,...,0} to all arrays, prints them to
    * output and marks hash as closed (lua:closed). Consequent attempts to
    * close same hash will result in error
-   * closeNamespaceHash DOES NOT print structure that describes namespace, it only
-   * prints array. You can use printNamespaceDefinition to print structure.
+   * closeCArraysHash DOES NOT print structure that describes namespace, it only
+   * prints array. You can use printCArraysDefinition to print structure.
    * if "lua:no_namespaces" is set, then array for "namespaces" won't be printed
    * if "lua:no_classes" is set, then array for "classes" won't be printed
    * ----------------------------------------------------------------------------- */
-  void closeNamespaceHash(String *nspace, File *output) {
-    Hash *nspace_hash = Getattr(namespaces_hash, nspace);
-    assert(nspace_hash);
-    assert(Getattr(nspace_hash, "lua:closed") == 0);
+  void closeCArraysHash(String *nspace, File *output) {
+    Hash *carrays_hash = rawGetCArraysHash(nspace);
+    assert(carrays_hash);
+    assert(Getattr(carrays_hash, "lua:closed") == 0);
 
-    Setattr(nspace_hash, "lua:closed", "1");
+    Setattr(carrays_hash, "lua:closed", "1");
 
-    String *attr_tab = Getattr(nspace_hash, "attributes");
+    String *attr_tab = Getattr(carrays_hash, "attributes");
     Printf(attr_tab, "    {0,0,0}\n};\n");
     Printv(output, attr_tab, NIL);
 
-    String *const_tab = Getattr(nspace_hash, "constants");
-    String *const_tab_name = Getattr(nspace_hash, "constants:name");
+    String *const_tab = Getattr(carrays_hash, "constants");
+    String *const_tab_name = Getattr(carrays_hash, "constants:name");
     if (elua_ltr || eluac_ltr)
       Printv(const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
     else
@@ -1869,10 +1881,10 @@ public:
 
     if (elua_ltr) {
       // Put forward declaration of metatable array
-      Printv(output, "extern ", Getattr(nspace_hash, "metatable:decl"), "\n", NIL);
+      Printv(output, "extern ", Getattr(carrays_hash, "metatable:decl"), "\n", NIL);
     }
-    String *methods_tab = Getattr(nspace_hash, "methods");
-    String *metatable_tab_name = Getattr(nspace_hash, "metatable:name");
+    String *methods_tab = Getattr(carrays_hash, "methods");
+    String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
     assert(methods_tab); // TODO: REMOVE
     if (elua_ltr || eluac_ltr) {
       if (v2_compatibility)
@@ -1888,20 +1900,20 @@ public:
       Printf(methods_tab, "    {0,0}\n};\n");
     Printv(output, methods_tab, NIL);
 
-    if (!Getattr(nspace_hash, "lua:no_classes")) {
-      String *classes_tab = Getattr(nspace_hash, "classes");
+    if (!Getattr(carrays_hash, "lua:no_classes")) {
+      String *classes_tab = Getattr(carrays_hash, "classes");
       Printf(classes_tab, "    0\n};\n");
       Printv(output, classes_tab, NIL);
     }
 
-    if (!Getattr(nspace_hash, "lua:no_namespaces")) {
-      String *namespaces_tab = Getattr(nspace_hash, "namespaces");
+    if (!Getattr(carrays_hash, "lua:no_namespaces")) {
+      String *namespaces_tab = Getattr(carrays_hash, "namespaces");
       Printf(namespaces_tab, "    0\n};\n");
       Printv(output, namespaces_tab, NIL);
     }
     if (elua_ltr) {
-      String *get_tab = Getattr(nspace_hash, "get");
-      String *set_tab = Getattr(nspace_hash, "set");
+      String *get_tab = Getattr(carrays_hash, "get");
+      String *set_tab = Getattr(carrays_hash, "set");
       Printv(get_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
       Printv(set_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
       Printv(output, get_tab, NIL);
@@ -1909,13 +1921,13 @@ public:
     }
 
     if (!eluac_ltr) {
-      String *metatable_tab = Getattr(nspace_hash, "metatable");
+      String *metatable_tab = Getattr(carrays_hash, "metatable");
       assert(metatable_tab);
       if (elua_ltr) {
-	String *get_tab_name = Getattr(nspace_hash, "get:name");
-	String *set_tab_name = Getattr(nspace_hash, "set:name");
+	String *get_tab_name = Getattr(carrays_hash, "get:name");
+	String *set_tab_name = Getattr(carrays_hash, "set:name");
 
-	if (Getattr(nspace_hash, "lua:class_instance")) {
+	if (Getattr(carrays_hash, "lua:class_instance")) {
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
 	} else {
@@ -1926,10 +1938,10 @@ public:
 	Printv(metatable_tab, tab4, "{LSTRKEY(\"__gc\"), LFUNCVAL(SWIG_Lua_class_destruct)},\n", NIL);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
-	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(nspace_hash, "methods:name"), ")},\n", NIL);
+	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
 
-	if (Getattr(nspace_hash, "lua:class_instance")) {
-	  String *static_cls = Getattr(nspace_hash, "lua:class_instance:static_hash");
+	if (Getattr(carrays_hash, "lua:class_instance")) {
+	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
 	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
 	  // Instead structure describing its methods isused
@@ -1938,8 +1950,8 @@ public:
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
 	  // Put forward declaration of this array
 	  Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-	} else if (Getattr(nspace_hash, "lua:class_static")) {
-	  Hash *instance_cls = Getattr(nspace_hash, "lua:class_static:instance_hash");
+	} else if (Getattr(carrays_hash, "lua:class_static")) {
+	  Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
 	  assert(instance_cls);
 	  String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
 	  assert(instance_cls_metatable_name);
@@ -1962,42 +1974,53 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * closeNamespaceHash()
+   * closeCArraysHash()
    * Recursively close all non-closed namespaces. Prints data to dataOutput.
    * ----------------------------------------------------------------------------- */
   void closeNamespaces(File *dataOutput) {
     // Special handling for empty module.
-    if (Getattr(namespaces_hash, "") == 0) {
+    if (scopeLookup("") == 0 || rawGetCArraysHash("") == 0) {
       // Module is empty. Create hash for global scope in order to have swig__Module
       // variable in resulting file
-      getNamespaceHash(0);
+      getCArraysHash(0);
     }
-    Iterator ki = First(namespaces_hash);
+    // Because we cant access directly 'symtabs', instead we access
+    // top-level scope and look on all scope pseudo-symbols in it.
+    Hash *top_scope = scopeLookup("");
+    assert(top_scope);
+    Iterator ki = First(top_scope);
     List *to_close = NewList();
     while (ki.key) {
-      if (Getattr(ki.item, "lua:closed") == 0)
-	Append(to_close, ki.key);
+      assert(ki.item);
+      if (Getattr(ki.item, "sym:is_scope")) {
+        // We have a pseudo symbol. Lets get actuall scope for this
+        // pseudo symbol
+        Hash *carrays_hash = rawGetCArraysHash(ki.key);
+        assert(carrays_hash);
+        if (Getattr(carrays_hash, "lua:closed") == 0)
+          Append(to_close, ki.key);
+      }
       ki = Next(ki);
     }
     SortList(to_close, &compareByLen);
     int len = Len(to_close);
     for (int i = 0; i < len; i++) {
       String *key = Getitem(to_close, i);
-      closeNamespaceHash(key, dataOutput);
-      Hash *nspace = Getattr(namespaces_hash, key);
+      closeCArraysHash(key, dataOutput);
+      Hash *carrays_hash = rawGetCArraysHash(key);
       String *name = 0;		// name - name of the namespace as it should be visible in Lua
       if (DohLen(key) == 0)	// This is global module
 	name = module;
       else
-	name = Getattr(nspace, "name");
+	name = Getattr(carrays_hash, "name");
       assert(name);
-      printNamespaceDefinition(key, name, dataOutput);
+      printCArraysDefinition(key, name, dataOutput);
     }
     Delete(to_close);
   }
 
   /* -----------------------------------------------------------------------------
-   * printNamespaceDefinition()
+   * printCArraysDefinition()
    * This function prints to output a definition of namespace in
    * form
    *  swig_lua_namespace $cname =  { attr_array, methods_array, ... , namespaces_array };
@@ -2005,21 +2028,21 @@ public:
    * 'name' is a user-visible name that this namespace will have in Lua. It shouldn't
    * be fully qualified name, just it's own name.
    * ----------------------------------------------------------------------------- */
-  void printNamespaceDefinition(String *nspace, String *name, File *output) {
-    Hash *nspace_hash = getNamespaceHash(nspace, false);
+  void printCArraysDefinition(String *nspace, String *name, File *output) {
+    Hash *carrays_hash = getCArraysHash(nspace, false);
 
-    String *cname = Getattr(nspace_hash, "cname");	// cname - name of the C structure that describes namespace
+    String *cname = Getattr(carrays_hash, "cname");	// cname - name of the C structure that describes namespace
     assert(cname);
     Printv(output, "static swig_lua_namespace ", cname, " = ", NIL);
 
     String *null_string = NewString("0");
-    String *attr_tab_name = Getattr(nspace_hash, "attributes:name");
-    String *methods_tab_name = Getattr(nspace_hash, "methods:name");
-    String *const_tab_name = Getattr(nspace_hash, "constants:name");
-    String *classes_tab_name = Getattr(nspace_hash, "classes:name");
-    String *namespaces_tab_name = Getattr(nspace_hash, "namespaces:name");
-    bool has_classes = Getattr(nspace_hash, "lua:no_classes") == 0;
-    bool has_namespaces = Getattr(nspace_hash, "lua:no_namespaces") == 0;
+    String *attr_tab_name = Getattr(carrays_hash, "attributes:name");
+    String *methods_tab_name = Getattr(carrays_hash, "methods:name");
+    String *const_tab_name = Getattr(carrays_hash, "constants:name");
+    String *classes_tab_name = Getattr(carrays_hash, "classes:name");
+    String *namespaces_tab_name = Getattr(carrays_hash, "namespaces:name");
+    bool has_classes = Getattr(carrays_hash, "lua:no_classes") == 0;
+    bool has_namespaces = Getattr(carrays_hash, "lua:no_namespaces") == 0;
 
     Printv(output, "{\n",
 	   tab4, "\"", name, "\",\n",
@@ -2064,15 +2087,12 @@ public:
 
   /* -----------------------------------------------------------------------------
    * luaAddSymbol()
-   * Our implementation of addSymbol. Determines scope correctly, then calls Language::addSymbol
+   * Our implementation of addSymbol. Determines scope correctly, then 
+   * forwards to Language::addSymbol
    * ----------------------------------------------------------------------------- */
   int luaAddSymbol(const String *s, const Node *n) {
     String *scope = luaCurrentSymbolNSpace();
-    //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
-    int result = Language::addSymbol(s, n, scope);
-    if (!result)
-      Printf(stderr, "addSymbol(%s to scope %s) failed\n", s, scope);
-    return result;
+    return luaAddSymbol(s, n, scope);
   }
 
   /* -----------------------------------------------------------------------------
@@ -2080,7 +2100,6 @@ public:
    * Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
    * ----------------------------------------------------------------------------- */
   int luaAddSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
-    //Printf(stdout, "luaAddSymbol: %s scope: %s\n", s, scope);
     int result = Language::addSymbol(s, n, scope);
     if (!result)
       Printf(stderr, "addSymbol(%s to scope %s) failed\n", s, scope);
