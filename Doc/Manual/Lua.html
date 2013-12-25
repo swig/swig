@@ -70,7 +70,6 @@
 Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
 </p>
 <p>
-TODO: Fix if elua disabled
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
 </p>
 
@@ -78,8 +77,7 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 
 <p>
-TODO: Fix if elua disabled
-The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
+The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also has support for eLua starting from eLua 0.8. Due to substantial changes between SWIG 2.x and SWIG 3.0 and unavailability of testing platform, eLua status was downgraded to 'experimental'.
 </p>
 
 <H2><a name="Lua_nn3"></a>26.2 Running SWIG</H2>
@@ -164,6 +162,10 @@ swig -lua -help
 <tr>
   <td>-swig3</td>
   <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included into appropriate sections.</td>
+</tr>
+<tr>
+  <td>-squash-bases</td>
+  <td>Squashes symbols from all inheritance tree of a given class into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly speeds things up, but increases memory consumption.</td>
 </tr>
 </table>
 
@@ -1320,7 +1322,7 @@ add exception specification to functions or globally (respectively).
 <p>
 Since SWIG 3.0 C++ namespaces are supported. You can enabled handling namespaces with %nspace feature. Everything below is valid only after you enabled %nspace.
 </p>
-<p> Namespaces are mapped into lua tables. Each of those tables contains names that were defined within appropriate namespace. Namespaces structure (a.k.a nested namespaces is preserved). Consider the following C++ code:
+<p> Namespaces are mapped into lua tables. Each of those tables contains names that were defined within appropriate namespace. Namespaces structure (a.k.a nested namespaces) is preserved. Consider the following C++ code:
 </p>
 <div class="code"><pre>%module example
 %nspace MyWorld::Nested::Dweller;
@@ -1416,7 +1418,7 @@ surrounding scope without any prefixing. Pretending that Test2 is a struct, not 
 </pre></div>
 
 <H4> Inheritance </H4>
-<p> There internal organization of inheritance has changed. 
+<p> The internal organization of inheritance has changed. 
 Consider the following C++ code:</p>
 <div class="code"><pre>%module example
 class Base {
@@ -1446,8 +1448,8 @@ function
 nil
 &gt;
 </pre></div>
-<p> This has been fixed. Now Derived store a list of it's bases and if some symbol is not found in it's own service tables
-then its bases are searched for it.
+<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
+then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
 <div class="targetlang"><pre>
 &gt; print(der.new_func) -- Now it works
 function
