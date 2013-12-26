@@ -3620,4 +3620,3 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
-

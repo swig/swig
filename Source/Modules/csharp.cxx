@@ -1107,6 +1107,30 @@ public:
 
     return ret;
   }
+  
+  String *getCurrentScopeName(String *nspace)
+  {
+    String *scope = 0;
+    if (nspace || getCurrentClass()) {
+      scope = NewString("");
+      if (nspace)
+	Printf(scope, "%s", nspace);
+      if (Node* cls = getCurrentClass())
+      {
+	if (Node *outer = Getattr(cls, "nested:outer")) {
+	  String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+	  for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+	    Push(outerClassesPrefix, ".");
+	    Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+	  }
+	  Printv(scope, nspace ? "." : "", outerClassesPrefix, ".", proxy_class_name, NIL);
+	  Delete(outerClassesPrefix);
+	} else
+	  Printv(scope, nspace ? "." : "", proxy_class_name, NIL);
+      }
+    }
+    return scope;
+  }
 
   /* ----------------------------------------------------------------------
    * enumDeclaration()
@@ -1150,14 +1174,7 @@ public:
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
-	String *scope = 0;
-	if (nspace || proxy_class_name) {
-	  scope = NewString("");
-	  if (nspace)
-	    Printf(scope, "%s", nspace);
-	  if (proxy_class_name)
-	    Printv(scope, nspace ? "." : "", proxy_class_name, NIL);
-	}
+	String *scope = getCurrentScopeName(nspace);
 	if (!addSymbol(symname, n, scope))
 	  return SWIG_ERROR;
 
@@ -1305,12 +1322,11 @@ public:
 	  scope = Copy(module_class_name);
 	}
       } else {
-	scope = NewString("");
-	if (nspace)
-	  Printf(scope, "%s.", nspace);
-	if (proxy_class_name)
-	  Printf(scope, "%s.", proxy_class_name);
-	Printf(scope, "%s",Getattr(parent, "sym:name"));
+	scope = getCurrentScopeName(nspace);
+	if (!scope)
+	  scope = Copy(Getattr(parent, "sym:name"));
+	else
+	  Printf(scope, ".%s", Getattr(parent, "sym:name"));
       }
       if (!addSymbol(name, n, scope))
 	return SWIG_ERROR;
