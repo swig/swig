@@ -216,9 +216,9 @@ public:
   virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
   virtual void dumpSymbols();
   virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
-  virtual Hash* addScope(const_String_or_char_ptr scope);
-  virtual Hash* scopeLookup( const_String_or_char_ptr scope );
-  virtual Hash* scopeSymbolLookup( const_String_or_char_ptr scope );
+  virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
+  virtual Hash* symbolScopeLookup( const_String_or_char_ptr scope );
+  virtual Hash* symbolScopePseudoSymbolLookup( const_String_or_char_ptr scope );
   virtual Node *classLookup(const SwigType *s) const; /* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */

@@ -319,7 +319,7 @@ overloading(0),
 multiinput(0),
 cplus_runtime(0),
 directors(0) {
-  addScope(""); // create top level/global symbol table scope
+  symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -3060,7 +3060,7 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   //Printf( stdout, "addSymbol: %s %s\n", s, scope );
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
-    symbols = addScope(scope);
+    symbols = symbolAddScope(scope);
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
@@ -3077,15 +3077,15 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::addScope( const_String_or_char_ptr scopeName )
+ * Lanugage::symbolAddScope( const_String_or_char_ptr scopeName )
  *
  * Creates a scope (symbols Hash) for given name. This method is auxilary,
  * you don't have to call it - addSymbols will lazily create scopes automatically.
  * If scope with given name already exists, then do nothing.
  * Returns newly created (or already existing) scope.
  * ----------------------------------------------------------------------------- */
-Hash* Language::addScope(const_String_or_char_ptr scope) {
-  Hash *symbols = scopeLookup(scope);
+Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
+  Hash *symbols = symbolScopeLookup(scope);
   if(!symbols) {
     // Order in which to following parts are executed is important. In Lanugage
     // constructor addScope("") is called to create a top level scope itself.
@@ -3108,18 +3108,18 @@ Hash* Language::addScope(const_String_or_char_ptr scope) {
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::scopeLookup( const_String_or_char_ptr scope )
+ * Lanugage::symbolSscopeLookup( const_String_or_char_ptr scope )
  *
  * Lookup and returns a symtable (hash) representing given scope. Hash contains
  * all symbols in this scope.
  * ----------------------------------------------------------------------------- */
-Hash* Language::scopeLookup( const_String_or_char_ptr scope ) {
+Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   return symbols;
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::scopeSymbolLookup( const_String_or_char_ptr scope )
+ * Lanugage::symbolScopeSymbolLookup( const_String_or_char_ptr scope )
  *
  * For every scope there is a special pseudo-symbol in the top scope (""). It
  * exists solely to detect name clashes. This pseudo symbol may contain a few properties,
@@ -3133,7 +3133,7 @@ Hash* Language::scopeLookup( const_String_or_char_ptr scope ) {
  * There is no difference from symbolLookup() method except for signature
  * and return type.
  * ----------------------------------------------------------------------------- */
-Hash* Language::scopeSymbolLookup( const_String_or_char_ptr scope )
+Hash* Language::symbolScopePseudoSymbolLookup( const_String_or_char_ptr scope )
 {
   /* Getting top scope */
   const_String_or_char_ptr top_scope = "";

@@ -1669,7 +1669,7 @@ public:
    * A small helper to hide impelementation of how CArrays hashes are stored
    * ---------------------------------------------------------------------------- */
   Hash *rawGetCArraysHash(const_String_or_char_ptr name) {
-    Hash *scope = scopeLookup( name ? name : "" );
+    Hash *scope = symbolScopeLookup( name ? name : "" );
     if(!scope)
       return 0;
 
@@ -1694,10 +1694,10 @@ public:
    * only at first call (a.k.a when nspace is created).
    * ---------------------------------------------------------------------------- */
   Hash *getCArraysHash(String *nspace, bool reg = true) {
-    Hash *scope = scopeLookup(nspace ? nspace : "");
+    Hash *scope = symbolScopeLookup(nspace ? nspace : "");
     if(!scope) {
-      addScope( nspace ? nspace : "" );
-      scope = scopeLookup(nspace ? nspace : "");
+      symbolAddScope( nspace ? nspace : "" );
+      scope = symbolScopeLookup(nspace ? nspace : "");
       assert(scope);
     }
     Hash *carrays_hash = Getattr(scope, "lua:cdata");
@@ -1979,14 +1979,14 @@ public:
    * ----------------------------------------------------------------------------- */
   void closeNamespaces(File *dataOutput) {
     // Special handling for empty module.
-    if (scopeLookup("") == 0 || rawGetCArraysHash("") == 0) {
+    if (symbolScopeLookup("") == 0 || rawGetCArraysHash("") == 0) {
       // Module is empty. Create hash for global scope in order to have swig__Module
       // variable in resulting file
       getCArraysHash(0);
     }
     // Because we cant access directly 'symtabs', instead we access
     // top-level scope and look on all scope pseudo-symbols in it.
-    Hash *top_scope = scopeLookup("");
+    Hash *top_scope = symbolScopeLookup("");
     assert(top_scope);
     Iterator ki = First(top_scope);
     List *to_close = NewList();
