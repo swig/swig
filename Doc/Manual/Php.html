@@ -513,6 +513,12 @@ So if you use these REF typemaps, you should ensure that SWIG&ge;3.0 is
 used to generate wrappers from your interface file.
 </p>
 
+<p>
+In case you write your own typemaps, SWIG supports an attribute called
+<tt>byref</tt>: if you set that, then SWIG will make sure that the generated
+wrapper function will want the input parameter as a reference.
+</p>
+
 <div class="code"><pre>
 %module example
 %include "phppointers.i"
