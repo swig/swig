@@ -748,18 +748,18 @@ int yylex(void) {
 	  yylval.intvalue = cparse_line;
 	  return (TEMPLATE);
 	}
-	if (strcmp(yytext, "delete") == 0) {
+	if (strcmp(yytext, "delete") == 0)
 	  return (DELETE_KW);
-	}
-	if (strcmp(yytext, "default") == 0) {
+	if (strcmp(yytext, "default") == 0)
 	  return (DEFAULT);
-	}
-	if (strcmp(yytext, "using") == 0) {
+	if (strcmp(yytext, "using") == 0)
 	  return (USING);
-	}
-	if (strcmp(yytext, "namespace") == 0) {
+	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
-	}
+	if (strcmp(yytext, "override") == 0)
+	  return (OVERRIDE);
+	if (strcmp(yytext, "final") == 0)
+	  return (FINAL);
       } else {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");

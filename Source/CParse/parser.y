@@ -1388,8 +1388,9 @@ static void mark_nodes_as_extend(Node *n) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO NOEXCEPT
-%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE /* C++11 keywords */
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
+%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE AUTO NOEXCEPT /* C++11 keywords */
+%token OVERRIDE FINAL /* C++11 identifiers with special meaning */
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -1443,6 +1444,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <node>     kwargs options;
 
 /* Misc */
+%type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification;
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
@@ -1480,6 +1482,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <node>     optional_constant_directive;
+%type <str>      virt_specifier_seq;
 
 %%
 
@@ -1701,7 +1704,7 @@ clear_directive : CLEAR tm_list SEMI {
    %constant type name = value;
    ------------------------------------------------------------ */
 
-constant_directive :  CONSTANT ID EQUAL definetype SEMI {
+constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		     SwigType *type = NewSwigType($4.type);
 		     $$ = new_node("constant");
@@ -1783,7 +1786,7 @@ echo_directive : ECHO HBLOCK {
    %except;
    ------------------------------------------------------------ */
 
-except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
+except_directive : EXCEPT LPAREN identifier RPAREN LBRACE {
                     skip_balanced('{','}');
 		    $$ = 0;
 		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
@@ -1795,7 +1798,7 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
 		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
                }
 
-               | EXCEPT LPAREN ID RPAREN SEMI {
+               | EXCEPT LPAREN identifier RPAREN SEMI {
 		 $$ = 0;
 		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
                }
@@ -2080,13 +2083,13 @@ name_directive : NAME LPAREN idstring RPAREN {
    %native(scriptname) type name (parms);
    ------------------------------------------------------------ */
 
-native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
+native_directive : NATIVE LPAREN identifier RPAREN storage_class identifier SEMI {
                  $$ = new_node("native");
 		 Setattr($$,"name",$3);
 		 Setattr($$,"wrap:name",$6);
 	         add_symbols($$);
 	       }
-               | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
+               | NATIVE LPAREN identifier RPAREN storage_class type declarator SEMI {
 		 if (!SwigType_isfunction($7.type)) {
 		   Swig_error(cparse_file,cparse_line,"%%native declaration '%s' is not a function.\n", $7.id);
 		   $$ = 0;
@@ -2112,13 +2115,13 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
    %pragma name
    ------------------------------------------------------------ */
 
-pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
+pragma_directive : PRAGMA pragma_lang identifier EQUAL pragma_arg {
                  $$ = new_node("pragma");
 		 Setattr($$,"lang",$2);
 		 Setattr($$,"name",$3);
 		 Setattr($$,"value",$5);
 	       }
-              | PRAGMA pragma_lang ID {
+              | PRAGMA pragma_lang identifier {
 		$$ = new_node("pragma");
 		Setattr($$,"lang",$2);
 		Setattr($$,"name",$3);
@@ -2129,13 +2132,12 @@ pragma_arg    : string { $$ = NewString($1); }
               | HBLOCK { $$ = $1; }
               ;
 
-pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
+pragma_lang   : LPAREN identifier RPAREN { $$ = $2; }
               | empty { $$ = (char *) "swig"; }
               ;
 
 /* ------------------------------------------------------------
-   %rename identifier newname;
-   %rename identifier "newname";
+   %rename(newname) identifier;
    ------------------------------------------------------------ */
 
 rename_directive : rename_namewarn declarator idstring SEMI {
@@ -2883,7 +2885,7 @@ c_declaration   : c_decl {
 
 		  $$ = 0; /* TODO - ignored for now */
 		}
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL ID {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL identifier {
 		  skip_decl();
 		  $$ = new_node("using");
 		  Setattr($$,"uname",$8);
@@ -4221,7 +4223,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       add_symbols($$);
              }
-             | NAMESPACE ID EQUAL idcolon SEMI {
+             | NAMESPACE identifier EQUAL idcolon SEMI {
 	       /* Namespace alias */
 	       Node *n;
 	       $$ = new_node("namespace");
@@ -5810,7 +5812,7 @@ explicit_default : DEFAULT {
 
 /* Some stuff for handling enums */
 
-ename          :  ID { $$ = $1; }
+ename          :  identifier { $$ = $1; }
 	       |  empty { $$ = (char *) 0;}
 	       ;
 
@@ -5837,7 +5839,7 @@ enumlist       :  enumlist COMMA optional_constant_directive edecl optional_cons
 	       }
 	       ;
 
-edecl          :  ID {
+edecl          :  identifier {
 		   SwigType *type = NewSwigType(T_INT);
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
@@ -5845,7 +5847,7 @@ edecl          :  ID {
 		   SetFlag($$,"feature:immutable");
 		   Delete(type);
 		 }
-                 | ID EQUAL etype {
+                 | identifier EQUAL etype {
 		   SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : ($3.type == T_CHAR ? T_CHAR : T_INT));
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
@@ -6263,6 +6265,20 @@ opt_virtual    : VIRTUAL
                | empty
                ;
 
+virt_specifier_seq : OVERRIDE {
+                   $$ = 0;
+	       }
+	       | FINAL {
+                   $$ = 0;
+	       }
+	       | FINAL OVERRIDE {
+                   $$ = 0;
+	       }
+	       | OVERRIDE FINAL {
+                   $$ = 0;
+	       }
+               ;
+
 exception_specification : THROW LPAREN parms RPAREN {
                     $$.throws = $3;
                     $$.throwf = NewString("1");
@@ -6273,7 +6289,16 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.throwf = 0;
                     $$.nexcept = NewString("true");
 	       }
-
+	       | virt_specifier_seq {
+                    $$.throws = 0;
+                    $$.throwf = 0;
+                    $$.nexcept = 0;
+	       }
+	       | NOEXCEPT virt_specifier_seq {
+                    $$.throws = 0;
+                    $$.throwf = 0;
+                    $$.nexcept = NewString("true");
+	       }
 	       | NOEXCEPT LPAREN expr RPAREN {
                     $$.throws = 0;
                     $$.throwf = 0;
@@ -6390,7 +6415,13 @@ template_decl : LESSTHAN valparms GREATERTHAN {
                | empty { $$ = (char*)"";  }
                ;
 
-idstring       : ID { $$ = $1; }
+/* Identifiers including the C++11 identifiers with special meaning */
+identifier     : ID { $$ = $1; }
+	       | OVERRIDE { $$ = Swig_copy_string("override"); }
+	       | FINAL { $$ = Swig_copy_string("final"); }
+	       ;
+
+idstring       : identifier { $$ = $1; }
                | default_delete { $$ = $1.val; }
                | string { $$ = $1; }
                ;
@@ -6442,7 +6473,7 @@ idcolontail    : DCOLON idtemplate idcolontail {
                ;
 
 
-idtemplate    : ID template_decl {
+idtemplate    : identifier template_decl {
                   $$ = NewStringf("%s%s",$1,$2);
 		  /*		  if (Len($2)) {
 		    scanner_last_id(1);
@@ -6451,19 +6482,19 @@ idtemplate    : ID template_decl {
               ;
 
 /* Identifier, but no templates */
-idcolonnt     : ID idcolontailnt { 
+idcolonnt     : identifier idcolontailnt {
                   $$ = 0;
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
       	          Delete($2);
                }
-               | NONID DCOLON ID idcolontailnt { 
+               | NONID DCOLON identifier idcolontailnt {
 		 $$ = NewStringf("::%s%s",$3,$4);
                  Delete($4);
                }
-               | ID {
+               | identifier {
 		 $$ = NewString($1);
    	       }     
-               | NONID DCOLON ID {
+               | NONID DCOLON identifier {
 		 $$ = NewStringf("::%s",$3);
                }
                | OPERATOR {
@@ -6474,17 +6505,17 @@ idcolonnt     : ID idcolontailnt {
                }
                ;
 
-idcolontailnt   : DCOLON ID idcolontailnt {
+idcolontailnt   : DCOLON identifier idcolontailnt {
                    $$ = NewStringf("::%s%s",$2,$3);
 		   Delete($3);
                }
-               | DCOLON ID {
+               | DCOLON identifier {
                    $$ = NewStringf("::%s",$2);
                }
                | DCOLON OPERATOR {
                    $$ = NewStringf("::%s",$2);
                }
-               | DCNOT ID {
+               | DCNOT identifier {
 		 $$ = NewStringf("::~%s",$2);
                }
                ;

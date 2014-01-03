@@ -414,6 +414,29 @@ class DerivedClass: public BaseClass {
 };
 </pre></div>
 
+<H3><a name="CPlusPlus11_explicit_overrides_final"></a>Explicit overrides and final</H3>
+
+<p>
+The special identifiers <tt>final</tt> and <tt>override</tt> can be used on methods and destructors,
+such as in the following example:
+</p>
+
+<div class="code"><pre>
+struct BaseStruct {
+  virtual void ab() const = 0;
+  virtual void cd();
+  virtual void ef();
+  virtual ~BaseStruct();
+};
+struct DerivedStruct : BaseStruct {
+  virtual void ab() const override;
+  virtual void cd() final;
+  virtual void ef() final override;
+  virtual ~DerivedStruct() override;
+};
+</pre></div>
+
+
 <H3><a name="CPlusPlus11_null_pointer_constant"></a>7.2.11 Null pointer constant</H3>
 
 
