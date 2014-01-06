@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-06: ianlancetaylor
+	    [Go] Fix bug that broke using directors from a thread not
+	    created by Go.
+
 2013-12-24: ptomulik
             [Python] SF Bug #1297
 

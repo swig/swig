@@ -2861,6 +2861,7 @@ private:
 
 	Printv(f_gc_wrappers, "#pragma dynexport ", wname, " ", wname, "\n", NULL);
 	Printv(f_gc_wrappers, "#pragma cgo_export_static ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_wrappers, "#pragma textflag 7\n", NULL);
 	Printv(f_gc_wrappers, "extern void \xc2\xb7", go_name, "();\n", NULL);
 	Printv(f_gc_wrappers, "void\n", NULL);
 	Printv(f_gc_wrappers, wname, "(void *a, int32 n)\n", NULL);
@@ -3591,6 +3592,7 @@ private:
 	  // The C wrapper code which calls the Go function.
 	  Printv(f_gc_wrappers, "#pragma dynexport ", callback_wname, " ", callback_wname, "\n", NULL);
 	  Printv(f_gc_wrappers, "#pragma cgo_export_static ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_wrappers, "#pragma textflag 7\n", NULL);
 	  Printv(f_gc_wrappers, "extern void \xc2\xb7", callback_name, "();\n", NULL);
 	  Printv(f_gc_wrappers, "void\n", NULL);
 	  Printv(f_gc_wrappers, callback_wname, "(void *a, int32 n)\n", NULL);
