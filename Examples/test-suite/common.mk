@@ -87,6 +87,7 @@ CPP_TEST_BROKEN += \
 	nested_private \
 	overload_complicated \
 	template_default_pointer \
+	template_private_assignment \
 	template_expr \
 	$(CPP11_TEST_BROKEN)
 
