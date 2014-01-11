@@ -949,7 +949,7 @@ DOH *DohCall(DOH *func, DOH *args) {
   DOH *result;
   DOH *(*builtin) (DOH *);
 
-  builtin = (DOH *(*)(DOH *)) GetVoid(func, "builtin");
+  *(void **)(&builtin) = GetVoid(func, "builtin");
   if (!builtin)
     return 0;
   result = (*builtin) (args);

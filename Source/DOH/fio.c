@@ -48,7 +48,7 @@ static int Writen(DOH *out, void *buffer, int len) {
 void DohEncoding(const char *name, DOH *(*fn) (DOH *s)) {
   if (!encodings)
     encodings = NewHash();
-  Setattr(encodings, (void *) name, NewVoid((void *) fn, 0));
+  Setattr(encodings, (void *) name, NewVoid(*(void **)&fn, 0));
 }
 
 /* internal function for processing an encoding */
@@ -72,7 +72,7 @@ static DOH *encode(char *name, DOH *s) {
     s = tmp;
   pos = Tell(s);
   Seek(s, 0, SEEK_SET);
-  fn = (DOH *(*)(DOH *)) Data(handle);
+  *(void **)(&fn) = Data(handle);
   ns = (*fn) (s);
   assert(pos != -1);
   (void)Seek(s, pos, SEEK_SET);
