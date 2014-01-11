@@ -524,9 +524,6 @@ int Language::top(Node *n) {
       if (Getattr(options, "naturalvar")) {
 	naturalvar_mode = 1;
       }
-      if (Getattr(options, "nonaturalvar")) {
-	naturalvar_mode = 0;
-      }
     }
   }
   classhash = Getattr(n, "classes");
