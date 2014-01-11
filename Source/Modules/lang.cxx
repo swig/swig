@@ -473,12 +473,21 @@ void swig_pragma(char *lang, char *name, char *value) {
 
 /* --------------------------------------------------------------------------
  * Language::use_naturalvar_mode()
+ *
+ * Determine whether to use const ref typemaps instead of pointer typemaps
+ * for variable access.
  * -------------------------------------------------------------------------- */
 int Language::use_naturalvar_mode(Node *n) const {
   if (Getattr(n, "unnamed"))
     return 0;
-  int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
-  if (!nvar) {
+
+  // The naturalvar feature can be attached to either the variable name or the variable's type
+  // naturalvar on the variable name is more specific and overrides naturalvar on the variable's type
+  String *naturalvar = Getattr(n, "feature:naturalvar");
+  bool explicitly_off = naturalvar && Strcmp(naturalvar, "0") == 0;
+  int nvar = GetFlag(n, "feature:naturalvar");
+
+  if (!explicitly_off && !nvar) {
     /* look for feature in the class */
     SwigType *ty = Getattr(n, "type");
     SwigType *fullty = SwigType_typedef_resolve_all(ty);
@@ -490,13 +499,17 @@ int Language::use_naturalvar_mode(Node *n) const {
 	Replaceall(tys, "class ", "");
       }
       Node *typenode = Swig_symbol_clookup(tys, 0);
-      if (typenode)
-	nvar = GetFlag(typenode, "feature:naturalvar");
+      if (typenode) {
+	naturalvar = Getattr(typenode, "feature:naturalvar");
+	explicitly_off = naturalvar && Strcmp(naturalvar, "0") == 0;
+	nvar = nvar || GetFlag(typenode, "feature:naturalvar");
+      }
       Delete(tys);
     }
     Delete(fullty);
   }
-  return nvar ? CWRAP_NATURAL_VAR : 0;
+  nvar = nvar || naturalvar_mode;
+  return explicitly_off ? 0 : nvar ? CWRAP_NATURAL_VAR : 0;
 }
 
 /* ----------------------------------------------------------------------

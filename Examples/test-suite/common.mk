@@ -279,6 +279,7 @@ CPP_TEST_CASES += \
 	nspace_extend \
 	naturalvar \
 	naturalvar_more \
+	naturalvar_onoff \
 	nested_class \
 	nested_comment \
 	nested_scope \

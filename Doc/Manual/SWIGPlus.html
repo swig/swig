@@ -959,8 +959,9 @@ Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-on
 </p>
 
 <p>
+By default, SWIG uses the const reference typemaps for members that are primitive types.
 There are some subtle issues when wrapping data members that are
-themselves classes.  For instance, if you had another class like this,
+not primitive types, such as classes. For instance, if you had another class like this,
 </p>
 
 <div class="code">
@@ -973,7 +974,8 @@ public:
 </div>
 
 <p>
-then the low-level accessor to the <tt>items</tt> member actually uses pointers. For example:
+then the low-level accessor to the <tt>items</tt> member actually uses pointers.
+For example:
 </p>
 
 <div class="code">
@@ -998,31 +1000,7 @@ This can be somewhat unnatural for some types.
 For example, a user would expect the STL std::string class member variables to be wrapped as a string in the target language,
 rather than a pointer to this class.
 The const reference typemaps offer this type of marshalling, so there is a feature to tell SWIG to use the const reference typemaps rather than the pointer typemaps.
-It is the <tt>%naturalvar</tt> directive and is used as follows:
-</p>
-
-<div class="code">
-<pre>
-// All List variables will use const List&amp; typemaps
-%naturalvar List;
-
-// Only Foo::myList will use const List&amp; typemaps
-%naturalvar Foo::myList;
-struct Foo {
-  List myList;
-};
-
-// All variables will use const reference typemaps
-%naturalvar;
-</pre>
-</div>
-
-<p>
-The observant reader will notice that <tt>%naturalvar</tt> works like any other
-<a href="Customization.html#Customization_feature_flags">feature flag</a> directive,
-except it can also be attached to class types.
-The first of the example usages above show <tt>%naturalvar</tt> attaching to the <tt>List</tt> class.
-Effectively this feature changes the way accessors are generated to the following:
+It is the naturalvar feature and can be used to effectively change the way accessors are generated to the following:
 </p>
 
 <div class="code">
@@ -1037,15 +1015,45 @@ void Foo_items_set(Foo *self, const List &amp;value) {
 </div>
 
 <p>
-In fact it is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
+The <tt>%naturalvar</tt> directive is a macro for, and hence equivalent to, <tt>%feature("naturalvar")</tt>. It can be used as follows:
+</p>
+
+<div class="code">
+<pre>
+// All List variables will use const List&amp; typemaps
+%naturalvar List;
+
+// Only Foo::myList will use const List&amp; typemaps
+%naturalvar Foo::myList;
+struct Foo {
+  List myList;
+};
+
+// All non-primitive types will use const reference typemaps
+%naturalvar;
+</pre>
+</div>
+
+<p>
+The observant reader will notice that <tt>%naturalvar</tt> works like any other
+<a href="Customization.html#Customization_feature_flags">feature flag</a> directive but with some extra flexibility.
+The first of the example usages above shows <tt>%naturalvar</tt> attaching to the <tt>myList</tt>'s variable type, that is the <tt>List</tt> class.
+The second usage shows <tt>%naturalvar</tt> attaching to the variable name.
+Hence the naturalvar feature can be used on either the variable's name or type.
+Note that using the naturalvar feature on a variable's name overrides any naturalvar feature attached to the variable's type.
+</p>
+
+<p>
+It is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
 A pointer can be NULL, whereas a reference cannot, so the extra checking ensures that the target language user does not pass in a value that translates
 to a NULL pointer and thereby preventing any potential NULL pointer dereferences.
 The <tt>%naturalvar</tt> feature will apply to global variables in addition to member variables in some language modules, eg C# and Java.
 </p>
 
 <p>
-Other alternatives for turning this feature on globally are to use the <tt>swig -naturalvar</tt> commandline option 
-or the module mode option, <tt>%module(naturalvar=1)</tt>
+The naturalvar behavior can also be turned on as a global setting via the <tt>-naturalvar</tt> commandline option
+or the module mode option, <tt>%module(naturalvar=1)</tt>.
+However, any use of <tt>%feature("naturalvar")</tt> will override the global setting.
 </p>
 
 <p>

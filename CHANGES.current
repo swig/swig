@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-11: wsfulton
+            Fix and document the naturalvar feature override behaviour - the naturalvar
+            feature attached to a variable name has precedence over the naturalvar
+            feature attached to the variable's type. The overriding was not working
+            when turning the feature off on the variable's name.
+
+            Fix so that any use of the naturalvar feature will override the global
+            setting. Previously when set globally by -naturalvar or %module(naturalvar=1),
+            use of the naturalvar feature was not always honoured.
+
 2014-01-06: ianlancetaylor
 	    [Go] Fix bug that broke using directors from a thread not
 	    created by Go.
