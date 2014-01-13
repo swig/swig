@@ -5,6 +5,32 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-13: kwwette
+            [Octave] update support to Octave version 3.8.0
+
+            - Octave 3.8.0 no longer defines OCTAVE_API_VERSION_NUMBER, but 3.8.1
+              will define OCTAVE_{MAJOR,MINOR,PATCH}_VERSION instead: see
+                http://hg.savannah.gnu.org/hgweb/octave/rev/b6b6e0dc700e
+              So we now use a new macro SWIG_OCTAVE_PREREQ(major,minor,patch) to
+              enable features requiring Octave version major.minor.patch or later.
+
+              For Octave versions prior to 3.8.1, we reconstruct values for
+              OCTAVE_{MAJOR,MINOR,PATCH}_VERSION based on OCTAVE_API_VERSION_NUMBER,
+              extracted from Octave's ChangeLogs. An additional hack is needed to
+              distinguish between Octave <= 3.2.x and 3.8.0, neither of which define
+              OCTAVE_API_VERSION_NUMBER.
+
+            - Octave 3.8.0 deprecates symbol_table::varref(), so remove its use
+              for this and future versions of Octave.
+
+            - Octave 3.8.0 removes octave_value::is_real_nd_array(), used in
+              octave_swig_type::dims(). Its use is not required here, so remove it.
+
+            - Retested against Octave versions 3.0.5, 3.2.4, 3.4.3, 3.6.4, and 3.8.0.
+
+            - Updated Octave documentation with tested Octave versions, and added a
+              warning against using versions <= 3.x.x, which are no longer tested.
+
 2014-01-11: wsfulton
             Fix and document the naturalvar feature override behaviour - the naturalvar
             feature attached to a variable name has precedence over the naturalvar
