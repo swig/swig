@@ -1,8 +1,8 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = example.c
+SRCS       = $(EXSRCDIR)/example.c
 TARGET     = swigexample
-INTERFACE  = example.i
+INTERFACE  = $(EXSRCDIR)/example.i
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile octave_run
