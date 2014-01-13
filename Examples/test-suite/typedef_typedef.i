@@ -1,13 +1,11 @@
 %module typedef_typedef
 
-/*
+// Check C::Bar::Foo resolves to A::Foo in typemap search 
 
- We want a specific behaviour on a Type
+%typemap(in) SWIGTYPE, int "__wrong_in_typemap__will_not_compile__"
 
-*/
-
-%typemap(out) A::Foo {
-    $result = PyInt_FromLong($1 + 1);
+%typemap(in) A::Foo {
+  $1 = 1234; /* A::Foo in typemap */
 }
 
 %inline %{
@@ -23,8 +21,8 @@
 
     struct B
     {
-         C::Bar::Foo getValue() {
-             return 0;
+         C::Bar::Foo getValue(C::Bar::Foo intvalue) {
+             return intvalue;
          }
     };
 %}
