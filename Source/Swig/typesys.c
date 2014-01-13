@@ -602,7 +602,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
   Typetab *s;
   Hash *ttab;
   String *namebase = 0;
-  String *nameprefix = 0;
+  String *nameprefix = 0, *rnameprefix = 0;
   int newtype = 0;
 
   resolved_scope = 0;
@@ -647,51 +647,66 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	Printf(stdout, "nameprefix = '%s'\n", nameprefix);
 #endif
 	if (nameprefix) {
-	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
-	  String *rnameprefix = template_parameters_resolve(nameprefix);
-	  nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
-	  Delete(rnameprefix);
-	  s = SwigType_find_scope(s, nameprefix);
-
-	  /* Couldn't locate a scope for the type.  */
-	  if (!s) {
-	    Delete(base);
-	    Delete(namebase);
-	    Delete(nameprefix);
-	    r = 0;
-	    goto return_result;
-	  }
-	  /* Try to locate the name starting in the scope */
+	  rnameprefix = SwigType_typedef_resolve(nameprefix);
+	  if(rnameprefix != NULL) {
 #ifdef SWIG_DEBUG
-	  Printf(stdout, "namebase = '%s'\n", namebase);
+	    Printf(stdout, "nameprefix '%s' is a typedef to '%s'\n", nameprefix, rnameprefix);
 #endif
-	  type = typedef_resolve(s, namebase);
-	  if (type && resolved_scope) {
-	    /* we need to look for the resolved type, this will also
-	       fix the resolved_scope if 'type' and 'namebase' are
-	       declared in different scopes */
-	    String *rtype = 0;
-	    rtype = typedef_resolve(resolved_scope, type);
-	    if (rtype)
-	      type = rtype;
-	  }
-#ifdef SWIG_DEBUG
-	  Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
-#endif
-	  if (type && (!Swig_scopename_check(type)) && resolved_scope) {
-	    Typetab *rtab = resolved_scope;
-	    String *qname = Getattr(resolved_scope, "qname");
-	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
-	    if ((qname) && typedef_resolve(resolved_scope, type)) {
-	      type = Copy(type);
-	      Insert(type, 0, "::");
-	      Insert(type, 0, qname);
-#ifdef SWIG_DEBUG
-	      Printf(stdout, "qual %s \n", type);
-#endif
-	      newtype = 1;
+	    type = Copy(namebase);
+	    Insert(type, 0, "::");
+	    Insert(type, 0, rnameprefix);
+	    if (strncmp(Char(type), "::", 2) == 0) {
+	      Delitem(type, 0);
+	      Delitem(type, 0);
 	    }
-	    resolved_scope = rtab;
+	    newtype = 1;    
+	  } else {
+	    /* Name had a prefix on it.   See if we can locate the proper scope for it */
+	    String *rnameprefix = template_parameters_resolve(nameprefix);
+	    nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
+	    Delete(rnameprefix);
+	    s = SwigType_find_scope(s, nameprefix);
+
+	    /* Couldn't locate a scope for the type.  */
+	    if (!s) {
+	      Delete(base);
+	      Delete(namebase);
+	      Delete(nameprefix);
+	      r = 0;
+	      goto return_result;
+	    }
+	    /* Try to locate the name starting in the scope */
+#ifdef SWIG_DEBUG
+	    Printf(stdout, "namebase = '%s'\n", namebase);
+#endif
+	    type = typedef_resolve(s, namebase);
+	    if (type && resolved_scope) {
+	      /* we need to look for the resolved type, this will also
+	         fix the resolved_scope if 'type' and 'namebase' are
+	         declared in different scopes */
+	      String *rtype = 0;
+	      rtype = typedef_resolve(resolved_scope, type);
+	      if (rtype)
+	        type = rtype;
+	    }
+#ifdef SWIG_DEBUG
+	    Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
+#endif
+	    if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
+	      Typetab *rtab = resolved_scope;
+	      String *qname = Getattr(resolved_scope, "qname");
+	      /* If qualified *and* the typename is defined from the resolved scope, we qualify */
+	      if ((qname) && typedef_resolve(resolved_scope, type)) {
+	        type = Copy(type);
+	        Insert(type, 0, "::");
+	        Insert(type, 0, qname);
+#ifdef SWIG_DEBUG
+	        Printf(stdout, "qual %s \n", type);
+#endif
+	        newtype = 1;
+	      }
+	      resolved_scope = rtab;
+	    }
 	  }
 	} else {
 	  /* Name is unqualified. */
