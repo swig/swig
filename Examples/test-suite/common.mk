@@ -424,6 +424,7 @@ CPP_TEST_CASES += \
 	template_typedef_ns \
 	template_typedef_ptr \
 	template_typedef_rec \
+	template_typedef_typedef \
 	template_typemaps \
 	template_typemaps_typedef \
 	template_typemaps_typedef2 \
