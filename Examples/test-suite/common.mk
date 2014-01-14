@@ -424,6 +424,7 @@ CPP_TEST_CASES += \
 	template_typedef_ns \
 	template_typedef_ptr \
 	template_typedef_rec \
+	template_typedef_typedef \
 	template_typemaps \
 	template_typemaps_typedef \
 	template_typemaps_typedef2 \
@@ -442,6 +443,7 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typedef_typedef \
 	typemap_arrays \
 	typemap_array_qualifiers \
 	typemap_delete \
