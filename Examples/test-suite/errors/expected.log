@@ -323,6 +323,7 @@ cpp_namespace_aliasundef.i:3: Error: Unknown namespace 'blah'
 
 :::::::::::::::::::::::::::::::: cpp_nested_template.i :::::::::::::::::::::::::::::::::::
 cpp_nested_template.i:9: Warning 324: Named nested template instantiations not supported. Processing as if no name was given to %template().
+cpp_nested_template.i:18: Warning 324: Named nested template instantiations not supported. Processing as if no name was given to %template().
 
 :::::::::::::::::::::::::::::::: cpp_no_access.i :::::::::::::::::::::::::::::::::::
 cpp_no_access.i:3: Warning 319: No access specifier given for base class 'foo' (ignored).
