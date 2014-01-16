@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.12 (9 Feb 2014)
 ===========================
 
+2014-01-16: wsfulton
+            [PHP] Fix compilation error in ZTS mode (64 bit windows) due to incorrect placement
+            of TSRMLS_FETCH() in SWIG_Php_GetModule() as reported by Mark Dawson-Butterworth.
+
 2014-01-13: kwwette
             [Octave] update support to Octave version 3.8.0
 
