@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-16: wsfulton
+            [PHP] Fix compilation error in ZTS mode (64 bit windows) due to incorrect placement
+            of TSRMLS_FETCH() in SWIG_Php_GetModule() as reported by Mark Dawson-Butterworth.
+
 2014-01-14: diorcety
             Patch #112 - Fix symbol resolution involving scopes that have multiple levels
             of typedefs - fixes some template resolutions as well as some typemap searches.

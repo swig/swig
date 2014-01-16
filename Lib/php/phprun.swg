@@ -255,10 +255,9 @@ static char const_name[] = "swig_runtime_data_type_pointer";
 static swig_module_info *SWIG_Php_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   zval *pointer;
   swig_module_info *ret = 0;
+  TSRMLS_FETCH();
 
   MAKE_STD_ZVAL(pointer);
-
-  TSRMLS_FETCH();
 
   if (zend_get_constant(const_name, sizeof(const_name) - 1, pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {
