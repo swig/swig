@@ -2388,6 +2388,7 @@ AC_CONFIG_FILES([			        \
     Source/Makefile			        \
     Examples/Makefile			        \
     Examples/xml/Makefile		        \
+    Examples/test-suite/errors/Makefile		\
     Examples/test-suite/chicken/Makefile	\
     Examples/test-suite/csharp/Makefile	        \
     Examples/test-suite/d/Makefile	        \

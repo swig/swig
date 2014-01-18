@@ -89,6 +89,9 @@ skip-d		= test -n "@SKIP_D@"
 skip-gcj        = test -n "@SKIP_GCJ@"
 skip-android    = test -n "@SKIP_ANDROID@"
 
+# Special errors test-case
+skip-errors	= test -n ""
+
 #####################################################################
 # CHECK
 #####################################################################
@@ -249,6 +252,7 @@ java.actionexample:
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
+	check-errors-test-suite			\
 	check-tcl-test-suite			\
 	check-perl5-test-suite			\
 	check-python-test-suite			\

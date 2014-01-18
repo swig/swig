@@ -640,11 +640,20 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(C_TEST_BROKEN:=.clean)
 
 #######################################################################
+# Error test suite has its own set of test cases
+#######################################################################
+ifneq (,$(ERROR_TEST_CASES))
+check: $(ERROR_TEST_CASES)
+else
+
+#######################################################################
 # The following applies for all module languages
 #######################################################################
-all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
+all: $(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
-check: 	$(NOT_BROKEN_TEST_CASES)
+broken: $(BROKEN_TEST_CASES)
+
+check: $(NOT_BROKEN_TEST_CASES)
 
 check-c: $(C_TEST_CASES:=.ctest)
 
@@ -652,11 +661,11 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
+endif
+
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:
 	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
-
-broken: $(BROKEN_TEST_CASES)
 
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
