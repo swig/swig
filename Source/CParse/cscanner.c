@@ -315,7 +315,6 @@ static int yylook(void) {
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
 	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
-	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
       }
       return CHARCONST;
 
@@ -323,7 +322,6 @@ static int yylook(void) {
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
 	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
-	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
       }
       return WCHARCONST;
 
