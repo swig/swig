@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Perl extensions.
+ * This file contains support for director classes so that Perl proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIG_DIRECTOR_PERL_HEADER_
@@ -138,14 +138,13 @@ namespace Swig {
   };
 
   /* base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
   public:
-    virtual const char *getMessage() const = 0;
     virtual SV *getNative() const = 0;
   };
 
   /* exceptions emitted by Perl */
-  class DirectorMethodException : public Swig::DirectorException {
+  class DirectorMethodException : public DirectorException {
   protected:
     SV *err;
   public:
@@ -153,11 +152,7 @@ namespace Swig {
       SvREFCNT_inc(err);
     }
 
-    ~DirectorMethodException() {
-      SvREFCNT_dec(err);
-    }
-
-    const char *getMessage() const {
+    const char *what() const throw() {
       return SvPV_nolen(err);
     }
 
@@ -169,15 +164,19 @@ namespace Swig {
       throw DirectorMethodException(sv);
     }
   };
+
   /* exceptions emitted by wrap code */
-  class DirectorWrapException : public Swig::DirectorException {
+  class DirectorWrapException : public DirectorException {
   protected:
     std::string msg;
     DirectorWrapException(const char *str) : msg(str) {
     }
 
   public:
-    virtual const char *getMessage() const {
+    virtual ~DirectorWrapException() throw() {
+    }
+
+    const char *what() const throw() {
       return msg.c_str();
     }
 
@@ -186,10 +185,11 @@ namespace Swig {
     }
   };
 
-  class DirectorTypeMismatchException : public Swig::DirectorWrapException {
+  class DirectorTypeMismatchException : public DirectorWrapException {
   public:
     DirectorTypeMismatchException(const char *str) : DirectorWrapException(str) {
     }
+
     static void raise(const char *type, const char *msg) {
       std::string err = std::string(type);
       err += ": ";
@@ -198,12 +198,13 @@ namespace Swig {
     }
   };
 
-  class DirectorPureVirtualException : public Swig::DirectorWrapException {
+  class DirectorPureVirtualException : public DirectorWrapException {
   public:
     DirectorPureVirtualException(const char *name)
       : DirectorWrapException("SWIG director pure virtual method called: ") {
       msg += name;
     }
+
     static void raise(const char *name) {
       throw DirectorPureVirtualException(name);
     }

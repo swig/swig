@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Java extensions.
+ * This file contains support for director classes so that Java proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 #if defined(DEBUG_DIRECTOR_OWNED) || defined(DEBUG_DIRECTOR_EXCEPTION)

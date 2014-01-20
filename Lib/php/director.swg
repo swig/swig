@@ -1,14 +1,15 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to PHP extensions.
+ * This file contains support for director classes so that PHP proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIG_DIRECTOR_PHP_HEADER_
 #define SWIG_DIRECTOR_PHP_HEADER_
 
 #include <string>
+#include <exception>
 #include <map>
 
 /*
@@ -122,7 +123,7 @@ namespace Swig {
   };
 
   /* base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
   protected:
     std::string swig_msg;
   public:
@@ -135,13 +136,20 @@ namespace Swig {
       SWIG_ErrorMsg() = swig_msg.c_str();
     }
 
+    virtual ~DirectorException() throw() {
+    }
+
+    const char *what() const throw() {
+      return swig_msg.c_str();
+    }
+
     static void raise(int code, const char *hdr, const char *msg TSRMLS_DC) {
       throw DirectorException(code, hdr, msg TSRMLS_CC);
     }
   };
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {
+  class DirectorPureVirtualException : public DirectorException {
   public:
     DirectorPureVirtualException(const char *msg TSRMLS_DC)
       : DirectorException(E_ERROR, "SWIG director pure virtual method called", msg TSRMLS_CC) {
@@ -151,8 +159,9 @@ namespace Swig {
       throw DirectorPureVirtualException(msg TSRMLS_CC);
     }
   };
+
   /* any php exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException
+  class DirectorMethodException : public DirectorException
   {
   public:
     DirectorMethodException(const char *msg TSRMLS_DC)

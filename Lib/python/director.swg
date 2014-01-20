@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Python extensions.
+ * This file contains support for director classes so that Python proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIG_DIRECTOR_PYTHON_HEADER_
@@ -173,7 +173,7 @@ namespace Swig {
   };
 
   /* base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
   protected:
     std::string swig_msg;
   public:
@@ -184,12 +184,20 @@ namespace Swig {
         swig_msg += msg;
       }
       if (!PyErr_Occurred()) {
-        PyErr_SetString(error, getMessage());
+        PyErr_SetString(error, what());
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
 
+    virtual ~DirectorException() throw() {
+    }
+
+    /* Deprecated, use what() instead */
     const char *getMessage() const {
+      return what();
+    }
+
+    const char *what() const throw() {
       return swig_msg.c_str();
     }
 
@@ -210,7 +218,7 @@ namespace Swig {
         throw;
       } catch (DirectorException& e) {
         std::cerr << "SWIG Director exception caught:" << std::endl
-                  << e.getMessage() << std::endl;
+                  << e.what() << std::endl;
       } catch (std::exception& e) {
         std::cerr << "std::exception caught: "<< e.what() << std::endl;
       } catch (...) {
@@ -243,14 +251,14 @@ namespace Swig {
   };
 
   /* type mismatch in the return value from a python method call */
-  class DirectorTypeMismatchException : public Swig::DirectorException {
+  class DirectorTypeMismatchException : public DirectorException {
   public:
     DirectorTypeMismatchException(PyObject *error, const char *msg="")
-      : Swig::DirectorException(error, "SWIG director type mismatch", msg) {
+      : DirectorException(error, "SWIG director type mismatch", msg) {
     }
 
     DirectorTypeMismatchException(const char *msg="")
-      : Swig::DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg) {
+      : DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg) {
     }
 
     static void raise(PyObject *error, const char *msg) {
@@ -263,7 +271,7 @@ namespace Swig {
   };
 
   /* any python exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException {
+  class DirectorMethodException : public DirectorException {
   public:
     DirectorMethodException(const char *msg = "")
       : DirectorException(PyExc_RuntimeError, "SWIG director method error.", msg) {
@@ -275,7 +283,7 @@ namespace Swig {
   };
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {
+  class DirectorPureVirtualException : public DirectorException {
   public:
     DirectorPureVirtualException(const char *msg = "")
       : DirectorException(PyExc_RuntimeError, "SWIG director pure virtual method called", msg) {

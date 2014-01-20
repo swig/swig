@@ -1,8 +1,8 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Ruby extensions.
+ * This file contains support for director classes so that Ruby proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 /*
@@ -17,6 +17,7 @@
 
 #include <string>
 #include <iostream>
+#include <exception>
 #include <map>
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
@@ -108,7 +109,7 @@ namespace Swig {
   };
 
   /* Base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
   protected:
     VALUE swig_error;
     std::string swig_msg;
@@ -130,6 +131,9 @@ namespace Swig {
     }
 
   public:
+    virtual ~DirectorException() throw() {
+    }
+
     VALUE getType() const {
       return CLASS_OF(swig_error);
     }
@@ -138,11 +142,13 @@ namespace Swig {
       return swig_error;
     }
 
+    /* Deprecated, use what() instead */
     const std::string& getMessage() const {
       return swig_msg;
     }
 
-    virtual ~DirectorException() {
+    const char *what() const throw() {
+      return swig_msg.c_str();
     }
   };
 
@@ -154,7 +160,7 @@ namespace Swig {
 	throw;
       } catch (DirectorException& e) {
 	std::cerr << "SWIG Director exception caught:" << std::endl
-		  << e.getMessage() << std::endl;
+		  << e.what() << std::endl;
       } catch (std::exception& e) {
 	std::cerr << "std::exception caught: "<< e.what() << std::endl;
       } catch (...) {
@@ -184,14 +190,14 @@ namespace Swig {
 
 
   /* Type mismatch in the return value from a Ruby method call */
-  class DirectorTypeMismatchException : public Swig::DirectorException {
+  class DirectorTypeMismatchException : public DirectorException {
   public:
     DirectorTypeMismatchException(VALUE error, const char *msg="")
-      : Swig::DirectorException(error, "SWIG director type mismatch", msg) {
+      : DirectorException(error, "SWIG director type mismatch", msg) {
     }
 
     DirectorTypeMismatchException(const char *msg="")
-      : Swig::DirectorException(rb_eTypeError, "SWIG director type mismatch", msg) {
+      : DirectorException(rb_eTypeError, "SWIG director type mismatch", msg) {
     }
 
     static void raise(VALUE error, const char *msg) {
@@ -204,14 +210,14 @@ namespace Swig {
   };
 
   /* Any Ruby exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException {
+  class DirectorMethodException : public DirectorException {
   public:
     DirectorMethodException(VALUE error)
-      : Swig::DirectorException(error) {
+      : DirectorException(error) {
     }
 
     DirectorMethodException(const char *msg = "")
-      : Swig::DirectorException(rb_eRuntimeError, "SWIG director method error.", msg) {
+      : DirectorException(rb_eRuntimeError, "SWIG director method error.", msg) {
     }
 
     static void raise(VALUE error) {
@@ -220,7 +226,7 @@ namespace Swig {
   };
 
   /* Attempted to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException
+  class DirectorPureVirtualException : public DirectorException
   {
   public:
     DirectorPureVirtualException(const char *msg = "")

@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-20: wsfulton
+            Director exceptions (Swig::DirectorException) now derive from std::exception
+            and hence provide the what() method. In Python and Ruby, this replaces the now
+            deprecated DirectorException::getMessage() method.
+
 2014-01-16: wsfulton
             [PHP] Fix compilation error in ZTS mode (64 bit windows) due to incorrect placement
             of TSRMLS_FETCH() in SWIG_Php_GetModule() as reported by Mark Dawson-Butterworth.

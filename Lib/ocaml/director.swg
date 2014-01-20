@@ -1,46 +1,47 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Ocaml extensions.
- *
+ * This file contains support for director classes so that Ocaml proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
 #include <string>
+#include <exception>
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
 
 namespace Swig {
   /* base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
     protected:
       std::string swig_msg;
+
     public:
-      DirectorException(const char *msg="") {
+      DirectorException(const char *msg="") : swig_msg(msg) {
       }
 
-      const char *getMessage() const {
+      virtual ~DirectorException() throw() {
+      }
+
+      const char *what() const throw() {
         return swig_msg.c_str();
       }
-
-      virtual ~DirectorException() {
-      }
   };
 
-  /* type mismatch in the return value from a python method call */
-  class DirectorTypeMismatchException : public Swig::DirectorException {
+  /* type mismatch in the return value from a Ocaml method call */
+  class DirectorTypeMismatchException : public DirectorException {
     public:
-      DirectorTypeMismatchException(const char *msg="") {
+      DirectorTypeMismatchException(const char *msg="") : DirectorException(msg) {
       }
   };
 
-  /* any python exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException {};
+  /* any Ocaml exception that occurs during a director method call */
+  class DirectorMethodException : public DirectorException {};
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {
+  class DirectorPureVirtualException : public DirectorException {
     public:
-      DirectorPureVirtualException(const char *msg="") {
+      DirectorPureVirtualException(const char *msg="") : DirectorException(msg) {
       }
 
       static void raise(const char *msg) {
