@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-21: ianlancetaylor
+	    [Go] Add support for Go 1.3, not yet released.
+
 2014-01-20: wsfulton
             Director exceptions (Swig::DirectorException) now derive from std::exception
             and hence provide the what() method. In Python and Ruby, this replaces the now

@@ -7,6 +7,7 @@ GO		= @GO@
 GOGCC		= @GOGCC@
 GO1		= @GO1@
 GO12		= @GO12@
+GO13		= @GO13@
 GOC		= @GOC@
 SCRIPTSUFFIX	= _runme.go
 
@@ -60,7 +61,7 @@ run_testcase = \
 	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
 	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*_wrap.@OBJEXT@; \
-	  elif $(GO12); then \
+	  elif $(GO12) || $(GO13); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -73,7 +74,7 @@ run_testcase_cpp = \
 	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
 	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*_wrap.@OBJEXT@ -lstdc++; \
-	  elif $(GO12); then \
+	  elif $(GO12) || $(GO13); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -87,7 +88,7 @@ run_multi_testcase = \
 	  if $(GOGCC) ; then \
 	    files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
 	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.@OBJEXT@ $${f}_wrap.@OBJEXT@; done` -lstdc++; \
-	  elif $(GO12); then \
+	  elif $(GO12) || $(GO13); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \

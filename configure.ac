@@ -1997,6 +1997,7 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GOC=
   GO1=false
   GO12=false
+  GO13=false
   GOGCC=false
   GOOPT=
   GOVERSIONOPTION=
@@ -2011,6 +2012,7 @@ else
   GOGCC=false
   GO1=false
   GO12=false
+  GO13=false
   GOOPT=
   GOVERSIONOPTION=
   if test -n "$GO" ; then
@@ -2050,11 +2052,13 @@ else
       esac
       case $go_version in
       go1.0* | go1.1*)
-        GO12=false
 	GOOPT="$GOOPT -use-shlib"
 	;;
-      *)
+      go1.2*)
         GO12=true
+	;;
+      *)
+	GO13=true
 	;;
       esac
     else
@@ -2071,6 +2075,7 @@ else
       fi
       GOOPT="-intgosize 32"
       GO12=false
+      GO13=false
     fi
   fi
 fi
@@ -2080,6 +2085,7 @@ AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
 AC_SUBST(GO12)
+AC_SUBST(GO13)
 AC_SUBST(GOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
