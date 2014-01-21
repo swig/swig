@@ -6,6 +6,9 @@ Version 3.0.0 (in progress)
 ============================
 
 2014-01-21: ianlancetaylor
+	    [Go] Add %go_import directive.
+
+2014-01-21: ianlancetaylor
 	    [Go] Add support for Go 1.3, not yet released.
 
 2014-01-20: wsfulton

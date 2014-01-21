@@ -192,29 +192,25 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 
 #ifndef SWIGGO_GCCGO
 
-%insert(go_header) %{
-
-import _ "runtime/cgo"
-import "unsafe"
-
-type _ unsafe.Pointer
-
-%}
+%go_import("unsafe", _ "runtime/cgo")
 
 #else
 
+%go_import("syscall", "unsafe")
+
 %insert(go_header) %{
 
-import "syscall"
-import "unsafe"
-
 type _ syscall.Sockaddr
-
-type _ unsafe.Pointer
 
 %}
 
 #endif
+
+%insert(go_header) %{
+
+type _ unsafe.Pointer
+
+%}
 
 /* Function pointers are translated by the code in go.cxx into
    _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */

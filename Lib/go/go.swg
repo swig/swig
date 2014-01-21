@@ -4,6 +4,9 @@
  * Go configuration module.
  * ------------------------------------------------------------ */
 
+/* Code insertion directives */
+#define %go_import(...) %insert(go_imports) %{__VA_ARGS__%}
+
 /* Basic types */
 
 %typemap(gotype) bool,               const bool &               "bool"

@@ -666,9 +666,31 @@ func (arg SwigcptrWrapped_MyClass) GetAValue() (int, bool) {
 few, then you might as well define your own struct that includes the
 swig-wrapped object, instead of adding methods to the swig-generated object.</p>
 
-<p>This only works if your wrappers do not need to import other go modules.
-There is at present no way to insert import statements in the correct place
-in swig-generated go.  If you need to do that, you must put your go code
-in a separate file.</p>
+<p>If you need to import other go packages, you can do this with
+<code>%go_import</code>.  For example,</p>
+<div class="code">
+<pre>
+%go_import("fmt", _ "unusedPackage", rp "renamed/package")
+
+%insert(go_wrapper) %{
+
+func foo() {
+  fmt.Println("Some string:", rp.GetString())
+}
+
+// Importing the same package twice is permitted,
+// Go code will be generated with only the first instance of the import.
+%go_import("fmt")
+
+%insert(go_wrapper) %{
+
+func bar() {
+  fmt.Println("Hello world!")
+}
+
+%}
+</pre>
+</div>
+
 </body>
 </html>

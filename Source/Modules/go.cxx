@@ -45,6 +45,7 @@ class GO:public Language {
   File *f_c_init;
   File *f_c_directors;
   File *f_c_directors_h;
+  File *f_go_imports;
   File *f_go_runtime;
   File *f_go_header;
   File *f_go_wrappers;
@@ -84,6 +85,9 @@ class GO:public Language {
   // A hash table of classes which were defined.  The index is a Go
   // type name.
   Hash *defined_types;
+  // A hash table of all the go_imports already imported. The index is a full
+  // import name e.g. '"runtime"' or '_ "runtime/cgo"' or 'sc "syscall"'.
+  Hash *go_imports;
 
 public:
   GO():package(NULL),
@@ -104,6 +108,7 @@ public:
      f_c_init(NULL),
      f_c_directors(NULL),
      f_c_directors_h(NULL),
+     f_go_imports(NULL),
      f_go_runtime(NULL),
      f_go_header(NULL),
      f_go_wrappers(NULL),
@@ -120,7 +125,8 @@ public:
      making_variable_wrappers(false),
      is_static_member_function(false),
      undefined_types(NULL),
-     defined_types(NULL) {
+     defined_types(NULL),
+     go_imports(NULL) {
     director_multiple_inheritance = 1;
     director_language = 1;
     director_prot_ctor_code = NewString("_swig_gopanic(\"accessing abstract class or protected constructor\");");
@@ -362,6 +368,7 @@ private:
     f_c_wrappers = NewString("");
     f_c_init = NewString("");
     f_c_directors = NewString("");
+    f_go_imports = NewString("");
     f_go_runtime = NewString("");
     f_go_header = NewString("");
     f_go_wrappers = NewString("");
@@ -379,6 +386,7 @@ private:
     Swig_register_filebyname("director", f_c_directors);
     Swig_register_filebyname("director_h", f_c_directors_h);
     Swig_register_filebyname("go_begin", f_go_begin);
+    Swig_register_filebyname("go_imports", f_go_imports);
     Swig_register_filebyname("go_runtime", f_go_runtime);
     Swig_register_filebyname("go_header", f_go_header);
     Swig_register_filebyname("go_wrapper", f_go_wrappers);
@@ -445,10 +453,13 @@ private:
 
     undefined_types = NewHash();
     defined_types = NewHash();
+    go_imports = NewHash();
 
     // Emit code.
 
     Language::top(n);
+
+    Delete(go_imports);
 
     // Write out definitions for the types not defined by SWIG.
 
@@ -493,6 +504,7 @@ private:
     Dump(f_c_runtime, f_c_begin);
     Dump(f_c_wrappers, f_c_begin);
     Dump(f_c_init, f_c_begin);
+    Dump(f_go_imports, f_go_begin);
     Dump(f_go_header, f_go_begin);
     Dump(f_go_runtime, f_go_begin);
     Dump(f_go_wrappers, f_go_begin);
@@ -506,6 +518,7 @@ private:
     Delete(f_c_header);
     Delete(f_c_wrappers);
     Delete(f_c_init);
+    Delete(f_go_imports);
     Delete(f_go_runtime);
     Delete(f_go_header);
     Delete(f_go_wrappers);
@@ -535,13 +548,41 @@ private:
     String *hold_import = imported_package;
     String *modname = Getattr(n, "module");
     if (modname) {
-      Printv(f_go_begin, "import \"", modname, "\"\n", NULL);
+      if (!Getattr(go_imports, modname)) {
+        Setattr(go_imports, modname, modname);
+        Printv(f_go_imports, "import \"", modname, "\"\n", NULL);
+      }
       imported_package = modname;
       saw_import = true;
     }
     int r = Language::importDirective(n);
     imported_package = hold_import;
     return r;
+  }
+
+  /* ----------------------------------------------------------------------
+   * Language::insertDirective()
+   *
+   * If the section is go_imports, store them for later.
+   * ---------------------------------------------------------------------- */
+  virtual int insertDirective(Node *n) {
+    char *section = Char(Getattr(n, "section"));
+    if ((ImportMode && !Getattr(n, "generated")) ||
+        !section || (strcmp(section, "go_imports") != 0)) {
+      return Language::insertDirective(n);
+    }
+
+    char *code = Char(Getattr(n, "code"));
+    char *pch = strtok(code, ",");
+    while (pch != NULL) {
+      // Do not import same thing more than once.
+      if (!Getattr(go_imports, pch)) {
+        Setattr(go_imports, pch, pch);
+        Printv(f_go_imports, "import ", pch, "\n", NULL);
+      }
+      pch = strtok(NULL, ",");
+    }
+    return SWIG_OK;
   }
 
   /* ----------------------------------------------------------------------
