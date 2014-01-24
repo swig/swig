@@ -50,7 +50,7 @@ before_install:
 script:
   - ./autogen.sh && ./configure
   - make -s $SWIGJOBS
-  - ./swig -version
+  - ./swig -version && ./swig -pcreversion
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
   - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
