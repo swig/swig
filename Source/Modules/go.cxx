@@ -4794,6 +4794,9 @@ private:
 	      if (is_int) {
 		ret = NewString("intgo ");
 		Append(ret, name);
+	      } else if (is_int64) {
+		ret = NewString("long long ");
+		Append(ret, name);
 	      } else {
 		ret = SwigType_lstr(t, name);
 	      }

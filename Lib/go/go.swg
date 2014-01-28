@@ -48,13 +48,16 @@
 	     const unsigned short &,
 	     const int &,
 	     const unsigned int &,
-	     const long &,
-	     const unsigned long &,
 	     const long long &,
 	     const unsigned long long &,
 	     const float &,
 	     const double &
 %{ $1 = ($1_ltype)&$input; %}
+
+%typemap(in) const long & ($*1_ltype temp),
+	     const unsigned long & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input;
+   $1 = ($1_ltype)&temp; %}
 
 %typemap(out) bool,
 	      char,
