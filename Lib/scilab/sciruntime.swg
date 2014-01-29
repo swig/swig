@@ -18,16 +18,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
+#define __USE_DEPRECATED_STACK_FUNCTIONS__
+#endif
 #include "MALLOC.h"
 #include "sciprint.h"
 #include "Scierror.h"
 #include "api_scilab.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
-#if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
-#define __USE_DEPRECATED_STACK_FUNCTIONS__
-#include "stack-c.h"
-#endif
 #ifdef __cplusplus
 }
 #endif
