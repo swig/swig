@@ -41,7 +41,7 @@ SWIG_AsVal_dec(bool)(SwigSciObject _iVar, bool *_pbValue) {
 SWIGINTERN int
 SWIG_From_dec(bool)(bool _bValue) {
   int iRet = 0;
-  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
 
   iRet = createScalarBoolean(pvApiCtx, iVarOut, _bValue);
   if (iRet) {
@@ -88,12 +88,12 @@ SWIGINTERN int
 SWIG_SciBoolean_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfBoolean(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _piData);
+  sciErr = createMatrixOfBoolean(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _piData);
   if(sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }

@@ -161,7 +161,7 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
   pstData = (char **)malloc(sizeof(char *));
   pstData[0] = strdup(_pchValue);
 
-  sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
+  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, 1, 1, (char **)pstData);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -169,7 +169,7 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
 
   free(pstData[0]);
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 

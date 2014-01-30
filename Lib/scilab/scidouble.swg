@@ -37,7 +37,7 @@ SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
 SWIGINTERN int
 SWIG_From_dec(double)(double _dblValue) {
   int iRet;
-  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
   iRet = createScalarDouble(pvApiCtx, iVarOut, _dblValue);
   if (iRet) {
     return SWIG_ERROR;
@@ -109,13 +109,13 @@ SWIGINTERN int
 SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, double *_pdblValue) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _pdblValue);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _pdblValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 %fragment(SWIG_CreateScilabVariable_frag(double), "wrapper") {

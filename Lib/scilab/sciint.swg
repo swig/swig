@@ -200,13 +200,13 @@ SWIGINTERN int
 SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfInteger32(_pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, _piData);
+  sciErr = createMatrixOfInteger32(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _piData);
   if(sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 

@@ -132,13 +132,13 @@ SWIGRUNTIMEINLINE int
 SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_info *_descriptor, int _flags) {
   SciErr sciErr;
 
-  sciErr = createPointer(pvApiCtx, Rhs + _iVarOut, (void *)_object);
+  sciErr = createPointer(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, (void *)_object);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 
 SWIGRUNTIME int

@@ -68,13 +68,13 @@ SwigScilabInt8FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValue
   int iRowsOut = 1;
   int iColsOut = 1;
 
-  sciErr = createMatrixOfInteger8(pvApiCtx, Rhs + _iVarOut, iRowsOut, iColsOut, (char *)&_scValue);
+  sciErr = createMatrixOfInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, (char *)&_scValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }
 
@@ -130,12 +130,12 @@ SWIGINTERN int
 SWIG_SciInt8_FromSignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const signed char *_pscValue) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfInteger8(pvApiCtx, Rhs + _iVarOut, _iRows, _iCols, (const char *)_pscValue);
+  sciErr = createMatrixOfInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, (const char *)_pscValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
 }
 }

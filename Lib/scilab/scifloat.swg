@@ -20,7 +20,7 @@ SWIG_From_dec(float)(float _flValue) {
   double dblDoubleValue = (double) _flValue;
   int iRowsOut = 1;
   int iColsOut = 1;
-  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
 
   sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
   if (sciErr.iErr) {
