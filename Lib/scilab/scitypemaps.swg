@@ -3,14 +3,8 @@
 
 %include <scienum.swg>
 
-// Include fundamental fragments definitions
-%include <typemaps/fragments.swg>
-// Scilab types
-#define SWIG_Object                      int
-
-// VOID_Object is used for functions returning void
-// In Scilab, returning void is ignored (no typemap associated)
-//#define VOID_Object                      ScilabObject
+// Scilab object type
+#define SWIG_Object int
 
 #define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
 #define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR // Name is managed by the the function name
@@ -21,12 +15,6 @@
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
-
-// TODO TYPEMAPS
-//              CHAR         SHORT           INT           LONG
-// SIGNED       INT8         INT16          INT32          INT32
-//   X       INT8/STRING  INT16/DOUBLE  INT32/DOUBLE  INT32/DOUBLE
-// UNSIGNED     UINT8        UINT16         UINT32         UINT32
 
 /* SCILAB GENERIC TYPEMAPS */
 /*
@@ -371,8 +359,6 @@
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY)  float [ANY]                             { SCILAB_TYPECHECK(isDoubleType)        }
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                                    { SCILAB_TYPECHECK(isBooleanType)       }
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(isStringType)       }
-
-//%apply int { size_t };
 
 /* -----------------------------------------------------------------------------*/
 /* Constants and enums to Scilab variables
