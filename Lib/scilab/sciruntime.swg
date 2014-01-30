@@ -7,7 +7,7 @@
 
 %insert(runtime) %{
 
-/* Macro to test version of Scilab */
+/* Macro to get version of Scilab */
 #ifndef SWIG_SCILAB_VERSION_MIN
 #define SWIG_SCILAB_VERSION_MIN(major, minor, maintenance) \
   ((SCI_VERSION_MAJOR << 16) + (SCI_VERSION_MINOR << 8) + SCI_VERSION_MAINTENANCE \
@@ -80,9 +80,6 @@ SWIG_Scilab_ErrorMsg(int code, const char *mesg)
 #define SWIG_fail                 return SWIG_ERROR;
 #define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)
 #define SWIG_Error(code, msg)     SWIG_Scilab_ErrorMsg(code,msg)
-
-/* Used for C++ enums */
-//#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
 
 #if SWIG_SCILAB_VERSION_MIN(5, 4, 0)
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
