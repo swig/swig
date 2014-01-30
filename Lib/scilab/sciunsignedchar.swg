@@ -64,17 +64,10 @@ SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int _iVar, unsigned char *_pucValu
 %fragment("SWIG_SciUint8_FromUnsignedChar", "header") {
 SWIGINTERN int
 SWIG_SciUint8_FromUnsignedChar(void *_pvApiCtx, int _iVarOut, unsigned char _ucValue) {
-  SciErr sciErr;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-
-  sciErr = createMatrixOfUnsignedInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_ucValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarUnsignedInteger8(pvApiCtx, iVarOut, _ucValue))
     return SWIG_ERROR;
-  }
-
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return iVarOut;
 }
 }
 

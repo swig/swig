@@ -64,17 +64,10 @@ SwigScilabInt8ToSignedChar(void *_pvApiCtx, int _iVar, signed char *_pscValue, c
 %fragment("SwigScilabInt8FromSignedChar", "header") {
 SWIGINTERN int
 SwigScilabInt8FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValue) {
-  SciErr sciErr;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-
-  sciErr = createMatrixOfInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, (char *)&_scValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarInteger8(pvApiCtx, iVarOut, _scValue))
     return SWIG_ERROR;
-  }
-
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return iVarOut;
 }
 }
 

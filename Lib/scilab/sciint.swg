@@ -81,11 +81,10 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue,
 SWIGINTERN int
 SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
 {
-  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, (double) _iValue)) {
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
+  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, (double) _iValue))
     return SWIG_ERROR;
-  }
-
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return iVarOut;
 }
 }
 

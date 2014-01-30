@@ -80,7 +80,7 @@ SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname)
 %fragment("SWIG_SciInt16_FromShort", "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
 SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, short _sValue, char *_fname) {
-return SWIG_From_dec(int)((int)_sValue);
+  return SWIG_From_dec(int)((int)_sValue);
 }
 }
 

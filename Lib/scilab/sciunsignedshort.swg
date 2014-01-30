@@ -64,17 +64,10 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
 %fragment("SWIG_SciUint16_FromUnsignedShort", "header") {
 SWIGINTERN int
 SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _usValue, char *_fname) {
-  SciErr sciErr;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-
-  sciErr = createMatrixOfUnsignedInteger16(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_usValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarUnsignedInteger16(_pvApiCtx, iVarOut, _usValue))
     return SWIG_ERROR;
-  }
-
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return iVarOut;
 }
 }
 

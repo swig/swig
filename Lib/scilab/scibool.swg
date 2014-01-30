@@ -40,14 +40,9 @@ SWIG_AsVal_dec(bool)(SwigSciObject _iVar, bool *_pbValue) {
 %fragment(SWIG_From_frag(bool), "header") {
 SWIGINTERN int
 SWIG_From_dec(bool)(bool _bValue) {
-  int iRet = 0;
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-
-  iRet = createScalarBoolean(pvApiCtx, iVarOut, _bValue);
-  if (iRet) {
+  int iVarOut = SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
+  if (createScalarBoolean(pvApiCtx, iVarOut, _bValue))
     return SWIG_ERROR;
-  }
-
   return iVarOut;
 }
 }

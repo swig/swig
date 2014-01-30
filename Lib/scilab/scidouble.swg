@@ -36,13 +36,9 @@ SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
 %fragment(SWIG_From_frag(double), "header") {
 SWIGINTERN int
 SWIG_From_dec(double)(double _dblValue) {
-  int iRet;
   int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-  iRet = createScalarDouble(pvApiCtx, iVarOut, _dblValue);
-  if (iRet) {
+  if (createScalarDouble(pvApiCtx, iVarOut, _dblValue))
     return SWIG_ERROR;
-  }
-
   return iVarOut;
 }
 }
