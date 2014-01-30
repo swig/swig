@@ -1,6 +1,6 @@
 /*
  * C-type: long
- * Scilab type: int32
+ * Scilab type: double or int32
  */
 
 %fragment(SWIG_AsVal_frag(long), "header", fragment="SWIG_Int_AsLong") {
@@ -30,7 +30,7 @@ SWIG_Int_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fname) {
 
 /*
  * C-type: ptrdiff_t
- * Scilab type: int32
+ * Scilab type: double or int32
  */
 
 %fragment(SWIG_AsVal_frag(ptrdiff_t), "header", fragment="SWIG_Int_AsPtrDiff") {

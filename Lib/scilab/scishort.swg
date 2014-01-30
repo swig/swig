@@ -1,6 +1,6 @@
 /*
  * C-type: short
- * Scilab type: double scalar
+ * Scilab type: double or int16
  */
 
 %fragment(SWIG_AsVal_frag(short), "header", fragment="SWIG_SciInt16_AsShort") {
@@ -62,18 +62,10 @@ SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname)
 %fragment(SWIG_From_frag(short), "header", fragment="SWIG_SciInt16_FromShort") {
 #define SWIG_From_short(scilabValue) SWIG_SciInt16_FromShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt16_FromShort", "header") {
+%fragment("SWIG_SciInt16_FromShort", "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
-SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, signed short _usValue, char *_fname) {
-  SciErr sciErr;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-  sciErr = createMatrixOfInteger16(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_usValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, short _sValue, char *_fname) {
+return SWIG_From_dec(int)((int)_sValue);
 }
 }
 

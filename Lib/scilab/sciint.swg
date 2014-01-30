@@ -1,14 +1,14 @@
 /*
  * C-type: int
- * Scilab type: 32-bit signed integer
+ * Scilab type: double or 32-bit signed integer
  */
 
-%fragment(SWIG_AsVal_frag(int), "header", fragment="SWIG_SciInt32_AsInt") {
-%#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciInt32_AsInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%fragment(SWIG_AsVal_frag(int), "header", fragment="SWIG_SciDoubleOrInt32_AsInt") {
+%#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDoubleOrInt32_AsInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt32_AsInt", "header") {
+%fragment("SWIG_SciDoubleOrInt32_AsInt", "header") {
 SWIGINTERN int
-SWIG_SciInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_fname)
+SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_fname)
 {
   SciErr sciErr;
   int iRet = 0;
@@ -74,21 +74,14 @@ SWIG_SciInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_
 }
 }
 
-%fragment(SWIG_From_frag(int), "header", fragment="SWIG_SciInt32_FromInt") {
-%#define SWIG_From_int(scilabValue) SWIG_SciInt32_FromInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%fragment(SWIG_From_frag(int), "header", fragment="SWIG_SciDouble_FromInt") {
+%#define SWIG_From_int(scilabValue) SWIG_SciDouble_FromInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt32_FromInt", "header") {
+%fragment("SWIG_SciDouble_FromInt", "header") {
 SWIGINTERN int
-SWIG_SciInt32_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
+SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
 {
-  SciErr sciErr;
-  int iRowsOut = 1;
-  int iColsOut = 1;
-
-  sciErr = createMatrixOfInteger32(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, iRowsOut, iColsOut, &_iValue);
-  if (sciErr.iErr)
-  {
-    printError(&sciErr, 0);
+  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, (double) _iValue)) {
     return SWIG_ERROR;
   }
 
