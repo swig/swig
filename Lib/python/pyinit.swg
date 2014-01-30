@@ -116,7 +116,7 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
     var = var->next;
   }
   if (res == NULL && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_SetString(PyExc_AttributeError,"Unknown C global variable");
   }
   return res;
 }
