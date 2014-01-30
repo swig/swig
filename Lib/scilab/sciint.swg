@@ -11,66 +11,67 @@ SWIGINTERN int
 SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue, char *_fname)
 {
   SciErr sciErr;
-  int iRet = 0;
+  int iType = 0;
+  int iRows = 0;
+  int iCols = 0;
   int *piAddrVar = NULL;
-  int iPrecision = 0;
-  int iValue;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(_pvApiCtx, piAddrVar))
-  {
-    Scierror(999, _("%s: Wrong size for argument %d: a scalar expected.\n"),
-      SWIG_Scilab_GetFname(),_iVar);
-    return 999;
+  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
   }
+  if (iType == sci_ints) {
+    int iPrec = 0;
+    int *piData = NULL;
 
-  // Accepts double or 32-bit signed integer
-  if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar))
-  {
-    double dValue = 0.0;
-    iRet = getScalarDouble(_pvApiCtx, piAddrVar, &dValue);
-    if (iRet)
-    {
-      return SWIG_ERROR;
+	sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+	if (sciErr.iErr) {
+	  printError(&sciErr, 0);
+	  return SWIG_ERROR;
+    }
+    if (iPrec != SCI_INT32) {
+	  Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
+	  return SWIG_ERROR;
     }
 
-    iValue = (int)dValue;
-  }
-  else if (isIntegerType(pvApiCtx, piAddrVar))
-  {
-    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrecision);
-    if (sciErr.iErr)
-    {
-      printError(&sciErr, 0);
-      return sciErr.iErr;
+    sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
+    if (sciErr.iErr) {
+	  printError(&sciErr, 0);
+	  return SWIG_ERROR;
     }
+    if (iRows * iCols != 1) {
+	  Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
+	  return SWIG_ERROR;
+    }
+    *_piValue = *piData;
+  }
+  else if (iType == sci_matrix) {
+	  double *pdData = NULL;
 
-    if (iPrecision == SCI_INT32)
-    {
-      iRet = getScalarInteger32(_pvApiCtx, piAddrVar, &iValue);
-    }
+	  sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+	  if (sciErr.iErr) {
+		printError(&sciErr, 0);
+		return SWIG_ERROR;
+	  }
+	  if (iRows * iCols != 1) {
+		Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
+		return SWIG_ERROR;
+	  }
+	  *_piValue = (int) *pdData;
+  }
+  else {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
+    return SWIG_ERROR;
   }
 
-  if (iRet == 0)
-  {
-    if (_piValue)
-    {
-      *_piValue = iValue;
-    }
-    return SWIG_OK;
-  }
-  else
-  {
-    Scierror(999, _("%s: Wrong type for argument %d: A 32-bit signed integer or a real expected.\n"),
-        SWIG_Scilab_GetFname(), _iVar);
-    return 999;
-  }
+  return SWIG_OK;
 }
 }
 
