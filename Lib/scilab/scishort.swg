@@ -3,12 +3,12 @@
  * Scilab type: double or int16
  */
 
-%fragment(SWIG_AsVal_frag(short), "header", fragment="SWIG_SciInt16_AsShort") {
-#define SWIG_AsVal_short(scilabValue, valuePointer) SWIG_SciInt16_AsShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%fragment(SWIG_AsVal_frag(short), "header", fragment="SWIG_SciDoubleOrInt16_AsShort") {
+#define SWIG_AsVal_short(scilabValue, valuePointer) SWIG_SciDoubleOrInt16_AsShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt16_AsShort", "header") {
+%fragment("SWIG_SciDoubleOrInt16_AsShort", "header") {
 SWIGINTERN int
-SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname) {
+SWIG_SciDoubleOrInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -26,47 +26,48 @@ SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname)
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
+
   if (iType == sci_ints) {
     int iPrec = 0;
     short *psData = NULL;
 
-	sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-	if (sciErr.iErr) {
-	  printError(&sciErr, 0);
-	  return SWIG_ERROR;
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
     }
     if (iPrec != SCI_INT16) {
-	  Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or double expected.\n"), _fname, _iVar);
-	  return SWIG_ERROR;
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
     }
 
     sciErr = getMatrixOfInteger16(_pvApiCtx, piAddrVar, &iRows, &iCols, &psData);
     if (sciErr.iErr) {
-	  printError(&sciErr, 0);
-	  return SWIG_ERROR;
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-	  Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or double expected.\n"), _fname, _iVar);
+	  Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), _fname, _iVar);
 	  return SWIG_ERROR;
     }
     *_psValue = *psData;
   }
   else if (iType == sci_matrix) {
-	  double *pdData = NULL;
+    double *pdData = NULL;
 
-	  sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
-	  if (sciErr.iErr) {
-		printError(&sciErr, 0);
-		return SWIG_ERROR;
-	  }
-	  if (iRows * iCols != 1) {
-		Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or double expected.\n"), _fname, _iVar);
-		return SWIG_ERROR;
-	  }
-	  *_psValue = (short) *pdData;
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_psValue = (short) *pdData;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or double expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
@@ -74,13 +75,16 @@ SWIG_SciInt16_AsShort(void *_pvApiCtx, int _iVar, short *_psValue, char *_fname)
 }
 }
 
-%fragment(SWIG_From_frag(short), "header", fragment="SWIG_SciInt16_FromShort") {
-#define SWIG_From_short(scilabValue) SWIG_SciInt16_FromShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%fragment(SWIG_From_frag(short), "header", fragment="SWIG_SciDouble_FromShort") {
+#define SWIG_From_short(scilabValue) SWIG_SciDouble_FromShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_SciInt16_FromShort", "header", fragment=SWIG_From_frag(int)) {
+%fragment("SWIG_SciDouble_FromShort", "header") {
 SWIGINTERN int
-SWIG_SciInt16_FromShort(void *_pvApiCtx, int _iVarOut, short _sValue, char *_fname) {
-  return SWIG_From_dec(int)((int)_sValue);
+SWIG_SciDouble_FromShort(void *_pvApiCtx, int _iVarOut, short _sValue, char *_fname) {
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _sValue))
+    return SWIG_ERROR;
+  return iVarOut;
 }
 }
 

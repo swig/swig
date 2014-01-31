@@ -3,28 +3,88 @@
  * Scilab type: double or int32
  */
 
-%fragment(SWIG_AsVal_frag(long), "header", fragment="SWIG_Int_AsLong") {
-%#define SWIG_AsVal_long(scilabValue, valuePointer) SWIG_Int_AsLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname());
+%fragment(SWIG_AsVal_frag(long), "header", fragment="SWIG_SciDoubleOrInt32_AsLong") {
+%#define SWIG_AsVal_long(scilabValue, valuePointer) SWIG_SciDoubleOrInt32_AsLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname());
 }
-%fragment("SWIG_Int_AsLong", "header", fragment=SWIG_AsVal_frag(int)) {
+%fragment("SWIG_SciDoubleOrInt32_AsLong", "header") {
 SWIGINTERN int
-SWIG_Int_AsLong(void *_pvApiCtx, SwigSciObject _iVar, long *_plValue, char *_fname) {
-  int iValue = 0.0;
-  if(SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK) {
+SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject _iVar, long *_plValue, char *_fname) {
+  SciErr sciErr;
+  int iType = 0;
+  int iRows = 0;
+  int iCols = 0;
+  int *piAddrVar = NULL;
+
+  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  *_plValue = (long) iValue;
+
+  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if (iType == sci_ints) {
+    int iPrec = 0;
+    int *piData = NULL;
+
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iPrec != SCI_INT32) {
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+
+    sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_plValue = (long) *piData;
+  }
+  else if (iType == sci_matrix) {
+    double *pdData = NULL;
+
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_plValue = (long) *pdData;
+  }
+  else {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+    return SWIG_ERROR;
+  }
+
   return SWIG_OK;
 }
 }
 
-%fragment(SWIG_From_frag(long), "header", fragment="SWIG_Int_FromLong") {
-%#define SWIG_From_long(scilabValue) SWIG_Int_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%fragment(SWIG_From_frag(long), "header", fragment="SWIG_SciDouble_FromLong") {
+%#define SWIG_From_long(scilabValue) SWIG_SciDouble_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_Int_FromLong", "header", fragment=SWIG_From_frag(int)) {
+%fragment("SWIG_SciDouble_FromLong", "header") {
 SWIGINTERN int
-SWIG_Int_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fname) {
-  return SWIG_From_dec(int)((int)_lValue);
+SWIG_SciDouble_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fname) {
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _lValue))
+    return SWIG_ERROR;
+  return iVarOut;
 }
 }
 

@@ -27,47 +27,48 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue,
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
+
   if (iType == sci_ints) {
     int iPrec = 0;
     int *piData = NULL;
 
-	sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-	if (sciErr.iErr) {
-	  printError(&sciErr, 0);
-	  return SWIG_ERROR;
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
     }
     if (iPrec != SCI_INT32) {
-	  Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
-	  return SWIG_ERROR;
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
     }
 
     sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
     if (sciErr.iErr) {
-	  printError(&sciErr, 0);
-	  return SWIG_ERROR;
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-	  Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
-	  return SWIG_ERROR;
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
     }
     *_piValue = *piData;
   }
   else if (iType == sci_matrix) {
-	  double *pdData = NULL;
+    double *pdData = NULL;
 
-	  sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
-	  if (sciErr.iErr) {
-		printError(&sciErr, 0);
-		return SWIG_ERROR;
-	  }
-	  if (iRows * iCols != 1) {
-		Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
-		return SWIG_ERROR;
-	  }
-	  *_piValue = (int) *pdData;
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_piValue = (int) *pdData;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or double expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
@@ -80,10 +81,9 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue,
 }
 %fragment("SWIG_SciDouble_FromInt", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
-{
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, (double) _iValue))
+SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname){
+  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _iValue))
     return SWIG_ERROR;
   return iVarOut;
 }

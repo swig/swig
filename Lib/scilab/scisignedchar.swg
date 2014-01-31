@@ -2,19 +2,18 @@
  * C-type: signed char
  * Scilab type: int8 scalar
  */
-%fragment(SWIG_AsVal_frag(signed char), "header", fragment="SwigScilabInt8ToSignedChar") {
-#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SwigScilabInt8ToSignedChar(pvApiCtx, scilabValue, valuePointer, fname)
+%fragment(SWIG_AsVal_frag(signed char), "header", fragment="SWIG_SciDoubleOrInt8_AsShort") {
+#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsShort(pvApiCtx, scilabValue, valuePointer, fname)
 }
-%fragment("SwigScilabInt8ToSignedChar", "header") {
+%fragment("SWIG_SciDoubleOrInt8_AsShort", "header") {
 SWIGINTERN int
-SwigScilabInt8ToSignedChar(void *_pvApiCtx, int _iVar, signed char *_pscValue, char *_fname) {
+SWIG_SciDoubleOrInt8_AsShort(void *_pvApiCtx, int _iVar, signed char *_pscValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
   int iCols = 0;
   int iPrec = 0;
   int *piAddrVar = NULL;
-  char *pcData = NULL;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -27,45 +26,62 @@ SwigScilabInt8ToSignedChar(void *_pvApiCtx, int _iVar, signed char *_pscValue, c
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (iType != sci_ints) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
 
-  sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iPrec != SCI_INT8) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
+  if (iType == sci_ints) {
+    char *pcData = NULL;
 
-  sciErr = getMatrixOfInteger8(_pvApiCtx, piAddrVar, &iRows, &iCols, &pcData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iPrec != SCI_INT8) {
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
 
-  *_pscValue = *pcData;
+    sciErr = getMatrixOfInteger8(_pvApiCtx, piAddrVar, &iRows, &iCols, &pcData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_pscValue = *pcData;
+  }
+  else if (iType == sci_matrix) {
+    double *pdData = NULL;
+
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iRows * iCols != 1) {
+      Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+    *_pscValue = (short) *pdData;
+  }
+  else {
+     Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), _fname, _iVar);
+    return SWIG_ERROR;
+  }
 
   return SWIG_OK;
 }
 }
 
-%fragment(SWIG_From_frag(signed char), "header", fragment="SwigScilabInt8FromSignedChar") {
-#define SWIG_From_signed_SS_char(value) SwigScilabInt8FromSignedChar(pvApiCtx, $result, value)
+%fragment(SWIG_From_frag(signed char), "header", fragment="SWIG_SciDouble_FromSignedChar") {
+#define SWIG_From_signed_SS_char(scilabValue) SWIG_SciDouble_FromSignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
 }
-%fragment("SwigScilabInt8FromSignedChar", "header") {
+%fragment("SWIG_SciDouble_FromSignedChar", "header") {
 SWIGINTERN int
-SwigScilabInt8FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValue) {
+SWIG_SciDouble_FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValue) {
   int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarInteger8(pvApiCtx, iVarOut, _scValue))
+  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _scValue))
     return SWIG_ERROR;
   return iVarOut;
 }
