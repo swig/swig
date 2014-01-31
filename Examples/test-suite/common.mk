@@ -251,6 +251,7 @@ CPP_TEST_CASES += \
 	li_cpointer \
 	li_std_auto_ptr \
 	li_stdint \
+	li_swigtype_inout \
 	li_typemaps \
 	li_typemaps_apply \
 	li_windows \

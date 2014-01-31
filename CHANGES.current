@@ -5,6 +5,20 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-01-30: wsfulton
+            [C#] Add new swigtype_inout.i library containing SWIGTYPE *& OUTPUT typemaps.
+
+            Example usage wrapping:
+
+              void f(XXX *& x) { x = new XXX(111); }
+
+            would be:
+
+              XXX x = null;
+              f(out x);
+              // use x
+              x.Dispose(); // manually clear memory or otherwise leave out and leave it to the garbage collector
+
 2014-01-21: ianlancetaylor
 	    [Go] Add %go_import directive.
 
