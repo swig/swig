@@ -11,7 +11,7 @@ top_srcdir   = $(abspath @top_srcdir@)
 top_builddir = $(abspath @top_builddir@)
 
 CPP_STD_TEST_CASES += \
-	scilab_typemaps \
+	primitive_types \
 
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
