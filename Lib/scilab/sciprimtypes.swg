@@ -16,6 +16,8 @@
 %include <scisignedchar.swg>
 %include <sciunsignedchar.swg>
 
+%include <scimisctypes.swg>
+
 %include <scipointer.swg>
 %include <scibool.swg>
 
