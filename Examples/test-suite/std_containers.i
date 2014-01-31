@@ -191,7 +191,8 @@ template <class C> struct Param
 
   struct Foo
   {
-    Foo(int i) {
+    int x;
+    Foo(int i) : x(i) {
     }
   };
   
