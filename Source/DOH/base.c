@@ -947,11 +947,12 @@ int DohGetmark(DOH *ho) {
 
 DOH *DohCall(DOH *func, DOH *args) {
   DOH *result;
-  DOH *(*builtin) (DOH *);
+  DohFuncPtr_t builtin;
 
-  *(void **)(&builtin) = GetVoid(func, "builtin");
-  if (!builtin)
+  builtin.p = GetVoid(func, "builtin");
+
+  if (!builtin.p)
     return 0;
-  result = (*builtin) (args);
+  result = (*builtin.func) (args);
   return result;
 }
