@@ -298,13 +298,19 @@ protected:
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
 
 public:
-  /* Does target language support nested classes? Default is 'false'. If 'false' is returned, then
-    %rename("$ignore", %$isnested) statement will be issued at the top, and the nested classes
-    will be ignored. Note that even if the target language does not support the notion of class
-    nesting, the language module may nevertheless return true from this function, and use
-    %feature "flatnested" to move nested classes to the global scope, instead of ignoring them.
+  enum NestedClassSupport {
+    NCS_None, // Target language does not have an equivalent to nested classes
+    NCS_Full, // Target language does have an equivalent to nested classes and is fully implemented
+    NCS_Unknown // Target language may or may not have an equivalent to nested classes. If it does, it has not been implemented yet.
+  };
+  /* Does target language support nested classes? Default is NCS_Unknown. 
+    If NCS_Unknown is returned, then the nested classes will be ignored unless 
+    %feature "flatnested" is applied to them, in which case they will appear in global space.
+    If the target language does not support the notion of class
+    nesting, the language module should return NCS_None from this function, and 
+    the nested classes will be moved to the global scope (like implicit global %feature "flatnested").
   */
-  virtual bool nestedClassesSupported() const;
+  virtual NestedClassSupport nestedClassesSupport() const;
 
 protected:
   /* Identifies if a protected members that are generated when the allprotected option is used.

@@ -3441,8 +3441,8 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
   return true;
 }
 
-bool Language::nestedClassesSupported() const {
-  return false;
+Language::NestedClassSupport Language::nestedClassesSupport() const {
+  return NCS_Unknown;
 }
 /* -----------------------------------------------------------------------------
  * Language::is_wrapping_class()

@@ -59,7 +59,7 @@ static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
-
+int		ignore_nested_classes = 0;
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
@@ -3564,19 +3564,26 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     yyrename = Copy(Getattr($<node>$, "class_rename"));
 		     add_symbols($$);
-		     Delattr($$, "class_rename");
-		     /* but the variable definition in the current scope */
-		     Swig_symbol_setscope(cscope);
-		     Delete(Namespaceprefix);
-		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     add_symbols($9);
-		     if (nscope) {
-		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
-		       if ($9)
-			 appendSibling($$, $9);
+		     if (currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
+		       SetFlag($$,"feature:ignore");
+		       Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", Getattr($$, "name"));
+		       $$ = 0;
+		     } else {
+		       Delattr($$, "class_rename");
+		       /* but the variable definition in the current scope */
+		       Swig_symbol_setscope(cscope);
+		       Delete(Namespaceprefix);
+		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		       add_symbols($9);
+		       if (nscope) {
+			 $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
+			 if ($9) {
+			   appendSibling($$, $9);
+			 }
+		       } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for tempalte we need the class itself */
+			 $$ = $9;
+		       }
 		     }
-		     else if (!SwigType_istemplate(ty) && template_parameters == 0) /* for tempalte we need the class itself */
-		       $$ = $9;
 		   } else {
 		     Delete(yyrename);
 		     yyrename = 0;
@@ -3600,8 +3607,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     } else {
 		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
-		       add_symbols($9);
-		       Delattr($$, "class_rename");
+		       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
+			 SetFlag($$,"feature:ignore");
+			 Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", Getattr($$, "name"));
+			 $$ = 0;
+		       } else {
+			 add_symbols($9);
+			 Delattr($$, "class_rename");
+		       }
 		     }
 		   }
 		   Delete(ty);
@@ -3734,6 +3747,11 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   add_symbols($$);
 		   add_symbols(n);
 		   Delattr($$, "class_rename");
+		   if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
+		     SetFlag($$,"feature:ignore");
+		     Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", name);
+		     $$ = 0;
+		   }
 		 }else if (cparse_cplusplus)
 		   $$ = 0; /* ignore unnamed structs for C++ */
 	         Delete(unnamed);

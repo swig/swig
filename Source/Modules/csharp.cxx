@@ -4288,8 +4288,8 @@ public:
     Delete(dirclassname);
   }
 
-  bool nestedClassesSupported() const {
-    return true;
+  NestedClassSupport nestedClassesSupport() const {
+    return NCS_Full;
   }
 };				/* class CSHARP */
 
