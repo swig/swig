@@ -26,7 +26,13 @@
 #include <stdexcept>
 %}
 
-%fragment("Traits","header") 
+%fragment("StdStringInclude","header") %{
+#ifdef __clang__
+#include <string>
+#endif
+%}
+
+%fragment("Traits","header",fragment="StdStringInclude") 
 {
 namespace swig {  
   /*
