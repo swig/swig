@@ -352,6 +352,15 @@ if test x"$enable_cpp11_testing" = xyes; then
   fi
 fi
 
+# On darwin before Mavericks when using clang, need to ensure using
+# libc++ for tests and examples to run under mono
+case $host in
+  *-*-darwin*) if test "$CXX" = "clang++";
+    then PLATCXXFLAGS="$PLATCXXFLAGS -stdlib=libc++"
+    fi;;
+  *) ;;
+esac
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
