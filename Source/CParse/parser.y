@@ -1076,7 +1076,7 @@ static void update_nested_classes(Node *n)
  * Create the nested class/struct/union as a forward declaration.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators, Node* nested) {
+static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
   Node *nn = 0;
   int warned = 0;
 
@@ -1120,7 +1120,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
   }
 
   if (nn && Equal(nodeType(nn), "classforward")) {
-    Node *n = nested;
+    Node *n = nn;
     SWIG_WARN_NODE_BEGIN(n);
     Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
     SWIG_WARN_NODE_END(n);
@@ -1128,10 +1128,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
   }
 
   if (!warned) {
-    Node *n = nested;
-    SWIG_WARN_NODE_BEGIN(n);
     Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
-    SWIG_WARN_NODE_END(n);
   }
 
   return nn;
@@ -3628,7 +3625,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
 		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
-		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9, $$);
+		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
@@ -3741,7 +3738,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $$);
 	       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
 		 String *name = n ? Copy(Getattr(n, "name")) : 0;
-		 $$ = nested_forward_declaration($1, $2, 0, name, n, $$);
+		 $$ = nested_forward_declaration($1, $2, 0, name, n);
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
