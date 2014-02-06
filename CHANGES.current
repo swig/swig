@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-02-06: gjanssens
+            [Guile] Patch #133. Make scm to string conversion work with non-ascii strings.
+            Guile 2 has a completely rewritten string implementation. SWIG made some assumptions
+            that are no longer valid as to the internals of guile's string representation.
+
 2014-01-30: wsfulton
             [C#] Add new swigtype_inout.i library containing SWIGTYPE *& OUTPUT typemaps.
 
