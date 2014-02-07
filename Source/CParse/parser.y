@@ -59,7 +59,7 @@ static int      extendmode   = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
-
+int		ignore_nested_classes = 0;
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
@@ -1068,6 +1068,74 @@ static void update_nested_classes(Node *n)
     c = nextSibling(c);
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * nested_forward_declaration()
+ * 
+ * Nested struct handling for C++ code if the nested classes are diasbled.
+ * Create the nested class/struct/union as a forward declaration.
+ * ----------------------------------------------------------------------------- */
+
+static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
+  Node *nn = 0;
+  int warned = 0;
+
+  if (sname) {
+    /* Add forward declaration of the nested type */
+    Node *n = new_node("classforward");
+    Setattr(n, "kind", kind);
+    Setattr(n, "name", sname);
+    Setattr(n, "storage", storage);
+    Setattr(n, "sym:weak", "1");
+    add_symbols(n);
+    nn = n;
+  }
+
+  /* Add any variable instances. Also add in any further typedefs of the nested type.
+     Note that anonymous typedefs (eg typedef struct {...} a, b;) are treated as class forward declarations */
+  if (cpp_opt_declarators) {
+    int storage_typedef = (storage && (strcmp(storage, "typedef") == 0));
+    int variable_of_anonymous_type = !sname && !storage_typedef;
+    if (!variable_of_anonymous_type) {
+      int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
+      Node *n = cpp_opt_declarators;
+      SwigType *type = name;
+      while (n) {
+	Setattr(n, "type", type);
+	Setattr(n, "storage", storage);
+	if (anonymous_typedef) {
+	  Setattr(n, "nodeType", "classforward");
+	  Setattr(n, "sym:weak", "1");
+	}
+	n = nextSibling(n);
+      }
+      add_symbols(cpp_opt_declarators);
+
+      if (nn) {
+	set_nextSibling(nn, cpp_opt_declarators);
+      } else {
+	nn = cpp_opt_declarators;
+      }
+    }
+  }
+
+  if (!GetFlag(currentOuterClass, "nested")) {
+    if (nn && Equal(nodeType(nn), "classforward")) {
+      Node *n = nn;
+      SWIG_WARN_NODE_BEGIN(n);
+      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
+      SWIG_WARN_NODE_END(n);
+      warned = 1;
+    }
+
+    if (!warned) {
+      Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
+    }
+  }
+
+  return nn;
+}
+
 
 Node *Swig_cparse(File *f) {
   scanner_file(f);
@@ -3553,8 +3621,13 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($$, "symtab", Swig_symbol_popscope());
 		   Classprefix = Getattr($<node>$, "Classprefix");
 		   Delattr($<node>$, "Classprefix");
+		   Delete(Namespaceprefix);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		   Swig_features_get(Swig_cparse_features(), Namespaceprefix, Getattr($$, "name"), 0, $$);
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
+		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
+		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
@@ -3572,16 +3645,15 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     add_symbols($9);
 		     if (nscope) {
 		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
-		       if ($9)
+		       if ($9) {
 			 appendSibling($$, $9);
-		     }
-		     else if (!SwigType_istemplate(ty) && template_parameters == 0) /* for tempalte we need the class itself */
+		       }
+		     } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for tempalte we need the class itself */
 		       $$ = $9;
+		     }
 		   } else {
 		     Delete(yyrename);
 		     yyrename = 0;
-		     Delete(Namespaceprefix);
-		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
 		       Node *outer = currentOuterClass;
 		       while (Getattr(outer, "nested:outer"))
@@ -3665,7 +3737,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
                /* Check for pure-abstract class */
 	       Setattr($$,"abstracts", pure_abstracts($6));
 	       n = $8;
-	       if (n) {
+	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $$);
+	       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
+		 String *name = n ? Copy(Getattr(n, "name")) : 0;
+		 $$ = nested_forward_declaration($1, $2, 0, name, n);
+		 Swig_symbol_popscope();
+	         Delete(Namespaceprefix);
+		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+	       } else if (n) {
 	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
 		 name = try_to_find_a_name_for_unnamed_structure($1, n);

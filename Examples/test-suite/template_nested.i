@@ -1,5 +1,9 @@
 %module template_nested
 
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+%feature ("flatnested");
+#endif
+
 // Test nested templates - that is template classes and template methods within a class.
 
 namespace ns {
