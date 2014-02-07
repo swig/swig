@@ -19,7 +19,6 @@
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerMultipleNamedTypedef;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerSameName;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer2::IgnoreMe;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerSameName::InnerSameName2;
 
 %inline %{
 struct Outer {

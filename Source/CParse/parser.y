@@ -1119,16 +1119,18 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
     }
   }
 
-  if (nn && Equal(nodeType(nn), "classforward")) {
-    Node *n = nn;
-    SWIG_WARN_NODE_BEGIN(n);
-    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
-    SWIG_WARN_NODE_END(n);
-    warned = 1;
-  }
+  if (!GetFlag(currentOuterClass, "nested")) {
+    if (nn && Equal(nodeType(nn), "classforward")) {
+      Node *n = nn;
+      SWIG_WARN_NODE_BEGIN(n);
+      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
+      SWIG_WARN_NODE_END(n);
+      warned = 1;
+    }
 
-  if (!warned) {
-    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
+    if (!warned) {
+      Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
+    }
   }
 
   return nn;
