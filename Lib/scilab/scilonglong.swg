@@ -1,5 +1,5 @@
 /*
- * C-type: long
+ * C-type: long long
  * Scilab 5 type: NONE
  * Scilab 6 type: int64
  */
