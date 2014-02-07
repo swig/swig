@@ -58,23 +58,5 @@ if (ref_bool(%t) <> %t) then swigtesterror(); end
 //if (ref_ullong(42) <> 42) then swigtesterror(); end
 //if (ref_ullong(uint64(42)) <> uint64(42)) then swigtesterror(); end
 
-// check errors
-ierr = execstr('val_schar(2^9)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_schar(100.2)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_short(2^17)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_short(100.2)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_int(2^33)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_int(100.2)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_long(2^65)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-ierr = execstr('val_long(100.2)', 'errcatch');
-if ierr <> 999 then swigtesterror(); end
-
 
 exec("swigtest.quit", -1);
