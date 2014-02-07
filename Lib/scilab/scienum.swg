@@ -1,6 +1,6 @@
 /*
  * C-type: enum
- * Scilab type: int32
+ * Scilab type: double or int32
  */
 
 %fragment(SWIG_AsVal_frag(Enum), "header", fragment="SWIG_Int_AsEnum") {
@@ -8,17 +8,11 @@
 }
 %fragment("SWIG_Int_AsEnum", "header", fragment=SWIG_AsVal_frag(int)) {
 SWIGINTERN int
-SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname)
-{
+SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname) {
   int iValue = 0;
   if (SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK)
-  {
     return SWIG_ERROR;
-  }
-  if (_enumValue)
-  {
-    *_enumValue = iValue;
-  }
+  *_enumValue = iValue;
   return SWIG_OK;
 }
 }
@@ -28,8 +22,7 @@ SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname)
 }
 %fragment("SWIG_Int_FromEnum", "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
-SWIG_Int_FromEnum(void *_pvApiCtx, int _iVarOut, int _enumValue, char *_fname)
-{
+SWIG_Int_FromEnum(void *_pvApiCtx, int _iVarOut, int _enumValue, char *_fname) {
   return SWIG_From_dec(int)(_enumValue);
 }
 }
