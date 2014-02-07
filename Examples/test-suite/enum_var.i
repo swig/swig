@@ -3,6 +3,6 @@
 %inline %{
 
 enum Fruit { APPLE, PEAR };
-Fruit test;
+enum Fruit test;
 
 %}
