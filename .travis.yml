@@ -57,3 +57,4 @@ script:
 branches:
   only:
     - master
+    - maintenance-2.0
