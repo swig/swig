@@ -1072,7 +1072,7 @@ static void update_nested_classes(Node *n)
 /* -----------------------------------------------------------------------------
  * nested_forward_declaration()
  * 
- * Nested struct handling for C++ code if the nested classes are diasbled.
+ * Nested struct handling for C++ code if the nested classes are disabled.
  * Create the nested class/struct/union as a forward declaration.
  * ----------------------------------------------------------------------------- */
 
