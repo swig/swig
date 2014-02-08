@@ -25,7 +25,7 @@ static bool SWIG_init_user(octave_swig_type* module_ns);
 SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
   bool retn;
   {
-#if OCTAVE_API_VERSION_NUMBER < 38
+#if !SWIG_OCTAVE_PREREQ(3,3,50)
     unwind_protect::begin_frame("SWIG_Octave_LoadModule");
     unwind_protect_int(error_state);
     unwind_protect_int(warning_state);
@@ -44,7 +44,7 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
     discard_warning_messages = true;
     feval(name, octave_value_list(), 0);
     retn = (error_state == 0);
-#if OCTAVE_API_VERSION_NUMBER < 38
+#if !SWIG_OCTAVE_PREREQ(3,3,50)
     unwind_protect::run_frame("SWIG_Octave_LoadModule");
 #endif
   }
@@ -57,7 +57,7 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::string name) {
   bool retn;
   {
-#if OCTAVE_API_VERSION_NUMBER < 38
+#if !SWIG_OCTAVE_PREREQ(3,3,50)
     unwind_protect::begin_frame("SWIG_Octave_InstallFunction");
     unwind_protect_int(error_state);
     unwind_protect_int(warning_state);
@@ -80,7 +80,7 @@ SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::st
     error_state = 0;
     feval("autoload", args, 0);
     retn = (error_state == 0);
-#if OCTAVE_API_VERSION_NUMBER < 38
+#if !SWIG_OCTAVE_PREREQ(3,3,50)
     unwind_protect::run_frame("SWIG_Octave_InstallFunction");
 #endif
   }
@@ -196,7 +196,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // definitely affects version 3.2.*, not sure about 3.3.*, seems to be fixed in
   // version 3.4.* and above. can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if 36 < OCTAVE_API_VERSION_NUMBER && OCTAVE_API_VERSION_NUMBER < 45
+#if SWIG_OCTAVE_PREREQ(3,2,0) && !SWIG_OCTAVE_PREREQ(3,4,1)
   octave_exit = ::_Exit;
 #endif
 #endif
@@ -212,7 +212,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
     // workaround bug in octave where installing global variable of custom type and then
     // exiting without explicitly clearing the variable causes octave to segfault.
-#if OCTAVE_API_VERSION_NUMBER > 36
+#if SWIG_OCTAVE_PREREQ(3,2,0)
     octave_value_list eval_args;
     eval_args.append("base");
     eval_args.append("function __swig_atexit__; "
@@ -288,7 +288,16 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
     SWIG_InstallOps(octave_swig_ref::static_type_id());
 
-#if OCTAVE_API_VERSION_NUMBER < 37
+    octave_swig_type::swig_member_const_iterator mb;
+    for (mb = module_ns->swig_members_begin(); mb != module_ns->swig_members_end(); ++mb) {
+      if (mb->second.first && mb->second.first->method) {
+        if (!SWIG_Octave_InstallFunction(me, mb->first)) {
+          return octave_value_list();
+        }
+      }
+    }
+
+#if !SWIG_OCTAVE_PREREQ(3,2,0)
     mlock(me->name());
 #else
     mlock();
@@ -296,16 +305,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
   }
 
-  octave_function *me = octave_call_stack::current();
-
   octave_swig_type::swig_member_const_iterator mb;
   for (mb = module_ns->swig_members_begin(); mb != module_ns->swig_members_end(); ++mb) {
-    if (mb->second.first && mb->second.first->method) {
-      if (!SWIG_Octave_InstallFunction(me, mb->first)) {
-        return octave_value_list();
-      }
-    }
-    else if (mb->second.second.is_defined()) {
+    if (mb->second.second.is_defined()) {
       SWIG_Octave_SetGlobalValue(mb->first, mb->second.second);
       SWIG_Octave_LinkGlobalValue(mb->first);
     }

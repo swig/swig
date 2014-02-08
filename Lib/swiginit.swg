@@ -1,17 +1,17 @@
 /* -----------------------------------------------------------------------------
  * Type initialization:
- * This problem is tough by the requirement that no dynamic 
- * memory is used. Also, since swig_type_info structures store pointers to 
+ * This problem is tough by the requirement that no dynamic
+ * memory is used. Also, since swig_type_info structures store pointers to
  * swig_cast_info structures and swig_cast_info structures store pointers back
- * to swig_type_info structures, we need some lookup code at initialization. 
- * The idea is that swig generates all the structures that are needed. 
- * The runtime then collects these partially filled structures. 
- * The SWIG_InitializeModule function takes these initial arrays out of 
+ * to swig_type_info structures, we need some lookup code at initialization.
+ * The idea is that swig generates all the structures that are needed.
+ * The runtime then collects these partially filled structures.
+ * The SWIG_InitializeModule function takes these initial arrays out of
  * swig_module, and does all the lookup, filling in the swig_module.types
  * array with the correct data and linking the correct swig_cast_info
  * structures together.
  *
- * The generated swig_type_info structures are assigned staticly to an initial 
+ * The generated swig_type_info structures are assigned staticly to an initial
  * array. We just loop through that array, and handle each type individually.
  * First we lookup if this type has been already loaded, and if so, use the
  * loaded structure instead of the generated one. Then we have to fill in the
@@ -21,17 +21,17 @@
  * a column is one of the swig_cast_info structures for that type.
  * The cast_initial array is actually an array of arrays, because each row has
  * a variable number of columns. So to actually build the cast linked list,
- * we find the array of casts associated with the type, and loop through it 
+ * we find the array of casts associated with the type, and loop through it
  * adding the casts to the list. The one last trick we need to do is making
  * sure the type pointer in the swig_cast_info struct is correct.
  *
- * First off, we lookup the cast->type name to see if it is already loaded. 
+ * First off, we lookup the cast->type name to see if it is already loaded.
  * There are three cases to handle:
  *  1) If the cast->type has already been loaded AND the type we are adding
  *     casting info to has not been loaded (it is in this module), THEN we
  *     replace the cast->type pointer with the type pointer that has already
  *     been loaded.
- *  2) If BOTH types (the one we are adding casting info to, and the 
+ *  2) If BOTH types (the one we are adding casting info to, and the
  *     cast->type) are loaded, THEN the cast info has already been loaded by
  *     the previous module so we just ignore it.
  *  3) Finally, if cast->type has not already been loaded, then we add that
@@ -94,7 +94,7 @@ SWIG_InitializeModule(void *clientdata) {
     module_head->next = &swig_module;
   }
 
-  /* When multiple interpeters are used, a module could have already been initialized in
+  /* When multiple interpreters are used, a module could have already been initialized in
      a different interpreter, but not yet have a pointer in this interpreter.
      In this case, we do not want to continue adding types... everything should be
      set up already */
@@ -108,7 +108,7 @@ SWIG_InitializeModule(void *clientdata) {
     swig_type_info *type = 0;
     swig_type_info *ret;
     swig_cast_info *cast;
-  
+
 #ifdef SWIGRUNTIME_DEBUG
     printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
 #endif
@@ -135,7 +135,7 @@ SWIG_InitializeModule(void *clientdata) {
     /* Insert casting types */
     cast = swig_module.cast_initial[i];
     while (cast->type) {
-    
+
       /* Don't need to add information already in the list */
       ret = 0;
 #ifdef SWIGRUNTIME_DEBUG

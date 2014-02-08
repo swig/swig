@@ -1039,13 +1039,13 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
        $*n_ltype
      */
 
-    if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype))) {
-      if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type))) {
+    if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype)) || (SwigType_isrvalue_reference(ftype))) {
+      if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
 	star_type = Copy(ftype);
       } else {
 	star_type = Copy(type);
       }
-      if (!SwigType_isreference(star_type)) {
+      if (!(SwigType_isreference(star_type) || SwigType_isrvalue_reference(star_type))) {
 	if (SwigType_isarray(star_type)) {
 	  SwigType_del_element(star_type);
 	} else {
@@ -1200,7 +1200,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
  * creates the local variables.
  * ------------------------------------------------------------------------ */
 
-static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
+static void typemap_locals(String *s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
   char *new_name;
 

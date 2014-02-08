@@ -1,6 +1,7 @@
 # Check std::vector and std::list behaves the same as Python iterable types (list)
 
 from li_std_containers_int import *
+import sys
 
 def failed(a, b, msg):
   raise RuntimeError, msg + " " + str(list(a)) + " " + str(list(b))
@@ -76,10 +77,13 @@ def container_insert_step(i, j, step, newval):
   except IndexError, e:
     il_error = e
 
-  if not((type(ps_error) == type(iv_error)) and (type(ps_error) == type(il_error))):
-    raise RuntimeError, "ValueError exception not consistently thrown: " + str(ps_error) + " " + str(iv_error) + " " + str(il_error)
+  # Python 2.6 contains bug fixes in extended slicing syntax: http://docs.python.org/2/whatsnew/2.6.html
+  skip_check = ps_error != None and(iv_error == il_error == None) and step > 0 and (sys.version_info[0:2] < (2, 6))
+  if not(skip_check):
+    if not((type(ps_error) == type(iv_error)) and (type(ps_error) == type(il_error))):
+      raise RuntimeError, "ValueError exception not consistently thrown: " + str(ps_error) + " " + str(iv_error) + " " + str(il_error)
 
-  compare_containers(ps, iv, il)
+    compare_containers(ps, iv, il)
 
 
 # Check std::vector and std::list delete behaves same as Python list delete including exceptions

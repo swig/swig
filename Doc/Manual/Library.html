@@ -31,6 +31,7 @@
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
+<li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -1383,6 +1384,7 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <td><b>SWIG Interface library file</b></td>
 </tr>
 
+<tr> <td>std::auto_ptr</td>           <td>memory</td>             <td>std_auto_ptr.i</td> </tr>
 <tr> <td>std::deque</td>           <td>deque</td>             <td>std_deque.i</td> </tr>
 <tr> <td>std::list</td>           <td>list</td>             <td>std_list.i</td> </tr>
 <tr> <td>std::map</td>           <td>map</td>             <td>std_map.i</td> </tr>
@@ -1873,6 +1875,55 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </div>
 
 <b>Note:</b> There is currently no support for <tt>%shared_ptr</tt> and the director feature.
+
+
+<H3><a name="Library_std_auto_ptr"></a>8.4.5 auto_ptr smart pointer</H3>
+
+<p>
+While <tt>std::auto_ptr</tt> is deprecated in C++11, some existing code may
+still be using it, so SWIG provides limited support for this class:
+<tt>std_auto_ptr.i</tt> defines the typemaps which apply to the functions
+returning objects of this type. Any other use of <tt>std_auto_ptr.i</tt> is not
+directly supported.
+</p>
+
+<p>
+A typical example of use would be
+</p>
+<div class="code">
+<pre>
+%include &lt;std_auto_ptr.i&gt;
+
+%auto_ptr(Klass)
+%inline %{
+class Klass {
+public:
+  // Factory function creating objects of this class:
+  static std::auto_ptr&lt;Klass&gt; Create(int value) {
+    return std::auto_ptr&lt;Klass&gt;(new Klass(value));
+  }
+
+  int getValue() const { return m_value; }
+
+private:
+  DerivedIntValue(int value) : m_value(value) {}
+  int m_value;
+};
+%}
+</pre>
+</div>
+
+<p>
+The returned objects can be used naturally from the target language, e.g. from
+C#:
+</p>
+
+<div class="targetlang">
+<pre>
+Klass k = Klass.Create(17);
+int value = k.getValue();
+</pre>
+</div>
 
 <H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
 

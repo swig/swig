@@ -24,6 +24,8 @@ CPP_TEST_CASES = \
 	java_constants \
 	java_director \
 	java_director_assumeoverride \
+	java_director_exception_feature \
+	java_director_exception_feature_nspace \
 	java_enums \
 	java_jnitypes \
 	java_lib_arrays_dimensionless \
@@ -46,6 +48,7 @@ SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
 java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
+java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package

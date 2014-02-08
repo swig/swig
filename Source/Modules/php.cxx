@@ -90,6 +90,7 @@ static String *s_vinit;		// varinit initialization code.
 static String *s_vdecl;
 static String *s_cinit;		// consttab initialization code.
 static String *s_oinit;
+static String *s_arginfo;
 static String *s_entry;
 static String *cs_entry;
 static String *all_cs_entry;
@@ -443,7 +444,6 @@ public:
     Append(s_header, "  zval **args[2];\n");
     Append(s_header, "  swig_object_wrapper *value;\n");
     Append(s_header, "  int type;\n");
-    Append(s_header, "  int thisown;\n");
     Append(s_header, "\n");
     Append(s_header, "  SWIG_ResetError();\n");
     Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
@@ -517,6 +517,9 @@ public:
     Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
     Printf(f_h, "PHP_RSHUTDOWN_FUNCTION(%s);\n", module);
     Printf(f_h, "PHP_MINFO_FUNCTION(%s);\n\n", module);
+
+    /* start the arginfo section */
+    s_arginfo = NewString("/* arginfo subsection */\n");
 
     /* start the function entry section */
     s_entry = NewString("/* entry subsection */\n");
@@ -644,7 +647,7 @@ public:
       Dump(f_directors, f_begin);
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
-    Printv(f_begin, all_cs_entry, "\n\n", s_entry,
+    Printv(f_begin, all_cs_entry, "\n\n", s_arginfo, "\n\n", s_entry,
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,NULL)\n"
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,NULL)\n"
 	"{NULL, NULL, NULL}\n};\n\n", NIL);
@@ -655,6 +658,7 @@ public:
     Delete(s_vdecl);
     Delete(all_cs_entry);
     Delete(s_entry);
+    Delete(s_arginfo);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -673,12 +677,25 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *iname) {
+  void create_command(String *cname, String *iname, Node *n) {
     // This is for the single main zend_function_entry record
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
     String * s = cs_entry;
     if (!s) s = s_entry;
-    Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,NULL)\n", cname, iname);
+    Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%(lower)s)\n", cname, iname, cname);
+
+    // This is the above referenced arginfo structure.
+    ParmList *l = Getattr(n, "parms");
+    Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%(lower)s, 0, 0, 0)\n", cname);
+    for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
+      /* Ignored parameters */
+      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	continue;
+      }
+      int byref = GetFlag(p, "tmap:in:byref");
+      Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%d)\n", byref);
+    }
+    Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
   }
 
   /* ------------------------------------------------------------
@@ -701,7 +718,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    create_command(symname, wname);
+    create_command(symname, wname, n);
     Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
 
     Wrapper_add_local(f, "argc", "int argc");
@@ -791,16 +808,16 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    // Not issued for overloaded functions.
-    if (!overloaded) {
-      create_command(iname, wname);
-    }
     Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
 
     emit_parameter_variables(l, f);
     /* Attach standard typemaps */
 
     emit_attach_parmmaps(l, f);
+    // Not issued for overloaded functions.
+    if (!overloaded) {
+      create_command(iname, wname, n);
+    }
 
     // wrap:parms is used by overload resolution.
     Setattr(n, "wrap:parms", l);
@@ -1324,6 +1341,7 @@ public:
 		break;
 	      }
 	      case T_REFERENCE:
+	      case T_RVALUE_REFERENCE:
 	      case T_USER:
 	      case T_ARRAY:
 		Clear(value);
@@ -1366,6 +1384,7 @@ public:
 		  }
 		}
 		if (Strcmp(value, "NULL") == 0 ||
+		    Strcmp(value, "nullptr") == 0 ||
 		    Strcmp(value, "0") == 0 ||
 		    Strcmp(value, "0L") == 0) {
 		  Clear(value);
@@ -2591,13 +2610,14 @@ done:
       }
 
       if (!idx) {
-	Printf(w->code, "zval **args = NULL;\n", idx);
+	Printf(w->code, "zval **args = NULL;\n");
       } else {
 	Printf(w->code, "zval *args[%d];\n", idx);
       }
       Printf(w->code, "zval *%s, funcname;\n", Swig_cresult_name());
       Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
-      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
+      const char * funcname = GetChar(n, "sym:name");
+      Printf(w->code, "ZVAL_STRINGL(&funcname, (char *)\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");
@@ -2605,8 +2625,8 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
-      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
-      Printf(w->code, "  %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
+      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      Printf(w->code, " %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
       if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
@@ -2624,8 +2644,7 @@ done:
       if (!is_void) {
 	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	if (tm != 0) {
-	  static const String *amp_result = NewStringf("&%s", Swig_cresult_name());
-	  Replaceall(tm, "$input", amp_result);
+	  Replaceall(tm, "$input", Swig_cresult_name());
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);

@@ -788,7 +788,7 @@ private:
 	else
 	  return v;
       }
-      if (Strcmp(v, "NULL") == 0)
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
       if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("True");
@@ -3201,7 +3201,7 @@ public:
 	    /* if necessary, cast away const since Ruby doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", parameterName);
-	      String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(parameterType, 0), ppname);
+	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(parameterType, 0), ppname);
 	      Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
 	      Delete(nonconst_i);
 	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,

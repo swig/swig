@@ -21,7 +21,7 @@ static DOH *encodings = 0;	/* Encoding hash */
 /* -----------------------------------------------------------------------------
  * Writen()
  *
- * Write's N characters of output and retries until all characters are
+ * Writes N characters of output and retries until all characters are
  * written.  This is useful should a write operation encounter a spurious signal.
  * ----------------------------------------------------------------------------- */
 
@@ -46,15 +46,19 @@ static int Writen(DOH *out, void *buffer, int len) {
  * ----------------------------------------------------------------------------- */
 
 void DohEncoding(const char *name, DOH *(*fn) (DOH *s)) {
+  DohFuncPtr_t fp;
+
   if (!encodings)
     encodings = NewHash();
-  Setattr(encodings, (void *) name, NewVoid((void *) fn, 0));
+
+  fp.func = fn;
+  Setattr(encodings, (void *) name, NewVoid(fp.p, 0));
 }
 
 /* internal function for processing an encoding */
 static DOH *encode(char *name, DOH *s) {
   DOH *handle, *ns;
-  DOH *(*fn) (DOH *);
+  DohFuncPtr_t fp;
   long pos;
   char *cfmt = strchr(name, ':');
   DOH *tmp = 0;
@@ -72,8 +76,9 @@ static DOH *encode(char *name, DOH *s) {
     s = tmp;
   pos = Tell(s);
   Seek(s, 0, SEEK_SET);
-  fn = (DOH *(*)(DOH *)) Data(handle);
-  ns = (*fn) (s);
+
+  fp.p = Data(handle);
+  ns = (*fp.func) (s);
   assert(pos != -1);
   (void)Seek(s, pos, SEEK_SET);
   if (tmp)

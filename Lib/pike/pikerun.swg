@@ -9,11 +9,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "object.h"
-#include "program.h"
+#include "pike/object.h"
+#include "pike/program.h"
 #ifdef __cplusplus
 }
 #endif
+#include <assert.h>
 
 /* Stores information about a wrapped object */
 typedef struct swig_object_wrapper {

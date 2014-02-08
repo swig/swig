@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 static String *global_name = 0;
 static String *op_prefix   = 0;
@@ -132,6 +133,10 @@ public:
     SWIG_config_file("octave.swg");
     SWIG_typemap_lang("octave");
     allow_overloading();
+
+    // Octave API is C++, so output must be C++ compatibile even when wrapping C code
+    if (!cparse_cplusplus)
+      Swig_cparse_cplusplusout(1);
   }
 
   virtual int top(Node *n) {
@@ -288,7 +293,7 @@ public:
       String *escaped_doc_str = texinfo_escape(doc_str);
 
       if (Len(doc_str)>0) {
-	Printf(f_doc,"const char* %s_texinfo = ",wrap_name);
+	Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
 	Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
 	if (Len(decl_info))
 	  Printf(f_doc,"\\n\\\n@end deftypefn");
@@ -518,7 +523,7 @@ public:
 	else
 	  return v;
       }
-      if (Strcmp(v, "NULL") == 0)
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
       if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("true");
@@ -744,9 +749,14 @@ public:
       Delete(tm);
     }
 
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
     Printf(f->code, "return _out;\n");
+    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "return octave_value_list();\n");
     Printf(f->code, "}\n");
+
+    /* Substitute the cleanup code */
+    Replaceall(f->code, "$cleanup", cleanup);
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);

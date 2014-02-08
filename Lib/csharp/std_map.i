@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * std_map.i
  *
- * SWIG typemaps for std::map< K, T >
+ * SWIG typemaps for std::map< K, T, C >
  *
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.IDictionary<>.
  * 
@@ -11,9 +11,7 @@
  *   %template(MapIntDouble) std::map<int, double>
  *
  * Notes:
- * 1) For .NET 1 compatibility, define SWIG_DOTNET_1 when compiling the C# code. In this case 
- *    the C# wrapper has only basic functionality.
- * 2) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
+ * 1) IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
  *    C++ std::map wrappers.
  *
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
@@ -26,10 +24,10 @@
 %}
 
 /* K is the C++ key type, T is the C++ value type */
-%define SWIG_STD_MAP_INTERNAL(K, T)
+%define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n#endif\n";
-%typemap(cscode) std::map<K, T > %{
+%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
+%typemap(cscode) std::map<K, T, C > %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
     get {
@@ -62,14 +60,12 @@
     }
   }
 
-#if !SWIG_DOTNET_1
-
-  public System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
+  public global::System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
     get {
-      System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new System.Collections.Generic.List<$typemap(cstype, K)>();
+      global::System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new global::System.Collections.Generic.List<$typemap(cstype, K)>();
       int size = this.Count;
       if (size > 0) {
-        IntPtr iter = create_iterator_begin();
+        global::System.IntPtr iter = create_iterator_begin();
         for (int i = 0; i < size; i++) {
           keys.Add(get_next_key(iter));
         }
@@ -79,21 +75,21 @@
     }
   }
 
-  public System.Collections.Generic.ICollection<$typemap(cstype, T)> Values {
+  public global::System.Collections.Generic.ICollection<$typemap(cstype, T)> Values {
     get {
-      System.Collections.Generic.ICollection<$typemap(cstype, T)> vals = new System.Collections.Generic.List<$typemap(cstype, T)>();
-      foreach (System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> pair in this) {
+      global::System.Collections.Generic.ICollection<$typemap(cstype, T)> vals = new global::System.Collections.Generic.List<$typemap(cstype, T)>();
+      foreach (global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> pair in this) {
         vals.Add(pair.Value);
       }
       return vals;
     }
   }
   
-  public void Add(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public void Add(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     Add(item.Key, item.Value);
   }
 
-  public bool Remove(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public bool Remove(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     if (Contains(item)) {
       return Remove(item.Key);
     } else {
@@ -101,7 +97,7 @@
     }
   }
 
-  public bool Contains(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
+  public bool Contains(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> item) {
     if (this[item.Key] == item.Value) {
       return true;
     } else {
@@ -109,32 +105,32 @@
     }
   }
 
-  public void CopyTo(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array) {
+  public void CopyTo(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array) {
     CopyTo(array, 0);
   }
 
-  public void CopyTo(System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array, int arrayIndex) {
+  public void CopyTo(global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>[] array, int arrayIndex) {
     if (array == null)
-      throw new ArgumentNullException("array");
+      throw new global::System.ArgumentNullException("array");
     if (arrayIndex < 0)
-      throw new ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
+      throw new global::System.ArgumentOutOfRangeException("arrayIndex", "Value is less than zero");
     if (array.Rank > 1)
-      throw new ArgumentException("Multi dimensional array.", "array");
+      throw new global::System.ArgumentException("Multi dimensional array.", "array");
     if (arrayIndex+this.Count > array.Length)
-      throw new ArgumentException("Number of elements to copy is too large.");
+      throw new global::System.ArgumentException("Number of elements to copy is too large.");
 
-    System.Collections.Generic.IList<$typemap(cstype, K)> keyList = new System.Collections.Generic.List<$typemap(cstype, K)>(this.Keys);
+    global::System.Collections.Generic.IList<$typemap(cstype, K)> keyList = new global::System.Collections.Generic.List<$typemap(cstype, K)>(this.Keys);
     for (int i = 0; i < keyList.Count; i++) {
       $typemap(cstype, K) currentKey = keyList[i];
-      array.SetValue(new System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, this[currentKey]), arrayIndex+i);
+      array.SetValue(new global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, this[currentKey]), arrayIndex+i);
     }
   }
 
-  System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>.GetEnumerator() {
+  global::System.Collections.Generic.IEnumerator<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>> global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
-  System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+  global::System.Collections.IEnumerator global::System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
@@ -147,38 +143,38 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator, 
-      System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>
+  public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator, 
+      global::System.Collections.Generic.IEnumerator<global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>>
   {
     private $csclassname collectionRef;
-    private System.Collections.Generic.IList<$typemap(cstype, K)> keyCollection;
+    private global::System.Collections.Generic.IList<$typemap(cstype, K)> keyCollection;
     private int currentIndex;
     private object currentObject;
     private int currentSize;
 
     public $csclassnameEnumerator($csclassname collection) {
       collectionRef = collection;
-      keyCollection = new System.Collections.Generic.List<$typemap(cstype, K)>(collection.Keys);
+      keyCollection = new global::System.Collections.Generic.List<$typemap(cstype, K)>(collection.Keys);
       currentIndex = -1;
       currentObject = null;
       currentSize = collectionRef.Count;
     }
 
     // Type-safe iterator Current
-    public System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> Current {
+    public global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)> Current {
       get {
         if (currentIndex == -1)
-          throw new InvalidOperationException("Enumeration not started.");
+          throw new global::System.InvalidOperationException("Enumeration not started.");
         if (currentIndex > currentSize - 1)
-          throw new InvalidOperationException("Enumeration finished.");
+          throw new global::System.InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
-          throw new InvalidOperationException("Collection modified.");
-        return (System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>)currentObject;
+          throw new global::System.InvalidOperationException("Collection modified.");
+        return (global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>)currentObject;
       }
     }
 
     // Type-unsafe IEnumerator.Current
-    object System.Collections.IEnumerator.Current {
+    object global::System.Collections.IEnumerator.Current {
       get {
         return Current;
       }
@@ -190,7 +186,7 @@
       if (moveOkay) {
         currentIndex++;
         $typemap(cstype, K) currentKey = keyCollection[currentIndex];
-        currentObject = new System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, collectionRef[currentKey]);
+        currentObject = new global::System.Collections.Generic.KeyValuePair<$typemap(cstype, K), $typemap(cstype, T)>(currentKey, collectionRef[currentKey]);
       } else {
         currentObject = null;
       }
@@ -201,7 +197,7 @@
       currentIndex = -1;
       currentObject = null;
       if (collectionRef.Count != currentSize) {
-        throw new InvalidOperationException("Collection modified.");
+        throw new global::System.InvalidOperationException("Collection modified.");
       }
     }
 
@@ -210,7 +206,6 @@
       currentObject = null;
     }
   }
-#endif
   
 %}
 
@@ -221,14 +216,14 @@
     typedef T mapped_type;
 
     map();
-    map(const map< K, T > &other);
+    map(const map< K, T, C > &other);
     size_type size() const;
     bool empty() const;
     %rename(Clear) clear;
     void clear();
     %extend {
       const mapped_type& getitem(const key_type& key) throw (std::out_of_range) {
-        std::map< K,T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           return iter->second;
         else
@@ -240,19 +235,19 @@
       }
 
       bool ContainsKey(const key_type& key) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         return iter != $self->end();
       }
 
       void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end())
           throw std::out_of_range("key already exists");
         $self->insert(std::pair< K, T >(key, val));
       }
 
       bool Remove(const key_type& key) {
-        std::map< K, T >::iterator iter = $self->find(key);
+        std::map< K, T, C >::iterator iter = $self->find(key);
         if (iter != $self->end()) {
           $self->erase(iter);
           return true;
@@ -261,20 +256,20 @@
       }
 
       // create_iterator_begin(), get_next_key() and destroy_iterator work together to provide a collection of keys to C#
-      %apply void *VOID_INT_PTR { std::map< K, T >::iterator *create_iterator_begin }
-      %apply void *VOID_INT_PTR { std::map< K, T >::iterator *swigiterator }
+      %apply void *VOID_INT_PTR { std::map< K, T, C >::iterator *create_iterator_begin }
+      %apply void *VOID_INT_PTR { std::map< K, T, C >::iterator *swigiterator }
 
-      std::map< K, T >::iterator *create_iterator_begin() {
-        return new std::map< K, T >::iterator($self->begin());
+      std::map< K, T, C >::iterator *create_iterator_begin() {
+        return new std::map< K, T, C >::iterator($self->begin());
       }
 
-      const key_type& get_next_key(std::map< K, T >::iterator *swigiterator) {
-        std::map< K, T >::iterator iter = *swigiterator;
+      const key_type& get_next_key(std::map< K, T, C >::iterator *swigiterator) {
+        std::map< K, T, C >::iterator iter = *swigiterator;
         (*swigiterator)++;
         return (*iter).first;
       }
 
-      void destroy_iterator(std::map< K, T >::iterator *swigiterator) {
+      void destroy_iterator(std::map< K, T, C >::iterator *swigiterator) {
         delete swigiterator;
       }
     }
@@ -291,8 +286,8 @@
 
 // Default implementation
 namespace std {   
-  template<class K, class T> class map {    
-    SWIG_STD_MAP_INTERNAL(K, T)
+  template<class K, class T, class C = std::less<K> > class map {
+    SWIG_STD_MAP_INTERNAL(K, T, C)
   };
 }
  

@@ -3,7 +3,10 @@ SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    =
 LIBS       =
  
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile ruby_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' ruby_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
@@ -13,7 +16,5 @@ all::
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
 	LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' ruby_cpp
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile ruby_clean
-
-check: all

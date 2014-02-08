@@ -139,7 +139,7 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 
 /* float */
 
-%numeric_double(float,           "<float.h>", -FLT_MAX, FLT_MAX)
+%numeric_float(float,           "SWIG_Float_Overflow_Check", SWIG_Float_Overflow_Check(v))
 
 /* long/unsigned long */
 

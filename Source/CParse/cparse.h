@@ -25,12 +25,15 @@ extern "C" {
   extern String *cparse_file;
   extern int cparse_line;
   extern int cparse_cplusplus;
+  extern int cparse_cplusplusout;
   extern int cparse_start_line;
 
   extern void Swig_cparse_cplusplus(int);
+  extern void Swig_cparse_cplusplusout(int);
   extern void scanner_file(File *);
   extern void scanner_next_token(int);
   extern void skip_balanced(int startchar, int endchar);
+  extern String *get_raw_text_balanced(int startchar, int endchar);
   extern void skip_decl(void);
   extern void scanner_check_typedef(void);
   extern void scanner_ignore_typedef(void);

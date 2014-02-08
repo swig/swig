@@ -93,6 +93,17 @@ SWIG_FromXMLChPtrAndSize(const XMLCh* input, size_t size)
 }
 }
 
+%fragment("SWIG_XMLStringNLen","header") {
+size_t
+SWIG_XMLStringNLen(const XMLCh* s, size_t maxlen)
+{
+  const XMLCh *p;
+  for (p = s; maxlen-- && *p; p++)
+    ;
+  return p - s;
+}
+}
+
 %init {
   if (!SWIG_UTF8Transcoder()) {
     croak("ERROR: XML::Xerces: INIT: Could not create UTF-8 transcoder");
@@ -106,6 +117,7 @@ SWIG_FromXMLChPtrAndSize(const XMLCh* input, size_t size)
 		 SWIG_AsXMLChPtrAndSize, 
 		 SWIG_FromXMLChPtrAndSize,
 		 XERCES_CPP_NAMESPACE::XMLString::stringLen,
+		 SWIG_XMLStringNLen,
 		 "<XMLCh.h>", INT_MIN, INT_MAX);
 
 

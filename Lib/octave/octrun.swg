@@ -1,20 +1,88 @@
 
 #include <octave/version.h>
-#ifndef OCTAVE_API_VERSION_NUMBER
 
-  // Hack to distinguish between Octave 3.2 and earlier versions before OCTAVE_API_VERSION_NUMBER existed
-  #define ComplexLU __ignore
-  #include <octave/CmplxLU.h>
-  #undef ComplexLU
-  #ifdef octave_Complex_LU_h
-  # define OCTAVE_API_VERSION_NUMBER 36
-  #else
-  # define OCTAVE_API_VERSION_NUMBER 37
-  #endif
+// Macro for enabling features which require Octave version >= major.minor.patch
+#define SWIG_OCTAVE_PREREQ(major, minor, patch) \
+  ( (OCTAVE_MAJOR_VERSION<<16) + (OCTAVE_MINOR_VERSION<<8) + OCTAVE_PATCH_VERSION >= ((major)<<16) + ((minor)<<8) + (patch) )
 
-#endif
+// Reconstruct Octave major, minor, and patch versions for releases prior to 3.8.1
+#if !defined(OCTAVE_MAJOR_VERSION)
 
-#if OCTAVE_API_VERSION_NUMBER < 37
+# if !defined(OCTAVE_API_VERSION_NUMBER)
+
+// Hack to distinguish between Octave 3.8.0, which removed OCTAVE_API_VERSION_NUMBER but did not yet
+// introduce OCTAVE_MAJOR_VERSION, and Octave <= 3.2, which did not define OCTAVE_API_VERSION_NUMBER
+#  include <octave/ov.h>
+#  if defined(octave_ov_h)
+#   define OCTAVE_MAJOR_VERSION 3
+#   define OCTAVE_MINOR_VERSION 8
+#   define OCTAVE_PATCH_VERSION 0
+#  else
+
+// Hack to distinguish between Octave 3.2 and earlier versions, before OCTAVE_API_VERSION_NUMBER existed
+#   define ComplexLU __ignore
+#   include <octave/CmplxLU.h>
+#   undef ComplexLU
+#   if defined(octave_Complex_LU_h)
+
+// We know only that this version is prior to Octave 3.2, i.e. OCTAVE_API_VERSION_NUMBER < 37
+#    define OCTAVE_MAJOR_VERSION 3
+#    define OCTAVE_MINOR_VERSION 1
+#    define OCTAVE_PATCH_VERSION 99
+
+#   else
+
+// OCTAVE_API_VERSION_NUMBER == 37
+#    define OCTAVE_MAJOR_VERSION 3
+#    define OCTAVE_MINOR_VERSION 2
+#    define OCTAVE_PATCH_VERSION 0
+
+#   endif // defined(octave_Complex_LU_h)
+
+#  endif // defined(octave_ov_h)
+
+// Correlation between Octave API and version numbers extracted from Octave's
+// ChangeLogs; version is the *earliest* released Octave with that API number
+# elif OCTAVE_API_VERSION_NUMBER >= 48
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 6
+#  define OCTAVE_PATCH_VERSION 0
+
+# elif OCTAVE_API_VERSION_NUMBER >= 45
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 4
+#  define OCTAVE_PATCH_VERSION 1
+
+# elif OCTAVE_API_VERSION_NUMBER >= 42
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 3
+#  define OCTAVE_PATCH_VERSION 54
+
+# elif OCTAVE_API_VERSION_NUMBER >= 41
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 3
+#  define OCTAVE_PATCH_VERSION 53
+
+# elif OCTAVE_API_VERSION_NUMBER >= 40
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 3
+#  define OCTAVE_PATCH_VERSION 52
+
+# elif OCTAVE_API_VERSION_NUMBER >= 39
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 3
+#  define OCTAVE_PATCH_VERSION 51
+
+# else // OCTAVE_API_VERSION_NUMBER == 38
+#  define OCTAVE_MAJOR_VERSION 3
+#  define OCTAVE_MINOR_VERSION 3
+#  define OCTAVE_PATCH_VERSION 50
+
+# endif // !defined(OCTAVE_API_VERSION_NUMBER)
+
+#endif // !defined(OCTAVE_MAJOR_VERSION)
+
+#if !SWIG_OCTAVE_PREREQ(3,2,0)
 #define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, FS ## cname, args, nargout, doc)
 #else
 #define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, G ## cname, args, nargout, doc)
@@ -427,7 +495,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
           if (error_state) return dim_vector(1,1);
         }
         return d;
-      } else if (out.is_matrix_type() || out.is_real_nd_array() || out.is_numeric_type() ) {
+      } else if (out.is_matrix_type() || out.is_numeric_type() ) {
         if (out.rows()==1 || out.columns()==1) {
            Array<int> a = out.int_vector_value();
            if (error_state) return dim_vector(1,1);
@@ -746,7 +814,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return outarg(0).string_value();
     }
 
-#if OCTAVE_API_VERSION_NUMBER >= 40
+#if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const {
       return octave_map();
     }
@@ -982,7 +1050,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
-#if OCTAVE_API_VERSION_NUMBER >= 40
+#if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const
       { return ptr->map_value(); }
 #else
@@ -1280,7 +1348,7 @@ SWIGRUNTIME int SWIG_Octave_ConvertPacked(const octave_value &ov, void *ptr, siz
   return ost->copy(type, (char *) ptr, sz) ? SWIG_OK : SWIG_ERROR;
 }
 
-void SWIG_Octave_SetConstant(octave_swig_type *module_ns, const std::string &name, const octave_value &ov) {
+SWIGRUNTIMEINLINE void SWIG_Octave_SetConstant(octave_swig_type *module_ns, const std::string &name, const octave_value &ov) {
   module_ns->assign(name, ov);
 }
 
@@ -1289,23 +1357,16 @@ SWIGRUNTIMEINLINE octave_value SWIG_Octave_GetGlobalValue(std::string name) {
 }
 
 SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& value) {
-  // It is critical that a newly-allocated octave_value is passed to set_global_value(),
-  // since it and the Octave symbol table take references to the values assigned to it.
-  // If we were to pass a reference to 'value' to set_global_value(), then the Octave
-  // symbol table would hold a reference to a variable owned by the SWIG .oct module.
-  // Both will think that they own the reference (since the .oct module is dynamically
-  // loaded, it appears to have its own C++ runtime), and so they will both try to
-  // de-allocate the octave_value on exit, resulting in a double-free or seg-fault.
-  // This is prevented by giving Octave its own heap-allocated copy of 'value'.
-  octave_value *pov = new octave_value(value);
-  set_global_value(name, *pov);
+  set_global_value(name, value);
 }
 
 SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
-#if OCTAVE_API_VERSION_NUMBER < 37
+#if !SWIG_OCTAVE_PREREQ(3,2,0)
   link_to_global_variable(curr_sym_tab->lookup(name, true));
 #else
+#if !SWIG_OCTAVE_PREREQ(3,8,0)
   symbol_table::varref(name);
+#endif
   symbol_table::mark_global(name);
 #endif
 }

@@ -5,14 +5,12 @@ TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 
-all::	go
+check: build
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
 
-go::
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_cpp
 
-clean::
-	$(MAKE) -f $(TOP)/Makefile go_clean
-
-check: all
-	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
+clean:
+	$(MAKE) -f $(TOP)/Makefile INTERFACE='$(INTERFACE)' go_clean

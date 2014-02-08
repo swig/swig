@@ -1,7 +1,7 @@
 import sys
 import file_test
 
-if sys.version[0:2] > (3, 0):
+if sys.version_info[0:2] < (3, 0):
   file_test.nfile(sys.stdout)
 
 cstdout = file_test.GetStdOut()

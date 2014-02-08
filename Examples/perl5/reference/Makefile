@@ -6,15 +6,16 @@ INTERFACE  = example.i
 LIBS       = -lm
 SWIGOPT    = -noproxy 
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile perl5_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' SWIGOPT='$(SWIGOPT)' perl5_cpp
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='myperl' INTERFACE='$(INTERFACE)' SWIGOPT='$(SWIGOPT)' perl5_cpp_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile perl5_clean
-
-check: all

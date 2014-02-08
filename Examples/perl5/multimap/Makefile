@@ -4,15 +4,17 @@ SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    = 
-all::
+
+check: build
+	$(MAKE) -f $(TOP)/Makefile perl5_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' perl5
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='myperl' INTERFACE='$(INTERFACE)' perl5_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile perl5_clean
-
-check: all

@@ -49,6 +49,7 @@ int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 
 extern "C" {
   extern String *ModuleName;
+  extern int ignore_nested_classes;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
@@ -107,6 +108,7 @@ static const char *usage2 = (const char *) "\
      -MM             - List dependencies, but omit files in SWIG library\n\
      -MMD            - Like `-MD', but omit files in SWIG library\n\
      -module <name>  - Set module name to <name>\n\
+     -MP             - Generate phony targets for all dependencies\n\
      -MT <target>    - Set the target of the rule emitted by dependency generation\n\
      -nocontract     - Turn off contract checking\n\
      -nocpperraswarn - Do not treat the preprocessor #error statement as #warning\n\
@@ -185,6 +187,7 @@ static int dump_classes = 0;
 static int werror = 0;
 static int depend = 0;
 static int depend_only = 0;
+static int depend_phony = 0;
 static int memory_debug = 0;
 static int allkw = 0;
 static DOH *cpps = 0;
@@ -481,6 +484,10 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++out") == 0) {
+	// Undocumented
+	Swig_cparse_cplusplusout(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Swig_mark_arg(i);
@@ -495,9 +502,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-naturalvar") == 0) {
 	Wrapper_naturalvar_mode_set(1);
-	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-nonaturalvar") == 0) {
-	Wrapper_naturalvar_mode_set(0);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-directors") == 0) {
 	SWIG_setfeature("feature:director", "1");
@@ -712,6 +716,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-MMD") == 0) {
 	depend = 2;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-MP") == 0) {
+	depend_phony = 1;
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-MT") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
@@ -850,10 +857,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-
-
-
-
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
 
@@ -898,6 +901,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Wrapper_director_mode_set(0);
   Wrapper_director_protected_mode_set(1);
 
+  // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
+  ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+
   // Create Library search directories
 
   // Check for SWIG_LIB environment variable
@@ -941,6 +947,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
+
+  if (CPlusPlus && cparse_cplusplusout) {
+    Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
+    SWIG_exit(EXIT_FAILURE);
+  }
 
   install_opts(argc, argv);
 
@@ -1101,22 +1112,33 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Printf(f_dependencies_file, "%s: ", outfile);
 	  }
 	  List *files = Preprocessor_depend();
+	  List *phony_targets = NewList();
 	  for (int i = 0; i < Len(files); i++) {
             int use_file = 1;
             if (depend == 2) {
               if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWinUnix && (Strncmp(Getitem(files, i), SwigLibWinUnix, Len(SwigLibWinUnix)) == 0)))
                 use_file = 0;
             }
-            if (use_file)
-	      Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
+            if (use_file) {
+              Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
+              if (depend_phony)
+                Append(phony_targets, Getitem(files, i));
+            }
 	  }
 	  Printf(f_dependencies_file, "\n");
+	  if (depend_phony) {
+	    for (int i = 0; i < Len(phony_targets); i++) {
+	      Printf(f_dependencies_file, "\n%s:\n", Getitem(phony_targets, i));
+	    }
+	  }
+
 	  if (f_dependencies_file != stdout)
 	    Delete(f_dependencies_file);
 	  if (depend_only)
 	    SWIG_exit(EXIT_SUCCESS);
 	  Delete(inputfile_filename);
 	  Delete(basename);
+	  Delete(phony_targets);
 	} else {
 	  Printf(stderr, "Cannot generate dependencies with -nopreprocess\n");
 	  // Actually we could but it would be inefficient when just generating dependencies, as it would be done after Swig_cparse
@@ -1145,6 +1167,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
+    if (!CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing unnamed structs...\n");
+      Swig_nested_name_unnamed_c_structs(top);
+    }
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");
@@ -1164,6 +1191,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing nested classes...\n");
+      Swig_nested_process_classes(top);
+    }
 
     if (dump_top & STAGE3) {
       Printf(stdout, "debug-top stage 3\n");

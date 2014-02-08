@@ -250,12 +250,12 @@ SWIGINTERN int SWIG_table_size(lua_State* L, int index)
 	SWIGINTERN TYPE* SWIG_get_##NAME##_num_array_fixed(lua_State* L, int index, int size){\
 		TYPE *array;\
 		if (!lua_istable(L,index) || SWIG_itable_size(L,index) != size) {\
-			lua_pushfstring(L,"expected a table of size %d",size);\
+			SWIG_Lua_pushferrstring(L,"expected a table of size %d",size);\
 			return 0;\
 		}\
 		array=SWIG_ALLOC_ARRAY(TYPE,size);\
 		if (!SWIG_read_##NAME##_num_array(L,index,array,size)){\
-			lua_pushstring(L,"table must contain numbers");\
+			SWIG_Lua_pusherrstring(L,"table must contain numbers");\
 			SWIG_FREE_ARRAY(array);\
 			return 0;\
 		}\
@@ -265,17 +265,17 @@ SWIGINTERN int SWIG_table_size(lua_State* L, int index)
 	{\
 		TYPE *array;\
 		if (!lua_istable(L,index)) {\
-			lua_pushstring(L,"expected a table");\
+			SWIG_Lua_pusherrstring(L,"expected a table");\
 			return 0;\
 		}\
 		*size=SWIG_itable_size(L,index);\
 		if (*size<1){\
-			lua_pushstring(L,"table appears to be empty");\
+			SWIG_Lua_pusherrstring(L,"table appears to be empty");\
 			return 0;\
 		}\
 		array=SWIG_ALLOC_ARRAY(TYPE,*size);\
 		if (!SWIG_read_##NAME##_num_array(L,index,array,*size)){\
-			lua_pushstring(L,"table must contain numbers");\
+			SWIG_Lua_pusherrstring(L,"table must contain numbers");\
 			SWIG_FREE_ARRAY(array);\
 			return 0;\
 		}\
@@ -451,12 +451,12 @@ SWIGINTERN int SWIG_read_ptr_array(lua_State* L,int index,void **array,int size,
 SWIGINTERN void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swig_type_info *type){
 	void **array;
 	if (!lua_istable(L,index) || SWIG_itable_size(L,index) != size) {
-		lua_pushfstring(L,"expected a table of size %d",size);
+		SWIG_Lua_pushferrstring(L,"expected a table of size %d",size);
 		return 0;
 	}
 	array=SWIG_ALLOC_ARRAY(void*,size);
 	if (!SWIG_read_ptr_array(L,index,array,size,type)){
-		lua_pushfstring(L,"table must contain pointers of type %s",type->name);
+		SWIG_Lua_pushferrstring(L,"table must contain pointers of type %s",type->name);
 		SWIG_FREE_ARRAY(array);
 		return 0;
 	}
@@ -465,17 +465,17 @@ SWIGINTERN void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swi
 SWIGINTERN void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_type_info *type){
 	void **array;
 	if (!lua_istable(L,index)) {
-		lua_pushstring(L,"expected a table");
+		SWIG_Lua_pusherrstring(L,"expected a table");
 		return 0;
 	}
 	*size=SWIG_itable_size(L,index);
 	if (*size<1){
-		lua_pushstring(L,"table appears to be empty");
+		SWIG_Lua_pusherrstring(L,"table appears to be empty");
 		return 0;
 	}
 	array=SWIG_ALLOC_ARRAY(void*,*size);
 	if (!SWIG_read_ptr_array(L,index,array,*size,type)){
-		lua_pushfstring(L,"table must contain pointers of type %s",type->name);
+		SWIG_Lua_pushferrstring(L,"table must contain pointers of type %s",type->name);
 		SWIG_FREE_ARRAY(array);
 		return 0;
 	}

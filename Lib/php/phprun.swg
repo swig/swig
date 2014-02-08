@@ -209,11 +209,11 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags TSRMLS_DC) {
   const char *type_name;
 
   value = (swig_object_wrapper *) zend_list_find(z->value.lval, &type);
-  if ( flags & SWIG_POINTER_DISOWN ) {
+  if (type==-1) return NULL;
+  if (flags & SWIG_POINTER_DISOWN) {
     value->newobject = 0;
   }
   p = value->ptr;
-  if (type==-1) return NULL;
 
   type_name=zend_rsrc_list_get_rsrc_type(z->value.lval TSRMLS_CC);
 
@@ -255,10 +255,9 @@ static char const_name[] = "swig_runtime_data_type_pointer";
 static swig_module_info *SWIG_Php_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   zval *pointer;
   swig_module_info *ret = 0;
+  TSRMLS_FETCH();
 
   MAKE_STD_ZVAL(pointer);
-
-  TSRMLS_FETCH();
 
   if (zend_get_constant(const_name, sizeof(const_name) - 1, pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {

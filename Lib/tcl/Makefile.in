@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# SWIG Tcl/Tk Makefile
+# SWIG Tcl Makefile
 # 
 # This file can be used to build various Tcl extensions with SWIG.
 # By default this file is set up for dynamic loading, but it can
@@ -48,9 +48,8 @@ SWIG          = $(exec_prefix)/bin/swig
 SWIGOPT       = -tcl # use -tcl8 for Tcl 8.0
 SWIGCC        = $(CC) 
 
-# SWIG Library files.  Uncomment one of these for rebuilding tclsh or wish
-#SWIGLIB       = -ltclsh.i
-#SWIGLIB       = -lwish.i
+# SWIG Library files.  Uncomment if rebuilding tclsh
+#SWIGLIBS      = -ltclsh.i
 
 # Rules for creating .o files from source.
 
@@ -72,12 +71,7 @@ BUILD         = @LDSHARED@
 #DLL_LIBS      = -L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
              -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
-# X11 installation (needed to rebuild Tk extensions)
-
-XLIB          = @XLIBSW@
-XINCLUDE      = @XINCLUDES@
-
-# Tcl installation (where is Tcl/Tk located)
+# Tcl installation (where is Tcl located)
 
 TCL_INCLUDE   = @TCLINCLUDE@
 TCL_LIB       = @TCLLIB@
@@ -88,11 +82,10 @@ LIBM          = @LIBM@
 LIBC          = @LIBC@
 SYSLIBS       = $(LIBM) $(LIBC) @LIBS@
 
-# Build options (uncomment only one these)
+# Build options (uncomment only one of these)
 
 BUILD_LIBS    = $(LIBS) # Dynamic loading
 #BUILD_LIBS    = $(TCL_LIB) -ltcl $(LIBS) $(SYSLIBS) # tclsh  
-#BUILD_LIBS    = $(TCL_LIB) -ltk -ltcl $(XLIB) $(LIBS) $(SYSLIBS) # wish
 
 # Compilation rules for non-SWIG components
 
@@ -120,7 +113,7 @@ $(WRAPOBJ) : $(WRAPFILE)
 	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDES) $(TCL_INCLUDE) 
 
 $(WRAPFILE) : $(INTERFACE)
-	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
+	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIBS) $(INTERFACE)
 
 $(TARGET): $(WRAPOBJ) $(ALLOBJS)
 	$(BUILD) $(WRAPOBJ) $(ALLOBJS) $(BUILD_LIBS) -o $(TARGET)

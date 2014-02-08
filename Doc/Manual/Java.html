@@ -87,6 +87,7 @@
 <li><a href="#Java_directors_example">Simple directors example</a>
 <li><a href="#Java_directors_threading">Director threading issues</a>
 <li><a href="#Java_directors_performance">Director performance tuning</a>
+<li><a href="#Java_exceptions_from_directors">Java Exceptions from Directors</a>
 </ul>
 <li><a href="#Java_allprotected">Accessing protected members</a>
 <li><a href="#Java_common_customization">Common customization features</a>
@@ -3555,6 +3556,312 @@ However, if all director methods are expected to usually be overridden by Java s
 The disadvantage is that invocation of director methods from C++ when Java doesn't actually override the method will require an additional call up into Java and back to C++.  As such, this option is only useful when overrides are extremely common and instantiation is frequent enough that its performance is critical.
 </p>
 
+<H3><a name="Java_exceptions_from_directors"></a>24.5.7 Java exceptions from directors</H3>
+
+<p>
+With directors routing method calls to Java, and proxies routing them
+to C++, the handling of exceptions is an important concern.
+The default behavior from SWIG 3.0
+onwards is to convert the thrown Java exception into a SWIG defined
+<code>DirectorException</code> C++ exception.
+SWIG 2.0 and earlier versions didn't provide any mechanism to handle the Java director method exceptions in C++.
+</p>
+
+<p>
+Converting Java exceptions into C++ exceptions can be done in two different ways using
+the <code>director:except</code> <a href="Customization.html#Customization_features">feature</a>.
+In the simplest approach, a code block is attached to each director method to
+handle the mapping of Java exceptions into C++ exceptions.
+</p>
+
+<div class="code">
+<pre>
+%feature("director:except") MyClass::method(int x) {
+  jthrowable $error = jenv-&gt;ExceptionOccurred();
+  if ($error) {
+    jenv-&gt;ExceptionClear();
+    if (Swig::ExceptionMatches(jenv, $error, "java/lang/IndexOutOfBoundsException"))
+      throw std::out_of_range(Swig::JavaExceptionMessage(jenv, $error).message());
+    if (Swig::ExceptionMatches(jenv, $error, "$packagepath/MyJavaException"))
+      throw MyCppException(Swig::JavaExceptionMessage(jenv, $error).message());
+    throw std::runtime_error("Unexpected exception thrown in MyClass::method");
+  }
+}
+
+class MyClass {
+  /** Throws either a std::out_of_range or MyCppException on error */
+  void method(int x);
+}
+</pre>
+</div>
+
+<p>
+This approach allows a flexible mapping of Java exceptions thrown by director methods into
+C++ exceptions expected by a C++ caller.  There
+need not be any C++ <em>exception specifications</em> on the C++ method. The
+utility function <code>Swig::ExceptionMatches</code>
+and class <code>Swig::JavaExceptionMessage</code> are provided to simplify
+writing code for wrappers that use the <code>director:except</code> feature. The
+function <code>Swig::ExceptionMatches</code> matches the type of the
+<code>jthrowable</code> thrown against a <b>fully qualified</b> JNI style class
+name, such as <code>"java/lang/IOError"</code>.  If the throwable class is the same
+type, or derives from the given type, <code>Swig::ExceptionMatches</code> will return true.  Care must be taken to
+provide the correct fully qualified name, since for wrapped exceptions the
+generated proxy class will have additional package qualification, depending on
+the '-package' argument and use of the <a href="#Java_namespaces">nspace
+  feature</a>.  The special variable <code>$error</code> is expanded by SWIG into a unique variable name and
+should be used for the 
+assignment of the exception that occurred.  The special variable <code>$packagepath</code> is
+replaced by the outer package provided for SWIG generation by the -package
+option.  The utility class <code>Swig::JavaExceptionMessage</code> is a holder
+providing access to the message from the thrown Java exception.
+The <code>message()</code> method returns the exception message as a <code>const char *</code>,
+which is only valid during the lifetime of the holder.  Any code using this message
+needs to copy it, for example into a std::string or a newly constructed C++ exception.
+</p>
+
+<p>
+Using the above approach to
+write handlers for a large number of methods will require 
+repetitive duplication of the <code>director:except</code> feature code.
+To mitigate this, an alternative approach is provided via typemaps in a
+fashion analagous to
+the <a href="Typemaps.html#throws_typemap">"throws" typemap.</a>  The
+"throws" typemap provides an approach to automatically map all the C++
+exceptions listed in a method's defined exceptions (either from
+a C++ <em>exception specification</em> or a <code>%catches</code>
+feature) into Java exceptions.
+The "directorthrows" typemap provides the inverse mapping and should contain
+code to convert a suitably matching Java exception into a C++ exception.
+The example below converts a Java <code>java.lang.IndexOutOfBoundsException</code> exception
+to the typemap's type, that is <code>std::out_of_range</code>:
+
+<div class="code">
+<pre>
+%typemap(directorthrows) std::out_of_range %{
+  if (Swig::ExceptionMatches(jenv, $error, "java/lang/IndexOutOfBoundsException")) {
+    throw std::out_of_range(Swig::JavaExceptionMessage(jenv, $error).message());
+  }
+%}
+</pre>
+</div>
+
+<p>
+The "directorthrows" typemap is then used in conjunction with the
+<code>director:except</code> feature if the <code>$directorthrowshandlers</code> special variable
+is used in the feature code. Consider the following, which also happens to be the default:
+</p>
+
+<div class="code">
+<pre>
+%feature("director:except") %{
+   jthrowable $error = jenv-&gt;ExceptionOccurred();
+   if ($error) {
+     jenv-&gt;ExceptionClear();
+     $directorthrowshandlers
+     throw Swig::DirectorException(jenv, $error);
+   }
+%}
+</pre>
+</div>
+
+<p>The code generated using the <code>director:except</code> feature
+replaces the <code>$directorthrowshandlers</code> special variable with the code in
+the "directorthrows" typemaps, for each and every exception defined for the method. 
+The possible exceptions can be defined either with a C++ exception
+specification or <code>%catches</code> as described for the
+<a href="Typemaps.html#throws_typemap">"throws" typemap</a>.
+</p>
+
+<p>
+Consider the following director method:
+</p>
+
+<div class="code">
+<pre>
+  ...
+  virtual void doSomething(int index) throw (std::out_of_range);
+  ...
+</pre>
+</div>
+
+<p>
+When combined with the default <code>director:except</code> feature and the "directorthrows" typemap above,
+the resulting code generated in the director method after calling up to Java will be:
+</p>
+
+<div class="code">
+<pre>
+jthrowable swigerror = jenv-&gt;ExceptionOccurred();
+if (swigerror) {
+  jenv-&gt;ExceptionClear();
+  if (Swig::ExceptionMatches(jenv, swigerror, "java/lang/IndexOutOfBoundsException")) {
+    throw std::out_of_range(Swig::JavaExceptionMessage(jenv, swigerror).message());
+  }
+  
+  throw Swig::DirectorException(jenv, swigerror);
+}
+</pre>
+</div>
+
+<p><em>
+Note: Beware of using exception specifications as the SWIG director methods
+will be generated with the same exception specifications and if the
+director method throws an exception that is not specified it is likely
+to terminate your program. See the C++ standard for more details.
+Using the %catches feature instead to define the handled exceptions does not suffer
+this potential fate.
+</em></p>
+
+<p>Because the default code generation maps any unhandled Java exceptions to
+<code>Swig::DirectorException</code>, any director methods that have exception
+specifications may cause program termination.  To simply ignore
+unexpected exceptions, the default handling can be changed with:
+
+<div class="code">
+<pre>
+%feature("director:except") %{
+   jthrowable $error = jenv-&gt;ExceptionOccurred();
+   if ($error) {
+     jenv-&gt;ExceptionClear();
+     $directorthrowshandlers
+     return $null; // exception is ignored
+   }
+%}
+</pre>
+</div>
+</p>
+
+<p>Alternatively an exception compatible with the existing director
+method exception specifications can be thrown. Assuming that all
+methods allow std::runtime_error to be thrown,
+the <code>return&nbsp;$null;</code> could be changed to:
+</p>
+
+<div class="code">
+<pre>
+   throw std::runtime_error(Swig::JavaExceptionMessage(jenv, $error).message());
+</pre>
+</div>
+
+<p>In more complex situations, a separate <code>director:except</code> feature
+may need to be attached to specific methods.
+</p>
+
+<p>Below is a complete example demonstrating the use
+of the "directorthrows" typemaps.  In this example, a
+generic "directorthrows" typemap is appropriate for all three exceptions - all
+take single string constructors.  If the exceptions had different constructors,
+it would be neccessary to have separate typemaps for each exception type.
+
+
+<!-- All the DEFINE_ and DECLARE_EXCEPTIONS CAN BE OMITTED to make
+  this more succinct.  They are included to make this a complete
+  example interface that could be generated and built.  -->
+<div class="code">
+<pre>
+%module(directors="1") example
+
+%{
+  #include &lt;string&gt;
+  #include &lt;stdexcept&gt;
+%}
+
+// Define exceptions in header section using std::runtime_error
+%define DEFINE_EXCEPTION(NAME)
+%{
+  namespace MyNS {
+    struct NAME : public std::runtime_error { NAME(const std::string &amp;what) : runtime_error(what) {} };
+  }
+%}
+%enddef
+
+// Expose C++ exceptions as Java Exceptions by changing the Java base class and providing a getMessage()
+%define DECLARE_EXCEPTION(NAME)
+%typemap(javabase) MyNS::NAME "java.lang.Exception";
+%rename(getMessage) MyNS::NAME::what;
+namespace MyNS {
+  struct NAME {
+    NAME(const std::string&amp; what);
+    const char * what();
+  };
+}
+%enddef
+
+DEFINE_EXCEPTION(ExceptionA)
+DEFINE_EXCEPTION(ExceptionB)
+DEFINE_EXCEPTION(Unexpected)
+
+// Mark three methods to map director thrown exceptions.
+%feature("director:except") MyClass::meth1(int);
+%feature("director:except") MyClass::meth2;
+%feature("director:except") meth3;
+
+%typemap(directorthrows) MyNS::ExceptionA, MyNS::ExceptionB, MyNS::Unexpected %{
+  if (Swig::ExceptionMatches(jenv, $error, "$packagepath/$javaclassname"))
+    throw $1_type(Swig::JavaExceptionMessage(jenv, $error).message());
+%}
+
+DECLARE_EXCEPTION(ExceptionA)
+DECLARE_EXCEPTION(ExceptionB)
+DECLARE_EXCEPTION(Unexpected)
+
+%catches(MyNS::ExceptionA, MyNS::ExceptionB, MyNS::Unexpected) MyClass::meth2();
+
+%inline {
+  class MyClass {
+  public:
+    virtual void meth1(int x) throw(MyNS::ExceptionA, MyNS::ExceptionB) = 0;
+    virtual void meth2() = 0;   /* throws MyNS::ExceptionA, MyNS::ExceptionB, MyNS::Unexpected */
+    virtual void meth3(float x) throw(MyNS::Unexpected) = 0;
+    virtual ~MyClass() {}
+  };
+}
+</pre>
+</div>
+
+<p>
+In this case the three different "directorthrows" typemaps will be used
+to generate the three different exception handlers for
+<code>meth1</code>, <code>meth2</code> and <code>meth3</code>.  The generated
+handlers will have "if" blocks for each exception type specified, in
+the exception specification or <code>%catches</code> feature. 
+</p>
+
+<p>Note that the "directorthrows" typemaps are important
+only if it is important for the the exceptions passed through the C++
+layer to be mapped to distinct C++ exceptions.  If director methods
+are being called by C++ code that is itself wrapped in a
+SWIG generated Java wrapper and access is always through this wrapper,
+the default <code>Swig::DirectorException</code> class provides enough information
+to reconstruct the original exception.  In this case removing the
+<code>$directorthrowshandlers</code> special variable from the
+default <code>director:except</code> feature and simply always
+throwing a <code>Swig::DirectorException</code> will achieve the desired result.
+Along with this a generic exception feature is added to convert any
+caught <code>Swig::DirectorException</code>s back into the underlying
+Java exceptions via the <code>Swig::DirectorException::raiseJavaException</code> method,
+as demonstrated with <code>%javaexception</code> below:
+</p>
+
+<div class="code">
+<pre>
+%javaexception("Exception") MyClass::myMethod %{
+  try {
+    $action
+  } catch (Swig::DirectorException &amp;e) {
+    // raise/throw the Java exception that originally caused the DirectorException
+    e.raiseJavaException(jenv);
+    return $null;
+  }
+%}
+</pre>
+</div>
+
+<p>
+See the <a href="#Java_exception_handling">Exception handling with %exception and %javaexception</a>
+section for more on converting C++ exceptions to Java exceptions.
+</p>
 
 <H2><a name="Java_allprotected"></a>24.6 Accessing protected members</H2>
 
@@ -5367,7 +5674,7 @@ can be wrapped with the Java equivalent, that is, static inner proxy classes.
 </p>
 
 <p>
-<b><tt>$jniinput, $javacall and $packagepath</tt></b><br>
+<b><tt>$error, $jniinput, $javacall and $packagepath</tt></b><br>
 These special variables are used in the directors typemaps. See <a href="#Java_directors_typemaps">Director specific typemaps</a> for details.
 </p>
 
@@ -5701,6 +6008,10 @@ is the package name passed from the SWIG command line and <code>$javaclassname</
 If the <tt>-package</tt> commandline option is not used to specify the package, then '$packagepath/' will be removed from the resulting output JNI field descriptor.
 <b>Do not forget the terminating ';' for JNI field descriptors starting with 'L'.</b>
 If the ';' is left out, Java will generate a "method not found" runtime error.
+Note that the <code>$packagepath</code> substitution always uses the path separator '/' when expanded.
+The <code>$javaclassname</code> expansion can be confusing as it is normally expanded using the '.' separator.
+However, <code>$javaclassname</code> is expanded using the path separator '/' in typemap's "descriptor" attribute
+as well as in the "directorthrows" typemap.
 </p>
 </div>
 
@@ -5792,6 +6103,40 @@ For primitive types, this typemap is usually specified as:
 The <code>$javacall</code> special variable is analogous to the <code>$jnicall</code> special variable.
 It is replaced by the call to the target Java method.
 The target method is the method in the Java proxy class which overrides the virtual C++ method in the C++ base class.
+</p>
+
+</div>
+
+<p><tt>%typemap(directorthrows)</tt></p>
+<div class="indent">
+
+<p>
+Conversion of Java exceptions to C++ exceptions in director method's exception handling.
+This typemap is expected to test the <tt>$error</tt> special variable for a matching Java exception
+and if successful convert and throw it into a C++ exception given by the typemap's type.
+The <code>$error</code> special variable is of type <code>jthrowable</code> and is
+substituted with a unique variable name in the generated code.
+</p>
+
+<p>
+The example below converts a Java <code>java.lang.IndexOutOfBoundsException</code> exception
+to the typemap's type, that is <code>std::out_of_range</code>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(directorthrows) std::out_of_range %{
+  if (Swig::ExceptionMatches(jenv, $error, "java/lang/IndexOutOfBoundsException")) {
+    throw std::out_of_range(Swig::JavaExceptionMessage(jenv, $error).message());
+  }
+%}
+</pre>
+</div>
+
+<p>
+The utility function <code>Swig::ExceptionMatches</code>
+and class <code>Swig::JavaExceptionMessage</code> are helpers available when using directors and are described
+in the <a href="#Java_exceptions_from_directors">Java Exceptions from Directors</a> section.
 </p>
 
 </div>
@@ -7886,7 +8231,7 @@ where it is possible to step from Java code into a JNI method within one environ
 <p>
 Alternatively, debugging can involve placing debug printout statements in the JNI layer using the <tt>%exception</tt> directive.
 See the <a href="Customization.html#Customization_exception_special_variables">special variables for %exception</a> section.
-Many of the default typemaps can also be overidden and modified for adding in extra logging/debug display information.
+Many of the default typemaps can also be overridden and modified for adding in extra logging/debug display information.
 </p>
 
 <p>

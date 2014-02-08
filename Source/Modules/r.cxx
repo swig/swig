@@ -2299,7 +2299,7 @@ int R::classDeclaration(Node *n) {
     
   /* If we have a typedef union { ... } U, then we never get to see the typedef
      via a regular call to typedefHandler. Instead, */
-  if(Getattr(n, "unnamed") && Strcmp(Getattr(n, "storage"), "typedef") == 0 
+  if(Getattr(n, "unnamed") && Getattr(n, "storage") && Strcmp(Getattr(n, "storage"), "typedef") == 0
      && Getattr(n, "tdname") && Strcmp(Getattr(n, "tdname"), name) == 0) {
     if (debugMode)
       Printf(stdout, "Typedef in the class declaration for %s\n", name);

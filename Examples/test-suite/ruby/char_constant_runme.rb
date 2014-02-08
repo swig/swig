@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-#
+#Encoding: ASCII-8BIT
 # Put description here
 #
 # 

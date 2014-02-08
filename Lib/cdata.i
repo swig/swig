@@ -17,7 +17,7 @@ typedef struct SWIGCDATA {
 
 #if SWIGGUILE
 %typemap(out) SWIGCDATA {
-   $result = gh_str2scm($1.data,$1.len);
+   $result = scm_from_locale_stringn($1.data,$1.len);
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 #elif SWIGCHICKEN

@@ -68,7 +68,11 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 // and const refs
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
 %{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &&($basetype temp)
+%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+%typemap(out) const enum SWIGTYPE &&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 
@@ -147,8 +151,17 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
   }
 %}
 
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&&
+%{
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
+    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+  }
+%}
+
 // out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
+%{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
+%typemap(out) SWIGTYPE*,SWIGTYPE&&
 %{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
 
 // dynamic casts
@@ -284,7 +297,7 @@ parameters match which function
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const signed char&, const unsigned char&,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,	const enum SWIGTYPE&,
+	 enum SWIGTYPE,	const enum SWIGTYPE&, const enum SWIGTYPE &&,
 	 float, double, const float &, const double&
 {
   $1 = lua_isnumber(L,$input);
@@ -315,6 +328,15 @@ parameters match which function
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
+  void *ptr;
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
@@ -360,6 +382,7 @@ parameters match which function
 
 // Array reference typemaps
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

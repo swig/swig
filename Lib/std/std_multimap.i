@@ -1,5 +1,5 @@
 //
-// std::map
+// std::multimap
 //
 
 %include <std_map.i>
@@ -59,6 +59,20 @@ namespace std {
 
     %traits_swigtype(_Key);
     %traits_swigtype(_Tp);	    
+
+    %fragment(SWIG_Traits_frag(std::pair< _Key, _Tp >), "header",
+	      fragment=SWIG_Traits_frag(_Key),
+	      fragment=SWIG_Traits_frag(_Tp),
+	      fragment="StdPairTraits") {
+      namespace swig {
+	template <>  struct traits<std::pair< _Key, _Tp > > {
+	  typedef pointer_category category;
+	  static const char* type_name() {
+	    return "std::pair<" #_Key "," #_Tp " >";
+	  }
+	};
+      }
+    }
 
     %fragment(SWIG_Traits_frag(std::multimap<_Key, _Tp, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),

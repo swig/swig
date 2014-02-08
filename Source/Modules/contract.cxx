@@ -307,7 +307,7 @@ int Contracts::cDeclaration(Node *n) {
     return SWIG_OK;
 
   if (Getattr(n, "feature:contract"))
-    ret = emit_contract(n, (InClass && !checkAttribute(n, "storage", "static")));
+    ret = emit_contract(n, InClass && !Swig_storage_isstatic(n));
   return ret;
 }
 
@@ -342,11 +342,13 @@ int Contracts::namespaceDeclaration(Node *n) {
 
 int Contracts::classDeclaration(Node *n) {
   int ret = SWIG_OK;
+  int oldInClass = InClass;
+  Node *oldClass = CurrentClass;
   InClass = 1;
   CurrentClass = n;
   emit_children(n);
-  InClass = 0;
-  CurrentClass = 0;
+  InClass = oldInClass;
+  CurrentClass = oldClass;
   return ret;
 }
 
