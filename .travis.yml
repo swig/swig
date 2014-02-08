@@ -46,6 +46,7 @@ before_install:
   - if test "$SWIGLANG" = "python" -a "$PY3"; then sudo apt-get install python3-dev; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
 script:
+  - export PS4="+ " #Temporary workaround bug in Travis build environment
   - ./autogen.sh && ./configure
   - make -s $SWIGJOBS
   - if test -z "$SWIGLANG"; then make -s check-ccache; fi
