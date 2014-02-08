@@ -504,7 +504,8 @@ class TypePass:private Dispatcher {
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
     /* Inherit type definitions into the class */
-    if (name && !(GetFlag(n, "nested") && GetFlag(n, "feature:flatnested") && !checkAttribute(n, "access", "public"))) {
+    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
+      (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 

@@ -49,6 +49,7 @@ int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 
 extern "C" {
   extern String *ModuleName;
+  extern int ignore_nested_classes;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
@@ -856,11 +857,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-static void flatten_nested() {
-  Swig_feature_set(Swig_cparse_features(), "", 0, "feature:flatnested", "1", 0);
-}
-
-
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
 
@@ -904,6 +900,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);
   Wrapper_director_protected_mode_set(1);
+
+  // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
+  ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
 
   // Create Library search directories
 
@@ -1157,10 +1156,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fprintf(stdout, "Starting language-specific parse...\n");
       fflush(stdout);
     }
-
-    // add "ignore" directive if nested classes are not supported
-    if (!lang->nestedClassesSupported())
-      flatten_nested();
 
     Node *top = Swig_cparse(cpps);
 

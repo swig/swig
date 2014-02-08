@@ -4607,8 +4607,8 @@ public:
     Setattr(n, "director:ctor", class_ctor);
   }
 
-  bool nestedClassesSupported() const {
-    return true;
+  NestedClassSupport nestedClassesSupport() const {
+    return NCS_Full;
   }
 };				/* class JAVA */
 

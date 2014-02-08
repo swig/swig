@@ -416,7 +416,7 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 
 static void remove_outer_class_reference(Node *n) {
   for (Node *c = firstChild(n); c; c = nextSibling(c)) {
-    if (GetFlag(c, "feature:flatnested")) {
+    if (GetFlag(c, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None) {
       Delattr(c, "nested:outer");
       remove_outer_class_reference(c);
     }
@@ -428,7 +428,7 @@ void Swig_nested_process_classes(Node *n) {
   while (c) {
     Node *next = nextSibling(c);
     if (!Getattr(c, "templatetype")) {
-      if (GetFlag(c, "nested") && GetFlag(c, "feature:flatnested")) {
+      if (GetFlag(c, "nested") && (GetFlag(c, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None)) {
 	removeNode(c);
 	if (!checkAttribute(c, "access", "public"))
 	  SetFlag(c, "feature:ignore");
