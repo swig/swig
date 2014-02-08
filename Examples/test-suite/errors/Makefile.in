@@ -35,12 +35,12 @@ include $(srcdir)/../common.mk
 %.cpptest: 
 	echo "$(ACTION)ing errors testcase $*"
 	-$(SWIG) -c++ -python -Wall $(SWIGOPT) $*.i 2> $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff $*.stderr $*.newerr
+	$(COMPILETOOL) diff -c $*.stderr $*.newerr
 
 %.ctest:
 	echo "$(ACTION)ing errors testcase $*"
 	-$(SWIG) -python -Wall $(SWIGOPT) $*.i 2> $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff $*.stderr $*.newerr
+	$(COMPILETOOL) diff -c $*.stderr $*.newerr
 
 %.clean:
 	
