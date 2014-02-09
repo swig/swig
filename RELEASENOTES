@@ -4,6 +4,14 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.12 summary:
+- This is a maintenance release backporting some fixes from the pending
+  3.0.0 release.
+- Octave 3.8 support added.
+- C++11 support for new versions of erase/insert in the STL containers.
+- Compilation fixes on some systems for the generated Lua, PHP, Python
+  and R wrappers.
+
 SWIG-2.0.11 summary:
 - Minor bug fixes and enhancements mostly in Python, but also
   C#, Lua, Ocaml, Octave, Perl, PHP, Python, R, Ruby, Tcl.
