@@ -15,9 +15,10 @@ def failed(message):
 
 try:
    version = sys.argv[1]
-   username = sys.argv[2]
+   branch = sys.argv[2]
+   username = sys.argv[3]
 except:
-   print "Usage: python mkrelease.py version username"
+   print "Usage: python mkrelease.py version branch username"
    print "where version should be x.y.z and username is your SF username"
    sys.exit(1)
 
@@ -25,7 +26,7 @@ print "Looking for rsync"
 os.system("which rsync") and failed("rsync not installed/found. Please install.")
 
 print "Making source tarball"
-os.system("python ./mkdist.py " + version) and failed("")
+os.system("python ./mkdist.py " + version + " " + branch) and failed("")
 
 print "Build Windows package"
 os.system("./mkwindows.sh " + version) and failed("")
