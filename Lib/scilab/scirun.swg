@@ -18,6 +18,7 @@ extern "C" {
 #endif
 #if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
 #define __USE_DEPRECATED_STACK_FUNCTIONS__
+#include "stack-c.h"
 #endif
 #include "MALLOC.h"
 #include "sciprint.h"
