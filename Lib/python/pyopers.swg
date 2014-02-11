@@ -103,7 +103,7 @@
 %pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
 %pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
 %pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
-%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_div);
+%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_divide);
 %pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
 %pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
 %pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
@@ -117,7 +117,7 @@
 %pycompare(__eq__,           *::operator==,		Py_EQ);
 %pycompare(__ne__,           *::operator!=,		Py_NE);
 
-%feature("python:slot", "nb_truediv", functype="binaryfunc") *::operator/;
+%feature("python:slot", "nb_true_divide", functype="binaryfunc") *::operator/;
 
 /* Special cases */
 %rename(__invert__)     *::operator~;
@@ -202,6 +202,7 @@ __bool__ = __nonzero__
 %pyinplaceoper(__ilshift__, *::operator <<=,	binaryfunc, nb_inplace_lshift);
 %pyinplaceoper(__irshift__, *::operator >>=,	binaryfunc, nb_inplace_rshift);
 
+%feature("python:slot", "nb_inplace_true_divide", functype="binaryfunc") *::operator/=;
 
 /* Finally, in python we need to mark the binary operations to fail as
  'maybecall' methods */
