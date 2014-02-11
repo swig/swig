@@ -10,8 +10,12 @@ srcdir       = $(abspath @srcdir@)
 top_srcdir   = $(abspath @top_srcdir@)
 top_builddir = $(abspath @top_builddir@)
 
+C_TEST_CASES += \
+	scilab_enums
+
 CPP_STD_TEST_CASES += \
 	primitive_types \
+	inout \
 
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
