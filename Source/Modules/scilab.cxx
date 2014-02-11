@@ -44,7 +44,7 @@ protected:
   List *sourceFileList;
   List *cflags;
   List *ldflags;
-  
+
   String *verboseBuildLevel;
   String *buildFlagsScript;
 
@@ -579,14 +579,17 @@ public:
       bool isEnum = (Cmp(nodeType(node), "enumitem") == 0);
 
       if (isConstant || isEnum) {
+        if (isEnum) {
+          Setattr(node, "type", "double");
+          constantValue = Getattr(node, "enumvalue");
+        }
+
         constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
         if (constantTypemap != NULL) {
           Setattr(node, "wrap:name", constantName);
           Replaceall(constantTypemap, "$result", constantName);
-          if (isEnum) {
-            constantValue = Getattr(node, "enumvalue");
-          }
           Replaceall(constantTypemap, "$value", constantValue);
+
           emit_action_code(node, variablesCode, constantTypemap);
           Delete(constantTypemap);
           return SWIG_OK;
@@ -646,23 +649,33 @@ public:
       // Compute the "absolute" value of enum if needed
       // (most of time enum values are a linked list of relative values)
       String *enumValue = Getattr(node, "enumvalue");
-      if (!enumValue) {
-        String *enumValueEx = Getattr(node, "enumvalueex");
-        if (enumValueEx) {
-          String *firstenumitem = Getattr(node, "firstenumitem");
-           if (firstenumitem) {
-             // First node, value is in enumValueEx
-            Setattr(node, "enumvalue", enumValueEx);
-            iPreviousEnumValue = atoi(Char(enumValueEx));
-          }
-          else {
-            enumValue = NewString("");
-            iPreviousEnumValue = iPreviousEnumValue + 1;
-            Printf(enumValue, "%d", iPreviousEnumValue);
-            Setattr(node, "enumvalue", enumValue);
-          }
+      String *enumValueEx = Getattr(node, "enumvalueex");
+
+      // First enum value ?
+      String *firstenumitem = Getattr(node, "firstenumitem");
+      if (firstenumitem) {
+        if (enumValue) {
+          // Value is in 'enumvalue'
+          iPreviousEnumValue = atoi(Char(enumValue));
+        }
+        else if (enumValueEx) {
+          // Or value is in 'enumValueEx'
+          iPreviousEnumValue = atoi(Char(enumValueEx));
+
+          enumValue = NewString("");
+          Printf(enumValue, "%d", iPreviousEnumValue);
+          Setattr(node, "enumvalue", enumValue);
         }
       }
+      else if (!enumValue && enumValueEx) {
+        // Value is not specified, set it by incrementing last value
+        enumValue = NewString("");
+        Printf(enumValue, "%d", ++iPreviousEnumValue);
+        Setattr(node, "enumvalue", enumValue);
+      }
+
+      // Enums in Scilab are mapped to double
+      Setattr(node, "type", "double");
     }
 
     return Language::enumvalueDeclaration(node);

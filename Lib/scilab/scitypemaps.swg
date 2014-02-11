@@ -370,8 +370,8 @@
     return SWIG_ERROR;
 %}
 
-%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) enum SWIGTYPE
+%typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(double)) enum SWIGTYPE
 %{
-  if (SWIG_CreateScilabVariable_int(pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_double(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
