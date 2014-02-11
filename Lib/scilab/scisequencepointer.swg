@@ -68,7 +68,7 @@ SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
     }
   }
   delete (int*)_sequence;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 

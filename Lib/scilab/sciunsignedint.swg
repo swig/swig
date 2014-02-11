@@ -64,10 +64,10 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
 %fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
 SWIGINTERN int
 SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int _iVarOut, unsigned int _uiValue, char *_fname) {
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarUnsignedInteger32(_pvApiCtx, iVarOut, _uiValue))
+  if (createScalarUnsignedInteger32(_pvApiCtx,
+    SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _uiValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -129,7 +129,7 @@ SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _i
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 

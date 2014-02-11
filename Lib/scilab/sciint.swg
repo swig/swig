@@ -91,10 +91,10 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject _iVar, int *_piValue,
 %fragment("SWIG_SciDouble_FromInt", "header") {
 SWIGINTERN int
 SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname){
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _iValue))
+  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx)
+    + _iVarOut, (double) _iValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -178,7 +178,7 @@ SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 

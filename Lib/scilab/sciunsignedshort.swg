@@ -67,7 +67,7 @@ SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _
   int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
   if (createScalarUnsignedInteger16(_pvApiCtx, iVarOut, _usValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -129,6 +129,6 @@ SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVarOut, int 
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }

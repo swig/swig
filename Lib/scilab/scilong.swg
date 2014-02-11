@@ -90,10 +90,10 @@ SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject _iVar, long *_plValu
 %fragment("SWIG_SciDouble_FromLong", "header") {
 SWIGINTERN int
 SWIG_SciDouble_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fname) {
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _lValue))
+  if (createScalarDouble(_pvApiCtx,
+    SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, (double) _lValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 

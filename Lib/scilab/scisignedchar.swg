@@ -89,10 +89,10 @@ SWIG_SciDoubleOrInt8_AsShort(void *_pvApiCtx, int _iVar, signed char *_pscValue,
 %fragment("SWIG_SciDouble_FromSignedChar", "header") {
 SWIGINTERN int
 SWIG_SciDouble_FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValue) {
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _scValue))
+  if (createScalarDouble(_pvApiCtx,
+    SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, (double) _scValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -154,6 +154,6 @@ SWIG_SciInt8_FromSignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRow
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }

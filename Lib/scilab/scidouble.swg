@@ -36,10 +36,10 @@ SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
 %fragment(SWIG_From_frag(double), "header") {
 SWIGINTERN int
 SWIG_From_dec(double)(double _dblValue) {
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + SWIG_Scilab_GetOutputPosition();
-  if (createScalarDouble(pvApiCtx, iVarOut, _dblValue))
+  if (createScalarDouble(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx)
+    + SWIG_Scilab_GetOutputPosition(), _dblValue))
     return SWIG_ERROR;
-  return iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -106,12 +106,12 @@ SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows,
   SciErr sciErr;
 
   sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _pdblValue);
-    if (sciErr.iErr) {
-      printError(&sciErr, 0);
-      return SWIG_ERROR;
-    }
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 %fragment(SWIG_CreateScilabVariable_frag(double), "wrapper") {

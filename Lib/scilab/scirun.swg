@@ -81,10 +81,10 @@ static void SWIG_Scilab_SetOutputPosition(int _outputPosition) {
 SWIGRUNTIME int
 SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
   int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
-  if (outputPosition < 0 || _output < 0) {
+  if (outputPosition < 0)
       return SWIG_ERROR;
-  }
-  SWIG_AssignOutputArgument(_pvApiCtx, outputPosition, _output);
+  SWIG_AssignOutputArgument(_pvApiCtx, outputPosition,
+    SWIG_NbInputArgument(_pvApiCtx) + outputPosition);
   return SWIG_OK;
 }
 
@@ -134,7 +134,7 @@ SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 
 SWIGRUNTIME int
@@ -213,7 +213,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, r))
     return SWIG_ERROR;
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 
 

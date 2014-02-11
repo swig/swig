@@ -68,7 +68,7 @@ SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
     return SWIG_ERROR;
 
   free(pchValue);
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -169,7 +169,7 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
 
   free(pstData[0]);
 
-  return SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 
@@ -243,7 +243,7 @@ SwigScilabStringFromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrA
     return SWIG_ERROR;
   }
 
-  return SWIG_NbInputArgument(pvApiCtx) + _iVarOut;
+  return SWIG_OK;
 }
 }
 %fragment(SWIG_CreateScilabVariable_frag(char), "wrapper") {
