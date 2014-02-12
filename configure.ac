@@ -352,10 +352,14 @@ if test x"$enable_cpp11_testing" = xyes; then
   fi
 fi
 
-# On darwin before Mavericks when using clang, need to ensure using
-# libc++ for tests and examples to run under mono
+# On darwin 10.7,10.8,10.9 using clang++, need to ensure using
+# libc++ for tests and examples to run under mono. May affect 
+# other language targets as well - problem is an OSX incompatibility
+# between libraries depending on libstdc++ and libc++.
+CLANGXX=
+$CXX -v 2>&1 | grep -i clang >/dev/null && CLANGXX=yes
 case $host in
-  *-*-darwin*) if test "$CXX" = "clang++";
+  *-*-darwin11* | *-*-darwin12* |*-*-darwin13*  ) if test "$CLANGXX" = "yes";
     then PLATCXXFLAGS="$PLATCXXFLAGS -stdlib=libc++"
     fi;;
   *) ;;
