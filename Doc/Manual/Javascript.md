@@ -1,7 +1,7 @@
 % SWIG and Javascript
 
 This chapter describes SWIG's support of Javascript.
-
+It does not cover SWIG basics only information that is specific to this module.
 
 # Overview
 
@@ -17,7 +17,7 @@ Extending a general purpose web-browser is not possible as this would be severe 
 With [WebKit](http://www.webkit.org/) there is an modern and open-source browser
 implementations available which can be embedded into an application.
 At the moment, [Chromium Embedded Framework](http://code.google.com/p/chromiumembedded/)
-can not extended as CEF does not provide access to the V8 engine, but instead comes with
+can not be extended as CEF does not provide access to the V8 engine, but instead comes with
 its own extension mechanism.
 
 SWIG Javasript currently supports **JavascriptCore**, the Javascript engine used by `Safari`,
@@ -69,6 +69,15 @@ and for v8:
 void example_initialize (v8::Handle<v8::Object> exports)
 ```
 
+## Missing features
+
+The Javascript module is not yet as mature as other modules and some things are still missing.
+As it makes use of Swigs Unified typemap library (UTL), many typemaps are inherited.
+
+- Director support
+- TODO: there is more
+
+
 # Compilation and Linking
 
 ## Installation
@@ -113,6 +122,7 @@ First you would create the wrapper using SWIG:
 
 ## Embedded Webkit
 
+TODO: Here a minimal example of how to implement
 
 # Implementation
 
@@ -122,8 +132,9 @@ to be able to generate code for different Javascript interpreters.
 
 ## Module Source Code
 
-The Javascript module is implemented in `Source/Modules/javascript.cxx`. It contains a SWIG Language class which does represents the module's entry point to the swig engine.
-It implements the `Language` interface and dispatches the code generation to a `JSEmitter` instance, `V8Emitter` or `JSCEmitter`. Additionally there are some helpers: `Template`, for templated code generation, and `JSEmitterState`, which is used to manage state information during AST traversal. To find your way through this huge source file, here is a rough map:
+The Javascript module is implemented in `Source/Modules/javascript.cxx`.
+It dispatches the code generation to a `JSEmitter` instance, `V8Emitter` or `JSCEmitter`. Additionally there are some helpers: `Template`, for templated code generation, and `JSEmitterState`, which is used to manage state information during AST traversal.
+This is a rough map shall make it easier to find a way through this huge source file:
 
 ```code
 // module wide defines
@@ -257,8 +268,187 @@ The Template class is used like this:
       print(f_init_static_wrappers);
 ```
 
-The code template is registered to the *JSEmitter* via
-`Template::replace` does simple
+A code template is registered with the *JSEmitter* via `fragment(name, "template")`, e.g.,
+
+```code
+%fragment ("jsc_variable_declaration", "templates")
+%{
+  {"$jsname", $jsgetter, $jssetter, kJSPropertyAttributeNone},
+%}
+```
+
+`Template` creates a copy of that string and `Template::replace` uses Swig's `Replaceall`
+to replace variables in the template. `Template::trim` can be used to eliminate
+leading and trailing whitespaces. `Template::print` is used to write the final template string
+to a Swig `DOH` (based on `Printv`). All methods allow chaining.
 
 
 ## Emitter
+
+The Javascript module delegates code generation to a `JSEmitter` instance.
+The following extract shows the essential interface:
+
+```code
+class JSEmitter {
+  ...
+
+  /**
+   * Opens output files and temporary output DOHs.
+   */
+  virtual int initialize(Node *n);
+
+  /**
+   * Writes all collected code into the output file(s).
+   */
+  virtual int dump(Node *n) = 0;
+
+  /**
+   * Cleans up all open output DOHs.
+   */
+  virtual int close() = 0;
+
+  ...
+
+  /**
+   * Invoked at the beginning of the classHandler.
+   */
+  virtual int enterClass(Node *);
+
+  /**
+   * Invoked at the end of the classHandler.
+   */
+  virtual int exitClass(Node *) {
+    return SWIG_OK;
+  };
+
+  /**
+   * Invoked at the beginning of the variableHandler.
+   */
+  virtual int enterVariable(Node *);
+
+  /**
+   * Invoked at the end of the variableHandler.
+   */
+  virtual int exitVariable(Node *) {
+    return SWIG_OK;
+  };
+
+  /**
+   * Invoked at the beginning of the functionHandler.
+   */
+  virtual int enterFunction(Node *);
+
+  /**
+   * Invoked at the end of the functionHandler.
+   */
+  virtual int exitFunction(Node *) {
+    return SWIG_OK;
+  };
+
+  /**
+   * Invoked by functionWrapper callback after call to Language::functionWrapper.
+   */
+  virtual int emitWrapperFunction(Node *n);
+
+  /**
+   * Invoked from constantWrapper after call to Language::constantWrapper.
+   **/
+  virtual int emitConstant(Node *n);
+
+  /**
+   * Registers a given code snippet for a given key name.
+   *
+   * This method is called by the fragmentDirective handler
+   * of the JAVASCRIPT language module.
+   **/
+  int registerTemplate(const String *name, const String *code);
+
+  /**
+   * Retrieve the code template registered for a given name.
+   */
+  Template getTemplate(const String *name);
+
+  State &getState();
+
+  ...
+
+}
+```
+
+The module calls `initialize`,  `dump`, and `close` from within the `top` method:
+
+```code
+int JAVASCRIPT::top(Node *n) {
+  emitter->initialize(n);
+
+  Language::top(n);
+
+  emitter->dump(n);
+  emitter->close();
+
+  return SWIG_OK;
+}
+```
+
+The methods `enterClass` and `exitClass` are called from within the `classHandler` method:
+
+```code
+int JAVASCRIPT::classHandler(Node *n) {
+
+  emitter->enterClass(n);
+  Language::classHandler(n);
+  emitter->exitClass(n);
+
+  return SWIG_OK;
+}
+```
+
+In `enterClass` the emitter stores state information that is necessary when processing class members. In `exitClass` the wrapper code for the whole class is generated.
+
+
+## Emitter states
+
+For storing information during the AST traversal the emitter provides a `JSEmitterState` with
+different slots to store data representing the scopes global, class, function, and variable.
+
+```code
+class JSEmitterState {
+
+public:
+
+  JSEmitterState();
+
+  ~JSEmitterState();
+
+  DOH *global();
+
+  DOH *global(const char* key, DOH *initial = 0);
+
+  DOH *clazz(bool reset = false);
+
+  DOH *clazz(const char* key, DOH *initial = 0);
+
+  DOH *function(bool reset = false);
+
+  DOH *function(const char* key, DOH *initial = 0);
+
+  DOH *variable(bool reset = false);
+
+  DOH *variable(const char* key, DOH *initial = 0);
+
+  static int IsSet(DOH *val);
+
+  ...
+};
+```
+
+When entering a scope, such as in `enterClass`, the corresponding state is reset and new data
+is stored:
+
+```code
+  state.clazz(RESET);
+  state.clazz(NAME, Getattr(n, "sym:name"));
+```
+
+State information can be retrieved using `state.clazz(NAME)` or
+with `Getattr` on `state.clazz()` which actually returns a `Hash` instance.
