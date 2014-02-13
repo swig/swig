@@ -912,13 +912,13 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for n in CPPFLAGS INCFLAGS; do
-     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`${mkoctfile} -p $n`
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`unset CPPFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for n in ALL_CXXFLAGS; do
-     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`${mkoctfile} -p $n`
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`unset CXXFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
    AC_MSG_CHECKING([for Octave linker flags])
