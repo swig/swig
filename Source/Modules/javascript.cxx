@@ -23,6 +23,17 @@ bool js_template_enable_debug = false;
 #define DTOR "dtor"
 #define ARGCOUNT "wrap:argc"
 
+// keys for global state variables
+#define CREATE_NAMESPACES "create_namespaces"
+#define REGISTER_NAMESPACES "register_namespaces"
+#define INITIALIZER "initializer"
+
+// keys for class scoped state variables
+#define MEMBER_VARIABLES "member_variables"
+#define MEMBER_FUNCTIONS "member_functions"
+#define STATIC_FUNCTIONS "static_functions"
+#define STATIC_VARIABLES "static_variables"
+
 /**
  * A convenience class to manage state variables for emitters.
  * The implementation delegates to swig Hash DOHs and provides
@@ -274,14 +285,14 @@ protected:
   File *f_wrappers;
 };
 
-/**********************************************************************
- * JAVASCRIPT: swig module implementation
- **********************************************************************/
-
 /* factory methods for concrete JSEmitters: */
 
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
+
+/**********************************************************************
+ * JAVASCRIPT: swig module implementation
+ **********************************************************************/
 
 class JAVASCRIPT:public Language {
 
@@ -1410,17 +1421,6 @@ private:
   File *f_init;
 
 };
-
-// keys for global state variables
-#define CREATE_NAMESPACES "create_namespaces"
-#define REGISTER_NAMESPACES "register_namespaces"
-#define INITIALIZER "initializer"
-
-// keys for class scoped state variables
-#define MEMBER_VARIABLES "member_variables"
-#define MEMBER_FUNCTIONS "member_functions"
-#define STATIC_FUNCTIONS "static_functions"
-#define STATIC_VARIABLES "static_variables"
 
 JSCEmitter::JSCEmitter()
 : JSEmitter(),
