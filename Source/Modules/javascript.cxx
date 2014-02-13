@@ -34,6 +34,8 @@ bool js_template_enable_debug = false;
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
 
+#define RESET true
+
 /**
  * A convenience class to manage state variables for emitters.
  * The implementation delegates to swig Hash DOHs and provides
@@ -723,7 +725,7 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 }
 
 int JSEmitter::enterClass(Node *n) {
-  state.clazz(true);
+  state.clazz(RESET);
   state.clazz(NAME, Getattr(n, "sym:name"));
   state.clazz("nspace", current_namespace);
 
@@ -755,7 +757,7 @@ int JSEmitter::enterClass(Node *n) {
 }
 
 int JSEmitter::enterFunction(Node *n) {
-  state.function(true);
+  state.function(RESET);
   state.function(NAME, Getattr(n, "sym:name"));
   if(Equal(Getattr(n, "storage"), "static")) {
     SetFlag(state.function(), IS_STATIC);
@@ -765,7 +767,7 @@ int JSEmitter::enterFunction(Node *n) {
 
 int JSEmitter::enterVariable(Node *n) {
   // reset the state information for variables.
-  state.variable(true);
+  state.variable(RESET);
 
   // Retrieve a pure symbol name. Using 'sym:name' as a basis, as it considers %renamings.
   if (Equal(Getattr(n, "view"), "memberconstantHandler")) {
