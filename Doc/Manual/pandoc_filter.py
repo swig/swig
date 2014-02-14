@@ -15,12 +15,11 @@ import sys
 import json
 import re
 
-global the_title
-
 def html(x):
   return RawBlock('html', x)
 
 SHELL = re.compile(r"\s*[$]")
+the_title = ""
 
 def codeblocks(key, value, format, meta):
   if key == 'CodeBlock':
@@ -28,21 +27,19 @@ def codeblocks(key, value, format, meta):
     if format == "html" or format == "html5":
       newcontents = [html('<pre>\n' + contents + '</pre>')]
 
-      if contents.startswith("$"):
-        classes.append("shell")
-
       if len(classes) == 0:
-        classes.append("code")
+        if contents.startswith("$"):
+          classes.append("shell")
+        else:
+          classes.append("code")
 
       return Div([id, classes, kvs], newcontents)
   if key == 'Header':
     if value[0] == 1:
-      global the_title
       the_title = stringify(value)
     value[1][0] = ""
 
 def set_title(unMeta):
-  global the_title
   unMeta["title"] = {"t": "MetaInlines", "c": [Str(the_title)]}
 
 def __toJSONFilter(action):
