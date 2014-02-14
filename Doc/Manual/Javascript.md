@@ -77,7 +77,7 @@ We could work on that if requested:
 
 ## Integration
 
-This should give a short overview how to integrate your module in different environments: as a `node.js` module, and as an extension for an embedded Webkit.
+This should give a short introduction to integrating your module in different environments: as a `node.js` module, and as an extension for an embedded Webkit.
 
 ### Creating `node.js` Extensions
 
@@ -117,14 +117,87 @@ To use the extension you have to require it in your javascript source file.
 
     require("./build/Release/example")
 
+
 ### Embedded Webkit
 
-Webkit is built-in OSX and available as library for GTK.
+Webkit is built-in for OSX and available as library for GTK.
+
 
 #### OSX
 
+There is general information about programming with WebKit on
+[Apple Developer Documentation](https://developer.apple.com/library/mac/documentation/cocoa/conceptual/DisplayWebContent/DisplayWebContent.html).
+Details about `Cocoa` programming are not covered here.
+
+An integration of a native extension 'example' would look like this:
+
+    #import "appDelegate.h"
+
+    extern bool example_initialize(JSGlobalContextRef context);
+
+
+    @implementation ExampleAppDelegate
+
+    @synthesize webView;
+
+
+    - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+
+      // Start a webview with the bundled index.html file
+      NSString *path = [[NSBundle mainBundle] bundlePath];
+      NSString *url =  [NSString stringWithFormat: @"file://%@/Contents/Assets/index.html", path];
+
+      WebFrame *webframe = [webView mainFrame];
+      JSGlobalContextRef context = [webframe globalContext];
+
+      example_initialize(context);
+
+      [ [webView mainFrame] loadRequest:
+        [NSURLRequest requestWithURL: [NSURL URLWithString:url] ]
+      ];
+    }
+
+    @end
 
 #### GTK
+
+There is general information about programming GTK on the
+[GTK documentation](https://developer.gnome.org/gtk2/), in the
+[GTK tutorial](https://developer.gnome.org/gtk-tutorial),
+and for Webkit there is a [Webkit GTK+ API Reference](http://webkitgtk.org/reference/webkitgtk/stable/index.html).
+
+An integration of a native extension 'example' would look like this:
+
+    #include <gtk/gtk.h>
+    #include <webkit/webkit.h>
+
+    extern bool example_initialize(JSGlobalContextRef context);
+
+    int main(int argc, char* argv[])
+    {
+        // Initialize GTK+
+        gtk_init(&argc, &argv);
+
+        ...
+
+        // Create a browser instance
+        WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
+        WebFrame *webframe = webkit_web_view_get_main_frame(webView);
+        JSGlobalContextRef context = webkit_web_frame_get_global_context(webFrame);
+        example_initialize(context);
+
+        ...
+
+        // Load a web page into the browser instance
+        webkit_web_view_load_uri(webView, "http://www.webkitgtk.org/");
+
+        ...
+
+        // Run the main GTK+ event loop
+        gtk_main();
+
+        return 0;
+    }
 
 
 
@@ -132,7 +205,6 @@ Webkit is built-in OSX and available as library for GTK.
 
 The Javascript Module implementation has take a very different approach than other modules
 to be able to generate code for different Javascript interpreters.
-
 
 ### Source Code
 
