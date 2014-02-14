@@ -851,6 +851,13 @@ if test -n "$PERL"; then
       else
       AC_MSG_RESULT($PERL5LDFLAGS)
     fi
+    AC_MSG_CHECKING(for Perl5 Test::More module) # For test-suite
+    PERL5TESTMORE=`($PERL -e 'use Test::More; print "good";') 2>/dev/null`
+    if test -z "$PERL5TESTMORE" ; then
+      AC_MSG_RESULT(not found)
+      else
+      AC_MSG_RESULT(found)
+    fi
 	else
 		AC_MSG_RESULT(unable to determine perl5 configuration)
 		PERL5EXT=$PERL5DIR
@@ -2185,7 +2192,7 @@ AC_SUBST(SKIP_TCL)
 
 
 SKIP_PERL5=
-if test -z "$PERL" || test -z "$PERL5EXT" ; then
+if test -z "$PERL" || test -z "$PERL5EXT" || test -z "$PERL5TESTMORE"; then
     SKIP_PERL5="1"
 fi
 AC_SUBST(SKIP_PERL5)
