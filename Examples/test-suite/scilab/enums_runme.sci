@@ -3,7 +3,7 @@ exec("swigtest.start", -1);
 if typeof(CSP_ITERATION_FWD_get()) <> "constant" then swigtesterror(); end
 if typeof(CSP_ITERATION_BWD_get()) <> "constant" then swigtesterror(); end
 if typeof(ABCDE_get()) <> "constant" then swigtesterror(); end
-if typeof(FGHI_get()) <> "constant" then swigtesterror(); end
+if typeof(FGHJI_get()) <> "constant" then swigtesterror(); end
 
 try
     bar1(CSP_ITERATION_FWD_get())
