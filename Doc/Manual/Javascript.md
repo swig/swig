@@ -14,14 +14,10 @@ Native Javascript extensions can be used for applications that embed a web-brows
 that embed a Javascript engine (such as *node.js*).
 Extending a general purpose web-browser is not possible as this would be severe security issue.
 
-SWIG Javasript currently supports **JavascriptCore**, the Javascript engine used by `Safari`,
-and **v8**, which is used by `Chromium` and `node.js`.
+SWIG Javasript currently supports **JavascriptCore**, the Javascript engine used by `Safari/Webkit`, and **v8**, which is used by `Chromium` and `node.js`.
 
-With [WebKit](http://www.webkit.org/) there is a modern browser
+[WebKit](http://www.webkit.org/) is a modern browser
 implementation available as open-source which can be embedded into an application.
-Unfortunately, [Chromium Embedded Framework](http://code.google.com/p/chromiumembedded/)
-does not provide access to the native V8 engine, making it impossible to extend the engine
-using the Javascript module.
 
 ## Preliminaries
 
@@ -59,33 +55,42 @@ and for v8:
 
     void example_initialize (v8::Handle<v8::Object> exports)
 
-## Missing features
+### Future work
 
 The Javascript module is not yet as mature as other modules and some things are still missing.
 As it makes use of Swigs Unified typemap library (UTL), many typemaps are inherited.
+We could work on that if requested:
 
-- Director support
-- TODO: hmpf... I suppose there is more
+- More typemaps: compared to other modules there are only a few typemaps implemented.
+  For instance a lot of the `std_*.i` typemaps are missing, such as `std_iostream`, for instance.
 
-## Compilation and Linking
+- Director support: this would allow to extend a C++ abstract base class in Javascript.
+  A pragmatic intermediate step for the most important usecase
+  would be to support Javascript callbacks as arguments.
 
-### Installation
+- We will try to find a way into
+  [Chromium Embedded Framework (CEF)](http://code.google.com/p/chromiumembedded/).
+  CEF is also open-source and available for all platforms.
+  However, at the moment it does not provide access to the native V8 engine,
+  making it impossible to extend the engine using the extensions created with this module.
 
-### Dealing with `v8` version incompatibilities
-
-Unfortunately, v8 does not provide pre-processor macros do detect which version you link to.
-Therefore, you have to provide this information manually.
 
 ## Integration
 
-This should give a short overview how to integrate your module in different environments: as a `node.js` module, and as an extension for an embedded Chromium.
+This should give a short overview how to integrate your module in different environments: as a `node.js` module, and as an extension for an embedded Webkit.
 
 ### Creating `node.js` Extensions
 
-As `v8` is written in C++ and comes as a C++ library it is crucial to compile your module using the
-same compiler flags as used for building v8. To make things easier, `node.js` provides a build tool called `node-gyp`.
+To install `node.js` you can download an installer from their
+[web-site](https://launchpad.net/~chris-lea/+archive/node.js) for all platforms.
 
-This expects configuration file named `binding.gyp` which is basically in JSON format and
+For Ubuntu there is also a [PPA](https://launchpad.net/~chris-lea/+archive/node.js/) available.
+
+As `v8` is written in C++ and comes as a C++ library it is crucial to compile your module
+using the same compiler flags as used for building v8.
+To make things easier, `node.js` provides a build tool called `node-gyp`.
+
+This expects a configuration file named `binding.gyp` which is basically in JSON format and
 conforms to the same format that is used with Google's build-tool `gyp`.
 
 `binding.gyp`:
@@ -99,12 +104,29 @@ conforms to the same format that is used with Google's build-tool `gyp`.
       ]
     }
 
-First you would create the wrapper using SWIG:
+First create the wrapper using SWIG:
 
+    $ swig -javascript -node -c++ example.cxx
+
+Then run `node-gyp`
+
+    $ node-gyp
+
+This will create a `build` folder containing the native module.
+To use the extension you have to require it in your javascript source file.
+
+    require("./build/Release/example")
 
 ### Embedded Webkit
 
-TODO: Here a minimal example of how to implement
+Webkit is built-in OSX and available as library for GTK.
+
+#### OSX
+
+
+#### GTK
+
+
 
 ## Implementation
 
@@ -112,86 +134,85 @@ The Javascript Module implementation has take a very different approach than oth
 to be able to generate code for different Javascript interpreters.
 
 
-### Module Source Code
+### Source Code
 
 The Javascript module is implemented in `Source/Modules/javascript.cxx`.
 It dispatches the code generation to a `JSEmitter` instance, `V8Emitter` or `JSCEmitter`. Additionally there are some helpers: `Template`, for templated code generation, and `JSEmitterState`, which is used to manage state information during AST traversal.
-This is a rough map shall make it easier to find a way through this huge source file:
+This rough map shall make it easier to find a way through this huge source file:
 
     // module wide defines
 
     #define NAME "name"
-
     ...
 
-    // Helper class declarations
+    // ###############################
+    // #  Helper class declarations
+
     class JSEmitterState { ... };
 
     class Template { ... };
 
-
-    // JSEmitter declaration
+    // ###############################
+    // # JSEmitter declaration
 
     class JSEmitter { ... };
-
 
     // Emitter factory declarations
 
     JSEmitter *swig_javascript_create_JSCEmitter();
     JSEmitter *swig_javascript_create_V8Emitter();
 
+    // ###############################
+    // # Javascript module
 
-    // Javascript module class declaration
+    // Javascript module declaration
 
     class JAVASCRIPT:public Language { ... };
 
-
-    // Javascript module function definitions
+    // Javascript module implementation
 
     int JAVASCRIPT::functionWrapper(Node *n) { ... }
-
     ...
 
-
-    // Module factory implementations
+    // Module factory implementation
 
     static Language *new_swig_javascript() { ... }
 
     extern "C" Language *swig_javascript(void) { ... }
 
-
-    // JSEmitter implementation
+    // ###############################
+    // # JSEmitter base implementation
 
     JSEmitter::JSEmitter() { ... }
 
     Template JSEmitter::getTemplate(const String *name) { ... }
-
     ...
 
+    // ###############################
+    // # JSCEmitter
 
     // JSCEmitter declaration
 
     class JSCEmitter: public JSEmitter { ... };
-
 
     // JSCEmitter implementation
 
     JSCEmitter::JSCEmitter() { ... }
 
     void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) { ... }
-
     ...
-
 
     // JSCEmitter factory
 
     JSEmitter *swig_javascript_create_JSCEmitter() { ... }
 
 
+    // ###############################
+    // # V8Emitter
+
     // V8Emitter declaration
 
     class V8Emitter: public JSEmitter { ... };
-
 
     // V8Emitter implementation
 
@@ -199,19 +220,19 @@ This is a rough map shall make it easier to find a way through this huge source 
 
     int V8Emitter::initialize(Node *n) { ... }
 
-
     // V8Emitter factory
 
     JSEmitter *swig_javascript_create_V8Emitter() { ... }
 
 
-    // Helper implementation (JSEmitterState, Template)
+    // ###############################
+    // # Helper implementation (JSEmitterState, Template)
 
     JSEmitterState::JSEmitterState() { ... }
-
     ...
 
     Template::Template(const String *code_) { ... }
+    ...
 
 
 ### Code Templates
