@@ -21,7 +21,6 @@ extern "C" {
 #include "stack-c.h"
 #endif
 #include "MALLOC.h"
-#include "sciprint.h"
 #include "Scierror.h"
 #include "api_scilab.h"
 #include "localization.h"
@@ -250,9 +249,9 @@ SWIG_Scilab_ErrorType(int code) {
 }
 
 SWIGINTERN void
-SWIG_Scilab_ErrorMsg(int code, const char *mesg)
+SWIG_Scilab_ErrorMsg(int code, const char *msg)
 {
-  sciprint(_("SWIG/Scilab Error : %s\n%s"),SWIG_Scilab_ErrorType(code),mesg);
+  Scierror(999, _("SWIG/Scilab %s: %s\n."), SWIG_Scilab_ErrorType(code), msg);
 }
 
 #define SWIG_fail                 return SWIG_ERROR;
