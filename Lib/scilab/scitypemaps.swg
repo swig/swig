@@ -316,6 +316,8 @@
 %typecheck(SWIG_TYPECHECK_UINT32)  unsigned int, unsigned long { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *                  { SCILAB_TYPECHECK(sci_pointer)       }
 
+%typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE                 { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+
 // Arrays
 %typecheck(SWIG_TYPECHECK_CHAR_ARRAY)   char [ANY]                               { SCILAB_TYPECHECK(sci_strings)      }
 
