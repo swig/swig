@@ -73,7 +73,13 @@ namespace std {
 #endif
 %}
 
-%fragment("StdTraitsCommon","header") %{
+%fragment("StdStringInclude","header") %{
+#ifdef __clang__
+#include <string>
+#endif
+%}
+
+%fragment("StdTraitsCommon","header",fragment="StdStringInclude") %{
 namespace swig {  
   template <class Type>
   struct noconst_traits {
