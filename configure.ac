@@ -481,10 +481,10 @@ if test x"${with_tclconfig}" != x ; then
 fi
 # check in a few common install locations
 if test x"${TCLCONFIG}" = x ; then
-    for i in `ls -d /usr/lib/ 2>/dev/null` \
-	     `ls -d -r /usr/lib/tcl*/ 2>/dev/null` \
-	     `ls -d /usr/local/lib/ 2>/dev/null` \
-	     `ls -d -r /usr/local/lib/tcl*/ 2>/dev/null` ; do
+    for i in `ls -d -r /usr/lib*/ 2>/dev/null` \
+	     `ls -d -r /usr/lib*/tcl*/ 2>/dev/null` \
+	     `ls -d -r /usr/local/lib*/ 2>/dev/null` \
+	     `ls -d -r /usr/local/lib*/tcl*/ 2>/dev/null` ; do
 	if test -f $i"tclConfig.sh" ; then
 	    TCLCONFIG=`(cd $i; pwd)`
 	    break
