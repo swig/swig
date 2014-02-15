@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-02-15: wsfulton
+            [Java] Add support for the cdata library.
+
 2014-02-06: gjanssens
             [Guile] Patch #133. Make scm to string conversion work with non-ascii strings.
             Guile 2 has a completely rewritten string implementation. SWIG made some assumptions
