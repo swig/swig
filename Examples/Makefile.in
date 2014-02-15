@@ -1205,7 +1205,7 @@ CSHARPCOMPILER = @CSHARPCOMPILER@
 CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
 CSHARPCFLAGS = @CSHARPCFLAGS@
 CSHARPSO = @CSHARPSO@
-CSHARP_RUNME = ./$(RUNME).exe
+CSHARP_RUNME = $(CSHARPCILINTERPRETER) ./$(RUNME).exe
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)

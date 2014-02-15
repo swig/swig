@@ -6,6 +6,7 @@
   {
     struct OpaqueStruct 
     {
+      int x;
     };
   }
 

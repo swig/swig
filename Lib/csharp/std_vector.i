@@ -217,7 +217,7 @@
         else
           throw std::out_of_range("index");
       }
-      const_reference getitem(int index) throw (std::out_of_range) {
+      CONST_REFERENCE getitem(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
           return (*$self)[index];
         else
