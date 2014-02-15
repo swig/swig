@@ -149,8 +149,12 @@
 #endif
 %}
 
-%fragment("<stddef.h>", "header")  %{
-  #include <stddef.h>
+%fragment("<stddef.h>", "header") %{
+#include <stddef.h>
+%}
+
+%fragment("<string>", "header") %{
+#include <string>
 %}
 
 %fragment("SWIG_isfinite","header",fragment="<math.h>,<float.h>") %{

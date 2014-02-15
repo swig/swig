@@ -8,10 +8,8 @@
 
 %include <typemaps/std_strings.swg>
 
-%{
-#include <string>
-%}
-  
+%fragment("<string>");
+
 namespace std
 {
   %naturalvar string;

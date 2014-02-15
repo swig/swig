@@ -21,18 +21,12 @@
 // Common code for supporting the STD C++ namespace
 //
 
+%fragment("<string>");
 %{
-#include <string>
 #include <stdexcept>
 %}
 
-%fragment("StdStringInclude","header") %{
-#ifdef __clang__
-#include <string>
-#endif
-%}
-
-%fragment("Traits","header",fragment="StdStringInclude") 
+%fragment("Traits","header",fragment="<string>")
 {
 namespace swig {  
   /*
