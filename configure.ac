@@ -1274,7 +1274,7 @@ fi
 
 AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
-        # Try Ruby1.9 first
+        # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
 		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
@@ -1283,20 +1283,20 @@ if test -n "$RUBY"; then
         fi
 	if test x"$RUBYDIR" != x""; then
 		dirs="$RUBYDIR"
-		RUBYINCLUDE=none
+		RUBYINCLUDE=
 		for i in $dirs; do
 			if test -r $i/ruby.h; then
-				AC_MSG_RESULT($i)
-				RUBYINCLUDE="-I$i"
+				if test x"$RUBYARCH" = x""; then
+					RUBYINCLUDE="-I$i"
+				else
+					RUBYINCLUDE="-I$i -I$i/$RUBYARCH"
+				fi
+				AC_MSG_RESULT($RUBYINCLUDE)
 				break
 			fi
 		done
-		if test x"$RUBYARCH" != x""; then
-			RUBYINCLUDE="-I$RUBYDIR -I$RUBYDIR/$RUBYARCH"
-		fi
-		if test "$RUBYINCLUDE" = none; then
-			RUBYINCLUDE="-I$RUBYDIR"
-			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
+		if test x"$RUBYINCLUDE" = x""; then
+			AC_MSG_RESULT(could not locate ruby.h)
 		fi
 
 		# Find library and path for linking.
@@ -1350,8 +1350,6 @@ if test -n "$RUBY"; then
 		fi
 	else
 		AC_MSG_RESULT(unable to determine ruby configuration)
-		RUBYINCLUDE="-I$RUBYDIR"
-		RUBYLIB="$RUBYDIR"
 	fi
 
 	case $host in
@@ -1363,9 +1361,6 @@ if test -n "$RUBY"; then
 	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
-	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
-	RUBYLIB="/usr/local/lib/ruby/1.4/arch"
-	RUBYLINK="-lruby -lm"
 fi
 
 case $host in
