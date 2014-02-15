@@ -44,7 +44,7 @@ namespace TopLevel
 %nspace TopLevel::Bar::Foo;
 %nspace TopLevel::Bar::FooBar;
 #else
-#warning nspace feature not yet supported in this target language
+//#warning nspace feature not yet supported in this target language
 #endif
 
 %feature("director") TopLevel::Bar::Foo;

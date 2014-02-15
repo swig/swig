@@ -50,6 +50,6 @@ namespace Outer {
 }
 
 #else
-#warning nspace feature not yet supported in this target language
+//#warning nspace feature not yet supported in this target language
 #endif
 

@@ -104,6 +104,6 @@ void test_classes(Outer::SomeClass c, Outer::Inner2::Color cc) {}
 %}
 
 #else
-#warning nspace feature not yet supported in this target language
+//#warning nspace feature not yet supported in this target language
 #endif
 
