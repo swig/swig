@@ -33,8 +33,7 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=tcl
   allow_failures:
-    - compiler: gcc
-      env: SWIGLANG=python PY3=1 VER=3.3
+    # None
 before_install:
   - date -u
   - lsb_release -a
