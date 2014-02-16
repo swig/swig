@@ -40,40 +40,9 @@ Version 3.0.0 (in progress)
             Director exceptions (Swig::DirectorException) now derive from std::exception
             and hence provide the what() method. In Python and Ruby, this replaces the now
             deprecated DirectorException::getMessage() method.
-
-2014-01-16: wsfulton
-            [PHP] Fix compilation error in ZTS mode (64 bit windows) due to incorrect placement
-            of TSRMLS_FETCH() in SWIG_Php_GetModule() as reported by Mark Dawson-Butterworth.
-
 2014-01-14: diorcety
             Patch #112 - Fix symbol resolution involving scopes that have multiple levels
             of typedefs - fixes some template resolutions as well as some typemap searches.
-
-2014-01-13: kwwette
-            [Octave] update support to Octave version 3.8.0
-
-            - Octave 3.8.0 no longer defines OCTAVE_API_VERSION_NUMBER, but 3.8.1
-              will define OCTAVE_{MAJOR,MINOR,PATCH}_VERSION instead: see
-                http://hg.savannah.gnu.org/hgweb/octave/rev/b6b6e0dc700e
-              So we now use a new macro SWIG_OCTAVE_PREREQ(major,minor,patch) to
-              enable features requiring Octave version major.minor.patch or later.
-
-              For Octave versions prior to 3.8.1, we reconstruct values for
-              OCTAVE_{MAJOR,MINOR,PATCH}_VERSION based on OCTAVE_API_VERSION_NUMBER,
-              extracted from Octave's ChangeLogs. An additional hack is needed to
-              distinguish between Octave <= 3.2.x and 3.8.0, neither of which define
-              OCTAVE_API_VERSION_NUMBER.
-
-            - Octave 3.8.0 deprecates symbol_table::varref(), so remove its use
-              for this and future versions of Octave.
-
-            - Octave 3.8.0 removes octave_value::is_real_nd_array(), used in
-              octave_swig_type::dims(). Its use is not required here, so remove it.
-
-            - Retested against Octave versions 3.0.5, 3.2.4, 3.4.3, 3.6.4, and 3.8.0.
-
-            - Updated Octave documentation with tested Octave versions, and added a
-              warning against using versions <= 3.x.x, which are no longer tested.
 
 2014-01-11: wsfulton
             Fix and document the naturalvar feature override behaviour - the naturalvar
@@ -125,27 +94,6 @@ Version 3.0.0 (in progress)
 
 2013-12-23: talby
             [Perl] Add support for directors.
-
-2013-12-22: wsfulton
-            C++11 support for new versions of erase and insert in the STL containers.
-
-            The erase and insert methods in the containers use const_iterator instead
-            of iterator in C++11.  There are times when the methods wrapped must match
-            the parameters exactly. Specifically when full type information for
-            template types is missing or SWIG fails to look up the type correctly,
-            for example:
-
-              %include <std_vector.i>
-              typedef float Real;
-              %template(RealVector) std::vector<Real>;
-
-            SWIG does not find std::vector<Real>::iterator because %template using
-            typedefs does not always work and so SWIG doesn't know if the type is
-            copyable and so uses SwigValueWrapper<iterator> which does
-            not support conversion to another type (const_iterator). This resulted
-            in compilation errors when using the C++11 version of the containers.
-
-            Closes #73
 
 2013-12-18: ianlancetaylor
 	    [Go] Don't require that Go environment variables be set
@@ -217,20 +165,10 @@ Version 3.0.0 (in progress)
             [Java] Apply patch #91 from Marvin Greenberg - Add director:except feature for improved
             exception handling in director methods for Java.
 
-2013-10-17: wsfulton
-            [R] Fix SF #1340 - Visual Studio compile error in C++ wrappers due to #include <exception>
-            within extern "C" block.
-
-2013-10-17: wsfulton
-            [Python] Fix SF #1345 - Missing #include <stddef.h> for offsetof when using -builtin.
-
 2013-10-15: vadz
             Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
             inside %rename to change the case of the text being replaced.
 
-2013-10-12: wsfulton
-            [Lua] Apply #92 - missing return statements for SWIG_Lua_add_namespace_details()
-            and SWIG_Lua_namespace_register().
 
 2013-10-12: wsfulton
             [CFFI] Apply #96 - superclass not lispify
