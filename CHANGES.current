@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-02-16: hfalcic
+            [Python] Patch #133 - fix crashes/exceptions in exception handling in Python 3.3
+
 2014-02-15: wsfulton
             [Java] Add support for the cdata library.
 
