@@ -707,15 +707,21 @@ AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[
 if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Python 3.x support])
 else
-  for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
-    AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-    if test -n "$PYTHON3"; then
-      AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-      if test -n "$PY3CONFIG"; then
-        break
+  if test "x$PY3BIN" = xyes; then
+    for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
+        fi
       fi
-    fi
-  done
+    done
+  else
+    PYTHON3="$PY3BIN"
+    AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+  fi
+
 
   if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
