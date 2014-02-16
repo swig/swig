@@ -1,5 +1,3 @@
-#!/usr/bin/env
-
 import sys
 sys.path.append('..')
 import harness
