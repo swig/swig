@@ -408,9 +408,8 @@ ans =  4
 
 <H3><a name="Scilab_wrapping_constants"></a>37.3.7 Constants</H3>
 
-
 <p>
-     C constants are not really constant in Scilab. When dealing with the constants, a get function will be generated. For example given some constants:
+There is no constant in Scilab. By default, C/C++ constants are wrapped as getter functions. For example for the following constants:
 </p>
 
 <div class="code"><pre>
@@ -423,7 +422,9 @@ ans =  4
 #define    SCONST2     "\"Hello World\""
 </pre></div>
 
-<p>It is easy to use them in Scilab:</p>
+<p>
+The following getter functions are generated:
+</p>
 
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
@@ -448,33 +449,98 @@ ans= 37
 ans= 3.14
 </pre></div>
 
-<H3><a name="Scilab_wrapping_enums"></a>37.3.8 Enums</H3>
-
-
-<p>  The way SWIG deals with the enums is similar to constants. For example:
+<p>
+There is another mode in which constants are wrapped as Scilab variables.
+The variables are easier to use than functions, but the little drawback is that variables are not constant and so can be modified.
+This mode can be enabled/disabled at any time in the interface file with the feature <tt>%scilabconst()</tt> (argument value "1" to enable, "0" to disable).
+For example in this mode the previous constants:
 </p>
 
-<div class="code"><pre>%module example
-typedef enum  { RED, BLUE, GREEN } color;
+<div class="code"><pre>
+%module example
+
+%scilabconst(1);
+#define    ICONST      42
+#define    FCONST      2.1828
+#define    CCONST      'x'
+#define    CCONST2     '\n'
+#define    SCONST      "Hello World"
+#define    SCONST2     "\"Hello World\""
 </pre></div>
 
 <p>
-    Some code like RED_get(), BLUE_get(),GREEN_get() will be generated. It can be used as the following:
+Are mapped to Scilab variables, with the same name:
 </p>
 
+<div class="targetlang"><pre>
+--&gt; exec loader.sce;
+--&gt; ICONST;
+ans= 42
+--&gt; FCONST;
+ans= 2.1828
+--&gt; CCONST;
+ans=x
+--&gt; CCONST2;
+ans=
+
+--&gt; SCONST;
+ans= Hello World
+--&gt; SCONST2;
+ans= "Hello World"
+--&gt; EXPR;
+ans= 48.5484
+--&gt; iconst;
+ans= 37
+--&gt; fconst;
+ans= 3.14
+</pre></div>
+
+<H3><a name="Scilab_wrapping_enums"></a>37.3.8 Enums</H3>
+
+<p>
+The wrapping of enums is quite the same as for constants.
+In the default mode, the enums are wrapped as getter functions.
+For example on the following enumeration:
+</p>
+
+<div class="code"><pre>%module example
+typedef enum { RED, BLUE, GREEN } color;
+</pre></div>
+
+<p>
+A getter function will be generated for each value of the enumeration:
+</p>
 
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
 --&gt; printf("    RED    = %i\n", RED_get());
-    RED    = 0
-
+    RED    = 0.
 --&gt; printf("    BLUE    = %i\n", BLUE_get());
-    BLUE   = 1
-
+    BLUE   = 1.
 --&gt; printf("    GREEN    = %i\n", GREEN_get());
-    GREEN  = 2
+    GREEN  = 2.
 </pre></div>
 
+<p>
+The feature <tt>%scilabconst()</tt> is also available for enumerations:
+</p>
+
+<div class="code"><pre>%module example
+%scilabconst(1);
+typedef enum { RED, BLUE, GREEN } color;
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; exec loader.sce;
+--&gt; printf("    RED    = %i\n", RED);
+    RED    = 0.
+--&gt; printf("    BLUE    = %i\n", BLUE);
+    BLUE   = 1.
+--&gt; printf("    GREEN    = %i\n", GREEN);
+    GREEN  = 2.
+</pre></div>
+</p>
 
 <H3><a name="Scilab_wrapping_pointers"></a>37.3.9 Pointers</H3>
 
