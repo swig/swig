@@ -127,7 +127,7 @@ namespace Swig {
     std::string swig_msg;
   public:
     DirectorException(int code, const char *hdr, const char *msg TSRMLS_DC) : swig_msg(hdr) {
-      if (strlen(msg)) {
+      if (msg[0]) {
         swig_msg += " ";
         swig_msg += msg;
       }

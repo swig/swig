@@ -179,7 +179,7 @@ namespace Swig {
   public:
     DirectorException(PyObject *error, const char *hdr ="", const char *msg ="") : swig_msg(hdr) {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      if (strlen(msg)) {
+      if (msg[0]) {
         swig_msg += " ";
         swig_msg += msg;
       }
