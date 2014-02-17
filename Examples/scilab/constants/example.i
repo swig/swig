@@ -1,29 +1,17 @@
 /* File : example.i */
 %module example
 
-/* Forces to wrap constants as Scilab variables (instead of functions) */
+/* Wraps constants as Scilab variables (instead of getter functions) */
 %scilabconst(1);
 
-#define    ICONST      42
-#define    FCONST      2.1828
-#define    CCONST      'x'
-#define    CCONST2     '\n'
-#define    SCONST      "Hello World"
-#define    SCONST2     "\"Hello World\""
+#define ICONST 42
+#define FCONST 2.1828
+#define SCONST "Hello World"
 
-/* This should work just fine */
-#define    EXPR        ICONST + 3*(FCONST)
+// Constants expressions are also accepted
+#define EXPR ICONST + 3*FCONST
 
-/* This shouldn't do anything */
-#define    EXTERN      extern
-
-/* Neither should this (BAR isn't defined) */
-#define    FOO         (ICONST + BAR)
-
-/* The following directives also produce constants */
-
+// SWIG also offers to define constants
 %constant int iconst = 37;
-%constant double fconst = 3.14;
-
-
+%constant double fconst = 42.2;
 
