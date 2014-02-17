@@ -164,7 +164,7 @@
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   convert_to_string_ex(z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if ((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
+  if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
     if (s1)
       $1 = estrdup(s1);
     else
@@ -190,9 +190,9 @@
 
  zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
  s1 = Z_STRVAL_PP(z_var);
- if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
-  if(s1)
-    strncpy($1, s1, $1_dim0);
+ if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
+   if (s1)
+     strncpy($1, s1, $1_dim0);
  }
 }
 
@@ -288,7 +288,7 @@
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1) )) {
+  if((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
     if(s1)
       efree(s1);
     if($1) {
@@ -325,7 +325,7 @@
 deliberate error cos this code looks bogus to me
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if((s1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
+  if((s1 == NULL) || strcmp(s1, $1)) {
     if($1) {
       (*z_var)->value.str.val = estrdup($1);
       (*z_var)->value.str.len = strlen($1)+1;
