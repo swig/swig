@@ -356,10 +356,13 @@ static void add_symbols(Node *n) {
 	  }
 	  Delete(prefix);
 	}
-
-	Setattr(n,"ismember","1");
       }
     }
+
+    if (!isfriend && (inclass || extendmode)) {
+      Setattr(n,"ismember","1");
+    }
+
     if (!isfriend && inclass) {
       if ((cplus_mode != CPLUS_PUBLIC)) {
 	only_csymbol = 1;

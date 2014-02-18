@@ -86,6 +86,7 @@ CPP_TEST_BROKEN += \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
+	rename_camel \
 	template_default_pointer \
 	template_private_assignment \
 	template_expr \
@@ -323,6 +324,7 @@ CPP_TEST_CASES += \
 	rename_strip_encoder \
 	rename_pcre_encoder \
 	rename_pcre_enum \
+	rename_predicates \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
