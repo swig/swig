@@ -5,5 +5,5 @@
 ; Note: when working with non-ascii strings in guile 2
 ;       locale must be set explicitly
 ;       The setlocale call below takes care of that
-(setlocale LC_ALL "")
+(setlocale LC_ALL "en_US.utf8")
 (load "../schemerunme/li_std_string.scm")
