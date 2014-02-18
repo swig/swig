@@ -363,6 +363,10 @@ static void add_symbols(Node *n) {
       Setattr(n,"ismember","1");
     }
 
+    if (extendmode) {
+      Setattr(n,"isextendmember","1");
+    }
+
     if (!isfriend && inclass) {
       if ((cplus_mode != CPLUS_PUBLIC)) {
 	only_csymbol = 1;
@@ -1392,6 +1396,7 @@ static void mark_nodes_as_extend(Node *n) {
   for (; n; n = nextSibling(n)) {
     if (Getattr(n, "template") && Strcmp(nodeType(n), "class") == 0)
       continue;
+    /* Fix me: extend is not a feature. Replace with isextendmember? */
     Setattr(n, "feature:extend", "1");
     mark_nodes_as_extend(firstChild(n));
   }
@@ -4350,14 +4355,17 @@ cpp_members  : cpp_member cpp_members {
 		   }
              }
              | EXTEND LBRACE { 
-                  if (cplus_mode != CPLUS_PUBLIC) {
-		     Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
-		  }
-             } cpp_members RBRACE cpp_members {
+	       extendmode = 1;
+	       if (cplus_mode != CPLUS_PUBLIC) {
+		 Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
+	       }
+             } cpp_members RBRACE {
+	       extendmode = 0;
+	     } cpp_members {
 	       $$ = new_node("extend");
 	       mark_nodes_as_extend($4);
 	       appendChild($$,$4);
-	       set_nextSibling($$,$6);
+	       set_nextSibling($$,$7);
 	     }
              | include_directive { $$ = $1; }
              | empty { $$ = 0;}

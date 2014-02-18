@@ -297,6 +297,7 @@ static int NAME(TYPE x) {
 
 %define %$ismember       "match$ismember"="1"  %enddef
 %define %$isglobal       %$not %$ismember  %enddef
+%define %$isextendmember "match$isextendmember"="1"  %enddef
 %define %$innamespace    "match$parentNode$nodeType"="namespace"  %enddef
 
 %define %$ispublic       "match$access"="public"  %enddef

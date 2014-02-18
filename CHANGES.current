@@ -8,6 +8,12 @@ Version 3.0.0 (in progress)
 2014-02-15: wsfulton
 	    Fix the %$ismember %rename predicates to also apply to members added via %extend.
 
+            Add %$isextendmember for %rename of members added via %extend. This can be used to
+            distinguish between normal class/struct members and %extend members. For example
+            '%$ismember, %$not %$isextendmember' will now identify just class/struct members.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-02-16: hfalcic
             [Python] Patch #133 - fix crashes/exceptions in exception handling in Python 3.3
 
