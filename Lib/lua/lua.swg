@@ -9,8 +9,9 @@
  *                          includes
  * ----------------------------------------------------------------------------- */
 
-%include <luatypemaps.swg>          /* The typemaps */
+%include <luatypemaps.swg>         /* The typemaps */
 %include <luaruntime.swg>          /* The runtime stuff */
+%include <luakw.swg>               /* Warnings for Lua keywords */
 
 //%include <typemaps/swigmacros.swg>
 /* -----------------------------------------------------------------------------

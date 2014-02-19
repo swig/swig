@@ -6,6 +6,9 @@ Version 3.0.0 (in progress)
 ============================
 
 2014-02-19: olly
+	    [Lua] Add keyword warnings for Lua keywords and Basic Functions.
+
+2014-02-19: olly
 	    -Wallkw now includes keywords for all languages with keyword
 	    warnings (previously Go and R were missing).
 
