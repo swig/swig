@@ -3,7 +3,7 @@
 *.class
 
 # Editor files and various other junk
-*.sw?
+.*.sw?
 *.bak
 
 # Local PCRE
