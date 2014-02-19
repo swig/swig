@@ -237,7 +237,7 @@ SwigScilabStringFromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrA
     return SWIG_ERROR;
   }
 
-  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _charPtrArraySize, 1, _charPtrArray);
+  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, 1, _charPtrArraySize, _charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
