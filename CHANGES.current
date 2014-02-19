@@ -6,6 +6,10 @@ Version 3.0.0 (in progress)
 ============================
 
 2014-02-19: olly
+	    -Wallkw now includes keywords for all languages with keyword
+	    warnings (previously Go and R were missing).
+
+2014-02-19: olly
 	    [PHP] Update the lists of PHP keywords with new ones from PHP 5.4
 	    and newer (and some missing ones from 5.3).  Reserved PHP constants
 	    names are now checked against enum values and constants, instead
