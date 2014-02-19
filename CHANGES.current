@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-02-19: olly
+	    [PHP] Update the lists of PHP keywords with new ones from PHP 5.4
+	    and newer (and some missing ones from 5.3).  Reserved PHP constants
+	    names are now checked against enum values and constants, instead
+	    of against function and method names.  Built-in PHP function names
+	    no longer match methods added by %extend.  Functions and methods
+	    named '__sleep', '__wakeup', 'not', 'parent', or 'virtual' are no
+	    longer needlessly renamed.
+
 2014-02-15: wsfulton
 	    Fix the %$ismember %rename predicates to also apply to members added via %extend.
 
