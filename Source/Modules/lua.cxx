@@ -80,23 +80,22 @@ void display_mapping(DOH *d) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
-     -elua [NUM]     - Generates LTR compatible wrappers for smaller devices running elua\n\
-                       Optional NUM is default value for MIN_OPT_LEVEL\n\
-     -eluac  [NUM]   - LTR compatible wrappers in \"crass compress\" mode for elua\n\
-                       Optional NUM is default value for MIN_OPT_LEVEL\n\
+     -drop-old-scheme\n\
+                     - Disable support for old-style bindings name generation, some\n\
+                       old-style members scheme etc.\n\
+     -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
+     -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
+     -elua-emulate   - Emulates behaviour of eLua. Usefull only for testing.\n\
+                       Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -swig3          - Disable support for old-style bindings name generation.\n\
      -squash-bases   - Squashes symbols from all inheritance tree of a given class\n\
                        into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly\n\
                        speeds things up, but increases memory consumption.\n\
-     -elua-emulate   - Emulates behaviour of eLua. Usefull only for testing.\n\
-                       Incompatible with -elua/-eluac options.\n\
 \n";
 
 static int nomoduleglobal = 0;
 static int elua_ltr = 0;
-static int elua_opt_lvl = 2;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
 static int squash_bases = 0;
@@ -221,18 +220,10 @@ public:
 	} else if (strcmp(argv[i], "-elua") == 0) {
 	  elua_ltr = 1;
 	  Swig_mark_arg(i);
-	  if (strToInt(argv[i + 1], elua_opt_lvl)) {
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  }
 	} else if (strcmp(argv[i], "-eluac") == 0) {
 	  eluac_ltr = 1;
 	  Swig_mark_arg(i);
-	  if (strToInt(argv[i + 1], elua_opt_lvl)) {
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  }
-	} else if (strcmp(argv[i], "-swig3") == 0) {
+	} else if (strcmp(argv[i], "-drop-old-scheme") == 0) {
 	  Swig_mark_arg(i);
 	  api_level = 3;
 	} else if (strcmp(argv[i], "-squash-bases") == 0) {
@@ -339,9 +330,6 @@ public:
     Printf(f_runtime, "#define SWIGLUA\n");
 
     emitLuaFlavor(f_runtime);
-
-    if (elua_ltr || eluac_ltr)
-      Printf(f_runtime, "#ifndef MIN_OPT_LEVEL\n" "#define MIN_OPT_LEVEL %d\n" "#endif\n", elua_opt_lvl);
 
     if (nomoduleglobal) {
       Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
