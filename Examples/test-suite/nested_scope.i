@@ -6,7 +6,8 @@
 
 %inline %{
 namespace ns {
-	struct Global {
+        // "global" is a case-insensitive keyword in PHP.
+	struct Global_ {
 #ifdef __clang__
 		struct Outer {
 			struct Nested;
