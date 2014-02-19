@@ -17,6 +17,7 @@ C_TEST_CASES += \
 CPP_STD_TEST_CASES += \
 	primitive_types \
 	inout \
+	li_std_sequence_container_typemaps \
 
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
