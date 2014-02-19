@@ -127,7 +127,6 @@ private:
   String *class_symname;
   String *class_fq_symname;	// Fully qualified symname - NSpace + '.' + class_symname
   String *class_static_nspace;
-  String *class_parent_nspace;
   String *constructor_name;
 
   // Many wrappers forward calls to each other, for example staticmembervariableHandler
@@ -1039,7 +1038,7 @@ public:
       }
       n_v2 = Copy(n);
       //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
-      if (!luaAddSymbol(iname_v2, n, class_parent_nspace)) {
+      if (!luaAddSymbol(iname_v2, n, getNSpace())) {
 	Swig_restore(n);
 	return SWIG_ERROR;
       }
@@ -1052,7 +1051,7 @@ public:
 	Replaceall(tm_v2, "$target", target_name_v2);
 	Replaceall(tm_v2, "$value", value);
 	Replaceall(tm_v2, "$nsname", nsname);
-	registerConstant(class_parent_nspace, tm_v2);
+	registerConstant(getNSpace(), tm_v2);
       } else {
 	tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
 	if (!tm_v2) {
@@ -1178,7 +1177,6 @@ public:
     assert(class_static_nspace == 0);
     assert(class_fq_symname == 0);
     assert(class_symname == 0);
-    assert(class_parent_nspace == 0);
 
     current[NO_CPP] = false;
 
@@ -1256,11 +1254,8 @@ public:
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
      * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
      */
-    class_parent_nspace = getNSpace();
     // Generate normal wrappers
     Language::classHandler(n);
-    // Restore correct nspace
-    class_parent_nspace = 0;
 
     SwigType_add_pointer(t);
 
@@ -1528,7 +1523,7 @@ public:
       String *target_name = Getattr(n, "lua:name");
       String *compat_name = Swig_name_member(0, class_symname, target_name);
       Setattr(n, "lua:name", compat_name);
-      registerMethod(class_parent_nspace, n);
+      registerMethod(getNSpace(), n);
       Delete(compat_name);
       Swig_restore(n);
     }
@@ -1568,7 +1563,7 @@ public:
 	//Printf( stdout, "Name %s, class %s, compt. name %s\n", target_name, class_symname, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
 	  Setattr(n, "lua:name", v2_name);
-	  registerVariable(class_parent_nspace, n, "varget:wrap:name", "varset:wrap:name");
+	  registerVariable(getNSpace(), n, "varget:wrap:name", "varset:wrap:name");
 	}
 	// If static member variable was wrapped as constant, then
 	// constant wrapper has already performed all actions
