@@ -67,7 +67,6 @@ Examples/Makefile
 Examples/guile/Makefile
 Examples/test-suite/*/Makefile
 Examples/xml/Makefile
-Lib/ocaml/swigp4.ml
 /Makefile
 Source/Include/stamp-h1
 Source/Include/swigconfig.h

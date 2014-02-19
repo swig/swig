@@ -2409,35 +2409,34 @@ case $build in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-AC_CONFIG_FILES([			        \
-    Makefile				        \
-    swig.spec				        \
-    Source/Makefile			        \
-    Examples/Makefile			        \
-    Examples/xml/Makefile		        \
-    Examples/test-suite/errors/Makefile		\
-    Examples/test-suite/chicken/Makefile	\
-    Examples/test-suite/csharp/Makefile	        \
-    Examples/test-suite/d/Makefile	        \
-    Examples/test-suite/guile/Makefile	        \
-    Examples/test-suite/java/Makefile	        \
-    Examples/test-suite/mzscheme/Makefile	\
-    Examples/test-suite/ocaml/Makefile	        \
-    Examples/test-suite/octave/Makefile	        \
-    Examples/test-suite/perl5/Makefile	        \
-    Examples/test-suite/php/Makefile	        \
-    Examples/test-suite/pike/Makefile	        \
-    Examples/test-suite/python/Makefile	        \
-    Examples/test-suite/ruby/Makefile	        \
-    Examples/test-suite/tcl/Makefile	        \
-    Examples/test-suite/lua/Makefile	        \
-    Examples/test-suite/allegrocl/Makefile	\
-    Examples/test-suite/clisp/Makefile		\
-    Examples/test-suite/cffi/Makefile		\
-    Examples/test-suite/uffi/Makefile		\
-    Examples/test-suite/r/Makefile		\
-    Examples/test-suite/go/Makefile		\
-    Lib/ocaml/swigp4.ml
+AC_CONFIG_FILES([
+    Makefile
+    swig.spec
+    Source/Makefile
+    Examples/Makefile
+    Examples/xml/Makefile
+    Examples/test-suite/errors/Makefile
+    Examples/test-suite/chicken/Makefile
+    Examples/test-suite/csharp/Makefile
+    Examples/test-suite/d/Makefile
+    Examples/test-suite/guile/Makefile
+    Examples/test-suite/java/Makefile
+    Examples/test-suite/mzscheme/Makefile
+    Examples/test-suite/ocaml/Makefile
+    Examples/test-suite/octave/Makefile
+    Examples/test-suite/perl5/Makefile
+    Examples/test-suite/php/Makefile
+    Examples/test-suite/pike/Makefile
+    Examples/test-suite/python/Makefile
+    Examples/test-suite/ruby/Makefile
+    Examples/test-suite/tcl/Makefile
+    Examples/test-suite/lua/Makefile
+    Examples/test-suite/allegrocl/Makefile
+    Examples/test-suite/clisp/Makefile
+    Examples/test-suite/cffi/Makefile
+    Examples/test-suite/uffi/Makefile
+    Examples/test-suite/r/Makefile
+    Examples/test-suite/go/Makefile
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
