@@ -16,18 +16,7 @@ else
 	JSENGINE=node
 endif
 
-ifeq (node,$(JSENGINE))
-  SWIGOPT=-v8 -DBUILDING_NODE_EXTENSION=1
-endif
-
-ifeq (v8,$(JSENGINE))
-  SWIGOPT=-v8
-endif
-
-ifeq (jsc,$(JSENGINE))
-  SWIGOPT=-jsc
-endif
-
+SWIGOPT=-$(JSENGINE)
 
 ifeq (node,$(JSENGINE))
 
