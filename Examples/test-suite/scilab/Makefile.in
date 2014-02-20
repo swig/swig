@@ -14,6 +14,9 @@ C_TEST_CASES += \
 	scilab_enums \
 	scilab_consts \
 
+CPP_TEST_CASES += \
+  scilab_li_matrix \
+
 CPP_STD_TEST_CASES += \
 	primitive_types \
 	inout \

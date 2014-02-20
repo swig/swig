@@ -128,7 +128,7 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
     }
     if (iPrec != SCI_INT32)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer matrix expected.\n"), _fname, _iVar);
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double matrix expected.\n"), _fname, _iVar);
       return SWIG_ERROR;
     }
     sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, _iRows, _iCols, _piValue);
@@ -141,26 +141,27 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
   }
   else if (isDoubleType(_pvApiCtx, piAddrVar))
   {
-    double **dblValue;
+    double *pdData = NULL;
+    int size = 0;
+    int i;
 
-    // Check if input matrix is not empty (empty matrix type is double)
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, dblValue);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-    if ((*_iRows > 0) || (*_iCols > 0))
-    {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer matrix expected.\n"), _fname, _iVar);
-      return SWIG_ERROR;
-    }
-    *_piValue = (int*) malloc(sizeof(int*));
+
+    size = (*_iRows) * (*_iCols);
+    *_piValue = (int*) malloc(size * sizeof(int*));
+    for (i = 0; i < size; i++)
+      (*_piValue)[i] = (int) pdData[i];
+
     return SWIG_OK;
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer matrix expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double matrix expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
   return SWIG_OK;
