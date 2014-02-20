@@ -33,7 +33,9 @@ Suppose that you defined a SWIG module such as the following:
     extern double Foo;
 
 To build a Javascript module, run SWIG using the `-javascript` option
-and a desired target engine `-jsc` or `-v8`.
+and a desired target engine `-jsc`, `-v8`, or `-node`.
+The generator for `node` is essentially delegating to the `v8` generator and adds
+some necessary preprocessor definitions.
 
     $ swig -javascript -jsc example.i
 
