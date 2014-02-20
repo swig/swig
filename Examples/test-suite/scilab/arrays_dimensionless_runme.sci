@@ -66,5 +66,4 @@ a = [1, 2, 3, 4];
 if arr_double(a, 4) <> 10 then swigtesterror(); end
 if typeof(arr_double(a, 4)) <> "constant" then swigtesterror(); end
 
-exit
 exec("swigtest.quit", -1);
