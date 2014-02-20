@@ -668,6 +668,11 @@ android_clean:
 #####                       JAVASCRIPT                      ######
 ##################################################################
 
+# Note: These targets are used from withing Makefiles in the Example directories.
+# There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
+# create a configuration for a new example.
+
+
 ROOT_DIR = @ROOT_DIR@
 JSCFLAGS = @JSCFLAGS@
 JSCXXFLAGS = @JSCXXFLAGS@
@@ -689,6 +694,7 @@ JSCXXSHARED = @JSCXXSHARED@
 #		environment.
 #   For testing native v8 and jsc extensions we provide our own
 #		interpreter (see 'Tools/javascript').
+#
 # ----------------------------------------------------------------
 
 JS_INTERPRETER_SRC_DIR = $(ROOT_DIR)/Tools/javascript
@@ -717,18 +723,37 @@ javascript_exe: $(SRCS)
 SWIGJS   = $(SWIG) -javascript
 
 # ----------------------------------------------------------------
-# Run the javascript executable
+# Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
-javascript: $(SRCS)
+javascript_wrapper:
 	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
+
+javascript_wrapper_cpp: $(SRCS)
+	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
+
+javascript_build: $(SRCS)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
-javascript_cpp: $(SRCS)
-	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
+javascript_build_cpp:: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# TODO: make node-gyp configurable and detected via ./configure
+javascript_build_node: $(SRCS)
+	node-gyp --loglevel=silent configure build 1>>/dev/null
+
+# -----------------------------------------------------------------
+# Running a javascript example
+# -----------------------------------------------------------------
+
+javascript_run:
+	$(JS_INTERPRETER_SRC_DIR)/javascript -$(JSENGINE) runme.js
+
+# TODO: make node configurable and detected via ./configure
+javascript_run_node:
+	node runme.js
 
 # -----------------------------------------------------------------
 # Cleaning the javascript examples
@@ -739,6 +764,8 @@ javascript_clean:
 	rm -f *_wrap* runme
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JSSO@
+
+
 
 ##################################################################
 #####                      MODULA3                          ######
@@ -1604,7 +1631,7 @@ R_SCRIPT=$(RUNME).R
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
