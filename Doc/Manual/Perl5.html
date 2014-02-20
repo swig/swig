@@ -493,8 +493,8 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
 <div class="code"><pre>
 $ swig -c++ -perl example.i
-$ CC -c example.cxx
-$ CC -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
+$ CC -Kpic -c example.cxx
+$ CC -Kpic -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
 $ CC -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
 </pre></div>
 

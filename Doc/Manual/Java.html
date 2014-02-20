@@ -332,8 +332,8 @@ Assuming you have code you need to link to in a file called <tt>example.c</tt>, 
 
 <div class="code"><pre>
 $ swig -java example.i
-$ gcc -c example_wrap.c  -I/usr/java/include -I/usr/java/include/solaris
-$ gcc -c example.c
+$ gcc -fPIC -c example_wrap.c -I/usr/java/include -I/usr/java/include/solaris
+$ gcc -fPIC -c example.c
 $ ld -G example_wrap.o example.o -o libexample.so
 </pre></div>
 
@@ -493,8 +493,7 @@ compiler.  For example:
 <div class="code"><pre>
 % swig -c++ -java example.i
 % g++ -c -fpic example.cxx
-% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/
-j2sdk1.4.1/include/linux
+% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/j2sdk1.4.1/include/linux
 % g++ -shared example.o example_wrap.o -o libexample.so
 </pre></div>
 

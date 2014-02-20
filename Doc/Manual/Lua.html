@@ -240,8 +240,8 @@ Most, but not all platforms support the dynamic loading of modules (Windows &amp
 </p>
 <div class="shell"><pre>
 $ swig -lua example.i -o example_wrap.c
-$ gcc -I/usr/include/lua -c example_wrap.c -o example_wrap.o
-$ gcc -c example.c -o example.o
+$ gcc -fPIC -I/usr/include/lua -c example_wrap.c -o example_wrap.o
+$ gcc -fPIC -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>

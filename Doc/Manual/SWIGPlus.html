@@ -216,7 +216,7 @@ to use the C++ compiler.  For example:
 <div class="shell">
 <pre>
 $ swig -c++ -tcl example.i
-$ c++ -c example_wrap.cxx 
+$ c++ -fPIC -c example_wrap.cxx 
 $ c++ example_wrap.o $(OBJS) -o example.so
 </pre>
 </div>
