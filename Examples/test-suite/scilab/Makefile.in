@@ -15,11 +15,11 @@ C_TEST_CASES += \
 	scilab_consts \
 
 CPP_TEST_CASES += \
+	primitive_types \
+	inout \
   scilab_li_matrix \
 
 CPP_STD_TEST_CASES += \
-	primitive_types \
-	inout \
 	li_std_sequence_container_typemaps \
 
 TEST_DIR = $*.dir
