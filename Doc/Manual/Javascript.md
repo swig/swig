@@ -79,19 +79,30 @@ We could work on that if requested:
 
 This should give a short introduction to integrating your module in different environments: as a `node.js` module, and as an extension for an embedded Webkit.
 
+
 ### Creating `node.js` Extensions
 
 To install `node.js` you can download an installer from their
-[web-site](https://launchpad.net/~chris-lea/+archive/node.js) for all platforms.
+[web-site](https://launchpad.net/~chris-lea/+archive/node.js) for OSX and Windows.
+For Linux you can either build the source yourself and to a `sudo checkinstall`
+or stick to the (probably stone-age) packaged version.
+For Ubuntu there is a [PPA](https://launchpad.net/~chris-lea/+archive/node.js/) available.
 
-For Ubuntu there is also a [PPA](https://launchpad.net/~chris-lea/+archive/node.js/) available.
+    $ sudo add-apt-repository ppa:chris-lea/node.js
+    $ sudo apt-get update
+    $ sudo apt-get install nodejs
 
 As `v8` is written in C++ and comes as a C++ library it is crucial to compile your module
 using the same compiler flags as used for building v8.
 To make things easier, `node.js` provides a build tool called `node-gyp`.
 
-This expects a configuration file named `binding.gyp` which is basically in JSON format and
-conforms to the same format that is used with Google's build-tool `gyp`.
+You have to install it using `npm`:
+
+    $ npm install -g node-gyp
+
+
+`node-gyp` expects a configuration file named `binding.gyp` which is basically in JSON
+format and conforms to the same format that is used with Google's build-tool `gyp`.
 
 `binding.gyp`:
 
@@ -116,6 +127,15 @@ This will create a `build` folder containing the native module.
 To use the extension you have to require it in your javascript source file.
 
     require("./build/Release/example")
+
+#### Troubleshooting
+
+- *'module' object has no attribute 'script_main'*
+
+  This happened when `gyp` was installed as distribution package.
+  It seems to be outdated. Removing it resolves the problem.
+
+    $ sudo apt-get remove gyp
 
 
 ### Embedded Webkit
