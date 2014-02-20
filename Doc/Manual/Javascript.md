@@ -128,6 +128,10 @@ To use the extension you have to require it in your javascript source file.
 
     require("./build/Release/example")
 
+
+A more detailed exlanation is given in section `Examples`.
+
+
 #### Troubleshooting
 
 - *'module' object has no attribute 'script_main'*
@@ -228,6 +232,185 @@ TODO:
 - how to install v8
 - v8 version issues: command-line switch, pre-processor macro
 - sample integration code
+
+
+## Examples
+
+Some basic examples are shown here in more detail.
+
+### Simple
+
+The common example `simple` looks like this:
+
+    /* File : example.i */
+    %module example
+
+    %inline %{
+    extern int    gcd(int x, int y);
+    extern double Foo;
+    %}
+
+To make this available as node extension a `binding.gyp` has to be created:
+
+    {
+      "targets": [
+        {
+          "target_name": "example",
+          "sources": [ "example.cxx", "example_wrap.cxx" ]
+        }
+      ]
+    }
+
+Then `node-gyp` is used to build the extension:
+
+    $ node-gyp configure build
+
+
+From a 'nodejs` application this would be used this way:
+
+    // import the extension via require
+    var example = require("./build/Release/example");
+
+    // calling the global method
+    var x = 42;
+    var y = 105;
+    var g = example.gcd(x,y);
+
+    // Accessing the globak variable
+    var f = example.Foo;
+    example.Foo = 3.1415926;
+
+First the module `example` is loaded from the previously built extension.
+Global methods and variables are available in the scope of the module.
+
+> Note: ECMAScript 5, the currently implemented Javascript standard, does not have modules.
+> `node.js` and other implementations provide this mechanism defined by the
+> [CommonJS](http://wiki.commonjs.org/wiki/CommonJS) group.
+> For browsers this is provided by [Browserify](http://browserify.org), for instance.
+
+### Class
+
+The common example `class` looks defines three classes, `Shape`, `Circle`, and `Square`:
+
+    class Shape {
+    public:
+      Shape() {
+        nshapes++;
+      }
+      virtual ~Shape() {
+        nshapes--;
+      };
+      double  x, y;
+      void    move(double dx, double dy);
+      virtual double area(void) = 0;
+      virtual double perimeter(void) = 0;
+      static  int nshapes;
+    };
+
+    class Circle : public Shape {
+    private:
+      double radius;
+    public:
+      Circle(double r) : radius(r) { };
+      virtual double area(void);
+      virtual double perimeter(void);
+    };
+
+    class Square : public Shape {
+    private:
+      double width;
+    public:
+      Square(double w) : width(w) { };
+      virtual double area(void);
+      virtual double perimeter(void);
+    };
+
+`Circle` and `Square` inherit from `Shape`. `Shape` has a static variable a function `move`
+that can't be overridden (non-virtual) and two abstract functions `area` and `perimeter` (pure virtual) that must be overridden by the sub-classes.
+
+A `nodejs` extension is built the same way as for the `simple` example.
+
+From Javascript this extension can be used this way:
+
+
+    var example = require("./build/Release/example");
+
+    // local aliases for convenience
+    var Shape = example.Shape;
+    var Circle = example.Circle;
+    var Square = example.Square;
+
+    // Creating new instances using the 'new' operator
+    var c = new Circle(10);
+    var s = new Square(10);
+
+    // Accessing a static member
+    var nshapes = Shape.nshapes;
+
+    // Accessing member variables
+    c.x = 20;
+    c.y = 30;
+    s.x = -10;
+    s.y = 5;
+
+    // Calling some methods -----
+    c.area();
+    c.perimeter();
+    s.area();
+    s.perimeter();
+
+
+Running these commands in an interactive node shell result in this output:
+
+    $ node -i
+    > var example = require("./build/Release/example");
+    undefined
+    > var Shape = example.Shape;
+    undefined
+    > var Circle = example.Circle;
+    undefined
+    > var Square = example.Square;
+    undefined
+    > var c = new Circle(10);
+    undefined
+    > var s = new Square(10);
+    undefined
+    > var nshapes = Shape.nshapes;
+    undefined
+    > Shape.nshapes;
+    2
+    > c.x = 20;
+    20
+    > c.y = 30;
+    30
+    > s.x = -10;
+    -10
+    > s.y = 5;
+    5
+    > c.area();
+    314.1592653589793
+    > c.perimeter();
+    62.83185307179586
+    > s.area();
+    100
+    > s.perimeter();
+    40
+    > c.move(40, 40)
+    undefined
+    > c.x
+    60
+    > c.y
+    70
+    >
+
+> Note: In ECMAScript 5 there is no concept for classes.
+  Instead each function can be used as a constructor function which is executed by the 'new'
+  operator. Furthermore, during construction the key property `prototype` of the constructor function is used to attach a prototype instance to the created object.
+  A prototype is essentially an object itself that is the first-class delegate of a class
+  used whenever the access to a property of an object fails.
+  The very same prototype instance is shared among all instances of one type.
+  Prototypal inheritance is explained in more detail on in
+  [Inheritance and the prototype chain](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain), for instance.
 
 
 ## Implementation
