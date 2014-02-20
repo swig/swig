@@ -292,7 +292,7 @@ Global methods and variables are available in the scope of the module.
 
 ### Class
 
-The common example `class` looks defines three classes, `Shape`, `Circle`, and `Square`:
+The common example `class` defines three classes, `Shape`, `Circle`, and `Square`:
 
     class Shape {
     public:
@@ -327,12 +327,14 @@ The common example `class` looks defines three classes, `Shape`, `Circle`, and `
       virtual double perimeter(void);
     };
 
-`Circle` and `Square` inherit from `Shape`. `Shape` has a static variable a function `move`
-that can't be overridden (non-virtual) and two abstract functions `area` and `perimeter` (pure virtual) that must be overridden by the sub-classes.
+`Circle` and `Square` inherit from `Shape`. `Shape` has a static variable `nshapes`,
+a function `move` that can't be overridden (non-virtual),
+and two abstract functions `area` and `perimeter` (pure virtual) that must be
+overridden by the sub-classes.
 
 A `nodejs` extension is built the same way as for the `simple` example.
 
-From Javascript this extension can be used this way:
+In javascript it can be used this way:
 
 
     var example = require("./build/Release/example");
@@ -342,27 +344,29 @@ From Javascript this extension can be used this way:
     var Circle = example.Circle;
     var Square = example.Square;
 
-    // Creating new instances using the 'new' operator
+    // creating new instances using the 'new' operator
     var c = new Circle(10);
     var s = new Square(10);
 
-    // Accessing a static member
-    var nshapes = Shape.nshapes;
+    // accessing a static member
+    Shape.nshapes;
 
-    // Accessing member variables
+    // accessing member variables
     c.x = 20;
     c.y = 30;
     s.x = -10;
     s.y = 5;
 
-    // Calling some methods -----
+    // calling some methods
     c.area();
     c.perimeter();
     s.area();
     s.perimeter();
 
+    // instantiation of Shape is not permitted
+    new Shape();
 
-Running these commands in an interactive node shell result in this output:
+Running these commands in an interactive node shell results in the following output:
 
     $ node -i
     > var example = require("./build/Release/example");
@@ -376,8 +380,6 @@ Running these commands in an interactive node shell result in this output:
     > var c = new Circle(10);
     undefined
     > var s = new Square(10);
-    undefined
-    > var nshapes = Shape.nshapes;
     undefined
     > Shape.nshapes;
     2
@@ -403,7 +405,19 @@ Running these commands in an interactive node shell result in this output:
     60
     > c.y
     70
-    >
+    > new Shape()
+    Error: Class Shape can not be instantiated
+    at repl:1:2
+    at REPLServer.self.eval (repl.js:110:21)
+    at Interface.<anonymous> (repl.js:239:12)
+    at Interface.EventEmitter.emit (events.js:95:17)
+    at Interface._onLine (readline.js:202:10)
+    at Interface._line (readline.js:531:8)
+    at Interface._ttyWrite (readline.js:760:14)
+    at ReadStream.onkeypress (readline.js:99:10)
+    at ReadStream.EventEmitter.emit (events.js:98:17)
+    at emitKey (readline.js:1095:12)
+
 
 > Note: In ECMAScript 5 there is no concept for classes.
   Instead each function can be used as a constructor function which is executed by the 'new'
