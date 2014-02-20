@@ -1,13 +1,13 @@
 class
 constant
 enum
-exception
+#exception
 functor
-namespace
+#namespace
 operator
 overload
 pointer
-reference
+#reference
 simple
 template
 variables
