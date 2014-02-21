@@ -31,7 +31,6 @@ AC_PROG_CC
 # AM_PROG_CC_C_O rewrites $CC, so cannot test "$CC" = cl
 MSVC=
 $CC -? 2>&1 | grep -i microsoft >/dev/null && MSVC=yes
-CXX=$CC
 AC_PROG_CXX
 AC_EXEEXT
 AC_OBJEXT
