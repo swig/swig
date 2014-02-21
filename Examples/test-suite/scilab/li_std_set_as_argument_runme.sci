@@ -23,13 +23,13 @@ if ~exists("iset3") | (iset3 <> [1 2 3 4 5 6]) then swigtesterror(); end
 // Example of passing matrices of string as set arguments of C++ functions.");
 // get a set of string {''aa'', ''bb'', ''cc'', ''dd''} with create_string_set():");
 sset = create_string_set("aa bb cc dd");
-if ~exists("sset") | (sset <> ["aa"; "bb"; "cc"; "dd"]) then swigtesterror(); end
+if ~exists("sset") | (sset <> ["aa" "bb" "cc" "dd"]) then swigtesterror(); end
 // get a set of string {''cc'', ''dd'', ''ee'', ''ff''} with create_string_set():");
 sset2 = create_string_set("cc dd ee ff");
-if ~exists("sset2") | (sset2 <> ["cc"; "dd"; "ee"; "ff"]) then swigtesterror(); end
+if ~exists("sset2") | (sset2 <> ["cc" "dd" "ee" "ff"]) then swigtesterror(); end
 // concat the two sets with concat_string_set():");
 sset3 = concat_string_set(sset, sset2);
-if ~exists("sset3") | (sset3 <> ["aa"; "bb"; "cc"; "dd"; "ee"; "ff"]) then swigtesterror(); end
+if ~exists("sset3") | (sset3 <> ["aa" "bb" "cc" "dd" "ee" "ff"]) then swigtesterror(); end
 
 exec("swigtest.quit", -1);
 
