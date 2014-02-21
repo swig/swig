@@ -9,7 +9,7 @@ if b <> 3 then swigtesterror(); end
 if c <> 4 then swigtesterror(); end
 
 a = AddOne1r(20);
-if a <> 22 then swigtesterror(); end
+if a <> 21 then swigtesterror(); end
 
 
 exec("swigtest.quit", -1);
