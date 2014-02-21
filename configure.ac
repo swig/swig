@@ -27,11 +27,21 @@ AH_BOTTOM([
 
 dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
+# When using CL for CC should use it for CXX too
+# AM_PROG_CC_C_O rewrites $CC, so cannot test "$CC" = cl
+MSVC=
+$CC -? 2>&1 | grep -i microsoft >/dev/null && MSVC=yes
+CXX=$CC
 AC_PROG_CXX
 AC_EXEEXT
 AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
-
+# Want CXX to be same rewritten CC
+if test "$MSVC" = yes; then
+CFLAGS=`echo "$CFLAGS" | sed -e 's/-g//'`
+CXXFLAGS=`echo "$CFLAGS" | sed -e 's/-g//'`
+CXX=$CC
+fi
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
@@ -104,11 +114,15 @@ AS_IF([test "x$with_pcre" != xno],
   ])
 
 
+if test "$MSVC" = yes; then
+enable_ccache=
+AC_MSG_NOTICE([Disabling ccache for $CC])
+else
 dnl CCache
 AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and installation of ccache-swig executable (default enabled)]), [enable_ccache=$enableval], [enable_ccache=yes])
 AC_MSG_CHECKING([whether to enable ccache-swig])
 AC_MSG_RESULT([$enable_ccache])
-
+fi
 if test "$enable_ccache" = yes; then
   AC_CONFIG_SUBDIRS(CCache)
   ENABLE_CCACHE=1
@@ -187,9 +201,10 @@ then
             if test "$GCC" = yes; then
                 LDSHARED="$CC -shared"
             else
-                if test "cl" = $CC ;  then
-                    # Microsoft Visual C++ (MSVC)
-                    LDSHARED="$CC -nologo -LD"
+
+                if test "$MSVC" = yes ;  then
+                    # Microsoft Visual C++ (MSVC).  '/' else autotools 'compile' breaks
+                    LDSHARED='$(CC) /nologo /LD'
                 else
                     # Unknown compiler try gcc approach
                     LDSHARED="$CC -shared"
@@ -253,9 +268,9 @@ then
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= $CXX -shared "
             else
-                if test "cl" = $CXX ;  then
-                    # Microsoft Visual C++ (MSVC)
-                    TRYLINKINGWITHCXX="CXXSHARED= $CXX -nologo -LD"
+                if test "$MSVC" = yes ;  then
+                    # Microsoft Visual C++ (MSVC).  '/' else autotools 'compile' breaks
+                    TRYLINKINGWITHCXX='CXXSHARED= $(CXX) /nologo /LD'
                 else
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
                 fi
@@ -356,9 +371,13 @@ fi
 # libc++ for tests and examples to run under mono. May affect 
 # other language targets as well - problem is an OSX incompatibility
 # between libraries depending on libstdc++ and libc++.
+# MS compiler requires /EHsc for exception support to run tests
 CLANGXX=
 $CXX -v 2>&1 | grep -i clang >/dev/null && CLANGXX=yes
 case $host in
+  *-*-cygwin* |*-*-mingw*  ) if test "$MSVC" = "yes";
+    then PLATCXXFLAGS="$PLATCXXFLAGS -EHsc"
+    fi;;
   *-*-darwin11* | *-*-darwin12* |*-*-darwin13*  ) if test "$CLANGXX" = "yes";
     then PLATCXXFLAGS="$PLATCXXFLAGS -stdlib=libc++"
     fi;;
