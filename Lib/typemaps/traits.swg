@@ -22,9 +22,7 @@
 //
 
 %fragment("<string>");
-%{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %fragment("Traits","header",fragment="<string>")
 {

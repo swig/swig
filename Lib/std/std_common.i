@@ -24,10 +24,8 @@
 //
 
 %fragment("<string>");
-%{
-#include <stdexcept>
-#include <stddef.h>
-%}
+%fragment("<stdexcept>");
+%fragment("<stddef.h>");
 
 
 %fragment("StdIteratorTraits","header",fragment="<stddef.h>") %{

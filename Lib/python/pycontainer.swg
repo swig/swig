@@ -32,9 +32,7 @@
 
 /**** The PySequence C++ Wrap ***/
 
-%insert(header) %{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %include <std_except.i>
 

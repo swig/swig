@@ -2,9 +2,7 @@
 #error "do not use this version of std_except.i"
 #endif
 
-%{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 #if defined(SWIG_STD_EXCEPTIONS_AS_CLASSES)
 

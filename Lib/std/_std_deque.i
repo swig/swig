@@ -10,8 +10,8 @@
 
 %{
 #include <deque>
-#include <stdexcept>
 %}
+%fragment("<stdexcept>");
 
 
 /* This macro defines all of the standard methods for a deque.  This
