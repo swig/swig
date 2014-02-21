@@ -96,23 +96,23 @@ namespace std {
 %define instantiate_containers_templates(TYPE...)
 namespace std
 {
-  %template(TYPE ##_## vector) std::vector<TYPE >;
-  %template(ret_ ## TYPE ##_## vector) ret_vector<TYPE>;
-  %template(val_ ## TYPE ##_## vector) val_vector<TYPE>;
-  %template(ref_ ## TYPE ##_## vector) ref_vector<TYPE>;
+  %template(TYPE ## _vector) std::vector<TYPE>;
+  %template(ret_ ## TYPE ## _vector) ret_vector<TYPE>;
+  %template(val_ ## TYPE ## _vector) val_vector<TYPE>;
+  %template(ref_ ## TYPE ## _vector) ref_vector<TYPE>;
 
-  %template(TYPE ##_## list) std::list<TYPE >;
-  %template(ret_ ## TYPE ##_## list) ret_list<TYPE>;
-  %template(val_ ## TYPE ##_## list) val_list<TYPE>;
-  %template(ref_ ## TYPE ##_## list) ref_list<TYPE>;
+  %template(TYPE ## _list) std::list<TYPE>;
+  %template(ret_ ## TYPE ## _list) ret_list<TYPE>;
+  %template(val_ ## TYPE ## _list) val_list<TYPE>;
+  %template(ref_ ## TYPE ## _list) ref_list<TYPE>;
 }
 %enddef
 
 
-instantiate_containers_templates(int)
-instantiate_containers_templates(double)
-instantiate_containers_templates(bool)
-instantiate_containers_templates(string)
-instantiate_containers_templates(ClassAPtr)
+instantiate_containers_templates(int);
+instantiate_containers_templates(double);
+instantiate_containers_templates(bool);
+instantiate_containers_templates(string);
+instantiate_containers_templates(ClassAPtr);
 
 
