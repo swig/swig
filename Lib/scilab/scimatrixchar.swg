@@ -7,9 +7,9 @@
 
 // in (char** vectorIn, int vectorInSize)
 
-%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") (char** vectorIn, int vectorInSize)
+%typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (char** vectorIn, int vectorInSize)
 {
-  if (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, fname) == SWIG_ERROR)
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, fname) == SWIG_ERROR)
   {
     return SWIG_ERROR;
   }
@@ -35,9 +35,9 @@
   free($2);
 }
 
-%typemap(argout, fragment="SwigScilabStringFromCharPtrArray") (char*** vectorOut, int* vectorOutSize)
+%typemap(argout, fragment="SWIG_SciString_FromCharPtrArray") (char*** vectorOut, int* vectorOutSize)
 {
-  if (SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2) != SWIG_ERROR)
+  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2) != SWIG_ERROR)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
@@ -49,9 +49,9 @@
 
 // in (int vectorInSize, char** vectorIn)
 
-%typemap(in, fragment="SwigScilabStringToCharPtrArrayAndSize") (int vectorInSize, char** vectorIn)
+%typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int vectorInSize, char** vectorIn)
 {
-  if (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, $input, &$2, &$1, fname) == SWIG_ERROR)
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$2, &$1, fname) == SWIG_ERROR)
   {
     return SWIG_ERROR;
   }
@@ -69,9 +69,9 @@
   $2 = (char***) malloc(sizeof(char**));
 }
 
-%typemap(argout, fragment="SwigScilabStringFromCharPtrArray") (int* vectorOutSize, char*** vectorOut)
+%typemap(argout, fragment="SWIG_SciString_FromCharPtrArray") (int* vectorOutSize, char*** vectorOut)
 {
-  if (SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$1) != SWIG_ERROR)
+  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$1) != SWIG_ERROR)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }

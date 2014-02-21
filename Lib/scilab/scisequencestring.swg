@@ -7,7 +7,7 @@
 %include <scichar.swg>
 
 %fragment(SWIG_AsCheck_Sequence_frag(std::string), "header",
-  fragment="SwigScilabStringToCharPtrArrayAndSize") {
+  fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
 
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
@@ -33,22 +33,22 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
 }
 
 %fragment(SWIG_AsGet_Sequence_frag(std::string), "header",
-  fragment="SwigScilabStringToCharPtrArrayAndSize") {
+  fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
 
 SWIGINTERN int
 SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject _obj, char ***_pSequence) {
   int iSize;
-  return (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, _obj, _pSequence, &iSize, SWIG_Scilab_GetFname()));
+  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, _obj, _pSequence, &iSize, SWIG_Scilab_GetFname()));
 }
 }
 
 %fragment(SWIG_AsSize_Sequence_frag(std::string), "header",
-  fragment="SwigScilabStringToCharPtrArrayAndSize") {
+  fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
 
 SWIGINTERN int
 SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject _obj, int *_piSize) {
   char **pstMatrix;
-  if (SwigScilabStringToCharPtrArrayAndSize(pvApiCtx, _obj, &pstMatrix, _piSize, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, _obj, &pstMatrix, _piSize, SWIG_Scilab_GetFname()) == SWIG_OK) {
     return SWIG_OK;
   }
   return SWIG_ERROR;
@@ -65,11 +65,11 @@ SWIG_FromCreate_Sequence_dec(std::string)(int _size, char ***_sequence) {
 }
 
 %fragment(SWIG_FromSet_Sequence_frag(std::string), "header",
-  fragment="SwigScilabStringFromCharPtrArray") {
+  fragment="SWIG_SciString_FromCharPtrArray") {
 
 SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
-  SwigSciObject obj = SwigScilabStringFromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _sequence, _size);
+  SwigSciObject obj = SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _sequence, _size);
   delete (char **)_sequence;
   return obj;
 }
