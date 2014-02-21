@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-02-21: wsfulton
+	    [PHP] Fix warning suppression using %warnfilter for PHP reserved class names.
+
 2014-02-19: olly
 	    [Lua] Add keyword warnings for Lua keywords and Basic Functions.
 
