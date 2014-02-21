@@ -7,7 +7,6 @@ function test_out_matrix(value_type, expected_out_matrix)
   cmd = msprintf("out_matrix = out_%s_matrix_func();", value_type);
   ierr = execstr(cmd, "errcatch");
   if ierr <> 0 then swigtesterror(); end
-  disp(out_matrix);
   if ~isdef('expected_out_matrix') | out_matrix <> expected_out_matrix then swigtesterror(); end
 endfunction
 
