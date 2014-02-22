@@ -80,7 +80,7 @@ void display_mapping(DOH *d) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
-     -drop-old-scheme\n\
+     -no-old-metatable-bindings\n\
                      - Disable support for old-style bindings name generation, some\n\
                        old-style members scheme etc.\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
@@ -99,6 +99,16 @@ static int elua_ltr = 0;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
 static int squash_bases = 0;
+/* This  variable defines internal(!) module API level and compatibility options.
+ * This variable is controled by -no-old-metatable-bindings option.
+ * v2_compatibility - 
+ *                    1. static methods will be put into the scope their respective class
+ *                    belongs to as well as into the class scope itself.
+ *                    2. The layout in elua mode is somewhat different
+ *                    3. C enums defined inside struct will oblige to C Standard and
+ *                       will be defined in the scope surrounding the struct, not scope
+ *                       associated with it/
+ */
 static int v2_compatibility = 0;
 static const int default_api_level = 2;
 
@@ -222,7 +232,7 @@ public:
 	} else if (strcmp(argv[i], "-eluac") == 0) {
 	  eluac_ltr = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-drop-old-scheme") == 0) {
+	} else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
 	  Swig_mark_arg(i);
 	  api_level = 3;
 	} else if (strcmp(argv[i], "-squash-bases") == 0) {
