@@ -80,15 +80,15 @@ void display_mapping(DOH *d) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
-     -no-old-metatable-bindings\n\
-                     - Disable support for old-style bindings name generation, some\n\
-                       old-style members scheme etc.\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
      -elua-emulate   - Emulates behaviour of eLua. Usefull only for testing.\n\
                        Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
+     -no-old-metatable-bindings\n\
+                     - Disable support for old-style bindings name generation, some\n\
+                       old-style members scheme etc.\n\
      -squash-bases   - Squashes symbols from all inheritance tree of a given class\n\
                        into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly\n\
                        speeds things up, but increases memory consumption.\n\
