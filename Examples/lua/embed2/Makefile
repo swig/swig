@@ -4,6 +4,7 @@ TARGET     = embed2
 SRCS       = example.c
 INTERFACE  = example.i
 LUA_INTERP = embed2.c
+LIBS       = -lm
 
 # this is a little different to normal as we have our own special interpreter
 # which we want to static link
@@ -12,7 +13,7 @@ check: build
 
 build:
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' LUA_INTERP='$(LUA_INTERP)' lua_static
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' LIBS='$(LIBS)' INTERFACE='example.i' LUA_INTERP='$(LUA_INTERP)' lua_static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile lua_clean

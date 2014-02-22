@@ -31,6 +31,9 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 #include <stdarg.h>
 #include <string.h>
 
+#if LUA_VERSION_NUM > 501
+#define lua_open luaL_newstate
+#endif
 
 /* the SWIG wrappered library */
 extern int luaopen_example(lua_State*L);
@@ -46,8 +49,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
   push a, push b, call 'add' check & return res
   */
   top=lua_gettop(L);  /* for later */
-  lua_pushstring(L, "add");                                  /* function name */
-  lua_gettable(L, LUA_GLOBALSINDEX);               /* function to be called */
+  lua_getglobal(L, "add");               /* function to be called */
   if (!lua_isfunction(L,-1)) {
     printf("[C] error: cannot find function 'add'\n");
     lua_settop(L,top);  // reset
