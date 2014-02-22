@@ -160,7 +160,7 @@ swig -lua -help
 </tr>
 
 <tr>
-  <td>-swig3</td>
+  <td>-no-old-metatable-bindings</td>
   <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included into appropriate sections.</td>
 </tr>
 <tr>
@@ -524,7 +524,7 @@ This is 'effectively' converted into the following Lua code:
 </pre></div>
 <H4>Backward compatibility</H4>
 <p>
-If <tt>-swig3</tt> option is not given, then in addition to previously described bindings, the old-style ones are generated:
+If <tt>-no-old-metatable-bindings</tt> option is not given, then in addition to previously described bindings, the old-style ones are generated:
 </p>
 <div class="targetlang"><pre>
 &gt; print(example.Test_TEST1)
@@ -748,7 +748,7 @@ It is not (currently) possible to access static members of an instance:
 </pre></div>
 
 <H4>Backward compatibility</H4>
-<p> If <tt>-swig3</tt> option is not given, then backward compatible names are generated in addition to ordinary ones: </p>
+<p> If <tt>-no-old-metatable-bindings</tt> option is not given, then backward compatible names are generated in addition to ordinary ones: </p>
 <div class="code"><pre>
 &gt; example.Spam_foo()            -- calling Spam::foo()
 &gt; a=example.Spam_bar            -- reading Spam::bar 
@@ -1364,7 +1364,7 @@ Now, in Lua it could be used like this:
 </pre></div>
 <H4> Backward compatibility </H4>
 <p>
-If SWIG is running in backward compatible way, i.e. without <tt>-swig3</tt> option, then additional old-style names are generated(notice the underscore):
+If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated(notice the underscore):
 </p>
 <div class="targetlang"><pre>
 9
@@ -1376,7 +1376,7 @@ If SWIG is running in backward compatible way, i.e. without <tt>-swig3</tt> opti
 </pre></div>
 <H3> Backward compatibility </H3>
 <H4> Names </H4>
-<p> If SWIG is launched without <tt>-swig3</tt> option, then it enters backward-compatible mode. While in this mode, it tries
+<p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
 to generate additional names for static functions, class static constants and class enums.
 Those names are in a form <tt>$classname_$symbolname</tt> and are added to the scope surrounding the class.
 If %nspace is enabled, then class namespace is taken as scope. If there is no namespace, or %nspace is disabled,
