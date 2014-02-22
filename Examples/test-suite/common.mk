@@ -708,9 +708,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi;
 
 

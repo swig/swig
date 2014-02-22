@@ -58,9 +58,9 @@ csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
 	  mkdir $*;							  \
