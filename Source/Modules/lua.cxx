@@ -134,9 +134,20 @@ private:
   int have_constructor;
   int have_destructor;
   String *destructor_action;
-  String *class_symname;
-  String *class_fq_symname;	// Fully qualified symname - NSpace + '.' + class_symname
+  // This variable holds the name of the current class in Lua. Usually it is
+  // the same as C++ class name, but rename directives can change it.
+  String *proxy_class_name;
+  // This is a so calld fully qualified symname - the above proxy class name
+  // prepended with class namespace. If class Lua name is the same as class C++ name,
+  // then it is basically C++ fully qualified name with colons replaced with dots.
+  String *full_proxy_class_name;	
+  // All static methods and/or variables are treated as if they were in the
+  // special C++ namespace $(classname).__Static. This is internal mechanism only
+  // and is not visible to user in any manner. This variable holds the name
+  // of such pseudo-namespace a.k.a the result of above expression evaluation
   String *class_static_nspace;
+  // This variable holds the name of generated C function that acts as constructor
+  // for currently parsed class.
   String *constructor_name;
 
   // Many wrappers forward calls to each other, for example staticmembervariableHandler
@@ -179,8 +190,8 @@ public:
       have_constructor(0),
       have_destructor(0),
       destructor_action(0),
-      class_symname(0),
-      class_fq_symname(0),
+      proxy_class_name(0),
+      full_proxy_class_name(0),
       class_static_nspace(0),
       constructor_name(0) {
     for (int i = 0; i < STATES_COUNT; i++)
@@ -1043,8 +1054,8 @@ public:
 	iname_v2 = iname;
 	DohIncref(iname_v2);
       } else {
-	lua_name_v2 = Swig_name_member(0, class_symname, lua_name);
-	iname_v2 = Swig_name_member(0, class_symname, iname);
+	lua_name_v2 = Swig_name_member(0, proxy_class_name, lua_name);
+	iname_v2 = Swig_name_member(0, proxy_class_name, iname);
       }
       n_v2 = Copy(n);
       //Printf( stdout, "target name v2: %s, symname v2 %s\n", lua_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
@@ -1167,7 +1178,7 @@ public:
       assert(class_hash);
       String *cls_methods = Getattr(class_hash, "methods:name");
       assert(cls_methods);
-      Printv(ns_methods, tab4, "{LSTRKEY(\"", class_symname, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
+      Printv(ns_methods, tab4, "{LSTRKEY(\"", proxy_class_name, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
     }
   }
   /* ------------------------------------------------------------
@@ -1176,7 +1187,7 @@ public:
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
-    String *mangled_class_fq_symname = 0;
+    String *mangled_full_proxy_class_name = 0;
     String *destructor_name = 0;
     String *nspace = getNSpace();
 
@@ -1185,25 +1196,25 @@ public:
     have_destructor = 0;
     destructor_action = 0;
     assert(class_static_nspace == 0);
-    assert(class_fq_symname == 0);
-    assert(class_symname == 0);
+    assert(full_proxy_class_name == 0);
+    assert(proxy_class_name == 0);
 
     current[NO_CPP] = false;
 
-    class_symname = Getattr(n, "sym:name");
+    proxy_class_name = Getattr(n, "sym:name");
     // We have to enforce nspace here, because technically we are already
     // inside class parsing (getCurrentClass != 0), but we should register
     // class in the it's parent namespace
-    if (!luaAddSymbol(class_symname, n, nspace))
+    if (!luaAddSymbol(proxy_class_name, n, nspace))
       return SWIG_ERROR;
 
     if (nspace == 0)
-      class_fq_symname = NewStringf("%s", class_symname);
+      full_proxy_class_name = NewStringf("%s", proxy_class_name);
     else
-      class_fq_symname = NewStringf("%s.%s", nspace, class_symname);
+      full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 
-    assert(class_fq_symname);
-    mangled_class_fq_symname = Swig_name_mangle(class_fq_symname);
+    assert(full_proxy_class_name);
+    mangled_full_proxy_class_name = Swig_name_mangle(full_proxy_class_name);
 
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType *fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
@@ -1222,8 +1233,8 @@ public:
 
     static Hash *emitted = NewHash();
     if (Getattr(emitted, mangled_fr_t)) {
-      class_fq_symname = 0;
-      class_symname = 0;
+      full_proxy_class_name = 0;
+      proxy_class_name = 0;
       return SWIG_NOWRAP;
     }
     Setattr(emitted, mangled_fr_t, "1");
@@ -1239,7 +1250,7 @@ public:
     // And we can guarantee that there will not be any name collision because names starting with 2 underscores
     // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
     // any member or subclass with name "__Static". Thus, never any name clash.
-    Hash *instance_cls = getCArraysHash(class_fq_symname, false);
+    Hash *instance_cls = getCArraysHash(full_proxy_class_name, false);
     assert(instance_cls);
     String *s_attr_tab_name = Getattr(instance_cls, "attributes:name");
     String *s_methods_tab_name = Getattr(instance_cls, "methods:name");
@@ -1251,7 +1262,7 @@ public:
      * All constants are considered part of static part of class.
      */
 
-    class_static_nspace = NewStringf("%s%s__Static", class_fq_symname, NSPACE_SEPARATOR);
+    class_static_nspace = NewStringf("%s%s__Static", full_proxy_class_name, NSPACE_SEPARATOR);
     Hash *static_cls = getCArraysHash(class_static_nspace, false);
     assert(static_cls);
     Setattr(static_cls, "lua:no_namespaces", "1");
@@ -1270,7 +1281,7 @@ public:
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class_name = NewStringf("_wrap_class_%s", mangled_class_fq_symname);
+    String *wrap_class_name = NewStringf("_wrap_class_%s", mangled_full_proxy_class_name);
     String *wrap_class = NewStringf("&%s", wrap_class_name);
     Setattr(n, "wrap:class_name", wrap_class_name);
     SwigType_remember_clientdata(t, wrap_class);
@@ -1283,11 +1294,11 @@ public:
     Hash *nspaceHash = getCArraysHash(nspace);
 
     // Register the class structure with the type checker
-    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_class_fq_symname);
+    //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_full_proxy_class_name);
 
     // emit a function to be called to delete the object 
     if (have_destructor) {
-      destructor_name = NewStringf("swig_delete_%s", mangled_class_fq_symname);
+      destructor_name = NewStringf("swig_delete_%s", mangled_full_proxy_class_name);
       Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
 	Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
@@ -1325,18 +1336,18 @@ public:
       } else if (eluac_ltr) {
 	String *ns_methods_tab = Getattr(nspaceHash, "methods");
 	assert(ns_methods_tab);
-	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", class_symname, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
+	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", proxy_class_name, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
       }
     }
     if (have_destructor) {
       if (eluac_ltr) {
 	String *ns_methods_tab = Getattr(nspaceHash, "methods");
 	assert(ns_methods_tab);
-	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_class_fq_symname, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
+	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_proxy_class_name, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
       }
     }
 
-    closeCArraysHash(class_fq_symname, f_wrappers);
+    closeCArraysHash(full_proxy_class_name, f_wrappers);
     closeCArraysHash(class_static_nspace, f_wrappers);
 
 
@@ -1372,21 +1383,21 @@ public:
       }
     }
     // First, print class static part
-    printCArraysDefinition(class_static_nspace, class_symname, f_wrappers);
+    printCArraysDefinition(class_static_nspace, proxy_class_name, f_wrappers);
 
-    assert(mangled_class_fq_symname);
+    assert(mangled_full_proxy_class_name);
     assert(base_class);
     assert(base_class_names);
-    assert(class_symname);
-    assert(class_fq_symname);
+    assert(proxy_class_name);
+    assert(full_proxy_class_name);
     
     // Then print class isntance part
-    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_class_fq_symname, "_bases[] = {", base_class, "0};\n", NIL);
+    Printv(f_wrappers, "static swig_lua_class *swig_", mangled_full_proxy_class_name, "_bases[] = {", base_class, "0};\n", NIL);
     Delete(base_class);
-    Printv(f_wrappers, "static const char *swig_", mangled_class_fq_symname, "_base_names[] = {", base_class_names, "0};\n", NIL);
+    Printv(f_wrappers, "static const char *swig_", mangled_full_proxy_class_name, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Delete(base_class_names);
 
-    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_class_fq_symname, " = { \"", class_symname, "\", \"", class_fq_symname, "\", &SWIGTYPE",
+    Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_full_proxy_class_name, " = { \"", proxy_class_name, "\", \"", full_proxy_class_name, "\", &SWIGTYPE",
 	   SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
@@ -1411,18 +1422,18 @@ public:
     else
       Printf(f_wrappers, ", 0");
 
-    Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n", mangled_class_fq_symname, mangled_class_fq_symname);
+    Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n", mangled_full_proxy_class_name, mangled_full_proxy_class_name);
 
     current[NO_CPP] = true;
     Delete(class_static_nspace);
     class_static_nspace = 0;
-    Delete(mangled_class_fq_symname);
-    mangled_class_fq_symname = 0;
+    Delete(mangled_full_proxy_class_name);
+    mangled_full_proxy_class_name = 0;
     Delete(destructor_name);
     destructor_name = 0;
-    Delete(class_fq_symname);
-    class_fq_symname = 0;
-    class_symname = 0;
+    Delete(full_proxy_class_name);
+    full_proxy_class_name = 0;
+    proxy_class_name = 0;
     return SWIG_OK;
   }
 
@@ -1531,7 +1542,7 @@ public:
     if (v2_compatibility) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
-      String *compat_name = Swig_name_member(0, class_symname, lua_name);
+      String *compat_name = Swig_name_member(0, proxy_class_name, lua_name);
       Setattr(n, "lua:name", compat_name);
       registerMethod(getNSpace(), n);
       Delete(compat_name);
@@ -1569,8 +1580,8 @@ public:
       if (v2_compatibility) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
-	String *v2_name = Swig_name_member(NIL, class_symname, lua_name);
-	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, class_symname, v2_name ); // TODO: REMOVE
+	String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
+	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, proxy_class_name, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
 	  Setattr(n, "lua:name", v2_name);
 	  registerVariable(getNSpace(), n, "varget:wrap:name", "varset:wrap:name");
@@ -2069,7 +2080,7 @@ public:
 	scope = class_static_nspace;
       } else if (current[MEMBER_VAR] || current[CONSTRUCTOR] || current[DESTRUCTOR]
 		 || current[MEMBER_FUNC]) {
-	scope = class_fq_symname;
+	scope = full_proxy_class_name;
       } else {			// Friend functions are handled this way
 	scope = class_static_nspace;
       }
