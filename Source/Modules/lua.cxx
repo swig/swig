@@ -1557,7 +1557,7 @@ public:
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
       if (v2_compatibility) {
-	Swig_save("lua_staticmembervariableHandler", n, "lua:name");
+	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *target_name = Getattr(n, "lua:name");
 	String *v2_name = Swig_name_member(NIL, class_symname, target_name);
 	//Printf( stdout, "Name %s, class %s, compt. name %s\n", target_name, class_symname, v2_name ); // TODO: REMOVE
