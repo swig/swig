@@ -473,20 +473,20 @@ public:
     Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *wname = Getattr(n, "wrap:name");
-    String *target_name = Getattr(n, "lua:name");
+    String *lua_name = Getattr(n, "lua:name");
     if (elua_ltr || eluac_ltr)
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", target_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
     else
-      Printv(s_ns_methods_tab, tab4, "{ \"", target_name, "\", ", wname, "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
     // Add to the metatable if method starts with '__'
-    const char * tn = Char(target_name);
+    const char * tn = Char(lua_name);
     if (tn[0]=='_' && tn[1] == '_' && !eluac_ltr) {
       String *metatable_tab = Getattr(nspaceHash, "metatable");
       assert(metatable_tab);
       if (elua_ltr)
-	Printv(metatable_tab, tab4, "{LSTRKEY(\"", target_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
+	Printv(metatable_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
       else
-	Printv(metatable_tab, tab4, "{ \"", target_name, "\", ", wname, "},\n", NIL);
+	Printv(metatable_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
     }
   }
 
@@ -505,8 +505,8 @@ public:
 
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    String *target_name = Getattr(n, "lua:name");
-    assert(target_name);
+    String *lua_name = Getattr(n, "lua:name");
+    assert(lua_name);
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
@@ -518,7 +518,7 @@ public:
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
     } else {
-      if (!luaAddSymbol(target_name, n)) {
+      if (!luaAddSymbol(lua_name, n)) {
 	return SWIG_ERROR;
       }
     }
@@ -844,13 +844,13 @@ public:
 
     Wrapper *f = NewWrapper();
     String *symname = Getattr(n, "sym:name");
-    String *target_name = Getattr(n, "lua:name");
-    assert(target_name);
+    String *lua_name = Getattr(n, "lua:name");
+    assert(lua_name);
     String *wname = symnameWrapper(symname);
 
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
-    if (!luaAddSymbol(target_name, n)) {
+    if (!luaAddSymbol(lua_name, n)) {
       return SWIG_ERROR;
     }
 
@@ -918,17 +918,17 @@ public:
     Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *s_ns_var_tab = Getattr(nspaceHash, "attributes");
-    String *target_name = Getattr(n, "lua:name");
+    String *lua_name = Getattr(n, "lua:name");
     if (elua_ltr) {
       String *s_ns_dot_get = Getattr(nspaceHash, "get");
       String *s_ns_dot_set = Getattr(nspaceHash, "set");
-      Printf(s_ns_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, target_name, getName);
-      Printf(s_ns_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, target_name, setName);
+      Printf(s_ns_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, lua_name, getName);
+      Printf(s_ns_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, lua_name, setName);
     } else if (eluac_ltr) {
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", target_name, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", target_name, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
+      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
     } else {
-      Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, target_name, getName, setName);
+      Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, lua_name, getName, setName);
     }
   }
 
@@ -945,8 +945,8 @@ public:
        only WRT this variable will look into this later.
        NEW LANGUAGE NOTE:END *********************************************** */
     //    REPORT("variableWrapper", n);
-    String *target_name = Getattr(n, "lua:name");
-    assert(target_name);
+    String *lua_name = Getattr(n, "lua:name");
+    assert(lua_name);
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
@@ -987,24 +987,24 @@ public:
     REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    String *target_name = Getattr(n, "lua:name");
-    if (target_name == 0)
-      target_name = iname;
+    String *lua_name = Getattr(n, "lua:name");
+    if (lua_name == 0)
+      lua_name = iname;
     String *nsname = Copy(iname);
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
-    String *target_name_v2 = 0;
+    String *lua_name_v2 = 0;
     String *tm_v2 = 0;
     String *iname_v2 = 0;
     Node *n_v2 = 0;
 
-    if (!luaAddSymbol(target_name, n))
+    if (!luaAddSymbol(lua_name, n))
       return SWIG_ERROR;
 
     Swig_save("lua_constantMember", n, "sym:name", NIL);
-    Setattr(n, "sym:name", target_name);
+    Setattr(n, "sym:name", lua_name);
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = symnameWrapper(iname);
@@ -1015,13 +1015,13 @@ public:
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       //Printf(stdout, "tm v1: %s\n", tm); // TODO:REMOVE
       Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", target_name);
+      Replaceall(tm, "$target", lua_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       registerConstant(luaCurrentSymbolNSpace(), tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
-      Replaceall(tm, "$target", target_name);
+      Replaceall(tm, "$target", lua_name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
       Printf(f_init, "%s\n", tm);
@@ -1038,27 +1038,27 @@ public:
     if (make_v2_compatible) {
       // Special handling for enums in C mode - they are not prefixed with structure name
       if(!CPlusPlus && current[ENUM_CONST]) {
-	target_name_v2 = target_name;
-	DohIncref(target_name_v2);
+	lua_name_v2 = lua_name;
+	DohIncref(lua_name_v2);
 	iname_v2 = iname;
 	DohIncref(iname_v2);
       } else {
-	target_name_v2 = Swig_name_member(0, class_symname, target_name);
+	lua_name_v2 = Swig_name_member(0, class_symname, lua_name);
 	iname_v2 = Swig_name_member(0, class_symname, iname);
       }
       n_v2 = Copy(n);
-      //Printf( stdout, "target name v2: %s, symname v2 %s\n", target_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
+      //Printf( stdout, "target name v2: %s, symname v2 %s\n", lua_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
       if (!luaAddSymbol(iname_v2, n, getNSpace())) {
 	Swig_restore(n);
 	return SWIG_ERROR;
       }
 
-      Setattr(n_v2, "sym:name", target_name_v2);
+      Setattr(n_v2, "sym:name", lua_name_v2);
       tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
       if (tm_v2) {
 	//Printf(stdout, "tm v2: %s\n", tm_v2.ptr()); // TODO:REMOVE
 	Replaceall(tm_v2, "$source", value);
-	Replaceall(tm_v2, "$target", target_name_v2);
+	Replaceall(tm_v2, "$target", lua_name_v2);
 	Replaceall(tm_v2, "$value", value);
 	Replaceall(tm_v2, "$nsname", nsname);
 	registerConstant(getNSpace(), tm_v2);
@@ -1071,7 +1071,7 @@ public:
 	  return SWIG_ERROR;
 	}
 	Replaceall(tm_v2, "$source", value);
-	Replaceall(tm_v2, "$target", target_name_v2);
+	Replaceall(tm_v2, "$target", lua_name_v2);
 	Replaceall(tm_v2, "$value", value);
 	Replaceall(tm_v2, "$nsname", nsname);
 	Printf(f_init, "%s\n", tm_v2);
@@ -1530,8 +1530,8 @@ public:
 
     if (v2_compatibility) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
-      String *target_name = Getattr(n, "lua:name");
-      String *compat_name = Swig_name_member(0, class_symname, target_name);
+      String *lua_name = Getattr(n, "lua:name");
+      String *compat_name = Swig_name_member(0, class_symname, lua_name);
       Setattr(n, "lua:name", compat_name);
       registerMethod(getNSpace(), n);
       Delete(compat_name);
@@ -1568,9 +1568,9 @@ public:
       // This will add static member variable to the class namespace with name ClassName_VarName
       if (v2_compatibility) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
-	String *target_name = Getattr(n, "lua:name");
-	String *v2_name = Swig_name_member(NIL, class_symname, target_name);
-	//Printf( stdout, "Name %s, class %s, compt. name %s\n", target_name, class_symname, v2_name ); // TODO: REMOVE
+	String *lua_name = Getattr(n, "lua:name");
+	String *v2_name = Swig_name_member(NIL, class_symname, lua_name);
+	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, class_symname, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
 	  Setattr(n, "lua:name", v2_name);
 	  registerVariable(getNSpace(), n, "varget:wrap:name", "varset:wrap:name");
