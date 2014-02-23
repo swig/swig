@@ -122,6 +122,11 @@ typedef struct swig_elua_entry {
 
 #ifndef SWIG_LUA_ELUA_EMULATE
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
+
+#ifndef MIN_OPT_LEVEL
+#define MIN_OPT_LEVEL 2
+#endif
+
 #include "lrodefs.h"
 #include "lrotable.h"
 #endif
