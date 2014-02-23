@@ -11,18 +11,18 @@ void Shape::move(double dx, double dy) {
 
 int Shape::nshapes = 0;
 
-double Circle::area(void) {
+double Circle::area() {
   return M_PI*radius*radius;
 }
 
-double Circle::perimeter(void) {
+double Circle::perimeter() {
   return 2*M_PI*radius;
 }
 
-double Square::area(void) {
+double Square::area() {
   return width*width;
 }
 
-double Square::perimeter(void) {
+double Square::perimeter() {
   return 4*width;
 }

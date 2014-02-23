@@ -435,11 +435,11 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;   
   void    move(double dx, double dy);
-  virtual double area(void) = 0;
-  virtual double perimeter(void) = 0;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
   static  int nshapes;
 };
 
@@ -447,18 +447,18 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Circle(double r) : radius(r) { }
+  virtual double area();
+  virtual double perimeter();
 };
 
 class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Square(double w) : width(w) { }
+  virtual double area();
+  virtual double perimeter();
 };
 </pre>
 </div>
@@ -482,19 +482,19 @@ void Shape::move(double dx, double dy) {
 
 int Shape::nshapes = 0;
 
-double Circle::area(void) {
+double Circle::area() {
   return M_PI*radius*radius;
 }
 
-double Circle::perimeter(void) {
+double Circle::perimeter() {
   return 2*M_PI*radius;
 }
 
-double Square::area(void) {
+double Square::area() {
   return width*width;
 }
 
-double Square::perimeter(void) {
+double Square::perimeter() {
   return 4*width;
 }
 </pre>
