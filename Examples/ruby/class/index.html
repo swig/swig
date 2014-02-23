@@ -12,9 +12,7 @@
 <H2>Wrapping a simple C++ class</H2>
 
 <p>
-This example illustrates C++ class wrapping performed by SWIG.
-C++ classes are simply transformed into Ruby classes that provide methods to
-access class members.
+This example illustrates wrapping a simple C++ class to give a Python class.
 
 <h2>The C++ Code</h2>
 
@@ -32,8 +30,8 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
-  double  x, y;   
+  }
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area() = 0;
   virtual double perimeter() = 0;
@@ -44,7 +42,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -53,7 +51,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -122,10 +120,8 @@ print "The area is ", c.area, "\n"
 </blockquote>
 
 <p>
-<li>When a instance of Ruby level wrapper class is garbage collected by
+<li>When a instance of Ruby level wrapper class is garbage collected by the
 Ruby interpreter, the corresponding C++ destructor is automatically invoked.
-(Note: destructors are currently not inherited. This might change later.
-Until then, use <tt>-make_default</tt>).
 
 <p>
 <li>Static member variables are wrapped as Ruby class accessor methods.
@@ -144,53 +140,14 @@ Shapes.nshapes = 13   # Set a static data member
 
 <ul>
 <li>Ruby module of SWIG differs from other language modules in wrapping C++
-interfaces.  They provides lower-level interfaces and optional higher-level
+interfaces.  They provide lower-level interfaces and optional higher-level
 interfaces know as proxy classes.  Ruby module needs no such redundancy
 due to Ruby's sophisticated extension API.
 
-<p>
-<li>SWIG *does* know how to properly perform upcasting of objects in
+<li>SWIG <b>does</b> know how to properly perform upcasting of objects in
 an inheritance hierarchy except for multiple inheritance.
 
-<p>
-<li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
-short and incomplete list:
-
-<p>
-<ul>
-<li>Overloaded methods and functions.  SWIG wrappers don't know how to resolve name
-conflicts so you must give an alternative name to any overloaded method name using the
-%name directive like this:
-
-<blockquote>
-<pre>
-void foo(int a);  
-%name(foo2) void foo(double a, double b);
-</pre>
-</blockquote>
-
-<p>
-<li>Overloaded operators.  Not supported at all. The only workaround for this is
-to write a helper function. For example:
-
-<blockquote>
-<pre>
-%inline %{
-    Vector *vector_add(Vector *a, Vector *b) {
-          ... whatever ...
-    }
-%}
-</pre>
-</blockquote>
-
-<p>
-<li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
-
-</ul>
-<p>
-
-<li>Dave's snide remark: Like a large bottle of strong Tequilla, it's better to
-use C++	in moderation.
+<li>C++ Namespaces - %nspace isn't yet supported for Python.
 
 </ul>
 

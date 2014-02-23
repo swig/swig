@@ -32,8 +32,8 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
-  double  x, y;   
+  }
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area() = 0;
   virtual double perimeter() = 0;
@@ -44,7 +44,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -53,7 +53,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -91,10 +91,10 @@ Note: when creating a C++ extension, you must run SWIG with the <tt>-c++</tt> op
 SWIG performs two forms of C++ wrapping-- a low level interface and a high level widget-like interface.
 <ul>
 <li>
-Click <a href="example1.tcl">here</a> to see a script that calls the C++ functions using the
+Click <a href="runme.tcl">here</a> to see a script that calls the C++ functions using the
 low-level interface.
 <li>
-Click <a href="example2.tcl">here</a> to see a the same script written with the high-level
+Click <a href="runme2.tcl">here</a> to see the same script written with the high-level
 interface.
 </ul>
 
@@ -225,47 +225,15 @@ set Shapes_nshapes 13   # Set a static data member
 <h2>General Comments</h2>
 
 <ul>
+
 <li>The low-level function interface is much faster than the high-level interface.
 In fact, all the higher level interface does is call functions in the low-level interface.
 
-<p>
 <li>SWIG *does* know how to properly perform upcasting of objects in an inheritance
 hierarchy (including multiple inheritance).  Therefore it is perfectly safe to pass
 an object of a derived class to any function involving a base class.
 
-<p>
-<li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
-short and incomplete list:
-
-<p>
-<ul>
-<li>Overloaded methods and functions.  SWIG wrappers don't know how to resolve name
-conflicts so you must give an alternative name to any overloaded method name using the
-%name directive like this:
-
-<blockquote>
-<pre>
-void foo(int a);  
-%name(foo2) void foo(double a, double b);
-</pre>
-</blockquote>
-
-<p>
-<li>Overloaded operators.  Not supported at all. The only workaround for this is
-to write a helper function. For example:
-
-<blockquote>
-<pre>
-%inline %{
-    Vector *vector_add(Vector *a, Vector *b) {
-          ... whatever ...
-    }
-%}
-</pre>
-</blockquote>
-
-<p>
-<li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
+<li>C++ Namespaces - %nspace isn't yet supported for Python.
 
 </ul>
 

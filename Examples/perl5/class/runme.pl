@@ -40,7 +40,7 @@ foreach $o ($c,$s) {
       print "    $o\n";
       print "        area      = ", $o->area(), "\n";
       print "        perimeter = ", $o->perimeter(), "\n";
-  }
+}
 
 # ----- Delete everything -----
 
