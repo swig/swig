@@ -5684,7 +5684,7 @@ Version 1.3.28 (February 12, 2006)
 	    
 	      %rename("%(utitle)s",%$isfunction,%$ismember) ""; 
 	   	
-            to avoid clashings with other swig macros/directives.
+            to avoid clashes with other swig macros/directives.
 
 01/14/2006: cfisavage
             [Ruby]
@@ -11787,7 +11787,7 @@ Version 1.3.20 (December 17, 2003)
 
 11/30/2003: cheetah (William Fulton)
             [Java] Fixed [ 766409 ] missing symbol SWIG_JavaThrowException during module load
-            SWIGs internal functions are all static as there is no need for different SWIG
+            SWIG's internal functions are all static as there is no need for different SWIG
             generated modules to share any code at runtime.
 
 11/30/2003: beazley
@@ -21368,7 +21368,7 @@ Version 1.1 Patch 4 (January 4, 1998)
 12/29/97: Fixed configure script and a few makefiles to support Python 1.5
 
 12/29/97: Added 'embed15.i' library file.  This file should be used to
-          staticly link versions of Python 1.5.    To make it the default,
+          statically link versions of Python 1.5.    To make it the default,
           simply copy 'swig_lib/python/embed15.i' to 'swig_lib/python/embed.i'
 
 Version 1.1 Patch 3 (November 24, 1997)

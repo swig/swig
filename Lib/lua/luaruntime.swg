@@ -31,7 +31,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
   int i;
   /* start with global table */
   lua_pushglobaltable (L);
-  /* SWIG's internal initalisation */
+  /* SWIG's internal initialisation */
   SWIG_InitializeModule((void*)L);
   SWIG_PropagateClientData();
 #endif

@@ -42,7 +42,7 @@ print
 print "Adding and calling another Python callback"
 print "------------------------------------------"
 
-# Lets do the same but use the weak reference this time.
+# Let's do the same but use the weak reference this time.
 
 callback = PyCallback().__disown__()
 caller.setCallback(callback)

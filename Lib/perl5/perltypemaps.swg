@@ -18,7 +18,7 @@
 #define SWIG_FROM_CALL_ARGS  SWIG_PERL_CALL_ARGS_1
 
 
-/* Include fundamental fragemt definitions */
+/* Include fundamental fragment definitions */
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */

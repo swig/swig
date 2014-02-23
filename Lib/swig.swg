@@ -321,7 +321,7 @@ static int NAME(TYPE x) {
 
 /*
  * Function/method overloading support.   This is done through typemaps,
- * but also involve a precedence level. 
+ * but also involves a precedence level.
  */
 
 /* Macro for overload resolution */

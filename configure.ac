@@ -19,7 +19,7 @@ AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Deal with Microsofts attempt at deprecating C standard runtime functions */
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif

@@ -1098,7 +1098,7 @@ CHICKEN_GENERATED_SCHEME = $(INTERFACE:.i=.scm)
 CHICKEN_COMPILED_SCHEME = $(INTERFACE:.i=_chicken.c)
 CHICKEN_COMPILED_OBJECT = $(CHICKEN_COMPILED_SCHEME:.c=.@OBJEXT@)
 
-# flags for the main chicken sources (only used when compiling staticly)
+# flags for the main chicken sources (only used when compiling statically)
 CHICKEN_COMPILED_MAIN = $(CHICKEN_MAIN:.scm=_chicken.c)
 CHICKEN_COMPILED_MAIN_OBJECT = $(CHICKEN_COMPILED_MAIN:.c=.@OBJEXT@)
 

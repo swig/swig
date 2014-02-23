@@ -46,7 +46,7 @@ SWIG          = $(exec_prefix)/bin/swig
 SWIGOPT       = -perl5 
 SWIGCC        = $(CC) 
 
-# SWIG Library files.  Uncomment this to staticly rebuild Perl
+# SWIG Library files.  Uncomment this to statically rebuild Perl
 #SWIGLIBS      = -static -lperlmain.i
 
 # Rules for creating .o files from source.
