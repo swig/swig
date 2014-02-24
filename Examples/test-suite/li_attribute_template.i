@@ -6,6 +6,13 @@
 %include <attribute.i>
 %include <std_string.i>
 
+// Swig Scilab uses gettext which defines a _d macro
+#if defined(SWIGSCILAB)
+%{
+#undef _d
+%}
+#endif
+
 %inline
 {
   class Foo {
