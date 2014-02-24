@@ -6,6 +6,7 @@
 /*
  * CHAR
  */
+
 %fragment(SWIG_AsVal_frag(char), "header", fragment="SWIG_SciString_AsChar") {
 #define SWIG_AsVal_char(scilabValue, valuePointer) SWIG_SciString_AsChar(pvApiCtx, scilabValue, valuePointer, fname)
 }
@@ -76,8 +77,6 @@ SWIG_SciString_FromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
  * CHAR *
 */
 
-
-
 %fragment("SWIG_AsCharArray", "header", fragment = "SWIG_SciString_AsCharPtr") {
 #define SWIG_AsCharArray(scilabValue, charPtrPointer, charPtrLength) SWIG_SciString_AsCharPtr(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, fname)
 }
@@ -143,7 +142,7 @@ SWIG_SciString_AsCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, siz
   }
 
   if (_piLength != NULL) {
-    *_piLength = strlen(*_pcValue);
+    *_piLength = strlen(*_pcValue) + 1;
   }
 
   return SWIG_OK;
@@ -177,6 +176,7 @@ SWIG_SciString_FromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue)
 /*
  * CHAR * ARRAY
  */
+
 %fragment("SWIG_SciString_AsCharPtrArrayAndSize", "header") {
 SWIGINTERN int
 SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int _iVar, char ***_charPtrArray, int* _charPtrArraySize, char *_fname) {
