@@ -32,8 +32,10 @@ KW(go, defer)
 KW(chan, fallthrough)
 
 /* Lua keywords */
+#ifdef SWIGLUA
 KW(end, function)
 KW(nil,local)
+#endif
 
 %}
 
