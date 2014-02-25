@@ -1014,7 +1014,6 @@ public:
   /* ------------------------------------------------------------
    * variableWrapper()
    * ------------------------------------------------------------ */
-
   virtual int variableWrapper(Node *n) {
     /* NEW LANGUAGE NOTE:***********************************************
        Language::variableWrapper(n) will generate two wrapper fns
@@ -1239,8 +1238,7 @@ public:
   * Helper function that adds record to appropriate
    * C arrays
    * ------------------------------------------------------------ */
-  void registerClass(String *scope, Node *n) {
-    String *wrap_class = Getattr(n,"wrap:class_name");
+  void registerClass(String *scope, String *wrap_class) {
     assert(wrap_class);
     Hash *nspaceHash = getCArraysHash(scope);
     String *ns_classes = Getattr(nspaceHash, "classes");
@@ -1354,16 +1352,15 @@ public:
     SwigType_add_pointer(t);
 
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    String *wrap_class_name = NewStringf("_wrap_class_%s", mangled_full_proxy_class_name);
+    String *wrap_class_name = Swig_name_wrapper(NewStringf("class_%s", mangled_full_proxy_class_name));
     String *wrap_class = NewStringf("&%s", wrap_class_name);
-    Setattr(n, "wrap:class_name", wrap_class_name);
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Adding class to apropriate namespace
-    registerClass(nspace, n);
+    registerClass(nspace, wrap_class_name);
     Hash *nspaceHash = getCArraysHash(nspace);
 
     // Register the class structure with the type checker
