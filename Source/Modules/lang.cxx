@@ -2992,6 +2992,8 @@ int Language::variableWrapper(Node *n) {
     if (make_set_wrapper) {
       Setattr(n, "varset", "1");
       functionWrapper(n);
+    } else {
+      Setattr(n, "feature:immutable", "1");
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);

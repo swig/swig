@@ -157,6 +157,8 @@ private:
   enum TState {
     NO_CPP,
     VARIABLE,
+    GLOBAL_FUNC,
+    GLOBAL_VAR,
     MEMBER_FUNC,
     CONSTRUCTOR,
     DESTRUCTOR,
@@ -464,6 +466,7 @@ public:
    * --------------------------------------------------------------------- */
 
   // Helper function. Remembers wrap name
+  // TODO: REMOVE
   void rememberWrapName(Node *n, String *wrapname) {
     Setattr(n, "wrap:name", wrapname);
     // If it is getter/setter, then write wrapname under
@@ -542,7 +545,7 @@ public:
     Wrapper_add_local(f, "SWIG_arg", "int SWIG_arg = 0");
 
 
-    String *wname = symnameWrapper(iname);
+    String *wname = Swig_name_wrapper(iname);
     if (overname) {
       Append(wname, overname);
     }
@@ -857,7 +860,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *lua_name = Getattr(n, "lua:name");
     assert(lua_name);
-    String *wname = symnameWrapper(symname);
+    String *wname = Swig_name_wrapper(symname);
 
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
@@ -914,19 +917,68 @@ public:
     return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * Add variable to "attributes"  C arrays of given namespace or class.
+   * Input is node. Base on the state of "current" array it determines
+   * the name of getter function, setter function etc and calls
+   * registeVariable overload with necessary params
+   * Lua scope could be overwritten. (Used only for backward compatibility)
+   * ------------------------------------------------------------ */
+  void registerVariable(Node *n, bool overwrite = false, String *overwriteLuaScope = 0) {
+    int assignable = is_assignable(n);
+    String *symname = Getattr(n, "sym:name");
+    assert(symname);
+
+    // Lua scope. It is not symbol NSpace, it is actuall key to revrieve
+    // getCArraysHash.
+    String *luaScope = luaCurrentSymbolNSpace();
+    if (overwrite)
+      luaScope = overwriteLuaScope;
+
+    // Getter and setter
+    String *getName = 0;
+    String *setName = 0;
+    String *mrename = 0;
+    if (current[NO_CPP] || !getCurrentClass()) {
+      // Global variable
+      getName = Swig_name_get(getNSpace(), symname);
+      if (assignable)
+        setName = Swig_name_set(getNSpace(), symname);
+    } else {
+        assert(!current[NO_CPP]);
+        if (current[STATIC_VAR] ) {
+          mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
+          getName = Swig_name_get(0, mrename);
+          if (assignable)
+            setName = Swig_name_set(0, mrename);
+        } else if (current[MEMBER_VAR]) {
+          mrename = Swig_name_member(0, getClassPrefix(), symname);
+          getName = Swig_name_get(getNSpace(), mrename);
+          if (assignable)
+            setName = Swig_name_set(getNSpace(), mrename);
+        } else {
+          assert(false);
+        }
+    }
+
+    getName = Swig_name_wrapper(getName);
+    if (setName)
+      setName = Swig_name_wrapper(setName);
+    //Printf(stdout, "luaname %s, symname %s mrename %s getName %s\n\tscope %s\n\tassignable %d\n",
+    //    Getattr(n, "lua:name"), symname, mrename, getName, luaScope, assignable ); // TODO: REMOVE
+    registerVariable(luaScope, n, getName, setName);
+  }
 
   /* ------------------------------------------------------------
    * Add variable to the "attributes" (or "get"/"set"  in
    * case of elua_ltr) C arrays of given namespace or class
    * ------------------------------------------------------------ */
-  void registerVariable(String *nspace_or_class_name, Node *n, const char *getAttrName, const char *setAttrName) {
+  void registerVariable(String *lua_nspace_or_class_name, Node *n, String *getName, String *setName) {
     String *unassignable = NewString("SWIG_Lua_set_immutable");
-    String *getName = Getattr(n, getAttrName);
-    String *setName = Getattr(n, setAttrName);
     if (setName == 0 || GetFlag(n, "feature:immutable")) {
       setName = unassignable;
     }
-    Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
+    Hash *nspaceHash = getCArraysHash(lua_nspace_or_class_name);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *s_ns_var_tab = Getattr(nspaceHash, "attributes");
     String *lua_name = Getattr(n, "lua:name");
@@ -961,7 +1013,12 @@ public:
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
-    registerVariable(luaCurrentSymbolNSpace(), n, "varget:wrap:name", "varset:wrap:name");
+    // TODO: REMOVE
+    //registerVariable(luaCurrentSymbolNSpace(), n, "varget:wrap:name", "varset:wrap:name");
+    
+    // It is impossible to use registerVariable, because sym:name of the Node is currenly
+    // in undefined states - the callees of this function may have modified it.
+    // registerVariable should be used from respective callees.*
     current[VARIABLE] = false;
     return result;
   }
@@ -1473,7 +1530,7 @@ public:
     //    REPORT("membervariableHandler",n);
     current[MEMBER_VAR] = true;
     Language::membervariableHandler(n);
-    registerVariable(luaCurrentSymbolNSpace(), n, "memberget:wrap:name", "memberset:wrap:name");
+    registerVariable(n);
     current[MEMBER_VAR] = false;
     return SWIG_OK;
   }
@@ -1515,14 +1572,34 @@ public:
    * 2. During class parsing for functions declared/defined as friend
    * 3. During class parsing from staticmemberfunctionHandler
    * ---------------------------------------------------------------------- */
-  int globalfunctionHandler(Node *n) {
+  virtual int globalfunctionHandler(Node *n) {
     bool oldVal = current[NO_CPP];
     if (!current[STATIC_FUNC])	// If static funct, don't switch to NO_CPP
       current[NO_CPP] = true;
-    int result = Language::globalfunctionHandler(n);
+    const int result = Language::globalfunctionHandler(n);
     current[NO_CPP] = oldVal;
     return result;
   }
+
+  /* ----------------------------------------------------------------------
+   * globalvariableHandler()
+   * globalfunctionHandler()
+   * Sets "current" array correctly and calls
+   * Language::globalvariableHandler()
+   * ---------------------------------------------------------------------- */
+  virtual int globalvariableHandler(Node *n) {
+    bool oldVal = current[NO_CPP];
+    current[GLOBAL_VAR] = true;
+    current[NO_CPP] = true;
+
+    const int result = Language::globalvariableHandler(n);
+    registerVariable(n);
+
+    current[GLOBAL_VAR] = false;
+    current[NO_CPP] = oldVal;
+    return result;
+  }
+
 
   /* -----------------------------------------------------------------------
    * staticmemberfunctionHandler()
@@ -1533,7 +1610,7 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     REPORT("staticmemberfunctionHandler", n);
     current[STATIC_FUNC] = true;
-    int result = Language::staticmemberfunctionHandler(n);
+    const int result = Language::staticmemberfunctionHandler(n);
 
     current[STATIC_FUNC] = false;;
     if (result != SWIG_OK)
@@ -1574,17 +1651,24 @@ public:
     current[STATIC_VAR] = true;
     //String *symname = Getattr(n, "sym:name");
     int result = Language::staticmembervariableHandler(n);
+    if (!GetFlag(n, "wrappedasconstant")) {
+      registerVariable(n);
+    }
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
       if (v2_compatibility) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
+        // Although this function uses Swig_name_member, it actually generateds Lua name,
+        // not C++ name. It is because previous version used such scheme for static vars
+        // name generation and we have to maintain backward compatibility
 	String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
 	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, proxy_class_name, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
 	  Setattr(n, "lua:name", v2_name);
-	  registerVariable(getNSpace(), n, "varget:wrap:name", "varset:wrap:name");
+          // Registering static var in the class parent nspace
+	  registerVariable(n, true, getNSpace());
 	}
 	// If static member variable was wrapped as constant, then
 	// constant wrapper has already performed all actions
