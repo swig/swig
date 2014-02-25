@@ -33,6 +33,7 @@ bool js_template_enable_debug = false;
 #define MEMBER_FUNCTIONS "member_functions"
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
+#define HAS_TEMPLATES "has_templates"
 
 #define RESET true
 
@@ -600,6 +601,9 @@ JSEmitter::~JSEmitter() {
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::registerTemplate(const String *name, const String *code) {
+  if (!State::IsSet(state.global(HAS_TEMPLATES))) {
+    SetFlag(state.global(), HAS_TEMPLATES);
+  }
   return Setattr(templates, name, code);
 }
 
@@ -1067,6 +1071,13 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::emitConstant(Node *n) {
+  // HACK: somehow it happened under OSX that before everything started
+  // a lot of SWIG internal constants were emitted
+  // This didn't happen on Ubuntu Precise...
+  // so we
+  if (!State::IsSet(state.global(HAS_TEMPLATES))) {
+    return SWIG_ERROR;
+  }
 
   Wrapper *wrapper = NewWrapper();
   SwigType *type = Getattr(n, "type");
