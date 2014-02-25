@@ -465,28 +465,49 @@ public:
    * Create a function declaration and register it with the interpreter.
    * --------------------------------------------------------------------- */
 
-  // Helper function. Remembers wrap name
-  // TODO: REMOVE
-  void rememberWrapName(Node *n, String *wrapname) {
-    Setattr(n, "wrap:name", wrapname);
-    // If it is getter/setter, then write wrapname under
-    // wrap:memberset/wrap:memberget accordingly
-    if (Getattr(n, "memberset"))
-      Setattr(n, "memberset:wrap:name", wrapname);
-    if (Getattr(n, "varset"))
-      Setattr(n, "varset:wrap:name", wrapname);
-    if (Getattr(n, "memberget"))
-      Setattr(n, "memberget:wrap:name", wrapname);
-    if (Getattr(n, "varget"))
-      Setattr(n, "varget:wrap:name", wrapname);
+  /* -----------------------------------------------------------------------
+   * registerMethod()
+   *
+   * Determines wrap name of a method, it's scope etc and calls
+   * registerMethod overload with correct arguments
+   * Overloaded variant  adds method to the "methods" array of specified lua scope/class
+   * ---------------------------------------------------------------------- */
+  void registerMethod(Node *n, bool overwrite = false, String *overwriteLuaScope = 0) {
+    String *symname = Getattr(n, "sym:name");
+    assert(symname);
+
+    if (Getattr(n, "sym:nextSibling"))
+      return;
+
+    // Lua scope. It is not symbol NSpace, it is actuall key to revrieve
+    // getCArraysHash.
+    String *luaScope = luaCurrentSymbolNSpace();
+    if (overwrite)
+      luaScope = overwriteLuaScope;
+
+    String *wrapname = 0;
+    String *mrename;
+    if (current[NO_CPP] || !getCurrentClass()) {
+      mrename = symname;
+    } else {
+        assert(!current[NO_CPP]);
+        if (current[STATIC_FUNC] || current[MEMBER_FUNC]) {
+          mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
+        } else {
+          mrename = symname;
+        }
+    }
+    wrapname = Swig_name_wrapper(mrename);
+    //Printf(stdout, "luaname %s, symname %s mrename %s wrapname %s\n\tscope %s\n",
+    //    Getattr(n, "lua:name"), symname, mrename, wrapname, luaScope ); // TODO: REMOVE
+    registerMethod(n, wrapname, luaScope);
   }
 
   // Add method to the "methods" C array of given namespace/class
-  void registerMethod(String *nspace_or_class_name, Node *n) {
+  void registerMethod(Node *n, String* wname, String *luaScope) {
     assert(n);
-    Hash *nspaceHash = getCArraysHash(nspace_or_class_name);
+    Hash *nspaceHash = getCArraysHash(luaScope);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
-    String *wname = Getattr(n, "wrap:name");
     String *lua_name = Getattr(n, "lua:name");
     if (elua_ltr || eluac_ltr)
       Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
@@ -504,16 +525,6 @@ public:
     }
   }
 
-  // Helper for functionWrapper - determines whether we should
-  // register method in the appropriate class/namespace/module
-  // table or not.
-  // (not => it is variable wrapper or something similar)
-  bool functionWrapperRegisterNow() const {
-    if (current[VARIABLE])
-      return false;
-    return (current[NO_CPP] || current[STATIC_FUNC]);
-  } 
-  
   virtual int functionWrapper(Node *n) {
     REPORT("functionWrapper", n);
 
@@ -726,7 +737,7 @@ public:
     }
 
     // Remember C name of the wrapping function
-    rememberWrapName(n, wname);
+    Setattr(n, "wrap:name", wname);
 
     /* Emit the function call */
     String *actioncode = emit_action(n);
@@ -814,9 +825,11 @@ public:
     /* Now register the function with the interpreter. */
     int result = SWIG_OK;
     if (!Getattr(n, "sym:overloaded")) {
+      /* TODO: REMOVE
       if (functionWrapperRegisterNow()) {	// emit normal fns & static fns
-	registerMethod(luaCurrentSymbolNSpace(), n);
+	registerMethod(n);
       }
+      */
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
 	result = dispatchFunction(n);
@@ -899,11 +912,12 @@ public:
     Wrapper_print(f, f_wrappers);
 
     // Remember C name of the wrapping function
-    rememberWrapName(n, wname);
+    Setattr(n, "wrap:name", wname);
 
+    /* TODO: REMOVE
     if (functionWrapperRegisterNow()) {	// emit normal fns & static fns
-      registerMethod(luaCurrentSymbolNSpace(), n);
-    }
+      registerMethod(n);
+    }*/
     if (current[CONSTRUCTOR]) {
       if (constructor_name != 0)
 	Delete(constructor_name);
@@ -970,6 +984,8 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * registerVariable()
+   *
    * Add variable to the "attributes" (or "get"/"set"  in
    * case of elua_ltr) C arrays of given namespace or class
    * ------------------------------------------------------------ */
@@ -1075,7 +1091,7 @@ public:
     Setattr(n, "sym:name", lua_name);
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
-      String *wname = symnameWrapper(iname);
+      String *wname = Swig_name_wrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = Char(wname);
     }
@@ -1514,10 +1530,8 @@ public:
     current[MEMBER_FUNC] = true;
     Language::memberfunctionHandler(n);
 
-    if (!Getattr(n, "sym:nextSibling")) {
-      //Printf( stdout, "add member function: %s to %s\n", symname, luaCurrentSymbolNSpace());// TODO: REMOVE
-      registerMethod(luaCurrentSymbolNSpace(), n);
-    }
+    //Printf( stdout, "add member function: %s to %s\n", symname, luaCurrentSymbolNSpace());// TODO: REMOVE
+    registerMethod(n);
     current[MEMBER_FUNC] = false;
     return SWIG_OK;
   }
@@ -1577,6 +1591,9 @@ public:
     if (!current[STATIC_FUNC])	// If static funct, don't switch to NO_CPP
       current[NO_CPP] = true;
     const int result = Language::globalfunctionHandler(n);
+    
+    if (!current[STATIC_FUNC]) // Register only if not called from static funct handler
+      registerMethod(n);
     current[NO_CPP] = oldVal;
     return result;
   }
@@ -1610,23 +1627,25 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     REPORT("staticmemberfunctionHandler", n);
     current[STATIC_FUNC] = true;
+
     const int result = Language::staticmemberfunctionHandler(n);
+    registerMethod(n);
 
-    current[STATIC_FUNC] = false;;
-    if (result != SWIG_OK)
-      return result;
-
-    if (v2_compatibility) {
+    if (v2_compatibility && result == SWIG_OK) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
+      // Although this function uses Swig_name_member, it actually generateds Lua name,
+      // not C++ name. It is because previous version used such scheme for static func
+      // name generation and we have to maintain backward compatibility
       String *compat_name = Swig_name_member(0, proxy_class_name, lua_name);
       Setattr(n, "lua:name", compat_name);
-      registerMethod(getNSpace(), n);
+      registerMethod(n, true, getNSpace());
       Delete(compat_name);
       Swig_restore(n);
     }
 
-    return SWIG_OK;
+    current[STATIC_FUNC] = false;;
+    return result;
   }
 
   /* ------------------------------------------------------------
@@ -2194,35 +2213,6 @@ public:
     return result;
   }
 
-  /* -----------------------------------------------------------------------------
-   * fullyQualifiedName()
-   * Function creates fully qualified name of given symbol. The scope is deremined
-   * automatically based on luaCurrentSymbolNSpace()
-   * ----------------------------------------------------------------------------- */
-  String *fullyQualifiedName(const_String_or_char_ptr name) {
-    assert(name);
-    String *scope = luaCurrentSymbolNSpace();
-
-    String *fqname = 0;
-    if (scope)
-      fqname = NewStringf("%s::%s", scope, name);
-    else
-      fqname = Copy(name);
-
-    return fqname;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * symnameWrapper()
-   * Input: symname
-   * Output - Swig_name_wrapper around fully qualified form of symname
-   * ----------------------------------------------------------------------------- */
-  String *symnameWrapper(String *symname) {
-    String *fqname = fullyQualifiedName(symname);
-    String *wname = Swig_name_wrapper(fqname);
-    Delete(fqname);
-    return wname;
-  }
 };
 
 /* NEW LANGUAGE NOTE:***********************************************
