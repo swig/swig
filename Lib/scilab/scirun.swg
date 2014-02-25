@@ -88,7 +88,7 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
 }
 
 
-/* Error functions */
+/* Pointer conversion functions */
 
 SWIGINTERN int
 SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
@@ -120,8 +120,6 @@ SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_i
 
   return SWIG_OK;
 }
-
-/* Pointer conversion functions */
 
 SWIGRUNTIMEINLINE int
 SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_info *_descriptor, int _flags) {
