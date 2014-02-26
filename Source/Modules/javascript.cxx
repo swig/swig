@@ -1073,8 +1073,8 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 int JSEmitter::emitConstant(Node *n) {
   // HACK: somehow it happened under OSX that before everything started
   // a lot of SWIG internal constants were emitted
-  // This didn't happen on Ubuntu Precise...
-  // so we
+  // This didn't happen on other platforms yet...
+  // we ignore those premature definitions
   if (!State::IsSet(state.global(HAS_TEMPLATES))) {
     return SWIG_ERROR;
   }
