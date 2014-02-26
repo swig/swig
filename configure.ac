@@ -1135,11 +1135,14 @@ else
     JSSO=".dylib"
     JSLDSHARED='$(CC) -dynamiclib'
     JSCXXSHARED='$(CXX) -dynamiclib'
+    # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
+    JSINTERPRETERCXX='c++'
     ;;
   *)
     JSSO=$SO
     JSLDSHARED='$(LDSHARED)'
     JSCXXSHARED='$(CXXSHARED)'
+    JSINTERPRETERCXX='$(CXX)'
     ;;
   esac
 
@@ -1219,6 +1222,7 @@ else
       ;;
     *-*-darwin*)
       JSCOREDYNAMICLINKING="-framework JavaScriptCore"
+      JSCENABLED=1
       ;;
     *)
       ;;
@@ -1305,6 +1309,7 @@ AC_SUBST(JSLIBRARYPREFIX)
 AC_SUBST(JSSO)
 AC_SUBST(JSLDSHARED)
 AC_SUBST(JSCXXSHARED)
+AC_SUBST(JSINTERPRETERCXX)
 
 AC_SUBST(JSCOREINC)
 AC_SUBST(JSCOREDYNAMICLINKING)
@@ -2650,6 +2655,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/r/Makefile		\
     Examples/test-suite/go/Makefile		\
     Examples/test-suite/javascript/Makefile		\
+    Tools/javascript/Makefile   \
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])

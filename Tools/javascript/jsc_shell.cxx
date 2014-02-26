@@ -70,6 +70,10 @@ bool JSCShell::InitializeEngine() {
   JSClassRef __shell_class__ = JSClassCreate(&__shell_classdef__);
   JSObjectRef __shell__ = JSObjectMake(context, __shell_class__, 0);
   bool success = JSObjectSetPrivate(__shell__, (void*) (long) this);
+  if (!success) {
+    std::cerr << "Could not register the shell in the Javascript context" << std::endl;
+    return false;
+  }
   JSStringRef shellKey = JSStringCreateWithUTF8CString("__shell__");
   JSObjectSetProperty(context, globalObject, shellKey, __shell__, kJSPropertyAttributeReadOnly, NULL);
   JSStringRelease(shellKey);

@@ -13,6 +13,11 @@ void print_usage() {
 
 int main(int argc, char* argv[]) {
 
+#if defined(JAVASCRIPT_INTERPRETER_STOP)
+  std::cout << "Attach your Debugger and press any key to continue" << std::endl;
+  std::cin.get();
+#endif
+
   std::string scriptPath = "";
 
   bool interactive = false;

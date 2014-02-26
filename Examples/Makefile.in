@@ -683,43 +683,6 @@ JSSO =@JSSO@
 JSLDSHARED = @JSLDSHARED@
 JSCXXSHARED = @JSCXXSHARED@
 
-# ----------------------------------------------------------------
-# Compile a custom javascript interpreter
-# ----------------------------------------------------------------
-#
-# Note:
-#		There is no common CLI Javascript interpreter.
-#   V8 comes with one 'd8' which however does not provide a means
-#		to load extensions. Therefore, by default we use nodejs as
-#		environment.
-#   For testing native v8 and jsc extensions we provide our own
-#		interpreter (see 'Tools/javascript').
-#
-# ----------------------------------------------------------------
-
-JS_INTERPRETER_SRC_DIR = $(ROOT_DIR)/Tools/javascript
-
-# These settings are provided by 'configure' (see '/configure.in')
-ifeq (1, @JSV8ENABLED@)
-	JS_INTERPRETER_SRC_V8 = $(JS_INTERPRETER_SRC_DIR)/v8_shell.cxx
-	JS_INTERPRETER_CXXFLAGS_V8 = -DENABLE_V8
-endif
-
-ifeq (1, @JSCENABLED@)
-	JS_INTERPRETER_SRC_JSC = $(JS_INTERPRETER_SRC_DIR)/jsc_shell.cxx
-	JS_INTERPRETER_CXXFLAGS_JSC = -DENABLE_JSC
-endif
-
-JS_INTERPRETER_CXXFLAGS = $(JS_INTERPRETER_CXXFLAGS_JSC) $(JS_INTERPRETER_CXXFLAGS_V8)
-JS_INTERPRETER_SRC = \
-	$(JS_INTERPRETER_SRC_DIR)/javascript.cxx $(JS_INTERPRETER_SRC_DIR)/js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_INTERPRETER_SRC_V8)
-
-# TODO: improve:
-# - exe suffix
-# - '-ldl' should come from configure
-javascript_custom_interpreter: $(JS_INTERPRETER_SRC)
-	$(CXX) $(CXXFLAGS) $(JS_INTERPRETER_CXXFLAGS) $(JSINCLUDES) $(JS_INTERPRETER_SRC) -ldl $(LIBS) $(JSDYNAMICLINKING) -o $(JS_INTERPRETER_SRC_DIR)/javascript
-
 SWIGJS   = $(SWIG) -javascript
 
 # ----------------------------------------------------------------
@@ -760,8 +723,11 @@ javascript_cpp: $(SRCS) javascript_custom_interpreter
 # Running a javascript example
 # -----------------------------------------------------------------
 
-javascript_run: $(JS_INTERPRETER_SRC_DIR)/javascript
-	$(JS_INTERPRETER_SRC_DIR)/javascript -$(JSENGINE) runme.js
+javascript_custom_interpreter:
+	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
+
+javascript_run: javascript_custom_interpreter
+	$(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) runme.js
 
 # TODO: make node configurable and detected via ./configure
 javascript_run_node:
@@ -775,9 +741,8 @@ javascript_clean:
 	rm -rf build
 	rm -f *_wrap* runme
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JSSO@
-	rm -f $(JS_INTERPRETER_SRC_DIR)/javascript
-
+	rm -f *.@OBJEXT@ *@JSSO@ *.bundle
+	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean)
 
 
 ##################################################################

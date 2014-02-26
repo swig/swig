@@ -7,7 +7,7 @@
 
 #ifdef __GNUC__
 #ifdef __APPLE__
-#define LIBRARY_EXT ".dylib"
+#define LIBRARY_EXT ".bundle"
 #else
 #define LIBRARY_EXT ".so"
 #endif
@@ -52,7 +52,7 @@ std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
 
   HANDLE handle = LOAD_LIBRARY(lib_name.c_str());
   if(handle == 0) {
-    std::cout << "Could not load library " << lib_name << ":"
+    std::cerr << "Could not load library " << lib_name << ":"
               << std::endl << LIBRARY_ERROR() << std::endl;
     return 0;
   }

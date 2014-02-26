@@ -1,0 +1,56 @@
+# ----------------------------------------------------------------
+# Compile a custom javascript interpreter
+# ----------------------------------------------------------------
+#
+# Note:
+#		There is no common CLI Javascript interpreter.
+#   V8 comes with one 'd8' which however does not provide a means
+#		to load extensions. Therefore, by default we use nodejs as
+#		environment.
+#   For testing native v8 and jsc extensions we provide our own
+#		interpreter (see 'Tools/javascript').
+#
+# ----------------------------------------------------------------
+CC         = @CC@
+# HACK: under OSX a g++ compiled interpreter is seg-faulting when loading module libraries
+# with 'c++' it works... probably some missing flags?
+CXX        = @JSINTERPRETERCXX@
+CFLAGS     = @BOOST_CPPFLAGS@ @PLATFLAGS@
+
+ROOT_DIR = @ROOT_DIR@
+JSCFLAGS = @JSCFLAGS@
+JSCXXFLAGS = @JSCXXFLAGS@
+JSINCLUDES = @JSCOREINC@ @JSV8INC@
+JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
+JSLIBRARYPREFIX = @JSLIBRARYPREFIX@
+JSSO =@JSSO@
+JSLDSHARED = @JSLDSHARED@
+JSCXXSHARED = @JSCXXSHARED@
+JSV8ENABLED = @JSV8ENABLED@
+JSCENABLED = @JSCENABLED@
+
+# These settings are provided by 'configure' (see '/configure.in')
+ifeq (1, $(JSV8ENABLED))
+	JS_INTERPRETER_SRC_V8 = v8_shell.cxx
+	JS_INTERPRETER_CXXFLAGS_V8 = -DENABLE_V8
+endif
+
+ifeq (1, $(JSCENABLED))
+	JS_INTERPRETER_SRC_JSC = jsc_shell.cxx
+	JS_INTERPRETER_CXXFLAGS_JSC = -DENABLE_JSC
+endif
+
+JS_INTERPRETER_CXXFLAGS = $(JS_INTERPRETER_CXXFLAGS_JSC) $(JS_INTERPRETER_CXXFLAGS_V8)
+JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_INTERPRETER_SRC_V8)
+
+JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
+
+%.o: %.cxx
+	$(CXX) $(JS_INTERPRETER_CXXFLAGS) -g $(JSINCLUDES) -o $@ -c $<
+
+javascript: $(JS_INTERPRETER_OBJS)
+	$(CXX) -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names $^ $(CFLAGS) -o javascript $(JSDYNAMICLINKING)
+
+clean:
+	rm -f *.o
+	rm -f javascript
