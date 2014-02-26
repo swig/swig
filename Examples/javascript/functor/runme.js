@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 a = new example.intSum(0);
 b = new example.doubleSum(100.0);

@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 // ----- Object creation -----
 

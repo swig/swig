@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 console.log("ICONST  = " + example.ICONST  + " (should be 42)\n");
 console.log("FCONST  = " + example.FCONST  + " (should be 2.1828)\n");

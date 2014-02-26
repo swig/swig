@@ -1,5 +1,5 @@
 // This file illustrates the manipulation of C++ references in Javascript.
-var example = require("./build/Release/example");
+var example = require("./example");
 
 // ----- Object creation -----
 

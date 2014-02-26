@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 // Try to set the values of some global variables
 example.ivar   =  42;

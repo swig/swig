@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 console.log("Global variable Foo=" + example.nspace.Foo);
 example.nspace.Foo = 5;

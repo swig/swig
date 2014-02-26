@@ -1,4 +1,4 @@
-var example = require("./build/Release/example");
+var example = require("./example");
 
 //Call some templated functions
 console.log(example.maxint(3,7));
