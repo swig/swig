@@ -717,7 +717,7 @@ JS_INTERPRETER_SRC = \
 # TODO: improve:
 # - exe suffix
 # - '-ldl' should come from configure
-javascript_exe: $(SRCS)
+javascript_custom_interpreter: $(JS_INTERPRETER_SRC)
 	$(CXX) $(CXXFLAGS) $(JS_INTERPRETER_CXXFLAGS) $(JSINCLUDES) $(JS_INTERPRETER_SRC) -ldl $(LIBS) $(JSDYNAMICLINKING) -o $(JS_INTERPRETER_SRC_DIR)/javascript
 
 SWIGJS   = $(SWIG) -javascript
@@ -744,11 +744,23 @@ javascript_build_cpp:: $(SRCS)
 javascript_build_node: $(SRCS)
 	node-gyp --loglevel=silent configure build 1>>/dev/null
 
+# These targets are used by the test-suite:
+
+javascript: $(SRCS) javascript_custom_interpreter
+	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+javascript_cpp: $(SRCS) javascript_custom_interpreter
+	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
 # -----------------------------------------------------------------
 # Running a javascript example
 # -----------------------------------------------------------------
 
-javascript_run:
+javascript_run: $(JS_INTERPRETER_SRC_DIR)/javascript
 	$(JS_INTERPRETER_SRC_DIR)/javascript -$(JSENGINE) runme.js
 
 # TODO: make node configurable and detected via ./configure
@@ -764,6 +776,7 @@ javascript_clean:
 	rm -f *_wrap* runme
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JSSO@
+	rm -f $(JS_INTERPRETER_SRC_DIR)/javascript
 
 
 
