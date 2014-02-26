@@ -29,6 +29,10 @@ public:
 
   virtual bool RunShell();
 
+  void setModulePath(const std::vector<std::string>& modulePath) {
+    module_path = modulePath;
+  }
+
 protected:
 
   virtual bool InitializeEngine() = 0;
@@ -42,6 +46,7 @@ protected:
 protected:
 
   std::vector<HANDLE> loaded_modules;
+  std::vector<std::string> module_path;
 
 };
 

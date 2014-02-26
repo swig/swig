@@ -41,6 +41,7 @@ std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
 
   std::string lib_name;
   std::string module_name;
+
   if (pathIdx == std::string::npos) {
     module_name = name;
     lib_name = std::string(name).append(LIBRARY_EXT);
@@ -50,9 +51,18 @@ std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
     lib_name = path.append(module_name).append(LIBRARY_EXT);
   }
 
-  HANDLE handle = LOAD_LIBRARY(lib_name.c_str());
+  std::string lib_path;
+  HANDLE handle = 0;
+
+  for (int i = 0; i < module_path.size(); ++i) {
+    lib_path = module_path[i] + "/" + lib_name;
+    if (access( lib_path.c_str(), F_OK ) != -1) {
+      handle = LOAD_LIBRARY(lib_path.c_str());
+    }
+  }
+
   if(handle == 0) {
-    std::cerr << "Could not load library " << lib_name << ":"
+    std::cerr << "Could not find module " << lib_path << ":"
               << std::endl << LIBRARY_ERROR() << std::endl;
     return 0;
   }

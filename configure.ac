@@ -1137,12 +1137,14 @@ else
     JSCXXSHARED='$(CXX) -dynamiclib'
     # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
     JSINTERPRETERCXX='c++'
+    JSINTERPRETERLINKFLAGS='-g -Wl,-search_paths_first -Wl,-headerpad_max_install_names'
     ;;
   *)
     JSSO=$SO
     JSLDSHARED='$(LDSHARED)'
     JSCXXSHARED='$(CXXSHARED)'
     JSINTERPRETERCXX='$(CXX)'
+    JSINTERPRETERLINKFLAGS='-ldl'
     ;;
   esac
 
@@ -1309,7 +1311,9 @@ AC_SUBST(JSLIBRARYPREFIX)
 AC_SUBST(JSSO)
 AC_SUBST(JSLDSHARED)
 AC_SUBST(JSCXXSHARED)
+
 AC_SUBST(JSINTERPRETERCXX)
+AC_SUBST(JSINTERPRETERLINKFLAGS)
 
 AC_SUBST(JSCOREINC)
 AC_SUBST(JSCOREDYNAMICLINKING)

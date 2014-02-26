@@ -44,7 +44,7 @@ check: build
 else
 
 check: build
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile JSENGINE='$(JSENGINE)' javascript_run
+	$(MAKE) -f $(EXAMPLES_TOP)/Makefile JSENGINE='$(JSENGINE)' TARGET='$(TARGET)' javascript_run
 
 endif
 

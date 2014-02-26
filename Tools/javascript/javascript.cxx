@@ -23,13 +23,18 @@ int main(int argc, char* argv[]) {
   bool interactive = false;
   JSShell* shell = 0;
 
+  std::vector<std::string> modulePath;
+  modulePath.push_back(".");
+
   for (int idx = 1; idx < argc; ++idx) {
     if(strcmp(argv[idx], "-v8") == 0) {
-        shell = JSShell::Create(JSShell::V8);
+      shell = JSShell::Create(JSShell::V8);
     } else if(strcmp(argv[idx], "-jsc") == 0) {
-        shell = JSShell::Create(JSShell::JSC);
+      shell = JSShell::Create(JSShell::JSC);
     } else if(strcmp(argv[idx], "-i") == 0) {
       interactive = true;
+    } else if(strcmp(argv[idx], "-L") == 0) {
+      modulePath.push_back(argv[++idx]);
     } else {
       scriptPath = argv[idx];
     }
@@ -38,6 +43,8 @@ int main(int argc, char* argv[]) {
   if (shell == 0) {
     shell = JSShell::Create();
   }
+
+  shell->setModulePath(modulePath);
 
   bool failed = false;
 

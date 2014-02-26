@@ -668,7 +668,7 @@ android_clean:
 #####                       JAVASCRIPT                      ######
 ##################################################################
 
-# Note: These targets are used from withing Makefiles in the Example directories.
+# Note: These targets are also from within Makefiles in the Example directories.
 # There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
 # create a configuration for a new example.
 
@@ -690,10 +690,10 @@ SWIGJS   = $(SWIG) -javascript
 # ----------------------------------------------------------------
 
 javascript_wrapper:
-	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIGJS) $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
 
 javascript_wrapper_cpp: $(SRCS)
-	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIGJS) -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 
 javascript_build: $(SRCS)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
@@ -727,7 +727,7 @@ javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
 javascript_run: javascript_custom_interpreter
-	$(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) runme.js
+	$(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) runme.js
 
 # TODO: make node configurable and detected via ./configure
 javascript_run_node:
@@ -741,7 +741,7 @@ javascript_clean:
 	rm -rf build
 	rm -f *_wrap* runme
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JSSO@ *.bundle
+	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean)
 
 
