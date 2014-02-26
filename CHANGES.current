@@ -39,6 +39,29 @@ Version 3.0.0 (in progress)
 2014-02-15: wsfulton
             [Java] Add support for the cdata library.
 
+2014-02-08: vkalinin
+            Nested class support added. This primarily allows SWIG to properly parse nested
+            classes and keep the nested class information in the parse tree. Java and C#
+            have utilised this information wrapping the C++ nested classes as Java/C#
+            nested classes. The remaining target languages ignore nested classes as in
+            previous versions. Help is needed by users of these remaining languages to
+            design how C++ nested classes can be best wrapped. Please talk to us on the
+            swig-devel mailing list if you think you can help.
+
+            Previously, there was limited nested class support. Nested classes were treated
+            as opaque pointers. However, the "nestedworkaround" feature provided a way to
+            wrap a nested class as if it was a global class. This feature no longer exists
+            and is replaced by the new "flatnested" feature. This effectively does the same
+            thing with less manual code to be written. Please see the 'Nested classes'
+            section in the documentation in SWIGPlus.html if you were previously using this
+            feature.
+
+            SWIG now parses the contents of nested classes where previously it did not. You
+            may find that you will need to make adjustments to your interface file as
+            effectively extra code is being wrapped.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-02-06: gjanssens
             [Guile] Patch #133. Make scm to string conversion work with non-ascii strings.
             Guile 2 has a completely rewritten string implementation. SWIG made some assumptions
