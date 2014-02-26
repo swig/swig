@@ -14,7 +14,7 @@
 CC         = @CC@
 # HACK: under OSX a g++ compiled interpreter is seg-faulting when loading module libraries
 # with 'c++' it works... probably some missing flags?
-CXX        = @JSINTERPRETERCXX@
+JSCXX        = @JSINTERPRETERCXX@
 CFLAGS     = @BOOST_CPPFLAGS@ @PLATFLAGS@
 LINKFLAGS = @JSINTERPRETERLINKFLAGS@
 
@@ -47,10 +47,10 @@ JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_
 JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 
 %.o: %.cxx
-	$(CXX) $(JS_INTERPRETER_DEFINES) -g $(JSINCLUDES) -o $@ -c $<
+	$(JSCXX) $(JS_INTERPRETER_DEFINES) -g $(JSINCLUDES) -o $@ -c $<
 
 javascript: $(JS_INTERPRETER_OBJS)
-	$(CXX) $(LINKFLAGS) $^ $(CFLAGS) -o javascript $(JSDYNAMICLINKING)
+	$(JSCXX) $^ $(CFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)
 
 clean:
 	rm -f *.o
