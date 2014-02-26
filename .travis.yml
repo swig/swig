@@ -1,17 +1,16 @@
 language: c
 compiler:
   - gcc
-node_js:
-  -0.10.12
 before_script:
   - "sudo apt-get install rlwrap"
-  - "wget https://launchpad.net/~chris-lea/+archive/node.js/+build/4936691/+files/nodejs_0.10.18-1chl1~precise1_amd64.deb"
-  - "sudo dpkg -i nodejs_0.10.18-1chl1~precise1_amd64.deb"
+  - "sudo apt-get install python-software-properties"
+  - "echo 'yes' | sudo add-apt-repository ppa:chris-lea/node.js"
+  - "sudo apt-get update"
+  - "sudo apt-get install nodejs"
   - "sudo npm install -g node-gyp"
-  - "sudo apt-get install libv8-3.7.12.22  libv8-dev"
+  - "sudo apt-get install libv8-dev"
   - "sudo apt-get install libwebkitgtk-dev"
   - "./autogen.sh && ./configure && make"
-  - "cd Examples && make javascript_exe && cd .."
 script:
   - "make SMOKE=1 check-javascript-test-suite"
   - "make SMOKE=1 ENGINE=jsc check-javascript-test-suite"
