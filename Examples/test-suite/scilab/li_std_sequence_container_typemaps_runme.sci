@@ -2,35 +2,37 @@
 
 exec("swigtest.start", -1);
 
+// test sequence container of pointers returned from fonction (expected a list)
+function [classAPtr_list, classAPtr1, classAPtr2] = testCreateSequenceContainerPtr(container, value1, value2)
+  classAPtr1 = new_ClassA(value1);
+  classAPtr2 = new_ClassA(value2);
+  cmd = msprintf("classAPtr_list = ret_ClassAPtr_%s(classAPtr1, classAPtr2);", container);
+  ierr = execstr(cmd, "errcatch");
+  if ierr <> 0 then swigtesterror(); end
+  if ~exists('classAPtr_list') | (size(classAPtr_list) <> 2) then swigtesterror(); end
+  if (ClassA_a_get(classAPtr_list(1)) <> value1) | (ClassA_a_get(classAPtr_list(2)) <> value2) then swigtesterror(); end
+endfunction
+
 // test sequence containers of pointers
 // -container: type of container: "vector", "list"...
-// -value, count: value to store count times in container
+// -value1, value2: values to store in container
 // -expected_accumulate_value: expected value of an accumulation function
 //    computed on the container
-function testSequenceContainerPtr(container, count, value, expected_accumulate_value)
-  // test sequence container returned from fonction (expected a list)
-  classAPtr = new_ClassA(value);
-  cmd = msprintf("l = ret_ClassAPtr_%s(count, classAPtr);", container);
-  ierr = execstr(cmd, "errcatch");
-  if ierr <> 0 then swigtesterror(); end
-  if ~exists('l') | (size(l) <> count) | (ClassA_a_get(l(1)) <> value) then swigtesterror(); end
-  l2 = l;
+function testSequenceContainerPtr(container, value1, value2, expected_accumulate_value)
+  // test sequence container of pointers returned from fonction (expected a list)
+  [classAPtr_list, classAPtr1, classAPtr2] = testCreateSequenceContainerPtr(container, value1, value2);
 
   // test sequence container passed as value of function
-  cmd = msprintf("classAPtr = val_ClassAPtr_%s(l);", container);
+  cmd = msprintf("classAPtr = val_ClassAPtr_%s(classAPtr_list);", container);
   ierr = execstr(cmd, "errcatch");
   if ierr <> 0 then swigtesterror(); end
-  if ClassA_a_get(classAPtr) <> expected_accumulate_value then swigtesterror(); end
+  if ClassA_a_get(classAPtr1) <> expected_accumulate_value then swigtesterror(); end
 
   // recreate a container
-  classAPtr = new_ClassA(value);
-  cmd = msprintf("l = ret_ClassAPtr_%s(count, classAPtr);", container);
-  ierr = execstr(cmd, "errcatch");
-  if ierr <> 0 then swigtesterror(); end
-  if ~exists('l') | (size(l) <> count) | (ClassA_a_get(l(1)) <> value) then swigtesterror(); end
+  [classAPtr_list, classAPtr1, classAPtr2] = testCreateSequenceContainerPtr(container, value1, value2);
 
   // test sequence container passed as refererence of function
-  cmd = msprintf("classAPtr = ref_ClassAPtr_%s(l);", container);
+  cmd = msprintf("classAPtr = ref_ClassAPtr_%s(classAPtr_list);", container);
   ierr = execstr(cmd, "errcatch");
   if ierr <> 0 then swigtesterror(); end
   if ClassA_a_get(classAPtr) <> expected_accumulate_value then swigtesterror(); end
@@ -39,21 +41,22 @@ endfunction
 // test sequence containers of primitive type
 // -container: type of container: "vector", "list"...
 // -value_type: type of element stored in container: "int", ...
-// -value, count: value to store count times in container
+// -value1, value2: values to store in container
 // -expected_accumulate_value: expected value of an accumulation function
 //     computed on the container
-function testSequenceContainer(container, value_type, value, count, expected_accumulate_value)
-  // test sequence container returned from fonction (expect a row matrix)
-  if value_type = "string"
-    cmd = msprintf("c = ret_%s_%s(count, ''%s'');", value_type, container, value);
+function testSequenceContainer(container, value_type, value1, value2, expected_accumulate_value)
+  // test sequence container of basic type returned from fonction (expect a row matrix)
+  if value_type = "string" then
+    cmd = msprintf("c = ret_%s_%s(''%s'', ''%s'');", value_type, container, value1, value2);
   elseif value_type = "bool" then
-    cmd = msprintf("c = ret_%s_%s(count, %s);", value_type, container, "%"+string(value));
+    cmd = msprintf("c = ret_%s_%s(%s, %s);", value_type, container, "%"+string(value1), "%"+string(value2));
   else
-    cmd = msprintf("c = ret_%s_%s(count, %d);", value_type, container, value);
+    cmd = msprintf("c = ret_%s_%s(%d, %d);", value_type, container, value1, value2);
   end
   ierr = execstr(cmd, "errcatch");
+
   if ierr <> 0 then swigtesterror(); end
-  if ~isdef('c') | c <> repmat(value, 1, count) then swigtesterror(); end
+  if ~isdef('c') | c <> [value1, value2] then swigtesterror(); end
 
   // test sequence container passed as value of function
   cmd = msprintf("s = val_%s_%s(c);", value_type, container);
@@ -62,8 +65,7 @@ function testSequenceContainer(container, value_type, value, count, expected_acc
   if s <> expected_accumulate_value then swigtesterror(); end
 
   // test sequence container passed as matrix as value of function
-  //m = repmat(value, 1, count);
-  //cmd = msprintf("s = val_%s_%s(m);", value_type, container);
+  //cmd = msprintf("s = val_%s_%s([value1, value2]);", value_type, container);
   //ierr = execstr(cmd, "errcatch");
   //if ierr <> 0 then swigtesterror(); end
   //if s <> expected_accumulate_value then swigtesterror(); end
@@ -75,26 +77,27 @@ function testSequenceContainer(container, value_type, value, count, expected_acc
   if s <> expected_accumulate_value then swigtesterror(); end
 
   // test sequence container passed as matrix as reference of function
-  //m = repmat(value, 1, count);
-  //cmd = msprintf("s = val_%s_%s(m);", value_type, container);
+  //cmd = msprintf("s = val_%s_%s([value1, value2]);", value_type, container);
   //ierr = execstr(cmd, "errcatch");
   //if ierr <> 0 then swigtesterror(); end
   //if s <> expected_accumulate_value then swigtesterror(); end
 endfunction
 
 // test vector
-testSequenceContainer("vector", "int", 2, 4, 10);
-testSequenceContainer("vector", "double", 2., 3., 8.);
-testSequenceContainer("vector", "string", "a", 4, "aaaaa");
-testSequenceContainer("vector", "bool", %T, 2, %T);
-testSequenceContainerPtr("vector", 1, 3, 6.0);
+testSequenceContainer("vector", "int", 1, 2, 4);
+testSequenceContainer("vector", "double", 2., 3., 7.);
+testSequenceContainer("vector", "string", "a", "b", "aab");
+testSequenceContainer("vector", "bool", %T, %F, %T);
+testSequenceContainer("vector", "Color", RED_get(), BLUE_get(), MAGENTA_get());
+testSequenceContainerPtr("vector", 1, 3, 5);
 
 // test list
-testSequenceContainer("list", "int", 2, 3, 8);
-testSequenceContainer("list", "double", 2., 4., 10.);
-testSequenceContainer("list", "string", "a", 4, "aaaaa");
-testSequenceContainer("list", "bool", %T, 2, %T);
-testSequenceContainerPtr("list", 1, 3, 6.0);
+testSequenceContainer("list", "int", 1, 2, 4);
+testSequenceContainer("list", "double", 2., 3., 7.);
+testSequenceContainer("list", "string", "a", "b", "aab");
+testSequenceContainer("list", "bool", %T, %F, %T);
+testSequenceContainer("list", "Color", RED_get(), BLUE_get(), MAGENTA_get());
+testSequenceContainerPtr("list", 1, 3, 5);
 
 exec("swigtest.quit", -1);
 
