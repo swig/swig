@@ -77,7 +77,7 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
+The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also has support for eLua starting from eLua 0.8. Due to substantial changes between SWIG 2.x and SWIG 3.0 and unavailability of testing platform, eLua status was downgraded to 'experimental'.
 </p>
 
 <H2><a name="Lua_nn3"></a>26.2 Running SWIG</H2>
@@ -159,6 +159,14 @@ swig -lua -help
 <td>Do not register the module name as a global variable but return the module table from calls to require.</td>
 </tr>
 
+<tr>
+  <td>-no-old-metatable-bindings</td>
+  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included into appropriate sections.</td>
+</tr>
+<tr>
+  <td>-squash-bases</td>
+  <td>Squashes symbols from all inheritance tree of a given class into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly speeds things up, but increases memory consumption.</td>
+</tr>
 </table>
 
 <H3><a name="Lua_nn4"></a>26.2.2 Compiling and Linking and Interpreter</H3>
@@ -349,7 +357,8 @@ creates a built-in function <tt>example.fact(n)</tt> that works exactly like you
 &gt;
 </pre></div>
 <p>
-To avoid name collisions, SWIG create a Lua table which it keeps all the functions and global variables in. It is possible to copy the functions out of this and into the global environment with the following code. This can easily overwrite existing functions, so this must be used with care.
+To avoid name collisions, SWIG create a Lua table which it keeps all the functions, constants, classes and global variables in. It is possible to copy the functions, constants and classes (but not variables) out of this and into the global environment with the following code. This can easily overwrite existing functions, so this must be used with care.
+This option is considered deprecated and will be removed in near future.
 </p>
 <div class="targetlang"><pre>
 &gt; for k,v in pairs(example) do _G[k]=v end
@@ -490,6 +499,52 @@ If you're using eLua and have used <tt>-elua</tt> or <tt>-eluac</tt> to generate
 &gt; print(example.const.SCONST)
 Hello World
 </pre></div>
+
+<H4>Constants/enums and classes/structures</H4>
+<p>
+Unlike previous version of bindings, enums are now exported into class table. For example, given some enums:
+</p>
+<div class="code"><pre>%module example
+enum Days{SUNDAY = 0,MONDAY,TUESDAY,WEDNESDAY,THURSDAY,FRIDAY,SATURDAY};
+class Test {
+    enum { TEST1 = 10, TEST2 = 10 }
+    static const int ICONST = 12;
+};
+</pre></div>
+<p>
+This is 'effectively' converted into the following Lua code:
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.const.SUNDAY)
+0
+&gt; print(example.Test.TEST1)
+10
+&gt; print(example.Test.ICONST)
+12
+</pre></div>
+<H4>Backward compatibility</H4>
+<p>
+If <tt>-no-old-metatable-bindings</tt> option is not given, then in addition to previously described bindings, the old-style ones are generated:
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.Test_TEST1)
+10
+&gt; print(example.Test_ICONST)
+12
+</pre></div>
+<p>
+However, in C mode, names of enums are not prefixed with names of structure. This is the due to C Standard.
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.TEST1)
+10
+&gt; print(example.ICONST)
+12
+</pre></div>
+<p>
+It worth mentioning, that <tt>example.Test.TEST1</tt> and <tt>example.Test_TEST1</tt> are different entities and changind one wouldn't change another. 
+Given the fact, that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
+</p>
 <H3><a name="Lua_nn12"></a>26.3.5 Pointers</H3>
 
 
@@ -551,7 +606,7 @@ is used as follows:
 </pre></div>
 <p>
 Similar access is provided for unions and the data members of C++ classes.<br>
-C structures are created using a function <tt>new_Point()</tt>, but for C++ classes are created using just the name <tt>Point()</tt>.
+C structures can be created using a function <tt>new_Point()</tt>, and both C structures and C++ classes can be created using just the name <tt>Point()</tt>.
 </p>
 <p>
 If you print out the value of p in the above example, you will see something like this:
@@ -679,9 +734,9 @@ public:
 In Lua, the static members can be accessed as follows:
 </p>
 <div class="code"><pre>
-&gt; example.Spam_foo()            -- calling Spam::foo()
-&gt; a=example.Spam_bar            -- reading Spam::bar 
-&gt; example.Spam_bar=b            -- writing to Spam::bar
+&gt; example.Spam.foo()            -- calling Spam::foo()
+&gt; a=example.Spam.bar            -- reading Spam::bar 
+&gt; example.Spam.bar=b            -- writing to Spam::bar
 </pre></div>
 <p>
 It is not (currently) possible to access static members of an instance:
@@ -692,6 +747,13 @@ It is not (currently) possible to access static members of an instance:
                                 -- does NOT work
 </pre></div>
 
+<H4>Backward compatibility</H4>
+<p> If <tt>-no-old-metatable-bindings</tt> option is not given, then backward compatible names are generated in addition to ordinary ones: </p>
+<div class="code"><pre>
+&gt; example.Spam_foo()            -- calling Spam::foo()
+&gt; a=example.Spam_bar            -- reading Spam::bar 
+&gt; example.Spam_bar=b            -- writing to Spam::bar
+</pre></div>
 <H3><a name="Lua_nn15"></a>26.3.8 C++ inheritance</H3>
 
 
@@ -1256,6 +1318,143 @@ and the "<a href="Customization.html#Customization_exception">Exception handling
 add exception specification to functions or globally (respectively).
 </p>
 
+<H3><a name ="Lua_nn23_5"></a>26.3.17 Namespaces </H3>
+<p>
+Since SWIG 3.0 C++ namespaces are supported. You can enabled handling namespaces with %nspace feature. Everything below is valid only after you enabled %nspace.
+</p>
+<p> Namespaces are mapped into lua tables. Each of those tables contains names that were defined within appropriate namespace. Namespaces structure (a.k.a nested namespaces) is preserved. Consider the following C++ code:
+</p>
+<div class="code"><pre>%module example
+%nspace MyWorld::Nested::Dweller;
+%nspace MyWorld::World;
+/* and so on */
+int module_function() { return 7;}
+int module_variable; // = 9
+namespace MyWorld {
+  class World {
+  public:
+    int create_world() { return 17;}
+    const int world_max_count = 9;
+  };
+  namespace Nested {
+    class Dweller {
+      enum Gender {MALE, FEMALE;
+      static int populate_cave() { return 19; }
+      int create_cave() { return 13;}
+      int food_count; // = 11
+    }
+  }
+}
+</pre></div>
+Now, in Lua it could be used like this:
+<div class="targetlang"><pre>
+&gt; example.module_function()
+7
+&gt; print(example.module_variable)
+8
+&gt; print(example.MyWorld.World():create_world())
+17
+&gt; print(example.MyWorld.World.world_max_count)
+9
+&gt; print(example.MyWordl.Nested.Dweller.MALE)
+0
+&gt; print(example.MyWordl.Nested.Dweller().food_count)
+11
+&gt;
+</pre></div>
+<H4> Backward compatibility </H4>
+<p>
+If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated(notice the underscore):
+</p>
+<div class="targetlang"><pre>
+9
+&gt; print(example.MyWorld.Nested.Dweller_MALE)
+0
+&gt; print(example.MyWorld.Nested.Dweller_populate_cave())
+11
+&gt;
+</pre></div>
+<H3> Backward compatibility </H3>
+<H4> Names </H4>
+<p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
+to generate additional names for static functions, class static constants and class enums.
+Those names are in a form <tt>$classname_$symbolname</tt> and are added to the scope surrounding the class.
+If %nspace is enabled, then class namespace is taken as scope. If there is no namespace, or %nspace is disabled,
+then module is considered a class namespace.</p>
+<p> Consider the following C++ code </p>
+<div class="code"><pre>%module example
+%nspace MyWorld::Test;
+namespace MyWorld {
+class Test {
+  public:
+  enum { TEST1 = 10, TEST2 }
+  static const int ICONST = 12;
+};
+class Test2 {
+  public:
+  enum { TEST3 = 20, TEST4 }
+  static const int ICONST2 = 23;
+}
+</pre></div>
+<p> When in backward compatible mode, in addition to usual names, the following ones will be generated (notice the underscore):</p>
+<div class="targetlang"><pre>
+9
+&gt; print(example.MyWorld.Test_TEST1) -- Test has %nspace enabled
+10
+&gt; print(example.MyWorld.Test_ICONST) -- Test has %nspace enabled
+12
+&gt; print(example.Test2_TEST3) -- Test2 doesn't have %nspace enabled
+20
+&gt; print(example.Test2_ICONST2) -- Test2 doesn't have %nspace enabled
+23
+&gt;
+</pre></div>
+<p> There is a slight difference with enums when in C mode. As per C standard, enums from C structures are exported to
+surrounding scope without any prefixing. Pretending that Test2 is a struct, not class, that would be:</p>
+<div class="targetlang"><pre>
+&gt; print(example.TEST3) -- NOT Test2_TEST3
+20
+&gt;
+</pre></div>
+
+<H4> Inheritance </H4>
+<p> The internal organization of inheritance has changed. 
+Consider the following C++ code:</p>
+<div class="code"><pre>%module example
+class Base {
+  public:
+  int base_func()
+};
+class Derived : public Base {
+  public:
+  int derived_func()
+}
+</pre></div>
+<p>Lets assume for a moment that class member functions are stored in <tt>.fn</tt> table. Previously, when classes
+were exported to Lua during module initialization, for every derived class all service tables <tt>ST(i.e. ".fn")</tt>
+were squashed and added to corresponding derived class <tt>ST</tt>: Everything from <tt>.fn</tt> table of class Base
+was copied to <tt>.fn</tt> table of class Derived and so on. This was a recursive procedure, so in the end the whole
+inheritance tree of derived class was squashed into derived class. </p>
+<p> That means that any changes done to class Base after module initialization wouldn't affect class Derived:</p>
+<div class="targetlang"><pre>
+base = example.Base()
+der = example.Derived()
+&gt; print(base.base_func)
+function: 0x1367940
+&gt; getmetatable(base)[".fn"].new_func = function (x) return x -- Adding new function to class Base (to class, not to an instance!)
+&gt; print(base.new_func) -- Checking this function
+function
+&gt; print(der.new_func) -- Wouldn't work. Derived doesn't check Base any more.
+nil
+&gt;
+</pre></div>
+<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
+then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
+<div class="targetlang"><pre>
+&gt; print(der.new_func) -- Now it works
+function
+&gt;
+</pre></div>
 
 <H2><a name="Lua_nn24"></a>26.4 Typemaps</H2>
 
