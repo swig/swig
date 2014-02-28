@@ -1459,7 +1459,7 @@ SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_cla
  * ----------------------------------------------------------------------------- */
 
 /* helper to add metatable to new lua object */
-SWIGINTERN void _SWIG_Lua_AddMetatable(lua_State *L,swig_type_info *type)
+SWIGINTERN void SWIG_Lua_AddMetatable(lua_State *L,swig_type_info *type)
 {
   if (type->clientdata)  /* there is clientdata: so add the metatable */
   {
@@ -1488,7 +1488,7 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *t
   usr->type=type;
   usr->own=own;
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
-  _SWIG_Lua_AddMetatable(L,type); /* add metatable */
+  SWIG_Lua_AddMetatable(L,type); /* add metatable */
 #endif
 }
 
@@ -1542,7 +1542,7 @@ SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_t
   raw->type=type;
   raw->own=0;
   memcpy(raw->data,ptr,size); /* copy the data */
-  _SWIG_Lua_AddMetatable(L,type); /* add metatable */
+  SWIG_Lua_AddMetatable(L,type); /* add metatable */
 }
     
 /* converts a packed userdata. user for member fn pointers only */
