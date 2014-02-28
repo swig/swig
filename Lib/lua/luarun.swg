@@ -385,9 +385,8 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State *L)
 SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *type, int own);
 SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_type_info *type);
 static int swig_lua_elua_emulate_unique_key;
-/* This is function that emulates eLua rotables behaviour. It loads rotable definition
- * into the usual lua table.
- */
+
+/* This function emulates eLua rotables behaviour. It loads a rotable definition into the usual lua table. */
 SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_entry *table)
 {
   assert(lua_istable(L,-1));
@@ -654,11 +653,10 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State *L, swig_lua_namespace *
   return 0;
 }
 
-/* Register all classes in the namespace
- */
+/* Register all classes in the namespace */
 SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace *ns)
 {
-  /* There must be module/namespace table at the top of the stack */
+  /* There must be a module/namespace table at the top of the stack */
   assert(lua_istable(L,-1));
 
   swig_lua_class **classes = ns->ns_classes;
@@ -671,10 +669,10 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace 
   }
 }
 
-/* helper function. creates namespace table and add it to module table
+/* Helper function. Creates namespace table and adds it to module table
    if 'reg' is true, then will register namespace table to parent one (must be on top of the stack
-   when function is called)
-   Function always returns newly registered table on top of the stack
+   when function is called).
+   Function always returns newly registered table on top of the stack.
 */
 SWIGINTERN int SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
@@ -726,13 +724,14 @@ SWIGINTERN int SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns,
   assert(lua_gettop(L) == begin+1);
 }
 #endif /* SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA */
+
 /* -----------------------------------------------------------------------------
  * global variable support code: classes
  * ----------------------------------------------------------------------------- */
 
 SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
-/* Macroses for iteration among class bases */
+/* Macros for iteration among class bases */
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
 #define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
   SWIG_Lua_get_table(L,".bases");\
@@ -783,7 +782,8 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
     int bases_count;
     SWIG_LUA_INIT_BASE_SEARCH(bases_count);
     int result = SWIG_ERROR;
-    if(ret) *ret = 0;
+    if(ret)
+      *ret = 0;
     if(bases_count>0)
     {
       int i;
@@ -795,8 +795,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
       int subcall_last_arg = lua_gettop(L);
       swig_type_info *base_swig_type = 0;
 
-      /* Trick: temporaly replacing original metatable
-       * with metatable for base class and call getter */
+      /* Trick: temporarily replacing original metatable with metatable for base class and call getter */
       for(i=0;i<bases_count;i++) {
         SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type,valid);
         if(!valid)
@@ -811,7 +810,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
           break;
         }
       }
-      /* Return original metatable back */
+      /* Restore original metatable */
       lua_pushvalue(L,original_metatable);
       lua_setmetatable(L,first_arg);
       /* Clear - remove everything between last_arg and subcall_last_arg including */
@@ -827,8 +826,8 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
     return result;
 }
 
-/* the class.get method helper, performs the lookup of class attributes
- * It returns error code. Number of function return values is passed inside 'ret'
+/* The class.get method helper, performs the lookup of class attributes.
+ * It returns an error code. Number of function return values is passed inside 'ret'.
  * first_arg is not used in this function because function always has 2 arguments.
  */
 SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int first_arg, int *ret)
@@ -859,7 +858,8 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_call(L,1,1);  /* 1 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    if(ret) *ret = 1;
+    if(ret)
+      *ret = 1;
     return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
@@ -872,7 +872,8 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
-    if(ret) *ret = 1;
+    if(ret)
+      *ret = 1;
     return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
@@ -948,7 +949,8 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   assert(lua_isuserdata(L,substack_start+1));  /* just in case */
   lua_getmetatable(L,substack_start+1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
-  if(ret) *ret = 0; /* it is setter - number of return values is always 0 */
+  if(ret)
+    *ret = 0; /* it is setter - number of return values is always 0 */
 
   SWIG_Lua_get_table(L,".set"); /* find the .set table */
   if (lua_istable(L,-1))
@@ -989,17 +991,18 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   /* Search among bases */
   assert(lua_gettop(L) == first_arg+2); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
-  if(ret) assert(*ret == 0);
+  if(ret)
+    assert(*ret == 0);
   assert(lua_gettop(L) == substack_start + 3);
   return bases_search_result;
 }
 
-/* This is actuall method exported to Lua. It calls SWIG_Lua_class_do_set and correctly
- * handlers return value
+/* This is the actual method exported to Lua. It calls SWIG_Lua_class_do_set and correctly
+ * handles return values.
  */
 SWIGINTERN int  SWIG_Lua_class_set(lua_State *L)
 {
-/*  there should be 3 params passed in
+/*  There should be 3 params passed in
   (1) table (not the meta table)
   (2) string name of the attribute
   (3) any for the new value
@@ -1010,7 +1013,7 @@ SWIGINTERN int  SWIG_Lua_class_set(lua_State *L)
   int ret = 0;
   int result = SWIG_Lua_class_do_set(L,type,1,&ret);
   if(result != SWIG_OK) {
-   SWIG_Lua_pushferrstring(L,"Assignment not possible. No setter/member with this name. For custom assignments implement __setitem method");
+   SWIG_Lua_pushferrstring(L,"Assignment not possible. No setter/member with this name. For custom assignments implement __setitem method.");
    lua_error(L);
   } else {
     assert(ret==0);
@@ -1090,7 +1093,7 @@ SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State *L)
   }
 }
 
-/* helper fn to get the classes metatable from the register */
+/* Helper function to get the classes metatable from the register */
 SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname)
 {
   SWIG_Lua_get_class_registry(L);  /* get the registry */
@@ -1099,7 +1102,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname)
   lua_remove(L,-2);    /* tidy up (remove registry) */
 }
 
-/* set up the base classes pointers.
+/* Set up the base classes pointers.
 Each class structure has a list of pointers to the base class structures.
 This function fills them.
 It cannot be done at compile time, as this will not work with hireachies
@@ -1155,8 +1158,8 @@ SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int origina
   assert(lua_gettop(L) == begin); // TODO: REMOVE
 }
 
-/* Function takes all symbols from base and adds it to derived class. It's just a helper*/
-SWIGINTERN int  SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
+/* Function takes all symbols from base and adds it to derived class. It's just a helper. */
+SWIGINTERN int SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
 {
   int begin = lua_gettop(L); // TODO:REMOVE
   /* There is one parameter - original, i.e. 'derived' class metatable */
@@ -1254,7 +1257,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
     SWIG_Lua_add_function(L,clss->methods[i].name,clss->methods[i].func);
   }
   lua_pop(L,1);       /* tidy stack (remove table) */
-  /*   add operator overloads
+  /* add operator overloads
     This adds methods from metatable array to metatable. Can mess up garbage
     collectind if someone defines __gc method
     */
@@ -1298,7 +1301,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
   assert( lua_gettop(L) == begin );
 }
 
-/* performs the instance(non-static) class registration process. Metatable for class is created
+/* Performs the instance (non-static) class registration process. Metatable for class is created
  * and added to the class registry.
  */
 SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
@@ -1386,7 +1389,7 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
 
 SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
 {
-  assert(lua_istable(L,-1)); /* This is table(module or namespace) where class will be added */
+  assert(lua_istable(L,-1)); /* This is a table (module or namespace) where classes will be added */
   SWIG_Lua_class_register_instance(L,clss);
   SWIG_Lua_class_register_static(L,clss);
 
