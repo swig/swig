@@ -146,14 +146,14 @@ private:
   // and is not visible to user in any manner. This variable holds the name
   // of such pseudo-namespace a.k.a the result of above expression evaluation
   String *class_static_nspace;
-  // This variable holds the name of generated C function that acts as constructor
-  // for currently parsed class.
+  // This variable holds the name of generated C function that acts as a constructor
+  // for the currently parsed class.
   String *constructor_name;
 
   // Many wrappers forward calls to each other, for example staticmembervariableHandler
-  // forwards call to variableHandler, which, in turn, makes to call to functionWrapper.
-  // In order to access information about whether it is static member of class or just 
-  // plain old variable an array current is kept and used as 'log' of call stack.
+  // forwards calls to variableHandler, which, in turn, makes to call to functionWrapper.
+  // In order to access information about whether it is a static member of class or just 
+  // a plain old variable, the current array is kept and used as a 'log' of the call stack.
   enum TState {
     NO_CPP,
     VARIABLE,
@@ -199,20 +199,7 @@ public:
     for (int i = 0; i < STATES_COUNT; i++)
       current[i] = false;
   }
-  ~LUA() {
-  }
 
-  bool strToInt(const char *string, int &value) {
-    long int tmp;
-    char *p_end = 0;
-    if (string == 0)
-      return false;
-    tmp = strtol(string, &p_end, 10);
-    if (p_end == 0 || *p_end != 0)
-      return false;
-    value = tmp;
-    return true;
-  }
   /* NEW LANGUAGE NOTE:***********************************************
      This is called to initalise the system & read any command line args
      most of this is boilerplate code, except the command line args
@@ -259,7 +246,7 @@ public:
     }
 
     if (elua_emulate && (eluac_ltr || elua_ltr )) {
-      Printf(stderr, "Can't have -elua-emulate and -eluac/-elua at the same time\n");
+      Printf(stderr, "Cannot have -elua-emulate with either -eluac or -elua\n");
       Swig_arg_error();
     }
 
@@ -400,7 +387,7 @@ public:
     Dump(f_wrappers, f_begin);
     Dump(f_initbeforefunc, f_begin);
     /* for the Lua code it needs to be properly excaped to be added into the C/C++ code */
-    EscapeCode(s_luacode);
+    escapeCode(s_luacode);
     Printf(f_begin, "const char* SWIG_LUACODE=\n  \"%s\";\n\n", s_luacode);
     Wrapper_pretty_print(f_init, f_begin);
     /* Close all of the files */
@@ -426,13 +413,14 @@ public:
 
   /* ------------------------------------------------------------
    * cDeclaration()
-   * It copies sym:name to lua:name to preserve it's original value
+   * It copies sym:name to lua:name to preserve its original value
    * ------------------------------------------------------------ */
+
   virtual int cDeclaration(Node *n) {
     // class 'Language' is messing with symname in a really heavy way.
     // Although documentation states that sym:name is a name in
     // the target language space, it is not true. sym:name and
-    // it's derivatives are used in various places, including
+    // its derivatives are used in various places, including
     // behind-the-scene C code generation. The best way is not to
     // touch it at all.
     // But we need to know what was the name of function/variable
@@ -468,10 +456,11 @@ public:
   /* -----------------------------------------------------------------------
    * registerMethod()
    *
-   * Determines wrap name of a method, it's scope etc and calls
+   * Determines wrap name of a method, its scope etc and calls
    * registerMethod overload with correct arguments
-   * Overloaded variant  adds method to the "methods" array of specified lua scope/class
+   * Overloaded variant adds method to the "methods" array of specified lua scope/class
    * ---------------------------------------------------------------------- */
+
   void registerMethod(Node *n, bool overwrite = false, String *overwriteLuaScope = 0) {
     String *symname = Getattr(n, "sym:name");
     assert(symname);
@@ -479,8 +468,7 @@ public:
     if (Getattr(n, "sym:nextSibling"))
       return;
 
-    // Lua scope. It is not symbol NSpace, it is actuall key to revrieve
-    // getCArraysHash.
+    // Lua scope. It is not symbol NSpace, it is the actual key to retrieve getCArraysHash.
     String *luaScope = luaCurrentSymbolNSpace();
     if (overwrite)
       luaScope = overwriteLuaScope;
@@ -490,12 +478,12 @@ public:
     if (current[NO_CPP] || !getCurrentClass()) {
       mrename = symname;
     } else {
-        assert(!current[NO_CPP]);
-        if (current[STATIC_FUNC] || current[MEMBER_FUNC]) {
-          mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
-        } else {
-          mrename = symname;
-        }
+      assert(!current[NO_CPP]);
+      if (current[STATIC_FUNC] || current[MEMBER_FUNC]) {
+	mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
+      } else {
+	mrename = symname;
+      }
     }
     wrapname = Swig_name_wrapper(mrename);
     //Printf(stdout, "luaname %s, symname %s mrename %s wrapname %s\n\tscope %s\n",
@@ -503,7 +491,12 @@ public:
     registerMethod(n, wrapname, luaScope);
   }
 
-  // Add method to the "methods" C array of given namespace/class
+  /* -----------------------------------------------------------------------
+   * registerMethod()
+   *
+   * Add method to the "methods" C array of given namespace/class
+   * ---------------------------------------------------------------------- */
+
   void registerMethod(Node *n, String* wname, String *luaScope) {
     assert(n);
     Hash *nspaceHash = getCArraysHash(luaScope);
@@ -607,7 +600,7 @@ public:
        this is the code to convert from the scripting language to C/C++
        some of the stuff will refer to the typemaps code written in your swig file
        (lua.swg), and some is done in the code here
-       I suppose you could do all the conversion on C, but it would be a nightmare to do
+       I suppose you could do all the conversion in C, but it would be a nightmare to do
        NEW LANGUAGE NOTE:END *********************************************** */
     /* Generate code for argument marshalling */
     //    String *description = NewString("");
@@ -824,13 +817,7 @@ public:
        NEW LANGUAGE NOTE:END *********************************************** */
     /* Now register the function with the interpreter. */
     int result = SWIG_OK;
-    if (!Getattr(n, "sym:overloaded")) {
-      /* TODO: REMOVE
-      if (functionWrapperRegisterNow()) {	// emit normal fns & static fns
-	registerMethod(n);
-      }
-      */
-    } else {
+    if (Getattr(n, "sym:overloaded")) {
       if (!Getattr(n, "sym:nextSibling")) {
 	result = dispatchFunction(n);
       }
@@ -933,18 +920,18 @@ public:
 
   /* ------------------------------------------------------------
    * Add variable to "attributes"  C arrays of given namespace or class.
-   * Input is node. Base on the state of "current" array it determines
-   * the name of getter function, setter function etc and calls
-   * registeVariable overload with necessary params
+   * Input is node. Based on the state of "current" array it determines
+   * the name of the getter function, setter function etc and calls
+   * registerVariable overload with necessary params.
    * Lua scope could be overwritten. (Used only for backward compatibility)
    * ------------------------------------------------------------ */
+
   void registerVariable(Node *n, bool overwrite = false, String *overwriteLuaScope = 0) {
     int assignable = is_assignable(n);
     String *symname = Getattr(n, "sym:name");
     assert(symname);
 
-    // Lua scope. It is not symbol NSpace, it is actuall key to revrieve
-    // getCArraysHash.
+    // Lua scope. It is not symbol NSpace, it is the actual key to retrieve getCArraysHash.
     String *luaScope = luaCurrentSymbolNSpace();
     if (overwrite)
       luaScope = overwriteLuaScope;
@@ -986,9 +973,10 @@ public:
   /* ------------------------------------------------------------
    * registerVariable()
    *
-   * Add variable to the "attributes" (or "get"/"set"  in
+   * Add variable to the "attributes" (or "get"/"set" in
    * case of elua_ltr) C arrays of given namespace or class
    * ------------------------------------------------------------ */
+
   void registerVariable(String *lua_nspace_or_class_name, Node *n, String *getName, String *setName) {
     String *unassignable = NewString("SWIG_Lua_set_immutable");
     if (setName == 0 || GetFlag(n, "feature:immutable")) {
@@ -1014,6 +1002,7 @@ public:
   /* ------------------------------------------------------------
    * variableWrapper()
    * ------------------------------------------------------------ */
+
   virtual int variableWrapper(Node *n) {
     /* NEW LANGUAGE NOTE:***********************************************
        Language::variableWrapper(n) will generate two wrapper fns
@@ -1031,8 +1020,8 @@ public:
     // TODO: REMOVE
     //registerVariable(luaCurrentSymbolNSpace(), n, "varget:wrap:name", "varset:wrap:name");
     
-    // It is impossible to use registerVariable, because sym:name of the Node is currenly
-    // in undefined states - the callees of this function may have modified it.
+    // It is impossible to use registerVariable, because sym:name of the Node is currently
+    // in an undefined state - the callees of this function may have modified it.
     // registerVariable should be used from respective callees.*
     current[VARIABLE] = false;
     return result;
@@ -1043,6 +1032,7 @@ public:
    * Add constant to appropriate C array. constantRecord is an array record.
    * Actually, in current implementation it is resolved consttab typemap
    * ------------------------------------------------------------ */
+
   void registerConstant(String *nspace, String *constantRecord) {
     Hash *nspaceHash = getCArraysHash(nspace);
     String *s_const_tab = 0;
@@ -1066,6 +1056,7 @@ public:
   /* ------------------------------------------------------------
    * constantWrapper()
    * ------------------------------------------------------------ */
+
   virtual int constantWrapper(Node *n) {
     REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
@@ -1235,9 +1226,9 @@ public:
 
 
   /* ------------------------------------------------------------
-  * Helper function that adds record to appropriate
-   * C arrays
+   * Helper function that adds record to appropriate C arrays
    * ------------------------------------------------------------ */
+
   void registerClass(String *scope, String *wrap_class) {
     assert(wrap_class);
     Hash *nspaceHash = getCArraysHash(scope);
@@ -1252,9 +1243,11 @@ public:
       Printv(ns_methods, tab4, "{LSTRKEY(\"", proxy_class_name, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
     }
   }
+
   /* ------------------------------------------------------------
    * classHandler()
    * ------------------------------------------------------------ */
+
   virtual int classHandler(Node *n) {
     //REPORT("classHandler", n);
 
@@ -1275,7 +1268,7 @@ public:
     proxy_class_name = Getattr(n, "sym:name");
     // We have to enforce nspace here, because technically we are already
     // inside class parsing (getCurrentClass != 0), but we should register
-    // class in the it's parent namespace
+    // class in its parent namespace
     if (!luaAddSymbol(proxy_class_name, n, nspace))
       return SWIG_ERROR;
 
@@ -1578,18 +1571,20 @@ public:
 
   /* ----------------------------------------------------------------------
    * globalfunctionHandler()
+   *
    * It can be called:
    * 1. Usual C/C++ global function.
    * 2. During class parsing for functions declared/defined as friend
    * 3. During class parsing from staticmemberfunctionHandler
    * ---------------------------------------------------------------------- */
+
   virtual int globalfunctionHandler(Node *n) {
     bool oldVal = current[NO_CPP];
-    if (!current[STATIC_FUNC])	// If static funct, don't switch to NO_CPP
+    if (!current[STATIC_FUNC])	// If static function, don't switch to NO_CPP
       current[NO_CPP] = true;
     const int result = Language::globalfunctionHandler(n);
     
-    if (!current[STATIC_FUNC]) // Register only if not called from static funct handler
+    if (!current[STATIC_FUNC]) // Register only if not called from static function handler
       registerMethod(n);
     current[NO_CPP] = oldVal;
     return result;
@@ -1597,10 +1592,10 @@ public:
 
   /* ----------------------------------------------------------------------
    * globalvariableHandler()
-   * globalfunctionHandler()
-   * Sets "current" array correctly and calls
-   * Language::globalvariableHandler()
+   *
+   * Sets "current" array correctly
    * ---------------------------------------------------------------------- */
+
   virtual int globalvariableHandler(Node *n) {
     bool oldVal = current[NO_CPP];
     current[GLOBAL_VAR] = true;
@@ -1631,9 +1626,9 @@ public:
     if (v2_compatibility && result == SWIG_OK) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
-      // Although this function uses Swig_name_member, it actually generateds Lua name,
-      // not C++ name. It is because previous version used such scheme for static func
-      // name generation and we have to maintain backward compatibility
+      // Although this function uses Swig_name_member, it actually generates the Lua name,
+      // not the C++ name. This is because an earlier version used such a scheme for static function
+      // name generation and we have to maintain backward compatibility.
       String *compat_name = Swig_name_member(0, proxy_class_name, lua_name);
       Setattr(n, "lua:name", compat_name);
       registerMethod(n, true, getNSpace());
@@ -1676,9 +1671,9 @@ public:
       if (v2_compatibility) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
-        // Although this function uses Swig_name_member, it actually generateds Lua name,
-        // not C++ name. It is because previous version used such scheme for static vars
-        // name generation and we have to maintain backward compatibility
+	// Although this function uses Swig_name_member, it actually generates the Lua name,
+	// not the C++ name. This is because an earlier version used such a scheme for static function
+	// name generation and we have to maintain backward compatibility.
 	String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
 	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, proxy_class_name, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
@@ -1686,9 +1681,8 @@ public:
           // Registering static var in the class parent nspace
 	  registerVariable(n, true, getNSpace());
 	}
-	// If static member variable was wrapped as constant, then
-	// constant wrapper has already performed all actions
-	// necessary for v2_compatibility
+	// If static member variable was wrapped as a constant, then
+	// constant wrapper has already performed all actions necessary for v2_compatibility
 	Delete(v2_name);
 	Swig_restore(n);
       }
@@ -1753,12 +1747,14 @@ public:
 
 
   /* -----------------------------------------------------------------------------
-   * EscapeCode()
+   * escapeCode()
+   *
    * This is to convert the string of Lua code into a proper string, which can then be
    * emitted into the C/C++ code.
    * Basically is is a lot of search & replacing of odd sequences
    * ---------------------------------------------------------------------------- */
-  void EscapeCode(String *str) {
+
+  void escapeCode(String *str) {
     //Printf(f_runtime,"/* original luacode:[[[\n%s\n]]]\n*/\n",str);
     Chop(str);			// trim
     Replace(str, "\\", "\\\\", DOH_REPLACE_ANY);	// \ to \\ (this must be done first)
@@ -1772,6 +1768,7 @@ public:
    *
    * A small helper to hide impelementation of how CArrays hashes are stored
    * ---------------------------------------------------------------------------- */
+
   Hash *rawGetCArraysHash(const_String_or_char_ptr name) {
     Hash *scope = symbolScopeLookup( name ? name : "" );
     if(!scope)
@@ -1783,20 +1780,22 @@ public:
    
   /* -----------------------------------------------------------------------------
    * getCArraysHash()
-   * Each namespace can be described with hash that stores C arrays
+   *
+   * Each namespace can be described with a hash that stores C arrays
    * where members of the namespace should be added. All these hashes are stored
-   * inside symbols table, in pseudo-symbol for every namespace.
+   * inside the symbols table, in pseudo-symbol for every namespace.
    * nspace could be NULL (NSPACE_TODO), that means functions and variables and classes
-   * that are not in any namespace (this is default for SWIG unless %nspace feature is used)
+   * that are not in any namespace (this is default for SWIG unless %nspace feature is used).
    * You can later set some attributes that will affect behaviour of functions that use this hash:
    * "lua:no_namespaces" will disable "namespaces" array.
    * "lua:no_classes" will disable "classes" array.
    * For every component ("attributes", "methods", etc) there are subcomponents:
    *   XXX:name - name of the C array that stores data for component
    *   XXX:decl - statement with forward declaration of this array;
-   * Namespace could be automatically registered to it's parent if 'reg' == true. It can be done
-   * only at first call (a.k.a when nspace is created).
+   * Namespace could be automatically registered to its parent if 'reg' == true. This can only be
+   * done during the first call (a.k.a when nspace is created).
    * ---------------------------------------------------------------------------- */
+
   Hash *getCArraysHash(String *nspace, bool reg = true) {
     Hash *scope = symbolScopeLookup(nspace ? nspace : "");
     if(!scope) {
@@ -1945,9 +1944,8 @@ public:
 
       Delete(components);
       Delete(parent_path);
-    } else if (!reg)		// This namespace shouldn't be registered. Lets remember it
+    } else if (!reg)		// This namespace shouldn't be registered. Lets remember it.
       Setattr(carrays_hash, "lua:no_reg", "1");
-
 
     Delete(mangled_name);
     mangled_name = 0;
@@ -1956,14 +1954,16 @@ public:
 
   /* -----------------------------------------------------------------------------
    * closeCArraysHash()
+   *
    * Functions add end markers {0,0,...,0} to all arrays, prints them to
    * output and marks hash as closed (lua:closed). Consequent attempts to
-   * close same hash will result in error
+   * close the same hash will result in an error.
    * closeCArraysHash DOES NOT print structure that describes namespace, it only
    * prints array. You can use printCArraysDefinition to print structure.
    * if "lua:no_namespaces" is set, then array for "namespaces" won't be printed
    * if "lua:no_classes" is set, then array for "classes" won't be printed
    * ----------------------------------------------------------------------------- */
+
   void closeCArraysHash(String *nspace, File *output) {
     Hash *carrays_hash = rawGetCArraysHash(nspace);
     assert(carrays_hash);
@@ -2078,9 +2078,11 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * closeCArraysHash()
+   * closeNamespaces()
+   *
    * Recursively close all non-closed namespaces. Prints data to dataOutput.
    * ----------------------------------------------------------------------------- */
+
   void closeNamespaces(File *dataOutput) {
     // Special handling for empty module.
     if (symbolScopeLookup("") == 0 || rawGetCArraysHash("") == 0) {
@@ -2124,13 +2126,14 @@ public:
 
   /* -----------------------------------------------------------------------------
    * printCArraysDefinition()
-   * This function prints to output a definition of namespace in
-   * form
-   *  swig_lua_namespace $cname =  { attr_array, methods_array, ... , namespaces_array };
-   * You can call this function as many times as necessary.
+   *
+   * This function prints to output a definition of namespace in form
+   *   swig_lua_namespace $cname =  { attr_array, methods_array, ... , namespaces_array };
+   * You can call this function as many times as is necessary.
    * 'name' is a user-visible name that this namespace will have in Lua. It shouldn't
-   * be fully qualified name, just it's own name.
+   * be a fully qualified name, just its own name.
    * ----------------------------------------------------------------------------- */
+
   void printCArraysDefinition(String *nspace, String *name, File *output) {
     Hash *carrays_hash = getCArraysHash(nspace, false);
 
@@ -2159,6 +2162,7 @@ public:
 
   /* -----------------------------------------------------------------------------
    * luaCurrentSymbolNSpace()
+   *
    * This function determines actual namespace/scope where any symbol at the
    * current moment should be placed. It looks at the 'current' array
    * and depending on where are we - static class member/function,
@@ -2166,6 +2170,7 @@ public:
    * where symbol should be put.
    * The namespace/scope doesn't depend from symbol, only from 'current'
    * ----------------------------------------------------------------------------- */
+
   String *luaCurrentSymbolNSpace() {
     String *scope = 0;
     // If ouside class, than NSpace is used.
@@ -2190,9 +2195,11 @@ public:
 
   /* -----------------------------------------------------------------------------
    * luaAddSymbol()
+   *
    * Our implementation of addSymbol. Determines scope correctly, then 
    * forwards to Language::addSymbol
    * ----------------------------------------------------------------------------- */
+
   int luaAddSymbol(const String *s, const Node *n) {
     String *scope = luaCurrentSymbolNSpace();
     return luaAddSymbol(s, n, scope);
@@ -2200,8 +2207,10 @@ public:
 
   /* -----------------------------------------------------------------------------
    * luaAddSymbol()
+   *
    * Overload. Enforces given scope. Actually, it simply forwards call to Language::addSymbol
    * ----------------------------------------------------------------------------- */
+
   int luaAddSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
     int result = Language::addSymbol(s, n, scope);
     if (!result)
