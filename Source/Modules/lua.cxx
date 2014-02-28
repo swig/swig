@@ -2096,9 +2096,8 @@ public:
     List *to_close = NewList();
     while (ki.key) {
       assert(ki.item);
-      if (Getattr(ki.item, "sym:is_scope")) {
-        // We have a pseudo symbol. Lets get actuall scope for this
-        // pseudo symbol
+      if (Getattr(ki.item, "sym:scope")) {
+        // We have a pseudo symbol. Lets get actual scope for this pseudo symbol
         Hash *carrays_hash = rawGetCArraysHash(ki.key);
         assert(carrays_hash);
         if (Getattr(carrays_hash, "lua:closed") == 0)

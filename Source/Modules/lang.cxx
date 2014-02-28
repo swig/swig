@@ -2993,7 +2993,7 @@ int Language::variableWrapper(Node *n) {
       Setattr(n, "varset", "1");
       functionWrapper(n);
     } else {
-      Setattr(n, "feature:immutable", "1");
+      SetFlag(n, "feature:immutable");
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
@@ -3079,9 +3079,9 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::symbolAddScope( const_String_or_char_ptr scopeName )
+ * Language::symbolAddScope()
  *
- * Creates a scope (symbols Hash) for given name. This method is auxilary,
+ * Creates a scope (symbols Hash) for given name. This method is auxiliary,
  * you don't have to call it - addSymbols will lazily create scopes automatically.
  * If scope with given name already exists, then do nothing.
  * Returns newly created (or already existing) scope.
@@ -3089,10 +3089,10 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
 Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
   Hash *symbols = symbolScopeLookup(scope);
   if(!symbols) {
-    // Order in which to following parts are executed is important. In Lanugage
-    // constructor addScope("") is called to create a top level scope itself.
-    // Thus we must first add symbols hash to symtab and only then add pseudo
-    // symbol to top-level scope
+    // The order in which the following code is executed is important. In the Language
+    // constructor addScope("") is called to create a top level scope.
+    // Thus we must first add a symbols hash to symtab and only then add pseudo
+    // symbols to the top-level scope.
 
     // New scope which has not been added by the target language - lazily created.
     symbols = NewHash();
@@ -3103,14 +3103,14 @@ Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
     const_String_or_char_ptr top_scope = "";
     Hash *topscope_symbols = Getattr(symtabs, top_scope);
     Hash *pseudo_symbol = NewHash();
-    Setattr(pseudo_symbol, "sym:is_scope", "1");
+    Setattr(pseudo_symbol, "sym:scope", "1");
     Setattr(topscope_symbols, scope, pseudo_symbol);
   }
   return symbols;
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::symbolSscopeLookup( const_String_or_char_ptr scope )
+ * Language::symbolScopeLookup()
  *
  * Lookup and returns a symtable (hash) representing given scope. Hash contains
  * all symbols in this scope.
@@ -3121,17 +3121,16 @@ Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
 }
 
 /* -----------------------------------------------------------------------------
- * Lanugage::symbolScopeSymbolLookup( const_String_or_char_ptr scope )
+ * Language::symbolScopePseudoSymbolLookup()
  *
  * For every scope there is a special pseudo-symbol in the top scope (""). It
  * exists solely to detect name clashes. This pseudo symbol may contain a few properties,
- * but you can more if you need to. This is also true fro top level scope ("").
+ * but more could be added. This is also true for the top level scope ("").
  * It contains a pseudo symbol with name "" (empty). Pseudo symbol contains the
  * following properties:
- *   sym:scope = "1" - a flag that this is scope pseudo symbol
+ *   sym:scope = "1" - a flag that this is a scope pseudo symbol
  *
- * Pseudo symbols are a Hash*, not a Node* (not that there is a difference
- * in DOH)
+ * Pseudo symbols are a Hash*, not a Node*.
  * There is no difference from symbolLookup() method except for signature
  * and return type.
  * ----------------------------------------------------------------------------- */
