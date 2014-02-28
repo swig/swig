@@ -86,6 +86,8 @@ public:
 
   Template(const String *code, const String *templateName);
 
+  Template(const Template& other);
+
   ~Template();
 
   String *str();
@@ -620,7 +622,6 @@ Template JSEmitter::getTemplate(const String *name) {
   }
 
   Template t(templ, name);
-
   return t;
 }
 
@@ -2439,6 +2440,11 @@ Template& Template::print(DOH *doh) {
 Template& Template::pretty_print(DOH *doh) {
   Wrapper_pretty_print(str(), doh);
   return *this;
+}
+
+Template::Template(const Template& t) {
+  code = NewString(t.code);
+  templateName = NewString(t.templateName);
 }
 
 void Template::operator=(const Template& t) {
