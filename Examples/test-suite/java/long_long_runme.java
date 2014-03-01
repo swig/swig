@@ -66,8 +66,7 @@ public class long_long_runme {
     long_long.setLl(ll);
     long ll_check = long_long.getLl();
     if (ll != ll_check) {
-      System.err.println("Runtime test using long long failed. ll=" + ll + " ll_check=" + ll_check);
-      System.exit(1);
+      throw new RuntimeException("Runtime test using long long failed. ll=" + ll + " ll_check=" + ll_check);
     }
   }
 
@@ -75,8 +74,7 @@ public class long_long_runme {
     long_long.setUll(ull);
     BigInteger ull_check = long_long.getUll();
     if (ull.compareTo(ull_check) != 0) {
-      System.err.println("Runtime test using unsigned long long failed. ull=" + ull.toString() + " ull_check=" + ull_check.toString());
-      System.exit(1);
+      throw new RuntimeException("Runtime test using unsigned long long failed. ull=" + ull.toString() + " ull_check=" + ull_check.toString());
     }
   }
 }
