@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-03-01: wsfulton
+	    [Python] SF patch #347 Fix missing argument count checking with -modern.
+            Fixes regression introduced when builtin changes were introduced in SWIG-2.0.3.
+
 2014-02-21: wsfulton
 	    [PHP] Fix warning suppression using %warnfilter for PHP reserved class names.
 

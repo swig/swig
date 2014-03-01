@@ -577,6 +577,7 @@ C_TEST_CASES += \
 	extern_declaration \
 	funcptr \
 	function_typedef \
+	global_functions \
 	immutable_values \
 	inctest \
 	integers \
