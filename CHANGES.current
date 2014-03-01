@@ -6,6 +6,10 @@ Version 3.0.0 (in progress)
 ============================
 
 2014-03-01: wsfulton
+	    [Python] Patch #143 Fix type shown when using type() to include the module and package
+            name when using -builtin.
+
+2014-03-01: wsfulton
 	    [Python] SF patch #347 Fix missing argument count checking with -modern.
             Fixes regression introduced when builtin changes were introduced in SWIG-2.0.3.
 

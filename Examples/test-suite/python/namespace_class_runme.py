@@ -32,3 +32,7 @@ f.moo(1)
 
 f = FooT_H()
 f.foo(Hi)
+
+f_type = str(type(f))
+if f_type.find("'namespace_class.FooT_H'") == -1:
+  raise RuntimeError("Incorrect type: " + f_type)
