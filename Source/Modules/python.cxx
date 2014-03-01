@@ -3592,11 +3592,19 @@ public:
     if (GetFlag(n, "feature:python:nondynamic"))
       Setattr(n, "feature:python:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
 
+    Node *mod = Getattr(n, "module");
+    String *modname = mod ? Getattr(mod, "name") : 0;
     String *quoted_symname;
     if (package) {
-        quoted_symname = NewStringf("\"%s.%s\"", package, symname);
+      if (modname)
+	quoted_symname = NewStringf("\"%s.%s.%s\"", package, modname, symname);
+      else
+	quoted_symname = NewStringf("\"%s.%s\"", package, symname);
     } else {
-        quoted_symname = NewStringf("\"%s\"", symname);
+      if (modname)
+	quoted_symname = NewStringf("\"%s.%s\"", modname, symname);
+      else
+	quoted_symname = NewStringf("\"%s\"", symname);
     }
     String *quoted_rname = NewStringf("\"%s\"", rname);
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit";
