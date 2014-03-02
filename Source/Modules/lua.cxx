@@ -1301,7 +1301,7 @@ public:
       proxy_class_name = 0;
       return SWIG_NOWRAP;
     }
-    Setattr(emitted, mangled_fr_t, "1");
+    SetFlag(emitted, mangled_fr_t);
 
     // We treat class T as both 'class' and 'namespace'. All static members, attributes
     // and constants are considered part of namespace T, all members - part of the 'class'
@@ -1318,9 +1318,9 @@ public:
     assert(instance_cls);
     String *s_attr_tab_name = Getattr(instance_cls, "attributes:name");
     String *s_methods_tab_name = Getattr(instance_cls, "methods:name");
-    Setattr(instance_cls, "lua:no_namespaces", "1");
-    Setattr(instance_cls, "lua:no_classes", "1");
-    Setattr(instance_cls, "lua:class_instance", "1");
+    SetFlag(instance_cls, "lua:no_namespaces");
+    SetFlag(instance_cls, "lua:no_classes");
+    SetFlag(instance_cls, "lua:class_instance");
 
     /* There is no use for "constants", "classes" and "namespaces" arrays.
      * All constants are considered part of static part of class.
@@ -1329,8 +1329,8 @@ public:
     class_static_nspace = NewStringf("%s%s__Static", full_proxy_class_name, NSPACE_SEPARATOR);
     Hash *static_cls = getCArraysHash(class_static_nspace, false);
     assert(static_cls);
-    Setattr(static_cls, "lua:no_namespaces", "1");
-    Setattr(static_cls, "lua:class_static", "1");
+    SetFlag(static_cls, "lua:no_namespaces");
+    SetFlag(static_cls, "lua:class_static");
 
     // Notifying instance_cls and static_cls hashes about each other
     Setattr(instance_cls, "lua:class_instance:static_hash", static_cls);
@@ -1945,7 +1945,7 @@ public:
       Delete(components);
       Delete(parent_path);
     } else if (!reg)		// This namespace shouldn't be registered. Lets remember it.
-      Setattr(carrays_hash, "lua:no_reg", "1");
+      SetFlag(carrays_hash, "lua:no_reg");
 
     Delete(mangled_name);
     mangled_name = 0;
@@ -1969,7 +1969,7 @@ public:
     assert(carrays_hash);
     assert(Getattr(carrays_hash, "lua:closed") == 0);
 
-    Setattr(carrays_hash, "lua:closed", "1");
+    SetFlag(carrays_hash, "lua:closed");
 
     String *attr_tab = Getattr(carrays_hash, "attributes");
     Printf(attr_tab, "    {0,0,0}\n};\n");
