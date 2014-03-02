@@ -1346,15 +1346,20 @@ int module_variable = 9;
 namespace MyWorld {
   class World {
   public:
+    World():
+      world_max_count(9) {}
     int create_world() { return 17; }
-    const int world_max_count = 9;
+    const int world_max_count; // = 9
   };
   namespace Nested {
     class Dweller {
-      enum Gender { MALE, FEMALE };
-      static int populate_cave() { return 19; }
-      int create_cave() { return 13; }
-      int food_count; // = 11
+      public:
+        Dweller():
+          food_count(11) {}
+        enum Gender { MALE = 0, FEMALE = 1 };
+        static int populate_cave() { return 19; }
+        int create_cave() { return 13; }
+        int food_count; // = 11
     };
   }
 }
@@ -1364,15 +1369,13 @@ Now, from Lua usage is as follows:
 &gt; print(example.module_function())
 7
 &gt; print(example.module_variable)
-8
+9
 &gt; print(example.MyWorld.World():create_world())
 17
 &gt; print(example.MyWorld.World.world_max_count)
 9
 &gt; print(example.MyWorld.Nested.Dweller.MALE)
 0
-&gt; print(example.MyWorld.Nested.Dweller().food_count)
-11
 &gt;
 </pre></div>
 <H4> Backward compatibility </H4>
