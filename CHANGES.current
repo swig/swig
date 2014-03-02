@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-03-02: wsfulton
+	    [Python] SF Patch #346 from Jens Krueger. Correct exception thrown attempting to
+            access a non-existent C/C++ global variable on the 'cvar' object. The exception thrown
+            used to be a NameError. However, as this access is via a primary, an AttributeError
+            is more correct and so the exception thrown now is an AttributeError. Reference:
+            http://docs.python.org/2/reference/expressions.html#attribute-references
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-03-01: wsfulton
 	    [Python] Patch #143 Fix type shown when using type() to include the module and package
             name when using -builtin.
