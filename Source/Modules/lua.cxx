@@ -142,7 +142,7 @@ private:
   // then it is basically C++ fully qualified name with colons replaced with dots.
   String *full_proxy_class_name;	
   // All static methods and/or variables are treated as if they were in the
-  // special C++ namespace $(classname).__Static. This is internal mechanism only
+  // special C++ namespace $(classname).SwigStatic. This is internal mechanism only
   // and is not visible to user in any manner. This variable holds the name
   // of such pseudo-namespace a.k.a the result of above expression evaluation
   String *class_static_nspace;
@@ -1309,11 +1309,8 @@ public:
     // are described with same structures - swig_lua_attribute/swig_lua_method. Instead of calling
     // getCArraysHash(class name) to initialize things for static methods/attributes and then
     // manually doing same initialization for non-static methods, we call getCArraysHash 2 times:
-    // 1) With name "class name" + "." + "__Static" to initialize static things
+    // 1) With name "class name" + "." + "SwigStatic" to initialize static things
     // 2) With "class name" to initialize non-static things
-    // And we can guarantee that there will not be any name collision because names starting with 2 underscores
-    // and capital letter are forbiden to use in C++. So, under know circumstances could our class contain
-    // any member or subclass with name "__Static". Thus, never any name clash.
     Hash *instance_cls = getCArraysHash(full_proxy_class_name, false);
     assert(instance_cls);
     String *s_attr_tab_name = Getattr(instance_cls, "attributes:name");
@@ -1326,7 +1323,7 @@ public:
      * All constants are considered part of static part of class.
      */
 
-    class_static_nspace = NewStringf("%s%s__Static", full_proxy_class_name, NSPACE_SEPARATOR);
+    class_static_nspace = NewStringf("%s%sSwigStatic", full_proxy_class_name, NSPACE_SEPARATOR);
     Hash *static_cls = getCArraysHash(class_static_nspace, false);
     assert(static_cls);
     SetFlag(static_cls, "lua:no_namespaces");
@@ -1809,7 +1806,7 @@ public:
     carrays_hash = NewHash();
     String *mangled_name = 0;
     if (nspace == 0 || Len(nspace) == 0)
-      mangled_name = NewString("__Module");	// C++ names can't start with "__ + capital letter"
+      mangled_name = NewString("SwigModule");
     else
       mangled_name = Swig_name_mangle(nspace);
     String *cname = NewStringf("swig_%s", mangled_name);
@@ -2086,7 +2083,7 @@ public:
   void closeNamespaces(File *dataOutput) {
     // Special handling for empty module.
     if (symbolScopeLookup("") == 0 || rawGetCArraysHash("") == 0) {
-      // Module is empty. Create hash for global scope in order to have swig__Module
+      // Module is empty. Create hash for global scope in order to have swig_SwigModule
       // variable in resulting file
       getCArraysHash(0);
     }
