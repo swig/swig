@@ -34,10 +34,11 @@ catch
 end
 
 // Error management function
-function swigtesterror()
+function swigtesterror(msg)
     [lines, names] = where();
     if size(lines, '*') > 1
         mfprintf(0, "*** TEST FAILED (at line %d) ***\n", lines(2));
+        if argn(2) >= 1 then disp(msg); end
     else
         mfprintf(0, "*** TEST FAILED ***\n");
     end;
