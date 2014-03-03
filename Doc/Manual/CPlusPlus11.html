@@ -62,12 +62,15 @@
 
 <p>This chapter gives you a brief overview about the SWIG
 implementation of the C++11 standard. This part of SWIG is still a work in
-progress. Initial C++11 support for SWIG was written during the
-Google Summer of Code 2009 period.</p>
-<p>SWIG supports all the new C++ syntax changes with some minor limitations
+progress. 
+</p>
+<p>SWIG supports the new C++ syntax changes with some minor limitations
 (decltype expressions, variadic templates number). Wrappers for the
-new STL types (unordered_ containers, result_of, tuples) are not supported
-yet.</p>
+new STL types (unordered_ containers, result_of, tuples) are incomplete.
+The wrappers for the new containers would work much like the C++03 containers and 
+users are welcome to help by adapting the existing container interface files and submitting them
+as a patch for inclusion in future versions of SWIG.
+</p>
 
 <H2><a name="CPlusPlus11_core_language_changes"></a>7.2 Core language changes</H2>
 
@@ -75,18 +78,44 @@ yet.</p>
 <H3><a name="CPlusPlus11_rvalue_reference_and_move_semantics"></a>7.2.1 Rvalue reference and move semantics</H3>
 
 
-<p>SWIG correctly parses the new operator &amp;&amp; the same as the reference operator &amp;.</p>
+<p>
+SWIG correctly parses the rvalue reference syntax '&amp;&amp;',
+for example the typical usage of it in the move constructor and move assignment operator below:
+</p>
 
-<p>The wrapper for the following code is correctly produced:</p>
 <div class="code"><pre>
 class MyClass {
-  MyClass(MyClass&amp;&amp; p) : ptr(p.ptr) {p.ptr = 0;}
-  MyClass&amp; operator=(MyClass&amp;&amp; p) {
-    std::swap(ptr, p.ptr);
+...
+  std::vector<int> numbers;
+public:
+  MyClass(MyClass &amp;&amp;other) : numbers(std::move(other.numbers)) {}
+  MyClass &amp; operator=(MyClass &amp;&amp;other) {
+    numbers = std::move(other.numbers);
     return *this;
   }
 };
 </pre></div>
+
+<p>
+Rvalue references are designed for C++ temporaries and so are not very useful when used from non-C++ target languages.
+Generally you would just ignore them via <tt>%ignore</tt> before parsing the class.
+For example, ignore the move constructor:
+</p>
+
+<div class="code"><pre>
+%ignore MyClass::MyClass(MyClass &amp;&amp;);
+</pre></div>
+
+<p>
+The plan is to ignore them by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid identifier.
+</pre>
+</div>
+
 
 <H3><a name="CPlusPlus11_generalized_constant_expressions"></a>7.2.2 Generalized constant expressions</H3>
 
@@ -387,7 +416,7 @@ public:
   int b;
   int c;
 
-  A() : A( 10 ) {}
+  A() : A(10) {}
   A(int aa) : A(aa, 20) {}
   A(int aa, int bb) : A(aa, bb, 30) {}
   A(int aa, int bb, int cc) { a=aa; b=bb; c=cc; }
@@ -524,9 +553,9 @@ public:
 class TestClass {
 public:
         //implicit converting constructor
-        TestClass( U const &amp;val ) { t=val.u; }
+        TestClass(U const &amp;val) { t=val.u; }
         // explicit constructor
-        explicit TestClass( V const &amp;val ) { t=val.v; }
+        explicit TestClass(V const &amp;val) { t=val.v; }
 
         int t;
 };
@@ -629,7 +658,7 @@ initializers) with some limitations. The following code is correctly parsed:</p>
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-   ClassName (BaseClasses&amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
 }
 </pre></div>
 
@@ -773,8 +802,8 @@ For example:</p>
 
 <div class="code"><pre>
 struct NonCopyable {
-  NonCopyable&amp; operator=(const NonCopyable&amp;) = delete; /* Removes operator= */
-  NonCopyable(const NonCopyable&amp;) = delete;                /* Removed copy constructor */
+  NonCopyable &amp; operator=(const NonCopyable &amp;) = delete; /* Removes operator= */
+  NonCopyable(const NonCopyable &amp;) = delete;                /* Removed copy constructor */
   NonCopyable() = default;                                     /* Explicitly allows the empty constructor */
   void *operator new(std::size_t) = delete;                    /* Removes new NonCopyable */
 };
@@ -881,19 +910,19 @@ There is no special smart pointer handling available for <tt>std::weak_ptr</tt> 
 <p>The new ref and cref classes are used to instantiate a parameter as a reference of a template function. For example:</p>
 
 <div class="code"><pre>
-void f( int &amp;r )  { r++; }
+void f(int &amp;r)  { r++; }
  
 // Template function.
-template&lt; class F, class P &gt; void g( F f, P t )  { f(t); }
+template&lt; class F, class P &gt; void g(F f, P t)  { f(t); }
  
 int main() {
   int i = 0 ;
-  g( f, i ) ;  // 'g&lt;void ( int &amp;r ), int&gt;' is instantiated
-               // then 'i' will not be modified.
+  g(f, i) ;  // 'g&lt;void (int &amp;r), int&gt;' is instantiated
+             // then 'i' will not be modified.
   cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 0
  
-  g( f, ref(i) ) ;  // 'g&lt;void(int &amp;r),reference_wrapper&lt;int&gt;&gt;' is instantiated
-                    // then 'i' will be modified.
+  g(f, ref(i)) ;  // 'g&lt;void(int &amp;r),reference_wrapper&lt;int&gt;&gt;' is instantiated
+                  // then 'i' will be modified.
   cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 1
 }
 </pre></div>
@@ -939,17 +968,17 @@ b = t(1,2) # invoke C++ function object
 <div class="code"><pre>
 // First way of operating.
 template&lt; bool B &gt; struct algorithm {
-  template&lt; class T1, class T2 &gt; int do_it( T1&amp;, T2&amp; )  { /*...*/ }
+  template&lt; class T1, class T2 &gt; int do_it(T1 &amp;, T2 &amp;)  { /*...*/ }
 };
 // Second way of operating.
 template&lt;&gt; struct algorithm&lt;true&gt; {
-  template&lt; class T1, class T2 &gt; int do_it( T1, T2 )  { /*...*/ }
+  template&lt; class T1, class T2 &gt; int do_it(T1, T2)  { /*...*/ }
 };
 // Instantiating 'elaborate' will automatically instantiate the correct way to operate.
-template&lt; class T1, class T2 &gt; int elaborate( T1 A, T2 B ) {
+template&lt; class T1, class T2 &gt; int elaborate(T1 A, T2 B) {
   // Use the second way only if 'T1' is an integer and if 'T2' is
   // in floating point, otherwise use the first way.
-  return algorithm&lt; is_integral&lt;T1&gt;::value &amp;&amp; is_floating_point&lt;T2&gt;::value &gt;::do_it( A, B );
+  return algorithm&lt; is_integral&lt;T1&gt;::value &amp;&amp; is_floating_point&lt;T2&gt;::value &gt;::do_it(A, B);
 }
 </pre></div>
 
