@@ -1110,47 +1110,43 @@ public:
     bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
 
     if (make_v2_compatible) {
-      // Special handling for enums in C mode - they are not prefixed with structure name
-      if(!CPlusPlus && current[ENUM_CONST]) {
-	lua_name_v2 = lua_name;
-	DohIncref(lua_name_v2);
-	iname_v2 = iname;
-	DohIncref(iname_v2);
-      } else {
+      // Don't do anything for enums in C mode - they are already
+      // wrapped correctly
+      if (CPlusPlus || !current[ENUM_CONST]) {
 	lua_name_v2 = Swig_name_member(0, proxy_class_name, lua_name);
 	iname_v2 = Swig_name_member(0, proxy_class_name, iname);
-      }
-      n_v2 = Copy(n);
-      //Printf( stdout, "target name v2: %s, symname v2 %s\n", lua_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
-      if (!luaAddSymbol(iname_v2, n, getNSpace())) {
-	Swig_restore(n);
-	return SWIG_ERROR;
-      }
+        n_v2 = Copy(n);
+        //Printf( stdout, "target name v2: %s, symname v2 %s\n", lua_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
+        if (!luaAddSymbol(iname_v2, n, getNSpace())) {
+          Swig_restore(n);
+          return SWIG_ERROR;
+        }
 
-      Setattr(n_v2, "sym:name", lua_name_v2);
-      tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
-      if (tm_v2) {
-	//Printf(stdout, "tm v2: %s\n", tm_v2.ptr()); // TODO:REMOVE
-	Replaceall(tm_v2, "$source", value);
-	Replaceall(tm_v2, "$target", lua_name_v2);
-	Replaceall(tm_v2, "$value", value);
-	Replaceall(tm_v2, "$nsname", nsname);
-	registerConstant(getNSpace(), tm_v2);
-      } else {
-	tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
-	if (!tm_v2) {
-	  // This can't be.
-	  assert(false);
-	  Swig_restore(n);
-	  return SWIG_ERROR;
-	}
-	Replaceall(tm_v2, "$source", value);
-	Replaceall(tm_v2, "$target", lua_name_v2);
-	Replaceall(tm_v2, "$value", value);
-	Replaceall(tm_v2, "$nsname", nsname);
-	Printf(f_init, "%s\n", tm_v2);
+        Setattr(n_v2, "sym:name", lua_name_v2);
+        tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
+        if (tm_v2) {
+          //Printf(stdout, "tm v2: %s\n", tm_v2.ptr()); // TODO:REMOVE
+          Replaceall(tm_v2, "$source", value);
+          Replaceall(tm_v2, "$target", lua_name_v2);
+          Replaceall(tm_v2, "$value", value);
+          Replaceall(tm_v2, "$nsname", nsname);
+          registerConstant(getNSpace(), tm_v2);
+        } else {
+          tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
+          if (!tm_v2) {
+            // This can't be.
+            assert(false);
+            Swig_restore(n);
+            return SWIG_ERROR;
+          }
+          Replaceall(tm_v2, "$source", value);
+          Replaceall(tm_v2, "$target", lua_name_v2);
+          Replaceall(tm_v2, "$value", value);
+          Replaceall(tm_v2, "$nsname", nsname);
+          Printf(f_init, "%s\n", tm_v2);
+        }
+        Delete(n_v2);
       }
-      Delete(n_v2);
     }
 
     Swig_restore(n);
@@ -2174,6 +2170,9 @@ public:
     // If inside class, but current[NO_CPP], then this is friend function. It belongs to NSpace
     if (!getCurrentClass() || current[NO_CPP]) {
       scope = getNSpace();
+    } else if (current[ENUM_CONST] && !CPlusPlus ) {
+        // Enums in C mode go to NSpace
+        scope = getNSpace();
     } else {
       // If inside class, then either class static namespace or class fully qualified name is used
       assert(!current[NO_CPP]);
