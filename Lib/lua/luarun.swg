@@ -379,8 +379,6 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State *L)
 }
 
 #ifdef SWIG_LUA_ELUA_EMULATE
-//#define report(...) printf(__VA_ARGS__) // TODO: REMOVE
-#define report(...) // TODO : REMOVE
 
 SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *type, int own);
 SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_type_info *type);
@@ -405,30 +403,20 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
   int i;
   int table_parsed = 0;
   int pairs_start = lua_gettop(L);
-  static int tabs_count = 0; // TODO: REMOVE
   for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
   {
-    /* TODO: REMOVE */
-    int j = 0;
-    for(j=0;j<tabs_count;j++) report("  ");
-    /* END OF REMOVE */
-
-    report("Registering %d", int(i)); // TODO: REMOVE
     const swig_elua_entry *entry = table + i;
     int is_metatable = 0;
     switch(entry->key.type) {
       case LUA_TSTRING:
         lua_pushstring(L,entry->key.key.strkey);
-        report(" %s :", entry->key.key.strkey); // TODO: REMOVE
         if(strcmp(entry->key.key.strkey, SWIG_LUA_ELUA_EMUL_METATABLE_KEY) == 0)
           is_metatable = 1;
         break;
       case  LUA_TNUMBER:
         lua_pushnumber(L,entry->key.key.numkey);
-        report(" %f :", (double)(entry->key.key.numkey)); // TODO: REMOVE
         break;
       case LUA_TNIL:
-        report(" nil :"); // TODO: REMOVE
         lua_pushnil(L);
         break;
       default:
@@ -437,39 +425,27 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
     switch(entry->value.type) {
       case LUA_TSTRING:
         lua_pushstring(L,entry->value.value.string);
-        report(" %s", entry->value.value.string); // TODO: REMOVE
         break;
       case  LUA_TNUMBER:
         lua_pushnumber(L,entry->value.value.number);
-        report(" %f", (double)(entry->value.value.number)); // TODO: REMOVE
         break;
       case LUA_TFUNCTION:
-        report(" %p", (void*)(entry->value.value.function)); // TODO: REMOVE
         lua_pushcfunction(L,entry->value.value.function);
         break;
       case LUA_TTABLE:
-        /* TODO: REMOVE */
-        report(" table"); 
-        tabs_count++;
-        /* END OF REMOVE */
         lua_rawgetp(L,parsed_tables_array, entry->value.value.table);
         table_parsed = !lua_isnil(L,-1);
         if(!table_parsed) {
           lua_pop(L,1); /*remove nil */
-          report("\n"); // TODO: REMOVE
           lua_newtable(L);
           SWIG_Lua_elua_emulate_register(L,entry->value.value.table);
-        } else {
-          report(" already parsed"); // TODO: REMOVE
-        }
+        } 
         if(is_metatable) {
-          report(" (registering metatable)"); // TODO: REMOVE
           assert(lua_istable(L,-1));
           lua_pushvalue(L,-1);
           lua_setmetatable(L,target_table);
         }
 
-        tabs_count--; /*TODO: REMOVE*/
         break;
       case LUA_TUSERDATA:
         if(entry->value.value.userdata.member) 
@@ -481,7 +457,6 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
               *(entry->value.value.userdata.ptype),0);
         break;
       case LUA_TNIL:
-        report(" nil"); // TODO: REMOVE
         lua_pushnil(L);
         break;
       default:
@@ -489,7 +464,6 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
     }
     assert(lua_gettop(L) == pairs_start + 2);
     lua_rawset(L,target_table);
-    report("\n"); // TODO: REMOVE
   }
   lua_pop(L,1); /* Removing parsed tables storage */
   assert(lua_gettop(L) == target_table);
@@ -501,7 +475,6 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register_clear(lua_State *L)
   lua_rawsetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
 }
 
-/* TODO: REMOVE */
 SWIGINTERN void SWIG_Lua_get_class_registry(lua_State *L);
 
 SWIGINTERN int SWIG_Lua_emulate_elua_getmetatable(lua_State *L)
@@ -519,7 +492,6 @@ SWIGINTERN int SWIG_Lua_emulate_elua_getmetatable(lua_State *L)
   /*if it is a table, then emulate elua behaviour - check for __metatable attribute of a table*/
   assert(lua_gettop(L) == 2);
   if(lua_istable(L,-2)) {
-    printf("getmetatable: elua emulation part\n"); // TODO: REMOVE
     lua_pop(L,1); /*remove the nil*/
     lua_getfield(L,-1, SWIG_LUA_ELUA_EMUL_METATABLE_KEY);
   }
@@ -533,7 +505,6 @@ fail:
 
 SWIGINTERN void SWIG_Lua_emulate_elua_swap_getmetatable(lua_State *L)
 {
-  int begin = lua_gettop(L); // TODO: REMOVE
   SWIG_Lua_get_class_registry(L);
   lua_pushglobaltable(L);
   lua_pushstring(L,"lua_getmetatable");
@@ -544,7 +515,6 @@ SWIGINTERN void SWIG_Lua_emulate_elua_swap_getmetatable(lua_State *L)
   lua_pushcfunction(L, SWIG_Lua_emulate_elua_getmetatable);
   lua_rawset(L,-3);
   lua_pop(L,2);
-  assert(lua_gettop(L) == begin); // TODO: REMOVE
       
 }
 /* END OF REMOVE */
@@ -619,7 +589,6 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State *L)
   }
   lua_pop(L,1);  /* remove the value .set table */
   lua_pop(L,1); /* remote metatable */
-  assert(lua_gettop(L) == 3); // TODO: REMOVE
   lua_rawset(L,-3);
   return 0;
 }
@@ -805,7 +774,6 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
         lua_setmetatable(L,subcall_first_arg); /* Set new metatable */
         assert(lua_gettop(L) == subcall_last_arg);
         result = func(L, base_swig_type,subcall_first_arg, ret); /* Forward call */
-        if(ret) assert(lua_gettop(L) == subcall_last_arg + *ret); // TODO: REMOVE 
         if(result != SWIG_ERROR) {
           break;
         }
@@ -817,7 +785,6 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
       const int to_remove = subcall_last_arg - last_arg;
       for(j=0;j<to_remove;j++)
         lua_remove(L,last_arg+1);
-      if(ret) assert(lua_gettop(L) == last_arg + *ret); // TODO: REMOVE
     } else {
       /* Remove everything after last_arg */
       lua_pop(L, lua_gettop(L) - last_arg);
@@ -842,11 +809,6 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
-  // TODO: REMOVE
-  //SWIG_Lua_get_table(L,".type");
-  //printf("class %s get %s\n", lua_tostring(L,-1), lua_tostring(L,substack_start+2));
-  //lua_pop(L,1);
-  // END OF REMOVE
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
   assert(lua_istable(L,-1));  /* just in case */
   /* look for the key in the .get table */
@@ -893,24 +855,8 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int fi
   /* Remove the metatable */
   lua_pop(L,1);
   /* Search in base classes */
-  assert(lua_gettop(L) == substack_start + 2); // TODO: REMOVE
   
-  /* TODO: REMOVE
-#ifdef SWIG_LUA_SQUASH_BASES
-  if(ret) *ret = 0;
-  return SWIG_ERROR; // TODO:ERROR:FIX:REMOVE!!!!
-//#warning REMOVE REMOVE REMOVE
-#endif
-  END OF REMOVE */
-
-  //printf("failed, searching bases\n"); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
-  if(ret) assert(lua_gettop(L) == substack_start + 2 + *ret); // TODO: REMOVE
-  // TODO: REMOVE
-  if(bases_search_result != SWIG_OK) {
-    //printf("failed.\n"); 
-  }
-  // END OF REMOVE
   return bases_search_result;  /* sorry not known */
 }
 
@@ -971,7 +917,6 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   } else {
     lua_pop(L,1);  /* remove the answer for .set table request*/
   }
-  assert(lua_gettop(L) == substack_start + 4); // TODO: REMOVE
   /* NEW: looks for the __setitem() fn
   this is a user provided set fn */
   SWIG_Lua_get_table(L,"__setitem"); /* find the fn */
@@ -985,11 +930,9 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
     return SWIG_OK;
   }
   lua_pop(L,1); /* remove value */
-  assert(lua_gettop(L) == substack_start + 4); // TODO: REMOVE
 
   lua_pop(L,1); /* remove metatable */
   /* Search among bases */
-  assert(lua_gettop(L) == first_arg+2); // TODO: REMOVE
   int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
   if(ret)
     assert(*ret == 0);
@@ -1144,7 +1087,6 @@ SWIGINTERN int SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int sour
 /* Merges two tables with given name. original - index of target metatable, base - index of source metatable */
 SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int original, int base)
 {
-  int begin = lua_gettop(L); // TODO:REMOVE
   /* push original[name], then base[name] */
   lua_pushstring(L,name);
   lua_rawget(L,original);
@@ -1155,13 +1097,11 @@ SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int origina
   SWIG_Lua_merge_tables_by_index(L, original_table, base_table);
   /* clearing stack */
   lua_pop(L,2);
-  assert(lua_gettop(L) == begin); // TODO: REMOVE
 }
 
 /* Function takes all symbols from base and adds it to derived class. It's just a helper. */
 SWIGINTERN int SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
 {
-  int begin = lua_gettop(L); // TODO:REMOVE
   /* There is one parameter - original, i.e. 'derived' class metatable */
   assert(lua_istable(L,-1));
   int original = lua_gettop(L);
@@ -1171,13 +1111,11 @@ SWIGINTERN int SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls
   SWIG_Lua_merge_tables(L, ".set", original, base );
   SWIG_Lua_merge_tables(L, ".get", original, base );
   lua_pop(L,1);
-  assert(lua_gettop(L) == begin); // TODO: REMOVE
 }
 
 /* Function squashes all symbols from 'clss' bases into itself */
 SWIGINTERN int  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
 {
-  int begin = lua_gettop(L); // TODO: REMOVE
   int i;
   SWIG_Lua_get_class_metatable(L,clss->fqname);
   for(i=0;clss->base_names[i];i++)
@@ -1191,7 +1129,6 @@ SWIGINTERN int  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
     SWIG_Lua_class_squash_base(L, clss->bases[i]);
   }
   lua_pop(L,1); /*tidy stack*/
-  assert(lua_gettop(L) == begin); // TODO: REMOVE
 }
 #endif
 
@@ -1263,7 +1200,6 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
     */
   if(clss->metatable) {
     for(i=0;clss->metatable[i].name;i++) {
-      assert(clss->metatable[i].func != 0); // TODO: REMOVE
       SWIG_Lua_add_function(L,clss->metatable[i].name,clss->metatable[i].func);
     }
   }
@@ -1332,7 +1268,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
    * It would get us all special methods: __getitem, __add etc.
    * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
    */
-  int squash_begin = lua_gettop(L); // TODO:REMOVE
   int new_metatable_index = lua_absindex(L,-1);
   for(i=0;clss->bases[i];i++)
   {
@@ -1341,7 +1276,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
     SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
     lua_pop(L,1);
   }
-  assert(lua_gettop(L) == squash_begin); // TODO: REMOVE
   /* And now we will overwrite all incorrectly set data */
 #endif
   /* add string of class name called ".type" */

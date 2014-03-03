@@ -486,8 +486,6 @@ public:
       }
     }
     wrapname = Swig_name_wrapper(mrename);
-    //Printf(stdout, "luaname %s, symname %s mrename %s wrapname %s\n\tscope %s\n",
-    //    Getattr(n, "lua:name"), symname, mrename, wrapname, luaScope ); // TODO: REMOVE
     registerMethod(n, wrapname, luaScope);
   }
 
@@ -901,10 +899,6 @@ public:
     // Remember C name of the wrapping function
     Setattr(n, "wrap:name", wname);
 
-    /* TODO: REMOVE
-    if (functionWrapperRegisterNow()) {	// emit normal fns & static fns
-      registerMethod(n);
-    }*/
     if (current[CONSTRUCTOR]) {
       if (constructor_name != 0)
 	Delete(constructor_name);
@@ -965,8 +959,6 @@ public:
     getName = Swig_name_wrapper(getName);
     if (setName)
       setName = Swig_name_wrapper(setName);
-    //Printf(stdout, "luaname %s, symname %s mrename %s getName %s\n\tscope %s\n\tassignable %d\n",
-    //    Getattr(n, "lua:name"), symname, mrename, getName, luaScope, assignable ); // TODO: REMOVE
     registerVariable(luaScope, n, getName, setName);
   }
 
@@ -1017,8 +1009,6 @@ public:
     current[VARIABLE] = true;
     // let SWIG generate the wrappers
     int result = Language::variableWrapper(n);
-    // TODO: REMOVE
-    //registerVariable(luaCurrentSymbolNSpace(), n, "varget:wrap:name", "varset:wrap:name");
     
     // It is impossible to use registerVariable, because sym:name of the Node is currently
     // in an undefined state - the callees of this function may have modified it.
@@ -1087,7 +1077,6 @@ public:
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      //Printf(stdout, "tm v1: %s\n", tm); // TODO:REMOVE
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", lua_name);
       Replaceall(tm, "$value", value);
@@ -1116,7 +1105,6 @@ public:
 	lua_name_v2 = Swig_name_member(0, proxy_class_name, lua_name);
 	iname_v2 = Swig_name_member(0, proxy_class_name, iname);
         n_v2 = Copy(n);
-        //Printf( stdout, "target name v2: %s, symname v2 %s\n", lua_name_v2.ptr(), iname_v2.ptr());// TODO:REMOVE
         if (!luaAddSymbol(iname_v2, n, getNSpace())) {
           Swig_restore(n);
           return SWIG_ERROR;
@@ -1125,7 +1113,6 @@ public:
         Setattr(n_v2, "sym:name", lua_name_v2);
         tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
         if (tm_v2) {
-          //Printf(stdout, "tm v2: %s\n", tm_v2.ptr()); // TODO:REMOVE
           Replaceall(tm_v2, "$source", value);
           Replaceall(tm_v2, "$target", lua_name_v2);
           Replaceall(tm_v2, "$value", value);
@@ -1472,7 +1459,6 @@ public:
     Printf(f_wrappers, ", %s, %s, &%s", s_methods_tab_name, s_attr_tab_name, Getattr(static_cls, "cname"));
     
     if (!eluac_ltr) {
-      assert(Getattr(instance_cls, "metatable:name")); // TODO: REMOVE
       Printf(f_wrappers, ", %s", Getattr(instance_cls,"metatable:name"));
     }
     else
@@ -1513,7 +1499,6 @@ public:
     current[MEMBER_FUNC] = true;
     Language::memberfunctionHandler(n);
 
-    //Printf( stdout, "add member function: %s to %s\n", symname, luaCurrentSymbolNSpace());// TODO: REMOVE
     registerMethod(n);
     current[MEMBER_FUNC] = false;
     return SWIG_OK;
@@ -1668,7 +1653,6 @@ public:
 	// not the C++ name. This is because an earlier version used such a scheme for static function
 	// name generation and we have to maintain backward compatibility.
 	String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
-	//Printf( stdout, "Name %s, class %s, compt. name %s\n", lua_name, proxy_class_name, v2_name ); // TODO: REMOVE
 	if (!GetFlag(n, "wrappedasconstant")) {
 	  Setattr(n, "lua:name", v2_name);
           // Registering static var in the class parent nspace
@@ -1900,8 +1884,6 @@ public:
 	Printf(metatable_tab, "const LUA_REG_TYPE ");
       else
 	Printf(metatable_tab, "static swig_lua_method ");
-      assert(metatable_tab); // TODO: REMOVE
-      assert(metatable_tab_name); // TODO: REMOVE
       Printv(metatable_tab, metatable_tab_name, "[]", NIL);
       Printv(metatable_tab_decl, metatable_tab, ";", NIL);
       Printv(metatable_tab, " = {\n", NIL);
@@ -1925,7 +1907,6 @@ public:
 	String *item = Getitem(components, i);
 	Printv(parent_path, item, NIL);
       }
-      //Printf(stdout, "Registering %s. User name %s. C-name %s, Parent is %s\n", mangled_name, name, cname, parent_path); // TODO: REMOVE
       Hash *parent = getCArraysHash(parent_path, true);
       String *namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
@@ -1982,12 +1963,10 @@ public:
     }
     String *methods_tab = Getattr(carrays_hash, "methods");
     String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
-    assert(methods_tab); // TODO: REMOVE
     if (elua_ltr || eluac_ltr) {
       if (v2_compatibility)
 	Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
       if (elua_ltr) {
-	assert(metatable_tab_name); // TODO: REMOVE
 	Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
       }
 
