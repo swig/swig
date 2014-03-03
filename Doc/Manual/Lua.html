@@ -510,19 +510,30 @@ Enums are exported into a class table. For example, given some enums:
 enum Days { SUNDAY = 0, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY };
 struct Test {
     enum { TEST1 = 10, TEST2 = 20 };
+#ifdef __cplusplus // There are no static members in C language
     static const int ICONST = 12;
+#endif
 };
 </pre></div>
 <p>
-This is 'effectively' converted into the following Lua code:
+There is a slight difference in behaviour in C mode and C++ model. In C++ mode this is 'effectively' converted into the following Lua code:
 </p>
 <div class="targetlang"><pre>
-&gt; print(example.const.SUNDAY)
+&gt; print(example.SUNDAY)
 0
 &gt; print(example.Test.TEST1)
 10
 &gt; print(example.Test.ICONST)
 12
+</pre></div>
+
+<p>In C mode enums from structs are exported into global namespace (due to C Standard). See below:</p>
+<div class="targetlang"><pre>
+&gt; print(example.SUNDAY)
+0
+&gt; -- See the difference here
+&gt; print(example.TEST1)
+10
 </pre></div>
 
 <p>
@@ -540,17 +551,17 @@ The old-style bindings are still generated in addition to the new ones.
 If the <tt>-no-old-metatable-bindings</tt> option is used, then these old-style bindings are not generated.
 </p>
 <p>
-However, in C mode, names of enums are not prefixed with names of structure. This is the due to the C Standard.
+However, in C mode, prefixed names of enums are not exported. There is no sense in having both Test_TEST1 and TEST1 in global namespace.
 </p>
 <div class="targetlang"><pre>
 &gt; print(example.TEST1)
 10
-&gt; print(example.ICONST)
-12
+&gt; print(example.Test_TEST1)
+nil
 </pre></div>
 <p>
 It is worth mentioning, that <tt>example.Test.TEST1</tt> and <tt>example.Test_TEST1</tt> are different entities and changing one does not change the other. 
-Given the fact, that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
+Given the fact that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
 </p>
 <H3><a name="Lua_nn12"></a>26.3.5 Pointers</H3>
 
@@ -1346,15 +1357,20 @@ int module_variable = 9;
 namespace MyWorld {
   class World {
   public:
+    World():
+      world_max_count(9) {}
     int create_world() { return 17; }
-    const int world_max_count = 9;
+    const int world_max_count; // = 9
   };
   namespace Nested {
     class Dweller {
-      enum Gender { MALE, FEMALE };
-      static int populate_cave() { return 19; }
-      int create_cave() { return 13; }
-      int food_count; // = 11
+      public:
+        Dweller():
+          food_count(11) {}
+        enum Gender { MALE = 0, FEMALE = 1 };
+        static int populate_cave() { return 19; }
+        int create_cave() { return 13; }
+        int food_count; // = 11
     };
   }
 }
@@ -1364,18 +1380,16 @@ Now, from Lua usage is as follows:
 &gt; print(example.module_function())
 7
 &gt; print(example.module_variable)
-8
+9
 &gt; print(example.MyWorld.World():create_world())
 17
 &gt; print(example.MyWorld.World.world_max_count)
 9
 &gt; print(example.MyWorld.Nested.Dweller.MALE)
 0
-&gt; print(example.MyWorld.Nested.Dweller().food_count)
-11
 &gt;
 </pre></div>
-<H4> Backward compatibility </H4>
+<H4> Compatibility Note </H4>
 <p>
 If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated(notice the underscore):
 </p>
@@ -1387,7 +1401,7 @@ If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatabl
 11
 &gt;
 </pre></div>
-<H3> Backward compatibility </H3>
+<H3> Compatibility Note </H3>
 <H4> Names </H4>
 <p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
 to generate additional names for static functions, class static constants and class enums.

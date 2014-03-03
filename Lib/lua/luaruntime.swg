@@ -56,7 +56,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
-  SWIG_Lua_namespace_register(L,&swig___Module, globalRegister);
+  SWIG_Lua_namespace_register(L,&swig_SwigModule, globalRegister);
 #endif
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
