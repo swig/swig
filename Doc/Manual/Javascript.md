@@ -57,6 +57,54 @@ and for v8:
 
     void example_initialize (v8::Handle<v8::Object> exports)
 
+### Running Tests and Examples
+
+The configuration for tests and examples currently supports Linux and Mac only, MinGW not yet.
+
+The default interpreter is `node.js` as it is available on all platforms and convenient to use.
+
+Running the examples with JavascriptCore requires `libjavascriptcoregtk-1.0` to be installed, e.g., under Ubuntu with
+
+    $ sudo apt-get install libjavascriptcoregtk-1.0-dev
+
+Running with `V8` requires `libv8`:
+
+    $ sudo apt-get install libv8-dev
+
+Examples can be run using
+
+    $ make ENGINE=jsc check-javascript-examples
+
+`ENGINE` can be `node`, `jsc`, or `v8`.
+
+The test-suite can be run using
+
+    $ make ENGINE=jsc check-javascript-test-suite
+
+A smaller, manually selected set of tests can be run using
+
+    $ make SMOKE=1 ENGINE=jsc check-javascript-test-suite
+
+
+Tests should run without any problems, i.e., have been tried out, on the following platforms/interpreters:
+
+- Ubuntu Precise 12.04 64bit
+  - JavascriptCore (GTK) 1.0
+  - Node.js (0.10.26)
+  - v8 (3.7.12)
+- Ubuntu Saucy 13.10 64bit
+  - JavascriptCore (GTK) 1.0 + 3.0
+  - Node.js
+  - v8 (3.14.5)
+- Mac OSX Mountain Lion 10.8
+  - JavascriptCore (built-in)
+  - Node.js
+- Windows 7 64bit (VS 2010)
+  - Node.js
+
+Note: a `CMake` based configuration can be found in the `cmake` branch on
+      [](https://github.com/oliver----/swig-v8) which can be used to generate a Visual Studio solution. It is rather limited building only the SWIG executable and Javascript examples.
+
 ### Future work
 
 The Javascript module is not yet as mature as other modules and some things are still missing.
@@ -79,7 +127,7 @@ We could work on that if requested:
 
 ## Integration
 
-This should give a short introduction to integrating your module in different environments: as a `node.js` module, and as an extension for an embedded Webkit.
+This chapter gives a short introduction how to use a native Javascript extension: as a `node.js` module, and as an extension for an embedded Webkit.
 
 
 ### Creating `node.js` Extensions
