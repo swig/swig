@@ -107,14 +107,20 @@ SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_i
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (iType != sci_pointer) {
-    //Scierror(999, _("%s: Wrong type for input argument #%d: A pointer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
 
-  sciErr = getPointer(_pvApiCtx, piAddrVar, _pObjValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  if (iType == sci_pointer) {
+    sciErr = getPointer(_pvApiCtx, piAddrVar, _pObjValue);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+  }
+  else if (iType == sci_matrix) {
+    if (!isEmptyMatrix(_pvApiCtx, piAddrVar)) {
+      return SWIG_ERROR;
+    }
+  }
+  else {
     return SWIG_ERROR;
   }
 
