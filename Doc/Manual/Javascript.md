@@ -1,7 +1,7 @@
 # SWIG and Javascript
 
 This chapter describes SWIG's support of Javascript.
-It does not cover SWIG basics only information that is specific to this module.
+It does not cover SWIG basics, but only information that is specific to this module.
 
 ## Overview
 
@@ -88,19 +88,19 @@ A smaller, manually selected set of tests can be run using
 
 Tests should run without any problems, i.e., have been tried out, on the following platforms/interpreters:
 
-- Ubuntu Precise 12.04 64bit
-  - JavascriptCore (GTK) 1.0
-  - Node.js (0.10.26)
-  - v8 (3.7.12)
-- Ubuntu Saucy 13.10 64bit
-  - JavascriptCore (GTK) 1.0 + 3.0
-  - Node.js
-  - v8 (3.14.5)
-- Mac OSX Mountain Lion 10.8
-  - JavascriptCore (built-in)
-  - Node.js
-- Windows 7 64bit (VS 2010)
-  - Node.js
+    - Ubuntu Precise 12.04 64bit
+        - JavascriptCore (Webkit 1.8.3)
+        - Node.js (0.10.26)
+        - v8 (3.7.12)
+    - Ubuntu Saucy 13.10 64bit
+        - JavascriptCore (Webkit 1.10.2)
+        - Node.js
+        - v8 (3.14.5)
+    - Mac OSX Mountain Lion 10.8
+        - JavascriptCore (built-in)
+        - Node.js
+    - Windows 7 64bit (VS 2010)
+        - Node.js
 
 Note: a `CMake` based configuration can be found in the `cmake` branch on
       [](https://github.com/oliver----/swig-v8) which can be used to generate a Visual Studio solution. It is rather limited building only the SWIG executable and Javascript examples.
