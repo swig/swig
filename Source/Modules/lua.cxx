@@ -1285,7 +1285,7 @@ public:
     // * consider effect on template_specialization_defarg
 
     static Hash *emitted = NewHash();
-    if (Getattr(emitted, mangled_fr_t)) {
+    if (GetFlag(emitted, mangled_fr_t)) {
       full_proxy_class_name = 0;
       proxy_class_name = 0;
       return SWIG_NOWRAP;
@@ -1901,7 +1901,7 @@ public:
     Setattr(scope, "lua:cdata", carrays_hash);
     assert(rawGetCArraysHash(nspace));
 
-    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(carrays_hash, "lua:no_reg") == 0) {
+    if (reg && nspace != 0 && Len(nspace) != 0 && GetFlag(carrays_hash, "lua:no_reg") == 0) {
       // Split names into components
       List *components = Split(nspace, '.', -1);
       String *parent_path = NewString("");
@@ -1947,7 +1947,7 @@ public:
   void closeCArraysHash(String *nspace, File *output) {
     Hash *carrays_hash = rawGetCArraysHash(nspace);
     assert(carrays_hash);
-    assert(Getattr(carrays_hash, "lua:closed") == 0);
+    assert(GetFlag(carrays_hash, "lua:closed") == 0);
 
     SetFlag(carrays_hash, "lua:closed");
 
@@ -1982,13 +1982,13 @@ public:
       Printf(methods_tab, "    {0,0}\n};\n");
     Printv(output, methods_tab, NIL);
 
-    if (!Getattr(carrays_hash, "lua:no_classes")) {
+    if (!GetFlag(carrays_hash, "lua:no_classes")) {
       String *classes_tab = Getattr(carrays_hash, "classes");
       Printf(classes_tab, "    0\n};\n");
       Printv(output, classes_tab, NIL);
     }
 
-    if (!Getattr(carrays_hash, "lua:no_namespaces")) {
+    if (!GetFlag(carrays_hash, "lua:no_namespaces")) {
       String *namespaces_tab = Getattr(carrays_hash, "namespaces");
       Printf(namespaces_tab, "    0\n};\n");
       Printv(output, namespaces_tab, NIL);
@@ -2009,7 +2009,7 @@ public:
 	String *get_tab_name = Getattr(carrays_hash, "get:name");
 	String *set_tab_name = Getattr(carrays_hash, "set:name");
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
 	} else {
@@ -2022,7 +2022,7 @@ public:
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
 	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
@@ -2032,7 +2032,7 @@ public:
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
 	  // Put forward declaration of this array
 	  Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-	} else if (Getattr(carrays_hash, "lua:class_static")) {
+	} else if (GetFlag(carrays_hash, "lua:class_static")) {
 	  Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
 	  assert(instance_cls);
 	  String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
@@ -2080,7 +2080,7 @@ public:
         // We have a pseudo symbol. Lets get actual scope for this pseudo symbol
         Hash *carrays_hash = rawGetCArraysHash(ki.key);
         assert(carrays_hash);
-        if (Getattr(carrays_hash, "lua:closed") == 0)
+        if (GetFlag(carrays_hash, "lua:closed") == 0)
           Append(to_close, ki.key);
       }
       ki = Next(ki);
@@ -2125,8 +2125,8 @@ public:
     String *const_tab_name = Getattr(carrays_hash, "constants:name");
     String *classes_tab_name = Getattr(carrays_hash, "classes:name");
     String *namespaces_tab_name = Getattr(carrays_hash, "namespaces:name");
-    bool has_classes = Getattr(carrays_hash, "lua:no_classes") == 0;
-    bool has_namespaces = Getattr(carrays_hash, "lua:no_namespaces") == 0;
+    bool has_classes = GetFlag(carrays_hash, "lua:no_classes") == 0;
+    bool has_namespaces = GetFlag(carrays_hash, "lua:no_namespaces") == 0;
 
     Printv(output, "{\n",
 	   tab4, "\"", name, "\",\n",
