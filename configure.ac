@@ -1195,12 +1195,6 @@ else
     *-*-linux*)
       dirs="/usr/lib/ /usr/local/lib/"
       for i in $dirs ; do
-        if test -r $i/libwebkit-1.0.la; then
-          AC_MSG_RESULT($i)
-          JSCORELIB="-L$i -lwebkit-1.0"
-          break
-        fi
-
         if test -r $i/libjavascriptcoregtk-1.0.so; then
           AC_MSG_RESULT($i)
           JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
@@ -1210,6 +1204,12 @@ else
         if test -r $i/libwebkitgtk-1.0.so; then
           AC_MSG_RESULT($i)
           JSCORELIB="-L$i -lwebkitgtk-1.0"
+          break
+        fi
+
+        if test -r $i/libwebkit-1.0.la; then
+          AC_MSG_RESULT($i)
+          JSCORELIB="-L$i -lwebkit-1.0"
           break
         fi
       done
