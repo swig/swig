@@ -47,7 +47,7 @@ JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_
 JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 
 %.o: %.cxx
-	$(JSCXX) $(JS_INTERPRETER_DEFINES) -g $(JSINCLUDES) -o $@ -c $<
+	$(JSCXX) $(JS_INTERPRETER_DEFINES) $(CFLAGS) $(JSINCLUDES) -o $@ -c $<
 
 javascript: $(JS_INTERPRETER_OBJS)
 	$(JSCXX) $^ $(CFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)

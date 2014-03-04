@@ -64,9 +64,9 @@ bool JSCShell::InitializeEngine() {
   if(context == 0) return false;
   JSObjectRef globalObject = JSContextGetGlobalObject(context);
 
-
   // store this for later use
-  JSClassDefinition __shell_classdef__;
+  JSClassDefinition __shell_classdef__ = JSClassDefinition();
+
   JSClassRef __shell_class__ = JSClassCreate(&__shell_classdef__);
   JSObjectRef __shell__ = JSObjectMake(context, __shell_class__, 0);
   bool success = JSObjectSetPrivate(__shell__, (void*) (long) this);
