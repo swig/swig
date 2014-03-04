@@ -37,5 +37,10 @@ assert( w1.world_max_count == 9 )
 -- Accessing enums from class within namespace
 print( "Accessing enums: ex.MyWorld.Nested.Dweller.MALE = ", ex.MyWorld.Nested.Dweller.MALE )
 assert( ex.MyWorld.Nested.Dweller.MALE == 0 )
+print( "Accessing enums: ex.MyWorld.Nested.Dweller.FEMALE = ", ex.MyWorld.Nested.Dweller.FEMALE )
 assert( ex.MyWorld.Nested.Dweller.FEMALE == 1 )
+
+-- Accessing static member function
+print( "Accessing static member function: ex.MyWorld.Nested.Dweller.count() = ", ex.MyWorld.Nested.Dweller.count() )
+assert( ex.MyWorld.Nested.Dweller.count() == 19 )
 

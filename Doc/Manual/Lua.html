@@ -510,13 +510,14 @@ Enums are exported into a class table. For example, given some enums:
 enum Days { SUNDAY = 0, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY };
 struct Test {
     enum { TEST1 = 10, TEST2 = 20 };
-#ifdef __cplusplus // There are no static members in C language
+#ifdef __cplusplus // There are no static members in C
     static const int ICONST = 12;
 #endif
 };
 </pre></div>
 <p>
-There is a slight difference in behaviour in C mode and C++ model. In C++ mode this is 'effectively' converted into the following Lua code:
+There is a slight difference in behaviour wrapping C and C++ code due to the different scoping rules of C and C++.
+The wrapped C++ code is used as follows from Lua code:
 </p>
 <div class="targetlang"><pre>
 &gt; print(example.SUNDAY)
@@ -527,7 +528,7 @@ There is a slight difference in behaviour in C mode and C++ model. In C++ mode t
 12
 </pre></div>
 
-<p>In C mode enums from structs are exported into global namespace (due to C Standard). See below:</p>
+<p>Enums within a C struct are in the global namespace and are used as follows from Lua</p>
 <div class="targetlang"><pre>
 &gt; print(example.SUNDAY)
 0
@@ -538,7 +539,8 @@ There is a slight difference in behaviour in C mode and C++ model. In C++ mode t
 
 <p>
 <b>Compatibility Note:</b> Versions of SWIG prior to SWIG-3.0.0 did not generate the class table members above.
-The following code was the only way to access these constants/enums:
+There is no change in the C wrappers, but
+the following code was the only way to access these constants/enums when wrapping C++ member constants:
 </p>
 <div class="targetlang"><pre>
 &gt; print(example.Test_TEST1)
@@ -550,15 +552,6 @@ The following code was the only way to access these constants/enums:
 The old-style bindings are still generated in addition to the new ones.
 If the <tt>-no-old-metatable-bindings</tt> option is used, then these old-style bindings are not generated.
 </p>
-<p>
-However, in C mode, prefixed names of enums are not exported. There is no sense in having both Test_TEST1 and TEST1 in global namespace.
-</p>
-<div class="targetlang"><pre>
-&gt; print(example.TEST1)
-10
-&gt; print(example.Test_TEST1)
-nil
-</pre></div>
 <p>
 It is worth mentioning, that <tt>example.Test.TEST1</tt> and <tt>example.Test_TEST1</tt> are different entities and changing one does not change the other. 
 Given the fact that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
@@ -749,7 +742,7 @@ public:
 };
 </pre></div>
 <p>
-In Lua, the static members can be accessed as follows:
+In Lua, C++ static members can be accessed as follows:
 </p>
 <div class="code"><pre>
 &gt; example.Spam.foo()            -- calling Spam::foo()
@@ -1357,20 +1350,15 @@ int module_variable = 9;
 namespace MyWorld {
   class World {
   public:
-    World():
-      world_max_count(9) {}
+    World() : world_max_count(9) {}
     int create_world() { return 17; }
     const int world_max_count; // = 9
   };
   namespace Nested {
     class Dweller {
       public:
-        Dweller():
-          food_count(11) {}
         enum Gender { MALE = 0, FEMALE = 1 };
-        static int populate_cave() { return 19; }
-        int create_cave() { return 13; }
-        int food_count; // = 11
+        static int count() { return 19; }
     };
   }
 }
@@ -1387,6 +1375,8 @@ Now, from Lua usage is as follows:
 9
 &gt; print(example.MyWorld.Nested.Dweller.MALE)
 0
+&gt; print(example.MyWorld.Nested.Dweller.count())
+19
 &gt;
 </pre></div>
 <H4> Compatibility Note </H4>
@@ -1397,7 +1387,7 @@ If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatabl
 9
 &gt; print(example.MyWorld.Nested.Dweller_MALE)
 0
-&gt; print(example.MyWorld.Nested.Dweller_populate_cave())
+&gt; print(example.MyWorld.Nested.Dweller_count())
 11
 &gt;
 </pre></div>
