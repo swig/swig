@@ -1166,9 +1166,15 @@ public:
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
+    // Drop v2_compatibility if NSpace is given
+    int old_v2_compatibility = v2_compatibility;
+    if (getNSpace()) {
+      v2_compatibility = 0;
+    } 
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
+    v2_compatibility = old_v2_compatibility;
     return result;
   }
 
