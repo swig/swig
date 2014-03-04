@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 """
 Pandoc filter that changes pandoc default HTML output for codeblocks
@@ -24,16 +24,16 @@ the_title = ""
 def codeblocks(key, value, format, meta):
   if key == 'CodeBlock':
     [[id, classes, kvs], contents] = value
-    if format == "html" or format == "html5":
-      newcontents = [html('<pre>\n' + contents + '</pre>')]
 
-      if len(classes) == 0:
-        if contents.startswith("$"):
-          classes.append("shell")
-        else:
-          classes.append("code")
+    newcontents = [html('<pre>\n' + contents + '</pre>')]
 
-      return Div([id, classes, kvs], newcontents)
+    if len(classes) == 0:
+      if contents.startswith("$"):
+        classes.append("shell")
+      else:
+        classes.append("code")
+
+    return Div([id, classes, kvs], newcontents)
   if key == 'Header':
     if value[0] == 1:
       the_title = stringify(value)
