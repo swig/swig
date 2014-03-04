@@ -273,17 +273,6 @@ An integration of a native extension 'example' would look like this:
         return 0;
     }
 
-
-### Embedded V8
-
-It is possible to create a custom application like `node.js` embedding a v8 engine.
-
-TODO:
-- how to install v8
-- v8 version issues: command-line switch, pre-processor macro
-- sample integration code
-
-
 ## Examples
 
 Some basic examples are shown here in more detail.
