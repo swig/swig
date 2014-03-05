@@ -98,14 +98,13 @@ SWIG_SciDouble_FromSignedChar(void *_pvApiCtx, int _iVarOut, signed char _scValu
 
 /*
  * C-type: signed char[]
- * Scilab type: int8 vector
+ * Scilab type: double or int8 matrix
  */
-%fragment("SWIG_SciInt8_AsSignedCharArrayAndSize", "header") {
+%fragment("SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciInt8_AsSignedCharArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, signed char **_pscValue, char *_fname) {
+SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, signed char **_pscValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
-  int iPrec = 0;
   int *piAddrVar = NULL;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
@@ -119,41 +118,73 @@ SWIG_SciInt8_AsSignedCharArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, i
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (iType != sci_ints) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit integer vector expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
 
-  sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iPrec != SCI_INT8) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit integer vector expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
+  if (iType == sci_matrix)
+  {
+    double *pdData = NULL;
+    int size = 0;
+    int i;
 
-  sciErr = getMatrixOfInteger8(_pvApiCtx, piAddrVar, _iRows, _iCols, (char **)_pscValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    size = (*_iRows) * (*_iCols);
+    *_pscValue = (signed char*) malloc(size * sizeof(int*));
+    for (i = 0; i < size; i++)
+      (*_pscValue)[i] = (signed char) pdData[i];
+  }
+  else if (iType == sci_ints)
+  {
+    int iPrec = 0;
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iPrec != SCI_INT8) {
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+
+    sciErr = getMatrixOfInteger8(_pvApiCtx, piAddrVar, _iRows, _iCols, (char **)_pscValue);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+  }
+  else
+  {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
-
   return SWIG_OK;
 }
 }
-%fragment("SWIG_SciInt8_FromSignedCharArrayAndSize", "header") {
-SWIGINTERN int
-SWIG_SciInt8_FromSignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const signed char *_pscValue) {
-  SciErr sciErr;
 
-  sciErr = createMatrixOfInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, (const char *)_pscValue);
+%fragment("SWIG_SciDouble_FromSignedCharArrayAndSize", "header") {
+SWIGINTERN int
+SWIG_SciDouble_FromSignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const signed char *_pscValue) {
+  SciErr sciErr;
+  int i;
+  double *pdValues = NULL;
+
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
+  for (i=0; i<_iRows * _iCols; i++)
+    pdValues[i] = _pscValue[i];
+
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
+    free(pdValues);
     return SWIG_ERROR;
   }
 
+  free(pdValues);
   return SWIG_OK;
 }
 }

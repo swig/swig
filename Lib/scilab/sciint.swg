@@ -99,15 +99,14 @@ SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue, char *_fname)
 }
 
 /*
- * C-type: int
- * Scilab type: 32-bit signed integer matrix
+ * C-type: int[]
+ * Scilab type: double or int32 matrix
  */
-%fragment("SWIG_SciInt32_AsIntArrayAndSize", "header") {
+%fragment("SWIG_SciDoubleOrInt32_AsIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, int **_piValue, char *_fname) {
+SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, int **_piValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
-  int iPrec = 0;
   int *piAddrVar = NULL;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
@@ -117,9 +116,33 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
     return SWIG_ERROR;
   }
 
-  // Accepts 32-bit signed integer matrix for input
-  if (isIntegerType(_pvApiCtx, piAddrVar))
+  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if (iType == sci_matrix)
   {
+    double *pdData = NULL;
+    int size = 0;
+    int i;
+
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    size = (*_iRows) * (*_iCols);
+    *_piValue = (int*) malloc(size * sizeof(int*));
+    for (i = 0; i < size; i++)
+      (*_piValue)[i] = (int) pdData[i];
+  }
+  else if (iType == sci_ints)
+  {
+    int iPrec = 0;
     sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr)
     {
@@ -137,27 +160,6 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-    return SWIG_OK;
-  }
-  else if (isDoubleType(_pvApiCtx, piAddrVar))
-  {
-    double *pdData = NULL;
-    int size = 0;
-    int i;
-
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
-    if (sciErr.iErr)
-    {
-      printError(&sciErr, 0);
-      return SWIG_ERROR;
-    }
-
-    size = (*_iRows) * (*_iCols);
-    *_piValue = (int*) malloc(size * sizeof(int*));
-    for (i = 0; i < size; i++)
-      (*_piValue)[i] = (int) pdData[i];
-
-    return SWIG_OK;
   }
   else
   {
@@ -168,17 +170,25 @@ SWIG_SciInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_i
 }
 }
 
-%fragment("SWIG_SciInt32_FromIntArrayAndSize", "header") {
+%fragment("SWIG_SciDouble_FromIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciInt32_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
+SWIG_SciDouble_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
   SciErr sciErr;
+  int i;
+  double *pdValues = NULL;
 
-  sciErr = createMatrixOfInteger32(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _piData);
-  if(sciErr.iErr) {
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
+  for (i=0; i<_iRows * _iCols; i++)
+    pdValues[i] = _piData[i];
+
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
+    free(pdValues);
     return SWIG_ERROR;
   }
 
+  free(pdValues);
   return SWIG_OK;
 }
 }

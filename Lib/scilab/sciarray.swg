@@ -52,26 +52,26 @@
  *  Signed char array
  */
 
-%typemap(in, fragment="SWIG_SciInt8_AsSignedCharArrayAndSize") signed char[] {
+%typemap(in, fragment="SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize") signed char[] {
   int iRows = 0;
   int iCols = 0;
-  if (SWIG_SciInt8_AsSignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &$1, fname) != SWIG_OK) {
-    return 0;
+  if (SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &$1, fname) != SWIG_OK) {
+    return SWIG_ERROR;
   }
 }
-%typemap(varin, fragment="SWIG_SciInt8_AsSignedCharArrayAndSize") signed char[] {
+%typemap(varin, fragment="SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize") signed char[] {
   int iRows = 0;
   int iCols = 0;
-  if (SWIG_SciInt8_AsSignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, (signed char**)&$1, fname) != SWIG_OK) {
-    return 0;
+  if (SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, (signed char**)&$1, fname) != SWIG_OK) {
+    return SWIG_ERROR;
   }
 }
-%scilab_asarrayandsize_withcopy(varin, SWIG_SciInt8_AsSignedCharArrayAndSize, signed char[ANY], signed char);
-%typemap(varout, noblock=1, fragment="SWIG_SciInt8_FromSignedCharArrayAndSize") signed char[ANY] {
-  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
+%scilab_asarrayandsize_withcopy(varin, SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize, signed char[ANY], signed char);
+%typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromSignedCharArrayAndSize") signed char[ANY] {
+  %set_output(SWIG_SciDouble_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
-%typemap(varout, noblock=1, fragment="SWIG_SciInt8_FromSignedCharArrayAndSize") signed char[] {
-  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1));
+%typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromSignedCharArrayAndSize") signed char[] {
+  %set_output(SWIG_SciDoubleOr_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1));
 }
 
 
@@ -83,14 +83,14 @@
   int iRows = 0;
   int iCols = 0;
   if (SWIG_SciUint8_AsUnsignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &$1, fname) != SWIG_OK) {
-    return 0;
+    return SWIG_ERROR;
   }
 }
 %typemap(varin, fragment="SWIG_SciUint8_AsUnsignedCharArrayAndSize") unsigned char[] {
   int iRows = 0;
   int iCols = 0;
   if (SWIG_SciUint8_AsUnsignedCharArrayAndSize(pvApiCtx, $input, &iRows, &iCols, (unsigned char**)&$1, fname) != SWIG_OK) {
-    return 0;
+    return SWIG_ERROR;
   }
 }
 
@@ -107,12 +107,12 @@
  *  Short array
  */
 
-%scilab_asarrayandsize_withcopy(varin, SWIG_SciInt16_AsShortArrayAndSize, short[ANY], short);
-%typemap(varout, noblock=1, fragment="SWIG_SciInt16_FromShortArrayAndSize") short[ANY] {
-  %set_output(SWIG_SciInt16_FromShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
+%scilab_asarrayandsize_withcopy(varin, SWIG_SciDoubleOrInt16_AsShortArrayAndSize, short[ANY], short);
+%typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromShortArrayAndSize") short[ANY] {
+  %set_output(SWIG_SciDouble_FromShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { short[] }; /* short[] variables managed as pointers */
-%scilab_asarray_withcopy(in, SWIG_SciInt16_AsShortArrayAndSize, short[], short);
+%scilab_asarray_withcopy(in, SWIG_SciDoubleOrInt16_AsShortArrayAndSize, short[], short);
 
 
 /*
@@ -131,12 +131,12 @@
  *  Int array
  */
 
-%scilab_asarrayandsize_withcopy(varin, SWIG_SciInt32_AsIntArrayAndSize, int[ANY], int);
-%typemap(varout, noblock=1, fragment="SWIG_SciInt32_FromIntArrayAndSize") int[ANY] {
-  %set_output(SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
+%scilab_asarrayandsize_withcopy(varin, SWIG_SciDoubleOrInt32_AsIntArrayAndSize, int[ANY], int);
+%typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") int[ANY] {
+  %set_output(SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { int[] }; /* int[] variables managed as pointers */
-%scilab_asarray_withcopy(in, SWIG_SciInt32_AsIntArrayAndSize, int[], int);
+%scilab_asarray_withcopy(in, SWIG_SciDoubleOrInt32_AsIntArrayAndSize, int[], int);
 
 
 /*
@@ -155,12 +155,12 @@
  *  Long array
  */
 
-%scilab_asarrayandsize_withcopy(varin, SWIG_SciInt32_AsIntArrayAndSize, long[ANY], int);
-%typemap(varout, noblock=1, fragment="SWIG_SciInt32_FromIntArrayAndSize") long[ANY] {
-  %set_output(SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (const int*) $1));
+%scilab_asarrayandsize_withcopy(varin, SWIG_SciDoubleOrInt32_AsIntArrayAndSize, long[ANY], int);
+%typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") long[ANY] {
+  %set_output(SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (const int*) $1));
 }
 %apply SWIGTYPE[] { long[] }; /* long[] variables managed as pointers */
-%scilab_asarray_withcopy(in, SWIG_SciInt32_AsIntArrayAndSize, long[], int);
+%scilab_asarray_withcopy(in, SWIG_SciDoubleOrInt32_AsIntArrayAndSize, long[], int);
 
 
 /*

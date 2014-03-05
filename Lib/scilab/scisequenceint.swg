@@ -6,9 +6,7 @@
 
 %include <sciint.swg>
 
-%fragment(SWIG_AsCheck_Sequence_frag(int), "header",
-  fragment="SWIG_SciInt32_AsIntArrayAndSize") {
-
+%fragment(SWIG_AsCheck_Sequence_frag(int), "header") {
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
   SciErr sciErr;
@@ -33,25 +31,25 @@ SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
 }
 
 %fragment(SWIG_AsGet_Sequence_frag(int), "header",
-  fragment="SWIG_SciInt32_AsIntArrayAndSize") {
+  fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") {
 
 SWIGINTERN int
 SWIG_AsGet_Sequence_dec(int)(SwigSciObject _obj, int **_pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-  return (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, _pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, _pSequence, SWIG_Scilab_GetFname()));
 }
 }
 
 %fragment(SWIG_AsSize_Sequence_frag(int), "header",
-  fragment="SWIG_SciInt32_AsIntArrayAndSize") {
+  fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") {
 
 SWIGINTERN int
 SWIG_AsSize_Sequence_dec(int)(SwigSciObject _obj, int *_piSize) {
   int *piMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciInt32_AsIntArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, &piMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, &piMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
       Scierror(999, _("%s: Wrong size for input argument #%d: An integer vector is expected.\n"), SWIG_Scilab_GetFname(), _obj);
       return SWIG_ERROR;
@@ -73,11 +71,11 @@ SWIG_FromCreate_Sequence_dec(int)(int _size, int **_sequence) {
 }
 
 %fragment(SWIG_FromSet_Sequence_frag(int), "header",
-  fragment="SWIG_SciInt32_FromIntArrayAndSize") {
+  fragment="SWIG_SciDouble_FromIntArrayAndSize") {
 
 SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(int)(int _size, int *_sequence) {
-  SwigSciObject obj = SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
+  SwigSciObject obj = SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
   delete (int *)_sequence;
   return obj;
 }
