@@ -1128,6 +1128,13 @@ else
     ;;
   esac
 
+  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Look for Node.js which is the default javascript engine
+  #  without it, the javascript test-suite will be skipped
+  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  AC_CHECK_PROGS(NODEJS, node)
+
   #----------------------------------------------------------------
   # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
   #----------------------------------------------------------------
@@ -2455,6 +2462,9 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 SKIP_JAVASCRIPT=
+if test -z "$JAVASCRIPT" || test -z "$NODEJS"; then
+    SKIP_JAVASCRIPT="1"
+fi
 AC_SUBST(SKIP_JAVASCRIPT)
 
 SKIP_GUILE=
