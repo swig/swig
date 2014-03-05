@@ -14,7 +14,11 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=java
     - compiler: gcc
-      env: SWIGLANG=javascript
+      env: SWIGLANG=javascript ENGINE=node
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=jsc
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=v8
     - compiler: gcc
       env: SWIGLANG=lua
     - compiler: gcc
