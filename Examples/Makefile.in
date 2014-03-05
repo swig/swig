@@ -590,6 +590,86 @@ java_clean:
 	rm -f *.@OBJEXT@ *@JAVASO@
 
 ##################################################################
+#####                       JAVASCRIPT                      ######
+##################################################################
+
+# Note: These targets are also from within Makefiles in the Example directories.
+# There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
+# create a configuration for a new example.
+
+
+ROOT_DIR = @ROOT_DIR@
+JSCFLAGS = @JSCFLAGS@
+JSCXXFLAGS = @JSCXXFLAGS@
+JSINCLUDES = @JSCOREINC@ @JSV8INC@
+JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
+JSLIBRARYPREFIX = @JSLIBRARYPREFIX@
+JSSO =@JSSO@
+JSLDSHARED = @JSLDSHARED@
+JSCXXSHARED = @JSCXXSHARED@
+
+SWIGJS   = $(SWIG) -javascript
+
+# ----------------------------------------------------------------
+# Creating and building Javascript wrappers
+# ----------------------------------------------------------------
+
+javascript_wrapper:
+	$(SWIGJS) $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+
+javascript_wrapper_cpp: $(SRCS)
+	$(SWIGJS) -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+
+javascript_build: $(SRCS)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+javascript_build_cpp:: $(SRCS)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# TODO: make node-gyp configurable and detected via ./configure
+javascript_build_node: $(SRCS)
+	node-gyp --loglevel=silent configure build 1>>/dev/null
+
+# These targets are used by the test-suite:
+
+javascript: $(SRCS) javascript_custom_interpreter
+	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+javascript_cpp: $(SRCS) javascript_custom_interpreter
+	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Running a javascript example
+# -----------------------------------------------------------------
+
+javascript_custom_interpreter:
+	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
+
+javascript_run: javascript_custom_interpreter
+	$(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) runme.js
+
+# TODO: make node configurable and detected via ./configure
+javascript_run_node:
+	node runme.js
+
+# -----------------------------------------------------------------
+# Cleaning the javascript examples
+# -----------------------------------------------------------------
+
+javascript_clean:
+	rm -rf build
+	rm -f *_wrap* runme
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
+	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean)
+
+##################################################################
 #####                       ANDROID                         ######
 ##################################################################
 

@@ -1088,6 +1088,231 @@ AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVACFLAGS)
 
 #----------------------------------------------------------------
+# Look for JAVASCRIPT
+#----------------------------------------------------------------
+AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable JAVASCRIPT]), [with_javascript="$withval"], [with_javascript=yes])
+
+# First, check for "--without-javascript" or "--with-javascript=no".
+if test x"${with_javascript}" = xno -o x"${with_alllang}" = xno ; then
+  AC_MSG_NOTICE([Disabling Javascript])
+  JAVASCRIPT=
+else
+  JAVASCRIPT=1
+
+  #----------------------------------------------------------------
+  # General Javascript settings shared by JSC and V8
+  #----------------------------------------------------------------
+
+  case $host in
+  *-*-cygwin* | *-*-mingw*)
+    JSLIBRARYPREFIX=""
+    ;;
+  *)
+    JSLIBRARYPREFIX="lib"
+    ;;
+  esac
+
+  case $host in
+  *-*-darwin*)
+    JSSO=".dylib"
+    JSLDSHARED='$(CC) -dynamiclib'
+    JSCXXSHARED='$(CXX) -dynamiclib'
+    # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
+    JSINTERPRETERCXX='c++'
+    JSINTERPRETERLINKFLAGS='-g -Wl,-search_paths_first -Wl,-headerpad_max_install_names'
+    ;;
+  *)
+    JSSO=$SO
+    JSLDSHARED='$(LDSHARED)'
+    JSCXXSHARED='$(CXXSHARED)'
+    JSINTERPRETERCXX='$(CXX)'
+    JSINTERPRETERLINKFLAGS='-ldl'
+    ;;
+  esac
+
+  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Look for Node.js which is the default javascript engine
+  #  without it, the javascript test-suite will be skipped
+  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  AC_CHECK_PROGS(NODEJS, node)
+
+  #----------------------------------------------------------------
+  # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for include file JavaScriptCore/JavaScript.h)
+  AC_ARG_WITH(jscoreinc, [  --with-jscinc=path    Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
+
+  if test -z "$JSCOREINCDIR"; then
+    JSCOREINCDIR="/usr/include/ /usr/local/include/"
+
+    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    case $host in
+    *-*-linux*)
+      JSCOREINCDIR="/usr/include/webkit-1.0/ /usr/include/webkitgtk-1.0/ /usr/local/include/webkit-1.0/JavaScriptCore/ $JSCOREINCDIR"
+      ;;
+    *-*-darwin*)
+      JSCOREINCDIR="/System/Library/Frameworks/JavaScriptCore.framework/Headers/ $JSCOREINCDIR"
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  for d in $JSCOREINCDIR ; do
+    if test -r "$d/JavaScriptCore/JavaScript.h" || test -r "$d/JavaScript.h" ; then
+      AC_MSG_RESULT($d)
+      JSCOREINCDIR=$d
+      JSCOREINC=-I\"$d\"
+      break
+    fi
+  done
+
+  if test "$JSCOREINC" = "" ; then
+    AC_MSG_RESULT(not found)
+  fi
+
+  # check for JavaScriptCore/Webkit libraries
+  AC_ARG_WITH(jscorelib,[  --with-jsclib =path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
+
+  # look for the library when not provided
+  if test -z "$JSCORELIB"; then
+    case $host in
+    *-*-linux*)
+      dirs="/usr/lib/ /usr/local/lib/"
+      for i in $dirs ; do
+        if test -r $i/libjavascriptcoregtk-1.0.so; then
+          AC_MSG_RESULT($i)
+          JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
+          break
+        fi
+
+        if test -r $i/libwebkitgtk-1.0.so; then
+          AC_MSG_RESULT($i)
+          JSCORELIB="-L$i -lwebkitgtk-1.0"
+          break
+        fi
+
+        if test -r $i/libwebkit-1.0.la; then
+          AC_MSG_RESULT($i)
+          JSCORELIB="-L$i -lwebkit-1.0"
+          break
+        fi
+      done
+
+      if test -z "$JSCORELIB"; then
+        AC_MSG_RESULT(not found)
+        JSCENABLED=0
+      else
+        JSCOREDYNAMICLINKING="$JSCORELIB"
+        JSCENABLED=1
+      fi
+      ;;
+    *-*-darwin*)
+      JSCOREDYNAMICLINKING="-framework JavaScriptCore"
+      JSCENABLED=1
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  #----------------------------------------------------------------
+  # Look for V8 settings (JSV8INCDIR, JSV8DYNAMICLINKING)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for include file v8.h)
+  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript include directory], [JSV8INCDIR="$withval"])
+
+  # if not include dir is specified we try to find
+  if test -z "$JSV8INCDIR"; then
+    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    case $host in
+    *-*-linux*)
+      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
+      ;;
+    *-*-darwin*)
+      JSV8INCDIR="$JSV8INCDIR"
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  for d in $JSV8INCDIR ; do
+    if test -r "$d/v8.h" ; then
+      JSV8INCDIR=$d
+      JSV8INC=-I\"$d\"
+      break
+    fi
+  done
+
+  if test "$JSV8INC" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+    AC_MSG_RESULT($JSV8INCDIR)
+  fi
+
+  # check for V8 library
+  AC_MSG_CHECKING(for v8 library)
+  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+
+  v8libdirs="$JSV8LIBDIR /usr/lib/ /usr/local/lib/"
+  for d in $v8libdirs ; do
+    if test -r $d/libv8.so; then
+      JSV8LIBDIR=$d
+      JSV8LIB="-L$d -lv8"
+      break
+    fi
+  done
+
+  if test "$JSV8LIB" = "" ; then
+    AC_MSG_RESULT(not found)
+    JSV8ENABLED=0
+  else
+    AC_MSG_RESULT($JSV8LIBDIR)
+    JSV8ENABLED=1
+  fi
+
+
+  # linking options
+  case $host in
+  *-*-darwin*)
+    JSV8DYNAMICLINKING="" # TODO: add osx configuration
+    ;;
+  *-*-linux*)
+    JSV8DYNAMICLINKING="$JSV8LIB"
+    ;;
+  *)
+    JSV8DYNAMICLINKING=""
+    ;;
+  esac
+
+fi
+
+AC_SUBST(JSCFLAGS)
+AC_SUBST(JSCXXFLAGS)
+AC_SUBST(JSLIBRARYPREFIX)
+AC_SUBST(JSSO)
+AC_SUBST(JSLDSHARED)
+AC_SUBST(JSCXXSHARED)
+
+AC_SUBST(JSINTERPRETERCXX)
+AC_SUBST(JSINTERPRETERLINKFLAGS)
+
+AC_SUBST(JSCOREINC)
+AC_SUBST(JSCOREDYNAMICLINKING)
+AC_SUBST(JSV8INC)
+AC_SUBST(JSV8DYNAMICLINKING)
+
+AC_SUBST(JSCENABLED)
+AC_SUBST(JSV8ENABLED)
+
+#----------------------------------------------------------------
 # Look for gcj
 #----------------------------------------------------------------
 
@@ -2238,6 +2463,11 @@ if test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then
 fi
 AC_SUBST(SKIP_JAVA)
 
+SKIP_JAVASCRIPT=
+if test -z "$JAVASCRIPT" || test -z "$NODEJS"; then
+    SKIP_JAVASCRIPT="1"
+fi
+AC_SUBST(SKIP_JAVASCRIPT)
 
 SKIP_GUILE=
 if test -z "$GUILE" || test -z "$GUILE_LIBS" ; then
@@ -2421,6 +2651,8 @@ AC_CONFIG_FILES([
     Examples/test-suite/d/Makefile
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
+    Examples/test-suite/javascript/Makefile
+    Tools/javascript/Makefile
     Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile

@@ -1,0 +1,770 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>SWIG AND JAVASCRIPT</title>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">SWIG AND JAVASCRIPT</h1>
+</div>
+<div class="sectiontoc">
+<div id="TOC">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#preliminaries">Preliminaries</a><ul>
+<li><a href="#using-the-module">Using the module</a></li>
+<li><a href="#how-does-javascript-talk-to-c">How does Javascript talk to C++?</a></li>
+<li><a href="#wrapper-functions">Wrapper functions</a></li>
+<li><a href="#variable-linking">Variable Linking</a></li>
+</ul></li>
+<li><a href="#a-tour-of-basic-cc-wrapping">A tour of basic C/C++ wrapping</a><ul>
+<li><a href="#modules">Modules</a></li>
+<li><a href="#global-variables">Global variables</a></li>
+<li><a href="#constants-and-enums">Constants and enums</a><ul>
+<li><a href="#inside-the-class">Inside the class</a></li>
+</ul></li>
+<li><a href="#pointers">Pointers</a><ul>
+<li><a href="#c-classes">C++ classes</a></li>
+</ul></li>
+<li><a href="#c-inheritance">C++ inheritance</a></li>
+<li><a href="#c-overloaded-functions">C++ overloaded functions</a></li>
+<li><a href="#c-operators">C++ operators</a></li>
+<li><a href="#c-namespaces">C++ namespaces:</a></li>
+<li><a href="#c-templates">C++ templates</a></li>
+<li><a href="#exception-handling">Exception handling</a></li>
+<li><a href="#how-to-use-generated-modules">How to use generated modules?</a><ul>
+<li><a href="#basic-mechanism">Basic Mechanism</a><ul>
+<li><a href="#creating-the-context">Creating the context</a></li>
+</ul></li>
+<li><a href="#calling-module-initializer">Calling module initializer</a></li>
+<li><a href="#evaluate-javascript">Evaluate Javascript</a></li>
+</ul></li>
+<li><a href="#typemaps">Typemaps</a></li>
+<li><a href="#javascript-typemaps">Javascript typemaps</a></li>
+<li><a href="#typemap-variables">Typemap variables</a></li>
+</ul></li>
+<li><a href="#javascript-specification-of-a-code-generator-for-jsc">Javascript: Specification of a Code Generator for JSC</a></li>
+<li><a href="#top-level-structure">Top Level structure</a><ul>
+<li><a href="#includes">INCLUDES</a></li>
+<li><a href="#helper_functions"><code>HELPER_FUNCTIONS</code></a></li>
+<li><a href="#function_wrappers"><code>FUNCTION_WRAPPERS</code></a></li>
+<li><a href="#member-functions">Member Functions</a></li>
+<li><a href="#setproperty">Setproperty</a></li>
+<li><a href="#getproperty">Getproperty</a></li>
+<li><a href="#global-functions">Global Functions</a></li>
+<li><a href="#variable-declaration">Variable declaration</a></li>
+<li><a href="#constructor">Constructor</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div>
+<h1 id="overview"><a href="#TOC">Overview</a></h1>
+<p>This chapter describes SWIG support for Javascript. The module is designed to support JavascriptCore and V8 as target engine. Currently only JavascriptCore support is implemented. JavaScriptCore is the built-in JavaScript engine for WebKit, whereas V8 is the engine used by Chromium.</p>
+<p>JavaScript is a prototype-based scripting language that is dynamic, weakly typed and has first-class functions. Its arguably the most popular language for web development. C++, on the other hand, is statically typed, compiled, general purpose programming language. The approach I followed here is &quot;Test driven&quot; where I have written the examples/test-cases to be supported for Javascript one-by-one and implemented the required module files in parallel. The support for Javascript would be added similar to other supported target languages in swig. Swig comes with an &quot;Examples&quot; directory for Javascript like other supported language. The directory contains examples for every supported feature of the target language. There is also a test-suite directory for javascript which contains additional tests.</p>
+<h1 id="preliminaries"><a href="#TOC">Preliminaries</a></h1>
+<p>In order to use this module, you will need to have installed javascriptcore and you can install it by installing package libwebkit-dev You can find out some necessary compiler/linker flag by</p>
+<pre><code>pkg-config javascriptcoregtk-1.0 --cflags --libs
+</code></pre>
+<h2 id="using-the-module"><a href="#TOC">Using the module</a></h2>
+<p>To generate an extension for JavascriptCore one would call swig as follows</p>
+<pre><code><br />swig -c++ -javascript -jsc example.i
+</code></pre>
+<p>This generates a C++ source file containing the wrapper.</p>
+<h2 id="how-does-javascript-talk-to-c"><a href="#TOC">How does Javascript talk to C++?</a></h2>
+<p>JavascriptCore provides a C-API which allows to extend a Javascript interpreter with native methods and structures. Normally, this is used to implement the builtin features of the language. However, by extending the interpreter, it is also possible to add your own commands and variables. A reference manual of this API can be found <a href="http://developer.apple.com/library/mac/#documentation/Carbon/Reference/WebKit_JavaScriptCore_Ref/_index.html">here</a>.</p>
+<p>Typically, when you add a new command to the javascript interpreter you need to do two things: first you need to write a special &quot;wrapper&quot; function that serves as the glue between the interpreter and the underlying C function. Then you need to give the interpreter information about the wrapper by providing details about the name of the function, arguments, and so forth. The next few sections illustrate the process.</p>
+<h2 id="wrapper-functions"><a href="#TOC">Wrapper functions</a></h2>
+<p>Suppose you have an ordinary C function like this :</p>
+<pre><code><br />int fact(int n) {
+    if (n &lt;= 1) return 1;
+    else return n*fact(n-1);
+}
+</code></pre>
+<p>In order to access this function from a scripting language, it is necessary to write a special &quot;wrapper&quot; function that serves as the glue between the scripting language and the underlying C function. A wrapper function must do three things :</p>
+<ul>
+<li>Gather function arguments and make sure they are valid.</li>
+<li>Call the C function.</li>
+<li>Convert the return value into a form recognized by the javascript.</li>
+</ul>
+<p>As an example, the javascript wrapper function for the fact() function above example might look like the following :</p>
+<pre><code><br />JSValueRef wrap_fact(JSContextRef context, JSObjectRef function, JSObjectRef globalobj, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+  int arg1 = (int)JSValueToNumber(context, argv[0], NULL); 
+  int arg2 = (int)JSValueToNumber(context, argv[1], NULL); 
+  int result = (int)fact(arg1,arg2);
+  JSValueRef jsresult = JSValueMakeNumber(context, result); 
+  return jsresult;
+}
+</code></pre>
+<p>Once you have created a wrapper function, the final step is to tell the javascript about the new function. This is done by register function called by the javascript when the module is loaded. For example, adding the above function to the javascript interpreter requires code like the following :</p>
+<pre><code><br />bool jsc_registerFunction(JSGlobalContextRef context, JSObjectRef object, 
+                        const char* functionName, JSObjectCallAsFunctionCallback callback)
+{
+  JSStringRef js_globalvarsclassname = JSStringCreateWithUTF8CString(globalvarsclassname);
+  JSObjectSetProperty(context,js_globalvarsclassname,JSObjectMakeFunctionWithCallback(context,
+  js_globalvarsclassname, callback), kJSPropertyAttributeNone,NULL);  
+  JSStringRelease(jsstring);
+  return true;
+}
+
+int example_init(JSContextRef context) {
+  JSObjectRef global;
+  ...
+  jsc_registerFunction(context, global,  &quot;fact&quot;, wrap_fact);
+  ...
+}
+</code></pre>
+<p>When executed, javascript will now have a new command called &quot;fact&quot; that you can use like any other Javascript command. Although the process of adding a new function to javascript has been illustrated, the procedure is almost identical for Perl and Python. Both require special wrappers to be written and both need additional initialization code.</p>
+<h2 id="variable-linking"><a href="#TOC">Variable Linking</a></h2>
+<p>Variable linking refers to the problem of mapping a C/C++ global variable to a variable in the scripting language interpreter. For example, suppose you had the following variable:</p>
+<pre><code><br />double Foo = 3.5;
+</code></pre>
+<p>To provide such access, variables are commonly manipulated using a pair of get/set functions. For example, whenever the value of a variable is read, a &quot;get&quot; function is invoked. Similarly, whenever the value of a variable is changed, a &quot;set&quot; function is called.</p>
+<pre><code><br />bool Foo_set(JSContextRef context, JSObjectRef globalobj, JSStringRef propertyName, JSValueRef value, 
+  JSValueRef* exception)
+{
+  JSValueRef jsresult;
+  double arg1 = (double)JSValueToNumber(context, value, NULL); 
+  Foo = arg1;
+  jscresult = JSValueMakeUndefined(context); 
+  return jsresult;
+}
+
+JSValueRef Foo_get(JSContextRef context, JSObjectRef globalobj, JSStringRef propertyName, JSValueRef* exception)
+{
+  JSValueRef jsresult;
+  double result = (double)Foo;
+  jsresult = JSValueMakeNumber(context, result); 
+  return jsresult;
+}
+</code></pre>
+<p>In many languages, calls to the get/set functions can be attached to evaluation and assignment operators. Therefore, evaluating a variable such as Foo might implicitly call the get function. Similarly, typing Foo = 4 would call the underlying set function to change the value.</p>
+<h1 id="a-tour-of-basic-cc-wrapping"><a href="#TOC">A tour of basic C/C++ wrapping</a></h1>
+<p>By default, SWIG tries to build a very natural javascript interface to your C/C++ code. Functions are wrapped as functions, classes are wrapped as classes, and so forth. This section briefly covers the essential aspects of this wrapping.</p>
+<h2 id="modules"><a href="#TOC">Modules</a></h2>
+<p>The SWIG %module directive specifies the name of the Javascript module. If you specify <code>%module example</code>, then everything is wrapped into a Javascript 'example' module. Underneath the covers, this module consists of a cpp source file example.cpp. When choosing a module name, make sure you don't use the same name as a built-in Javascript command or standard module name.</p>
+<h2 id="global-variables"><a href="#TOC">Global variables</a></h2>
+<p>C/C++ global variables are fully supported by SWIG. However, the underlying mechanism is somewhat different than you might expect due to the way that javascript works.</p>
+<pre><code><br />// SWIG interface file with global variables
+%module example
+...
+%inline %{
+extern double Foo;
+extern int  gcd(int x, int y);
+%}
+...
+</code></pre>
+<p>Now look at the javascript:</p>
+<pre><code><br />print(&quot;Global variable Foo=&quot; + example.Foo);
+example.Foo = 3.1415926;
+print(&quot;Variable Foo changed to=&quot; + example.Foo);
+print(&quot;GCD of x and y is=&quot; + example.gcd(x,y));
+</code></pre>
+<h2 id="constants-and-enums"><a href="#TOC">Constants and enums</a></h2>
+<p>C/C++ constants are installed as javascript objects containing the appropriate value. To create a constant, use #define, enum, or the %constant directive. For example:</p>
+<pre><code><br />#define    ICONST      42
+#define    FCONST      2.1828
+%constant int iconst = 37;
+</code></pre>
+<p>In javascript they are treated as:</p>
+<pre><code><br />print(&quot;ICONST  = &quot; + example.ICONST  + &quot; (should be 42)\n&quot;);
+print(&quot;FCONST  = &quot; + example.FCONST  + &quot; (should be 2.1828)\n&quot;);
+print(&quot;iconst  = &quot; + example.iconst  + &quot; (should be 37)\n&quot;); 
+</code></pre>
+<p>For enums, make sure that the definition of the enumeration actually appears in a header file or in the wrapper file somehow---if you just stick an enum in a SWIG interface without also telling the C compiler about it, the wrapper code won't compile. Enums are treated as constants.So if we have enums in c++ as:</p>
+<pre><code><br />void enum_test(color c, Foo::speed s);
+</code></pre>
+<p>In javascript they are treated as:</p>
+<pre><code><br />example.enum_test(example.RED, example.Foo.IMPULSE);
+example.enum_test(example.BLUE,  example.Foo.WARP);
+example.enum_test(example.GREEN, example.Foo.LUDICROUS);
+</code></pre>
+<h3 id="inside-the-class"><a href="#TOC">Inside the class</a></h3>
+<p>For class enums as below:</p>
+<pre><code><br />class Foo {
+public:
+Foo() { }
+enum speed { IMPULSE, WARP, LUDICROUS };
+}
+</code></pre>
+<p>In javascript they are treated as:</p>
+<pre><code><br />print(&quot;    Foo_IMPULSE   =&quot; + example.Foo.IMPULSE);
+print(&quot;    Foo_WARP      =&quot; + example.Foo.WARP);
+print(&quot;    Foo_LUDICROUS =&quot; + example.Foo.LUDICROUS);
+</code></pre>
+<h2 id="pointers"><a href="#TOC">Pointers</a></h2>
+<p>C/C++ pointers are fully supported by SWIG. Furthermore, SWIG has no problem working with incomplete type information. Here is a rather simple interface</p>
+<pre><code><br />/* File : example.i */
+%module example
+%{
+extern void add(int *, int *, int *);
+%}
+</code></pre>
+<p>When wrapped, you will be able to use the functions in a natural way from javascript. For example:</p>
+<pre><code><br />// Call the add() function with some pointers
+example.add(a, b, c);
+</code></pre>
+<p>// In javascript the code look like as:</p>
+<pre><code><br />a = example.new_intp();
+example.intp_assign(a,37);
+</code></pre>
+<ul>
+<li>The first one creates an int-pointer instance.</li>
+<li>The second one assigns it the value 37.</li>
+</ul>
+<h3 id="c-classes"><a href="#TOC">C++ classes</a></h3>
+<p>C++ classes are wrapped by javascript classes as well. For example, if you have this class,</p>
+<pre><code><br />class Circle
+{
+public:
+    Circle();    
+    Circle(double r);    
+    double area();
+    double radius;
+};
+</code></pre>
+<p>you can use it in javascript like this:</p>
+<pre><code><br />print(&quot;Creating some objects:&quot;);
+c = new example.Circle(10);
+print(&quot;area = &quot; + c.area());
+</code></pre>
+<p>Class data members are accessed in the same manner as C structures.</p>
+<p>Static class members and functions are mapped to javascript in a straight-forward manner:</p>
+<pre><code><br />class Spam {
+public:
+   static void foo();
+   static int bar;
+};
+</code></pre>
+<p>In javascript, the static member can be access in this way:</p>
+<pre><code><br />// ----- Access a static member -----
+print(&quot;\nA access of static member is&quot; + example.Spam.Foo); // access static member as properties of the class object.
+</code></pre>
+<h2 id="c-inheritance"><a href="#TOC">C++ inheritance</a></h2>
+<p>SWIG is fully aware of issues related to C++ inheritance. Therefore, if you have classes like this</p>
+<pre><code><br />class A {
+public:
+    void foo();
+    virtual void bar();
+};
+class B: public A {
+public:
+    virtual void bar();
+};
+</code></pre>
+<p>Those classes are wrapped into a hierarchy of javascript classes that reflect the same inheritance structure. All of the usual javascript utility functions work normally:</p>
+<pre><code><br />var a = new example.A();
+a.foo();
+a.bar();
+var b = new example.B();
+b.foo();
+b.bar();
+print(&quot;b.cPtr = &quot; + b.getCPtr());
+</code></pre>
+<h2 id="c-overloaded-functions"><a href="#TOC">C++ overloaded functions</a></h2>
+<p>C++ overloaded functions, methods, and constructors are mostly supported by SWIG. For example, if you have two functions like this:</p>
+<pre><code><br />void f(int val) {
+  std::cout &lt;&lt; &quot;Called f(int).&quot; &lt;&lt; std::endl;
+}
+void f(int val1, int val2) {
+  std::cout &lt;&lt; &quot;Called f(int, int).&quot; &lt;&lt; std::endl;
+}
+void f(const char* s) {
+  std::cout &lt;&lt; &quot;Called f(const char*).&quot; &lt;&lt; std::endl;
+}
+</code></pre>
+<p>You can use them in javascript in a straightforward manner:</p>
+<pre><code><br />example.f(1);
+example.f(1, 2);
+example.f(&quot;bla&quot;);
+</code></pre>
+<h2 id="c-operators"><a href="#TOC">C++ operators</a></h2>
+<p>Certain C++ overloaded operators can be handled automatically by SWIG. Though, in javascript operator overloading is not possible. Instead one has to make use of the <code>%rename</code> feature.</p>
+<p>For example, consider a class like this:</p>
+<pre><code><br />/* File : example.h */
+#include &lt;math.h&gt;
+class Complex {
+private:
+  double rpart, ipart;
+public:
+  Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
+  Complex(const Complex &amp;c) : rpart(c.rpart), ipart(c.ipart) { }
+  Complex &amp;operator=(const Complex &amp;c) {
+    rpart = c.rpart;
+    ipart = c.ipart;
+    return *this;
+  }
+  Complex operator+(const Complex &amp;c) const {
+    return Complex(rpart+c.rpart, ipart+c.ipart);
+  }
+  Complex operator-(const Complex &amp;c) const {
+    return Complex(rpart-c.rpart, ipart-c.ipart);
+  }
+  Complex operator*(const Complex &amp;c) const {
+    return Complex(rpart*c.rpart - ipart*c.ipart,
+           rpart*c.ipart + c.rpart*ipart);
+  }
+  Complex operator-() const {
+    return Complex(-rpart, -ipart);
+  }
+
+  double re() const { return rpart; }
+  double im() const { return ipart; }
+};
+</code></pre>
+<p>When wrapped, it works like you expect:</p>
+<pre><code><br />a = new example.Complex(2,3);
+b = new example.Complex(-5,10);
+
+print (&quot;a   =&quot; + a);
+print (&quot;b   =&quot; + b);
+
+c = a.plus(b);
+
+print(&quot;c   =&quot; + c);
+print(&quot;a*b =&quot; + a.times(b));
+print(&quot;a-c =&quot; + a.minus(c));
+
+e = example.Complex.copy(a.minus(c));
+print(&quot;e   =&quot; + e);
+
+// Big expression
+f = a.plus(b).times(c.plus(b.times(e))).plus(a.uminus());
+print(&quot;f   =&quot; + f);
+</code></pre>
+<p>One restriction with operator overloading support is that SWIG is not able to fully handle operators that aren't defined as part of the class. For example, if you had code like this</p>
+<pre><code><br />class Complex {
+...
+friend Complex operator+(double, const Complex &amp;c);
+...
+};
+</code></pre>
+<p>then SWIG ignores it and issues a warning. You can still wrap the operator, but you may have to encapsulate it in a special function. For example:</p>
+<p>%rename(Complex_add_dc) operator+(double, const Complex &amp;);</p>
+<p>There are ways to make this operator appear as part of the class using the %extend directive.</p>
+<h2 id="c-namespaces"><a href="#TOC">C++ namespaces:</a></h2>
+<p>SWIG is aware of C++ namespaces, but namespace names do not appear in the module nor do namespaces result in a module that is broken up into submodules or packages. For example, if you have a file like this,</p>
+<pre><code><br />%module example
+namespace nspace {
+extern int    gcd(int x, int y);
+extern double Foo;
+class Circle
+{
+public:
+   Circle();
+   Circle(double r);
+   double area();
+   double radius;
+   };
+}
+</code></pre>
+<p>for namespaces, you use the %feature directive in interface file. %feature attaches a new attribute to any parse tree node that matches given prototype.</p>
+<pre><code><br />/* File : example.i */
+%module example
+%{
+#include &quot;example.h&quot;
+%}
+%feature(&quot;nspace&quot;, 1);
+%include &quot;example.h&quot;
+</code></pre>
+<p>it works in javascript as follows:</p>
+<pre><code><br />print(&quot;Global variable Foo=&quot; + example.nspace.Foo);
+example.nspace.Foo = 5;
+print(&quot;Variable Foo changed to &quot; + example.nspace.Foo);
+print(&quot;GCD of number 6,18 is &quot; + example.nspace.gcd(6,18));
+print(&quot;Creating some objects:&quot;);
+c = new example.nspace.Circle(10);
+print(&quot;area = &quot; + c.area());
+</code></pre>
+<p>If your program has more than one namespace, name conflicts (if any) can be resolved using %rename For example:</p>
+<pre><code><br />%rename(Bar_spam) Bar::spam;
+namespace Foo {
+    int spam();
+}
+namespace Bar {
+    int spam();
+}
+</code></pre>
+<p>If you have more than one namespace and your want to keep their symbols separate, consider wrapping them as separate SWIG modules. For example, make the module name the same as the namespace and create extension modules for each namespace separately. If your program utilizes thousands of small deeply nested namespaces each with identical symbol names, well, then you get what you deserve. SWIG resolves overloaded functions and methods using a disambiguation scheme that ranks and sorts declarations according to a set of type-precedence rules. The order in which declarations appear in the input does not matter except in situations where ambiguity arises--in this case, the first declaration takes precedence.</p>
+<h2 id="c-templates"><a href="#TOC">C++ templates</a></h2>
+<p>C++ templates don't present a huge problem for SWIG. However, in order to create wrappers, you have to tell SWIG to create wrappers for a particular template instantiation. To do this, you use the %template directive. For example:</p>
+<pre><code><br />/* File : example.i */
+%module example
+%{
+#include &quot;example.h&quot;
+%}
+/* Let's just grab the original header file here */
+%include &quot;example.h&quot;
+
+/* Now instantiate some specific template declarations */
+%template(maxint) max&lt;int&gt;;
+%template(maxdouble) max&lt;double&gt;;
+%template(vecint) vector&lt;int&gt;;
+%template(vecdouble) vector&lt;double&gt;;
+</code></pre>
+<p>In javascript:</p>
+<pre><code><br />//Call some templated functions
+print(example.maxint(3,7));
+print(example.maxdouble(3.14,2.18));
+
+// Create some class
+
+iv = new example.vecint(100);
+dv = new example.vecdouble(1000);
+
+for(i=0;i&lt;=100;i++)
+      iv.setitem(i,2*i);
+
+for(i=0;i&lt;=1000;i++)
+      dv.setitem(i, 1.0/(i+1));
+
+sum = 0;
+for(i=0;i&lt;=100;i++)
+      sum = sum + iv.getitem(i);
+
+print(sum);
+
+sum = 0.0;
+for(i=0;i&lt;=1000;i++)
+      sum = sum + dv.getitem(i);
+print(sum);
+</code></pre>
+<h2 id="exception-handling"><a href="#TOC">Exception handling</a></h2>
+<p>The SWIG %exception directive can be used to create a user-definable exception handler for converting exceptions in your C/C++ program into javascript exceptions. The chapter on customization features contains more details, but suppose you have a C++ class like the following:</p>
+<p>Since several methods in this class can throw an exception for an out-of-bounds access, you might want to catch this in the javascript extension by writing the following in an interface file:</p>
+<pre><code><br />/* File : example.i */
+%module example
+%{
+#include &quot;example.h&quot;
+%}
+%include &quot;std_string.i&quot;
+
+/* Let's just grab the original header file here */
+%include &quot;example.h&quot;
+</code></pre>
+<p>Actually in JS there is no support for typed exceptions.For now there is support for integer and string exception. Example for integer exception</p>
+<pre><code><br />JSValueRef jsc_gcd(JSContextRef context, JSObjectRef function, JSObjectRef globalobj, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+int arg1 = (int)JSValueToNumber(context, argv[0], NULL);
+int arg2 = (int)JSValueToNumber(context, argv[1], NULL);
+*exception = JSValueMakeNumber(context, 13);
+int result = (int)gcd(arg1,arg2);
+JSValueRef jsresult = JSValueMakeNumber(context, result); 
+</code></pre>
+<p>and for string exception:</p>
+<pre><code><br />JSValueRef wrap_gcd(JSContextRef context, JSObjectRef function, JSObjectRef globalobj, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+int arg1 = (int)JSValueToNumber(context, argv[0], NULL);
+int arg2 = (int)JSValueToNumber(context, argv[1], NULL);
+JSStringRef message = JSStringCreateWithUTF8CString(&quot;This is a test error.&quot;);
+*exception = JSValueMakeString(context, message);
+JSStringRelease(message);
+int result = (int)gcd(arg1,arg2);
+JSValueRef jscresult = JSValueMakeNumber(context, result);
+return jsresult;
+}
+</code></pre>
+<h2 id="how-to-use-generated-modules"><a href="#TOC">How to use generated modules?</a></h2>
+<p>Basically there is no standard extension mechanism in Javascript. We provided a custom interpreter with extension abilities. If JSC is embedded into a custom application, one has to make use of a generated module initializer function that allows easy extension of interpreter. The basic approach is as follows:</p>
+<h3 id="basic-mechanism"><a href="#TOC">Basic Mechanism</a></h3>
+<ul>
+<li>Creating the context</li>
+<li>Calling module initializer</li>
+<li>Evaluate Javascript</li>
+</ul>
+<h4 id="creating-the-context"><a href="#TOC">Creating the context</a></h4>
+<pre><code><br />JSGlobalContextRef context = JSGlobalContextCreate(NULL);
+JSObjectRef globalObject = JSContextGetGlobalObject(context);
+...
+</code></pre>
+<h3 id="calling-module-initializer"><a href="#TOC">Calling module initializer</a></h3>
+<pre><code><br /> extern int example_init(JSGlobalContextRef context);
+ ...
+ example_init(context);
+ ...
+</code></pre>
+<h3 id="evaluate-javascript"><a href="#TOC">Evaluate Javascript</a></h3>
+<pre><code><br />// Evaluate the javascript
+char* scriptContent = jsccreateStringWithContentsOfFile(scriptPath.c_str());
+JSStringRef jsScript;    
+if(!scriptContent) {
+   printf(&quot;FAIL: runme script could not be loaded.\n&quot;);
+        failed = 1;
+    }
+    else {
+        JSValueRef ex;
+        jsScript = JSStringCreateWithUTF8CString(scriptContent);
+        JSValueRef jsResult = JSEvaluateScript(context, jsScript, 0, 0, 0, &amp;ex);        
+        if (!jsResult &amp;&amp; ex) {
+            jsc_printError(context, ex, scriptPath);
+            failed = 1;
+        }
+    }
+    if (scriptContent != NULL) {
+        free(scriptContent);
+    }        
+    JSStringRelease(jsScript);
+    JSGlobalContextRelease(context);
+    globalObject = 0;
+    for(std::vector&lt;HANDLE&gt;::iterator it = loaded_modules.begin();
+      it != loaded_modules.end(); ++it) {
+        HANDLE handle = *it;
+        dlclose(handle);
+    }    
+    if (failed) {
+        printf(&quot;FAIL: Some tests failed.\n&quot;);
+        return 1;
+    }
+}
+</code></pre>
+<h2 id="typemaps"><a href="#TOC">Typemaps</a></h2>
+<p>A typemap is nothing more than a code generation rule that is attached to a specific C datatype. For example, to convert integers from javascript to C, you might define a typemap like this:</p>
+<pre><code><br />%typemap(in) int {
+        $1 = ($1_ltype)JSValueToNumber(context, $input, NULL); %}
+        printf(&quot;Received an integer : %d\n&quot;,$1);
+}
+</code></pre>
+<p>Typemaps are always associated with some specific aspect of code generation. In this case, the &quot;in&quot; method refers to the conversion of input arguments to C/C++. The datatype int is the datatype to which the typemap will be applied. The supplied C code is used to convert values. In this code a number of special variable prefaced by a $ are used. The $1 variable is placeholder for a local variable of type int.</p>
+<h2 id="javascript-typemaps"><a href="#TOC">Javascript typemaps</a></h2>
+<p>The previous section illustrated an &quot;in&quot; typemap for converting javascript objects to C. A variety of different typemap methods are defined by the javascript module. For example, to convert a C integer back into a javascript object, you might define an &quot;out&quot; typemap like this:</p>
+<pre><code><br />%typemap(out) int {
+  $result = JSValueMakeNumber(context, $1);
+}
+</code></pre>
+<p>The Javascript module makes use of Swig's unified template library.</p>
+<h2 id="typemap-variables"><a href="#TOC">Typemap variables</a></h2>
+<p>Within typemap code, a number of special variables prefaced with a $ may appear. A full list of variables can be found in the &quot;Typemaps&quot; chapter. This is a list of the most common variables:</p>
+<p><code>$1</code>: A C local variable corresponding to the actual type specified in the %typemap directive. For input values, this is a C local variable that's supposed to hold an argument value. For output values, this is the raw result that's supposed to be returned to Javascript.</p>
+<p><code>$input</code>: A javascript Object * holding a raw javascript object with an argument or variable value.</p>
+<p><code>$result</code>: A javascript Object * that holds the result to be returned to javascript.</p>
+<p><code>$1_name</code>: The parameter name that was matched.</p>
+<p><code>$1_type</code>: The actual C datatype matched by the typemap.</p>
+<p><code>$1_ltype</code>: An assignable version of the datatype matched by the typemap (a type that can appear on the left-hand-side of a C assignment operation). This type is stripped of qualifiers and may be an altered version of <code>$1_type</code>. All arguments and local variables in wrapper functions are declared using this type so that their values can be properly assigned.</p>
+<p><code>$symname</code>: The javascript name of the wrapper function being created.</p>
+<h1 id="javascript-specification-of-a-code-generator-for-jsc"><a href="#TOC">Javascript: Specification of a Code Generator for JSC</a></h1>
+<p>The module implementation tries to accomplish a separation of logic and code generation by making use of code templates. In the following, the templates are explained.</p>
+<h1 id="top-level-structure"><a href="#TOC">Top Level structure</a></h1>
+<p>The generated code consists of the following blocks:</p>
+<pre><code><br />&lt;RUNTIME&gt;
+&lt;INCLUDES&gt;
+&lt;HELPER_FUNCTIONS&gt;
+&lt;FUNCTION_WRAPPERS&gt;
+&lt;INITIALIZER&gt;
+</code></pre>
+<ul>
+<li><code>RUNTIME</code>: runtime code generated by swig</li>
+<li><code>HELPER_FUNCTIONS</code>: static, from swg-file</li>
+<li><code>INCLUDES</code>: static, module property</li>
+<li><code>FUNCTION_WRAPPERS</code>: dynamically growing, on method declarations</li>
+<li><code>INITIALIZER</code>: dynamically growing, aggregates everything</li>
+</ul>
+<h2 id="includes"><a href="#TOC">INCLUDES</a></h2>
+<pre><code><br />#include &lt;JavaScriptCore/JavaScript.h&gt;
+&lt;USER_DEFINED_INCLUDES&gt;
+</code></pre>
+<p><code>USER_DEFINED_INCLUDES</code>: a module property</p>
+<h2 id="helper_functions"><a href="#TOC"><code>HELPER_FUNCTIONS</code></a></h2>
+<p>A lot of boiler-plate code can be shifted into static helper functions:</p>
+<pre><code><br />bool JS_registerClass(JSGlobalContextRef&amp; context, JSObjectRef&amp; parentObject,const char* className,
+                             JSClassDefinition* definition) {
+    JSStringRef js_className = JSStringCreateWithUTF8CString(className);
+    JSObjectRef classObject = JSObjectMake(context, JSClassCreate(definition), NULL);
+    JSObjectSetProperty(context, parentObject,js_className, classObject,kJSPropertyAttributeNone, NULL);
+    JSStringRelease(js_className);
+    return true;
+}
+
+bool JS_registerNamespace(JSGlobalContextRef&amp; context,JSObjectRef&amp; namespaceObj,JSObjectRef&amp; parentNamespace,const char* name)
+{
+    JSStringRef js_name = JSStringCreateWithUTF8CString(name);
+    JSObjectSetProperty(context, parentNamespace,js_name, namespaceObj,kJSPropertyAttributeNone, NULL);
+    JSStringRelease(js_name);
+    return true;
+}
+
+bool JS_registerFunction(JSGlobalContextRef context, JSObjectRef object, const char* functionName, JSObjectCallAsFunctionCallback callback)
+{
+    JSStringRef js_functionName = JSStringCreateWithUTF8CString(functionName);                  
+    JSObjectSetProperty(context,object,js_functionName,JSObjectMakeFunctionWithCallback(context,
+    js_functionName, callback), kJSPropertyAttributeNone, NULL);
+    JSStringRelease(js_functionName);
+    return true;
+}
+bool JS_veto_set_variable(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
+{
+    char buffer[256];
+    char msg[512];
+    int res;
+    JSStringGetUTF8CString(propertyName, buffer, 256);
+    res = sprintf(msg, &quot;Tried to write read-only variable: %s.&quot;, buffer);
+    if(res&lt;0) {
+      SWIG_exception(SWIG_ERROR, &quot;Tried to write read-only variable.&quot;);
+    } else {
+      SWIG_exception(SWIG_ERROR, msg);
+    }
+    return false;
+}
+
+JSValueRef JS_CharPtrToJSValue(JSContextRef context, char* cstr) {
+  JSValueRef val;
+  JSStringRef jsstring = JSStringCreateWithUTF8CString((char*) cstr);
+  val = JSValueMakeString(context, jsstring);
+  JSStringRelease(jsstring);
+  return val;
+}
+</code></pre>
+<h2 id="function_wrappers"><a href="#TOC"><code>FUNCTION_WRAPPERS</code></a></h2>
+<p>There are different types of function wrappers: - Member Functions - Getproperty / Setproperty - Global Functions (global/namespace/class) - Constructors / Destructors</p>
+<h2 id="member-functions"><a href="#TOC">Member Functions</a></h2>
+<pre><code><br />JSValueRef ${functionname}(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+  ${LOCALS}
+  ${CODE}
+  return jsresult;
+
+  goto fail;
+  fail:
+  return NULL;  
+}
+</code></pre>
+<ul>
+<li><code>functionname</code>: the name of generated wrapper for function</li>
+<li><code>LOCALS</code>: declarations for input arguments</li>
+<li><code>CODE</code>: contains input marshalling, the action, and output marshalling</li>
+</ul>
+<h2 id="setproperty"><a href="#TOC">Setproperty</a></h2>
+<pre><code><br />bool ${setname}(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
+{
+   ${LOCALS}
+   ${CODE}
+   return jsresult;
+
+   goto fail;
+   fail:
+   return NULL;  
+}
+</code></pre>
+<ul>
+<li><code>setname</code>: the name of the generated wrapper for setproperty.</li>
+<li><code>LOCALS</code>: declarations for input arguments</li>
+<li><code>CODE</code>: contains input marshalling, and the action</li>
+</ul>
+<h2 id="getproperty"><a href="#TOC">Getproperty</a></h2>
+<pre><code><br />JSValueRef ${getname}(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+{
+  ${LOCALS}
+  ${CODE}
+  return jsresult;
+
+  goto fail;
+  fail:
+  return NULL;  
+}
+</code></pre>
+<ul>
+<li><code>getname</code>: the name of the generated wrapper for the getproperty</li>
+<li><code>LOCALS</code>: declarations for output arguments</li>
+<li><code>CODE</code>: contains the action, and output marshalling</li>
+</ul>
+<h2 id="global-functions"><a href="#TOC">Global Functions</a></h2>
+<pre><code><br />JSStaticValue ${namespace}_values[] = {
+  ${jsglobalvariables}
+  { 0, 0, 0, 0 }
+};
+JSStaticFunction ${namespace}_functions[] = {
+  ${jsglobalfunctions}
+  { 0, 0, 0 }
+};
+JSClassDefinition ${namespace}_classDefinition;
+</code></pre>
+<h2 id="variable-declaration"><a href="#TOC">Variable declaration</a></h2>
+<pre><code><br />{&quot;${propertyname}&quot;,${getname}, ${setname}, kJSPropertyAttributeNone}
+</code></pre>
+<p>This is used to fill variable definition tables. <code>kJSPropertyAttributeNone</code> is JSC specific and means that the variable has a getter and setter. Even for read-only variables a setter is used which throws an exception.</p>
+<h2 id="constructor"><a href="#TOC">Constructor</a></h2>
+<p>~<sub>~</sub></p>
+<p>JSObjectRef <em>wrap_create</em><span class="math"><em>c</em><em>l</em><em>a</em><em>s</em><em>s</em><em>n</em><em>a</em><em>m</em><em>e</em><sub><em>m</em></sub><em>a</em><em>n</em><em>g</em><em>l</em><em>e</em><em>d</em></span>{overloadext}(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception) { ${LOCALS} <span class="math">${CODE} return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$</span>{type_mangled}, SWIG_POINTER_OWN);</p>
+<pre><code>goto fail;
+fail:
+return NULL;
+</code></pre>
+<p>}</p>
+<pre><code>- `classname_mangled` is the mangled qualified class name,   e.g., `foo::A -&gt; foo_A`
+- `LOCALS`: declarations for input arguments 
+- `CODE`: contains input marshalling, and the action 
+
+## Destructors
+</code></pre>
+<p>void <em>wrap</em><span class="math">${classname_mangled}_finalize(JSObjectRef thisObject) { SWIG_PRV_DATA* t = (SWIG_PRV_DATA*)JSObjectGetPrivate(thisObject); if(t &amp;&amp; t-&gt;swigCMemOwn) delete ($</span>{type}*)(t-&gt;swigCObject); if(t) delete t; }</p>
+<pre><code><br />- `classname_mangled` is the mangled qualified class name,   e.g., `foo::A -&gt; foo_A`
+
+## Initializer
+</code></pre>
+<p>bool ${modulename}_initialize(JSGlobalContextRef context) { SWIG_InitializeModule(0);</p>
+<pre><code>JSObjectRef global_object = JSContextGetGlobalObject(context);
+
+/* Initialize the base swig type object */
+_SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
+_SwigObject_objectDefinition.staticValues = _SwigObject_values;
+_SwigObject_classRef = JSClassCreate(&amp;_SwigObject_objectDefinition);
+
+/* Create objects for namespaces */
+${create_namespaces}
+
+/* Create classes */
+${initializercode}
+
+/* Register namespaces */
+${register_namespaces}
+
+return true;
+</code></pre>
+<p>}</p>
+<pre><code><br />## Class template defintions
+
+A class is specified by a static part (`*_classDefinition`) and a dynamic part (`*_objectDefinition`).
+</code></pre>
+<p>${classname_mangled}_classDefinition.staticFunctions = ${classname_mangled}_staticFunctions; ${classname_mangled}_classDefinition.staticValues = ${classname_mangled}_staticValues; <span class="math">${classname_mangled}_classDefinition.callAsConstructor = _wrap_create_$</span>{classname_mangled}; ${classname_mangled}_objectDefinition.staticValues = ${classname_mangled}_values; ${classname_mangled}_objectDefinition.staticFunctions = ${classname_mangled}_functions; ${classname_mangled}_objectDefinition.parentClass = ${base_classname}_classRef; JSClassRef <span class="math">${classname_mangled}_classRef = JSClassCreate(&amp;$</span>{classname_mangled}<em>objectDefinition); SWIGTYPE</em>${classtype_mangled}-&gt;clientdata = ${classname_mangled}_classRef;%}</p>
+<pre><code><br />Notes:
+- `classname_mangled` is the mangled qualified class name,   e.g., `foo::A -&gt; foo_A`
+  which is retrieved by `Swig_name_mangle(Getattr(n, &quot;name&quot;))` 
+- ClassDefinitions are built using the staticValues array and the staticFunction array. The staticValues and  staticFunctions arrays are the simplest and most efficient means for vending custom properties to the class object.
+
+## Inheritance
+</code></pre>
+<p>{${classname_mangled}_objectDefinition.parentClass = ${base_classname}_classRef};</p>
+<pre><code><br />- `classname_mangled` is the mangled qualified class name,   e.g., `foo::A -&gt; foo_A`
+- Note: multiple inheritance is not possible; thus we will always take the first parent class 
+
+## Namespaces
+
+Namespaces are objects without class templates. i.e., instances are created, referenced locally, used as contexts for other registrations, and stored in the according parent contexts.
+</code></pre>
+<p>${namespace}_classDefinition.staticFunctions = ${namespace}_functions; ${namespace}_classDefinition.staticValues = ${namespace}_values; JSObjectRef <span class="math">${namespace}_object = JSObjectMake(context, JSClassCreate(&amp;$</span>{namespace}_classDefinition), NULL);</p>
+<pre><code><br />## Registration
+
+The registration part consists of registering classes at contexts (i.e., global or namespace), methods and properties at classes or contexts, and namespaces as objects at parent contexts. 
+
+* Global functions
+</code></pre>
+<p>JS_registerFunction(${context}, <span class="math">${context_object}, &quot;$</span>{functionname}&quot;, ${functionwrapper}</p>
+<pre><code><br />* Classes
+</code></pre>
+<p>JS_registerClass(context, <span class="math">${namespace}_object, &quot;$</span>{classname}&quot;, &amp;${classname_mangled}_classDefinition)</p>
+<pre><code><br />Note: every class template has an associated constructor function wrapper, which is registered here 
+
+* Namespaces
+</code></pre>
+<p>${namespace}_classDefinition.staticFunctions = ${namespace}_functions; ${namespace}_classDefinition.staticValues = ${namespace}_values; JSObjectRef <span class="math">${namespace}_object = JSObjectMake(context, JSClassCreate(&amp;$</span>{namespace}_classDefinition), NULL);</p>
+<pre><code><br />Namespaces are registered using:
+</code></pre>
+<p>JS_registerNamespace(context, ${namespace}_object, <span class="math">${parent_namespace}_object, &quot;$</span>{namespace}&quot;);</p>
+<p>~<sub>~</sub></p>
+</div>
+</body>
+</html>

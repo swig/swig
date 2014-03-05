@@ -1,0 +1,22 @@
+Loaded swig printers
+SwigStringPrinter: Could not convert const char* to string
+SwigListIterator: Construction failed.
+ Cannot access memory at address 0x7d894828ec834853.
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not convert const char* to string
+SwigListIterator: Construction failed.
+ Cannot access memory at address 0x7d894828ec834853.
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not dereference struct String*
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not dereference struct String*
+SwigStringPrinter: Could not dereference struct String*
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not dereference struct String*
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not convert const char* to string
+SwigStringPrinter: Could not dereference struct String*
+SwigStringPrinter: Could not dereference struct String*

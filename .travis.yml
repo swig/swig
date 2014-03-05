@@ -1,6 +1,5 @@
-language: cpp
+language: c
 compiler:
-  - clang
   - gcc
 env:
   - SWIGLANG=
@@ -14,6 +13,12 @@ matrix:
       env: SWIGLANG=guile
     - compiler: gcc
       env: SWIGLANG=java
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=node
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=jsc
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=v8
     - compiler: gcc
       env: SWIGLANG=lua
     - compiler: gcc
@@ -43,6 +48,7 @@ before_install:
   - if test -z "$SWIGLANG"; then sudo apt-get -qq install yodl; fi
   - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
   - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
+  - if test "$SWIGLANG" = "javascript"; then sudo apt-get install -qq rlwrap python-software-properties && echo 'yes' | sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get -qq update && sudo apt-get install -qq nodejs libv8-dev libwebkitgtk-dev && sudo npm install -g node-gyp; fi
   - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
