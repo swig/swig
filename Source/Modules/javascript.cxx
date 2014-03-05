@@ -492,6 +492,14 @@ int JAVASCRIPT::top(Node *n) {
   return SWIG_OK;
 }
 
+static const char *usage = (char *) "\
+Javascript Options (available with -javascript)\n\
+     -jsc                   - creates a JavascriptCore extension \n\
+     -v8                    - creates a v8 extension \n\
+     -node                  - creates a node.js extension \n\
+     -debug-codetemplates   - generates information about the origin of code templates.\n";
+
+
 /* ---------------------------------------------------------------------
  * main()
  *
@@ -522,6 +530,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
+      } else if (strcmp(argv[i], "-help") == 0) {
+        fputs(usage, stdout);
+        return;
       }
     }
   }
@@ -704,14 +715,18 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       if (GetFlag(n, "allocate:smartpointeraccess")) {
         is_static = false;
       }
-      bool is_setter = GetFlag(n, "wrap:issetter");
+
+      bool is_member = GetFlag(n, "ismember");
+      bool is_setter = GetFlag(n, "memberset") || GetFlag(n, "varset");
+      bool is_getter = GetFlag(n, "memberget") || GetFlag(n, "varget");
       if (is_setter) {
-        bool is_member = GetFlag(n, "memberset");
         ret = emitSetter(n, is_member, is_static);
-      } else {
-        bool is_member = GetFlag(n, "memberget");
+      } else if (is_getter) {
         ret = emitGetter(n, is_member, is_static);
+      } else {
+        Swig_print_node(n);
       }
+
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type\n");
       Swig_print_node(n);

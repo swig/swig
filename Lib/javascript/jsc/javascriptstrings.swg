@@ -78,6 +78,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
+       SWIG_CharBufLen,
 			 SWIG_NewCopyCharArray,
 			 SWIG_DeleteCharArray,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
@@ -167,6 +168,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
                  SWIG_AsCharPtrAndSize,
                  SWIG_FromCharPtrAndSize,
                  SWIG_CharPtrLen,
+                 SWIG_CharBufLen,
                  SWIG_As##CharName##Ptr,
                  SWIG_From##CharName##Ptr,
                  SWIG_As##CharName##Array,
