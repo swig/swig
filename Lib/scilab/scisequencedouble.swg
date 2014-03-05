@@ -6,8 +6,7 @@
 
 %include <scidouble.swg>
 
-%fragment(SWIG_AsCheck_Sequence_frag(double), "header",
-  fragment="SWIG_SciDouble_AsDoubleArrayAndSize") {
+%fragment(SWIG_AsCheck_Sequence_frag(double), "header") {
 
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(double)(SwigSciObject _obj) {

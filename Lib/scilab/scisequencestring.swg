@@ -6,8 +6,7 @@
 
 %include <scichar.swg>
 
-%fragment(SWIG_AsCheck_Sequence_frag(std::string), "header",
-  fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
+%fragment(SWIG_AsCheck_Sequence_frag(std::string), "header") {
 
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {

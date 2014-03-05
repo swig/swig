@@ -6,8 +6,7 @@
 
 %include <scibool.swg>
 
-%fragment(SWIG_AsCheck_Sequence_frag(bool), "header",
-  fragment="SWIG_SciInt32_AsIntArrayAndSize") {
+%fragment(SWIG_AsCheck_Sequence_frag(bool), "header") {
 
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(bool)(SwigSciObject _obj) {

@@ -7,6 +7,7 @@
 %include <sciint.swg>
 
 %fragment(SWIG_AsCheck_Sequence_frag(int), "header") {
+
 SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
   SciErr sciErr;
@@ -32,7 +33,6 @@ SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
 
 %fragment(SWIG_AsGet_Sequence_frag(int), "header",
   fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") {
-
 SWIGINTERN int
 SWIG_AsGet_Sequence_dec(int)(SwigSciObject _obj, int **_pSequence) {
   int iMatrixRowCount;
