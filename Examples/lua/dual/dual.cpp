@@ -36,6 +36,10 @@ extern "C" int luaopen_example2(lua_State*L);
 #define DEBUG2(X,Y) {printf(X,Y);fflush(stdout);}
 #define DEBUG3(X,Y,Z) {printf(X,Y,Z);fflush(stdout);}
 
+#if LUA_VERSION_NUM > 501
+#define lua_open luaL_newstate
+#endif
+
 void testModule(lua_State *L)
 {
   swig_type_info *pTypeInfo=0,*pTypeInfo2=0;

@@ -602,7 +602,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
   Typetab *s;
   Hash *ttab;
   String *namebase = 0;
-  String *nameprefix = 0;
+  String *nameprefix = 0, *rnameprefix = 0;
   int newtype = 0;
 
   resolved_scope = 0;
@@ -647,51 +647,66 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	Printf(stdout, "nameprefix = '%s'\n", nameprefix);
 #endif
 	if (nameprefix) {
-	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
-	  String *rnameprefix = template_parameters_resolve(nameprefix);
-	  nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
-	  Delete(rnameprefix);
-	  s = SwigType_find_scope(s, nameprefix);
-
-	  /* Couldn't locate a scope for the type.  */
-	  if (!s) {
-	    Delete(base);
-	    Delete(namebase);
-	    Delete(nameprefix);
-	    r = 0;
-	    goto return_result;
-	  }
-	  /* Try to locate the name starting in the scope */
+	  rnameprefix = SwigType_typedef_resolve(nameprefix);
+	  if(rnameprefix != NULL) {
 #ifdef SWIG_DEBUG
-	  Printf(stdout, "namebase = '%s'\n", namebase);
+	    Printf(stdout, "nameprefix '%s' is a typedef to '%s'\n", nameprefix, rnameprefix);
 #endif
-	  type = typedef_resolve(s, namebase);
-	  if (type && resolved_scope) {
-	    /* we need to look for the resolved type, this will also
-	       fix the resolved_scope if 'type' and 'namebase' are
-	       declared in different scopes */
-	    String *rtype = 0;
-	    rtype = typedef_resolve(resolved_scope, type);
-	    if (rtype)
-	      type = rtype;
-	  }
-#ifdef SWIG_DEBUG
-	  Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
-#endif
-	  if (type && (!Swig_scopename_check(type)) && resolved_scope) {
-	    Typetab *rtab = resolved_scope;
-	    String *qname = Getattr(resolved_scope, "qname");
-	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
-	    if ((qname) && typedef_resolve(resolved_scope, type)) {
-	      type = Copy(type);
-	      Insert(type, 0, "::");
-	      Insert(type, 0, qname);
-#ifdef SWIG_DEBUG
-	      Printf(stdout, "qual %s \n", type);
-#endif
-	      newtype = 1;
+	    type = Copy(namebase);
+	    Insert(type, 0, "::");
+	    Insert(type, 0, rnameprefix);
+	    if (strncmp(Char(type), "::", 2) == 0) {
+	      Delitem(type, 0);
+	      Delitem(type, 0);
 	    }
-	    resolved_scope = rtab;
+	    newtype = 1;
+	  } else {
+	    /* Name had a prefix on it.   See if we can locate the proper scope for it */
+	    String *rnameprefix = template_parameters_resolve(nameprefix);
+	    nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
+	    Delete(rnameprefix);
+	    s = SwigType_find_scope(s, nameprefix);
+
+	    /* Couldn't locate a scope for the type.  */
+	    if (!s) {
+	      Delete(base);
+	      Delete(namebase);
+	      Delete(nameprefix);
+	      r = 0;
+	      goto return_result;
+	    }
+	    /* Try to locate the name starting in the scope */
+#ifdef SWIG_DEBUG
+	    Printf(stdout, "namebase = '%s'\n", namebase);
+#endif
+	    type = typedef_resolve(s, namebase);
+	    if (type && resolved_scope) {
+	      /* we need to look for the resolved type, this will also
+	         fix the resolved_scope if 'type' and 'namebase' are
+	         declared in different scopes */
+	      String *rtype = 0;
+	      rtype = typedef_resolve(resolved_scope, type);
+	      if (rtype)
+	        type = rtype;
+	    }
+#ifdef SWIG_DEBUG
+	    Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
+#endif
+	    if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
+	      Typetab *rtab = resolved_scope;
+	      String *qname = Getattr(resolved_scope, "qname");
+	      /* If qualified *and* the typename is defined from the resolved scope, we qualify */
+	      if ((qname) && typedef_resolve(resolved_scope, type)) {
+	        type = Copy(type);
+	        Insert(type, 0, "::");
+	        Insert(type, 0, qname);
+#ifdef SWIG_DEBUG
+	        Printf(stdout, "qual %s \n", type);
+#endif
+	        newtype = 1;
+	      }
+	      resolved_scope = rtab;
+	    }
 	  }
 	} else {
 	  /* Name is unqualified. */
@@ -1282,6 +1297,8 @@ int SwigType_type(const SwigType *t) {
   if (strncmp(c, "p.", 2) == 0) {
     if (SwigType_type(c + 2) == T_CHAR)
       return T_STRING;
+    else if (SwigType_type(c + 2) == T_WCHAR)
+      return T_WSTRING;
     else
       return T_POINTER;
   }
@@ -1289,6 +1306,8 @@ int SwigType_type(const SwigType *t) {
     return T_ARRAY;
   if (strncmp(c, "r.", 2) == 0)
     return T_REFERENCE;
+  if (strncmp(c, "z.", 2) == 0)
+    return T_RVALUE_REFERENCE;
   if (strncmp(c, "m(", 2) == 0)
     return T_MPOINTER;
   if (strncmp(c, "q(", 2) == 0) {
@@ -1322,6 +1341,8 @@ int SwigType_type(const SwigType *t) {
     return T_SCHAR;
   if (strcmp(c, "unsigned char") == 0)
     return T_UCHAR;
+  if (strcmp(c, "wchar_t") == 0)
+    return T_WCHAR;
   if (strcmp(c, "float") == 0)
     return T_FLOAT;
   if (strcmp(c, "double") == 0)
@@ -1344,6 +1365,8 @@ int SwigType_type(const SwigType *t) {
     return T_ULONGLONG;
   if (strncmp(c, "enum ", 5) == 0)
     return T_INT;
+  if (strcmp(c, "auto") == 0)
+    return T_AUTO;
 
   if (strcmp(c, "v(...)") == 0)
     return T_VARARGS;
@@ -1373,13 +1396,13 @@ int SwigType_type(const SwigType *t) {
  *
  *  2.- swig doesn't mark 'type' as non-assignable.
  *
- *  3.- the user specify that the value wrapper is not needed by using
- *      the %feature("novaluewrapper"), in that case the user need to type
+ *  3.- the user specifies that the value wrapper is not needed by using
+ *      %feature("novaluewrapper") like so:
  *
  *        %feature("novaluewrapper") MyOpaqueClass;
  *        class MyOpaqueClass;
  *
- * Users can also force the use of the value wrapper by using the
+ * The user can also force the use of the value wrapper with
  * %feature("valuewrapper").
  * ----------------------------------------------------------------------------- */
 
@@ -1619,6 +1642,11 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   if (SwigType_isreference(t)) {
     SwigType *tt = Copy(t);
     SwigType_del_reference(tt);
+    SwigType_add_pointer(tt);
+    SwigType_remember_clientdata(tt, clientdata);
+  } else if (SwigType_isrvalue_reference(t)) {
+    SwigType *tt = Copy(t);
+    SwigType_del_rvalue_reference(tt);
     SwigType_add_pointer(tt);
     SwigType_remember_clientdata(tt, clientdata);
   }

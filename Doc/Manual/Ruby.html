@@ -259,14 +259,22 @@ operating system would look something like this: </p>
 
 <div class="code shell">
 <pre>$ swig -ruby example.i
-$ gcc -c example.c
-$ gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux
+$ gcc -O2 -fPIC -c example.c
+$ gcc -O2 -fPIC -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux
 $ gcc -shared example.o example_wrap.o -o example.so
 </pre>
 </div>
 
-<p> For other platforms it may be necessary to compile with the <tt>-fPIC</tt>
-option to generate position-independent code. If in doubt, consult the
+<p>
+The -fPIC option tells GCC to generate position-independent code (PIC)
+which is required for most architectures (it's not vital on x86, but
+still a good idea as it allows code pages from the library to be shared between
+processes).  Other compilers may need a different option specified instead of
+-fPIC.
+</p>
+
+<p>
+If in doubt, consult the
 manual pages for your compiler and linker to determine the correct set
 of options. You might also check the <a href="http://www.dabeaz.com/cgi-bin/wiki.pl">SWIG Wiki</a>
 for additional information. </p>
@@ -325,8 +333,8 @@ using the C++ compiler. For example: </p>
 <div class="code shell">
 <pre>
 $ swig -c++ -ruby example.i
-$ g++ -c example.cxx
-$ g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux
+$ g++ -fPIC -c example.cxx
+$ g++ -fPIC -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux
 $ g++ -shared example.o example_wrap.o -o example.so
 </pre>
 </div>

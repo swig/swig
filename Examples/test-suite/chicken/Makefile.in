@@ -69,17 +69,17 @@ SWIGOPT += -nounit
 	$(run_testcase)
 
 %.cppproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test) with -proxy"
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.cproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test) with -proxy"
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multiproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test) with -proxy"
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 

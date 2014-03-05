@@ -38,6 +38,8 @@ for o in [c,s]:
       print "   ", o
       print "        area      = ", o.area()
       print "        perimeter = ", o.perimeter()
+# prevent o from holding a reference to the last object looked at
+o = None
 
 print "\nGuess I'll clean up now"
 
@@ -45,7 +47,5 @@ print "\nGuess I'll clean up now"
 del c
 del s
 
-s = 3
 print example.cvar.Shape_nshapes,"shapes remain"
 print "Goodbye"
-

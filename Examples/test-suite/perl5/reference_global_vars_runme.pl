@@ -53,12 +53,13 @@ $cvar->{var_unsigned_long} = createref_unsigned_long(10);
 is(value_unsigned_long($cvar->{var_unsigned_long}), 10);
 
 SKIP: {
-	my $a = "6FFFFFFFFFFFFFF8";
+	use Math::BigInt qw();
 	skip "64 bit int support", 1 unless eval { pack 'q', 1 };
-	# using hex() here instead of a literal because non 64bit Perls will
-	# be noisy about big constants.
-	$cvar->{var_long_long} = createref_long_long(hex $a);
-	is(value_long_long($cvar->{var_long_long}), hex $a);
+	# the pack dance is to get plain old IVs out of the
+	# Math::BigInt objects.
+	my $a = unpack 'q', pack 'q', Math::BigInt->new('8070450532247928824');
+	$cvar->{var_long_long} = createref_long_long($a);
+	is(value_long_long($cvar->{var_long_long}), $a);
 }
 
 #ull = abs(0xFFFFFFF2FFFFFFF0)

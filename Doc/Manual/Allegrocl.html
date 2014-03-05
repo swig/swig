@@ -748,7 +748,7 @@ namespace car {
     
     <p>
       Constants, as declared by the preprocessor #define macro or SWIG
-      <tt>%constant</tt> directive, are included in SWIGs parse tree
+      <tt>%constant</tt> directive, are included in SWIG's parse tree
       when it can be determined that they are, or could be reduced to,
       a literal value. Such values are translated into defconstant
       forms in the generated lisp wrapper when the -nocwrap command-line
@@ -887,7 +887,7 @@ globalvar&gt; (globalvar.nnn::glob_float)
     <p>
       In C, an enumeration value is an integer value, while in C++ an
       enumeration value is implicitly convertible to an integer value,
-      but can also be distinguished by it's enum type. For each enum
+      but can also be distinguished by its enum type. For each enum
       declaration a def-foreign-type is generated, assigning the enum
       a default type of :int. Users may adjust the foreign type of
       enums via SWIG <tt>typemaps</tt>.
@@ -901,7 +901,7 @@ globalvar&gt; (globalvar.nnn::glob_float)
       of it not being necessary to probe into foreign space to retrieve enum
       values. When generating a .cxx wrapper file, a more general solution is
       employed. A wrapper variable is created in the module_wrap.cxx file, and
-      a ff:def-foreign-variable call is generated to retrieve it's value into lisp. 
+      a ff:def-foreign-variable call is generated to retrieve its value into lisp.
     </p>
 
     <p>For example, the following header file
@@ -1131,7 +1131,7 @@ namespace BAR {
       inheritance of the classes in foreign code, with the
       ff:foreign-pointer class at its root. ff:foreign-pointer is a thin
       wrapper for pointers that is made available by the foreign function
-      interface. It's key benefit is that it may be passed as an argument
+      interface. Its key benefit is that it may be passed as an argument
       to any ff:def-foreign-call that is expecting a pointer as the
       parameter.
     </p>
@@ -1617,7 +1617,7 @@ opoverload&gt;
       directive. This directive allows you to specify a (finite)
       argument list which will be inserted into the wrapper in place
       of the variable length argument indicator.  As an example,
-      consider the function <tt>printf()</tt>. It's declaration would
+      consider the function <tt>printf()</tt>. Its declaration would
       appear as follows:
     </p>
 
@@ -1735,7 +1735,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
       The <tt>out</tt> typemap is used to generate code to form the
       return value of the wrapper from the return value of the wrapped
       function. This code is placed in the &lt;convert and bind result to lresult&gt;
-      section of the above code diagram. It's default mapping is as follows:
+      section of the above code diagram. Its default mapping is as follows:
     </p>
 
     <div class="code">
@@ -1758,7 +1758,7 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     <p>
       This typemap is not used for code generation, but purely for the
       transformation of types in the parameter list of the wrapper function.
-      It's primary use is to handle by-value to by-reference conversion in the
+      Its primary use is to handle by-value to by-reference conversion in the
       wrappers parameter list. Its default settings are:
     </p>
 
@@ -2093,7 +2093,7 @@ foreign environment.
 
 <p>
 The :type keyword argument provides more information on the type of
-identifier. It's value is a symbol. This allows the
+identifier. Its value is a symbol. This allows the
 identifier-converter to apply different heuristics when mapping
 different types of identifiers to symbols. SWIG will generate calls
 to your identifier-converter using the following types.
@@ -2123,7 +2123,7 @@ scope in the specified class.
 
 <p>
 The :arity keyword argument only appears in swig:swig-defmethod forms
-generated for overloaded functions. It's value is an integer
+generated for overloaded functions. Its value is an integer
 indicating the number of arguments passed to the routine indicated by
 this identifier.
 </p>

@@ -130,7 +130,7 @@ public:
 
 <p>To create the wrapper properly, module <tt>derived_module</tt> needs to know about the
 <tt>base</tt> class and that its interface is covered in another module. The
-line <tt>%import "base_module.i"</tt> lets SWIG know exactly that. Oftentimes
+line <tt>%import "base_module.i"</tt> lets SWIG know exactly that. Often
 the <tt>.h</tt> file is passed to <tt>%import</tt> instead of the <tt>.i</tt>, 
 which unfortunately doesn't work for all language modules. For example, Python requires the
 name of module that the base class exists in so that the proxy classes can fully inherit the

@@ -34,13 +34,33 @@
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
+%typemap(in) SWIGTYPE && {
+    /* %typemap(in) SWIGTYPE && */
+    $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
+}
+
 %typemap(varin) SWIGTYPE & {
     /* %typemap(varin) SWIGTYPE & */
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
 }
 
+%typemap(varin) SWIGTYPE && {
+    /* %typemap(varin) SWIGTYPE && */
+    $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
+}
+
 %typemap(out) SWIGTYPE & {
     /* %typemap(out) SWIGTYPE & */
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
+    } else {
+	$result = caml_val_ptr ((void *) &$1,$1_descriptor);
+    }
+}
+
+%typemap(out) SWIGTYPE && {
+    /* %typemap(out) SWIGTYPE && */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *) &$1,$1_descriptor));
@@ -63,9 +83,23 @@
 			     caml_val_ptr ((void *) $1,$1_descriptor));
     }
 }
+%typemap(argout) SWIGTYPE && {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    if( fromval ) {
+	swig_result =
+	    caml_list_append(swig_result,
+			     callback(*fromval,caml_val_ptr((void *) $1,
+							    $1_descriptor)));
+    } else {
+	swig_result =
+	    caml_list_append(swig_result,
+			     caml_val_ptr ((void *) $1,$1_descriptor));
+    }
+}
 #endif
 
 %typemap(argout) const SWIGTYPE & { }
+%typemap(argout) const SWIGTYPE && { }
 
 %typemap(in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
@@ -112,6 +146,7 @@
 }
 
 %apply SWIGTYPE { const SWIGTYPE & };
+%apply SWIGTYPE { const SWIGTYPE && };
 
 #endif
 
@@ -329,6 +364,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

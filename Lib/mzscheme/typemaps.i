@@ -23,6 +23,10 @@
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
+%typemap(varin) SWIGTYPE && {
+  $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
+}
+
 %typemap(varin) SWIGTYPE [ANY] {
   void *temp;
   int ii;
@@ -54,16 +58,20 @@
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
 }
 
+%typemap(varout) SWIGTYPE && {
+  $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
+}
+
 /* C++ References */
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE &, const SWIGTYPE & { 
+%typemap(in) SWIGTYPE &, SWIGTYPE && { 
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
   if ($1 == NULL) scheme_signal_error("swig-type-error (null reference)");
 }
 
-%typemap(out) SWIGTYPE &, const SWIGTYPE & {
+%typemap(out) SWIGTYPE &, SWIGTYPE && {
   $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
 }
 
@@ -321,7 +329,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
   $1 = (SCHEME_STRINGP($input)) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
@@ -351,6 +359,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

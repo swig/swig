@@ -3,10 +3,7 @@
 %include <std_alloc.i>
 %include <std_char_traits.i>
 
-
-%{
-#include <string>
-%}
+%fragment("<string>");
 
 namespace std
 {

@@ -165,7 +165,7 @@ t.var_paramc = sct_paramc
 t.v_check()
 
 # this value contains a '0' char!
-if def_namet != 'ho\0la':
+if def_namet != 'hola':
   print "bad namet", def_namet
   raise RuntimeError
 
@@ -174,9 +174,9 @@ if t.var_namet != def_namet:
   print "bad namet", t.var_namet, def_namet
   raise RuntimeError
 
-t.var_namet = 'holac'
+t.var_namet = 'hola'
 
-if t.var_namet != 'holac':
+if t.var_namet != 'hola':
   print "bad namet", t.var_namet
   raise RuntimeError
 

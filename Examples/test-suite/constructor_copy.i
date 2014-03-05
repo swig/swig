@@ -94,14 +94,16 @@ public:
 
 namespace Space {
 class Flow {
+int x;
 public:
-  Flow(int i) {}
+ Flow(int i) : x(i) {}
 };
 
 
 class FlowFlow {
+int x;
 public:
-  FlowFlow(int i) {}
+ FlowFlow(int i) : x(i) {}
 };
 
 }

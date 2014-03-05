@@ -6,10 +6,10 @@
 
 /* Pointers */
 
-%typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
 }
-%typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
+%typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "";
 
 %typemap(in) void * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
@@ -21,6 +21,10 @@
 }
 
 %typemap(varin) SWIGTYPE & {
+  $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
+}
+
+%typemap(varin) SWIGTYPE && {
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
@@ -41,7 +45,7 @@
   $1 = SWIG_MustGetPtr($input, NULL, 1, 0);
 }
 
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
 }
 
@@ -58,6 +62,10 @@
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
 }
 
+%typemap(varout) SWIGTYPE && {
+  $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
+}
+
 %typemap(throws) SWIGTYPE {
   $&ltype temp = new $ltype($1);
   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
@@ -68,6 +76,12 @@
 %typemap(throws) SWIGTYPE & {
   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_NewPointerObj(&$1, $descriptor, 1),
+		    SCM_UNDEFINED));
+}
+
+%typemap(throws) SWIGTYPE && {
+  scm_throw(gh_symbol2scm((char *) "swig-exception"),
+	    gh_list(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
@@ -430,7 +444,7 @@ typedef unsigned long SCM;
   $1 = scm_is_string($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
   $1 = SWIG_CheckState(res);
@@ -450,6 +464,7 @@ typedef unsigned long SCM;
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

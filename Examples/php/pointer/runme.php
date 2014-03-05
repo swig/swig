@@ -15,7 +15,7 @@
 	print "	c = $c\n";
 
 	# Call the add() function wuth some pointers
-	add(&$a,&$b,&$c);
+	add($a,$b,$c);
 
 	print "	$a + $b = $c\n";
 

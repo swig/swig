@@ -55,7 +55,7 @@ In C# you could then use it like this:
 
 %define INPUT_TYPEMAP(TYPE, CTYPE, CSTYPE)
 %typemap(ctype, out="void *") TYPE *INPUT, TYPE &INPUT "CTYPE"
-%typemap(imtype, out="IntPtr") TYPE *INPUT, TYPE &INPUT "CSTYPE"
+%typemap(imtype, out="global::System.IntPtr") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
 
@@ -135,7 +135,7 @@ value returned in the second output parameter. In C# you would use it like this:
 
 %define OUTPUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
 %typemap(ctype, out="void *") TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
-%typemap(imtype, out="IntPtr") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
+%typemap(imtype, out="global::System.IntPtr") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
 
@@ -224,7 +224,7 @@ of the function return value.
 
 %define INOUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
 %typemap(ctype, out="void *") TYPE *INOUT, TYPE &INOUT "CTYPE *"
-%typemap(imtype, out="IntPtr") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
+%typemap(imtype, out="global::System.IntPtr") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
 

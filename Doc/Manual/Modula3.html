@@ -45,7 +45,7 @@
 
 
 <p>
-This chapter describes SWIG's support of
+This chapter describes SWIG's support for
 <a href="http://modula3.org/">Modula-3</a>.
 You should be familiar with the
 <a href="SWIG.html#SWIG">basics</a>
@@ -109,7 +109,7 @@ into exceptions.
 
 <p>
 If the library API is ill designed
-writing appropriate typemaps can be still time-consuming.
+writing appropriate typemaps can still be time-consuming.
 E.g. C programmers are very creative to work-around
 missing data types like (real) enumerations and sets.
 You should turn such work-arounds back to the Modula-3 way
@@ -120,14 +120,14 @@ otherwise you lose static safety and consistency.
 Without SWIG you would probably never consider trying to call C++ libraries
 from Modula-3, but with SWIG this is becomes feasible.
 SWIG can generate C wrappers to C++ functions and object methods
-that may throw exceptions, and then wrap these C wrappers for Module-3.
+that may throw exceptions, and then wrap these C wrappers for Modula-3.
 To make it complete you can then hide the C interface with Modula-3 classes and
 exceptions.
 </p>
 
 <p>
 SWIG allows you to call C and C++ libraries from Modula-3 (even with call back
-functions), but it doesn't allow you to easily integrate a Module-3 module into
+functions), but it doesn't allow you to easily integrate a Modula-3 module into
 a C/C++ project.
 </p>
 

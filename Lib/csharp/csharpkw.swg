@@ -4,6 +4,8 @@
 /* Warnings for C# keywords */
 #define CSHARPKW(x) %keywordwarn("'" `x` "' is a C# keyword, renaming to '_" `x` "'",rename="_%s")  `x`
 
+#define CSHARPCLASSKW(x) %keywordwarn("'" `x` "' is a special method name used in the C# wrapper classes, class renamed to '_" `x` "'",%$isclass,rename="_%s") `x`
+
 /*
    from
    http://www.jaggersoft.com/csharp_grammar.html#1.7%20Keywords
@@ -88,6 +90,7 @@ CSHARPKW(void);
 CSHARPKW(volatile);
 CSHARPKW(while);
 
+CSHARPCLASSKW(delete);
 
 #undef CSHARPKW
 

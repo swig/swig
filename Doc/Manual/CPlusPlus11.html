@@ -1,0 +1,1019 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>SWIG and C++11</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body bgcolor="#ffffff">
+<H1><a name="CPlusPlus11"></a>7 SWIG and C++11</H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#CPlusPlus11_introduction">Introduction</a>
+<li><a href="#CPlusPlus11_core_language_changes">Core language changes</a>
+<ul>
+<li><a href="#CPlusPlus11_rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
+<li><a href="#CPlusPlus11_generalized_constant_expressions">Generalized constant expressions</a>
+<li><a href="#CPlusPlus11_extern_template">Extern template</a>
+<li><a href="#CPlusPlus11_initializer_lists">Initializer lists</a>
+<li><a href="#CPlusPlus11_uniform_initialization">Uniform initialization</a>
+<li><a href="#CPlusPlus11_type_inference">Type inference</a>
+<li><a href="#CPlusPlus11_range_based_for_loop">Range-based for-loop</a>
+<li><a href="#CPlusPlus11_lambda_functions_and_expressions">Lambda functions and expressions</a>
+<li><a href="#CPlusPlus11_alternate_function_syntax">Alternate function syntax</a>
+<li><a href="#CPlusPlus11_object_construction_improvement">Object construction improvement</a>
+<li><a href="#CPlusPlus11_null_pointer_constant">Null pointer constant</a>
+<li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
+<li><a href="#CPlusPlus11_double_angle_brackets">Double angle brackets</a>
+<li><a href="#CPlusPlus11_explicit_conversion_operators">Explicit conversion operators</a>
+<li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
+<li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
+<li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
+<li><a href="#CPlusPlus11_new_string_literals">New string literals</a>
+<li><a href="#CPlusPlus11_user_defined_literals">User-defined literals</a>
+<li><a href="#CPlusPlus11_thread_local_storage">Thread-local storage</a>
+<li><a href="#CPlusPlus11_defaulted_deleted">Explicitly defaulted functions and deleted functions</a>
+<li><a href="#CPlusPlus11_type_long_long_int">Type long long int</a>
+<li><a href="#CPlusPlus11_static_assertions">Static assertions</a>
+<li><a href="#CPlusPlus11_allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object">Allow sizeof to work on members of classes without an explicit object</a>
+<li><a href="#CPlusPlus11_noexcept">Exception specifications and noexcept</a>
+</ul>
+<li><a href="#CPlusPlus11_standard_library_changes">Standard library changes</a>
+<ul>
+<li><a href="#CPlusPlus11_threading_facilities">Threading facilities</a>
+<li><a href="#CPlusPlus11_tuple_types">Tuple types and hash tables</a>
+<li><a href="#CPlusPlus11_regular_expressions">Regular expressions</a>
+<li><a href="#CPlusPlus11_general_purpose_smart_pointers">General-purpose smart pointers</a>
+<li><a href="#CPlusPlus11_extensible_random_number_facility">Extensible random number facility</a>
+<li><a href="#CPlusPlus11_wrapper_reference">Wrapper reference</a>
+<li><a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphous wrappers for function objects</a>
+<li><a href="#CPlusPlus11_type_traits_for_metaprogramming">Type traits for metaprogramming</a>
+<li><a href="#CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects">Uniform method for computing return type of function objects</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="CPlusPlus11_introduction"></a>7.1 Introduction</H2>
+
+
+<p>This chapter gives you a brief overview about the SWIG
+implementation of the C++11 standard. This part of SWIG is still a work in
+progress. 
+</p>
+<p>SWIG supports the new C++ syntax changes with some minor limitations
+(decltype expressions, variadic templates number). Wrappers for the
+new STL types (unordered_ containers, result_of, tuples) are incomplete.
+The wrappers for the new containers would work much like the C++03 containers and 
+users are welcome to help by adapting the existing container interface files and submitting them
+as a patch for inclusion in future versions of SWIG.
+</p>
+
+<H2><a name="CPlusPlus11_core_language_changes"></a>7.2 Core language changes</H2>
+
+
+<H3><a name="CPlusPlus11_rvalue_reference_and_move_semantics"></a>7.2.1 Rvalue reference and move semantics</H3>
+
+
+<p>
+SWIG correctly parses the rvalue reference syntax '&amp;&amp;',
+for example the typical usage of it in the move constructor and move assignment operator below:
+</p>
+
+<div class="code"><pre>
+class MyClass {
+...
+  std::vector<int> numbers;
+public:
+  MyClass(MyClass &amp;&amp;other) : numbers(std::move(other.numbers)) {}
+  MyClass &amp; operator=(MyClass &amp;&amp;other) {
+    numbers = std::move(other.numbers);
+    return *this;
+  }
+};
+</pre></div>
+
+<p>
+Rvalue references are designed for C++ temporaries and so are not very useful when used from non-C++ target languages.
+Generally you would just ignore them via <tt>%ignore</tt> before parsing the class.
+For example, ignore the move constructor:
+</p>
+
+<div class="code"><pre>
+%ignore MyClass::MyClass(MyClass &amp;&amp;);
+</pre></div>
+
+<p>
+The plan is to ignore them by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid identifier.
+</pre>
+</div>
+
+
+<H3><a name="CPlusPlus11_generalized_constant_expressions"></a>7.2.2 Generalized constant expressions</H3>
+
+
+<p>SWIG correctly parses the keyword <tt>constexpr</tt>, but ignores its functionality. Constant functions cannot be used as constants.</p>
+
+<div class="code"><pre>
+constexpr int myConstFunc() { return 10; }
+const int a = myConstFunc(); // results in error
+</pre></div>
+
+<p>Users needs to use values or predefined constants when defining the new constant value:</p>
+
+<div class="code"><pre>
+#define MY_CONST 10
+constexpr int myConstFunc() { return MY_CONST; }
+const int a = MY_CONST; // ok
+</pre></div>
+
+<H3><a name="CPlusPlus11_extern_template"></a>7.2.3 Extern template</H3>
+
+
+<p>SWIG correctly parses the keywords <tt>extern template</tt>. However, the explicit template instantiation is not used by SWIG, a <tt>%template</tt> is still required.</p>
+
+
+<div class="code"><pre>
+extern template class std::vector&lt;MyClass&gt;; // explicit instantiation
+
+...
+
+class MyClass {
+public:
+  int a;
+  int b;
+};
+</pre></div>
+
+<H3><a name="CPlusPlus11_initializer_lists"></a>7.2.4 Initializer lists</H3>
+
+
+<p>
+Initializer lists are very much a C++ compiler construct and are not very accessible from wrappers as
+they are intended for compile time initialization of classes using the special <tt>std::initializer_list</tt> type.
+SWIG detects usage of initializer lists and will emit a special informative warning each time one is used:
+</p>
+
+<div class="shell">
+<pre>
+example.i:33: Warning 476: Initialization using std::initializer_list.
+</pre>
+</div>
+
+<p>
+Initializer lists usually appear in constructors but can appear in any function or method.
+They often appear in constructors which are overloaded with alternative approaches to initializing a class,
+such as the std container's push_back method for adding elements to a container.
+The recommended approach then is to simply ignore the initializer-list constructor, for example:
+</p>
+
+<div class="code"><pre>
+%ignore Container::Container(std::initializer_list&lt;int&gt;);
+class Container {
+public:
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>Alternatively you could modify the class and add another constructor for initialization by some other means,
+for example by a <tt>std::vector</tt>:</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+class Container {
+public:
+  Container(const std::vector&lt;int&gt; &amp;);
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>And then call this constructor from your target language, for example, in Python, the following will call the constructor taking the <tt>std::vector</tt>:</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; c = Container( [1,2,3,4] )
+</pre></div>
+
+<p>
+If you are unable to modify the class being wrapped, consider ignoring the initializer-list constructor and using
+%extend to add in an alternative constructor:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+%extend Container {
+  Container(const std::vector&lt;int&gt; &amp;elements) {
+    Container *c = new Container();
+    for (int element : elements)
+      c-&gt;push_back(element);
+    return c;
+  }
+}
+
+%ignore Container::Container(std::initializer_list&lt;int&gt;);
+
+class Container {
+public:
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+The above makes the wrappers look is as if the class had been declared as follows:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+class Container {
+public:
+  Container(const std::vector&lt;int&gt; &amp;);
+//  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor (ignored)
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+<tt>std::initializer_list</tt> is simply a container that can only be initialized at compile time.
+As it is just a C++ type, it is possible to write typemaps for a target language container to map onto
+<tt>std::initializer_list</tt>. However, this can only be done for a fixed number of elements as
+initializer lists are not designed to be constructed with a variable number of arguments at runtime.
+The example below is a very simple approach which ignores any parameters passed in and merely initializes
+with a fixed list of fixed integer values chosen at compile time:
+</p>
+
+<div class="code"><pre>
+%typemap(in) std::initializer_list&lt;int&gt; {
+  $1 = {10, 20, 30, 40, 50};
+}
+class Container {
+public:
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+Any attempt at passing in values from the target language will be ignored and replaced by <tt>{10, 20, 30, 40, 50}</tt>.
+Needless to say, this approach is very limited, but could be improved upon, but only slightly.
+A typemap could be written to map a fixed number of elements on to the <tt>std::initializer_list</tt>,
+but with values decided at runtime.
+The typemaps would be target language specific.
+</p>
+
+<p>
+Note that the default typemap for <tt>std::initializer_list</tt> does nothing but issue the warning
+and hence any user supplied typemaps will override it and suppress the warning.
+</p>
+
+<H3><a name="CPlusPlus11_uniform_initialization"></a>7.2.5 Uniform initialization</H3>
+
+
+<p>The curly brackets {} for member initialization are fully
+supported by SWIG:</p>
+
+<div class="code"><pre>
+struct BasicStruct {
+ int x;
+ double y;
+};
+ 
+struct AltStruct {
+  AltStruct(int x, double y) : x_{x}, y_{y} {}
+ 
+  int x_;
+  double y_;
+};
+
+BasicStruct var1{5, 3.2}; // only fills the struct components
+AltStruct var2{2, 4.3};   // calls the constructor
+</pre></div>
+
+<p>Uniform initialization does not affect usage from the target language, for example in Python:</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; a = AltStruct(10, 142.15)
+&gt;&gt;&gt; a.x_
+10
+&gt;&gt;&gt; a.y_
+142.15
+</pre></div>
+
+<H3><a name="CPlusPlus11_type_inference"></a>7.2.6 Type inference</H3>
+
+
+<p>SWIG supports <tt>decltype()</tt> with some limitations. Single
+variables are allowed, however, expressions are not supported yet. For
+example, the following code will work:</p>
+<div class="code"><pre>
+int i;
+decltype(i) j;
+</pre></div>
+
+<p>However, using an expression inside the decltype results in syntax error:</p>
+<div class="code"><pre>
+int i; int j;
+decltype(i+j) k;  // syntax error
+</pre></div>
+
+<H3><a name="CPlusPlus11_range_based_for_loop"></a>7.2.7 Range-based for-loop</H3>
+
+
+<p>This feature is part of the implementation block only. SWIG
+ignores it.</p>
+
+<H3><a name="CPlusPlus11_lambda_functions_and_expressions"></a>7.2.8 Lambda functions and expressions</H3>
+
+
+<p>SWIG correctly parses most of the Lambda functions syntax. For example:</p>
+<div class="code"><pre>
+auto val = [] { return something; };
+auto sum = [](int x, int y) { return x+y; };
+auto sum = [](int x, int y) -&gt; int { return x+y; };
+</pre></div>
+
+<p>The lambda functions are removed from the wrappers for now, because of the lack of support
+for closures (scope of the lambda functions) in the target languages.</p>
+
+<p>
+Lambda functions used to create variables can also be parsed, but due to limited support of <tt>auto</tt> when
+the type is deduced from the expression, the variables are simply ignored.
+</p>
+
+<div class="code"><pre>
+auto six = [](int x, int y) { return x+y; }(4, 2);
+</pre></div>
+
+<p>
+Better support should be available in a later release.
+</p>
+
+<H3><a name="CPlusPlus11_alternate_function_syntax"></a>7.2.9 Alternate function syntax</H3>
+
+
+<p>SWIG fully supports the new definition of functions. For example:</p>
+<div class="code"><pre>
+struct SomeStruct {
+  int FuncName(int x, int y);
+};
+</pre></div>
+
+<p>can now be written as in C++11:</p>
+
+<div class="code"><pre>
+struct SomeStruct {
+  auto FuncName(int x, int y) -&gt; int;
+};
+ 
+auto SomeStruct::FuncName(int x, int y) -&gt; int {
+  return x + y;
+}
+</pre></div>
+
+<p>The usage in the target languages remains the same, for example in Python:</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; a = SomeStruct()
+&gt;&gt;&gt; a.FuncName(10,5)
+15
+</pre></div>
+
+<p>SWIG will also deal with type inference for the return type, as per the limitations described earlier. For example:</p>
+<div class="code"><pre>
+auto square(float a, float b) -&gt; decltype(a);
+</pre></div>
+
+<H3><a name="CPlusPlus11_object_construction_improvement"></a>7.2.10 Object construction improvement</H3>
+
+
+<p>
+SWIG is able to handle constructor delegation, such as:
+</p>
+
+<div class="code"><pre>
+class A {
+public:
+  int a;
+  int b;
+  int c;
+
+  A() : A(10) {}
+  A(int aa) : A(aa, 20) {}
+  A(int aa, int bb) : A(aa, bb, 30) {}
+  A(int aa, int bb, int cc) { a=aa; b=bb; c=cc; }
+};
+</pre></div>
+
+<p>
+Constructor inheritance is parsed correctly, but the additional constructors are not currently added to the derived proxy class in the target language. Example is shown below:
+<!--
+The extra constructors provided by the <tt>using</tt> syntax will add the appropriate constructors into the target language proxy derived classes.
+In the example below a wrapper for the <tt>DerivedClass(int)</tt> is added to <tt>DerivedClass</tt>:
+-->
+</p>
+
+<div class="code"><pre>
+class BaseClass {
+public:
+  BaseClass(int iValue);
+};
+
+class DerivedClass: public BaseClass {
+  public:
+  using BaseClass::BaseClass; // Adds DerivedClass(int) constructor
+};
+</pre></div>
+
+<H3><a name="CPlusPlus11_explicit_overrides_final"></a>Explicit overrides and final</H3>
+
+<p>
+The special identifiers <tt>final</tt> and <tt>override</tt> can be used on methods and destructors,
+such as in the following example:
+</p>
+
+<div class="code"><pre>
+struct BaseStruct {
+  virtual void ab() const = 0;
+  virtual void cd();
+  virtual void ef();
+  virtual ~BaseStruct();
+};
+struct DerivedStruct : BaseStruct {
+  virtual void ab() const override;
+  virtual void cd() final;
+  virtual void ef() final override;
+  virtual ~DerivedStruct() override;
+};
+</pre></div>
+
+
+<H3><a name="CPlusPlus11_null_pointer_constant"></a>7.2.11 Null pointer constant</H3>
+
+
+<p>The <tt>nullptr</tt> constant is largely unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
+
+<H3><a name="CPlusPlus11_strongly_typed_enumerations"></a>7.2.12 Strongly typed enumerations</H3>
+
+
+<p>SWIG parses the new <tt>enum class</tt> syntax and forward declarator for the enums:</p>
+<div class="code"><pre>
+enum class MyEnum : unsigned int;
+</pre></div>
+
+<p>The strongly typed enumerations are treated the same as the ordinary and anonymous enums.
+This is because SWIG doesn't support nested classes. This is usually not a problem, however, 
+there may be some name clashes. For example, the following code:</p>
+
+<div class="code"><pre>
+class Color {
+  enum class PrintingColors : unsigned int {
+    Cyan, Magenta, Yellow, Black
+  };
+  
+  enum class BasicColors {
+    Red, Green, Blue
+  };
+  
+  enum class AllColors {
+    // produces warnings because of duplicate names
+    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
+  };
+};
+</pre></div>
+
+<p>A workaround is to write these as a series of separated classes containing anonymous enums:</p>
+
+<div class="code"><pre>
+class PrintingColors {
+  enum : unsigned int {
+    Cyan, Magenta, Yellow, Black
+  };
+};
+
+class BasicColors {
+  enum : unsigned int {
+    Red, Green, Blue
+  };
+};
+
+class AllColors {
+  enum : unsigned int {
+    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
+  };
+};
+</pre></div>
+
+<H3><a name="CPlusPlus11_double_angle_brackets"></a>7.2.13 Double angle brackets</H3>
+
+
+<p>SWIG correctly parses the symbols &gt;&gt; as closing the
+template block, if found inside it at the top level, or as the right
+shift operator &gt;&gt; otherwise.</p>
+
+<div class="code"><pre>
+std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
+</pre></div>
+
+<H3><a name="CPlusPlus11_explicit_conversion_operators"></a>7.2.14 Explicit conversion operators</H3>
+
+
+<p>SWIG correctly parses the keyword <tt>explicit</tt> both for operators and constructors.
+For example:</p>
+
+<div class="code"><pre>
+class U {
+public:
+        int u;
+};
+
+class V {
+public:
+        int v;
+};
+
+class TestClass {
+public:
+        //implicit converting constructor
+        TestClass(U const &amp;val) { t=val.u; }
+        // explicit constructor
+        explicit TestClass(V const &amp;val) { t=val.v; }
+
+        int t;
+};
+</pre></div>
+
+<p>
+The usage of explicit constructors and operators is somehow specific to C++ when assigning the value
+of one object to another one of different type or translating one type to another. It requires both operator and function overloading features,
+which are not supported by the majority of SWIG target languages. Also the constructors and operators are not particulary useful in any
+SWIG target languages, because all use their own facilities (eg. classes Cloneable and Comparable in Java)
+to achieve particular copy and compare behaviours.
+</p>
+
+<H3><a name="CPlusPlus11_alias_templates"></a>7.2.15 Alias templates</H3>
+
+
+<p>
+The following is an example of an alias template:
+
+<div class="code"><pre>
+template&lt; typename T1, typename T2, int &gt;
+class SomeType {
+  T1 a;
+  T2 b;
+  int c;
+};
+
+template&lt; typename T2 &gt;
+using TypedefName = SomeType&lt;char*, T2, 5&gt;;
+</pre></div>
+
+<p>
+These are partially supported as SWIG will parse these and identify them, however, they are ignored as they are not added to the type system. A warning such as the following is issued:
+</p>
+
+<div class="shell">
+<pre>
+example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
+</pre>
+</div>
+
+<p>
+Similarly for non-template type aliasing:
+</p>
+
+<div class="code"><pre>
+using PFD = void (*)(double); // New introduced syntax
+</pre></div>
+
+<p>
+A warning will be issued:
+</p>
+
+<div class="shell">
+<pre>
+example.i:17: Warning 341: The 'using' keyword in type aliasing is not fully supported yet.
+</pre>
+</div>
+
+
+<p>The equivalent old style typedefs can be used as a workaround:</p>
+
+<div class="code"><pre>
+typedef void (*PFD)(double);  // The old style
+</pre></div>
+
+<H3><a name="CPlusPlus11_unrestricted_unions"></a>7.2.16 Unrestricted unions</H3>
+
+
+<p>SWIG fully supports any type inside a union even if it does not
+define a trivial constructor. For example, the wrapper for the following
+code correctly provides access to all members in the union:</p>
+
+<div class="code"><pre>
+struct point {
+  point() {}
+  point(int x, int y) : x_(x), y_(y) {}
+  int x_, y_;
+};
+
+#include &lt;new&gt; // For placement 'new' in the constructor below
+union P {
+  int z;
+  double w;
+  point p; // Illegal in C++03; legal in C++11.
+  // Due to the point member, a constructor definition is required.
+  P() {
+    new(&amp;p) point();
+  }
+} p1;
+</pre></div>
+
+<H3><a name="CPlusPlus11_variadic_templates"></a>7.2.17 Variadic templates</H3>
+
+
+<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
+block, variadic class inheritance and variadic constructor and
+initializers) with some limitations. The following code is correctly parsed:</p>
+
+<div class="code"><pre>
+template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
+public:
+   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+}
+</pre></div>
+
+<p>
+For now however, the <tt>%template</tt> directive only accepts one parameter substitution
+for the variable template parameters.
+</p>
+
+<div class="code"><pre>
+%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
+%template(MyVariant2) ClassName&lt;int&gt;      // ok
+%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
+</pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+
+<div class="code"><pre>
+const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+</pre></div>
+
+<p>
+In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
+
+<H3><a name="CPlusPlus11_new_string_literals"></a>7.2.18 New string literals</H3>
+
+
+<p>SWIG supports unicode string constants and raw string literals.</p>
+
+<div class="code"><pre>
+// New string literals
+wstring         aa =  L"Wide string";
+const char     *bb = u8"UTF-8 string";
+const char16_t *cc =  u"UTF-16 string";
+const char32_t *dd =  U"UTF-32 string";
+
+// Raw string literals
+const char      *xx =        ")I'm an \"ascii\" \\ string.";
+const char      *ee =   R"XXX()I'm an "ascii" \ string.)XXX"; // same as xx
+wstring          ff =  LR"XXX(I'm a "raw wide" \ string.)XXX";
+const char      *gg = u8R"XXX(I'm a "raw UTF-8" \ string.)XXX";
+const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
+const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
+</pre></div>
+
+<p>Note: SWIG currently incorrectly parses the odd number of double quotes
+inside the string due to SWIG's C++ preprocessor.</p>
+
+<H3><a name="CPlusPlus11_user_defined_literals"></a>7.2.19 User-defined literals</H3>
+
+
+<p>
+SWIG parses the declaration of user-defined literals, that is, the <tt>operator "" _mysuffix()</tt> function syntax.
+</p>
+
+<p>
+Some examples are the raw literal:
+</p>
+<div class="code"><pre>
+OutputType operator "" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+numeric cooked literals:
+</p>
+<div class="code"><pre>
+OutputType operator "" _mySuffixIntegral(unsigned long long);
+OutputType operator "" _mySuffixFloat(long double);
+</pre></div>
+
+<p>
+and cooked string literals:
+</p>
+<div class="code"><pre>
+OutputType operator "" _mySuffix(const char * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const wchar_t * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const char16_t * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const char32_t * string_values, size_t num_chars);
+</pre></div>
+
+<p>
+Like other operators that SWIG parses, a warning is given about renaming the operator in order for it to be wrapped:
+</p>
+
+<div class="shell"><pre>
+example.i:27: Warning 503: Can't wrap 'operator "" _myRawLiteral' unless renamed to a valid identifier.
+</pre></div>
+
+<p>
+If %rename is used, then it can be called like any other wrapped method.
+Currently you need to specify the full declaration including parameters for %rename:
+</p>
+
+<div class="code"><pre>
+%rename(MyRawLiteral)  operator"" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+Or if you just wish to ignore it altogether:
+</p>
+
+<div class="code"><pre>
+%ignore operator "" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+Note that use of user-defined literals such as the following still give a syntax error:
+</p>
+
+<div class="code"><pre>
+OutputType var1 = "1234"_suffix;
+OutputType var2 = 1234_suffix;
+OutputType var3 = 3.1416_suffix;
+</pre></div>
+
+<H3><a name="CPlusPlus11_thread_local_storage"></a>7.2.20 Thread-local storage</H3>
+
+
+<p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variable
+reachable by the current thread can be defined as:</p> 
+
+<div class="code"><pre>
+struct A {
+   static thread_local int val;
+};
+thread_local int global_val;
+</pre></div>
+
+<p>
+The use of the <tt>thread_local</tt> storage specifier does not affect the wrapping process; it does not modify
+the wrapper code compared to when it is not specified.
+A variable will be thread local if accessed from different threads from the target language in the
+same way that it will be thread local if accessed from C++ code.
+</p>
+
+<H3><a name="CPlusPlus11_defaulted_deleted"></a>7.2.21 Explicitly defaulted functions and deleted functions</H3>
+
+
+<p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
+For example:</p>
+
+<div class="code"><pre>
+struct NonCopyable {
+  NonCopyable &amp; operator=(const NonCopyable &amp;) = delete; /* Removes operator= */
+  NonCopyable(const NonCopyable &amp;) = delete;                /* Removed copy constructor */
+  NonCopyable() = default;                                     /* Explicitly allows the empty constructor */
+  void *operator new(std::size_t) = delete;                    /* Removes new NonCopyable */
+};
+</pre></div>
+
+<p>
+Wrappers for deleted functions will not be available in the target language.
+Wrappers for defaulted functions will of course be available in the target language.
+Explicitly defaulted functions have no direct effect for SWIG wrapping as the declaration is handled
+much like any other method declaration parsed by SWIG.
+</p>
+
+<H3><a name="CPlusPlus11_type_long_long_int"></a>7.2.22 Type long long int</H3>
+
+
+<p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
+
+<H3><a name="CPlusPlus11_static_assertions"></a>7.2.23 Static assertions</H3>
+
+
+<p>SWIG correctly parses and calls the new <tt>static_assert</tt> function.</p>
+
+<div class="code"><pre>
+template &lt;typename T&gt;
+struct Check {
+  static_assert(sizeof(int) &lt;= sizeof(T), "not big enough");
+};
+</pre></div>
+
+<H3><a name="CPlusPlus11_allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object"></a>7.2.24 Allow sizeof to work on members of classes without an explicit object</H3>
+
+
+<p>SWIG correctly calls the sizeof() on types as well as on the
+objects. For example:</p>
+
+<div class="code"><pre>
+struct A {
+  int member;
+};
+
+const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
+</pre></div>
+
+<p>In Python:</p>
+<div class="targetlang"><pre>
+&gt;&gt;&gt; SIZE
+8
+</pre></div>
+
+<H3><a name="CPlusPlus11_noexcept"></a>7.2.25 Exception specifications and noexcept</H3>
+
+
+<p>
+C++11 added in the noexcept specification to exception specifications to indicate that a function simply may or may not throw an exception, without actually naming any exception.
+SWIG understands these, although there isn't any useful way that this information can be taken advantage of by target languages,
+so it is as good as ignored during the wrapping process.
+Below are some examples of noexcept in function declarations:
+</p>
+
+<div class="code"><pre>
+static void noex1() noexcept;
+int noex2(int) noexcept(true);
+int noex3(int, bool) noexcept(false);
+</pre></div>
+
+
+<H2><a name="CPlusPlus11_standard_library_changes"></a>7.3 Standard library changes</H2>
+
+
+<H3><a name="CPlusPlus11_threading_facilities"></a>7.3.1 Threading facilities</H3>
+
+
+<p>SWIG does not currently wrap or use any of the new threading
+classes introduced (thread, mutex, locks, condition variables, task). The main reason is that
+SWIG target languages offer their own threading facilities that do not rely on C++.</p>
+
+<H3><a name="CPlusPlus11_tuple_types"></a>7.3.2 Tuple types and hash tables</H3>
+
+
+<p>SWIG does not wrap the new tuple types and the unordered_ container classes yet. Variadic template support is working so it is possible to
+include the tuple header file; it is parsed without any problems.</p>
+
+<H3><a name="CPlusPlus11_regular_expressions"></a>7.3.3 Regular expressions</H3>
+
+
+<p>SWIG does not wrap the new C++11 regular expressions classes, because the SWIG target languages use their own facilities for this.</p>
+
+<H3><a name="CPlusPlus11_general_purpose_smart_pointers"></a>7.3.4 General-purpose smart pointers</H3>
+
+
+<p>
+SWIG provides special smart pointer handling for <tt>std::tr1::shared_ptr</tt> in the same way it has support for <tt>boost::shared_ptr</tt>.
+There is no special smart pointer handling available for <tt>std::weak_ptr</tt> and <tt>std::unique_ptr</tt>.
+</p>
+
+<H3><a name="CPlusPlus11_extensible_random_number_facility"></a>7.3.5 Extensible random number facility</H3>
+
+
+<p>This feature extends and standardizes the standard library only and does not effect the C++ language and SWIG.</p>
+
+<H3><a name="CPlusPlus11_wrapper_reference"></a>7.3.6 Wrapper reference</H3>
+
+
+<p>The new ref and cref classes are used to instantiate a parameter as a reference of a template function. For example:</p>
+
+<div class="code"><pre>
+void f(int &amp;r)  { r++; }
+ 
+// Template function.
+template&lt; class F, class P &gt; void g(F f, P t)  { f(t); }
+ 
+int main() {
+  int i = 0 ;
+  g(f, i) ;  // 'g&lt;void (int &amp;r), int&gt;' is instantiated
+             // then 'i' will not be modified.
+  cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 0
+ 
+  g(f, ref(i)) ;  // 'g&lt;void(int &amp;r),reference_wrapper&lt;int&gt;&gt;' is instantiated
+                  // then 'i' will be modified.
+  cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 1
+}
+</pre></div>
+
+<p>The ref and cref classes are not wrapped by SWIG because the SWIG target languages do not support referencing.</p>
+
+<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects"></a>7.3.7 Polymorphous wrappers for function objects</H3>
+
+
+<p>
+SWIG supports functor classes in some languages in a very natural way.
+However nothing is provided yet for the new <tt>std::function</tt> template.
+SWIG will parse usage of the template like any other template.
+</p>
+
+<div class="code"><pre>
+%rename(__call__) Test::operator(); // Default renaming used for Python
+
+struct Test {
+  bool operator()(int x, int y); // function object
+};
+
+#include &lt;functional&gt;
+std::function&lt;void (int, int)&gt; pF = Test;   // function template wrapper
+
+</pre></div>
+
+<p>
+Example of supported usage of the plain functor from Python is shown below.
+It does not involve <tt>std::function</tt>.
+</p>
+
+<div class="targetlang"><pre>
+t = Test()
+b = t(1,2) # invoke C++ function object
+</pre></div>
+
+<H3><a name="CPlusPlus11_type_traits_for_metaprogramming"></a>7.3.8 Type traits for metaprogramming</H3>
+
+
+<p>The new C++ metaprogramming is useful at compile time and is aimed specifically for C++ development:</p>
+
+<div class="code"><pre>
+// First way of operating.
+template&lt; bool B &gt; struct algorithm {
+  template&lt; class T1, class T2 &gt; int do_it(T1 &amp;, T2 &amp;)  { /*...*/ }
+};
+// Second way of operating.
+template&lt;&gt; struct algorithm&lt;true&gt; {
+  template&lt; class T1, class T2 &gt; int do_it(T1, T2)  { /*...*/ }
+};
+// Instantiating 'elaborate' will automatically instantiate the correct way to operate.
+template&lt; class T1, class T2 &gt; int elaborate(T1 A, T2 B) {
+  // Use the second way only if 'T1' is an integer and if 'T2' is
+  // in floating point, otherwise use the first way.
+  return algorithm&lt; is_integral&lt;T1&gt;::value &amp;&amp; is_floating_point&lt;T2&gt;::value &gt;::do_it(A, B);
+}
+</pre></div>
+
+<p>SWIG correctly parses the template specialization, template types and values inside the &lt;&gt; block and the new helper functions: is_convertible, is_integral, is_const etc.
+However, SWIG still explicitly requires concrete types when using the <tt>%template</tt> directive, so the C++ metaprogramming features are not really of interest at runtime in the target languages.</p>
+
+<H3><a name="CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects"></a>7.3.9 Uniform method for computing return type of function objects</H3>
+
+
+<p>SWIG does not wrap the new result_of class introduced in the &lt;functional&gt; header and map the result_of::type to the concrete type yet. For example:</p>
+<div class="code"><pre>
+%inline %{
+#include &lt;functional&gt;
+double square(double x) {
+        return (x * x);
+}
+
+template&lt;class Fun, class Arg&gt;
+typename std::result_of&lt;Fun(Arg)&gt;::type test_result_impl(Fun fun, Arg arg) {
+        return fun(arg);
+}
+%}
+
+%template(test_result) test_result_impl&lt;double(*)(double), double&gt;;
+%constant double (*SQUARE)(double) = square;
+</pre></div>
+
+<p>will result in:</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; test_result_impl(SQUARE, 5.0)
+&lt;SWIG Object of type 'std::result_of&lt; Fun(Arg) &gt;::type *' at 0x7faf99ed8a50&gt;
+</pre></div>
+
+<p>Instead, please use <tt>decltype()</tt> where possible for now.</p>
+
+</body>
+</html>

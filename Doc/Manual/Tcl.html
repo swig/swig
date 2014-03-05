@@ -139,8 +139,8 @@ using commands like this (shown for Linux):
 
 <div class="code"><pre>
 $ swig -tcl example.i
-$ gcc -c example.c
-$ gcc -c example_wrap.c -I/usr/local/include
+$ gcc -fPIC -c example.c
+$ gcc -fPIC -c example_wrap.c -I/usr/local/include
 $ gcc -shared example.o example_wrap.o -o example.so
 </pre></div>
 
@@ -374,8 +374,8 @@ compiler.  For example:
 
 <div class="code"><pre>
 % swig -c++ -tcl example.i
-% g++ -c example.cxx
-% g++ -c example_wrap.cxx -I/usr/local/include
+% g++ -fPIC -c example.cxx
+% g++ -fPIC -c example_wrap.cxx -I/usr/local/include
 % g++ -shared example.o example_wrap.o -o example.so
 </pre></div>
 
@@ -387,8 +387,8 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
 <div class="code"><pre>
 % swig -c++ -tcl example.i
-% CC -c example.cxx
-% CC -c example_wrap.cxx -I/usr/local/include
+% CC -KPIC -c example.cxx
+% CC -KPIC -c example_wrap.cxx -I/usr/local/include
 % CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o example.so -lCrun
 </pre></div>
 

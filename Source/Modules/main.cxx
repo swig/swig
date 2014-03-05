@@ -49,6 +49,7 @@ int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 
 extern "C" {
   extern String *ModuleName;
+  extern int ignore_nested_classes;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
@@ -483,6 +484,10 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-c++out") == 0) {
+	// Undocumented
+	Swig_cparse_cplusplusout(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Swig_mark_arg(i);
@@ -497,9 +502,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-naturalvar") == 0) {
 	Wrapper_naturalvar_mode_set(1);
-	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-nonaturalvar") == 0) {
-	Wrapper_naturalvar_mode_set(0);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-directors") == 0) {
 	SWIG_setfeature("feature:director", "1");
@@ -855,10 +857,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-
-
-
-
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
 
@@ -903,6 +901,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Wrapper_director_mode_set(0);
   Wrapper_director_protected_mode_set(1);
 
+  // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
+  ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+
   // Create Library search directories
 
   // Check for SWIG_LIB environment variable
@@ -946,6 +947,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check all of the options to make sure we're cool.
   // Don't check for an input file if -external-runtime is passed
   Swig_check_options(external_runtime ? 0 : 1);
+
+  if (CPlusPlus && cparse_cplusplusout) {
+    Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
+    SWIG_exit(EXIT_FAILURE);
+  }
 
   install_opts(argc, argv);
 
@@ -1161,6 +1167,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
+    if (!CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing unnamed structs...\n");
+      Swig_nested_name_unnamed_c_structs(top);
+    }
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");
@@ -1180,6 +1191,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing nested classes...\n");
+      Swig_nested_process_classes(top);
+    }
 
     if (dump_top & STAGE3) {
       Printf(stdout, "debug-top stage 3\n");

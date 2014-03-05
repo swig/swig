@@ -2,108 +2,254 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.11 (in progress)
+Version 3.0.0 (in progress)
 ============================
 
-2013-08-30: wsfulton
-            [Lua] Pull Git patch #81: Include Lua error locus in SWIG error messages.  
-            This is standard information in Lua error messages, and makes it much
-            easier to find bugs.
+2014-03-02: wsfulton
+	    [Python] SF Patch #346 from Jens Krueger. Correct exception thrown attempting to
+            access a non-existent C/C++ global variable on the 'cvar' object. The exception thrown
+            used to be a NameError. However, as this access is via a primary, an AttributeError
+            is more correct and so the exception thrown now is an AttributeError. Reference:
+            http://docs.python.org/2/reference/expressions.html#attribute-references
 
-2013-08-29: wsfulton
-            Pull Git patch #75: Handle UTF-8 files with BOM at beginning of file. Was giving an
-            'Illegal token' syntax error.
+            *** POTENTIAL INCOMPATIBILITY  ***
 
-2013-08-29: wsfulton
-            [C#] Pull Git patch #77: Allow exporting std::map using non-default comparison function.
+2014-03-01: wsfulton
+	    [Python] Patch #143 Fix type shown when using type() to include the module and package
+            name when using -builtin.
 
-2013-08-28: wsfulton
-            [Python] %implicitconv is improved for overloaded functions. Like in C++, the methods
-            with the actual types are considered before trying implicit conversions. Example:
+2014-03-01: wsfulton
+	    [Python] SF patch #347 Fix missing argument count checking with -modern.
+            Fixes regression introduced when builtin changes were introduced in SWIG-2.0.3.
 
-              %implicitconv A;
-              struct A {
-                A(int i);
-              };
-              class CCC {
-                public:
-                  int xx(int i) { return 11; }
-                  int xx(const A& i) { return 22; }
-              };
+2014-02-21: wsfulton
+	    [PHP] Fix warning suppression using %warnfilter for PHP reserved class names.
 
-            The following python code:
+2014-02-19: olly
+	    [Lua] Add keyword warnings for Lua keywords and Basic Functions.
 
-              CCC().xx(-1)
+2014-02-19: olly
+	    -Wallkw now includes keywords for all languages with keyword
+	    warnings (previously Go and R were missing).
 
-            will now return 11 instead of 22 - the implicit conversion is not done.
+2014-02-19: olly
+	    [PHP] Update the lists of PHP keywords with new ones from PHP 5.4
+	    and newer (and some missing ones from 5.3).  Reserved PHP constants
+	    names are now checked against enum values and constants, instead
+	    of against function and method names.  Built-in PHP function names
+	    no longer match methods added by %extend.  Functions and methods
+	    named '__sleep', '__wakeup', 'not', 'parent', or 'virtual' are no
+	    longer needlessly renamed.
 
-2013-08-23: olly
-	    [Python] Fix clang++ warning in generated wrapper code.
+2014-02-15: wsfulton
+	    Fix the %$ismember %rename predicates to also apply to members added via %extend.
 
-2013-08-16: wsfulton
-            [Python] %implicitconv will now accept None where the implicit conversion takes a C/C++ pointer.
-            Problem highlighted by Bo Peng. Closes SF patch #230.
+            Add %$isextendmember for %rename of members added via %extend. This can be used to
+            distinguish between normal class/struct members and %extend members. For example
+            '%$ismember, %$not %$isextendmember' will now identify just class/struct members.
 
-2013-08-07: wsfulton
-            [Python] SF Patch #326 from Kris Thielemans - Remove SwigPyObject_print and SwigPyObject_str and
-            make the generated wrapper use the default python implementations, which will fall back to repr
-            (for -builtin option).
+            *** POTENTIAL INCOMPATIBILITY  ***
 
-            Advantages:
-            - it avoids the swig user having to jump through hoops to get print to work as expected when
-              redefining repr/str slots.
-            - typing the name of a variable on the python prompt now prints the result of a (possibly redefined)
-              repr, without the swig user having to do any extra work.
-            - when redefining repr, the swig user doesn't necessarily have to redefine str as it will call the
-              redefined repr
-            - the behaviour is exactly the same as without the -builtin option while requiring no extra work
-              by the user (aside from adding the %feature("python:slot...) statements of course)
+2014-02-16: hfalcic
+            [Python] Patch #137 - fix crashes/exceptions in exception handling in Python 3.3
 
-            Disadvantage:
-            - default str() will give different (but clearer?) output on swigged classes
+2014-02-15: wsfulton
+            [Java] Add support for the cdata library.
 
-2013-07-30: wsfulton
-            [Python, Ruby] Fix #64 #65: Missing code in std::multimap wrappers. Previously an instantiation
-            of a std::map was erroneously required in addition to an instantiation of std::multimap with the
-            same template parameters to prevent compilation errors for the wrappers of a std::multimap.
+2014-02-08: vkalinin
+            Nested class support added. This primarily allows SWIG to properly parse nested
+            classes and keep the nested class information in the parse tree. Java and C#
+            have utilised this information wrapping the C++ nested classes as Java/C#
+            nested classes. The remaining target languages ignore nested classes as in
+            previous versions. Help is needed by users of these remaining languages to
+            design how C++ nested classes can be best wrapped. Please talk to us on the
+            swig-devel mailing list if you think you can help.
 
-2013-07-14: joequant
-            [R] Change types file to allow for SEXP return values
+            Previously, there was limited nested class support. Nested classes were treated
+            as opaque pointers. However, the "nestedworkaround" feature provided a way to
+            wrap a nested class as if it was a global class. This feature no longer exists
+            and is replaced by the new "flatnested" feature. This effectively does the same
+            thing with less manual code to be written. Please see the 'Nested classes'
+            section in the documentation in SWIGPlus.html if you were previously using this
+            feature.
 
-2013-07-05: wsfulton
-            [Python] Add %pythonbegin directive which works like %pythoncode, except the specified code is
-            added at the beginning of the generated .py file. This is primarily needed for importing from
-            __future__ statements required to be at the very beginning of the file. Example:
+            SWIG now parses the contents of nested classes where previously it did not. You
+            may find that you will need to make adjustments to your interface file as
+            effectively extra code is being wrapped.
 
-              %pythonbegin %{
-              from __future__ import print_function
-              print("Loading", "Whizz", "Bang", sep=' ... ')
-              %}
+            *** POTENTIAL INCOMPATIBILITY  ***
 
-2013-07-01: wsfulton
-            [Python] Apply SF patch #340 - Uninitialized variable fix in SWIG_Python_NonDynamicSetAttr
-            when using -builtin.
+2014-02-06: gjanssens
+            [Guile] Patch #133. Make scm to string conversion work with non-ascii strings.
+            Guile 2 has a completely rewritten string implementation. SWIG made some assumptions
+            that are no longer valid as to the internals of guile's string representation.
 
-2013-07-01: wsfulton
-            [Python, Ruby, Ocaml] Apply SF patch #341 - fix a const_cast in generated code that was generating
-            a <:: digraph when using the unary scope operator (::) (global scope) in a template type.
+2014-01-30: wsfulton
+            [C#] Add new swigtype_inout.i library containing SWIGTYPE *& OUTPUT typemaps.
 
-2013-07-01: wsfulton
-            [Python] Add SF patch #342 from Christian Delbaere to fix some director classes crashing on
-            object deletion when using -builtin. Fixes SF bug #1301.
+            Example usage wrapping:
 
-2013-06-11: wsfulton
-            [Python] Add SWIG_PYTHON_INTERPRETER_NO_DEBUG macro which can be defined to use the Release version
-            of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
-            files have been modified to use this so that Debug builds will now work without having
-            to install or build a Debug build of the interpreter.
+              void f(XXX *& x) { x = new XXX(111); }
 
-2013-06-07: wsfulton
-	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
-            versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
-            Also fix the Complex helper functions external visibility (to static by default).
+            would be:
 
-2013-06-04: olly
-	    [PHP] Fix SWIG_ZTS_ConvertResourcePtr() not to dereference NULL
-	    if the type lookup fails.
+              XXX x = null;
+              f(out x);
+              // use x
+              x.Dispose(); // manually clear memory or otherwise leave out and leave it to the garbage collector
+
+2014-01-21: ianlancetaylor
+	    [Go] Add %go_import directive.
+
+2014-01-21: ianlancetaylor
+	    [Go] Add support for Go 1.3, not yet released.
+
+2014-01-20: wsfulton
+            Director exceptions (Swig::DirectorException) now derive from std::exception
+            and hence provide the what() method. In Python and Ruby, this replaces the now
+            deprecated DirectorException::getMessage() method.
+2014-01-14: diorcety
+            Patch #112 - Fix symbol resolution involving scopes that have multiple levels
+            of typedefs - fixes some template resolutions as well as some typemap searches.
+
+2014-01-11: wsfulton
+            Fix and document the naturalvar feature override behaviour - the naturalvar
+            feature attached to a variable name has precedence over the naturalvar
+            feature attached to the variable's type. The overriding was not working
+            when turning the feature off on the variable's name.
+
+            Fix so that any use of the naturalvar feature will override the global
+            setting. Previously when set globally by -naturalvar or %module(naturalvar=1),
+            use of the naturalvar feature was not always honoured.
+
+2014-01-06: ianlancetaylor
+	    [Go] Fix bug that broke using directors from a thread not
+	    created by Go.
+
+2013-12-24: ptomulik
+            [Python] SF Bug #1297
+
+            Resolve several issues related to python imports.
+            For example, it's now possible to import modules having the same module
+            names, but belonging in different packages.
+            
+            From the user's viewpoint, this patch gives a little bit more control on
+            import statements generated by SWIG. The user may choose to use relative
+            or absolute imports.
+            
+            Some details:
+              - we (still) generate import statements in the form 'import a.b.c' which
+                corresponds to absolute imports in python3 and (the only available)
+                ambiguous one in python2.
+              - added -relativeimport option to use explicit relative import syntax
+                (python3),
+
+            The "Python Packages" section in the documentation discusses how to work
+            with importing packages including the new -relativeimport command line option.
+
+2013-12-23: vadz
+            [Octave, Perl, Python, R, Ruby, Tcl] Change the length of strings created from fixed-size char
+            buffers in C code.
+
+            This is a potential backwards compatibility break: a "char buf[5]" containing "ho\0la" was
+            returned as a string of length 5 before, but is returned as a string of length 2 now. Also,
+            it was possible to assign a (non-NUL-terminated) string "hello" to such a buffer before but
+            now this fails and only "helo" can fit.
+
+            Apply "char FIXSIZE[ANY]" typemaps to explicitly choose the old behaviour.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2013-12-23: talby
+            [Perl] Add support for directors.
+
+2013-12-18: ianlancetaylor
+	    [Go] Don't require that Go environment variables be set
+	    when running examples or testsuite when using Go 1 or
+	    later.
+
+2013-12-17: ianlancetaylor
+	    [Go] Remove -longsize option (for backward compatibility,
+	    ignore it if seen).
+
+2013-12-17: ianlancetaylor
+	    [Go] Add -go-pkgpath option.
+
+2013-12-16: ianlancetaylor
+	    [Go] Update for Go 1.2 release.  Add support for linking
+	    SWIG code directly into executable, rather than using a
+	    shared library.
+
+2013-12-13: ianlancetaylor
+	    [Go] Add SWIG source file name as comments in generated
+	    files.  This can be used by Go documentation tools.
+
+2013-12-12: jleveque
+	    [Lua] Fix typo (wchar instead of wchar_t) which made wchar.i
+	    for Lua useless.
+
+2013-12-12: vmiklos
+	    [PHP] PHP's peculiar call-time pass-by-reference feature was
+	    deprecated in PHP 5.3 and removed in PHP 5.4, so update the REF
+	    typemaps in phppointers.i to specify pass-by-reference in the
+	    function definition.  Examples/php/pointer has been updated
+	    accordingly.
+
+2013-12-12: olly
+	    [PHP] The usage of $input in PHP directorout typemaps has been
+	    changed to be consistent with other languages.  The typemaps
+	    provided by SWIG have been updated accordingly, but if you
+	    have written your own directorout typemaps, you'll need to
+	    update $input to &$input (or make equivalent changes).
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2013-11-27: vadz
+            [C#, Java, Python] Add std_auto_ptr.i defining typemaps for returning std::auto_ptr<>.
+
+2013-11-09: wsfulton
+            [C#] Apply patch #79 from Brant Kyser
+              - Remove using directives from the generated C# code and fully qualify the use of all .NET
+                framework types in order to minimize potential name collisions from input files defining
+                types, namespace, etc with the same name as .NET framework members.
+              - Globally qualify the use of .NET framework types in the System namespace
+              - Remove .NET 1.1 support, .NET 2 is the minimum for the C# module
+
+            This is a potential backwards compatibility break if code has been added relying on these using
+            statements that used to be generated:
+
+              using System;
+              using System.Runtime.InteropServices;
+
+            The quick fix to add these back in is to add the -DSWIG2_CSHARP command line option when
+            executing SWIG. See CSharp.html documentation for more info.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2013-11-05: wsfulton
+            [Java] Fix some corner cases for the $packagepath/$javaclassname special variable substitution.
+
+2013-11-05: wsfulton
+            [Java] Apply patch #91 from Marvin Greenberg - Add director:except feature for improved
+            exception handling in director methods for Java.
+
+2013-10-15: vadz
+            Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
+            inside %rename to change the case of the text being replaced.
+
+
+2013-10-12: wsfulton
+            [CFFI] Apply #96 - superclass not lispify
+
+2013-10-12: wsfulton
+            Merge in C++11 support from the gsoc2009-matevz branch where Matevz Jekovec first
+            started the C++0x additions. Documentation of the C++11 features supported is in a
+            new Chapter of the documentation, "SWIG and C++11" in Doc/Manual/CPlusPlus11.html.
+
+2013-10-04: wsfulton
+            Fix %naturalvar not having any affect on templated classes instantiated with an
+            enum as the template parameter type. Problem reported by Vadim Zeitlin.
+
+2013-09-20: wsfulton
+            [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
 

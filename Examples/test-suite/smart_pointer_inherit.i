@@ -47,6 +47,7 @@
 
 %inline %{
 class ItkLevelSetNodeUS2 {
+  int x;
 };
 %}
 

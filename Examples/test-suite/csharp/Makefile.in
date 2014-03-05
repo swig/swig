@@ -4,8 +4,8 @@
 
 LANGUAGE     = csharp
 SCRIPTSUFFIX = _runme.cs
-INTERPRETER  = @CSHARPCILINTERPRETER@
-INTERPRETER_FLAGS   = @CSHARPCILINTERPRETER_FLAGS@
+CSHARPCILINTERPRETER  = @CSHARPCILINTERPRETER@
+CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
 CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 srcdir       = @srcdir@
@@ -14,9 +14,11 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	csharp_attributes \
+	csharp_swig2_compatibility \
 	csharp_exceptions \
 	csharp_features \
 	csharp_lib_arrays \
+	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
 	enum_thorough_simple \
@@ -35,6 +37,7 @@ CSHARPFLAGSSPECIAL =
 # Custom tests - tests with additional commandline options
 intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
+csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -55,9 +58,9 @@ csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
 	  mkdir $*;							  \
@@ -72,7 +75,7 @@ run_testcase = \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(INTERPRETER) $(INTERPRETER_FLAGS) ./$*_runme.exe; \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$*_runme.exe; \
 	else \
 	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \

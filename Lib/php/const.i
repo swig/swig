@@ -31,6 +31,7 @@
 
 %typemap(consttab) SWIGTYPE *,
                    SWIGTYPE &,
+                   SWIGTYPE &&,
                    SWIGTYPE [] {
   zval *z_var;
   MAKE_STD_ZVAL(z_var);

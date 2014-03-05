@@ -293,7 +293,7 @@ A proxy class is a special kind of object that gets created
 in a scripting language to access a C/C++ class (or struct) in a way
 that looks like the original structure (that is, it proxies the real
 C++ class). For example, if you
-have the following C definition :</p>
+have the following C++ definition :</p>
 
 <div class="code"><pre>
 class Vector {
@@ -334,12 +334,12 @@ Finally, in Tcl :
 
 <div class="targetlang"><pre>
 Vector v
-v configure -x 3 -y 4 -z 13
+v configure -x 3 -y 4 -z -13
 
 </pre></div>
 
 <p>
-When proxy classes are used, two objects are at really work--one in
+When proxy classes are used, two objects are really at work--one in
 the scripting language, and an underlying C/C++ object. Operations
 affect both objects equally and for all practical purposes, it appears
 as if you are simply manipulating a C/C++ object. 
@@ -353,7 +353,7 @@ The final step in using a scripting language with your C/C++
 application is adding your extensions to the scripting language
 itself. There are two primary approaches for doing
 this. The preferred technique is to build a dynamically loadable
-extension in the form a shared library.  Alternatively, you can
+extension in the form of a shared library.  Alternatively, you can
 recompile the scripting language interpreter with your extensions
 added to it.
 </p>
@@ -364,21 +364,16 @@ added to it.
 <p>
 To create a shared library or DLL, you often need to look at the
 manual pages for your compiler and linker.  However, the procedure
-for a few common machines is shown below:</p>
+for a few common platforms is shown below:</p>
 
 <div class="shell"><pre>
 # Build a shared library for Solaris
-gcc -c example.c example_wrap.c -I/usr/local/include
+gcc -fpic -c example.c example_wrap.c -I/usr/local/include
 ld -G example.o example_wrap.o -o example.so
 
 # Build a shared library for Linux
 gcc -fpic -c example.c example_wrap.c -I/usr/local/include
 gcc -shared example.o example_wrap.o -o example.so
-
-# Build a shared library for Irix
-gcc -c example.c example_wrap.c -I/usr/local/include
-ld -shared example.o example_wrap.o -o example.so
-
 </pre></div>
 
 <p>

@@ -20,7 +20,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
-Language* Language::this_ = 0;
+Language *Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -137,6 +137,8 @@ int Dispatcher::emit_one(Node *n) {
     ret = namespaceDeclaration(n);
   } else if (strcmp(tag, "template") == 0) {
     ret = templateDeclaration(n);
+  } else if (strcmp(tag, "lambda") == 0) {
+    ret = lambdaDeclaration(n);
   }
 
   /* ===============================================================
@@ -282,6 +284,9 @@ int Dispatcher::classDeclaration(Node *n) {
 int Dispatcher::templateDeclaration(Node *n) {
   return defaultHandler(n);
 }
+int Dispatcher::lambdaDeclaration(Node *n) {
+  return defaultHandler(n);
+}
 int Dispatcher::classforwardDeclaration(Node *n) {
   return defaultHandler(n);
 }
@@ -314,8 +319,7 @@ overloading(0),
 multiinput(0),
 cplus_runtime(0),
 directors(0) {
-  Hash *symbols = NewHash();
-  Setattr(symtabs, "", symbols); // create top level/global symbol table scope
+  symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -350,7 +354,7 @@ Language::~Language() {
     String *dirclassname;
     String *nspace = NewString(Getattr(n, "sym:nspace"));
     const char *attrib = "director:classname";
-    String *classname = Getattr(n, "sym:name");
+    String *classname = getClassPrefix();
 
     Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
     if (Len(nspace) > 0)
@@ -467,27 +471,44 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* --------------------------------------------------------------------------
- * use_naturalvar_mode()
+ * Language::use_naturalvar_mode()
+ *
+ * Determine whether to use const ref typemaps instead of pointer typemaps
+ * for variable access.
  * -------------------------------------------------------------------------- */
-int use_naturalvar_mode(Node *n) {
+int Language::use_naturalvar_mode(Node *n) const {
   if (Getattr(n, "unnamed"))
     return 0;
-  int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
-  if (!nvar) {
+
+  // The naturalvar feature can be attached to either the variable name or the variable's type
+  // naturalvar on the variable name is more specific and overrides naturalvar on the variable's type
+  String *naturalvar = Getattr(n, "feature:naturalvar");
+  bool explicitly_off = naturalvar && Strcmp(naturalvar, "0") == 0;
+  int nvar = GetFlag(n, "feature:naturalvar");
+
+  if (!explicitly_off && !nvar) {
     /* look for feature in the class */
     SwigType *ty = Getattr(n, "type");
     SwigType *fullty = SwigType_typedef_resolve_all(ty);
     if (SwigType_isclass(fullty)) {
-      Node *m = Copy(n);
       SwigType *tys = SwigType_strip_qualifiers(fullty);
-      Swig_features_get(Swig_cparse_features(), 0, tys, 0, m);
-      nvar = GetFlag(m, "feature:naturalvar");
+      if (!CPlusPlus) {
+	Replaceall(tys, "struct ", "");
+	Replaceall(tys, "union ", "");
+	Replaceall(tys, "class ", "");
+      }
+      Node *typenode = Swig_symbol_clookup(tys, 0);
+      if (typenode) {
+	naturalvar = Getattr(typenode, "feature:naturalvar");
+	explicitly_off = naturalvar && Strcmp(naturalvar, "0") == 0;
+	nvar = nvar || GetFlag(typenode, "feature:naturalvar");
+      }
       Delete(tys);
-      Delete(m);
     }
     Delete(fullty);
   }
-  return nvar ? CWRAP_NATURAL_VAR : 0;
+  nvar = nvar || naturalvar_mode;
+  return explicitly_off ? 0 : nvar ? CWRAP_NATURAL_VAR : 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -502,9 +523,6 @@ int Language::top(Node *n) {
       if (Getattr(options, "naturalvar")) {
 	naturalvar_mode = 1;
       }
-      if (Getattr(options, "nonaturalvar")) {
-	naturalvar_mode = 0;
-      }
     }
   }
   classhash = Getattr(n, "classes");
@@ -516,15 +534,9 @@ int Language::top(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::extendDirective(Node *n) {
-  int oldam = Extend;
-  AccessMode oldmode = cplus_mode;
-  Extend = CWRAP_EXTEND;
-  cplus_mode = PUBLIC;
-
+  save_value<int> oldam(Extend, CWRAP_EXTEND);
+  save_value<AccessMode> oldmode(cplus_mode, PUBLIC);
   emit_children(n);
-
-  Extend = oldam;
-  cplus_mode = oldmode;
   return SWIG_OK;
 }
 
@@ -947,7 +959,7 @@ int Language::cDeclaration(Node *n) {
 
       if (AddExtern) {
 	if (f_header) {
-	  if ((Cmp(storage, "extern") == 0) || (ForceExtern && !storage)) {
+	  if (Swig_storage_isextern(n) || (ForceExtern && !storage)) {
 	    /* we don't need the 'extern' part in the C/C++ declaration,
 	       and it produces some problems when namespace and SUN
 	       Studio is used.
@@ -977,7 +989,7 @@ int Language::cDeclaration(Node *n) {
 	      }
 	    }
 	    Printf(f_header, ";\n");
-	  } else if (Cmp(storage, "externc") == 0) {
+	  } else if (Swig_storage_isexternc(n)) {
 	    /* here 'extern "C"' is needed */
 	    String *str = SwigType_str(ty, name);
 	    Printf(f_header, "extern \"C\" %s;\n", str);
@@ -1006,15 +1018,13 @@ int Language::cDeclaration(Node *n) {
     /* Some kind of variable declaration */
     String *declaration = Copy(decl);
     Delattr(n, "decl");
-    if (Getattr(n, "nested"))
-      SetFlag(n, "feature:immutable");
     if (!CurrentClass) {
-      if ((Cmp(storage, "extern") == 0) || ForceExtern) {
-	f_header = Swig_filebyname("header");
+      if (Swig_storage_isextern(n) || ForceExtern) {
 	if (AddExtern) {
+	  f_header = Swig_filebyname("header");
 	  if (f_header) {
 	    String *str = SwigType_str(ty, name);
-	    Printf(f_header, "extern %s;\n", str);
+	    Printf(f_header, "%s %s;\n", Getattr(n, "storage"), str);
 	    Delete(str);
 	  }
 	}
@@ -1050,7 +1060,7 @@ int Language::cDeclaration(Node *n) {
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
   int isfriend = CurrentClass && Cmp(storage, "friend") == 0;
-  int isstatic = CurrentClass && Cmp(storage, "static") == 0 && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
+  int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {
     /* the method acts like a delete operator, ie, we need to disown the parameter */
@@ -1358,7 +1368,6 @@ int Language::variableHandler(Node *n) {
   if (!CurrentClass) {
     globalvariableHandler(n);
   } else {
-    String *storage = Getattr(n, "storage");
     Swig_save("variableHandler", n, "feature:immutable", NIL);
     if (SmartPointer) {
       /* If a smart-pointer and it's a constant access, we have to set immutable */
@@ -1366,7 +1375,7 @@ int Language::variableHandler(Node *n) {
 	SetFlag(n, "feature:immutable");
       }
     }
-    if ((Cmp(storage, "static") == 0) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
+    if (Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
       staticmembervariableHandler(n);
     } else {
       membervariableHandler(n);
@@ -1420,7 +1429,7 @@ int Language::membervariableHandler(Node *n) {
       String *target = 0;
       if (!Extend) {
 	if (SmartPointer) {
-	  if (checkAttribute(n, "storage", "static")) {
+	  if (Swig_storage_isstatic(n)) {
 	    Node *sn = Getattr(n, "cplus:staticbase");
 	    String *base = Getattr(sn, "name");
 	    target = NewStringf("%s::%s", base, name);
@@ -1441,6 +1450,7 @@ int Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup("memberin", nin, target, 0);
 	Delete(nin);
       }
+
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
@@ -1471,9 +1481,7 @@ int Language::membervariableHandler(Node *n) {
       }
       if (make_set_wrapper) {
 	Setattr(n, "sym:name", mrename_set);
-	SetFlag(n, "wrap:issetter");
 	functionWrapper(n);
-	Delattr(n, "wrap:issetter");
       } else {
 	SetFlag(n, "feature:immutable");
       }
@@ -1481,6 +1489,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "type", type);
       Setattr(n, "name", name);
       Setattr(n, "sym:name", symname);
+      Delattr(n, "memberset");
 
       /* Delete all attached typemaps and typemap attributes */
       Iterator ki;
@@ -1498,6 +1507,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "sym:name", mrename_get);
       Setattr(n, "memberget", "1");
       functionWrapper(n);
+      Delattr(n, "memberget");
     }
     Delete(mrename_get);
     Delete(mrename_set);
@@ -2355,6 +2365,15 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
+  // save class local variables for nested classes support
+  int oldInClass = InClass;
+  String *oldClassType = ClassType;
+  String *oldClassPrefix = ClassPrefix;
+  String *oldClassName = ClassName;
+  String *oldDirectorClassName = DirectorClassName;
+  String *oldNSpace = NSpace;
+  Node *oldCurrentClass = CurrentClass;
+
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
@@ -2363,6 +2382,8 @@ int Language::classDeclaration(Node *n) {
 
   int strip = CPlusPlus ? 1 : unnamed && tdname;
 
+  if (cplus_mode != PUBLIC)
+    return SWIG_NOWRAP;
   if (!name) {
     Swig_warning(WARN_LANG_CLASS_UNNAMED, input_file, line_number, "Can't generate wrappers for unnamed struct/class.\n");
     return SWIG_NOWRAP;
@@ -2373,15 +2394,21 @@ int Language::classDeclaration(Node *n) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
   }
-
+  AccessMode oldAccessMode = cplus_mode;
+  Node *outerClass = Getattr(n, "nested:outer");
+  if (outerClass && oldAccessMode != PUBLIC)
+    return SWIG_NOWRAP;
+  ClassName = Copy(name);
+  ClassPrefix = Copy(symname);
   if (Cmp(kind, "class") == 0) {
     cplus_mode = PRIVATE;
   } else {
     cplus_mode = PUBLIC;
   }
-
-  ClassName = Copy(name);
-  ClassPrefix = Copy(symname);
+  for (; outerClass; outerClass = Getattr(outerClass, "nested:outer")) {
+    Push(ClassPrefix, "_");
+    Push(ClassPrefix, Getattr(outerClass, "sym:name"));
+  }
   if (strip) {
     ClassType = Copy(name);
   } else {
@@ -2392,9 +2419,8 @@ int Language::classDeclaration(Node *n) {
 
   InClass = 1;
   CurrentClass = n;
-
-  String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
+  int oldAbstract = Abstract;
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -2436,25 +2462,27 @@ int Language::classDeclaration(Node *n) {
       classDirector(n);
     }
     /* check for abstract after resolving directors */
-    Abstract = abstractClassTest(n);
 
+    Abstract = abstractClassTest(n);
     classHandler(n);
   } else {
     Abstract = abstractClassTest(n);
     Language::classHandler(n);
   }
 
+  Abstract = oldAbstract;
+  cplus_mode = oldAccessMode;
   NSpace = oldNSpace;
-  InClass = 0;
-  CurrentClass = 0;
+  InClass = oldInClass;
+  CurrentClass = oldCurrentClass;
   Delete(ClassType);
-  ClassType = 0;
+  ClassType = oldClassType;
   Delete(ClassPrefix);
-  ClassPrefix = 0;
+  ClassPrefix = oldClassPrefix;
   Delete(ClassName);
-  ClassName = 0;
+  ClassName = oldClassName;
   Delete(DirectorClassName);
-  DirectorClassName = 0;
+  DirectorClassName = oldDirectorClassName;
   return SWIG_OK;
 }
 
@@ -2463,7 +2491,9 @@ int Language::classDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classHandler(Node *n) {
-
+  save_value<int> oldExtend(Extend);
+  if (Getattr(n, "template"))
+    Extend = 0;
   bool hasDirector = Swig_directorclass(n) ? true : false;
 
   /* Emit all of the class members */
@@ -2496,7 +2526,7 @@ int Language::classHandler(Node *n) {
     if (dirprot_mode() && extraDirectorProtectedCPPMethodsRequired()) {
       Node *vtable = Getattr(n, "vtable");
       String *symname = Getattr(n, "sym:name");
-      AccessMode old_mode = cplus_mode;
+      save_value<AccessMode> old_mode(cplus_mode);
       cplus_mode = PROTECTED;
       int len = Len(vtable);
       for (int i = 0; i < len; i++) {
@@ -2515,7 +2545,7 @@ int Language::classHandler(Node *n) {
 	  Setattr(m, "parentNode", n);
 	  /*
 	   * There is a bug that needs fixing still... 
-	   * This area of code is creating methods which have not been overidden in a derived class (director methods that are protected in the base)
+	   * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
 	   * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
 	   * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
 	  Printf(stdout, "new method: %s::%s(%s)\n", Getattr(parentNode(m), "name"), Getattr(m, "name"), ParmList_str_defaultargs(Getattr(m, "parms")));
@@ -2525,7 +2555,6 @@ int Language::classHandler(Node *n) {
 	}
 	Delete(wrapname);
       }
-      cplus_mode = old_mode;
     }
   }
 
@@ -2633,7 +2662,7 @@ int Language::constructorDeclaration(Node *n) {
       String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
       String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
       Delete(scope);
-      if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
+      if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name)) {
 	bool illegal_name = true;
 	if (Extend) {
 	  // Check for typedef names used as a constructor name in %extend. This is deprecated except for anonymous
@@ -2923,10 +2952,13 @@ int Language::constantWrapper(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::variableWrapper(Node *n) {
-  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", NIL);
+  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", "?varset", "?varget", NIL);
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
+
+  Delattr(n,"varset");
+  Delattr(n,"varget");
 
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
@@ -2958,14 +2990,16 @@ int Language::variableWrapper(Node *n) {
       Delete(pname0);
     }
     if (make_set_wrapper) {
-      SetFlag(n, "wrap:issetter");
+      Setattr(n, "varset", "1");
       functionWrapper(n);
-      Delattr(n, "wrap:issetter");
+    } else {
+      SetFlag(n, "feature:immutable");
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
     Setattr(n, "type", type);
     Setattr(n, "name", name);
+    Delattr(n, "varset");
 
     /* Delete all attached typemaps and typemap attributes */
     Iterator ki;
@@ -2979,7 +3013,9 @@ int Language::variableWrapper(Node *n) {
   String *gname = Swig_name_get(NSpace, symname);
   Setattr(n, "sym:name", gname);
   Delete(gname);
+  Setattr(n, "varget", "1");
   functionWrapper(n);
+  Delattr(n, "varget");
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -3023,17 +3059,10 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
+  //Printf( stdout, "addSymbol: %s %s\n", s, scope );
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
-    // New scope which has not been added by the target language - lazily created.
-    symbols = NewHash();
-    Setattr(symtabs, scope, symbols);
-
-    // Add the new scope as a symbol in the top level scope.
-    // Alternatively the target language must add it in before attempting to add symbols into the scope.
-    const_String_or_char_ptr top_scope = "";
-    Hash *topscope_symbols = Getattr(symtabs, top_scope);
-    Setattr(topscope_symbols, scope, NewHash());
+    symbols = symbolAddScope(scope);
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
@@ -3047,6 +3076,70 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   }
   Setattr(symbols, s, n);
   return 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolAddScope()
+ *
+ * Creates a scope (symbols Hash) for given name. This method is auxiliary,
+ * you don't have to call it - addSymbols will lazily create scopes automatically.
+ * If scope with given name already exists, then do nothing.
+ * Returns newly created (or already existing) scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
+  Hash *symbols = symbolScopeLookup(scope);
+  if(!symbols) {
+    // The order in which the following code is executed is important. In the Language
+    // constructor addScope("") is called to create a top level scope.
+    // Thus we must first add a symbols hash to symtab and only then add pseudo
+    // symbols to the top-level scope.
+
+    // New scope which has not been added by the target language - lazily created.
+    symbols = NewHash();
+    Setattr(symtabs, scope, symbols);
+
+    // Add the new scope as a symbol in the top level scope.
+    // Alternatively the target language must add it in before attempting to add symbols into the scope.
+    const_String_or_char_ptr top_scope = "";
+    Hash *topscope_symbols = Getattr(symtabs, top_scope);
+    Hash *pseudo_symbol = NewHash();
+    Setattr(pseudo_symbol, "sym:scope", "1");
+    Setattr(topscope_symbols, scope, pseudo_symbol);
+  }
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolScopeLookup()
+ *
+ * Lookup and returns a symtable (hash) representing given scope. Hash contains
+ * all symbols in this scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolScopePseudoSymbolLookup()
+ *
+ * For every scope there is a special pseudo-symbol in the top scope (""). It
+ * exists solely to detect name clashes. This pseudo symbol may contain a few properties,
+ * but more could be added. This is also true for the top level scope ("").
+ * It contains a pseudo symbol with name "" (empty). Pseudo symbol contains the
+ * following properties:
+ *   sym:scope = "1" - a flag that this is a scope pseudo symbol
+ *
+ * Pseudo symbols are a Hash*, not a Node*.
+ * There is no difference from symbolLookup() method except for signature
+ * and return type.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolScopePseudoSymbolLookup( const_String_or_char_ptr scope )
+{
+  /* Getting top scope */
+  const_String_or_char_ptr top_scope = "";
+  Hash *symbols = Getattr(symtabs, top_scope);
+  return Getattr(symbols, scope);
 }
 
 /* -----------------------------------------------------------------------------
@@ -3095,7 +3188,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(const SwigType *s) {
+Node *Language::classLookup(const SwigType *s) const {
   Node *n = 0;
 
   /* Look in hash of cached values */
@@ -3421,6 +3514,9 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
   return true;
 }
 
+Language::NestedClassSupport Language::nestedClassesSupport() const {
+  return NCS_Unknown;
+}
 /* -----------------------------------------------------------------------------
  * Language::is_wrapping_class()
  * ----------------------------------------------------------------------------- */

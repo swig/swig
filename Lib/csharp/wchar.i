@@ -20,14 +20,14 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
 %pragma(csharp) imclasscode=%{
   protected class SWIGWStringHelper {
 
-    public delegate string SWIGWStringDelegate(IntPtr message);
+    public delegate string SWIGWStringDelegate(global::System.IntPtr message);
     static SWIGWStringDelegate wstringDelegate = new SWIGWStringDelegate(CreateWString);
 
-    [DllImport("$dllimport", EntryPoint="SWIGRegisterWStringCallback_$module")]
+    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterWStringCallback_$module")]
     public static extern void SWIGRegisterWStringCallback_$module(SWIGWStringDelegate wstringDelegate);
 
-    static string CreateWString([MarshalAs(UnmanagedType.LPWStr)]IntPtr cString) {
-      return System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
+    static string CreateWString([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString) {
+      return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
     }
 
     static SWIGWStringHelper() {
@@ -77,12 +77,12 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
 
 // wchar_t *
 %typemap(ctype) wchar_t * "wchar_t *"
-%typemap(imtype, inattributes="[MarshalAs(UnmanagedType.LPWStr)]", out="IntPtr" ) wchar_t * "string"
+%typemap(imtype, inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]", out="global::System.IntPtr" ) wchar_t * "string"
 %typemap(cstype) wchar_t * "string"
 
 %typemap(csin) wchar_t * "$csinput"
 %typemap(csout, excode=SWIGEXCODE) wchar_t * {
-    string ret = System.Runtime.InteropServices.Marshal.PtrToStringUni($imcall);$excode
+    string ret = global::System.Runtime.InteropServices.Marshal.PtrToStringUni($imcall);$excode
     return ret;
   }
 %typemap(csvarin, excode=SWIGEXCODE2) wchar_t * %{

@@ -1,5 +1,6 @@
 %module namespace_class
 
+
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Ala::Ola;
 
 #ifdef SWIGD
@@ -216,9 +217,6 @@ namespace a
  
 %}
 
-// %copyctor doesn't work with nested class workaround
-%nocopyctor;
-
 %inline %{
   class Ala {
   public : 
@@ -236,12 +234,6 @@ namespace a
   };
 %}
 
-%rename(Ala__Ola) Ala::Ola;
-class Ala::Ola {
-public:
-  Ola() {}
-  void eek() {}
-};
 
 %template(hi) Ala::hi<int>;
 

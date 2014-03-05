@@ -1,45 +1,47 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes that proxy
- * method calls from C++ to Ocaml extensions.
- *
+ * This file contains support for director classes so that Ocaml proxy
+ * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 
-#ifdef __cplusplus
-
 #include <string>
+#include <exception>
 
 # define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
 
 namespace Swig {
   /* base class for director exceptions */
-  class DirectorException {
+  class DirectorException : public std::exception {
     protected:
       std::string swig_msg;
-    public:
-      DirectorException(const char* msg="") {
-      }
-      const char *getMessage() const { 
-        return swig_msg.c_str(); 
-      }
-      virtual ~DirectorException() {}
-  };
 
-  /* type mismatch in the return value from a python method call */
-  class DirectorTypeMismatchException : public Swig::DirectorException {
     public:
-      DirectorTypeMismatchException(const char* msg="") {
+      DirectorException(const char *msg="") : swig_msg(msg) {
+      }
+
+      virtual ~DirectorException() throw() {
+      }
+
+      const char *what() const throw() {
+        return swig_msg.c_str();
       }
   };
 
-  /* any python exception that occurs during a director method call */
-  class DirectorMethodException : public Swig::DirectorException {};
+  /* type mismatch in the return value from a Ocaml method call */
+  class DirectorTypeMismatchException : public DirectorException {
+    public:
+      DirectorTypeMismatchException(const char *msg="") : DirectorException(msg) {
+      }
+  };
+
+  /* any Ocaml exception that occurs during a director method call */
+  class DirectorMethodException : public DirectorException {};
 
   /* attempt to call a pure virtual method via a director method */
-  class DirectorPureVirtualException : public Swig::DirectorException {
+  class DirectorPureVirtualException : public DirectorException {
     public:
-      DirectorPureVirtualException(const char* msg="") {
+      DirectorPureVirtualException(const char *msg="") : DirectorException(msg) {
       }
 
       static void raise(const char *msg) {
@@ -57,7 +59,7 @@ namespace Swig {
 #define MUTEX_INIT(var) CRITICAL_SECTION var
 #else
 #include <pthread.h>
-#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER 
+#define MUTEX_INIT(var) pthread_mutex_t var = PTHREAD_MUTEX_INITIALIZER
 #endif
 #endif
 
@@ -78,25 +80,22 @@ namespace Swig {
       /* discard our reference at destruction */
       virtual ~Director() {
         remove_global_root(&swig_self);
-        swig_disown(); 
-        // Disown is safe here because we're just divorcing a reference that
-        // points to us.  
+        swig_disown();
+        // Disown is safe here because we're just divorcing a reference that points to us.
       }
 
       /* return a pointer to the wrapped ocaml object */
-      CAML_VALUE swig_get_self() const { 
+      CAML_VALUE swig_get_self() const {
 	  return swig_self;
       }
 
-      /* acquire ownership of the wrapped ocaml object (the sense of "disown"
-       * is from ocaml) */
-      void swig_disown() const { 
-        if (!swig_disown_flag) { 
+      /* acquire ownership of the wrapped ocaml object (the sense of "disown" is from ocaml) */
+      void swig_disown() const {
+        if (!swig_disown_flag) {
           swig_disown_flag=true;
           callback(*caml_named_value("caml_obj_disown"),swig_self);
-        } 
+        }
       }
   };
 }
 
-#endif /* __cplusplus */

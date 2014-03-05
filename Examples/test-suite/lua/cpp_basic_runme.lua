@@ -42,16 +42,25 @@ assert(f3.num==32)
 f4=cb.Foo(6)
 cb.Bar_global_fptr=f4
 assert(cb.Bar_global_fptr.num==6)
+assert(cb.Bar.global_fptr.num==6)
 f4.num=8
 assert(cb.Bar_global_fptr.num==8)
+assert(cb.Bar.global_fptr.num==8)
 
 assert(cb.Bar_global_fref.num==23)
+assert(cb.Bar.global_fref.num==23)
 cb.Bar_global_fref=cb.Foo(-7) -- this will set the value
 assert(cb.Bar_global_fref.num==-7)
+assert(cb.Bar.global_fref.num==-7)
 
 assert(cb.Bar_global_fval.num==3)
+assert(cb.Bar.global_fval.num==3)
 cb.Bar_global_fval=cb.Foo(-34)
 assert(cb.Bar_global_fval.num==-34)
+assert(cb.Bar.global_fval.num==-34)
+
+assert(cb.Bar.global_cint == -4)
+assert(cb.Bar_global_cint == -4)
 
 -- Now test member function pointers
 func1_ptr=cb.get_func1_ptr()

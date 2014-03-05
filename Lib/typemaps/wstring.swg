@@ -18,8 +18,20 @@ SWIG_pwchar_descriptor()
 }
 }
 
+%fragment("SWIG_wcsnlen","header",fragment="SWIG_FromWCharPtrAndSize") {
+size_t
+SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
+{
+  const wchar_t *p;
+  for (p = s; maxlen-- && *p; p++)
+    ;
+  return p - s;
+}
+}
+
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(UNISTRING), %checkcode(UNICHAR),
-		 wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize, wcslen,
+		 wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize,
+		 wcslen, SWIG_wcsnlen,
 		"<wchar.h>", WCHAR_MIN, WCHAR_MAX)
 

@@ -275,8 +275,8 @@ String *Swig_method_decl(SwigType *rettype, SwigType *decl, const_String_or_char
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
   if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
-      (is_non_virtual_protected_access(n) && !(checkAttribute(n, "staticmemberfunctionHandler:storage", "static") || 
-                                               checkAttribute(n, "storage", "static"))
+      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || 
+                                               Swig_storage_isstatic(n))
                                           && !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
     String *dirname;

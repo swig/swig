@@ -41,8 +41,8 @@ batch('schar', -0x80, 0, 1, 12, 0x7f);
 	use Math::BigInt qw();
 	# the pack dance is to get plain old NVs out of the
 	# Math::BigInt objects.
-	my $inf = unpack 'd', pack 'd', Math::BigInt->binf();
-	my $nan = unpack 'd', pack 'd', Math::BigInt->bnan();
+	my $inf = unpack 'd', pack 'd', Math::BigInt->new('Inf');
+	my $nan = unpack 'd', pack 'd', Math::BigInt->new('NaN');
 	batch('float',
 	  -(2 - 2 ** -23) * 2 ** 127,
 	  -1, -2 ** -149, 0, 2 ** -149, 1,
@@ -63,12 +63,16 @@ batch('schar', -0x80, 0, 1, 12, 0x7f);
 batch('longlong', -1, 0, 1, 12);
 batch('ulonglong', 0, 1, 12);
 SKIP: {
-  my $a = "8000000000000000";
-  my $b = "7fffffffffffffff";
-  my $c = "ffffffffffffffff";
+  use Math::BigInt qw();
   skip "not a 64bit Perl", 18 unless eval { pack 'q', 1 };
-  batch('longlong', -hex($a), hex($b));
-  batch('ulonglong', hex($c));
+  my $a = unpack 'q', pack 'q',
+     Math::BigInt->new('-9223372036854775808');
+  my $b = unpack 'q', pack 'q',
+     Math::BigInt->new('9223372036854775807');
+  my $c = unpack 'Q', pack 'Q',
+     Math::BigInt->new('18446744073709551615');
+  batch('longlong', $a, $b);
+  batch('ulonglong', $c);
 }
 
 my($foo, $int) = li_typemaps::out_foo(10);

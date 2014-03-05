@@ -2761,8 +2761,8 @@ Within SWIG wrappers, there are five main sections. These are (in order)
 <li>begin: This section is a placeholder for users to put code at the beginning of the C/C++ wrapper file.
 <li>runtime: This section has most of the common SWIG runtime code.
 <li>header: This section holds declarations and inclusions from the .i file.
-<li>wrapper: This section holds all the wrappering code.
-<li>init: This section holds the module initalisation function
+<li>wrapper: This section holds all the wrapper code.
+<li>init: This section holds the module initialisation function
 (the entry point for the interpreter).
 </ul>
 <p>
@@ -3005,7 +3005,7 @@ virtual int functionWrapper(Node *n) {
   /* write typemaps(in) */
   ....
 
-  /* write constriants */
+  /* write constraints */
   ....
 
   /* Emit the function call */
@@ -3350,10 +3350,10 @@ Note that if a runtime test is available, a message "(with run test)" is display
 <div class="shell"><pre>
 $ make check-python-test-suite
 checking python test-suite
-checking testcase argcargvtest (with run test) under python
-checking testcase python_autodoc under python
-checking testcase python_append (with run test) under python
-checking testcase callback (with run test) under python
+checking python testcase argcargvtest (with run test)
+checking python testcase python_autodoc
+checking python testcase python_append (with run test)
+checking python testcase callback (with run test)
 </pre></div>
 
 <p>
@@ -3495,6 +3495,12 @@ The syntax for setting environment variables varies from one shell to the next, 
 <div class="shell"><pre>
 make ret_by_value.ctest SWIG_FEATURES="-debug-tmsearch"
 </pre></div>
+
+<p>
+There is also a special 'errors' test-suite which is a set of regression tests checking SWIG warning and error messages.
+It can be run in the same way as the other language test-suites, replacing [lang] with errors, such as <tt>make check-errors-test-suite</tt>.
+The test cases used and the way it works is described in <tt>Examples/test-suite/errors/Makefile.in</tt>.
+</p>
 
 <H3><a name="Extending_nn43"></a>38.10.13 Documentation</H3>
 
