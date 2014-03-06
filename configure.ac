@@ -1145,6 +1145,8 @@ else
   AC_MSG_CHECKING(for include file JavaScriptCore/JavaScript.h)
   AC_ARG_WITH(jscoreinc, [  --with-jscinc=path    Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
 
+  JSCOREVERSION=
+
   if test -z "$JSCOREINCDIR"; then
     JSCOREINCDIR="/usr/include/ /usr/local/include/"
 
@@ -1187,18 +1189,7 @@ else
         if test -r $i/libjavascriptcoregtk-1.0.so; then
           AC_MSG_RESULT($i)
           JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
-          break
-        fi
-
-        if test -r $i/libwebkitgtk-1.0.so; then
-          AC_MSG_RESULT($i)
-          JSCORELIB="-L$i -lwebkitgtk-1.0"
-          break
-        fi
-
-        if test -r $i/libwebkit-1.0.la; then
-          AC_MSG_RESULT($i)
-          JSCORELIB="-L$i -lwebkit-1.0"
+          JSCOREVERSION=`pkg-config --modversion javascriptcoregtk-1.0`
           break
         fi
       done
@@ -1306,11 +1297,14 @@ AC_SUBST(JSINTERPRETERLINKFLAGS)
 
 AC_SUBST(JSCOREINC)
 AC_SUBST(JSCOREDYNAMICLINKING)
+AC_SUBST(JSCOREVERSION)
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
 
 AC_SUBST(JSCENABLED)
 AC_SUBST(JSV8ENABLED)
+
+AC_SUBST(NODEJS)
 
 #----------------------------------------------------------------
 # Look for gcj
