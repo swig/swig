@@ -13,7 +13,7 @@ matrix:
 #      env: SWIGLANG=guile
 #    - compiler: gcc
 #      env: SWIGLANG=java
-#    - compiler: gcc
+    - compiler: gcc
       env: SWIGLANG=javascript ENGINE=node
     - compiler: gcc
       env: SWIGLANG=javascript ENGINE=jsc
