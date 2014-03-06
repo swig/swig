@@ -1097,6 +1097,8 @@ if test x"${with_javascript}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Javascript])
   JAVASCRIPT=
 else
+  JAVASCRIPT=1
+
   #----------------------------------------------------------------
   # General Javascript settings shared by JSC and V8
   #----------------------------------------------------------------
