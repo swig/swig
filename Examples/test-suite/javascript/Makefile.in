@@ -15,13 +15,7 @@ else
 	JSENGINE=node
 endif
 
-# Note: the javascript generator is not ready yet for the real game.
-# To be able keep the behavior continously tested that is expected to work already
-# we have a 'light' version of the test-suite
-# This will be removed and replaced by a list of 'BROKEN_TEST_CASES' when
-# the number gets smaller (currently we have about 65 broken tests for JSC, and 85 for V8)
-
-ifneq (,$(SMOKE))
+ifeq (1,$(SMOKE))
 
 C_TEST_CASES = \
   preproc \
@@ -64,10 +58,7 @@ CPP_TEST_CASES = \
   using2 \
   javascript_unicode
 
-SKIP_CPP_CASES = @SKIP_CPP_CASES@
-SKIP_C_CASES = @SKIP_C_CASES@
-SKIP_CPP_STD_CASES = @SKIP_CPP_STD_CASES@
-SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
+SMOKE_TESTS_ONLY=1
 
 endif
 
