@@ -49,6 +49,8 @@ private:
 
   static const char* ToCString(const v8::String::Utf8Value& value);
 
+  virtual bool _ExecuteScript(const std::string& source, const std::string& scriptPath);
+
 protected:
 
   v8::Persistent<v8::Context> context;
@@ -61,14 +63,9 @@ protected:
 #error "implement dll loading"
 #endif
 
-V8Shell::V8Shell()
-{
-}
+V8Shell::V8Shell(){}
 
-V8Shell::~V8Shell() {
-  context.Dispose();
-  v8::V8::Dispose();
-}
+V8Shell::~V8Shell() {}
 
 bool V8Shell::RunScript(const std::string& scriptPath) {
 
@@ -84,7 +81,17 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
       return false;
   }
   context->Enter();
-  //v8::Context::Scope context_scope(context);
+
+  bool success = _ExecuteScript(source, scriptPath);
+
+  context->Exit();
+  context.Dispose();
+  v8::V8::Dispose();
+
+  return true;
+}
+
+bool V8Shell::_ExecuteScript(const std::string& source, const std::string& scriptPath) {
   v8::HandleScope scope;
 
   // Store a pointer to this shell for later use
@@ -98,10 +105,6 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
   if(!ExecuteScript(source, scriptPath)) {
     return false;
   }
-
-  context->Exit();
-  context.Dispose();
-  v8::V8::Dispose();
 
   return true;
 }
