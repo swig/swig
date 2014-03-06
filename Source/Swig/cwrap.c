@@ -941,7 +941,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
         is_smart_pointer_overload = 1;
       }
       else if (Swig_storage_isstatic(n)) {
-	String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
+	String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
 	String *ctname = SwigType_namestr(cname);
         self = NewStringf("(*(%s const *)this)->", ctname);
         is_smart_pointer_overload = 1;
@@ -1058,7 +1058,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 
     String *defaultargs = Getattr(n, "defaultargs");
     String *code = Getattr(n, "code");
-    String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
+    String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
     String *membername = Swig_name_member(nspace, cname, name);
     String *mangled = Swig_name_mangle(membername);
     int is_smart_pointer = flags & CWRAP_SMART_POINTER;
