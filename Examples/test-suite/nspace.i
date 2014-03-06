@@ -67,7 +67,11 @@ namespace Outer {
                   const Outer::Inner2::Color& col2c) {}
     }; // Color
     int Color::staticMemberVariable = 0;
-    class NoNSpacePlease {};
+    class NoNSpacePlease {
+      public:
+        enum NoNSpaceEnum { NoNspace1 = 1, NoNspace2 = 10 };
+        static int noNspaceStaticFunc() { return 10; }
+    };
   } // Inner2
 
   // Derived class

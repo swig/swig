@@ -103,13 +103,11 @@ static int squash_bases = 0;
  * This variable is controled by -no-old-metatable-bindings option.
  * v2_compatibility - 
  *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself.
+ *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
  *                    2. The layout in elua mode is somewhat different
- *                    3. C enums defined inside struct will oblige to C Standard and
- *                       will be defined in the scope surrounding the struct, not scope
- *                       associated with it/
  */
 static int v2_compatibility = 0;
+static int v2_compat_names_generation = 1; // This flag can temporaraly disable backward compatible names generation if v2_compatibiliti is enabled
 static const int default_api_level = 2;
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -1096,7 +1094,8 @@ public:
       return SWIG_NOWRAP;
     }
 
-    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
+    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0
+      && v2_compat_names_generation;
 
     if (make_v2_compatible) {
       // Don't do anything for enums in C mode - they are already
@@ -1166,15 +1165,9 @@ public:
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
-    // Drop v2_compatibility if NSpace is given
-    int old_v2_compatibility = v2_compatibility;
-    if (getNSpace()) {
-      v2_compatibility = 0;
-    } 
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
-    v2_compatibility = old_v2_compatibility;
     return result;
   }
 
@@ -1322,11 +1315,20 @@ public:
     Setattr(instance_cls, "lua:class_instance:static_hash", static_cls);
     Setattr(static_cls, "lua:class_static:instance_hash", instance_cls);
 
+    const int v2_compat_names_generation_old = v2_compat_names_generation;
+    // If class has %nspace enabled, then generation of backward compatible names
+    // should be disabled
+    if (getNSpace()) {
+      v2_compat_names_generation = 0;
+    }
+
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
      * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
      */
     // Generate normal wrappers
     Language::classHandler(n);
+
+    v2_compat_names_generation = v2_compat_names_generation_old;
 
     SwigType_add_pointer(t);
 
@@ -1607,7 +1609,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (v2_compatibility && result == SWIG_OK) {
+    if (v2_compatibility && result == SWIG_OK && v2_compat_names_generation) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1652,7 +1654,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (v2_compatibility) {
+      if (v2_compatibility && v2_compat_names_generation) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
 	// Although this function uses Swig_name_member, it actually generates the Lua name,

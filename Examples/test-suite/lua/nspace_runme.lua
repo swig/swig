@@ -62,6 +62,14 @@ sc = ns.Outer.SomeClass()
 assert( sc:GetInner1ColorChannel() ~= sc:GetInner2Channel() )
 assert( sc:GetInner1Channel() ~= sc:GetInner2Channel() )
 
+-- Backward compatibility 
+assert(ns.Outer.Inner1.Diffuse ~= nil)
+-- Enums within class within namespace shouldn't have backward compatible name. Same for static methods
+assert(ns.Outer.Inner1.Color_Diffuse == nil)
+assert(ns.Outer.Inner1.Color_colorStaticMethod == nil)
 
-
+-- Enums and static methods of class marked as %nonspace should have backward compatible name
+assert(ns.NoNSpacePlease_noNspaceStaticFunc() == 10)
+-- assert(ns.NoNSpacePlease_NoNspace1 == 1)
+-- assert(ns.NoNSpacePlease.NoNspace2 == 10)
 
