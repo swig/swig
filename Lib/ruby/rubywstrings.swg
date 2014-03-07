@@ -11,7 +11,7 @@
  *  utility methods for wchar_t strings 
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
+%fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor",fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
@@ -50,7 +50,7 @@ SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 }
 }
 
-%fragment("SWIG_FromWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
+%fragment("SWIG_FromWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor",fragment="SWIG_FromCharPtrAndSize") {
 SWIGINTERNINLINE VALUE 
 SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 {
