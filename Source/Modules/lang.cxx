@@ -3237,6 +3237,7 @@ Node *Language::classLookup(const SwigType *s) const {
 	(Len(prefix) == 0) ||			      // simple type (pass by value)
 	(Strcmp(prefix, "p.") == 0) ||		      // pointer
 	(Strcmp(prefix, "r.") == 0) ||		      // reference
+	(Strcmp(prefix, "z.") == 0) ||		      // rvalue reference
 	SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
       // Also accept pointer by const reference, not non-const pointer reference
       if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
