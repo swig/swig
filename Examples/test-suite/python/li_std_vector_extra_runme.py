@@ -17,10 +17,10 @@ halve_in_place(dv)
 
 
 bv = BoolVector(4)
-bv[0]= 1
-bv[1]= 0
-bv[2]= 4
-bv[3]= 0
+bv[0]= bool(1)
+bv[1]= bool(0)
+bv[2]= bool(4)
+bv[3]= bool(0)
 
 if bv[0] != bv[2]:
     raise RuntimeError,"bad std::vector<bool> mapping"

@@ -6,6 +6,62 @@ Version 3.0.0 (in progress)
 ============================
 
 2014-03-06: wsfulton
+            [Python] Change in default behaviour wrapping C++ bool. Only a Python True or False
+            will now work for C++ bool parameters. This fixes overloading bool with other types.
+            Python 2.3 minimum is now required for wrapping bool.
+
+            When wrapping:
+
+              const char* overloaded(bool value) { return "bool"; }
+              const char* overloaded(int value) { return "int"; }
+
+            Previous behaviour:
+              >>> overloaded(False)
+              'int'
+              >>> overloaded(True)
+              'int'
+              >>> overloaded(0)
+              'int'
+
+            Now we get the expected behaviour:
+              >>> overloaded(False)
+              'bool'
+              >>> overloaded(0)
+              'int'
+
+            The consequence is when wrapping bool in non-overloaded functions:
+
+              const char* boolfunction(bool value) { return value ? "true" : "false"; }
+
+            The previous behaviour was very Pythonic:
+              >>> boolfunction("")
+              'false'
+              >>> boolfunction("hi")
+              'true'
+              >>> boolfunction(12.34)
+              'true'
+              >>> boolfunction(0)
+              'false'
+              >>> boolfunction(1)
+              'true'
+
+            Now the new behaviour more along the lines of C++ due to stricter type checking. The
+            above calls result in an exception and need to be explicitly converted into a bool as
+            follows:
+              >>> boolfunction(0)
+              Traceback (most recent call last):
+                File "<stdin>", line 1, in <module>
+              TypeError: in method 'boolfunction', argument 1 of type 'bool'
+              >>> boolfunction(bool(0))
+              'false'
+
+            The old behaviour can be resurrected by passing the -DSWIG_PYTHON_LEGACY_BOOL command line
+            parameter when executing SWIG. Typemaps can of course be written to customise the behaviour
+            for specific parameters.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2014-03-06: wsfulton
 	    Fix SF Bug #1363 - Problem with method overloading when some methods are added by %extend
             and others are real methods and using template default parameters with smart pointers.
             This is noticeable as a regression since 2.0.12 when using the default smart pointer
