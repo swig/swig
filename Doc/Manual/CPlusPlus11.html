@@ -137,19 +137,14 @@ When either of these is used from a target language, a runtime call is made to o
 <H3><a name="CPlusPlus11_extern_template"></a>7.2.3 Extern template</H3>
 
 
-<p>SWIG correctly parses the keywords <tt>extern template</tt>. However, the explicit template instantiation is not used by SWIG, a <tt>%template</tt> is still required.</p>
-
+<p>SWIG correctly parses the keywords <tt>extern template</tt>.
+However, this template instantiation suppression in a translation unit has no relevance for SWIG.
+SWIG only uses <tt>%template</tt> for instantiating and wrapping templates.</p>
 
 <div class="code"><pre>
-extern template class std::vector&lt;MyClass&gt;; // explicit instantiation
-
-...
-
-class MyClass {
-public:
-  int a;
-  int b;
-};
+template class std::vector&lt;int&gt;; // C++03 explicit instantiation in C++
+extern template class std::vector&lt;int&gt;; // C++11 explicit instantiation suppression in C++
+%template(VectorInt) std::vector&lt;int&gt;; // SWIG instantiation
 </pre></div>
 
 <H3><a name="CPlusPlus11_initializer_lists"></a>7.2.4 Initializer lists</H3>
@@ -272,7 +267,7 @@ public:
 </pre></div>
 
 <p>
-Any attempt at passing in values from the target language will be ignored and replaced by <tt>{10, 20, 30, 40, 50}</tt>.
+Any attempt at passing in values from the target language will be ignored and be replaced by <tt>{10, 20, 30, 40, 50}</tt>.
 Needless to say, this approach is very limited, but could be improved upon, but only slightly.
 A typemap could be written to map a fixed number of elements on to the <tt>std::initializer_list</tt>,
 but with values decided at runtime.
@@ -468,7 +463,7 @@ struct DerivedStruct : BaseStruct {
 <H3><a name="CPlusPlus11_null_pointer_constant"></a>7.2.11 Null pointer constant</H3>
 
 
-<p>The <tt>nullptr</tt> constant is largely unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
+<p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
 
 <H3><a name="CPlusPlus11_strongly_typed_enumerations"></a>7.2.12 Strongly typed enumerations</H3>
 
@@ -479,7 +474,8 @@ enum class MyEnum : unsigned int;
 </pre></div>
 
 <p>The strongly typed enumerations are treated the same as the ordinary and anonymous enums.
-This is because SWIG doesn't support nested classes. This is usually not a problem, however, 
+This is because the required nested class support in SWIG is new and has not yet been incorporated into the wrapping of these strongly typed enum classes.
+This is usually not a problem, however,
 there may be some name clashes. For example, the following code:</p>
 
 <div class="code"><pre>
@@ -521,6 +517,10 @@ class AllColors {
 };
 </pre></div>
 
+<p>
+Expect to see this improved in a future version of SWIG.
+</p>
+
 <H3><a name="CPlusPlus11_double_angle_brackets"></a>7.2.13 Double angle brackets</H3>
 
 
@@ -541,22 +541,22 @@ For example:</p>
 <div class="code"><pre>
 class U {
 public:
-        int u;
+  int u;
 };
 
 class V {
 public:
-        int v;
+  int v;
 };
 
 class TestClass {
 public:
-        //implicit converting constructor
-        TestClass(U const &amp;val) { t=val.u; }
-        // explicit constructor
-        explicit TestClass(V const &amp;val) { t=val.v; }
+  //implicit converting constructor
+  TestClass(U const &amp;val) { t=val.u; }
+  // explicit constructor
+  explicit TestClass(V const &amp;val) { t=val.v; }
 
-        int t;
+  int t;
 };
 </pre></div>
 

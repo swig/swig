@@ -20,5 +20,9 @@ extern template class std::vector<A>;
 
 template class std::vector<A*>;
 extern template class std::vector<A*>;
+
+template class std::vector<int>;
+extern template class std::vector<int>;
 %}
 
+%template(VectorInt) std::vector<int>;
