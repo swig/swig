@@ -9,13 +9,13 @@ exec("swigtest.start", -1);
 iset = create_integer_set(1, 4);
 if ~exists("iset") | (iset <> [1 2 3 4]) then swigtesterror(); end
 // get the sum of this set elements with sum_integer_set():")
-isum = sum_integer_set(iset);
+isum = sum_integer_set(int32(iset));
 if ~exists("isum") | (isum <> 10) then swigtesterror(); end
 // get a set of of int {3...6} from create_integer_set():");
 iset2 = create_integer_set(3, 6);
 if ~exists("iset2") | (iset2 <> [3 4 5 6]) then swigtesterror(); end
 // concat the two sets with concat_integer_set():");
-iset3 = concat_integer_set(iset, iset2);
+iset3 = concat_integer_set(int32(iset), int32(iset2));
 if ~exists("iset3") | (iset3 <> [1 2 3 4 5 6]) then swigtesterror(); end
 
 // string sets
