@@ -37,8 +37,9 @@ namespace std {
   }
 
   template<> ClassAPtr binaryOperation(ClassAPtr x, ClassAPtr y) {
-    x->a += y->a;
-    return x;
+    if (x)
+      y->a += x->a;
+    return y;
   }
 
   template<typename SeqCont>
@@ -53,12 +54,12 @@ namespace std {
     }
 
     static value_type val_container(const SeqCont container) {
-      return std::accumulate(container.begin(), container.end(), container.front(),
+      return std::accumulate(container.begin(), container.end(), value_type(),
         binaryOperation<value_type>);
     }
 
     static value_type ref_container(const SeqCont& container) {
-      return std::accumulate(container.begin(), container.end(), container.front(),
+      return std::accumulate(container.begin(), container.end(), value_type(),
         binaryOperation<value_type>);
     }
   };
@@ -115,12 +116,10 @@ instantiate_containers_templates(int);
 instantiate_containers_templates(double);
 instantiate_containers_templates(bool);
 instantiate_containers_templates(string);
-instantiate_containers_templates(Color);
 instantiate_containers_templates(ClassAPtr);
 
 instantiate_containers_functions(int);
 instantiate_containers_functions(double);
 instantiate_containers_functions(bool);
 instantiate_containers_functions(string);
-instantiate_containers_functions(Color);
 instantiate_containers_functions(ClassAPtr);
