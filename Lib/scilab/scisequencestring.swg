@@ -76,10 +76,9 @@ SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
 
 %fragment(SWIG_AsVal_SequenceItem_frag(std::string), "header") {
 
-SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject _obj, char **_pSequence, int _iItemIndex, std::string *_pItemValue) {
-  *_pItemValue = std::string(_pSequence[_iItemIndex]);
-  return SWIG_OK;
+SWIGINTERN std::string
+SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject _obj, char **_pSequence, int _iItemIndex) {
+  return std::string(_pSequence[_iItemIndex]);
 }
 }
 

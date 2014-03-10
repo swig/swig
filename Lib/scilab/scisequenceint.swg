@@ -84,9 +84,8 @@ SWIG_FromSet_Sequence_dec(int)(int _size, int *_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(int), "header") {
 
 SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(int)(SwigSciObject _obj, int *_pSequence, int _iItemIndex, int *_pItemValue) {
-  *_pItemValue = _pSequence[_iItemIndex];
-  return SWIG_OK;
+SWIG_AsVal_SequenceItem_dec(int)(SwigSciObject _obj, int *_pSequence, int _iItemIndex) {
+  return _pSequence[_iItemIndex];
 }
 }
 

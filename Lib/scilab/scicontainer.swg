@@ -43,8 +43,6 @@
 	  fragment="StdTraits",
 	  fragment="SwigSciIterator_T")
 {
-%#include <stdio.h>
-
 namespace swig
 {
   template <class T>
@@ -63,12 +61,7 @@ namespace swig
     {
       try
       {
-        T value;
-        if (traits_asval_sequenceitem<T>::asval(_seq, _piSeqAddr, _index, &value) == SWIG_OK)
-        {
-          return value;
-        }
-        else throw std::invalid_argument("Cannot get sequence item.");
+        return traits_asval_sequenceitem<T>::asval(_seq, _piSeqAddr, _index);
       }
       catch (std::exception& e)
       {

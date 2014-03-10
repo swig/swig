@@ -34,11 +34,6 @@
 //
 
 %fragment(SWIG_Traits_Sequence_frag(ptr), "header",
-  fragment=SWIG_AsCheck_Sequence_frag(int),
-  fragment=SWIG_AsGet_Sequence_frag(int),
-  fragment=SWIG_AsSize_Sequence_frag(int),
-  fragment=SWIG_FromCreate_Sequence_frag(int),
-  fragment=SWIG_FromSet_Sequence_frag(int),
   fragment=SWIG_AsCheck_Sequence_frag(ptr),
   fragment=SWIG_AsGet_Sequence_frag(ptr),
   fragment=SWIG_AsSize_Sequence_frag(ptr),
@@ -47,30 +42,28 @@
   fragment="StdTraits") {
 
 namespace swig {
-  // For sequence of values, considers int as default type (so it works for enums)
-
+  // Error returned for sequence containers of default item type
   template <typename T> struct traits_as_sequence {
     static int check(SwigSciObject obj) {
-      return SWIG_AsCheck_Sequence_dec(int)(obj);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
     static int get(SwigSciObject obj, void **sequence) {
-      return SWIG_AsGet_Sequence_dec(int)(obj, (int **)sequence);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
     static int size(SwigSciObject obj, int *size) {
-      return SWIG_AsSize_Sequence_dec(int)(obj, size);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
   template <typename T> struct traits_from_sequence {
     static int create(int size, void **sequence) {
-      return SWIG_FromCreate_Sequence_dec(int)(size, (int **)sequence);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
     static SwigSciObject set(int size, void *sequence) {
-      return SWIG_FromSet_Sequence_dec(int)(size, (int *)sequence);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
 
-  // For sequence of pointers
-
+  // Support sequence containers of pointers
   template <typename T> struct traits_as_sequence<T*> {
     static int check(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(ptr)(obj);
@@ -132,31 +125,27 @@ namespace swig {
 //
 
 %fragment(SWIG_Traits_SequenceItem_frag(ptr), "header",
-  fragment=SWIG_AsVal_SequenceItem_frag(int),
-  fragment=SWIG_From_SequenceItem_frag(int),
   fragment=SWIG_AsVal_SequenceItem_frag(ptr),
   fragment=SWIG_From_SequenceItem_frag(ptr),
   fragment="StdTraits") {
 
 namespace swig {
-  // For sequence of values, considers int as default type (so it works for enums)
-
+  // Error returned for sequence containers of default item type
   template <typename T> struct traits_asval_sequenceitem {
-    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, T *pItemValue) {
-      return SWIG_AsVal_SequenceItem_dec(int)(obj, (int *)pSequence, iItemIndex, (int *)pItemValue);
+    static T asval(SwigSciObject obj, void *pSequence, int iItemIndex) {
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
   template <typename T> struct traits_from_sequenceitem {
     static int from(void *pSequence, int iItemIndex, T itemValue) {
-      return SWIG_From_SequenceItem_dec(int)((int *)pSequence, iItemIndex, (int)itemValue);
+      SWIG_Error(SWIG_TypeError, type_name<T>());
     }
   };
 
-  // Sequence of pointers
-
+  // Support sequence containers of pointers
   template <typename T> struct traits_asval_sequenceitem<T*> {
-    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, T **pItemValue) {
-      return SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex, (void **)pItemValue);
+    static T* asval(SwigSciObject obj, void *pSequence, int iItemIndex) {
+      return static_cast<T*>(SWIG_AsVal_SequenceItem_dec(ptr)(obj, (int *)pSequence, iItemIndex));
     }
   };
   template <typename T> struct traits_from_sequenceitem<T*> {
@@ -175,8 +164,8 @@ namespace swig {
 
 namespace swig {
   template <> struct traits_asval_sequenceitem<CppType > {
-    static int asval(SwigSciObject obj, void *pSequence, int iItemIndex, CppType *pItemValue) {
-      return SWIG_AsVal_SequenceItem_dec(CppType)(obj, (ScilabType *)pSequence, iItemIndex, pItemValue);
+    static CppType asval(SwigSciObject obj, void *pSequence, int iItemIndex) {
+      return SWIG_AsVal_SequenceItem_dec(CppType)(obj, (ScilabType *)pSequence, iItemIndex);
     }
   };
   template <> struct traits_from_sequenceitem<CppType > {

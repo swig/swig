@@ -74,41 +74,42 @@ SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
 
 %fragment(SWIG_AsVal_SequenceItem_frag(ptr), "header") {
 
-SWIGINTERN int
-SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject _obj, int *_piSequence, int _itemIndex, void **_pItemValue)
+SWIGINTERN void*
+SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject _obj, int *_piSequence, int _itemIndex)
 {
   SciErr sciErr;
   int *piItemAddr;
   int iType;
+  void* pItemValue = NULL;
 
   sciErr = getListItemAddress(pvApiCtx, _piSequence, _itemIndex + 1, &piItemAddr);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
-    return SWIG_ERROR;
+    return NULL;
   }
 
   sciErr = getVarType(pvApiCtx, piItemAddr, &iType);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
-    return SWIG_ERROR;
+    return NULL;
   }
 
   if (iType != sci_pointer)
   {
     Scierror(999, _("%s: Wrong type for input argument #%d: A pointer is expected at list item #%d.\n"), fname, _obj, _itemIndex + 1);
-    return SWIG_ERROR;
+    return NULL;
   }
 
-  sciErr = getPointerInList(pvApiCtx, _piSequence, _itemIndex + 1, (void **)_pItemValue);
+  sciErr = getPointerInList(pvApiCtx, _piSequence, _itemIndex + 1, &pItemValue);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
-    return SWIG_ERROR;
+    return NULL;
   }
 
-  return SWIG_OK;
+  return pItemValue;
 }
 }
 
