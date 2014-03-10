@@ -3,6 +3,9 @@
 */
 %module cpp11_explicit_conversion_operators
 
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) Testable::operator bool;
+%rename(AsInteger) Testable::operator int;
+
 %inline %{
 
 class U {
@@ -23,6 +26,16 @@ public:
   explicit TestClass( V const &val ) { t=val.v; }
 
   int t;
+};
+
+struct Testable {
+  // explicit conversion operator
+  explicit operator bool() const {
+    return false;
+  }
+  explicit operator int() {
+    return 42;
+  }
 };
 %}
 

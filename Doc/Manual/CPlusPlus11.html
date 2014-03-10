@@ -517,7 +517,7 @@ class Color {
 };
 </pre></div>
 
-<p>A workaround is to write these as a series of separated classes containing anonymous enums:</p>
+<p>A workaround is to write these as a series of separate classes containing anonymous enums:</p>
 
 <div class="code"><pre>
 class PrintingColors {
@@ -557,7 +557,7 @@ std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
 <H3><a name="CPlusPlus11_explicit_conversion_operators"></a>7.2.14 Explicit conversion operators</H3>
 
 
-<p>SWIG correctly parses the keyword <tt>explicit</tt> both for operators and constructors.
+<p>SWIG correctly parses the keyword <tt>explicit</tt> for operators in addition to constructors now.
 For example:</p>
 
 <div class="code"><pre>
@@ -575,19 +575,26 @@ class TestClass {
 public:
   //implicit converting constructor
   TestClass(U const &amp;val) { t=val.u; }
+
   // explicit constructor
   explicit TestClass(V const &amp;val) { t=val.v; }
 
   int t;
 };
+
+struct Testable {
+  // explicit conversion operator
+  explicit operator bool() const {
+    return false;
+  }
+};
 </pre></div>
 
 <p>
-The usage of explicit constructors and operators is somehow specific to C++ when assigning the value
-of one object to another one of different type or translating one type to another. It requires both operator and function overloading features,
-which are not supported by the majority of SWIG target languages. Also the constructors and operators are not particulary useful in any
-SWIG target languages, because all use their own facilities (eg. classes Cloneable and Comparable in Java)
-to achieve particular copy and compare behaviours.
+The effect of explicit constructors and operators has little relevance for the proxy classes as target
+languages don't have the same concepts of implicit conversions as C++.
+Conversion operators either with or without <tt>explicit</tt> need renaming to a valid identifier name in order to make
+them available as a normal proxy method.
 </p>
 
 <H3><a name="CPlusPlus11_alias_templates"></a>7.2.15 Alias templates</H3>
