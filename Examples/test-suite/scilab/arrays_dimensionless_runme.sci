@@ -47,8 +47,8 @@ if typeof(arr_long(a, 4)) <> "constant" then swigtesterror(); end
 
 // unsigned long
 a = [1, 2, 3, 4];
-if arr_ulong(a, 4) <> 10 then swigtesterror(); end
-if typeof(arr_ulong(a, 4)) <> "constant" then swigtesterror(); end
+if arr_ulong(uint32(a), 4) <> 10 then swigtesterror(); end
+if typeof(arr_ulong(uint32(a), 4)) <> "constant" then swigtesterror(); end
 
 // long long
 // No equivalent in Scilab 5
