@@ -138,13 +138,13 @@ When either of these is used from a target language, a runtime call is made to o
 
 
 <p>SWIG correctly parses the keywords <tt>extern template</tt>.
-However, this template instantiation suppression in a translation unit has no relevance for SWIG.
+However, this template instantiation suppression in a translation unit has no relevance outside of the C++ compiler and so is not used by SWIG.
 SWIG only uses <tt>%template</tt> for instantiating and wrapping templates.</p>
 
 <div class="code"><pre>
-template class std::vector&lt;int&gt;; // C++03 explicit instantiation in C++
+template class std::vector&lt;int&gt;;        // C++03 explicit instantiation in C++
 extern template class std::vector&lt;int&gt;; // C++11 explicit instantiation suppression in C++
-%template(VectorInt) std::vector&lt;int&gt;; // SWIG instantiation
+%template(VectorInt) std::vector&lt;int&gt;;  // SWIG instantiation
 </pre></div>
 
 <H3><a name="CPlusPlus11_initializer_lists"></a>7.2.4 Initializer lists</H3>
@@ -400,7 +400,8 @@ auto square(float a, float b) -&gt; decltype(a);
 
 
 <p>
-SWIG is able to handle constructor delegation, such as:
+There are three parts to object construction improvement.
+The first improvement is constructor delegation such as the following:
 </p>
 
 <div class="code"><pre>
@@ -418,7 +419,13 @@ public:
 </pre></div>
 
 <p>
-Constructor inheritance is parsed correctly, but the additional constructors are not currently added to the derived proxy class in the target language. Example is shown below:
+where peer constructors can be called. SWIG handles this without any issue.
+</p>
+
+<p>
+The second improvement is constructor inheritance via a <tt>using</tt> declaration.
+This is parsed correctly, but the additional constructors are not currently added to the derived proxy class in the target language.
+An example is shown below:
 <!--
 The extra constructors provided by the <tt>using</tt> syntax will add the appropriate constructors into the target language proxy derived classes.
 In the example below a wrapper for the <tt>DerivedClass(int)</tt> is added to <tt>DerivedClass</tt>:
@@ -434,6 +441,21 @@ public:
 class DerivedClass: public BaseClass {
   public:
   using BaseClass::BaseClass; // Adds DerivedClass(int) constructor
+};
+</pre></div>
+
+<p>
+The final part is member initialization at the site of the declaration.
+This kind of initialization is handled by SWIG.
+</p>
+
+<div class="code"><pre>
+class SomeClass {
+public:
+    SomeClass() {}
+    explicit SomeClass(int new_value) : value(new_value) {}
+
+    int value = 5;
 };
 </pre></div>
 
