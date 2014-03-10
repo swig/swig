@@ -107,7 +107,7 @@ For example, ignore the move constructor:
 </pre></div>
 
 <p>
-The plan is to ignore them by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
+The plan is to ignore move constructors by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
 </p>
 
 <div class="shell">
@@ -120,20 +120,19 @@ example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid ide
 <H3><a name="CPlusPlus11_generalized_constant_expressions"></a>7.2.2 Generalized constant expressions</H3>
 
 
-<p>SWIG correctly parses the keyword <tt>constexpr</tt>, but ignores its functionality. Constant functions cannot be used as constants.</p>
+<p>SWIG parses and identifies the keyword <tt>constexpr</tt>, but cannot fully utilise it.
+These C++ compile time constants are usable as runtime constants from the target languages.
+Below shows example usage for assigning a C++ compile time constant from a compile time constant function:
+</p>
 
 <div class="code"><pre>
-constexpr int myConstFunc() { return 10; }
-const int a = myConstFunc(); // results in error
+constexpr int XXX() { return 10; }
+constexpr int YYY = XXX() + 100;
 </pre></div>
 
-<p>Users needs to use values or predefined constants when defining the new constant value:</p>
-
-<div class="code"><pre>
-#define MY_CONST 10
-constexpr int myConstFunc() { return MY_CONST; }
-const int a = MY_CONST; // ok
-</pre></div>
+<p>
+When either of these is used from a target language, a runtime call is made to obtain the underlying constant.
+</p>
 
 <H3><a name="CPlusPlus11_extern_template"></a>7.2.3 Extern template</H3>
 
