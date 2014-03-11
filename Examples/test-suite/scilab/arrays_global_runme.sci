@@ -40,6 +40,9 @@ testArray("array_d", array_d_set, array_d_get, [-10.5, 20.4], [-10.5, 20.4]);
 
 if array_const_i_get() <> [10, 20] then swigtesterror(); end
 
+ierr = execstr('array_i_set([0:10]', 'errcatch');
+if ierr == 0 then swigtesterror("Overflow error expected"); end
+
 if BeginString_FIX44a_get() <> "FIX.a.a" then swigtesterror(); end
 if BeginString_FIX44b_get() <> "FIX.b.b" then swigtesterror(); end
 if BeginString_FIX44c_get() <> "FIX.c.c" then swigtesterror(); end

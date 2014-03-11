@@ -4,6 +4,10 @@
  *
  * --------------------------------------------------------------------------*/
 
+%{
+#include <stdio.h>
+%}
+
 %define %scilab_asarray_withcopy(TYPEMAPTYPE, FRAGMENTNAME, CTYPE, TEMPDATATYPE)
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
   size_t i = 0;
@@ -21,16 +25,23 @@
 %enddef
 %define %scilab_asarrayandsize_withcopy(TYPEMAPTYPE, FRAGMENTNAME, CTYPE, TEMPDATATYPE)
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
-  size_t i = 0;
   int iRows = 0;
   int iCols = 0;
   TEMPDATATYPE *pTempData = NULL;
   if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, fname)) {
     return SWIG_ERROR;
   }
-  // TODO: add check to be sure iRows*iCols==$1_dim0
-  for (i = 0; i < $1_dim0; i++) {
-    $1[i] = ($*1_ltype) pTempData[i];
+  if (iRows*iCols <= $1_dim0) {
+    size_t i;
+    for (i = 0; i < $1_dim0; i++) {
+      $1[i] = ($*1_ltype) pTempData[i];
+    }
+  }
+  else {
+    char errmsg[100];
+    sprintf(errmsg, "Size of input data (%d) is too big (maximum is %d)",
+      iRows*iCols, $1_dim0);
+    SWIG_exception_fail(SWIG_OverflowError, errmsg);
   }
 }
 %enddef
