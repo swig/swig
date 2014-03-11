@@ -92,6 +92,13 @@ testSequenceContainer("list", "string", "a", "b", "ab");
 testSequenceContainer("list", "bool", %T, %F, %T);
 testSequenceContainerPtr("list", 1, 3, 4);
 
+// test deque
+testSequenceContainer("deque", "int", 1, 2, 3);
+testSequenceContainer("deque", "double", 2., 3., 5.);
+testSequenceContainer("deque", "string", "a", "b", "ab");
+testSequenceContainer("deque", "bool", %T, %F, %T);
+testSequenceContainerPtr("deque", 1, 3, 4);
+
 exec("swigtest.quit", -1);
 
 

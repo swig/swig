@@ -836,6 +836,7 @@ The following containers are usable:
 <ul>
 <li><tt>std::vector</tt></li>
 <li><tt>std::list</tt></li>
+<li><tt>std::deque</tt></li>
 <li><tt>std::set</tt></li>
 </ul>
 
@@ -859,18 +860,18 @@ Some typemaps between Scilab and the STL are available.
 <li>
 
 <p>
-A STL vector or list is mapped from/to a Scilab matrix or list, depending on type.
+A STL vector/list/deque is mapped from/to a Scilab matrix or list, depending on type.
 <p>
 
 <table summary="Typemaps vector-list", border="1">
 <tr>
 <th>STL type</th>
 <th>Scilab type</th>
-<tr><td>vector/list of int</td><td>int matrix</td></tr>
-<tr><td>vector/list of double</td><td>double matrix</td></tr>
-<tr><td>vector/list of string</td><td>string matrix</td></tr>
-<tr><td>vector/list of bool</td><td>bool matrix</td></tr>
-<tr><td>vector/list of pointer</td><td>pointer list</td></tr>
+<tr><td>vector/list/deque of int</td><td>int matrix</td></tr>
+<tr><td>vector/list/deque of double</td><td>double matrix</td></tr>
+<tr><td>vector/list/deque of string</td><td>string matrix</td></tr>
+<tr><td>vector/list/deque of bool</td><td>bool matrix</td></tr>
+<tr><td>vector/list/deque of pointer</td><td>pointer list</td></tr>
 </table>
 
 </li>

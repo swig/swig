@@ -89,6 +89,19 @@ namespace std {
   T ref_list(const std::list<T>& container) {
     return sequence_container<std::list<T> >::ref_container(container);
   }
+
+  template<typename T>
+  std::deque<T> ret_deque(const T value1, const T value2) {
+    return sequence_container<std::deque<T> >::ret_container(value1, value2);
+  }
+  template<typename T>
+  T val_deque(const std::deque<T> container) {
+    return sequence_container<std::deque<T> >::val_container(container);
+  }
+  template<typename T>
+  T ref_deque(const std::deque<T>& container) {
+    return sequence_container<std::deque<T> >::ref_container(container);
+  }
 }
 %}
 
@@ -97,6 +110,7 @@ namespace std
 {
   %template(TYPE ## _vector) std::vector<TYPE>;
   %template(TYPE ## _list) std::list<TYPE>;
+  %template(TYPE ## _deque) std::deque<TYPE>;
 }
 %enddef
 
@@ -109,6 +123,9 @@ namespace std
   %template(ret_ ## TYPE ## _list) ret_list<TYPE>;
   %template(val_ ## TYPE ## _list) val_list<TYPE>;
   %template(ref_ ## TYPE ## _list) ref_list<TYPE>;
+  %template(ret_ ## TYPE ## _deque) ret_deque<TYPE>;
+  %template(val_ ## TYPE ## _deque) val_deque<TYPE>;
+  %template(ref_ ## TYPE ## _deque) ref_deque<TYPE>;
 }
 %enddef
 
