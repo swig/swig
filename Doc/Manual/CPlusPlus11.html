@@ -714,7 +714,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 <H3><a name="CPlusPlus11_new_string_literals"></a>7.2.18 New string literals</H3>
 
 
-<p>SWIG supports unicode string constants and raw string literals.</p>
+<p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
 
 <div class="code"><pre>
 // New string literals
@@ -732,8 +732,14 @@ const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
 const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
 </pre></div>
 
-<p>Note: SWIG currently incorrectly parses the odd number of double quotes
-inside the string due to SWIG's C++ preprocessor.</p>
+<p>
+Non-ASCII string support varies quite a bit among the various target languages though.
+</p>
+
+<p>
+Note: There is a bug currently where SWIG's preprocessor incorrectly parses an odd number of double quotes
+inside raw string literals.
+</p>
 
 <H3><a name="CPlusPlus11_user_defined_literals"></a>7.2.19 User-defined literals</H3>
 
@@ -805,7 +811,7 @@ OutputType var3 = 3.1416_suffix;
 <H3><a name="CPlusPlus11_thread_local_storage"></a>7.2.20 Thread-local storage</H3>
 
 
-<p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variable
+<p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
 reachable by the current thread can be defined as:</p> 
 
 <div class="code"><pre>
@@ -831,9 +837,8 @@ For example:</p>
 <div class="code"><pre>
 struct NonCopyable {
   NonCopyable &amp; operator=(const NonCopyable &amp;) = delete; /* Removes operator= */
-  NonCopyable(const NonCopyable &amp;) = delete;                /* Removed copy constructor */
-  NonCopyable() = default;                                     /* Explicitly allows the empty constructor */
-  void *operator new(std::size_t) = delete;                    /* Removes new NonCopyable */
+  NonCopyable(const NonCopyable &amp;) = delete;             /* Removes copy constructor */
+  NonCopyable() = default;                               /* Explicitly allows the empty constructor */
 };
 </pre></div>
 
@@ -844,6 +849,23 @@ Explicitly defaulted functions have no direct effect for SWIG wrapping as the de
 much like any other method declaration parsed by SWIG.
 </p>
 
+<p>
+Deleted functions are also designed to prevent implicit conversions when calling the function.
+For example, the C++ compiler will not compile any code which attempts to use an int as the type of the parameter passed to <tt>f</tt> below:
+</p>
+
+<div class="code"><pre>
+struct NoInt {
+    void f(double i);
+    void f(int) = delete;
+};
+</pre></div>
+
+<p>
+This is a C++ compile time check and SWIG does not make any attempt to detect if the target language is using an int instead of a double though,
+so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
+</p>
+
 <H3><a name="CPlusPlus11_type_long_long_int"></a>7.2.22 Type long long int</H3>
 
 
@@ -852,7 +874,10 @@ much like any other method declaration parsed by SWIG.
 <H3><a name="CPlusPlus11_static_assertions"></a>7.2.23 Static assertions</H3>
 
 
-<p>SWIG correctly parses and calls the new <tt>static_assert</tt> function.</p>
+<p>
+SWIG correctly parses the new <tt>static_assert</tt> declarations.
+This is a C++ compile time directive so there isn't anything useful that SWIG can do with it.
+</p>
 
 <div class="code"><pre>
 template &lt;typename T&gt;
@@ -861,11 +886,12 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object"></a>7.2.24 Allow sizeof to work on members of classes without an explicit object</H3>
+<H3><a name="CPlusPlus11_sizeof"></a>7.2.24 Allow sizeof to work on members of classes without an explicit object</H3>
 
 
-<p>SWIG correctly calls the sizeof() on types as well as on the
-objects. For example:</p>
+<p>
+SWIG can parse the new sizeof() on types as well as on objects. For example:
+</p>
 
 <div class="code"><pre>
 struct A {
@@ -897,6 +923,48 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
+<H3><a name="CPlusPlus11_alignment"></a>Control and query object alignment</H3>
+
+<p>
+An <tt>alignof</tt> operator is used mostly within C++ to return alignment in number of bytes, but could be used to initialize a variable as shown below.
+The variable's value will be available for access by the target language as any other variable's compile time initialised value.
+
+<div class="code"><pre>
+const int align1 = alignof(A::member);
+</pre></div>
+
+<p>
+The <tt>alignas</tt> specifier for variable alignment is not yet supported.
+Example usage:
+</p>
+
+<div class="code"><pre>
+struct alignas(16) S {
+  int num;
+};
+alignas(double) unsigned char c[sizeof(double)];
+</pre></div>
+
+<p>
+Use the preprocessor to work around this for now:
+</p>
+
+<div class="code"><pre>
+#define alignas(T)
+</pre></div>
+
+
+<H3><a name="CPlusPlus11_attributes"></a>Attributes</H3>
+
+<p>
+Attributes such as those shown below, are not yet supported and will give a syntax error.
+</p>
+
+<div class="code"><pre>
+int [[attr1]] i [[attr2, attr3]];
+
+[[noreturn, nothrow]] void f [[noreturn]] ();
+</pre></div>
 
 <H2><a name="CPlusPlus11_standard_library_changes"></a>7.3 Standard library changes</H2>
 

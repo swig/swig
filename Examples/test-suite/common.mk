@@ -495,6 +495,7 @@ CPP_TEST_CASES += \
 
 # C++11 test cases.
 CPP11_TEST_CASES = \
+	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
 	cpp11_decltype \
