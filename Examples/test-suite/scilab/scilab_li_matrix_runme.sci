@@ -42,5 +42,8 @@ test_matrix_typemaps("double", m, sum(m), m .* m);
 //m = ["0" "3"; "1" "4"; "2" "5"]
 //test_matrix_typemaps("charptr", m, strcat(m), m + m);
 
+m = [%T, %F; %F, %T; %T, %F];
+test_matrix_typemaps("bool", m, %T, ~m);
+
 
 exec("swigtest.quit", -1);

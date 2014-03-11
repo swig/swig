@@ -51,11 +51,12 @@ SWIG_From_dec(bool)(bool _bValue) {
  * C-type: bool[]
  * Scilab type: boolean vector (but converted to int first because can not cast bool** to int **
  */
-%fragment("SWIG_SciBoolean_AsIntArrayAndSize", "header") {
+%fragment("SWIG_SciBoolean_AsBoolArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, int **_piValue, char *_fname) {
+SWIG_SciBoolean_AsBoolArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, bool **_pbValue, char *_fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
+  int *piValue = NULL;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -64,13 +65,19 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *
   }
 
   if (isBooleanType(_pvApiCtx, piAddrVar)) {
-    sciErr = getMatrixOfBoolean(_pvApiCtx, piAddrVar, _iRows, _iCols, _piValue);
+    int i;
+    sciErr = getMatrixOfBoolean(_pvApiCtx, piAddrVar, _iRows, _iCols, &piValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-  } else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A boolean vector expected.\n"), _fname, _iVar);
+
+    *_pbValue = (bool*) malloc((*_iRows) * (*_iCols) * sizeof(bool));
+    for (i=0; i< (*_iRows) * (*_iCols); i++)
+      (*_pbValue)[i] = piValue[i] != 0;
+  }
+  else {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A boolean matrix expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
@@ -78,17 +85,25 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *
 }
 }
 
-%fragment("SWIG_SciBoolean_FromIntArrayAndSize", "header") {
+%fragment("SWIG_SciBoolean_FromBoolArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
+SWIG_SciBoolean_FromBoolArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, bool *_pbValue) {
   SciErr sciErr;
+  int *piValue = NULL;
+  int i;
 
-  sciErr = createMatrixOfBoolean(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _piData);
+  piValue = (int*) malloc(_iRows * _iCols * sizeof(int));
+  for (i=0; i< _iRows * _iCols; i++)
+    piValue[i] = _pbValue[i];
+
+  sciErr = createMatrixOfBoolean(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, piValue);
   if(sciErr.iErr) {
     printError(&sciErr, 0);
+    free(piValue);
     return SWIG_ERROR;
   }
 
+  free(piValue);
   return SWIG_OK;
 }
 }
