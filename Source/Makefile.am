@@ -141,8 +141,6 @@ beautify-file:
 	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
 	test -e $(INDENTFILE) || (echo File does not exist: $(INDENTFILE) && exit 1;)
 	cp $(INDENTFILE) $(INDENTBAKSDIR)/$(INDENTFILE);
-	unix2dos $(INDENTFILE)
-	dos2unix $(INDENTFILE)
 	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;

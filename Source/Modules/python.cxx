@@ -3728,7 +3728,7 @@ public:
     if (builtin)
       builtin_pre_decl(n);
 
-    /* Overide the shadow file so we can capture its methods */
+    /* Override the shadow file so we can capture its methods */
     f_shadow = NewString("");
 
     // Set up type check for director class constructor

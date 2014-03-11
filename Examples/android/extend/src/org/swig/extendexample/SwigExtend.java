@@ -96,7 +96,7 @@ public class SwigExtend extends Activity
       // methods of all these instances are treated the same. For items 0, 1, and
       // 2, all methods resolve in C++. For item 3, our CEO, getTitle calls
       // getPosition which resolves in Java. The call to getPosition is
-      // slightly different, however, because of the overidden getPosition() call, since
+      // slightly different, however, because of the overridden getPosition() call, since
       // now the object reference has been "laundered" by passing through
       // EmployeeList as an Employee*. Previously, Java resolved the call
       // immediately in CEO, but now Java thinks the object is an instance of

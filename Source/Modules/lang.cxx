@@ -467,9 +467,9 @@ void swig_pragma(char *lang, char *name, char *value) {
 }
 
 /* --------------------------------------------------------------------------
- * use_naturalvar_mode()
+ * Language::use_naturalvar_mode()
  * -------------------------------------------------------------------------- */
-int use_naturalvar_mode(Node *n) {
+int Language::use_naturalvar_mode(Node *n) const {
   if (Getattr(n, "unnamed"))
     return 0;
   int nvar = naturalvar_mode || GetFlag(n, "feature:naturalvar");
@@ -478,12 +478,16 @@ int use_naturalvar_mode(Node *n) {
     SwigType *ty = Getattr(n, "type");
     SwigType *fullty = SwigType_typedef_resolve_all(ty);
     if (SwigType_isclass(fullty)) {
-      Node *m = Copy(n);
       SwigType *tys = SwigType_strip_qualifiers(fullty);
-      Swig_features_get(Swig_cparse_features(), 0, tys, 0, m);
-      nvar = GetFlag(m, "feature:naturalvar");
+      if (!CPlusPlus) {
+	Replaceall(tys, "struct ", "");
+	Replaceall(tys, "union ", "");
+	Replaceall(tys, "class ", "");
+      }
+      Node *typenode = Swig_symbol_clookup(tys, 0);
+      if (typenode)
+	nvar = GetFlag(typenode, "feature:naturalvar");
       Delete(tys);
-      Delete(m);
     }
     Delete(fullty);
   }
@@ -1441,6 +1445,7 @@ int Language::membervariableHandler(Node *n) {
 	tm = Swig_typemap_lookup("memberin", nin, target, 0);
 	Delete(nin);
       }
+
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
@@ -2513,7 +2518,7 @@ int Language::classHandler(Node *n) {
 	  Setattr(m, "parentNode", n);
 	  /*
 	   * There is a bug that needs fixing still... 
-	   * This area of code is creating methods which have not been overidden in a derived class (director methods that are protected in the base)
+	   * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
 	   * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
 	   * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
 	  Printf(stdout, "new method: %s::%s(%s)\n", Getattr(parentNode(m), "name"), Getattr(m, "name"), ParmList_str_defaultargs(Getattr(m, "parms")));
@@ -3091,7 +3096,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(const SwigType *s) {
+Node *Language::classLookup(const SwigType *s) const {
   Node *n = 0;
 
   /* Look in hash of cached values */
