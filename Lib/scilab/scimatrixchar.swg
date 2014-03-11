@@ -9,7 +9,7 @@
 
 %typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (char** vectorIn, int vectorInSize)
 {
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, fname) == SWIG_ERROR)
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, fname) != SWIG_OK)
   {
     return SWIG_ERROR;
   }
@@ -37,7 +37,7 @@
 
 %typemap(argout, fragment="SWIG_SciString_FromCharPtrArray") (char*** vectorOut, int* vectorOutSize)
 {
-  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2) != SWIG_ERROR)
+  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2) == SWIG_OK)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
@@ -51,7 +51,7 @@
 
 %typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int vectorInSize, char** vectorIn)
 {
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$2, &$1, fname) == SWIG_ERROR)
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$2, &$1, fname) != SWIG_OK)
   {
     return SWIG_ERROR;
   }
@@ -71,7 +71,7 @@
 
 %typemap(argout, fragment="SWIG_SciString_FromCharPtrArray") (int* vectorOutSize, char*** vectorOut)
 {
-  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$1) != SWIG_ERROR)
+  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$1) == SWIG_OK)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
