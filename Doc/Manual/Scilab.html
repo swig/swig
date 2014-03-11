@@ -47,6 +47,7 @@
 <li><a href="#Scilab_module_building">Building</a>
 <li><a href="#Scilab_module_builder">Builder script</a>
 <li><a href="#Scilab_module_loader">Loader script</a>
+<li><a href="#Scilab_module_initialization">Module initialization</a>
 </ul>
 <li><a href="#Scilab_other_resources">Other resources</a>
 </ul>
@@ -825,13 +826,13 @@ An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 <H3><a name="Scilab_wrapping_stl"></a>37.4.15 STL</H3>
 
 <p>
-Standard Template Library (STL) is partially supported.
+The Standard Template Library (STL) is partially supported.
 </p>
 
 <p>
 The following containers are usable:
 <p>
-l
+
 <ul>
 <li><tt>std::vector</tt></li>
 <li><tt>std::list</tt></li>
@@ -851,7 +852,7 @@ Each of these containers supports the following types:
 </ul>
 
 <p>
-Some typemaps between Scilab and STL are available.
+Some typemaps between Scilab and the STL are available.
 <p>
 
 <ul>
@@ -864,7 +865,7 @@ A STL vector or list is mapped from/to a Scilab matrix or list, depending on typ
 <table summary="Typemaps vector-list", border="1">
 <tr>
 <th>STL type</th>
-<th>Header 2</th>
+<th>Scilab type</th>
 <tr><td>vector/list of int</td><td>int matrix</td></tr>
 <tr><td>vector/list of double</td><td>double matrix</td></tr>
 <tr><td>vector/list of string</td><td>string matrix</td></tr>
@@ -887,18 +888,15 @@ In the SWIG interface file, the STL support can be enabled with:
 
 <p>As templates, for each specific type used, the STL container has the to be instantied:
 <div class="code"><pre>
-namespace std {
+namespace std {--&gt;
     %template(IntVector)    vector<int>;
     %template(DoubleVector)    vector<double>;
 </pre></div>
 
 <p>
-At last, a command has to be run in Scilab, so that all that types are known by Scilab.
-
-<div class="targetlang"><pre>
-SWIG_Init();
-</pre></div>
-
+At last, the module initialization function has to be executed first in Scilab, so that all that types are known by Scilab.
+See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
+</p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
 
@@ -922,11 +920,12 @@ Usually, one module is created to bind one library. Each library to be wrapped c
 <H3><a name="Scilab_module_interface_file"></a>37.5.2 Interface file</H3>
 
 <p>
-To one module corresponds one interface file. Multi modules in an interface file are not supported.
+Each module needs one interface file. Multi modules in an interface file are not supported.
 </p>
 
 <p>
-Usually the interface file will look like as following:
+The module interface file begins by declaring the module name, then the wrapping declarations follow.
+It is often easier to include the whole header of libray to wrap. Then the interface file typically looks like this:
 </p>
 
 <div class="code"><pre>
@@ -1021,6 +1020,23 @@ clear get_file_path;
 <li><tt><b>spname</b></tt>: a character string. Name of interface routine entry point.</li>
 <li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function implemented in the new interface.</li>
 </ul>
+
+<H3><a name="Scilab_module_initialization"></a>37.</tt> 5.6 Module initialization</H3>
+
+<p>
+A built-in Scilab function is generated for the wrapped module.
+This function is used to initialize the module SWIG runtime (which is necessary when working with the STL), or to import in Scilab some wrapped constants and variables.
+So it is recommanded to execute this function at first, each time the wrapped library has to be used.
+</p>
+
+<p>
+  The function has the name _Init() and is prefixed by the module name.
+  For example, to init the module <tt> example</tt> :
+</p>
+
+<div class="targetlang"><pre>
+--&gt; example_Init();
+</pre></div>
 
 <H2><a name="Scilab_other_resources"></a>37.6 Other resources</H2>
 
