@@ -117,7 +117,7 @@ template<> void inout_matrix_func(bool *inputMatrix, int nbRow, int nbCol, bool 
   *nbColRes = nbCol;
   *resultMatrix = (bool*) malloc(size * sizeof(bool));
   for (i=0; i<size; i++) {
-    (*resultMatrix)[i] = ~inputMatrix[i];
+    (*resultMatrix)[i] = inputMatrix[i]==1?0:1;
   }
 }
 %}
