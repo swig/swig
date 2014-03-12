@@ -625,10 +625,11 @@ ans  =
 
 <p>
 One-dimensional arrays are supported whether as global variables or functions arguments.
+Arrays are mapped in SWIG as pointers. But primitive type arrays are automatically converted from/to Scilab matrices.
 </p>
 
 <p>
-Global arrays are wrapped through accessor functions.
+Global arrays are manipulated in Scilab through accessor functions.
 For example with two global arrays x and y:
 </p>
 
@@ -650,7 +651,7 @@ void initArrays()
 %}
 </pre></div>
 
-<p>Two Scilab functions are generated for each array: a getter _get() and a setter _set(), prefixed by the array name.
+<p>Two Scilab functions are generated for each array: a getter <tt>_get()</tt> and a setter <tt>_set()</tt>, prefixed by the array name.
 Following is an example of use of these functions:
 </p>
 
@@ -682,113 +683,76 @@ And this C int array is automatically converted in output to a Scilab double vec
 <H3><a name="Scilab_wrapping_matrices"></a>37.3.12 Matrices</H3>
 
 <p>
-   Scilab uses matrices a lot for numerical mathematics and scientific visualization. Supporting matrices makes Scilab more convenient. For example:
+Matrices can be implemented in several ways in C, here we focus on matrices implemented with pointer-to-pointer (ex: <tt>double**</tt>).
 </p>
 
-<div class="code"><pre>%module example
+<p>
+These matrices are mapped by default in SWIG as pointers.
+There is no automatic conversion with Scilab matrices, for this, the <tt>matrix.i</tt> library has to be used.
+</p>
+
+<p>
+  Following is an example with functions working with matrices:
+</p>
+
+<div class="code"><pre>
+%module example
 %inline %{
-double **new_matrix() {
 
-  int i;
+// Returns the matrix [1 2; 3 4];
+double **create_matrix() {
   double **M;
-
-  M = (double **) malloc(4 * sizeof(double *));
-  M[0] = (double *) malloc(16 * sizeof(double));
-
-  for (i = 0; i &lt; 4; i++) {
-    M[i] = M[0] + 4 * i;
+  int i;
+  M = (double **) malloc(2 * sizeof(double *));
+  for (i = 0; i &lt; 2; i++) {
+    M[i] = (double *) malloc(2 * sizeof(double));
+    M[i][0] = 2 * i + 1;
+    M[i][1] = 2 * i + 2;
   }
   return M;
 }
 
-void set_m(double **M, int i, int j, double val) {
-  M[i][j] = val;
-}
-
-double get_m(double **M, int i, int j) {
+// Gets the item M(i,j) value
+double get_matrix(double **M, int i, int j) {
   return M[i][j];
 }
 
-void print_matrix(double **M) {
+// Sets the item M(i,j) value to be val
+void set_matrix(double **M, int i, int j, double val) {
+  M[i][j] = val;
+}
 
-  int i,j;
-
-  for (i = 0; i &lt; 4; i++) {
-    for (j = 0; j &lt; 4; j++) {
-      printf("%10g ", M[i][j]);
+// Prints a matrix (2,2) to console
+void print_matrix(double **M, int nbRows, int nbCols) {
+  int i, j;
+  for (i = 0; i &lt; 2; i++) {
+    for (j = 0; j &lt; 2; j++) {
+      printf("%3g ", M[i][j]);
     }
     printf("\n");
   }
 }
 
-void mat_mult(double **m1, double **m2, double **m3) {
-
-  int i,j,k;
-  double temp[4][4];
-
-  for (i = 0; i &lt; 4; i++)
-    for (j = 0; j &lt; 4; j++) {
-      temp[i][j] = 0;
-      for (k = 0; k &lt; 4; k++)
-	temp[i][j] += m1[i][k] * m2[k][j];
-    }
-
-  for (i = 0; i &lt; 4; i++)
-    for (j = 0; j &lt; 4; j++)
-      m3[i][j] = temp[i][j];
-}
 %}
 </pre></div>
 
-<p> When wrapped, it would generate the following function:
-</p>
-<p>_wrap_new_matrix(): generate a new matrix.
-</p>
-<p>_wrap_set_m(M, i, j, a): set M(i, j) to be value a.
-</p>
-<p>_wrap_get_m(M, i, j): get the value of M(i, j).
-</p>
-<p>_wrap_print_matrix(M): print the matrix M.
-</p>
-<p>_wrap_mat_mult(A, B, C): compute the A * B and the result is stored into C.
-</p>
-<p>It can be used like this:
+<p>
+  These functions are used like this in Scilab:
 </p>
 
 <div class="targetlang"><pre>
---&gt; exec loader.sce
+--&gt; m = create_matrix();
 
---&gt; x = new_matrix();
---&gt; for i = 0 : 3;
---&gt;   for j = 0 : 3;
---&gt;     set_m(x, i, j, i + j);
---&gt;   end;
---&gt; end;
+--&gt; print_matrix(m);
+   1.   2.
+   3.   4.
 
---&gt; print_matrix(y);
-	0	1	2	3
-	1	2	3	4
-	2	3	4	5
-	3	4	5	6
---&gt; y = new_matrix();
---&gt; for i = 0 : 3;
---&gt;   for j = 0 : 3;
---&gt;     set_m(y, i, j, i - j);
---&gt;   end;
---&gt; end;
+--&gt; set_matrix(m, 1, 1, 5.);
 
---&gt; print_matrix(y);
-	0	-1	-2	-3
-	1	0	-1	-2
-	2	1	0	-1
-	3	2	1	0
---&gt; z = new_matrix();
---&gt; mat_mult(x, y, z);
---&gt; print_matrix(z);
-	14	8	2	-4
-	20	10	0	-10
-	26	12	-2	-16
-	32	14	-4	-22
+--&gt; get_matrix(m, 1, 1)
+ ans  =
+
+    5.
 </pre></div>
 
 
