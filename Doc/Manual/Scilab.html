@@ -25,10 +25,8 @@
 <ul>
 <li><a href="#Scilab_wrapping_overview">Overview</a>
 <li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
-<li><a href="#Scilab_wrapping_modules">Modules</a>
 <li><a href="#Scilab_wrapping_functions">Functions</a>
-<li><a href="#Scilab_wrapping_primitive_type_mappings">Default primitive type mappings</a>
-<li><a href="#Scilab_wrapping_non-primitive_type_mappings">Scilab non-primitive type mappings</a></li>
+<li><a href="#Scilab_wrapping_type_mappings">Type mappings</a>
 <li><a href="#Scilab_wrapping_global_variables">Global variables</a>
 <li><a href="#Scilab_wrapping_constants">Constants</a>
 <li><a href="#Scilab_wrapping_enums">Enums</a>
@@ -336,7 +334,10 @@ Creates a built-in function <tt>fact(n)</tt> that works exactly like you think i
 ans=24
 </pre></div>
 
-<H3><a name="Scilab_wrapping_primitive_type_mappings"></a>37.3.4 Default primitive type mappings</H3>
+
+<H3><a name="Scilab_wrapping_type_mappings"></a>37.3.4 Type mappings</H3>
+
+<H4><a name="Scilab_wrapping_primitive_type_mappings"></a>Default primitive type mappings</H4>
 
 <p>
 The following table give for each C/C++ primitive type the equivalent Scilab type.
@@ -381,7 +382,7 @@ In that case, SWIG displays an error when wrapping a function that has long long
 </ul>
 </p>
 
-<H3><a name="Scilab_wrapping_non-primitive_type_mappings"></a>37.3.5 Default type mappings for non-primitive types</H3>
+<H4><a name="Scilab_wrapping_non-primitive_type_mappings"></a>Default type mappings for non-primitive types</H4>
 
 <p>
 The default mapped type for C/C++ non-primitive types is the Scilab pointer. That is the case for exemple for C structs, C++ classes, etc...
