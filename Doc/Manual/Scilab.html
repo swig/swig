@@ -638,6 +638,15 @@ For example with two global arrays x and y:
 %inline %{
 int x[10];
 double y[7];
+
+void initArrays()
+{
+  int i;
+  for (i = 0; i &lt; 10; i++)
+    x[i] = 1;
+  for (i = 0; i &lt; 7; i++)
+    y[i] = 1.0f;
+}
 %}
 </pre></div>
 
@@ -648,19 +657,19 @@ Following is an example of use of these functions:
 <div class="targetlang"><pre>
 --&gt; exec loader.sce
 
---&gt; x_set([0:9]);
+--&gt; initArrays();
 --&gt; x_get()
 ans =
 
-  0  1  2  3  4  5  6  7  8  9
+  1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
 
---&gt; y_set([0:6] / 7);
+--&gt; y_set([0:6] / 10);
 --&gt; y_get()
 
 --&gt;
 ans =
 
-  0.    0.1428571    0.2857143    0.4285714    0.5714286    0.7142857   0.8571429
+  0.    0.1    0.2    0.3    0.4    0.5    0.6
 </pre></div>
 
 <p>
