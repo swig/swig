@@ -1165,9 +1165,20 @@ public:
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
+    // There is some slightly specific behaviour with enums. Basically,
+    // their NSpace may be tracked separately. The code below tries to work around
+    // this issue to some degree.
+    // The idea is the same as in classHandler - to drop old names generation if
+    // enum is in class in namespace.
+    const int v2_compat_names_generation_old = v2_compat_names_generation;
+    if (getNSpace() ||
+        ( Getattr(n, "sym:nspace") != 0 && Len(Getattr(n, "sym:nspace")) > 0 ) ) {
+      v2_compat_names_generation = 0;
+    }
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
+    v2_compat_names_generation = v2_compat_names_generation_old;
     return result;
   }
 

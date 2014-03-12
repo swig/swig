@@ -70,6 +70,10 @@ assert(ns.Outer.Inner1.Color_colorStaticMethod == nil)
 
 -- Enums and static methods of class marked as %nonspace should have backward compatible name
 assert(ns.NoNSpacePlease_noNspaceStaticFunc() == 10)
--- assert(ns.NoNSpacePlease_NoNspace1 == 1)
--- assert(ns.NoNSpacePlease.NoNspace2 == 10)
+assert(ns.Outer.Inner2.NoNSpacePlease_NoNspace == nil)
+-- ReallyNoNSpaceEnum is wrapped into %nonspace and thus handled correctly.
+-- NoNSpaceEnum is not (although both of them are in %nonspace-wrapped class) and thus
+-- handled rather unexpectedly
+assert(ns.NoNSpacePlease_ReallyNoNspace1 == 1)
+assert(ns.NoNSpacePlease.ReallyNoNspace2 == 10)
 
