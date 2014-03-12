@@ -530,6 +530,7 @@ CPP11_TEST_BROKEN = \
 #	cpp11_result_of \             # SWIG does not support
 #	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
+#	cpp11_reference_wrapper \     # No typemaps
 
 
 #
