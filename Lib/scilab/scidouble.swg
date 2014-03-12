@@ -49,7 +49,7 @@ SWIG_From_dec(double)(double _dblValue) {
 
 %fragment("SWIG_SciDouble_AsDoubleArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, double **_pdblDoubleValue, char *_fname) {
+SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, double **_pdValue, char *_fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
 
@@ -60,12 +60,13 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int
   }
 
   if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar)) {
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, _pdblDoubleValue);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, _pdValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-  } else {
+  }
+  else {
     Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
