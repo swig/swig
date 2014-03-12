@@ -179,17 +179,11 @@ SWIG_SciString_FromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue)
 
 %fragment("SWIG_SciString_AsCharPtrArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int _iVar, char ***_charPtrArray, int* _charPtrArraySize, char *_fname) {
+SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, char ***_charPtrArray, char *_fname) {
   SciErr sciErr;
   int i = 0;
   int *piAddrVar = NULL;
-  int iRows = 0;
-  int iCols = 0;
   int* piLength = NULL;
-
-  if ((_charPtrArray == NULL) || (_charPtrArraySize == NULL)) {
-    return SWIG_ERROR;
-  }
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -197,49 +191,43 @@ SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int _iVar, char ***_charPt
     return SWIG_ERROR;
   }
 
-  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, NULL, NULL);
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, _iRows, _iCols, NULL, NULL);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  piLength = (int*) malloc(iRows * iCols * sizeof(int));
+  piLength = (int*) malloc((*_iRows) * (*_iCols) * sizeof(int));
 
-  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, piLength, NULL);
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, _iRows, _iCols, piLength, NULL);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  *_charPtrArray = (char**) malloc(iRows * iCols * sizeof(char*));
-  for(i = 0 ; i < iRows * iCols ; i++)
+  *_charPtrArray = (char**) malloc((*_iRows) * (*_iCols) * sizeof(char*));
+  for(i = 0 ; i < (*_iRows) * (*_iCols); i++)
   {
     (*_charPtrArray)[i] = (char*) malloc(sizeof(char) * (piLength[i] + 1));
   }
 
-  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, &iRows, &iCols, piLength, *_charPtrArray);
+  sciErr = getMatrixOfString(_pvApiCtx, piAddrVar, _iRows, _iCols, piLength, *_charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  *_charPtrArraySize = iRows * iCols;
 
   free(piLength);
-
   return SWIG_OK;
 }
 }
 
-%fragment("SWIG_SciString_FromCharPtrArray", "header") {
+%fragment("SWIG_SciString_FromCharPtrArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciString_FromCharPtrArray(void *_pvApiCtx, int _iVarOut, char **_charPtrArray, int _charPtrArraySize) {
+SWIG_SciString_FromCharPtrArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, char **_charPtrArray) {
   SciErr sciErr;
 
-  if (_charPtrArray == NULL) {
-    return SWIG_ERROR;
-  }
-
-  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, 1, _charPtrArraySize, _charPtrArray);
+  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _iRows, _iCols, _charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
