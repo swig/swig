@@ -54,6 +54,9 @@ test_matrix_typemaps("int", int32(m), m, sum(m), m .* m);
 
 test_matrix_typemaps("double", m, m, sum(m), m .* m);
 
+m = ["A" "D"; "B" "E"; "C" "F"]
+test_matrix_typemaps("charptr", m, m, strcat(m), m + m);
+
 m = [%T, %F; %F, %T; %T, %F];
 test_matrix_typemaps("bool", m, m, %T, ~m);
 

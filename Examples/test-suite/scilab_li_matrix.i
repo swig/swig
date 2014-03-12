@@ -12,11 +12,6 @@
 %use_matrix_apply(char *);
 %use_matrix_apply(bool);
 
-%{
-#include <stdlib.h>
-#include <stdio.h>
-%}
-
 %inline %{
 
 // int and double matrix functions
@@ -69,7 +64,7 @@ template<> void out_matrix_func(char ***resultMatrix, int *nbRowRes, int *nbColR
   *resultMatrix = (char **) malloc(size * sizeof(char *));
   for (i=0; i<size; i++) {
     s = (char *) malloc(sizeof(char)+1);
-    sprintf(s, "%d", i);
+    sprintf(s, "%c", char(65 + i));
     (*resultMatrix)[i] = s;
   }
 }
