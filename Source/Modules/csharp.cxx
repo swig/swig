@@ -203,26 +203,6 @@ public:
      return proxyname;
    }
 
-  /* -----------------------------------------------------------------------------
-   * directorClassName()
-   * ----------------------------------------------------------------------------- */
-
-  String *directorClassName(Node *n) {
-    String *dirclassname;
-    const char *attrib = "director:classname";
-
-    if (!(dirclassname = Getattr(n, attrib))) {
-      String *classname = getClassPrefix();
-
-      dirclassname = NewStringf("SwigDirector_%s", classname);
-      Setattr(n, attrib, dirclassname);
-    }
-    else
-      dirclassname = Copy(dirclassname);
-
-    return dirclassname;
-  }
-
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */

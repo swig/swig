@@ -284,6 +284,7 @@ CPP_TEST_CASES += \
 	naturalvar_more \
 	naturalvar_onoff \
 	nested_class \
+	nested_directors \
 	nested_comment \
 	nested_scope \
 	nested_workaround \
