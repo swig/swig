@@ -27,8 +27,7 @@
 <li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
 <li><a href="#Scilab_wrapping_functions">Functions</a>
 <li><a href="#Scilab_wrapping_global_variables">Global variables</a>
-<li><a href="#Scilab_wrapping_constants">Constants</a>
-<li><a href="#Scilab_wrapping_enums">Enums</a>
+<li><a href="#Scilab_wrapping_constants_and_enums">Constants and enums</a>
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
 <li><a href="#Scilab_wrapping_structs">Structs</a>
 <li><a href="#Scilab_wrapping_arrays">Arrays</a>
@@ -339,7 +338,7 @@ ans=24
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_global_variables"></a>37.3.6 Global variables</H3>
+<H3><a name="Scilab_wrapping_global_variables"></a>37.3.4 Global variables</H3>
 
 
 <p>
@@ -359,7 +358,9 @@ c =  3
 ans =  4
 </pre></div>
 
-<H3><a name="Scilab_wrapping_constants"></a>37.3.7 Constants</H3>
+<H3><a name="Scilab_wrapping_constants_and_enums"></a>37.3.5 Constants and enums</H3>
+
+<H4><a name="Scilab_wrapping_constants"></a>Constants</H4>
 
 <p>
 There is no constant in Scilab. By default, C/C++ constants are wrapped as getter functions. For example for the following constants:
@@ -448,7 +449,7 @@ ans= 37
 ans= 3.14
 </pre></div>
 
-<H3><a name="Scilab_wrapping_enums"></a>37.3.8 Enums</H3>
+<H4><a name="Scilab_wrapping_enums"></a>Enums</H4>
 
 <p>
 The wrapping of enums is quite the same as for constants.
@@ -495,7 +496,7 @@ typedef enum { RED, BLUE, GREEN } color;
 </pre></div>
 </p>
 
-<H3><a name="Scilab_wrapping_pointers"></a>37.3.9 Pointers</H3>
+<H3><a name="Scilab_wrapping_pointers"></a>37.3.6 Pointers</H3>
 
 
 <p>
@@ -543,7 +544,7 @@ extern int divide(int n, int d, int *r);
 we only need a real value instead.
 </p>
 
-<H3><a name="Scilab_wrapping_structs"></a>37.3.10 Structs</H3>
+<H3><a name="Scilab_wrapping_structs"></a>37.3.7 Structs</H3>
 
 
 <p>
@@ -571,7 +572,7 @@ ans  =
   100
 </pre></div>
 
-<H3><a name="Scilab_wrapping_arrays"></a>37.3.11 Arrays</H3>
+<H3><a name="Scilab_wrapping_arrays"></a>37.3.8 Arrays</H3>
 
 <p>
 One-dimensional arrays are supported whether as global variables or functions arguments.
@@ -630,7 +631,7 @@ And this C int array is automatically converted in output to a Scilab double vec
 </p>
 
 
-<H3><a name="Scilab_wrapping_matrices"></a>37.3.12 Matrices</H3>
+<H3><a name="Scilab_wrapping_matrices"></a>37.3.9 Matrices</H3>
 
 <p>
 Matrices can be implemented in several ways in C, here we focus on matrices implemented with pointer-to-pointer (ex: <tt>double**</tt>).
@@ -706,7 +707,7 @@ void print_matrix(double **M, int nbRows, int nbCols) {
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_classes"></a>37.3.13 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_classes"></a>37.3.10 C++ Classes</H3>
 
 <p>
 The classes are wrapped in the same manner as structs, through functions. For example, the following class:
@@ -740,14 +741,14 @@ ans  =
 
 
 
-<H3><a name="Scilab_wrapping_templates"></a>37.3.14 C++ Templates</H3>
+<H3><a name="Scilab_wrapping_templates"></a>37.3.11 C++ Templates</H3>
 
 <p>
 Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_stl"></a>37.3.15 C++ STL</H3>
+<H3><a name="Scilab_wrapping_stl"></a>37.3.12 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported.
@@ -874,7 +875,12 @@ In that case, SWIG displays an error when wrapping a function that has long long
 
 <p>
 The default mapped type for C/C++ non-primitive types is the Scilab pointer. That is the case for exemple for C structs, C++ classes, etc...
-But there are many type mappings for non-primitive types (such as enums, arrays, STL types, etc...). Each of them is described further in this document.
+</p>
+
+<H3><a name="Scilab_typemaps_matrices"></a>37.4.2 Matrices typemaps</H3>
+
+<p>
+
 </p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
