@@ -11,8 +11,9 @@ public class CSub : Sub {
 
 public class runme {
   static void Main() {
-  CNested n = new CNested();
-	CSub s = new CSub();
-	if (!s.GetValue())
-		throw new throw new Exception("Sub.GetValue");
+  	CNested n = new CNested();
+		CSub s = new CSub();
+		if (!s.GetValue())
+			throw new Exception("Sub.GetValue");
+  }
 }
