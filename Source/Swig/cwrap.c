@@ -1182,22 +1182,13 @@ Node *Swig_directormap(Node *module, String *type) {
  * ----------------------------------------------------------------------------- */
 
 int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags, String *directorname) {
-  ParmList *parms;
-  Parm *prefix_args;
   Parm *p;
   ParmList *directorparms;
   SwigType *type;
-  int use_director;
-  String *directorScope = NewString(nspace);
- 
-  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
-
-  use_director = Swig_directorclass(n);
-
-  parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));
-
+  int use_director = Swig_directorclass(n);
+  ParmList *parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));
   /* Prepend the list of prefix_args (if any) */
-  prefix_args = Getattr(n, "director:prefix_args");
+  Parm *prefix_args = Getattr(n, "director:prefix_args");
   if (prefix_args != NIL) {
     Parm *p2, *p3;
 
@@ -1293,7 +1284,6 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Setattr(n, "wrap:action", action);
 	Delete(tmp_none_comparison);
 	Delete(action);
-	Delete(directorname);
       } else {
 	String *call = Swig_cppconstructor_call(classname, parms);
 	String *cres = Swig_cresult(type, Swig_cresult_name(), call);
@@ -1315,7 +1305,6 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   if (directorparms != parms)
     Delete(directorparms);
   Delete(parms);
-  Delete(directorScope);
   return SWIG_OK;
 }
 
