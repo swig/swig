@@ -1508,7 +1508,7 @@ R_SCRIPT=$(RUNME).R
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
@@ -1519,7 +1519,7 @@ endif
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
-	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
+	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
@@ -1576,7 +1576,7 @@ scilab: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch'))"; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1587,7 +1587,7 @@ scilab_cpp: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f builder.sce; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch'))"; \
 	fi
 
 # -----------------------------------------------------------------

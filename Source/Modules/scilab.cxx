@@ -761,18 +761,23 @@ public:
   }
 
   void terminateBuilderCode() {
+
     Printf(builderCode, "];\n");
-    Printf(builderCode, "ret = 1;\n");
+    Printf(builderCode, "err_msg = [];\n");
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
     Printf(builderCode, "  libfilename = 'lib' + ilib_name + getdynlibext();\n");
-    Printf(builderCode, "  if isfile(libfilename) & isfile('loader.sce') then\n");
-    Printf(builderCode, "    ret = 0;\n");
+    Printf(builderCode, "  if ~isfile(libfilename) then\n");
+    Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename ' + '.');\n");
+    Printf(builderCode, "  end\n");
+    Printf(builderCode, "  if ~isfile('loader.sce') then\n");
+    Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.');\n");
     Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");
-
-    Printf(builderCode, "exit(ret)");
+    Printf(builderCode, "if err_msg <> [] then\n");
+    Printf(builderCode, "  error(err_msg, 1);\n");
+    Printf(builderCode, "end\n");
   }
 
   void saveBuilderFile() {
