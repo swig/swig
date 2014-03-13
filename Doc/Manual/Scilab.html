@@ -807,6 +807,31 @@ It means that, if needed, a Scilab double vector is converted in input into a C 
 And this C int array is automatically converted in output to a Scilab double vector.
 </p>
 
+<p>
+This example illustrates this:</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+
+int sumArray(int values[], int len) {
+  int s = 0;
+  int i = 0;
+  for (i=0; i &lt; len; i++)
+    s += values[i];
+  return s;
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; sum([1. 2. 3. 5.], 4);
+ ans  =
+
+    11.
+<pre></div>
+</p>
 
 <H3><a name="Scilab_typemaps_pointer-to-pointers"></a>37.4.4 Pointer-to-pointers</H3>
 
@@ -949,7 +974,7 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 }
 
 %}
-</div></pre>
+</pre></div>
 
 <p>
 <div class="targetlang"><pre>
@@ -958,7 +983,7 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 
     0.    1.    2.
     3.    4.    5.
-</div></pre>
+</pre></div>
 </p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
