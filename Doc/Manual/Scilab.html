@@ -39,7 +39,9 @@
 <li><a href="#Scilab_typemaps">Type mappings</a>
 <ul>
 <li><a href="#Scilab_typemaps_primitive_types">Default primitive type mappings</a>
-<li><a href="#Scilab_typemaps_non-primitive_types">Default type mappings for non-primitive types</a>
+<li><a href="#Scilab_typemaps_non-primitive_types">Default type mapping for non-primitive types</a>
+<li><a href="#Scilab_typemaps_arrays">Arrays</a>
+<li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
 </ul>
 <li><a href="#Scilab_module">Module</a>
 <ul>
@@ -299,12 +301,13 @@ $ swig -scilab -addsrc file1.cxx,file2.cxx,example.i
 </pre></div>
 </p>
 
+
 <H2><a name="Scilab_wrapping"></a>37.3 A basic tour of C/C++ wrapping</H2>
 
 <H3><a name="Scilab_wrapping_overview"></a>37.3.1 Overview</H3>
 
 <p>
-SWIG for Scilab provides only low-level C interface only for Scilab. This means that functions, structs, classes, variables, etc... are interfaced through C functions. These C functions are mapped as Scilab functions.
+SWIG for Scilab provides only low-level C interface for Scilab. This means that functions, structs, classes, variables, etc... are interfaced through C functions. These C functions are mapped as Scilab functions.
 <p>
 
 <H3><a name="Scilab_wrapping_identifiers"></a>37.3.2 Identifiers</H3>
@@ -340,9 +343,10 @@ ans=24
 
 <H3><a name="Scilab_wrapping_global_variables"></a>37.3.4 Global variables</H3>
 
-
 <p>
-    To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_get would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variable value into the C variable.
+Global variables are manipulated through generated accessor functions.
+For example, for a given <tt>Foo</tt> global variable, SWIG actually generates two functions: <tt>Foo_get()</tt> to get the value of <tt>Foo</tt>, and <tt>Foo_set()</tt> to set the value.
+These functions are used as following:
 </p>
 
 <div class="targetlang"><pre>
@@ -357,6 +361,51 @@ c =  3
 --&gt; Foo_get()
 ans =  4
 </pre></div>
+
+<p>
+It works for primitive type variables, but also for other type variables.
+For example with two global arrays x and y:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+int x[10];
+double y[7];
+
+void initArrays()
+{
+  int i;
+  for (i = 0; i &lt; 10; i++)
+    x[i] = 1;
+  for (i = 0; i &lt; 7; i++)
+    y[i] = 1.0f;
+}
+%}
+</pre></div>
+
+<p>
+It works the same:</p>
+
+<div class="targetlang"><pre>
+--&gt; exec loader.sce
+
+--&gt; initArrays();
+--&gt; x_get()
+ans =
+
+  1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+
+--&gt; y_set([0:6] / 10);
+--&gt; y_get()
+
+--&gt;
+ans =
+
+  0.    0.1    0.2    0.3    0.4    0.5    0.6
+</pre></div>
+
 
 <H3><a name="Scilab_wrapping_constants_and_enums"></a>37.3.5 Constants and enums</H3>
 
@@ -572,142 +621,8 @@ ans  =
   100
 </pre></div>
 
-<H3><a name="Scilab_wrapping_arrays"></a>37.3.8 Arrays</H3>
 
-<p>
-One-dimensional arrays are supported whether as global variables or functions arguments.
-Arrays are mapped in SWIG as pointers. But primitive type arrays are automatically converted from/to Scilab matrices.
-</p>
-
-<p>
-Global arrays are manipulated in Scilab through accessor functions.
-For example with two global arrays x and y:
-</p>
-
-<div class="code"><pre>
-%module example
-
-%inline %{
-int x[10];
-double y[7];
-
-void initArrays()
-{
-  int i;
-  for (i = 0; i &lt; 10; i++)
-    x[i] = 1;
-  for (i = 0; i &lt; 7; i++)
-    y[i] = 1.0f;
-}
-%}
-</pre></div>
-
-<p>Two Scilab functions are generated for each array: a getter <tt>_get()</tt> and a setter <tt>_set()</tt>, prefixed by the array name.
-Following is an example of use of these functions:
-</p>
-
-<div class="targetlang"><pre>
---&gt; exec loader.sce
-
---&gt; initArrays();
---&gt; x_get()
-ans =
-
-  1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
-
---&gt; y_set([0:6] / 10);
---&gt; y_get()
-
---&gt;
-ans =
-
-  0.    0.1    0.2    0.3    0.4    0.5    0.6
-</pre></div>
-
-<p>
-The type mappings used for arrays is described in <a href="#Scilab_typemaps_primitive_types"> 37.4.1</a>.
-It means that, if needed, a Scilab double vector is converted in input into a C int array.
-And this C int array is automatically converted in output to a Scilab double vector.
-</p>
-
-
-<H3><a name="Scilab_wrapping_matrices"></a>37.3.9 Matrices</H3>
-
-<p>
-Matrices can be implemented in several ways in C, here we focus on matrices implemented with pointer-to-pointer (ex: <tt>double**</tt>).
-</p>
-
-<p>
-These matrices are mapped by default in SWIG as pointers.
-There is no automatic conversion with Scilab matrices, for this, the <tt>matrix.i</tt> library has to be used.
-</p>
-
-<p>
-  Following is an example with functions working with matrices:
-</p>
-
-<div class="code"><pre>
-%module example
-%inline %{
-
-// Returns the matrix [1 2; 3 4];
-double **create_matrix() {
-  double **M;
-  int i;
-  M = (double **) malloc(2 * sizeof(double *));
-  for (i = 0; i &lt; 2; i++) {
-    M[i] = (double *) malloc(2 * sizeof(double));
-    M[i][0] = 2 * i + 1;
-    M[i][1] = 2 * i + 2;
-  }
-  return M;
-}
-
-// Gets the item M(i,j) value
-double get_matrix(double **M, int i, int j) {
-  return M[i][j];
-}
-
-// Sets the item M(i,j) value to be val
-void set_matrix(double **M, int i, int j, double val) {
-  M[i][j] = val;
-}
-
-// Prints a matrix (2,2) to console
-void print_matrix(double **M, int nbRows, int nbCols) {
-  int i, j;
-  for (i = 0; i &lt; 2; i++) {
-    for (j = 0; j &lt; 2; j++) {
-      printf("%3g ", M[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-%}
-</pre></div>
-
-<p>
-  These functions are used like this in Scilab:
-</p>
-
-<div class="targetlang"><pre>
---&gt; m = create_matrix();
-
---&gt; print_matrix(m);
-   1.   2.
-   3.   4.
-
---&gt; set_matrix(m, 1, 1, 5.);
-
---&gt; get_matrix(m, 1, 1)
- ans  =
-
-    5.
-</pre></div>
-
-
-<H3><a name="Scilab_wrapping_classes"></a>37.3.10 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_classes"></a>37.3.8 C++ Classes</H3>
 
 <p>
 The classes are wrapped in the same manner as structs, through functions. For example, the following class:
@@ -740,15 +655,14 @@ ans  =
 </pre></div>
 
 
-
-<H3><a name="Scilab_wrapping_templates"></a>37.3.11 C++ Templates</H3>
+<H3><a name="Scilab_wrapping_templates"></a>37.3.9 C++ Templates</H3>
 
 <p>
 Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_stl"></a>37.3.12 C++ STL</H3>
+<H3><a name="Scilab_wrapping_stl"></a>37.3.10 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported.
@@ -824,6 +738,8 @@ At last, the module initialization function has to be executed first in Scilab, 
 See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
 </p>
 
+
+
 <H2><a name="Scilab_typemaps"></a>37.4 Type mappings</H2>
 
 <H3><a name="Scilab_typemaps_primitive_types"></a>37.4.1 Default primitive type mappings</H3>
@@ -859,17 +775,18 @@ The following table give for each C/C++ primitive type the equivalent Scilab typ
 <p>
 Notes:
 <ul>
-<li>Double type in Scilab is far more used than integer type.
-That's why signed integer values (short, int, integer, long) are automatically converted to Scilab double values in output of a C function.
+<li><tt>Double</tt> type in Scilab is far more used than integer type.
+That's why signed integer values (<tt>short, int, integer, long</tt>) are automatically converted to Scilab double values in output of a C function.
 Also in input, double values are converted from doubles into the appropriate integer type.
 Note that this conversion does not occur with unsigned integers.
 </li>
 <li>
-In SWIG for Scilab 5.x long long type is not supported since Scilab 5.x does not have a 64-bit integer type.
-In that case, SWIG displays an error when wrapping a function that has long long type arguments.
+In SWIG for Scilab 5.x the <tt></tt>long long</tt> type is not supported since Scilab 5.x does not have a 64-bit integer type.
+In that case, SWIG displays an error when wrapping a function that has <tt>long long</tt> type arguments.
 </li>
 </ul>
 </p>
+
 
 <H3><a name="Scilab_typemaps_non-primitive_types"></a>37.4.2 Default type mappings for non-primitive types</H3>
 
@@ -877,11 +794,92 @@ In that case, SWIG displays an error when wrapping a function that has long long
 The default mapped type for C/C++ non-primitive types is the Scilab pointer. That is the case for exemple for C structs, C++ classes, etc...
 </p>
 
-<H3><a name="Scilab_typemaps_matrices"></a>37.4.2 Matrices typemaps</H3>
+
+<H3><a name="Scilab_typemaps_arrays"></a>37.4.3 Arrays</H3>
 
 <p>
-
+Typemaps are available by default for arrays. Primitive type arrays are automatically converted from/to Scilab matrices.
 </p>
+
+<p>
+The type mappings used for arrays is the same for primtive types, described <a href="#Scilab_typemaps_primitive_types">here</a>.
+It means that, if needed, a Scilab double vector is converted in input into a C int array.
+And this C int array is automatically converted in output to a Scilab double vector.
+</p>
+
+
+<H3><a name="Scilab_typemaps_pointer-to-pointers"></a>37.4.4 Pointer-to-pointers</H3>
+
+<p>
+There is no specific typemap for pointer-to-pointers, they are are mapped as pointers in Scilab.
+</p>
+
+<p>
+Pointer-to-pointers are sometimes used to implement matrices in C. Following is a an example of this:
+</p>
+
+
+<div class="code"><pre>
+%module example
+%inline %{
+
+// Returns the matrix [1 2; 3 4];
+double **create_matrix() {
+  double **M;
+  int i;
+  M = (double **) malloc(2 * sizeof(double *));
+  for (i = 0; i &lt; 2; i++) {
+    M[i] = (double *) malloc(2 * sizeof(double));
+    M[i][0] = 2 * i + 1;
+    M[i][1] = 2 * i + 2;
+  }
+  return M;
+}
+
+// Gets the item M(i,j) value
+double get_matrix(double **M, int i, int j) {
+  return M[i][j];
+}
+
+// Sets the item M(i,j) value to be val
+void set_matrix(double **M, int i, int j, double val) {
+  M[i][j] = val;
+}
+
+// Prints a matrix (2,2) to console
+void print_matrix(double **M, int nbRows, int nbCols) {
+  int i, j;
+  for (i = 0; i &lt; 2; i++) {
+    for (j = 0; j &lt; 2; j++) {
+      printf("%3g ", M[i][j]);
+    }
+    printf("\n");
+  }
+}
+
+%}
+</pre></div>
+
+<p>
+  These functions are used like this in Scilab:
+</p>
+
+<div class="targetlang"><pre>
+--&gt; m = create_matrix();
+
+--&gt; print_matrix(m);
+   1.   2.
+   3.   4.
+
+--&gt; set_matrix(m, 1, 1, 5.);
+
+--&gt; get_matrix(m, 1, 1)
+ ans  =
+
+    5.
+</pre></div>
+
+
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
 
