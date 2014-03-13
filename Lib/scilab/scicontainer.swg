@@ -278,9 +278,10 @@ namespace swig
     // TODO: return a Scilab list from the pair (see code for Octave)
   }
 
-  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="SciSequence_Cont") {}
+  %fragment("SciSwigPairBoolOutputIterator", "header",
+    fragment=SWIG_From_frag(bool), fragment="SciSequence_Cont") {}
 
-  %typemap(out,fragment="SciPairBoolOutputIterator")
+  %typemap(out,fragment="SciSwigPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     // TODO: return a Scilab list from the pair (see code for Octave)
   }
