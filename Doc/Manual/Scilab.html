@@ -21,12 +21,11 @@
 <li><a href="#Scilab_running_swig_using_module">Using the module</a>
 <li><a href="#Scilab_running_swig_options">Additional command line options</a>
 </ul>
-<li><a href="#Scilab_wrapping">A basic tour of C/C++ wrapping</a>
+<li><a href="#Scilab_wrapping">A tour of basic C/C++ wrapping</a>
 <ul>
 <li><a href="#Scilab_wrapping_overview">Overview</a>
 <li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
 <li><a href="#Scilab_wrapping_functions">Functions</a>
-<li><a href="#Scilab_wrapping_type_mappings">Type mappings</a>
 <li><a href="#Scilab_wrapping_global_variables">Global variables</a>
 <li><a href="#Scilab_wrapping_constants">Constants</a>
 <li><a href="#Scilab_wrapping_enums">Enums</a>
@@ -38,6 +37,11 @@
 <li><a href="#Scilab_wrapping_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_stl">C++ STL</a>
 </ul>
+<li><a href="#Scilab_typemaps">Type mappings</a>
+<ul>
+<li><a href="#Scilab_typemaps_primitive_types">Default primitive type mappings</a>
+<li><a href="#Scilab_typemaps_non-primitive_types">Default type mappings for non-primitive types</a>
+</ul>
 <li><a href="#Scilab_module">Module</a>
 <ul>
 <li><a href="#Scilab_module_structure">Structure</a>
@@ -45,7 +49,7 @@
 <li><a href="#Scilab_module_building">Building</a>
 <li><a href="#Scilab_module_builder">Builder script</a>
 <li><a href="#Scilab_module_loader">Loader script</a>
-<li><a href="#Scilab_module_initialization">Module initialization</a>
+<li><a href="#Scilab_module_initialization">Initialization</a>
 </ul>
 <li><a href="#Scilab_other_resources">Other resources</a>
 </ul>
@@ -335,60 +339,6 @@ ans=24
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_type_mappings"></a>37.3.4 Type mappings</H3>
-
-<H4><a name="Scilab_wrapping_primitive_type_mappings"></a>Default primitive type mappings</H4>
-
-<p>
-The following table give for each C/C++ primitive type the equivalent Scilab type.
-</p>
-
-<div class="table">
-<table border="1" sumary="Scilab default primitive type mappings">
-<tr>
-  <td><b>C/C++ type</b></td>
-  <td><b>Scilab type</b></td>
-</tr>
-<tr><td>bool</td><td>boolean</td></tr>
-<tr><td>char</td><td>string</td></tr>
-<tr><td>signed char</td><td>double or int8</td></tr>
-<tr><td>unsigned char</td><td>uint8</td></tr>
-<tr><td>short</td><td>double or int16</td></tr>
-<tr><td>unsigned short</td><td>uint16</td></tr>
-<tr><td>int</td><td>double or int32</td></tr>
-<tr><td>unsigned int</td><td>uint32</td></tr>
-<tr><td>long</td><td>double or int32</td></tr>
-<tr><td>unsigned long</td><td>uint32</td></tr>
-<tr><td>signed long long</td><td>not supported with Scilab 5.x</td></tr>
-<tr><td>unsigned long long</td><td>not supported with Scilab 5.x</td></tr>
-<tr><td>float</td><td>double</td></tr>
-<tr><td>double</td><td>double</td></tr>
-<tr><td>char* or char[]</td><td>string</td></tr>
-</table>
-</div>
-
-<p>
-Notes:
-<ul>
-<li>Double type in Scilab is far more used than integer type.
-That's why signed integer values (short, int, integer, long) are automatically converted to Scilab double values in output of a C function.
-Also in input, double values are converted from doubles into the appropriate integer type.
-Note that this conversion does not occur with unsigned integers.
-</li>
-<li>
-In SWIG for Scilab 5.x long long type is not supported since Scilab 5.x does not have a 64-bit integer type.
-In that case, SWIG displays an error when wrapping a function that has long long type arguments.
-</li>
-</ul>
-</p>
-
-<H4><a name="Scilab_wrapping_non-primitive_type_mappings"></a>Default type mappings for non-primitive types</H4>
-
-<p>
-The default mapped type for C/C++ non-primitive types is the Scilab pointer. That is the case for exemple for C structs, C++ classes, etc...
-But there are many type mappings for non-primitive types (such as enums, arrays, STL types, etc...). Each of them is described further in this document.
-</p>
-
 <H3><a name="Scilab_wrapping_global_variables"></a>37.3.6 Global variables</H3>
 
 
@@ -674,7 +624,7 @@ ans =
 </pre></div>
 
 <p>
-The type mappings used for arrays is described in <a href="#Scilab_wrapping_primitive_type_mappings"> 37.3.4</a>.
+The type mappings used for arrays is described in <a href="#Scilab_typemaps_primitive_types"> 37.4.1</a>.
 It means that, if needed, a Scilab double vector is converted in input into a C int array.
 And this C int array is automatically converted in output to a Scilab double vector.
 </p>
@@ -756,7 +706,7 @@ void print_matrix(double **M, int nbRows, int nbCols) {
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_classes"></a>37.4.13 Classes</H3>
+<H3><a name="Scilab_wrapping_classes"></a>37.3.13 C++ Classes</H3>
 
 <p>
 The classes are wrapped in the same manner as structs, through functions. For example, the following class:
@@ -790,14 +740,14 @@ ans  =
 
 
 
-<H3><a name="Scilab_wrapping_templates"></a>37.4.14 Templates</H3>
+<H3><a name="Scilab_wrapping_templates"></a>37.3.14 C++ Templates</H3>
 
 <p>
 Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_stl"></a>37.4.15 STL</H3>
+<H3><a name="Scilab_wrapping_stl"></a>37.3.15 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported.
@@ -871,6 +821,60 @@ namespace std {--&gt;
 <p>
 At last, the module initialization function has to be executed first in Scilab, so that all that types are known by Scilab.
 See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
+</p>
+
+<H2><a name="Scilab_typemaps"></a>37.4 Type mappings</H2>
+
+<H3><a name="Scilab_typemaps_primitive_types"></a>37.4.1 Default primitive type mappings</H3>
+
+<p>
+The following table give for each C/C++ primitive type the equivalent Scilab type.
+</p>
+
+<div class="table">
+<table border="1" sumary="Scilab default primitive type mappings">
+<tr>
+  <td><b>C/C++ type</b></td>
+  <td><b>Scilab type</b></td>
+</tr>
+<tr><td>bool</td><td>boolean</td></tr>
+<tr><td>char</td><td>string</td></tr>
+<tr><td>signed char</td><td>double or int8</td></tr>
+<tr><td>unsigned char</td><td>uint8</td></tr>
+<tr><td>short</td><td>double or int16</td></tr>
+<tr><td>unsigned short</td><td>uint16</td></tr>
+<tr><td>int</td><td>double or int32</td></tr>
+<tr><td>unsigned int</td><td>uint32</td></tr>
+<tr><td>long</td><td>double or int32</td></tr>
+<tr><td>unsigned long</td><td>uint32</td></tr>
+<tr><td>signed long long</td><td>not supported with Scilab 5.x</td></tr>
+<tr><td>unsigned long long</td><td>not supported with Scilab 5.x</td></tr>
+<tr><td>float</td><td>double</td></tr>
+<tr><td>double</td><td>double</td></tr>
+<tr><td>char* or char[]</td><td>string</td></tr>
+</table>
+</div>
+
+<p>
+Notes:
+<ul>
+<li>Double type in Scilab is far more used than integer type.
+That's why signed integer values (short, int, integer, long) are automatically converted to Scilab double values in output of a C function.
+Also in input, double values are converted from doubles into the appropriate integer type.
+Note that this conversion does not occur with unsigned integers.
+</li>
+<li>
+In SWIG for Scilab 5.x long long type is not supported since Scilab 5.x does not have a 64-bit integer type.
+In that case, SWIG displays an error when wrapping a function that has long long type arguments.
+</li>
+</ul>
+</p>
+
+<H3><a name="Scilab_typemaps_non-primitive_types"></a>37.4.2 Default type mappings for non-primitive types</H3>
+
+<p>
+The default mapped type for C/C++ non-primitive types is the Scilab pointer. That is the case for exemple for C structs, C++ classes, etc...
+But there are many type mappings for non-primitive types (such as enums, arrays, STL types, etc...). Each of them is described further in this document.
 </p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
@@ -996,7 +1000,7 @@ clear get_file_path;
 <li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function implemented in the new interface.</li>
 </ul>
 
-<H3><a name="Scilab_module_initialization"></a>37.</tt> 5.6 Module initialization</H3>
+<H3><a name="Scilab_module_initialization"></a>37.</tt> 5.6 Initialization</H3>
 
 <p>
 A built-in Scilab function is generated for the wrapped module.
