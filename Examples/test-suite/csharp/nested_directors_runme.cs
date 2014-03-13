@@ -6,14 +6,15 @@ public class CNested : Base.Nest {
 	public override bool GetValue() {return true;}
 }
 public class CSub : Sub {
-	public override bool GetValue() { return Sub.GetValue(); }
+	protected override bool GetValue() { return base.GetValue(); }
+	public bool Test(){ return GetValue(); }
 }
 
 public class runme {
   static void Main() {
   	CNested n = new CNested();
 		CSub s = new CSub();
-		if (!s.GetValue())
+		if (!s.Test())
 			throw new Exception("Sub.GetValue");
   }
 }

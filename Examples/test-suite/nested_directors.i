@@ -14,6 +14,7 @@ public:
         virtual ~Base(){}
         class Nest {
         public:
+								void Nest(){}
                 virtual ~Nest(){}
                 virtual bool GetValue() = 0;
         };
