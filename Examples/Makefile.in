@@ -1576,7 +1576,7 @@ scilab: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch'))"; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1587,7 +1587,7 @@ scilab_cpp: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch'))"; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 	fi
 
 # -----------------------------------------------------------------
