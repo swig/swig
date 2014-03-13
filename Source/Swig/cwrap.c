@@ -1181,7 +1181,7 @@ Node *Swig_directormap(Node *module, String *type) {
  * This function creates a C wrapper for a C constructor function. 
  * ----------------------------------------------------------------------------- */
 
-int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags) {
+int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags, String *directorname) {
   ParmList *parms;
   Parm *prefix_args;
   Parm *p;
@@ -1250,17 +1250,10 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
       if (use_director) {
 	Node *parent = Swig_methodclass(n);
 	int abstract = Getattr(parent, "abstracts") != 0;
-	String *name = Getattr(parent, "sym:name");
-	String *directorname;
 	String *action = NewStringEmpty();
 	String *tmp_none_comparison = Copy(none_comparison);
 	String *director_call;
 	String *nodirector_call;
-
-        if (Len(directorScope) > 0)
-          directorname = NewStringf("SwigDirector_%s_%s", directorScope, name);
-        else 
-          directorname = NewStringf("SwigDirector_%s", name);
 
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 
