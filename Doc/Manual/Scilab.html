@@ -880,6 +880,86 @@ void print_matrix(double **M, int nbRows, int nbCols) {
 </pre></div>
 
 
+<H3><a name="Scilab_typemaps_matrices"></a>37.4.5 Matrices</H3>
+
+<p>
+The library <tt>matrix.i</tt> provides a set of typemaps which can be useful when working with one-dimensional and two-dimensional matrices.
+
+</p>
+
+<p>To use that library, just include it in the interface file:</p>
+<ul>
+</ul>
+
+<div class="code"><pre>
+  %include matrix.i
+</pre></div>
+
+
+<p>
+Several typemaps are available for the common Scilab matrix types:
+<ul>
+<li><tt>double</tt></li>
+<li><tt>int</tt></li>
+<li><tt>char *</tt></li>
+<li><tt>bool</tt></li>
+</ul>
+</p>
+
+<p>
+For example: for a matrix of <tt>int</tt>, we have the typemaps, for input:
+<ul>
+<li><tt>(int *matrixIn, int matrixInRowCount, int matrixInColCount)</tt></li>
+<li><tt>(int matrixInRowCount, int matrixInColCount, int *matrixIn)</tt></li>
+<li><tt>(int *matrixIn, int matrixInSize)</tt></li>
+<li><tt>(int matrixInSize, int *matrixIn)</tt></li>
+</ul>
+</p>
+<p>
+and output:
+<ul>
+<li><tt>(int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)</tt></li>
+<li><tt>(int *matrixOutRowCount, int *matrixOutColCount, int **matrixOut)</tt></li>
+<li><tt>(int **matrixOut, int *matrixOutSize)</tt></li>
+<li><tt>(int *matrixOutSize, int **matrixOut)</tt></li>
+</ul>
+</p>
+
+<p>Following is an exemple using that typemaps:</p>
+
+<div class="code"><pre>
+%module example
+
+%include matrix.i
+
+%apply (int *matrixIn, int matrixInRowCount, int matrixInColCount) { (int *matrix, int matrixNbRow, int matrixNbCol) };
+%apply (int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (int **outMatrix, int *outMatrixNbRow, int *outMatrixNbCol) };
+
+%inline %{
+
+void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
+  int **outMatrix, int *outMatrixNbRow, int *outMatrixNbCol) {
+  int i, j;
+  *outMatrixNbRow = matrixNbRow;
+  *outMatrixNbCol = matrixNbCol;
+  *outMatrix = malloc(matrixNbRow * matrixNbCol * sizeof(int));
+  for (i=0; i &lt; matrixNbRow * matrixNbCol; i++) {
+    (*outMatrix)[i] = matrix[i] &gt; 0 ? matrix[i]:-matrix[i];
+  }
+}
+
+%}
+</div></pre>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; absolute([-0 1 -2; 3 4 -5])
+ ans  =
+
+    0.    1.    2.
+    3.    4.    5.
+</div></pre>
+</p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
 
