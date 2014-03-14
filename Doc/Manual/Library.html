@@ -1719,15 +1719,40 @@ Any thrown STL exceptions will then be gracefully handled instead of causing a c
 
 
 <p>
-Some target languages have support for handling the widely used <tt>boost::shared_ptr</tt> smart pointer.
-This smart pointer is also available as <tt>std::tr1::shared_ptr</tt> before it becomes fully standardized as <tt>std::shared_ptr</tt>. 
-The <tt>boost_shared_ptr.i</tt> library provides support for <tt>boost::shared_ptr</tt> and <tt>std_shared_ptr.i</tt> provides support for <tt>std::shared_ptr</tt>, but if the following macro is defined as shown, it can be used for <tt>std::tr1::shared_ptr</tt>:
+Some target languages have support for handling the shared_ptr reference counted smart pointer.
+This smart pointer is available in the standard C++11 library as <tt>std::shared_ptr</tt>.
+It was also in TR1 as <tt>std::tr1::shared_ptr</tt> before it was fully standardized.
+Support for the widely used <tt>boost::shared_ptr</tt> is also available.
+</p>
+
+<p>
+In order to use <tt>std::shared_ptr</tt>, the <tt>std_shared_ptr.i</tt> library file should be included:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_shared_ptr.i&gt;
+</pre>
+</div>
+
+<p>
+The pre-standard <tt>std::tr1::shared_ptr</tt> can be used by including the following macro before including the <tt>std_shared_ptr.i</tt> library file:
 </p>
 
 <div class="code">
 <pre>
 #define SWIG_SHARED_PTR_SUBNAMESPACE tr1
 %include &lt;std_shared_ptr.i&gt;
+</pre>
+</div>
+
+<p>
+In order to use <tt>boost::shared_ptr</tt>, the <tt>boost_shared_ptr.i</tt> library file should be included:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;boost_shared_ptr.i&gt;
 </pre>
 </div>
 
@@ -1874,7 +1899,9 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
+<p>
 <b>Note:</b> There is currently no support for <tt>%shared_ptr</tt> and the director feature.
+</p>
 
 
 <H3><a name="Library_std_auto_ptr"></a>8.4.5 auto_ptr smart pointer</H3>
