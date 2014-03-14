@@ -511,6 +511,7 @@ CPP11_TEST_CASES = \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
+	cpp11_result_of \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
@@ -527,7 +528,6 @@ CPP11_TEST_CASES = \
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
 #	cpp11_hash_tables \           # not fully implemented yet
-#	cpp11_result_of \             # SWIG does not support
 #	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
