@@ -1,7 +1,7 @@
 %module(directors="1", allprotected="1") nested_directors
 
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Base::Nest;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Sub::IListener;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) NN::Base::Nest;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) NN::Sub::IListener;
 
 %feature("director") Base;
 %feature("director") Sub;
