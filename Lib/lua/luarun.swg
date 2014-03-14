@@ -643,7 +643,7 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace 
    when function is called).
    Function always returns newly registered table on top of the stack.
 */
-SWIGINTERN int SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
+SWIGINTERN void SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
   /* 1 argument - table on the top of the stack */
   int begin = lua_gettop(L);
@@ -960,8 +960,8 @@ SWIGINTERN int  SWIG_Lua_class_set(lua_State *L)
    lua_error(L);
   } else {
     assert(ret==0);
-    return 0;
   }
+  return 0;
 }
 
 /* the class.destruct method called by the interpreter */
