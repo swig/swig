@@ -62,6 +62,11 @@
 
 %typemap(freearg, noblock=1) (char ***matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 {
+  {
+    int i;
+    for (i = 0; i < (*$2) * (*$3); i++)
+      free((*$1)[i]);
+  }
   free(*$1);
   free($1);
   free($2);
@@ -97,6 +102,11 @@
 {
   free($1);
   free($2);
+  {
+    int i;
+    for (i = 0; i < (*$1) * (*$2); i++)
+      free((*$3)[i]);
+  }
   free(*$3);
   free($3);
 }
@@ -116,7 +126,11 @@
 
 %typemap(freearg, noblock=1) (char ***matrixOut, int *matrixOutSize)
 {
-  free(*(*$1));
+  {
+    int i;
+    for (i = 0; i < *$2; i++)
+      free((*$1)[i]);
+  }
   free(*$1);
   free($1);
   free($2);
@@ -171,7 +185,11 @@
 %typemap(freearg, noblock=1) (int *matrixOutSize, char ***matrixOut)
 {
   free($1);
-  free(*(*$2));
+  {
+    int i;
+    for (i = 0; i < *$1; i++)
+      free((*$2)[i]);
+  }
   free(*$2);
   free($2);
 }
