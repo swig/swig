@@ -4,7 +4,7 @@ namespace swig {
 // Traits that provides the from method
   template <class Type> struct traits_from_ptr {
     static SwigSciObject from(Type *val, int owner = 0) {
-        return 0; //SWIG_NewPointerObj(val, type_info<Type>(), owner);
+        return SWIG_OK; //SWIG_NewPointerObj(val, type_info<Type>(), owner);
     }
   };
 
@@ -153,7 +153,7 @@ namespace swig {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
-	return 0;
+	return SWIG_OK;
       }
     }
   };

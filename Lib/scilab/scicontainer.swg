@@ -216,7 +216,7 @@ namespace swig
       }
       else
       {
-        return 0;
+        return SWIG_ERROR;
       }
     }
 
@@ -432,7 +432,7 @@ namespace swig {
           }
           return traits_from_sequence<value_type>::set(size, data);
         }
-        return 0;
+        return SWIG_OK;
       }
       catch (std::exception& e)
       {
