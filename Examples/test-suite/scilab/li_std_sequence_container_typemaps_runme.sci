@@ -59,7 +59,7 @@ function testSequenceContainer(container, value_type, value1, value2, expected_a
   end
   ierr = execstr(cmd, "errcatch");
   checkerror(ierr, cmd);
-  if ~isdef('c') | c <> [value1, value2] then swigtesterror(); end
+  if ~isdef('c') | ~isequal(c, [value1, value2]) then swigtesterror(); end
 
   if (value_type == "int") then
     c = int32(c);
