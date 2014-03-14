@@ -27,9 +27,9 @@
 <li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
 <li><a href="#Scilab_wrapping_functions">Functions</a>
 <li><a href="#Scilab_wrapping_global_variables">Global variables</a>
-<li><a href="#Scilab_wrapping_constants_and_enums">Constants and enums</a>
+<li><a href="#Scilab_wrapping_constants_and_enums">Constants and enumerations</a>
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
-<li><a href="#Scilab_wrapping_structs">Structs</a>
+<li><a href="#Scilab_wrapping_structs">Structures</a>
 <li><a href="#Scilab_wrapping_arrays">Arrays</a>
 <li><a href="#Scilab_wrapping_matrices">Matrices</a>
 <li><a href="#Scilab_wrapping_classes">C++ classes</a>
@@ -407,7 +407,7 @@ ans =
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_constants_and_enums"></a>37.3.5 Constants and enums</H3>
+<H3><a name="Scilab_wrapping_constants_and_enums"></a>37.3.5 Constants and enumerations</H3>
 
 <H4><a name="Scilab_wrapping_constants"></a>Constants</H4>
 
@@ -498,7 +498,7 @@ ans= 37
 ans= 3.14
 </pre></div>
 
-<H4><a name="Scilab_wrapping_enums"></a>Enums</H4>
+<H4><a name="Scilab_wrapping_enums"></a>Enumerations</H4>
 
 <p>
 The wrapping of enums is quite the same as for constants.
@@ -593,42 +593,100 @@ extern int divide(int n, int d, int *r);
 we only need a real value instead.
 </p>
 
-<H3><a name="Scilab_wrapping_structs"></a>37.3.7 Structs</H3>
+<H3><a name="Scilab_wrapping_structs"></a>37.3.7 Structures</H3>
 
 
 <p>
-   SWIG creates a set of accessor functions when encountering a structure or union. For example:
+A C structure is wrapped through a pointer and getter and setter functions for access to the member variables.
+For example of a struct with two members:
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>
+%module example
+
 %inline %{
+
 typedef struct {
     int x;
+    int y;
 } Foo;
 
 %}
 </pre></div>
 
-<p> When wrapped, it would generate two main function: Foo_x_set(), which set the data value of the structure and Foo_x_get() which could obtain the value of the structure. Run it in Scilab:
+<p>
+Several functions are generated:
+<ul>
+<li>a creation function <tt>new_Foo()</tt> which returns a pointer to a new created struct <tt>Foo</tt>.</li>
+<li>the two getter functions <tt>Foo_x_get()</tt>, <tt>Foo_y_get()</tt>, to get the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter</li>
+<li>the two setter functions <tt>Foo_x_set()</tt>, <tt>Foo_y_set()</tt>, to set the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter.</li>
+<li>a destruction function <tt>delete_Foo()</tt> to release the struct pointer.</li>
+</ul>
+</p>
+
+<p>
+Following is an example of use:
 </p>
 
 <div class="targetlang"><pre>
---&gt; a=new_Foo();
---&gt; Foo_x_set(a,100);
+--&gt; a = new_Foo();
+--&gt; Foo_x_set(a, 100);
 --&gt; Foo_x_get(a)
 ans  =
 
-  100
+  100.
+
+--&gt; delete_Foo(a);
 </pre></div>
+
+<p>
+Members of a structure that itself are a structure are also accepted and wrapped as a pointer:</p>
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+
+typedef struct {
+  int x;
+} Bar;
+
+typedef struct {
+  Bar b;
+} Foo;
+
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; b = new_Bar();
+--&gt; Bar_x_set(b, 20.);
+
+--&gt; f = new_Foo();
+--&gt; Foo_b_set(f, b);
+
+--&gt; b2 = Foo_b_get(f);
+--&gt; Bar_x_get(b2);
+ans  =
+
+  20.
+</pre></div>
+</p>
 
 
 <H3><a name="Scilab_wrapping_classes"></a>37.3.8 C++ Classes</H3>
 
 <p>
-The classes are wrapped in the same manner as structs, through functions. For example, the following class:
+The classes are wrapped the way as structs, through functions. For example, the following class:
 </p>
 
 <div class="targetlang"><pre>
+%module example
+
+%inline %{
+
 class Point {
 public:
   int x,y;
@@ -637,9 +695,12 @@ public:
     return sqrt(pow(x-rhs.x,2)+pow(y-rhs.y,2));
   }
   void set(int _x,int _y) {
-    x=_x; y=_y;
+    x=_x;
+    y=_y;
   }
 };
+
+%}
 </pre></div>
 
 <p>
@@ -652,6 +713,9 @@ can be used from Scilab like this:
 --&gt; p1.distance(p2)
 ans  =
      3.6056
+
+--&gt; delete_Point(p1);
+--&gt; delete_Point(p2);
 </pre></div>
 
 
