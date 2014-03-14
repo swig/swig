@@ -180,7 +180,7 @@ public:
   virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
-  virtual std::string directorthrows_warning(int excp) throw(double) {}
+  virtual std::string directorthrows_warning(int excp) throw(double) { return std::string(); }
 };
 
 // Make a bar from a foo, so a call to Java Bar
