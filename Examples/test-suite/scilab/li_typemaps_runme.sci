@@ -80,14 +80,15 @@ if (inout_bool(%t) <> %t) then swigtesterror(); end
 if (inoutr_bool(%f) <> %f) then swigtesterror(); end
 
 // float
-//if (in_float(22.22) <> 22.22) then swigtesterror(); end
-//if (inr_float(22.22) <> 22.22) then swigtesterror(); end
-//if (out_float(22.22) <> 22.22) then swigtesterror(); end
-//if (outr_float(22.22) <> 22.22) then swigtesterror(); end
-//if (inout_float(22.22) <> 22.22) then swigtesterror(); end
-//if (inoutr_float(22.22) <> 22.22) then swigtesterror(); end
+if (in_float(2.5) <> 2.5) then swigtesterror(); end
+if (inr_float(2.5) <> 2.5) then swigtesterror(); end
+if (out_float(2.5) <> 2.5) then swigtesterror(); end
+if (outr_float(2.5) <> 2.5) then swigtesterror(); end
+if (inout_float(2.5) <> 2.5) then swigtesterror(); end
+if (inoutr_float(2.5) <> 2.5) then swigtesterror(); end
 
 // long long
+// Not supported in Scilab 5.5
 //if (in_longlong(22) <> 22) then swigtesterror(); end
 //if (inr_longlong(22) <> 22) then swigtesterror(); end
 //if (out_longlong(22) <> 22) then swigtesterror(); end
@@ -96,6 +97,7 @@ if (inoutr_bool(%f) <> %f) then swigtesterror(); end
 //if (inoutr_longlong(22) <> 22) then swigtesterror(); end
 
 // unsigned long long
+// Not supported in Scilab 5.5
 //if (in_ulonglong(uint64(22)) <> 22) then swigtesterror(); end
 //if (inr_ulonglong(uint64(22)) <> 22) then swigtesterror(); end
 //if (out_ulonglong(uint64(22)) <> 22) then swigtesterror(); end
