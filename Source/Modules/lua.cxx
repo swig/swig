@@ -103,13 +103,11 @@ static int squash_bases = 0;
  * This variable is controled by -no-old-metatable-bindings option.
  * v2_compatibility - 
  *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself.
+ *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
  *                    2. The layout in elua mode is somewhat different
- *                    3. C enums defined inside struct will oblige to C Standard and
- *                       will be defined in the scope surrounding the struct, not scope
- *                       associated with it/
  */
 static int v2_compatibility = 0;
+static int v2_compat_names_generation = 1; // This flag can temporaraly disable backward compatible names generation if v2_compatibiliti is enabled
 static const int default_api_level = 2;
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -1096,7 +1094,8 @@ public:
       return SWIG_NOWRAP;
     }
 
-    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
+    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0
+      && v2_compat_names_generation;
 
     if (make_v2_compatible) {
       // Don't do anything for enums in C mode - they are already
@@ -1166,9 +1165,20 @@ public:
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
+    // There is some slightly specific behaviour with enums. Basically,
+    // their NSpace may be tracked separately. The code below tries to work around
+    // this issue to some degree.
+    // The idea is the same as in classHandler - to drop old names generation if
+    // enum is in class in namespace.
+    const int v2_compat_names_generation_old = v2_compat_names_generation;
+    if (getNSpace() ||
+        ( Getattr(n, "sym:nspace") != 0 && Len(Getattr(n, "sym:nspace")) > 0 ) ) {
+      v2_compat_names_generation = 0;
+    }
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
+    v2_compat_names_generation = v2_compat_names_generation_old;
     return result;
   }
 
@@ -1279,7 +1289,7 @@ public:
     // * consider effect on template_specialization_defarg
 
     static Hash *emitted = NewHash();
-    if (Getattr(emitted, mangled_fr_t)) {
+    if (GetFlag(emitted, mangled_fr_t)) {
       full_proxy_class_name = 0;
       proxy_class_name = 0;
       return SWIG_NOWRAP;
@@ -1316,11 +1326,20 @@ public:
     Setattr(instance_cls, "lua:class_instance:static_hash", static_cls);
     Setattr(static_cls, "lua:class_static:instance_hash", instance_cls);
 
+    const int v2_compat_names_generation_old = v2_compat_names_generation;
+    // If class has %nspace enabled, then generation of backward compatible names
+    // should be disabled
+    if (getNSpace()) {
+      v2_compat_names_generation = 0;
+    }
+
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
      * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
      */
     // Generate normal wrappers
     Language::classHandler(n);
+
+    v2_compat_names_generation = v2_compat_names_generation_old;
 
     SwigType_add_pointer(t);
 
@@ -1601,7 +1620,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (v2_compatibility && result == SWIG_OK) {
+    if (v2_compatibility && result == SWIG_OK && v2_compat_names_generation) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1646,7 +1665,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (v2_compatibility) {
+      if (v2_compatibility && v2_compat_names_generation) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
 	// Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1895,7 +1914,7 @@ public:
     Setattr(scope, "lua:cdata", carrays_hash);
     assert(rawGetCArraysHash(nspace));
 
-    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(carrays_hash, "lua:no_reg") == 0) {
+    if (reg && nspace != 0 && Len(nspace) != 0 && GetFlag(carrays_hash, "lua:no_reg") == 0) {
       // Split names into components
       List *components = Split(nspace, '.', -1);
       String *parent_path = NewString("");
@@ -1941,7 +1960,7 @@ public:
   void closeCArraysHash(String *nspace, File *output) {
     Hash *carrays_hash = rawGetCArraysHash(nspace);
     assert(carrays_hash);
-    assert(Getattr(carrays_hash, "lua:closed") == 0);
+    assert(GetFlag(carrays_hash, "lua:closed") == 0);
 
     SetFlag(carrays_hash, "lua:closed");
 
@@ -1976,13 +1995,13 @@ public:
       Printf(methods_tab, "    {0,0}\n};\n");
     Printv(output, methods_tab, NIL);
 
-    if (!Getattr(carrays_hash, "lua:no_classes")) {
+    if (!GetFlag(carrays_hash, "lua:no_classes")) {
       String *classes_tab = Getattr(carrays_hash, "classes");
       Printf(classes_tab, "    0\n};\n");
       Printv(output, classes_tab, NIL);
     }
 
-    if (!Getattr(carrays_hash, "lua:no_namespaces")) {
+    if (!GetFlag(carrays_hash, "lua:no_namespaces")) {
       String *namespaces_tab = Getattr(carrays_hash, "namespaces");
       Printf(namespaces_tab, "    0\n};\n");
       Printv(output, namespaces_tab, NIL);
@@ -2003,7 +2022,7 @@ public:
 	String *get_tab_name = Getattr(carrays_hash, "get:name");
 	String *set_tab_name = Getattr(carrays_hash, "set:name");
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
 	} else {
@@ -2016,7 +2035,7 @@ public:
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
 	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
@@ -2026,7 +2045,7 @@ public:
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
 	  // Put forward declaration of this array
 	  Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-	} else if (Getattr(carrays_hash, "lua:class_static")) {
+	} else if (GetFlag(carrays_hash, "lua:class_static")) {
 	  Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
 	  assert(instance_cls);
 	  String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
@@ -2074,7 +2093,7 @@ public:
         // We have a pseudo symbol. Lets get actual scope for this pseudo symbol
         Hash *carrays_hash = rawGetCArraysHash(ki.key);
         assert(carrays_hash);
-        if (Getattr(carrays_hash, "lua:closed") == 0)
+        if (GetFlag(carrays_hash, "lua:closed") == 0)
           Append(to_close, ki.key);
       }
       ki = Next(ki);
@@ -2119,8 +2138,8 @@ public:
     String *const_tab_name = Getattr(carrays_hash, "constants:name");
     String *classes_tab_name = Getattr(carrays_hash, "classes:name");
     String *namespaces_tab_name = Getattr(carrays_hash, "namespaces:name");
-    bool has_classes = Getattr(carrays_hash, "lua:no_classes") == 0;
-    bool has_namespaces = Getattr(carrays_hash, "lua:no_namespaces") == 0;
+    bool has_classes = GetFlag(carrays_hash, "lua:no_classes") == 0;
+    bool has_namespaces = GetFlag(carrays_hash, "lua:no_namespaces") == 0;
 
     Printv(output, "{\n",
 	   tab4, "\"", name, "\",\n",
