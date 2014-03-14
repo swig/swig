@@ -7,7 +7,7 @@
 
 // in (bool *matrixIn, int matrixInRowCount, int matrixInColCount)
 
-%typemap(in, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *matrixIn, int matrixInRowCount, int matrixInColCount)
+%typemap(in, noblock=1, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *matrixIn, int matrixInRowCount, int matrixInColCount)
 {
   if (SWIG_SciBoolean_AsBoolArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, fname) != SWIG_OK)
   {
@@ -17,7 +17,7 @@
 
 // in (int matrixInRowCount, int matrixInColCount, bool *matrixIn)
 
-%typemap(in, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (int matrixInRowCount, int matrixInColCount, bool *matrixIn)
+%typemap(in, noblock=1, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (int matrixInRowCount, int matrixInColCount, bool *matrixIn)
 {
   if (SWIG_SciBoolean_AsBoolArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK)
   {
@@ -27,7 +27,7 @@
 
 // in (bool *vectorIn, int vectorInSize)
 
-%typemap(in, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *vectorIn, int vectorInSize)
+%typemap(in, noblock=1, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *vectorIn, int vectorInSize)
 {
     int rowCount;
     int colCount;
@@ -43,7 +43,7 @@
 
 // in (int vectorInSize, bool *vectorIn)
 
-%typemap(in) (int vectorInSize, bool *vectorIn)
+%typemap(in, noblock=1) (int vectorInSize, bool *vectorIn)
 {
     int rowCount;
     int colCount;
@@ -59,18 +59,18 @@
 
 // out (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 
-%typemap(in, numinputs=0) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
+%typemap(in, noblock=1, numinputs=0) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 {
 }
 
-%typemap(arginit) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
+%typemap(arginit, noblock=1) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 {
   $1 = (bool**) malloc(sizeof(bool*));
   $2 = (int*) malloc(sizeof(int));
   $3 = (int*) malloc(sizeof(int));
 }
 
-%typemap(freearg) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
+%typemap(freearg, noblock=1) (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 {
   free(*$1);
   free($1);
@@ -78,7 +78,7 @@
   free($3);
 }
 
-%typemap(argout, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
+%typemap(argout, noblock=1, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (bool **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)
 {
   if (SWIG_SciBoolean_FromBoolArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$3, *$1) == SWIG_OK)
   {
@@ -92,18 +92,18 @@
 
 // out (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
 
-%typemap(in, numinputs=0) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
+%typemap(in, noblock=1, numinputs=0) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
 {
 }
 
-%typemap(arginit) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
+%typemap(arginit, noblock=1) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
 {
   $1 = (int*) malloc(sizeof(int));
   $2 = (int*) malloc(sizeof(int));
   $3 = (bool**) malloc(sizeof(bool*));
 }
 
-%typemap(argout, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (int *matrixInRowCount, int *matrixInColCount, bool **matrixOut)
+%typemap(argout, noblock=1, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (int *matrixInRowCount, int *matrixInColCount, bool **matrixOut)
 {
   if (SWIG_SciBoolean_FromBoolArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2, *$3) == SWIG_OK)
   {
@@ -115,7 +115,7 @@
   }
 }
 
-%typemap(freearg) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
+%typemap(freearg, noblock=1) (int *matrixOutRowCount, int *matrixOutColCount, bool **matrixOut)
 {
   free($1);
   free($2);
@@ -126,17 +126,17 @@
 
 // out (bool **vectorOut, int *vectorOutSize)
 
-%typemap(in, numinputs=0) (bool **vectorOut, int *vectorOutSize)
+%typemap(in, noblock=1, numinputs=0) (bool **vectorOut, int *vectorOutSize)
 {
 }
 
-%typemap(arginit) (bool **vectorOut, int *vectorOutSize)
+%typemap(arginit, noblock=1) (bool **vectorOut, int *vectorOutSize)
 {
   $1 = (bool**) malloc(sizeof(bool*));
   $2 = (int*) malloc(sizeof(int));
 }
 
-%typemap(argout, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (bool **vectorOut, int *vectorOutSize)
+%typemap(argout, noblock=1, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (bool **vectorOut, int *vectorOutSize)
 {
   if (SWIG_SciBoolean_FromBoolArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK)
   {
@@ -148,7 +148,7 @@
   }
 }
 
-%typemap(freearg) (bool **vectorOut, int *vectorOutSize)
+%typemap(freearg, noblock=1) (bool **vectorOut, int *vectorOutSize)
 {
   free(*$1);
   free($1);
@@ -158,17 +158,17 @@
 
 // out (int *vectorOutSize, bool **vectorOut)
 
-%typemap(in, numinputs=0) (int *vectorOutSize, bool **vectorOut)
+%typemap(in, noblock=1, numinputs=0) (int *vectorOutSize, bool **vectorOut)
 {
 }
 
-%typemap(arginit) (int *vectorOutSize, bool **vectorOut)
+%typemap(arginit, noblock=1) (int *vectorOutSize, bool **vectorOut)
 {
   $1 = (int*) malloc(sizeof(int));
   $2 = (bool**) malloc(sizeof(bool*));
 }
 
-%typemap(argout, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (int *vectorOutSize, bool **vectorOut)
+%typemap(argout, noblock=1, fragment="SWIG_SciBoolean_FromBoolArrayAndSize") (int *vectorOutSize, bool **vectorOut)
 {
   if (SWIG_SciBoolean_FromBoolArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK)
   {
@@ -180,7 +180,7 @@
   }
 }
 
-%typemap(freearg) (int *vectorOutSize, bool **vectorOut)
+%typemap(freearg, noblock=1) (int *vectorOutSize, bool **vectorOut)
 {
   free($1);
   free(*$2);
