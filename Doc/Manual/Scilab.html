@@ -764,8 +764,8 @@ The following table give for each C/C++ primitive type the equivalent Scilab typ
 <tr><td>unsigned int</td><td>uint32</td></tr>
 <tr><td>long</td><td>double or int32</td></tr>
 <tr><td>unsigned long</td><td>uint32</td></tr>
-<tr><td>signed long long</td><td>not supported with Scilab 5.x</td></tr>
-<tr><td>unsigned long long</td><td>not supported with Scilab 5.x</td></tr>
+<tr><td>signed long long</td><td>not supported in Scilab 5.x</td></tr>
+<tr><td>unsigned long long</td><td>not supported in Scilab 5.x</td></tr>
 <tr><td>float</td><td>double</td></tr>
 <tr><td>double</td><td>double</td></tr>
 <tr><td>char* or char[]</td><td>string</td></tr>
@@ -775,13 +775,16 @@ The following table give for each C/C++ primitive type the equivalent Scilab typ
 <p>
 Notes:
 <ul>
-<li><tt>Double</tt> type in Scilab is far more used than integer type.
-That's why signed integer values (<tt>short, int, integer, long</tt>) are automatically converted to Scilab double values in output of a C function.
-Also in input, double values are converted from doubles into the appropriate integer type.
-Note that this conversion does not occur with unsigned integers.
+<li><tt>Double</tt> type in Scilab is far more used than any integer type.
+That's why signed integer values (<tt>short, int, integer, long</tt>) are automatically converted to Scilab <tt>double</tt> values in output of a C function.
+Also in input, <tt>double</tt> values are converted from <tt>double</tt> into the appropriate integer type.
+Unsigned integers are not concerned by these conversions.
 </li>
 <li>
-In SWIG for Scilab 5.x the <tt></tt>long long</tt> type is not supported since Scilab 5.x does not have a 64-bit integer type.
+When an integer is expected, if the input is a double, it must be an integer, i.e. it must not have any decimal part, otherwise a SWIG value error occurs.
+</li>
+<li>
+In SWIG for Scilab 5.x the <tt>long long</tt> type is not supported since Scilab 5.x does not have a 64-bit integer type.
 In that case, SWIG displays an error when wrapping a function that has <tt>long long</tt> type arguments.
 </li>
 </ul>
@@ -802,34 +805,52 @@ Typemaps are available by default for arrays. Primitive type arrays are automati
 </p>
 
 <p>
-The type mappings used for arrays is the same for primtive types, described <a href="#Scilab_typemaps_primitive_types">here</a>.
-It means that, if needed, a Scilab double vector is converted in input into a C int array.
-And this C int array is automatically converted in output to a Scilab double vector.
+In input, the matrix is usually one-dimensional (it can be either a row or column vector). But it can be also a two-dimensional matrix.
+Warning: in Scilab, the values are column-major orderered, unlike in C, in which there are row-major ordered.
 </p>
 
 <p>
-This example illustrates this:</p>
+The type mappings used for arrays is the same for primtive types, described <a href="#Scilab_typemaps_primitive_types">here</a>.
+It means that, if needed, a Scilab double vector is converted in input into a C int array.
+And this C int array is automatically converted in output to a Scilab double vector.
+Note that unlike scalars, no control is done for arrays when a double is converted to integer.
+</p>
+
+<p>
+</p>
+
+<p>
+This example illustrates all this:</p>
 
 <div class="code"><pre>
 %module example
 
+%#include &lt;stdio.h&gt;
+
 %inline %{
 
-int sumArray(int values[], int len) {
-  int s = 0;
+void printArray(int values[], int len) {
   int i = 0;
-  for (i=0; i &lt; len; i++)
-    s += values[i];
-  return s;
+  for (i = 0; i &lt; len; i++) {
+    printf("%s %d %s", i==0?"[":"", values[i], i==len-1?"]\n":"");
+  }
+}
 %}
 </pre></div>
 
 <p>
 <div class="targetlang"><pre>
---&gt; sum([1. 2. 3. 5.], 4);
- ans  =
+--&gt; printArray([0 1 2 3], 4)
+[ 0  1  2  3 ]
 
-    11.
+-->printArray([0.2; -1.8; 2; 3.7], 4)
+[ 0  -1  2  3 ]
+
+--&gt; printArray([0 1; 2 3], 4)
+[ 0  2  1  3 ]
+
+--&gt; printArray([0; 1; 2; 3], 4)
+[ 0  1  2  3 ]
 <pre></div>
 </p>
 
@@ -984,6 +1005,14 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
     0.    1.    2.
     3.    4.    5.
 </pre></div>
+</p>
+
+<p>
+The remarks made for arrays remain here:
+<ul>
+<li>The values of matrices in Scilab are column-major orderered, be careful while reading/writing processing data.</li>
+<li>There is no control while converting <tt>double</tt> values to integers, <tt>double</tt> values are truncated without any check.</li>
+</ul>
 </p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
