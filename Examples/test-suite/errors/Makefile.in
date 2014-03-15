@@ -15,6 +15,8 @@
 
 LANGUAGE     = python
 ERROR_EXT    = newerr
+# Portable dos2unix / todos for stripping CR
+TODOS        = sed -e 's/\r$$//'
 
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -34,18 +36,18 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest: 
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -c++ -python -Wall $(SWIGOPT) $*.i 2> $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c $*.stderr $*.newerr
+	-$(SWIG) -c++ -python -Wall -Fstandard $(SWIGOPT) $*.i 2>&1 | $(TODOS) > $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -c $*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -python -Wall $(SWIGOPT) $*.i 2> $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c $*.stderr $*.newerr
+	-$(SWIG) -python -Wall -Fstandard $(SWIGOPT) $*.i 2>&1 | $(TODOS) > $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -c $*.stderr $*.$(ERROR_EXT)
 
 %.clean:
 	
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile $(LANGUAGE)_clean
-	@rm -f *.newerr *.py
+	@rm -f *.$(ERROR_EXT) *.py
 
