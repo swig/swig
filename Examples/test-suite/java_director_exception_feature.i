@@ -80,6 +80,7 @@
 
 // throws typemaps for c++->java exception conversions
 %typemap(throws,throws="MyJavaException1") MyNS::Exception1 %{
+  (void)$1;
   jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
@@ -88,6 +89,7 @@
 %}
 
 %typemap(throws,throws="MyJavaException1") int %{
+  (void)$1;
   jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");
