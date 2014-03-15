@@ -13,6 +13,16 @@ public class java_director_runme {
     }
   }
 
+  private static void WaitForGC()
+  {
+    System.gc();
+    System.runFinalization();
+    try {
+      java.lang.Thread.sleep(10);
+    } catch (java.lang.InterruptedException e) {
+    }
+  }
+
   public static void main(String argv[]) {
     QuuxContainer qc = createContainer();
 
@@ -31,23 +41,20 @@ public class java_director_runme {
     qc = null;
     /* Watch qc get reaped, which causes the C++ object to delete
        objects from the internal vector */
-    System.gc();
-    System.runFinalization();
-
-    // Give the finalizers a chance to run
-    try {
-      Thread.sleep(50);
-    } catch (InterruptedException e) {
+    {
+      int countdown = 500;
+      int expectedCount = 0;
+      while (true) {
+        WaitForGC();
+        if (--countdown == 0)
+          break;
+        if (Quux.instances() == expectedCount)
+          break;
+      };
+      int actualCount = Quux.instances();
+      if (actualCount != expectedCount)
+        throw new RuntimeException("Expected count: " + expectedCount + " Actual count: " + actualCount);
     }
-
-    /* Watch the Quux objects formerly in the QuuxContainer object
-       get reaped */
-    System.gc();
-    System.runFinalization();
-
-    instances = Quux.instances();
-    if (instances != 0)
-      throw new RuntimeException("Quux instances should be 0, actually " + instances);
 
     /* Test Quux1's director disconnect method rename */
     Quux1 quux1 = new Quux1("quux1");

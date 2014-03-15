@@ -13,6 +13,16 @@ public class li_boost_intrusive_ptr_runme {
   // Debugging flag
   public final static boolean debug = false;
 
+  private static void WaitForGC()
+  {
+    System.gc();
+    System.runFinalization();
+    try {
+      java.lang.Thread.sleep(10);
+    } catch (java.lang.InterruptedException e) {
+    }
+  }
+
   public static void main(String argv[])
   {
     if (debug)
@@ -39,12 +49,7 @@ public class li_boost_intrusive_ptr_runme {
 
     int countdown = 50;
     while (true) {
-      System.gc();
-      System.runFinalization();
-      try {
-        java.lang.Thread.sleep(100);
-      } catch (java.lang.InterruptedException e) {
-      }
+      WaitForGC();
       if (--countdown == 0)
         break;
       if (Klass.getTotal_count() == 1 && KlassWithoutRefCount.getTotal_count() == 0 &&
@@ -52,7 +57,7 @@ public class li_boost_intrusive_ptr_runme {
           KlassDerived.getTotal_count() == 0 && KlassDerivedDerived.getTotal_count() == 1)
         // Expect 1 Klass instance - the one global variable (GlobalValue)
         break;
-    };
+    }
     if (Klass.getTotal_count() != 1)
       throw new RuntimeException("Klass.total_count=" + Klass.getTotal_count());
     if (KlassWithoutRefCount.getTotal_count() != 0)
