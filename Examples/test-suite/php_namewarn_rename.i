@@ -32,8 +32,8 @@
   };
 
   struct prev {
-    prev & operator++() { }
-    prev operator++(int) { }
+    prev & operator++() { return *this; }
+    prev operator++(int) { return *this; }
   };
 
 %}
