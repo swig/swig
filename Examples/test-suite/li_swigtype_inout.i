@@ -12,7 +12,7 @@
 %inline %{
 #include <iostream>
 struct XXX {
-  XXX(int value) : value(value) {
+  XXX(int v) : value(v) {
     if (debug) std::cout << "Default Constructor " << value << " " << this << std::endl;
     count++;
   }
