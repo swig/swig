@@ -73,8 +73,11 @@ void display_mapping(DOH *d) {
   }
 }
 
-extern "C" static int compareByLen(const DOH *f, const DOH *s) {
-  return Len(s) - Len(f);
+extern "C"
+{
+  static int compareByLen(const DOH *f, const DOH *s) {
+    return Len(s) - Len(f);
+  }
 }
 
 
