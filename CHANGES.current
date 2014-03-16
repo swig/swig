@@ -2,8 +2,8 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.0 (in progress)
-============================
+Version 3.0.0 (16 Mar 2014)
+===========================
 
 2014-03-16: wsfulton
             C++11 support initially developed as C++0x support by Matevz Jekovec as a Google Summer of Code
