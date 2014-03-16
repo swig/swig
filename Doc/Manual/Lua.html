@@ -42,9 +42,6 @@
 <li><a href="#Lua_namespaces">Namespaces </a>
 <ul>
 <li><a href="#Lua_nn27">Compatibility Note </a>
-</ul>
-<li><a href="#Lua_nn28">Compatibility Note </a>
-<ul>
 <li><a href="#Lua_nn29">Names </a>
 <li><a href="#Lua_nn30">Inheritance </a>
 </ul>
@@ -173,7 +170,7 @@ swig -lua -help
 
 <tr>
   <td>-no-old-metatable-bindings</td>
-  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included into appropriate sections.</td>
+  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included in appropriate later sections.</td>
 </tr>
 <tr>
   <td>-squash-bases</td>
@@ -772,7 +769,10 @@ It is not (currently) possible to access static members of an instance:
                                 -- does NOT work
 </pre></div>
 
+<p>
 <b>Compatibility Note:</b> In versions prior to SWIG-3.0.0 only the following names would work:
+</p>
+
 <div class="code"><pre>
 &gt; example.Spam_foo()            -- calling Spam::foo()
 &gt; a=example.Spam_bar            -- reading Spam::bar 
@@ -1379,7 +1379,11 @@ namespace MyWorld {
   }
 }
 </pre></div>
+
+<p>
 Now, from Lua usage is as follows:
+</p>
+
 <div class="targetlang"><pre>
 &gt; print(example.module_function())
 7
@@ -1399,7 +1403,7 @@ Now, from Lua usage is as follows:
 
 
 <p>
-If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated(notice the underscore):
+If SWIG is running in a backwards compatible way, i.e. without the <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated (notice the underscore):
 </p>
 <div class="targetlang"><pre>
 9
@@ -1409,10 +1413,9 @@ If SWIG is running in backward compatible way, i.e. without <tt>-no-old-metatabl
 11
 &gt;
 </pre></div>
-<H3><a name="Lua_nn28"></a>27.3.18 Compatibility Note </H3>
 
 
-<H4><a name="Lua_nn29"></a>27.3.18.1 Names </H4>
+<H4><a name="Lua_nn29"></a>27.3.17.2 Names </H4>
 
 
 <p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
@@ -1435,7 +1438,7 @@ class Test2 {
   static const int ICONST2 = 23;
 }
 </pre></div>
-<p> When in backward compatible mode, in addition to usual names, the following ones will be generated (notice the underscore):</p>
+<p> When in backward compatible mode, in addition to the usual names, the following ones will be generated (notice the underscore):</p>
 <div class="targetlang"><pre>
 9
 &gt; print(example.MyWorld.Test_TEST1) -- Test has %nspace enabled
@@ -1456,7 +1459,7 @@ surrounding scope without any prefixing. Pretending that Test2 is a struct, not 
 &gt;
 </pre></div>
 
-<H4><a name="Lua_nn30"></a>27.3.18.2 Inheritance </H4>
+<H4><a name="Lua_nn30"></a>27.3.17.3 Inheritance </H4>
 
 
 <p> The internal organization of inheritance has changed. 
