@@ -12,6 +12,45 @@ Version 3.0.0 (in progress)
             CPlusPlus11.html chapter in the documentation which is included in SWIG and also available
             online at http://www.swig.org/Doc3.0/CPlusPlus11.html.
 
+2014-03-14: v-for-vandal
+            [Lua] Numerous Lua improvements:
+            1. %nspace support has been added. Namespaces are mapped to tables in the module, with the same
+               name as the C++ namespace.
+            2. Inheritance is now handled differently. Each class metatable keeps a list of class bases instead
+               of merging all members of all bases into the derived class.
+            3. The new metatables result in differences in accessing class members. For example:
+
+                 %module example
+                 struct Test {
+                     enum { TEST1 = 10, TEST2 = 20 };
+                     static const int ICONST = 12;
+                 };
+
+                 Now this can be used as follows:
+                   print(example.Test.TEST1)
+                   print(example.Test.ICONST)
+                 The old way was:
+                   print(example.Test_TEST1)
+                   print(example.Test_ICONST)
+
+            4. The special class metatable member ".constructor" was removed. Now SWIG generates the proxy
+               function by itself and assigns it directly to the class table "__call" method.
+            5. eLua should also now support inheritance.
+            6. 'const' subtable in eLua is considered deprecated.
+
+            Changes in behaviour:
+            a. You can no longer assign to non-existing class members in classes without a __setitem__ method.
+               It will cause a Lua error.
+            b. You can no longer iterate over a module table and copy everything into the global namespace.
+               Actually, this was never the case, but it is now explicitly prohibited.
+            c. Now changing a base class will immediately affect all derived classes.
+            d. There might be some issues with inheritance. Although the bases iteration scheme is the same
+               as was used for merging base classes into derived one, some unknown issues may arise.
+
+            The old metatable behaviour can be restored by using the -no-old-metatable-bindings option.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-03-06: wsfulton
             [Python] Change in default behaviour wrapping C++ bool. Only a Python True or False
             will now work for C++ bool parameters. This fixes overloading bool with other types.
