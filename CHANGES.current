@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.0 (in progress)
 ============================
 
+2014-03-16: wsfulton
+            C++11 support initially developed as C++0x support by Matevz Jekovec as a Google Summer of Code
+            project has been further extended. The C++11 support is comprehensive, but by no means complete
+            or without limitations. Full details for each new feature in C++11 is covered in the
+            CPlusPlus11.html chapter in the documentation which is included in SWIG and also available
+            online at http://www.swig.org/Doc3.0/CPlusPlus11.html.
+
 2014-03-06: wsfulton
             [Python] Change in default behaviour wrapping C++ bool. Only a Python True or False
             will now work for C++ bool parameters. This fixes overloading bool with other types.
@@ -170,6 +177,7 @@ Version 3.0.0 (in progress)
             Director exceptions (Swig::DirectorException) now derive from std::exception
             and hence provide the what() method. In Python and Ruby, this replaces the now
             deprecated DirectorException::getMessage() method.
+
 2014-01-14: diorcety
             Patch #112 - Fix symbol resolution involving scopes that have multiple levels
             of typedefs - fixes some template resolutions as well as some typemap searches.
@@ -298,7 +306,6 @@ Version 3.0.0 (in progress)
 2013-10-15: vadz
             Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
             inside %rename to change the case of the text being replaced.
-
 
 2013-10-12: wsfulton
             [CFFI] Apply #96 - superclass not lispify
