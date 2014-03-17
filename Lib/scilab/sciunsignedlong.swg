@@ -27,3 +27,26 @@ SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int _iVarOut, unsigned long _
   return SWIG_From_unsigned_SS_int((unsigned int)_ulValue);
 }
 }
+
+%fragment("SWIG_SciUint32_FromUnsignedLongArrayAndSize", "header") {
+SWIGINTERN int
+SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned long *_pulData) {
+  SciErr sciErr;
+  int i;
+  unsigned int *puiValues = NULL;
+
+  puiValues = (unsigned int*) malloc(_iRows * _iCols * sizeof(unsigned int));
+  for (i=0; i<_iRows * _iCols; i++) {
+    puiValues[i] = _pulData[i];
+  }
+
+  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, puiValues);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    free(puiValues);
+    return SWIG_ERROR;
+  }
+  free(puiValues);
+  return SWIG_OK;
+}
+}

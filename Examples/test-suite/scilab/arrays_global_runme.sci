@@ -12,7 +12,7 @@ function testArray(arrayName, arraySetFunc, arrayGetFunc, in_values, ..
     if type(out_values) <> type(expected_out_values) then
       swigtesterror("wrong values type returned from " + arrayName + "_get()");
     end
-    if out_values <> expected_out_values then
+    if ~isequal(out_values, expected_out_values) then
       swigtesterror("wrong values returned from " + arrayName + "_get()");
     end
   catch
@@ -20,8 +20,8 @@ function testArray(arrayName, arraySetFunc, arrayGetFunc, in_values, ..
   end
 endfunction
 
-m = [10, 20];
-um = [-10, 20];
+m = [-10, 20];
+um = [10, 20];
 testArray("array_c", array_c_set, array_c_get, ['ab'], ['ab']);
 testArray("array_sc", array_sc_set, array_sc_get, m, m);
 testArray("array_sc", array_sc_set, array_sc_get, int8(m), m);
@@ -35,7 +35,7 @@ testArray("array_ui", array_ui_set, array_ui_get, uint32(um), uint32(um));
 testArray("array_l", array_l_set, array_l_get, m, m);
 testArray("array_l", array_l_set, array_l_get, int32(m), m);
 testArray("array_ul", array_ul_set, array_ul_get, uint32(um), uint32(um));
-testArray("array_f", array_f_set, array_f_get, [-10.5, 20.4], [-10.5, 20.4]);
+testArray("array_f", array_f_set, array_f_get, [-2.5, 2.5], [-2.5, 2.5]);
 testArray("array_d", array_d_set, array_d_get, [-10.5, 20.4], [-10.5, 20.4]);
 
 if array_const_i_get() <> [10, 20] then swigtesterror(); end

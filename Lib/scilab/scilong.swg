@@ -97,3 +97,27 @@ SWIG_SciDouble_FromLong(void *_pvApiCtx, int _iVarOut, long _lValue, char *_fnam
 }
 }
 
+
+%fragment("SWIG_SciDouble_FromLongArrayAndSize", "header") {
+SWIGINTERN int
+SWIG_SciDouble_FromLongArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const long *_plData) {
+  SciErr sciErr;
+  int i;
+  double *pdValues = NULL;
+
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
+  for (i=0; i<_iRows * _iCols; i++) {
+    pdValues[i] = _plData[i];
+  }
+
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    free(pdValues);
+    return SWIG_ERROR;
+  }
+  free(pdValues);
+  return SWIG_OK;
+}
+}
+
