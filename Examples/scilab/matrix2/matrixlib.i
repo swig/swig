@@ -8,8 +8,8 @@
 %apply (int *matrixIn, int matrixInRowCount, int matrixInColCount) { (int *inputMatrix, int nbRow, int nbCol) }
 %apply (int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (int **resultMatrix, int *nbRowRes, int *nbColRes) }
 
-%apply (char **vectorIn, int vectorInSize) { (char **inputVector, int size) }
-%apply (char ***vectorOut, int *vectorOutSize) { (char ***resultVector, int *sizeRes) }
+%apply (char **matrixIn, int matrixInSize) { (char **inputVector, int size) }
+%apply (char ***matrixOut, int *matrixOutSize) { (char ***resultVector, int *sizeRes) }
 
 %inline %{
   extern double sumDoubleMatrix(double *inputMatrix, int nbRow, int nbCol);
