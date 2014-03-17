@@ -174,12 +174,21 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows,
 SWIGINTERN int
 SWIG_SciDouble_FromIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const int *_piData) {
   SciErr sciErr;
-  sciErr = createMatrixOfDoubleAsInteger(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _piData);
+  double *pdValues = NULL;
+  int i;
+
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
+  for (i=0; i<_iRows * _iCols; i++)
+    pdValues[i] = _piData[i];
+
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
+    free(pdValues);
     return SWIG_ERROR;
   }
 
+  free(pdValues);
   return SWIG_OK;
 }
 }
