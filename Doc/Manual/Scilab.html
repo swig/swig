@@ -608,7 +608,7 @@ For example of a struct with two members:
 
 typedef struct {
     int x;
-    int y;
+    int arr[4];
 } Foo;
 
 %}
@@ -618,8 +618,8 @@ typedef struct {
 Several functions are generated:
 <ul>
 <li>a creation function <tt>new_Foo()</tt> which returns a pointer to a new created struct <tt>Foo</tt>.</li>
-<li>the two getter functions <tt>Foo_x_get()</tt>, <tt>Foo_y_get()</tt>, to get the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter</li>
-<li>the two setter functions <tt>Foo_x_set()</tt>, <tt>Foo_y_set()</tt>, to set the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter.</li>
+<li>the two getter functions <tt>Foo_x_get()</tt>, <tt>Foo_arr_get()</tt>, to get the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter</li>
+<li>the two setter functions <tt>Foo_x_set()</tt>, <tt>Foo_arr_set()</tt>, to set the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter.</li>
 <li>a destruction function <tt>delete_Foo()</tt> to release the struct pointer.</li>
 </ul>
 </p>
@@ -629,15 +629,22 @@ Following is an example of use:
 </p>
 
 <div class="targetlang"><pre>
---&gt; a = new_Foo();
---&gt; Foo_x_set(a, 100);
---&gt; Foo_x_get(a)
+--&gt; f = new_Foo();
+--&gt; Foo_x_set(f, 100);
+--&gt; Foo_x_get(f)
 ans  =
 
   100.
 
---&gt; delete_Foo(a);
+--&gt; Foo_arr_set(f, [0:3]);
+--&gt; Foo_arr_get(f)
+ans  =
+
+    0.    1.    2.    3.
+
+--&gt; delete_Foo(f);
 </pre></div>
+
 
 <p>
 Members of a structure that itself are a structure are also accepted and wrapped as a pointer:</p>
@@ -866,6 +873,7 @@ The default mapped type for C/C++ non-primitive types is the Scilab pointer. Tha
 
 <p>
 Typemaps are available by default for arrays. Primitive type arrays are automatically converted from/to Scilab matrices.
+Conversion is done also for arrays that are member of a structure or a class.
 </p>
 
 <p>
