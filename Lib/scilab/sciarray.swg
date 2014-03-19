@@ -55,7 +55,9 @@
 
 %define %scilab_array_typemaps(CTYPE, ASARRAY_FRAGMENT, FROMARRAY_FRAGMENT, TEMPDATATYPE)
   %scilab_asarrayandsize_withcopy(varin, ASARRAY_FRAGMENT, CTYPE[ANY], TEMPDATATYPE);
+  %scilab_asarray_withallocatecopy(in, ASARRAY_FRAGMENT, CTYPE[ANY], TEMPDATATYPE);
   %scilab_fromarrayandsize(varout, FROMARRAY_FRAGMENT, CTYPE[ANY]);
+  %scilab_fromarrayandsize(out, FROMARRAY_FRAGMENT, CTYPE[ANY]);
 
   %apply SWIGTYPE[] { CTYPE[] };
   %scilab_asarray_withallocatecopy(in, ASARRAY_FRAGMENT, CTYPE[], TEMPDATATYPE);
