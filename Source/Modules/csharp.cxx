@@ -1878,6 +1878,7 @@ public:
     String *old_proxy_class_constants_code = proxy_class_constants_code;
     String *old_proxy_class_def = proxy_class_def;
     String *old_proxy_class_code = proxy_class_code;
+    bool has_outerclass = Getattr(n, "nested:outer") && !GetFlag(n, "feature:flatnested");
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
@@ -1918,8 +1919,8 @@ public:
 	}
       }
 
-      // inner class doesn't need this prologue
-      if (!Getattr(n, "nested:outer")) {
+      // Each outer proxy class goes into a separate file
+      if (!has_outerclass) {
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
 	f_proxy = NewFile(filen, "w", SWIG_output_files());
@@ -1971,7 +1972,6 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-      bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
