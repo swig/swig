@@ -107,16 +107,14 @@ static int elua_ltr = 0;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
 static int squash_bases = 0;
-/* This  variable defines internal(!) module API level and compatibility options.
- * This variable is controled by -no-old-metatable-bindings option.
- * v2_compatibility - 
+/* The new metatable bindings were introduced in SWIG 3.0.0.
+ * old_metatable_bindings in v2: 
  *                    1. static methods will be put into the scope their respective class
  *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
  *                    2. The layout in elua mode is somewhat different
  */
-static int v2_compatibility = 0;
-static int v2_compat_names_generation = 1; // This flag can temporaraly disable backward compatible names generation if v2_compatibiliti is enabled
-static const int default_api_level = 2;
+static int old_metatable_bindings = 1;
+static int old_compatible_names = 1; // This flag can temporarily disable backward compatible names generation if old_metatable_bindings is enabled
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -220,7 +218,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
-    int api_level = default_api_level;	// Default api level
     /* Set location of SWIG library */
     SWIG_library_directory("lua");
 
@@ -240,7 +237,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
 	  Swig_mark_arg(i);
-	  api_level = 3;
+	  old_metatable_bindings = 0;
 	} else if (strcmp(argv[i], "-squash-bases") == 0) {
 	  Swig_mark_arg(i);
 	  squash_bases = 1;
@@ -255,15 +252,6 @@ public:
       Printf(stderr, "Cannot have -elua-emulate with either -eluac or -elua\n");
       Swig_arg_error();
     }
-
-    // Set API-compatibility options
-    if (api_level <= 2)		// Must be compatible with SWIG 2.*
-      v2_compatibility = 1;
-    // template for further API breaks
-    //if(api_level <= 3)
-    //  v3_compatibility = 1;
-    //if(api_level <= 4)
-    //  v4_compatibility = 1;
 
     // Set elua_ltr if elua_emulate is requested
     if(elua_emulate)
@@ -1041,7 +1029,7 @@ public:
     assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
-    if ((eluac_ltr || elua_ltr) && v2_compatibility) {
+    if ((eluac_ltr || elua_ltr) && old_metatable_bindings) {
       s_const_tab = Getattr(nspaceHash, "constants");
       assert(s_const_tab);
       Printf(s_const_tab, "    %s,\n", constantRecord);
@@ -1102,8 +1090,7 @@ public:
       return SWIG_NOWRAP;
     }
 
-    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0
-      && v2_compat_names_generation;
+    bool make_v2_compatible = old_metatable_bindings && getCurrentClass() && old_compatible_names;
 
     if (make_v2_compatible) {
       // Don't do anything for enums in C mode - they are already
@@ -1178,15 +1165,14 @@ public:
     // this issue to some degree.
     // The idea is the same as in classHandler - to drop old names generation if
     // enum is in class in namespace.
-    const int v2_compat_names_generation_old = v2_compat_names_generation;
-    if (getNSpace() ||
-        ( Getattr(n, "sym:nspace") != 0 && Len(Getattr(n, "sym:nspace")) > 0 ) ) {
-      v2_compat_names_generation = 0;
+    const int old_compatible_names_saved = old_compatible_names;
+    if (getNSpace() || ( Getattr(n, "sym:nspace") != 0 && Len(Getattr(n, "sym:nspace")) > 0 ) ) {
+      old_compatible_names = 0;
     }
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
-    v2_compat_names_generation = v2_compat_names_generation_old;
+    old_compatible_names = old_compatible_names_saved;
     return result;
   }
 
@@ -1334,11 +1320,11 @@ public:
     Setattr(instance_cls, "lua:class_instance:static_hash", static_cls);
     Setattr(static_cls, "lua:class_static:instance_hash", instance_cls);
 
-    const int v2_compat_names_generation_old = v2_compat_names_generation;
+    const int old_compatible_names_saved = old_compatible_names;
     // If class has %nspace enabled, then generation of backward compatible names
     // should be disabled
     if (getNSpace()) {
-      v2_compat_names_generation = 0;
+      old_compatible_names = 0;
     }
 
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
@@ -1347,7 +1333,7 @@ public:
     // Generate normal wrappers
     Language::classHandler(n);
 
-    v2_compat_names_generation = v2_compat_names_generation_old;
+    old_compatible_names = old_compatible_names_saved;
 
     SwigType_add_pointer(t);
 
@@ -1628,7 +1614,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (v2_compatibility && result == SWIG_OK && v2_compat_names_generation) {
+    if (old_metatable_bindings && result == SWIG_OK && old_compatible_names) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1673,7 +1659,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (v2_compatibility && v2_compat_names_generation) {
+      if (old_metatable_bindings && old_compatible_names) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
 	// Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1686,7 +1672,7 @@ public:
 	  registerVariable(n, true, getNSpace());
 	}
 	// If static member variable was wrapped as a constant, then
-	// constant wrapper has already performed all actions necessary for v2_compatibility
+	// constant wrapper has already performed all actions necessary for old_metatable_bindings
 	Delete(v2_name);
 	Swig_restore(n);
       }
@@ -1991,7 +1977,7 @@ public:
     String *methods_tab = Getattr(carrays_hash, "methods");
     String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
     if (elua_ltr || eluac_ltr) {
-      if (v2_compatibility)
+      if (old_metatable_bindings)
 	Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
       if (elua_ltr) {
 	Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
