@@ -36,8 +36,8 @@ SWIG_AsSize_Sequence_dec(ptr)(SwigSciObject _obj, int *_piSize) {
 %fragment(SWIG_FromCreate_Sequence_frag(ptr), "header") {
 
 SWIGINTERN int
-SWIG_FromCreate_Sequence_dec(ptr)(int _size, long long **_sequence) {
-  *_sequence = new long long[_size];
+SWIG_FromCreate_Sequence_dec(ptr)(int _size, uintptr_t **_sequence) {
+  *_sequence = new uintptr_t[_size];
   return *_sequence != NULL ? SWIG_OK : SWIG_ERROR;
 }
 }
@@ -45,7 +45,7 @@ SWIG_FromCreate_Sequence_dec(ptr)(int _size, long long **_sequence) {
 %fragment(SWIG_FromSet_Sequence_frag(ptr), "header") {
 
 SWIGINTERN SwigSciObject
-SWIG_FromSet_Sequence_dec(ptr)(int _size, long long *_sequence) {
+SWIG_FromSet_Sequence_dec(ptr)(int _size, uintptr_t *_sequence) {
   SciErr sciErr;
   int *piListAddr;
 
@@ -116,7 +116,7 @@ SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject _obj, int *_piSequence, int _item
 %fragment(SWIG_From_SequenceItem_frag(ptr), "header") {
 
 SWIGINTERN int
-SWIG_From_SequenceItem_dec(ptr)(long long *_pSequence, int _iItemIndex, long long _itemValue) {
+SWIG_From_SequenceItem_dec(ptr)(uintptr_t *_pSequence, int _iItemIndex, uintptr_t _itemValue) {
   _pSequence[_iItemIndex] = _itemValue;
   return SWIG_OK;
 }

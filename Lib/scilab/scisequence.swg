@@ -4,6 +4,10 @@
  *
  */
 
+%{
+#include <stdint.h>
+%}
+
 #define SWIG_Traits_Sequence_frag(Type) %fragment_name(AsVal_Traits_Sequence, Type)
 
 #define SWIG_AsCheck_Sequence_frag(Type...) %fragment_name(AsCheck_Sequence, Type)
@@ -77,10 +81,10 @@ namespace swig {
   };
   template <typename T> struct traits_from_sequence<T*> {
     static int create(int size, void **sequence) {
-      return SWIG_FromCreate_Sequence_dec(ptr)(size, (long long **)sequence);
+      return SWIG_FromCreate_Sequence_dec(ptr)(size, (uintptr_t **)sequence);
     }
     static SwigSciObject set(int size, void *sequence) {
-      return SWIG_FromSet_Sequence_dec(ptr)(size, (long long *)sequence);
+      return SWIG_FromSet_Sequence_dec(ptr)(size, (uintptr_t *)sequence);
     }
   };
 }
@@ -150,7 +154,7 @@ namespace swig {
   };
   template <typename T> struct traits_from_sequenceitem<T*> {
     static int from(void *pSequence, int iItemIndex, T *itemValue) {
-      return SWIG_From_SequenceItem_dec(ptr)((long long *)pSequence, iItemIndex, (long long) itemValue);
+      return SWIG_From_SequenceItem_dec(ptr)((uintptr_t *)pSequence, iItemIndex, (uintptr_t) itemValue);
      }
    };
 }
