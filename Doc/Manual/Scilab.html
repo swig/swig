@@ -167,8 +167,7 @@ The <tt>swig</tt> command line program has several other options you can use. Se
 <H3><a name="Scilab_running_swig_building_module"></a>37.2.2 Building the module</H3>
 
 <p>
-Scilab external modules are shared libraries (with the <tt>.so</tt> file extension).
-Building such a file is usually done by running the <tt>builder.sce</tt> script in Scilab:
+In Scilab, the generated builder script <tt>builder.sce</tt> is used to build the generated module:
 </p>
 
 <div class="shell"><pre>
@@ -177,7 +176,7 @@ $ ./scilab-cli
 </pre></div>
 
 <p>
-This command will produce two important files:
+The build will produce two files:
 </p>
 
 <ul>
@@ -315,7 +314,7 @@ SWIG for Scilab provides only low-level C interface for Scilab. This means that 
 
 <p>
 In Scilab 5.x, identifier names can be composed of 24 chars maximum (this limitation disappears in future version of Scilab 6.0).
-<br>So long function or variables names can be truncated. It can be cause of conflict.
+<br>So long function or variable names may be truncated, which can be cause of conflict.
 </p>
 <p>It happens especially when wrapping structs/classes, for which the wrapping functions name are composed of the struct/class name and field names. In that case, the SWIG <tt>rename</tt> instruction, to choose a different wrapping name, can be useful.
 <p>
@@ -324,7 +323,7 @@ In Scilab 5.x, identifier names can be composed of 24 chars maximum (this limita
 
 
 <p>
-Global functions are wrapped as new Scilab built-in functions. For example:
+Functions are wrapped as new Scilab built-in functions. For example:
 </p>
 
 <div class="code"><pre>
@@ -333,12 +332,15 @@ int fact(int n);
 </pre></div>
 
 <p>
-Creates a built-in function <tt>fact(n)</tt> that works exactly like you think it does:
+Creates a built-in function <tt>fact(n)</tt> in Scilab:
 </p>
 
 <div class="targetlang"><pre>
 --&gt; fact(4)
-ans=24
+ans =
+
+    24.
+
 </pre></div>
 
 
@@ -1340,7 +1342,7 @@ clear get_file_path;
 <li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function implemented in the new interface.</li>
 </ul>
 
-<H3><a name="Scilab_module_initialization"></a>37.</tt> 5.6 Initialization</H3>
+<H3><a name="Scilab_module_initialization"></a>37.5.6 Initialization</H3>
 
 <p>
 A built-in Scilab function is generated for the wrapped module.
