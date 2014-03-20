@@ -1755,7 +1755,7 @@ if test -z "$CSHARPBIN" ; then
         echo "mcs is not a working Mono C# compiler"
       fi
     fi
-    if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER"; then
+    if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER" || test "mono-csc" = "$CSHARPCOMPILER"; then
         AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
         CSHARPCILINTERPRETER_FLAGS="--debug"
     else
