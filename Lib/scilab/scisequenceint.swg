@@ -12,6 +12,7 @@ SWIGINTERN int
 SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
   SciErr sciErr;
   int *piAddrVar;
+  int iType = 0;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, _obj, &piAddrVar);
   if (sciErr.iErr) {
@@ -19,7 +20,13 @@ SWIG_AsCheck_Sequence_dec(int)(SwigSciObject _obj) {
     return SWIG_ERROR;
   }
 
-  if (isIntegerType(pvApiCtx, piAddrVar))
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if ((iType == sci_matrix) || (iType == sci_ints))
   {
     return SWIG_OK;
   }

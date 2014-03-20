@@ -61,10 +61,6 @@ function testSequenceContainer(container, value_type, value1, value2, expected_a
   checkerror(ierr, cmd);
   if ~isdef('c') | ~isequal(c, [value1, value2]) then swigtesterror(); end
 
-  if (value_type == "int") then
-    c = int32(c);
-  end
-
   // test sequence container passed as value of function
   cmd = msprintf("s = val_%s_%s(c);", value_type, container);
   ierr = execstr(cmd, "errcatch");

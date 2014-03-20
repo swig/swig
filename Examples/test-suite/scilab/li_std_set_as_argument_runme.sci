@@ -15,7 +15,7 @@ if ~exists("isum") | (isum <> 10) then swigtesterror(); end
 iset2 = create_integer_set(3, 6);
 if ~exists("iset2") | ~isequal(iset2, [3 4 5 6]) then swigtesterror(); end
 // concat the two sets with concat_integer_set():");
-iset3 = concat_integer_set(int32(iset), int32(iset2));
+iset3 = concat_integer_set(int32(iset), iset2);
 if ~exists("iset3") | ~isequal(iset3, [1 2 3 4 5 6]) then swigtesterror(); end
 
 // string sets
