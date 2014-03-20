@@ -13,7 +13,6 @@
 %}
 
 %include stl.i
-%include std_set.i
 
 namespace std
 {
