@@ -31,7 +31,6 @@
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
 <li><a href="#Scilab_wrapping_arrays">Arrays</a>
-<li><a href="#Scilab_wrapping_matrices">Matrices</a>
 <li><a href="#Scilab_wrapping_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_stl">C++ STL</a>
@@ -42,6 +41,8 @@
 <li><a href="#Scilab_typemaps_non-primitive_types">Default type mapping for non-primitive types</a>
 <li><a href="#Scilab_typemaps_arrays">Arrays</a>
 <li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
+<li><a href="#Scilab_typemaps_matrices">Matrices</a>
+<li><a href="#Scilab_typemaps_stl">STL</a>
 </ul>
 <li><a href="#Scilab_module">Module</a>
 <ul>
@@ -736,80 +737,8 @@ An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 <H3><a name="Scilab_wrapping_stl"></a>37.3.10 C++ STL</H3>
 
 <p>
-The Standard Template Library (STL) is partially supported.
+The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
 </p>
-
-<p>
-The following containers are usable:
-<p>
-
-<ul>
-<li><tt>std::vector</tt></li>
-<li><tt>std::list</tt></li>
-<li><tt>std::deque</tt></li>
-<li><tt>std::set</tt></li>
-</ul>
-
-<p>
-Each of these containers supports the following types:
-</p>
-
-<ul>
-<li><tt>double</tt></li>
-<li><tt>int</tt></li>
-<li><tt>string</tt></li>
-<li><tt>bool</tt></li>
-<li><tt>pointer</tt></li>
-</ul>
-
-<p>
-Some typemaps between Scilab and the STL are available.
-<p>
-
-<ul>
-<li>
-
-<p>
-A STL vector/list/deque is mapped from/to a Scilab matrix or list, depending on type.
-<p>
-
-<table summary="Typemaps vector-list", border="1">
-<tr>
-<th>STL type</th>
-<th>Scilab type</th>
-<tr><td>vector/list/deque of int</td><td>int matrix</td></tr>
-<tr><td>vector/list/deque of double</td><td>double matrix</td></tr>
-<tr><td>vector/list/deque of string</td><td>string matrix</td></tr>
-<tr><td>vector/list/deque of bool</td><td>bool matrix</td></tr>
-<tr><td>vector/list/deque of pointer</td><td>pointer list</td></tr>
-</table>
-
-</li>
-
-<li>A STL set is mapped from/to a Scilab list.</li>
-</ul>
-
-<p>
-In the SWIG interface file, the STL support can be enabled with:
-</p>
-
-<div class="code"><pre>
-%include stl.i
-</pre/></div>
-
-<p>As templates, for each specific type used, the STL container has the to be instantied:
-<div class="code"><pre>
-namespace std {--&gt;
-    %template(IntVector)    vector<int>;
-    %template(DoubleVector)    vector<double>;
-</pre></div>
-
-<p>
-At last, the module initialization function has to be executed first in Scilab, so that all that types are known by Scilab.
-See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
-</p>
-
-
 
 <H2><a name="Scilab_typemaps"></a>37.4 Type mappings</H2>
 
@@ -1002,12 +931,11 @@ void print_matrix(double **M, int nbRows, int nbCols) {
 
 <p>
 The library <tt>matrix.i</tt> provides a set of typemaps which can be useful when working with one-dimensional and two-dimensional matrices.
-
 </p>
 
-<p>To use that library, just include it in the interface file:</p>
-<ul>
-</ul>
+<p>
+To use that library, just include it in the interface file:
+</p>
 
 <div class="code"><pre>
   %include matrix.i
@@ -1086,6 +1014,208 @@ The remarks made for arrays remain here:
 <li>There is no control while converting <tt>double</tt> values to integers, <tt>double</tt> values are truncated without any check.</li>
 </ul>
 </p>
+
+<H3><a name="Scilab_typemaps_stl"></a>37.4.6 STL</H3>
+
+<p>
+The STL library wraps some containers defined in the STL (Standard Template Library), so that they can be manipulated in Scilab.
+This library provides also the typemaps to pass them as input/argument arguments of functions.
+<p>
+
+<p>
+The list of wrapped sequence containers are:
+<ul>
+<li><tt>std::vector</tt></li>
+<li><tt>std::list</tt></li>
+<li><tt>std::deque</tt></li>
+</ul>
+</p>
+<p>
+And for associative containers:
+<ul>
+<li><tt>std::set</tt></li>
+</ul>
+<p>
+
+<p>
+The typemaps are available for the following types:
+</p>
+
+<ul>
+<li><tt>double</tt></li>
+<li><tt>int</tt></li>
+<li><tt>string</tt></li>
+<li><tt>bool</tt></li>
+<li><tt>pointer</tt></li>
+</ul>
+
+<p>
+Container of other item types are not supported. Using them does not break compilation, but provokes a runtime error.
+</p>
+
+<p>
+To use the STL, first the library has to be included in the SWIG interface file:
+</p>
+
+<div class="code"><pre>
+%include stl.i
+</pre/></div>
+
+<p>Then for each container used, the template has to be instantied, in the <tt>std</tt> namespace:
+<div class="code"><pre>
+namespace std {
+    %template(IntVector)    vector&lt;int&gt;;
+    %template(DoubleVector) vector&lt;double&gt;;
+}
+</pre></div>
+
+<p>
+At last, the module initialization function has to be executed first in Scilab, so that all that types are known by Scilab.
+See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
+</p>
+
+
+<H4><a name="Scilab_sequence_containers"></a>Sequence containers</H4>
+
+<p>
+Because in Scilab matrices exist for basic types only, a sequence container of pointers is mapped to a Scilab list.
+For other item types (double, int, string...) the sequence container is mapped to a Scilab matrix.
+<p>
+
+<p>
+This example shows how to create in Scilab a vector (of <tt>int</tt>), add some values in that vector, and pass it as an argument of a function.
+It shows also (thanks to the typemaps) that we can also pass directly a matrix of values to the function:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%include stl.i
+
+namespace std {
+  %template(IntVector) vector&lt;int&gt;;
+}
+
+%{
+#include &lt;numeric&gt;
+%}
+
+%inline %{
+
+double average(std::vector&lt;int&gt; v) {
+  return std::accumulate(v.begin(), v.end(), 0.0) / v.size();
+}
+
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; example_Init();
+
+--&gt; v = new_IntVector();
+
+--&gt; for i = 1:4
+--&gt;     IntVector_push_back(v, i);
+--&gt; end;
+
+--&gt; average(v)
+ ans  =
+
+    2.5
+
+--gt; average(int32([0 1 2 3]))
+ ans  =
+
+    2.5
+
+--&gt; delete_IntVector();
+</pre></div>
+</p>
+
+
+<H4><a name="Scilab_set_containers"></a>Associative containers</H4>
+
+<p>
+A <tt>set</tt> is mapped from/to a Scilab list.
+</p>
+
+<p>
+In the following example, a set of struct (<tt>Person></tt>) is wrapped.
+It is processed in a function, and as expected, the result is converted to a list of pointers in Scilab:
+
+<div class="code"><pre>
+%module example
+
+%include stl.i
+
+%{
+#include &lt;string&gt;
+%}
+
+%inline %{
+
+struct Person {
+  Person(std::string _name, int _age) : name(_name), age(_age) {};
+  std::string name;
+  int age;
+};
+typedef Person* PersonPtr;
+
+%}
+
+namespace std {
+  %template(PersonPtrSet) set&lt;PersonPtr&gt;;
+}
+
+%inline %{
+
+std::set&lt;PersonPtr&gt; findPersonsByAge(std::set&lt;PersonPtr&gt; persons, int minAge, int maxAge) {
+  std::set&lt;PersonPtr&gt; foundPersons;
+  for (std::set&lt;PersonPtr&gt;::iterator it = persons.begin(); it != persons.end(); it++) {
+    if (((*it)-&gt;age &gt;= minAge) && ((*it)-&gt;age &lt;= maxAge)) {
+      foundPersons.insert(*it);
+    }
+  }
+  return foundPersons;
+}
+
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt; example_Init();
+
+--&gt; joe = new_Person("Joe", 25);
+--&gt; susan = new_Person("Susan", 32);
+--&gt; bill = new_Person("Bill", 50);
+
+--&gt; p = new_PersonPtrSet();
+--&gt; PersonPtrSet_insert(p, susan);
+--&gt; PersonPtrSet_insert(p, joe);
+--&gt; PersonPtrSet_insert(p, bill);
+
+--&gt; l = findPersonsByAge(p, 20, 40);
+
+--&gt; size(l)
+ ans  =
+
+    2.
+
+--&gt; Person_name_get(l(1))
+ans  =
+
+ Susan
+
+--&gt; Person_name_get(l(2))
+ ans  =
+
+ Joe
+
+--&gt; delete_PersonPtrSet(p);
+</pre></div>
+<p>
 
 <H2><a name="Scilab_module"></a>37.5 Module</H2>
 
