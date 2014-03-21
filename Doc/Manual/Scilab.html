@@ -600,8 +600,12 @@ we only need a real value instead.
 
 
 <p>
-A C structure is wrapped through a pointer and getter and setter functions for access to the member variables.
-For example of a struct with two members:
+A C structure is wrapped through low-level accessor functions, i.e. functions that give access to the member variables of this structure.
+In Scilab, a structure is manipulated through a pointer which is passed as argument of the accessor functions.
+</p>
+
+<p>
+Let's see it on an example of a struct with two members:
 </p>
 
 <div class="code"><pre>
@@ -620,7 +624,7 @@ typedef struct {
 <p>
 Several functions are generated:
 <ul>
-<li>a creation function <tt>new_Foo()</tt> which returns a pointer to a new created struct <tt>Foo</tt>.</li>
+<li>the creation function <tt>new_Foo()</tt> which returns a pointer to a new created struct <tt>Foo</tt>.</li>
 <li>the two getter functions <tt>Foo_x_get()</tt>, <tt>Foo_arr_get()</tt>, to get the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter</li>
 <li>the two setter functions <tt>Foo_x_set()</tt>, <tt>Foo_arr_set()</tt>, to set the values of <tt>x</tt> and <tt>y</tt> for the struct pointer given in parameter.</li>
 <li>a destruction function <tt>delete_Foo()</tt> to release the struct pointer.</li>
@@ -689,10 +693,16 @@ ans  =
 <H3><a name="Scilab_wrapping_classes"></a>37.3.8 C++ Classes</H3>
 
 <p>
-The classes are wrapped the way as structs, through functions. For example, the following class:
+The classes are wrapped the same way as structs.
+Low-level accessor functions are generated for class members.
+Also, constructor and destructor functions are generated to create and destroy an instance of the class.
 </p>
 
-<div class="targetlang"><pre>
+<p>
+For example, the following class:
+</p>
+
+<div class="code"><pre>
 %module example
 
 %inline %{
