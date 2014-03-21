@@ -30,8 +30,8 @@
 <li><a href="#Scilab_wrapping_constants_and_enums">Constants and enumerations</a>
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
-<li><a href="#Scilab_wrapping_arrays">Arrays</a>
 <li><a href="#Scilab_wrapping_classes">C++ classes</a>
+<li><a href="#Scilab_wrapping_inheritance">C++ inheritance</a>
 <li><a href="#Scilab_wrapping_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_stl">C++ STL</a>
 </ul>
@@ -724,7 +724,7 @@ public:
 </pre></div>
 
 <p>
-can be used from Scilab like this:
+can be used in Scilab like this:
 </p>
 
 <div class="targetlang"><pre>
@@ -738,15 +738,88 @@ ans  =
 --&gt; delete_Point(p2);
 </pre></div>
 
+<H3><a name="Scilab_wrapping_inheritance"></a>37.3.9 C++ inheritance</H3>
 
-<H3><a name="Scilab_wrapping_templates"></a>37.3.9 C++ Templates</H3>
+<p>
+Inheritance is supported. SWIG knows the inheritance relationship between classes.
+</p>
+
+<p>
+A function is only generated for the class in which it is actually declared.
+But if one of its parameter is a class, any instance of a derived class is accepted as argument.
+</p>
+
+<p>
+This mechanism applies also for accessor functions : these one are generated only in the class in which they are defined.
+But any instance of a child class can be used as argument of these accessor functions.
+</p>
+
+<p>
+For example, let's take a base class <tt>Shape</tt> and two child classes <tt>Circle</tt> and <tt>Square</tt>:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+
+class Shape {
+public:
+  double x, y;
+	void set_location(double _x, double _y) { x = _x; y = _y; }
+  virtual double get_perimeter() { return 0; };
+};
+
+class Circle : public Shape {
+public:
+	int radius;
+  Circle(int _radius): radius(_radius) {};
+  virtual double get_perimeter() { return 6.28 * radius; }
+};
+
+class Square : public Shape {
+public:
+	int size;
+  Square(int _size): size(_size) {};
+  virtual double get_perimeter() { return 4 * size; }
+};
+
+%}
+</pre></div>
+
+<p>
+To set the location of the <tt>Circle</tt>, we have to use the function <tt>set_location()</tt> of the parent <tt>Shape</tt>.
+But we can use either use the <tt>get_perimeter()</tt> function of the parent class or the child class:
+</p>
+
+<div class="targetlang"><pre>
+--&gt; c = new_Circle(3);
+
+--&gt; Shape_set_location(c, 2, 3);
+--&gt; Shape_x_get(c)
+ ans  =
+
+    2.
+
+--&gt; Circle_get_perimeter(c)
+ ans =
+
+    18.84
+
+--&gt; Shape_get_perimeter(c)
+ ans =
+
+    18.84
+</pre></div>
+
+<H3><a name="Scilab_wrapping_templates"></a>37.3.10 C++ Templates</H3>
 
 <p>
 Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_stl"></a>37.3.10 C++ STL</H3>
+<H3><a name="Scilab_wrapping_stl"></a>37.3.11 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
