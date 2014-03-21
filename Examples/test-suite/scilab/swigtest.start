@@ -44,3 +44,16 @@ function swigtesterror(msg)
     end;
     exit(1)
 endfunction
+
+function checkequal(returned, expected, message)
+  if typeof(returned) <> typeof(expected) then
+    returned_type_msg = ["returned type:"; typeof(returned)];
+    expected_type_msg = ["expected type:"; typeof(expected)];
+    swigtesterror([message; returned_type_msg; expected_type_msg]);
+  end
+  if ~isequal(returned, expected) then
+    returned_value_msg = ["returned value:"; string(returned)];
+    expected_value_msg = ["expected value:"; string(expected)];
+    swigtesterror([message; returned_value_msg; expected_value_msg]);
+  end
+endfunction
