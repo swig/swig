@@ -71,19 +71,3 @@ script:
 branches:
   only:
     - master
-
-# Coverity below here
-env:
-  global:
-    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-    #   via the "travis encrypt" command using the project repo's public key
-    - secure: "B7YnKmvUJbeIoSx7BSE8VUXQv9zA1mv9bLGKd6lArc7jyouY1ssrT8N3NMwGhnDcgLsV1w9oYOIuVWAyc/ZNGgsbF95faWLNDIsvAdXBvkHxrHRS1o2OBoYP9MYrBoKO7/6VrTp5KGXwtlj/oZtSlS0FfNccsYRNoxKO4+9dw3A="
-addons:
-  coverity_scan:
-    project:
-      name: "swig/swig"
-      description: "SWIG - http://www.swig.org"
-    notification_email: swig-cvs@lists.sourceforge.net
-    build_command_prepend: ./autogen.sh && ./configure
-    build_command: make source
-    branch_pattern: master
