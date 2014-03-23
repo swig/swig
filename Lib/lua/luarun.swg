@@ -991,17 +991,14 @@ SWIGINTERN int  SWIG_Lua_class_tostring(lua_State *L)
 /*  there should be 1 param passed in
   (1) userdata (not the metatable) */
   assert(lua_isuserdata(L,1));  /* just in case */
-  unsigned long userData = (unsigned long)lua_touserdata(L,1); /* get the userdata address for later */
+  void* userData = lua_touserdata(L,1); /* get the userdata address for later */
   lua_getmetatable(L,1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
 
   lua_getfield(L, -1, ".type");
   const char *className = lua_tostring(L, -1);
 
-  char output[256];
-  snprintf(output, 255, "<%s userdata: %lX>", className, userData);
-
-  lua_pushstring(L, (const char*)output);
+  lua_pushfstring(L, "<%s userdata: %p>", className, userData);
   return 1;
 }
 
