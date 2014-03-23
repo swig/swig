@@ -73,3 +73,6 @@ f.func_ptr=func1_ptr
 assert(cb.test_func_ptr(f,2)==16)
 f.func_ptr=func2_ptr
 assert(cb.test_func_ptr(f,2)==-8)
+
+-- Test that __tostring metamethod produce no internal asserts
+f2_name = tostring(f2)
