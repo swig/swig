@@ -6,10 +6,14 @@
 #include <vector>
 #include <list>
 #include <deque>
+#include <set>
+
 #include <iostream>
 #include <iterator>
 #include <algorithm>
 #include <numeric>
+
+using namespace std;
 %}
 
 %inline %{
@@ -48,8 +52,8 @@ namespace std {
 
     static SeqCont ret_container(const value_type value1, const value_type value2) {
       SeqCont s;
-      s.push_back(value1);
-      s.push_back(value2);
+      s.insert(s.end(), value1);
+      s.insert(s.end(), value2);
       return s;
     }
 
@@ -64,43 +68,17 @@ namespace std {
     }
   };
 
-  template<typename T>
-  std::vector<T> ret_vector(const T value1, const T value2) {
-    return sequence_container<std::vector<T> >::ret_container(value1, value2);
+  template<typename T, class Container>
+  Container ret_container(const T value1, const T value2) {
+    return sequence_container<Container>::ret_container(value1, value2);
   }
-  template<typename T>
-  T val_vector(const std::vector<T> container) {
-    return sequence_container<std::vector<T> >::val_container(container);
+  template<typename T, class Container>
+  T val_container(const Container container) {
+    return sequence_container<Container >::val_container(container);
   }
-  template<typename T>
-  T ref_vector(const std::vector<T>& container) {
-    return sequence_container<std::vector<T> >::ref_container(container);
-  }
-
-  template<typename T>
-  std::list<T> ret_list(const T value1, const T value2) {
-    return sequence_container<std::list<T> >::ret_container(value1, value2);
-  }
-  template<typename T>
-  T val_list(const std::list<T> container) {
-    return sequence_container<std::list<T> >::val_container(container);
-  }
-  template<typename T>
-  T ref_list(const std::list<T>& container) {
-    return sequence_container<std::list<T> >::ref_container(container);
-  }
-
-  template<typename T>
-  std::deque<T> ret_deque(const T value1, const T value2) {
-    return sequence_container<std::deque<T> >::ret_container(value1, value2);
-  }
-  template<typename T>
-  T val_deque(const std::deque<T> container) {
-    return sequence_container<std::deque<T> >::val_container(container);
-  }
-  template<typename T>
-  T ref_deque(const std::deque<T>& container) {
-    return sequence_container<std::deque<T> >::ref_container(container);
+  template<typename T, class Container>
+  T ref_container(const Container& container) {
+    return sequence_container<Container >::ref_container(container);
   }
 }
 %}
@@ -111,21 +89,26 @@ namespace std
   %template(TYPE ## _vector) std::vector<TYPE>;
   %template(TYPE ## _list) std::list<TYPE>;
   %template(TYPE ## _deque) std::deque<TYPE>;
+  %template(TYPE ## _set) std::set<TYPE>;
 }
 %enddef
+
 
 %define instantiate_containers_functions(TYPE...)
 namespace std
 {
-  %template(ret_ ## TYPE ## _vector) ret_vector<TYPE>;
-  %template(val_ ## TYPE ## _vector) val_vector<TYPE>;
-  %template(ref_ ## TYPE ## _vector) ref_vector<TYPE>;
-  %template(ret_ ## TYPE ## _list) ret_list<TYPE>;
-  %template(val_ ## TYPE ## _list) val_list<TYPE>;
-  %template(ref_ ## TYPE ## _list) ref_list<TYPE>;
-  %template(ret_ ## TYPE ## _deque) ret_deque<TYPE>;
-  %template(val_ ## TYPE ## _deque) val_deque<TYPE>;
-  %template(ref_ ## TYPE ## _deque) ref_deque<TYPE>;
+  %template(ret_ ## TYPE ## _vector) ret_container<TYPE, std::vector<TYPE> >;
+  %template(val_ ## TYPE ## _vector) val_container<TYPE, std::vector<TYPE> >;
+  %template(ref_ ## TYPE ## _vector) ref_container<TYPE, std::vector<TYPE> >;
+  %template(ret_ ## TYPE ## _list) ret_container<TYPE, std::list<TYPE> >;
+  %template(val_ ## TYPE ## _list) val_container<TYPE, std::list<TYPE> >;
+  %template(ref_ ## TYPE ## _list) ref_container<TYPE, std::list<TYPE> >;
+  %template(ret_ ## TYPE ## _deque) ret_container<TYPE, std::deque<TYPE> >;
+  %template(val_ ## TYPE ## _deque) val_container<TYPE, std::deque<TYPE> >;
+  %template(ref_ ## TYPE ## _deque) ref_container<TYPE, std::deque<TYPE> >;
+  %template(ret_ ## TYPE ## _set) ret_container<TYPE, std::set<TYPE> >;
+  %template(val_ ## TYPE ## _set) val_container<TYPE, std::set<TYPE> >;
+  %template(ref_ ## TYPE ## _set) ref_container<TYPE, std::set<TYPE> >;
 }
 %enddef
 
