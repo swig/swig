@@ -6,6 +6,10 @@
 
 %include <scilist.swg>
 
+%fragment("include_for_uintptr", "header") {
+%#include <stdint.h>
+}
+
 %fragment(SWIG_AsCheck_Sequence_frag(ptr), "header",
   fragment="SWIG_ScilabList") {
 
@@ -33,7 +37,8 @@ SWIG_AsSize_Sequence_dec(ptr)(SwigSciObject _obj, int *_piSize) {
 }
 }
 
-%fragment(SWIG_FromCreate_Sequence_frag(ptr), "header") {
+%fragment(SWIG_FromCreate_Sequence_frag(ptr), "header",
+  fragment="include_for_uintptr") {
 
 SWIGINTERN int
 SWIG_FromCreate_Sequence_dec(ptr)(int _size, uintptr_t **_sequence) {
@@ -42,7 +47,8 @@ SWIG_FromCreate_Sequence_dec(ptr)(int _size, uintptr_t **_sequence) {
 }
 }
 
-%fragment(SWIG_FromSet_Sequence_frag(ptr), "header") {
+%fragment(SWIG_FromSet_Sequence_frag(ptr), "header",
+  fragment="include_for_uintptr") {
 
 SWIGINTERN SwigSciObject
 SWIG_FromSet_Sequence_dec(ptr)(int _size, uintptr_t *_sequence) {
@@ -113,7 +119,8 @@ SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject _obj, int *_piSequence, int _item
 }
 }
 
-%fragment(SWIG_From_SequenceItem_frag(ptr), "header") {
+%fragment(SWIG_From_SequenceItem_frag(ptr), "header",
+  fragment="include_for_uintptr") {
 
 SWIGINTERN int
 SWIG_From_SequenceItem_dec(ptr)(uintptr_t *_pSequence, int _iItemIndex, uintptr_t _itemValue) {

@@ -4,10 +4,6 @@
  *
  */
 
-%{
-#include <stdint.h>
-%}
-
 #define SWIG_Traits_Sequence_frag(Type) %fragment_name(AsVal_Traits_Sequence, Type)
 
 #define SWIG_AsCheck_Sequence_frag(Type...) %fragment_name(AsCheck_Sequence, Type)
@@ -43,7 +39,8 @@
   fragment=SWIG_AsSize_Sequence_frag(ptr),
   fragment=SWIG_FromCreate_Sequence_frag(ptr),
   fragment=SWIG_FromSet_Sequence_frag(ptr),
-  fragment="StdTraits") {
+  fragment="StdTraits",
+  fragment="include_for_uintptr") {
 
 namespace swig {
   // Error returned for sequence containers of default item type
@@ -131,7 +128,8 @@ namespace swig {
 %fragment(SWIG_Traits_SequenceItem_frag(ptr), "header",
   fragment=SWIG_AsVal_SequenceItem_frag(ptr),
   fragment=SWIG_From_SequenceItem_frag(ptr),
-  fragment="StdTraits") {
+  fragment="StdTraits",
+  fragment="include_for_uintptr") {
 
 namespace swig {
   // Error returned for sequence containers of default item type
