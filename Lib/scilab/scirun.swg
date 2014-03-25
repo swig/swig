@@ -143,14 +143,9 @@ SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_
 SWIGRUNTIME int
 SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int _iVar, void *_ptr, int sz, swig_type_info *ty, char *_fname) {
   swig_cast_info *tc;
-
-  SciErr sciErr;
-  int iRows = 0;
-  int iCols = 0;
-  int iType = 0;
   int *piAddrVar = NULL;
   char *pstStrings = NULL;
-  int piLength = 0;
+  SciErr sciErr;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -158,30 +153,7 @@ SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int _iVar, void *_ptr, int sz, swig_t
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iType != sci_strings) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
-
-  sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, NULL);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
-
-  pstStrings = (char *)MALLOC(sizeof(char) * (piLength + 1));
-  sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, (char **)&pstStrings);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+  if (getAllocatedSingleString(_pvApiCtx, piAddrVar, &pstStrings)) {
     return SWIG_ERROR;
   }
 
@@ -189,15 +161,19 @@ SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int _iVar, void *_ptr, int sz, swig_t
   if (*pstStrings != '_') {
     return SWIG_ERROR;
   }
+
   pstStrings++;
   pstStrings = (char*)SWIG_UnpackData(pstStrings, _ptr, sz);
+
   if (ty) {
+    if (!pstStrings) {
+      return SWIG_ERROR;
+    }
     tc = SWIG_TypeCheck(pstStrings, ty);
     if (!tc) {
       return SWIG_ERROR;
     }
   }
-  FREE(pstStrings);
   return SWIG_OK;
 }
 
@@ -213,7 +189,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   r = SWIG_PackData(r, _ptr, _sz);
   strcpy(r, _type->name);
 
-  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, r))
+  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, &result[0]))
     return SWIG_ERROR;
 
   return SWIG_OK;
