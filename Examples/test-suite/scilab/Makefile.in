@@ -20,7 +20,7 @@ CPP_TEST_CASES += \
   scilab_li_matrix \
 
 CPP_STD_TEST_CASES += \
-	li_std_sequence_container_typemaps \
+	li_std_container_typemaps \
 
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
