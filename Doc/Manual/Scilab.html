@@ -1160,15 +1160,13 @@ See <a href="#Scilab_module_initialization">37.5.6</a> for more details.
 </p>
 
 
-<H4><a name="Scilab_sequence_containers"></a>Sequence containers</H4>
-
 <p>
 Because in Scilab matrices exist for basic types only, a sequence container of pointers is mapped to a Scilab list.
 For other item types (double, int, string...) the sequence container is mapped to a Scilab matrix.
 <p>
 
 <p>
-This example shows how to create in Scilab a vector (of <tt>int</tt>), add some values in that vector, and pass it as an argument of a function.
+This first example shows how to create in Scilab a vector (of <tt>int</tt>), add some values in that vector, and pass it as an argument of a function.
 It shows also (thanks to the typemaps) that we can also pass directly a matrix of values to the function:
 </p>
 
@@ -1219,15 +1217,10 @@ double average(std::vector&lt;int&gt; v) {
 </p>
 
 
-<H4><a name="Scilab_set_containers"></a>Associative containers</H4>
-
 <p>
-A <tt>set</tt> is mapped from/to a Scilab list.
+In this second example, a set of struct (<tt>Person</tt>) is wrapped.
+A function performs a search in this set, and returns a subset. As one can see, the result in Scilab is a list of pointers:
 </p>
-
-<p>
-In the following example, a set of struct (<tt>Person></tt>) is wrapped.
-It is processed in a function, and as expected, the result is converted to a list of pointers in Scilab:
 
 <div class="code"><pre>
 %module example
