@@ -29,7 +29,29 @@
 
 %typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (char **matrixIn, int matrixInSize)
 {
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, 1, &$2, &$1, fname) != SWIG_OK)
+  int rowCount;
+  int colCount;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK)
+  {
+    $2 = rowCount * colCount;
+  }
+  else
+  {
+    return SWIG_ERROR;
+  }
+}
+
+// in (int matrixInSize, char **matrixIn)
+
+%typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int matrixInSize, char **matrixIn)
+{
+  int rowCount;
+  int colCount;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK)
+  {
+    $1 = rowCount * colCount;
+  }
+  else
   {
     return SWIG_ERROR;
   }
@@ -138,7 +160,7 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciString_FromCharPtrArrayAndSize") (char ***matrixOut, int *matrixOutSize)
 {
-  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK)
+  if (SWIG_SciString_FromCharPtrArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
@@ -172,7 +194,7 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciString_FromCharPtrArrayAndSize") (int *matrixOutSize, char ***matrixOut)
 {
-  if (SWIG_SciString_FromCharPtrArray(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK)
+  if (SWIG_SciString_FromCharPtrArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK)
   {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
