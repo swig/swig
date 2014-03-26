@@ -1,5 +1,8 @@
 /*
-  Lists
+ *
+ * C++ type : STL list
+ * Scilab type : matrix (for primitive types) or list (for pointer types)
+ *
 */
 
 %fragment("StdListTraits", "header", fragment="StdSequenceTraits")

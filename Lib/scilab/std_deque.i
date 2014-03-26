@@ -1,11 +1,11 @@
 /*
  *
  * C++ type : STL deque
- * Scilab type : matrix (for vectors of primitive types) or list (for sets of all other types : pointers...)
+ * Scilab type : matrix (for primitive types) or list (for pointer types)
  *
 */
 
-%fragment("StdDequeTraits","header",fragment="StdSequenceTraits")
+%fragment("StdDequeTraits", "header", fragment="StdSequenceTraits")
 %{
   namespace swig {
     template <class T>

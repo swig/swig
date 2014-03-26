@@ -1,7 +1,7 @@
 /*
  *
  * C++ type : STL set
- * Scilab type : list
+ * Scilab type : matrix (for primitive types) or list (for pointer types)
  *
 */
 

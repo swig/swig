@@ -1,11 +1,11 @@
 /*
  *
  * C++ type : STL vector
- * Scilab type : matrix (for vectors of primitive types) or list (for sets of all other types : pointers...)
+ * Scilab type : matrix (for primitive types) or list (for pointer types)
  *
 */
 
-%fragment("StdVectorTraits","header",fragment="StdSequenceTraits")
+%fragment("StdVectorTraits", "header", fragment="StdSequenceTraits")
 %{
   namespace swig {
     template <class T>
@@ -29,4 +29,3 @@
 #define %swig_vector_methods_val(Type...) %swig_sequence_methods_val(Type);
 
 %include <std/std_vector.i>
-
