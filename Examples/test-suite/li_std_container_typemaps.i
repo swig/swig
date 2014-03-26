@@ -1,4 +1,4 @@
-%module li_std_sequence_container_typemaps
+%module li_std_container_typemaps
 
 %include stl.i
 
@@ -90,9 +90,9 @@ namespace std
   %template(TYPE ## _list) std::list<TYPE>;
   %template(TYPE ## _deque) std::deque<TYPE>;
   %template(TYPE ## _set) std::set<TYPE>;
+  %template(TYPE ## _multiset) std::multiset<TYPE>;
 }
 %enddef
-
 
 %define instantiate_containers_functions(TYPE...)
 namespace std
@@ -109,6 +109,9 @@ namespace std
   %template(ret_ ## TYPE ## _set) ret_container<TYPE, std::set<TYPE> >;
   %template(val_ ## TYPE ## _set) val_container<TYPE, std::set<TYPE> >;
   %template(ref_ ## TYPE ## _set) ref_container<TYPE, std::set<TYPE> >;
+  %template(ret_ ## TYPE ## _multiset) ret_container<TYPE, std::multiset<TYPE> >;
+  %template(val_ ## TYPE ## _multiset) val_container<TYPE, std::multiset<TYPE> >;
+  %template(ref_ ## TYPE ## _multiset) ref_container<TYPE, std::multiset<TYPE> >;
 }
 %enddef
 

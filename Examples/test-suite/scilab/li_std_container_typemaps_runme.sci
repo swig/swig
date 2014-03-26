@@ -99,6 +99,7 @@ testContainer("vector");
 testContainer("list");
 testContainer("deque");
 testContainer("set");
+testContainer("multiset");
 
 exec("swigtest.quit", -1);
 

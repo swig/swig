@@ -5,3 +5,4 @@
 %include std_deque.i
 %include std_list.i
 %include std_set.i
+%include std_multiset.i
