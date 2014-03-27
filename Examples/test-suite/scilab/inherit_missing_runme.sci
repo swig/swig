@@ -12,4 +12,4 @@ delete_Foo(a);
 delete_Bar(b);
 delete_Spam(c);
 
-exec("swigtest.start", -1);
+exec("swigtest.quit", -1);
