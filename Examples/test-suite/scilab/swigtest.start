@@ -36,8 +36,8 @@ end
 // Error management function
 function swigtesterror(msg)
     [lines, names] = where();
-    if size(lines, '*') > 1
-        mfprintf(0, "*** TEST FAILED (at line %d) ***\n", lines(2));
+    if size(lines, '*') > 0
+        mfprintf(0, "*** TEST FAILED (at line %d) ***\n", lines($));
         if argn(2) >= 1 then disp(msg); end
     else
         mfprintf(0, "*** TEST FAILED ***\n");
@@ -45,6 +45,7 @@ function swigtesterror(msg)
     exit(1)
 endfunction
 
+// Check equal function
 function checkequal(returned, expected, message)
   if typeof(returned) <> typeof(expected) then
     returned_type_msg = ["returned type:"; typeof(returned)];
