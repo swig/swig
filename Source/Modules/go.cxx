@@ -4787,14 +4787,11 @@ private:
       ret = NewString("_Complex double ");
     } else if (is_interface) {
       SwigType *t = SwigType_typedef_resolve_all(type);
-      SwigType_strip_qualifiers(t);
       if (SwigType_ispointer(t)) {
 	SwigType_del_pointer(t);
-	SwigType_strip_qualifiers(t);
       }
       if (SwigType_isreference(t)) {
 	SwigType_del_reference(t);
-	SwigType_strip_qualifiers(t);
       }
       SwigType_add_pointer(t);
       ret = SwigType_lstr(t, name);
