@@ -5,5 +5,8 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.1 (in progress)
 ===========================
 
+2014-03-28: wsfulton
+            [Java C# D Go] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.
+
 2014-03-23: v-for-vandal
             [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.
