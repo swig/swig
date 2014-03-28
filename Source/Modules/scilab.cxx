@@ -176,6 +176,9 @@ public:
     /* Add initialization function to builder table */
     addFunctionInBuilder(moduleInitFunctionName, moduleInitFunctionName);
 
+    // Add helper functions to builder table
+    addHelperFunctions();
+
     // Open Scilab wrapper variables creation function
     variablesCode = NewString("");
     Printf(variablesCode, "int %s() {\n", SWIG_CREATE_VARIABLES_FUNCTION_NAME);
@@ -206,6 +209,7 @@ public:
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
+
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
     Dump(wrappersSection, beginSection);
@@ -689,6 +693,11 @@ public:
           "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
       }
     }
+  }
+
+  void addHelperFunctions() {
+    addFunctionInBuilder("swig_this", "swig_this");
+    addFunctionInBuilder("swig_ptr", "swig_ptr");
   }
 
   void createBuilderFile() {
