@@ -1,4 +1,3 @@
-
 %define CONVERT_BOOL_IN(lvar,t,invar)
   convert_to_boolean_ex(invar);
   lvar = (t) Z_LVAL_PP(invar);
@@ -92,6 +91,7 @@
 %fragment("t_output_helper","header") %{
 static void
 t_output_helper( zval **target, zval *o) {
+  TSRMLS_FETCH();
   if ( (*target)->type == IS_ARRAY ) {
     /* it's already an array, just append */
     add_next_index_zval( *target, o );
