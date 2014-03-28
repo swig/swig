@@ -19,10 +19,3 @@ Foo  *vfunc3(void *f) { return (Foo *) f; }
 Foo  *vfunc4(Foo *f) { return f; }
 
 %}
-
-#ifdef SWIGSCILAB
-%inline %{
-bool equalvoidptr(void *f, void *g) { return f == g; }
-%}
-#endif
-

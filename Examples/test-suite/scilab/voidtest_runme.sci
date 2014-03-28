@@ -8,12 +8,13 @@ Foo_memberfunc(f);
 Foo_staticmemberfunc();
 
 v1 = vfunc1(f);
-if ~equalvoidptr(vfunc1(f), f) then swigtesterror("vfunc1(f) <> f"); end
+checkequal(swig_this(v1), swig_this(f), "vfunc1(f) <> f");
 
-if ~equalvoidptr(vfunc2(f), f) then swigtesterror("vfunc2(f) <> f"); end
+v2 = vfunc2(f);
+checkequal(swig_this(v2), swig_this(f), "vfunc2(f) <> f");
 
 v3 = vfunc3(v1);
-if ~equalvoidptr(v3, f) then swigtesterror("vfunc3(v1) <> f"); end
+checkequal(swig_this(v3), swig_this(f), "vfunc3(f) <> f");
 
 Foo_memberfunc(v3);
 
