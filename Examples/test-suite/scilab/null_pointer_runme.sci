@@ -1,13 +1,7 @@
 exec("swigtest.start", -1);
 
-
-try
-  p = getnull();
-  if func(p) = %F then swigtesterror(); end
-  if func([]) = %F then swigtesterror(); end
-catch
-  swigtesterror();
-end
-
+p = getnull();
+checkequal(swig_this(p), 0, "swig_this(p)");
+checkequal(func(p), %T, "func(p)");
 
 exec("swigtest.quit", -1);
