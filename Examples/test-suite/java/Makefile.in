@@ -75,7 +75,7 @@ setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;			  \
 	fi;								  \
 	if [ ! -d $(JAVA_PACKAGE) ]; then						  \
 	  mkdir $(JAVA_PACKAGE);							  \
