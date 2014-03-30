@@ -421,7 +421,7 @@ class Allocate:public Dispatcher {
 		while (cc) {
 		  Node *cp = cc;
 		  if (classname) {
-		    Setattr(cp, "classname", classname);
+		    Setattr(cp, "extendsmartclassname", classname);
 		  }
 		  Setattr(cp, "allocate:smartpointeraccess", "1");
 		  /* If constant, we have to be careful */
@@ -827,7 +827,7 @@ Allocate():
 		  }
 		  List *methods = smart_pointer_methods(sc, 0, isconst);
 		  Setattr(inclass, "allocate:smartpointer", methods);
-		  Setattr(inclass, "allocate:smartpointerbase", base);
+		  Setattr(inclass, "allocate:smartpointerpointeeclassname", Getattr(sc, "name"));
 		} else {
 		  /* Hmmm.  The return value is not a pointer.  If the type is a value
 		     or reference.  We're going to chase it to see if another operator->()

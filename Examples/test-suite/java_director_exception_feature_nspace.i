@@ -95,6 +95,7 @@
 %}
 
 %typemap(throws,throws=PACKAGEDOT"MyNS.MyJavaException1") int %{
+  (void)$1;
   jclass excpcls = jenv->FindClass(PACKAGESLASH"MyNS/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");

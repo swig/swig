@@ -20,18 +20,38 @@ public class li_std_auto_ptr_runme {
             throw new Exception("number of objects should be 2");
 
         k1 = null;
-        WaitForGC();
-
-        if (Klass.getTotal_count() != 1)
-            throw new Exception("number of objects should be 1");
+        {
+          int countdown = 500;
+          int expectedCount = 1;
+          while (true) {
+            WaitForGC();
+            if (--countdown == 0)
+              break;
+            if (Klass.getTotal_count() == expectedCount)
+              break;
+          };
+          int actualCount = Klass.getTotal_count();
+          if (actualCount != expectedCount)
+            throw new ApplicationException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        }
 
         if (k2.getLabel() != "second")
             throw new Exception("wrong object label");
 
         k2 = null;
-        WaitForGC();
-
-        if (Klass.getTotal_count() != 0)
-            throw new Exception("no objects should be left");
+        {
+          int countdown = 500;
+          int expectedCount = 0;
+          while (true) {
+            WaitForGC();
+            if (--countdown == 0)
+              break;
+            if (Klass.getTotal_count() == expectedCount)
+              break;
+          }
+          int actualCount = Klass.getTotal_count();
+          if (actualCount != expectedCount)
+            throw new ApplicationException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        }
     }
 }

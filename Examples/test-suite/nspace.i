@@ -10,6 +10,7 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
+%nonspace Outer::Inner2::NoNSpacePlease::ReallyNoNSpaceEnum;
 
 %copyctor;
 %ignore Outer::Inner2::Color::Color();
@@ -67,7 +68,12 @@ namespace Outer {
                   const Outer::Inner2::Color& col2c) {}
     }; // Color
     int Color::staticMemberVariable = 0;
-    class NoNSpacePlease {};
+    class NoNSpacePlease {
+      public:
+        enum NoNSpaceEnum { NoNspace1 = 1, NoNspace2 = 10 };
+        enum ReallyNoNSpaceEnum { ReallyNoNspace1 = 1, ReallyNoNspace2 = 10 };
+        static int noNspaceStaticFunc() { return 10; }
+    };
   } // Inner2
 
   // Derived class

@@ -73,6 +73,14 @@ void display_mapping(DOH *d) {
   }
 }
 
+extern "C"
+{
+  static int compareByLen(const DOH *f, const DOH *s) {
+    return Len(s) - Len(f);
+  }
+}
+
+
 /* NEW LANGUAGE NOTE:***********************************************
  most of the default options are handled by SWIG
  you can add new ones here
@@ -99,18 +107,14 @@ static int elua_ltr = 0;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
 static int squash_bases = 0;
-/* This  variable defines internal(!) module API level and compatibility options.
- * This variable is controled by -no-old-metatable-bindings option.
- * v2_compatibility - 
+/* The new metatable bindings were introduced in SWIG 3.0.0.
+ * old_metatable_bindings in v2: 
  *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself.
+ *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
  *                    2. The layout in elua mode is somewhat different
- *                    3. C enums defined inside struct will oblige to C Standard and
- *                       will be defined in the scope surrounding the struct, not scope
- *                       associated with it/
  */
-static int v2_compatibility = 0;
-static const int default_api_level = 2;
+static int old_metatable_bindings = 1;
+static int old_compatible_names = 1; // This flag can temporarily disable backward compatible names generation if old_metatable_bindings is enabled
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -214,7 +218,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
-    int api_level = default_api_level;	// Default api level
     /* Set location of SWIG library */
     SWIG_library_directory("lua");
 
@@ -234,7 +237,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
 	  Swig_mark_arg(i);
-	  api_level = 3;
+	  old_metatable_bindings = 0;
 	} else if (strcmp(argv[i], "-squash-bases") == 0) {
 	  Swig_mark_arg(i);
 	  squash_bases = 1;
@@ -249,15 +252,6 @@ public:
       Printf(stderr, "Cannot have -elua-emulate with either -eluac or -elua\n");
       Swig_arg_error();
     }
-
-    // Set API-compatibility options
-    if (api_level <= 2)		// Must be compatible with SWIG 2.*
-      v2_compatibility = 1;
-    // template for further API breaks
-    //if(api_level <= 3)
-    //  v3_compatibility = 1;
-    //if(api_level <= 4)
-    //  v4_compatibility = 1;
 
     // Set elua_ltr if elua_emulate is requested
     if(elua_emulate)
@@ -1035,7 +1029,7 @@ public:
     assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
-    if ((eluac_ltr || elua_ltr) && v2_compatibility) {
+    if ((eluac_ltr || elua_ltr) && old_metatable_bindings) {
       s_const_tab = Getattr(nspaceHash, "constants");
       assert(s_const_tab);
       Printf(s_const_tab, "    %s,\n", constantRecord);
@@ -1096,7 +1090,7 @@ public:
       return SWIG_NOWRAP;
     }
 
-    bool make_v2_compatible = v2_compatibility && getCurrentClass() != 0;
+    bool make_v2_compatible = old_metatable_bindings && getCurrentClass() && old_compatible_names;
 
     if (make_v2_compatible) {
       // Don't do anything for enums in C mode - they are already
@@ -1166,9 +1160,19 @@ public:
   virtual int enumDeclaration(Node *n) {
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
+    // There is some slightly specific behaviour with enums. Basically,
+    // their NSpace may be tracked separately. The code below tries to work around
+    // this issue to some degree.
+    // The idea is the same as in classHandler - to drop old names generation if
+    // enum is in class in namespace.
+    const int old_compatible_names_saved = old_compatible_names;
+    if (getNSpace() || ( Getattr(n, "sym:nspace") != 0 && Len(Getattr(n, "sym:nspace")) > 0 ) ) {
+      old_compatible_names = 0;
+    }
     int result = Language::enumDeclaration(n);
     current[STATIC_CONST] = false;
     current[ENUM_CONST] = false;
+    old_compatible_names = old_compatible_names_saved;
     return result;
   }
 
@@ -1279,7 +1283,7 @@ public:
     // * consider effect on template_specialization_defarg
 
     static Hash *emitted = NewHash();
-    if (Getattr(emitted, mangled_fr_t)) {
+    if (GetFlag(emitted, mangled_fr_t)) {
       full_proxy_class_name = 0;
       proxy_class_name = 0;
       return SWIG_NOWRAP;
@@ -1316,11 +1320,20 @@ public:
     Setattr(instance_cls, "lua:class_instance:static_hash", static_cls);
     Setattr(static_cls, "lua:class_static:instance_hash", instance_cls);
 
+    const int old_compatible_names_saved = old_compatible_names;
+    // If class has %nspace enabled, then generation of backward compatible names
+    // should be disabled
+    if (getNSpace()) {
+      old_compatible_names = 0;
+    }
+
     /* There is no use for "classes" and "namespaces" arrays. Subclasses are not supported
      * by SWIG and namespaces couldn't be nested inside classes (C++ Standard)
      */
     // Generate normal wrappers
     Language::classHandler(n);
+
+    old_compatible_names = old_compatible_names_saved;
 
     SwigType_add_pointer(t);
 
@@ -1601,7 +1614,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (v2_compatibility && result == SWIG_OK) {
+    if (old_metatable_bindings && result == SWIG_OK && old_compatible_names) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1646,7 +1659,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (v2_compatibility) {
+      if (old_metatable_bindings && old_compatible_names) {
 	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
 	String *lua_name = Getattr(n, "lua:name");
 	// Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1659,7 +1672,7 @@ public:
 	  registerVariable(n, true, getNSpace());
 	}
 	// If static member variable was wrapped as a constant, then
-	// constant wrapper has already performed all actions necessary for v2_compatibility
+	// constant wrapper has already performed all actions necessary for old_metatable_bindings
 	Delete(v2_name);
 	Swig_restore(n);
       }
@@ -1895,7 +1908,7 @@ public:
     Setattr(scope, "lua:cdata", carrays_hash);
     assert(rawGetCArraysHash(nspace));
 
-    if (reg && nspace != 0 && Len(nspace) != 0 && Getattr(carrays_hash, "lua:no_reg") == 0) {
+    if (reg && nspace != 0 && Len(nspace) != 0 && GetFlag(carrays_hash, "lua:no_reg") == 0) {
       // Split names into components
       List *components = Split(nspace, '.', -1);
       String *parent_path = NewString("");
@@ -1941,7 +1954,7 @@ public:
   void closeCArraysHash(String *nspace, File *output) {
     Hash *carrays_hash = rawGetCArraysHash(nspace);
     assert(carrays_hash);
-    assert(Getattr(carrays_hash, "lua:closed") == 0);
+    assert(GetFlag(carrays_hash, "lua:closed") == 0);
 
     SetFlag(carrays_hash, "lua:closed");
 
@@ -1964,7 +1977,7 @@ public:
     String *methods_tab = Getattr(carrays_hash, "methods");
     String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
     if (elua_ltr || eluac_ltr) {
-      if (v2_compatibility)
+      if (old_metatable_bindings)
 	Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
       if (elua_ltr) {
 	Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
@@ -1976,13 +1989,13 @@ public:
       Printf(methods_tab, "    {0,0}\n};\n");
     Printv(output, methods_tab, NIL);
 
-    if (!Getattr(carrays_hash, "lua:no_classes")) {
+    if (!GetFlag(carrays_hash, "lua:no_classes")) {
       String *classes_tab = Getattr(carrays_hash, "classes");
       Printf(classes_tab, "    0\n};\n");
       Printv(output, classes_tab, NIL);
     }
 
-    if (!Getattr(carrays_hash, "lua:no_namespaces")) {
+    if (!GetFlag(carrays_hash, "lua:no_namespaces")) {
       String *namespaces_tab = Getattr(carrays_hash, "namespaces");
       Printf(namespaces_tab, "    0\n};\n");
       Printv(output, namespaces_tab, NIL);
@@ -2003,7 +2016,7 @@ public:
 	String *get_tab_name = Getattr(carrays_hash, "get:name");
 	String *set_tab_name = Getattr(carrays_hash, "set:name");
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
 	} else {
@@ -2016,7 +2029,7 @@ public:
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
 	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
 
-	if (Getattr(carrays_hash, "lua:class_instance")) {
+	if (GetFlag(carrays_hash, "lua:class_instance")) {
 	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
 	  assert(static_cls);
 	  // static_cls is swig_lua_namespace. This structure can't be use with eLua(LTR)
@@ -2026,7 +2039,7 @@ public:
 	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
 	  // Put forward declaration of this array
 	  Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-	} else if (Getattr(carrays_hash, "lua:class_static")) {
+	} else if (GetFlag(carrays_hash, "lua:class_static")) {
 	  Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
 	  assert(instance_cls);
 	  String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
@@ -2043,10 +2056,6 @@ public:
     }
 
     Printv(output, "\n", NIL);
-  }
-
-  static int compareByLen(const DOH *f, const DOH *s) {
-    return Len(s) - Len(f);
   }
 
   /* -----------------------------------------------------------------------------
@@ -2074,7 +2083,7 @@ public:
         // We have a pseudo symbol. Lets get actual scope for this pseudo symbol
         Hash *carrays_hash = rawGetCArraysHash(ki.key);
         assert(carrays_hash);
-        if (Getattr(carrays_hash, "lua:closed") == 0)
+        if (GetFlag(carrays_hash, "lua:closed") == 0)
           Append(to_close, ki.key);
       }
       ki = Next(ki);
@@ -2119,8 +2128,8 @@ public:
     String *const_tab_name = Getattr(carrays_hash, "constants:name");
     String *classes_tab_name = Getattr(carrays_hash, "classes:name");
     String *namespaces_tab_name = Getattr(carrays_hash, "namespaces:name");
-    bool has_classes = Getattr(carrays_hash, "lua:no_classes") == 0;
-    bool has_namespaces = Getattr(carrays_hash, "lua:no_namespaces") == 0;
+    bool has_classes = GetFlag(carrays_hash, "lua:no_classes") == 0;
+    bool has_namespaces = GetFlag(carrays_hash, "lua:no_namespaces") == 0;
 
     Printv(output, "{\n",
 	   tab4, "\"", name, "\",\n",

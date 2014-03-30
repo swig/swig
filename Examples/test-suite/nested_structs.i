@@ -33,6 +33,7 @@ int getInside1Val(struct Outer *n) { return n->inside1.val; }
 Below was causing problems in Octave as wrappers were compiled as C++.
 Solution requires regenerating the inner struct into
 the global C++ namespace (which is where it is intended to be in C).
+See cparse_cplusplusout / Swig_cparse_cplusplusout in the Source.
 */
 %inline %{
 int nestedByVal(struct Named s);

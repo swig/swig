@@ -1242,8 +1242,8 @@ int Language::memberfunctionHandler(Node *n) {
 
   String *fname = Swig_name_member(NSpace, ClassPrefix, symname);
   if (Extend && SmartPointer) {
-    if (!Getattr(n, "classname")) {
-      Setattr(n, "classname", Getattr(CurrentClass, "allocate:smartpointerbase"));
+    if (!Getattr(n, "extendsmartclassname")) {
+      Setattr(n, "extendsmartclassname", Getattr(CurrentClass, "allocate:smartpointerpointeeclassname"));
     }
   }
   // Set up the type for the cast to this class for use when wrapping const director (virtual) methods.
@@ -1562,7 +1562,7 @@ int Language::membervariableHandler(Node *n) {
 int Language::staticmembervariableHandler(Node *n) {
   Swig_require("staticmembervariableHandler", n, "*name", "*sym:name", "*type", "?value", NIL);
   String *value = Getattr(n, "value");
-  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerbase");
+  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerpointeeclassname");
 
   if (!value || !Getattr(n, "hasconsttype")) {
     String *name = Getattr(n, "name");
@@ -2373,6 +2373,7 @@ int Language::classDeclaration(Node *n) {
   String *oldDirectorClassName = DirectorClassName;
   String *oldNSpace = NSpace;
   Node *oldCurrentClass = CurrentClass;
+  int dir = 0;
 
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
@@ -2424,7 +2425,6 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    int dir = 0;
     if (directorsEnabled()) {
       int ndir = GetFlag(n, "feature:director");
       int nndir = GetFlag(n, "feature:nodirector");
@@ -2481,7 +2481,9 @@ int Language::classDeclaration(Node *n) {
   ClassPrefix = oldClassPrefix;
   Delete(ClassName);
   ClassName = oldClassName;
-  Delete(DirectorClassName);
+  if (dir) {
+    Delete(DirectorClassName);
+  }
   DirectorClassName = oldDirectorClassName;
   return SWIG_OK;
 }
@@ -2749,7 +2751,7 @@ int Language::constructorHandler(Node *n) {
     Setattr(n, "handled_as_constructor", "1");
   }
 
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2771,7 +2773,7 @@ int Language::copyconstructorHandler(Node *n) {
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
 						 abstracts);
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -3237,6 +3239,7 @@ Node *Language::classLookup(const SwigType *s) const {
 	(Len(prefix) == 0) ||			      // simple type (pass by value)
 	(Strcmp(prefix, "p.") == 0) ||		      // pointer
 	(Strcmp(prefix, "r.") == 0) ||		      // reference
+	(Strcmp(prefix, "z.") == 0) ||		      // rvalue reference
 	SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
       // Also accept pointer by const reference, not non-const pointer reference
       if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {

@@ -5,7 +5,7 @@ TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 CSHARPSRCS = *.cs
-CSHARPFLAGS= -nologo -out:runme.exe
+CSHARPFLAGS= -nologo -debug+ -out:runme.exe
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile csharp_run
