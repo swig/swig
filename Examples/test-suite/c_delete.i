@@ -4,7 +4,7 @@
 
 #pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
 
-#if !defined(SWIGOCTAVE) /* Octave compiles wrappers as C++ */
+#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8) /* Octave and Javascript/v8 compiles wrappers as C++ */
 
 %inline %{
 struct delete {
