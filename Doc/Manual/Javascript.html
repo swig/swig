@@ -45,6 +45,9 @@ bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
 <pre>
 void example_initialize (v8::Handle<v8::Object> exports)</pre>
 </div>
+<blockquote>
+<p>Note: be aware that <code>v8</code> comes as a C++ API, and thus, the generated modules must be compiled as C++.</p>
+</blockquote>
 <h3>Running Tests and Examples</h3>
 <p>The configuration for tests and examples currently supports Linux and Mac only, MinGW not yet.</p>
 <p>The default interpreter is <code>node.js</code> as it is available on all platforms and convenient to use.</p>
@@ -91,13 +94,14 @@ $ make SMOKE=1 ENGINE=jsc check-javascript-test-suite</pre>
 - Windows 7 64bit (VS 2010)
     - Node.js</pre>
 </div>
-<p>Note: a <code>CMake</code> based configuration can be found in the <code>cmake</code> branch on <a href="https://github.com/oliver----/swig-v8"></a> which can be used to generate a Visual Studio solution. It is rather limited building only the SWIG executable and Javascript examples.</p>
+<blockquote>
+<p>Note: a <code>CMake</code> based configuration can be found in the <code>cmake</code> which can be used to generate a VisualStudio solution. It is rather limited and can only be used for building the SWIG executable.</p>
+</blockquote>
 <h3>Future work</h3>
 <p>The Javascript module is not yet as mature as other modules and some things are still missing. As it makes use of Swigs Unified typemap library (UTL), many typemaps are inherited. We could work on that if requested:</p>
 <ul>
 <li><p>More typemaps: compared to other modules there are only a few typemaps implemented. For instance a lot of the <code>std_*.i</code> typemaps are missing, such as <code>std_iostream</code>, for instance.</p></li>
 <li><p>Director support: this would allow to extend a C++ abstract base class in Javascript. A pragmatic intermediate step for the most important usecase would be to support Javascript callbacks as arguments.</p></li>
-<li><p>We will try to find a way into <a href="http://code.google.com/p/chromiumembedded/">Chromium Embedded Framework (CEF)</a>. CEF is also open-source and available for all platforms. However, at the moment it does not provide access to the native V8 engine, making it impossible to extend the engine using the extensions created with this module.</p></li>
 </ul>
 <h2>Integration</h2>
 <p>This chapter gives a short introduction how to use a native Javascript extension: as a <code>node.js</code> module, and as an extension for an embedded Webkit.</p>
@@ -113,7 +117,7 @@ $ sudo apt-get install nodejs</pre>
 <p>You have to install it using <code>npm</code>:</p>
 <div class="shell">
 <pre>
-$ npm install -g node-gyp</pre>
+$ sudo npm install -g node-gyp</pre>
 </div>
 <p><code>node-gyp</code> expects a configuration file named <code>binding.gyp</code> which is basically in JSON format and conforms to the same format that is used with Google's build-tool <code>gyp</code>.</p>
 <p><code>binding.gyp</code>:</p>
@@ -224,6 +228,10 @@ int main(int argc, char* argv[])
     return 0;
 }</pre>
 </div>
+<h3>Creating Applications with <code>node-webkit</code></h3>
+<blockquote>
+<p>TODO: documentation is coming soon</p>
+</blockquote>
 <h2>Examples</h2>
 <p>Some basic examples are shown here in more detail.</p>
 <h3>Simple</h3>
