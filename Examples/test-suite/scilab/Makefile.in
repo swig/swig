@@ -15,10 +15,11 @@ C_TEST_CASES += \
 	scilab_consts \
 
 CPP_TEST_CASES += \
-	primitive_types \
-	inout \
+  primitive_types \
+  inout \
   scilab_li_matrix \
   scilab_pointer_conversion_functions \
+  overload_arrays \
 
 CPP_STD_TEST_CASES += \
 	li_std_container_typemaps \
