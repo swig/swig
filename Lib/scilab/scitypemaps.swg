@@ -133,14 +133,12 @@
 %enddef
 
 
+// Double (and Float) have priority over before Integer type.
+
 // Primitive types
-
-// For overloading, check Double (and Float) before Integer type.
-
 %typecheck(SWIG_TYPECHECK_VOIDPTR) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
 %typecheck(SWIG_TYPECHECK_BOOL)    bool                        { SCILAB_TYPECHECK(isBooleanType)     }
-%typecheck(SWIG_TYPECHECK_CHAR)    char                        { SCILAB_TYPECHECK(isStringType)      }
 %typemap(typecheck, precedence=16) double                      { SCILAB_TYPECHECK(isDoubleType)      }
 %typemap(typecheck, precedence=17) float                       { SCILAB_TYPECHECK(isDoubleType)      }
 %typecheck(SWIG_TYPECHECK_INT8)    signed char                 { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
@@ -150,33 +148,22 @@
 %typecheck(SWIG_TYPECHECK_INT32)   int, long                   { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
 %typecheck(SWIG_TYPECHECK_UINT32)  unsigned int, unsigned long { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
 %typecheck(SWIG_TYPECHECK_INT32)   enum SWIGTYPE               { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-
+%typecheck(SWIG_TYPECHECK_CHAR)    char                        { SCILAB_TYPECHECK(isStringType)      }
 
 // Arrays
-%typecheck(SWIG_TYPECHECK_CHAR_ARRAY)   char [ANY]                               { SCILAB_TYPECHECK(isString)         }
+%typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                   { SCILAB_TYPECHECK(isBooleanType)     }
+%typemap(typecheck, precedence=1016)    double [ANY]           { SCILAB_TYPECHECK(isDoubleType)      }
+%typemap(typecheck, precedence=1017)    float [ANY]            { SCILAB_TYPECHECK(isDoubleType)      }
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]      { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
+%typemap(typecheck, precedence=1026)    unsigned char [ANY]    { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]            { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
+%typemap(typecheck, precedence=1036) unsigned short [ANY]      { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]  { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typemap(typecheck, precedence=1046) unsigned int [ANY]        { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+%typemap(typecheck, precedence=1046) unsigned long [ANY]       { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY)   char [ANY]             { SCILAB_TYPECHECK(isStringType)      }
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char *[ANY], char **   { SCILAB_TYPECHECK(isStringType)      }
 
-/* * TODO: add an option to select default integers mapping? */
-/* C-integers mapped to Scilab sci_matrix (TODO: add int64 & uint64 for Scilab 6) */
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                         { SCILAB_TYPECHECK(isDoubleType)    }
-//%typecheck(SWIG_TYPECHECK_UINT8_ARRAY)  unsigned char [ANY]                     { SCILAB_TYPECHECK(isDoubleType)    }
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                               { SCILAB_TYPECHECK(isDoubleType)    }
-//%typecheck(SWIG_TYPECHECK_UINT16_ARRAY) unsigned short [ANY]                    { SCILAB_TYPECHECK(isDoubleType)    }
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                     { SCILAB_TYPECHECK(isDoubleType)    }
-//%typecheck(SWIG_TYPECHECK_UINT32_ARRAY) unsigned int [ANY], unsigned long [ANY] { SCILAB_TYPECHECK(isDoubleType)    }
-/* C-integers mapped to Scilab integers (TODO: add int64 & uint64 for Scilab 6) */
-/*
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                       { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
-%typecheck(SWIG_TYPECHECK_UINT8_ARRAY)  unsigned char [ANY]                     { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                             { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
-%typecheck(SWIG_TYPECHECK_UINT16_ARRAY) unsigned short [ANY]                    { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                   { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-%typecheck(SWIG_TYPECHECK_UINT32_ARRAY) unsigned int [ANY], unsigned long [ANY] { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-*/
-
-%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]                            { SCILAB_TYPECHECK(isDoubleType)      }
-%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY)  float [ANY]                             { SCILAB_TYPECHECK(isDoubleType)      }
-%typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                                    { SCILAB_TYPECHECK(isBooleanType)     }
-%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(isString)          }
 
 /* -----------------------------------------------------------------------------*/
 /* Constants and enums to Scilab variables

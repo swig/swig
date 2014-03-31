@@ -109,4 +109,7 @@
 %scilab_array_typemaps(bool, SWIG_SciBoolean_AsIntArrayAndSize,
   SWIG_SciBoolean_FromBoolArrayAndSize, int);
 
+// Char *
+%scilab_array_typemaps(char *, SWIG_SciString_AsCharPtrArrayAndSize,
+  SWIG_SciString_FromCharPtrArrayAndSize, char *);
 
