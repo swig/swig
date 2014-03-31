@@ -8,13 +8,7 @@ function testArray(arrayName, arraySetFunc, arrayGetFunc, in_values, ..
     swigtesterror("error in " + arrayName + "_set()");
   end
   try
-    out_values = arrayGetFunc();
-    if type(out_values) <> type(expected_out_values) then
-      swigtesterror("wrong values type returned from " + arrayName + "_get()");
-    end
-    if ~isequal(out_values, expected_out_values) then
-      swigtesterror("wrong values returned from " + arrayName + "_get()");
-    end
+    checkequal(arrayGetFunc(), expected_out_values, arrayName + "_get()");
   catch
     swigtesterror("error in " + arrayName + "_get()");
   end
