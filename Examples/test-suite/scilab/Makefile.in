@@ -19,6 +19,7 @@ CPP_TEST_CASES += \
   inout \
   scilab_li_matrix \
   scilab_pointer_conversion_functions \
+  scilab_multivalue \
   overload_arrays \
 
 CPP_STD_TEST_CASES += \
