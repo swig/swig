@@ -568,8 +568,7 @@ public:
 	writeTypeWrapperClass(swig_type.key, swig_type.item);
       }
 
-      // Add the proxy functions (and classes, if they are not written to a
-      // seperate file).
+      // Add the proxy functions (and classes, if they are not written to a separate file).
       replaceModuleVariables(proxy_dmodule_code);
       Printv(proxy_d_file, proxy_dmodule_code, NIL);
 
@@ -1399,7 +1398,7 @@ public:
       // generates a getter function (which is the same as a read only property
       // in D) which retrieves the value via by calling the C wrapper.
       // Note that this is only called for global constants, static member
-      // constants are already handeled in staticmemberfunctionHandler().
+      // constants are already handled in staticmemberfunctionHandler().
 
       Swig_save("constantWrapper", n, "value", NIL);
       Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
@@ -3602,7 +3601,7 @@ private:
    * package if one is set.
    *
    * This is only used for dependencies created in generated code, user-
-   * (i.e. typemap-) specified import statements are handeled seperately.
+   * (i.e. typemap-) specified import statements are handled separately.
    * --------------------------------------------------------------------------- */
   void requireDType(const String *nspace, const String *symname) {
     String *dmodule = createModuleName(nspace, symname);
@@ -4054,10 +4053,10 @@ private:
     // TODO: Fix const-correctness of methods called in here and make type const.
 
     // We make use of the fact that this function is called at least once for
-    // every type encountered which is written to a seperate file, which allows
+    // every type encountered which is written to a separate file, which allows
     // us to handle imports here.
     // When working in split proxy module mode, each generated proxy class/enum
-    // is written to a seperate module. This requires us to add a corresponding
+    // is written to a separate module. This requires us to add a corresponding
     // import when a type is used in another generated module. If we are not
     // working in split proxy module mode, this is not relevant and the
     // generated module name is discarded.
@@ -4066,35 +4065,39 @@ private:
     if (SwigType_isenum(type)) {
       // RESEARCH: Make sure that we really cannot get here for anonymous enums.
       Node *n = enumLookup(type);
-      String *enum_name = Getattr(n, "sym:name");
+      if (n) {
+	String *enum_name = Getattr(n, "sym:name");
 
-      Node *p = parentNode(n);
-      if (p && !Strcmp(nodeType(p), "class")) {
-	// This is a nested enum.
-	String *parent_name = Getattr(p, "sym:name");
-	String *nspace = Getattr(p, "sym:nspace");
+	Node *p = parentNode(n);
+	if (p && !Strcmp(nodeType(p), "class")) {
+	  // This is a nested enum.
+	  String *parent_name = Getattr(p, "sym:name");
+	  String *nspace = Getattr(p, "sym:nspace");
 
-	// An enum nested in a class is not written to a seperate module (this
-	// would not even be possible in D), so just import the parent.
-	requireDType(nspace, parent_name);
+	  // An enum nested in a class is not written to a separate module (this
+	  // would not even be possible in D), so just import the parent.
+	  requireDType(nspace, parent_name);
 
-	String *module = createModuleName(nspace, parent_name);
-	if (inProxyModule(module)) {
-	  type_name = NewStringf("%s.%s", parent_name, enum_name);
+	  String *module = createModuleName(nspace, parent_name);
+	  if (inProxyModule(module)) {
+	    type_name = NewStringf("%s.%s", parent_name, enum_name);
+	  } else {
+	    type_name = NewStringf("%s%s.%s.%s", package, module, parent_name, enum_name);
+	  }
 	} else {
-	  type_name = NewStringf("%s%s.%s.%s", package, module, parent_name, enum_name);
+	  // A non-nested enum is written to a separate module, import it.
+	  String *nspace = Getattr(n, "sym:nspace");
+	  requireDType(nspace, enum_name);
+
+	  String *module = createModuleName(nspace, enum_name);
+	  if (inProxyModule(module)) {
+	    type_name = Copy(enum_name);
+	  } else {
+	    type_name = NewStringf("%s%s.%s", package, module, enum_name);
+	  }
 	}
       } else {
-	// A non-nested enum is written to a seperate module, import it.
-	String *nspace = Getattr(n, "sym:nspace");
-	requireDType(nspace, enum_name);
-
-	String *module = createModuleName(nspace, enum_name);
-	if (inProxyModule(module)) {
-	  type_name = Copy(enum_name);
-	} else {
-	  type_name = NewStringf("%s%s.%s", package, module, enum_name);
-	}
+	type_name = NewStringf("int");
       }
     } else {
       Node *n = classLookup(type);

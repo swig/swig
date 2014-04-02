@@ -580,6 +580,7 @@ C_TEST_CASES += \
 	enums \
 	enum_forward \
 	enum_macro \
+	enum_missing \
 	extern_declaration \
 	funcptr \
 	function_typedef \

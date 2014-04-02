@@ -5,5 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.1 (in progress)
 ===========================
 
+2014-03-28: wsfulton
+            [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
+            has not been parsed. For D, this fixes a segfault in SWIG. The other languages
+            now produce code that compiles, although the definition of the enum is needed
+            in order to use the enum properly from the target language.
+
 2014-03-23: v-for-vandal
             [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.

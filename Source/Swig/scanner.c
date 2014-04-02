@@ -1557,7 +1557,7 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int old_line = s->line;
   String *old_text = Copy(s->text);
-  int position = Tell(s->str);
+  long position = Tell(s->str);
 
   int num_levels = 1;
   int state = 0;

@@ -65,7 +65,6 @@
 %typemap(javacode)           enum SWIGTYPE ""
 %typemap(javaimports)        enum SWIGTYPE ""
 %typemap(javainterfaces)     enum SWIGTYPE ""
-%typemap(javabody)           enum SWIGTYPE ""
 
 /*
  * SwigNext static inner class used instead of a static int as static fields cannot be accessed from enum initialisers.

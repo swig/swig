@@ -3165,25 +3165,37 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    String *replacementname;
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(classnametype);
-      if (enumname)
-	Replaceall(tm, classnamespecialvariable, enumname);
-      else
-	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+      if (enumname) {
+	replacementname = Copy(enumname);
+      } else {
+	bool anonymous_enum = (Cmp(classnametype, "enum ") == 0);
+	if (anonymous_enum) {
+	  replacementname = NewString("int");
+	} else {
+	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition)
+	  replacementname = SwigType_base(classnametype);
+	  Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+	  Setattr(swig_types_hash, replacementname, classnametype);
+	}
+      }
     } else {
-      String *classname = getProxyName(classnametype);
+      String *classname = getProxyName(classnametype); // getProxyName() works for pointers to classes too
       if (classname) {
-	Replaceall(tm, classnamespecialvariable, classname);	// getProxyName() works for pointers to classes too
-      } else {			// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
-	Replaceall(tm, classnamespecialvariable, descriptor);
+	replacementname = Copy(classname);
+      } else {
+	// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+	replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 
 	// Add to hash table so that the type wrapper classes can be created later
-	Setattr(swig_types_hash, descriptor, classnametype);
-	Delete(descriptor);
+	Setattr(swig_types_hash, replacementname, classnametype);
       }
     }
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
   }
 
   /* -----------------------------------------------------------------------------
@@ -3272,6 +3284,9 @@ public:
     Replaceall(swigtype, "$module", module_class_name);
     Replaceall(swigtype, "$imclassname", imclass_name);
     Replaceall(swigtype, "$dllimport", dllimport);
+
+    // For unknown enums
+    Replaceall(swigtype, "$enumvalues", "");
 
     Printv(f_swigtype, swigtype, NIL);
 
