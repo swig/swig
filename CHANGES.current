@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.1 (in progress)
 ===========================
 
+2014-04-02: olly
+	    [PHP] Pass ZTS context through to t_output_helper() so it works
+	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
+	    github PR#155.
+
 2014-03-28: wsfulton
             [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
             has not been parsed. For D, this fixes a segfault in SWIG. The other languages
