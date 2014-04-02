@@ -717,7 +717,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
   } else\
     valid = 1;
   
-#else /* en elua .bases table doesn't exist. Use table from swig_lua_class */
+#else /* In elua .bases table doesn't exist. Use table from swig_lua_class */
 
 #define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
   assert(swig_type!=0);\
