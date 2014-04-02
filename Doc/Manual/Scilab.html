@@ -550,51 +550,87 @@ typedef enum { RED, BLUE, GREEN } color;
 
 <H3><a name="Scilab_wrapping_pointers"></a>37.3.6 Pointers</H3>
 
-
 <p>
-Pointers are fully supported by SWIG. One way to deal with the pointers is using the INPUT and OUTPUT typemaps. For example, in order to call C functions as the following:
+C/C++ pointers are fully supported by SWIG. They are mapped to the Scilab pointer type ("pointer", type ID 128).
 </p>
+
+<p>Given a wrapping of some of the C file functions:</p>
 
 <div class="code"><pre>
-void sub(int *x, int *y, int *result) {
-  *result = *x - *y;
-}
-int divide(int n, int d, int *r) {
-   int q;
-   q = n/d;
-   *r = n - q*d;
-   return q;
-}
+%module example
+
+%{
+#include &lt;stdio.h&gt;
+%}
+
+FILE *fopen(const char *filename, const char *mode);
+int fputs(const char *, FILE *);
+int fclose(FILE *);
 </pre></div>
 
-<p> We could write an interface file:
-</p>
-
-<div class="code"><pre>%module example
-%include typemaps.i
-extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
-
-%apply int *OUTPUT { int *r };
-extern int divide(int n, int d, int *r);
-</pre></div>
-
-<p>Then run it in Scilab:
+<p>
+You will be able to use that functions in a natural way from Scilab:
 </p>
 
 <div class="targetlang"><pre>
---&gt; r = sub(37,42);
---&gt; printf("     37 - 42 = %i\n",r);
-    37 - 42 = -5
+--&gt; f = fopen("junk", "w");
+--&gt; typeof(f)
+ ans  =
 
---&gt; [q,r] = divide(42,37);
---&gt; printf("     42/37 = %d remainder %d\n",q,r);
-    42/37 = 1 remainder 5
+  pointer
 
+--&gt; fputs("Hello World", f);
+--&gt; fclose(f);
 </pre></div>
 
-<p> From the example above, it is clear that instead of passing a pointer to an object,
-we only need a real value instead.
+<p>
+As the user of a pointer, you are responsible for freeing it, or like in the example closing any resources associated with it (just as you would in a C program).
 </p>
+
+<H4><a name="Scilab_wrapping_pointers_pointer_adresses"></a>Utility functions</H4>
+
+<p>
+Most of time pointer manipulation is not needed in a scripting language such as Scilab, so this one does not provide any functions for that.
+But in some cases it can be useful, for example for test or debug purpose.
+</p>
+
+<p>
+SWIG comes with two pointer utility functions:
+<ul>
+<li><tt>swig_this()</tt>: returns the address value of a pointer</li>
+<li><tt>swig_ptr()</tt>: creates a pointer from an address value</li>
+</ul>
+</p>
+
+<p>Following illustrates their use on the last example:</p>
+
+<div class="targetlang"><pre>
+--&gt; f = fopen("junk", "w");
+--&gt; fputs("Hello", f);
+--&gt; addr = swig_this(f)
+ ans  =
+
+    8219088.
+
+--&gt; p = swig_ptr(addr);
+--&gt; fputs(" World", p);
+--&gt; fclose(f);
+</pre></div>
+
+<H4><a name="Scilab_wrapping_pointers_null_pointers"></a>Null pointers</H4>
+
+<p>By default, Scilab does not provide a way to test or create null pointers.
+But it can be possible by using the previous functions <tt>swig_this()</tt> and <tt>swig_ptr()</tt>, like this:
+</p>
+
+<div class="targetlang"><pre>
+--&gt; p = swig_ptr(0);
+--&gt; swig_this(p) == 0
+ ans  =
+
+  T
+</pre></div>
+
 
 <H3><a name="Scilab_wrapping_structs"></a>37.3.7 Structures</H3>
 
