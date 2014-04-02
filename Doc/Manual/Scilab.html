@@ -961,6 +961,63 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
 <H3><a name="Scilab_wrapping_templates"></a>37.3.10 C++ Templates</H3>
 
 <p>
+As in other languages, function and class templates are supported in SWIG Scilab.
+</p>
+
+<p>
+You have to tell SWIG to create wrappers for a particular
+template instantiation. The <tt>%template</tt> directive is used for that purpose.
+For example:
+</p>
+
+<div class="code"><pre>
+%module example
+
+template&lt;class T1, class T2, class T3&gt;
+struct triplet {
+  T1 first;
+  T2 second;
+  T3 third;
+  triplet(const T1&amp; a, const T2&amp; b, const T3&amp; c) {
+    third = a; second = b; third = c;
+  }
+};
+
+%template(IntTriplet) triplet&lt;int,int,int&gt;;
+</pre></div>
+
+<p>
+Then in Scilab:
+</p>
+
+<div class="code">
+<pre>
+--&gt;t = new_IntTriplet(3, 4, 1);
+
+--&gt;IntTriplet_first_get(t)
+ ans  =
+
+  3.
+
+--&gt;IntTriplet_second_get(t)
+ ans  =
+
+  4.
+
+--&gt;IntTriplet_third_get(t)
+ ans  =
+
+  1.
+
+--&gt;delete_IntTriplet(t);
+</pre>
+</div>
+
+<p>
+More details on template support can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG C++ documentation</a>.
+</p>
+
+<p>
 Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
