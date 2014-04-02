@@ -2272,8 +2272,8 @@ done:
       if (i) {
 	Insert(args, 0, ", ");
       }
-      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
-      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0 TSRMLS_CC%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0 TSRMLS_CC%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
       Delete(args);
 
       wrapperType = directorconstructor;
@@ -2385,17 +2385,23 @@ done:
     parms = p;
 
     if (!Getattr(n, "defaultargs")) {
+      // There should always be a "self" parameter first.
+      assert(ParmList_len(parms) > 0);
+
       /* constructor */
       {
 	Wrapper *w = NewWrapper();
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
+
+	// We put TSRMLS_DC after the self parameter in order to cope with
+	// any default parameters.
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
-	if (((const char *)Char(target))[Len(target) - 2] == '(') {
-	  Insert(target, Len(target) - 1, "TSRMLS_D");
-	} else {
-	  Insert(target, Len(target) - 1, " TSRMLS_DC");
-	}
+	const char * p = Char(target);
+	const char * comma = strchr(p, ',');
+	size_t ins = comma ? comma - p : Len(target) - 1;
+	Insert(target, ins, " TSRMLS_DC");
+
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self TSRMLS_CC) {", classname, target, call);
 	Append(w->def, "}");
@@ -2407,12 +2413,14 @@ done:
 
       /* constructor header */
       {
+	// We put TSRMLS_DC after the self parameter in order to cope with
+	// any default parameters.
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
-	if (((const char *)Char(target))[Len(target) - 2] == '(') {
-	  Insert(target, Len(target) - 1, "TSRMLS_D");
-	} else {
-	  Insert(target, Len(target) - 1, " TSRMLS_DC");
-	}
+	const char * p = Char(target);
+	const char * comma = strchr(p, ',');
+	size_t ins = comma ? comma - p : Len(target) - 1;
+	Insert(target, ins, " TSRMLS_DC");
+
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
