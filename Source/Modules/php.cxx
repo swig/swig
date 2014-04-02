@@ -414,10 +414,9 @@ public:
      * which has to be dynamically generated as it depends on the module name.
      */
     Append(s_header, "#ifdef __GNUC__\n");
-    Append(s_header, "static void SWIG_FAIL() __attribute__ ((__noreturn__));\n");
+    Append(s_header, "static void SWIG_FAIL(TSRMLS_D) __attribute__ ((__noreturn__));\n");
     Append(s_header, "#endif\n\n");
-    Append(s_header, "static void SWIG_FAIL() {\n");
-    Append(s_header, "    TSRMLS_FETCH();\n");
+    Append(s_header, "static void SWIG_FAIL(TSRMLS_D) {\n");
     Append(s_header, "    zend_error(SWIG_ErrorCode(), \"%s\", SWIG_ErrorMsg());\n");
     // zend_error() should never return with the parameters we pass, but if it
     // does, we really don't want to let SWIG_FAIL() return.  This also avoids
@@ -433,8 +432,7 @@ public:
     Printf(s_header, "static void %s_destroy_globals(zend_%s_globals * globals) { (void)globals; }\n", module, module);
 
     Printf(s_header, "\n");
-    Printf(s_header, "static void SWIG_ResetError() {\n");
-    Printf(s_header, "  TSRMLS_FETCH();\n");
+    Printf(s_header, "static void SWIG_ResetError(TSRMLS_D) {\n");
     Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
     Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
     Printf(s_header, "}\n");
@@ -445,7 +443,7 @@ public:
     Append(s_header, "  swig_object_wrapper *value;\n");
     Append(s_header, "  int type;\n");
     Append(s_header, "\n");
-    Append(s_header, "  SWIG_ResetError();\n");
+    Append(s_header, "  SWIG_ResetError(TSRMLS_C);\n");
     Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
     Append(s_header, "    WRONG_PARAM_COUNT;\n");
     Append(s_header, "  }\n");
@@ -460,7 +458,7 @@ public:
     Append(s_header, "  swig_object_wrapper *value;\n");
     Append(s_header, "  int type;\n");
     Append(s_header, "\n");
-    Append(s_header, "  SWIG_ResetError();\n");
+    Append(s_header, "  SWIG_ResetError(TSRMLS_C);\n");
     Append(s_header, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Append(s_header, "    WRONG_PARAM_COUNT;\n");
     Append(s_header, "  }\n");
@@ -736,7 +734,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "SWIG_FAIL();\n", NIL);
+    Printv(f->code, "SWIG_FAIL(TSRMLS_C);\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -854,7 +852,7 @@ public:
 
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    Printf(f->code, "SWIG_ResetError();\n");
+    Printf(f->code, "SWIG_ResetError(TSRMLS_C);\n");
 
     if (numopt > 0) {		// membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
@@ -1019,7 +1017,7 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Append(f->code, "SWIG_FAIL();\n");
+    Append(f->code, "SWIG_FAIL(TSRMLS_C);\n");
 
     Printf(f->code, "}\n");
 
@@ -2336,7 +2334,7 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    Append(f->code, "SWIG_FAIL();\n");
+    Append(f->code, "SWIG_FAIL(TSRMLS_C);\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2700,7 +2698,7 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    Append(w->code, "SWIG_FAIL();\n");
+    Append(w->code, "SWIG_FAIL(TSRMLS_C);\n");
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

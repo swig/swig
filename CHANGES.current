@@ -6,6 +6,10 @@ Version 3.0.1 (in progress)
 ===========================
 
 2014-04-02: olly
+	    [PHP] Pass the ZTS context we already have to avoid needing to
+	    call TSRMLS_FETCH, which is relatively expensive.
+
+2014-04-02: olly
 	    [PHP] Pass ZTS context through to t_output_helper() so it works
 	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
 	    github PR#155.
