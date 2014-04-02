@@ -15,7 +15,7 @@
 #ifdef SWIGPHP
 %{
 #include "zend_exceptions.h"
-#define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
+#define SWIG_exception(code, msg) zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC)
 %}
 #endif
 
