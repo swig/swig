@@ -316,7 +316,8 @@ SWIG for Scilab provides only low-level C interface for Scilab. This means that 
 In Scilab 5.x, identifier names can be composed of 24 chars maximum (this limitation disappears in future version of Scilab 6.0).
 <br>So long function or variable names may be truncated, which can be cause of conflict.
 </p>
-<p>It happens especially when wrapping structs/classes, for which the wrapping functions name are composed of the struct/class name and field names. In that case, the SWIG <tt>rename</tt> instruction, to choose a different wrapping name, can be useful.
+<p>It happens especially when wrapping structs/classes, for which the wrapping functions name are composed of the struct/class name and field names.
+In that case, the SWIG <tt>rename</tt> instruction, to choose a different wrapping name, can be useful.
 <p>
 
 <H3><a name="Scilab_wrapping_functions"></a>37.3.3 Functions</H3>
@@ -327,8 +328,16 @@ Functions are wrapped as new Scilab built-in functions. For example:
 </p>
 
 <div class="code"><pre>
-&#037;module example
-int fact(int n);
+%module example
+
+%inline %{
+int fact(int n) {
+  if (n &gt; 1)
+    return n * fact(n - 1);
+  else
+    return 1;
+}
+%}
 </pre></div>
 
 <p>
@@ -342,6 +351,105 @@ ans =
     24.
 
 </pre></div>
+
+<p>
+In this example, the function parameter is of simple type, and transmitted by value.
+So this function is wrapped without any other work than declaring it.
+</p>
+
+<p>
+Argument values are converted automatically between C and Scilab through type mappings which are described <a href="#Scilab_typemaps">here</a>.
+There are several available type mappings for simple and complex types.
+</p>
+
+<p>
+When a parameter is not transmitted by value, is a pointer (or a reference), SWIG does not know if it is an input, output (or both) parameter.
+The argument type can be specified with the INPUT, OUTPUT, INOUT keywords defined in the library <tt>typemaps.i</tt>
+</p>
+
+<p>
+Let's see it on two simple functions:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%include typemaps.i
+
+extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
+extern void inc(int *INOUT, int *INPUT);
+
+%{
+void sub(int *x, int *y, int *result) {
+  *result = *x - *y;
+}
+void inc(int *x, int *delta) {
+  *x = *x + *delta;
+}
+%}
+</pre></div>
+
+<p>
+Note: in fact, it is not necessary to include the library <tt>typemaps.i</tt>, this one is included by default.
+</p>
+
+<p>
+In Scilab, parameters are passed by value. The output (and inout) parameters are returned as result of the functions:
+</p>
+
+<div class="targetlang"><pre>
+--&gt;sub(5, 3)
+ ans  =
+
+    2.
+
+--&gt;inc(4, 3)
+ ans  =
+
+    7.
+</pre></div>
+
+<p>
+Scilab supports multiple values to be returned from a function.
+A C function can have several output parameters, they are all returned as results of the wrapped function.
+If the function itself returns also a result, it is returned in first in the result of the function.
+</p>
+
+<p>
+This example shows this for a function returning 2 values and a result:
+</p>
+
+<div class="code"><pre>
+%module example
+
+int divide(int n, int d, int *OUTPUT, int *OUTPUT);
+
+%{
+int divide(int n, int d, int q*, int *r) {
+   if (d != 0) {
+     *q = n / d;
+     *r = n % d;
+     return 1;
+   }
+   else return 0;
+}
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt;[ret, q, r] = divide(20, 6)
+ r  =
+
+    2.
+ q  =
+
+    3.
+ ret  =
+
+    1.
+</pre></div>
+</p>
 
 
 <H3><a name="Scilab_wrapping_global_variables"></a>37.3.4 Global variables</H3>
@@ -554,7 +662,9 @@ typedef enum { RED, BLUE, GREEN } color;
 C/C++ pointers are fully supported by SWIG. They are mapped to the Scilab pointer type ("pointer", type ID 128).
 </p>
 
-<p>Given a wrapping of some of the C file functions:</p>
+<p>
+Given a wrapping of some of the C file functions:
+</p>
 
 <div class="code"><pre>
 %module example
