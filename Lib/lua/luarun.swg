@@ -703,6 +703,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 /* Macros for iteration among class bases */
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
 #define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
+  (void)swig_type;\
   SWIG_Lua_get_table(L,".bases");\
   assert(lua_istable(L,-1));\
   bases_count = lua_rawlen(L,-1);\
@@ -748,7 +749,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
     int last_arg = lua_gettop(L);/* position of last argument */
     lua_getmetatable(L,first_arg);
     int original_metatable = last_arg + 1;
-    int bases_count;
+    size_t bases_count;
     SWIG_LUA_INIT_BASE_SEARCH(bases_count);
     int result = SWIG_ERROR;
     if(ret)
@@ -1169,7 +1170,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
   /* Add bases to .bases table */
   SWIG_Lua_get_table(L,".bases");
   assert(lua_istable(L,-1));  /* just in case */
-  int bases_count = 0;
+  size_t bases_count = 0;
   for(i=0;clss->bases[i];i++)
   {
     SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
