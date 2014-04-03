@@ -248,7 +248,7 @@ SwigScilabRaise(const char *type) {
 
 
 /*
- *  Helper functions
+ *  Pointer utility functions
  */
 
 #ifdef __cplusplus
