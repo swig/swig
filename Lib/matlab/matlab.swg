@@ -1,5 +1,5 @@
-%include <typemaps/swigmacros.swg>
-%include <typemaps/fragments.swg>
+//%include <typemaps/swigmacros.swg>
+// %include <typemaps/fragments.swg>
 // %include <octruntime.swg>
 // %include <octuserdir.swg>
 // %include <octtypemaps.swg>

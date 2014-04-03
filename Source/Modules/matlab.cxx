@@ -25,13 +25,13 @@ Matlab Options (available with -matlab)\n\
 \n";
 
 class MATLAB : public Language {
-// private:
-//   File *f_begin;
-//   File *f_runtime;
-//   File *f_header;
+private:
+  File *f_begin;
+  File *f_runtime;
+  File *f_header;
 //   File *f_doc;
-//   File *f_wrappers;
-//   File *f_init;
+  File *f_wrappers;
+  File *f_init;
 //   File *f_initbeforefunc;
 //   File *f_directors;
 //   File *f_directors_h;
@@ -56,13 +56,13 @@ class MATLAB : public Language {
   // }
 
 public:
-  // MATLAB():
-  //   f_begin(0),
-  //   f_runtime(0),
-  //   f_header(0),
+  MATLAB():
+     f_begin(0),
+     f_runtime(0),
+     f_header(0),
   //   f_doc(0),
-  //   f_wrappers(0),
-  //   f_init(0),
+     f_wrappers(0),
+     f_init(0)
   //   f_initbeforefunc(0),
   //   f_directors(0),
   //   f_directors_h(0),
@@ -73,7 +73,7 @@ public:
   //   have_destructor(0),
   //   constructor_name(0),
   //   docs(0)
-  // {
+  {
   //    /* Add code to manage protected constructors and directors */
   //    director_prot_ctor_code = NewString("");
   //    Printv(director_prot_ctor_code,
@@ -86,7 +86,7 @@ public:
   //    director_multiple_inheritance = 1;
   //    director_language = 1;
   //    docs = NewHash();
-  //  }
+  }
 
   virtual void main(int argc, char *argv[]) {
     printf("MATLAB::main.\n");
@@ -169,96 +169,103 @@ public:
     /* Get the output file name */
     String *outfile = Getattr(n, "outfile");
 
-  //   f_begin = NewFile(outfile, "w", SWIG_output_files());
-  //   if (!f_begin) {
-  //     FileErrorDisplay(outfile);
-  //     SWIG_exit(EXIT_FAILURE);
-  //   }
-  //   f_runtime = NewString("");
-  //   f_header = NewString("");
-  //   f_doc = NewString("");
-  //   f_wrappers = NewString("");
-  //   f_init = NewString("");
-  //   f_initbeforefunc = NewString("");
-  //   f_directors_h = NewString("");
-  //   f_directors = NewString("");
-  //   s_global_tab = NewString("");
-  //   Swig_register_filebyname("begin", f_begin);
-  //   Swig_register_filebyname("runtime", f_runtime);
-  //   Swig_register_filebyname("header", f_header);
-  //   Swig_register_filebyname("doc", f_doc);
-  //   Swig_register_filebyname("wrapper", f_wrappers);
-  //   Swig_register_filebyname("init", f_init);
-  //   Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
-  //   Swig_register_filebyname("director", f_directors);
-  //   Swig_register_filebyname("director_h", f_directors_h);
+    /* Initialize I/O */
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
+      FileErrorDisplay(outfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    f_runtime = NewString("");
+    f_header = NewString("");
+    //   f_doc = NewString("");
+    f_wrappers = NewString("");
+    f_init = NewString("");
+    //   f_initbeforefunc = NewString("");
+    //   f_directors_h = NewString("");
+    //   f_directors = NewString("");
+    //   s_global_tab = NewString("");
+    
+    /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("begin", f_begin);
+    Swig_register_filebyname("runtime", f_runtime);
+    Swig_register_filebyname("header", f_header);
+    //   Swig_register_filebyname("doc", f_doc);
+    Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("init", f_init);
+    //   Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
+    //   Swig_register_filebyname("director", f_directors);
+    //   Swig_register_filebyname("director_h", f_directors_h);
+    
+    /* Output module initialization code */
+    Swig_banner(f_begin);
 
-  //   Swig_banner(f_begin);
+    //   Printf(f_runtime, "\n");
+    //   Printf(f_runtime, "#define SWIGMATLAB\n");
+    //   Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
+    //   Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
-  //   Printf(f_runtime, "\n");
-  //   Printf(f_runtime, "#define SWIGMATLAB\n");
-  //   Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
-  //   Printf(f_runtime, "#define SWIG_name        %s\n", module);
+    //   Printf(f_runtime, "\n");
+    //   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
+    //   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
 
-  //   Printf(f_runtime, "\n");
-  //   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
-  //   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
+    //   if (directorsEnabled()) {
+    //     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+    //     Swig_banner(f_directors_h);
+    //     if (dirprot_mode()) {
+    //       //      Printf(f_directors_h, "#include <map>\n");
+    //       //      Printf(f_directors_h, "#include <string>\n\n");
+    //     }
+    //   }
 
-  //   if (directorsEnabled()) {
-  //     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
-  //     Swig_banner(f_directors_h);
-  //     if (dirprot_mode()) {
-  //       //      Printf(f_directors_h, "#include <map>\n");
-  //       //      Printf(f_directors_h, "#include <string>\n\n");
-  //     }
-  //   }
+    //   Printf(f_runtime, "\n");
 
-  //   Printf(f_runtime, "\n");
+    //   Printf(s_global_tab, "\nstatic const struct swig_matlab_member swig_globals[] = {\n");
+    //   Printf(f_init, "static bool SWIG_init_user(matlab_swig_type* module_ns)\n{\n");
 
-  //   Printf(s_global_tab, "\nstatic const struct swig_matlab_member swig_globals[] = {\n");
-  //   Printf(f_init, "static bool SWIG_init_user(matlab_swig_type* module_ns)\n{\n");
-
-  //   if (!CPlusPlus)
-  //     Printf(f_header,"extern \"C\" {\n");
+    //   if (!CPlusPlus)
+    //     Printf(f_header,"extern \"C\" {\n");
 
     /* Emit code for children */
     Language::top(n);
 
-  //   if (!CPlusPlus)
-  //     Printf(f_header,"}\n");
+    //   if (!CPlusPlus)
+    //     Printf(f_header,"}\n");
 
-  //   if (Len(docs))
-  //     emit_doc_texinfo();
+    //   if (Len(docs))
+    //     emit_doc_texinfo();
 
-  //   if (directorsEnabled())
-  //     Swig_insert_file("director.swg", f_runtime);
+    //   if (directorsEnabled())
+    //     Swig_insert_file("director.swg", f_runtime);
 
-  //   Printf(f_init, "return true;\n}\n");
-  //   Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
+    //   Printf(f_init, "return true;\n}\n");
+    //   Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
 
-  //   Printv(f_wrappers, s_global_tab, NIL);
-  //   SwigType_emit_type_table(f_runtime, f_wrappers);
-  //   Dump(f_runtime, f_begin);
-  //   Dump(f_header, f_begin);
-  //   Dump(f_doc, f_begin);
-  //   if (directorsEnabled()) {
-  //     Dump(f_directors_h, f_begin);
-  //     Dump(f_directors, f_begin);
-  //   }
-  //   Dump(f_wrappers, f_begin);
-  //   Dump(f_initbeforefunc, f_begin);
-  //   Wrapper_pretty_print(f_init, f_begin);
+    //   Printv(f_wrappers, s_global_tab, NIL);
+    //   SwigType_emit_type_table(f_runtime, f_wrappers);
 
-  //   Delete(s_global_tab);
-  //   Delete(f_initbeforefunc);
-  //   Delete(f_init);
-  //   Delete(f_wrappers);
-  //   Delete(f_doc);
-  //   Delete(f_header);
-  //   Delete(f_directors);
-  //   Delete(f_directors_h);
-  //   Delete(f_runtime);
-  //   Delete(f_begin);
+   /* Write all to the file */
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
+    //   Dump(f_doc, f_begin);
+    //   if (directorsEnabled()) {
+    //     Dump(f_directors_h, f_begin);
+    //     Dump(f_directors, f_begin);
+    //   }
+    Dump(f_wrappers, f_begin);
+    //   Dump(f_initbeforefunc, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
+
+    /* Cleanup files */
+    //   Delete(s_global_tab);
+    //   Delete(f_initbeforefunc);
+    Delete(f_init);
+    Delete(f_wrappers);
+    //   Delete(f_doc);
+    Delete(f_header);
+    //   Delete(f_directors);
+    //   Delete(f_directors_h);
+    Delete(f_runtime);
+    Delete(f_begin);
 
     return SWIG_OK;
   }
