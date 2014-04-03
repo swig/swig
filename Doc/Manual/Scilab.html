@@ -30,10 +30,10 @@
 <li><a href="#Scilab_wrapping_constants_and_enums">Constants and enumerations</a>
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
-<li><a href="#Scilab_wrapping_classes">C++ classes</a>
-<li><a href="#Scilab_wrapping_inheritance">C++ inheritance</a>
-<li><a href="#Scilab_wrapping_templates">C++ templates</a>
-<li><a href="#Scilab_wrapping_stl">C++ STL</a>
+<li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
+<li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
+<li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
+<li><a href="#Scilab_wrapping_cpp_stl">C++ STL</a>
 </ul>
 <li><a href="#Scilab_typemaps">Type mappings</a>
 <ul>
@@ -241,6 +241,9 @@ ans =  3
 ans =  4
 </pre></div>
 
+<p>
+Note: for concision, in the further Scilab code examples of this documentation, we suppose modules to be ready to use, they have has been successfully built and loaded in Scilab.
+</p>
 
 <H3><a name="Scilab_running_swig_options"></a>37.2.5 Additional command line options</H3>
 
@@ -746,6 +749,7 @@ But it can be possible by using the previous functions <tt>swig_this()</tt> and 
 
 
 <p>
+Structs exist in Scilab, but C structs are not (at least in this version of SWIG) mapped to Scilab structs.
 A C structure is wrapped through low-level accessor functions, i.e. functions that give access to the member variables of this structure.
 In Scilab, a structure is manipulated through a pointer which is passed as argument of the accessor functions.
 </p>
@@ -836,10 +840,10 @@ ans  =
 </p>
 
 
-<H3><a name="Scilab_wrapping_classes"></a>37.3.8 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_cpp_classes"></a>37.3.8 C++ Classes</H3>
 
 <p>
-The classes are wrapped the same way as structs.
+Classes do not exist in Scilab. The classes are wrapped the same way as structs.
 Low-level accessor functions are generated for class members.
 Also, constructor and destructor functions are generated to create and destroy an instance of the class.
 </p>
@@ -884,7 +888,7 @@ ans  =
 --&gt; delete_Point(p2);
 </pre></div>
 
-<H3><a name="Scilab_wrapping_inheritance"></a>37.3.9 C++ inheritance</H3>
+<H3><a name="Scilab_wrapping_cpp_inheritance"></a>37.3.9 C++ inheritance</H3>
 
 <p>
 Inheritance is supported. SWIG knows the inheritance relationship between classes.
@@ -958,7 +962,7 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
     18.84
 </pre></div>
 
-<H3><a name="Scilab_wrapping_templates"></a>37.3.10 C++ Templates</H3>
+<H3><a name="Scilab_wrapping_cpp_templates"></a>37.3.10 C++ Templates</H3>
 
 <p>
 As in other languages, function and class templates are supported in SWIG Scilab.
@@ -1022,7 +1026,7 @@ Templates are supported. See the SWIG general documentation on how templates are
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_stl"></a>37.3.11 C++ STL</H3>
+<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.11 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
