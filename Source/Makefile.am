@@ -57,6 +57,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/nested.cxx  \
 		Modules/ocaml.cxx		\
 		Modules/octave.cxx		\
+		Modules/matlab.cxx		\
 		Modules/overload.cxx		\
 		Modules/perl5.cxx		\
 		Modules/php.cxx			\
