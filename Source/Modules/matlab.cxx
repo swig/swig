@@ -14,16 +14,15 @@
 #include "swigmod.h"
 //#include "cparse.h"
 
-//static String *global_name = 0;
-//static String *op_prefix   = 0;
+static String *global_name = 0;
+static String *op_prefix   = 0;
 
-// static const char *usage = (char *) "\
-// Matlab Options (available with -matlab)\n\
-//      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
-//                        Use '.' to load C global variables into module namespace\n\
-//      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
-// \n";
-
+static const char *usage = (char *) "\
+Matlab Options (available with -matlab)\n\
+     -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
+                       Use '.' to load C global variables into module namespace\n\
+     -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
+\n";
 
 class MATLAB : public Language {
 // private:
@@ -90,45 +89,45 @@ public:
   //  }
 
   virtual void main(int argc, char *argv[]) {
-    printf("I'm the Matlab module.\n");
-    // for (int i = 1; i < argc; i++) {
-    //   if (argv[i]) {
-    //     if (strcmp(argv[i], "-help") == 0) {
-    //       fputs(usage, stdout);
-    //     } else if (strcmp(argv[i], "-global") == 0 ||
-    //                strcmp(argv[i], "-noglobal") == 0) {
-    //       Printv(stderr,
-    //              "*** -global/-noglobal are no longer supported\n"
-    //              "*** global load behaviour is now determined at module load\n"
-    //              "*** see the Perl section in the manual for details.\n", NIL);
-    //       SWIG_exit(EXIT_FAILURE);
-    //     } else if (strcmp(argv[i], "-globals") == 0) {
-    //       if (argv[i + 1]) {
-    //         global_name = NewString(argv[i + 1]);
-    //         Swig_mark_arg(i);
-    //         Swig_mark_arg(i + 1);
-    //         i++;
-    //       } else {
-    //         Swig_arg_error();
-    //       }
-    //     } else if (strcmp(argv[i], "-opprefix") == 0) {
-    //       if (argv[i + 1]) {
-    //         op_prefix = NewString(argv[i + 1]);
-    //         Swig_mark_arg(i);
-    //         Swig_mark_arg(i + 1);
-    //         i++;
-    //       } else {
-    //         Swig_arg_error();
-    //       }
-    //     }            
-    //   }
-    // }
+    for (int i = 1; i < argc; i++) {
+      if (argv[i]) {
+        if (strcmp(argv[i], "-help") == 0) {
+          fputs(usage, stdout);
+        } else if (strcmp(argv[i], "-global") == 0 ||
+                   strcmp(argv[i], "-noglobal") == 0) {
+          Printv(stderr,
+                 "*** -global/-noglobal are no longer supported\n"
+                 "*** global load behaviour is now determined at module load\n"
+                 "*** see the Perl section in the manual for details.\n", NIL);
+          SWIG_exit(EXIT_FAILURE);
+        } else if (strcmp(argv[i], "-globals") == 0) {
+          if (argv[i + 1]) {
+            global_name = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-opprefix") == 0) {
+          if (argv[i + 1]) {
+            op_prefix = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        }            
+      }
+    }
 
-    // if (!global_name)
-    //   global_name = NewString("cvar");
-    // if (!op_prefix)
-    //   op_prefix = NewString("op_");
+    if (!global_name)
+      global_name = NewString("cvar");
+    if (!op_prefix)
+      op_prefix = NewString("op_");
 
+    
     // SWIG_library_directory("matlab");
     // Preprocessor_define("SWIGMATLAB 1", 0);
     // SWIG_config_file("matlab.swg");
