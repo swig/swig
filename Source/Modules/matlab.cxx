@@ -121,22 +121,21 @@ public:
         }            
       }
     }
-
+    
     if (!global_name)
       global_name = NewString("cvar");
     if (!op_prefix)
       op_prefix = NewString("op_");
-
     
-    // SWIG_library_directory("matlab");
-    // Preprocessor_define("SWIGMATLAB 1", 0);
-    // SWIG_config_file("matlab.swg");
-    // SWIG_typemap_lang("matlab");
-    // allow_overloading();
+    SWIG_library_directory("matlab");
+    Preprocessor_define("SWIGMATLAB 1", 0);
+    SWIG_config_file("matlab.swg");
+    SWIG_typemap_lang("matlab");
+    allow_overloading();
 
-    // // Matlab API is C++, so output must be C++ compatibile even when wrapping C code
-    // if (!cparse_cplusplus)
-    //   Swig_cparse_cplusplusout(1);
+    // Matlab API is C++, so output must be C++ compatibile even when wrapping C code
+    //    if (!cparse_cplusplus)
+    //      Swig_cparse_cplusplusout(1);
   }
 
   virtual int top(Node *n) {

@@ -117,6 +117,7 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-matlab)   || ./$(TARGET) -matlab     -help
 	@$(skip-php)      || ./$(TARGET) -php        -help
 	@$(skip-pike)     || ./$(TARGET) -pike       -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
@@ -146,6 +147,7 @@ check-versions:					\
 	check-ruby-version			\
 	check-ocaml-version			\
 	check-octave-version			\
+	check-matlab-version			\
 	check-php-version			\
 	check-pike-version			\
 	check-chicken-version			\
@@ -185,6 +187,7 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
+	check-matlab-examples			\
 	check-php-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
@@ -209,6 +212,7 @@ mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
+matlab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/matlab/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
 chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
@@ -263,6 +267,7 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
+	check-matlab-test-suite			\
 	check-php-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
@@ -315,6 +320,7 @@ all-test-suite:					\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
+	all-matlab-test-suite			\
 	all-php-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
@@ -343,6 +349,7 @@ broken-test-suite:				\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
+	broken-matlab-test-suite		\
 	broken-php-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
@@ -467,7 +474,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave matlab \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d
 
 lib-modules = std
