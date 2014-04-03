@@ -89,6 +89,7 @@ public:
   //  }
 
   virtual void main(int argc, char *argv[]) {
+    printf("MATLAB::main.\n");
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
@@ -139,8 +140,7 @@ public:
   }
 
   virtual int top(Node *n) {
-    printf("Generating code.\n");
-    return SWIG_OK;
+    printf("MATLAB::top.\n");
 
     // {
     //   Node *mod = Getattr(n, "module");
@@ -161,10 +161,14 @@ public:
     //       }
     //     }
     //   }
-  }
+    // }
 
-  //   String *module = Getattr(n, "name");
-  //   String *outfile = Getattr(n, "outfile");
+    /* Get the module name */
+    String *module = Getattr(n, "name");
+
+    /* Get the output file name */
+    String *outfile = Getattr(n, "outfile");
+
   //   f_begin = NewFile(outfile, "w", SWIG_output_files());
   //   if (!f_begin) {
   //     FileErrorDisplay(outfile);
@@ -217,7 +221,8 @@ public:
   //   if (!CPlusPlus)
   //     Printf(f_header,"extern \"C\" {\n");
 
-  //   Language::top(n);
+    /* Emit code for children */
+    Language::top(n);
 
   //   if (!CPlusPlus)
   //     Printf(f_header,"}\n");
@@ -255,8 +260,8 @@ public:
   //   Delete(f_runtime);
   //   Delete(f_begin);
 
-  //   return SWIG_OK;
-  // }
+    return SWIG_OK;
+  }
 
   // String *texinfo_escape(String *_s) {
   //   const char* s=(const char*)Data(_s);
