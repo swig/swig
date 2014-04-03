@@ -33,6 +33,7 @@
 <li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
+<li><a href="#Scilab_wrapping_cpp_operators">C++ operators</a>
 <li><a href="#Scilab_wrapping_cpp_stl">C++ STL</a>
 </ul>
 <li><a href="#Scilab_typemaps">Type mappings</a>
@@ -1026,7 +1027,58 @@ Templates are supported. See the SWIG general documentation on how templates are
 An example of templates can be found in <tt>Examples/scilab/templates</tt>.
 </p>
 
-<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.11 C++ STL</H3>
+<H3><a name="Scilab_wrapping_cpp_operators"></a>37.3.11 C++ operators</H3>
+
+<p>
+C++ operators are partially supported.
+Operator overloading exists in Scilab, but a C++ operator is not (in this version) wrapped by SWIG with a Scilab operator, but with a function.
+It is not automatic, you have to rename each operator to wrap (with the instruction <tt>%rename</tt>) to give the name of wrapping function.
+</p>
+
+<p>
+Let's see it on an example of class with two operators <tt>+</tt> and <tt>double()</tt>:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%rename(plus) operator +;
+%rename(toDouble) operator double();
+
+%inline %{
+
+class Complex {
+public:
+  Complex(double re, double im) : real(re), imag(im) {};
+
+  Complex operator+(const Complex& other) {
+    double result_real = real + other.real;
+    double result_imaginary = imag + other.imag;
+    return Complex(result_real, result_imaginary);
+  }
+  operator double() { return real; }
+private:
+  double real;
+  double imag;
+};
+
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt;c1 = new_Complex(3, 7);
+
+--&gt;c2 = Complex_plus(c, new_Complex(1,1));
+
+--&gt;Complex_toDouble(c2)
+ ans  =
+
+    4.
+</pre></div>
+</p>
+
+<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.12 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
