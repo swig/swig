@@ -136,33 +136,33 @@
 // Double (and Float) have priority over before Integer type.
 
 // Primitive types
-%typecheck(SWIG_TYPECHECK_VOIDPTR) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
-%typecheck(SWIG_TYPECHECK_BOOL)    bool                        { SCILAB_TYPECHECK(isBooleanType)     }
-%typemap(typecheck, precedence=16) double                      { SCILAB_TYPECHECK(isDoubleType)      }
-%typemap(typecheck, precedence=17) float                       { SCILAB_TYPECHECK(isDoubleType)      }
-%typecheck(SWIG_TYPECHECK_INT8)    signed char                 { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
-%typecheck(SWIG_TYPECHECK_UINT8)   unsigned char               { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
-%typecheck(SWIG_TYPECHECK_INT16)   short                       { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
-%typecheck(SWIG_TYPECHECK_UINT16)  unsigned short              { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
-%typecheck(SWIG_TYPECHECK_INT32)   int, long                   { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-%typecheck(SWIG_TYPECHECK_UINT32)  unsigned int, unsigned long { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
-%typecheck(SWIG_TYPECHECK_INT32)   enum SWIGTYPE               { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-%typecheck(SWIG_TYPECHECK_CHAR)    char                        { SCILAB_TYPECHECK(isStringType)      }
+%typecheck(SWIG_TYPECHECK_VOIDPTR, noblock=1) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
+%typecheck(SWIG_TYPECHECK_POINTER, noblock=1) SWIGTYPE *                  { SCILAB_TYPECHECK(isPointerType)     }
+%typecheck(SWIG_TYPECHECK_BOOL, noblock=1)    bool                        { SCILAB_TYPECHECK(isBooleanType)     }
+%typemap(typecheck, precedence=16, noblock=1) double                      { SCILAB_TYPECHECK(isDoubleType)      }
+%typemap(typecheck, precedence=17, noblock=1) float                       { SCILAB_TYPECHECK(isDoubleType)      }
+%typecheck(SWIG_TYPECHECK_INT8, noblock=1)    signed char                 { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
+%typecheck(SWIG_TYPECHECK_UINT8, noblock=1)   unsigned char               { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
+%typecheck(SWIG_TYPECHECK_INT16, noblock=1)   short                       { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
+%typecheck(SWIG_TYPECHECK_UINT16, noblock=1)  unsigned short              { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
+%typecheck(SWIG_TYPECHECK_INT32, noblock=1)   int, long                   { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typecheck(SWIG_TYPECHECK_UINT32, noblock=1)  unsigned int, unsigned long { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+%typecheck(SWIG_TYPECHECK_INT32, noblock=1)   enum SWIGTYPE               { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typecheck(SWIG_TYPECHECK_CHAR, noblock=1)    char                        { SCILAB_TYPECHECK(isStringType)      }
 
 // Arrays
-%typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                   { SCILAB_TYPECHECK(isBooleanType)     }
-%typemap(typecheck, precedence=1016)    double [ANY]           { SCILAB_TYPECHECK(isDoubleType)      }
-%typemap(typecheck, precedence=1017)    float [ANY]            { SCILAB_TYPECHECK(isDoubleType)      }
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]      { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
-%typemap(typecheck, precedence=1026)    unsigned char [ANY]    { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]            { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
-%typemap(typecheck, precedence=1036) unsigned short [ANY]      { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]  { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
-%typemap(typecheck, precedence=1046) unsigned int [ANY]        { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
-%typemap(typecheck, precedence=1046) unsigned long [ANY]       { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
-%typecheck(SWIG_TYPECHECK_CHAR_ARRAY)   char [ANY]             { SCILAB_TYPECHECK(isStringType)      }
-%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char *[ANY], char **   { SCILAB_TYPECHECK(isStringType)      }
+%typecheck(SWIG_TYPECHECK_BOOL_ARRAY, noblock=1)   bool                   { SCILAB_TYPECHECK(isBooleanType)     }
+%typemap(typecheck, precedence=1016, noblock=1)    double [ANY]           { SCILAB_TYPECHECK(isDoubleType)      }
+%typemap(typecheck, precedence=1017, noblock=1)    float [ANY]            { SCILAB_TYPECHECK(isDoubleType)      }
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY, noblock=1)   signed char [ANY]      { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
+%typemap(typecheck, precedence=1026, noblock=1)    unsigned char [ANY]    { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY, noblock=1)  short [ANY]            { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
+%typemap(typecheck, precedence=1036, noblock=1)    unsigned short [ANY]   { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY, noblock=1)  int [ANY], long [ANY]  { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typemap(typecheck, precedence=1046, noblock=1)    unsigned int [ANY]     { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+%typemap(typecheck, precedence=1046, noblock=1)    unsigned long [ANY]    { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY, noblock=1)   char [ANY]             { SCILAB_TYPECHECK(isStringType)      }
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY, noblock=1) char *[ANY], char **   { SCILAB_TYPECHECK(isStringType)      }
 
 
 /* -----------------------------------------------------------------------------*/
