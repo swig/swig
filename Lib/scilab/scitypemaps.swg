@@ -16,8 +16,10 @@
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
 
-/* SCILAB GENERIC TYPEMAPS */
-/*
+/* ---------------------------------------------------------------------------*/
+/* Generic typmemaps                                                          */
+/* ---------------------------------------------------------------------------*/
+
  * This typemap is used when Scilab does not store this type directly
  * For example, a 'float' is stored in Scilab as a 'double'
  * So we read a 'double' in Scilab and cast it to a 'float'
@@ -79,12 +81,18 @@
 }
 %enddef
 
-/* Array typmemaps */
+
+/* ---------------------------------------------------------------------------*/
+/* Array typmemaps                                                            */
+/* ---------------------------------------------------------------------------*/
+
 %include "sciarray.swg"
 
-/* -----------------------------------------------------------------------------
- * --- Use enum from Scilab ---
- * ----------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------*/
+/* Enum typemaps                                                              */
+/* ---------------------------------------------------------------------------*/
+
 %typemap(in, noblock=1, fragment=SWIG_AsVal_frag(Enum)) enum SWIGTYPE (int val) {
   if (SWIG_AsVal_dec(Enum)($input, &val) != SWIG_OK) {
     return SWIG_ERROR;
@@ -92,9 +100,6 @@
   $1 = %reinterpret_cast(val, $ltype);
 }
 
-/* -----------------------------------------------------------------------------
- * --- Return enum to Scilab ---
- * ----------------------------------------------------------------------------- */
 %typemap(out, fragment=SWIG_From_frag(Enum)) enum SWIGTYPE {
   if (SWIG_From_dec(Enum)($1) != SWIG_OK) {
     return SWIG_ERROR;
@@ -165,9 +170,9 @@
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY, noblock=1) char *[ANY], char **   { SCILAB_TYPECHECK(isStringType)      }
 
 
-/* -----------------------------------------------------------------------------*/
-/* Constants and enums to Scilab variables
-/* -----------------------------------------------------------------------------*/
+/* ---------------------------------------------------------------------------*/
+/* %scilabconstcode() feature typemaps                                        */
+/* ---------------------------------------------------------------------------*/
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) int
 %{
