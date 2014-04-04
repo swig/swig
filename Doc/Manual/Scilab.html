@@ -32,6 +32,7 @@
 <li><a href="#Scilab_wrapping_structs">Structures</a>
 <li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
+<li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_cpp_operators">C++ operators</a>
 <li><a href="#Scilab_wrapping_cpp_stl">C++ STL</a>
@@ -44,7 +45,7 @@
 <li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
 <li><a href="#Scilab_typemaps_matrices">Matrices</a>
 <li><a href="#Scilab_typemaps_stl">STL</a>
-</ul>
+</ul>Scilab_wrapping_pointers_references_values_arrays
 <li><a href="#Scilab_module">Module</a>
 <ul>
 <li><a href="#Scilab_module_structure">Structure</a>
@@ -963,7 +964,64 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
     18.84
 </pre></div>
 
-<H3><a name="Scilab_wrapping_cpp_templates"></a>37.3.10 C++ Templates</H3>
+<H3><a name="Scilab_wrapping_pointers_references_values_arrays"></a>37.3.10 Pointers, references, values, and arrays</H3>
+
+<p>
+In C++ objects can be passed as value, pointer, reference, or array:
+</p>
+<div class="code"><pre>
+%module example
+
+%{
+#include &lt;sciprint.h&gt;
+%}
+
+%inline %{
+
+class Foo {
+public:
+  Foo(int _x) : x(_x) {}
+  int x;
+};
+
+void spam1(Foo *f)  { sciprint("%d\n", f->x); }   // Pass by pointer
+void spam2(Foo &f)  { sciprint("%d\n", f.x); }    // Pass by reference
+void spam3(Foo f)   { sciprint("%d\n", f.x); }    // Pass by value
+void spam4(Foo f[]) { sciprint("%d\n", f[0].x); } // Array of objects
+
+%}
+</pre></div>
+<p>
+
+In SWIG, there is no distinction between these passing modes.
+So in Scilab, it is perfectly legal to do this:
+</p>
+<div class="targetlang"><pre>
+--&gt; f = new_Foo()
+--&gt; spam1(f)
+3
+--&gt; spam2(f)
+3
+--&gt; spam3(f)
+3
+--&gt; spam4(f)
+3
+</pre></div>
+
+<p>
+Similar behaviour occurs for return values. For example, if you had functions like this:
+</p>
+<div class="code"><pre>
+Foo *spam5();
+Foo &amp;spam6();
+Foo  spam7();
+</pre></div>
+<p>
+All these functions will return a pointer to an instance of <tt>Foo</tt>.
+As the function <tt>spam7</tt> returns a value, new instance of <tt>Foo</tt> has to be allocated, and a pointer on this instance is returned.
+</p>
+
+<H3><a name="Scilab_wrapping_cpp_templates"></a>37.3.11 C++ templates</H3>
 
 <p>
 As in other languages, function and class templates are supported in SWIG Scilab.
