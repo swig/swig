@@ -14,6 +14,8 @@
 #include "swigmod.h"
 //#include "cparse.h"
 
+#define MATLABPRINTFUNCTIONENTRY
+
 static String *global_name = 0;
 static String *op_prefix   = 0;
 
@@ -37,8 +39,7 @@ public:
   // virtual int nativeWrapper(Node *n);
   // virtual int enumDeclaration(Node *n);
   // virtual int enumvalueDeclaration(Node *n);
-  // virtual int classDeclaration(Node *n);
-  // virtual int classHandler(Node *n);
+  virtual int classHandler(Node *n);
   // virtual int memberfunctionHandler(Node *n);
   // virtual int membervariableHandler(Node *n);
   // virtual int constructorHandler(Node *n);
@@ -54,12 +55,18 @@ public:
   // String* runtimeCode();
   // String* defaultExternalRuntimeFilename();
 protected:
+  File *f_wrap_h;
+  File *f_wrap_h_body;
+  File* f_wrap_m;
   File *f_begin;
   File *f_runtime;
   File *f_header;
   //   File *f_doc;
   File *f_wrappers;
   File *f_init;
+  
+
+
   //   File *f_initbeforefunc;
   //   File *f_directors;
   //   File *f_directors_h;
@@ -91,10 +98,26 @@ extern "C" Language *swig_matlab(void) {
 //   }
 // }
 
-MATLAB::MATLAB() : f_begin(0), f_runtime(0), f_header(0), /* f_doc(0), */ f_wrappers(0),
-                   f_init(0) /* f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
-                                s_global_tab(0), s_members_tab(0), class_name(0), 
-                                have_constructor(0), have_destructor(0), constructor_name(0), docs(0) */ {
+MATLAB::MATLAB() : 
+  f_wrap_h(0), 
+  f_wrap_h_body(0), 
+  f_wrap_m(0),
+  f_begin(0),
+  f_runtime(0),
+  f_header(0),
+  /* f_doc(0), */ 
+  f_wrappers(0),
+  f_init(0) 
+  /* f_initbeforefunc(0), 
+     f_directors(0), 
+     f_directors_h(0), 
+     s_global_tab(0), 
+     s_members_tab(0), 
+     class_name(0), 
+     have_constructor(0), 
+     have_destructor(0), 
+     constructor_name(0), 
+     docs(0) */ {
   //    /* Add code to manage protected constructors and directors */
   //    director_prot_ctor_code = NewString("");
   //    Printv(director_prot_ctor_code,
@@ -110,7 +133,9 @@ MATLAB::MATLAB() : f_begin(0), f_runtime(0), f_header(0), /* f_doc(0), */ f_wrap
 }
 
 void MATLAB::main(int argc, char *argv[]){
-  printf("MATLAB::main.\n");
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering main\n");
+#endif
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
@@ -161,7 +186,9 @@ void MATLAB::main(int argc, char *argv[]){
 }
 
 int MATLAB::top(Node *n) {
-  printf("MATLAB::top.\n");
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering top\n");
+#endif
 
   // {
   //   Node *mod = Getattr(n, "module");
@@ -187,13 +214,24 @@ int MATLAB::top(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
 
-  /* Get the output file name */
-  String *outfile = Getattr(n, "outfile");
+  /* Get .h wrapper file name*/
+  String *hfile = Getattr(n,"outfile_h");
 
-  /* Initialize I/O */
-  f_begin = NewFile(outfile, "w", SWIG_output_files());
+  /* Get the .cxx wrapper file name */
+  String *cxxfile = Getattr(n, "outfile");
+
+  /* Initialize wrapper .h file seen by MATLAB */
+  f_wrap_h = NewFile(hfile, "w", SWIG_output_files());
+  if (!f_wrap_h){
+    FileErrorDisplay(hfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_wrap_h_body = NewString("");
+
+  /* Initialize wrapper .c file  */
+  f_begin = NewFile(cxxfile, "w", SWIG_output_files());
   if (!f_begin) {
-    FileErrorDisplay(outfile);
+    FileErrorDisplay(cxxfile);
     SWIG_exit(EXIT_FAILURE);
   }
   f_runtime = NewString("");
@@ -264,7 +302,10 @@ int MATLAB::top(Node *n) {
   //   Printv(f_wrappers, s_global_tab, NIL);
   //   SwigType_emit_type_table(f_runtime, f_wrappers);
 
-  /* Write all to the file */
+  // Write .h file
+  Dump(f_wrap_h_body, f_wrap_h);
+  
+  // Write .c file
   Dump(f_runtime, f_begin);
   Dump(f_header, f_begin);
   //   Dump(f_doc, f_begin);
@@ -287,6 +328,8 @@ int MATLAB::top(Node *n) {
   //   Delete(f_directors_h);
   Delete(f_runtime);
   Delete(f_begin);
+  Delete(f_wrap_h_body);
+  Delete(f_wrap_h);
 
   return SWIG_OK;
 }
@@ -1006,11 +1049,45 @@ int MATLAB::functionWrapper(Node *n){
   //   return Language::enumvalueDeclaration(n);
   // }
 
-  //  int MATLAB::classDeclaration(Node *n) {
-  //   return Language::classDeclaration(n);
-  // }
+int MATLAB::classHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering classHandler\n");
+#endif
+    // Typedef C name for the class
+    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
 
-  // int MATLAB::classHandler(Node *n) {
+    // Name of wrapper .m file
+    String* mfile=NewString(Getattr(n,"sym:name"));
+    Append(mfile,".m");
+
+    // Make sure no existing .m file
+    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+
+    // Create wrapper .m file
+    f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+    if (!f_wrap_m){
+      FileErrorDisplay(mfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    // Declare class in .m file
+    Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
+    Printf(f_wrap_m, "properties (GetAccess = public, SetAccess = private)\n");
+    Printf(f_wrap_m, "ptr\n");
+    Printf(f_wrap_m, "end\n\n");
+    Printf(f_wrap_m, "methods\n");
+
+    // Emit member functions
+    Language::classHandler(n);
+
+    // Tidy up
+    Delete(f_wrap_m);
+    f_wrap_m = 0;
+    Delete(mfile);
+
+    return SWIG_OK;
+}
+
   //   have_constructor = 0;
   //   have_destructor = 0;
   //   constructor_name = 0;
