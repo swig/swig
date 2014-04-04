@@ -345,7 +345,8 @@ Scanner_push_brackets(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 void
 Scanner_pop_brackets(Scanner *s) {
-  Delitem(s->brackets, 0);
+  if (Len(s->brackets) > 0) /* protect against unbalanced ')' brackets */
+    Delitem(s->brackets, 0);
 }
 
 /* -----------------------------------------------------------------------------
