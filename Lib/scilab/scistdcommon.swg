@@ -1,6 +1,6 @@
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
-namespace swig {  
+namespace swig {
 // Traits that provides the from method
   template <class Type> struct traits_from_ptr {
     static SwigSciObject from(Type *val, int owner = 0) {
@@ -39,7 +39,7 @@ namespace swig {
 
     // Traits that provides the asval/as/check method
   template <class Type>
-  struct traits_asptr {   
+  struct traits_asptr {
     static int asptr(const SwigSciObject& obj, Type **val) {
       Type *p;
       int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
@@ -48,20 +48,21 @@ namespace swig {
       }
       return res;
     }
-  }; 
+  };
 
   template <class Type>
   inline int asptr(const SwigSciObject& obj, Type **vptr) {
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 
-  template <class Type> 
+  template <class Type>
   struct traits_asval {
     static int asval(const SwigSciObject& obj, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
-	if (!SWIG_IsOK(res)) return res;	
+	if (!SWIG_IsOK(res))
+    return res;
 	if (p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
@@ -94,31 +95,32 @@ namespace swig {
       }
     }
   };
-  
+
   template <class Type>
   inline int asval(const SwigSciObject& obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
   }
 
-  template <class Type> 
+  template <class Type>
   struct traits_as<Type, value_category> {
     static Type as(const SwigSciObject& obj, bool throw_error) {
       Type v;
       int res = asval(obj, &v);
-      //if (!obj.is_defined() || !SWIG_IsOK(res)) {
-	if (!Scilab_Error_Occurred()) {
-	  %type_error(swig::type_name<Type>());
-	}
-	if (throw_error) throw std::invalid_argument("bad type");
-    //}
-      return v;
+      if (SWIG_IsOK(res)) {
+        return v;
+      } else {
+	      %type_error(swig::type_name<Type>());
+	      if (throw_error)
+          throw std::invalid_argument("bad type");
+        return res;
+      }
     }
   };
 
-  template <class Type> 
+  template <class Type>
   struct traits_as<Type, pointer_category> {
     static Type as(const SwigSciObject& obj, bool throw_error) {
-      Type *v = 0;      
+      Type *v = 0;
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
@@ -131,39 +133,37 @@ namespace swig {
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-	if (!Scilab_Error_Occurred()) {
-	  %type_error(swig::type_name<Type>());
-	}
-	if (throw_error) throw std::invalid_argument("bad type");
+  %type_error(swig::type_name<Type>());
+	if (throw_error)
+    throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
     }
   };
 
-  template <class Type> 
+  template <class Type>
   struct traits_as<Type*, pointer_category> {
     static Type* as(const SwigSciObject& obj, bool throw_error) {
-      Type *v = 0;      
+      Type *v = 0;
       int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-	if (!Scilab_Error_Occurred()) {
-	  %type_error(swig::type_name<Type>());
-	}
-	if (throw_error) throw std::invalid_argument("bad type");
+  %type_error(swig::type_name<Type>());
+	if (throw_error)
+    throw std::invalid_argument("bad type");
 	return SWIG_OK;
       }
     }
   };
-    
+
   template <class Type>
   inline Type as(const SwigSciObject& obj, bool te = false) {
     return traits_as<Type, typename traits<Type>::category>::as(obj, te);
   }
 
-  template <class Type> 
+  template <class Type>
   struct traits_check<Type, value_category> {
     static bool check(const SwigSciObject& obj) {
       int res = asval(obj, (Type *)(0));
@@ -171,7 +171,7 @@ namespace swig {
     }
   };
 
-  template <class Type> 
+  template <class Type>
   struct traits_check<Type, pointer_category> {
     static bool check(const SwigSciObject& obj) {
       int res = asptr(obj, (Type **)(0));
@@ -189,7 +189,7 @@ namespace swig {
 %define %specialize_std_container(Type,Check,As,From)
 %{
 namespace swig {
-  template <>  struct traits_asval<Type > {   
+  template <>  struct traits_asval<Type > {
     typedef Type value_type;
     static int asval(const SwigSciObject& obj, value_type *val) {
       if (Check(obj)) {
@@ -206,7 +206,7 @@ namespace swig {
     }
   };
 
-  template <> 
+  template <>
   struct traits_check<Type, value_category> {
     static int check(const SwigSciObject& obj) {
       int res = Check(obj);

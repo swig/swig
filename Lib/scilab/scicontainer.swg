@@ -65,7 +65,7 @@ namespace swig
       }
       catch (std::exception& e)
       {
-        SWIG_Scilab_AddErrorMsg(e.what());
+        SWIG_Scilab_ErrorMsg(SWIG_RuntimeError, e.what());
       }
     }
 
@@ -395,7 +395,7 @@ namespace swig {
         }
         catch (std::exception& e)
         {
-          SWIG_Scilab_AddErrorMsg(e.what());
+          SWIG_Scilab_ErrorMsg(SWIG_RuntimeError, e.what());
         }
       }
     }
@@ -436,7 +436,7 @@ namespace swig {
       }
       catch (std::exception& e)
       {
-        SWIG_Scilab_AddErrorMsg(e.what());
+        SWIG_Scilab_ErrorMsg(SWIG_RuntimeError, e.what());
       }
     }
   };

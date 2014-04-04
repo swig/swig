@@ -222,6 +222,7 @@ SWIG_Scilab_ErrorType(int code) {
     return "RuntimeError";
   }
 }
+#define SWIG_ErrorType(code) SWIG_Scilab_ErrorType(code)
 
 SWIGINTERN void
 SWIG_Scilab_ErrorMsg(int code, const char *msg)
@@ -229,11 +230,10 @@ SWIG_Scilab_ErrorMsg(int code, const char *msg)
   Scierror(999, _("SWIG/Scilab %s: %s.\n"), SWIG_Scilab_ErrorType(code), msg);
 }
 
-#define SWIG_fail                 return SWIG_ERROR;
-#define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)
-#define SWIG_Error(code, msg)     SWIG_Scilab_ErrorMsg(code, msg)
+#define SWIG_Error(code, msg) SWIG_Scilab_ErrorMsg(code, msg)
 
-#define SWIG_Scilab_Raise(obj, type, desc) SwigScilabRaise(type)
+#define SWIG_fail return SWIG_ERROR;
+
 
 SWIGRUNTIME int
 SwigScilabRaise(const char *type) {
@@ -243,9 +243,7 @@ SwigScilabRaise(const char *type) {
 #endif
 }
 
-#define Scilab_Error_Occurred() 0
-#define SWIG_Scilab_AddErrorMsg(msg) {;}
-
+#define SWIG_Scilab_Raise(obj, type, desc) SwigScilabRaise(type)
 
 /*
  *  Pointer utility functions
