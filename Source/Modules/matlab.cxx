@@ -31,29 +31,20 @@ public:
   MATLAB();
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
-  // String *texinfo_escape(String *_s);
   virtual int functionWrapper(Node *n);
-  // void dispatchFunction(Node *n);
-  // virtual int variableWrapper(Node *n);
-  // virtual int constantWrapper(Node *n);
-  // virtual int nativeWrapper(Node *n);
-  // virtual int enumDeclaration(Node *n);
-  // virtual int enumvalueDeclaration(Node *n);
+  virtual int variableWrapper(Node *n);
+  virtual int constantWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
+  virtual int enumDeclaration(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
   virtual int classHandler(Node *n);
-  // virtual int memberfunctionHandler(Node *n);
-  // virtual int membervariableHandler(Node *n);
-  // virtual int constructorHandler(Node *n);
-  // virtual int destructorHandler(Node *n);
-  // virtual int staticmemberfunctionHandler(Node *n);
-  // virtual int memberconstantHandler(Node *n);
-  // virtual int staticmembervariableHandler(Node *n);
-  // int classDirectorInit(Node *n);
-  // int classDirectorEnd(Node *n);
-  // int classDirectorConstructor(Node *n);
-  // int classDirectorDefaultConstructor(Node *n);
-  // int classDirectorMethod(Node *n, Node *parent, String *super);
-  // String* runtimeCode();
-  // String* defaultExternalRuntimeFilename();
+  virtual int memberfunctionHandler(Node *n);
+  virtual int membervariableHandler(Node *n);
+  virtual int constructorHandler(Node *n);
+  virtual int destructorHandler(Node *n);
+  virtual int staticmemberfunctionHandler(Node *n);
+  virtual int memberconstantHandler(Node *n);
+  virtual int staticmembervariableHandler(Node *n);
 protected:
   File *f_wrap_h;
   File *f_wrap_h_body;
@@ -61,25 +52,12 @@ protected:
   File *f_begin;
   File *f_runtime;
   File *f_header;
-  //   File *f_doc;
   File *f_wrappers;
   File *f_init;
-  
 
-
-  //   File *f_initbeforefunc;
-  //   File *f_directors;
-  //   File *f_directors_h;
-  //   String *s_global_tab;
-  //   String *s_members_tab;
-  //   String *class_name;
-
-  //   int have_constructor;
-  //   int have_destructor;
-  //   String *constructor_name;
-
-  //   Hash *docs;
-  // void Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cname, const_String_or_char_ptr wname, bool dld);
+  // Helper functions
+  static void nameUnnamedParams(ParmList *parms, bool all);
+  String *getOverloadedName(Node *n);
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -88,16 +66,6 @@ extern "C" Language *swig_matlab(void) {
 
 // Only implementations from here on
 
-// void MATLAB::Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cname, const_String_or_char_ptr wname, bool dld) {
-//   if (dld) {
-//     String *tname = texinfo_name(n, "std::string()");
-//     Printf(f, "SWIG_DEFUN( %s, %s, %s ) {", cname, wname, tname);
-//   }
-//   else {
-//     Printf(f, "static matlab_value_list %s (const matlab_value_list& args, int nargout) {", wname);
-//   }
-// }
-
 MATLAB::MATLAB() : 
   f_wrap_h(0), 
   f_wrap_h_body(0), 
@@ -105,31 +73,12 @@ MATLAB::MATLAB() :
   f_begin(0),
   f_runtime(0),
   f_header(0),
-  /* f_doc(0), */ 
   f_wrappers(0),
-  f_init(0) 
-  /* f_initbeforefunc(0), 
-     f_directors(0), 
-     f_directors_h(0), 
-     s_global_tab(0), 
-     s_members_tab(0), 
-     class_name(0), 
-     have_constructor(0), 
-     have_destructor(0), 
-     constructor_name(0), 
-     docs(0) */ {
-  //    /* Add code to manage protected constructors and directors */
-  //    director_prot_ctor_code = NewString("");
-  //    Printv(director_prot_ctor_code,
-  //           "if ( $comparison ) { /* subclassed */\n",
-  //           "  $director_new \n",
-  //           "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
-
-  //    enable_cplus_runtime_mode();
-  //    allow_overloading();
-  //    director_multiple_inheritance = 1;
-  //    director_language = 1;
-  //    docs = NewHash();
+  f_init(0)
+{
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering MATLAB()\n");
+#endif
 }
 
 void MATLAB::main(int argc, char *argv[]){
@@ -614,40 +563,43 @@ int MATLAB::top(Node *n) {
 
 int MATLAB::functionWrapper(Node *n){
   // Get useful attributes 
-  String   *iname   = Getattr(n,"sym:name");
-  SwigType *d   = Getattr(n,"type");
-  ParmList *l  = Getattr(n,"parms");
-  //   String *nodeType = Getattr(n, "nodeType");
-  //   String *storage = Getattr(n, "storage");
+  String   *name   = Getattr(n,"sym:name");
+  SwigType *type   = Getattr(n,"type");
+  ParmList *parms  = Getattr(n,"parms");
+  String *nodeType = Getattr(n, "nodeType");
+  String *storage = Getattr(n, "storage");
+  String *value = Getattr(n, "value");
   
+  // Handle nameless parameters
+  nameUnnamedParams(parms, false);
+  String *parmprotostr = ParmList_protostr(parms);
+
+  // Is it a pure virtual function?
+  bool pure_virtual = Cmp(storage, "virtual") == 0 && Cmp(value, "0") == 0;
+  
+  // Deal with overloading 
+  String *overname = NewString("");
+  Printf(overname, "%s", getOverloadedName(n));
+  String *wname = Swig_name_wrapper(overname);
+  Setattr(n, "wrap:name", wname);
+
+  // Create the wrapper object 
+  Wrapper *f = NewWrapper();
+
+
+
+
   // Debug: Dump to file
   if(true){
-    String   *parmstr= ParmList_str_defaultargs(l); // to string
-    String   *func   = SwigType_str(d, NewStringf("%s(%s)", iname, parmstr));
+    String   *parmstr= ParmList_str_defaultargs(parms); // to string
+    String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
     String   *action = Getattr(n,"wrap:action");
     Printf(f_wrappers,"functionWrapper   : %s\n", func);
     Printf(f_wrappers,"           action : %s\n", action);
   }
 
-  // Create the wrapper object 
-  Wrapper *f = NewWrapper();
-  
-  // Create the functions wrappered name
-  String *wname = Swig_name_wrapper(iname);
-  
-  // Deal with overloading 
-  //   Parm *p;
-  //   String *tm;
-  //   int j;
-  //   int constructor = (!Cmp(nodeType, "constructor"));
-  //   int destructor = (!Cmp(nodeType, "destructor"));
-  //   bool overloaded = !!Getattr(n, "sym:overloaded");
-  //   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
-  //   String *overname = Copy(wname);
-  //   if (!overloaded && !addSymbol(iname, n)) return SWIG_ERROR;
-  //   if (overloaded) Append(overname, Getattr(n, "sym:overname"));
-  //   if (!overloaded || last_overload) process_autodoc(n);
-  
+
+    
   // Write the wrapper function definition
   //   Matlab_begin_function(n, f->def, iname, overname, !overloaded);
   
@@ -684,206 +636,6 @@ int MATLAB::functionWrapper(Node *n){
   // Add the failure cleanup code
   // ..
   
-   
-  
-
-  //   emit_parameter_variables(l, f);
-  //   emit_attach_parmmaps(l, f);
-  //   Setattr(n, "wrap:parms", l);
-  //   int num_arguments = emit_num_arguments(l);
-  //   int num_required = emit_num_required(l);
-  //   int varargs = emit_isvarargs(l);
-  //   char source[64];
-
-  //   Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i,%i)) " 
-  //          "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
-
-  //   if (constructor && num_arguments == 1 && num_required == 1) {
-  //     if (Cmp(storage, "explicit") == 0) {
-  //       Node *parent = Swig_methodclass(n);
-  //       if (GetFlag(parent, "feature:implicitconv")) {
-  //         String *desc = NewStringf("SWIGTYPE%s", SwigType_manglestr(Getattr(n, "type")));
-  //         Printf(f->code, "if (SWIG_CheckImplicit(%s)) SWIG_fail;\n", desc);
-  //         Delete(desc);
-  //       }
-  //     }
-  //   }
-
-  //   for (j = 0, p = l; j < num_arguments; ++j) {
-  //     while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-  //       p = Getattr(p, "tmap:in:next");
-  //     }
-
-  //     SwigType *pt = Getattr(p, "type");
-
-  //     String *tm = Getattr(p, "tmap:in");
-  //     if (tm) {
-  //       if (!tm || checkAttribute(p, "tmap:in:numinputs", "0")) {
-  //         p = nextSibling(p);
-  //         continue;
-  //       }
-
-  //       sprintf(source, "args(%d)", j);
-  //       Setattr(p, "emit:input", source);
-
-  //       Replaceall(tm, "$source", Getattr(p, "emit:input"));
-  //       Replaceall(tm, "$input", Getattr(p, "emit:input"));
-  //       Replaceall(tm, "$target", Getattr(p, "lname"));
-
-  //       if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-  //         Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-  //       } else {
-  //         Replaceall(tm, "$disown", "0");
-  //       }
-
-  //       if (Getattr(p, "tmap:in:implicitconv")) {
-  //         const char *convflag = "0";
-  //         if (!Getattr(p, "hidden")) {
-  //           SwigType *ptype = Getattr(p, "type");
-  //           convflag = get_implicitconv_flag(classLookup(ptype));
-  //         }
-  //         Replaceall(tm, "$implicitconv", convflag);
-  //         Setattr(p, "implicitconv", convflag);
-  //       }
-
-  //       String *getargs = NewString("");
-  //       if (j >= num_required)
-  //         Printf(getargs, "if (%d<args.length()) {\n%s\n}", j, tm);
-  //       else
-  //         Printv(getargs, tm, NIL);
-  //       Printv(f->code, getargs, "\n", NIL);
-  //       Delete(getargs);
-
-  //       p = Getattr(p, "tmap:in:next");
-  //       continue;
-  //     } else {
-  //       Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-  //       break;
-  //     }
-  //   }
-
-  //   // Check for trailing varargs
-  //   if (varargs) {
-  //     if (p && (tm = Getattr(p, "tmap:in"))) {
-  //       Replaceall(tm, "$input", "varargs");
-  //       Printv(f->code, tm, "\n", NIL);
-  //     }
-  //   }
-
-  //   // Insert constraint checking code
-  //   for (p = l; p;) {
-  //     if ((tm = Getattr(p, "tmap:check"))) {
-  //       Replaceall(tm, "$target", Getattr(p, "lname"));
-  //       Printv(f->code, tm, "\n", NIL);
-  //       p = Getattr(p, "tmap:check:next");
-  //     } else {
-  //       p = nextSibling(p);
-  //     }
-  //   }
-
-  //   // Insert cleanup code
-  //   String *cleanup = NewString("");
-  //   for (p = l; p;) {
-  //     if ((tm = Getattr(p, "tmap:freearg"))) {
-  //       if (Getattr(p, "tmap:freearg:implicitconv")) {
-  //         const char *convflag = "0";
-  //         if (!Getattr(p, "hidden")) {
-  //           SwigType *ptype = Getattr(p, "type");
-  //           convflag = get_implicitconv_flag(classLookup(ptype));
-  //         }
-  //         if (strcmp(convflag, "0") == 0) {
-  //           tm = 0;
-  //         }
-  //       }
-  //       if (tm && (Len(tm) != 0)) {
-  //         Replaceall(tm, "$source", Getattr(p, "lname"));
-  //         Printv(cleanup, tm, "\n", NIL);
-  //       }
-  //       p = Getattr(p, "tmap:freearg:next");
-  //     } else {
-  //       p = nextSibling(p);
-  //     }
-  //   }
-
-  //   // Insert argument output code
-  //   String *outarg = NewString("");
-  //   for (p = l; p;) {
-  //     if ((tm = Getattr(p, "tmap:argout"))) {
-  //       Replaceall(tm, "$source", Getattr(p, "lname"));
-  //       Replaceall(tm, "$target", "_outp");
-  //       Replaceall(tm, "$result", "_outp");
-  //       Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-  //       Replaceall(tm, "$input", Getattr(p, "emit:input"));
-  //       Printv(outarg, tm, "\n", NIL);
-  //       p = Getattr(p, "tmap:argout:next");
-  //     } else {
-  //       p = nextSibling(p);
-  //     }
-  //   }
-
-  //   int director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
-  //   if (director_method) {
-  //     Wrapper_add_local(f, "upcall", "bool upcall = false");
-  //     Append(f->code, "upcall = !!dynamic_cast<Swig::Director*>(arg1);\n");
-  //   }
-
-  //   Setattr(n, "wrap:name", overname);
-
-  //   Swig_director_emit_dynamic_cast(n, f);
-  //   String *actioncode = emit_action(n);
-
-  //   Wrapper_add_local(f, "_out", "matlab_value_list _out");
-  //   Wrapper_add_local(f, "_outp", "matlab_value_list *_outp=&_out");
-  //   Wrapper_add_local(f, "_outv", "matlab_value _outv");
-
-  //   // Return the function value
-  //   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-  //     Replaceall(tm, "$source", Swig_cresult_name());
-  //     Replaceall(tm, "$target", "_outv");
-  //     Replaceall(tm, "$result", "_outv");
-
-  //     if (GetFlag(n, "feature:new"))
-  //       Replaceall(tm, "$owner", "1");
-  //     else
-  //       Replaceall(tm, "$owner", "0");
-
-  //     Printf(f->code, "%s\n", tm);
-  //     Printf(f->code, "if (_outv.is_defined()) _outp = " "SWIG_Matlab_AppendOutput(_outp, _outv);\n");
-  //     Delete(tm);
-  //   } else {
-  //     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
-  //   }
-  //   emit_return_variable(n, d, f);
-
-  //   Printv(f->code, outarg, NIL);
-  //   Printv(f->code, cleanup, NIL);
-
-  //   if (GetFlag(n, "feature:new")) {
-  //     if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-  //       Replaceall(tm, "$source", Swig_cresult_name());
-  //       Printf(f->code, "%s\n", tm);
-  //     }
-  //   }
-
-  //   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-  //     Replaceall(tm, "$source", Swig_cresult_name());
-  //     Replaceall(tm, "$result", "_outv");
-  //     Printf(f->code, "%s\n", tm);
-  //     Delete(tm);
-  //   }
-
-  //   Printf(f->code, "return _out;\n");
-
-  // Close the function(error)
-  //   Printf(f->code, "fail:\n");	// we should free locals etc if this happens
-  //   Printv(f->code, cleanup, NIL);
-  //   Printf(f->code, "return matlab_value_list();\n");
-  //   Printf(f->code, "}\n");
-
-  // Substitute the cleanup code
-  //   Replaceall(f->code, "$cleanup", cleanup);
-  //   Replaceall(f->code, "$symname", iname);
-
   // Dump the function out  
   Wrapper_print(f, f_wrappers);
 
@@ -931,123 +683,40 @@ int MATLAB::functionWrapper(Node *n){
 //   Delete(wname);
 // }
 
-//  int MATLAB::variableWrapper(Node *n) {
-//   String *name = Getattr(n, "name");
-//   String *iname = Getattr(n, "sym:name");
-//   SwigType *t = Getattr(n, "type");
+int MATLAB::variableWrapper(Node *n){
+#ifdef MATLABPRINTFUNCTIONENTRY
+  Printf(stderr,"Entering variableWrapper\n");
+#endif
+  return Language::variableWrapper(n);
+}
 
-//   if (!addSymbol(iname, n))
-//     return SWIG_ERROR;
+int MATLAB::constantWrapper(Node *n){
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering constantWrapper\n");
+#endif
+    return Language::constantWrapper(n);
+}
 
-//   String *tm;
-//   Wrapper *getf = NewWrapper();
-//   Wrapper *setf = NewWrapper();
+int MATLAB::nativeWrapper(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering nativeWrapper\n");
+#endif
+  return Language::nativeWrapper(n);
+}
 
-//   String *getname = Swig_name_get(NSPACE_TODO, iname);
-//   String *setname = Swig_name_set(NSPACE_TODO, iname);
+int MATLAB::enumDeclaration(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering enumDeclaration\n");
+#endif
+  return Language::enumDeclaration(n);
+}
 
-//   String *getwname = Swig_name_wrapper(getname);
-//   String *setwname = Swig_name_wrapper(setname);
-
-//   Matlab_begin_function(n, setf->def, setname, setwname, true);
-//   Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return matlab_value_list();", iname);
-//   if (is_assignable(n)) {
-//     Setattr(n, "wrap:name", setname);
-//     if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-//       Replaceall(tm, "$source", "args(0)");
-//       Replaceall(tm, "$target", name);
-//       Replaceall(tm, "$input", "args(0)");
-//       if (Getattr(n, "tmap:varin:implicitconv")) {
-//         Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
-//       }
-//       emit_action_code(n, setf->code, tm);
-//       Delete(tm);
-//     } else {
-//       Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
-//     }
-//     Append(setf->code, "fail:\n");
-//     Printf(setf->code, "return matlab_value_list();\n");
-//   } else {
-//     Printf(setf->code, "return matlab_set_immutable(args,nargout);");
-//   }
-//   Append(setf->code, "}\n");
-//   Wrapper_print(setf, f_wrappers);
-
-//   Setattr(n, "wrap:name", getname);
-//   int addfail = 0;
-//   Matlab_begin_function(n, getf->def, getname, getwname, true);
-//   Wrapper_add_local(getf, "obj", "matlab_value obj");
-//   if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-//     Replaceall(tm, "$source", name);
-//     Replaceall(tm, "$target", "obj");
-//     Replaceall(tm, "$result", "obj");
-//     addfail = emit_action_code(n, getf->code, tm);
-//     Delete(tm);
-//   } else {
-//     Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
-//   }
-//   Append(getf->code, "  return obj;\n");
-//   if (addfail) {
-//     Append(getf->code, "fail:\n");
-//     Append(getf->code, "  return matlab_value_list();\n");
-//   }
-//   Append(getf->code, "}\n");
-//   Wrapper_print(getf, f_wrappers);
-
-//   Printf(s_global_tab, "{\"%s\",0,%s,%s,2,0},\n", iname, getwname, setwname);
-
-//   Delete(getwname);
-//   Delete(setwname);
-//   DelWrapper(setf);
-//   DelWrapper(getf);
-
-//   return SWIG_OK;
-// }
-
-//  int MATLAB::constantWrapper(Node *n) {
-//   String *name = Getattr(n, "name");
-//   String *iname = Getattr(n, "sym:name");
-//   SwigType *type = Getattr(n, "type");
-//   String *rawval = Getattr(n, "rawval");
-//   String *value = rawval ? rawval : Getattr(n, "value");
-//   String *cppvalue = Getattr(n, "cppvalue");
-//   String *tm;
-
-//   if (!addSymbol(iname, n))
-//     return SWIG_ERROR;
-
-//   if (SwigType_type(type) == T_MPOINTER) {
-//     String *wname = Swig_name_wrapper(iname);
-//     String *str = SwigType_str(type, wname);
-//     Printf(f_header, "static %s = %s;\n", str, value);
-//     Delete(str);
-//     value = wname;
-//   }
-//   if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
-//     Replaceall(tm, "$source", value);
-//     Replaceall(tm, "$target", name);
-//     Replaceall(tm, "$value", cppvalue ? cppvalue : value);
-//     Replaceall(tm, "$nsname", iname);
-//     Printf(f_init, "%s\n", tm);
-//   } else {
-//     Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-//     return SWIG_NOWRAP;
-//   }
-
-//   return SWIG_OK;
-// }
-
-  // int MATLAB::nativeWrapper(Node *n) {
-  //   return Language::nativeWrapper(n);
-  // }
-
-  // int MATLAB::enumDeclaration(Node *n) {
-  //   return Language::enumDeclaration(n);
-  // }
-
-  //  int MATLAB::enumvalueDeclaration(Node *n) {
-  //   return Language::enumvalueDeclaration(n);
-  // }
+int MATLAB::enumvalueDeclaration(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering enumvalueDeclaration\n");
+#endif
+  return Language::enumvalueDeclaration(n);
+}
 
 int MATLAB::classHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
@@ -1088,617 +757,77 @@ int MATLAB::classHandler(Node *n) {
     return SWIG_OK;
 }
 
-  //   have_constructor = 0;
-  //   have_destructor = 0;
-  //   constructor_name = 0;
-
-  //   class_name = Getattr(n, "sym:name");
-
-  //   if (!addSymbol(class_name, n))
-  //     return SWIG_ERROR;
-
-  //   // This is a bug, due to the fact that swig_type -> matlab_class mapping
-  //   // is 1-to-n.
-  //   static Hash *emitted = NewHash();
-  //   String *mangled_classname = Swig_name_mangle(Getattr(n, "name"));
-  //   if (Getattr(emitted, mangled_classname)) {
-  //     Delete(mangled_classname);
-  //     return SWIG_NOWRAP;
-  //   }
-  //   Setattr(emitted, mangled_classname, "1");
-  //   Delete(mangled_classname);
-
-  //   assert(!s_members_tab);
-  //   s_members_tab = NewString("");
-  //   Printv(s_members_tab, "static swig_matlab_member swig_", class_name, "_members[] = {\n", NIL);
-
-  //   Language::classHandler(n);
-
-  //   SwigType *t = Copy(Getattr(n, "name"));
-  //   SwigType_add_pointer(t);
-
-  //   String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
-  //   SwigType_remember_clientdata(t, wrap_class);
-
-  //   int use_director = Swig_directorclass(n);
-  //   if (use_director) {
-  //     String *nspace = Getattr(n, "sym:nspace");
-  //     String *cname = Swig_name_disown(nspace, class_name);
-  //     String *wcname = Swig_name_wrapper(cname);
-  //     String *cnameshdw = NewStringf("%s_shadow", cname);
-  //     String *wcnameshdw = Swig_name_wrapper(cnameshdw);
-  //     Matlab_begin_function(n, f_wrappers, cnameshdw, wcnameshdw, true);
-  //     Printf(f_wrappers, "  if (args.length()!=1) {\n");
-  //     Printf(f_wrappers, "    error(\"disown takes no arguments\");\n");
-  //     Printf(f_wrappers, "    return matlab_value_list();\n");
-  //     Printf(f_wrappers, "  }\n");
-  //     Printf(f_wrappers, "  %s (args, nargout);\n", wcname);
-  //     Printf(f_wrappers, "  return args;\n");
-  //     Printf(f_wrappers, "}\n");
-  //     Printf(s_members_tab, "{\"__disown\",%s,0,0,0,0},\n", wcnameshdw);
-  //     Delete(wcname);
-  //     Delete(cname);
-  //     Delete(wcnameshdw);
-  //     Delete(cnameshdw);
-  //   }
-
-  //   Printf(s_members_tab, "{0,0,0,0}\n};\n");
-  //   Printv(f_wrappers, s_members_tab, NIL);
-
-  //   String *base_class_names = NewString("");
-  //   String *base_class = NewString("");
-  //   List *baselist = Getattr(n, "bases");
-  //   if (baselist && Len(baselist)) {
-  //     Iterator b;
-  //     int index = 0;
-  //     b = First(baselist);
-  //     while (b.item) {
-  //       String *bname = Getattr(b.item, "name");
-  //       if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
-  //         b = Next(b);
-  //         continue;
-  //       }
-
-  //       String *bname_mangled = SwigType_manglestr(SwigType_add_pointer(Copy(bname)));
-  //       Printf(base_class_names, "\"%s\",", bname_mangled);
-  //       Printf(base_class, "0,");
-  //       b = Next(b);
-  //       index++;
-  //       Delete(bname_mangled);
-  //     }
-  //   }
-
-  //   Printv(f_wrappers, "static const char *swig_", class_name, "_base_names[] = {", base_class_names, "0};\n", NIL);
-  //   Printv(f_wrappers, "static const swig_type_info *swig_", class_name, "_base[] = {", base_class, "0};\n", NIL);
-  //   Printv(f_wrappers, "static swig_matlab_class _wrap_class_", class_name, " = {\"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
-  //   Printv(f_wrappers, Swig_directorclass(n) ? "1," : "0,", NIL);
-  //   if (have_constructor) {
-  //     String *nspace = Getattr(n, "sym:nspace");
-  //     String *cname = Swig_name_construct(nspace, constructor_name);
-  //     String *wcname = Swig_name_wrapper(cname);
-  //     String *tname = texinfo_name(n);
-  //     Printf(f_wrappers, "%s,%s,", wcname, tname);
-  //     Delete(tname);
-  //     Delete(wcname);
-  //     Delete(cname);
-  //   } else
-  //     Printv(f_wrappers, "0,0,", NIL);
-  //   if (have_destructor) {
-  //     String *nspace = Getattr(n, "sym:nspace");
-  //     String *cname = Swig_name_destroy(nspace, class_name);
-  //     String *wcname = Swig_name_wrapper(cname);
-  //     Printf(f_wrappers, "%s,", wcname);
-  //     Delete(wcname);
-  //     Delete(cname);
-  //   } else
-  //     Printv(f_wrappers, "0", ",", NIL);
-  //   Printf(f_wrappers, "swig_%s_members,swig_%s_base_names,swig_%s_base };\n\n", class_name, class_name, class_name);
-
-  //   Delete(base_class);
-  //   Delete(base_class_names);
-  //   Delete(t);
-  //   Delete(s_members_tab);
-  //   s_members_tab = 0;
-  //   class_name = 0;
-
-  //   return SWIG_OK;
-  // }
-
-  // int MATLAB::memberfunctionHandler(Node *n) {
-  //   Language::memberfunctionHandler(n);
-
-  //   assert(s_members_tab);
-  //   assert(class_name);
-  //   String *name = Getattr(n, "name");
-  //   String *iname = GetChar(n, "sym:name");
-  //   String *realname = iname ? iname : name;
-  //   String *wname = Getattr(n, "wrap:name");
-  //   assert(wname);
-
-  //   if (!Getattr(n, "sym:nextSibling")) {
-  //     String *tname = texinfo_name(n);
-  //     String *rname = Copy(wname);
-  //     bool overloaded = !!Getattr(n, "sym:overloaded");
-  //     if (overloaded)
-  //       Delslice(rname, Len(rname) - Len(Getattr(n, "sym:overname")), DOH_END);
-  //     Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s},\n", 
-  //            realname, rname, tname);
-  //     Delete(rname);
-  //     Delete(tname);
-  //   }
-
-  //   return SWIG_OK;
-  // }
-
-  // int MATLAB::membervariableHandler(Node *n) {
-  //   Setattr(n, "feature:autodoc", "0");
-
-  //   Language::membervariableHandler(n);
-
-  //   assert(s_members_tab);
-  //   assert(class_name);
-  //   String *symname = Getattr(n, "sym:name");
-  //   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  //   String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  //   String *getwname = Swig_name_wrapper(getname);
-  //   String *setwname = GetFlag(n, "feature:immutable") ? NewString("matlab_set_immutable") : Swig_name_wrapper(setname);
-  //   assert(s_members_tab);
-
-  //   Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getwname, setwname);
-
-  //   Delete(getname);
-  //   Delete(setname);
-  //   Delete(getwname);
-  //   Delete(setwname);
-  //   return SWIG_OK;
-  // }
-
-  // int MATLAB::constructorHandler(Node *n) {
-  //   have_constructor = 1;
-  //   if (!constructor_name)
-  //     constructor_name = NewString(Getattr(n, "sym:name"));
-
-  //   int use_director = Swig_directorclass(n);
-  //   if (use_director) {
-  //     Parm *parms = Getattr(n, "parms");
-  //     Parm *self;
-  //     String *name = NewString("self");
-  //     String *type = NewString("void");
-  //     SwigType_add_pointer(type);
-  //     self = NewParm(type, name, n);
-  //     Delete(type);
-  //     Delete(name);
-  //     Setattr(self, "lname", "self_obj");
-  //     if (parms)
-  //       set_nextSibling(self, parms);
-  //     Setattr(n, "parms", self);
-  //     Setattr(n, "wrap:self", "1");
-  //     Setattr(n, "hidden", "1");
-  //     Delete(self);
-  //   }
-
-  //   return Language::constructorHandler(n);
-  // }
-
-  // int MATLAB::destructorHandler(Node *n) {
-  //   have_destructor = 1;
-  //   return Language::destructorHandler(n);
-  // }
-
-  // int MATLAB::staticmemberfunctionHandler(Node *n) {
-  //   Language::staticmemberfunctionHandler(n);
-
-  //   assert(s_members_tab);
-  //   assert(class_name);
-  //   String *name = Getattr(n, "name");
-  //   String *iname = GetChar(n, "sym:name");
-  //   String *realname = iname ? iname : name;
-  //   String *wname = Getattr(n, "wrap:name");
-  //   assert(wname);
-
-  //   if (!Getattr(n, "sym:nextSibling")) {
-  //     String *tname = texinfo_name(n);
-  //     String *rname = Copy(wname);
-  //     bool overloaded = !!Getattr(n, "sym:overloaded");
-  //     if (overloaded)
-  //       Delslice(rname, Len(rname) - Len(Getattr(n, "sym:overname")), DOH_END);
-  //     Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s},\n", 
-  //            realname, rname, tname);
-  //     Delete(rname);
-  //     Delete(tname);
-  //   }
-    
-  //   return SWIG_OK;
-  // }
-
-  // int MATLAB::memberconstantHandler(Node *n) {
-  //   return Language::memberconstantHandler(n);
-  // }
-
-  // int MATLAB::staticmembervariableHandler(Node *n) {
-  //   Setattr(n, "feature:autodoc", "0");
-
-  //   Language::staticmembervariableHandler(n);
-
-  //   if (!GetFlag(n, "wrappedasconstant")) {
-  //     assert(s_members_tab);
-  //     assert(class_name);
-  //     String *symname = Getattr(n, "sym:name");
-  //     String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  //     String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  //     String *getwname = Swig_name_wrapper(getname);
-  //     String *setwname = GetFlag(n, "feature:immutable") ? NewString("matlab_set_immutable") : Swig_name_wrapper(setname);
-  //     assert(s_members_tab);
-
-  //     Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getwname, setwname);
-
-  //     Delete(getname);
-  //     Delete(setname);
-  //     Delete(getwname);
-  //     Delete(setwname);
-  //   }
-  //   return SWIG_OK;
-  // }
-
-  // int MATLAB::classDirectorInit(Node *n) {
-  //   String *declaration = Swig_director_declaration(n);
-  //   Printf(f_directors_h, "\n");
-  //   Printf(f_directors_h, "%s\n", declaration);
-  //   Printf(f_directors_h, "public:\n");
-  //   Delete(declaration);
-  //   return Language::classDirectorInit(n);
-  // }
-
-  // int MATLAB::classDirectorEnd(Node *n) {
-  //   Printf(f_directors_h, "};\n\n");
-  //   return Language::classDirectorEnd(n);
-  // }
-
-  // int MATLAB::classDirectorConstructor(Node *n) {
-  //   Node *parent = Getattr(n, "parentNode");
-  //   String *sub = NewString("");
-  //   String *decl = Getattr(n, "decl");
-  //   String *supername = Swig_class_name(parent);
-  //   String *classname = NewString("");
-  //   Printf(classname, "SwigDirector_%s", supername);
-
-  //   // insert self parameter
-  //   Parm *p;
-  //   ParmList *superparms = Getattr(n, "parms");
-  //   ParmList *parms = CopyParmList(superparms);
-  //   String *type = NewString("void");
-  //   SwigType_add_pointer(type);
-  //   p = NewParm(type, NewString("self"), n);
-  //   set_nextSibling(p, parms);
-  //   parms = p;
-
-  //   if (!Getattr(n, "defaultargs")) {
-  //     // constructor
-  //     {
-  //       Wrapper *w = NewWrapper();
-  //       String *call;
-  //       String *basetype = Getattr(parent, "classtype");
-  //       String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
-  //       call = Swig_csuperclass_call(0, basetype, superparms);
-  //       Printf(w->def, "%s::%s: %s," "\nSwig::Director(static_cast<%s*>(this)) { \n", classname, target, call, basetype);
-  //       Append(w->def, "}\n");
-  //       Delete(target);
-  //       Wrapper_print(w, f_directors);
-  //       Delete(call);
-  //       DelWrapper(w);
-  //     }
-
-  //     // constructor header
-  //     {
-  //       String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
-  //       Printf(f_directors_h, "    %s;\n", target);
-  //       Delete(target);
-  //     }
-  //   }
-
-  //   Delete(sub);
-  //   Delete(classname);
-  //   Delete(supername);
-  //   Delete(parms);
-  //   return Language::classDirectorConstructor(n);
-  // }
-
-  // int MATLAB::classDirectorDefaultConstructor(Node *n) {
-  //   String *classname = Swig_class_name(n);
-  //   {
-  //     Wrapper *w = NewWrapper();
-  //     Printf(w->def, "SwigDirector_%s::SwigDirector_%s(void* self) :"
-  //            "\nSwig::Director((matlab_swig_type*)self,static_cast<%s*>(this)) { \n", classname, classname, classname);
-  //     Append(w->def, "}\n");
-  //     Wrapper_print(w, f_directors);
-  //     DelWrapper(w);
-  //   }
-  //   Printf(f_directors_h, "    SwigDirector_%s(matlab_swig_type* self);\n", classname);
-  //   Delete(classname);
-  //   return Language::classDirectorDefaultConstructor(n);
-  // }
-
-  // int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
-  //   int is_void = 0;
-  //   int is_pointer = 0;
-  //   String *decl = Getattr(n, "decl");
-  //   String *returntype = Getattr(n, "type");
-  //   String *name = Getattr(n, "name");
-  //   String *classname = Getattr(parent, "sym:name");
-  //   String *c_classname = Getattr(parent, "name");
-  //   String *symname = Getattr(n, "sym:name");
-  //   String *declaration = NewString("");
-  //   ParmList *l = Getattr(n, "parms");
-  //   Wrapper *w = NewWrapper();
-  //   String *tm;
-  //   String *wrap_args = NewString("");
-  //   String *value = Getattr(n, "value");
-  //   String *storage = Getattr(n, "storage");
-  //   bool pure_virtual = false;
-  //   int status = SWIG_OK;
-  //   int idx;
-  //   bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-
-  //   if (Cmp(storage, "virtual") == 0) {
-  //     if (Cmp(value, "0") == 0) {
-  //       pure_virtual = true;
-  //     }
-  //   }
-
-  //   // determine if the method returns a pointer
-  //   is_pointer = SwigType_ispointer_return(decl);
-  //   is_void = (!Cmp(returntype, "void") && !is_pointer);
-
-  //   // virtual method definition
-  //   String *target;
-  //   String *pclassname = NewStringf("SwigDirector_%s", classname);
-  //   String *qualified_name = NewStringf("%s::%s", pclassname, name);
-  //   SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-  //   target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
-  //   Printf(w->def, "%s", target);
-  //   Delete(qualified_name);
-  //   Delete(target);
-
-  //   // header declaration
-  //   target = Swig_method_decl(rtype, decl, name, l, 0, 1);
-  //   Printf(declaration, "    virtual %s", target);
-  //   Delete(target);
-
-  //   // Get any exception classes in the throws typemap
-  //   ParmList *throw_parm_list = 0;
-
-  //   if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-  //     Parm *p;
-  //     int gencomma = 0;
-
-  //     Append(w->def, " throw(");
-  //     Append(declaration, " throw(");
-
-  //     if (throw_parm_list)
-  //       Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-  //     for (p = throw_parm_list; p; p = nextSibling(p)) {
-  //       if (Getattr(p, "tmap:throws")) {
-  //         if (gencomma++) {
-  //           Append(w->def, ", ");
-  //           Append(declaration, ", ");
-  //         }
-  //         String *str = SwigType_str(Getattr(p, "type"), 0);
-  //         Append(w->def, str);
-  //         Append(declaration, str);
-  //         Delete(str);
-  //       }
-  //     }
-
-  //     Append(w->def, ")");
-  //     Append(declaration, ")");
-  //   }
-
-  //   Append(w->def, " {");
-  //   Append(declaration, ";\n");
-
-  //   // declare method return value 
-  //   // if the return value is a reference or const reference, a specialized typemap must
-  //   // handle it, including declaration of c_result ($result).
-  //   if (!is_void) {
-  //     if (!(ignored_method && !pure_virtual)) {
-  //       String *cres = SwigType_lstr(returntype, "c_result");
-  //       Printf(w->code, "%s;\n", cres);
-  //       Delete(cres);
-  //     }
-  //   }
-
-  //   if (ignored_method) {
-  //     if (!pure_virtual) {
-  //       if (!is_void)
-  //         Printf(w->code, "return ");
-  //       String *super_call = Swig_method_call(super, l);
-  //       Printf(w->code, "%s;\n", super_call);
-  //       Delete(super_call);
-  //     } else {
-  //       Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-  //              SwigType_namestr(name));
-  //     }
-  //   } else {
-  //     // attach typemaps to arguments (C/C++ -> Python)
-  //     String *parse_args = NewString("");
-
-  //     Swig_director_parms_fixup(l);
-
-  //     Swig_typemap_attach_parms("in", l, 0);
-  //     Swig_typemap_attach_parms("directorin", l, 0);
-  //     Swig_typemap_attach_parms("directorargout", l, w);
-
-  //     Parm *p;
-
-  //     int outputs = 0;
-  //     if (!is_void)
-  //       outputs++;
-
-  //     // build argument list and type conversion string
-  //     p = l;
-  //     while (p) {
-  //       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-  //         p = Getattr(p, "tmap:in:next");
-  //         continue;
-  //       }
-
-  //       if (Getattr(p, "tmap:directorargout") != 0)
-  //         outputs++;
-
-  //       String *pname = Getattr(p, "name");
-  //       String *ptype = Getattr(p, "type");
-  //       Wrapper_add_local(w, "tmpv", "matlab_value tmpv");
-
-  //       if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-  //         String *parse = Getattr(p, "tmap:directorin:parse");
-  //         if (!parse) {
-  //           Setattr(p, "emit:directorinput", "tmpv");
-  //           Replaceall(tm, "$input", "tmpv");
-  //           Replaceall(tm, "$owner", "0");
-  //           Printv(wrap_args, tm, "\n", NIL);
-  //           Printf(wrap_args, "args.append(tmpv);\n");
-  //           Putc('O', parse_args);
-  //         } else {
-  //           Append(parse_args, parse);
-  //           Setattr(p, "emit:directorinput", pname);
-  //           Replaceall(tm, "$input", pname);
-  //           Replaceall(tm, "$owner", "0");
-  //           if (Len(tm) == 0)
-  //             Append(tm, pname);
-  //         }
-  //         p = Getattr(p, "tmap:directorin:next");
-  //         continue;
-  //       } else if (Cmp(ptype, "void")) {
-  //         Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-  //       	       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
-  //       	       SwigType_namestr(c_classname), SwigType_namestr(name));
-  //         status = SWIG_NOWRAP;
-  //         break;
-  //       }
-  //       p = nextSibling(p);
-  //     }
-
-  //     String *method_name = Getattr(n, "sym:name");
-
-  //     Printv(w->code, wrap_args, NIL);
-
-  //     // emit method invocation
-  //     Wrapper_add_local(w, "args", "matlab_value_list args");
-  //     Wrapper_add_local(w, "out", "matlab_value_list out");
-  //     Wrapper_add_local(w, "idx", "std::list<matlab_value_list> idx");
-  //     Printf(w->code, "idx.push_back(matlab_value_list(\"%s\"));\n", method_name);
-  //     Printf(w->code, "idx.push_back(args);\n");
-  //     Printf(w->code, "out=swig_get_self()->subsref(\".(\",idx,%d);\n", outputs);
-
-  //     String *cleanup = NewString("");
-  //     String *outarg = NewString("");
-  //     idx = 0;
-
-  //     // marshal return value
-  //     if (!is_void) {
-  //       Printf(w->code, "if (out.length()<%d) {\n", outputs);
-  //       Printf(w->code, "Swig::DirectorTypeMismatchException::raise(\"Matlab "
-  //              "method %s.%s failed to return the required number " "of arguments.\");\n", classname, method_name);
-  //       Printf(w->code, "}\n");
-
-  //       tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-  //       if (tm != 0) {
-  //         char temp[24];
-  //         sprintf(temp, "out(%d)", idx);
-  //         Replaceall(tm, "$input", temp);
-  //         //    Replaceall(tm, "$argnum", temp);
-  //         Replaceall(tm, "$disown", Getattr(n, "wrap:disown") ? "SWIG_POINTER_DISOWN" : "0");
-  //         if (Getattr(n, "tmap:directorout:implicitconv")) {
-  //           Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
-  //         }
-  //         Replaceall(tm, "$result", "c_result");
-  //         Printv(w->code, tm, "\n", NIL);
-  //         Delete(tm);
-  //       } else {
-  //         Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-  //       	       "Unable to use return type %s in director method %s::%s (skipping method).\n",
-  //       	       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-  //         status = SWIG_ERROR;
-  //       }
-  //     }
-  //     idx++;
-
-  //     // marshal outputs
-  //     for (p = l; p;) {
-  //       if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-  //         char temp[24];
-  //         sprintf(temp, "out(%d)", idx);
-  //         Replaceall(tm, "$result", temp);
-  //         Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
-  //         Printv(w->code, tm, "\n", NIL);
-  //         p = Getattr(p, "tmap:directorargout:next");
-  //       } else {
-  //         p = nextSibling(p);
-  //       }
-  //     }
-
-  //     Delete(parse_args);
-  //     Delete(cleanup);
-  //     Delete(outarg);
-  //   }
-
-  //   if (!is_void) {
-  //     if (!(ignored_method && !pure_virtual)) {
-  //       String *rettype = SwigType_str(returntype, 0);
-  //       if (!SwigType_isreference(returntype)) {
-  //         Printf(w->code, "return (%s) c_result;\n", rettype);
-  //       } else {
-  //         Printf(w->code, "return (%s) *c_result;\n", rettype);
-  //       }
-  //       Delete(rettype);
-  //     }
-  //   }
-
-  //   Append(w->code, "}\n");
-
-  //   // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
-  //   String *inline_extra_method = NewString("");
-  //   if (dirprot_mode() && !is_public(n) && !pure_virtual) {
-  //     Printv(inline_extra_method, declaration, NIL);
-  //     String *extra_method_name = NewStringf("%sSwigPublic", name);
-  //     Replaceall(inline_extra_method, name, extra_method_name);
-  //     Replaceall(inline_extra_method, ";\n", " {\n      ");
-  //     if (!is_void)
-  //       Printf(inline_extra_method, "return ");
-  //     String *methodcall = Swig_method_call(super, l);
-  //     Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
-  //     Delete(methodcall);
-  //     Delete(extra_method_name);
-  //   }
-  //   // emit the director method
-  //   if (status == SWIG_OK) {
-  //     if (!Getattr(n, "defaultargs")) {
-  //       Replaceall(w->code, "$symname", symname);
-  //       Wrapper_print(w, f_directors);
-  //       Printv(f_directors_h, declaration, NIL);
-  //       Printv(f_directors_h, inline_extra_method, NIL);
-  //     }
-  //   }
-  //   // clean up
-  //   Delete(wrap_args);
-  //   Delete(pclassname);
-  //   DelWrapper(w);
-  //   return status;
-  // }
-
-  // String* MATLAB::runtimeCode() {
-  //   String *s = NewString("");
-  //   String *srun = Swig_include_sys("matrun.swg");
-  //   if (!srun) {
-  //     Printf(stderr, "*** Unable to open 'matrun.swg'\n");
-  //   } else {
-  //     Append(s, srun);
-  //     Delete(srun);
-  //   }
-  //   return s;
-  // }
-
-  // String* MATLAB::defaultExternalRuntimeFilename(){
-  //   return NewString("swigmatlabrun.h");
-  // }
-
+int MATLAB::memberfunctionHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+  Printf(stderr,"Entering memberfunctionHandler\n");
+#endif
+  return Language::memberfunctionHandler(n);
+}
+
+int MATLAB::membervariableHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering membervariableHandler\n");
+#endif
+    return Language::membervariableHandler(n);
+}
+
+int MATLAB::constructorHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering constructorHandler\n");
+#endif
+    return Language::constructorHandler(n);
+}
+
+int MATLAB::destructorHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering destructorHandler\n");
+#endif
+    return Language::destructorHandler(n);
+}
+
+int MATLAB::staticmemberfunctionHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering staticmemberfunctionHandler\n");
+#endif
+    return Language::staticmemberfunctionHandler(n);
+}
+
+ int MATLAB::memberconstantHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering memberconstantHandler\n");
+#endif
+    return Language::memberconstantHandler(n);
+}
+
+ int MATLAB::staticmembervariableHandler(Node *n) {
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering staticmembervariableHandler\n");
+#endif
+    return Language::staticmembervariableHandler(n);
+}
+
+/*
+  this function names unnamed parameters
+
+  Security by obscurity! If user chooses swig_par_name_2 as a parameter name
+  for the first parameter and does not name the second one, boom.
+*/
+void MATLAB::nameUnnamedParams(ParmList *parms, bool all) {
+  Parm *p;
+  int i;
+  for (p = parms, i=1; p; p = nextSibling(p),i++) {
+    if(all || !Getattr(p,"name")) {
+      String* parname=NewStringf("swig_par_name_%d", i);
+      Setattr(p,"name",parname);
+    }
+
+  }
+}
+
+String *MATLAB::getOverloadedName(Node *n) {
+  String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
+  if (Getattr(n, "sym:overloaded")) {
+    Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
+  }
+  return overloaded_name;
+}
