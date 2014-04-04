@@ -275,6 +275,7 @@ static void freeze_line(Scanner *s, int val) {
  * ----------------------------------------------------------------------------- */
 int*
 Scanner_brackets(Scanner *s) {
+  assert(Len(s->brackets) > 0);
   return (int*)(**((void***)Getitem(s->brackets, 0))); /* TODO: Use VoidObj*->ptr instead of void** */
 }
 
@@ -310,6 +311,17 @@ Scanner_inc_brackets(Scanner *s) {
 void
 Scanner_dec_brackets(Scanner *s) {
   (*Scanner_brackets(s))--;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_reset_brackets()
+ *
+ * Sets the number of '<' brackets back to zero. Called at the point where
+ * it is no longer possible to have a matching closing >> pair for a template.
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_reset_brackets(Scanner *s) {
+  (*Scanner_brackets(s)) = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -544,7 +556,9 @@ static int look(Scanner * s) {
       else if (c == '}')
 	return SWIG_TOKEN_RBRACE;
       else if (c == '{') {
-        Scanner_clear_brackets(s);
+	/* Reset count to zero */
+        Scanner_pop_brackets(s);
+        Scanner_push_brackets(s);
 	return SWIG_TOKEN_LBRACE;
       }
       else if (c == '=')
