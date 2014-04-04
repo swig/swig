@@ -562,6 +562,10 @@ int MATLAB::top(Node *n) {
 
 
 int MATLAB::functionWrapper(Node *n){
+#ifdef MATLABPRINTFUNCTIONENTRY
+    Printf(stderr,"Entering functionWrapper\n");
+#endif
+
   // Get useful attributes 
   String   *name   = Getattr(n,"sym:name");
   SwigType *type   = Getattr(n,"type");
@@ -739,15 +743,21 @@ int MATLAB::classHandler(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
 
+    //    List *baselist = Getattr(n, "bases");
+
     // Declare class in .m file
     Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
     Printf(f_wrap_m, "properties (GetAccess = public, SetAccess = private)\n");
     Printf(f_wrap_m, "ptr\n");
-    Printf(f_wrap_m, "end\n\n");
+    Printf(f_wrap_m, "end %%properties\n");
     Printf(f_wrap_m, "methods\n");
 
     // Emit member functions
     Language::classHandler(n);
+
+    // Finalize file
+    Printf(f_wrap_m, "end %%methods\n");
+    Printf(f_wrap_m, "end %%classdef\n");
 
     // Tidy up
     Delete(f_wrap_m);
@@ -761,7 +771,10 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
-  return Language::memberfunctionHandler(n);
+  Printf(f_wrap_m,"function [retVal] = %s(varargin)\n",Getattr(n,"sym:name"));
+  int flag = Language::memberfunctionHandler(n);
+  Printf(f_wrap_m, "end\n");
+  return flag;
 }
 
 int MATLAB::membervariableHandler(Node *n) {
@@ -775,14 +788,20 @@ int MATLAB::constructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering constructorHandler\n");
 #endif
-    return Language::constructorHandler(n);
+    Printf(f_wrap_m,"function [this] = %s(varargin)\n",Getattr(n,"sym:name"));
+    int flag = Language::constructorHandler(n);
+    Printf(f_wrap_m, "end\n");
+    return flag;
 }
 
 int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering destructorHandler\n");
 #endif
-    return Language::destructorHandler(n);
+    Printf(f_wrap_m,"function delete(varargin)\n");
+    int flag = Language::destructorHandler(n);
+    Printf(f_wrap_m, "end\n");
+    return flag;
 }
 
 int MATLAB::staticmemberfunctionHandler(Node *n) {
