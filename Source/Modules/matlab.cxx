@@ -570,51 +570,83 @@ int MATLAB::top(Node *n) {
 
 
 int MATLAB::functionWrapper(Node *n){
-  /* Get some useful attributes of this function */
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
-  String   *parmstr= ParmList_str_defaultargs(parms); // to string
-  String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-  String   *action = Getattr(n,"wrap:action");
+  // Get useful attributes 
+  String   *iname   = Getattr(n,"sym:name");
+  SwigType *d   = Getattr(n,"type");
+  ParmList *l  = Getattr(n,"parms");
+  //   String *nodeType = Getattr(n, "nodeType");
+  //   String *storage = Getattr(n, "storage");
+  
+  // Debug: Dump to file
+  if(true){
+    String   *parmstr= ParmList_str_defaultargs(l); // to string
+    String   *func   = SwigType_str(d, NewStringf("%s(%s)", iname, parmstr));
+    String   *action = Getattr(n,"wrap:action");
+    Printf(f_wrappers,"functionWrapper   : %s\n", func);
+    Printf(f_wrappers,"           action : %s\n", action);
+  }
 
-  Printf(f_wrappers,"functionWrapper   : %s\n", func);
-  Printf(f_wrappers,"           action : %s\n", action);
-
-
+  // Create the wrapper object 
+  Wrapper *f = NewWrapper();
+  
+  // Create the functions wrappered name
+  String *wname = Swig_name_wrapper(iname);
+  
+  // Deal with overloading 
   //   Parm *p;
   //   String *tm;
   //   int j;
-    
-  //   String *nodeType = Getattr(n, "nodeType");
   //   int constructor = (!Cmp(nodeType, "constructor"));
   //   int destructor = (!Cmp(nodeType, "destructor"));
-  //   String *storage = Getattr(n, "storage");
-
   //   bool overloaded = !!Getattr(n, "sym:overloaded");
   //   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
-  //   String *iname = Getattr(n, "sym:name");
-  //   String *wname = Swig_name_wrapper(iname);
   //   String *overname = Copy(wname);
-  //   SwigType *d = Getattr(n, "type");
-  //   ParmList *l = Getattr(n, "parms");
-
-  //   if (!overloaded && !addSymbol(iname, n))
-  //     return SWIG_ERROR;
-
-  //   if (overloaded)
-  //     Append(overname, Getattr(n, "sym:overname"));
-
-  //   if (!overloaded || last_overload)
-  //     process_autodoc(n);
-
-  //   Wrapper *f = NewWrapper();
+  //   if (!overloaded && !addSymbol(iname, n)) return SWIG_ERROR;
+  //   if (overloaded) Append(overname, Getattr(n, "sym:overname"));
+  //   if (!overloaded || last_overload) process_autodoc(n);
+  
+  // Write the wrapper function definition
   //   Matlab_begin_function(n, f->def, iname, overname, !overloaded);
+  
+  // If any additional local variable needed, add them now  
+  // ..
+  
+  // Write the list of locals/arguments required
+  // ..
+
+  // Check arguments 
+  // ..
+  
+  // Write typemaps(in) 
+  // ..
+
+  // Write constraints
+  // ..
+
+  // Emit the function call 
+  // ..
+
+  // return value if necessary 
+  // ..
+
+  // Write typemaps(out) 
+  // ..
+  
+  // Add cleanup code
+  // ..
+  
+  // Close the function(ok)
+  // ..
+  
+  // Add the failure cleanup code
+  // ..
+  
+   
+  
 
   //   emit_parameter_variables(l, f);
   //   emit_attach_parmmaps(l, f);
   //   Setattr(n, "wrap:parms", l);
-
   //   int num_arguments = emit_num_arguments(l);
   //   int num_required = emit_num_required(l);
   //   int varargs = emit_isvarargs(l);
@@ -798,21 +830,23 @@ int MATLAB::functionWrapper(Node *n){
   //   }
 
   //   Printf(f->code, "return _out;\n");
+
+  // Close the function(error)
   //   Printf(f->code, "fail:\n");	// we should free locals etc if this happens
   //   Printv(f->code, cleanup, NIL);
   //   Printf(f->code, "return matlab_value_list();\n");
   //   Printf(f->code, "}\n");
 
-  //   /* Substitute the cleanup code */
+  // Substitute the cleanup code
   //   Replaceall(f->code, "$cleanup", cleanup);
-
   //   Replaceall(f->code, "$symname", iname);
-  //   Wrapper_print(f, f_wrappers);
-  //   DelWrapper(f);
 
-  //   if (last_overload)
-  //     dispatchFunction(n);
+  // Dump the function out  
+  Wrapper_print(f, f_wrappers);
 
+  // Tidy up
+  DelWrapper(f);
+  //   if (last_overload) dispatchFunction(n);
   //   if (!overloaded || last_overload) {
   //     String *tname = texinfo_name(n);
   //     Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s},\n", iname, wname, tname);
@@ -820,10 +854,9 @@ int MATLAB::functionWrapper(Node *n){
   //   }
 
   //   Delete(overname);
-  //   Delete(wname);
+  Delete(wname);
   //   Delete(cleanup);
   //   Delete(outarg);
-
   return SWIG_OK;
 }
 
