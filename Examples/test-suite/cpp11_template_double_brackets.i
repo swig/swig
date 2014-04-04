@@ -24,6 +24,14 @@ public:
   int operator<<(ABC &) { return 0; }
 };
 
+class DEF {
+public:
+  int a;
+  int operator<<(DEF &) { return 0; }
+  int operator>>(DEF &) { return 0; }
+};
+
+
 template<class T>
 class ABC2 {
 public:

@@ -543,8 +543,10 @@ static int look(Scanner * s) {
 	state = 220;
       else if (c == '}')
 	return SWIG_TOKEN_RBRACE;
-      else if (c == '{')
+      else if (c == '{') {
+        Scanner_clear_brackets(s);
 	return SWIG_TOKEN_LBRACE;
+      }
       else if (c == '=')
 	state = 33;
       else if (c == '+')
