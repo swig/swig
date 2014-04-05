@@ -65,7 +65,7 @@ Putc(ch,obj)                    Put a character
 Ungetc(ch,obj)                  Put character back on input stream
 Seek(obj,offset,whence)         Seek
 Tell(obj)                       Return file pointer
-Close(obj)                      Close
+Delete(obj)                     Decrease the reference count, close file if zero
 
 String Operations
 -----------------
