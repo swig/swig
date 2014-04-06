@@ -55,6 +55,8 @@ protected:
   File *f_wrappers;
   File *f_init;
 
+  String* mexname;
+
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
   String *getOverloadedName(Node *n);
@@ -74,7 +76,8 @@ MATLAB::MATLAB() :
   f_runtime(0),
   f_header(0),
   f_wrappers(0),
-  f_init(0)
+  f_init(0),
+  mexname(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering MATLAB()\n");
@@ -162,6 +165,10 @@ int MATLAB::top(Node *n) {
 
   /* Get the module name */
   String *module = Getattr(n, "name");
+
+  /* Name the mex function */
+  mexname=NewString(module);
+  Append(mexname,"_wrap");
 
   /* Get .h wrapper file name*/
   String *hfile = Getattr(n,"outfile_h");
@@ -279,7 +286,7 @@ int MATLAB::top(Node *n) {
   Delete(f_begin);
   Delete(f_wrap_h_body);
   Delete(f_wrap_h);
-
+  Delete(mexname);
   return SWIG_OK;
 }
 
@@ -771,10 +778,10 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
-  Printf(f_wrap_m,"function [retVal] = %s(varargin)\n",Getattr(n,"sym:name"));
-  int flag = Language::memberfunctionHandler(n);
-  Printf(f_wrap_m, "end\n");
-  return flag;
+  Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",Getattr(n,"sym:name"));
+  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mexname,Getattr(n,"sym:name"));
+  Printf(f_wrap_m,"end\n");
+  return Language::memberfunctionHandler(n);
 }
 
 int MATLAB::membervariableHandler(Node *n) {
@@ -788,20 +795,20 @@ int MATLAB::constructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering constructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function [this] = %s(varargin)\n",Getattr(n,"sym:name"));
-    int flag = Language::constructorHandler(n);
-    Printf(f_wrap_m, "end\n");
-    return flag;
+    Printf(f_wrap_m,"function this = %s(varargin)\n",Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mexname,Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"end\n");
+    return Language::constructorHandler(n);
 }
 
 int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering destructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function delete(varargin)\n");
-    int flag = Language::destructorHandler(n);
-    Printf(f_wrap_m, "end\n");
-    return flag;
+    Printf(f_wrap_m,"function delete(h)\n");
+    Printf(f_wrap_m,"%s('%s',h)\n",mexname,Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"end\n");
+    return Language::destructorHandler(n);
 }
 
 int MATLAB::staticmemberfunctionHandler(Node *n) {

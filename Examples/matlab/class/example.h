@@ -15,20 +15,20 @@ public:
   static  int nshapes;
 };
 
-/* class Circle : public Shape { */
-/* private: */
-/*   double radius; */
-/* public: */
-/*   Circle(double r) : radius(r) { } */
-/*   virtual double area(); */
-/*   virtual double perimeter(); */
-/* }; */
+class Circle : public Shape {
+private:
+  double radius;
+public:
+  Circle(double r) : radius(r) { }
+  virtual double area();
+  virtual double perimeter();
+};
 
-/* class Square : public Shape { */
-/* private: */
-/*   double width; */
-/* public: */
-/*   Square(double w) : width(w) { } */
-/*   virtual double area(); */
-/*   virtual double perimeter(); */
-/* }; */
+class Square : public Shape {
+private:
+  double width;
+public:
+  Square(double w) : width(w) { }
+  virtual double area();
+  virtual double perimeter();
+};
