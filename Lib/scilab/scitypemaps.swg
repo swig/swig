@@ -18,12 +18,12 @@
 
 /* ---------------------------------------------------------------------------*/
 /* Generic typmemaps                                                          */
+/*                                                                            */
+/* This typemap is used when Scilab does not store this type directly         */
+/* For example, a 'float' is stored in Scilab as a 'double'                   */
+/* So we read a 'double' in Scilab and cast it to a 'float'                   */
 /* ---------------------------------------------------------------------------*/
 
- * This typemap is used when Scilab does not store this type directly
- * For example, a 'float' is stored in Scilab as a 'double'
- * So we read a 'double' in Scilab and cast it to a 'float'
- */
 %define %scilab_in_typemap_withcast(TYPEMAPTYPE, FRAGMENTNAME, CTYPE, TEMPTYPE, TEMPINIT)
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
   TEMPTYPE tempValue = TEMPINIT;
@@ -203,3 +203,10 @@
   if (SWIG_CreateScilabVariable_double(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
+
+
+/* ---------------------------------------------------------------------------*/
+/* Exception typmemaps                                                        */
+/* ---------------------------------------------------------------------------*/
+
+%include "sciexception.swg"

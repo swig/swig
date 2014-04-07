@@ -236,14 +236,16 @@ SWIG_Scilab_ErrorMsg(int code, const char *msg)
 
 
 SWIGRUNTIME int
-SwigScilabRaise(const char *type) {
-  Scierror(999, "An exception of type %s has been thrown.\n", type);
-#ifdef __cplusplus
-  throw;
-#endif
+SwigScilabRaise(const char *obj, const char *type, swig_type_info *descriptor) {
+  if (type) {
+    if (obj)
+      Scierror(999, "Exception (%s) occured: %s\n", type, obj);
+    else
+      Scierror(999, "Exception (%s) occured.\n", type);
+  }
 }
 
-#define SWIG_Scilab_Raise(obj, type, desc) SwigScilabRaise(type)
+#define SWIG_Scilab_Raise(obj, type, descriptor) SwigScilabRaise(obj, type, descriptor)
 
 /*
  *  Pointer utility functions
