@@ -46,14 +46,11 @@
   %raise(obj, "$type", $descriptor);
 }
 
-
-
-
 %typemap(throws, noblock=1) SWIGTYPE,
                             SWIGTYPE*,
                             SWIGTYPE [ANY],
                             SWIGTYPE & {
-  %raise(NULL, "$type", $descriptor);
+  %raise((char*)NULL, "$type", $descriptor);
 }
 
 %typemap(throws, noblock=1) (...) {
