@@ -549,9 +549,7 @@ static int look(Scanner *s) {
       else if (c == '}')
 	return SWIG_TOKEN_RBRACE;
       else if (c == '{') {
-	/* Reset count to zero */
-        brackets_pop(s);
-        brackets_push(s);
+        brackets_reset(s);
 	return SWIG_TOKEN_LBRACE;
       }
       else if (c == '=')
