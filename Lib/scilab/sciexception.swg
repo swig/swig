@@ -11,7 +11,9 @@
 				                    long&, unsigned long&, signed long&,
 				                    short&, unsigned short&, signed short&,
 				                    long long&, unsigned long long&,
-				                    unsigned char&, signed char& {
+				                    unsigned char&, signed char&,
+                            size_t, size_t&,
+                            ptrdiff_t, ptrdiff_t& {
   char obj[20];
   sprintf(obj, "%d", $1);
   %raise(obj, "$type", $descriptor);
@@ -30,9 +32,22 @@
   %raise(obj, "$type", $descriptor);
 }
 
+%typemap(throws, noblock=1) bool, bool& {
+  %raise($1 ? "true" : "false", "$type", $descriptor);
+}
+
 %typemap(throws, noblock=1) char*, char[ANY] {
   %raise($1, "$type", $descriptor);
 }
+
+%typemap(throws, noblock=1) char, char& {
+  char obj[1];
+  sprintf(obj, "%c", $1);
+  %raise(obj, "$type", $descriptor);
+}
+
+
+
 
 %typemap(throws, noblock=1) SWIGTYPE,
                             SWIGTYPE*,
