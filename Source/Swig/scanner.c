@@ -45,8 +45,8 @@ typedef struct Locator {
 } Locator;
 static int follow_locators = 0;
 
-static void brackets_push(Scanner*);
-static void brackets_clear(Scanner*);
+static void brackets_push(Scanner *);
+static void brackets_clear(Scanner *);
 
 /* -----------------------------------------------------------------------------
  * NewScanner()
@@ -80,7 +80,7 @@ Scanner *NewScanner(void) {
  * Delete a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void DelScanner(Scanner * s) {
+void DelScanner(Scanner *s) {
   assert(s);
   Delete(s->scanobjs);
   Delete(s->brackets);
@@ -98,7 +98,7 @@ void DelScanner(Scanner * s) {
  * Clear the contents of a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_clear(Scanner * s) {
+void Scanner_clear(Scanner *s) {
   assert(s);
   Delete(s->str);
   Clear(s->text);
@@ -126,7 +126,7 @@ void Scanner_clear(Scanner * s) {
  * immediately before returning to the old text.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_push(Scanner * s, String *txt) {
+void Scanner_push(Scanner *s, String *txt) {
   assert(s && txt);
   Push(s->scanobjs, txt);
   if (s->str) {
@@ -145,7 +145,7 @@ void Scanner_push(Scanner * s, String *txt) {
  * call to Scanner_token().
  * ----------------------------------------------------------------------------- */
 
-void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
+void Scanner_pushtoken(Scanner *s, int nt, const_String_or_char_ptr val) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
@@ -161,7 +161,7 @@ void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
  * Set the file and line number location of the scanner.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_set_location(Scanner * s, String *file, int line) {
+void Scanner_set_location(Scanner *s, String *file, int line) {
   Setline(s->str, line);
   Setfile(s->str, file);
   s->line = line;
@@ -173,7 +173,7 @@ void Scanner_set_location(Scanner * s, String *file, int line) {
  * Get the current file.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_file(Scanner * s) {
+String *Scanner_file(Scanner *s) {
   return Getfile(s->str);
 }
 
@@ -182,7 +182,7 @@ String *Scanner_file(Scanner * s) {
  *
  * Get the current line number
  * ----------------------------------------------------------------------------- */
-int Scanner_line(Scanner * s) {
+int Scanner_line(Scanner *s) {
   return s->line;
 }
 
@@ -191,7 +191,7 @@ int Scanner_line(Scanner * s) {
  *
  * Get the line number on which the current token starts
  * ----------------------------------------------------------------------------- */
-int Scanner_start_line(Scanner * s) {
+int Scanner_start_line(Scanner *s) {
   return s->start_line;
 }
 
@@ -201,7 +201,7 @@ int Scanner_start_line(Scanner * s) {
  * Change the set of additional characters that can be used to start an identifier.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_idstart(Scanner * s, const char *id) {
+void Scanner_idstart(Scanner *s, const char *id) {
   free(s->idstart);
   s->idstart = Swig_copy_string(id);
 }
@@ -211,7 +211,7 @@ void Scanner_idstart(Scanner * s, const char *id) {
  * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
-static char nextchar(Scanner * s) {
+static char nextchar(Scanner *s) {
   int nc;
   if (!s->str)
     return 0;
@@ -346,7 +346,7 @@ static void brackets_pop(Scanner *s) {
  *
  * Retract n characters
  * ----------------------------------------------------------------------------- */
-static void retract(Scanner * s, int n) {
+static void retract(Scanner *s, int n) {
   int i, l;
   char *str;
 
@@ -487,7 +487,7 @@ static void get_escape(Scanner *s) {
  * Return the raw value of the next token.
  * ----------------------------------------------------------------------------- */
 
-static int look(Scanner * s) {
+static int look(Scanner *s) {
   int state = 0;
   int c = 0;
   String *str_delimiter = 0;
@@ -1370,7 +1370,7 @@ static int look(Scanner * s) {
  * Real entry point to return the next token. Returns 0 if at end of input.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_token(Scanner * s) {
+int Scanner_token(Scanner *s) {
   int t;
   Delete(s->error);
   if (s->nexttoken >= 0) {
@@ -1394,7 +1394,7 @@ int Scanner_token(Scanner * s) {
  * Return the lexene associated with the last returned token.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_text(Scanner * s) {
+String *Scanner_text(Scanner *s) {
   return s->text;
 }
 
@@ -1404,7 +1404,7 @@ String *Scanner_text(Scanner * s) {
  * Skips to the end of a line
  * ----------------------------------------------------------------------------- */
 
-void Scanner_skip_line(Scanner * s) {
+void Scanner_skip_line(Scanner *s) {
   char c;
   int done = 0;
   Clear(s->text);
@@ -1429,7 +1429,7 @@ void Scanner_skip_line(Scanner * s) {
  * (...).  Ignores symbols inside comments or strings.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
+int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int num_levels = 1;
   int state = 0;
