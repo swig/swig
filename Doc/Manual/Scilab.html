@@ -35,6 +35,7 @@
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_cpp_operators">C++ operators</a>
+<li><a href="#Scilab_wrapping_cpp_exceptions">C++ exceptions</a>
 <li><a href="#Scilab_wrapping_cpp_stl">C++ STL</a>
 </ul>
 <li><a href="#Scilab_typemaps">Type mappings</a>
@@ -45,7 +46,7 @@
 <li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
 <li><a href="#Scilab_typemaps_matrices">Matrices</a>
 <li><a href="#Scilab_typemaps_stl">STL</a>
-</ul>Scilab_wrapping_pointers_references_values_arrays
+</ul>
 <li><a href="#Scilab_module">Module</a>
 <ul>
 <li><a href="#Scilab_module_structure">Structure</a>
@@ -1080,11 +1081,6 @@ Then in Scilab:
 More details on template support can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG C++ documentation</a>.
 </p>
 
-<p>
-Templates are supported. See the SWIG general documentation on how templates are interfaced in SWIG.<br>
-An example of templates can be found in <tt>Examples/scilab/templates</tt>.
-</p>
-
 <H3><a name="Scilab_wrapping_cpp_operators"></a>37.3.11 C++ operators</H3>
 
 <p>
@@ -1136,7 +1132,86 @@ private:
 </pre></div>
 </p>
 
-<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.12 C++ STL</H3>
+<H3><a name="Scilab_wrapping_cpp_exceptions"></a>37.3.12 C++ exceptions</H3>
+
+<p>
+Scilab does not natively support exceptions, but has errors.
+When an exception is thrown, SWIG catches it, sets a Scilab error. An error message is displayed in Scilab.
+For example:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+void throw_exception() throw(char const*) {
+  throw "Bye world !";
+}
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt;throw_exception()
+  !--error 999
+Exception (char const *) occured: Bye world !
+</pre></div>
+</p>
+
+<p>
+Scilab has a <tt>try-catch</tt> mechanism (and a similar instruction <tt>execstr()</tt>) to handle exceptions.
+It can be used with the <tt>lasterror()</tt> function as following:
+</p>
+
+<p>
+<div class="targetlang"><pre>
+--&gt;execstr('throw_exception()', 'errcatch');
+ ans  =
+
+    999.
+
+--&gt;lasterror()
+ ans  =
+
+  Exception (char const *) occured: Bye world !
+</pre></div>
+</p>
+
+<p>
+If the function has a <tt>throw</tt> exception speficication, SWIG can map automatically the exception type and set an appropriate Scilab error message.
+It works for exception basic types, like <tt>char*</tt> in the previous example or another example, <tt>int</tt>:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+void throw_int() throw(int) {
+  throw 12;
+}
+%}
+</pre></div>
+
+<p>
+<div class="targetlang"><pre>
+--&gt;execstr('throw_int()', 'errcatch');
+ ans  =
+
+    999.
+
+--&gt;lasterror()
+ ans  =
+
+  Exception (int) occured: 12.
+</pre></div>
+</p>
+
+<p>
+With a more complex or custom exception type, you will have to implement a specific exception typemap to handle specifically this exception type.
+See the <a href="SWIGPlus.html#SWIGPlus">SWIG C++ documentation</a> for more details.
+<p>
+
+<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.13 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
