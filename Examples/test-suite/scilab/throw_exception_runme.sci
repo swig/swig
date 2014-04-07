@@ -19,7 +19,7 @@ checkequal(ierr, 999, "Foo_test_multi(foo, 2): ierr");
 checkequal(lasterror(), "Exception (char const *) occured: Dead", "Foo_test_multi(foo, 2): msg");
 
 ierr = execstr("Foo_test_cls(foo)", 'errcatch');
-checkequal(ierr, 998, "Foo_test_cls(foo): ierr");
+checkequal(ierr, 999, "Foo_test_cls(foo): ierr");
 checkequal(lasterror(), "Exception (Error) occured.", "Foo_test_cls(foo): msg");
 
 delete_Foo(foo);
