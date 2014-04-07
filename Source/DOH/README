@@ -51,7 +51,7 @@ Sequence Operations
 -------------------
 Getitem(list,index)             Get an item
 Setitem(list,index,val)         Set an item
-Delitem(list,index,val)         Delete an item
+Delitem(list,index)             Delete an item
 Insert(list,index,val)          Insert an item
 Append(list,val)                Append to end
 Push(list,val)                  Insert at beginning
