@@ -90,7 +90,7 @@ static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
-     -elua-emulate   - Emulates behaviour of eLua. Usefull only for testing.\n\
+     -elua-emulate   - Emulates behaviour of eLua. Useful only for testing.\n\
                        Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
