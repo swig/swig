@@ -271,10 +271,15 @@ static void freeze_line(Scanner *s, int val) {
  * brackets_count()
  *
  * Returns the number of brackets at the current depth.
+ * A syntax error with unbalanced ) brackets will result in a NULL pointer return.
  * ----------------------------------------------------------------------------- */
 static int *brackets_count(Scanner *s) {
-  assert(Len(s->brackets) > 0);
-  return (int*)(**((void***)Getitem(s->brackets, 0))); /* TODO: Use VoidObj*->ptr instead of void** */
+  int *count;
+  if (Len(s->brackets) > 0)
+    count = (int *)Data(Getitem(s->brackets, 0));
+  else
+    count = 0;
+  return count;
 }
 
 /* -----------------------------------------------------------------------------
@@ -295,7 +300,9 @@ static void brackets_clear(Scanner *s) {
  * Usually called when '<' was found.
  * ----------------------------------------------------------------------------- */
 static void brackets_increment(Scanner *s) {
-  (*brackets_count(s))++;
+  int *count = brackets_count(s);
+  if (count)
+    (*count)++;
 }
 
 /* -----------------------------------------------------------------------------
@@ -305,7 +312,9 @@ static void brackets_increment(Scanner *s) {
  * Usually called when '>' was found.
  * ----------------------------------------------------------------------------- */
 static void brackets_decrement(Scanner *s) {
-  (*brackets_count(s))--;
+  int *count = brackets_count(s);
+  if (count)
+    (*count)--;
 }
 
 /* -----------------------------------------------------------------------------
@@ -315,7 +324,9 @@ static void brackets_decrement(Scanner *s) {
  * it is no longer possible to have a matching closing >> pair for a template.
  * ----------------------------------------------------------------------------- */
 static void brackets_reset(Scanner *s) {
-  (*brackets_count(s)) = 0;
+  int *count = brackets_count(s);
+  if (count)
+    *count = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -339,6 +350,17 @@ static void brackets_push(Scanner *s) {
 static void brackets_pop(Scanner *s) {
   if (Len(s->brackets) > 0) /* protect against unbalanced ')' brackets */
     Delitem(s->brackets, 0);
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_allow_shift()
+ *
+ * Return 1 to allow shift (>>), or 0 if (>>) should be split into (> >).
+ * This is for C++11 template syntax for closing templates.
+ * ----------------------------------------------------------------------------- */
+static int brackets_allow_shift(Scanner *s) {
+  int *count = brackets_count(s);
+  return !count || (*count < 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -871,7 +893,7 @@ static int look(Scanner *s) {
       brackets_decrement(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_GREATERTHAN;
-      if (c == '>' && ((*brackets_count(s))<0)) /* go to double >> only, if no template < has been used */
+      if (c == '>' && brackets_allow_shift(s))
 	state = 250;
       else if (c == '=')
 	return SWIG_TOKEN_GTEQUAL;
