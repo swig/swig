@@ -35,6 +35,7 @@
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_cpp_operators">C++ operators</a>
+<li><a href="#Scilab_wrapping_cpp_namespaces">C++ namespaces</a>
 <li><a href="#Scilab_wrapping_cpp_exceptions">C++ exceptions</a>
 <li><a href="#Scilab_wrapping_cpp_stl">C++ STL</a>
 </ul>
@@ -1132,7 +1133,84 @@ private:
 </pre></div>
 </p>
 
-<H3><a name="Scilab_wrapping_cpp_exceptions"></a>37.3.12 C++ exceptions</H3>
+
+<H3><a name="Scilab_wrapping_cpp_namespaces"></a>34.3.12 C++ namespaces</H3>
+
+<p>
+SWIG is aware of C++ namespaces, but SWIG does not do use it during the wrapping.
+The module is not broken in several submodules, no namespace appear in functions names, all the namespaces are all flattened in the module.
+For example with one namespace <tt>Foo</tt>:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%inline %{
+
+namespace foo {
+  int fact(int n) {
+    if (n > 1)
+      return n * fact(n-1);
+    else
+      return 1;
+  }
+
+  struct Vector {
+    double x,y,z;
+  };
+};
+
+%}
+
+</pre>
+</div>
+
+<p>
+In Scilab, no need to the specify the <tt>Foo</tt> namespace to use its functions or classes:
+</p>
+
+<div class="targetlang">
+<pre>
+--&gt;fact(3)
+ ans  =
+
+   6.
+
+--&gt;v = new_Vector();
+--&gt;Vector_x_set(v, 3.4);
+--&gt;Vector_y_get(v)
+ ans  =
+
+   0.
+</pre>
+</div>
+
+<p>
+If your program has more than one namespace, name conflicts can be resolved using <tt>%rename</tt>.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%rename(Bar_spam) Bar::spam;
+
+namespace Foo {
+  int spam();
+}
+
+namespace Bar {
+  int spam();
+}
+</pre>
+</div>
+
+<p>
+Note: the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is not supported.
+</p>
+
+
+<H3><a name="Scilab_wrapping_cpp_exceptions"></a>37.3.13 C++ exceptions</H3>
 
 <p>
 Scilab does not natively support exceptions, but has errors.
@@ -1211,7 +1289,7 @@ With a more complex or custom exception type, you will have to implement a speci
 See the <a href="SWIGPlus.html#SWIGPlus">SWIG C++ documentation</a> for more details.
 <p>
 
-<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.13 C++ STL</H3>
+<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.14 C++ STL</H3>
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
