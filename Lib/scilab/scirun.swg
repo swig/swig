@@ -235,7 +235,7 @@ SWIG_Scilab_ErrorMsg(int code, const char *msg)
 #define SWIG_fail return SWIG_ERROR;
 
 SWIGRUNTIME int
-SwigScilabRaise(const char *obj, const char *type, swig_type_info *descriptor) {
+SwigScilabRaiseEx(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
       Scierror(999, "Exception (%s) occured: %s\n", type, obj);
