@@ -877,15 +877,17 @@ static int look(Scanner *s) {
       break;
 
     case 60:			/* shift operators */
-      brackets_increment(s);
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
+      }
       if (c == '<')
 	state = 240;
       else if (c == '=')
 	return SWIG_TOKEN_LTEQUAL;
       else {
 	retract(s, 1);
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
       }
       break;
@@ -1340,7 +1342,6 @@ static int look(Scanner *s) {
       break;
 
     case 240:			/* LSHIFT, LSEQUAL */
-      brackets_increment(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_LSHIFT;
       else if (c == '=')

@@ -45,3 +45,7 @@ public:
 };
 %}
 
+// Test shifts are still working
+%inline %{
+int shift_init1 = 4 << 2 >> 1;
+%}
