@@ -297,7 +297,7 @@ static void brackets_clear(Scanner *s) {
  * brackets_increment()
  *
  * Increases the number of brackets at the current depth.
- * Usually called when '<' was found.
+ * Usually called when a single '<' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_increment(Scanner *s) {
   int *count = brackets_count(s);
@@ -309,7 +309,7 @@ static void brackets_increment(Scanner *s) {
  * brackets_decrement()
  *
  * Decreases the number of brackets at the current depth.
- * Usually called when '>' was found.
+ * Usually called when a single '>' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_decrement(Scanner *s) {
   int *count = brackets_count(s);
@@ -333,7 +333,7 @@ static void brackets_reset(Scanner *s) {
  * brackets_push()
  *
  * Increases the depth of brackets.
- * Usually called when '(' was found.
+ * Usually called when '(' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_push(Scanner *s) {
   int *newInt = malloc(sizeof(int));
@@ -345,7 +345,7 @@ static void brackets_push(Scanner *s) {
  * brackets_pop()
  *
  * Decreases the depth of brackets.
- * Usually called when ')' was found.
+ * Usually called when ')' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_pop(Scanner *s) {
   if (Len(s->brackets) > 0) /* protect against unbalanced ')' brackets */
@@ -360,7 +360,7 @@ static void brackets_pop(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 static int brackets_allow_shift(Scanner *s) {
   int *count = brackets_count(s);
-  return !count || (*count < 0);
+  return !count || (*count <= 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -892,15 +892,17 @@ static int look(Scanner *s) {
       }
       break;
     case 61:
-      brackets_decrement(s);
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
+      }
       if (c == '>' && brackets_allow_shift(s))
 	state = 250;
       else if (c == '=')
 	return SWIG_TOKEN_GTEQUAL;
       else {
 	retract(s, 1);
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
@@ -1353,7 +1355,6 @@ static int look(Scanner *s) {
       break;
 
     case 250:			/* RSHIFT, RSEQUAL */
-      brackets_decrement(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_RSHIFT;
       else if (c == '=')
