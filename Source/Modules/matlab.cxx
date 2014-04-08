@@ -14,7 +14,7 @@
 #include "swigmod.h"
 //#include "cparse.h"
 
-#define MATLABPRINTFUNCTIONENTRY
+//#define MATLABPRINTFUNCTIONENTRY
 
 static String *global_name = 0;
 static String *op_prefix   = 0;
@@ -54,6 +54,7 @@ protected:
   File *f_init;
 
   String* mex_fcn;
+  String* class_name;
 
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
@@ -73,7 +74,8 @@ MATLAB::MATLAB() :
   f_header(0),
   f_wrappers(0),
   f_init(0),
-  mex_fcn(0)
+  mex_fcn(0),
+  class_name(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering MATLAB()\n");
@@ -161,9 +163,6 @@ int MATLAB::top(Node *n) {
 
   /* Get the module name */
   String *module = Getattr(n, "name");
-
-  /* Get .h wrapper file name*/
-  String *hfile = Getattr(n,"outfile_h");
 
   /* Get the name of the .cxx wrapper file (i.e. the mex fine */
   String *mexfile = Getattr(n, "outfile");
@@ -722,26 +721,31 @@ int MATLAB::classHandler(Node *n) {
     // Typedef C name for the class
     //    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
 
+    // Save current class name
+    if(class_name) SWIG_exit(EXIT_FAILURE);
+    class_name = Getattr(n, "sym:name");
+
     // Name of wrapper .m file
-    String* mfile=NewString(Getattr(n,"sym:name"));
+    String* mfile=NewString(class_name);
     Append(mfile,".m");
 
-    // Make sure no existing .m file
-    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
-
     // Create wrapper .m file
+    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
     f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
     if (!f_wrap_m){
       FileErrorDisplay(mfile);
       SWIG_exit(EXIT_FAILURE);
     }
 
+    
+
+
     //    List *baselist = Getattr(n, "bases");
 
     // Declare class in .m file
     Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
     Printf(f_wrap_m, "properties (GetAccess = public, SetAccess = private)\n");
-    Printf(f_wrap_m, "ptr\n");
+    Printf(f_wrap_m, "h\n");
     Printf(f_wrap_m, "end\n");
     Printf(f_wrap_m, "methods\n");
 
@@ -755,6 +759,8 @@ int MATLAB::classHandler(Node *n) {
     // Tidy up
     Delete(f_wrap_m);
     f_wrap_m = 0;
+    Delete(class_name);
+    class_name=0;
     Delete(mfile);
 
     return SWIG_OK;
@@ -764,9 +770,12 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
-  Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",Getattr(n,"sym:name"));
-  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,Getattr(n,"sym:name"));
+  String *symname = Getattr(n, "sym:name");
+  String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+  Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",symname);
+  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,fullname);
   Printf(f_wrap_m,"end\n");
+
   return Language::memberfunctionHandler(n);
 }
 
@@ -781,8 +790,10 @@ int MATLAB::constructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering constructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function this = %s(varargin)\n",Getattr(n,"sym:name"));
-    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,Getattr(n,"sym:name"));
+    String *symname = Getattr(n, "sym:name");
+    String *fullname = Swig_name_construct(NSPACE_TODO, symname);
+    Printf(f_wrap_m,"function this = %s(varargin)\n",symname);
+    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
     return Language::constructorHandler(n);
 }
@@ -792,7 +803,9 @@ int MATLAB::destructorHandler(Node *n) {
     Printf(stderr,"Entering destructorHandler\n");
 #endif
     Printf(f_wrap_m,"function delete(h)\n");
-    Printf(f_wrap_m,"%s('%s',h)\n",mex_fcn,Getattr(n,"sym:name"));
+    String *symname = Getattr(n, "sym:name");
+    String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
+    Printf(f_wrap_m,"%s('%s',h)\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
     return Language::destructorHandler(n);
 }
