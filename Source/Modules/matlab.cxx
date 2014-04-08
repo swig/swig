@@ -166,15 +166,18 @@ int MATLAB::top(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
 
-  /* Name the mex function */
-  mexname=NewString(module);
-  Append(mexname,"_wrap");
-
   /* Get .h wrapper file name*/
   String *hfile = Getattr(n,"outfile_h");
 
   /* Get the .cxx wrapper file name */
   String *cxxfile = Getattr(n, "outfile");
+
+  /* To get the name the mex function, we remove the suffix */
+  mexname=NewString(cxxfile);
+  char *suffix = Strchr(mexname,'.');
+  char *suffix_end = Char(mexname)+Len(mexname);
+  while(suffix!=suffix_end) *suffix++ = ' '; // Replace suffix with whitespaces
+  Chop(mexname); // Remove trailing whitespaces
 
   /* Initialize wrapper .h file seen by MATLAB */
   f_wrap_h = NewFile(hfile, "w", SWIG_output_files());
