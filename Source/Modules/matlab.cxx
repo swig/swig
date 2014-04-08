@@ -46,8 +46,6 @@ public:
   virtual int memberconstantHandler(Node *n);
   virtual int staticmembervariableHandler(Node *n);
 protected:
-  File *f_wrap_h;
-  File *f_wrap_h_body;
   File* f_wrap_m;
   File *f_begin;
   File *f_runtime;
@@ -55,7 +53,7 @@ protected:
   File *f_wrappers;
   File *f_init;
 
-  String* mexname;
+  String* mex_fcn;
 
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
@@ -69,15 +67,13 @@ extern "C" Language *swig_matlab(void) {
 // Only implementations from here on
 
 MATLAB::MATLAB() : 
-  f_wrap_h(0), 
-  f_wrap_h_body(0), 
   f_wrap_m(0),
   f_begin(0),
   f_runtime(0),
   f_header(0),
   f_wrappers(0),
   f_init(0),
-  mexname(0)
+  mex_fcn(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering MATLAB()\n");
@@ -169,28 +165,20 @@ int MATLAB::top(Node *n) {
   /* Get .h wrapper file name*/
   String *hfile = Getattr(n,"outfile_h");
 
-  /* Get the .cxx wrapper file name */
-  String *cxxfile = Getattr(n, "outfile");
+  /* Get the name of the .cxx wrapper file (i.e. the mex fine */
+  String *mexfile = Getattr(n, "outfile");
 
-  /* To get the name the mex function, we remove the suffix */
-  mexname=NewString(cxxfile);
-  char *suffix = Strchr(mexname,'.');
-  char *suffix_end = Char(mexname)+Len(mexname);
+  /* To get the name the mex function (when calling from Matlab), we remove the suffix */
+  mex_fcn=NewString(mexfile);
+  char *suffix = Strchr(mex_fcn,'.');
+  char *suffix_end = Char(mex_fcn)+Len(mex_fcn);
   while(suffix!=suffix_end) *suffix++ = ' '; // Replace suffix with whitespaces
-  Chop(mexname); // Remove trailing whitespaces
-
-  /* Initialize wrapper .h file seen by MATLAB */
-  f_wrap_h = NewFile(hfile, "w", SWIG_output_files());
-  if (!f_wrap_h){
-    FileErrorDisplay(hfile);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  f_wrap_h_body = NewString("");
+  Chop(mex_fcn); // Remove trailing whitespaces
 
   /* Initialize wrapper .c file  */
-  f_begin = NewFile(cxxfile, "w", SWIG_output_files());
+  f_begin = NewFile(mexfile, "w", SWIG_output_files());
   if (!f_begin) {
-    FileErrorDisplay(cxxfile);
+    FileErrorDisplay(mexfile);
     SWIG_exit(EXIT_FAILURE);
   }
   f_runtime = NewString("");
@@ -260,9 +248,6 @@ int MATLAB::top(Node *n) {
 
   //   Printv(f_wrappers, s_global_tab, NIL);
   //   SwigType_emit_type_table(f_runtime, f_wrappers);
-
-  // Write .h file
-  Dump(f_wrap_h_body, f_wrap_h);
   
   // Write .c file
   Dump(f_runtime, f_begin);
@@ -287,9 +272,7 @@ int MATLAB::top(Node *n) {
   //   Delete(f_directors_h);
   Delete(f_runtime);
   Delete(f_begin);
-  Delete(f_wrap_h_body);
-  Delete(f_wrap_h);
-  Delete(mexname);
+  Delete(mex_fcn);
   return SWIG_OK;
 }
 
@@ -737,7 +720,7 @@ int MATLAB::classHandler(Node *n) {
     Printf(stderr,"Entering classHandler\n");
 #endif
     // Typedef C name for the class
-    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
+    //    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
 
     // Name of wrapper .m file
     String* mfile=NewString(Getattr(n,"sym:name"));
@@ -782,7 +765,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
   Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",Getattr(n,"sym:name"));
-  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mexname,Getattr(n,"sym:name"));
+  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,Getattr(n,"sym:name"));
   Printf(f_wrap_m,"end\n");
   return Language::memberfunctionHandler(n);
 }
@@ -799,7 +782,7 @@ int MATLAB::constructorHandler(Node *n) {
     Printf(stderr,"Entering constructorHandler\n");
 #endif
     Printf(f_wrap_m,"function this = %s(varargin)\n",Getattr(n,"sym:name"));
-    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mexname,Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,Getattr(n,"sym:name"));
     Printf(f_wrap_m,"end\n");
     return Language::constructorHandler(n);
 }
@@ -809,7 +792,7 @@ int MATLAB::destructorHandler(Node *n) {
     Printf(stderr,"Entering destructorHandler\n");
 #endif
     Printf(f_wrap_m,"function delete(h)\n");
-    Printf(f_wrap_m,"%s('%s',h)\n",mexname,Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"%s('%s',h)\n",mex_fcn,Getattr(n,"sym:name"));
     Printf(f_wrap_m,"end\n");
     return Language::destructorHandler(n);
 }
