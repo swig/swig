@@ -4514,10 +4514,12 @@ private:
       } else if (Strcmp(t, "enum ") == 0) {
 	ret = NewString("int");
       } else {
-	// An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition)
-	ret = SwigType_base(t);
-	Replace(ret, "enum ", "", DOH_REPLACE_ANY);
+	// An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	String *tt = Copy(t);
+	Replace(tt, "enum ", "", DOH_REPLACE_ANY);
+	ret = exportedName(tt);
 	Setattr(undefined_enum_types, t, ret);
+	Delete(tt);
       }
     } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
       ret = NewString("_swig_fnptr");
