@@ -6,6 +6,9 @@ Version 3.0.1 (in progress)
 ===========================
 
 2014-04-08: wsfulton
+            SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
+
+2014-04-08: wsfulton
             [Java C#] Enums which have been ignored via %ignore and are subsequently
             used are handled slightly differently. Type wrapper classes are now generated
             which are effectively a wrapper of an empty enum. Previously in Java uncompilable
