@@ -742,15 +742,15 @@ int MATLAB::classHandler(Node *n) {
     Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
     Printf(f_wrap_m, "properties (GetAccess = public, SetAccess = private)\n");
     Printf(f_wrap_m, "ptr\n");
-    Printf(f_wrap_m, "end %%properties\n");
+    Printf(f_wrap_m, "end\n");
     Printf(f_wrap_m, "methods\n");
 
     // Emit member functions
     Language::classHandler(n);
 
     // Finalize file
-    Printf(f_wrap_m, "end %%methods\n");
-    Printf(f_wrap_m, "end %%classdef\n");
+    Printf(f_wrap_m, "end\n");
+    Printf(f_wrap_m, "end\n");
 
     // Tidy up
     Delete(f_wrap_m);
