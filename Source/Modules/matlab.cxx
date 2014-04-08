@@ -587,6 +587,8 @@ int MATLAB::functionWrapper(Node *n){
   String *nodeType = Getattr(n, "nodeType");
   String *storage = Getattr(n, "storage");
   String *value = Getattr(n, "value");
+  String *action = Getattr(n, "action");
+  // String   *action = emit_action(n);
   
   // Handle nameless parameters
   nameUnnamedParams(parms, false);
@@ -602,30 +604,16 @@ int MATLAB::functionWrapper(Node *n){
   Setattr(n, "wrap:name", wname);
 
   // Create the wrapper object 
-  Wrapper *f = NewWrapper();
-
-
-
-
-  // Debug: Dump to file
-  if(true){
-    String   *parmstr= ParmList_str_defaultargs(parms); // to string
-    String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-    String   *action = Getattr(n,"wrap:action");
-    Printf(f_wrappers,"functionWrapper   : %s\n", func);
-    Printf(f_wrappers,"           action : %s\n", action);
-  }
-
-
-    
+  Wrapper *wrapper = NewWrapper();
+  
   // Write the wrapper function definition
-  //   Matlab_begin_function(n, f->def, iname, overname, !overloaded);
+  Printv(wrapper->def,"void ", wname, "(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {",NIL);
   
   // If any additional local variable needed, add them now  
   // ..
-  
+
   // Write the list of locals/arguments required
-  // ..
+  //  emit_args(type, parms, wrapper);
 
   // Check arguments 
   // ..
@@ -637,8 +625,9 @@ int MATLAB::functionWrapper(Node *n){
   // ..
 
   // Emit the function call 
-  // ..
-
+  //  emit_action_code(n,wrapper);
+  //  Printf(wrapper->code,"%s\n",action);
+  
   // return value if necessary 
   // ..
 
@@ -647,18 +636,25 @@ int MATLAB::functionWrapper(Node *n){
   
   // Add cleanup code
   // ..
-  
+
   // Close the function(ok)
-  // ..
-  
+  Printf(wrapper->code, "return;\n");
+
   // Add the failure cleanup code
   // ..
+
+  // Close the function(error)
+  Printf(wrapper->code,"fail:\n");
+  Printf(wrapper->code,"mexErrMsgTxt(\"Failure in %s.\");\n", wname);
+  Printf(wrapper->code,"}");
   
-  // Dump the function out  
-  Wrapper_print(f, f_wrappers);
+  // Final substititions if applicable 
+
+  // Dump the function out
+  Wrapper_print(wrapper, f_wrappers);
 
   // Tidy up
-  DelWrapper(f);
+  DelWrapper(wrapper);
   //   if (last_overload) dispatchFunction(n);
   //   if (!overloaded || last_overload) {
   //     String *tname = texinfo_name(n);
@@ -850,13 +846,16 @@ int MATLAB::constructorHandler(Node *n) {
     bool overloaded = !!Getattr(n, "sym:overloaded");
     bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
-    // Add function to .m wrapper
     if(!overloaded || last_overload){
+      // Add function to .m wrapper
       String *symname = Getattr(n, "sym:name");
       String *fullname = Swig_name_construct(NSPACE_TODO, symname);
       Printf(f_wrap_m,"function this = %s(varargin)\n",symname);
       Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,fullname);
       Printf(f_wrap_m,"end\n");
+
+      // Add to function switch
+      toGateway(fullname);
     }
     return Language::constructorHandler(n);
 }
@@ -870,6 +869,10 @@ int MATLAB::destructorHandler(Node *n) {
     String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
     Printf(f_wrap_m,"%s('%s',h)\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
+
+    // Add to function switch
+    toGateway(fullname);
+
     return Language::destructorHandler(n);
 }
 
