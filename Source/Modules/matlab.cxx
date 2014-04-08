@@ -770,11 +770,17 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
-  String *symname = Getattr(n, "sym:name");
-  String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-  Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",symname);
-  Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,fullname);
-  Printf(f_wrap_m,"end\n");
+  bool overloaded = !!Getattr(n, "sym:overloaded");
+  bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+
+  // Add function to .m wrapper
+  if(!overloaded || last_overload){
+    String *symname = Getattr(n, "sym:name");
+    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+    Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",symname);
+    Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"end\n");
+  }
 
   return Language::memberfunctionHandler(n);
 }
@@ -790,11 +796,17 @@ int MATLAB::constructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering constructorHandler\n");
 #endif
-    String *symname = Getattr(n, "sym:name");
-    String *fullname = Swig_name_construct(NSPACE_TODO, symname);
-    Printf(f_wrap_m,"function this = %s(varargin)\n",symname);
-    Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,fullname);
-    Printf(f_wrap_m,"end\n");
+    bool overloaded = !!Getattr(n, "sym:overloaded");
+    bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+
+    // Add function to .m wrapper
+    if(!overloaded || last_overload){
+      String *symname = Getattr(n, "sym:name");
+      String *fullname = Swig_name_construct(NSPACE_TODO, symname);
+      Printf(f_wrap_m,"function this = %s(varargin)\n",symname);
+      Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"end\n");
+    }
     return Language::constructorHandler(n);
 }
 

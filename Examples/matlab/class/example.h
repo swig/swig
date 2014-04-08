@@ -21,6 +21,11 @@ private:
 public:
   Circle(double r) : radius(r) { }
   virtual double area();
+
+  // Test overloading
+  virtual double foo(int d){ return area();}
+  virtual double foo(){ return perimeter();}
+
   virtual double perimeter();
 };
 
