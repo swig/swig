@@ -864,10 +864,10 @@ int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering destructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function delete(h)\n");
+    Printf(f_wrap_m,"function delete(this)\n");
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
-    Printf(f_wrap_m,"%s('%s',h)\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"%s('%s',this.h)\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
 
     // Add to function switch
