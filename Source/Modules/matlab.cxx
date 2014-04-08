@@ -15,6 +15,7 @@
 //#include "cparse.h"
 
 //#define MATLABPRINTFUNCTIONENTRY
+static int CMD_MAXLENGTH = 256;
 
 static String *global_name = 0;
 static String *op_prefix   = 0;
@@ -51,7 +52,9 @@ protected:
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
+  File *f_gateway;
   File *f_init;
+  
 
   String* mex_fcn;
   String* class_name;
@@ -59,6 +62,9 @@ protected:
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
   String *getOverloadedName(Node *n);
+  void initGateway();
+  void toGateway(String *fullname);
+  void finalizeGateway();
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -73,6 +79,7 @@ MATLAB::MATLAB() :
   f_runtime(0),
   f_header(0),
   f_wrappers(0),
+  f_gateway(0),
   f_init(0),
   mex_fcn(0),
   class_name(0)
@@ -184,6 +191,7 @@ int MATLAB::top(Node *n) {
   f_header = NewString("");
   //   f_doc = NewString("");
   f_wrappers = NewString("");
+  f_gateway = NewString("");
   f_init = NewString("");
   //   f_initbeforefunc = NewString("");
   //   f_directors_h = NewString("");
@@ -196,6 +204,7 @@ int MATLAB::top(Node *n) {
   Swig_register_filebyname("header", f_header);
   //   Swig_register_filebyname("doc", f_doc);
   Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("gateway", f_gateway);
   Swig_register_filebyname("init", f_init);
   //   Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
   //   Swig_register_filebyname("director", f_directors);
@@ -204,14 +213,17 @@ int MATLAB::top(Node *n) {
   /* Output module initialization code */
   Swig_banner(f_begin);
 
-  //   Printf(f_runtime, "\n");
-  //   Printf(f_runtime, "#define SWIGMATLAB\n");
-  //   Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
-  //   Printf(f_runtime, "#define SWIG_name        %s\n", module);
+  Printf(f_runtime, "\n");
+  Printf(f_runtime, "#define SWIGMATLAB\n");
+  Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
+  Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
-  //   Printf(f_runtime, "\n");
-  //   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
-  //   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
+  //  Printf(f_runtime, "\n");
+  //  Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
+  //  Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
+
+  // Include mex header file
+  Printf(f_runtime, "#include <mex.h>\n");
 
   //   if (directorsEnabled()) {
   //     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -222,7 +234,7 @@ int MATLAB::top(Node *n) {
   //     }
   //   }
 
-  //   Printf(f_runtime, "\n");
+  Printf(f_runtime, "\n");
 
   //   Printf(s_global_tab, "\nstatic const struct swig_matlab_member swig_globals[] = {\n");
   //   Printf(f_init, "static bool SWIG_init_user(matlab_swig_type* module_ns)\n{\n");
@@ -230,8 +242,14 @@ int MATLAB::top(Node *n) {
   //   if (!CPlusPlus)
   //     Printf(f_header,"extern \"C\" {\n");
 
+  // Mex-file gateway
+  initGateway();
+  
   /* Emit code for children */
   Language::top(n);
+
+  // Finalize Mex-file gate way
+  finalizeGateway();
 
   //   if (!CPlusPlus)
   //     Printf(f_header,"}\n");
@@ -257,6 +275,8 @@ int MATLAB::top(Node *n) {
   //     Dump(f_directors, f_begin);
   //   }
   Dump(f_wrappers, f_begin);
+  Dump(f_gateway, f_begin);
+
   //   Dump(f_initbeforefunc, f_begin);
   Wrapper_pretty_print(f_init, f_begin);
 
@@ -265,6 +285,8 @@ int MATLAB::top(Node *n) {
   //   Delete(f_initbeforefunc);
   Delete(f_init);
   Delete(f_wrappers);
+  Delete(f_gateway);
+
   //   Delete(f_doc);
   Delete(f_header);
   //   Delete(f_directors);
@@ -773,16 +795,45 @@ int MATLAB::memberfunctionHandler(Node *n) {
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
-  // Add function to .m wrapper
   if(!overloaded || last_overload){
+    // Add function to .m wrapper
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
     Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",symname);
     Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
+
+    // Add to function switch
+    toGateway(fullname);
   }
 
   return Language::memberfunctionHandler(n);
+}
+
+void MATLAB::initGateway(){
+  if(CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
+  Printf(f_gateway,"void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){\n");
+  
+  // The first argument is always the function name
+  Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
+  Printf(f_gateway,"  if(nrhs < 1 || mxGetString(prhs[0], cmd, sizeof(cmd)))\n");
+  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+}
+
+void MATLAB::toGateway(String *fullname){
+  if(Len(fullname)>CMD_MAXLENGTH){
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
+  Printf(f_gateway,"    %s(nlhs,plhs,nrhs-1,prhs+1);\n",Swig_name_wrapper(fullname));
+  Printf(f_gateway,"  } else ");
+}
+
+void MATLAB::finalizeGateway(){
+  Printf(f_gateway," {\n");
+  Printf(f_gateway,"    mexErrMsgTxt(\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"  }\n");
+  Printf(f_gateway,"}\n");
 }
 
 int MATLAB::membervariableHandler(Node *n) {
