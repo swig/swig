@@ -227,7 +227,7 @@ SWIG_Scilab_ErrorType(int code) {
 SWIGINTERN void
 SWIG_Scilab_ErrorMsg(int code, const char *msg)
 {
-  Scierror(999, _("SWIG/Scilab %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
+  Scierror(999, _("SWIG/Scilab: %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
 }
 
 #define SWIG_Error(code, msg) SWIG_Scilab_ErrorMsg(code, msg)
@@ -238,15 +238,15 @@ SWIGRUNTIME int
 SwigScilabRaiseEx(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
-      Scierror(999, "Exception (%s) occured: %s\n", type, obj);
+      Scierror(999, "SWIG/Scilab: Exception (%s) occured: %s\n", type, obj);
     else
-      Scierror(999, "Exception (%s) occured.\n", type);
+      Scierror(999, "SWIG/Scilab: Exception (%s) occured.\n", type);
   }
 }
 
 SWIGRUNTIME int
 SwigScilabRaise(const int obj, const char *type, swig_type_info *descriptor) {
-  Scierror(999, "Exception (%s) occured.\n", type);
+  Scierror(999, "SWIG/Scilab: Exception (%s) occured.\n", type);
 }
 
 #define SWIG_Scilab_Raise(obj, type, descriptor) SwigScilabRaise(obj, type, descriptor)
