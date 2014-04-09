@@ -227,7 +227,7 @@ SWIG_Scilab_ErrorType(int code) {
 SWIGINTERN void
 SWIG_Scilab_ErrorMsg(int code, const char *msg)
 {
-  Scierror(999, _("SWIG/Scilab %s: %s.\n"), SWIG_Scilab_ErrorType(code), msg);
+  Scierror(999, _("SWIG/Scilab %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
 }
 
 #define SWIG_Error(code, msg) SWIG_Scilab_ErrorMsg(code, msg)
