@@ -1256,31 +1256,36 @@ It can be used with the <tt>lasterror()</tt> function as following:
 </p>
 
 <p>
-If the function has a <tt>throw</tt> exception speficication, SWIG can map automatically the exception type and set an appropriate Scilab error message.
-It works for exception basic types, like <tt>char*</tt> in the previous example or another example, <tt>int</tt>:
+If the function has a <tt>throw</tt> exception specification, SWIG can map automatically the exception type and set an appropriate Scilab error message.
+It works for exception basic types, and if the the library <tt>std_except.i</tt> is used, also for STL exceptions:
 </p>
 
 <div class="code"><pre>
 %module example
 
+%include &lt;std_except.i&gt;
+
 %inline %{
 void throw_int() throw(int) {
   throw 12;
+}
+
+void throw_stl_invalid_arg(int i) throw(std::invalid_argument) {
+  if (i &lt 0)
+    throw std::invalid_argument("argument is negative.");
 }
 %}
 </pre></div>
 
 <p>
 <div class="targetlang"><pre>
---&gt;execstr('throw_int()', 'errcatch');
- ans  =
+--&gt;throw_int();
+            !--error 999
+SWIG/Scilab: Exception (int) occured: 12
 
-    999.
-
---&gt;lasterror()
- ans  =
-
-  Exception (int) occured: 12.
+--&gt;throw_stl_invalid_arg(-1);
+                          !--error 999
+SWIG/Scilab: ValueError: argument is negative.
 </pre></div>
 </p>
 
