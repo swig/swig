@@ -1,26 +1,22 @@
 exec("swigtest.start", -1);
 
+function checkException(cmd, expected_error_msg)
+  ierr = execstr(cmd, 'errcatch');
+  checkequal(ierr, 999, cmd + ': ierr');
+  checkequal(lasterror(), 'SWIG/Scilab: ' + expected_error_msg, cmd + ': msg');
+endfunction
+
 foo = new_Foo();
 
-ierr = execstr("Foo_test_int(foo)", 'errcatch');
-checkequal(ierr, 999, "Foo_test_int(foo): ierr");
-checkequal(lasterror(), "Exception (int) occured: 37", "Foo_test_int(foo): msg");
+checkException('Foo_test_int(foo)', 'Exception (int) occured: 37');
 
-ierr = execstr("Foo_test_msg(foo)", 'errcatch');
-checkequal(ierr, 999, "Foo_test_msg(foo): ierr");
-checkequal(lasterror(), "Exception (char const *) occured: Dead", "Foo_test_msg(foo): msg");
+checkException('Foo_test_msg(foo)', 'Exception (char const *) occured: Dead');
 
-ierr = execstr("Foo_test_multi(foo, 1)", 'errcatch');
-checkequal(ierr, 999, "Foo_test_multi(foo, 1): ierr");
-checkequal(lasterror(), "Exception (int) occured: 37", "Foo_test_multi(foo, 1): msg");
+checkException('Foo_test_multi(foo, 1)', 'Exception (int) occured: 37');
 
-ierr = execstr("Foo_test_multi(foo, 2)", 'errcatch');
-checkequal(ierr, 999, "Foo_test_multi(foo, 2): ierr");
-checkequal(lasterror(), "Exception (char const *) occured: Dead", "Foo_test_multi(foo, 2): msg");
+checkException('Foo_test_multi(foo, 2)', 'Exception (char const *) occured: Dead');
 
-ierr = execstr("Foo_test_cls(foo)", 'errcatch');
-checkequal(ierr, 999, "Foo_test_cls(foo): ierr");
-checkequal(lasterror(), "Exception (Error) occured.", "Foo_test_cls(foo): msg");
+checkException('Foo_test_cls(foo)', 'Exception (Error) occured.');
 
 delete_Foo(foo);
 
