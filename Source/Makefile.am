@@ -48,8 +48,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/go.cxx			\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\
-		Modules/lang.cxx		\
 		Modules/javascript.cxx		\
+		Modules/lang.cxx		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
 		Modules/modula3.cxx		\
