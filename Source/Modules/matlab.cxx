@@ -762,8 +762,8 @@ int MATLAB::classHandler(Node *n) {
 
     // Declare class in .m file
     Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
-    Printf(f_wrap_m, "properties (GetAccess = public, SetAccess = private)\n");
-    Printf(f_wrap_m, "h\n");
+    Printf(f_wrap_m, "properties (GetAccess = private, SetAccess = private)\n");
+    Printf(f_wrap_m, "swigCPtr\n");
     Printf(f_wrap_m, "end\n");
     Printf(f_wrap_m, "methods\n");
 
@@ -795,8 +795,8 @@ int MATLAB::memberfunctionHandler(Node *n) {
     // Add function to .m wrapper
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    Printf(f_wrap_m,"function varargout = %s(this,varargin)\n",symname);
-    Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',this.h,varargin{:})\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"function varargout = %s(self,varargin)\n",symname);
+    Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:})\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
 
     // Add to function switch
@@ -850,8 +850,8 @@ int MATLAB::constructorHandler(Node *n) {
       // Add function to .m wrapper
       String *symname = Getattr(n, "sym:name");
       String *fullname = Swig_name_construct(NSPACE_TODO, symname);
-      Printf(f_wrap_m,"function this = %s(varargin)\n",symname);
-      Printf(f_wrap_m,"this.h = %s('%s',varargin{:})\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"function self = %s(varargin)\n",symname);
+      Printf(f_wrap_m,"self.swigCPtr = %s('%s',varargin{:})\n",mex_fcn,fullname);
       Printf(f_wrap_m,"end\n");
 
       // Add to function switch
@@ -864,10 +864,10 @@ int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering destructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function delete(this)\n");
+    Printf(f_wrap_m,"function delete(self)\n");
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
-    Printf(f_wrap_m,"%s('%s',this.h)\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"%s('%s',self.swigCPtr)\n",mex_fcn,fullname);
     Printf(f_wrap_m,"end\n");
 
     // Add to function switch
