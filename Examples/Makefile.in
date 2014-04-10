@@ -599,33 +599,28 @@ java_clean:
 
 
 ROOT_DIR = @ROOT_DIR@
-JSCFLAGS = @JSCFLAGS@
-JSCXXFLAGS = @JSCXXFLAGS@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
-JSLIBRARYPREFIX = @JSLIBRARYPREFIX@
 JSSO =@JSSO@
 JSLDSHARED = @JSLDSHARED@
 JSCXXSHARED = @JSCXXSHARED@
-
-SWIGJS   = $(SWIG) -javascript
 
 # ----------------------------------------------------------------
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
 javascript_wrapper:
-	$(SWIGJS) $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+	$(SWIG) -javascript $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
 
 javascript_wrapper_cpp: $(SRCS)
-	$(SWIGJS) -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+	$(SWIG) -javascript -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 
 javascript_build: $(SRCS)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 javascript_build_cpp:: $(SRCS)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # TODO: make node-gyp configurable and detected via ./configure
@@ -635,13 +630,13 @@ javascript_build_node: $(SRCS)
 # These targets are used by the test-suite:
 
 javascript: $(SRCS) javascript_custom_interpreter
-	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 javascript_cpp: $(SRCS) javascript_custom_interpreter
-	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(SWIG) -javascript -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
