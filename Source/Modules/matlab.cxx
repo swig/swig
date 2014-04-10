@@ -759,13 +759,37 @@ int MATLAB::classHandler(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
 
+    // Declare MATLAB class
+    Printf(f_wrap_m,"classdef %s < ", Getattr(n,"sym:name"));
+
+    // Declare base classes, if any
+    List *baselist = Getattr(n, "bases");
+    int base_count = 0;
+    if(baselist){
+      // Loop over base classes
+      for (Iterator b = First(baselist); b.item; b = Next(b)) {
+        // Get base class name, possibly ignore
+	String *bname = Getattr(b.item, "name");
+	if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+	base_count++;
+        
+        // Separate multiple base classes with &
+        if(base_count>1) Printf(f_wrap_m," & ");
+      
+        // Add to list of bases
+        Printf(f_wrap_m,"%s",bname);
+      }
+    }
+
+    // If no bases, top level class
+    if(base_count==0){
+      Printf(f_wrap_m,"swigRef");
+    }
     
+    // End of class def
+    Printf(f_wrap_m,"\n");
 
-
-    //    List *baselist = Getattr(n, "bases");
-
-    // Declare class in .m file
-    Printf(f_wrap_m,"classdef %s < swigRef\n", Getattr(n,"sym:name"));
+    // Declare class methods
     Printf(f_wrap_m,"  methods\n");
 
     // Emit member functions
