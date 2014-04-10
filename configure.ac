@@ -1088,9 +1088,9 @@ AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVACFLAGS)
 
 #----------------------------------------------------------------
-# Look for JAVASCRIPT
+# Look for Javascript
 #----------------------------------------------------------------
-AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable JAVASCRIPT]), [with_javascript="$withval"], [with_javascript=yes])
+AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable Javascript]), [with_javascript="$withval"], [with_javascript=yes])
 
 # First, check for "--without-javascript" or "--with-javascript=no".
 if test x"${with_javascript}" = xno -o x"${with_alllang}" = xno ; then
@@ -1130,10 +1130,9 @@ else
     ;;
   esac
 
-  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  #----------------------------------------------------------------
   # Look for Node.js which is the default javascript engine
-  #  without it, the javascript test-suite will be skipped
-  #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  #----------------------------------------------------------------
 
   AC_CHECK_PROGS(NODEJS, node)
 
@@ -1142,7 +1141,7 @@ else
   #----------------------------------------------------------------
 
   # check for include files
-  AC_MSG_CHECKING(for include file JavaScriptCore/JavaScript.h)
+  AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
   AC_ARG_WITH(jscoreinc, [  --with-jscinc=path    Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
 
   JSCOREVERSION=
@@ -1216,8 +1215,8 @@ else
   #----------------------------------------------------------------
 
   # check for include files
-  AC_MSG_CHECKING(for include file v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript include directory], [JSV8INCDIR="$withval"])
+  AC_MSG_CHECKING(for V8 Javascript v8.h)
+  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
@@ -1249,8 +1248,8 @@ else
   fi
 
   # check for V8 library
-  AC_MSG_CHECKING(for v8 library)
-  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+  AC_MSG_CHECKING(for V8 Javascript library)
+  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
   v8libdirs="$JSV8LIBDIR /usr/lib/ /usr/local/lib/"
   for d in $v8libdirs ; do
