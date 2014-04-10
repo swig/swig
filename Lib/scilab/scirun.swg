@@ -225,17 +225,17 @@ SWIG_Scilab_ErrorType(int code) {
 #define SWIG_ErrorType(code) SWIG_Scilab_ErrorType(code)
 
 SWIGINTERN void
-SWIG_Scilab_ErrorMsg(int code, const char *msg)
+SWIG_Scilab_Error(int code, const char *msg)
 {
   Scierror(999, _("SWIG/Scilab: %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
 }
 
-#define SWIG_Error(code, msg) SWIG_Scilab_ErrorMsg(code, msg)
+#define SWIG_Error(code, msg) SWIG_Scilab_Error(code, msg)
 
 #define SWIG_fail return SWIG_ERROR;
 
 SWIGRUNTIME int
-SwigScilabRaiseEx(const char *obj, const char *type, swig_type_info *descriptor) {
+SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
       Scierror(999, "SWIG/Scilab: Exception (%s) occured: %s\n", type, obj);
@@ -245,11 +245,9 @@ SwigScilabRaiseEx(const char *obj, const char *type, swig_type_info *descriptor)
 }
 
 SWIGRUNTIME int
-SwigScilabRaise(const int obj, const char *type, swig_type_info *descriptor) {
+SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
   Scierror(999, "SWIG/Scilab: Exception (%s) occured.\n", type);
 }
-
-#define SWIG_Scilab_Raise(obj, type, descriptor) SwigScilabRaise(obj, type, descriptor)
 
 /*
  *  Pointer utility functions
