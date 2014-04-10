@@ -65,6 +65,7 @@ protected:
   void initGateway();
   void toGateway(String *fullname);
   void finalizeGateway();
+  void createSwigRef();
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -167,6 +168,9 @@ int MATLAB::top(Node *n) {
   //     }
   //   }
   // }
+
+  // Create swigRef abstract base class
+  createSwigRef();
 
   /* Get the module name */
   String *module = Getattr(n, "name");
@@ -761,10 +765,7 @@ int MATLAB::classHandler(Node *n) {
     //    List *baselist = Getattr(n, "bases");
 
     // Declare class in .m file
-    Printf(f_wrap_m,"classdef %s < handle\n", Getattr(n,"sym:name"));
-    Printf(f_wrap_m,"  properties (GetAccess = private, SetAccess = private)\n");
-    Printf(f_wrap_m,"    swigCPtr\n");
-    Printf(f_wrap_m,"  end\n");
+    Printf(f_wrap_m,"classdef %s < swigRef\n", Getattr(n,"sym:name"));
     Printf(f_wrap_m,"  methods\n");
 
     // Emit member functions
@@ -921,4 +922,27 @@ String *MATLAB::getOverloadedName(Node *n) {
     Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
   }
   return overloaded_name;
+}
+
+void MATLAB::createSwigRef(){
+  // Create file
+  String* mfile = NewString("swigRef.m");
+  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m){
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Output swigRef abstract base class
+  Printf(f_wrap_m,"classdef (Abstract) swigRef < handle\n");
+  Printf(f_wrap_m,"  properties (GetAccess = protected, SetAccess = protected)\n");
+  Printf(f_wrap_m,"    swigCPtr\n");
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Tidy up
+  Delete(f_wrap_m);
+  Delete(mfile);
+  f_wrap_m = 0;
 }
