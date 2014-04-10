@@ -761,18 +761,18 @@ int MATLAB::classHandler(Node *n) {
     //    List *baselist = Getattr(n, "bases");
 
     // Declare class in .m file
-    Printf(f_wrap_m, "classdef %s < handle\n\n", Getattr(n,"sym:name"));
-    Printf(f_wrap_m, "properties (GetAccess = private, SetAccess = private)\n");
-    Printf(f_wrap_m, "swigCPtr\n");
-    Printf(f_wrap_m, "end\n");
-    Printf(f_wrap_m, "methods\n");
+    Printf(f_wrap_m,"classdef %s < handle\n", Getattr(n,"sym:name"));
+    Printf(f_wrap_m,"  properties (GetAccess = private, SetAccess = private)\n");
+    Printf(f_wrap_m,"    swigCPtr\n");
+    Printf(f_wrap_m,"  end\n");
+    Printf(f_wrap_m,"  methods\n");
 
     // Emit member functions
     Language::classHandler(n);
 
     // Finalize file
-    Printf(f_wrap_m, "end\n");
-    Printf(f_wrap_m, "end\n");
+    Printf(f_wrap_m,"  end\n");
+    Printf(f_wrap_m,"end\n");
 
     // Tidy up
     Delete(f_wrap_m);
@@ -795,9 +795,9 @@ int MATLAB::memberfunctionHandler(Node *n) {
     // Add function to .m wrapper
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    Printf(f_wrap_m,"function varargout = %s(self,varargin)\n",symname);
-    Printf(f_wrap_m,"[varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:})\n",mex_fcn,fullname);
-    Printf(f_wrap_m,"end\n");
+    Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:})\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
     toGateway(fullname);
@@ -850,9 +850,9 @@ int MATLAB::constructorHandler(Node *n) {
       // Add function to .m wrapper
       String *symname = Getattr(n, "sym:name");
       String *fullname = Swig_name_construct(NSPACE_TODO, symname);
-      Printf(f_wrap_m,"function self = %s(varargin)\n",symname);
-      Printf(f_wrap_m,"self.swigCPtr = %s('%s',varargin{:})\n",mex_fcn,fullname);
-      Printf(f_wrap_m,"end\n");
+      Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
+      Printf(f_wrap_m,"      self.swigCPtr = %s('%s',varargin{:})\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"    end\n");
 
       // Add to function switch
       toGateway(fullname);
@@ -864,11 +864,11 @@ int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
     Printf(stderr,"Entering destructorHandler\n");
 #endif
-    Printf(f_wrap_m,"function delete(self)\n");
+    Printf(f_wrap_m,"    function delete(self)\n");
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
-    Printf(f_wrap_m,"self.swigCPtr = %s('%s',self.swigCPtr)\n",mex_fcn,fullname);
-    Printf(f_wrap_m,"end\n");
+    Printf(f_wrap_m,"      self.swigCPtr = %s('%s',self.swigCPtr)\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
     toGateway(fullname);
