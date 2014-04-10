@@ -557,7 +557,7 @@ int MATLAB::functionWrapper(Node *n){
     int varargs = emit_isvarargs(l);
     char source[64];
 
-    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i,%i)) " 
+    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",nrhs,%i,%i,%i)) " 
 	   "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
 
     if (constructor && num_arguments == 1 && num_required == 1) {
@@ -610,7 +610,7 @@ int MATLAB::functionWrapper(Node *n){
 
 	String *getargs = NewString("");
 	if (j >= num_required)
-	  Printf(getargs, "if (%d<args.length()) {\n%s\n}", j, tm);
+	  Printf(getargs, "if (%d<nrhs) {\n%s\n}", j, tm);
 	else
 	  Printv(getargs, tm, NIL);
 	Printv(f->code, getargs, "\n", NIL);
@@ -694,15 +694,13 @@ int MATLAB::functionWrapper(Node *n){
     Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);
 
-    Wrapper_add_local(f, "_out", "octave_value_list _out");
-    Wrapper_add_local(f, "_outp", "octave_value_list *_outp=&_out");
-    Wrapper_add_local(f, "_outv", "octave_value _outv");
-
+    Wrapper_add_local(f, "_out", "mxArray * _out");
+    
     // Return the function value
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$source", Swig_cresult_name());
-      Replaceall(tm, "$target", "_outv");
-      Replaceall(tm, "$result", "_outv");
+      Replaceall(tm, "$target", "_out");
+      Replaceall(tm, "$result", "_out");
 
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "1");
@@ -710,7 +708,7 @@ int MATLAB::functionWrapper(Node *n){
 	Replaceall(tm, "$owner", "0");
 
       Printf(f->code, "%s\n", tm);
-      Printf(f->code, "if (_outv.is_defined()) _outp = " "SWIG_Matlab_AppendOutput(_outp, _outv);\n");
+      Printf(f->code, "*plhs++ = _out;\n");
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -734,10 +732,10 @@ int MATLAB::functionWrapper(Node *n){
       Delete(tm);
     }
 
-    Printf(f->code, "return _out;\n");
+    Printf(f->code, "return;\n");
     Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+    Printf(f->code, "mexErrMsgTxt(\"Failure in function %s.\");\n", iname);
     Printv(f->code, cleanup, NIL);
-    Printf(f->code, "return octave_value_list();\n");
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
@@ -1143,7 +1141,7 @@ void MATLAB::Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cn
       Printf(f, "SWIG_DEFUN( %s, %s, %s ) {", cname, wname, tname);
     }
     else {
-      Printf(f, "static octave_value_list %s (const octave_value_list& args, int nargout) {", wname);
+      Printf(f, "void %s (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {", wname);
     }
   }
 
