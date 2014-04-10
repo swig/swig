@@ -74,6 +74,7 @@ static swig_module modules[] = {
   {"-go", swig_go, "Go"},
   {"-guile", swig_guile, "Guile"},
   {"-java", swig_java, "Java"},
+  {"-javascript", swig_javascript, "Javascript"},
   {"-lua", swig_lua, "Lua"},
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},
@@ -93,7 +94,6 @@ static swig_module modules[] = {
   {"-tcl8", swig_tcl, 0},
   {"-uffi", swig_uffi, "Common Lisp / UFFI"},
   {"-xml", swig_xml, "XML"},
-  {"-javascript", swig_javascript, "Javascript"},
   {NULL, NULL, NULL}
 };
 
