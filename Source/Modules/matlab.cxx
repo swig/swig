@@ -594,6 +594,12 @@ int MATLAB::functionWrapper(Node *n){
   String *action = Getattr(n, "action");
   // String   *action = emit_action(n);
   
+  // Is the function a constructor
+  bool constructor = !Cmp(nodeType, "constructor");
+
+  // Is the function a destructor
+  bool destructor = !Cmp(nodeType, "destructor");
+
   // Handle nameless parameters
   nameUnnamedParams(parms, false);
   String *parmprotostr = ParmList_protostr(parms);
@@ -614,12 +620,14 @@ int MATLAB::functionWrapper(Node *n){
   Printv(wrapper->def,"void ", wname, "(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {",NIL);
   
   // If any additional local variable needed, add them now  
-  // ..
+  emit_parameter_variables(parms, wrapper);
 
-  // Write the list of locals/arguments required
-  //  emit_args(type, parms, wrapper);
+  // Attach the standard typemaps
+  emit_attach_parmmaps(parms, wrapper);
 
   // Check arguments 
+
+
   // ..
   
   // Write typemaps(in) 
@@ -629,6 +637,10 @@ int MATLAB::functionWrapper(Node *n){
   // ..
 
   // Emit the function call 
+  Setattr(n, "wrap:name", overname);
+  Swig_director_emit_dynamic_cast(n, wrapper);
+  String *actioncode = emit_action(n);
+
   //  emit_action_code(n,wrapper);
   //  Printf(wrapper->code,"%s\n",action);
   
