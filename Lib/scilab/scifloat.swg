@@ -9,7 +9,8 @@ SWIG_AsVal_dec(float)(SwigSciObject _iVar, float *_pfValue) {
   if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;
   }
-  *_pfValue = (float) dblValue;
+  if (_pfValue)
+    *_pfValue = (float) dblValue;
   return SWIG_OK;
 }
 }
