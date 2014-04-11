@@ -27,27 +27,45 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 // long
 
 %fragment(SWIG_From_frag(long),"header") {
-  SWIGINTERNINLINE octave_value SWIG_From_dec(long)  (long value)
+  SWIGINTERNINLINE mxArray* SWIG_From_dec(long)  (long value)
     {    
-      return octave_value(value);
+      mxArray* out = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+      *((int64_T*)mxGetData(out)) = (int64_T)value;
+      return out;
     }
 }
 
 
 %fragment(SWIG_AsVal_frag(long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(long)(const octave_value& ov, long* val)
+  SWIGINTERN int SWIG_AsVal_dec(long)(const mxArray* pm, long* val)
     {
-      if (!ov.is_scalar_type())
-	return SWIG_TypeError;
-      if (ov.is_complex_scalar())
-	return SWIG_TypeError;
-      if (ov.is_double_type()||ov.is_single_type()) {
-	double v=ov.double_value();
-	if (v!=floor(v))
-	  return SWIG_TypeError;
+      if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
+      switch(mxGetClassID(pm)){
+      case mxINT8_CLASS:
+        if(val) *val = (long)(*(int8_T*)mxGetData(pm)); break;
+      case mxUINT8_CLASS:
+        if(val) *val = (long)(*(uint8_T*)mxGetData(pm)); break;
+      case mxINT16_CLASS:
+        if(val) *val = (long)(*(int16_T*)mxGetData(pm)); break;
+      case mxUINT16_CLASS:
+        if(val) *val = (long)(*(uint16_T*)mxGetData(pm)); break;
+      case mxINT32_CLASS:
+        if(val) *val = (long)(*(int32_T*)mxGetData(pm)); break;
+      case mxUINT32_CLASS:
+        if(val) *val = (long)(*(uint32_T*)mxGetData(pm)); break;
+      case mxINT64_CLASS:
+        if(val) *val = (long)(*(int64_T*)mxGetData(pm)); break;
+      case mxUINT64_CLASS: 
+        if(val) *val = (long)(*(uint64_T*)mxGetData(pm)); break;
+      case mxDOUBLE_CLASS:
+      {
+	double v=mxGetScalar(pm);
+	if(v!=floor(v)) return SWIG_TypeError;
+        if(val) *val = (long)v;
+        return;
       }
-      if (val)
-	*val = ov.long_value();
+      default: return SWIG_TypeError;
+      }
       return SWIG_OK;
     }
 }
@@ -55,40 +73,45 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 // unsigned long
 
 %fragment(SWIG_From_frag(unsigned long),"header") {
-  SWIGINTERNINLINE octave_value SWIG_From_dec(unsigned long)  (unsigned long value)
+  SWIGINTERNINLINE mxArray* SWIG_From_dec(unsigned long)  (unsigned long value)
     {    
-      return octave_value(value);
+      mxArray* out = mxCreateNumericMatrix(1,1,mxUINT64_CLASS,mxREAL);
+      *((uint64_T*)mxGetData(out)) = (uint64_T)value;
+      return out;
     }
 }
 
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(unsigned long)(const octave_value& ov, unsigned long* val)
+  SWIGINTERN int SWIG_AsVal_dec(unsigned long)(const mxArray* pm, unsigned long* val)
     {
-      if (!ov.is_scalar_type())
-	return SWIG_TypeError;
-      if (ov.is_complex_scalar())
-	return SWIG_TypeError;
-      if (ov.is_double_type()||ov.is_single_type()) {
-	double v=ov.double_value();
-	if (v<0)
-	  return SWIG_OverflowError;  
-	if (v!=floor(v))
-	  return SWIG_TypeError;
+      if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
+      switch(mxGetClassID(pm)){
+      case mxINT8_CLASS:
+        if(val) *val = (unsigned long)(*(int8_T*)mxGetData(pm)); break;
+      case mxUINT8_CLASS:
+        if(val) *val = (unsigned long)(*(uint8_T*)mxGetData(pm)); break;
+      case mxINT16_CLASS:
+        if(val) *val = (unsigned long)(*(int16_T*)mxGetData(pm)); break;
+      case mxUINT16_CLASS:
+        if(val) *val = (unsigned long)(*(uint16_T*)mxGetData(pm)); break;
+      case mxINT32_CLASS:
+        if(val) *val = (unsigned long)(*(int32_T*)mxGetData(pm)); break;
+      case mxUINT32_CLASS:
+        if(val) *val = (unsigned long)(*(uint32_T*)mxGetData(pm)); break;
+      case mxINT64_CLASS:
+        if(val) *val = (unsigned long)(*(int64_T*)mxGetData(pm)); break;
+      case mxUINT64_CLASS: 
+        if(val) *val = (unsigned long)(*(uint64_T*)mxGetData(pm)); break;
+      case mxDOUBLE_CLASS:
+      {
+	double v=mxGetScalar(pm);
+	if(v!=floor(v)) return SWIG_TypeError;
+        if(val) *val = (unsigned long)v;
+        return;
       }
-      if (ov.is_int8_type()||ov.is_int16_type()||
-	  ov.is_int32_type()) {
-	long v=ov.long_value();
-	if (v<0)
-	  return SWIG_OverflowError;  
+      default: return SWIG_TypeError;
       }
-      if (ov.is_int64_type()) {
-	long long v=ov.int64_scalar_value().value();
-	if (v<0)
-	  return SWIG_OverflowError;  
-      }
-      if (val)
-	*val = ov.ulong_value();
       return SWIG_OK;
     }
 }
@@ -96,76 +119,87 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 // long long
 
 %fragment(SWIG_From_frag(long long),"header") {
-  SWIGINTERNINLINE octave_value SWIG_From_dec(long long)  (long long value)
+  SWIGINTERNINLINE mxArray* SWIG_From_dec(long long)  (long long value)
     {    
-      return octave_int64(value);
+      mxArray* out = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+      *((int64_T*)mxGetData(out)) = (int64_T)value;
+      return out;
     }
 }
 
 
 %fragment(SWIG_AsVal_frag(long long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(long long)(const octave_value& ov, long long* val)
+  SWIGINTERN int SWIG_AsVal_dec(long long)(const mxArray* pm, long long* val)
     {
-      if (!ov.is_scalar_type())
-	return SWIG_TypeError;
-      if (ov.is_complex_scalar())
-	return SWIG_TypeError;
-      if (ov.is_double_type()||ov.is_single_type()) {
-	double v=ov.double_value();
-	if (v!=floor(v))
-	  return SWIG_TypeError;
+      if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
+      switch(mxGetClassID(pm)){
+      case mxINT8_CLASS:
+        if(val) *val = (long long)(*(int8_T*)mxGetData(pm)); break;
+      case mxUINT8_CLASS:
+        if(val) *val = (long long)(*(uint8_T*)mxGetData(pm)); break;
+      case mxINT16_CLASS:
+        if(val) *val = (long long)(*(int16_T*)mxGetData(pm)); break;
+      case mxUINT16_CLASS:
+        if(val) *val = (long long)(*(uint16_T*)mxGetData(pm)); break;
+      case mxINT32_CLASS:
+        if(val) *val = (long long)(*(int32_T*)mxGetData(pm)); break;
+      case mxUINT32_CLASS:
+        if(val) *val = (long long)(*(uint32_T*)mxGetData(pm)); break;
+      case mxINT64_CLASS:
+        if(val) *val = (long long)(*(int64_T*)mxGetData(pm)); break;
+      case mxUINT64_CLASS: 
+        if(val) *val = (long long)(*(uint64_T*)mxGetData(pm)); break;
+      case mxDOUBLE_CLASS:
+      {
+	double v=mxGetScalar(pm);
+	if(v!=floor(v)) return SWIG_TypeError;
+        if(val) *val = (long long)v;
+        return;
       }
-      if (val) {
-	if (ov.is_int64_type())
-	  *val = ov.int64_scalar_value().value();
-	else if (ov.is_uint64_type())
-	  *val = ov.uint64_scalar_value().value();
-	else
-	  *val = ov.long_value();
+      default: return SWIG_TypeError;
       }
       return SWIG_OK;
     }
 }
 
 %fragment(SWIG_From_frag(unsigned long long),"header") {
-  SWIGINTERNINLINE octave_value SWIG_From_dec(unsigned long long)  (unsigned long long value)
+  SWIGINTERNINLINE mxArray* SWIG_From_dec(unsigned long long)  (unsigned long long value)
     {    
-      return octave_uint64(value);
+      mxArray* out = mxCreateNumericMatrix(1,1,mxUINT64_CLASS,mxREAL);
+      *((uint64_T*)mxGetData(out)) = (uint64_T)value;
+      return out;
     }
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(const octave_value& ov, unsigned long long* val)
+  SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(const mxArray* pm, unsigned long long* val)
     {
-      if (!ov.is_scalar_type())
-	return SWIG_TypeError;
-      if (ov.is_complex_scalar())
-	return SWIG_TypeError;
-      if (ov.is_double_type()||ov.is_single_type()) {
-	double v=ov.double_value();
-	if (v<0)
-	  return SWIG_OverflowError;  
-	if (v!=floor(v))
-	  return SWIG_TypeError;
+      if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
+      switch(mxGetClassID(pm)){
+      case mxINT8_CLASS:
+        if(val) *val = (unsigned long long)(*(int8_T*)mxGetData(pm)); break;
+      case mxUINT8_CLASS:
+        if(val) *val = (unsigned long long)(*(uint8_T*)mxGetData(pm)); break;
+      case mxINT16_CLASS:
+        if(val) *val = (unsigned long long)(*(int16_T*)mxGetData(pm)); break;
+      case mxUINT16_CLASS:
+        if(val) *val = (unsigned long long)(*(uint16_T*)mxGetData(pm)); break;
+      case mxINT32_CLASS:
+        if(val) *val = (unsigned long long)(*(int32_T*)mxGetData(pm)); break;
+      case mxUINT32_CLASS:
+        if(val) *val = (unsigned long long)(*(uint32_T*)mxGetData(pm)); break;
+      case mxINT64_CLASS:
+        if(val) *val = (unsigned long long)(*(int64_T*)mxGetData(pm)); break;
+      case mxUINT64_CLASS: 
+        if(val) *val = (unsigned long long)(*(uint64_T*)mxGetData(pm)); break;
+      case mxDOUBLE_CLASS:
+      {
+	double v=mxGetScalar(pm);
+	if(v!=floor(v)) return SWIG_TypeError;
+        if(val) *val = (unsigned long long)v;
+        return;
       }
-      if (ov.is_int8_type()||ov.is_int16_type()||
-	  ov.is_int32_type()) {
-	long v=ov.long_value();
-	if (v<0)
-	  return SWIG_OverflowError;  
-      }
-      if (ov.is_int64_type()) {
-	long long v=ov.int64_scalar_value().value();
-	if (v<0)
-	  return SWIG_OverflowError;  
-      }
-      if (val) {
-	if (ov.is_int64_type())
-	  *val = ov.int64_scalar_value().value();
-	else if (ov.is_uint64_type())
-	  *val = ov.uint64_scalar_value().value();
-	else
-	  *val = ov.long_value();
+      default: return SWIG_TypeError;
       }
       return SWIG_OK;
     }
