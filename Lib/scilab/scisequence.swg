@@ -26,6 +26,7 @@
 %include <scisequencepointer.swg>
 %include <scisequenceint.swg>
 %include <scisequencedouble.swg>
+%include <scisequencefloat.swg>
 %include <scisequencestring.swg>
 %include <scisequencebool.swg>
 
@@ -188,6 +189,7 @@ namespace swig {
 
 %add_traits_sequence(int, int);
 %add_traits_sequence(double, double);
+%add_traits_sequence(float, float);
 %add_traits_sequence(std::string, char*);
 %add_traits_sequence(bool, int);
 

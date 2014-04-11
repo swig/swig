@@ -89,6 +89,7 @@ endfunction
 function testContainer(container)
   testContainerType(container, "int", 1, 2, [1, 2], 3);
   testContainerType(container, "double", 2., 3., [2., 3.], 5.);
+  testContainerType(container, "float", 2., 3., [2., 3.], 5.);
   testContainerType(container, "string", "a", "b", ["a", "b"], "ab");
   testContainerType(container, "bool", %F, %T, [%F, %T], %T);
   testContainerPtr("vector", 1, 3, 4);

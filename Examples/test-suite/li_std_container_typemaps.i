@@ -83,7 +83,7 @@ namespace std {
 }
 %}
 
-%define instantiate_containers_templates(TYPE...)
+%define %instantiate_containers_templates(TYPE...)
 namespace std
 {
   %template(TYPE ## _vector) std::vector<TYPE>;
@@ -94,7 +94,7 @@ namespace std
 }
 %enddef
 
-%define instantiate_containers_functions(TYPE...)
+%define %instantiate_containers_functions(TYPE...)
 namespace std
 {
   %template(ret_ ## TYPE ## _vector) ret_container<TYPE, std::vector<TYPE> >;
@@ -115,14 +115,14 @@ namespace std
 }
 %enddef
 
-instantiate_containers_templates(int);
-instantiate_containers_templates(double);
-instantiate_containers_templates(bool);
-instantiate_containers_templates(string);
-instantiate_containers_templates(ClassAPtr);
+%define %instantiate_containers_templates_and_functions(TYPE...)
+  %instantiate_containers_templates(TYPE);
+  %instantiate_containers_functions(TYPE);
+%enddef
 
-instantiate_containers_functions(int);
-instantiate_containers_functions(double);
-instantiate_containers_functions(bool);
-instantiate_containers_functions(string);
-instantiate_containers_functions(ClassAPtr);
+%instantiate_containers_templates_and_functions(int);
+%instantiate_containers_templates_and_functions(double);
+%instantiate_containers_templates_and_functions(float);
+%instantiate_containers_templates_and_functions(bool);
+%instantiate_containers_templates_and_functions(string);
+%instantiate_containers_templates_and_functions(ClassAPtr);
