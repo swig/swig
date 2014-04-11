@@ -176,22 +176,18 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 // double
 
 %fragment(SWIG_From_frag(double),"header") {
-  SWIGINTERNINLINE octave_value SWIG_From_dec(double)  (double value)
+  SWIGINTERNINLINE mxArray* SWIG_From_dec(double)  (double value)
     {    
-      return octave_value(value);
+      return mxCreateDoubleScalar(value);
     }
 }
 
 
 %fragment(SWIG_AsVal_frag(double),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(double)(const octave_value& ov, double* val)
+  SWIGINTERN int SWIG_AsVal_dec(double)(const mxArray* pm, double* val)
     {
-      if (!ov.is_scalar_type())
-	return SWIG_TypeError;
-      if (ov.is_complex_scalar())
-	return SWIG_TypeError;
-      if (val)
-	*val = ov.double_value();
+      if(!mxIsDouble(pm) || mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
+      if (val) *val = mxGetScalar(pm);
       return SWIG_OK;
     }
 }
