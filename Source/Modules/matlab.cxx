@@ -78,7 +78,6 @@ protected:
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
   void addMissingParameterNames(ParmList *plist, int arg_offset);
   String* convertValue(String *v, SwigType *t);
-  void Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cname, const_String_or_char_ptr wname, bool dld);
   const char* get_implicitconv_flag(Node *n);
   void dispatchFunction(Node *n);
   String* texinfo_name(Node* n, const char* defval = "0");
@@ -546,7 +545,7 @@ int MATLAB::functionWrapper(Node *n){
       process_autodoc(n);
 
     Wrapper *f = NewWrapper();
-    Matlab_begin_function(n, f->def, iname, overname, !overloaded);
+    Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, const mxArray *argv[]) {", overname);
 
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
@@ -557,7 +556,7 @@ int MATLAB::functionWrapper(Node *n){
     int varargs = emit_isvarargs(l);
     char source[64];
 
-    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",nrhs,%i,%i,%i)) " 
+    Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) " 
 	   "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
 
     if (constructor && num_arguments == 1 && num_required == 1) {
@@ -585,7 +584,7 @@ int MATLAB::functionWrapper(Node *n){
 	  continue;
 	}
 
-	sprintf(source, "args(%d)", j);
+	sprintf(source, "argv[%d]", j);
 	Setattr(p, "emit:input", source);
 
 	Replaceall(tm, "$source", Getattr(p, "emit:input"));
@@ -610,7 +609,7 @@ int MATLAB::functionWrapper(Node *n){
 
 	String *getargs = NewString("");
 	if (j >= num_required)
-	  Printf(getargs, "if (%d<nrhs) {\n%s\n}", j, tm);
+	  Printf(getargs, "if (%d<argc) {\n%s\n}", j, tm);
 	else
 	  Printv(getargs, tm, NIL);
 	Printv(f->code, getargs, "\n", NIL);
@@ -708,7 +707,7 @@ int MATLAB::functionWrapper(Node *n){
 	Replaceall(tm, "$owner", "0");
 
       Printf(f->code, "%s\n", tm);
-      Printf(f->code, "*plhs++ = _out;\n");
+      Printf(f->code, "*resv++ = _out;\n");
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -796,7 +795,7 @@ int MATLAB::functionWrapper(Node *n){
   Wrapper *wrapper = NewWrapper();
   
   // Write the wrapper function definition
-  Printv(wrapper->def,"void ", wname, "(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {",NIL);
+  Printv(wrapper->def,"void ", wname, "(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {",NIL);
   
   // If any additional local variable needed, add them now  
   emit_parameter_variables(parms, wrapper);
@@ -997,11 +996,11 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
 void MATLAB::initGateway(){
   if(CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
-  Printf(f_gateway,"void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){\n");
+  Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]){\n");
   
   // The first argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
-  Printf(f_gateway,"  if(nrhs < 1 || mxGetString(prhs[0], cmd, sizeof(cmd)))\n");
+  Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
 }
 
@@ -1010,7 +1009,7 @@ void MATLAB::toGateway(String *fullname){
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
-  Printf(f_gateway,"    %s(nlhs,plhs,nrhs-1,prhs+1);\n",Swig_name_wrapper(fullname));
+  Printf(f_gateway,"    %s(resc,resv,argc-1,argv+1);\n",Swig_name_wrapper(fullname));
   Printf(f_gateway,"  } else ");
 }
 
@@ -1135,16 +1134,6 @@ void MATLAB::createSwigRef(){
   f_wrap_m = 0;
 }
 
-void MATLAB::Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cname, const_String_or_char_ptr wname, bool dld) {
-    if (dld) {
-      String *tname = texinfo_name(n, "std::string()");
-      Printf(f, "SWIG_DEFUN( %s, %s, %s ) {", cname, wname, tname);
-    }
-    else {
-      Printf(f, "void %s (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {", wname);
-    }
-  }
-
  const char* MATLAB::get_implicitconv_flag(Node *n) {
     int conv = 0;
     if (n && GetFlag(n, "feature:implicitconv")) {
@@ -1159,19 +1148,13 @@ void MATLAB::Matlab_begin_function(Node *n, File *f, const_String_or_char_ptr cn
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     int maxargs;
-    String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(resc,resv,argc,argv);", &maxargs);
     String *tmp = NewString("");
 
-    Matlab_begin_function(n, f->def, iname, wname, true);
-    Wrapper_add_local(f, "argc", "int argc = args.length()");
-    Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
-    for (int j = 0; j < maxargs; ++j)
-      Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
-    Printf(tmp, "}");
-    Wrapper_add_local(f, "argv", tmp);
+    Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, const mxArray *argv[]) {", wname);
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "error(\"No matching function for overload\");\n", iname);
-    Printf(f->code, "return octave_value_list();\n");
+    Printf(f->code, "return;\n");
     Printv(f->code, "}\n", NIL);
 
     Wrapper_print(f, f_wrappers);
