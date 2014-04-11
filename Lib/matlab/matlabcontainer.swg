@@ -1,10 +1,10 @@
 /* -----------------------------------------------------------------------------
- * octcontainer.swg
+ * matlabcontainer.swg
  *
- * Octave cell <-> C++ container wrapper
+ * MATLAB cell <-> C++ container wrapper
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
- * the mapping between C++ and Octave, thanks to the C++ templates.
+ * the mapping between C++ and MATLAB, thanks to the C++ templates.
  *
  * Of course, it needs the C++ compiler to support templates, but
  * since we will use this wrapper with the STL containers, that should
@@ -22,7 +22,7 @@
 # endif
 #endif
 
-%include <octiterators.swg>
+%include <matlabiterators.swg>
 
 // The Octave C++ Wrap
 

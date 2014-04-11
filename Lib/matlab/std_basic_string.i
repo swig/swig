@@ -2,7 +2,7 @@
 #define SWIG_STD_BASIC_STRING
 #define SWIG_STD_MODERN_STL
 
-%include <octcontainer.swg>
+%include <matlabcontainer.swg>
 
 #define %swig_basic_string(Type...)  %swig_sequence_methods_val(Type)
 

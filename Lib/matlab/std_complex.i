@@ -2,7 +2,7 @@
  *  STD C++ complex typemaps
  */
 
-%include <octcomplex.swg>
+%include <matlabcomplex.swg>
 
 %{
 #include <complex> 

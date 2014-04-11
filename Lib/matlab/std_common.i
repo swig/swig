@@ -1,5 +1,5 @@
 %include <std/std_except.i>
-%include <octstdcommon.swg>
+%include <matlabstdcommon.swg>
 
 
 // Generate the traits for a 'primitive' type, such as 'double',

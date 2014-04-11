@@ -1,6 +1,6 @@
 // Pairs
 
-%include <octstdcommon.swg>
+%include <matlabstdcommon.swg>
 
 //#define SWIG_STD_PAIR_ASVAL
 

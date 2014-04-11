@@ -1,6 +1,6 @@
 // Maps
 
-%include <octcontainer.swg>
+%include <matlabcontainer.swg>
 
 %fragment("StdMapCommonTraits","header",fragment="StdSequenceTraits")
 {

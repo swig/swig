@@ -248,9 +248,6 @@ int MATLAB::top(Node *n) {
   Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
   Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
-  // Include mex header file
-  Printf(f_runtime, "#include <mex.h>\n");
-
   Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);

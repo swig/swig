@@ -3,10 +3,10 @@
 %include <typemaps/fragments.swg>
 
 // Look for user fragments file.
-%include <octfragments.swg>
+%include <matlabfragments.swg>
 
-// Octave fragments for primitive types
-%include <octprimtypes.swg>
+// MATLAB fragments for primitive types
+%include <matlabprimtypes.swg>
 
 // Octave fragments for char* strings
 //%include <octstrings.swg>

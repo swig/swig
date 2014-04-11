@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * octiterators.swg
+ * matlabiterators.swg
  *
  * Users can derive form the OctSwigIterator to implemet their
  * own iterators. As an example (real one since we use it for STL/STD

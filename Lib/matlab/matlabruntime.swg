@@ -1,20 +1,12 @@
 %insert(runtime) %{
 #include <cstdlib>
 #include <iostream>
-#include <octave/oct.h>
-#include <octave/Cell.h>
-#include <octave/dynamic-ld.h>
-#include <octave/oct-env.h>
-#include <octave/oct-map.h>
-#include <octave/ov-fcn-handle.h>
-#include <octave/parse.h>
-#include <octave/toplev.h>
-#include <octave/unwind-prot.h>
+#include <mex.h>
 %}
 
 %insert(runtime) "swigrun.swg";
 %insert(runtime) "swigerrors.swg";
-%insert(runtime) "octrun.swg";
+%insert(runtime) "matlabrun.swg";
 
 %insert(initbeforefunc) "swiginit.swg"
 
