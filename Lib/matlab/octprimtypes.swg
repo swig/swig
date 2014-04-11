@@ -6,23 +6,21 @@
 // boolean
 
 %fragment(SWIG_From_frag(bool),"header") {
-SWIGINTERNINLINE octave_value
+SWIGINTERNINLINE mxArray*
   SWIG_From_dec(bool)(bool value)
 {
-  return octave_value(value);
+  return mxCreateLogicalScalar(value);
 }
 }
 
 %fragment(SWIG_AsVal_frag(bool),"header",
 	  fragment=SWIG_AsVal_frag(long)) {
 SWIGINTERN int
-SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
+SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 {
-  if (!ov.is_bool_type())
-    return SWIG_ERROR;
-  if (val)
-    *val = ov.bool_value();
-  return SWIG_OK;
+   if(!mxIsLogicalScalar(pm)) return SWIG_TypeError;
+   if (val) *val = mxIsLogicalScalarTrue(pm);
+   return SWIG_OK;
 }
 }
 
