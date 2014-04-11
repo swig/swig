@@ -16,12 +16,12 @@
 #define SWIG_DIRECTOR_TYPEMAPS
 #endif
 
-// Octave types
-#define SWIG_Object                      octave_value
-#define VOID_Object                      octave_value()
+// MATLAB types
+#define SWIG_Object mxArray*
+#define VOID_Object octave_value()
 
 /*
-// Octave allows implicit conversion
+// MATLAB allows implicit conversion
 #define %implicitconv_flag              $implicitconv 
 */
 

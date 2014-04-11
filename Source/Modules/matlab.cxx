@@ -263,8 +263,6 @@ int MATLAB::top(Node *n) {
 
   Printf(f_runtime, "\n");
 
-  Printf(f_init, "static bool SWIG_init_user(octave_swig_type* module_ns)\n{\n");
-
   if (!CPlusPlus)
     Printf(f_header,"extern \"C\" {\n");
 
@@ -882,7 +880,7 @@ void MATLAB::initGateway(){
   // The first argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
-  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+  Printf(f_gateway,"    mexWarnMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
 }
 
 void MATLAB::toGateway(String *fullname){
@@ -896,7 +894,7 @@ void MATLAB::toGateway(String *fullname){
 
 void MATLAB::finalizeGateway(){
   Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexErrMsgTxt(\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"    mexWarnMsgTxt(\"No command %%s.\",cmd);\n");
   Printf(f_gateway,"  }\n");
   Printf(f_gateway,"}\n");
 }

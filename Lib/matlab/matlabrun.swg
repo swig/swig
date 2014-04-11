@@ -8,40 +8,36 @@ SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int ma
   return false;
 }
 
-SWIGRUNTIME octave_value SWIG_ErrorType(int code) {
+SWIGRUNTIME const char* SWIG_ErrorType(int code) {
   switch (code) {
   case SWIG_MemoryError:
-    return "SWIG_MemoryError";
+    return "SWIG:MemoryError";
   case SWIG_IOError:
-    return "SWIG_IOError";
+    return "SWIG:IOError";
   case SWIG_RuntimeError:
-    return "SWIG_RuntimeError";
+    return "SWIG:RuntimeError";
   case SWIG_IndexError:
-    return "SWIG_IndexError";
+    return "SWIG:IndexError";
   case SWIG_TypeError:
-    return "SWIG_TypeError";
+    return "SWIG:TypeError";
   case SWIG_DivisionByZero:
-    return "SWIG_DivisionByZero";
+    return "SWIG:DivisionByZero";
   case SWIG_OverflowError:
-    return "SWIG_OverflowError";
+    return "SWIG:OverflowError";
   case SWIG_SyntaxError:
-    return "SWIG_SyntaxError";
+    return "SWIG:SyntaxError";
   case SWIG_ValueError:
-    return "SWIG_ValueError";
+    return "SWIG:ValueError";
   case SWIG_SystemError:
-    return "SWIG_SystemError";
+    return "SWIG:SystemError";
   case SWIG_AttributeError:
-    return "SWIG_AttributeError";
+    return "SWIG:AttributeError";
   }
-  return "SWIG unknown error";
+  return "SWIG:UnknownError";
 }
 
-SWIGRUNTIME octave_value SWIG_Error(int code, const char *msg) {
-  octave_value type(SWIG_ErrorType(code));
-  std::string r = msg;
-  r += " (" + type.string_value() + ")";
-  error(r.c_str());
-  return octave_value(r);
+SWIGRUNTIME void SWIG_Error(int code, const char *msg) {
+  mexWarnMsgIdAndTxt(SWIG_ErrorType(code),msg);
 }
 
 #define SWIG_fail                                       goto fail
@@ -82,66 +78,11 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 #include <vector>
 #include <string>
 
-typedef octave_value_list(*octave_func) (const octave_value_list &, int);
-class octave_swig_type;
-
-namespace Swig {
-
-#ifdef SWIG_DIRECTORS
-
-  class Director;
-
-  typedef std::map < void *, Director * > rtdir_map;
-  SWIGINTERN rtdir_map* get_rtdir_map();
-  SWIGINTERNINLINE void set_rtdir(void *vptr, Director *d);
-  SWIGINTERNINLINE void erase_rtdir(void *vptr);
-  SWIGINTERNINLINE Director *get_rtdir(void *vptr);
-
-  SWIGRUNTIME void swig_director_destroyed(octave_swig_type *self, Director *d);
-  SWIGRUNTIME octave_swig_type *swig_director_get_self(Director *d);
-  SWIGRUNTIME void swig_director_set_self(Director *d, octave_swig_type *self);
-
-#endif
-
-  SWIGRUNTIME octave_base_value *swig_value_ref(octave_swig_type *ost);
-  SWIGRUNTIME octave_swig_type *swig_value_deref(octave_value ov);
-  SWIGRUNTIME octave_swig_type *swig_value_deref(const octave_base_value &ov);
+SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
+  #error
 }
 
-#ifdef SWIG_DIRECTORS
-SWIGRUNTIME void swig_acquire_ownership(void *vptr);
-SWIGRUNTIME void swig_acquire_ownership_array(void *vptr);
-SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
-#endif
-
-SWIGRUNTIME octave_value SWIG_Octave_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  int own = (flags &SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
-
-#ifdef SWIG_DIRECTORS
-  Swig::Director *d = Swig::get_rtdir(ptr);
-  if (d && Swig::swig_director_get_self(d))
-    return Swig::swig_director_get_self(d)->as_value();
-#endif
-  return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
-}
-
-SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_type_info *type, int flags, int *own) {
-  if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
-    ov = ov.cell_value()(0);
-  if (!ov.is_defined() ||
-      (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
-    if (ptr)
-      *ptr = 0;
-    return SWIG_OK;
-  }
-  if (ov.type_id() != octave_swig_ref::static_type_id())
-    return SWIG_ERROR;
-  octave_swig_ref *osr = static_cast < octave_swig_ref *>(ov.internal_rep());
-  octave_swig_type *ost = osr->get_ptr();
-  void *vptr = ost->cast(type, own, flags);
-  if (!vptr)
-    return SWIG_ERROR;
-  if (ptr)
-    *ptr = vptr;
+SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(const mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
+  #error
   return SWIG_OK;
 }

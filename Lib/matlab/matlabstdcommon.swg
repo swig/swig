@@ -3,46 +3,46 @@
 namespace swig {  
 // Traits that provides the from method
   template <class Type> struct traits_from_ptr {
-    static octave_value from(Type *val, int owner = 0) {
+    static mxArray* from(Type *val, int owner = 0) {
       return SWIG_NewPointerObj(val, type_info<Type>(), owner);
     }
   };
 
   template <class Type> struct traits_from {
-    static octave_value from(const Type& val) {
+    static mxArray* from(const Type& val) {
       return traits_from_ptr<Type>::from(new Type(val), 1);
     }
   };
 
   template <class Type> struct traits_from<Type *> {
-    static octave_value from(Type* val) {
+    static mxArray* from(Type* val) {
       return traits_from_ptr<Type>::from(val, 0);
     }
   };
 
   template <class Type> struct traits_from<const Type *> {
-    static octave_value from(const Type* val) {
+    static mxArray* from(const Type* val) {
       return traits_from_ptr<Type>::from(const_cast<Type*>(val), 0);
     }
   };
 
 
   template <class Type>
-  inline octave_value from(const Type& val) {
+  inline mxArray* from(const Type& val) {
     return traits_from<Type>::from(val);
   }
 
   template <class Type>
-  inline octave_value from_ptr(Type* val, int owner) {
+  inline mxArray* from_ptr(Type* val, int owner) {
     return traits_from_ptr<Type>::from(val, owner);
   }
 
     // Traits that provides the asval/as/check method
   template <class Type>
   struct traits_asptr {   
-    static int asptr(const octave_value& obj, Type **val) {
+    static int asptr(const mxArray* pm, Type **val) {
       Type *p;
-      int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
+      int res = SWIG_ConvertPtr(pm, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }
@@ -51,16 +51,16 @@ namespace swig {
   }; 
 
   template <class Type>
-  inline int asptr(const octave_value& obj, Type **vptr) {
-    return traits_asptr<Type>::asptr(obj, vptr);
+  inline int asptr(const mxArray* pm, Type **vptr) {
+    return traits_asptr<Type>::asptr(pm, vptr);
   }
 
   template <class Type> 
   struct traits_asval {
-    static int asval(const octave_value& obj, Type *val) {
+    static int asval(const mxArray* pm, Type *val) {
       if (val) {
 	Type *p = 0;
-	int res = traits_asptr<Type>::asptr(obj, &p);
+	int res = traits_asptr<Type>::asptr(pm, &p);
 	if (!SWIG_IsOK(res)) return res;	
 	if (p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
@@ -74,38 +74,38 @@ namespace swig {
 	  return SWIG_ERROR;
 	}
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0));
+	return traits_asptr<Type>::asptr(pm, (Type **)(0));
       }
     }
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static int asval(const octave_value& obj, Type **val) {
+    static int asval(const mxArray* pm, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
-        int res = traits_asptr<noconst_type>::asptr(obj,  &p);
+        int res = traits_asptr<noconst_type>::asptr(pm,  &p);
         if (SWIG_IsOK(res)) {
           *(const_cast<noconst_type**>(val)) = p;
 	}
 	return res;
       } else {
-	return traits_asptr<Type>::asptr(obj, (Type **)(0));
+	return traits_asptr<Type>::asptr(pm, (Type **)(0));
       }
     }
   };
   
   template <class Type>
-  inline int asval(const octave_value& obj, Type *val) {
-    return traits_asval<Type>::asval(obj, val);
+  inline int asval(const mxArray* pm, Type *val) {
+    return traits_asval<Type>::asval(pm, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(const octave_value& obj, bool throw_error) {
+    static Type as(const mxArray* pm, bool throw_error) {
       Type v;
-      int res = asval(obj, &v);
-      if (!obj.is_defined() || !SWIG_IsOK(res)) {
+      int res = asval(pm, &v);
+      if (!pm.is_defined() || !SWIG_IsOK(res)) {
 	if (!Octave_Error_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
@@ -117,9 +117,9 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(const octave_value& obj, bool throw_error) {
+    static Type as(const mxArray* pm, bool throw_error) {
       Type *v = 0;      
-      int res = traits_asptr<Type>::asptr(obj, &v);
+      int res = traits_asptr<Type>::asptr(pm, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
@@ -143,9 +143,9 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(const octave_value& obj, bool throw_error) {
+    static Type* as(const mxArray* pm, bool throw_error) {
       Type *v = 0;      
-      int res = traits_asptr<Type>::asptr(obj, &v);
+      int res = traits_asptr<Type>::asptr(pm, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
@@ -159,8 +159,8 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(const octave_value& obj, bool te = false) {
-    return traits_as<Type, typename traits<Type>::category>::as(obj, te);
+  inline Type as(const mxArray* pm, bool te = false) {
+    return traits_as<Type, typename traits<Type>::category>::as(pm, te);
   }
 
   template <class Type> 
