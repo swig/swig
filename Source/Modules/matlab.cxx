@@ -58,7 +58,6 @@ protected:
   File *f_initbeforefunc;
   File *f_directors;
   File *f_directors_h;
-  String *s_global_tab;
   String* class_name;
   String* mex_fcn;
 
@@ -104,7 +103,6 @@ MATLAB::MATLAB() :
   f_initbeforefunc(0),
   f_directors(0),
   f_directors_h(0),
-  s_global_tab(0),
   class_name(0),
   mex_fcn(0),
   docs(0)
@@ -232,7 +230,6 @@ int MATLAB::top(Node *n) {
     f_initbeforefunc = NewString("");
     f_directors_h = NewString("");
     f_directors = NewString("");
-    s_global_tab = NewString("");
     Swig_register_filebyname("gateway", f_gateway);
     Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
@@ -269,7 +266,6 @@ int MATLAB::top(Node *n) {
 
     Printf(f_runtime, "\n");
 
-    Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
     Printf(f_init, "static bool SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
     if (!CPlusPlus)
@@ -294,9 +290,7 @@ int MATLAB::top(Node *n) {
       Swig_insert_file("director.swg", f_runtime);
 
     Printf(f_init, "return true;\n}\n");
-    Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
 
-    Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
@@ -310,7 +304,6 @@ int MATLAB::top(Node *n) {
     Wrapper_pretty_print(f_init, f_begin);
     Dump(f_gateway, f_begin);
 
-    Delete(s_global_tab);
     Delete(f_initbeforefunc);
     Delete(f_init);
     Delete(f_wrappers);
@@ -747,12 +740,6 @@ int MATLAB::functionWrapper(Node *n){
     if (last_overload)
       dispatchFunction(n);
 
-    if (!overloaded || last_overload) {
-      String *tname = texinfo_name(n);
-      Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s},\n", iname, wname, tname);
-      Delete(tname);
-    }
-
     Delete(overname);
     Delete(wname);
     Delete(cleanup);
@@ -760,109 +747,6 @@ int MATLAB::functionWrapper(Node *n){
 
     return SWIG_OK;
   }
-
-#if 0
-  // Get useful attributes 
-  String   *name   = Getattr(n,"sym:name");
-  SwigType *type   = Getattr(n,"type");
-  ParmList *parms  = Getattr(n,"parms");
-  String *nodeType = Getattr(n, "nodeType");
-  String *storage = Getattr(n, "storage");
-  String *value = Getattr(n, "value");
-  String *action = Getattr(n, "action");
-  // String   *action = emit_action(n);
-  
-  // Is the function a constructor
-  bool constructor = !Cmp(nodeType, "constructor");
-
-  // Is the function a destructor
-  bool destructor = !Cmp(nodeType, "destructor");
-
-  // Handle nameless parameters
-  nameUnnamedParams(parms, false);
-  String *parmprotostr = ParmList_protostr(parms);
-
-  // Is it a pure virtual function?
-  bool pure_virtual = Cmp(storage, "virtual") == 0 && Cmp(value, "0") == 0;
-  
-  // Deal with overloading 
-  String *overname = NewString("");
-  Printf(overname, "%s", getOverloadedName(n));
-  String *wname = Swig_name_wrapper(overname);
-  Setattr(n, "wrap:name", wname);
-
-  // Create the wrapper object 
-  Wrapper *wrapper = NewWrapper();
-  
-  // Write the wrapper function definition
-  Printv(wrapper->def,"void ", wname, "(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {",NIL);
-  
-  // If any additional local variable needed, add them now  
-  emit_parameter_variables(parms, wrapper);
-
-  // Attach the standard typemaps
-  emit_attach_parmmaps(parms, wrapper);
-
-  // Check arguments 
-
-
-  // ..
-  
-  // Write typemaps(in) 
-  // ..
-
-  // Write constraints
-  // ..
-
-  // Emit the function call 
-  Setattr(n, "wrap:name", overname);
-  Swig_director_emit_dynamic_cast(n, wrapper);
-  String *actioncode = emit_action(n);
-
-  //  emit_action_code(n,wrapper);
-  //  Printf(wrapper->code,"%s\n",action);
-  
-  // return value if necessary 
-  // ..
-
-  // Write typemaps(out) 
-  // ..
-  
-  // Add cleanup code
-  // ..
-
-  // Close the function(ok)
-  Printf(wrapper->code, "return;\n");
-
-  // Add the failure cleanup code
-  // ..
-
-  // Close the function(error)
-  Printf(wrapper->code,"fail:\n");
-  Printf(wrapper->code,"mexErrMsgTxt(\"Failure in %s.\");\n", wname);
-  Printf(wrapper->code,"}");
-  
-  // Final substititions if applicable 
-
-  // Dump the function out
-  Wrapper_print(wrapper, f_wrappers);
-
-  // Tidy up
-  DelWrapper(wrapper);
-  //   if (last_overload) dispatchFunction(n);
-  //   if (!overloaded || last_overload) {
-  //     String *tname = texinfo_name(n);
-  //     Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s},\n", iname, wname, tname);
-  //     Delete(tname);
-  //   }
-
-  //   Delete(overname);
-  Delete(wname);
-  //   Delete(cleanup);
-  //   Delete(outarg);
-  return SWIG_OK;
-}
-#endif
 
 int MATLAB::variableWrapper(Node *n){
 #ifdef MATLABPRINTFUNCTIONENTRY
