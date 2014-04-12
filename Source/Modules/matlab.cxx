@@ -863,7 +863,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
     Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
-    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:})\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:});\n",mex_fcn,fullname);
     Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
@@ -918,7 +918,13 @@ int MATLAB::constructorHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_construct(NSPACE_TODO, symname);
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
-    Printf(f_wrap_m,"      self.swigCPtr = %s('%s',varargin{:})\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"      if nargin==3 && ischar(varargin{1}) && strcmp(varargin{1},'_swigCreate')\n");
+    Printf(f_wrap_m,"        self.swigCPtr = varargin{2};\n");
+    Printf(f_wrap_m,"        self.swigOwn = varargin{3};\n");
+    Printf(f_wrap_m,"      else\n");
+    Printf(f_wrap_m,"        self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"        self.swigOwn = true;\n");
+    Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
@@ -934,7 +940,10 @@ int MATLAB::destructorHandler(Node *n) {
   Printf(f_wrap_m,"    function delete(self)\n");
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
-  Printf(f_wrap_m,"      self.swigCPtr = %s('%s',self.swigCPtr)\n",mex_fcn,fullname);
+  Printf(f_wrap_m,"      if self.swigOwn\n");
+  Printf(f_wrap_m,"        %s('%s',self.swigCPtr);\n",mex_fcn,fullname);
+  Printf(f_wrap_m,"        self.swigOwn = false;\n");
+  Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
   // Add to function switch
@@ -1004,6 +1013,7 @@ void MATLAB::createSwigRef(){
   Printf(f_wrap_m,"classdef (Abstract) swigRef < handle\n");
   Printf(f_wrap_m,"  properties (GetAccess = protected, SetAccess = protected)\n");
   Printf(f_wrap_m,"    swigCPtr\n");
+  Printf(f_wrap_m,"    swigOwn\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
