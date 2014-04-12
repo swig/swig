@@ -40,7 +40,7 @@ namespace swig {
     // Traits that provides the asval/as/check method
   template <class Type>
   struct traits_asptr {   
-    static int asptr(const mxArray* pm, Type **val) {
+    static int asptr(mxArray* pm, Type **val) {
       Type *p;
       int res = SWIG_ConvertPtr(pm, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
@@ -51,13 +51,13 @@ namespace swig {
   }; 
 
   template <class Type>
-  inline int asptr(const mxArray* pm, Type **vptr) {
+  inline int asptr(mxArray* pm, Type **vptr) {
     return traits_asptr<Type>::asptr(pm, vptr);
   }
 
   template <class Type> 
   struct traits_asval {
-    static int asval(const mxArray* pm, Type *val) {
+    static int asval(mxArray* pm, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(pm, &p);
@@ -80,7 +80,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static int asval(const mxArray* pm, Type **val) {
+    static int asval(mxArray* pm, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
@@ -96,13 +96,13 @@ namespace swig {
   };
   
   template <class Type>
-  inline int asval(const mxArray* pm, Type *val) {
+  inline int asval(mxArray* pm, Type *val) {
     return traits_asval<Type>::asval(pm, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(const mxArray* pm, bool throw_error) {
+    static Type as(mxArray* pm, bool throw_error) {
       Type v;
       int res = asval(pm, &v);
       if (!pm.is_defined() || !SWIG_IsOK(res)) {
@@ -117,7 +117,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(const mxArray* pm, bool throw_error) {
+    static Type as(mxArray* pm, bool throw_error) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(pm, &v);
       if (SWIG_IsOK(res) && v) {
@@ -143,7 +143,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(const mxArray* pm, bool throw_error) {
+    static Type* as(mxArray* pm, bool throw_error) {
       Type *v = 0;      
       int res = traits_asptr<Type>::asptr(pm, &v);
       if (SWIG_IsOK(res)) {
@@ -159,7 +159,7 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(const mxArray* pm, bool te = false) {
+  inline Type as(mxArray* pm, bool te = false) {
     return traits_as<Type, typename traits<Type>::category>::as(pm, te);
   }
 

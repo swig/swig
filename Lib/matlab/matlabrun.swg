@@ -82,7 +82,7 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   #error
 }
 
-SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(const mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
+SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
   #error
   return SWIG_OK;
 }

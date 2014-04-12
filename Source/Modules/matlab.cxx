@@ -533,7 +533,7 @@ int MATLAB::functionWrapper(Node *n){
     process_autodoc(n);
 
   Wrapper *f = NewWrapper();
-  Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, const mxArray *argv[]) {", overname);
+  Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", overname);
 
   emit_parameter_variables(l, f);
   emit_attach_parmmaps(l, f);
@@ -888,7 +888,7 @@ void MATLAB::toGateway(String *fullname){
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
-  Printf(f_gateway,"    %s(resc,resv,argc-1,argv+1);\n",Swig_name_wrapper(fullname));
+  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray*[])(argv+1));\n",Swig_name_wrapper(fullname));
   Printf(f_gateway,"  } else ");
 }
 
@@ -1030,7 +1030,7 @@ void MATLAB::dispatchFunction(Node *n) {
   String *dispatch = Swig_overload_dispatch(n, "return %s(resc,resv,argc,argv);", &maxargs);
   String *tmp = NewString("");
 
-  Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, const mxArray *argv[]) {", wname);
+  Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
   Printf(f->code, "error(\"No matching function for overload\");\n", iname);
   Printf(f->code, "return;\n");

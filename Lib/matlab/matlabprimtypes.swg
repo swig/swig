@@ -16,7 +16,7 @@ SWIGINTERNINLINE mxArray*
 %fragment(SWIG_AsVal_frag(bool),"header",
 	  fragment=SWIG_AsVal_frag(long)) {
 SWIGINTERN int
-SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
+SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 {
    if(!mxIsLogicalScalar(pm)) return SWIG_TypeError;
    if (val) *val = mxIsLogicalScalarTrue(pm);
@@ -37,7 +37,7 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 
 
 %fragment(SWIG_AsVal_frag(long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(long)(const mxArray* pm, long* val)
+  SWIGINTERN int SWIG_AsVal_dec(long)(mxArray* pm, long* val)
     {
       if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
       switch(mxGetClassID(pm)){
@@ -83,7 +83,7 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(unsigned long)(const mxArray* pm, unsigned long* val)
+  SWIGINTERN int SWIG_AsVal_dec(unsigned long)(mxArray* pm, unsigned long* val)
     {
       if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
       switch(mxGetClassID(pm)){
@@ -129,7 +129,7 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 
 
 %fragment(SWIG_AsVal_frag(long long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(long long)(const mxArray* pm, long long* val)
+  SWIGINTERN int SWIG_AsVal_dec(long long)(mxArray* pm, long long* val)
     {
       if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
       switch(mxGetClassID(pm)){
@@ -172,7 +172,7 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(const mxArray* pm, unsigned long long* val)
+  SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(mxArray* pm, unsigned long long* val)
     {
       if(mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
       switch(mxGetClassID(pm)){
@@ -216,7 +216,7 @@ SWIG_AsVal_dec(bool)(const mxArray* pm, bool *val)
 
 
 %fragment(SWIG_AsVal_frag(double),"header") {
-  SWIGINTERN int SWIG_AsVal_dec(double)(const mxArray* pm, double* val)
+  SWIGINTERN int SWIG_AsVal_dec(double)(mxArray* pm, double* val)
     {
       if(!mxIsDouble(pm) || mxGetNumberOfElements(pm)!=1) return SWIG_TypeError;
       if (val) *val = mxGetScalar(pm);
