@@ -833,7 +833,7 @@ int MATLAB::classHandler(Node *n) {
 
   // If no bases, top level class
   if(base_count==0){
-    Printf(f_wrap_m,"swigRef");
+    Printf(f_wrap_m,"SwigRef");
   }
     
   // End of class def
@@ -1027,7 +1027,7 @@ String *MATLAB::getOverloadedName(Node *n) {
 
 void MATLAB::createSwigRef(){
   // Create file
-  String* mfile = NewString("swigRef.m");
+  String* mfile = NewString("SwigRef.m");
   if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
   if (!f_wrap_m){
@@ -1035,8 +1035,8 @@ void MATLAB::createSwigRef(){
     SWIG_exit(EXIT_FAILURE);
   }
 
-  // Output swigRef abstract base class
-  Printf(f_wrap_m,"classdef (Abstract) swigRef < handle\n");
+  // Output SwigRef abstract base class
+  Printf(f_wrap_m,"classdef SwigRef < handle\n");
   Printf(f_wrap_m,"  properties (GetAccess = protected, SetAccess = protected)\n");
   Printf(f_wrap_m,"    swigCPtr\n");
   Printf(f_wrap_m,"    swigOwn\n");
