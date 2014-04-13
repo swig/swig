@@ -62,8 +62,8 @@ protected:
   String* mex_fcn;
 
   Hash *docs;
-  //int have_constructor;
-  //int have_destructor;
+  bool have_constructor;
+  bool have_destructor;
   //String *constructor_name;
 
   // Helper functions
@@ -83,6 +83,7 @@ protected:
   bool is_empty_doc_node(Node* n);
   void emit_doc_texinfo();
   String* texinfo_escape(String *_s);
+  void wrapConstructor(String *symname, String *fullname);
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -105,7 +106,9 @@ MATLAB::MATLAB() :
   f_directors_h(0),
   class_name(0),
   mex_fcn(0),
-  docs(0)
+  docs(0),
+  have_constructor(false),
+  have_destructor(false)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering MATLAB()\n");
@@ -789,6 +792,10 @@ int MATLAB::classHandler(Node *n) {
   if(class_name) SWIG_exit(EXIT_FAILURE);
   class_name = Getattr(n, "sym:name");
 
+  // No destructor or constructor found yet
+  have_constructor = false;
+  have_destructor = false;
+
   // Name of wrapper .m file
   String* mfile=NewString(class_name);
   Append(mfile,".m");
@@ -836,6 +843,12 @@ int MATLAB::classHandler(Node *n) {
 
   // Emit member functions
   Language::classHandler(n);
+
+  // Add constructor, if none added
+  if(!have_constructor){
+    wrapConstructor(class_name,0);
+    have_constructor = true;
+  }
 
   // Finalize file
   Printf(f_wrap_m,"  end\n");
@@ -906,10 +919,27 @@ int MATLAB::membervariableHandler(Node *n) {
   return Language::membervariableHandler(n);
 }
 
+void MATLAB::wrapConstructor(String *symname, String *fullname){
+    Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
+    Printf(f_wrap_m,"      if nargin==3 && ischar(varargin{1}) && strcmp(varargin{1},'_swigCreate')\n");
+    Printf(f_wrap_m,"        self.swigCPtr = varargin{2};\n");
+    Printf(f_wrap_m,"        self.swigOwn = varargin{3};\n");
+    Printf(f_wrap_m,"      else\n");
+    if(fullname==0){
+      Printf(f_wrap_m,"        error('No matching constructor');\n");
+    } else {
+      Printf(f_wrap_m,"        self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"        self.swigOwn = true;\n");
+    }
+    Printf(f_wrap_m,"      end\n");
+    Printf(f_wrap_m,"    end\n");
+}
+
 int MATLAB::constructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering constructorHandler\n");
 #endif
+  have_constructor = true;
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
@@ -917,15 +947,9 @@ int MATLAB::constructorHandler(Node *n) {
     // Add function to .m wrapper
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_construct(NSPACE_TODO, symname);
-    Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
-    Printf(f_wrap_m,"      if nargin==3 && ischar(varargin{1}) && strcmp(varargin{1},'_swigCreate')\n");
-    Printf(f_wrap_m,"        self.swigCPtr = varargin{2};\n");
-    Printf(f_wrap_m,"        self.swigOwn = varargin{3};\n");
-    Printf(f_wrap_m,"      else\n");
-    Printf(f_wrap_m,"        self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
-    Printf(f_wrap_m,"        self.swigOwn = true;\n");
-    Printf(f_wrap_m,"      end\n");
-    Printf(f_wrap_m,"    end\n");
+
+    // Add to .m file
+    wrapConstructor(symname,fullname);
 
     // Add to function switch
     toGateway(fullname);
@@ -937,6 +961,7 @@ int MATLAB::destructorHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering destructorHandler\n");
 #endif
+  have_destructor = true;
   Printf(f_wrap_m,"    function delete(self)\n");
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
