@@ -8,22 +8,9 @@
 // MATLAB fragments for primitive types
 %include <matlabprimtypes.swg>
 
-// Octave fragments for char* strings
-//%include <octstrings.swg>
-
-
-#ifndef SWIG_DIRECTOR_TYPEMAPS
-#define SWIG_DIRECTOR_TYPEMAPS
-#endif
-
 // MATLAB types
 #define SWIG_Object mxArray*
 #define VOID_Object octave_value()
-
-/*
-// MATLAB allows implicit conversion
-#define %implicitconv_flag              $implicitconv 
-*/
 
 // append output
 #define SWIG_AppendOutput(result, obj)  SWIG_Octave_AppendOutput(result, obj)
@@ -70,23 +57,3 @@
 %typemap(out,noblock=1) Cell {
   $result=$1;
 }
-
-/*
-// Smart Pointers
-%typemap(out,noblock=1) const SWIGTYPE & SMARTPOINTER  {
-  $result = SWIG_NewPointerObj(%new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
-}
-
-%typemap(ret) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {
-  octave_swig_type* lobj=Swig::swig_value_deref($result);
-  if (lobj) {
-    std::list<octave_value_list> idx;
-    idx.push_back(octave_value("__deref__"));
-    idx.push_back(octave_value_list());
-    octave_value_list ovl(lobj->subsref(".(",idx));
-    octave_swig_type* robj=ovl.length()>=1?Swig::swig_value_deref(ovl(0)):0;
-    if (robj && !error_state)
-      lobj->append(robj);
-  }
-}
-*/

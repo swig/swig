@@ -284,10 +284,9 @@ int MATLAB::top(Node *n) {
   if (Len(docs))
     emit_doc_texinfo();
 
-  if (directorsEnabled())
-    Swig_insert_file("director.swg", f_runtime);
+  //  if (directorsEnabled())
+  //    Swig_insert_file("director.swg", f_runtime);
 
-  Printf(f_init, "return true;\n}\n");
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
   Dump(f_runtime, f_begin);
