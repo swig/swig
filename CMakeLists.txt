@@ -68,7 +68,7 @@ if ( PCRE_FOUND )
   include_directories ( ${PCRE_INCLUDE_DIRS} )
 endif ()
 set ( HAVE_BOOL TRUE )
-set( SWIG_LIB ${CMAKE_INSTALL_PREFIX}/share/swig/${SWIG_VERSION_STRING} )
+set( SWIG_LIB share/swig/${SWIG_VERSION_STRING} )
 
 option(USE_ZLIB "enable ccache compression" ON)
 if ( USE_ZLIB )
