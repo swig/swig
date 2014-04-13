@@ -84,9 +84,18 @@ endif ()
 # for ccache man
 find_program ( YODL2MAN_EXECUTABLE NAMES yodl2man )
 
+option ( USE_PYTHON "use python for tests" ON )
+if ( USE_PYTHON )
+  find_package ( PythonInterp )
+  find_package ( PythonLibs )
+endif ()
+
+enable_testing()
+
 add_subdirectory ( Lib )
 add_subdirectory ( Source )
 add_subdirectory ( CCache )
+add_subdirectory ( Examples )
 
 # 'make package-source' creates rel-x.y.z.(tar.gz|zip)
 set ( CPACK_PACKAGE_NAME          swig      )
