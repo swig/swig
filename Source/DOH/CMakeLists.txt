@@ -1,0 +1,10 @@
+swig_add_current_dir_to_include_dirs ()
+
+swig_add_source_file ( base.c )
+swig_add_source_file ( fio.c )
+swig_add_source_file ( hash.c )
+swig_add_source_file ( memory.c )
+swig_add_source_file ( string.c )
+swig_add_source_file ( void.c )
+swig_add_source_file ( list.c )
+swig_add_source_file ( file.c )

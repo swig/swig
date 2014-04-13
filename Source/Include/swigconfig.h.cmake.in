@@ -1,0 +1,98 @@
+/* Source/Include/swigconfig.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if the system has the type `bool'. */
+#cmakedefine01 HAVE_BOOL
+
+/* define if the Boost library is available */
+#cmakedefine01 HAVE_BOOST
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine01 HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `dl' library (-ldl). */
+#cmakedefine01 HAVE_LIBDL
+
+/* Define to 1 if you have the `dld' library (-ldld). */
+#cmakedefine01 HAVE_LIBDLD
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine01 HAVE_MEMORY_H
+
+/* Define if you have PCRE library */
+#cmakedefine01 HAVE_PCRE
+
+/* Define if popen is available */
+#cmakedefine01 HAVE_POPEN
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine01 HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine01 HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine01 HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine01 HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine01 HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine01 HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine01 HAVE_UNISTD_H
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "bugs@swig.org"
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "@PACKAGE_NAME@"
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL "http://www.swig.org"
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "@PACKAGE_VERSION@"
+
+/* The size of `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Compiler that built SWIG */
+#define SWIG_CXX "@CMAKE_CXX_COMPILER@"
+
+/* Directory for SWIG system-independent libraries */
+#define SWIG_LIB "@SWIG_LIB@"
+
+/* Directory for SWIG system-independent libraries (Unix install on native
+   Windows) */
+#undef SWIG_LIB_WIN_UNIX
+
+/* Platform that SWIG is built for */
+#define SWIG_PLATFORM "@CMAKE_SYSTEM@"
+
+/* Version number of package */
+#undef VERSION
+
+/* Default language */
+#define SWIG_LANG               "-tcl"
+
+/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+#if defined(_MSC_VER)
+# define _CRT_SECURE_NO_DEPRECATE
+#endif
+
