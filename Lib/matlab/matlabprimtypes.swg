@@ -62,7 +62,7 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 	double v=mxGetScalar(pm);
 	if(v!=floor(v)) return SWIG_TypeError;
         if(val) *val = (long)v;
-        return;
+        break;
       }
       default: return SWIG_TypeError;
       }

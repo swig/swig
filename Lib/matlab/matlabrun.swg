@@ -1,8 +1,8 @@
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)
-    error("function %s takes at most %i arguments", func_name, max_args);
+    mexWarnMsgIdAndTxt("SWIG","function %s takes at most %i arguments", func_name, max_args);
   else if (num_args < min_args)
-    error("function %s requires at least %i arguments", func_name, min_args);
+    mexWarnMsgIdAndTxt("SWIG","function %s requires at least %i arguments", func_name, min_args);
   else
     return true;
   return false;
@@ -81,10 +81,10 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   mxArray* pm_command = mxCreateString("_swigCreate");
   mxArray *pm_ptr = mxCreateNumericMatrix(1,1,mxUINT64_CLASS, mxREAL);
-  *(uint64_T *)mxGetData(ptr) = (uint64_T)ptr;
+  *(uint64_T *)mxGetData(pm_ptr) = (uint64_T)ptr;
   bool own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
   mxArray* pm_own = mxCreateLogicalScalar(own);  
-  mxArray* prhs[3] = {pm_command,pm_ptr,pm_owm};
+  mxArray* prhs[3] = {pm_command,pm_ptr,pm_own};
   mxArray* plhs[1];
   mexErrMsgIdAndTxt("NotImplemented","type->str = %s, type->name = %s",type->str,type->name);
   mexCallMATLABWithTrap(1,plhs,3,prhs,type->str);
@@ -94,12 +94,12 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   return plhs[0];
 }
 
-SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
+SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_info *type, int flags, int *own) {
   /* Return value */
   int ret = SWIG_OK;
 
   /* Get pointer, represented as a uint64_T scalar */
-  mxArray *pm_ptr = mxGetProperty("swigCPtr");
+  mxArray *pm_ptr = mxGetProperty(pm,0,"swigCPtr");
   if(!pm_ptr || mxGetNumberOfElements(pm_ptr) != 1 || mxGetClassID(pm_ptr) != mxUINT64_CLASS || mxIsComplex(pm_ptr)){
     ret = SWIG_ERROR;
   } else {
@@ -108,8 +108,8 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray*, void **ptr, swig_type_inf
   if(pm_ptr) mxDestroyArray(pm_ptr);
 
   /* Get ownership marker */
-  mxArray *pm_own = mxGetProperty("swigOwn");
-  it(!pm_own || !mxIsLogicalScalar(pm_own)){
+  mxArray *pm_own = mxGetProperty(pm,0,"swigOwn");
+  if(!pm_own || !mxIsLogicalScalar(pm_own)){
     ret = SWIG_ERROR;
   } else {
     if(own) *own = mxIsLogicalScalarTrue(pm_own);

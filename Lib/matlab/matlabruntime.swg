@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <mex.h>
+#include <math.h>
 %}
 
 %insert(runtime) "swigrun.swg";

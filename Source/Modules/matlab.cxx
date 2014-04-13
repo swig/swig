@@ -902,13 +902,13 @@ void MATLAB::toGateway(String *fullname){
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
-  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray*[])(argv+1));\n",Swig_name_wrapper(fullname));
+  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",Swig_name_wrapper(fullname));
   Printf(f_gateway,"  } else ");
 }
 
 void MATLAB::finalizeGateway(){
   Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexWarnMsgTxt(\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"    mexWarnMsgIdAndTxt(\"SWIG\",\"No command %%s.\",cmd);\n");
   Printf(f_gateway,"  }\n");
   Printf(f_gateway,"}\n");
 }
@@ -1068,7 +1068,7 @@ void MATLAB::dispatchFunction(Node *n) {
 
   Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
-  Printf(f->code, "error(\"No matching function for overload\");\n", iname);
+  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG\",\"No matching function for overload\");\n", iname);
   Printf(f->code, "return;\n");
   Printv(f->code, "}\n", NIL);
 
