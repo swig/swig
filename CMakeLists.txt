@@ -97,9 +97,9 @@ add_subdirectory ( Source )
 add_subdirectory ( CCache )
 add_subdirectory ( Examples )
 
-# 'make package-source' creates rel-x.y.z.(tar.gz|zip)
-set ( CPACK_PACKAGE_NAME          swig      )
-set ( CPACK_SOURCE_GENERATOR      "TGZ;ZIP"     )
+# 'make package-source' creates tarballs
+set ( CPACK_PACKAGE_NAME          ${PACKAGE_NAME}      )
+set ( CPACK_SOURCE_GENERATOR      "TGZ;TBZ2"     )
 set ( CPACK_SOURCE_IGNORE_FILES "/.git;/build;.*~;${CPACK_SOURCE_IGNORE_FILES}" )
-set ( CPACK_SOURCE_PACKAGE_FILE_NAME rel-${PACKAGE_VERSION} )
+set ( CPACK_SOURCE_PACKAGE_FILE_NAME ${PACKAGE_NAME}-${PACKAGE_VERSION} )
 include ( CPack )
