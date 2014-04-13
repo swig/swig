@@ -60,6 +60,7 @@ protected:
   File *f_directors_h;
   String* class_name;
   String* mex_fcn;
+  String* base_init;
 
   Hash *docs;
   bool have_constructor;
@@ -106,6 +107,7 @@ MATLAB::MATLAB() :
   f_directors_h(0),
   class_name(0),
   mex_fcn(0),
+  base_init(0),
   docs(0),
   have_constructor(false),
   have_destructor(false)
@@ -812,6 +814,9 @@ int MATLAB::classHandler(Node *n) {
   // Declare MATLAB class
   Printf(f_wrap_m,"classdef %s < ", Getattr(n,"sym:name"));
 
+  // Initialization of base classes
+  base_init=NewString("");
+
   // Declare base classes, if any
   List *baselist = Getattr(n, "bases");
   int base_count = 0;
@@ -828,6 +833,9 @@ int MATLAB::classHandler(Node *n) {
       
       // Add to list of bases
       Printf(f_wrap_m,"%s",bname);
+
+      // Add to initialization
+      Printf(base_init,"      self@%s('_swigCreate',uint64(0),false);\n",bname);
     }
   }
 
@@ -856,6 +864,8 @@ int MATLAB::classHandler(Node *n) {
   Printf(f_wrap_m,"end\n");
 
   // Tidy up
+  Delete(base_init);
+  base_init=0;
   Delete(f_wrap_m);
   f_wrap_m = 0;
   Delete(class_name);
@@ -922,6 +932,7 @@ int MATLAB::membervariableHandler(Node *n) {
 
 void MATLAB::wrapConstructor(String *symname, String *fullname){
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
+    Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin==3 && ischar(varargin{1}) && strcmp(varargin{1},'_swigCreate')\n");
     Printf(f_wrap_m,"        self.swigCPtr = varargin{2};\n");
     Printf(f_wrap_m,"        self.swigOwn = varargin{3};\n");
