@@ -95,6 +95,26 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
 }
 
 SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
-  #error
-  return SWIG_OK;
+  /* Return value */
+  int ret = SWIG_OK;
+
+  /* Get pointer, represented as a uint64_T scalar */
+  mxArray *pm_ptr = mxGetProperty("swigCPtr");
+  if(!pm_ptr || mxGetNumberOfElements(pm_ptr) != 1 || mxGetClassID(pm_ptr) != mxUINT64_CLASS || mxIsComplex(pm_ptr)){
+    ret = SWIG_ERROR;
+  } else {
+    if(ptr) *ptr = (void*)(*(uint64_T*)mxGetData(pm_ptr));
+  }
+  if(pm_ptr) mxDestroyArray(pm_ptr);
+
+  /* Get ownership marker */
+  mxArray *pm_own = mxGetProperty("swigOwn");
+  it(!pm_own || !mxIsLogicalScalar(pm_own)){
+    ret = SWIG_ERROR;
+  } else {
+    if(own) *own = mxIsLogicalScalarTrue(pm_own);
+  }
+  if(pm_own) mxDestroyArray(pm_own);
+
+  return ret;
 }
