@@ -79,7 +79,19 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 #include <string>
 
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  #error
+  mxArray* pm_command = mxCreateString("_swigCreate");
+  mxArray *pm_ptr = mxCreateNumericMatrix(1,1,mxUINT64_CLASS, mxREAL);
+  *(uint64_T *)mxGetData(ptr) = (uint64_T)ptr;
+  bool own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
+  mxArray* pm_own = mxCreateLogicalScalar(own);  
+  mxArray* prhs[3] = {pm_command,pm_ptr,pm_owm};
+  mxArray* plhs[1];
+  mexErrMsgIdAndTxt("NotImplemented","type->str = %s, type->name = %s",type->str,type->name);
+  mexCallMATLABWithTrap(1,plhs,3,prhs,type->str);
+  mxDestroyArray(pm_ptr);
+  mxDestroyArray(pm_own);
+  mxDestroyArray(pm_command);
+  return plhs[0];
 }
 
 SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray*, void **ptr, swig_type_info *type, int flags, int *own) {
