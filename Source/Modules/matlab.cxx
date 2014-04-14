@@ -868,48 +868,44 @@ int MATLAB::classHandler(Node *n) {
   }
 
   // Add subscripted reference
-  Printf(f_wrap_m,"    function v = subsref(self,S)\n");
-  Printf(f_wrap_m,"      switch S.type\n");
-  Printf(f_wrap_m,"        case '.'\n");
-  Printf(f_wrap_m,"          switch S.subs\n");
+  Printf(f_wrap_m,"    function [v,ok] = swig_fieldsref(self,i)\n");
+  Printf(f_wrap_m,"      v = [];\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"      switch i\n");
   Printf(f_wrap_m,"%s",get_field);
-  Printf(f_wrap_m,"          end\n");
   Printf(f_wrap_m,"      end\n");
 
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      v = subsref@%s(self,S);\n",bname);
-      Printf(f_wrap_m,"      return\n");
+      Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s(self,i);\n",bname);
+      Printf(f_wrap_m,"      if ok\n");
+      Printf(f_wrap_m,"        return\n");
+      Printf(f_wrap_m,"      end\n");
   }
-  Printf(f_wrap_m,"      error('No matching call')\n");
   Printf(f_wrap_m,"    end\n");
 
   // Add subscripted assignment
-  Printf(f_wrap_m,"    function self = subsasgn(self,S,v)\n");
-  Printf(f_wrap_m,"      switch S.type\n");
-  Printf(f_wrap_m,"        case '.'\n");
-  Printf(f_wrap_m,"          switch S.subs\n");
+  Printf(f_wrap_m,"    function [self,ok] = swig_fieldasgn(self,i,v)\n");
+  Printf(f_wrap_m,"      switch i\n");
   Printf(f_wrap_m,"%s",set_field);
-  Printf(f_wrap_m,"          end\n");
   Printf(f_wrap_m,"      end\n");
 
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      self = subsasgn@%s(self,S,v);\n",bname);
-      Printf(f_wrap_m,"      return\n");
+      Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s(self,i,v);\n",bname);
+      Printf(f_wrap_m,"      if ok\n");
+      Printf(f_wrap_m,"        return\n");
+      Printf(f_wrap_m,"      end\n");
   }
-  Printf(f_wrap_m,"      error('No matching call')\n");
   Printf(f_wrap_m,"    end\n");
 
   // Finalize file
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
-
-
 
   // Tidy up
   Delete(base_init);
@@ -997,9 +993,10 @@ int MATLAB::membervariableHandler(Node *n) {
   String *getwname = Swig_name_wrapper(getname);
 
   // Add getter function
-  Printf(get_field,"            case '%s'\n",symname);
-  Printf(get_field,"              v = %s('%s',self);\n",mex_fcn,getname);
-  Printf(get_field,"              return\n");
+  Printf(get_field,"        case '%s'\n",symname);
+  Printf(get_field,"          v = %s('%s',self);\n",mex_fcn,getname);
+  Printf(get_field,"          ok = true;\n");
+  Printf(get_field,"          return\n");
 
   // Add to function switch
   toGateway(getname,getwname);
@@ -1013,9 +1010,10 @@ int MATLAB::membervariableHandler(Node *n) {
   String *setwname = Swig_name_wrapper(setname);
   
   // Add setter function
-  Printf(set_field,"            case '%s'\n",symname);
-  Printf(set_field,"              %s('%s',self,v);\n",mex_fcn,setname);
-  Printf(set_field,"              return\n");
+  Printf(set_field,"        case '%s'\n",symname);
+  Printf(set_field,"          %s('%s',self,v);\n",mex_fcn,setname);
+  Printf(set_field,"          ok = true;\n");
+  Printf(set_field,"          return\n");
 
   // Add to function switch
   toGateway(setname,setwname);
@@ -1158,6 +1156,59 @@ void MATLAB::createSwigRef(){
   Printf(f_wrap_m,"  properties %% (GetAccess = protected, SetAccess = protected) %% FIXME: mxGetProperty not working with protected access \n");
   Printf(f_wrap_m,"    swigCPtr\n");
   Printf(f_wrap_m,"    swigOwn\n");
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"  methods\n");
+  Printf(f_wrap_m,"    function v = subsref(self,S)\n");
+  Printf(f_wrap_m,"      switch S.type\n");
+  Printf(f_wrap_m,"        case '()'\n");
+  Printf(f_wrap_m,"          [v,ok] = swig_parsref(self,S.subs);\n");
+  Printf(f_wrap_m,"        case '{}'\n");
+  Printf(f_wrap_m,"          [v,ok] = swig_cursref(self,S.subs);\n");
+  Printf(f_wrap_m,"        case '.'\n");
+  Printf(f_wrap_m,"          [v,ok] = swig_fieldsref(self,S.subs);\n");
+  Printf(f_wrap_m,"        otherwise\n");
+  Printf(f_wrap_m,"          ok = false;\n");
+  Printf(f_wrap_m,"      end\n");
+  Printf(f_wrap_m,"      if ~ok\n");
+  Printf(f_wrap_m,"        error('No matching call')\n");
+  Printf(f_wrap_m,"      end\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [v,ok] = swig_parsref(self,subs)\n");
+  Printf(f_wrap_m,"      v = [];\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [v,ok] = swig_cursref(self,subs)\n");
+  Printf(f_wrap_m,"      v = [];\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [v,ok] = swig_fieldsref(self,subs)\n");
+  Printf(f_wrap_m,"      v = [];\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function self = subsasgn(self,S,v)\n");
+  Printf(f_wrap_m,"      switch S.type\n");
+  Printf(f_wrap_m,"        case '()'\n");
+  Printf(f_wrap_m,"          [self,ok] = swig_parasgn(self,S.subs,v);\n");
+  Printf(f_wrap_m,"        case '{}'\n");
+  Printf(f_wrap_m,"          [self,ok] = swig_curasgn(self,S.subs,v);\n");
+  Printf(f_wrap_m,"        case '.'\n");
+  Printf(f_wrap_m,"          [self,ok] = swig_fieldasgn(self,S.subs,v);\n");
+  Printf(f_wrap_m,"        otherwise\n");
+  Printf(f_wrap_m,"          ok = false;\n");
+  Printf(f_wrap_m,"      end\n");
+  Printf(f_wrap_m,"      if ~ok\n");
+  Printf(f_wrap_m,"        error('No matching call')\n");
+  Printf(f_wrap_m,"      end\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [self,ok] = swig_parasgn(self,i,v)\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [self,ok] = swig_curasgn(self,i,v)\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function [self,ok] = swig_fieldasgn(self,i,v)\n");
+  Printf(f_wrap_m,"      ok = false;\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
