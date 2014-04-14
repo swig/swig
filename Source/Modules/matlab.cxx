@@ -946,8 +946,13 @@ void MATLAB::wrapConstructor(String *symname, String *fullname){
     if(fullname==0){
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
-      Printf(f_wrap_m,"        self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
-      Printf(f_wrap_m,"        self.swigOwn = true;\n");
+      Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
+      Printf(f_wrap_m,"        %%self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"        %%self.swigOwn = true;\n");
+      Printf(f_wrap_m,"        tmp = %s('%s',varargin{:}); %% FIXME\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"        self.swigCPtr = tmp.swigCPtr;\n");
+      Printf(f_wrap_m,"        self.swigOwn = tmp.swigOwn;\n");
+      Printf(f_wrap_m,"        tmp.swigOwn = false;\n");
     }
     Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
@@ -984,8 +989,8 @@ int MATLAB::destructorHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
   Printf(f_wrap_m,"      if self.swigOwn\n");
-  Printf(f_wrap_m,"        %s('%s',self.swigCPtr);\n",mex_fcn,fullname);
   Printf(f_wrap_m,"        self.swigOwn = false;\n");
+  Printf(f_wrap_m,"        %s('%s',self.swigCPtr);\n",mex_fcn,fullname);
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
