@@ -118,3 +118,11 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
 
   return ret;
 }
+
+SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *clientdata) {
+  swig_module_info *pointer = 0;
+  return pointer;
+}
+
+SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *pointer) {
+}

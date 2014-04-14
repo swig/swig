@@ -903,7 +903,7 @@ void MATLAB::initGateway(){
   
   // Load module if first call
   Printf(f_gateway,"  if(!is_loaded){\n");
-  Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name);\n");
+  Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name_d);\n");
   Printf(f_gateway,"    is_loaded=true;\n");
   Printf(f_gateway,"  }\n");
 
