@@ -989,8 +989,7 @@ int MATLAB::destructorHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
   Printf(f_wrap_m,"      if self.swigOwn\n");
-  Printf(f_wrap_m,"        self.swigOwn = false;\n");
-  Printf(f_wrap_m,"        %s('%s',self.swigCPtr);\n",mex_fcn,fullname);
+  Printf(f_wrap_m,"        %s('%s',self);\n",mex_fcn,fullname);
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
@@ -1059,7 +1058,7 @@ void MATLAB::createSwigRef(){
 
   // Output SwigRef abstract base class
   Printf(f_wrap_m,"classdef SwigRef < handle\n");
-  Printf(f_wrap_m,"  properties (GetAccess = protected, SetAccess = protected)\n");
+  Printf(f_wrap_m,"  properties %% (GetAccess = protected, SetAccess = protected) %% FIXME: mxGetProperty not working with protected access \n");
   Printf(f_wrap_m,"    swigCPtr\n");
   Printf(f_wrap_m,"    swigOwn\n");
   Printf(f_wrap_m,"  end\n");

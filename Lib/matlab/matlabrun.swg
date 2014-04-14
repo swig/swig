@@ -119,6 +119,13 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   }
   if(pm_own) mxDestroyArray(pm_own);
 
+  /* Set ownership marker to false? */
+  if(flags & SWIG_POINTER_DISOWN){
+    mxArray* pm_own = mxCreateLogicalScalar(false);
+    mxSetProperty(pm,0,"swigOwn",pm_own);
+    mxDestroyArray(pm_own);
+  }
+
   return ret;
 }
 
