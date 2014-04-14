@@ -887,7 +887,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
     Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
-    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self.swigCPtr,varargin{:});\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self,varargin{:});\n",mex_fcn,fullname);
     Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
