@@ -61,6 +61,8 @@ protected:
   String* class_name;
   String* mex_fcn;
   String* base_init;
+  String* get_field;
+  String* set_field;
 
   Hash *docs;
   bool have_constructor;
@@ -71,7 +73,7 @@ protected:
   static void nameUnnamedParams(ParmList *parms, bool all);
   String *getOverloadedName(Node *n);
   void initGateway();
-  void toGateway(String *fullname);
+  void toGateway(String *fullname, String *wname);
   void finalizeGateway();
   void createSwigRef();
   void process_autodoc(Node *n);
@@ -108,6 +110,8 @@ MATLAB::MATLAB() :
   class_name(0),
   mex_fcn(0),
   base_init(0),
+  get_field(0),
+  set_field(0),
   docs(0),
   have_constructor(false),
   have_destructor(false)
@@ -839,6 +843,10 @@ int MATLAB::classHandler(Node *n) {
     }
   }
 
+  // Getters and setters for fields
+  get_field=NewString("");
+  set_field=NewString("");
+
   // If no bases, top level class
   if(base_count==0){
     Printf(f_wrap_m,"SwigRef");
@@ -859,9 +867,49 @@ int MATLAB::classHandler(Node *n) {
     have_constructor = true;
   }
 
+  // Add subscripted reference
+  Printf(f_wrap_m,"    function v = subsref(self,S)\n");
+  Printf(f_wrap_m,"      switch S.type\n");
+  Printf(f_wrap_m,"        case '.'\n");
+  Printf(f_wrap_m,"          switch S.subs\n");
+  Printf(f_wrap_m,"%s",get_field);
+  Printf(f_wrap_m,"          end\n");
+  Printf(f_wrap_m,"      end\n");
+
+  // Fallback to base class (does not work with multiple overloading)
+  for (Iterator b = First(baselist); b.item; b = Next(b)) {
+      String *bname = Getattr(b.item, "name");
+      if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+      Printf(f_wrap_m,"      v = subsref@%s(self,S);\n",bname);
+      Printf(f_wrap_m,"      return\n");
+  }
+  Printf(f_wrap_m,"      error('No matching call')\n");
+  Printf(f_wrap_m,"    end\n");
+
+  // Add subscripted assignment
+  Printf(f_wrap_m,"    function self = subsasgn(self,S,v)\n");
+  Printf(f_wrap_m,"      switch S.type\n");
+  Printf(f_wrap_m,"        case '.'\n");
+  Printf(f_wrap_m,"          switch S.subs\n");
+  Printf(f_wrap_m,"%s",set_field);
+  Printf(f_wrap_m,"          end\n");
+  Printf(f_wrap_m,"      end\n");
+
+  // Fallback to base class (does not work with multiple overloading)
+  for (Iterator b = First(baselist); b.item; b = Next(b)) {
+      String *bname = Getattr(b.item, "name");
+      if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+      Printf(f_wrap_m,"      self = subsasgn@%s(self,S,v);\n",bname);
+      Printf(f_wrap_m,"      return\n");
+  }
+  Printf(f_wrap_m,"      error('No matching call')\n");
+  Printf(f_wrap_m,"    end\n");
+
   // Finalize file
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
+
+
 
   // Tidy up
   Delete(base_init);
@@ -871,6 +919,10 @@ int MATLAB::classHandler(Node *n) {
   Delete(class_name);
   class_name=0;
   Delete(mfile);
+  Delete(get_field);
+  get_field = 0;
+  Delete(set_field);
+  set_field = 0;
 
   return SWIG_OK;
 }
@@ -891,7 +943,10 @@ int MATLAB::memberfunctionHandler(Node *n) {
     Printf(f_wrap_m,"    end\n");
 
     // Add to function switch
-    toGateway(fullname);
+    String *wname = Swig_name_wrapper(fullname);
+    toGateway(fullname,wname);
+    Delete(wname);
+    Delete(fullname);
   }
 
   return Language::memberfunctionHandler(n);
@@ -913,12 +968,12 @@ void MATLAB::initGateway(){
   Printf(f_gateway,"    mexWarnMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
 }
 
-void MATLAB::toGateway(String *fullname){
+void MATLAB::toGateway(String *fullname, String *wname){
   if(Len(fullname)>CMD_MAXLENGTH){
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
-  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",Swig_name_wrapper(fullname));
+  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",wname);
   Printf(f_gateway,"  } else ");
 }
 
@@ -933,6 +988,42 @@ int MATLAB::membervariableHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering membervariableHandler\n");
 #endif
+  
+  // Name of variable
+  String *symname = Getattr(n, "sym:name");
+
+  // Name getter function
+  String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+  String *getwname = Swig_name_wrapper(getname);
+
+  // Add getter function
+  Printf(get_field,"            case '%s'\n",symname);
+  Printf(get_field,"              v = %s('%s',self);\n",mex_fcn,getname);
+  Printf(get_field,"              return\n");
+
+  // Add to function switch
+  toGateway(getname,getwname);
+
+  // Tidy up
+  Delete(getname);
+  Delete(getwname);
+
+  // Name setter function
+  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+  String *setwname = Swig_name_wrapper(setname);
+  
+  // Add setter function
+  Printf(set_field,"            case '%s'\n",symname);
+  Printf(set_field,"              %s('%s',self,v);\n",mex_fcn,setname);
+  Printf(set_field,"              return\n");
+
+  // Add to function switch
+  toGateway(setname,setwname);
+
+  // Tidy up
+  Delete(setname);
+  Delete(setwname);
+
   return Language::membervariableHandler(n);
 }
 
@@ -975,7 +1066,10 @@ int MATLAB::constructorHandler(Node *n) {
     wrapConstructor(symname,fullname);
 
     // Add to function switch
-    toGateway(fullname);
+    String *wname = Swig_name_wrapper(fullname);
+    toGateway(fullname,wname);
+    Delete(wname);
+    Delete(fullname);
   }
   return Language::constructorHandler(n);
 }
@@ -994,8 +1088,11 @@ int MATLAB::destructorHandler(Node *n) {
   Printf(f_wrap_m,"    end\n");
 
   // Add to function switch
-  toGateway(fullname);
-
+  String *wname = Swig_name_wrapper(fullname);
+  toGateway(fullname,wname);
+  Delete(wname);
+  Delete(fullname);
+  
   return Language::destructorHandler(n);
 }
 
