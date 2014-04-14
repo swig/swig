@@ -79,15 +79,18 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 #include <string>
 
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  mexErrMsgIdAndTxt("SWIG:NotImplemented","type->str = %s, type->name = %s",type==0 ? "n/a" : type->str,type==0 ? "n/a" : type->name);
   mxArray* pm_command = mxCreateString("_swigCreate");
   mxArray *pm_ptr = mxCreateNumericMatrix(1,1,mxUINT64_CLASS, mxREAL);
+  if(!pm_ptr) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mxCreateNumericMatrix failed");
   *(uint64_T *)mxGetData(pm_ptr) = (uint64_T)ptr;
   bool own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
   mxArray* pm_own = mxCreateLogicalScalar(own);  
+  if(!pm_own) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mxCreateLogicalScalar failed");
   mxArray* prhs[3] = {pm_command,pm_ptr,pm_own};
   mxArray* plhs[1];
-  mexCallMATLABWithTrap(1,plhs,3,prhs,type->str);
+  const char* matlab_classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
+  mxArray* ex = mexCallMATLABWithTrap(1,plhs,3,prhs,matlab_classname);
+  if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap threw exception");
   mxDestroyArray(pm_ptr);
   mxDestroyArray(pm_own);
   mxDestroyArray(pm_command);
