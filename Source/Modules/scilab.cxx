@@ -18,11 +18,13 @@
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
      -addcflag <flag> - Additional compilation flag <flag> to include in build script\n\
-     -addldflag <flag>- Additional link flag <flag> to include in build script\n\
+     -addldflag <flag> - Additional link flag <flag> to include in build script\n\
      -addsrc <files> - Additional comma separated source <files> to include in build script\n\
-     -vbl <level>    - Sets the build verbose <level> (default 0)\n\
+     -vbl <level> - Sets the build verbose <level> (default 0)\n\
      -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
-     -nobuilder      - Do not generate builder script\n\n";
+     -nobuilder - Do not generate builder script\n\
+     -gwid <id> - Gateway ID \n\n"
+     ;
 
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
 
@@ -48,6 +50,11 @@ protected:
   String *verboseBuildLevel;
   String *buildFlagsScript;
 
+  File *gatewayXMLFile;
+  String *gatewayXML;
+  String *gatewayID;
+  int primitiveID;
+
   bool generateBuilder;
   bool extraWarning;
 public:
@@ -64,6 +71,7 @@ public:
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
     generateBuilder = true;
+    gatewayID = NULL;
     extraWarning = false;
 
     /* Manage command line arguments */
@@ -105,6 +113,11 @@ public:
     Swig_mark_arg(argIndex);
     generateBuilder = false;
   }
+  else if (strcmp(argv[argIndex], "-gwid") == 0) {
+    Swig_mark_arg(argIndex);
+    gatewayID = NewString(argv[argIndex + 1]);
+    Swig_mark_arg(argIndex + 1);
+  }
   else if (strcmp(argv[argIndex], "-Wextra") == 0) {
     extraWarning = true;
   }
@@ -128,6 +141,9 @@ public:
     SWIG_typemap_lang("scilab");
 
     allow_overloading();
+
+    gatewayXML = NULL;
+    gatewayXMLFile = NULL;
   }
 
   /* ------------------------------------------------------------------------
@@ -167,6 +183,12 @@ public:
     if (generateBuilder) {
       createBuilderFile();
       startBuilderCode(moduleName, outputFilename);
+    }
+
+    // Create gateway XML file if specified
+    if (gatewayID) {
+      createGatewayXMLFile(moduleName);
+      primitiveID = 1;
     }
 
     // Module initialization function
@@ -215,6 +237,11 @@ public:
     Dump(wrappersSection, beginSection);
     Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
+
+    // Save gateway XML file
+    if (gatewayXMLFile) {
+      saveGatewayXMLFile();
+    }
 
     /* Cleanup files */
     Delete(runtimeSection);
@@ -445,6 +472,10 @@ public:
 
     if (!isOverloaded) {
       addFunctionInBuilder(functionName, wrapperName);
+    }
+
+    if (gatewayID) {
+      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, functionName);
     }
 
     /* tidy up */
@@ -794,6 +825,35 @@ public:
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
     }
+
+  void createGatewayXMLFile(String *moduleName) {
+    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", moduleName);
+    gatewayXMLFile = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
+    if (!gatewayXMLFile) {
+      FileErrorDisplay(gatewayXMLFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    gatewayXML = NewString("");
+    Printf(gatewayXML, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
+    Printf(gatewayXML, "<GATEWAY name=\"%s\">\n", moduleName);
+    Printf(gatewayXML, "<!--\n");
+    Printf(gatewayXML, "Scilab Interface description. In this file, we define the list of the function which\n");
+    Printf(gatewayXML, "will be available into Scilab and the link to the \"native\" function.\n\n");
+    Printf(gatewayXML, "gatewayId is the position in the hashtable 'Interfaces' defined in the\n");
+    Printf(gatewayXML, "file SCI/modules/core/src/c/callinterf.h\n\n");
+    Printf(gatewayXML, "primitiveId is the position in the hashtable '<module>Table Tab[]' defined\n");
+    Printf(gatewayXML, "in the file modules/<module>/sci_gateway/c/gw_<module>.c\n\n");
+    Printf(gatewayXML, "primitiveName is the name of the Scilab function\n\n");
+    Printf(gatewayXML, "Don't touch if you do not know what you are doing\n");
+    Printf(gatewayXML, "-->\n");
+  }
+
+  void saveGatewayXMLFile() {
+    Printv(gatewayXML, "</GATEWAY>\n");
+    Printv(gatewayXMLFile, gatewayXML, NIL);
+    Delete(gatewayXMLFile);
+  }
 
   /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
