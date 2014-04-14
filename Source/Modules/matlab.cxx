@@ -901,6 +901,12 @@ void MATLAB::initGateway(){
   if(CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
   Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]){\n");
   
+  // Load module if first call
+  Printf(f_gateway,"  if(!is_loaded){\n");
+  Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name);\n");
+  Printf(f_gateway,"    is_loaded=true;\n");
+  Printf(f_gateway,"  }\n");
+
   // The first argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");

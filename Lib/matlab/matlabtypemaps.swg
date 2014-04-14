@@ -10,7 +10,7 @@
 
 // MATLAB types
 #define SWIG_Object mxArray*
-#define VOID_Object (mxArray*)(0)
+#define VOID_Object (mxArray*)0
 
 // append output
 #define SWIG_AppendOutput(result, obj)  SWIG_Octave_AppendOutput(result, obj)
