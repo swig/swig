@@ -1958,6 +1958,10 @@ public:
 
     SetFlag(carrays_hash, "lua:closed");
 
+    // Do arrays describe class instance part or class static part
+    const int is_instance = GetFlag(carrays_hash, "lua:class_instance");
+
+
     String *attr_tab = Getattr(carrays_hash, "attributes");
     Printf(attr_tab, "    {0,0,0}\n};\n");
     Printv(output, attr_tab, NIL);
@@ -1968,7 +1972,17 @@ public:
       Printv(const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
     else
       Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
-    Printv(output, const_tab, NIL);
+    
+    // For the sake of compiling with -Wall -Werror we print constants
+    // only when necessary
+    int need_constants = 0;
+    if ( (elua_ltr || eluac_ltr) && (old_metatable_bindings) )
+      need_constants = 1;
+    else if (!is_instance) // static part need constants tab
+      need_constants = 1;
+
+    if (need_constants)
+      Printv(output, const_tab, NIL);
 
     if (elua_ltr) {
       // Put forward declaration of metatable array
@@ -2009,7 +2023,18 @@ public:
       Printv(output, set_tab, NIL);
     }
 
-    if (!eluac_ltr) {
+    // Euristic whether we need to print metatable or not.
+    // For the sake of compiling with -Wall -Werror we don't print
+    // metatable for static part.
+    int need_metatable = 0;
+    if (eluac_ltr)
+      need_metatable = 0;
+    else if(!is_instance)
+      need_metatable = 0;
+    else
+      need_metatable = 1;
+
+    if (need_metatable) {
       String *metatable_tab = Getattr(carrays_hash, "metatable");
       assert(metatable_tab);
       if (elua_ltr) {

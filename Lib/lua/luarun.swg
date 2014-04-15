@@ -402,7 +402,7 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
   lua_rawsetp(L, parsed_tables_array, table);
   int i;
   int table_parsed = 0;
-  int pairs_start = lua_gettop(L);
+  const int SWIGUNUSED pairs_start = lua_gettop(L);
   for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
   {
     const swig_elua_entry *entry = table + i;
@@ -646,7 +646,7 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace 
 SWIGINTERN void SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
   /* 1 argument - table on the top of the stack */
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table or parent namespace table */
   lua_checkstack(L,5);
   lua_newtable(L); /* namespace itself */
@@ -707,7 +707,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
   SWIG_Lua_get_table(L,".bases");\
   assert(lua_istable(L,-1));\
   bases_count = lua_rawlen(L,-1);\
-  int bases_table = lua_gettop(L);
+  const int bases_table = lua_gettop(L);
 #define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
   lua_rawgeti(L,bases_table,i+1);\
   base_swig_type = 0;\
@@ -742,7 +742,8 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
 typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
-SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, int first_arg, swig_lua_base_iterator_func func, int  *const ret)
+SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED swig_type,
+  int first_arg, swig_lua_base_iterator_func func, int  *const ret)
 {
     /* first_arg - position of the object in stack. Everything that is above are arguments
      * and is passed to every evocation of the func */
@@ -756,7 +757,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
       *ret = 0;
     if(bases_count>0)
     {
-      int i;
+      size_t i;
       int j;
       int subcall_first_arg = lua_gettop(L) + 1;/* Here a copy of first_arg and arguments begin */
       int valid = 1;
@@ -798,7 +799,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
  * It returns an error code. Number of function return values is passed inside 'ret'.
  * first_arg is not used in this function because function always has 2 arguments.
  */
-SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int first_arg, int *ret)
+SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SWIGUNUSED first_arg, int *ret)
 {
 /*  there should be 2 params passed in
   (1) userdata (not the meta table)
@@ -1206,7 +1207,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
 /* Register class static methods,attributes etc as well as constructor proxy */
 SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   lua_checkstack(L,5); /* just in case */
   assert(lua_istable(L,-1));  /* just in case */
   assert(strcmp(clss->name, clss->cls_static->name) == 0); /* in class those 2 must be equal */
@@ -1240,7 +1241,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
  */
 SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
@@ -1266,11 +1267,11 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
    * It would get us all special methods: __getitem, __add etc.
    * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
    */
-  int new_metatable_index = lua_absindex(L,-1);
+  const int new_metatable_index = lua_absindex(L,-1);
   for(i=0;clss->bases[i];i++)
   {
     SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
-    int base_metatable = lua_absindex(L,-1);
+    const int base_metatable = lua_absindex(L,-1);
     SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
     lua_pop(L,1);
   }
@@ -1307,7 +1308,7 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
-  assert(lua_gettop(L)==begin);
+  assert(lua_gettop(L)== begin);
 
 #if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
   /* Now merge all symbols from .fn, .set, .get etc from bases to our tables */
@@ -1335,7 +1336,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
    *                                             |                                ".set" --> ....
    *                                             |=============================== ".instance"
    */
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   lua_pushstring(L,clss->cls_static->name);
   lua_rawget(L,-2); /* get class static table */
   assert(lua_istable(L,-1));
@@ -1358,7 +1359,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
 SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
