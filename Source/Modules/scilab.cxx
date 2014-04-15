@@ -196,7 +196,7 @@ public:
     Printf(moduleInitFunctionName, "%s_Init", moduleName);
 
     /* Add initialization function to builder table */
-    addFunctionInBuilder(moduleInitFunctionName, moduleInitFunctionName);
+    addFunctionToScilab(moduleInitFunctionName, moduleInitFunctionName);
 
     // Add helper functions to builder table
     addHelperFunctions();
@@ -466,16 +466,12 @@ public:
 
     /* Update builder.sce contents */
     if (isLastOverloaded) {
-      addFunctionInBuilder(functionName, wrapperName);
+      addFunctionToScilab(functionName, wrapperName);
       dispatchFunction(node);
     }
 
     if (!isOverloaded) {
-      addFunctionInBuilder(functionName, wrapperName);
-    }
-
-    if (gatewayID) {
-      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, functionName);
+      addFunctionToScilab(functionName, wrapperName);
     }
 
     /* tidy up */
@@ -561,7 +557,7 @@ public:
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
     /* Add function to builder table */
-    addFunctionInBuilder(getFunctionName, getFunctionName);
+    addFunctionToScilab(getFunctionName, getFunctionName);
 
     /* Manage SET function */
     if (is_assignable(node)) {
@@ -727,8 +723,8 @@ public:
   }
 
   void addHelperFunctions() {
-    addFunctionInBuilder("swig_this", "swig_this");
-    addFunctionInBuilder("swig_ptr", "swig_ptr");
+    addFunctionToScilab("swig_this", "swig_this");
+    addFunctionToScilab("swig_ptr", "swig_ptr");
   }
 
   void createBuilderFile() {
@@ -856,9 +852,19 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * addFunctionToScilab: add a function in Scilab (builder, XML, ...)
+   * ----------------------------------------------------------------------- */
+  void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName)
+  {
+    addFunctionInBuilder(scilabFunctionName, wrapperFunctionName);
+    if (gatewayID) {
+      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
+    }
+  }
+
+  /* -----------------------------------------------------------------------
    * addFunctionInBuilder(): add a new function wrapper in builder.sce file
    * ----------------------------------------------------------------------- */
-
   void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
     if (generateBuilder) {
       if (++builderFunctionCount % 10 == 0) {
