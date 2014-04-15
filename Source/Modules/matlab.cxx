@@ -17,14 +17,12 @@
 //#define MATLABPRINTFUNCTIONENTRY
 static int CMD_MAXLENGTH = 256;
 
-static String *global_name = 0;
-static String *op_prefix   = 0;
-
 static const char *usage = (char *) "\
 Matlab Options (available with -matlab)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
+     -pkgprefix <str> - Prefix <str> for package location, e.g. '+my_package/+my_subpackage/' [default: '']\n\
 \n";
 
 class MATLAB : public Language {
@@ -69,6 +67,11 @@ protected:
   bool have_constructor;
   bool have_destructor;
   //String *constructor_name;
+
+  // Options
+  String *global_name;
+  String *op_prefix;
+  String *pkg_prefix;
 
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
@@ -116,7 +119,10 @@ MATLAB::MATLAB() :
   static_methods(0),
   docs(0),
   have_constructor(false),
-  have_destructor(false)
+  have_destructor(false),
+  global_name(0),
+  op_prefix(0),
+  pkg_prefix(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering MATLAB()\n");
@@ -168,7 +174,16 @@ void MATLAB::main(int argc, char *argv[]){
         } else {
           Swig_arg_error();
         }
-      }            
+      } else if (strcmp(argv[i], "-pkgprefix") == 0) {
+        if (argv[i + 1]) {
+          pkg_prefix = NewString(argv[i + 1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i + 1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
+      }
     }
   }
     
@@ -176,6 +191,8 @@ void MATLAB::main(int argc, char *argv[]){
     global_name = NewString("cvar");
   if (!op_prefix)
     op_prefix = NewString("op_");
+  if (!pkg_prefix)
+    pkg_prefix = NewString("");
     
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
@@ -262,6 +279,7 @@ int MATLAB::top(Node *n) {
   Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
+  Printf(f_runtime, "#define SWIG_pkg_prefix        \"%s\"\n", pkg_prefix);
 
   if (directorsEnabled()) {
     Printf(f_runtime, "#define SWIG_DIRECTORS\n");

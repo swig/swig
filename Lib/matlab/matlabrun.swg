@@ -88,7 +88,9 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   if(!pm_own) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mxCreateLogicalScalar failed");
   mxArray* prhs[3] = {pm_command,pm_ptr,pm_own};
   mxArray* plhs[1];
-  const char* matlab_classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
+  const char* classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
+  char matlab_classname[256];
+  snprintf(matlab_classname,sizeof(matlab_classname),"%s%s",SWIG_pkg_prefix,classname);
   mxArray* ex = mexCallMATLABWithTrap(1,plhs,3,prhs,matlab_classname);
   if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap threw exception");
   mxDestroyArray(pm_ptr);
