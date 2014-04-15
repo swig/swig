@@ -26,6 +26,12 @@ public:
   virtual double foo(int d){ return area();}
   virtual double foo(){ return perimeter();}
 
+  // Static methods
+  static int give_me_nshapes(){ return nshapes;}
+
+  static int give_me_nshapes2(){ return nshapes;}
+  static int give_me_nshapes2(int i){ return nshapes+i;}
+
   virtual double perimeter();
 };
 

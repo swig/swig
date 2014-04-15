@@ -1112,6 +1112,24 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   Printf(stderr,"Entering staticmemberfunctionHandler\n");
 #endif
 
+  bool overloaded = !!Getattr(n, "sym:overloaded");
+  bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+
+  if(!overloaded || last_overload){
+    // Add function to .m wrapper
+    String *symname = Getattr(n, "sym:name");
+    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+    Printf(static_methods,"      [varargout{1:nargout}] = %s('%s',varargin{:});\n",mex_fcn,fullname);
+    Printf(static_methods,"    end\n");
+
+    // Add to function switch
+    String *wname = Swig_name_wrapper(fullname);
+    toGateway(fullname,wname);
+    Delete(wname);
+    Delete(fullname);
+  }
+
   return Language::staticmemberfunctionHandler(n);
 }
 
