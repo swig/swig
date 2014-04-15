@@ -2,6 +2,8 @@
  * Exception typemaps (throws)
  */
 
+%include <exception.i>
+
 %typemap(throws, noblock=1) int, unsigned int, signed int,
                             int&,unsigned int&, signed int&,
                             long, unsigned long, signed long,
