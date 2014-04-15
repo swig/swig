@@ -551,7 +551,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     }
   default:
     {
-      Printf(stderr, "SWIG Javascript: Unknown emitter type.\n");
+      Printf(stderr, "SWIG Javascript: Unknown emitter type. Please specify one of -jsc -v8 or -node.\n");
       SWIG_exit(-1);
       break;
     }
