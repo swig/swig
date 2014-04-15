@@ -63,6 +63,7 @@ protected:
   String* base_init;
   String* get_field;
   String* set_field;
+  String* static_methods;
 
   Hash *docs;
   bool have_constructor;
@@ -112,6 +113,7 @@ MATLAB::MATLAB() :
   base_init(0),
   get_field(0),
   set_field(0),
+  static_methods(0),
   docs(0),
   have_constructor(false),
   have_destructor(false)
@@ -846,6 +848,9 @@ int MATLAB::classHandler(Node *n) {
   // Getters and setters for fields
   get_field=NewString("");
   set_field=NewString("");
+  
+  // Static methods
+  static_methods=NewString("");
 
   // If no bases, top level class
   if(base_count==0){
@@ -903,8 +908,15 @@ int MATLAB::classHandler(Node *n) {
   }
   Printf(f_wrap_m,"    end\n");
 
-  // Finalize file
+  // End of non-static methods
   Printf(f_wrap_m,"  end\n");
+
+  // Add static methods
+  Printf(f_wrap_m,"  methods(Static)\n");
+  Printf(f_wrap_m,"%s",static_methods);
+  Printf(f_wrap_m,"  end\n");
+
+  // Finalize file
   Printf(f_wrap_m,"end\n");
 
   // Tidy up
@@ -919,7 +931,8 @@ int MATLAB::classHandler(Node *n) {
   get_field = 0;
   Delete(set_field);
   set_field = 0;
-
+  Delete(static_methods);
+  static_methods = 0;
   return SWIG_OK;
 }
 
@@ -1098,6 +1111,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering staticmemberfunctionHandler\n");
 #endif
+
   return Language::staticmemberfunctionHandler(n);
 }
 
@@ -1112,6 +1126,42 @@ int MATLAB::staticmembervariableHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering staticmembervariableHandler\n");
 #endif
+
+  // Name of variable
+  String *symname = Getattr(n, "sym:name");
+
+  // Name getter function
+  String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+  String *getwname = Swig_name_wrapper(getname);
+
+  // Add getter function
+  Printf(static_methods,"    function v = %s()\n",symname);
+  Printf(static_methods,"      v = %s('%s');\n",mex_fcn,getname);
+  Printf(static_methods,"    end\n");
+
+  // Add to function switch
+  toGateway(getname,getwname);
+
+  // Tidy up
+  Delete(getname);
+  Delete(getwname);
+
+  // Name setter function
+  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+  String *setwname = Swig_name_wrapper(setname);
+  
+  // Add setter function
+  Printf(static_methods,"    function set_%s(v)\n",symname);
+  Printf(static_methods,"      %s('%s',v);\n",mex_fcn,setname);
+  Printf(static_methods,"    end\n");
+
+  // Add to function switch
+  toGateway(setname,setwname);
+
+  // Tidy up
+  Delete(setname);
+  Delete(setwname);
+
   return Language::staticmembervariableHandler(n);
 }
 
