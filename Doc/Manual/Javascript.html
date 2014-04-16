@@ -5,16 +5,21 @@
   <title></title>
 </head>
 <body>
-<h1>SWIG and Javascript</h1>
+
+<H1>SWIG and Javascript</H1>
 <p>This chapter describes SWIG's support of Javascript. It does not cover SWIG basics, but only information that is specific to this module.</p>
-<h2>Overview</h2>
+
+<H2>Overview</H2>
 <p>Javascript is a prototype-based scripting language that is dynamic, weakly typed and has first-class functions. Its arguably the most popular language for web development.
 Javascript has gone beyond being a browser-based scripting language and with <a href="http://nodejs.org">node.js</a>, it is also used as a backend development language.</p>
 <p>Native Javascript extensions can be used for applications that embed a web-browser view or that embed a Javascript engine (such as <em>node.js</em>). Extending a general purpose web-browser is not possible as this would be a severe security issue.</p>
 <p>SWIG Javascript currently supports <strong>JavascriptCore</strong>, the Javascript engine used by <code>Safari/Webkit</code>, and <strong>v8</strong>, which is used by <code>Chromium</code> and <code>node.js</code>.</p>
 <p><a href="http://www.webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.</p>
-<h2>Preliminaries</h2>
-<h3>Running SWIG</h3>
+
+<H2>Preliminaries</H2>
+
+<H3>Running SWIG</H3>
+
 <p>Suppose that you defined a SWIG module such as the following:</p>
 <div class="code">
 <pre>
@@ -44,13 +49,14 @@ bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
 <p>and for v8:</p>
 <div class="code">
 <pre>
-void example_initialize (v8::Handle<v8::Object> exports)</pre>
+void example_initialize(v8::Handle<v8::Object> exports)</pre>
 </div>
-<blockquote>
-<p>Note: be aware that <code>v8</code> comes as a C++ API, and thus, the generated modules must be compiled as C++.</p>
-</blockquote>
-<h3>Running Tests and Examples</h3>
-<p>The configuration for tests and examples currently supports Linux and Mac only, MinGW not yet.</p>
+<p>
+<p><b>Note</b>: be aware that <code>v8</code> has a C++ API, and thus, the generated modules must be compiled as C++.</p>
+</p>
+
+<H3>Running Tests and Examples</H3>
+<p>The configuration for tests and examples currently supports Linux and Mac only and not MinGW (Windows) yet.</p>
 <p>The default interpreter is <code>node.js</code> as it is available on all platforms and convenient to use.</p>
 <p>Running the examples with JavascriptCore requires <code>libjavascriptcoregtk-1.0</code> to be installed, e.g., under Ubuntu with</p>
 <div class="shell">
@@ -65,18 +71,13 @@ $ sudo apt-get install libv8-dev</pre>
 <p>Examples can be run using</p>
 <div class="shell">
 <pre>
-$ make ENGINE=jsc check-javascript-examples</pre>
+$ make check-javascript-examples ENGINE=jsc</pre>
 </div>
 <p><code>ENGINE</code> can be <code>node</code>, <code>jsc</code>, or <code>v8</code>.</p>
 <p>The test-suite can be run using</p>
 <div class="shell">
 <pre>
-$ make ENGINE=jsc check-javascript-test-suite</pre>
-</div>
-<p>A smaller, manually selected set of tests can be run using</p>
-<div class="shell">
-<pre>
-$ make SMOKE=1 ENGINE=jsc check-javascript-test-suite</pre>
+$ make check-javascript-test-suite ENGINE=jsc</pre>
 </div>
 <p>Tests should run without any problems, i.e., have been tried out, on the following platforms/interpreters:</p>
 <div class="code">
@@ -95,19 +96,20 @@ $ make SMOKE=1 ENGINE=jsc check-javascript-test-suite</pre>
 - Windows 7 64bit (VS 2010)
     - Node.js</pre>
 </div>
-<blockquote>
-<p>Note: a <code>CMake</code> based configuration can be found in the <code>cmake</code> which can be used to generate a VisualStudio solution. It is rather limited and can only be used for building the SWIG executable.</p>
-</blockquote>
-<h3>Future work</h3>
-<p>The Javascript module is not yet as mature as other modules and some things are still missing. As it makes use of Swigs Unified typemap library (UTL), many typemaps are inherited. We could work on that if requested:</p>
+<p>
+
+<H3>Future work</H3>
+<p>The Javascript module is not yet as mature as other modules and some things are still missing. As it makes use of SWIG's Unified Typemap Library (UTL), many typemaps are inherited. We could work on that if requested:</p>
 <ul>
 <li><p>More typemaps: compared to other modules there are only a few typemaps implemented. For instance a lot of the <code>std_*.i</code> typemaps are missing, such as <code>std_iostream</code>, for instance.</p></li>
 <li><p>Director support: this would allow to extend a C++ abstract base class in Javascript. A pragmatic intermediate step for the most important usecase would be to support Javascript callbacks as arguments.</p></li>
 </ul>
-<h2>Integration</h2>
+
+<H2>Integration</H2>
 <p>This chapter gives a short introduction how to use a native Javascript extension: as a <code>node.js</code> module, and as an extension for an embedded Webkit.</p>
-<h3>Creating <code>node.js</code> Extensions</h3>
-<p>To install <code>node.js</code> you can download an installer from their <a href="https://launchpad.net/~chris-lea/+archive/node.js">web-site</a> for OSX and Windows. For Linux you can either build the source yourself and to a <code>sudo checkinstall</code> or stick to the (probably stone-age) packaged version. For Ubuntu there is a <a href="https://launchpad.net/~chris-lea/+archive/node.js/">PPA</a> available.</p>
+
+<H3>Creating <code>node.js</code> Extensions</H3>
+<p>To install <code>node.js</code> you can download an installer from their <a href="https://launchpad.net/~chris-lea/+archive/node.js">web-site</a> for OSX and Windows. For Linux you can either build the source yourself and run <code>sudo checkinstall</code> or keep to the (probably stone-age) packaged version. For Ubuntu there is a <a href="https://launchpad.net/~chris-lea/+archive/node.js/">PPA</a> available.</p>
 <div class="shell">
 <pre>
 $ sudo add-apt-repository ppa:chris-lea/node.js
@@ -143,24 +145,27 @@ $ swig -javascript -node -c++ example.cxx</pre>
 <pre>
 $ node-gyp</pre>
 </div>
-<p>This will create a <code>build</code> folder containing the native module. To use the extension you have to require it in your javascript source file.</p>
+<p>This will create a <code>build</code> folder containing the native module. To use the extension you need to 'require' it in your Javascript source file:</p>
 <div class="code">
 <pre>
 require("./build/Release/example")</pre>
 </div>
-<p>A more detailed exlanation is given in section <code>Examples</code>.</p>
-<h4>Troubleshooting</h4>
+<p>A more detailed explanation is given in the <a href="#Javascript_examples">Examples</a> section.</p>
+
+<H4>Troubleshooting</H4>
 <ul>
 <li><em>'module' object has no attribute 'script_main'</em></li>
 </ul>
-<p>This happened when <code>gyp</code> was installed as distribution package. It seems to be outdated. Removing it resolves the problem.</p>
+<p>This error happens when <code>gyp</code> is installed as a distribution package. It seems to be outdated. Removing it resolves the problem.</p>
 <div class="shell">
 <pre>
 $ sudo apt-get remove gyp</pre>
 </div>
-<h3>Embedded Webkit</h3>
-<p>Webkit is built-in for OSX and available as library for GTK.</p>
-<h4>OSX</h4>
+
+<H3>Embedded Webkit</H3>
+<p>Webkit is pre-installed on OSX and available as a library for GTK.</p>
+
+<H4>OSX</H4>
 <p>There is general information about programming with WebKit on <a href="https://developer.apple.com/library/mac/documentation/cocoa/conceptual/DisplayWebContent/DisplayWebContent.html">Apple Developer Documentation</a>. Details about <code>Cocoa</code> programming are not covered here.</p>
 <p>An integration of a native extension 'example' would look like this:</p>
 <div class="code">
@@ -193,8 +198,9 @@ extern bool example_initialize(JSGlobalContextRef context);
 
 @end</pre>
 </div>
-<h4>GTK</h4>
-<p>There is general information about programming GTK on the <a href="https://developer.gnome.org/gtk2/">GTK documentation</a>, in the <a href="https://developer.gnome.org/gtk-tutorial">GTK tutorial</a>, and for Webkit there is a <a href="http://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
+
+<H4>GTK</H4>
+<p>There is general information about programming GTK at <a href="https://developer.gnome.org/gtk2/">GTK documentation</a> and in the <a href="https://developer.gnome.org/gtk-tutorial">GTK tutorial</a>, and for Webkit there is a <a href="http://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
 <p>An integration of a native extension 'example' would look like this:</p>
 <div class="code">
 <pre>
@@ -229,13 +235,16 @@ int main(int argc, char* argv[])
     return 0;
 }</pre>
 </div>
-<h3>Creating Applications with <code>node-webkit</code></h3>
-<blockquote>
+
+<H3>Creating Applications with <code>node-webkit</code></H3>
+<p>
 <p>TODO: documentation is coming soon</p>
-</blockquote>
-<h2>Examples</h2>
+</p>
+
+<H2><a name="Javascript_examples">Examples</H2>
 <p>Some basic examples are shown here in more detail.</p>
-<h3>Simple</h3>
+
+<H3>Simple</H3>
 <p>The common example <code>simple</code> looks like this:</p>
 <div class="code">
 <pre>
@@ -247,7 +256,7 @@ extern int    gcd(int x, int y);
 extern double Foo;
 %}</pre>
 </div>
-<p>To make this available as node extension a <code>binding.gyp</code> has to be created:</p>
+<p>To make this available as a node extension a <code>binding.gyp</code> has to be created:</p>
 <div class="code">
 <pre>
 {
@@ -264,7 +273,7 @@ extern double Foo;
 <pre>
 $ node-gyp configure build</pre>
 </div>
-<p>From a 'nodejs` application this would be used this way:</p>
+<p>From a 'nodejs` application the extension would be used like this:</p>
 <div class="code">
 <pre>
 // import the extension via require
@@ -280,10 +289,11 @@ var f = example.Foo;
 example.Foo = 3.1415926;</pre>
 </div>
 <p>First the module <code>example</code> is loaded from the previously built extension. Global methods and variables are available in the scope of the module.</p>
-<blockquote>
-<p>Note: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="http://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="http://browserify.org">Browserify</a>, for instance.</p>
-</blockquote>
-<h3>Class</h3>
+<p>
+<p><b>Note</b>: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="http://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="http://browserify.org">Browserify</a>, for instance.</p>
+</p>
+
+<H3>Class</H3>
 <p>The common example <code>class</code> defines three classes, <code>Shape</code>, <code>Circle</code>, and <code>Square</code>:</p>
 <div class="code">
 <pre>
@@ -322,7 +332,7 @@ public:
 </div>
 <p><code>Circle</code> and <code>Square</code> inherit from <code>Shape</code>. <code>Shape</code> has a static variable <code>nshapes</code>, a function <code>move</code> that can't be overridden (non-virtual), and two abstract functions <code>area</code> and <code>perimeter</code> (pure virtual) that must be overridden by the sub-classes.</p>
 <p>A <code>nodejs</code> extension is built the same way as for the <code>simple</code> example.</p>
-<p>In javascript it can be used this way:</p>
+<p>In Javascript it can be used as follows:</p>
 <div class="code">
 <pre>
 var example = require("./build/Release/example");
@@ -407,12 +417,14 @@ at ReadStream.onkeypress (readline.js:99:10)
 at ReadStream.EventEmitter.emit (events.js:98:17)
 at emitKey (readline.js:1095:12)</pre>
 </div>
-<blockquote>
-<p>Note: In ECMAScript 5 there is no concept for classes. Instead each function can be used as a constructor function which is executed by the 'new' operator. Furthermore, during construction the key property <code>prototype</code> of the constructor function is used to attach a prototype instance to the created object. A prototype is essentially an object itself that is the first-class delegate of a class used whenever the access to a property of an object fails. The very same prototype instance is shared among all instances of one type. Prototypal inheritance is explained in more detail on in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain">Inheritance and the prototype chain</a>, for instance.</p>
-</blockquote>
-<h2>Implementation</h2>
-<p>The Javascript Module implementation has take a very different approach than other modules to be able to generate code for different Javascript interpreters.</p>
-<h3>Source Code</h3>
+<p>
+<p><b>Note</b>: In ECMAScript 5 there is no concept for classes. Instead each function can be used as a constructor function which is executed by the 'new' operator. Furthermore, during construction the key property <code>prototype</code> of the constructor function is used to attach a prototype instance to the created object. A prototype is essentially an object itself that is the first-class delegate of a class used whenever the access to a property of an object fails. The very same prototype instance is shared among all instances of one type. Prototypal inheritance is explained in more detail on in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain">Inheritance and the prototype chain</a>, for instance.</p>
+</p>
+
+<H2>Implementation</H2>
+<p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javascript interpreters.</p>
+
+<H3>Source Code</H3>
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code> or <code>JSCEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
 <div class="code">
 <pre>
@@ -510,7 +522,8 @@ JSEmitterState::JSEmitterState() { ... }
 Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
-<h3>Code Templates</h3>
+
+<H3>Code Templates</H3>
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code>.</p>
 <p>To track the originating code template for generated code you can run</p>
 <div class="shell">
@@ -520,11 +533,11 @@ $ swig -javascript -jsc -debug-codetemplates</pre>
 <p>which wraps generated code with a descriptive comment</p>
 <div class="code">
 <pre>
-/* begin fragment("temlate_name") */
+/* begin fragment("template_name") */
 
 ...generated code ...
 
-/* end fragment("temlate_name") */</pre>
+/* end fragment("template_name") */</pre>
 </div>
 <p>The Template class is used like this:</p>
 <div class="code">
@@ -546,7 +559,8 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 %}</pre>
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
-<h3>Emitter</h3>
+
+<H3>Emitter</H3>
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>
 <div class="code">
 <pre>
@@ -662,7 +676,8 @@ int JAVASCRIPT::classHandler(Node *n) {
 }</pre>
 </div>
 <p>In <code>enterClass</code> the emitter stores state information that is necessary when processing class members. In <code>exitClass</code> the wrapper code for the whole class is generated.</p>
-<h3>Emitter states</h3>
+
+<H3>Emitter states</H3>
 <p>For storing information during the AST traversal the emitter provides a <code>JSEmitterState</code> with different slots to store data representing the scopes global, class, function, and variable.</p>
 <div class="code">
 <pre>
