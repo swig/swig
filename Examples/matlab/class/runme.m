@@ -11,7 +11,7 @@ s = swigexample.Square(10);
 
 % ----- Access a static member -----
 
-disp(sprintf('A total of %i shapes were created', swigexample.Shape.nshapes()));
+disp(sprintf('A total of %i shapes were created', swigexample.Shape.nshapes));
 
 % ----- Member data access -----
 
@@ -49,5 +49,5 @@ disp('Guess I will clean up now')
 clear c
 clear s
 
-disp(sprintf('%i shapes remain', swigexample.Shape.nshapes()));
+disp(sprintf('%i shapes remain', swigexample.Shape.nshapes));
 disp('Goodbye')
