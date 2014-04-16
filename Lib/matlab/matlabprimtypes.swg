@@ -108,7 +108,7 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 	double v=mxGetScalar(pm);
 	if(v!=floor(v)) return SWIG_TypeError;
         if(val) *val = (unsigned long)v;
-        return;
+        break;
       }
       default: return SWIG_TypeError;
       }
@@ -154,7 +154,7 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 	double v=mxGetScalar(pm);
 	if(v!=floor(v)) return SWIG_TypeError;
         if(val) *val = (long long)v;
-        return;
+        break;
       }
       default: return SWIG_TypeError;
       }
@@ -197,7 +197,7 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 	double v=mxGetScalar(pm);
 	if(v!=floor(v)) return SWIG_TypeError;
         if(val) *val = (unsigned long long)v;
-        return;
+        break;
       }
       default: return SWIG_TypeError;
       }
@@ -228,21 +228,19 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 
 %fragment("SWIG_AsCharPtrAndSize","header") {
 SWIGINTERN int
-SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
+SWIG_AsCharPtrAndSize(mxArray* pm, char** cptr, size_t* psize, int *alloc)
 {
-  if (ov.is_cell() && ov.rows() == 1 && ov.columns() == 1)
-    ov = ov.cell_value()(0);
-  if (!ov.is_string())
-    return SWIG_TypeError;
-  
-  std::string str=ov.string_value();
-  size_t len=str.size();
-  char* cstr=(char*)str.c_str();
+  if(!mxIsChar(pm) || mxGetM(pm)!=1) return SWIG_TypeError;
+  size_t len=mxGetN(pm);
+  static char buf[256];
+  int flag = mxGetString(pm,buf,mwSize(sizeof(buf)));
+  if(flag) return SWIG_TypeError;
+
   if (alloc) {
-    *cptr = %new_copy_array(cstr, len + 1, char);
+    *cptr = %new_copy_array(buf, len + 1, char);
     *alloc = SWIG_NEWOBJ;
   } else if (cptr)
-    *cptr = cstr;
+    *cptr = buf;
   if (psize)
     *psize = len + 1;
   return SWIG_OK;

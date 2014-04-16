@@ -861,20 +861,24 @@ int MATLAB::variableWrapper(Node *n){
   }
 
   // Add getter/setter function
-  Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
-  Printf(f_wrap_m,"  narginchk(0,1)\n");
-  Printf(f_wrap_m,"  if nargin==0\n");
-  Printf(f_wrap_m,"    nargoutchk(0,1)\n");
-  Printf(f_wrap_m,"    varargout{1} = %s('%s');\n",mex_fcn,getname);
-  Printf(f_wrap_m,"  else\n");
-  Printf(f_wrap_m,"    nargoutchk(0,0)\n");
-  Printf(f_wrap_m,"    %s('%s',varargin{1});\n",mex_fcn,setname);
-  Printf(f_wrap_m,"  end\n");
-  Printf(f_wrap_m,"end\n");
-
-  // Add to function switch
+  if(GetFlag(n, "feature:immutable")){
+    Printf(f_wrap_m,"function v = %s()\n",symname);  
+    Printf(f_wrap_m,"  v = %s('%s');\n",mex_fcn,getname);
+    Printf(f_wrap_m,"end\n");
+  } else {
+    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
+    Printf(f_wrap_m,"  narginchk(0,1)\n");
+    Printf(f_wrap_m,"  if nargin==0\n");
+    Printf(f_wrap_m,"    nargoutchk(0,1)\n");
+    Printf(f_wrap_m,"    varargout{1} = %s('%s');\n",mex_fcn,getname);
+    Printf(f_wrap_m,"  else\n");
+    Printf(f_wrap_m,"    nargoutchk(0,0)\n");
+    Printf(f_wrap_m,"    %s('%s',varargin{1});\n",mex_fcn,setname);
+    Printf(f_wrap_m,"  end\n");
+    Printf(f_wrap_m,"end\n");
+    toGateway(setname,setwname);
+  }
   toGateway(getname,getwname);
-  toGateway(setname,setwname);
 
   // Tidy up
   Delete(getname);
