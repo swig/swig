@@ -22,7 +22,7 @@ Matlab Options (available with -matlab)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
-     -pkgprefix <str> - Prefix <str> for package location, e.g. '+my_package/+my_subpackage/' [default: '']\n\
+     -pkgname <str> - Prefix <str> for package name ' [default: '<module_name>']\n\
 \n";
 
 class MATLAB : public Language {
@@ -71,7 +71,8 @@ protected:
   // Options
   String *global_name;
   String *op_prefix;
-  String *pkg_prefix;
+  String *pkg_name;
+  String *pkg_name_fullpath;
 
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
@@ -122,7 +123,8 @@ MATLAB::MATLAB() :
   have_destructor(false),
   global_name(0),
   op_prefix(0),
-  pkg_prefix(0)
+  pkg_name(0),
+  pkg_name_fullpath(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering MATLAB()\n");
@@ -174,9 +176,9 @@ void MATLAB::main(int argc, char *argv[]){
         } else {
           Swig_arg_error();
         }
-      } else if (strcmp(argv[i], "-pkgprefix") == 0) {
+      } else if (strcmp(argv[i], "-pkgname") == 0) {
         if (argv[i + 1]) {
-          pkg_prefix = NewString(argv[i + 1]);
+          pkg_name = NewString(argv[i + 1]);
           Swig_mark_arg(i);
           Swig_mark_arg(i + 1);
           i++;
@@ -191,8 +193,6 @@ void MATLAB::main(int argc, char *argv[]){
     global_name = NewString("cvar");
   if (!op_prefix)
     op_prefix = NewString("op_");
-  if (!pkg_prefix)
-    pkg_prefix = NewString("");
     
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
@@ -236,6 +236,20 @@ int MATLAB::top(Node *n) {
 
   String *module = Getattr(n, "name");
   String *outfile = Getattr(n, "outfile");
+
+  // Add default package prefix
+  if (!pkg_name){
+    pkg_name = Copy(module);
+  }
+
+  // Create subdirectory
+  const String* basedirectory = SWIG_output_directory();
+  pkg_name_fullpath = NewString("+");
+  Append(pkg_name_fullpath,pkg_name);
+  (void)Replace(pkg_name_fullpath,".","+/",DOH_REPLACE_ANY);
+  Swig_new_subdirectory((String*)basedirectory,pkg_name_fullpath);
+
+  // Create output (mex) file
   f_begin = NewFile(outfile, "w", SWIG_output_files());
   if (!f_begin) {
     FileErrorDisplay(outfile);
@@ -279,7 +293,7 @@ int MATLAB::top(Node *n) {
   Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
-  Printf(f_runtime, "#define SWIG_pkg_prefix        \"%s\"\n", pkg_prefix);
+  Printf(f_runtime, "#define SWIG_pkg_name        \"%s\"\n", pkg_name);
 
   if (directorsEnabled()) {
     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -337,6 +351,10 @@ int MATLAB::top(Node *n) {
   Delete(f_runtime);
   Delete(f_begin);
   Delete(f_gateway);
+  if(pkg_name) Delete(pkg_name);
+  if(pkg_name_fullpath) Delete(pkg_name_fullpath);
+  if(global_name) Delete(global_name);
+  if(op_prefix) Delete(op_prefix);
 
   return SWIG_OK;
 }
@@ -824,7 +842,9 @@ int MATLAB::classHandler(Node *n) {
   have_destructor = false;
 
   // Name of wrapper .m file
-  String* mfile=NewString(class_name);
+  String* mfile=NewString(pkg_name_fullpath);
+  Append(mfile,"/");
+  Append(mfile,class_name);
   Append(mfile,".m");
 
   // Create wrapper .m file
@@ -856,10 +876,10 @@ int MATLAB::classHandler(Node *n) {
       if(base_count>1) Printf(f_wrap_m," & ");
       
       // Add to list of bases
-      Printf(f_wrap_m,"%s",bname);
+      Printf(f_wrap_m,"%s.%s",pkg_name,bname);
 
       // Add to initialization
-      Printf(base_init,"      self@%s('_swigCreate',uint64(0),false);\n",bname);
+      Printf(base_init,"      self@%s.%s('_swigCreate',uint64(0),false);\n",pkg_name,bname);
     }
   }
 
@@ -902,7 +922,7 @@ int MATLAB::classHandler(Node *n) {
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s(self,i);\n",bname);
+      Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s.%s(self,i);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
       Printf(f_wrap_m,"        return\n");
       Printf(f_wrap_m,"      end\n");
@@ -919,7 +939,7 @@ int MATLAB::classHandler(Node *n) {
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s(self,i,v);\n",bname);
+      Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s.%s(self,i,v);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
       Printf(f_wrap_m,"        return\n");
       Printf(f_wrap_m,"      end\n");

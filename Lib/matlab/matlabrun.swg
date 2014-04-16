@@ -90,9 +90,9 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   mxArray* plhs[1];
   const char* classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
   char matlab_classname[256];
-  snprintf(matlab_classname,sizeof(matlab_classname),"%s%s",SWIG_pkg_prefix,classname);
+  snprintf(matlab_classname,sizeof(matlab_classname),"%s.%s",SWIG_pkg_name,classname);
   mxArray* ex = mexCallMATLABWithTrap(1,plhs,3,prhs,matlab_classname);
-  if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap threw exception");
+  if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap threw exception when calling %s",matlab_classname);
   mxDestroyArray(pm_ptr);
   mxDestroyArray(pm_own);
   mxDestroyArray(pm_command);
