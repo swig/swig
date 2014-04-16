@@ -773,6 +773,10 @@ int MATLAB::globalfunctionHandler(Node *n){
   Printf(stderr,"Entering globalfunctionHandler\n");
 #endif
 
+  // Skip if inside class
+  if(class_name)
+    return Language::globalfunctionHandler(n);
+
   // Name of function
   String *symname = Getattr(n, "sym:name");
 
@@ -813,6 +817,10 @@ int MATLAB::variableWrapper(Node *n){
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering variableWrapper\n");
 #endif
+  
+  // Skip if inside class
+  if(class_name)
+    return Language::variableWrapper(n);
 
   // Name of variable
   String *symname = Getattr(n, "sym:name");
