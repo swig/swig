@@ -837,6 +837,55 @@ int MATLAB::variableWrapper(Node *n){
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering variableWrapper\n");
 #endif
+
+  // Name of variable
+  String *symname = Getattr(n, "sym:name");
+
+  // Name getter function
+  String *getname = Swig_name_get(NSPACE_TODO, symname);
+  String *getwname = Swig_name_wrapper(getname);
+
+  // Name setter function
+  String *setname = Swig_name_set(NSPACE_TODO, symname);
+  String *setwname = Swig_name_wrapper(setname);
+
+  // Create MATLAB proxy
+  String* mfile=NewString(pkg_name_fullpath);
+  Append(mfile,"/");
+  Append(mfile,symname);
+  Append(mfile,".m");
+  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m){
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Add getter/setter function
+  Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
+  Printf(f_wrap_m,"  narginchk(0,1)\n");
+  Printf(f_wrap_m,"  if nargin==0\n");
+  Printf(f_wrap_m,"    nargoutchk(0,1)\n");
+  Printf(f_wrap_m,"    varargout{1} = %s('%s');\n",mex_fcn,getname);
+  Printf(f_wrap_m,"  else\n");
+  Printf(f_wrap_m,"    nargoutchk(0,0)\n");
+  Printf(f_wrap_m,"    %s('%s',varargin{1});\n",mex_fcn,setname);
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Add to function switch
+  toGateway(getname,getwname);
+  toGateway(setname,setwname);
+
+  // Tidy up
+  Delete(getname);
+  Delete(getwname);
+  Delete(setname);
+  Delete(setwname);
+  Delete(mfile);
+  Delete(f_wrap_m);
+  f_wrap_m = 0;
+
   return Language::variableWrapper(n);
 }
 
