@@ -155,19 +155,27 @@ SWIG_SciString_AsCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, siz
 %fragment("SWIG_SciString_FromCharPtr", "header") {
 SWIGINTERN int
 SWIG_SciString_FromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue) {
-  SciErr sciErr;
-  char **pstData = NULL;
+  if (_pchValue) {
+    SciErr sciErr;
+    char **pstData = NULL;
 
-  pstData = (char **)malloc(sizeof(char *));
-  pstData[0] = strdup(_pchValue);
+    pstData = (char **)malloc(sizeof(char *));
+    pstData[0] = strdup(_pchValue);
 
-  sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, 1, 1, (char **)pstData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
+    sciErr = createMatrixOfString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, 1, 1, (char **)pstData);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    free(pstData[0]);
   }
-
-  free(pstData[0]);
+  else {
+    int iRet = createEmptyMatrix(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut);
+    if (iRet) {
+      return SWIG_ERROR;
+    }
+  }
 
   return SWIG_OK;
 }
