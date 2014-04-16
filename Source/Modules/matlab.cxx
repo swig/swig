@@ -1170,31 +1170,29 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
   String *getwname = Swig_name_wrapper(getname);
 
-  // Add getter function
-  Printf(static_methods,"    function v = %s()\n",symname);
-  Printf(static_methods,"      v = %s('%s');\n",mex_fcn,getname);
+  // Name setter function
+  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+  String *setwname = Swig_name_wrapper(setname);
+
+  // Add getter/setter function
+  Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
+  Printf(static_methods,"      narginchk(0,1)\n");
+  Printf(static_methods,"      if nargin==0\n");
+  Printf(static_methods,"        nargoutchk(0,1)\n");
+  Printf(static_methods,"        varargout{1} = %s('%s');\n",mex_fcn,getname);
+  Printf(static_methods,"      else\n");
+  Printf(static_methods,"        nargoutchk(0,0)\n");
+  Printf(static_methods,"        %s('%s',varargin{1});\n",mex_fcn,setname);
+  Printf(static_methods,"      end\n");
   Printf(static_methods,"    end\n");
 
   // Add to function switch
   toGateway(getname,getwname);
+  toGateway(setname,setwname);
 
   // Tidy up
   Delete(getname);
   Delete(getwname);
-
-  // Name setter function
-  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  String *setwname = Swig_name_wrapper(setname);
-  
-  // Add setter function
-  Printf(static_methods,"    function set_%s(v)\n",symname);
-  Printf(static_methods,"      %s('%s',v);\n",mex_fcn,setname);
-  Printf(static_methods,"    end\n");
-
-  // Add to function switch
-  toGateway(setname,setwname);
-
-  // Tidy up
   Delete(setname);
   Delete(setwname);
 
