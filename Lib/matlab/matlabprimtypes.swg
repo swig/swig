@@ -250,10 +250,16 @@ SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
-SWIGINTERNINLINE octave_value
+SWIGINTERNINLINE mxArray*
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  return std::string(carray,carray+size);
+   mwSize dims[2] = {1,mwSize(size)};
+   mxArray* ret = mxCreateCharArray(mwSize(2),dims);
+   if(!ret) mexErrMsgIdAndTxt("SWIG:FromCharPtrAndSize","mxCreateCharArray failed");
+   mxChar *ret_data = (mxChar *)mxGetData(ret);
+   int i;
+   for(i=0; i<size; ++i) ret_data[i] = carray[i];
+   return ret;  
 }
 }
 

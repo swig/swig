@@ -4,7 +4,7 @@
 
 // Look for user fragments file.
 %include <matlabfragments.swg>
-
+         
 // MATLAB fragments for primitive types
 %include <matlabprimtypes.swg>
 
@@ -16,7 +16,7 @@
 #define SWIG_AppendOutput(result, obj)  SWIG_Octave_AppendOutput(result, obj)
 
 // set constant
-#define SWIG_SetConstant(name, obj)     SWIG_Octave_SetConstant(module_ns,name,obj) 
+#define SWIG_SetConstant(name, obj)     SWIG_Matlab_SetConstant(module_ns,name,obj) 
 
 // raise
 #define SWIG_Octave_Raise(OBJ, TYPE, DESC) error("C++ side threw an exception of type " TYPE)

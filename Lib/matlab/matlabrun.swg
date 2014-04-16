@@ -138,3 +138,6 @@ SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *clientdata) {
 
 SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *pointer) {
 }
+
+/* HACK HACK */
+#define SWIG_Matlab_SetConstant(dummy1,dummy2,pm) (pm)

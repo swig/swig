@@ -46,6 +46,7 @@ public:
 protected:
   File* f_wrap_m;
   File *f_gateway;
+  File *f_constants;
   File *f_begin;
   File *f_runtime;
   File *f_header;
@@ -78,6 +79,9 @@ protected:
   void initGateway();
   void toGateway(String *fullname, String *wname);
   void finalizeGateway();
+  void initConstant();
+  void toConstant(String *constname, String *constdef);
+  void finalizeConstant();
   void createSwigRef();
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
@@ -101,6 +105,7 @@ extern "C" Language *swig_matlab(void) {
 MATLAB::MATLAB() : 
   f_wrap_m(0),
   f_gateway(0),
+  f_constants(0),
   f_begin(0),
   f_runtime(0),
   f_header(0),
@@ -243,6 +248,7 @@ int MATLAB::top(Node *n) {
   Chop(mex_fcn); // Remove trailing whitespaces
 
   f_gateway = NewString("");
+  f_constants = NewString("");
   f_runtime = NewString("");
   f_header = NewString("");
   f_doc = NewString("");
@@ -252,6 +258,7 @@ int MATLAB::top(Node *n) {
   f_directors_h = NewString("");
   f_directors = NewString("");
   Swig_register_filebyname("gateway", f_gateway);
+  Swig_register_filebyname("constants", f_constants);
   Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("header", f_header);
@@ -287,11 +294,17 @@ int MATLAB::top(Node *n) {
   if (!CPlusPlus)
     Printf(f_header,"extern \"C\" {\n");
 
+  // Constant lookup
+  initConstant();
+
   // Mex-file gateway
   initGateway();
 
   /* Emit code for children */
   Language::top(n);
+
+  // Finalize constant lookup
+  finalizeConstant();
     
   // Finalize Mex-file gate way
   finalizeGateway();
@@ -317,6 +330,7 @@ int MATLAB::top(Node *n) {
   Dump(f_wrappers, f_begin);
   Dump(f_initbeforefunc, f_begin);
   Wrapper_pretty_print(f_init, f_begin);
+  Dump(f_constants, f_begin);
   Dump(f_gateway, f_begin);
 
   Delete(f_initbeforefunc);
@@ -328,6 +342,7 @@ int MATLAB::top(Node *n) {
   Delete(f_directors_h);
   Delete(f_runtime);
   Delete(f_begin);
+  Delete(f_constants);
   Delete(f_gateway);
   if(pkg_name) Delete(pkg_name);
   if(pkg_name_fullpath) Delete(pkg_name_fullpath);
@@ -877,7 +892,65 @@ int MATLAB::constantWrapper(Node *n){
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering constantWrapper\n");
 #endif
-  return Language::constantWrapper(n);
+  String *name = Getattr(n, "name");
+  String *symname = Getattr(n, "sym:name");
+  SwigType *type = Getattr(n, "type");
+  String *rawval = Getattr(n, "rawval");
+  String *value = rawval ? rawval : Getattr(n, "value");
+  String *cppvalue = Getattr(n, "cppvalue");
+  String *tm;
+
+  if (!addSymbol(symname, n))
+    return SWIG_ERROR;
+
+  if (SwigType_type(type) == T_MPOINTER) {
+    String *wname = Swig_name_wrapper(symname);
+    String *str = SwigType_str(type, wname);
+    Printf(f_header, "static %s = %s;\n", str, value);
+    Delete(str);
+    value = wname;
+  }
+  if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
+    Replaceall(tm, "$source", value);
+    Replaceall(tm, "$target", name);
+    Replaceall(tm, "$value", cppvalue ? cppvalue : value);
+    Replaceall(tm, "$nsname", symname);
+    toConstant(symname,tm);
+  } else {
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+    return SWIG_NOWRAP;
+  }
+
+  // FIXME? Skip if inside class
+  if(class_name) return SWIG_OK;
+
+  // Create MATLAB proxy
+  String* mfile=NewString(pkg_name_fullpath);
+  Append(mfile,"/");
+  Append(mfile,symname);
+  Append(mfile,".m");
+  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m){
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Add getter function
+  Printf(f_wrap_m,"function v = %s()\n",symname);  
+  Printf(f_wrap_m,"  persistent vInitialized;\n");
+  Printf(f_wrap_m,"  if isempty(vInitialized)\n");
+  Printf(f_wrap_m,"    vInitialized = %s('swigConstant','%s');\n",mex_fcn,symname);
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"  v = vInitialized;\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Tidy up
+  Delete(mfile);
+  Delete(f_wrap_m);
+  f_wrap_m = 0;
+
+  return SWIG_OK;
 }
 
 int MATLAB::nativeWrapper(Node *n) {
@@ -1087,7 +1160,7 @@ void MATLAB::initGateway(){
   // The first argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
-  Printf(f_gateway,"    mexWarnMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
 }
 
 void MATLAB::toGateway(String *fullname, String *wname){
@@ -1100,10 +1173,41 @@ void MATLAB::toGateway(String *fullname, String *wname){
 }
 
 void MATLAB::finalizeGateway(){
+  String* swigConstant=NewString("swigConstant");
+  toGateway(swigConstant,swigConstant);
+  Delete(swigConstant);
   Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexWarnMsgIdAndTxt(\"SWIG\",\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG\",\"No command %%s.\",cmd);\n");
   Printf(f_gateway,"  }\n");
   Printf(f_gateway,"}\n");
+}
+
+void MATLAB::initConstant(){
+  if(CPlusPlus) Printf(f_constants,"extern \"C\"\n");
+  Printf(f_constants,"void swigConstant(int resc, mxArray *resv[], int argc, mxArray *argv[]){\n");
+  
+  // Get constant name and check inputs
+  Printf(f_constants,"  char cmd[%d];\n",CMD_MAXLENGTH);
+  Printf(f_constants,"  if(argc != 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
+  Printf(f_constants,"    mexErrMsgTxt(\"Second input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+  Printf(f_constants,"  if(resc != 1)\n");
+  Printf(f_constants,"    mexErrMsgTxt(\"Expected exactly one output.\");\n  ");
+}
+
+void MATLAB::toConstant(String *constname, String *constdef){
+  if(Len(constname)>CMD_MAXLENGTH){
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(f_constants,"if(!strcmp(\"%s\",cmd)){\n",constname);
+  Printf(f_constants,"    *resv = %s\n",constdef);
+  Printf(f_constants,"  } else ");
+}
+
+void MATLAB::finalizeConstant(){
+  Printf(f_constants," {\n");
+  Printf(f_constants,"    mexErrMsgIdAndTxt(\"SWIG\",\"No constant %%s.\",cmd);\n");
+  Printf(f_constants,"  }\n");
+  Printf(f_constants,"}\n");
 }
 
 int MATLAB::membervariableHandler(Node *n) {
