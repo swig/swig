@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+SRCS       =
 TARGET     = my-guile
 INTERFACE  = example.i
 

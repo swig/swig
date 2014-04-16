@@ -1,13 +1,13 @@
 TOP         = ../..
 SWIG        = $(TOP)/../preinst-swig
 INTERFACE   = example.i
-SRCS        = 
+SRCS        =
 CXXSRCS     = example.cxx
 TARGET      = overload
 INCLUDE     =
 SWIGOPT     = -proxy -unhideprimitive
-CFLAGS      = 
-VARIANT     = 
+CFLAGS      =
+VARIANT     =
 
 # uncomment the following lines to build a static exe
 #CHICKEN_MAIN = runme.scm

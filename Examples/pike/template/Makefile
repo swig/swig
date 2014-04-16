@@ -1,10 +1,10 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = 
+SWIGOPT    =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile pike_run

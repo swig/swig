@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
@@ -20,4 +20,3 @@ clean:
 Example.class: Example.java
 	gcj -fPIC -C -c -g Example.java
 	gcjh  Example
-
