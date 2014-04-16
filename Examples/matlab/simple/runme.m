@@ -1,21 +1,19 @@
-# file: runme.m
+% file: runme.m
 
-swigexample
-
-# Call our gcd() function
+% Call our gcd() function
 
 x = 42
 y = 105
 g = swigexample.gcd(x,y)
-printf("The gcd of %d and %d is %d\n",x,y,g);
+disp(sprintf('The gcd of %d and %d is %d',x,y,g))
 
-# Manipulate the Foo global variable
+% Manipulate the Foo global variable
 
-# Output its current value
-swigexample.cvar.Foo
+% Output its current value
+swigexample.Foo()
 
-# Change its value
-swigexample.cvar.Foo = 3.1415926
+% Change its value
+swigexample.Foo(3.1415926)
 
-# See if the change took effect
-printf("Foo = %f\n", swigexample.cvar.Foo);
+% See if the change took effect
+disp(sprintf('Foo = %f', swigexample.Foo()))

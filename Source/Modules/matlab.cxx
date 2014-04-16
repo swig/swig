@@ -31,6 +31,7 @@ public:
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
   virtual int functionWrapper(Node *n);
+  virtual int globalfunctionHandler(Node *n);
   virtual int variableWrapper(Node *n);
   virtual int constantWrapper(Node *n);
   virtual int nativeWrapper(Node *n);
@@ -789,6 +790,47 @@ int MATLAB::functionWrapper(Node *n){
   Delete(outarg);
 
   return SWIG_OK;
+}
+
+int MATLAB::globalfunctionHandler(Node *n){
+#ifdef MATLABPRINTFUNCTIONENTRY
+  Printf(stderr,"Entering globalfunctionHandler\n");
+#endif
+
+  // Name of function
+  String *symname = Getattr(n, "sym:name");
+
+  bool overloaded = !!Getattr(n, "sym:overloaded");
+  bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");  
+  if(!overloaded || last_overload){
+
+    // Create MATLAB proxy
+    String* mfile=NewString(pkg_name_fullpath);
+    Append(mfile,"/");
+    Append(mfile,symname);
+    Append(mfile,".m");
+    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+    f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+    if (!f_wrap_m){
+      FileErrorDisplay(mfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    // Add function to matlab proxy
+    String *wname = Swig_name_wrapper(symname);
+    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s('%s',varargin{:});\n",mex_fcn,wname);
+    Printf(f_wrap_m,"end\n");
+
+    // Add to function switch
+    toGateway(wname,wname);
+    Delete(wname);
+    Delete(mfile);
+    Delete(f_wrap_m);
+    f_wrap_m = 0;
+  }
+
+  return Language::globalfunctionHandler(n);
 }
 
 int MATLAB::variableWrapper(Node *n){
