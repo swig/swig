@@ -921,34 +921,33 @@ int MATLAB::constantWrapper(Node *n){
     return SWIG_NOWRAP;
   }
 
-  // FIXME? Skip if inside class
-  if(class_name) return SWIG_OK;
+  if(!class_name){
+    // Create MATLAB proxy
+    String* mfile=NewString(pkg_name_fullpath);
+    Append(mfile,"/");
+    Append(mfile,symname);
+    Append(mfile,".m");
+    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+    f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+    if (!f_wrap_m){
+      FileErrorDisplay(mfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
 
-  // Create MATLAB proxy
-  String* mfile=NewString(pkg_name_fullpath);
-  Append(mfile,"/");
-  Append(mfile,symname);
-  Append(mfile,".m");
-  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
-  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_wrap_m){
-    FileErrorDisplay(mfile);
-    SWIG_exit(EXIT_FAILURE);
+    // Add getter function
+    Printf(f_wrap_m,"function v = %s()\n",symname);  
+    Printf(f_wrap_m,"  persistent vInitialized;\n");
+    Printf(f_wrap_m,"  if isempty(vInitialized)\n");
+    Printf(f_wrap_m,"    vInitialized = %s('swigConstant','%s');\n",mex_fcn,symname);
+    Printf(f_wrap_m,"  end\n");
+    Printf(f_wrap_m,"  v = vInitialized;\n");
+    Printf(f_wrap_m,"end\n");
+
+    // Tidy up
+    Delete(mfile);
+    Delete(f_wrap_m);
+    f_wrap_m = 0;
   }
-
-  // Add getter function
-  Printf(f_wrap_m,"function v = %s()\n",symname);  
-  Printf(f_wrap_m,"  persistent vInitialized;\n");
-  Printf(f_wrap_m,"  if isempty(vInitialized)\n");
-  Printf(f_wrap_m,"    vInitialized = %s('swigConstant','%s');\n",mex_fcn,symname);
-  Printf(f_wrap_m,"  end\n");
-  Printf(f_wrap_m,"  v = vInitialized;\n");
-  Printf(f_wrap_m,"end\n");
-
-  // Tidy up
-  Delete(mfile);
-  Delete(f_wrap_m);
-  f_wrap_m = 0;
 
   return SWIG_OK;
 }
@@ -1189,7 +1188,7 @@ void MATLAB::initConstant(){
   // Get constant name and check inputs
   Printf(f_constants,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_constants,"  if(argc != 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
-  Printf(f_constants,"    mexErrMsgTxt(\"Second input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+  Printf(f_constants,"    mexErrMsgTxt(\"Second input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
   Printf(f_constants,"  if(resc != 1)\n");
   Printf(f_constants,"    mexErrMsgTxt(\"Expected exactly one output.\");\n  ");
 }
@@ -1354,6 +1353,25 @@ int MATLAB::memberconstantHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberconstantHandler\n");
 #endif
+
+  // Name of variable
+  String *symname = Getattr(n, "sym:name");
+
+  // Get name of wrapper
+  String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+    
+  // Add getter function
+  Printf(static_methods,"    function v = %s()\n",symname);  
+  Printf(static_methods,"      persistent vInitialized;\n");
+  Printf(static_methods,"      if isempty(vInitialized)\n");
+  Printf(static_methods,"        vInitialized = %s('swigConstant','%s');\n",mex_fcn,fullname);
+  Printf(static_methods,"      end\n");
+  Printf(static_methods,"      v = vInitialized;\n");
+  Printf(static_methods,"    end\n");
+
+  // Tidy up
+  Delete(fullname);
+
   return Language::memberconstantHandler(n);
 }
 
@@ -1441,16 +1459,16 @@ void MATLAB::createSwigRef(){
   Printf(f_wrap_m,"    swigOwn\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
-  Printf(f_wrap_m,"    function v = subsref(self,S)\n");
+  Printf(f_wrap_m,"    function varargout = subsref(self,S)\n");
   Printf(f_wrap_m,"      if numel(S)~=1\n");
-  Printf(f_wrap_m,"        v = builtin('subsref',self,S);\n");
+  Printf(f_wrap_m,"        [varargout{1:nargout}] = builtin('subsref',self,S);\n");
   Printf(f_wrap_m,"      else\n");
   Printf(f_wrap_m,"        if S.type=='.'\n");
-  Printf(f_wrap_m,"          [v,ok] = swig_fieldsref(self,S.subs);\n");
+  Printf(f_wrap_m,"          [varargout{1},ok] = swig_fieldsref(self,S.subs);\n");
   Printf(f_wrap_m,"        elseif S.type=='()'\n");
-  Printf(f_wrap_m,"          [v,ok] = swig_parsref(self,S.subs);\n");
+  Printf(f_wrap_m,"          [varargout{1},ok] = swig_parsref(self,S.subs);\n");
   Printf(f_wrap_m,"        else\n");  
-  Printf(f_wrap_m,"          [v,ok] = swig_cursref(self,S.subs);\n");
+  Printf(f_wrap_m,"          [varargout{1},ok] = swig_cursref(self,S.subs);\n");
   Printf(f_wrap_m,"        end\n");  
   Printf(f_wrap_m,"        if ~ok\n");
   Printf(f_wrap_m,"          error('No matching call')\n");
