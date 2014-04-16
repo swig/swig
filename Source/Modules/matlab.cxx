@@ -19,8 +19,6 @@ static int CMD_MAXLENGTH = 256;
 
 static const char *usage = (char *) "\
 Matlab Options (available with -matlab)\n\
-     -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
-                       Use '.' to load C global variables into module namespace\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
      -pkgname <str> - Prefix <str> for package name ' [default: '<module_name>']\n\
 \n";
@@ -70,7 +68,6 @@ protected:
   //String *constructor_name;
 
   // Options
-  String *global_name;
   String *op_prefix;
   String *pkg_name;
   String *pkg_name_fullpath;
@@ -122,7 +119,6 @@ MATLAB::MATLAB() :
   docs(0),
   have_constructor(false),
   have_destructor(false),
-  global_name(0),
   op_prefix(0),
   pkg_name(0),
   pkg_name_fullpath(0)
@@ -152,22 +148,6 @@ void MATLAB::main(int argc, char *argv[]){
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
-      } else if (strcmp(argv[i], "-global") == 0 ||
-                 strcmp(argv[i], "-noglobal") == 0) {
-        Printv(stderr,
-               "*** -global/-noglobal are no longer supported\n"
-               "*** global load behaviour is now determined at module load\n"
-               "*** see the Perl section in the manual for details.\n", NIL);
-        SWIG_exit(EXIT_FAILURE);
-      } else if (strcmp(argv[i], "-globals") == 0) {
-        if (argv[i + 1]) {
-          global_name = NewString(argv[i + 1]);
-          Swig_mark_arg(i);
-          Swig_mark_arg(i + 1);
-          i++;
-        } else {
-          Swig_arg_error();
-        }
       } else if (strcmp(argv[i], "-opprefix") == 0) {
         if (argv[i + 1]) {
           op_prefix = NewString(argv[i + 1]);
@@ -190,8 +170,6 @@ void MATLAB::main(int argc, char *argv[]){
     }
   }
     
-  if (!global_name)
-    global_name = NewString("cvar");
   if (!op_prefix)
     op_prefix = NewString("op_");
     
@@ -292,7 +270,6 @@ int MATLAB::top(Node *n) {
   Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
   Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
   Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
   Printf(f_runtime, "#define SWIG_pkg_name        \"%s\"\n", pkg_name);
 
@@ -354,7 +331,6 @@ int MATLAB::top(Node *n) {
   Delete(f_gateway);
   if(pkg_name) Delete(pkg_name);
   if(pkg_name_fullpath) Delete(pkg_name_fullpath);
-  if(global_name) Delete(global_name);
   if(op_prefix) Delete(op_prefix);
 
   return SWIG_OK;
