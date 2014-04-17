@@ -23,7 +23,8 @@ Scilab options (available with -scilab)\n\
      -vbl <level> - Sets the build verbose <level> (default 0)\n\
      -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
      -nobuilder - Do not generate builder script\n\
-     -gwid <id> - Gateway ID \n\n"
+     -gwid <id> - Gateway ID \n\
+     -ol <library name> - Set name of the output library\n\n"
      ;
 
 static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
@@ -55,6 +56,8 @@ protected:
   String *gatewayID;
   int primitiveID;
 
+  String *libraryName;
+
   bool generateBuilder;
   bool extraWarning;
 public:
@@ -71,6 +74,7 @@ public:
     buildFlagsScript = NULL;
     generateBuilder = true;
     gatewayID = NULL;
+    libraryName = NULL;
     extraWarning = false;
 
     /* Manage command line arguments */
@@ -91,13 +95,13 @@ public:
         } else if (strcmp(argv[argIndex], "-addcflag") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
-                  DohInsertitem(cflags, Len(cflags), argv[argIndex + 1]);
+            DohInsertitem(cflags, Len(cflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
         } else if (strcmp(argv[argIndex], "-addldflag") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
-                  DohInsertitem(ldflags, Len(ldflags), argv[argIndex + 1]);
+            DohInsertitem(ldflags, Len(ldflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
         } else if (strcmp(argv[argIndex], "-vbl") == 0) {
@@ -115,6 +119,11 @@ public:
         else if (strcmp(argv[argIndex], "-gwid") == 0) {
           Swig_mark_arg(argIndex);
           gatewayID = NewString(argv[argIndex + 1]);
+          Swig_mark_arg(argIndex + 1);
+        }
+        else if (strcmp(argv[argIndex], "-ol") == 0) {
+          Swig_mark_arg(argIndex);
+          libraryName = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
         }
         else if (strcmp(argv[argIndex], "-Wextra") == 0) {
@@ -152,6 +161,11 @@ public:
 
     /* Get the module name */
     String *moduleName = Getattr(node, "name");
+
+    /* Set the library name if not specified */
+    if (libraryName == NULL) {
+      libraryName = moduleName;
+    }
 
     /* Get the output file name */
     String *outputFilename = Getattr(node, "outfile");
@@ -755,7 +769,7 @@ public:
 
     Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
 
-    Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
+    Printf(builderCode, "lib_name = \"%s\";\n", libraryName);
 
     Printf(builderCode, "libs = [];\n");
 
@@ -808,8 +822,8 @@ public:
     Printf(builderCode, "];\n");
     Printf(builderCode, "err_msg = [];\n");
     Printf(builderCode, "if ~isempty(table) then\n");
-    Printf(builderCode, "  ilib_build(ilib_name, table, files, libs, [], ldflags, cflags);\n");
-    Printf(builderCode, "  libfilename = 'lib' + ilib_name + getdynlibext();\n");
+    Printf(builderCode, "  ilib_build('%s', table, files, libs, [], ldflags, cflags);\n", libraryName);
+    Printf(builderCode, "  libfilename = 'lib%s' + getdynlibext();\n", libraryName);
     Printf(builderCode, "  if ~isfile(libfilename) then\n");
     Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename ' + '.');\n");
     Printf(builderCode, "  end\n");
@@ -824,7 +838,7 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * saveBuilderCode():
+   * saveBuilderCode()
    * ----------------------------------------------------------------------- */
   void saveBuilderFile() {
     Printv(builderFile, builderCode, NIL);

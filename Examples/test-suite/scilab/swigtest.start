@@ -10,7 +10,7 @@ swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
 testdir = swigtestname + ".dir";
 
 // Does the library exists? If not then exit!
-libname = "lib" + swigtestname + "lib" + getdynlibext();
+libname = "lib" + swigtestname + getdynlibext();
 if ~isfile(fullfile(testdir, libname)) then
     mfprintf(0, "*** LIBRARY NOT FOUND: %s ***\n", libname);
     exit(1)
