@@ -1030,7 +1030,7 @@ int MATLAB::classHandler(Node *n) {
       Printf(f_wrap_m,"%s.%s",pkg_name,bname);
 
       // Add to initialization
-      Printf(base_init,"      self@%s.%s('_swigCreate',uint64(0),false);\n",pkg_name,bname);
+      Printf(base_init,"      self@%s.%s('_swigCreate');\n",pkg_name,bname);
     }
   }
 
@@ -1261,10 +1261,7 @@ int MATLAB::membervariableHandler(Node *n) {
 void MATLAB::wrapConstructor(String *symname, String *fullname){
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
-    Printf(f_wrap_m,"      if nargin==3 && ischar(varargin{1}) && strcmp(varargin{1},'_swigCreate')\n");
-    Printf(f_wrap_m,"        self.swigCPtr = varargin{2};\n");
-    Printf(f_wrap_m,"        self.swigOwn = varargin{3};\n");
-    Printf(f_wrap_m,"      else\n");
+    Printf(f_wrap_m,"      if nargin~=1 || ~ischar(varargin{1}) || ~strcmp(varargin{1},'_swigCreate')\n");
     if(fullname==0){
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
