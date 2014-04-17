@@ -2,15 +2,25 @@ project(swig)
 
 cmake_minimum_required(VERSION 2.8)
 
+if ( NOT DEFINED CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" )
+endif ()
+
+project(swig)
+
 set(SWIG_VERSION 3.0.0)
 
 set(SWIG_ROOT ${PROJECT_SOURCE_DIR})
+
+set( SWIG_LIB share/swig/${SWIG_VERSION_STRING} )
 
 # Project wide configuration variables
 # ------------------------------------
 
 set(SWIG_SOURCE_DIR "${SWIG_ROOT}/Source" CACHE INTERNAL "Path of swig sources" FORCE)
 
+set ( PACKAGE_NAME swig )
+set ( PACKAGE_VERSION ${SWIG_VERSION} )
 
 # Options
 # -------
@@ -54,11 +64,33 @@ check_include_files( "stdlib.h;stdarg.h;string.h;float.h" HAVE_STDC_HEADERS )
 check_library_exists(dl dlopen "" HAVE_LIBDL)
 
 find_package(PCRE)
-if (PCRE)
+if (PCRE_FOUND)
+    include_directories( ${PCRE_INCLUDE_DIRS} )
     set(HAVE_PCRE 1)
 else()
     set(HAVE_PCRE 0)
 endif()
+
+option(USE_ZLIB "enable ccache compression" ON)
+if ( USE_ZLIB )
+  find_package ( ZLIB )
+endif ()
+if ( ZLIB_FOUND )
+  set ( ENABLE_ZLIB 1 )
+  include_directories ( ${ZLIB_INCLUDE_DIRS} )
+else ()
+  set ( ENABLE_ZLIB 0 )
+endif ()
+
+# for ccache man
+find_program ( YODL2MAN_EXECUTABLE NAMES yodl2man )
+
+option ( USE_PYTHON "use python for tests" ON )
+if ( USE_PYTHON )
+  find_package ( PythonInterp )
+  find_package ( PythonLibs )
+endif ()
+enable_testing()
 
 configure_file(
     ${SWIG_ROOT}/Tools/cmake/swigconfig.h.cmake
@@ -82,20 +114,6 @@ include_directories(
     "${PROJECT_BINARY_DIR}/Source/CParse"
 )
 
-if (PCRE)
-    include_directories(
-        "${PCRE_INCLUDE_DIRS}"
-    )
-endif()
-
-
-# Pre-Build
-# ---------
-
-# Copy the Lib directory into the build dist folder
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/Dist)
-file(COPY ${SWIG_ROOT}/Lib DESTINATION ${PROJECT_BINARY_DIR}/Dist)
-
 # generate the parser source code (depends on bison)
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/Source/CParse)
 
@@ -107,8 +125,12 @@ BISON_TARGET(swig_parser
 # generate swigwarn.swg
 file(READ ${SWIG_SOURCE_DIR}/Include/swigwarn.h SWIG_WARN_H)
 string(REGEX REPLACE "#define WARN([^ \\t]*)[ \\t]*([0-9]+)" "%define SWIGWARN\\1 \\2 %enddef" SWIG_WARN_SWG ${SWIG_WARN_H})
-file(WRITE ${PROJECT_BINARY_DIR}/Dist/Lib/swigwarn.swg ${SWIG_WARN_SWG})
-set_property(SOURCE ${PROJECT_BINARY_DIR}/Dist/Lib/swigwarn.swg PROPERTY GENERATED 1)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg ${SWIG_WARN_SWG})
+set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg PROPERTY GENERATED 1)
+
+# install lib
+install ( DIRECTORY ${SWIG_ROOT}/Lib DESTINATION ${SWIG_LIB} )
+install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg DESTINATION ${SWIG_LIB} )
 
 # Libraries
 # ---------
@@ -202,20 +224,15 @@ add_executable(swig
     "${SWIG_SOURCE_DIR}/Modules/swigmain.cxx"
 )
 
-target_link_libraries(swig cparse preprocessor doh core modules ${PCRE_LIBRARIES})
+target_link_libraries ( swig cparse preprocessor doh core modules ${PCRE_LIBRARIES} )
+install ( TARGETS swig DESTINATION bin )
 
-# Deployment
-# ..........
 
-# TODO: under linux and osx we could install it
-# ATM we just create a dist folder that needs to be managed by the user
-# i.e., copied somewhere and added to the path.
+add_subdirectory(CCache)
 
-# copy the swig binary into Dist folder
-get_property(_SWIG_EXECUTABLE TARGET swig PROPERTY LOCATION)
-get_filename_component(_SWIG_EXE_NAME ${_SWIG_EXECUTABLE} NAME)
-set(_SWIG_EXE_DIST ${PROJECT_BINARY_DIR}/Dist/${_SWIG_EXE_NAME})
-
-add_custom_command(TARGET swig POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${_SWIG_EXECUTABLE} ${_SWIG_EXE_DIST}
-)
+# 'make package-source' creates tarballs
+set ( CPACK_PACKAGE_NAME ${PACKAGE_NAME} )
+set ( CPACK_SOURCE_GENERATOR "TGZ;TBZ2" )
+set ( CPACK_SOURCE_IGNORE_FILES "/.git;/build;.*~;${CPACK_SOURCE_IGNORE_FILES}" )
+set ( CPACK_SOURCE_PACKAGE_FILE_NAME ${PACKAGE_NAME}-${PACKAGE_VERSION} )
+include ( CPack )
