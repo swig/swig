@@ -1460,6 +1460,9 @@ void MATLAB::createSwigRef(){
   Printf(f_wrap_m,"    swigOwn\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
+  Printf(f_wrap_m,"    function disp(self)\n");
+  Printf(f_wrap_m,"      disp(sprintf('<Swig Object, ptr=%%d, own=%%d>',self.swigCPtr,self.swigOwn))\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function varargout = subsref(self,S)\n");
   Printf(f_wrap_m,"      if numel(S)~=1\n");
   Printf(f_wrap_m,"        [varargout{1:nargout}] = builtin('subsref',self,S);\n");
