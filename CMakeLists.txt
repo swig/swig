@@ -85,13 +85,6 @@ endif ()
 # for ccache man
 find_program ( YODL2MAN_EXECUTABLE NAMES yodl2man )
 
-option ( USE_PYTHON "use python for tests" ON )
-if ( USE_PYTHON )
-  find_package ( PythonInterp )
-  find_package ( PythonLibs )
-endif ()
-enable_testing()
-
 configure_file(
     ${SWIG_ROOT}/Tools/cmake/swigconfig.h.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/Source/Include/swigconfig.h
@@ -228,7 +221,10 @@ target_link_libraries ( swig cparse preprocessor doh core modules ${PCRE_LIBRARI
 install ( TARGETS swig DESTINATION bin )
 
 
-add_subdirectory(CCache)
+add_subdirectory ( CCache )
+enable_testing()
+
+add_subdirectory ( Examples )
 
 # 'make package-source' creates tarballs
 set ( CPACK_PACKAGE_NAME ${PACKAGE_NAME} )
