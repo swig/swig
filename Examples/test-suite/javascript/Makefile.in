@@ -3,6 +3,7 @@
 #######################################################################
 
 LANGUAGE     = javascript
+NODEGYP = @NODEGYP@
 SCRIPTSUFFIX = _runme.js
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -104,7 +105,7 @@ ifeq (node,$(JSENGINE))
 		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
 
 	nodejs_swig_and_compile = \
-		node-gyp --loglevel=silent --directory $* configure build 1>>/dev/null
+		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \

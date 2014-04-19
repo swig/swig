@@ -1131,10 +1131,13 @@ else
   esac
 
   #----------------------------------------------------------------
-  # Look for Node.js which is the default javascript engine
+  # Look for Node.js which is the default Javascript engine
   #----------------------------------------------------------------
 
   AC_CHECK_PROGS(NODEJS, node)
+
+  # node-gyp is needed to run the test-suite/examples for all Javascript engines
+  AC_CHECK_PROGS(NODEGYP, node-gyp)
 
   #----------------------------------------------------------------
   # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
@@ -1302,6 +1305,7 @@ AC_SUBST(JSCENABLED)
 AC_SUBST(JSV8ENABLED)
 
 AC_SUBST(NODEJS)
+AC_SUBST(NODEGYP)
 
 #----------------------------------------------------------------
 # Look for gcj
@@ -2455,7 +2459,7 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || test -z "$NODEJS"; then
+if test -z "$JAVASCRIPT" || test -z "$NODEJS" || test -z "$NODEGYP"; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
