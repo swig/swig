@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-set (CPP_TEST_CASES aggregate abstract_access array_member bools varargs_overload virtual_destructor)
+set (CPP_TEST_CASES aggregate abstract_access array_member bools casts varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
@@ -427,6 +427,10 @@ macro(add_tests language)
     if ( ${language} STREQUAL go )
       set ( SWIG_CXX_FLAG "-intgosize;64;${SWIG_CXX_FLAG}" )
     endif ()
+    if ( ${language} STREQUAL guile )
+      set ( SWIG_CXX_FLAG "-Linkage;passive;${SWIG_CXX_FLAG}" )
+    endif()
+    
     set (SWIG_OUTPUT ${testname}${language}_wrap${SWIG_CXX_EXTENSION} )
     add_custom_command(OUTPUT ${SWIG_OUTPUT}
       COMMAND ${SWIG_EXECUTABLE} -${language} ${SWIG_CXX_FLAG}
@@ -443,21 +447,26 @@ macro(add_tests language)
     list (APPEND TEST_TARGETS ${SWIG_MODULE_${name}_REAL_NAME})
     
     set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME ${testname})
-    if (${language} STREQUAL python)
+    set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
+    
+    if(${language} STREQUAL guile)  
+      set_target_properties (${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "lib")
+    elseif(${language} STREQUAL java)
+      set_target_properties (${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "lib")
+      if (APPLE)
+        set_target_properties (${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".jnilib")
+      endif ()
+    elseif (${language} STREQUAL octave)
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".oct")
+    elseif (${language} STREQUAL python)
       set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME _${testname})
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
       if(WIN32 AND NOT CYGWIN)
         set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".pyd")
       endif()
-    elseif(${language} STREQUAL go)
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
-    elseif(${language} STREQUAL lua)
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
-    elseif (${language} STREQUAL octave)
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".oct")
     elseif(${language} STREQUAL ruby)
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
+      if (APPLE)
+        set_target_properties (${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".bundle")
+      endif ()
     endif ()  
 
     set ( testfile ${CMAKE_CURRENT_SOURCE_DIR}/${testname}_runme${${language}_ext} )
@@ -496,6 +505,11 @@ endif ()
 option ( USE_GO "go" OFF )
 if ( USE_GO )
   add_subdirectory ( go )
+endif ()
+
+option ( USE_GUILE "guile" ON )
+if ( USE_GUILE )
+  add_subdirectory ( guile )
 endif ()
 
 option ( USE_JAVA "java" OFF )
