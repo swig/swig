@@ -55,7 +55,7 @@ SwigV8ReturnValue $jswrapper(const SwigV8Arguments& args) {
   $jsdispatchcases
 
   // default:
-  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
+  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
 fail:
   SWIGV8_RETURN(v8::Undefined());

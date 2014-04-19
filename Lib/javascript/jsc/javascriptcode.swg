@@ -53,7 +53,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     $jsdispatchcases
 
     // default:
-    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsname");
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of $jsname");
 
     fail:
     return thisObject;
