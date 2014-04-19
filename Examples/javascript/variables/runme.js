@@ -18,27 +18,27 @@ example.ptptr  = example.new_Point(37,42);
 example.name   = "Bill";
 
 // Now console.log out the values of the variables
-console.log("Variables (values console.loged from Python)" + "\n");
-console.log("ivar      = " + example.ivar  + "\n");
-console.log("svar      = " + example.svar  + "\n");
-console.log("lvar      = " + example.lvar  + "\n");
-console.log("uivar     = " + example.uivar + "\n");
-console.log("usvar     = " + example.usvar + "\n");
-console.log("ulvar     = " + example.ulvar + "\n");
-console.log("scvar     = " + example.scvar + "\n");
-console.log("ucvar     = " + example.ucvar + "\n");
-console.log("fvar      = " + example.fvar  + "\n");
-console.log("dvar      = " + example.dvar  + "\n");
-console.log("cvar      = " + example.cvar  + "\n");
-console.log("strvar    = " + example.strvar+ "\n");
-console.log("cstrvar   = " + example.cstrvar+ "\n");
-console.log("iptrvar   = " + example.iptrvar+ "\n");
-console.log("name      = " + example.name + "\n");
-console.log("ptptr     = " + example.ptptr + ": " + example.Point_print(example.ptptr) + "\n");
-console.log("pt        = " + example.pt + ": " + example.Point_print(example.pt) + "\n");
+console.log("Variables (values printed from Javascript)");
+console.log("ivar      = " + example.ivar);
+console.log("svar      = " + example.svar);
+console.log("lvar      = " + example.lvar);
+console.log("uivar     = " + example.uivar);
+console.log("usvar     = " + example.usvar);
+console.log("ulvar     = " + example.ulvar);
+console.log("scvar     = " + example.scvar);
+console.log("ucvar     = " + example.ucvar);
+console.log("fvar      = " + example.fvar);
+console.log("dvar      = " + example.dvar);
+console.log("cvar      = " + example.cvar);
+console.log("strvar    = " + example.strvar);
+console.log("cstrvar   = " + example.cstrvar);
+console.log("iptrvar   = " + example.iptrvar);
+console.log("name      = " + example.name);
+console.log("ptptr     = " + example.ptptr + ": " + example.Point_print(example.ptptr));
+console.log("pt        = " + example.pt + ": " + example.Point_print(example.pt));
 
 
-console.log("\nVariables (values console.loged from C)");
+console.log("\nVariables (values printed from C)");
 
 example.print_vars();
 
@@ -61,7 +61,7 @@ try{
     console.log("Good.");
 }
 
-console.log("\nI'm going to try and update a structure variable.\n");
+console.log("\nI'm going to try and update a structure variable.");
 example.pt = example.ptptr;
 console.log("The new value is: ");
 example.pt_print();
