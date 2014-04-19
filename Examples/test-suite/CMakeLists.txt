@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-# set (CPP_TEST_CASES array_member bools varargs_overload virtual_destructor)
+set (CPP_TEST_CASES array_member bools varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
@@ -445,6 +445,8 @@ macro(add_tests language)
       if(WIN32 AND NOT CYGWIN)
         set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".pyd")
       endif()
+    elseif(${language} STREQUAL lua)
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")  
     elseif(${language} STREQUAL ruby)
       set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
     endif ()  
@@ -466,9 +468,14 @@ macro(add_tests language)
   add_dependencies(check-test-suite check-${language}-test-suite)
 endmacro()
 
-option ( USE_PYTHON "python" ON )
-if ( USE_PYTHON )
-  add_subdirectory ( python )
+
+
+
+
+  
+option ( USE_CSHARP "csharp" OFF )
+if ( USE_CSHARP )
+  add_subdirectory ( csharp )
 endif ()
 
 option ( USE_JAVA "java" OFF )
@@ -476,18 +483,22 @@ if ( USE_JAVA )
   add_subdirectory ( java )
 endif ()
 
-option ( USE_RUBY "ruby" ON )
-if ( USE_RUBY )
-  add_subdirectory ( ruby )
-endif ()
+option ( USE_LUA "lua" ON )
+if ( USE_LUA )
+  add_subdirectory ( lua )
+endif()
 
 option ( USE_OCTAVE "octave" OFF )
 if ( USE_OCTAVE )
   add_subdirectory ( octave )
 endif()
   
-option ( USE_CSHARP "csharp" OFF )
-if ( USE_CSHARP )
-  add_subdirectory ( csharp )
+option ( USE_PYTHON "python" ON )
+if ( USE_PYTHON )
+  add_subdirectory ( python )
 endif ()
 
+option ( USE_RUBY "ruby" ON )
+if ( USE_RUBY )
+  add_subdirectory ( ruby )
+endif ()
