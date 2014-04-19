@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-set (CPP_TEST_CASES integers aggregate abstract_access array_member bools casts varargs_overload virtual_destructor)
+# set (CPP_TEST_CASES integers aggregate abstract_access array_member bools casts varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
@@ -432,9 +432,14 @@ macro(add_tests language)
     endif()
     
     set (SWIG_OUTPUT ${testname}${language}_wrap${SWIG_CXX_EXTENSION} )
+    
+    set (LANG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Lib/${language})
+    if (${language} STREQUAL perl)
+      set(LANG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Lib/${language}5)
+    endif ()
     add_custom_command(OUTPUT ${SWIG_OUTPUT}
       COMMAND ${SWIG_EXECUTABLE} -${language} ${SWIG_CXX_FLAG}
-      -I${CMAKE_SOURCE_DIR}/Lib/${language} -I${CMAKE_BINARY_DIR} -I${CMAKE_SOURCE_DIR}/Lib 
+      -I${LANG_INCLUDE_DIR} -I${CMAKE_BINARY_DIR} -I${CMAKE_SOURCE_DIR}/Lib 
       -o ${SWIG_OUTPUT}
       ${CMAKE_CURRENT_SOURCE_DIR}/../${testname}.i
       DEPENDS swig
@@ -526,7 +531,12 @@ option ( USE_OCTAVE "Octave" ON )
 if ( USE_OCTAVE )
   add_subdirectory ( octave )
 endif()
-  
+    
+option ( USE_PERL "Perl" ON )
+if ( USE_PERL )
+  add_subdirectory ( perl5 )
+endif ()
+
 option ( USE_PYTHON "Python" ON )
 if ( USE_PYTHON )
   add_subdirectory ( python )
