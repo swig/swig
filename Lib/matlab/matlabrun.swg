@@ -88,6 +88,10 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap threw exception when calling %s",matlab_classname);
   mxDestroyArray(pm_command);
 
+  mxArray* pm_type = mxCreateString(type->name);
+  mxSetProperty(pm,0,"swigType",pm_type);
+  mxDestroyArray(pm_type);
+
   mxArray *pm_ptr = mxCreateNumericMatrix(1,1,mxUINT64_CLASS, mxREAL);
   *(uint64_T *)mxGetData(pm_ptr) = (uint64_T)ptr;
   if(!pm_ptr) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mxCreateNumericMatrix failed");

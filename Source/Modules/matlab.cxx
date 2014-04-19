@@ -1271,6 +1271,7 @@ void MATLAB::wrapConstructor(String *symname, String *fullname){
       Printf(f_wrap_m,"        tmp = %s('%s',varargin{:}); %% FIXME\n",mex_fcn,fullname);
       Printf(f_wrap_m,"        self.swigCPtr = tmp.swigCPtr;\n");
       Printf(f_wrap_m,"        self.swigOwn = tmp.swigOwn;\n");
+      Printf(f_wrap_m,"        self.swigType = tmp.swigType;\n");
       Printf(f_wrap_m,"        tmp.swigOwn = false;\n");
     }
     Printf(f_wrap_m,"      end\n");
@@ -1457,11 +1458,12 @@ void MATLAB::createSwigRef(){
   Printf(f_wrap_m,"classdef SwigRef < handle\n");
   Printf(f_wrap_m,"  properties %% (GetAccess = protected, SetAccess = protected) %% FIXME: mxGetProperty not working with protected access \n");
   Printf(f_wrap_m,"    swigCPtr\n");
+  Printf(f_wrap_m,"    swigType\n");
   Printf(f_wrap_m,"    swigOwn\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
   Printf(f_wrap_m,"    function disp(self)\n");
-  Printf(f_wrap_m,"      disp(sprintf('<Swig Object, ptr=%%d, own=%%d>',self.swigCPtr,self.swigOwn))\n");
+  Printf(f_wrap_m,"      disp(sprintf('<Swig Object of type %%s, ptr=%%d, own=%%d>',self.swigType,self.swigCPtr,self.swigOwn))\n");
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function varargout = subsref(self,S)\n");
   Printf(f_wrap_m,"      if numel(S)~=1\n");
