@@ -641,17 +641,17 @@ javascript_cpp: $(SRCS) javascript_custom_interpreter
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
-# Running a javascript example
+# Running a Javascript example
 # -----------------------------------------------------------------
 
 javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
 javascript_run: javascript_custom_interpreter
-	$(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) runme.js
+	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) runme.js $(RUNPIPE)
 
 javascript_run_node:
-	$(NODEJS) runme.js
+	$(RUNTOOL) $(NODEJS) runme.js $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -659,21 +659,21 @@ javascript_run_node:
 
 javascript_version:
 ifeq (, $(ENGINE))
-	@ if [ "$(NODEJS)" != "" ]; then \
-		echo "Node.js: `($(NODEJS) --version)`"; \
-	  else \
-	    echo "Version depends on the interpreter"; \
-	  fi
+	@if [ "$(NODEJS)" != "" ]; then \
+	  echo "Node.js: `($(NODEJS) --version)`"; \
+	else \
+	  echo "Version depends on the interpreter"; \
+	fi
 endif
 ifeq (node, $(ENGINE))
 	$(NODEJS) --version
 endif
 ifeq (jsc, $(ENGINE))
-	@ if [ "@JSCOREVERSION@" != "" ]; then \
-		echo "@JSCOREVERSION@"; \
-	  else \
-	    echo "Unknown JavascriptCore version."; \
-	  fi
+	@if [ "@JSCOREVERSION@" != "" ]; then \
+	  echo "@JSCOREVERSION@"; \
+	else \
+	  echo "Unknown JavascriptCore version."; \
+	fi
 endif
 ifeq (v8, $(ENGINE))
 	echo "Unknown v8 version."
@@ -681,7 +681,7 @@ endif
 	echo "node-gyp: `($(NODEGYP) --version)`"
 
 # -----------------------------------------------------------------
-# Cleaning the javascript examples
+# Cleaning the Javascript examples
 # -----------------------------------------------------------------
 
 javascript_clean:
