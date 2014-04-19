@@ -395,134 +395,99 @@ set ( CPP_TEST_CASES
         wallkw
         wrapmacro)
 
+# TODO: remove me, for test!
+# set (CPP_TEST_CASES array_member bools varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
-macro(add_test_language language extension interpreter)
+macro(test_language language extension interpreter)
   list ( APPEND LANGUAGES ${language} ${interpreter} )
   set (${language}_ext ${extension})
   set (${language}_interpreter ${interpreter})
-  add_subdirectory ( ${language} )
+  add_tests(${language})
 endmacro()
 
 
 
 include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} )
 
-macro ( swig_and_compile testname language )
-  set (SWIG_CXX_FLAG)
-  set ( SWIG_CXX_EXTENSION ".c")
-  if (1)
-    set (SWIG_CXX_FLAG "-c++")
-    set(SWIG_CXX_EXTENSION ".cxx") 
-  endif ()
-  set (SWIG_OUTPUT ${testname}${language}_wrap${SWIG_CXX_EXTENSION} )
-  add_custom_command(OUTPUT ${SWIG_OUTPUT}
-    COMMAND ${SWIG_EXECUTABLE} -${language} ${SWIG_CXX_FLAG}
-    -I${CMAKE_SOURCE_DIR}/Lib/${language} -I${CMAKE_BINARY_DIR} -I${CMAKE_SOURCE_DIR}/Lib 
-    -o ${SWIG_OUTPUT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../${testname}.i
-  )
-  set(name ${testname}_${language})
-  
-  set(SWIG_MODULE_${name}_REAL_NAME ${testname}_${language})
-
-  add_library(${SWIG_MODULE_${name}_REAL_NAME} MODULE EXCLUDE_FROM_ALL ${SWIG_OUTPUT} )
-  
-  set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME ${testname})
-  if (${language} STREQUAL python)
-    set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME _${testname})
-    set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
-    if(WIN32 AND NOT CYGWIN)
-      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".pyd")
-    endif()
-  elseif(${language} STREQUAL ruby)
-    set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
-  endif ()  
-
-  add_dependencies(check-${language}-test-suite ${SWIG_MODULE_${name}_REAL_NAME})
-  
-  set ( testfile ${CMAKE_CURRENT_SOURCE_DIR}/${testname}_runme${${language}_ext} )
-  if ( EXISTS ${testfile} )
-    add_test(${name} "${${language}_interpreter}" ${testfile})
-    if ( DEFINED ${language}_test_environment )
-      set_tests_properties ( ${name} PROPERTIES ENVIRONMENT "${${language}_test_environment}" )
-    endif ()
-  endif ()
-endmacro()
-
 add_custom_target ( check-test-suite )
-# foreach( language ${LANGUAGES} ) 
-#   file ( MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${language} )
-#   add_custom_target ( check-${language}-test-suite )
-#   foreach( CPP_TEST_CASE ${CPP_TEST_CASES} )
-#     swig_and_compile ( ${CPP_TEST_CASE} ${language} )
-#   endforeach()
-#   add_dependencies(check-test-suite check-${language}-test-suite)
-# endforeach()
-
 
 macro(add_tests language)
-  add_custom_target ( check-${language}-test-suite )
-  foreach( CPP_TEST_CASE ${CPP_TEST_CASES} )
-    swig_and_compile ( ${CPP_TEST_CASE} ${language} )
+  set (TEST_TARGETS)
+  set (TEST_SRCS)
+  foreach( testname ${CPP_TEST_CASES} )
+    set (SWIG_CXX_FLAG)
+    set ( SWIG_CXX_EXTENSION ".c")
+    if (1)
+      set (SWIG_CXX_FLAG "-c++")
+      set(SWIG_CXX_EXTENSION ".cxx") 
+    endif ()
+    set (SWIG_OUTPUT ${testname}${language}_wrap${SWIG_CXX_EXTENSION} )
+    add_custom_command(OUTPUT ${SWIG_OUTPUT}
+      COMMAND ${SWIG_EXECUTABLE} -${language} ${SWIG_CXX_FLAG}
+      -I${CMAKE_SOURCE_DIR}/Lib/${language} -I${CMAKE_BINARY_DIR} -I${CMAKE_SOURCE_DIR}/Lib 
+      -o ${SWIG_OUTPUT}
+      ${CMAKE_CURRENT_SOURCE_DIR}/../${testname}.i
+      DEPENDS swig
+    )
+    set(name ${testname}-${language})
+    
+    set(SWIG_MODULE_${name}_REAL_NAME ${testname}_${language})
+
+    add_library(${SWIG_MODULE_${name}_REAL_NAME} MODULE EXCLUDE_FROM_ALL ${SWIG_OUTPUT} )
+    list (APPEND TEST_TARGETS ${SWIG_MODULE_${name}_REAL_NAME})
+    
+    set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME ${testname})
+    if (${language} STREQUAL python)
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES LIBRARY_OUTPUT_NAME _${testname})
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
+      if(WIN32 AND NOT CYGWIN)
+        set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".pyd")
+      endif()
+    elseif(${language} STREQUAL ruby)
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
+    endif ()  
+
+    set ( testfile ${CMAKE_CURRENT_SOURCE_DIR}/${testname}_runme${${language}_ext} )
+    if ( EXISTS ${testfile} )
+      add_test(${name} "${${language}_interpreter}" ${testfile})
+      list (APPEND TEST_SRCS ${testfile} )
+      if ( DEFINED ${language}_test_environment )
+        set_tests_properties ( ${name} PROPERTIES ENVIRONMENT "${${language}_test_environment}" )
+      endif ()
+    endif ()
   endforeach()
+  
+  add_custom_target ( check-${language}-test-suite 
+                      COMMAND ${CMAKE_CTEST_COMMAND} -R "-${language}" -j2
+                      DEPENDS ${TEST_TARGETS} ${TEST_SRCS}
+                    )
   add_dependencies(check-test-suite check-${language}-test-suite)
 endmacro()
 
 option ( USE_PYTHON "python" ON )
 if ( USE_PYTHON )
-  find_package ( PythonInterp )
-  find_package ( PythonLibs )
-endif ()
-if ( PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND )
-  add_test_language ( python ".py" ${PYTHON_EXECUTABLE} )
+  add_subdirectory ( python )
 endif ()
 
 option ( USE_JAVA "java" OFF )
-if(USE_JAVA)
-  find_package(JNI)
-endif ()
-if (JNI_FOUND)
-  list( APPEND LANGUAGES java )
-  set ( java_ext ".java" )
-  include_directories ( ${JNI_INCLUDE_DIRS} )
+if ( USE_JAVA )
+  add_subdirectory ( java )
 endif ()
 
 option ( USE_RUBY "ruby" ON )
-if(USE_RUBY)
-  find_package(Ruby)
-endif ()
-if (RUBY_FOUND)
-  add_test_language ( ruby ".rb" ${RUBY_EXECUTABLE} )
+if ( USE_RUBY )
+  add_subdirectory ( ruby )
 endif ()
 
-option (USE_OCTAVE "octave" OFF)
-if(USE_OCTAVE)
-  find_program(OCTAVE_EXECUTABLE NAMES octave)
-  if (OCTAVE_EXECUTABLE)
-    execute_process ( COMMAND ${OCTAVE_EXECUTABLE} --silent --eval "printf('%s', octave_config_info ('version'))"
-                      OUTPUT_VARIABLE OCTAVE_VERSION_STRING
-                      RESULT_VARIABLE error_code
-                      OUTPUT_STRIP_TRAILING_WHITESPACE )
-  endif ()
-  find_path(OCTAVE_INCLUDE_DIR
-    NAMES octave/oct.h
-    PATH_SUFFIXES octave-${OCTAVE_VERSION_STRING}
-  )  
-  if (OCTAVE_EXECUTABLE AND OCTAVE_INCLUDE_DIR)
-    set (OCTAVE_INCLUDE_DIRS ${OCTAVE_INCLUDE_DIR})
-    set (OCTAVE_FOUND TRUE)
-  endif ()
-endif ()
-if (OCTAVE_FOUND) 
-  list( APPEND LANGUAGES octave )
+option ( USE_OCTAVE "octave" OFF )
+if ( USE_OCTAVE )
+  add_subdirectory ( octave )
+endif()
+  
+option ( USE_CSHARP "csharp" OFF )
+if ( USE_CSHARP )
+  add_subdirectory ( csharp )
 endif ()
 
-option (USE_CSHARP "csharp" OFF)
-if(USE_CSHARP)
-  find_program(MCS_EXECUTABLE NAMES mcs)
-endif ()
-if (MCS_EXECUTABLE)
-  list( APPEND LANGUAGES csharp )
-endif ()
