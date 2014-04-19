@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-set (CPP_TEST_CASES array_member bools varargs_overload virtual_destructor)
+set (CPP_TEST_CASES abstract_access array_member bools varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
@@ -423,6 +423,10 @@ macro(add_tests language)
       set (SWIG_CXX_FLAG "-c++")
       set(SWIG_CXX_EXTENSION ".cxx") 
     endif ()
+    
+    if ( ${language} STREQUAL go )
+      set ( SWIG_CXX_FLAG "-intgosize;64;${SWIG_CXX_FLAG}" )
+    endif ()
     set (SWIG_OUTPUT ${testname}${language}_wrap${SWIG_CXX_EXTENSION} )
     add_custom_command(OUTPUT ${SWIG_OUTPUT}
       COMMAND ${SWIG_EXECUTABLE} -${language} ${SWIG_CXX_FLAG}
@@ -445,6 +449,8 @@ macro(add_tests language)
       if(WIN32 AND NOT CYGWIN)
         set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES SUFFIX ".pyd")
       endif()
+    elseif(${language} STREQUAL go)
+      set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
     elseif(${language} STREQUAL lua)
       set_target_properties(${SWIG_MODULE_${name}_REAL_NAME} PROPERTIES PREFIX "")
     elseif (${language} STREQUAL octave)
@@ -455,8 +461,9 @@ macro(add_tests language)
     endif ()  
 
     set ( testfile ${CMAKE_CURRENT_SOURCE_DIR}/${testname}_runme${${language}_ext} )
-    if ( EXISTS ${testfile} )
-      add_test(${name} "${${language}_interpreter}" ${testfile})
+    if ( EXISTS ${testfile} ) 
+    
+      add_test(${name} "${${language}_interpreter}" ${${language}_args} ${testfile})
       list (APPEND TEST_SRCS ${testfile} )
       if ( DEFINED ${language}_test_environment )
         set_tests_properties ( ${name} PROPERTIES ENVIRONMENT "${${language}_test_environment}" )
@@ -479,6 +486,16 @@ endmacro()
 option ( USE_CSHARP "csharp" OFF )
 if ( USE_CSHARP )
   add_subdirectory ( csharp )
+endif ()
+
+option ( USE_D "d" OFF )
+if ( USE_D )
+  add_subdirectory ( d )
+endif ()
+
+option ( USE_GO "go" OFF )
+if ( USE_GO )
+  add_subdirectory ( go )
 endif ()
 
 option ( USE_JAVA "java" OFF )
