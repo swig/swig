@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-set (CPP_TEST_CASES aggregate abstract_access array_member bools casts varargs_overload virtual_destructor)
+set (CPP_TEST_CASES integers aggregate abstract_access array_member bools casts varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
@@ -472,7 +472,7 @@ macro(add_tests language)
     set ( testfile ${CMAKE_CURRENT_SOURCE_DIR}/${testname}_runme${${language}_ext} )
     if ( EXISTS ${testfile} ) 
     
-      add_test(${name} "${${language}_interpreter}" ${${language}_args} ${testfile})
+      add_test(${name} "${${language}_interpreter}" ${${language}_args} ${testfile} )
       list (APPEND TEST_SRCS ${testfile} )
       if ( DEFINED ${language}_test_environment )
         set_tests_properties ( ${name} PROPERTIES ENVIRONMENT "${${language}_test_environment}" )
@@ -492,44 +492,49 @@ endmacro()
 
 
   
-option ( USE_CSHARP "csharp" OFF )
+option ( USE_CSHARP "C#" OFF )
 if ( USE_CSHARP )
   add_subdirectory ( csharp )
 endif ()
 
-option ( USE_D "d" OFF )
+option ( USE_D "D" OFF )
 if ( USE_D )
   add_subdirectory ( d )
 endif ()
 
-option ( USE_GO "go" OFF )
+option ( USE_GO "Go" OFF )
 if ( USE_GO )
   add_subdirectory ( go )
 endif ()
 
-option ( USE_GUILE "guile" ON )
+option ( USE_GUILE "Guile" ON )
 if ( USE_GUILE )
   add_subdirectory ( guile )
 endif ()
 
-option ( USE_JAVA "java" OFF )
+option ( USE_JAVA "Java" OFF )
 if ( USE_JAVA )
   add_subdirectory ( java )
 endif ()
 
-option ( USE_LUA "lua" ON )
+option ( USE_LUA "Lua" ON )
 if ( USE_LUA )
   add_subdirectory ( lua )
 endif()
 
-option ( USE_OCTAVE "octave" ON )
+option ( USE_OCTAVE "Octave" ON )
 if ( USE_OCTAVE )
   add_subdirectory ( octave )
 endif()
   
-option ( USE_PYTHON "python" ON )
+option ( USE_PYTHON "Python" ON )
 if ( USE_PYTHON )
   add_subdirectory ( python )
+endif ()
+
+option ( USE_R "R" OFF )
+if ( USE_R )
+  add_subdirectory ( r )
 endif ()
 
 option ( USE_RUBY "ruby" ON )
