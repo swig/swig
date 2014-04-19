@@ -396,7 +396,7 @@ set ( CPP_TEST_CASES
         wrapmacro)
 
 # TODO: remove me, for test!
-set (CPP_TEST_CASES abstract_access array_member bools varargs_overload virtual_destructor)
+set (CPP_TEST_CASES aggregate abstract_access array_member bools varargs_overload virtual_destructor)
   
 set ( LANGUAGES )
 
