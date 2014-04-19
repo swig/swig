@@ -16,67 +16,20 @@ else
 	JSENGINE=node
 endif
 
-ifeq (1,$(SMOKE))
-
-C_TEST_CASES = \
-  preproc \
-  preproc_include
-
-CPP_TEST_CASES = \
-  abstract_access \
-  abstract_typedef \
-  abstract_typedef2 \
-  abstract_virtual \
-  arrays_global \
-  array_member \
-  char_binary \
-  class_ignore \
-  class_scope_weird \
-  complextest \
-  constover \
-  constructor_copy \
-  cpp_enum \
-  cpp_namespace \
-  cpp_static \
-  enum_template \
-  namespace_virtual_method \
-  nspace \
-  nspace_extend \
-  overload_copy \
-  rename_simple \
-  rename_scope \
-  ret_by_value \
-  struct_value \
-  template_static \
-  typedef_class \
-  typedef_inherit \
-  typedef_scope \
-  typemap_arrays \
-  typemap_delete \
-  typemap_namespace \
-  typemap_ns_using \
-  using1 \
-  using2 \
-  javascript_unicode
-
-SMOKE_TESTS_ONLY=1
-
-endif
-
 include $(srcdir)/../common.mk
 
 _setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under javascript ($(JSENGINE))" ; \
+	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under javascript ($(JSENGINE))" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
 
 ifneq (jsc,$(ENGINE))
 
   # This test can not be run with v8 as it uses v8 API incompatible output typemaps
   typemap_variables.cpptest:
-		echo "skipping testcase typemap_variables under javascript ($(JSENGINE))."
+	  echo "skipping $(LANGUAGE) ($(JSENGINE)) testcase $*" ;
 
   # with v8 we have to generate C++ wrappers only
   # these tests did raise warnings which are ignored

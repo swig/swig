@@ -92,14 +92,9 @@ CPP_TEST_BROKEN += \
 	template_expr \
 	$(CPP11_TEST_BROKEN)
 
-
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
-
-# Note: this allows to override the global list of tests for the purpose of
-# smoke testing to foster shorter test-driven development cycles
-ifndef SMOKE_TESTS_ONLY
 
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
@@ -497,11 +492,6 @@ CPP_TEST_CASES += \
 	wallkw \
 	wrapmacro
 
-endif #SMOKE_TESTS_ONLY
-
-
-ifndef SMOKE_TESTS_ONLY
-
 # C++11 test cases.
 CPP11_TEST_CASES = \
 	cpp11_alignment \
@@ -535,16 +525,12 @@ CPP11_TEST_CASES = \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
 
-endif # SMOKE_TESTS_ONLY
-
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
 #	cpp11_hash_tables \           # not fully implemented yet
 #	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
-
-ifndef SMOKE_TESTS_ONLY
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -570,16 +556,11 @@ CPP_STD_TEST_CASES += \
 	template_opaque
 #        li_std_list
 
-endif # SMOKE_TESTS_ONLY
-
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 
 ifneq (,$(HAVE_CXX11_COMPILER))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
-
-
-ifndef SMOKE_TESTS_ONLY
 
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
@@ -634,10 +615,6 @@ C_TEST_CASES += \
 	union_parameter \
 	unions
 
-endif # SMOKE_TESTS_ONLY
-
-ifndef SMOKE_TESTS_ONLY
-
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
@@ -647,8 +624,6 @@ MULTI_CPP_TEST_CASES += \
 	mod \
 	template_typedef_import \
 	multi_import
-
-endif # SMOKE_TESTS_ONLY
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
