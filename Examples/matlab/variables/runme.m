@@ -32,7 +32,7 @@ disp(sprintf('scvar     = %i', swigexample.scvar))
 disp(sprintf('ucvar     = %i', swigexample.ucvar))
 disp(sprintf('fvar      = %i', swigexample.fvar))
 disp(sprintf('dvar      = %i', swigexample.dvar))
-disp(sprintf('cvar      = %s', swigexample))
+disp(sprintf('cvar      = %s', swigexample.cvar))
 disp(sprintf('strvar    = %s', swigexample.strvar))
 %disp(sprintf('cstrvar   = %s', swigexample.cstrvar))
 swigexample.iptrvar
@@ -48,7 +48,7 @@ disp(sprintf('Now I''m going to try and modify some read only variables'))
 
 disp(sprintf('     Tring to set ''path'''))
 try
-    swigexample.path = 'Whoa!';
+    swigexample.path('Whoa!');
     disp(sprintf('Hey, what''s going on?!?! This shouldn''t work'))
 catch
     disp(sprintf('Good.'))
@@ -56,7 +56,7 @@ end
 
 disp(sprintf('     Trying to set ''status'''))
 try
-    swigexample.status = 0;
+    swigexample.status(0);
     disp(sprintf('Hey, what''s going on?!?! This shouldn''t work'))
 catch
     disp(sprintf('Good.'))
@@ -65,6 +65,6 @@ end
 
 disp(sprintf('I''m going to try and update a structure variable.'))
 
-swigexample.pt = swigexample.ptptr;
+swigexample.pt(swigexample.ptptr);
 
 disp(sprintf('The new value is %s', swigexample.Point_print(swigexample.pt)))
