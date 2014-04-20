@@ -8,14 +8,14 @@ b = 42
 disp(sprintf('Trying some C callback functions'))
 disp(sprintf('    a        = %i', a))
 disp(sprintf('    b        = %i', b))
-disp(sprintf('    ADD(a,b) = %i', swigexample.do_op(a,b,swigexample.ADD)))
-disp(sprintf('    SUB(a,b) = %i', swigexample.do_op(a,b,swigexample.SUB)))
-disp(sprintf('    MUL(a,b) = %i', swigexample.do_op(a,b,swigexample.MUL)))
+disp(sprintf('    ADD(a,b) = %i', swigexample.do_op(a,b,swigexample.add_cb))) % was: ADD
+disp(sprintf('    SUB(a,b) = %i', swigexample.do_op(a,b,swigexample.sub_cb))) % was: SUB
+disp(sprintf('    MUL(a,b) = %i', swigexample.do_op(a,b,swigexample.mul_cb))) % was: MUL
 
 disp(sprintf('Here is what the C callback function objects look like in Octave'))
-swigexample.ADD
-swigexample.SUB
-swigexample.MUL
+swigexample.add_cb % was: ADD
+swigexample.sub_cb % was: SUB
+swigexample.mul_cb % was: MUL
 
 disp(sprintf('Call the functions directly...'))
 disp(sprintf('    add(a,b) = %i', swigexample.add(a,b)))
