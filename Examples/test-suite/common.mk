@@ -92,6 +92,7 @@ CPP_TEST_BROKEN += \
 	template_expr \
 	$(CPP11_TEST_BROKEN)
 
+
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
@@ -532,6 +533,7 @@ CPP11_TEST_BROKEN = \
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
+
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
 #
@@ -556,7 +558,10 @@ CPP_STD_TEST_CASES += \
 	template_opaque
 #        li_std_list
 
+
+ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
+endif
 
 ifneq (,$(HAVE_CXX11_COMPILER))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
@@ -614,6 +619,7 @@ C_TEST_CASES += \
 	typemap_subst \
 	union_parameter \
 	unions
+
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
