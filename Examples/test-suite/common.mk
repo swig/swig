@@ -587,6 +587,7 @@ C_TEST_CASES += \
 	global_functions \
 	immutable_values \
 	inctest \
+	infinity \
 	integers \
 	keyword_rename \
 	lextype \

@@ -1,15 +1,12 @@
 %module infinity
 
-#include <math.h>
-
 /*  C99 defines INFINITY
     Because INFINITY may be defined by compiler built-ins, we can't use #define.
     Instead, expose the variable MYINFINITY and then use %rename to make it INFINITY in the scripting language.
 */
 %rename(INFINITY) MYINFINITY;
 
-
-%inline %{
+%{
 #include <math.h>
 
 /* C99 math.h defines INFINITY. If not available, this is the fallback. */
@@ -26,7 +23,7 @@
 
 	#ifdef __GNUC__
 		#define INFINITY (__builtin_inf())
-    #elif defined(__clang__)
+	#elif defined(__clang__)
 		#if __has_builtin(__builtin_inf)
 			#define INFINITY (__builtin_inf())
 		#endif
@@ -36,7 +33,9 @@
 		#define INFINITY (1e1000)
 	#endif
 #endif
+%}
 
+%inline %{
 /* This will allow us to bind the real INFINITY value through SWIG via MYINFINITY. Use %rename to fix the name. */
 const double MYINFINITY = INFINITY;
 
