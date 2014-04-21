@@ -661,12 +661,14 @@ javascript_version:
 ifeq (, $(ENGINE))
 	@if [ "$(NODEJS)" != "" ]; then \
 	  echo "Node.js: `($(NODEJS) --version)`"; \
+	  echo "node-gyp: `($(NODEGYP) --version)`"; \
 	else \
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
 ifeq (node, $(ENGINE))
-	$(NODEJS) --version
+	echo "Node.js: `($(NODEJS) --version)`"
+	echo "node-gyp: `($(NODEGYP) --version)`"
 endif
 ifeq (jsc, $(ENGINE))
 	@if [ "@JSCOREVERSION@" != "" ]; then \
@@ -678,7 +680,6 @@ endif
 ifeq (v8, $(ENGINE))
 	echo "Unknown v8 version."
 endif
-	echo "node-gyp: `($(NODEGYP) --version)`"
 
 # -----------------------------------------------------------------
 # Cleaning the Javascript examples

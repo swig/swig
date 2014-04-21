@@ -1136,8 +1136,13 @@ else
 
   AC_CHECK_PROGS(NODEJS, node)
 
-  # node-gyp is needed to run the test-suite/examples for all Javascript engines
-  AC_CHECK_PROGS(NODEGYP, node-gyp)
+  if test -n "$NODEJS"; then
+    # node-gyp is needed to run the test-suite/examples
+    AC_CHECK_PROGS(NODEGYP, node-gyp)
+    if test -z "$NODEGYP"; then
+      NODEJS=
+    fi
+  fi
 
   #----------------------------------------------------------------
   # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
@@ -2459,7 +2464,7 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || test -z "$NODEJS" || test -z "$NODEGYP"; then
+if test -z "$JAVASCRIPT" || test -z "$NODEJS" ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
