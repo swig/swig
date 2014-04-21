@@ -58,8 +58,7 @@ ifeq (node,$(JSENGINE))
 		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
 
 	nodejs_swig_and_compile = \
-		$(NODEGYP) --loglevel=silent --directory $* configure 1>>/dev/null
-		$(NODEGYP) --loglevel=silent --directory $* build 1>>/dev/null
+		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
@@ -69,13 +68,13 @@ ifeq (node,$(JSENGINE))
   %.cpptest:
 		$(_setup)
 		$(__setup)
-		+$(nodejs_swig_and_compile)
+		$(nodejs_swig_and_compile)
 		$(run_testcase)
 
   %.ctest:
 		$(_setup)
 		$(__setup)
-		+$(nodejs_swig_and_compile)
+		$(nodejs_swig_and_compile)
 		$(run_testcase)
 
   %.multicpptest:
