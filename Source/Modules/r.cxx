@@ -14,7 +14,6 @@
 #include "swigmod.h"
 
 static const double DEFAULT_NUMBER = .0000123456712312312323;
-static const int MAX_OVERLOAD_ARGS = 5;
 
 static String* replaceInitialDash(const String *name)
 {
