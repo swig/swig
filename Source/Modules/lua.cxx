@@ -2023,7 +2023,7 @@ public:
       Printv(output, set_tab, NIL);
     }
 
-    // Euristic whether we need to print metatable or not.
+    // Heuristic whether we need to print metatable or not.
     // For the sake of compiling with -Wall -Werror we don't print
     // metatable for static part.
     int need_metatable = 0;

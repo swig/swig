@@ -1308,7 +1308,7 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
-  assert(lua_gettop(L)== begin);
+  assert(lua_gettop(L) == begin);
 
 #if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
   /* Now merge all symbols from .fn, .set, .get etc from bases to our tables */
