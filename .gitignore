@@ -135,7 +135,7 @@ Examples/**/*_wrap.cpp
 builder.sce
 loader.sce
 cleaner.sce
-lib*lib*.c
+lib*.c
 
 # Scratch directories
 Examples/scratch
