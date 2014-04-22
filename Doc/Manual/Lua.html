@@ -990,7 +990,7 @@ The current list of operators which can be overloaded (and the alternative funct
 <li><tt>__sub__</tt> operator-
 <li><tt>__mul__</tt> operator *
 <li><tt>__div__</tt> operator/
-<li><tt>__neg__</tt> unary minus
+<li><tt>__unm__</tt> unary minus
 <li><tt>__call__</tt> operator<tt>()</tt> (often used in functor classes)
 <li><tt>__pow__</tt> the exponential fn (no C++ equivalent, Lua uses <tt>^</tt>)
 <li><tt>__concat__</tt> the concatenation operator (SWIG maps C++'s <tt>~</tt> to Lua's <tt>..</tt>)
@@ -1037,7 +1037,29 @@ It is also possible to overload the operator<tt>[]</tt>, but currently this cann
         void __setitem__(int i,double d); // i is the index, d is the data
 };
 </pre></div>
-
+<p>
+C++ operators are mapped to Lua predefined metafunctions. Class inherits from its bases the following list of metafunctions ( thus inheriting the folloging
+operators and pseudo-operators):</p>
+<ul>
+<li><tt>__add__</tt> 
+<li><tt>__sub__</tt>
+<li><tt>__mul__</tt>
+<li><tt>__div__</tt>
+<li><tt>__unm__</tt>
+<li><tt>__mod__</tt>
+<li><tt>__call__</tt>
+<li><tt>__pow__</tt>
+<li><tt>__concat__</tt>
+<li><tt>__eq__</tt>
+<li><tt>__lt__</tt>
+<li><tt>__le__</tt>
+<li><tt>__len__</tt>
+<li><tt>__getitem__</tt>
+<li><tt>__setitem__</tt>
+<li><tt>__tostring</tt> used internaly by Lua for tostring() function. __str__ is mapped to this function
+</ul>
+<p>No other lua metafunction is inherited. For example, __gc is not inherited and must be redefined in every class. <tt>__tostring</tt> is subject to a special handling. If absent in class and in class bases, a default one will be provided by SWIG</p>
+</p>
 <H3><a name="Lua_nn19"></a>27.3.12 Class extension with %extend</H3>
 
 
