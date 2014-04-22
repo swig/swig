@@ -2,7 +2,7 @@ TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    =
 TARGET     = swigexample
-INTERFACE  = example.i
+INTERFACE  = $(EXSRCDIR)/example.i
 LIBS       = -lm
 SWIGOPT    =
 

@@ -21,6 +21,10 @@
 #      'method' describes what is being built.
 #---------------------------------------------------------------
 
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: @srcdir@/Makefile.in ../config.status
+	$(SHELL) ../config.status
+
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@
@@ -29,7 +33,7 @@ CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
-INCLUDES   =
+INCLUDES   = -I$(EXSRCDIR)
 LIBS       =
 INTERFACE  =
 INTERFACEDIR  =
@@ -53,9 +57,9 @@ RUNPIPE=
 RUNME = runme
 
 IWRAP      = $(INTERFACE:.i=_wrap.i)
-ISRCS      = $(IWRAP:.i=.c)
-ICXXSRCS   = $(IWRAP:.i=.cxx)
-IOBJS      = $(IWRAP:.i=.@OBJEXT@)
+ISRCS      = $(notdir $(IWRAP:.i=.c))
+ICXXSRCS   = $(notdir $(IWRAP:.i=.cxx))
+IOBJS      = $(notdir $(IWRAP:.i=.@OBJEXT@))
 
 ##################################################################
 # Some options for silent output
@@ -103,7 +107,7 @@ CXXSHARED=      @CXXSHARED@
 # compilers.   If it doesn't work,  comment it out.
 @TRYLINKINGWITHCXX@
 
-OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
+OBJS      = $(notdir $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@))
 
 distclean:
 	rm -f Makefile
@@ -385,7 +389,7 @@ OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
 OCTAVE_SO     = @OCTAVE_SO@
 
-OCTAVE_SCRIPT = $(RUNME).m
+OCTAVE_SCRIPT = $(EXSRCDIR)/$(RUNME).m
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -393,7 +397,7 @@ OCTAVE_SCRIPT = $(RUNME).m
 # ----------------------------------------------------------------
 
 octave: $(SRCS)
-	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
@@ -403,7 +407,7 @@ octave: $(SRCS)
 # -----------------------------------------------------------------
 
 octave_cpp: $(SRCS)
-	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -c++ -octave $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CXXFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CXXFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 

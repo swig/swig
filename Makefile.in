@@ -99,7 +99,7 @@ skip-errors	= test -n ""
 ACTION = check
 NOSKIP =
 
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
+chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/@srcdir@/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
@@ -239,7 +239,9 @@ check-%-examples :
 # individual example
 %.actionexample:
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@mkdir -p Examples/$(LANGUAGE)/$*
+	@EXSRCDIR="../../../$(srcdir)/Examples/$(LANGUAGE)/$*"; \
+	(cd Examples/$(LANGUAGE)/$* && $(MAKE) -f "$${EXSRCDIR}/Makefile" EXSRCDIR="$${EXSRCDIR}" $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
