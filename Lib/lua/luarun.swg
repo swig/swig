@@ -1024,7 +1024,6 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State *L)
 /* populate table at the top of the stack with metamethods that ought to be inherited */
 SWIGINTERN void SWIG_Lua_populate_inheritable_metamethods(lua_State *L)
 {
-  assert(lua_istable(L,-1)); // TODO: REMOVE
   SWIG_Lua_add_boolean(L, "__add", 1);
   SWIG_Lua_add_boolean(L, "__sub", 1);
   SWIG_Lua_add_boolean(L, "__mul", 1);
@@ -1080,7 +1079,6 @@ SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State *L)
     lua_pushstring(L,"SWIG");
     lua_rawget(L,LUA_REGISTRYINDEX);
   }
-  assert(!lua_isnil(L,-1)); // TODO: REMOVE
 }
 
 SWIGINTERN void SWIG_Lua_get_inheritable_metamethods(lua_State *L)
@@ -1303,13 +1301,10 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration
 SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class *clss, int metamethod_name_idx,
     int skip_check)
 {
-  const int beginIdx = lua_gettop(L); // TODO: REMOVE
   /* This function is called recursively */
   if (!skip_check) {
     SWIG_Lua_get_class_metatable(L, clss->fqname);
     lua_pushvalue(L, metamethod_name_idx);
-    assert(!lua_isnil(L,-1)); // TODO: REMOVE
-    assert(lua_type(L,-1) == LUA_TSTRING); // TODO: REMOVE
     lua_rawget(L,-2);
     /* If this is cfunction and it is equal to SWIG_Lua_resolve_metamethod then
      * this isn't the function we are looking for :)
@@ -1317,7 +1312,6 @@ SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class
      */
     if (!lua_isnil(L,-1) && lua_tocfunction(L,-1) != SWIG_Lua_resolve_metamethod ) {
       lua_remove(L,-2); /* removing class metatable */
-      assert(lua_gettop(L) == beginIdx + 1); // TODO: REMOVE
       return 1;
     }
     lua_pop(L,2); /* remove class metatable and query result */
@@ -1333,12 +1327,6 @@ SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class
       break;
   }
 
-  /* TODO: REMOVE */
-  if (result)
-    assert(lua_gettop(L) == beginIdx + 1);
-  else
-    assert(lua_gettop(L) == beginIdx );
-  /* END OF REMOVE */
   return result;
 }
 
@@ -1351,19 +1339,12 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
   
   /* Get upvalues from closure */
   lua_pushvalue(L, lua_upvalueindex(1)); /*Get function name*/
-  assert( !lua_isnil(L,-1) ); // TODO: REMOVE
-  assert( lua_type(L,-1) == LUA_TSTRING ); // TODO: REMOVE
   const int metamethod_name_idx = lua_gettop(L);
-  assert(metamethod_name_idx == numargs + 1); // TODO: REMOVE
   
   lua_pushvalue(L, lua_upvalueindex(2));
-  assert( !lua_isnil(L,-1) ); // TODO: REMOVE
-  assert( lua_islightuserdata(L,-1) ); // TODO: REMOVE
   const swig_lua_class* clss = (const swig_lua_class*)(lua_touserdata(L,-1));
   lua_pop(L,1); /* remove lightuserdata with clss from stack */
 
-  const int precall_idx = lua_gettop(L); // TODO: REMOVE
-  assert( precall_idx == metamethod_name_idx ); // TODO: REMOVE
   /* Actuall work */
   const int result = SWIG_Lua_do_resolve_metamethod(L, clss, metamethod_name_idx, 1);
   if (!result) {
@@ -1372,10 +1353,7 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
    return 0;
   }
 
-  assert( lua_gettop(L) == precall_idx + 1 ); // TODO: REMOVE
   lua_remove(L,-2); /* remove metamethod key */
-  assert(lua_iscfunction(L,-1)); // TODO: REMOVE
-  assert(lua_gettop(L) == numargs + 1); // TODO: REMOVE
   lua_insert(L,1); /* move function to correct position */
   lua_call(L, numargs, LUA_MULTRET);
   return lua_gettop(L); /* return all results */
@@ -1388,9 +1366,7 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
  */
 SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *clss, const int metatable_index)
 {
-  const int begin = lua_gettop(L); // TODO:REMOVE
 
-  assert(lua_istable(L, metatable_index)); // TODO: REMOVE
   /* metamethod name - on the top of the stack */
   assert(lua_isstring(L,-1));
   
@@ -1401,12 +1377,10 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
   lua_gettable(L,metatable_index);
   if( !lua_isnil(L,-1) ) {
     lua_pop(L,1);
-    assert( lua_gettop(L) == begin ); //  TODO: REMOVE
     return -1;
   }
   lua_pop(L,1); 
 
-  assert( lua_gettop(L) == begin ); // TODO: REMOVE
 
   /* Iterating over immediate bases */
   int success = 0;
@@ -1416,11 +1390,8 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
     const swig_lua_class *base = clss->bases[i];
     SWIG_Lua_get_class_metatable(L, base->fqname);
     lua_pushvalue(L, key_index);
-    assert(lua_istable(L,-2)); // TODO: REMOVE
     lua_rawget(L, -2);
     if( !lua_isnil(L,-1) ) {
-      assert( lua_gettop(L) == begin + 2); // TODO: REMOVE
-      
       lua_pushvalue(L, key_index); 
 
       /* Add proxy function */
@@ -1429,25 +1400,21 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
       lua_pushcclosure(L, SWIG_Lua_resolve_metamethod, 2);
       
       lua_rawset(L, metatable_index);
-      assert( lua_gettop(L) == begin + 2 ); // TODO: REMOVE
       success = 1;
     }
     lua_pop(L,1); /* remove function or nil */
     lua_pop(L,1); /* remove base class metatable */
 
-    assert( lua_gettop(L) == begin ); // TODO: REMOVE
     if( success )
       break;
   }
 
-  assert( lua_gettop(L) == begin ); // TODO: REMOVE
 
   return success; 
 }
 
 SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class *clss)
 {
-  const int begin = lua_gettop(L); // TODO:REMOVE
   SWIG_Lua_get_class_metatable(L, clss->fqname);
   const int metatable_index = lua_gettop(L);
   SWIG_Lua_get_inheritable_metamethods(L);
@@ -1463,7 +1430,6 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
       SWIG_Lua_add_class_user_metamethod(L,clss,metatable_index);
     }
 
-    assert(lua_gettop(L) == metamethods_info_index + 1 ); // TODO: REMOVE
   }
 
   lua_pop(L,1); /* remove inheritable metatmethods table */
@@ -1471,7 +1437,6 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
   /* Special handling for __tostring method */
   lua_pushstring(L, "__tostring");
   lua_pushvalue(L,-1);
-  assert(lua_istable(L,metatable_index)); // TODO: REMOVE
   lua_rawget(L,metatable_index);
   const int tostring_undefined = lua_isnil(L,-1);
   lua_pop(L,1);
@@ -1487,7 +1452,6 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
    */
   lua_pop(L,1); /* pop class metatable */
 
-  assert(lua_gettop(L) == begin ); // TODO: REMOVE
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */
@@ -1589,8 +1553,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   SWIG_Lua_add_function(L,"__index",SWIG_Lua_class_get);
   SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_class_set);
   SWIG_Lua_add_function(L,"__gc",SWIG_Lua_class_destruct);
-  /* add tostring method for better output */
-  //SWIG_Lua_add_function(L,"__tostring",SWIG_Lua_class_tostring); // TODO: REMEVO after ensuring that add_class_user_metamethods works correctly
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
