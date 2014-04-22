@@ -23,7 +23,7 @@ Scilab options (available with -scilab)\n\
      -vbl <level> - Sets the build verbose <level> (default 0)\n\
      -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
      -nobuilder - Do not generate builder script\n\
-     -gwid <id> - Gateway ID \n\
+     -intmod <gateway id> - Generate internal module files with the given <gateway id>\n\
      -ol <library name> - Set name of the output library\n\n"
      ;
 
@@ -53,12 +53,17 @@ protected:
 
   File *gatewayXMLFile;
   String *gatewayXML;
+
+  File *gatewayGeneratorFile;
+  String *gatewayGeneratorCode;
+
   String *gatewayID;
   int primitiveID;
 
   String *libraryName;
 
   bool generateBuilder;
+  bool internalModule;
   bool extraWarning;
 public:
 
@@ -72,9 +77,14 @@ public:
     ldflags = NewList();
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
-    generateBuilder = true;
     gatewayID = NULL;
+    gatewayXML = NULL;
+    gatewayXMLFile = NULL;
+    gatewayGeneratorCode = NULL;
+    gatewayGeneratorFile = NULL;
     libraryName = NULL;
+    generateBuilder = true;
+    internalModule = false;
     extraWarning = false;
 
     /* Manage command line arguments */
@@ -116,8 +126,10 @@ public:
           Swig_mark_arg(argIndex);
           generateBuilder = false;
         }
-        else if (strcmp(argv[argIndex], "-gwid") == 0) {
+        else if (strcmp(argv[argIndex], "-intmod") == 0) {
           Swig_mark_arg(argIndex);
+          generateBuilder = false;
+          internalModule = true;
           gatewayID = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
         }
@@ -149,9 +161,6 @@ public:
     SWIG_typemap_lang("scilab");
 
     allow_overloading();
-
-    gatewayXML = NULL;
-    gatewayXMLFile = NULL;
   }
 
   /* ------------------------------------------------------------------------
@@ -194,13 +203,13 @@ public:
     // Add builder header code
     if (generateBuilder) {
       createBuilderFile();
-      startBuilderCode(moduleName, outputFilename);
+      startBuilderCode(outputFilename);
     }
 
-    // Create gateway XML file if specified
-    if (gatewayID) {
+    // In the case of internal module, create gateway gateway XML and generation script
+    if (internalModule) {
       createGatewayXMLFile(moduleName);
-      primitiveID = 1;
+      createGatewayGeneratorFile();
     }
 
     // Module initialization function
@@ -250,9 +259,10 @@ public:
     Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
-    // Save gateway XML file
-    if (gatewayXMLFile) {
+    // In the case of internal module, terminate and save gateway XML and generation script
+    if (internalModule) {
       saveGatewayXMLFile();
+      saveGatewayGeneratorFile(moduleName);
     }
 
     /* Cleanup files */
@@ -589,7 +599,7 @@ public:
       Wrapper_print(setFunctionWrapper, wrappersSection);
 
       /* Add function to builder table */
-      Printf(builderCode, "\"%s\",\"%s\";", setFunctionName, setFunctionName);
+      addFunctionToScilab(getFunctionName, getFunctionName);
     }
 
     return SWIG_OK;
@@ -667,8 +677,8 @@ public:
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
-    /* Add the function to the builder table */
-    Printf(builderCode, "\"%s\",\"%s\";", getFunctionName, getFunctionName);
+    /* Add the function to Scilab  */
+    addFunctionToScilab(getFunctionName, getFunctionName);
 
     DelWrapper(getFunctionWrapper);
 
@@ -756,7 +766,7 @@ public:
   /* -----------------------------------------------------------------------
    * startBuilderCode()
    * ----------------------------------------------------------------------- */
-  void startBuilderCode(String *moduleName, String *outputFilename) {
+  void startBuilderCode(String *outputFilename) {
     builderFunctionCount = 0;
     builderCode = NewString("");
     Printf(builderCode, "mode(-1);\n");
@@ -847,7 +857,7 @@ public:
 
   /* -----------------------------------------------------------------------
    * createGatewayXMLFile()
-   * This file is used by Scilab in the context of internal modules
+   * This XML file is used by Scilab in the context of internal modules
    * ----------------------------------------------------------------------- */
   void createGatewayXMLFile(String *moduleName) {
     String *gatewayXMLFilename = NewStringf("%s_gateway.xml", moduleName);
@@ -870,6 +880,8 @@ public:
     Printf(gatewayXML, "primitiveName is the name of the Scilab function\n\n");
     Printf(gatewayXML, "Don't touch if you do not know what you are doing\n");
     Printf(gatewayXML, "-->\n");
+
+    primitiveID = 1;
   }
 
   /* -----------------------------------------------------------------------
@@ -882,25 +894,61 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * addFunctionToScilab(): add a function in Scilab (builder, XML, ...)
+   * createGatewayGenerator()
+   * Creates a Scilab macro to generate the gateway source (entry point gw_<module>.c)
+   * Used in the context of internal module generation (-intmod)
+   * ----------------------------------------------------------------------- */
+  void createGatewayGeneratorFile() {
+    String *gatewayGeneratorFilename = NewString("generate_gateway.sce");
+    gatewayGeneratorFile = NewFile(gatewayGeneratorFilename, "w", SWIG_output_files());
+    if (!gatewayGeneratorFile) {
+      FileErrorDisplay(gatewayGeneratorFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    gatewayGeneratorCode = NewString("table = [");
+  }
+
+  /* -----------------------------------------------------------------------
+   * saveGatewayGenerator()
+   * ----------------------------------------------------------------------- */
+  void saveGatewayGeneratorFile(String *moduleName) {
+    Printf(gatewayGeneratorCode, "];\n");
+    Printv(gatewayGeneratorFile, gatewayGeneratorCode, NIL);
+    String *gatewayGenerateCommand = NewStringf("ilib_gen_gateway('gw_%s.c', table);\n", moduleName);
+    Printv(gatewayGeneratorFile, gatewayGenerateCommand, NIL);
+    Delete(gatewayGeneratorFile);
+  }
+
+  /* -----------------------------------------------------------------------
+   * addFunctionToScilab()
+   * Add a function wrapper in Scilab file (builder, XML, ...)
    * ----------------------------------------------------------------------- */
   void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    addFunctionInBuilder(scilabFunctionName, wrapperFunctionName);
-    if (gatewayID) {
-      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
+    if (generateBuilder) {
+      addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
+    }
+
+    if (internalModule) {
+      if (gatewayGeneratorFile) {
+        addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
+      }
+      if (gatewayXMLFile) {
+        Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
+      }
     }
   }
 
   /* -----------------------------------------------------------------------
-   * addFunctionInBuilder(): add a new function wrapper in builder.sce file
+   * addFunctionInScriptTable()
+   * Add a function wrapper in a table in a generated script
+   * This table will be either given in parameter to ilib_build or ilib_gen_gateway,
+   * called later in the script
    * ----------------------------------------------------------------------- */
-  void addFunctionInBuilder(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    if (generateBuilder) {
-      if (++builderFunctionCount % 10 == 0) {
-        Printf(builderCode, "];\n\ntable = [table;");
-      }
-      Printf(builderCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
+  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName, String* scriptCode) {
+    if (++builderFunctionCount % 10 == 0) {
+      Printf(scriptCode, "];\ntable = [table;");
     }
+    Printf(scriptCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
   }
 };
 
