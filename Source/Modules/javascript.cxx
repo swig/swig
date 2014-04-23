@@ -554,6 +554,10 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     {
       emitter = swig_javascript_create_V8Emitter();
       Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
+      // V8 API is C++, so output must be C++ compatibile even when wrapping C code
+      if (!cparse_cplusplus) {
+	Swig_cparse_cplusplusout(1);
+      }
       break;
     }
   case JSEmitter::JavascriptCore:
