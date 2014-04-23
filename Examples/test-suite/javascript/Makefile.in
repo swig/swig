@@ -89,6 +89,11 @@ else
 			$(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
+  %.ctest:
+		$(_setup)
+		+$(swig_and_compile_c)
+		$(run_testcase)
+
   %.cpptest:
 		$(_setup)
 		+$(swig_and_compile_cpp)
@@ -101,20 +106,6 @@ else
 
 endif
 
-ifeq (v8,$(ENGINE))
-  %.ctest:
-		$(_setup)
-		+$(swig_and_compile_cpp)
-		$(run_testcase)
-
-endif
-
-ifeq (jsc,$(ENGINE))
-  %.ctest:
-		$(_setup)
-		+$(swig_and_compile_c)
-		$(run_testcase)
-endif
 
 %.clean:
 	rm -rf $*
