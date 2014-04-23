@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 /**
  * Enables extra debugging information in typemaps.
@@ -1109,7 +1110,20 @@ int JSEmitter::emitConstant(Node *n) {
   String *iname = Getattr(n, "sym:name");
   String *wname = Swig_name_wrapper(name);
   String *rawval = Getattr(n, "rawval");
-  String *value = rawval ? rawval : Getattr(n, "value");
+  String *value;
+
+  // HACK: there are several cases.
+  // - rawval is set for numerical constants as
+  //   #define MS_NOOVERRIDE -1111
+  // - value is set for
+  // - cppvalue needs to be used for c++
+  if (rawval) {
+    value = rawval;
+  } else if (Getattr(n, "cppvalue")) {
+    value = Getattr(n, "cppvalue");
+  } else {
+    value = Getattr(n, "value");
+  }
 
   Template t_getter(getTemplate("js_getter"));
 
