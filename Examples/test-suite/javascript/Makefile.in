@@ -53,11 +53,15 @@ ifeq (node,$(JSENGINE))
   constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
-	__setup = \
+	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
+	swig_and_compile_c = \
 		sh ./setup_test.sh $* $(GYP_CFLAGS); \
-		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i;
+		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx ../$*.i; \
+		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
-	nodejs_swig_and_compile = \
+	swig_and_compile_cpp = \
+		sh ./setup_test.sh $* $(GYP_CFLAGS); \
+		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i; \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
@@ -65,16 +69,15 @@ ifeq (node,$(JSENGINE))
 			node $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
-  %.cpptest:
-		$(_setup)
-		$(__setup)
-		$(nodejs_swig_and_compile)
-		$(run_testcase)
 
   %.ctest:
 		$(_setup)
-		$(__setup)
-		$(nodejs_swig_and_compile)
+		$(swig_and_compile_c)
+		$(run_testcase)
+
+  %.cpptest:
+		$(_setup)
+		$(swig_and_compile_cpp)
 		$(run_testcase)
 
   %.multicpptest:
