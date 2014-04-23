@@ -48,6 +48,7 @@ bool js_template_enable_debug = false;
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
 #define HAS_TEMPLATES "has_templates"
+#define FORCE_CPP "force_cpp"
 
 #define RESET true
 
@@ -1110,19 +1111,11 @@ int JSEmitter::emitConstant(Node *n) {
   String *iname = Getattr(n, "sym:name");
   String *wname = Swig_name_wrapper(name);
   String *rawval = Getattr(n, "rawval");
-  String *value;
+  String *value = rawval ? rawval : Getattr(n, "value");
 
-  // HACK: there are several cases.
-  // - rawval is set for numerical constants as
-  //   #define MS_NOOVERRIDE -1111
-  // - value is set for
-  // - cppvalue needs to be used for c++
-  if (rawval) {
-    value = rawval;
-  } else if (Getattr(n, "cppvalue")) {
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
+  if (State::IsSet(state.global (FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
-  } else {
-    value = Getattr(n, "value");
   }
 
   Template t_getter(getTemplate("js_getter"));
@@ -1918,6 +1911,8 @@ int V8Emitter::initialize(Node *n) {
   Swig_register_filebyname("wrapper", f_wrappers);
   Swig_register_filebyname("init", f_init);
   Swig_register_filebyname("post-init", f_post_init);
+
+  state.global(FORCE_CPP, NewString("1"));
 
   return SWIG_OK;
 }
