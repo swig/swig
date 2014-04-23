@@ -599,7 +599,7 @@ public:
       Wrapper_print(setFunctionWrapper, wrappersSection);
 
       /* Add function to builder table */
-      addFunctionToScilab(getFunctionName, getFunctionName);
+      addFunctionToScilab(setFunctionName, setFunctionName);
     }
 
     return SWIG_OK;
