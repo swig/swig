@@ -2266,9 +2266,13 @@ else
       GOGCC=true
       GOVERSIONOPTION=--version
       AC_MSG_CHECKING([whether gccgo version is too old])
-      go_version=`$GO $GOVERSIONOPTION | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
-      if test "$go_version" -lt 470; then
+      go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
+      if test "x$go_version" = x; then
+        AC_MSG_RESULT([could not determine gccgo version - disabling Go])
+        GO=
+      elif test "$go_version" -lt 470; then
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
+        GO=
       else
 	AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then

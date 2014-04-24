@@ -9,6 +9,10 @@ Version 3.0.1 (in progress)
 	    [PHP] The generated __isset() method now returns true for read-only properties.
 
 2014-04-24: kwwette
+            [Go] Fix go ./configure parsing of gccgo --version, and
+            goruntime.swg typo in __GNUC_PATCHLEVEL__ (SF Bug #1298)
+
+2014-04-24: kwwette
             Fix {python|perl5|ruby|tcl}/java examples
 
             In Lib/gcj/cni.i, for compatibility with newer gcj versions:
