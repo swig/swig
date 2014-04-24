@@ -17,7 +17,7 @@
 /**
  * Enables extra debugging information in typemaps.
  */
-bool js_template_enable_debug = false;
+static bool js_template_enable_debug = false;
 
 // keywords used for state variables
 #define NAME "name"
@@ -54,39 +54,26 @@ bool js_template_enable_debug = false;
 
 /**
  * A convenience class to manage state variables for emitters.
- * The implementation delegates to swig Hash DOHs and provides
+ * The implementation delegates to SWIG Hash DOHs and provides
  * named sub-hashes for class, variable, and function states.
  */
 class JSEmitterState {
 
 public:
-
   JSEmitterState();
-
   ~JSEmitterState();
-
-  DOH *global ();
-
-  DOH *global (const char *key, DOH *initial = 0);
-
+  DOH *global();
+  DOH *global(const char *key, DOH *initial = 0);
   DOH *clazz(bool reset = false);
-
   DOH *clazz(const char *key, DOH *initial = 0);
-
   DOH *function(bool reset = false);
-
   DOH *function(const char *key, DOH *initial = 0);
-
   DOH *variable(bool reset = false);
-
   DOH *variable(const char *key, DOH *initial = 0);
-
   static int IsSet(DOH *val);
 
 private:
-
   DOH *getState(const char *key, bool reset = false);
-
   Hash *_global;
 };
 
@@ -98,30 +85,19 @@ class Template {
 
 public:
   Template(const String *code);
-
-   Template(const String *code, const String *templateName);
-
-   Template(const Template & other);
-
+  Template(const String *code, const String *templateName);
+  Template(const Template & other);
   ~Template();
-
   String *str();
-
-   Template & replace(const String *pattern, const String *repl);
-
-   Template & print(DOH *doh);
-
-   Template & pretty_print(DOH *doh);
-
+  Template & replace(const String *pattern, const String *repl);
+  Template & print(DOH *doh);
+  Template & pretty_print(DOH *doh);
   void operator=(const Template & t);
-
-   Template & trim();
+  Template & trim();
 
 private:
-
   String *code;
   String *templateName;
-
 };
 
 /**
@@ -311,7 +287,7 @@ JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
 
 /**********************************************************************
- * JAVASCRIPT: swig module implementation
+ * JAVASCRIPT: SWIG module implementation
  **********************************************************************/
 
 class JAVASCRIPT:public Language {
@@ -319,7 +295,8 @@ class JAVASCRIPT:public Language {
 public:
 
   JAVASCRIPT():emitter(NULL) {
-  } ~JAVASCRIPT() {
+  }
+  ~JAVASCRIPT() {
     delete emitter;
   }
 
@@ -511,7 +488,7 @@ Javascript Options (available with -javascript)\n\
      -jsc                   - creates a JavascriptCore extension \n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
-     -debug-codetemplates   - generates information about the origin of code templates.\n";
+     -debug-codetemplates   - generates information about the origin of code templates\n";
 
 
 /* ---------------------------------------------------------------------
@@ -627,8 +604,8 @@ JSEmitter::~JSEmitter() {
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::registerTemplate(const String *name, const String *code) {
-  if (!State::IsSet(state.global (HAS_TEMPLATES))) {
-    SetFlag(state.global (), HAS_TEMPLATES);
+  if (!State::IsSet(state.global(HAS_TEMPLATES))) {
+    SetFlag(state.global(), HAS_TEMPLATES);
   }
   return Setattr(templates, name, code);
 }
@@ -910,7 +887,7 @@ int JSEmitter::emitDtor(Node *n) {
   // (Taken from JSCore implementation.)
   /* The if (Extend) block was taken from the Ruby implementation.
    * The problem is that in the case of an %extend to create a destructor for a struct to coordinate automatic memory cleanup with the Javascript collector,
-   * the swig function was not being generated. More specifically:
+   * the SWIG function was not being generated. More specifically:
    struct MyData {
    %extend {
    ~MyData() {
@@ -1427,36 +1404,21 @@ Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent) {
 class JSCEmitter:public JSEmitter {
 
 public:
-
   JSCEmitter();
-
   virtual ~ JSCEmitter();
-
   virtual int initialize(Node *n);
-
   virtual int dump(Node *n);
-
   virtual int close();
 
-
 protected:
-
   virtual int enterVariable(Node *n);
-
   virtual int exitVariable(Node *n);
-
   virtual int enterFunction(Node *n);
-
   virtual int exitFunction(Node *n);
-
   virtual int enterClass(Node *n);
-
   virtual int exitClass(Node *n);
-
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
-
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
-
   virtual int emitNamespaces();
 
 private:
@@ -1567,9 +1529,9 @@ int JSCEmitter::initialize(Node *n) {
   f_init = NewString("");
   f_header = NewString("");
 
-  state.global (CREATE_NAMESPACES, NewString(""));
-  state.global (REGISTER_NAMESPACES, NewString(""));
-  state.global (INITIALIZER, NewString(""));
+  state.global(CREATE_NAMESPACES, NewString(""));
+  state.global(REGISTER_NAMESPACES, NewString(""));
+  state.global(INITIALIZER, NewString(""));
 
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("begin", f_wrap_cpp);
@@ -1585,7 +1547,7 @@ int JSCEmitter::dump(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
 
-  // write the swig banner
+  // write the SWIG banner
   Swig_banner(f_wrap_cpp);
 
   Template initializer_define(getTemplate("js_initializer_define"));
@@ -1602,9 +1564,9 @@ int JSCEmitter::dump(Node *n) {
   // compose the initializer function using a template
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", module)
-  .replace("$jsregisterclasses", state.global (INITIALIZER))
-  .replace("$jscreatenamespaces", state.global (CREATE_NAMESPACES))
-  .replace("$jsregisternamespaces", state.global (REGISTER_NAMESPACES))
+  .replace("$jsregisterclasses", state.global(INITIALIZER))
+  .replace("$jscreatenamespaces", state.global(CREATE_NAMESPACES))
+  .replace("$jsregisternamespaces", state.global(REGISTER_NAMESPACES))
   .pretty_print(f_init);
 
   Printv(f_wrap_cpp, f_init, 0);
@@ -1669,7 +1631,6 @@ int JSCEmitter::enterVariable(Node *n) {
   state.variable(SETTER, VETO_SET);
   return SWIG_OK;
 }
-
 
 int JSCEmitter::exitVariable(Node *n) {
   Template t_variable(getTemplate("jsc_variable_declaration"));
@@ -1748,7 +1709,7 @@ int JSCEmitter::exitClass(Node *n) {
       .replace("$jsclass_inheritance", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
       .replace("$jsdtor", state.clazz(DTOR))
-  .pretty_print(state.global (INITIALIZER));
+  .pretty_print(state.global(INITIALIZER));
   Delete(jsclass_inheritance);
 
   /* Note: this makes sure that there is a swig_type added for this class */
@@ -1759,7 +1720,7 @@ int JSCEmitter::exitClass(Node *n) {
   t_registerclass.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsnspace", Getattr(state.clazz("nspace"), NAME_MANGLED))
-  .pretty_print(state.global (INITIALIZER));
+  .pretty_print(state.global(INITIALIZER));
 
   return SWIG_OK;
 }
@@ -1792,7 +1753,7 @@ int JSCEmitter::emitNamespaces() {
 
     Template t_createNamespace(getTemplate("jsc_nspace_definition"));
     t_createNamespace.replace("$jsmangledname", name_mangled);
-    Append(state.global (CREATE_NAMESPACES), t_createNamespace.str());
+    Append(state.global(CREATE_NAMESPACES), t_createNamespace.str());
 
     // Don't register 'exports' as namespace. It is return to the application.
     if (!Equal("exports", name)) {
@@ -1800,9 +1761,8 @@ int JSCEmitter::emitNamespaces() {
       t_registerNamespace.replace("$jsmangledname", name_mangled)
 	  .replace("$jsname", name)
 	  .replace("$jsparent", parent_mangled);
-      Append(state.global (REGISTER_NAMESPACES), t_registerNamespace.str());
+      Append(state.global(REGISTER_NAMESPACES), t_registerNamespace.str());
     }
-
   }
 
   return SWIG_OK;
@@ -1819,7 +1779,6 @@ JSEmitter *swig_javascript_create_JSCEmitter() {
 class V8Emitter:public JSEmitter {
 
 public:
-
   V8Emitter();
 
   virtual ~ V8Emitter();
@@ -1833,12 +1792,10 @@ public:
   virtual int exitFunction(Node *n);
 
 protected:
-
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
   virtual int emitNamespaces();
 
 private:
-
   /* built-in parts */
   String *f_runtime;
   String *f_header;
@@ -1904,7 +1861,7 @@ int V8Emitter::initialize(Node *n) {
   f_init_register_classes = NewString("");
   f_init_register_namespaces = NewString("");
 
-  // note: this is necessary for built-in generation of swig runtime code
+  // note: this is necessary for built-in generation of SWIG runtime code
   Swig_register_filebyname("begin", f_wrap_cpp);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("header", f_header);
@@ -1921,7 +1878,7 @@ int V8Emitter::dump(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
 
-  // write the swig banner
+  // write the SWIG banner
   Swig_banner(f_wrap_cpp);
 
   Template initializer_define(getTemplate("js_initializer_define"));
@@ -2266,11 +2223,11 @@ DOH *JSEmitterState::getState(const char *key, bool _new) {
   return Getattr(_global, key);
 }
 
-DOH *JSEmitterState::global () {
+DOH *JSEmitterState::global() {
   return _global;
 }
 
-DOH *JSEmitterState::global (const char *key, DOH *initial) {
+DOH *JSEmitterState::global(const char *key, DOH *initial) {
   if (initial != 0) {
     Setattr(_global, key, initial);
   }
