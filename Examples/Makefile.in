@@ -597,7 +597,6 @@ java_clean:
 # There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
 # create a configuration for a new example.
 
-
 ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
@@ -621,29 +620,25 @@ javascript_build: $(SRCS)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
-javascript_build_cpp:: $(SRCS)
+javascript_build_cpp: $(SRCS)
+ifeq (node,$(JSENGINE))
+	$(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
-javascript_build_node: $(SRCS)
-	$(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+endif
 
 # These targets are used by the test-suite:
 
-ifeq (jsc, $(ENGINE))
-
 javascript: $(SRCS) javascript_custom_interpreter
 	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
+ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
 else # (v8 | node) # v8 and node must be compiled as c++
-
-javascript: $(SRCS) javascript_custom_interpreter
-	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
 endif
 
 javascript_cpp: $(SRCS) javascript_custom_interpreter
@@ -658,11 +653,13 @@ javascript_cpp: $(SRCS) javascript_custom_interpreter
 javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
+ifeq (node,$(JSENGINE))
+javascript_run:
+	$(RUNTOOL) $(NODEJS) $(RUNME).js $(RUNPIPE)
+else
 javascript_run: javascript_custom_interpreter
-	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) runme.js $(RUNPIPE)
-
-javascript_run_node:
-	$(RUNTOOL) $(NODEJS) runme.js $(RUNPIPE)
+	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(RUNME).js $(RUNPIPE)
+endif
 
 # -----------------------------------------------------------------
 # Version display
@@ -698,7 +695,7 @@ endif
 
 javascript_clean:
 	rm -rf build
-	rm -f *_wrap* runme
+	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean)

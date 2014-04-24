@@ -1,3 +1,3 @@
 SRCS =
 
-include ../js_example.mk
+include ../example.mk
