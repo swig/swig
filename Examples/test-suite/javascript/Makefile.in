@@ -29,13 +29,7 @@ ifneq (jsc,$(ENGINE))
 
   # This test can not be run with v8 as it uses v8 API incompatible output typemaps
   typemap_variables.cpptest:
-	  echo "skipping $(LANGUAGE) ($(JSENGINE)) testcase $*" ;
-
-  # with v8 we have to generate C++ wrappers only
-  # these tests did raise warnings which are ignored
-  nested.ctest: SWIGOPT += -w312,-325
-  nested_structs.ctest: SWIGOPT += -w312,-325
-  unions.ctest: SWIGOPT += -w312,-325
+	  echo "skipping $(LANGUAGE) ($(JSENGINE)) testcase typemap_variables" ;
 
 endif
 
