@@ -4,10 +4,6 @@
 
 %include <gcj/javaprims.i>
 
-extern jobject JvAllocObject (jclass cls);
-
-extern jobject JvAllocObject (jclass cls, jsize sz);
-
 extern void JvInitClass (jclass cls);
 
 extern jstring JvAllocString (jsize sz);
@@ -30,7 +26,7 @@ extern void *JvMalloc (jsize size);
 
 extern void JvFree (void *ptr);
 
-extern jint JvCreateJavaVM (void* vm_args);
+extern jint JvCreateJavaVM (JvVMInitArgs* vm_args);
 
 extern java::lang::Thread* JvAttachCurrentThread (jstring name, java::lang::ThreadGroup* group);
 

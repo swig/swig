@@ -252,7 +252,7 @@ java.actionexample:
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken

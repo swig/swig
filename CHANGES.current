@@ -8,6 +8,24 @@ Version 3.0.1 (in progress)
 2014-05-01: olly
 	    [PHP] The generated __isset() method now returns true for read-only properties.
 
+2014-04-24: kwwette
+            Fix {python|perl5|ruby|tcl}/java examples
+
+            In Lib/gcj/cni.i, for compatibility with newer gcj versions:
+
+            - remove JvAllocObject() which gcj no longer defines, from gcj Changelog:
+              2004-04-16  Bryce McKinlay  <mckinlay@redhat.com>
+                * gcj/cni.h (JvAllocObject): Remove these obsolete,
+                undocumented CNI calls.
+
+            - change JvCreateJavaVM() argument from void* to JvVMInitArgs*, from gcj Changelog:
+              2005-02-23  Thomas Fitzsimmons  <fitzsim@redhat.com>
+              PR libgcj/16923
+              ...
+              (JvCreateJavaVM): Declare vm_args as JvVMInitArgs* rather than void*.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-04-08: wsfulton
             SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
 
