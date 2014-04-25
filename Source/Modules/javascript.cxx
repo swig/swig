@@ -62,8 +62,8 @@ class JSEmitterState {
 public:
   JSEmitterState();
   ~JSEmitterState();
-  DOH *global();
-  DOH *global(const char *key, DOH *initial = 0);
+  DOH *globals();
+  DOH *globals(const char *key, DOH *initial = 0);
   DOH *clazz(bool reset = false);
   DOH *clazz(const char *key, DOH *initial = 0);
   DOH *function(bool reset = false);
@@ -74,7 +74,7 @@ public:
 
 private:
   DOH *getState(const char *key, bool reset = false);
-  Hash *_global;
+  Hash *globalHash;
 };
 
 /**
@@ -604,8 +604,8 @@ JSEmitter::~JSEmitter() {
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::registerTemplate(const String *name, const String *code) {
-  if (!State::IsSet(state.global(HAS_TEMPLATES))) {
-    SetFlag(state.global(), HAS_TEMPLATES);
+  if (!State::IsSet(state.globals(HAS_TEMPLATES))) {
+    SetFlag(state.globals(), HAS_TEMPLATES);
   }
   return Setattr(templates, name, code);
 }
@@ -1078,7 +1078,7 @@ int JSEmitter::emitConstant(Node *n) {
   // a lot of SWIG internal constants were emitted
   // This didn't happen on other platforms yet...
   // we ignore those premature definitions
-  if (!State::IsSet(state.global (HAS_TEMPLATES))) {
+  if (!State::IsSet(state.globals(HAS_TEMPLATES))) {
     return SWIG_ERROR;
   }
 
@@ -1091,7 +1091,7 @@ int JSEmitter::emitConstant(Node *n) {
   String *value = rawval ? rawval : Getattr(n, "value");
 
   // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
-  if (State::IsSet(state.global (FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
+  if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
   }
 
@@ -1529,9 +1529,9 @@ int JSCEmitter::initialize(Node *n) {
   f_init = NewString("");
   f_header = NewString("");
 
-  state.global(CREATE_NAMESPACES, NewString(""));
-  state.global(REGISTER_NAMESPACES, NewString(""));
-  state.global(INITIALIZER, NewString(""));
+  state.globals(CREATE_NAMESPACES, NewString(""));
+  state.globals(REGISTER_NAMESPACES, NewString(""));
+  state.globals(INITIALIZER, NewString(""));
 
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("begin", f_wrap_cpp);
@@ -1564,9 +1564,9 @@ int JSCEmitter::dump(Node *n) {
   // compose the initializer function using a template
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", module)
-  .replace("$jsregisterclasses", state.global(INITIALIZER))
-  .replace("$jscreatenamespaces", state.global(CREATE_NAMESPACES))
-  .replace("$jsregisternamespaces", state.global(REGISTER_NAMESPACES))
+  .replace("$jsregisterclasses", state.globals(INITIALIZER))
+  .replace("$jscreatenamespaces", state.globals(CREATE_NAMESPACES))
+  .replace("$jsregisternamespaces", state.globals(REGISTER_NAMESPACES))
   .pretty_print(f_init);
 
   Printv(f_wrap_cpp, f_init, 0);
@@ -1709,7 +1709,7 @@ int JSCEmitter::exitClass(Node *n) {
       .replace("$jsclass_inheritance", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
       .replace("$jsdtor", state.clazz(DTOR))
-  .pretty_print(state.global(INITIALIZER));
+  .pretty_print(state.globals(INITIALIZER));
   Delete(jsclass_inheritance);
 
   /* Note: this makes sure that there is a swig_type added for this class */
@@ -1720,7 +1720,7 @@ int JSCEmitter::exitClass(Node *n) {
   t_registerclass.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsnspace", Getattr(state.clazz("nspace"), NAME_MANGLED))
-  .pretty_print(state.global(INITIALIZER));
+  .pretty_print(state.globals(INITIALIZER));
 
   return SWIG_OK;
 }
@@ -1753,7 +1753,7 @@ int JSCEmitter::emitNamespaces() {
 
     Template t_createNamespace(getTemplate("jsc_nspace_definition"));
     t_createNamespace.replace("$jsmangledname", name_mangled);
-    Append(state.global(CREATE_NAMESPACES), t_createNamespace.str());
+    Append(state.globals(CREATE_NAMESPACES), t_createNamespace.str());
 
     // Don't register 'exports' as namespace. It is return to the application.
     if (!Equal("exports", name)) {
@@ -1761,7 +1761,7 @@ int JSCEmitter::emitNamespaces() {
       t_registerNamespace.replace("$jsmangledname", name_mangled)
 	  .replace("$jsname", name)
 	  .replace("$jsparent", parent_mangled);
-      Append(state.global(REGISTER_NAMESPACES), t_registerNamespace.str());
+      Append(state.globals(REGISTER_NAMESPACES), t_registerNamespace.str());
     }
   }
 
@@ -1869,7 +1869,7 @@ int V8Emitter::initialize(Node *n) {
   Swig_register_filebyname("init", f_init);
   Swig_register_filebyname("post-init", f_post_init);
 
-  state.global(FORCE_CPP, NewString("1"));
+  state.globals(FORCE_CPP, NewString("1"));
 
   return SWIG_OK;
 }
@@ -2204,38 +2204,38 @@ JSEmitter *swig_javascript_create_V8Emitter() {
  **********************************************************************/
 
 JSEmitterState::JSEmitterState()
-:  _global(NewHash()) {
+:  globalHash(NewHash()) {
   // initialize sub-hashes
-  Setattr(_global, "class", NewHash());
-  Setattr(_global, "function", NewHash());
-  Setattr(_global, "variable", NewHash());
+  Setattr(globalHash, "class", NewHash());
+  Setattr(globalHash, "function", NewHash());
+  Setattr(globalHash, "variable", NewHash());
 }
 
 JSEmitterState::~JSEmitterState() {
-  Delete(_global);
+  Delete(globalHash);
 }
 
-DOH *JSEmitterState::getState(const char *key, bool _new) {
-  if (_new) {
+DOH *JSEmitterState::getState(const char *key, bool new_key) {
+  if (new_key) {
     Hash *hash = NewHash();
-    Setattr(_global, key, hash);
+    Setattr(globalHash, key, hash);
   }
-  return Getattr(_global, key);
+  return Getattr(globalHash, key);
 }
 
-DOH *JSEmitterState::global() {
-  return _global;
+DOH *JSEmitterState::globals() {
+  return globalHash;
 }
 
-DOH *JSEmitterState::global(const char *key, DOH *initial) {
+DOH *JSEmitterState::globals(const char *key, DOH *initial) {
   if (initial != 0) {
-    Setattr(_global, key, initial);
+    Setattr(globalHash, key, initial);
   }
-  return Getattr(_global, key);
+  return Getattr(globalHash, key);
 }
 
-DOH *JSEmitterState::clazz(bool _new) {
-  return getState("class", _new);
+DOH *JSEmitterState::clazz(bool new_key) {
+  return getState("class", new_key);
 }
 
 DOH *JSEmitterState::clazz(const char *key, DOH *initial) {
@@ -2246,8 +2246,8 @@ DOH *JSEmitterState::clazz(const char *key, DOH *initial) {
   return Getattr(c, key);
 }
 
-DOH *JSEmitterState::function(bool _new) {
-  return getState("function", _new);
+DOH *JSEmitterState::function(bool new_key) {
+  return getState("function", new_key);
 }
 
 DOH *JSEmitterState::function(const char *key, DOH *initial) {
@@ -2258,8 +2258,8 @@ DOH *JSEmitterState::function(const char *key, DOH *initial) {
   return Getattr(f, key);
 }
 
-DOH *JSEmitterState::variable(bool _new) {
-  return getState("variable", _new);
+DOH *JSEmitterState::variable(bool new_key) {
+  return getState("variable", new_key);
 }
 
 DOH *JSEmitterState::variable(const char *key, DOH *initial) {
