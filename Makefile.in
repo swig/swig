@@ -243,11 +243,13 @@ check-%-examples :
 
 # individual example
 %.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
 	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@if $(skip-gcj); then					\
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
@@ -283,6 +285,9 @@ check-test-suite:				\
 	check-javascript-test-suite
 
 check-%-test-suite:
+	@if test -d Examples/test-suite/$*; then			\
+	  cd Examples/test-suite/$* && $(MAKE) Makefile;		\
+	fi
 	@if test -z "$(skip-$*)"; then					\
 	  echo $* unknown;						\
 	  exit 1;							\

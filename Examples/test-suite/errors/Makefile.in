@@ -31,6 +31,9 @@ C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CAS
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest)
 
+# For rebuilding Makefile from Makefile.in in common.mk
+TEST_SUITE_SUBDIR = errors
+
 include $(srcdir)/../common.mk
 
 

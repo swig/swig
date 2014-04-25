@@ -21,6 +21,10 @@
 #      'method' describes what is being built.
 #---------------------------------------------------------------
 
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: @srcdir@/Makefile.in ../config.status
+	cd .. && $(SHELL) ./config.status Examples/Makefile
+
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@

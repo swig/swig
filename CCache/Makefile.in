@@ -27,6 +27,10 @@ HEADERS = ccache.h mdfour.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: $(srcdir)/Makefile.in ./config.status
+	$(SHELL) ./config.status
+
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
 docs: $(PACKAGE_NAME).1 web/ccache-man.html
 

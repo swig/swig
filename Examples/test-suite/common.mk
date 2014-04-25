@@ -71,6 +71,13 @@ LIBPREFIX  = lib
 ACTION     = check
 INTERFACEDIR = $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/
 
+# Regenerate Makefile if Makefile.in or config.status have changed.
+ifeq (,$(TEST_SUITE_SUBDIR))
+TEST_SUITE_SUBDIR = $(LANGUAGE)
+endif
+Makefile: $(srcdir)/Makefile.in ../../../config.status
+	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(TEST_SUITE_SUBDIR)/Makefile
+
 #
 # Please keep test cases in alphabetical order.
 # Note that any whitespace after the last entry in each list will break make
