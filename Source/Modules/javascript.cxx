@@ -921,7 +921,6 @@ int JSEmitter::emitDtor(Node *n) {
       Printv(f_wrappers, wrap, NIL);
     }
   }
-
   // HACK: this is only for the v8 emitter. maybe set an attribute wrap:action of node
   // TODO: generate dtors more similar to other wrappers
   // EW: I think this is wrong. delete should only be used when new was used to create. If malloc was used, free needs to be used.
@@ -1564,10 +1563,10 @@ int JSCEmitter::dump(Node *n) {
   // compose the initializer function using a template
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", module)
-  .replace("$jsregisterclasses", state.globals(INITIALIZER))
-  .replace("$jscreatenamespaces", state.globals(CREATE_NAMESPACES))
-  .replace("$jsregisternamespaces", state.globals(REGISTER_NAMESPACES))
-  .pretty_print(f_init);
+      .replace("$jsregisterclasses", state.globals(INITIALIZER))
+      .replace("$jscreatenamespaces", state.globals(CREATE_NAMESPACES))
+      .replace("$jsregisternamespaces", state.globals(REGISTER_NAMESPACES))
+      .pretty_print(f_init);
 
   Printv(f_wrap_cpp, f_init, 0);
 
@@ -1709,7 +1708,7 @@ int JSCEmitter::exitClass(Node *n) {
       .replace("$jsclass_inheritance", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
       .replace("$jsdtor", state.clazz(DTOR))
-  .pretty_print(state.globals(INITIALIZER));
+      .pretty_print(state.globals(INITIALIZER));
   Delete(jsclass_inheritance);
 
   /* Note: this makes sure that there is a swig_type added for this class */
@@ -1720,7 +1719,7 @@ int JSCEmitter::exitClass(Node *n) {
   t_registerclass.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsnspace", Getattr(state.clazz("nspace"), NAME_MANGLED))
-  .pretty_print(state.globals(INITIALIZER));
+      .pretty_print(state.globals(INITIALIZER));
 
   return SWIG_OK;
 }
