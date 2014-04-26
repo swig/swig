@@ -3,6 +3,13 @@
  *
  * ----------------------------------------------------------------------------- */
 
+// V8 Version Macro
+// ----------------
+// v8 does not (until now) provide a version macro - which is still discussed and may come soon.
+// Until then, we set a default version which can be overridden via command line or via a define in
+// the SWIG configuration.
+// For example, `swig -javascript -v8 -DV8_VERSION=0x031110`
+
 %define %swig_v8_define_version(version)
 %insert("runtime") %{
 #ifndef SWIG_V8_VERSION
@@ -18,11 +25,19 @@
 %swig_v8_define_version(0x031110)
 #endif
 
+
+// Node support
+// ------------
+
 #ifdef BUILDING_NODE_EXTENSION
 %insert("runtime") %{
 #include <node.h>
 %}
 #endif
+
+
+// V8 runtime
+// ----------
 
 %insert(runtime) %{
 #include <v8.h>
