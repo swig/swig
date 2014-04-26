@@ -1633,12 +1633,12 @@ int JSCEmitter::exitFunction(Node *n) {
 
   if (is_member) {
     if (GetFlag(state.function(), IS_STATIC)) {
-      Append(state.clazz(STATIC_FUNCTIONS), t_function.str());
+      t_function.pretty_print(state.clazz(STATIC_FUNCTIONS));
     } else {
-      Append(state.clazz(MEMBER_FUNCTIONS), t_function.str());
+      t_function.pretty_print(state.clazz(MEMBER_FUNCTIONS));
     }
   } else {
-    Append(Getattr(current_namespace, "functions"), t_function.str());
+    t_function.pretty_print(Getattr(current_namespace, "functions"));
   }
 
   return SWIG_OK;
@@ -1660,12 +1660,12 @@ int JSCEmitter::exitVariable(Node *n) {
   if (GetFlag(n, "ismember")) {
     if (GetFlag(state.variable(), IS_STATIC)
 	|| Equal(Getattr(n, "nodeType"), "enumitem")) {
-      Append(state.clazz(STATIC_VARIABLES), t_variable.str());
+      t_variable.pretty_print(state.clazz(STATIC_VARIABLES));
     } else {
-      Append(state.clazz(MEMBER_VARIABLES), t_variable.str());
+      t_variable.pretty_print(state.clazz(MEMBER_VARIABLES));
     }
   } else {
-    Append(Getattr(current_namespace, "values"), t_variable.str());
+    t_variable.pretty_print(Getattr(current_namespace, "values"));
   }
 
   return SWIG_OK;
@@ -2036,7 +2036,8 @@ int V8Emitter::exitVariable(Node *n) {
 	  .replace("$jsname", state.variable(NAME))
 	  .replace("$jsgetter", state.variable(GETTER))
 	  .replace("$jssetter", state.variable(SETTER))
-	  .trim().print(f_init_static_wrappers);
+	  .trim()
+	  .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsv8_register_member_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -2044,7 +2045,7 @@ int V8Emitter::exitVariable(Node *n) {
 	  .replace("$jsgetter", state.variable(GETTER))
 	  .replace("$jssetter", state.variable(SETTER))
 	  .trim()
-	  .print(f_init_wrappers);
+	  .pretty_print(f_init_wrappers);
     }
   } else {
     // Note: a global variable is treated like a static variable
@@ -2055,7 +2056,7 @@ int V8Emitter::exitVariable(Node *n) {
 	.replace("$jsgetter", state.variable(GETTER))
 	.replace("$jssetter", state.variable(SETTER))
 	.trim()
-	.print(f_init_wrappers);
+	.pretty_print(f_init_wrappers);
   }
 
   return SWIG_OK;
@@ -2083,14 +2084,14 @@ int V8Emitter::exitFunction(Node *n) {
 	  .replace("$jsname", state.function(NAME))
 	  .replace("$jswrapper", state.function(WRAPPER_NAME))
 	  .trim()
-	  .print(f_init_static_wrappers);
+	  .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsv8_register_member_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
 	  .replace("$jsname", state.function(NAME))
 	  .replace("$jswrapper", state.function(WRAPPER_NAME))
 	  .trim()
-	  .print(f_init_wrappers);
+	  .pretty_print(f_init_wrappers);
     }
   } else {
     // Note: a global function is treated like a static function
@@ -2206,7 +2207,10 @@ int V8Emitter::emitNamespaces() {
 	  .trim();
 
       // prepend in order to achieve reversed order of registration statements
-      Insert(f_init_register_namespaces, 0, t_register_ns.str());
+      String *tmp_register_stmt = NewString("");
+      t_register_ns.pretty_print(tmp_register_stmt);
+      Insert(f_init_register_namespaces, 0, tmp_register_stmt);
+      Delete(tmp_register_stmt);
     }
   }
 
