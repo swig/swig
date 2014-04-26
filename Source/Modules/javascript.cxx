@@ -526,7 +526,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
 	Swig_mark_arg(i);
 	engine = JSEmitter::JavascriptCore;
       } else if (strcmp(argv[i], "-node") == 0) {
-      	if (engine) {
+      	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
 	  SWIG_exit(-1);
       	}
