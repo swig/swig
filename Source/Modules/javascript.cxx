@@ -1344,7 +1344,8 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
 }
 
 int JSEmitter::switchNamespace(Node *n) {
-  // HACK: somehow this gets called when member functions are processed...ignoring
+  // HACK: somehow this gets called for member functions.
+  // We can safely ignore them, as members are not associated to a namespace (only their class)
   if (GetFlag(n, "ismember")) {
     return SWIG_OK;
   }
@@ -1358,13 +1359,12 @@ int JSEmitter::switchNamespace(Node *n) {
   }
 
   if (nspace == NULL) {
-    // enums and constants do not have 'sym:nspace' set
-    // so we try to get the namespace from the qualified name
-    if (Equal(Getattr(n, "nodeType"), "enumitem")) {
-      nspace = Swig_scopename_prefix(Getattr(n, "name"));
-    }
+    // It seems that only classes have 'sym:nspace' set.
+    // We try to get the namespace from the qualified name (i.e., everything before the last '::')
+    nspace = Swig_scopename_prefix(Getattr(n, "name"));
   }
 
+  // If there is not even a scopename prefix then it must be global scope
   if (nspace == NULL) {
     current_namespace = Getattr(namespaces, "::");
     return SWIG_OK;
@@ -2097,7 +2097,7 @@ int V8Emitter::exitFunction(Node *n) {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
     Template t_register = getTemplate("jsv8_register_static_function");
-    t_register.replace("$jsparent", Getattr(current_namespace, NAME))
+    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
 	.replace("$jsname", state.function(NAME))
 	.replace("$jswrapper", state.function(WRAPPER_NAME))
 	.trim()

@@ -48,8 +48,7 @@ var col1 = new nspace.Outer.Inner1.Color();
 var col2 = nspace.Outer.Inner2.Color.create();
 col2.colors(col1, col1, col2, col2, col2);
 
-// TODO: why isn't it scoped in the namespace???
-nspace.namespaceFunction(color);
+nspace.Outer.Inner1.namespaceFunction(color);
 nspace.Outer.Inner1.namespaceVar = 111;
 if (nspace.Outer.Inner1.namespaceVar !== 111) {
   throw new Error("Failed.");
