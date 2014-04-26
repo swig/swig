@@ -19,6 +19,8 @@
  */
 static bool js_template_enable_debug = false;
 
+#define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
+
 // keywords used for state variables
 #define NAME "name"
 #define NAME_MANGLED "name_mangled"
@@ -36,6 +38,9 @@ static bool js_template_enable_debug = false;
 #define CTOR_DISPATCHERS "ctor_dispatchers"
 #define DTOR "dtor"
 #define ARGCOUNT "wrap:argc"
+#define HAS_TEMPLATES "has_templates"
+#define FORCE_CPP "force_cpp"
+#define RESET true
 
 // keys for global state variables
 #define CREATE_NAMESPACES "create_namespaces"
@@ -47,10 +52,7 @@ static bool js_template_enable_debug = false;
 #define MEMBER_FUNCTIONS "member_functions"
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
-#define HAS_TEMPLATES "has_templates"
-#define FORCE_CPP "force_cpp"
 
-#define RESET true
 
 /**
  * A convenience class to manage state variables for emitters.
@@ -119,12 +121,13 @@ protected:
 
 public:
 
-  enum JSEmitterType {
-    JavascriptCore,
-    V8
-  };
+   enum JSEngine {
+     JavascriptCore,
+     V8,
+     NodeJS
+   };
 
-   JSEmitter();
+   JSEmitter(JSEngine engine);
 
    virtual ~ JSEmitter();
 
@@ -266,6 +269,8 @@ protected:
 
 protected:
 
+  JSEngine engine;
+
   Hash *templates;
 
   State state;
@@ -285,6 +290,7 @@ protected:
 
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
+JSEmitter *swig_javascript_create_NodeJSEmitter();
 
 /**********************************************************************
  * JAVASCRIPT: SWIG module implementation
@@ -501,23 +507,31 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   // Set javascript subdirectory in SWIG library
   SWIG_library_directory("javascript");
 
-  int mode = -1;
+  int engine = -1;
 
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-v8") == 0) {
+      	if (engine != -1) {
+	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+	  SWIG_exit(-1);
+      	}
 	Swig_mark_arg(i);
-	mode = JSEmitter::V8;
-	SWIG_library_directory("javascript/v8");
+	engine = JSEmitter::V8;
       } else if (strcmp(argv[i], "-jsc") == 0) {
+      	if (engine != -1) {
+	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+	  SWIG_exit(-1);
+      	}
 	Swig_mark_arg(i);
-	mode = JSEmitter::JavascriptCore;
-	SWIG_library_directory("javascript/jsc");
+	engine = JSEmitter::JavascriptCore;
       } else if (strcmp(argv[i], "-node") == 0) {
+      	if (engine) {
+	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+	  SWIG_exit(-1);
+      	}
 	Swig_mark_arg(i);
-	mode = JSEmitter::V8;
-	SWIG_library_directory("javascript/v8");
-	Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
+	engine = JSEmitter::NodeJS;
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
 	Swig_mark_arg(i);
 	js_template_enable_debug = true;
@@ -528,11 +542,12 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     }
   }
 
-  switch (mode) {
+  switch (engine) {
   case JSEmitter::V8:
     {
       emitter = swig_javascript_create_V8Emitter();
       Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
+      SWIG_library_directory("javascript/v8");
       // V8 API is C++, so output must be C++ compatibile even when wrapping C code
       if (!cparse_cplusplus) {
 	Swig_cparse_cplusplusout(1);
@@ -543,11 +558,20 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     {
       emitter = swig_javascript_create_JSCEmitter();
       Preprocessor_define("SWIG_JAVASCRIPT_JSC 1", 0);
+      SWIG_library_directory("javascript/jsc");
+      break;
+    }
+  case JSEmitter::NodeJS:
+    {
+      emitter = swig_javascript_create_V8Emitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
+      Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
+      SWIG_library_directory("javascript/v8");
       break;
     }
   default:
     {
-      Printf(stderr, "SWIG Javascript: Unknown emitter type. Please specify one of -jsc -v8 or -node.\n");
+      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node'.\n");
       SWIG_exit(-1);
       break;
     }
@@ -585,8 +609,8 @@ extern "C" Language *swig_javascript(void) {
  * JSEmitter()
  * ----------------------------------------------------------------------------- */
 
-JSEmitter::JSEmitter()
-:  templates(NewHash()), namespaces(NULL), current_namespace(NULL), defaultResultName(NewString("result")), f_wrappers(NULL) {
+JSEmitter::JSEmitter(JSEmitter::JSEngine engine)
+:  engine(engine), templates(NewHash()), namespaces(NULL), current_namespace(NULL), defaultResultName(NewString("result")), f_wrappers(NULL) {
 }
 
 /* -----------------------------------------------------------------------------
@@ -816,21 +840,20 @@ int JSEmitter::emitCtor(Node *n) {
 
   Template t_ctor(getTemplate("js_ctor"));
 
-  //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   if (is_overloaded) {
     t_ctor = getTemplate("js_overloaded_ctor");
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
-  // note: removing the is_abstract flag, as this emitter
-  //       is supposed to be called for non-abstract classes only.
+  // note: we can remove the is_abstract flag now, as this
+  //       is called for non-abstract classes only.
   Setattr(state.clazz(), IS_ABSTRACT, 0);
 
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
-  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemap.
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemaps.
   // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
   Delete(wrapper->code);
   wrapper->code = NewString("");
@@ -1157,11 +1180,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *action = emit_action(n);
-
   marshalOutput(n, params, wrapper, action);
-
   emitCleanupCode(n, wrapper, params);
-
   Replaceall(wrapper->code, "$symname", iname);
 
   t_function.replace("$jswrapper", wrap_name)
@@ -1434,7 +1454,7 @@ private:
 };
 
 JSCEmitter::JSCEmitter()
-:  JSEmitter(), NULL_STR(NewString("NULL")), VETO_SET(NewString("JS_veto_set_variable")), f_wrap_cpp(NULL), f_runtime(NULL), f_header(NULL), f_init(NULL) {
+:  JSEmitter(JSEmitter::JavascriptCore), NULL_STR(NewString("NULL")), VETO_SET(NewString("JS_veto_set_variable")), f_wrap_cpp(NULL), f_runtime(NULL), f_header(NULL), f_init(NULL) {
 }
 
 JSCEmitter::~JSCEmitter() {
@@ -1794,7 +1814,7 @@ protected:
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
   virtual int emitNamespaces();
 
-private:
+protected:
   /* built-in parts */
   String *f_runtime;
   String *f_header;
@@ -1824,7 +1844,7 @@ private:
 };
 
 V8Emitter::V8Emitter()
-:  JSEmitter(), NULL_STR(NewString("0")), VETO_SET(NewString("JS_veto_set_variable")) {
+:  JSEmitter(JSEmitter::V8), NULL_STR(NewString("0")), VETO_SET(NewString("JS_veto_set_variable")) {
 }
 
 V8Emitter::~V8Emitter() {
@@ -2196,7 +2216,6 @@ int V8Emitter::emitNamespaces() {
 JSEmitter *swig_javascript_create_V8Emitter() {
   return new V8Emitter();
 }
-
 
 /**********************************************************************
  * Helper implementations
