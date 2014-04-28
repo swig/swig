@@ -14,7 +14,9 @@
 Javascript has gone beyond being a browser-based scripting language and with <a href="http://nodejs.org">node.js</a>, it is also used as a backend development language.</p>
 <p>Native Javascript extensions can be used for applications that embed a web-browser view or that embed a Javascript engine (such as <em>node.js</em>). Extending a general purpose web-browser is not possible as this would be a severe security issue.</p>
 <p>SWIG Javascript currently supports <strong>JavascriptCore</strong>, the Javascript engine used by <code>Safari/Webkit</code>, and <strong>v8</strong>, which is used by <code>Chromium</code> and <code>node.js</code>.</p>
-<p><a href="http://www.webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.</p>
+<p><a href="http://www.webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.
+With <a href="https://github.com/rogerwang/node-webkit">node-webkit</a> there is a platform which uses Google's <code>Chromium</code> as Web-Browser widget and <code>node.js</code> for javascript extensions.
+</p>
 
 <H2>Preliminaries</H2>
 
@@ -40,8 +42,8 @@ $ swig -javascript -jsc example.i</pre>
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
-<p>This creates a C/C++ source file example_wrap.c or example_wrap.cxx. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
-<p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is example.i, the name of the wrapper file is example_wrap.c. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
+<p>This creates a C/C++ source file <code>example_wrap.c</code> or <code>example_wrap.cxx</code>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
+<p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is <code>example.i</code>, the name of the wrapper file is <code>example_wrap.c</code>. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
 <div class="code">
 <pre>
 bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
@@ -238,8 +240,93 @@ int main(int argc, char* argv[])
 
 <H3>Creating Applications with <code>node-webkit</code></H3>
 <p>
-<p>TODO: documentation is coming soon</p>
+<p>To get started with <code>node-webkit</code> there is a very informative set of <a href="https://github.com/rogerwang/node-webkit/wiki">wiki pages</a>.</p>
+<p>Similar to <code>node.js</code>, <code>node-webkit</code> is started from command line within a <code>node.js</code> project directory.
+Native extensions are created in the very same way as for <code>node.js</code>, except that a customized <code>gyp</code> derivate has to be used: <a href="https://github.com/rogerwang/nw-gyp">nw-gyp</a>.
 </p>
+
+<p>
+A simple example would have the following structure:
+</p>
+
+<div class="code">
+<pre>
+- package.json
+- app.html
+- app.js
+- node_modules
+  / example
+  ... (as known from node.js)
+</pre>
+</div>
+
+<p>
+The configuration file essentially conforms to <code>node.js</code> syntax.
+It has some extras to configure <code>node-webkit</code>. See the <a href="">Manifest</a> specification for more details.
+</p>
+
+<p>
+	<code>package.json</code>:
+</p>
+<div class="code">
+<pre>
+{
+  "name": "example"
+  "main": "app.html"
+  "window": {
+    "show": true,
+    "width": 800,
+    "height": 600
+  }
+}</pre>
+</div>
+
+<p>
+The <code>'main'</code> property of <code>package.json</code> specifies a web-page to be rendered in
+the main window.</p>
+
+<p>
+	<code>app.html</code>:
+</p>
+
+<div class="code">
+<pre>
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;script src="app.js"&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div&gt;
+      The greatest common divisor of
+      &lt;span id="x"&gt;&lt;/span&gt; and
+      &lt;span id="y"&gt;&lt;/span&gt; is
+      &lt;span id="z"&gt;&lt;/span&gt;.
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+</div>
+
+<p>
+As known from <code>node.js</code> one can use <code>require</code> to load javascript modules.
+Additionally, <code>node-webkit</code> provides an API that allows to manipulate the window's menu,
+open new windows, and many more things.
+</p>
+
+<p>
+	<code>app.js</code>:
+</p>
+
+<div class="code">
+<pre>window.onload = function() {
+  var example = require("example");
+  var x = 18;
+  var y = 24;
+  var z = example.gcd(x,y);
+  document.querySelector('#x').innerHTML = x;
+  document.querySelector('#y').innerHTML = y;
+  document.querySelector('#z').innerHTML = z;
+};</pre>
+</div>
 
 <H2><a name="Javascript_examples">Examples</H2>
 <p>Some basic examples are shown here in more detail.</p>
