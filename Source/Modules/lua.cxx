@@ -205,7 +205,7 @@ public:
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
-     This is called to initalise the system & read any command line args
+     This is called to initialise the system & read any command line args
      most of this is boilerplate code, except the command line args
      which depends upon what args your code supports
      NEW LANGUAGE NOTE:END *********************************************** */
@@ -380,7 +380,7 @@ public:
     Dump(f_header, f_begin);
     Dump(f_wrappers, f_begin);
     Dump(f_initbeforefunc, f_begin);
-    /* for the Lua code it needs to be properly excaped to be added into the C/C++ code */
+    /* for the Lua code it needs to be properly escaped to be added into the C/C++ code */
     escapeCode(s_luacode);
     Printf(f_begin, "const char* SWIG_LUACODE=\n  \"%s\";\n\n", s_luacode);
     Wrapper_pretty_print(f_init, f_begin);
@@ -436,9 +436,9 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is it!
      you get this one right, and most of your work is done
-     but its going to take soem file to get it working right
+     but its going to take some file to get it working right
      quite a bit of this is generally boilerplate code
-     (or stuff I dont understand)
+     (or stuff I don't understand)
      that which matters will have extra added comments
      NEW LANGUAGE NOTE:END *********************************************** */
   /* ---------------------------------------------------------------------
@@ -534,7 +534,7 @@ public:
     }
 
     /* NEW LANGUAGE NOTE:***********************************************
-       the wrapper object holds all the wrappering code
+       the wrapper object holds all the wrapper code
        we need to add a couple of local variables
        NEW LANGUAGE NOTE:END *********************************************** */
     Wrapper *f = NewWrapper();
@@ -554,7 +554,7 @@ public:
     /* NEW LANGUAGE NOTE:***********************************************
        the format of a lua fn is:
        static int wrap_XXX(lua_State* L){...}
-       this line adds this into the wrappering code
+       this line adds this into the wrapper code
        NEW LANGUAGE NOTE:END *********************************************** */
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
 
@@ -657,7 +657,7 @@ public:
 	continue;
       } else {
 	/* NEW LANGUAGE NOTE:***********************************************
-	   // why is this code not called when I dont have a typemap?
+	   // why is this code not called when I don't have a typemap?
 	   // instead of giving a warning, no code is generated
 	   NEW LANGUAGE NOTE:END *********************************************** */
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
@@ -792,7 +792,7 @@ public:
     Replaceall(f->code, "$result", Swig_cresult_name());
 
     /* Dump the function out */
-    /* in Lua we will not emit the destructor as a wrappered function,
+    /* in Lua we will not emit the destructor as a wrapper function,
        Lua will automatically call the destructor when the object is free'd
        However: you cannot just skip this function as it will not emit
        any custom destructor (using %extend), as you need to call emit_action()
@@ -835,7 +835,7 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is an extra function used for overloading of functions
      it checks the args & then calls the relevant fn
-     nost of the real work in again typemaps:
+     most of the real work in again typemaps:
      look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
      NEW LANGUAGE NOTE:END *********************************************** */
   int dispatchFunction(Node *n) {

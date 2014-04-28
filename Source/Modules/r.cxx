@@ -2160,7 +2160,7 @@ int R::functionWrapper(Node *n) {
   /* If we are dealing with a method in an C++ class, then 
      add the name of the R function and its definition. 
      XXX need to figure out how to store the Wrapper if possible in the hash/list.
-     Would like to be able to do this so that we can potentialy insert
+     Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
     addAccessor(member_name, sfun, iname);
