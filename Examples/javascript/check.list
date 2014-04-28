@@ -3,7 +3,7 @@ constant
 enum
 exception
 functor
-namespace
+nspace
 operator
 overload
 pointer

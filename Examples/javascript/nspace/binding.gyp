@@ -2,7 +2,7 @@
   "targets": [
     {
       "target_name": "example",
-      "sources": [ "example.cxx", "example_wrap.cxx" ]
+      "sources": [ "example_wrap.cxx" ]
     }
   ]
 }

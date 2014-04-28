@@ -1,10 +1,10 @@
-/* File : example.i */
 %module example
 
 %{
 #include "example.h"
 %}
 
-%feature("nspace", 1);
+%nspace MyWorld::Nested::Dweller;
+%nspace MyWorld::World;
 
 %include "example.h"
