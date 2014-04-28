@@ -76,3 +76,13 @@ assert(cb.test_func_ptr(f,2)==-8)
 
 -- Test that __tostring metamethod produce no internal asserts
 f2_name = tostring(f2)
+
+f3 = cb.FooSub()
+f3_name = tostring(f3)
+
+f4 = cb.FooSubSub()
+f4_name = tostring(f4)
+
+assert( f2_name == "Foo" )
+assert( f3_name == "Foo" )
+assert( f4_name == "FooSubSub" )

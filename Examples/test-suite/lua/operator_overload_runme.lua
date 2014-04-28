@@ -78,6 +78,38 @@ assert(i(1,2)==6)
 assert(tostring(Op(1))=="Op(1)")
 assert(tostring(Op(-3))=="Op(-3)")
 
+
+-- check that operator overloads is correctly propogated accross hierarchy
+
+a_d=OpDerived()
+b_d=OpDerived(5)
+c_d=OpDerived(5)
+d_d=OpDerived(2)
+-- test equality
+assert(a_d~=b_d)
+assert(b_d==c_d)
+assert(a_d~=d_d)
+
+-- test <
+assert(a_d<b_d)
+assert(a_d<=b_d)
+assert(b_d<=c_d)
+assert(b_d>=c_d)
+assert(b_d>d_d)
+assert(b_d>=d_d)
+--
+-- test + inheritance
+f_d=OpDerived(1)
+g_d=OpDerived(1)
+assert(f_d+g_d==Op(2))
+assert(f_d-g_d==Op(0))
+assert(f_d*g_d==Op(1))
+assert(f_d/g_d==Op(1))
+--
+-- plus add some code to check the __str__ fn inheritance
+assert(tostring(OpDerived(1))=="Op(1)")
+assert(tostring(OpDerived(-3))=="Op(-3)")
+
 --[[
 /* Sample test code in C++
 
