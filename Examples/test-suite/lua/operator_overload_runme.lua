@@ -79,7 +79,7 @@ assert(tostring(Op(1))=="Op(1)")
 assert(tostring(Op(-3))=="Op(-3)")
 
 
--- check that operator overloads is correctly propogated accross hierarchy
+-- check that operator overloads are correctly propogated down inheritance hierarchy
 
 a_d=OpDerived()
 b_d=OpDerived(5)
