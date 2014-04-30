@@ -32,9 +32,7 @@
 
 /**** The PySequence C++ Wrap ***/
 
-%insert(header) %{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %include <std_except.i>
 
@@ -339,7 +337,7 @@ namespace swig {
         std::advance(it,ii);
         for (size_t rc=0; rc<replacecount; ++rc) {
           *it++ = *isit++;
-          for (Py_ssize_t c=0; c<(step-1); ++c)
+          for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
         }
       }
@@ -357,7 +355,7 @@ namespace swig {
       std::advance(it,size-ii-1);
       for (size_t rc=0; rc<replacecount; ++rc) {
         *it++ = *isit++;
-        for (Py_ssize_t c=0; c<(-step-1); ++c)
+        for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
           it++;
       }
     }
@@ -383,9 +381,7 @@ namespace swig {
           size_t delcount = (jj - ii + step - 1) / step;
           while (delcount) {
             it = self->erase(it);
-            if (it==self->end())
-              break;
-            for (Py_ssize_t c=0; c<(step-1); ++c)
+            for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
               it++;
             delcount--;
           }
@@ -398,10 +394,8 @@ namespace swig {
         typename Sequence::reverse_iterator it = sb;
         size_t delcount = (ii - jj - step - 1) / -step;
         while (delcount) {
-          self->erase((++it).base());
-          if (it==self->rend())
-            break;
-          for (Py_ssize_t c=0; c<(-step-1); ++c)
+          it = typename Sequence::reverse_iterator(self->erase((++it).base()));
+          for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
             it++;
           delcount--;
         }

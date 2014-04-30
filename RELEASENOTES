@@ -4,6 +4,68 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-3.0.0 summary:
+- This is a major new release focusing primarily on C++ improvements.
+- C++11 support added. Please see documentation for details of supported
+  features: http://www.swig.org/Doc3.0/CPlusPlus11.html
+- Nested class support added. This has been taken full advantage of in
+  Java and C#. Other languages can use the nested classes, but require
+  further work for a more natural integration into the target language.
+  We urge folk knowledgeable in the other target languages to step
+  forward and help with this effort.
+- Lua: improved metatables and support for %nspace.
+- Go 1.3 support added.
+- Python import improvements including relative imports.
+- Python 3.3 support completed.
+- Perl director support added.
+- C# .NET 2 support is now the minimum. Generated using statements are
+  replaced by fully qualified names.
+- Bug fixes and improvements to the following languages:
+  C#, Go, Guile, Java, Lua, Perl, PHP, Python, Octave, R, Ruby, Tcl
+- Various other bug fixes and improvements affecting all languages.
+- Note that this release contains some backwards incompatible changes
+  in some languages.
+- Full detailed release notes are in the changes file.
+
+SWIG-2.0.12 summary:
+- This is a maintenance release backporting some fixes from the pending
+  3.0.0 release.
+- Octave 3.8 support added.
+- C++11 support for new versions of erase/insert in the STL containers.
+- Compilation fixes on some systems for the generated Lua, PHP, Python
+  and R wrappers.
+
+SWIG-2.0.11 summary:
+- Minor bug fixes and enhancements mostly in Python, but also
+  C#, Lua, Ocaml, Octave, Perl, PHP, Python, R, Ruby, Tcl.
+
+SWIG-2.0.10 summary:
+- Ruby 1.9 support is now complete.
+- Add support for Guile 2.0 and Guile 1.6 support (GH interface) has
+  been dropped.
+- Various small language neutral improvements and fixes.
+- Various bug fixes and minor improvements specific to C#, CFFI, D,
+  Java, Octave, PHP, Python,
+- Minor bug fix in ccache-swig.
+- Development has moved to Github with Travis continuous integration
+  testing - patches using https://github.com/swig/swig are welcome.
+
+SWIG-2.0.9 summary:
+- Improved typemap matching.
+- Ruby 1.9 support is much improved.
+- Various bug fixes and minor improvements in C#, CFFI, Go, Java,
+  Modula3, Octave, Perl, Python, R, Ruby, Tcl and in ccache-swig.
+
+SWIG-2.0.8 summary:
+- Fix a couple of regressions introduced in 2.0.5 and 2.0.7.
+- Improved using declarations and using directives support.
+- Minor fixes/enhancements for C#, Java, Octave, Perl and Python.
+
+SWIG-2.0.7 summary:
+- Important regression fixes since 2.0.5 for typemaps in general and
+  in Python.
+- Fixes and enhancements for Go, Java, Octave and PHP.
+
 SWIG-2.0.6 summary:
 - Regression fix for Python STL wrappers on some systems.
 

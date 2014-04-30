@@ -1,20 +1,21 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i
 LIBS       = -lm
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile tcl_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(DLTARGET)' INTERFACE='$(INTERFACE)' tcl_cpp
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tclsh_cpp_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile tcl_clean
-
-check: all

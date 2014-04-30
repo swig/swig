@@ -20,8 +20,8 @@
 * However, this file may be removed in future release of SWIG, so using this file to
 * keep these inappropriate names in your SWIG interface file is also not recommended.
 * Instead, we provide a simple tool for converting your interface files to
-* the new naming convention. You can download the tool here:
-* https://swig.svn.sourceforge.net/svnroot/swig/trunk/Tools/pyname_patch.py
+* the new naming convention. You can get the tool from the SWIG distribution:
+* Tools/pyname_patch.py
 */
 
 %fragment("PySequence_Base", "header", fragment="SwigPySequence_Base") {}
@@ -67,10 +67,8 @@
 #define PySwigObject_next SwigPyObject_next
 #define PySwigObject_oct SwigPyObject_oct
 #define PySwigObject_own SwigPyObject_own
-#define PySwigObject_print SwigPyObject_print
 #define PySwigObject_repr SwigPyObject_repr
 #define PySwigObject_richcompare SwigPyObject_richcompare
-#define PySwigObject_str SwigPyObject_str
 #define PySwigObject_type SwigPyObject_type
 #define PySwigPacked SwigPyPacked
 #define PySwigPacked_Check SwigPyPacked_Check

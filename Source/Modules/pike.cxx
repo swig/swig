@@ -29,13 +29,11 @@
  *
  */
 
-char cvsroot_pike_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>		// for isalnum()
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Pike Options (available with -pike)\n\
      [no additional options]\n\
 \n";
@@ -182,8 +180,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_classInit);
-
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 

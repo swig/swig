@@ -1,5 +1,6 @@
 from autodoc import *
 import commentVerifier
+import sys
 
 
 commentVerifier.check(A.__doc__, "Proxy of C++ A class")
@@ -119,22 +120,24 @@ commentVerifier.check(A.func3static.__doc__,  "\n"
 "        "
 )
 
-commentVerifier.check(A.variable_a.__doc__, "A_variable_a_get(self) -> int")
-commentVerifier.check(A.variable_b.__doc__, "A_variable_b_get(A self) -> int")
-commentVerifier.check(A.variable_c.__doc__, "\n"
-"A_variable_c_get(self) -> int\n"
-"\n"
-"Parameters:\n"
-"    self: A *\n"
-"\n"
-)
-commentVerifier.check(A.variable_d.__doc__, "\n"
-"A_variable_d_get(A self) -> int\n"
-"\n"
-"Parameters:\n"
-"    self: A *\n"
-"\n"
-)
+if sys.version_info[0:2] > (2, 4):
+  # Python 2.4 does not seem to work
+  commentVerifier.check(A.variable_a.__doc__, "A_variable_a_get(self) -> int")
+  commentVerifier.check(A.variable_b.__doc__, "A_variable_b_get(A self) -> int")
+  commentVerifier.check(A.variable_c.__doc__, "\n"
+  "A_variable_c_get(self) -> int\n"
+  "\n"
+  "Parameters:\n"
+  "    self: A *\n"
+  "\n"
+  )
+  commentVerifier.check(A.variable_d.__doc__, "\n"
+  "A_variable_d_get(A self) -> int\n"
+  "\n"
+  "Parameters:\n"
+  "    self: A *\n"
+  "\n"
+  )
 
 commentVerifier.check(B.__doc__, "Proxy of C++ B class")
 commentVerifier.check(C.__init__.__doc__, "__init__(self, a, b, h) -> C")

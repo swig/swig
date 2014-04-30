@@ -15,9 +15,10 @@ def failed(message):
 
 try:
    version = sys.argv[1]
-   username = sys.argv[2]
+   branch = sys.argv[2]
+   username = sys.argv[3]
 except:
-   print "Usage: python mkrelease.py version username"
+   print "Usage: python mkrelease.py version branch username"
    print "where version should be x.y.z and username is your SF username"
    sys.exit(1)
 
@@ -25,7 +26,7 @@ print "Looking for rsync"
 os.system("which rsync") and failed("rsync not installed/found. Please install.")
 
 print "Making source tarball"
-os.system("python ./mkdist.py " + version) and failed("")
+os.system("python ./mkdist.py " + version + " " + branch) and failed("")
 
 print "Build Windows package"
 os.system("./mkwindows.sh " + version) and failed("")
@@ -43,9 +44,6 @@ os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.cur
 os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + full_readme_file + " " + swig_dir_sf) and failed("")
 os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + full_readme_file + " " + swigwin_dir_sf) and failed("")
 
-print "Tagging release"
-os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
-
 print "Finished"
 
-print "Now log in to SourceForge and set the operating system and link the release notes to each of the tarball and zip file in the File Manager."
+print "Now log in to SourceForge and set the operating systems applicable to the newly uploaded tarball and zip file. Also remember to do a 'git push --tags'."

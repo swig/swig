@@ -7,6 +7,7 @@ extend
 funcptr
 multimap
 native
+nested
 pointer
 reference
 simple

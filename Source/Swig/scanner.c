@@ -14,8 +14,6 @@
  * to easily construct yacc-compatible scanners.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_scanner_c[] = "$Id$";
-
 #include "swig.h"
 #include <ctype.h>
 
@@ -37,6 +35,7 @@ struct Scanner {
   String *error;                /* Last error message (if any) */
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
+  List   *brackets;             /* Current level of < > brackets on each level */
 };
 
 typedef struct Locator {
@@ -45,6 +44,9 @@ typedef struct Locator {
   struct Locator *next;
 } Locator;
 static int follow_locators = 0;
+
+static void brackets_push(Scanner *);
+static void brackets_clear(Scanner *);
 
 /* -----------------------------------------------------------------------------
  * NewScanner()
@@ -65,7 +67,10 @@ Scanner *NewScanner(void) {
   s->text = NewStringEmpty();
   s->str = 0;
   s->error = 0;
+  s->error_line = 0;
   s->freeze_line = 0;
+  s->brackets = NewList();
+  brackets_push(s);
   return s;
 }
 
@@ -75,15 +80,16 @@ Scanner *NewScanner(void) {
  * Delete a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void DelScanner(Scanner * s) {
+void DelScanner(Scanner *s) {
   assert(s);
   Delete(s->scanobjs);
+  Delete(s->brackets);
   Delete(s->text);
   Delete(s->file);
   Delete(s->error);
   Delete(s->str);
   free(s->idstart);
-  free(s);
+  free(s); 
 }
 
 /* -----------------------------------------------------------------------------
@@ -92,11 +98,12 @@ void DelScanner(Scanner * s) {
  * Clear the contents of a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_clear(Scanner * s) {
+void Scanner_clear(Scanner *s) {
   assert(s);
   Delete(s->str);
   Clear(s->text);
   Clear(s->scanobjs);
+  brackets_clear(s);
   Delete(s->error);
   s->str = 0;
   s->error = 0;
@@ -104,6 +111,12 @@ void Scanner_clear(Scanner * s) {
   s->nexttoken = -1;
   s->start_line = 0;
   s->yylen = 0;
+  /* Should these be cleared too?
+  s->idstart;
+  s->file;
+  s->error_line;
+  s->freeze_line;
+  */
 }
 
 /* -----------------------------------------------------------------------------
@@ -113,7 +126,7 @@ void Scanner_clear(Scanner * s) {
  * immediately before returning to the old text.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_push(Scanner * s, String *txt) {
+void Scanner_push(Scanner *s, String *txt) {
   assert(s && txt);
   Push(s->scanobjs, txt);
   if (s->str) {
@@ -132,7 +145,7 @@ void Scanner_push(Scanner * s, String *txt) {
  * call to Scanner_token().
  * ----------------------------------------------------------------------------- */
 
-void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
+void Scanner_pushtoken(Scanner *s, int nt, const_String_or_char_ptr val) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
@@ -148,7 +161,7 @@ void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
  * Set the file and line number location of the scanner.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_set_location(Scanner * s, String *file, int line) {
+void Scanner_set_location(Scanner *s, String *file, int line) {
   Setline(s->str, line);
   Setfile(s->str, file);
   s->line = line;
@@ -160,7 +173,7 @@ void Scanner_set_location(Scanner * s, String *file, int line) {
  * Get the current file.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_file(Scanner * s) {
+String *Scanner_file(Scanner *s) {
   return Getfile(s->str);
 }
 
@@ -169,7 +182,7 @@ String *Scanner_file(Scanner * s) {
  *
  * Get the current line number
  * ----------------------------------------------------------------------------- */
-int Scanner_line(Scanner * s) {
+int Scanner_line(Scanner *s) {
   return s->line;
 }
 
@@ -178,7 +191,7 @@ int Scanner_line(Scanner * s) {
  *
  * Get the line number on which the current token starts
  * ----------------------------------------------------------------------------- */
-int Scanner_start_line(Scanner * s) {
+int Scanner_start_line(Scanner *s) {
   return s->start_line;
 }
 
@@ -188,7 +201,7 @@ int Scanner_start_line(Scanner * s) {
  * Change the set of additional characters that can be used to start an identifier.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_idstart(Scanner * s, const char *id) {
+void Scanner_idstart(Scanner *s, const char *id) {
   free(s->idstart);
   s->idstart = Swig_copy_string(id);
 }
@@ -198,7 +211,7 @@ void Scanner_idstart(Scanner * s, const char *id) {
  * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
-static char nextchar(Scanner * s) {
+static char nextchar(Scanner *s) {
   int nc;
   if (!s->str)
     return 0;
@@ -209,10 +222,8 @@ static char nextchar(Scanner * s) {
     if (Len(s->scanobjs) == 0)
       return 0;
     s->str = Getitem(s->scanobjs, 0);
-    if (s->str) {
-      s->line = Getline(s->str);
-      DohIncref(s->str);
-    }
+    s->line = Getline(s->str);
+    DohIncref(s->str);
   }
   if ((nc == '\n') && (!s->freeze_line)) 
     s->line++;
@@ -242,8 +253,7 @@ String *Scanner_errmsg(Scanner *s) {
   return s->error;
 }
 
-int
-Scanner_errline(Scanner *s) {
+int Scanner_errline(Scanner *s) {
   return s->error_line;
 }
 
@@ -258,11 +268,107 @@ static void freeze_line(Scanner *s, int val) {
 }
 
 /* -----------------------------------------------------------------------------
+ * brackets_count()
+ *
+ * Returns the number of brackets at the current depth.
+ * A syntax error with unbalanced ) brackets will result in a NULL pointer return.
+ * ----------------------------------------------------------------------------- */
+static int *brackets_count(Scanner *s) {
+  int *count;
+  if (Len(s->brackets) > 0)
+    count = (int *)Data(Getitem(s->brackets, 0));
+  else
+    count = 0;
+  return count;
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_clear()
+ *
+ * Resets the current depth and clears all brackets.
+ * Usually called at the end of statements;
+ * ----------------------------------------------------------------------------- */
+static void brackets_clear(Scanner *s) {
+  Clear(s->brackets);
+  brackets_push(s); /* base bracket count should always be created */
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_increment()
+ *
+ * Increases the number of brackets at the current depth.
+ * Usually called when a single '<' is found.
+ * ----------------------------------------------------------------------------- */
+static void brackets_increment(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    (*count)++;
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_decrement()
+ *
+ * Decreases the number of brackets at the current depth.
+ * Usually called when a single '>' is found.
+ * ----------------------------------------------------------------------------- */
+static void brackets_decrement(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    (*count)--;
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_reset()
+ *
+ * Sets the number of '<' brackets back to zero. Called at the point where
+ * it is no longer possible to have a matching closing >> pair for a template.
+ * ----------------------------------------------------------------------------- */
+static void brackets_reset(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    *count = 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_push()
+ *
+ * Increases the depth of brackets.
+ * Usually called when '(' is found.
+ * ----------------------------------------------------------------------------- */
+static void brackets_push(Scanner *s) {
+  int *newInt = malloc(sizeof(int));
+  *newInt = 0;
+  Push(s->brackets, NewVoid(newInt, free));
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_pop()
+ *
+ * Decreases the depth of brackets.
+ * Usually called when ')' is found.
+ * ----------------------------------------------------------------------------- */
+static void brackets_pop(Scanner *s) {
+  if (Len(s->brackets) > 0) /* protect against unbalanced ')' brackets */
+    Delitem(s->brackets, 0);
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_allow_shift()
+ *
+ * Return 1 to allow shift (>>), or 0 if (>>) should be split into (> >).
+ * This is for C++11 template syntax for closing templates.
+ * ----------------------------------------------------------------------------- */
+static int brackets_allow_shift(Scanner *s) {
+  int *count = brackets_count(s);
+  return !count || (*count <= 0);
+}
+
+/* -----------------------------------------------------------------------------
  * retract()
  *
  * Retract n characters
  * ----------------------------------------------------------------------------- */
-static void retract(Scanner * s, int n) {
+static void retract(Scanner *s, int n) {
   int i, l;
   char *str;
 
@@ -273,7 +379,7 @@ static void retract(Scanner * s, int n) {
     if (str[l - 1] == '\n') {
       if (!s->freeze_line) s->line--;
     }
-    Seek(s->str, -1, SEEK_CUR);
+    (void)Seek(s->str, -1, SEEK_CUR);
     Delitem(s->text, DOH_END);
   }
 }
@@ -403,14 +509,16 @@ static void get_escape(Scanner *s) {
  * Return the raw value of the next token.
  * ----------------------------------------------------------------------------- */
 
-static int look(Scanner * s) {
-  int state;
+static int look(Scanner *s) {
+  int state = 0;
   int c = 0;
+  String *str_delimiter = 0;
 
-  state = 0;
   Clear(s->text);
   s->start_line = s->line;
   Setfile(s->text, Getfile(s->str));
+
+
   while (1) {
     switch (state) {
     case 0:
@@ -432,32 +540,40 @@ static int look(Scanner * s) {
 
     case 1000:
       if ((c = nextchar(s)) == 0)
-	return (0);
+        return (0);
       if (c == '%')
 	state = 4;		/* Possibly a SWIG directive */
-
-      /* Look for possible identifiers */
-
+      
+      /* Look for possible identifiers or unicode/delimiter strings */
       else if ((isalpha(c)) || (c == '_') ||
-	       (s->idstart && strchr(s->idstart, c)))
+	       (s->idstart && strchr(s->idstart, c))) {
 	state = 7;
+      }
 
       /* Look for single character symbols */
 
-      else if (c == '(')
+      else if (c == '(') {
+        brackets_push(s);
 	return SWIG_TOKEN_LPAREN;
-      else if (c == ')')
+      }
+      else if (c == ')') {
+        brackets_pop(s);
 	return SWIG_TOKEN_RPAREN;
-      else if (c == ';')
+      }
+      else if (c == ';') {
+        brackets_clear(s);
 	return SWIG_TOKEN_SEMI;
+      }
       else if (c == ',')
 	return SWIG_TOKEN_COMMA;
       else if (c == '*')
 	state = 220;
       else if (c == '}')
 	return SWIG_TOKEN_RBRACE;
-      else if (c == '{')
+      else if (c == '{') {
+        brackets_reset(s);
 	return SWIG_TOKEN_LBRACE;
+      }
       else if (c == '=')
 	state = 33;
       else if (c == '+')
@@ -499,16 +615,16 @@ static int look(Scanner * s) {
 	state = 1;		/* Comment (maybe)  */
 	s->start_line = s->line;
       }
-      else if (c == '\"') {
-	state = 2;		/* Possibly a string */
-	s->start_line = s->line;
-	Clear(s->text);
-      }
 
       else if (c == ':')
 	state = 5;		/* maybe double colon */
       else if (c == '0')
 	state = 83;		/* An octal or hex value */
+      else if (c == '\"') {
+	state = 2;              /* A string constant */
+	s->start_line = s->line;
+	Clear(s->text);
+      }
       else if (c == '\'') {
 	s->start_line = s->line;
 	Clear(s->text);
@@ -587,18 +703,63 @@ static int look(Scanner * s) {
       break;
 
     case 2:			/* Processing a string */
+      if (!str_delimiter) {
+	state=20;
+	break;
+      }
+      
       if ((c = nextchar(s)) == 0) {
 	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
       }
-      if (c == '\"') {
-	Delitem(s->text, DOH_END);
-	return SWIG_TOKEN_STRING;
-      } else if (c == '\\') {
-	Delitem(s->text, DOH_END);
-	get_escape(s);
-      } else
-	state = 2;
+      else if (c == '(') {
+	state = 20;
+      }
+      else {
+	char temp[2] = { 0, 0 };
+	temp[0] = c;
+	Append( str_delimiter, temp );
+      }
+    
+      break;
+
+    case 20:			/* Inside the string */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      
+      if (!str_delimiter) { /* Ordinary string: "value" */
+	if (c == '\"') {
+	  Delitem(s->text, DOH_END);
+	  return SWIG_TOKEN_STRING;
+	} else if (c == '\\') {
+	  Delitem(s->text, DOH_END);
+	  get_escape(s);
+	}
+      } else {             /* Custom delimiter string: R"XXXX(value)XXXX" */
+	if (c==')') {
+	  int i=0;
+	  String *end_delimiter = NewStringEmpty();
+	  while ((c = nextchar(s)) != 0 && c!='\"') {
+	    char temp[2] = { 0, 0 };
+	    temp[0] = c;
+	    Append( end_delimiter, temp );
+	    i++;
+	  }
+	  
+	  if (Strcmp( str_delimiter, end_delimiter )==0) {
+	    Delete( end_delimiter ); /* Correct end delimiter )XXXX" occured */
+	    Delete( str_delimiter );
+	    str_delimiter = 0;
+	    return SWIG_TOKEN_STRING;
+	  } else {                   /* Incorrect end delimiter occured */
+	    retract( s, i );
+	    Delete( end_delimiter );
+	  }
+	}
+      }
+      
       break;
 
     case 3:			/* Maybe a not equals */
@@ -716,41 +877,137 @@ static int look(Scanner * s) {
       break;
 
     case 60:			/* shift operators */
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
+      }
       if (c == '<')
 	state = 240;
       else if (c == '=')
 	return SWIG_TOKEN_LTEQUAL;
       else {
 	retract(s, 1);
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
       }
       break;
     case 61:
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
-      if (c == '>')
+      }
+      if (c == '>' && brackets_allow_shift(s))
 	state = 250;
       else if (c == '=')
 	return SWIG_TOKEN_GTEQUAL;
       else {
 	retract(s, 1);
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
-    case 7:			/* Identifier */
-      if ((c = nextchar(s)) == 0)
-	state = 71;
-      else if (isalnum(c) || (c == '_') || (c == '$')) {
-	state = 7;
-      } else {
+    
+    case 7:			/* Identifier or true/false or unicode/custom delimiter string */
+      if (c == 'R') { /* Possibly CUSTOM DELIMITER string */
+	state = 72;
+	break;
+      }
+      else if (c == 'L') { /* Probably identifier but may be a wide string literal */
+	state = 77;
+	break;
+      }
+      else if (c != 'u' && c != 'U') { /* Definitely an identifier */
+	state = 70;
+	break;
+      }
+      
+      if ((c = nextchar(s)) == 0) {
+	state = 76;
+      }
+      else if (c == '\"') { /* Definitely u, U or L string */
 	retract(s, 1);
+	state = 1000;
+      }
+      else if (c == 'R') { /* Possibly CUSTOM DELIMITER u, U, L string */
+	state = 73;
+      }
+      else if (c == '8') { /* Possibly u8 string */
 	state = 71;
+      }
+      else {
+	retract(s, 1);   /* Definitely an identifier */
+	state = 70;
       }
       break;
 
-    case 71:			/* Identifier or true/false */
+    case 70:			/* Identifier */
+      if ((c = nextchar(s)) == 0)
+	state = 76;
+      else if (isalnum(c) || (c == '_') || (c == '$')) {
+	state = 70;
+      } else {
+	retract(s, 1);
+	state = 76;
+      }
+      break;
+    
+    case 71:			/* Possibly u8 string */
+      if ((c = nextchar(s)) == 0) {
+	state = 76;
+      }
+      else if (c=='\"') {
+	retract(s, 1); /* Definitely u8 string */
+	state = 1000;
+      }
+      else if (c=='R') {
+	state = 74; /* Possibly CUSTOM DELIMITER u8 string */
+      }
+      else {
+	retract(s, 2); /* Definitely an identifier. Retract 8" */
+	state = 70;
+      }
+      
+      break;
+
+    case 72:			/* Possibly CUSTOM DELIMITER string */
+    case 73:
+    case 74:
+      if ((c = nextchar(s)) == 0) {
+	state = 76;
+      }
+      else if (c=='\"') {
+	retract(s, 1); /* Definitely custom delimiter u, U or L string */
+	str_delimiter = NewStringEmpty();
+	state = 1000;
+      }
+      else {
+	if (state==72) {
+	  retract(s, 1); /* Definitely an identifier. Retract ? */
+	}
+	else if (state==73) {
+	  retract(s, 2); /* Definitely an identifier. Retract R? */
+	}
+	else if (state==74) {
+	  retract(s, 3); /* Definitely an identifier. Retract 8R? */
+	}
+	state = 70;
+      }
+      
+      break;
+
+    case 75:			/* Special identifier $ */
+      if ((c = nextchar(s)) == 0)
+	return SWIG_TOKEN_DOLLAR;
+      if (isalnum(c) || (c == '_') || (c == '*') || (c == '&')) {
+	state = 70;
+      } else {
+	retract(s,1);
+	if (Len(s->text) == 1) return SWIG_TOKEN_DOLLAR;
+	state = 76;
+      }
+      break;
+
+    case 76:			/* Identifier or true/false */
       if (cparse_cplusplus) {
 	if (Strcmp(s->text, "true") == 0)
 	  return SWIG_TOKEN_BOOL;
@@ -760,15 +1017,56 @@ static int look(Scanner * s) {
       return SWIG_TOKEN_ID;
       break;
 
-    case 75:			/* Special identifier $ */
+    case 77: /*identifier or wide string literal*/
       if ((c = nextchar(s)) == 0)
-	return SWIG_TOKEN_DOLLAR;
-      if (isalnum(c) || (c == '_') || (c == '*') || (c == '&')) {
+	return SWIG_TOKEN_ID;
+      else if (c == '\"') {
+	s->start_line = s->line;
+	Clear(s->text);
+	state = 78;
+      }
+      else if (c == '\'') {
+	s->start_line = s->line;
+	Clear(s->text);
+	state = 79;
+      }
+      else if (isalnum(c) || (c == '_') || (c == '$'))
 	state = 7;
-      } else {
-	retract(s,1);
-	if (Len(s->text) == 1) return SWIG_TOKEN_DOLLAR;
-	state = 71;
+      else {
+	retract(s, 1);
+	return SWIG_TOKEN_ID;
+      }
+    break;
+
+    case 78:			/* Processing a wide string literal*/
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (c == '\"') {
+	Delitem(s->text, DOH_END);
+	return SWIG_TOKEN_WSTRING;
+      } else if (c == '\\') {
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	  return SWIG_TOKEN_ERROR;
+	}
+      }
+      break;
+
+    case 79:			/* Processing a wide char literal */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated wide character constant\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (c == '\'') {
+	Delitem(s->text, DOH_END);
+	return (SWIG_TOKEN_WCHAR);
+      } else if (c == '\\') {
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide character literal\n");
+	  return SWIG_TOKEN_ERROR;
+	}
       }
       break;
 
@@ -1094,7 +1392,7 @@ static int look(Scanner * s) {
  * Real entry point to return the next token. Returns 0 if at end of input.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_token(Scanner * s) {
+int Scanner_token(Scanner *s) {
   int t;
   Delete(s->error);
   if (s->nexttoken >= 0) {
@@ -1118,7 +1416,7 @@ int Scanner_token(Scanner * s) {
  * Return the lexene associated with the last returned token.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_text(Scanner * s) {
+String *Scanner_text(Scanner *s) {
   return s->text;
 }
 
@@ -1128,7 +1426,7 @@ String *Scanner_text(Scanner * s) {
  * Skips to the end of a line
  * ----------------------------------------------------------------------------- */
 
-void Scanner_skip_line(Scanner * s) {
+void Scanner_skip_line(Scanner *s) {
   char c;
   int done = 0;
   Clear(s->text);
@@ -1138,7 +1436,7 @@ void Scanner_skip_line(Scanner * s) {
     if ((c = nextchar(s)) == 0)
       return;
     if (c == '\\') {
-      c = nextchar(s);
+      nextchar(s);
     } else if (c == '\n') {
       done = 1;
     }
@@ -1153,7 +1451,7 @@ void Scanner_skip_line(Scanner * s) {
  * (...).  Ignores symbols inside comments or strings.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
+int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int num_levels = 1;
   int state = 0;
@@ -1280,6 +1578,114 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Scanner_get_raw_text_balanced()
+ *
+ * Returns raw text between 2 braces, does not change scanner state in any way
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
+  String *result = 0;
+  char c;
+  int old_line = s->line;
+  String *old_text = Copy(s->text);
+  long position = Tell(s->str);
+
+  int num_levels = 1;
+  int state = 0;
+  char temp[2] = { 0, 0 };
+  temp[0] = (char) startchar;
+  Clear(s->text);
+  Setfile(s->text, Getfile(s->str));
+  Setline(s->text, s->line);
+  Append(s->text, temp);
+  while (num_levels > 0) {
+    if ((c = nextchar(s)) == 0) {
+      Clear(s->text);
+      Append(s->text, old_text);
+      Delete(old_text);
+      s->line = old_line;
+      return 0;
+    }
+    switch (state) {
+    case 0:
+      if (c == startchar)
+	num_levels++;
+      else if (c == endchar)
+	num_levels--;
+      else if (c == '/')
+	state = 10;
+      else if (c == '\"')
+	state = 20;
+      else if (c == '\'')
+	state = 30;
+      break;
+    case 10:
+      if (c == '/')
+	state = 11;
+      else if (c == '*')
+	state = 12;
+      else if (c == startchar) {
+	state = 0;
+	num_levels++;
+      }
+      else
+	state = 0;
+      break;
+    case 11:
+      if (c == '\n')
+	state = 0;
+      else
+	state = 11;
+      break;
+    case 12: /* first character inside C comment */
+      if (c == '*')
+	state = 14;
+      else
+	state = 13;
+      break;
+    case 13:
+      if (c == '*')
+	state = 14;
+      break;
+    case 14: /* possible end of C comment */
+      if (c == '*')
+	state = 14;
+      else if (c == '/')
+	state = 0;
+      else
+	state = 13;
+      break;
+    case 20:
+      if (c == '\"')
+	state = 0;
+      else if (c == '\\')
+	state = 21;
+      break;
+    case 21:
+      state = 20;
+      break;
+    case 30:
+      if (c == '\'')
+	state = 0;
+      else if (c == '\\')
+	state = 31;
+      break;
+    case 31:
+      state = 30;
+      break;
+    default:
+      break;
+    }
+  }
+  Seek(s->str, position, SEEK_SET);
+  result = Copy(s->text);
+  Clear(s->text);
+  Append(s->text, old_text);
+  Delete(old_text);
+  s->line = old_line;
+  return result;
+}
+/* -----------------------------------------------------------------------------
  * Scanner_isoperator()
  *
  * Returns 0 or 1 depending on whether or not a token corresponds to a C/C++
@@ -1319,7 +1725,7 @@ void Scanner_locator(Scanner *s, String *loc) {
   } else {
     int c;
     Locator *l;
-    Seek(loc, 7, SEEK_SET);
+    (void)Seek(loc, 7, SEEK_SET);
     c = Getc(loc);
     if (c == '@') {
       /* Empty locator.  We pop the last location off */

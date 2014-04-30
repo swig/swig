@@ -46,12 +46,13 @@
     $1[i] = 0;
   } else {
     $1 = 0;
+    size = 0;
   }
 }
 
 %typemap(freearg) char **STRING_ARRAY {
   int i;
-  for (i=0; i<size$argnum-1; i++)
+  for (i=0; i<size$argnum; i++)
 #ifdef __cplusplus
     delete[] $1[i];
   delete[] $1;
@@ -113,6 +114,7 @@
     return $null;
   }
   $1 = &temp; 
+  *$1 = 0;
 }
 
 %typemap(argout) char **STRING_OUT {

@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = octave
-OCTAVE       = @OCTAVE@ -qf
+OCTAVE       = @OCTAVE@
 SCRIPTSUFFIX = _runme.m
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -33,7 +33,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.
-CSRCS      = octave_empty.c
+CSRCS      = $(srcdir)/octave_empty.c
 
 # Custom tests - tests with additional commandline options
 # none!

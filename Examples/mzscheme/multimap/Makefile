@@ -3,11 +3,13 @@ SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = 
-all::
+SWIGOPT    =
+
+check: build
+	$(MAKE) -f $(TOP)/Makefile mzscheme_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' mzscheme
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile mzscheme_clean
-
-check: all

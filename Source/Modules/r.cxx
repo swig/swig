@@ -11,12 +11,9 @@
  * R language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_r_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static const double DEFAULT_NUMBER = .0000123456712312312323;
-static const int MAX_OVERLOAD_ARGS = 5;
 
 static String* replaceInitialDash(const String *name)
 {
@@ -208,7 +205,7 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 }
 
 
-static const char *usage = (char *)"\
+static const char *usage = "\
 R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\
@@ -572,7 +569,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Parm *p = parms;
   for (i = 0; p; p = nextSibling(p), ++i) {
     String *arg = Getattr(p, "name");
-    String *lname = NewString("");
+    String *lname;
 
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
       lname = NewStringf("s_arg%d", i+1);
@@ -682,7 +679,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
     */
-    Parm *bbase = NewParm(rettype, Swig_cresult_name(), n);
+    Parm *bbase = NewParmNode(rettype, n);
     String *returnTM = Swig_typemap_lookup("in", bbase, Swig_cresult_name(), f);
     if(returnTM) {
       String *tm = returnTM;
@@ -726,6 +723,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Delete(rtype);
   Delete(rettype);
   Delete(funcparams);
+  DelWrapper(f);
   
   return funName;
 }
@@ -837,7 +835,6 @@ int R::top(Node *n) {
   Delete(f_init);
 
   Delete(s_header);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
 
@@ -871,8 +868,7 @@ int R::DumpCode(Node *n) {
   Printf(scode, "%s\n\n", s_classes);
   Printf(scode, "%s\n", sfile);
   
-  Close(scode);
-  //  Delete(scode);
+  Delete(scode);
   String *outfile = Getattr(n,"outfile");
   File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
@@ -886,7 +882,6 @@ int R::DumpCode(Node *n) {
   Printf(runtime, "%s\n", f_wrapper);
   Printf(runtime, "%s\n", f_init);
 
-  Close(runtime);
   Delete(runtime);
 
   if(outputNamespaceInfo) {
@@ -907,7 +902,6 @@ int R::DumpCode(Node *n) {
     Printf(ns, "\nexportMethods(\n");
     writeListByLine(namespaceFunctions, ns, 1);
     Printf(ns, ")\n");
-    Close(ns);
     Delete(ns);
     Delete(s_namespace);
   }
@@ -1612,7 +1606,6 @@ void R::dispatchFunction(Node *n) {
 
 	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
 	if (tmcheck) {
-
 	  String *tmp = NewString("");
 	  Printf(tmp, "argv[[%d]]", j+1);
 	  Replaceall(tmcheck, "$arg", tmp);
@@ -1629,32 +1622,34 @@ void R::dispatchFunction(Node *n) {
 		 tmcheck);
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
-	} 
-	if (DohStrcmp(tm,"numeric")==0) {
+	}
+	if (tm) {
+	  if (Strcmp(tm,"numeric")==0) {
 	    Printf(f->code, "%sis.numeric(argv[[%d]])",
-		   j == 0 ? "" : " && ",
-		   j+1);
+		j == 0 ? "" : " && ",
+		j+1);
 	  }
-	  else if (DohStrcmp(tm,"integer")==0) {
+	  else if (Strcmp(tm,"integer")==0) {
 	    Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
-		   j == 0 ? "" : " && ",
-		   j+1, j+1);
+		j == 0 ? "" : " && ",
+		j+1, j+1);
 	  }
-	  else if (DohStrcmp(tm,"character")==0) {
+	  else if (Strcmp(tm,"character")==0) {
 	    Printf(f->code, "%sis.character(argv[[%d]])",
-		   j == 0 ? "" : " && ",
-		   j+1);
+		j == 0 ? "" : " && ",
+		j+1);
 	  }
 	  else {
 	    Printf(f->code, "%sextends(argtypes[%d], '%s')",
-		   j == 0 ? "" : " && ",
-		   j+1,
-		   tm);
+		j == 0 ? "" : " && ",
+		j+1,
+		tm);
 	  }
-	  if (!SwigType_ispointer(Getattr(p, "type"))) {
-	    Printf(f->code, " && length(argv[[%d]]) == 1",
-		   j+1);
-	  }
+	}
+	if (!SwigType_ispointer(Getattr(p, "type"))) {
+	  Printf(f->code, " && length(argv[[%d]]) == 1",
+	      j+1);
+	}
 	p = Getattr(p, "tmap:in:next");
       }
       Printf(f->code, ") { f <- %s%s; }\n", sfname, overname);
@@ -1848,18 +1843,21 @@ int R::functionWrapper(Node *n) {
     String   *lname  = Getattr(p,"lname");
 
     // R keyword renaming
-    if (name && Swig_name_warning(p, 0, name, 0))
-      name = 0;
-
-    /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
-       we need to remove that prefix. */
-    while (Strstr(name, "::")) {
-      //XXX need to free.
-      name = NewStringf("%s", Strchr(name, ':') + 2);
-      if (debugMode)
-	Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+    if (name) {
+      if (Swig_name_warning(p, 0, name, 0)) {
+	name = 0;
+      } else {
+	/* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
+	   we need to remove that prefix. */
+	while (Strstr(name, "::")) {
+	  //XXX need to free.
+	  name = NewStringf("%s", Strchr(name, ':') + 2);
+	  if (debugMode)
+	    Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+	}
+      }
     }
-    if (Len(name) == 0)
+    if (!name || Len(name) == 0)
       name = NewStringf("s_arg%d", i+1);
 
     name = replaceInitialDash(name);
@@ -1903,6 +1901,8 @@ int R::functionWrapper(Node *n) {
 	       "\n};\n",
 	       "if(is(", name, ", \"NativeSymbolInfo\")) {\n",
 	       name, " = ", name, "$address", ";\n}\n",
+	       "if(is(", name, ", \"ExternalReference\")) {\n",
+	       name, " = ", name, "@ref;\n}\n",
 	       "}; \n",
 	       NIL);
       } else {
@@ -2112,7 +2112,7 @@ int R::functionWrapper(Node *n) {
 	{ 
 	  String *finalizer = NewString(iname);
 	  Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
-	  Printf(sfun->code, "reg.finalizer(ans, delete_%s)\n", finalizer);
+	  Printf(sfun->code, "reg.finalizer(ans@ref, delete_%s)\n", finalizer);
 	}                                                                      
       Printf(sfun->code, "ans\n");
     }
@@ -2160,7 +2160,7 @@ int R::functionWrapper(Node *n) {
   /* If we are dealing with a method in an C++ class, then 
      add the name of the R function and its definition. 
      XXX need to figure out how to store the Wrapper if possible in the hash/list.
-     Would like to be able to do this so that we can potentialy insert
+     Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
     addAccessor(member_name, sfun, iname);
@@ -2298,7 +2298,7 @@ int R::classDeclaration(Node *n) {
     
   /* If we have a typedef union { ... } U, then we never get to see the typedef
      via a regular call to typedefHandler. Instead, */
-  if(Getattr(n, "unnamed") && Strcmp(Getattr(n, "storage"), "typedef") == 0 
+  if(Getattr(n, "unnamed") && Getattr(n, "storage") && Strcmp(Getattr(n, "storage"), "typedef") == 0
      && Getattr(n, "tdname") && Strcmp(Getattr(n, "tdname"), name) == 0) {
     if (debugMode)
       Printf(stdout, "Typedef in the class declaration for %s\n", name);
@@ -2348,7 +2348,7 @@ int R::classDeclaration(Node *n) {
       elName = Getattr(c, "name");
  
       String *elKind = Getattr(c, "kind");
-      if (Strcmp(elKind, "variable") != 0) {
+      if (!Equal(elKind, "variable")) {
 	c = nextSibling(c);
 	continue;
       }
@@ -2450,8 +2450,7 @@ int R::generateCopyRoutines(Node *n) {
       continue;
     }
     String *elKind = Getattr(c, "kind");
-    if (Strcmp(elKind, "variable") != 0) {
-      Delete(elKind);
+    if (!Equal(elKind, "variable")) {
       continue;
     }
 

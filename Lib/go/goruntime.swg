@@ -5,12 +5,35 @@
  * ------------------------------------------------------------ */
 
 %insert(runtime) %{
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
-typedef struct { char *p; int n; } _gostring_;
-typedef struct { void* array; unsigned int len; unsigned int cap; } _goslice_;
+%}
+
+#if SWIGGO_INTGO_SIZE == 32
+%insert(runtime) %{
+typedef int intgo;
+typedef unsigned int uintgo;
+%}
+#elif SWIGGO_INTGO_SIZE == 64
+%insert(runtime) %{
+typedef long long intgo;
+typedef unsigned long long uintgo;
+%}
+#else
+%insert(runtime) %{
+typedef ptrdiff_t intgo;
+typedef size_t uintgo;
+%}
+#endif
+
+%insert(runtime) %{
+
+typedef struct { char *p; intgo n; } _gostring_;
+typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
 
@@ -84,6 +107,64 @@ extern "C" {
 #endif
 extern void *_cgo_allocate(size_t);
 extern void _cgo_panic(const char *);
+
+/* Implementations of SwigCgocall and friends for different versions
+   of gccgo.  The Go code will call these functions using C names with
+   a prefix of the module name.  The implementations here call the
+   routine in libgo.  The routines to call vary depending on the gccgo
+   version.  We assume that the version of gcc used to compile this
+   file is the same as the version of gccgo.  */
+
+#define SWIG_GCC_VERSION \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC__PATH_LEVEL__)
+
+#if SWIG_GCC_VERSION < 40700
+#define SwigDoCgocall()
+#define SwigDoCgocallDone()
+#define SwigDoCgocallBack()
+#define SwigDoCgocallBackDone()
+#elif SWIG_GCC_VERSION == 40700
+void SwigDoCgocall(void) __asm__("libgo_syscall.syscall.Entersyscall");
+void SwigDoCgocallDone(void) __asm__("libgo_syscall.syscall.Exitsyscall");
+void SwigDoCgocallBack(void) __asm__("libgo_syscall.syscall.Exitsyscall");
+void SwigDoCgocallBackDone(void) __asm__("libgo_syscall.syscall.Entersyscall");
+#else
+void SwigDoCgocall(void) __asm__("syscall.Cgocall");
+void SwigDoCgocallDone(void) __asm__("syscall.CgocallDone");
+void SwigDoCgocallBack(void) __asm__("syscall.CgocallBack");
+void SwigDoCgocallBackDone(void) __asm__("syscall.CgocallBackDone");
+#endif
+
+#define SWIGSTRINGIFY2(s) #s
+#define SWIGSTRINGIFY(s) SWIGSTRINGIFY2(s)
+
+void SwigCgocall()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocall");
+void SwigCgocall() {
+  SwigDoCgocall();
+}
+
+void SwigCgocallDone()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallDone");
+void SwigCgocallDone() {
+  SwigDoCgocallDone();
+}
+
+void SwigCgocallBack()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBack");
+void SwigCgocallBack() {
+  SwigDoCgocallBack();
+}
+
+void SwigCgocallBackDone()
+  __asm__(SWIGSTRINGIFY(SWIGGO_PREFIX) ".SwigCgocallBackDone");
+void SwigCgocallBackDone() {
+  SwigDoCgocallBackDone();
+}
+
+#undef SWIGSTRINGIFY
+#undef SWIGSTRINGIFY2
+
 #ifdef __cplusplus
 }
 #endif
@@ -111,23 +192,25 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 
 #ifndef SWIGGO_GCCGO
 
-%insert(go_header) %{
-
-import _ "runtime/cgo"
-
-%}
+%go_import("unsafe", _ "runtime/cgo")
 
 #else
 
-%insert(go_header) %{
+%go_import("syscall", "unsafe")
 
-import "syscall"
+%insert(go_header) %{
 
 type _ syscall.Sockaddr
 
 %}
 
 #endif
+
+%insert(go_header) %{
+
+type _ unsafe.Pointer
+
+%}
 
 /* Function pointers are translated by the code in go.cxx into
    _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */

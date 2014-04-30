@@ -12,8 +12,6 @@
  *     ordinary FILE * or integer file descriptor.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_file_c[] = "$Id$";
-
 #include "dohint.h"
 
 #ifdef DOH_INTFILE

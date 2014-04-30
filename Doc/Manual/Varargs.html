@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Varargs"></a>13 Variable Length Arguments</H1>
+<H1><a name="Varargs"></a>14 Variable Length Arguments</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -42,7 +42,7 @@ added in SWIG-1.3.12.  Most other wrapper generation tools have
 wisely chosen to avoid this issue.
 </p>
 
-<H2><a name="Varargs_nn2"></a>13.1 Introduction</H2>
+<H2><a name="Varargs_nn2"></a>14.1 Introduction</H2>
 
 
 <p>
@@ -139,7 +139,7 @@ List make_list(const char *s, ...) {
 </pre>
 </div>
 
-<H2><a name="Varargs_nn3"></a>13.2 The Problem</H2>
+<H2><a name="Varargs_nn3"></a>14.2 The Problem</H2>
 
 
 <p>
@@ -232,7 +232,7 @@ can also support real varargs wrapping (with stack-frame manipulation) if you
 are willing to get hands dirty.  Keep reading.
 </p>
 
-<H2><a name="Varargs_nn4"></a>13.3 Default varargs support</H2>
+<H2><a name="Varargs_nn4"></a>14.3 Default varargs support</H2>
 
 
 <p>
@@ -301,7 +301,7 @@ Read on for further solutions.
 </p>
 
 
-<H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
+<H2><a name="Varargs_nn5"></a>14.4 Argument replacement using %varargs</H2>
 
 
 <p>
@@ -398,7 +398,7 @@ int execlp(const char *path, const char *arg, ...);
 </div>
 
 <p>
-Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%vargars</tt> with 3.
+Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%varargs</tt> with 3.
 Now <tt>execlp("a", "b", "c", "d", "e")</tt> will result in an error as one too many arguments has been passed,
 as now only 2 additional 'str' arguments can be passed with the 3rd one always using the specified default <tt>NULL</tt>.
 </p>
@@ -412,7 +412,7 @@ mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  
 </p>
 
-<H2><a name="Varargs_nn6"></a>13.5 Varargs and typemaps</H2>
+<H2><a name="Varargs_nn6"></a>14.5 Varargs and typemaps</H2>
 
 
 <p>
@@ -509,10 +509,10 @@ like this:
 
 <div class="code">
 <pre>
-%typemap(in) (...)(char *args[10]) {
+%typemap(in) (...)(char *vargs[10]) {
   int i;
   int argc;
-  for (i = 0; i &lt; 10; i++) args[i] = 0;
+  for (i = 0; i &lt; 10; i++) vargs[i] = 0;
   argc = PyTuple_Size(varargs);
   if (argc &gt; 10) {
     PyErr_SetString(PyExc_ValueError, "Too many arguments");
@@ -528,7 +528,7 @@ like this:
        return NULL;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
-    str = PyBytes_AsString(pystr);
+    str = strdup(PyBytes_AsString(pystr));
     Py_XDECREF(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
@@ -537,22 +537,34 @@ like this:
     }
     str = PyString_AsString(pyobj);
 %#endif
-    args[i] = str;
+    vargs[i] = str;
   }
-  $1 = (void *) args;
+  $1 = (void *)vargs;
+}
+
+%typemap(freearg) (...) {
+%#if PY_VERSION_HEX&gt;=0x03000000
+  int i;
+  for (i = 0; i &lt; 10; i++) {
+    free(vargs$argnum[i]);
+  }
+%#endif
 }
 </pre>
 </div>
 
 <p>
-In this typemap, the special variable <tt>varargs</tt> is a tuple
+In the 'in' typemap, the special variable <tt>varargs</tt> is a tuple
 holding all of the extra arguments passed (this is specific to the
 Python module).  The typemap then pulls this apart and sticks the
 values into the array of strings <tt>args</tt>.  Then, the array is
 assigned to <tt>$1</tt> (recall that this is the <tt>void *</tt>
 variable corresponding to <tt>(...)</tt>).  However, this assignment
 is only half of the picture----clearly this alone is not enough to
-make the function work.  To patch everything up, you have to rewrite the
+make the function work.  The 'freearg' typemap cleans up memory
+allocated in the 'in' typemap; this code is generated to be called
+after the <tt>execlp</tt> function is called. To patch everything
+up, you have to rewrite the
 underlying action code using the <tt>%feature</tt> directive like
 this:
 </p>
@@ -560,9 +572,9 @@ this:
 <div class="code">
 <pre>
 %feature("action") execlp {
-   char *args = (char **) arg3;
-   result = execlp(arg1, arg2, args[0], args[1], args[2], args[3], args[4],
-                   args[5],args[6],args[7],args[8],args[9], NULL);
+  char **vargs = (char **) arg3;
+  result = execlp(arg1, arg2, vargs[0], vargs[1], vargs[2], vargs[3], vargs[4],
+                  vargs[5], vargs[6], vargs[7], vargs[8], vargs[9], NULL);
 }
 
 int execlp(const char *path, const char *arg, ...);
@@ -577,7 +589,7 @@ really want to elevate your guru status and increase your job
 security, continue to the next section.
 </p>
 
-<H2><a name="Varargs_nn7"></a>13.6 Varargs wrapping with libffi</H2>
+<H2><a name="Varargs_nn7"></a>14.6 Varargs wrapping with libffi</H2>
 
 
 <p>
@@ -829,7 +841,7 @@ provide an argument number for the first extra argument.  This can be used to in
 values.   Please consult the chapter on each language module for more details.
 </p>
 
-<H2><a name="Varargs_nn8"></a>13.7 Wrapping of va_list</H2>
+<H2><a name="Varargs_nn8"></a>14.7 Wrapping of va_list</H2>
 
 
 <p>
@@ -839,13 +851,13 @@ of type <tt>va_list</tt>.  For example:
 
 <div class="code">
 <pre>
-int vfprintf(FILE *f, const char *fmt, va_list ap);
+int vprintf(const char *fmt, va_list ap);
 </pre>
 </div>
 
 <p>
-As far as we know, there is no obvious way to wrap these functions
-with SWIG.  This is because there is no documented way to assemble the
+As far as we know, there is no obvious way to wrap these functions with
+SWIG.  This is because there is no documented way to assemble the
 proper va_list structure (there are no C library functions to do it
 and the contents of va_list are opaque).  Not only that, the contents
 of a <tt>va_list</tt> structure are closely tied to the underlying
@@ -853,7 +865,37 @@ call-stack.  It's not clear that exporting a <tt>va_list</tt> would
 have any use or that it would work at all.
 </p>
 
-<H2><a name="Varargs_nn9"></a>13.8 C++ Issues</H2>
+<p>
+A workaround can be implemented by writing a simple varargs C wrapper and then using the techniques
+discussed earlier in this chapter for varargs. Below is a simple wrapper for <tt>vprintf</tt> renamed so that
+it can still be called as <tt>vprintf</tt> from your target language. The <tt>%varargs</tt>
+used in the example restricts the function to taking one string argument.
+</p>
+
+<div class="code">
+<pre>
+%{
+int vprintf(const char *fmt, va_list ap);
+%}
+
+%varargs(const char *) my_vprintf;
+%rename(vprintf) my_vprintf;
+
+%inline %{
+int my_vprintf(const char *fmt, ...) {
+  va_list ap;
+  int result;
+
+  va_start(ap, fmt);
+  result = vprintf(fmt, ap);
+  va_end(ap);
+  return result;
+}
+%}
+</pre>
+</div>
+
+<H2><a name="Varargs_nn9"></a>14.8 C++ Issues</H2>
 
 
 <p>
@@ -922,7 +964,7 @@ design or to provide an alternative interface using a helper function than it is
 fully general wrapper to a varargs C++ member function.
 </p>
 
-<H2><a name="Varargs_nn10"></a>13.9 Discussion</H2>
+<H2><a name="Varargs_nn10"></a>14.9 Discussion</H2>
 
 
 <p>

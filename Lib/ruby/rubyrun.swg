@@ -35,7 +35,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule()	
+#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) 		SWIG_Ruby_SetModule(pointer)
 
 
@@ -151,14 +151,13 @@ SWIG_Ruby_InitRuntime(void)
 SWIGRUNTIME void
 SWIG_Ruby_define_class(swig_type_info *type)
 {
-  VALUE klass;
   char *klass_name = (char *) malloc(4 + strlen(type->name) + 1);
   sprintf(klass_name, "TYPE%s", type->name);
   if (NIL_P(_cSWIG_Pointer)) {
     _cSWIG_Pointer = rb_define_class_under(_mSWIG, "Pointer", rb_cObject);
     rb_undef_method(CLASS_OF(_cSWIG_Pointer), "new");
   }
-  klass = rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
+  rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
   free((void *) klass_name);
 }
 
@@ -371,7 +370,7 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
 }
 
 SWIGRUNTIME swig_module_info *
-SWIG_Ruby_GetModule(void)
+SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
   VALUE pointer;
   swig_module_info *ret = 0;
@@ -411,7 +410,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 SWIGINTERN
 int SWIG_Ruby_isCallable( VALUE proc )
 {
-  if ( rb_respond_to( proc, swig_call_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_call_id ) )
     return 1;
   return 0;
 }
@@ -424,7 +423,7 @@ int SWIG_Ruby_isCallable( VALUE proc )
 SWIGINTERN
 int SWIG_Ruby_arity( VALUE proc, int minimal )
 {
-  if ( rb_respond_to( proc, swig_arity_id ) == Qtrue )
+  if ( rb_respond_to( proc, swig_arity_id ) )
     {
       VALUE num = rb_funcall( proc, swig_arity_id, 0 );
       int arity = NUM2INT(num);

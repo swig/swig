@@ -1,5 +1,5 @@
 /*
-  The %implict macro allows a SwigType (Class) to be accepted
+  The %implicit macro allows a SwigType (Class) to be accepted
   as an input parameter and use its implicit constructors when needed.
 
   For example:

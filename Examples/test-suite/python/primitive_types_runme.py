@@ -165,7 +165,7 @@ t.var_paramc = sct_paramc
 t.v_check()
 
 # this value contains a '0' char!
-if def_namet != 'ho\0la':
+if def_namet != 'hola':
   print "bad namet", def_namet
   raise RuntimeError
 
@@ -174,9 +174,9 @@ if t.var_namet != def_namet:
   print "bad namet", t.var_namet, def_namet
   raise RuntimeError
 
-t.var_namet = 'holac'
+t.var_namet = 'hola'
 
-if t.var_namet != 'holac':
+if t.var_namet != 'hola':
   print "bad namet", t.var_namet
   raise RuntimeError
 
@@ -275,9 +275,21 @@ try:
 except TypeError:
   if a != t.var_char:
     error = 1
-  pass 
+  pass
 if error:
   raise RuntimeError, "bad char typemap"
+
+try:
+  error = 0
+  a = t.var_ushort
+  t.var_ushort = -1
+  error = 1
+except OverflowError:
+  if a != t.var_ushort:
+    error = 1
+  pass
+if error:
+  raise RuntimeError, "bad ushort typemap"
 
 try:
   error = 0
@@ -287,9 +299,33 @@ try:
 except OverflowError:
   if a != t.var_uint:
     error = 1
-  pass 
+  pass
 if error:
   raise RuntimeError, "bad uint typemap"
+
+try:
+  error = 0
+  a = t.var_sizet
+  t.var_sizet = -1
+  error = 1
+except OverflowError:
+  if a != t.var_sizet:
+    error = 1
+  pass
+if error:
+  raise RuntimeError, "bad sizet typemap"
+
+try:
+  error = 0
+  a = t.var_ulong
+  t.var_ulong = -1
+  error = 1
+except OverflowError:
+  if a != t.var_ulong:
+    error = 1
+  pass
+if error:
+  raise RuntimeError, "bad ulong typemap"
 
 #
 #
@@ -301,7 +337,7 @@ try:
 except TypeError:
   if a != t.var_namet:
     error = 1
-  pass 
+  pass
 if error:
   raise RuntimeError, "bad namet typemap"
 

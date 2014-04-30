@@ -9,15 +9,15 @@ else
 	require('example')
 end
 
-print "ok, lets test Lua's ownership of C++ objects"
+print "ok, let's test Lua's ownership of C++ objects"
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 0)")
 
-print "\nLets make a couple"
+print "\nLet's make a couple"
 a=example.Square(10)
 b=example.Circle(1)
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 2)")
 
-print "\nNote lets use the createX functions"
+print "\nNote let's use the createX functions"
 c=example.createCircle(5)
 d=example.createSquare(3)
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 4)")
@@ -26,12 +26,12 @@ print "\nWe will run the garbage collector & see if they are till here"
 collectgarbage()
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 4)")
 
-print "\nLets get rid of them all, collect garbage & see if they are till here"
+print "\nLet's get rid of them all, collect garbage & see if they are till here"
 a,b,c,d=nil,nil,nil,nil
 collectgarbage()
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 0)")
 
-print "\nLets start putting stuff into the ShapeOwner"
+print "\nLet's start putting stuff into the ShapeOwner"
 print "The ShapeOwner now owns the shapes, but Lua still has pointers to them"
 o=example.ShapeOwner()
 a=example.Square(10)
@@ -41,7 +41,7 @@ o:add(b)
 o:add(example.createSquare(5))
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 3)")
 
-print "\nWe will nil our references,run the garbage collector & see if they are till here"
+print "\nWe will nil our references,run the garbage collector & see if they are still here"
 print "they should be, as the ShapeOwner owns them"
 a,b=nil,nil
 collectgarbage()
@@ -101,4 +101,4 @@ print "done"
 o,sh=nil,nil
 collectgarbage()
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 0)")
-print "thats all folks!"
+print "that's all folks!"

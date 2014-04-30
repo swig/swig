@@ -35,13 +35,13 @@ class string;
 
 %typemap(in) const string &
 %{
-  std::string $1_str($input.p, $input.n);
+  $*1_ltype $1_str($input.p, $input.n);
   $1 = &$1_str;
 %}
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
 %{
-  static std::string $1_str;
+  static $*1_ltype $1_str;
   $1_str.assign($input.p, $input.n);
   $result = &$1_str;
 %}

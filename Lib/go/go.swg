@@ -4,6 +4,9 @@
  * Go configuration module.
  * ------------------------------------------------------------ */
 
+/* Code insertion directives */
+#define %go_import(...) %insert(go_imports) %{__VA_ARGS__%}
+
 /* Basic types */
 
 %typemap(gotype) bool,               const bool &               "bool"
@@ -14,15 +17,8 @@
 %typemap(gotype) unsigned short,     const unsigned short &     "uint16"
 %typemap(gotype) int,                const int &                "int"
 %typemap(gotype) unsigned int,       const unsigned int &       "uint"
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(gotype) long,               const long &               "int32"
-%typemap(gotype) unsigned long,      const unsigned long &      "uint32"
-#elif SWIGGO_LONG_TYPE_SIZE == 64
 %typemap(gotype) long,               const long &               "int64"
 %typemap(gotype) unsigned long,      const unsigned long &      "uint64"
-#else
-#error "SWIGGO_LONG_TYPE_SIZE not 32 or 64"
-#endif
 %typemap(gotype) long long,          const long long &          "int64"
 %typemap(gotype) unsigned long long, const unsigned long long & "uint64"
 %typemap(gotype) float,              const float &              "float32"
@@ -52,13 +48,16 @@
 	     const unsigned short &,
 	     const int &,
 	     const unsigned int &,
-	     const long &,
-	     const unsigned long &,
 	     const long long &,
 	     const unsigned long long &,
 	     const float &,
 	     const double &
 %{ $1 = ($1_ltype)&$input; %}
+
+%typemap(in) const long & ($*1_ltype temp),
+	     const unsigned long & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input;
+   $1 = ($1_ltype)&temp; %}
 
 %typemap(out) bool,
 	      char,
@@ -163,11 +162,7 @@
 
 /* The size_t type.  */
 
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(gotype) size_t, const size_t & %{int%}
-#else
 %typemap(gotype) size_t, const size_t & %{int64%}
-#endif
 
 %typemap(in) size_t
 %{ $1 = (size_t)$input; %}
@@ -273,6 +268,21 @@
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
 
+%typemap(gotype) SWIGTYPE &&
+%{$gotypename%}
+
+%typemap(in) SWIGTYPE &&
+%{ $1 = *($&1_ltype)&$input; %}
+
+%typemap(out) SWIGTYPE &&
+%{ *($&1_ltype)&$result = $1; %}
+
+%typemap(directorin) SWIGTYPE &&
+%{ $input = ($1_ltype)&$1_name; %}
+
+%typemap(directorout) SWIGTYPE &&
+%{ *($&1_ltype)&$result = $input; %}
+
 /* C arrays turn into Go pointers.  If we know the length we can use a
    slice.  */
 
@@ -366,13 +376,25 @@
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(out) enum SWIGTYPE
-%{ $result = $1; %}
+%{ $result = (intgo)$1; %}
 
 %typemap(directorin) enum SWIGTYPE
 %{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
+
+%typemap(directorin) enum SWIGTYPE & (intgo e)
+%{
+  e = (intgo)$1;
+  $input = &e;
+%}
+
+%typemap(directorout) enum SWIGTYPE &
+%{
+  $*1_ltype f = ($*1_ltype)*$input;
+  $result = ($1_ltype)&f;
+%}
 
 /* Arbitrary type.  This is a type passed by value in the C/C++ code.
    We convert it to a pointer for the Go code.  Note that all basic
@@ -412,14 +434,14 @@
 %typemap(throws) char *
 %{ _swig_gopanic($1); %}
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
 %{
   (void)$1;
   _swig_gopanic("C++ $1_type exception thrown");
 %}
 
 /* Typecheck typemaps.  The purpose of these is merely to issue a
-   warning for overloaded C++ functions * that cannot be overloaded in
+   warning for overloaded C++ functions that cannot be overloaded in
    Go as more than one C++ type maps to a single Go type.  */
 
 %typecheck(SWIG_TYPECHECK_BOOL) /* Go bool */
@@ -459,32 +481,16 @@
     const unsigned int &
     ""
 
-#if SWIGGO_LONG_TYPE_SIZE == 32
-%typecheck(SWIG_TYPECHECK_INT32) /* Go int32 */
-    long,
-    const long &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT32) /* Go uint32 */
-    unsigned long,
-    const unsigned long &
-    ""
-#endif
-
 %typecheck(SWIG_TYPECHECK_INT64) /* Go int64 */
-#if SWIGGO_LONG_TYPE_SIZE == 64
     long, 
     const long &, 
-#endif
     long long,
     const long long &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Go uint64 */
-#if SWIGGO_LONG_TYPE_SIZE == 64
     unsigned long, 
     const unsigned long &, 
-#endif
     unsigned long long,
     const unsigned long long &
     ""
@@ -518,6 +524,7 @@
     SWIGTYPE,
     SWIGTYPE *,
     SWIGTYPE &,
+    SWIGTYPE &&,
     SWIGTYPE *const&,
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)

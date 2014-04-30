@@ -1,21 +1,20 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    = -c++
 MODULA3SRCS = *.[im]3
 
-all::	modula3
+check: build
+	$(MAKE) -f $(TOP)/Makefile modula3_run
 
-modula3::
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' modula3
 	m3ppinplace $(MODULA3SRCS)
 	mv m3makefile $(MODULA3SRCS) src/
 	cm3
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile modula3_clean
-
-check: all

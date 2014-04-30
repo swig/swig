@@ -21,6 +21,11 @@ public class director_binary_string_runme {
 
     if (sum != 9*2*8 + 13*3*5)
       throw new RuntimeException("Unexpected sum: " + sum);
+
+    new Callback().run(null, null);
+    callback = new DirectorBinaryStringCallback();
+    caller.setCallback(callback);
+    caller.call_null();
   }
 }
 
@@ -32,11 +37,13 @@ class DirectorBinaryStringCallback extends Callback {
   @Override
   public void run(byte[] dataBufferAA, byte[] dataBufferBB)
   {
-    for (int i = 0; i < dataBufferAA.length; i++)
-      dataBufferAA[i] = (byte)(dataBufferAA[i] * 2);
+    if (dataBufferAA != null)
+      for (int i = 0; i < dataBufferAA.length; i++)
+        dataBufferAA[i] = (byte)(dataBufferAA[i] * 2);
 
-    for (int i = 0; i < dataBufferBB.length; i++)
-      dataBufferBB[i] = (byte)(dataBufferBB[i] * 3);
+    if (dataBufferBB != null)
+      for (int i = 0; i < dataBufferBB.length; i++)
+        dataBufferBB[i] = (byte)(dataBufferBB[i] * 3);
   }
 }
 

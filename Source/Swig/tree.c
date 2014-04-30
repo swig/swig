@@ -12,8 +12,6 @@
  * parse trees.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tree_c[] = "$Id$";
-
 #include "swig.h"
 #include <stdarg.h>
 #include <assert.h>
@@ -77,12 +75,12 @@ void Swig_print_node(Node *obj) {
     if ((Cmp(k, "nodeType") == 0) || (Cmp(k, "firstChild") == 0) || (Cmp(k, "lastChild") == 0) ||
 	(Cmp(k, "parentNode") == 0) || (Cmp(k, "nextSibling") == 0) || (Cmp(k, "previousSibling") == 0) || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (Cmp(k, "parms") == 0) {
+    } else if (Cmp(k, "parms") == 0 || Cmp(k, "wrap:parms") == 0) {
       print_indent(2);
-      Printf(stdout, "%-12s - %s\n", k, ParmList_protostr(Getattr(obj, k)));
+      Printf(stdout, "%-12s - %s\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
     } else {
       DOH *o;
-      char *trunc = "";
+      const char *trunc = "";
       print_indent(2);
       if (DohIsString(Getattr(obj, k))) {
 	o = Str(Getattr(obj, k));
@@ -92,7 +90,7 @@ void Swig_print_node(Node *obj) {
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
       } else {
-	Printf(stdout, "%-12s - 0x%x\n", k, Getattr(obj, k));
+	Printf(stdout, "%-12s - %p\n", k, Getattr(obj, k));
       }
     }
     ki = Next(ki);
@@ -170,6 +168,24 @@ void prependChild(Node *node, Node *chd) {
   while (chd) {
     set_parentNode(chd, node);
     chd = nextSibling(chd);
+  }
+}
+
+void appendSibling(Node *node, Node *chd) {
+  Node *parent;
+  Node *lc = node;
+  while (nextSibling(lc))
+    lc = nextSibling(lc);
+  set_nextSibling(lc, chd);
+  set_previousSibling(chd, lc);
+  parent = parentNode(node);
+  if (parent) {
+    while (chd) {
+      lc = chd;
+      set_parentNode(chd, parent);
+      chd = nextSibling(chd);
+    }
+    set_lastChild(parent, lc);
   }
 }
 

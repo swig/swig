@@ -11,8 +11,6 @@
  * A somewhat generalized implementation of SWIG1.1 typemaps.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typemap_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -89,13 +87,16 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
   return tm;
 }
 
-static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
+static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
   SwigType *hashtype = 0;
+  Hash *new_tm = 0;
+  assert(*tmhash == 0);
   if (SwigType_istemplate(type)) {
     SwigType *rty = SwigType_typedef_resolve_all(type);
     String *ty = Swig_symbol_template_deftype(rty, 0);
     String *tyq = Swig_symbol_type_qualify(ty, 0);
     hashtype = SwigType_remove_global_scope_prefix(tyq);
+    *tmhash = Getattr(typemaps[tm_scope], hashtype);
     Delete(rty);
     Delete(tyq);
     Delete(ty);
@@ -103,10 +104,17 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
     hashtype = SwigType_remove_global_scope_prefix(type);
   }
 
+  if (!*tmhash) {
+    /* this type has not been seen before even after resolving template parameter types */
+    new_tm = NewHash();
+    *tmhash = new_tm;
+  }
+
   /* note that the unary scope operator (::) prefix indicating global scope has been removed from the type */
-  Setattr(typemaps[tm_scope], hashtype, tm);
+  Setattr(typemaps[tm_scope], hashtype, *tmhash);
 
   Delete(hashtype);
+  Delete(new_tm);
 }
 
 
@@ -210,9 +218,7 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   /* See if this type has been seen before */
   tm = get_typemap(tm_scope, type);
   if (!tm) {
-    tm = NewHash();
-    set_typemap(tm_scope, type, tm);
-    Delete(tm);
+    set_typemap(tm_scope, type, &tm);
   }
   if (pname) {
     /* See if parameter has been seen before */
@@ -476,9 +482,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   type = Getattr(lastdp, "type");
   tm = get_typemap(tm_scope, type);
   if (!tm) {
-    tm = NewHash();
-    set_typemap(tm_scope, type, tm);
-    Delete(tm);
+    set_typemap(tm_scope, type, &tm);
   }
   name = Getattr(lastdp, "name");
   if (name) {
@@ -1035,13 +1039,13 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
        $*n_ltype
      */
 
-    if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype))) {
-      if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type))) {
+    if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype)) || (SwigType_isrvalue_reference(ftype))) {
+      if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
 	star_type = Copy(ftype);
       } else {
 	star_type = Copy(type);
       }
-      if (!SwigType_isreference(star_type)) {
+      if (!(SwigType_isreference(star_type) || SwigType_isrvalue_reference(star_type))) {
 	if (SwigType_isarray(star_type)) {
 	  SwigType_del_element(star_type);
 	} else {
@@ -1196,7 +1200,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
  * creates the local variables.
  * ------------------------------------------------------------------------ */
 
-static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
+static void typemap_locals(String *s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
   char *new_name;
 
@@ -1300,6 +1304,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   SwigType *mtype = 0;
   String *pname;
   String *qpname = 0;
+  String *noscope_pname = 0;
   Hash *tm = 0;
   String *s = 0;
   String *sdef = 0;
@@ -1323,7 +1328,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   /* Special hook (hack!). Check for the 'ref' feature and add code it contains to any 'newfree' typemap code.
    * We could choose to put this hook into a number of different typemaps, not necessarily 'newfree'... 
    * Rather confusingly 'newfree' is used to release memory and the 'ref' feature is used to add in memory references - yuck! */
-  if (node && Cmp(tmap_method, "newfree") == 0) {
+  if (Cmp(tmap_method, "newfree") == 0) {
     String *base = SwigType_base(type);
     Node *typenode = Swig_symbol_clookup(base, 0);
     if (typenode)
@@ -1332,21 +1337,32 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   }
 
   pname = Getattr(node, "name");
+  noscope_pname = Copy(pname);
 
-  if (pname && node && checkAttribute(node, "kind", "function")) {
-    /* 
-       For functions, add on a qualified name search, for example
-       struct Foo {
-         int *foo(int bar)   ->  Foo::foo
-       };
+  if (pname && Getattr(node, "sym:symtab")) {
+    /* Add on a qualified name search for any symbol in the symbol table, for example:
+     * struct Foo {
+     *   int *foo(int bar)   ->  Foo::foo
+     * };
+     * Note that if node is a parameter (Parm *) then there will be no symbol table attached to the Parm *.
      */
-    Symtab *st = Getattr(node, "sym:symtab");
-    String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;
-    if (qsn && Len(qsn) && !Equal(qsn, pname))
-      qpname = qsn;
+    String *qsn;
+    if (Swig_scopename_check(pname)) {
+      /* sometimes pname is qualified, so we remove all the scope for the lookup */
+      Delete(noscope_pname);
+      noscope_pname = Swig_scopename_last(pname);
+      /*
+      Printf(stdout, "Removed scope: %s => %s\n", pname, noscope_pname);
+      */
+    }
+    qsn = Swig_symbol_qualified(node);
+    if (qsn && Len(qsn)) {
+      qpname = NewStringf("%s::%s", qsn, noscope_pname);
+      Delete(qsn);
+    }
   }
 
-  tm = typemap_search(tmap_method, type, pname, qpname, &mtype, node);
+  tm = typemap_search(tmap_method, type, noscope_pname, qpname, &mtype, node);
   if (typemap_search_debug)
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
@@ -1359,6 +1375,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   Delete(qpname);
   qpname = 0;
+  Delete(noscope_pname);
+  noscope_pname = 0;
 
   if (!tm)
     return sdef;

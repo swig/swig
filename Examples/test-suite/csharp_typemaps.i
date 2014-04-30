@@ -94,7 +94,7 @@ Number times12(const Number* num) {
 %typemap(csvarin, excode=SWIGEXCODE2) int %{
     set {
       if ($csinput < 0)
-        throw new ApplicationException("number too small!");
+        throw new global::System.ApplicationException("number too small!");
       $imcall;$excode
     } %}
 
@@ -115,5 +115,24 @@ void hoop(WasCrashing was) {}
 %typemap(csbase) BigNumbers "uint"
 %inline %{
 enum BigNumbers { big=0x80000000, bigger };
+%}
+
+// Member variable qualification
+%typemap(cstype) bool "badtype1"
+%typemap(cstype) bool mvar "badtype2"
+%typemap(cstype) bool svar "badtype4"
+%typemap(cstype) bool gvar "badtype5"
+%typemap(cstype) bool MVar::mvar "bool"
+%typemap(cstype) bool MVar::svar "bool"
+%typemap(cstype) bool Glob::gvar "bool"
+%inline %{
+struct MVar {
+  bool mvar;
+  static bool svar;
+};
+namespace Glob {
+  bool gvar;
+}
+bool MVar::svar = false;
 %}
 

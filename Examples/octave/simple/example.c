@@ -14,5 +14,3 @@ int gcd(int x, int y) {
   }
   return g;
 }
-
-

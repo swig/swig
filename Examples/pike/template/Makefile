@@ -1,12 +1,15 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = 
+SWIGOPT    =
 
-all:
+check: build
+	$(MAKE) -f $(TOP)/Makefile pike_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' pike_cpp
 
@@ -16,5 +19,3 @@ static:
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile pike_clean
-
-check: all

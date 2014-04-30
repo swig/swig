@@ -146,10 +146,10 @@
 // Base proxy classes
 %typemap(javabody) TYPE %{
   private long swigCPtr;
-  private boolean swigCMemOwnBase;
+  private boolean swigCMemOwn;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwnBase = cMemoryOwn;
+    swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
@@ -176,8 +176,8 @@
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if (swigCPtr != 0) {
-      if (swigCMemOwnBase) {
-        swigCMemOwnBase = false;
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
         $jnicall;
       }
       swigCPtr = 0;

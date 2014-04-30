@@ -82,17 +82,6 @@ public class li_std_vector_runme {
       } catch (ArgumentException) {
       }
     }
-#if SWIG_DOTNET_1
-    {
-      // runtime check that 2D arrays fail
-      double[,] outputarray = new double[collectionSize,collectionSize];
-      try {
-        vect.CopyTo(outputarray);
-        throw new Exception("CopyTo (5a) test failed");
-      } catch (ArgumentException) {
-      }
-    }
-#endif
     {
       StructVector inputvector = new StructVector();
       int arrayLen = 10;
@@ -208,7 +197,6 @@ public class li_std_vector_runme {
              throw new Exception("Repeat (1) test failed");
         }
       }
-#if !SWIG_DOTNET_1
       {
         System.Collections.Generic.IEnumerator<double> myEnumerator = dv.GetEnumerator();
         while ( myEnumerator.MoveNext() ) {
@@ -216,7 +204,6 @@ public class li_std_vector_runme {
              throw new Exception("Repeat (2) test failed");
         }
       }
-#endif
     }
 
     {

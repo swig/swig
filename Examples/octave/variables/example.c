@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include "example.h"
 
-int              ivar = 0;                    
+int              ivar = 0;
 short            svar = 0;
 long             lvar = 0;
 unsigned int     uivar = 0;
@@ -51,7 +51,7 @@ void print_vars() {
   printf("dvar      = %g\n", dvar);
   printf("cvar      = %c\n", cvar);
   printf("strvar    = %s\n", strvar ? strvar : "(null)");
-  printf("cstrvar   = %s\n", cstrvar ? cstrvar : "(null)");
+  printf("cstrvar   = %s\n", cstrvar);
   printf("iptrvar   = %p\n", iptrvar);
   printf("name      = %s\n", name);
   printf("ptptr     = %p (%d, %d)\n", ptptr, ptptr ? ptptr->x : 0, ptptr ? ptptr->y : 0);

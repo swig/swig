@@ -1,8 +1,73 @@
 language: cpp
 compiler:
-  - gcc
   - clang
-script: ./autogen.sh && ./configure && make -s
+  - gcc
+env:
+  - SWIGLANG=
+matrix:
+  include:
+    - compiler: gcc
+      env: SWIGLANG=csharp
+    - compiler: gcc
+      env: SWIGLANG=go
+    - compiler: gcc
+      env: SWIGLANG=guile
+    - compiler: gcc
+      env: SWIGLANG=java
+    - compiler: gcc
+      env: SWIGLANG=lua
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j4
+    - compiler: gcc
+      env: SWIGLANG=perl5
+    - compiler: gcc
+      env: SWIGLANG=php
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.4
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.5
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.6
+    - compiler: gcc
+      env: SWIGLANG=python # 2.7
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 # 3.2
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.3
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.4
+    - compiler: gcc
+      env: SWIGLANG=ruby
+    - compiler: gcc
+      env: SWIGLANG=tcl
+  allow_failures:
+    # None
+before_install:
+  - date -u
+  - lsb_release -a
+  - uname -a
+  - sudo apt-get -qq update
+  - time sudo apt-get -qq install libboost-dev
+  - if test -z "$SWIGLANG"; then sudo apt-get -qq install yodl; fi
+  - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
+  - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
+  - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
+  - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
+  - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
+  - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
+  - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
+  - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
+  - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
+script:
+  - ./autogen.sh && ./configure $CONFIGOPTS
+  - make -s $SWIGJOBS
+  - ./swig -version && ./swig -pcreversion
+  - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
+  - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
+  - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
+  - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
+  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
+  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
 branches:
   only:
     - master

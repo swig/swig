@@ -3,7 +3,7 @@
 */
 %include <std_map.i>
 
-%fragment("StdMultimapTraits","header",fragment="StdSequenceTraits")
+%fragment("StdMultimapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
     template <class RubySeq, class K, class T >

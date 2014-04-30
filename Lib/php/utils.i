@@ -80,18 +80,18 @@
 %}
 %typemap(directorout) TYPE
 %{
-  CONVERT_IN($result,$1_ltype,$input);
+  CONVERT_IN($result,$1_ltype,&$input);
 %}
 %typemap(directorout) const TYPE & ($*1_ltype temp)
 %{
-  CONVERT_IN(temp,$*1_ltype,$input);
+  CONVERT_IN(temp,$*1_ltype,&$input);
   $result = &temp;
 %}
 %enddef
 
 %fragment("t_output_helper","header") %{
 static void
-t_output_helper( zval **target, zval *o) {
+t_output_helper(zval **target, zval *o TSRMLS_DC) {
   if ( (*target)->type == IS_ARRAY ) {
     /* it's already an array, just append */
     add_next_index_zval( *target, o );

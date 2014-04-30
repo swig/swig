@@ -7,7 +7,8 @@
 %{
 typedef struct SWIGCDATA {
     char *data;
-    int   len;
+    intgo len;
+    intgo cap;
 } SWIGCDATA;
 %}
 
@@ -15,7 +16,8 @@ typedef struct SWIGCDATA {
 %typemap(out) SWIGCDATA %{
   $result.data = (char*)_swig_goallocate($1.len);
   memcpy($result.data, $1.data, $1.len);
-  $result.len = (int)$1.len;
+  $result.len = (intgo)$1.len;
+  $result.cap = $result.len;
 %}
 
 /* -----------------------------------------------------------------------------

@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Lua"></a>26 SWIG and Lua</H1>
+<H1><a name="Lua"></a>27 SWIG and Lua</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -24,8 +24,11 @@
 <li><a href="#Lua_nn9">Functions</a>
 <li><a href="#Lua_nn10">Global variables</a>
 <li><a href="#Lua_nn11">Constants and enums</a>
+<ul>
+<li><a href="#Lua_nn13">Constants/enums and classes/structures</a>
+</ul>
 <li><a href="#Lua_nn12">Pointers</a>
-<li><a href="#Lua_nn13">Structures</a>
+<li><a href="#Lua_structures">Structures</a>
 <li><a href="#Lua_nn14">C++ classes</a>
 <li><a href="#Lua_nn15">C++ inheritance</a>
 <li><a href="#Lua_nn16">Pointers, references, values, and arrays</a>
@@ -36,17 +39,23 @@
 <li><a href="#Lua_nn21">C++ templates</a>
 <li><a href="#Lua_nn22">C++ Smart Pointers</a>
 <li><a href="#Lua_nn23">C++ Exceptions</a>
+<li><a href="#Lua_namespaces">Namespaces </a>
+<ul>
+<li><a href="#Lua_nn27">Compatibility Note </a>
+<li><a href="#Lua_nn29">Names </a>
+<li><a href="#Lua_nn30">Inheritance </a>
+</ul>
 </ul>
 <li><a href="#Lua_nn24">Typemaps</a>
 <ul>
 <li><a href="#Lua_nn25">What is a typemap?</a>
 <li><a href="#Lua_nn26">Using typemaps</a>
-<li><a href="#Lua_nn27">Typemaps and arrays</a>
-<li><a href="#Lua_nn28">Typemaps and pointer-pointer functions</a>
+<li><a href="#Lua_typemap_arrays">Typemaps and arrays</a>
+<li><a href="#Lua_typemaps_ptr_ptr_functions">Typemaps and pointer-pointer functions</a>
 </ul>
-<li><a href="#Lua_nn29">Writing typemaps</a>
+<li><a href="#Lua_writing_typemaps">Writing typemaps</a>
 <ul>
-<li><a href="#Lua_nn30">Typemaps you can write</a>
+<li><a href="#Lua_typemaps_write">Typemaps you can write</a>
 <li><a href="#Lua_nn31">SWIG's Lua-C API</a>
 </ul>
 <li><a href="#Lua_nn32">Customization of your Bindings</a>
@@ -73,14 +82,14 @@ Lua is an extension programming language designed to support general procedural 
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
 </p>
 
-<H2><a name="Lua_nn2"></a>26.1 Preliminaries</H2>
+<H2><a name="Lua_nn2"></a>27.1 Preliminaries</H2>
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
+The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also has support for eLua starting from eLua 0.8. Due to substantial changes between SWIG 2.x and SWIG 3.0 and unavailability of testing platform, eLua status was downgraded to 'experimental'.
 </p>
 
-<H2><a name="Lua_nn3"></a>26.2 Running SWIG</H2>
+<H2><a name="Lua_nn3"></a>27.2 Running SWIG</H2>
 
 
 <p>
@@ -128,7 +137,7 @@ $ swig -lua -eluac example.i
 The <tt>-elua</tt> option puts all the C function wrappers and variable get/set wrappers in rotables. It also generates a metatable which will control the access to these variables from eLua. It also offers a significant amount of module size compression. On the other hand, the <tt>-eluac</tt> option puts all the wrappers in a single rotable. With this option, no matter how huge the module, it will consume no additional microcontroller SRAM (crass compression). There is a catch though: Metatables are not generated with <tt>-eluac</tt>. To access any value from eLua, one must directly call the wrapper function associated with that value.
 </p>
 
-<H3><a name="Lua_commandline"></a>26.2.1 Additional command line options</H3>
+<H3><a name="Lua_commandline"></a>27.2.1 Additional command line options</H3>
 
 
 <p>
@@ -159,9 +168,17 @@ swig -lua -help
 <td>Do not register the module name as a global variable but return the module table from calls to require.</td>
 </tr>
 
+<tr>
+  <td>-no-old-metatable-bindings</td>
+  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included in appropriate later sections.</td>
+</tr>
+<tr>
+  <td>-squash-bases</td>
+  <td>Squashes symbols from all inheritance tree of a given class into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly speeds things up, but increases memory consumption.</td>
+</tr>
 </table>
 
-<H3><a name="Lua_nn4"></a>26.2.2 Compiling and Linking and Interpreter</H3>
+<H3><a name="Lua_nn4"></a>27.2.2 Compiling and Linking and Interpreter</H3>
 
 
 <p>
@@ -232,16 +249,16 @@ LUALIB_API int ( luaopen_mod )(lua_State *L );
 More information on building and configuring eLua can be found here: <a href="http://www.eluaproject.net/doc/v0.8/en_building.html">http://www.eluaproject.net/doc/v0.8/en_building.html</a>
 </p>
 
-<H3><a name="Lua_nn5"></a>26.2.3 Compiling a dynamic module</H3>
+<H3><a name="Lua_nn5"></a>27.2.3 Compiling a dynamic module</H3>
 
 
 <p>
-Most, but not all platforms support the dynamic loading of modules (Windows &amp; Linux do). Refer to the Lua manual to determine if your platform supports it. For compiling a dynamically loaded module the same wrapper can  be used. The commands will be something like this:
+Most, but not all platforms support the dynamic loading of modules (Windows &amp; Linux do). Refer to the Lua manual to determine if your platform supports it. For compiling a dynamically loaded module the same wrapper can  be used. Assuming you have code you need to link to in a file called <tt>example.c</tt>, the commands will be something like this:
 </p>
 <div class="shell"><pre>
 $ swig -lua example.i -o example_wrap.c
-$ gcc -I/usr/include/lua -c example_wrap.c -o example_wrap.o
-$ gcc -c example.c -o example.o
+$ gcc -fPIC -I/usr/include/lua -c example_wrap.c -o example_wrap.o
+$ gcc -fPIC -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
@@ -300,7 +317,7 @@ Is quite obvious (Go back and consult the Lua documents on how to enable loadlib
 
 
 
-<H3><a name="Lua_nn6"></a>26.2.4 Using your module</H3>
+<H3><a name="Lua_nn6"></a>27.2.4 Using your module</H3>
 
 
 <p>
@@ -318,19 +335,19 @@ $ ./my_lua
 &gt;
 </pre></div>
 
-<H2><a name="Lua_nn7"></a>26.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Lua_nn7"></a>27.3 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
 By default, SWIG tries to build a very natural Lua interface to your C/C++ code. This section briefly covers the essential aspects of this wrapping.
 </p>
-<H3><a name="Lua_nn8"></a>26.3.1 Modules</H3>
+<H3><a name="Lua_nn8"></a>27.3.1 Modules</H3>
 
 
 <p>
 The SWIG module directive specifies the name of the Lua module. If you specify `module example', then everything is wrapped into a Lua table 'example' containing all the functions and variables. When choosing a module name, make sure you don't use the same name as a built-in Lua command or standard module name.
 </p>
-<H3><a name="Lua_nn9"></a>26.3.2 Functions</H3>
+<H3><a name="Lua_nn9"></a>27.3.2 Functions</H3>
 
 
 <p>
@@ -349,7 +366,10 @@ creates a built-in function <tt>example.fact(n)</tt> that works exactly like you
 &gt;
 </pre></div>
 <p>
-To avoid name collisions, SWIG create a Lua table which it keeps all the functions and global variables in. It is possible to copy the functions out of this and into the global environment with the following code. This can easily overwrite existing functions, so this must be used with care.
+To avoid name collisions, SWIG create a Lua table which keeps all the functions, constants, classes and global variables in.
+It is possible to copy the functions, constants and classes (but not variables) out of this and into the global environment with the following code.
+This can easily overwrite existing functions, so this must be used with care.
+This option is considered deprecated and will be removed in the near future.
 </p>
 <div class="targetlang"><pre>
 &gt; for k,v in pairs(example) do _G[k]=v end
@@ -368,7 +388,7 @@ It is also possible to rename the module with an assignment.
 24
 </pre></div>
 
-<H3><a name="Lua_nn10"></a>26.3.3 Global variables</H3>
+<H3><a name="Lua_nn10"></a>27.3.3 Global variables</H3>
 
 
 <p>
@@ -456,7 +476,7 @@ If you have used the <tt>-eluac</tt> option for your eLua module, you will have 
 In general, functions of the form <tt>"variable_get()"</tt> and <tt>"variable_set()"</tt> are automatically generated by SWIG for use with <tt>-eluac</tt>.
 </p>
 
-<H3><a name="Lua_nn11"></a>26.3.4 Constants and enums</H3>
+<H3><a name="Lua_nn11"></a>27.3.4 Constants and enums</H3>
 
 
 <p>
@@ -490,7 +510,64 @@ If you're using eLua and have used <tt>-elua</tt> or <tt>-eluac</tt> to generate
 &gt; print(example.const.SCONST)
 Hello World
 </pre></div>
-<H3><a name="Lua_nn12"></a>26.3.5 Pointers</H3>
+
+<H4><a name="Lua_nn13"></a>27.3.4.1 Constants/enums and classes/structures</H4>
+
+
+<p>
+Enums are exported into a class table. For example, given some enums:
+</p>
+<div class="code"><pre>%module example
+enum Days { SUNDAY = 0, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY };
+struct Test {
+    enum { TEST1 = 10, TEST2 = 20 };
+#ifdef __cplusplus // There are no static members in C
+    static const int ICONST = 12;
+#endif
+};
+</pre></div>
+<p>
+There is a slight difference in behaviour wrapping C and C++ code due to the different scoping rules of C and C++.
+The wrapped C++ code is used as follows from Lua code:
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.SUNDAY)
+0
+&gt; print(example.Test.TEST1)
+10
+&gt; print(example.Test.ICONST)
+12
+</pre></div>
+
+<p>Enums within a C struct are in the global namespace and are used as follows from Lua</p>
+<div class="targetlang"><pre>
+&gt; print(example.SUNDAY)
+0
+&gt; -- See the difference here
+&gt; print(example.TEST1)
+10
+</pre></div>
+
+<p>
+<b>Compatibility Note:</b> Versions of SWIG prior to SWIG-3.0.0 did not generate the class table members above.
+There is no change in the C wrappers, but
+the following code was the only way to access these constants/enums when wrapping C++ member constants:
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.Test_TEST1)
+10
+&gt; print(example.Test_ICONST)
+12
+</pre></div>
+<p>
+The old-style bindings are still generated in addition to the new ones.
+If the <tt>-no-old-metatable-bindings</tt> option is used, then these old-style bindings are not generated.
+</p>
+<p>
+It is worth mentioning, that <tt>example.Test.TEST1</tt> and <tt>example.Test_TEST1</tt> are different entities and changing one does not change the other. 
+Given the fact that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
+</p>
+<H3><a name="Lua_nn12"></a>27.3.5 Pointers</H3>
 
 
 <p>
@@ -528,7 +605,7 @@ Lua enforces the integrity of its userdata, so it is virtually impossible to cor
 nil
 </pre></div>
 
-<H3><a name="Lua_nn13"></a>26.3.6 Structures</H3>
+<H3><a name="Lua_structures"></a>27.3.6 Structures</H3>
 
 
 <p>
@@ -551,7 +628,7 @@ is used as follows:
 </pre></div>
 <p>
 Similar access is provided for unions and the data members of C++ classes.<br>
-C structures are created using a function <tt>new_Point()</tt>, but for C++ classes are created using just the name <tt>Point()</tt>.
+C structures can be created using a function <tt>new_Point()</tt>, and both C structures and C++ classes can be created using just the name <tt>Point()</tt>.
 </p>
 <p>
 If you print out the value of p in the above example, you will see something like this:
@@ -632,7 +709,7 @@ For eLua with the <tt>-eluac</tt> option, structure manipulation has to be perfo
 In general, functions of the form <tt>"new_struct()"</tt>, <tt>"struct_member_get()"</tt>, <tt>"struct_member_set()"</tt> and <tt>"free_struct()"</tt> are automatically generated by SWIG for each structure defined in C. (Please note: This doesn't apply for modules generated with the <tt>-elua</tt> option)
 </p>
 
-<H3><a name="Lua_nn14"></a>26.3.7 C++ classes</H3>
+<H3><a name="Lua_nn14"></a>27.3.7 C++ classes</H3>
 
 
 <p>
@@ -676,12 +753,12 @@ public:
 };
 </pre></div>
 <p>
-In Lua, the static members can be accessed as follows:
+In Lua, C++ static members can be accessed as follows:
 </p>
 <div class="code"><pre>
-&gt; example.Spam_foo()            -- calling Spam::foo()
-&gt; a=example.Spam_bar            -- reading Spam::bar 
-&gt; example.Spam_bar=b            -- writing to Spam::bar
+&gt; example.Spam.foo()            -- calling Spam::foo()
+&gt; a=example.Spam.bar            -- reading Spam::bar 
+&gt; example.Spam.bar=b            -- writing to Spam::bar
 </pre></div>
 <p>
 It is not (currently) possible to access static members of an instance:
@@ -692,7 +769,22 @@ It is not (currently) possible to access static members of an instance:
                                 -- does NOT work
 </pre></div>
 
-<H3><a name="Lua_nn15"></a>26.3.8 C++ inheritance</H3>
+<p>
+<b>Compatibility Note:</b> In versions prior to SWIG-3.0.0 only the following names would work:
+</p>
+
+<div class="code"><pre>
+&gt; example.Spam_foo()            -- calling Spam::foo()
+&gt; a=example.Spam_bar            -- reading Spam::bar 
+&gt; example.Spam_bar=b            -- writing to Spam::bar
+</pre></div>
+
+<p>
+Both style names are generated by default now. 
+However, if the <tt>-no-old-metatable-bindings</tt> option is used, then the backward compatible names are not generated in addition to ordinary ones.
+</p>
+
+<H3><a name="Lua_nn15"></a>27.3.8 C++ inheritance</H3>
 
 
 <p>
@@ -717,7 +809,7 @@ then the function <tt>spam()</tt> accepts a Foo pointer or a pointer to any clas
 <p>
 It is safe to use multiple inheritance with SWIG.
 </p>
-<H3><a name="Lua_nn16"></a>26.3.9 Pointers, references, values, and arrays</H3>
+<H3><a name="Lua_nn16"></a>27.3.9 Pointers, references, values, and arrays</H3>
 
 
 <p>
@@ -748,7 +840,7 @@ Foo  spam7();
 <p>
 then all three functions will return a pointer to some Foo object. Since the third function (spam7) returns a value, newly allocated memory is used to hold the result and a pointer is returned (Lua will release this memory when the return value is garbage collected). The other two are pointers which are assumed to be managed by the C code and so will not be garbage collected.
 </p>
-<H3><a name="Lua_nn17"></a>26.3.10 C++ overloaded functions</H3>
+<H3><a name="Lua_nn17"></a>27.3.10 C++ overloaded functions</H3>
 
 
 <p>
@@ -834,7 +926,7 @@ Please refer to the "SWIG and C++" chapter for more information about overloadin
 <p>
 Dealing with the Lua coercion mechanism, the priority is roughly (integers, floats, strings, userdata). But it is better to rename the functions rather than rely upon the ordering.
 </p>
-<H3><a name="Lua_nn18"></a>26.3.11 C++ operators</H3>
+<H3><a name="Lua_nn18"></a>27.3.11 C++ operators</H3>
 
 
 <p>
@@ -898,7 +990,7 @@ The current list of operators which can be overloaded (and the alternative funct
 <li><tt>__sub__</tt> operator-
 <li><tt>__mul__</tt> operator *
 <li><tt>__div__</tt> operator/
-<li><tt>__neg__</tt> unary minus
+<li><tt>__unm__</tt> unary minus
 <li><tt>__call__</tt> operator<tt>()</tt> (often used in functor classes)
 <li><tt>__pow__</tt> the exponential fn (no C++ equivalent, Lua uses <tt>^</tt>)
 <li><tt>__concat__</tt> the concatenation operator (SWIG maps C++'s <tt>~</tt> to Lua's <tt>..</tt>)
@@ -945,8 +1037,30 @@ It is also possible to overload the operator<tt>[]</tt>, but currently this cann
         void __setitem__(int i,double d); // i is the index, d is the data
 };
 </pre></div>
-
-<H3><a name="Lua_nn19"></a>26.3.12 Class extension with %extend</H3>
+<p>
+C++ operators are mapped to Lua predefined metafunctions. Class inherits from its bases the following list of metafunctions ( thus inheriting the folloging
+operators and pseudo-operators):</p>
+<ul>
+<li><tt>__add__</tt> 
+<li><tt>__sub__</tt>
+<li><tt>__mul__</tt>
+<li><tt>__div__</tt>
+<li><tt>__unm__</tt>
+<li><tt>__mod__</tt>
+<li><tt>__call__</tt>
+<li><tt>__pow__</tt>
+<li><tt>__concat__</tt>
+<li><tt>__eq__</tt>
+<li><tt>__lt__</tt>
+<li><tt>__le__</tt>
+<li><tt>__len__</tt>
+<li><tt>__getitem__</tt>
+<li><tt>__setitem__</tt>
+<li><tt>__tostring</tt> used internally by Lua for tostring() function. __str__ is mapped to this function
+</ul>
+<p>No other lua metafunction is inherited. For example, __gc is not inherited and must be redefined in every class. <tt>__tostring</tt> is subject to a special handling. If absent in class and in class bases, a default one will be provided by SWIG</p>
+</p>
+<H3><a name="Lua_nn19"></a>27.3.12 Class extension with %extend</H3>
 
 
 <p>
@@ -981,7 +1095,7 @@ Now we extend it with some new code
        return tmp;
    }
    bool operator==(const Complex&amp; c)
-   {    return ($self-&gt;re()==c.re() &amp;&amp; $self-&gt;im()==c.im();}
+   {    return ($self-&gt;re()==c.re() &amp;&amp; $self-&gt;im()==c.im());}
 };
 </pre></div>
 <p>
@@ -1002,7 +1116,7 @@ true
 Extend works with both C and C++ code, on classes and structs. It does not modify the underlying object in any way---the extensions only show up in the Lua interface. The only item to take note of is the code has to use the '$self' instead of 'this', and that you cannot access protected/private members of the code (as you are not officially part of the class).
 </p>
 
-<H3><a name="Lua_nn20"></a>26.3.13 Using %newobject to release memory</H3>
+<H3><a name="Lua_nn20"></a>27.3.13 Using %newobject to release memory</H3>
 
 
 <p> If you have a function that allocates memory like this,</p>
@@ -1026,7 +1140,7 @@ char *foo();
 </div>
 <p> This will release the allocated memory.</p>
 
-<H3><a name="Lua_nn21"></a>26.3.14 C++ templates</H3>
+<H3><a name="Lua_nn21"></a>27.3.14 C++ templates</H3>
 
 
 <p>
@@ -1061,7 +1175,7 @@ In Lua:
 <p>
 Obviously, there is more to template wrapping than shown in this example. More details can be found in the SWIG and C++ chapter. Some more complicated examples will appear later.
 </p>
-<H3><a name="Lua_nn22"></a>26.3.15 C++ Smart Pointers</H3>
+<H3><a name="Lua_nn22"></a>27.3.15 C++ Smart Pointers</H3>
 
 
 <p>
@@ -1113,7 +1227,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 &gt; f = p:__deref__()     -- Returns underlying Foo *
 </pre></div>
 
-<H3><a name="Lua_nn23"></a>26.3.16 C++ Exceptions</H3>
+<H3><a name="Lua_nn23"></a>27.3.16 C++ Exceptions</H3>
 
 
 <p>
@@ -1256,13 +1370,164 @@ and the "<a href="Customization.html#Customization_exception">Exception handling
 add exception specification to functions or globally (respectively).
 </p>
 
+<H3><a name="Lua_namespaces"></a>27.3.17 Namespaces </H3>
 
-<H2><a name="Lua_nn24"></a>26.4 Typemaps</H2>
+
+<p>
+Since SWIG-3.0.0 C++ namespaces are supported via the %nspace feature.
+</p>
+<p> Namespaces are mapped into Lua tables. Each of those tables contains names that were defined within appropriate namespace. Namespaces structure (a.k.a nested namespaces) is preserved. Consider the following C++ code:
+</p>
+<div class="code"><pre>%module example
+%nspace MyWorld::Nested::Dweller;
+%nspace MyWorld::World;
+
+int module_function() { return 7; }
+int module_variable = 9;
+
+namespace MyWorld {
+  class World {
+  public:
+    World() : world_max_count(9) {}
+    int create_world() { return 17; }
+    const int world_max_count; // = 9
+  };
+  namespace Nested {
+    class Dweller {
+      public:
+        enum Gender { MALE = 0, FEMALE = 1 };
+        static int count() { return 19; }
+    };
+  }
+}
+</pre></div>
+
+<p>
+Now, from Lua usage is as follows:
+</p>
+
+<div class="targetlang"><pre>
+&gt; print(example.module_function())
+7
+&gt; print(example.module_variable)
+9
+&gt; print(example.MyWorld.World():create_world())
+17
+&gt; print(example.MyWorld.World.world_max_count)
+9
+&gt; print(example.MyWorld.Nested.Dweller.MALE)
+0
+&gt; print(example.MyWorld.Nested.Dweller.count())
+19
+&gt;
+</pre></div>
+<H4><a name="Lua_nn27"></a>27.3.17.1 Compatibility Note </H4>
+
+
+<p>
+If SWIG is running in a backwards compatible way, i.e. without the <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated (notice the underscore):
+</p>
+<div class="targetlang"><pre>
+9
+&gt; print(example.MyWorld.Nested.Dweller_MALE)
+0
+&gt; print(example.MyWorld.Nested.Dweller_count())
+11
+&gt;
+</pre></div>
+
+
+<H4><a name="Lua_nn29"></a>27.3.17.2 Names </H4>
+
+
+<p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
+to generate additional names for static functions, class static constants and class enums.
+Those names are in a form <tt>$classname_$symbolname</tt> and are added to the scope surrounding the class.
+If %nspace is enabled, then class namespace is taken as scope. If there is no namespace, or %nspace is disabled,
+then module is considered a class namespace.</p>
+<p> Consider the following C++ code </p>
+<div class="code"><pre>%module example
+%nspace MyWorld::Test;
+namespace MyWorld {
+class Test {
+  public:
+  enum { TEST1 = 10, TEST2 }
+  static const int ICONST = 12;
+};
+class Test2 {
+  public:
+  enum { TEST3 = 20, TEST4 }
+  static const int ICONST2 = 23;
+}
+</pre></div>
+<p> When in backward compatible mode, in addition to the usual names, the following ones will be generated (notice the underscore):</p>
+<div class="targetlang"><pre>
+9
+&gt; print(example.MyWorld.Test_TEST1) -- Test has %nspace enabled
+10
+&gt; print(example.MyWorld.Test_ICONST) -- Test has %nspace enabled
+12
+&gt; print(example.Test2_TEST3) -- Test2 doesn't have %nspace enabled
+20
+&gt; print(example.Test2_ICONST2) -- Test2 doesn't have %nspace enabled
+23
+&gt;
+</pre></div>
+<p> There is a slight difference with enums when in C mode. As per C standard, enums from C structures are exported to
+surrounding scope without any prefixing. Pretending that Test2 is a struct, not class, that would be:</p>
+<div class="targetlang"><pre>
+&gt; print(example.TEST3) -- NOT Test2_TEST3
+20
+&gt;
+</pre></div>
+
+<H4><a name="Lua_nn30"></a>27.3.17.3 Inheritance </H4>
+
+
+<p> The internal organization of inheritance has changed. 
+Consider the following C++ code:</p>
+<div class="code"><pre>%module example
+class Base {
+  public:
+  int base_func()
+};
+class Derived : public Base {
+  public:
+  int derived_func()
+}
+</pre></div>
+<p>Lets assume for a moment that class member functions are stored in <tt>.fn</tt> table. Previously, when classes
+were exported to Lua during module initialization, for every derived class all service tables <tt>ST(i.e. ".fn")</tt>
+were squashed and added to corresponding derived class <tt>ST</tt>: Everything from <tt>.fn</tt> table of class Base
+was copied to <tt>.fn</tt> table of class Derived and so on. This was a recursive procedure, so in the end the whole
+inheritance tree of derived class was squashed into derived class. </p>
+<p> That means that any changes done to class Base after module initialization wouldn't affect class Derived:</p>
+<div class="targetlang"><pre>
+base = example.Base()
+der = example.Derived()
+&gt; print(base.base_func)
+function: 0x1367940
+&gt; getmetatable(base)[".fn"].new_func = function (x) return x -- Adding new function to class Base (to class, not to an instance!)
+&gt; print(base.new_func) -- Checking this function
+function
+&gt; print(der.new_func) -- Wouldn't work. Derived doesn't check Base any more.
+nil
+&gt;
+</pre></div>
+<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
+then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
+<div class="targetlang"><pre>
+&gt; print(der.new_func) -- Now it works
+function
+&gt;
+</pre></div>
+
+<H2><a name="Lua_nn24"></a>27.4 Typemaps</H2>
 
 
 <p>This section explains what typemaps are and how to use them. The default wrapping behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrapping. This section will be explaining how to use typemaps to best effect</p>
 
-<H3><a name="Lua_nn25"></a>26.4.1 What is a typemap?</H3>
+<H3><a name="Lua_nn25"></a>27.4.1 What is a typemap?</H3>
 
 
 <p>A typemap is nothing more than a code generation rule that is attached to a specific C datatype. For example, to convert integers from Lua to C, you might define a typemap like this:</p>
@@ -1290,7 +1555,7 @@ Received an integer : 6
 720
 </pre></div>
 
-<H3><a name="Lua_nn26"></a>26.4.2 Using typemaps</H3>
+<H3><a name="Lua_nn26"></a>27.4.2 Using typemaps</H3>
 
 
 <p>There are many ready written typemaps built into SWIG for all common types (int, float, short, long, char*, enum and more), which SWIG uses automatically, with no effort required on your part.</p>
@@ -1343,7 +1608,7 @@ void swap(int *sx, int *sy);
 
 <p>Note: C++ references must be handled exactly the same way. However SWIG will automatically wrap a <tt>const int&amp;</tt>  as an input parameter (since that it obviously input).</p>
 
-<H3><a name="Lua_nn27"></a>26.4.3 Typemaps and arrays</H3>
+<H3><a name="Lua_typemap_arrays"></a>27.4.3 Typemaps and arrays</H3>
 
 
 <p>Arrays present a challenge for SWIG, because like pointers SWIG does not know whether these are input or output values, nor
@@ -1359,7 +1624,7 @@ extern void sort_double(double* arr, int len);
 to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but it's a bit tedious.
 More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documentation.</p>
 
-<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %appy in the correct manner.</p>
+<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %apply in the correct manner.</p>
 
 <p>The wrapper file below, shows both the use of carrays as well as the use of the typemap to wrap arrays. </p>
 
@@ -1407,7 +1672,7 @@ and Lua tables to be 1..N, (the indexing follows the norm for the language). In 
 
 <p>Note: SWIG also can support arrays of pointers in a similar manner.</p>
 
-<H3><a name="Lua_nn28"></a>26.4.4 Typemaps and pointer-pointer functions</H3>
+<H3><a name="Lua_typemaps_ptr_ptr_functions"></a>27.4.4 Typemaps and pointer-pointer functions</H3>
 
 
 <p>Several C++ libraries use a pointer-pointer functions to create its objects. These functions require a pointer to a pointer which is then filled with the pointer to the new object. Microsoft's COM and DirectX as well as many other libraries have this kind of function. An example is given below:</p>
@@ -1441,7 +1706,7 @@ int Create_Math(iMath** pptr); // its creator (assume it mallocs)
 ptr=nil -- the iMath* will be GC'ed as normal
 </pre></div>
 
-<H2><a name="Lua_nn29"></a>26.5 Writing typemaps</H2>
+<H2><a name="Lua_writing_typemaps"></a>27.5 Writing typemaps</H2>
 
 
 <p>This section describes how you can modify SWIG's default wrapping behavior for various C/C++ datatypes using the <tt>%typemap</tt> directive. This is an advanced topic that assumes familiarity with the Lua C API as well as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.</p>
@@ -1450,7 +1715,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 
 <p>Before proceeding, you should read the previous section on using typemaps, and look at the existing typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you an idea to base your work on).</p>
 
-<H3><a name="Lua_nn30"></a>26.5.1 Typemaps you can write</H3>
+<H3><a name="Lua_typemaps_write"></a>27.5.1 Typemaps you can write</H3>
 
 
 <p>There are many different types of typemap that can be written, the full list can be found in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter. However the following are the most commonly used ones.</p>
@@ -1463,7 +1728,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 (the syntax for the typecheck is different from the typemap, see typemaps for details).</li>
 </ul>
 
-<H3><a name="Lua_nn31"></a>26.5.2 SWIG's Lua-C API</H3>
+<H3><a name="Lua_nn31"></a>27.5.2 SWIG's Lua-C API</H3>
 
 
 <p>This section explains the SWIG specific Lua-C API. It does not cover the main Lua-C api, as this is well documented and not worth covering.</p>
@@ -1512,7 +1777,7 @@ This macro, when called within the context of a SWIG wrapped function, will disp
 <div class="indent">
 Similar to SWIG_fail_arg, except that it will display the swig_type_info information instead.</div>
 
-<H2><a name="Lua_nn32"></a>26.6 Customization of your Bindings</H2>
+<H2><a name="Lua_nn32"></a>27.6 Customization of your Bindings</H2>
 
 
 <p>
@@ -1521,7 +1786,7 @@ This section covers adding of some small extra bits to your module to add the la
 
 
 
-<H3><a name="Lua_nn33"></a>26.6.1 Writing your own custom wrappers</H3>
+<H3><a name="Lua_nn33"></a>27.6.1 Writing your own custom wrappers</H3>
 
 
 <p>
@@ -1540,7 +1805,7 @@ int native_function(lua_State*L) // my native code
 The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrapper for this function, beyond adding it into the function table. How you write your code is entirely up to you.
 </p>
 
-<H3><a name="Lua_nn34"></a>26.6.2 Adding additional Lua code</H3>
+<H3><a name="Lua_nn34"></a>27.6.2 Adding additional Lua code</H3>
 
 
 <p>
@@ -1578,7 +1843,7 @@ Good uses for this feature is adding of new code, or writing helper functions to
 See Examples/lua/arrays for an example of this code.
 </p>
 
-<H2><a name="Lua_nn35"></a>26.7 Details on the Lua binding</H2>
+<H2><a name="Lua_nn35"></a>27.7 Details on the Lua binding</H2>
 
 
 <p>
@@ -1589,7 +1854,7 @@ See Examples/lua/arrays for an example of this code.
  </i>
 </p>
 
-<H3><a name="Lua_nn36"></a>26.7.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn36"></a>27.7.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -1649,7 +1914,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn37"></a>26.7.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn37"></a>27.7.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1729,7 +1994,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrapped classes/str
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn38"></a>26.7.3 Memory management</H3>
+<H3><a name="Lua_nn38"></a>27.7.3 Memory management</H3>
 
 
 <p>

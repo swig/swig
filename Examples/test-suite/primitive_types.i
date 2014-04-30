@@ -48,7 +48,7 @@
              const double & ($basetype temp)
   %{ temp = ($basetype)$input;  $1 = &temp; %}
 
-  the other tipical change is to add the enum SWIGTYPE to the
+  the other typical change is to add the enum SWIGTYPE to the
   integer throws typemaps:
 
   %typemap(throws) int, 
@@ -185,7 +185,7 @@
   char* const def_pchar = (char *const)"hello";
   const char* const def_pcharc = "hija";
 
-  const namet def_namet = {'h','o',0, 'l','a'};
+  const namet def_namet = {'h','o','l','a', 0};
 
   extern namet gbl_namet;
 

@@ -4,6 +4,10 @@
 
 %insert(init) "swiginit.swg"
 
+#if defined(SWIGPYTHON_BUILTIN)
+%fragment("<stddef.h>"); // For offsetof
+#endif
+
 %init %{
 
 #ifdef __cplusplus
@@ -112,7 +116,7 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
     var = var->next;
   }
   if (res == NULL && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }
@@ -129,7 +133,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
     var = var->next;
   }
   if (res == 1 && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }
@@ -398,6 +402,7 @@ SWIG_init(void) {
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
   md = d = PyModule_GetDict(m);
+  (void)md;
 
   SWIG_InitializeModule(0);
 
