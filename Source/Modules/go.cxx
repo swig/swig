@@ -5019,7 +5019,7 @@ extern "C" Language *swig_go(void) {
  * ----------------------------------------------------------------------------- */
 
 // Usage message.
-const char * const GO::usage = (char *) "\
+const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\

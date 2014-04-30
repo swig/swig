@@ -86,7 +86,7 @@ extern "C"
  you can add new ones here
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
-static const char *usage = (char *) "\
+static const char *usage = "\
 Lua Options (available with -lua)\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\

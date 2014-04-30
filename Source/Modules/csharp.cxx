@@ -4303,7 +4303,7 @@ extern "C" Language *swig_csharp(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *CSHARP::usage = (char *) "\
+const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\

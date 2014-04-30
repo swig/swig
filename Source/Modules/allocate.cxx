@@ -714,7 +714,7 @@ Allocate():
 
     /* Check if base classes allow smart pointers, but might be hidden */
     if (!Getattr(n, "allocate:smartpointer")) {
-      Node *sp = Swig_symbol_clookup((char *) "operator ->", 0);
+      Node *sp = Swig_symbol_clookup("operator ->", 0);
       if (sp) {
 	/* Look for parent */
 	Node *p = parentNode(sp);
@@ -833,7 +833,7 @@ Allocate():
 		     or reference.  We're going to chase it to see if another operator->()
 		     can be found */
 		  if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
-		    Node *nn = Swig_symbol_clookup((char *) "operator ->", Getattr(sc, "symtab"));
+		    Node *nn = Swig_symbol_clookup("operator ->", Getattr(sc, "symtab"));
 		    if (nn) {
 		      Delete(base);
 		      Delete(type);

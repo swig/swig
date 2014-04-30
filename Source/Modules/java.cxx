@@ -4643,7 +4643,7 @@ extern "C" Language *swig_java(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *JAVA::usage = (char *) "\
+const char *JAVA::usage = "\
 Java Options (available with -java)\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\

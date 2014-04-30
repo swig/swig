@@ -205,7 +205,7 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 }
 
 
-static const char *usage = (char *)"\
+static const char *usage = "\
 R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\

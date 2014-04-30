@@ -15,7 +15,7 @@
 
 #include <ctype.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Ocaml Options (available with -ocaml)\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
@@ -29,7 +29,7 @@ static int const_enum = 0;
 static int static_member_function = 0;
 static int generate_sizeof = 0;
 static String *prefix = 0;
-static char *ocaml_path = (char *) "ocaml";
+static const char *ocaml_path = "ocaml";
 static bool old_variable_names = false;
 static String *classname = 0;
 static String *module = 0;

@@ -15,7 +15,7 @@
 
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 UFFI Options (available with -uffi)\n\
      -identifier-converter <type or funcname> - \n\
                        Specifies the type of conversion to do on C identifiers\n\

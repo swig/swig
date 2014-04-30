@@ -42,7 +42,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 PHP Options (available with -php)\n\
      -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\

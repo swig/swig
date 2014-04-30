@@ -17,7 +17,7 @@
 static String *global_name = 0;
 static String *op_prefix   = 0;
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Octave Options (available with -octave)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
