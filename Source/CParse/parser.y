@@ -1418,7 +1418,7 @@ static void mark_nodes_as_extend(Node *n) {
     String *nexcept;
   } dtype;
   struct {
-    char *type;
+    const char *type;
     String *filename;
     int   line;
   } loc;
@@ -2002,8 +2002,8 @@ include_directive: includetype options string BEGINFILE {
                }
                ;
 
-includetype    : INCLUDE { $$.type = (char *) "include"; }
-               | IMPORT  { $$.type = (char *) "import"; ++import_mode;}
+includetype    : INCLUDE { $$.type = "include"; }
+               | IMPORT  { $$.type = "import"; ++import_mode;}
                ;
 
 /* ------------------------------------------------------------
@@ -4292,7 +4292,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
              | NAMESPACE LBRACE {
 	       Hash *h;
 	       $1 = Swig_symbol_current();
-	       h = Swig_symbol_clookup((char *)"    ",0);
+	       h = Swig_symbol_clookup("    ",0);
 	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		 Swig_symbol_setscope(Getattr(h,"symtab"));
 	       } else {
@@ -5271,7 +5271,7 @@ notso_direct_declarator : idcolon {
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewStringEmpty();
-		    SwigType_add_array(t,(char*)"");
+		    SwigType_add_array(t,"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
 		      Delete($$.type);
@@ -5370,7 +5370,7 @@ direct_declarator : idcolon {
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewStringEmpty();
-		    SwigType_add_array(t,(char*)"");
+		    SwigType_add_array(t,"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
 		      Delete($$.type);
@@ -5540,7 +5540,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewStringEmpty();
-		    SwigType_add_array(t,(char*)"");
+		    SwigType_add_array(t,"");
 		    if ($$.type) {
 		      SwigType_push(t,$$.type);
 		      Delete($$.type);
@@ -5563,7 +5563,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
-		    SwigType_add_array($$.type,(char*)"");
+		    SwigType_add_array($$.type,"");
                   }
                   | LBRACKET expr RBRACKET { 
 		    $$.type = NewStringEmpty();

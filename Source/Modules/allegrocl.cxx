@@ -20,7 +20,7 @@
 // #define ALLEGROCL_TYPE_DEBUG
 // #define ALLEGROCL_CLASS_DEBUG
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Allegro CL Options (available with -allegrocl)\n\
      -identifier-converter <type or funcname> - \n\
                        Specifies the type of conversion to do on C identifiers to convert\n\

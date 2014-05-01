@@ -33,7 +33,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.
-CSRCS      = octave_empty.c
+CSRCS      = $(srcdir)/octave_empty.c
 
 # Custom tests - tests with additional commandline options
 # none!

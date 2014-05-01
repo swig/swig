@@ -1,12 +1,12 @@
 TOP         = ../..
 SWIG        = $(TOP)/../preinst-swig
 INTERFACE   = example.i
-SRCS        = 
+SRCS        =
 CXXSRCS     = example.cxx
 TARGET      = class
 INCLUDE     =
 SWIGOPT     =
-CFLAGS      = 
+CFLAGS      =
 VARIANT     =
 
 # uncomment the following lines to build a static exe (only pick one of the CHICKEN_MAIN lines)

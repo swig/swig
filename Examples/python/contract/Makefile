@@ -3,7 +3,7 @@ SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = 
+SWIGOPT    =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile python_run

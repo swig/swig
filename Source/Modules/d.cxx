@@ -4649,7 +4649,7 @@ extern "C" Language *swig_d(void) {
 /* -----------------------------------------------------------------------------
  * Usage information displayed at the command line.
  * ----------------------------------------------------------------------------- */
-const char *D::usage = (char *) "\
+const char *D::usage = "\
 D Options (available with -d)\n\
      -d2                  - Generate code for D2/Phobos (default: D1/Tango)\n\
      -package <pkg>       - Write generated D modules into package <pkg>\n\

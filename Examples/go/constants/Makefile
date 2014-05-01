@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =

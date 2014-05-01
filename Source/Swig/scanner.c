@@ -45,8 +45,8 @@ typedef struct Locator {
 } Locator;
 static int follow_locators = 0;
 
-void Scanner_push_brackets(Scanner*);
-void Scanner_clear_brackets(Scanner*);
+static void brackets_push(Scanner *);
+static void brackets_clear(Scanner *);
 
 /* -----------------------------------------------------------------------------
  * NewScanner()
@@ -70,7 +70,7 @@ Scanner *NewScanner(void) {
   s->error_line = 0;
   s->freeze_line = 0;
   s->brackets = NewList();
-  Scanner_push_brackets(s);
+  brackets_push(s);
   return s;
 }
 
@@ -80,7 +80,7 @@ Scanner *NewScanner(void) {
  * Delete a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void DelScanner(Scanner * s) {
+void DelScanner(Scanner *s) {
   assert(s);
   Delete(s->scanobjs);
   Delete(s->brackets);
@@ -98,12 +98,12 @@ void DelScanner(Scanner * s) {
  * Clear the contents of a scanner object.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_clear(Scanner * s) {
+void Scanner_clear(Scanner *s) {
   assert(s);
   Delete(s->str);
   Clear(s->text);
   Clear(s->scanobjs);
-  Scanner_clear_brackets(s);
+  brackets_clear(s);
   Delete(s->error);
   s->str = 0;
   s->error = 0;
@@ -126,7 +126,7 @@ void Scanner_clear(Scanner * s) {
  * immediately before returning to the old text.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_push(Scanner * s, String *txt) {
+void Scanner_push(Scanner *s, String *txt) {
   assert(s && txt);
   Push(s->scanobjs, txt);
   if (s->str) {
@@ -145,7 +145,7 @@ void Scanner_push(Scanner * s, String *txt) {
  * call to Scanner_token().
  * ----------------------------------------------------------------------------- */
 
-void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
+void Scanner_pushtoken(Scanner *s, int nt, const_String_or_char_ptr val) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
@@ -161,7 +161,7 @@ void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
  * Set the file and line number location of the scanner.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_set_location(Scanner * s, String *file, int line) {
+void Scanner_set_location(Scanner *s, String *file, int line) {
   Setline(s->str, line);
   Setfile(s->str, file);
   s->line = line;
@@ -173,7 +173,7 @@ void Scanner_set_location(Scanner * s, String *file, int line) {
  * Get the current file.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_file(Scanner * s) {
+String *Scanner_file(Scanner *s) {
   return Getfile(s->str);
 }
 
@@ -182,7 +182,7 @@ String *Scanner_file(Scanner * s) {
  *
  * Get the current line number
  * ----------------------------------------------------------------------------- */
-int Scanner_line(Scanner * s) {
+int Scanner_line(Scanner *s) {
   return s->line;
 }
 
@@ -191,7 +191,7 @@ int Scanner_line(Scanner * s) {
  *
  * Get the line number on which the current token starts
  * ----------------------------------------------------------------------------- */
-int Scanner_start_line(Scanner * s) {
+int Scanner_start_line(Scanner *s) {
   return s->start_line;
 }
 
@@ -201,7 +201,7 @@ int Scanner_start_line(Scanner * s) {
  * Change the set of additional characters that can be used to start an identifier.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_idstart(Scanner * s, const char *id) {
+void Scanner_idstart(Scanner *s, const char *id) {
   free(s->idstart);
   s->idstart = Swig_copy_string(id);
 }
@@ -211,7 +211,7 @@ void Scanner_idstart(Scanner * s, const char *id) {
  * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
-static char nextchar(Scanner * s) {
+static char nextchar(Scanner *s) {
   int nc;
   if (!s->str)
     return 0;
@@ -253,8 +253,7 @@ String *Scanner_errmsg(Scanner *s) {
   return s->error;
 }
 
-int
-Scanner_errline(Scanner *s) {
+int Scanner_errline(Scanner *s) {
   return s->error_line;
 }
 
@@ -269,71 +268,99 @@ static void freeze_line(Scanner *s, int val) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_brackets()
+ * brackets_count()
  *
  * Returns the number of brackets at the current depth.
+ * A syntax error with unbalanced ) brackets will result in a NULL pointer return.
  * ----------------------------------------------------------------------------- */
-int*
-Scanner_brackets(Scanner *s) {
-  return (int*)(**((void***)Getitem(s->brackets, 0))); /* TODO: Use VoidObj*->ptr instead of void** */
+static int *brackets_count(Scanner *s) {
+  int *count;
+  if (Len(s->brackets) > 0)
+    count = (int *)Data(Getitem(s->brackets, 0));
+  else
+    count = 0;
+  return count;
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_clear_brackets()
+ * brackets_clear()
  *
  * Resets the current depth and clears all brackets.
  * Usually called at the end of statements;
  * ----------------------------------------------------------------------------- */
-void
-Scanner_clear_brackets(Scanner *s) {
+static void brackets_clear(Scanner *s) {
   Clear(s->brackets);
-  Scanner_push_brackets(s); /* base bracket count should always be created */
+  brackets_push(s); /* base bracket count should always be created */
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_inc_brackets()
+ * brackets_increment()
  *
  * Increases the number of brackets at the current depth.
- * Usually called when '<' was found.
+ * Usually called when a single '<' is found.
  * ----------------------------------------------------------------------------- */
-void
-Scanner_inc_brackets(Scanner *s) {
-  (*Scanner_brackets(s))++;
+static void brackets_increment(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    (*count)++;
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_dec_brackets()
+ * brackets_decrement()
  *
  * Decreases the number of brackets at the current depth.
- * Usually called when '>' was found.
+ * Usually called when a single '>' is found.
  * ----------------------------------------------------------------------------- */
-void
-Scanner_dec_brackets(Scanner *s) {
-  (*Scanner_brackets(s))--;
+static void brackets_decrement(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    (*count)--;
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_push_brackets()
+ * brackets_reset()
+ *
+ * Sets the number of '<' brackets back to zero. Called at the point where
+ * it is no longer possible to have a matching closing >> pair for a template.
+ * ----------------------------------------------------------------------------- */
+static void brackets_reset(Scanner *s) {
+  int *count = brackets_count(s);
+  if (count)
+    *count = 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_push()
  *
  * Increases the depth of brackets.
- * Usually called when '(' was found.
+ * Usually called when '(' is found.
  * ----------------------------------------------------------------------------- */
-void
-Scanner_push_brackets(Scanner *s) {
+static void brackets_push(Scanner *s) {
   int *newInt = malloc(sizeof(int));
   *newInt = 0;
   Push(s->brackets, NewVoid(newInt, free));
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_pop_brackets()
+ * brackets_pop()
  *
  * Decreases the depth of brackets.
- * Usually called when ')' was found.
+ * Usually called when ')' is found.
  * ----------------------------------------------------------------------------- */
-void
-Scanner_pop_brackets(Scanner *s) {
-  Delitem(s->brackets, 0);
+static void brackets_pop(Scanner *s) {
+  if (Len(s->brackets) > 0) /* protect against unbalanced ')' brackets */
+    Delitem(s->brackets, 0);
+}
+
+/* -----------------------------------------------------------------------------
+ * brackets_allow_shift()
+ *
+ * Return 1 to allow shift (>>), or 0 if (>>) should be split into (> >).
+ * This is for C++11 template syntax for closing templates.
+ * ----------------------------------------------------------------------------- */
+static int brackets_allow_shift(Scanner *s) {
+  int *count = brackets_count(s);
+  return !count || (*count <= 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -341,7 +368,7 @@ Scanner_pop_brackets(Scanner *s) {
  *
  * Retract n characters
  * ----------------------------------------------------------------------------- */
-static void retract(Scanner * s, int n) {
+static void retract(Scanner *s, int n) {
   int i, l;
   char *str;
 
@@ -482,7 +509,7 @@ static void get_escape(Scanner *s) {
  * Return the raw value of the next token.
  * ----------------------------------------------------------------------------- */
 
-static int look(Scanner * s) {
+static int look(Scanner *s) {
   int state = 0;
   int c = 0;
   String *str_delimiter = 0;
@@ -526,15 +553,15 @@ static int look(Scanner * s) {
       /* Look for single character symbols */
 
       else if (c == '(') {
-        Scanner_push_brackets(s);
+        brackets_push(s);
 	return SWIG_TOKEN_LPAREN;
       }
       else if (c == ')') {
-        Scanner_pop_brackets(s);
+        brackets_pop(s);
 	return SWIG_TOKEN_RPAREN;
       }
       else if (c == ';') {
-        Scanner_clear_brackets(s);
+        brackets_clear(s);
 	return SWIG_TOKEN_SEMI;
       }
       else if (c == ',')
@@ -543,8 +570,10 @@ static int look(Scanner * s) {
 	state = 220;
       else if (c == '}')
 	return SWIG_TOKEN_RBRACE;
-      else if (c == '{')
+      else if (c == '{') {
+        brackets_reset(s);
 	return SWIG_TOKEN_LBRACE;
+      }
       else if (c == '=')
 	state = 33;
       else if (c == '+')
@@ -848,28 +877,32 @@ static int look(Scanner * s) {
       break;
 
     case 60:			/* shift operators */
-      Scanner_inc_brackets(s);
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
+      }
       if (c == '<')
 	state = 240;
       else if (c == '=')
 	return SWIG_TOKEN_LTEQUAL;
       else {
 	retract(s, 1);
+	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
       }
       break;
     case 61:
-      Scanner_dec_brackets(s);
-      if ((c = nextchar(s)) == 0)
+      if ((c = nextchar(s)) == 0) {
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
-      if (c == '>' && ((*Scanner_brackets(s))<0)) /* go to double >> only, if no template < has been used */
+      }
+      if (c == '>' && brackets_allow_shift(s))
 	state = 250;
       else if (c == '=')
 	return SWIG_TOKEN_GTEQUAL;
       else {
 	retract(s, 1);
+        brackets_decrement(s);
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
@@ -1311,7 +1344,6 @@ static int look(Scanner * s) {
       break;
 
     case 240:			/* LSHIFT, LSEQUAL */
-      Scanner_inc_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_LSHIFT;
       else if (c == '=')
@@ -1323,7 +1355,6 @@ static int look(Scanner * s) {
       break;
 
     case 250:			/* RSHIFT, RSEQUAL */
-      Scanner_dec_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_RSHIFT;
       else if (c == '=')
@@ -1361,7 +1392,7 @@ static int look(Scanner * s) {
  * Real entry point to return the next token. Returns 0 if at end of input.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_token(Scanner * s) {
+int Scanner_token(Scanner *s) {
   int t;
   Delete(s->error);
   if (s->nexttoken >= 0) {
@@ -1385,7 +1416,7 @@ int Scanner_token(Scanner * s) {
  * Return the lexene associated with the last returned token.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_text(Scanner * s) {
+String *Scanner_text(Scanner *s) {
   return s->text;
 }
 
@@ -1395,7 +1426,7 @@ String *Scanner_text(Scanner * s) {
  * Skips to the end of a line
  * ----------------------------------------------------------------------------- */
 
-void Scanner_skip_line(Scanner * s) {
+void Scanner_skip_line(Scanner *s) {
   char c;
   int done = 0;
   Clear(s->text);
@@ -1420,7 +1451,7 @@ void Scanner_skip_line(Scanner * s) {
  * (...).  Ignores symbols inside comments or strings.
  * ----------------------------------------------------------------------------- */
 
-int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
+int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int num_levels = 1;
   int state = 0;
@@ -1557,7 +1588,7 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int old_line = s->line;
   String *old_text = Copy(s->text);
-  int position = Tell(s->str);
+  long position = Tell(s->str);
 
   int num_levels = 1;
   int state = 0;

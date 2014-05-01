@@ -130,13 +130,13 @@ AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
 if test -n "$YODL2MAN"; then
   AC_MSG_CHECKING([yodl2man version >= 2.02])
-  yodl_version=`$YODL2MAN --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\).*/\1/g'`
+  [yodl_version=`$YODL2MAN --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\).*/\1/g'`]
   AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
 fi
 
 if test -n "$YODL2HTML"; then
   AC_MSG_CHECKING([yodl2html version >= 2.02])
-  yodl_version=`$YODL2HTML --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`
+  [yodl_version=`$YODL2HTML --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`]
   AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
 fi
 

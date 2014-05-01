@@ -69,10 +69,10 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 
 #if defined(SWIG_LUA_ELUA_EMULATE)
   lua_newtable(L);
-  SWIG_Lua_elua_emulate_register(L,swig___Module.ns_methods);
+  SWIG_Lua_elua_emulate_register(L,swig_SwigModule.ns_methods);
   SWIG_Lua_elua_emulate_register_clear(L);
   if(globalRegister) {
-    lua_pushstring(L,swig___Module.name);
+    lua_pushstring(L,swig_SwigModule.name);
     lua_pushvalue(L,-2);
     lua_rawset(L,-4);
   }

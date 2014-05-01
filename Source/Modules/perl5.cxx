@@ -17,7 +17,7 @@ static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Perl5 Options (available with -perl5)\n\
      -compat         - Compatibility mode\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\

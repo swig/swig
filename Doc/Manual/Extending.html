@@ -1500,11 +1500,10 @@ Create a File object wrapper around an existing <tt>FILE *</tt> object.
 </div>
 
 <p>
-<b><tt>int Close(String_or_FILE *f)</tt></b>
+There's no explicit function to close a file, just call <tt>Delete(f)</tt> -
+this decreases the reference count, and the file will be closed when the
+reference count reaches zero.
 </p>
-
-<div class="indent">
-<p>Closes a file.  Has no effect on strings.</p>
 
 <p>
 The use of the above I/O functions and strings play a critical role in SWIG.   It is
@@ -1528,8 +1527,6 @@ Printf(f, "%s\n", s);
 <p>
 Similarly, the preprocessor and parser all operate on string-files.
 </p>
-
-</div>
 
 <H2><a name="Extending_nn21"></a>39.6 Navigating and manipulating parse trees</H2>
 
@@ -2832,7 +2829,6 @@ int Python::top(Node *n) {
    Delete(f_header);
    Delete(f_wrappers);
    Delete(f_init);
-   Close(f_begin);
    Delete(f_begin);
 
    return SWIG_OK;

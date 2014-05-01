@@ -53,7 +53,7 @@ void main() {
   assert(-a == a);
   assert(-b == new Op(-5));
   
-  // Unfortunaly, there is no way to override conversion to boolean for
+  // Unfortunately, there is no way to override conversion to boolean for
   // classes in D, opCast!("bool") is only used for structs. 
   
   // test []

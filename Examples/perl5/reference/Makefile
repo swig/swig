@@ -4,7 +4,7 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = -noproxy 
+SWIGOPT    = -noproxy
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile perl5_run

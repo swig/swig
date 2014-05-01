@@ -18,7 +18,7 @@
 //#define CFFI_DEBUG
 //#define CFFI_WRAP_DEBUG
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 CFFI Options (available with -cffi)\n\
      -generate-typedef - Use defctype to generate shortcuts according to the\n\
                          typedefs in the input.\n\

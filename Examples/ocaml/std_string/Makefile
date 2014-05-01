@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 PROGFILE   = runme.ml

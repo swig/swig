@@ -467,7 +467,7 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
     return func;
 
   if (!self)
-    self = (char *) "(this)->";
+    self = "(this)->";
   Append(func, self);
 
   if (SwigType_istemplate(name) && (strncmp(Char(name), "operator ", 9) == 0)) {
