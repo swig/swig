@@ -1559,15 +1559,14 @@ int JSCEmitter::initialize(Node *n) {
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("init", f_init);
 
+  Swig_banner(f_wrap_cpp);
+
   return SWIG_OK;
 }
 
 int JSCEmitter::dump(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
-
-  // write the SWIG banner
-  Swig_banner(f_wrap_cpp);
 
   Template initializer_define(getTemplate("js_initializer_define"));
   initializer_define.replace("$jsname", module).pretty_print(f_header);
@@ -1890,15 +1889,14 @@ int V8Emitter::initialize(Node *n) {
 
   state.globals(FORCE_CPP, NewString("1"));
 
+  Swig_banner(f_wrap_cpp);
+
   return SWIG_OK;
 }
 
 int V8Emitter::dump(Node *n) {
   /* Get the module name */
   String *module = Getattr(n, "name");
-
-  // write the SWIG banner
-  Swig_banner(f_wrap_cpp);
 
   Template initializer_define(getTemplate("js_initializer_define"));
   initializer_define.replace("$jsname", module).pretty_print(f_header);

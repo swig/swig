@@ -6,9 +6,10 @@
 // V8 Version Macro
 // ----------------
 // v8 does not (until now) provide a version macro - which is still discussed and may come soon.
-// Until then, we set a default version which can be overridden via command line or via a define in
-// the SWIG configuration.
-// For example, `swig -javascript -v8 -DV8_VERSION=0x031110`
+// Until then, we set a default version which can be overridden via command line using V8_VERSION:
+//   swig -javascript -v8 -DV8_VERSION=0x031110
+// Or code in the interface file using SWIG_V8_VERSION:
+//   %begin %{#define SWIG_V8_VERSION 0x031110%}
 
 %define %swig_v8_define_version(version)
 %insert("runtime") %{
