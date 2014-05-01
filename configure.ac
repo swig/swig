@@ -1203,7 +1203,7 @@ else
 
       if test -z "$JSCORELIB"; then
         AC_MSG_RESULT(not found)
-        JSCENABLED=0
+        JSCENABLED=
       else
         JSCOREDYNAMICLINKING="$JSCORELIB"
         JSCENABLED=1
@@ -1270,7 +1270,7 @@ else
 
   if test "$JSV8LIB" = "" ; then
     AC_MSG_RESULT(not found)
-    JSV8ENABLED=0
+    JSV8ENABLED=
   else
     AC_MSG_RESULT($JSV8LIBDIR)
     JSV8ENABLED=1
