@@ -1,0 +1,3 @@
+SRCS =
+
+include ../example.mk
