@@ -3956,7 +3956,7 @@ extern "C" Language *swig_modula3(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *MODULA3::usage = (char *) "\
+const char *MODULA3::usage = "\
 Modula 3 Options (available with -modula3)\n\
      -generateconst <file>   - Generate code for computing numeric values of constants\n\
      -generaterename <file>  - Generate suggestions for %rename\n\

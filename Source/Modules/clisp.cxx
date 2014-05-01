@@ -13,7 +13,7 @@
 
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 CLISP Options (available with -clisp)\n\
      -extern-all       - Create clisp definitions for all the functions and\n\
                          global variables otherwise only definitions for\n\

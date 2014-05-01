@@ -1,9 +1,9 @@
-/* embed2.c some more test for an embeded interpreter
+/* embed2.c some more tests for an embedded interpreter
  
 This will go a bit further as it will pass values to and from the lua code.
 It uses less of the SWIG code, and more of the raw lua API's
  
-What it will do is load the wrappered lib, load runme.lua and then call some functions.
+What it will do is load the wrapped lib, load runme.lua and then call some functions.
 To make life easier, all the printf's have either [C] or [Lua] at the start
 so you can see where they are coming from.
  
@@ -35,12 +35,12 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 #define lua_open luaL_newstate
 #endif
 
-/* the SWIG wrappered library */
+/* the SWIG wrapped library */
 extern int luaopen_example(lua_State*L);
 
 /* This is an example of how to call the Lua function
     int add(int,int) 
-  its very tedious, but gives you an idea of the issues involded.
+  its very tedious, but gives you an idea of the issues involved.
   (look below for a better idea)
 */
 int call_add(lua_State *L,int a,int b,int* res) {
@@ -78,7 +78,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
 Original Code from Programming in Lua (PIL) by Roberto Ierusalimschy
 ISBN 85-903798-1-7 
 http://www.lua.org/pil/25.3.html
-This has been modified slightly to make it compile, and its still a bit rough.
+This has been modified slightly to make it compile, and it's still a bit rough.
 But it gives the idea of how to make it work.
 */
 int call_va (lua_State *L,const char *func, const char *sig, ...) {
@@ -189,7 +189,7 @@ int main(int argc,char* argv[]) {
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
-  printf("[C] lets load the file 'runme.lua'\n");
+  printf("[C] let's load the file 'runme.lua'\n");
   printf("[C] any lua code in this file will be executed\n");
   if (luaL_loadfile(L, "runme.lua") || lua_pcall(L, 0, 0, 0)) {
     printf("[C] ERROR: cannot run lua file: %s",lua_tostring(L, -1));
@@ -197,12 +197,12 @@ int main(int argc,char* argv[]) {
   }
   printf("[C] We are now back in C, all looks ok\n");
   printf("\n");
-  printf("[C] lets call the Lua function 'add(1,1)'\n");
+  printf("[C] let's call the Lua function 'add(1,1)'\n");
   printf("[C] using the C function 'call_add'\n");
   ok=call_add(L,1,1,&res);
   printf("[C] the function returned %d with value %d\n",ok,res);
   printf("\n");
-  printf("[C] lets do this rather easier\n");
+  printf("[C] let's do this rather easier\n");
   printf("[C] we will call the same Lua function using a generic C function 'call_va'\n");
   ok=call_va(L,"add","ii>i",1,1,&res);
   printf("[C] the function returned %d with value %d\n",ok,res);

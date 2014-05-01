@@ -1,12 +1,12 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    = -c++
-SRCS       = 
+SRCS       =
 TARGET     = example
 INTERFACE  = foolib.i
 MLFILE     = foolib.ml
 PROGFILE   = example_prog.ml
-OBJS       = 
+OBJS       =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' ocaml_run

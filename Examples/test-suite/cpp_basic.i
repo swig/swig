@@ -30,6 +30,19 @@ class Foo {
     }
     
     int (Foo::*func_ptr)(int);
+
+    const char* __str__() const { return "Foo"; }
+};
+
+class FooSub : public Foo {
+  public:
+    FooSub() :Foo(42) {}
+};
+
+class FooSubSub : public FooSub {
+  public:
+    FooSubSub() : FooSub() {}
+    const char* __str__() const { return "FooSubSub"; }
 };
 
 %}

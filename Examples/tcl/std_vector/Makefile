@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i

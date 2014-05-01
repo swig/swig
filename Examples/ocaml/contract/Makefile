@@ -1,11 +1,11 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 MLFILE     = example.ml
 PROGFILE   = example_prog.ml
-OBJS       = 
+OBJS       =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' ocaml_run

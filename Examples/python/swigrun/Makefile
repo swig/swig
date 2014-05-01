@@ -4,7 +4,7 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = 
+SWIGOPT    =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile python_run

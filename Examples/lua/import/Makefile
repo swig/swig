@@ -2,7 +2,7 @@ TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    =
 LIBS       =
- 
+
 check: build
 	$(MAKE) -f $(TOP)/Makefile lua_run
 

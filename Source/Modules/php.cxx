@@ -42,7 +42,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 PHP Options (available with -php)\n\
      -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
@@ -2054,7 +2054,6 @@ done:
 
       // Write property SET handlers
       ki = First(shadow_set_vars);
-
       if (ki.key) {
 	// This class has setters.
 	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
@@ -2077,17 +2076,6 @@ done:
 	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
-
-	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
-	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
-	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_set')) return true;\n", shadow_classname);
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
@@ -2097,18 +2085,10 @@ done:
 	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
-	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
-	} else {
-	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
-	}
-	Printf(s_phpclasses, "\t}\n");
       }
+
       // Write property GET handlers
       ki = First(shadow_get_vars);
-
       if (ki.key) {
 	// This class has getters.
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
@@ -2144,6 +2124,19 @@ done:
 	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
+
+	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
+	/* __isset() should return true for read-only properties, so check for
+	 * *_get() not *_set(). */
+	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
+	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_get')) return true;\n", shadow_classname);
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
+	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
@@ -2151,6 +2144,14 @@ done:
 	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
 	} else {
 	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	}
+	Printf(s_phpclasses, "\t}\n");
+	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
       }
@@ -2272,8 +2273,8 @@ done:
       if (i) {
 	Insert(args, 0, ", ");
       }
-      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
-      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0 TSRMLS_CC%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0 TSRMLS_CC%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
       Delete(args);
 
       wrapperType = directorconstructor;
@@ -2385,17 +2386,23 @@ done:
     parms = p;
 
     if (!Getattr(n, "defaultargs")) {
+      // There should always be a "self" parameter first.
+      assert(ParmList_len(parms) > 0);
+
       /* constructor */
       {
 	Wrapper *w = NewWrapper();
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
+
+	// We put TSRMLS_DC after the self parameter in order to cope with
+	// any default parameters.
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
-	if (((const char *)Char(target))[Len(target) - 2] == '(') {
-	  Insert(target, Len(target) - 1, "TSRMLS_D");
-	} else {
-	  Insert(target, Len(target) - 1, " TSRMLS_DC");
-	}
+	const char * p = Char(target);
+	const char * comma = strchr(p, ',');
+	size_t ins = comma ? comma - p : Len(target) - 1;
+	Insert(target, ins, " TSRMLS_DC");
+
 	call = Swig_csuperclass_call(0, basetype, superparms);
 	Printf(w->def, "%s::%s: %s, Swig::Director(self TSRMLS_CC) {", classname, target, call);
 	Append(w->def, "}");
@@ -2407,12 +2414,14 @@ done:
 
       /* constructor header */
       {
+	// We put TSRMLS_DC after the self parameter in order to cope with
+	// any default parameters.
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
-	if (((const char *)Char(target))[Len(target) - 2] == '(') {
-	  Insert(target, Len(target) - 1, "TSRMLS_D");
-	} else {
-	  Insert(target, Len(target) - 1, " TSRMLS_DC");
-	}
+	const char * p = Char(target);
+	const char * comma = strchr(p, ',');
+	size_t ins = comma ? comma - p : Len(target) - 1;
+	Insert(target, ins, " TSRMLS_DC");
+
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }

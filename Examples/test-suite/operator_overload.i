@@ -230,10 +230,10 @@ __rshift__,__lshift__ >>,<<
 
 __getitem__,__setitem__ for operator[]
 
-Operators overloaded without C++ equivilents
+Operators overloaded without C++ equivalents
 __pow__ for power operator
 __str__ converts object to a string (should return a const char*)
-__concat__ for contatenation (if language supports)
+__concat__ for concatenation (if language supports)
 
 */
 

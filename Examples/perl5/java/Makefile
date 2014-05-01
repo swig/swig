@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
@@ -15,7 +15,7 @@ build: Example.class
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile perl5_clean
-	rm -f *.class Example.h 
+	rm -f *.class Example.h
 
 Example.class: Example.java
 	gcj -fPIC -C -c -g Example.java

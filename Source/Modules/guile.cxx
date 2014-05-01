@@ -16,7 +16,7 @@
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
-static const char *usage = (char *) "\
+static const char *usage = "\
 Guile Options (available with -guile)\n\
      -emitsetters            - Emit procedures-with-setters for variables\n\
                                and structure slots.\n\
@@ -1018,7 +1018,7 @@ public:
       if (in_class)
 	goops_name = NewString(memberfunction_name);
       else
-	goops_name = goopsNameMapping(proc_name, (char *) "");
+	goops_name = goopsNameMapping(proc_name, "");
       String *primitive_name = NewString("");
       if (primRenamer)
 	Printv(primitive_name, "primitive:", proc_name, NIL);
@@ -1204,7 +1204,7 @@ public:
       // export wrapper into goops file
       if (!in_class) {		// only if the variable is not part of a class
 	String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
-	String *goops_name = goopsNameMapping(proc_name, (char *) "");
+	String *goops_name = goopsNameMapping(proc_name, "");
 	String *primitive_name = NewString("");
 	if (primRenamer)
 	  Printv(primitive_name, "primitive:", NIL);

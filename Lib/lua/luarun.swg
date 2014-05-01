@@ -332,6 +332,11 @@ typedef struct {
       lua_pushcfunction(L, f), \
       lua_rawset(L,-3))
 
+#define SWIG_Lua_add_boolean(L,n,b) \
+  (lua_pushstring(L, n), \
+      lua_pushboolean(L, b), \
+      lua_rawset(L,-3))
+
 /* special helper for allowing 'nil' for usertypes */
 #define SWIG_isptrtype(L,I) (lua_isuserdata(L,I) || lua_isnil(L,I))
 
@@ -402,7 +407,7 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
   lua_rawsetp(L, parsed_tables_array, table);
   int i;
   int table_parsed = 0;
-  int pairs_start = lua_gettop(L);
+  const int SWIGUNUSED pairs_start = lua_gettop(L);
   for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
   {
     const swig_elua_entry *entry = table + i;
@@ -646,7 +651,7 @@ SWIGINTERN void SWIG_Lua_add_namespace_classes(lua_State *L, swig_lua_namespace 
 SWIGINTERN void SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns, int reg)
 {
   /* 1 argument - table on the top of the stack */
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   assert(lua_istable(L,-1)); /* just in case. This is supposed to be module table or parent namespace table */
   lua_checkstack(L,5);
   lua_newtable(L); /* namespace itself */
@@ -707,7 +712,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
   SWIG_Lua_get_table(L,".bases");\
   assert(lua_istable(L,-1));\
   bases_count = lua_rawlen(L,-1);\
-  int bases_table = lua_gettop(L);
+  const int bases_table = lua_gettop(L);
 #define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
   lua_rawgeti(L,bases_table,i+1);\
   base_swig_type = 0;\
@@ -742,7 +747,8 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
 typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
-SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, int first_arg, swig_lua_base_iterator_func func, int  *const ret)
+SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED swig_type,
+  int first_arg, swig_lua_base_iterator_func func, int  *const ret)
 {
     /* first_arg - position of the object in stack. Everything that is above are arguments
      * and is passed to every evocation of the func */
@@ -756,7 +762,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
       *ret = 0;
     if(bases_count>0)
     {
-      int i;
+      size_t i;
       int j;
       int subcall_first_arg = lua_gettop(L) + 1;/* Here a copy of first_arg and arguments begin */
       int valid = 1;
@@ -798,7 +804,7 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info *swig_type, i
  * It returns an error code. Number of function return values is passed inside 'ret'.
  * first_arg is not used in this function because function always has 2 arguments.
  */
-SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int first_arg, int *ret)
+SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SWIGUNUSED first_arg, int *ret)
 {
 /*  there should be 2 params passed in
   (1) userdata (not the meta table)
@@ -1016,7 +1022,51 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State *L)
   return 0;
 }
 
-/* gets the swig class registry (or creates it) */
+/* populate table at the top of the stack with metamethods that ought to be inherited */
+SWIGINTERN void SWIG_Lua_populate_inheritable_metamethods(lua_State *L)
+{
+  SWIG_Lua_add_boolean(L, "__add", 1);
+  SWIG_Lua_add_boolean(L, "__sub", 1);
+  SWIG_Lua_add_boolean(L, "__mul", 1);
+  SWIG_Lua_add_boolean(L, "__div", 1);
+  SWIG_Lua_add_boolean(L, "__mod", 1);
+  SWIG_Lua_add_boolean(L, "__pow", 1);
+  SWIG_Lua_add_boolean(L, "__unm", 1);
+  SWIG_Lua_add_boolean(L, "__len", 1 );
+  SWIG_Lua_add_boolean(L, "__concat", 1 );
+  SWIG_Lua_add_boolean(L, "__eq", 1);
+  SWIG_Lua_add_boolean(L, "__lt", 1);
+  SWIG_Lua_add_boolean(L, "__le", 1);
+  SWIG_Lua_add_boolean(L, "__call", 1);
+  SWIG_Lua_add_boolean(L, "__tostring", 1);
+  SWIG_Lua_add_boolean(L, "__gc", 0);
+}
+
+/* creates the swig registry */
+SWIGINTERN void SWIG_Lua_create_class_registry(lua_State *L)
+{
+  /* create main SWIG registry table */
+  lua_pushstring(L,"SWIG");
+  lua_newtable(L);
+  /* populate it with some predefined data */
+
+  /* .library table. Placeholder */
+  lua_pushstring(L,".library");
+  lua_newtable(L);
+  {
+    /* list of metamethods that class inherits from its bases */
+    lua_pushstring(L,"inheritable_metamethods");
+    lua_newtable(L);
+    /* populate with list of metamethods */
+    SWIG_Lua_populate_inheritable_metamethods(L);
+    lua_rawset(L,-3);
+  }
+  lua_rawset(L,-3);
+
+  lua_rawset(L,LUA_REGISTRYINDEX);
+}
+
+/* gets the swig registry (or creates it) */
 SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State *L)
 {
   /* add this all into the swig registry: */
@@ -1025,13 +1075,25 @@ SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State *L)
   if (!lua_istable(L,-1))  /* not there */
   {  /* must be first time, so add it */
     lua_pop(L,1);  /* remove the result */
-    lua_pushstring(L,"SWIG");
-    lua_newtable(L);
-    lua_rawset(L,LUA_REGISTRYINDEX);
+    SWIG_Lua_create_class_registry(L);
     /* then get it */
     lua_pushstring(L,"SWIG");
     lua_rawget(L,LUA_REGISTRYINDEX);
   }
+}
+
+SWIGINTERN void SWIG_Lua_get_inheritable_metamethods(lua_State *L)
+{
+  SWIG_Lua_get_class_registry(L);
+  lua_pushstring(L, ".library");
+  lua_rawget(L,-2);
+  assert( !lua_isnil(L,-1) );
+  lua_pushstring(L, "inheritable_metamethods");
+  lua_rawget(L,-2);
+
+  /* Remove class registry and library table */
+  lua_remove(L,-2);
+  lua_remove(L,-2);
 }
 
 /* Helper function to get the classes metatable from the register */
@@ -1163,8 +1225,10 @@ SWIGINTERN void SWIG_Lua_add_class_static_details(lua_State *L, swig_lua_class *
   SWIG_Lua_add_namespace_details(L, clss->cls_static);
 }
 
+SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class *clss); /* forward declaration */
+
 /* helper to recursively add class details (attributes & operations) */
-SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class *clss)
+SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_class *clss)
 {
   int i;
   /* Add bases to .bases table */
@@ -1201,12 +1265,195 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L,swig_lua_class
       SWIG_Lua_add_function(L,clss->metatable[i].name,clss->metatable[i].func);
     }
   }
+
+#if !defined(SWIG_LUA_SQUASH_BASES)
+  /* Adding metamethods that are defined in base classes. If bases were squashed
+   * then it is obviously unnecessary
+   */
+  SWIG_Lua_add_class_user_metamethods(L, clss);
+#endif
+}
+
+/* Helpers to add user defined class metamedhods - __add, __sub etc. The helpers are needed
+   for the following issue: Lua runtime checks for metamethod existence with rawget function
+   ignoring our SWIG-provided __index and __newindex functions. Thus our inheritance-aware method
+   search algorithm doesn't work in such case. (Not to say that Lua runtime queries metamethod directly
+   in metatable and not in object).
+   Current solution is this: if somewhere in hierarchy metamethod __x is defined, then all descendants
+   are automatically given a special proxy __x that calls the real __x method.
+   Obvious idea - to copy __x instead of creating __x-proxy is wrong because if someone changes __x in runtime,
+   those changes must be reflected in all descendants.
+*/
+
+SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration*/
+
+/* The real function that resolves a metamethod.
+ * Function searches given class and all it's bases(recursively) for first instance of something that is
+ * not equal to SWIG_Lua_resolve_metatmethod. (Almost always this 'something' is actuall metamethod implementation
+ * and it is a SWIG-generated C function.). It returns value on the top of the L and there is no garbage below the
+ * answer.
+ * Returns 1 if found, 0 otherwise.
+ * clss is class which metatable we will search for method
+ * metamethod_name_idx is index in L where metamethod name (as string) lies
+ * skip_check allows to skip searching metamethod in givel clss and immideatelly go to searching in bases. skip_check
+ * is not caried to subsequent recursive calls - false is always passed. It is set to true only at first call from
+ * SWIG_Lua_resolve_metamethod
+ * */
+SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class *clss, int metamethod_name_idx,
+    int skip_check)
+{
+  /* This function is called recursively */
+  if (!skip_check) {
+    SWIG_Lua_get_class_metatable(L, clss->fqname);
+    lua_pushvalue(L, metamethod_name_idx);
+    lua_rawget(L,-2);
+    /* If this is cfunction and it is equal to SWIG_Lua_resolve_metamethod then
+     * this isn't the function we are looking for :)
+     * lua_tocfunction will return NULL if not cfunction
+     */
+    if (!lua_isnil(L,-1) && lua_tocfunction(L,-1) != SWIG_Lua_resolve_metamethod ) {
+      lua_remove(L,-2); /* removing class metatable */
+      return 1;
+    }
+    lua_pop(L,2); /* remove class metatable and query result */
+  }
+
+  /* Forwarding calls to bases */
+  int result = 0;
+  int i = 0;
+  for(i=0;clss->bases[i];i++)
+  {
+    result = SWIG_Lua_do_resolve_metamethod(L, clss->bases[i], metamethod_name_idx, 0);
+    if (result)
+      break;
+  }
+
+  return result;
+}
+
+/* The proxy function for metamethod. All parameters are passed as cclosure. Searches for actual method
+ * and calls it */
+SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
+{
+  lua_checkstack(L,5);
+  const int numargs = lua_gettop(L); /* number of arguments to pass to actuall metamethod */
+  
+  /* Get upvalues from closure */
+  lua_pushvalue(L, lua_upvalueindex(1)); /*Get function name*/
+  const int metamethod_name_idx = lua_gettop(L);
+  
+  lua_pushvalue(L, lua_upvalueindex(2));
+  const swig_lua_class* clss = (const swig_lua_class*)(lua_touserdata(L,-1));
+  lua_pop(L,1); /* remove lightuserdata with clss from stack */
+
+  /* Actuall work */
+  const int result = SWIG_Lua_do_resolve_metamethod(L, clss, metamethod_name_idx, 1);
+  if (!result) {
+   SWIG_Lua_pushferrstring(L,"The metamethod proxy is set, but it failed to find actuall metamethod. Memory corruption is most likely explanation.");
+   lua_error(L);
+   return 0;
+  }
+
+  lua_remove(L,-2); /* remove metamethod key */
+  lua_insert(L,1); /* move function to correct position */
+  lua_call(L, numargs, LUA_MULTRET);
+  return lua_gettop(L); /* return all results */
+}
+
+
+/* If given metamethod must be present in given class, then creates appropriate proxy
+ * Returns 1 if successfully added, 0 if not added because no base class has it, -1
+ * if method is defined in the class metatable itself
+ */
+SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *clss, const int metatable_index)
+{
+  /* metamethod name - on the top of the stack */
+  assert(lua_isstring(L,-1));
+  
+  const int key_index = lua_gettop(L);
+
+  /* Check whether method is already defined in metatable */
+  lua_pushvalue(L,key_index); /* copy of the key */
+  lua_gettable(L,metatable_index);
+  if( !lua_isnil(L,-1) ) {
+    lua_pop(L,1);
+    return -1;
+  }
+  lua_pop(L,1); 
+
+  /* Iterating over immediate bases */
+  int success = 0;
+  int i = 0;
+  for(i=0;clss->bases[i];i++)
+  {
+    const swig_lua_class *base = clss->bases[i];
+    SWIG_Lua_get_class_metatable(L, base->fqname);
+    lua_pushvalue(L, key_index);
+    lua_rawget(L, -2);
+    if( !lua_isnil(L,-1) ) {
+      lua_pushvalue(L, key_index); 
+
+      /* Add proxy function */
+      lua_pushvalue(L, key_index); /* first closure value is function name */
+      lua_pushlightuserdata(L, clss); /* second closure value is swig_lua_class structure */
+      lua_pushcclosure(L, SWIG_Lua_resolve_metamethod, 2);
+      
+      lua_rawset(L, metatable_index);
+      success = 1;
+    }
+    lua_pop(L,1); /* remove function or nil */
+    lua_pop(L,1); /* remove base class metatable */
+
+    if( success )
+      break;
+  }
+
+  return success; 
+}
+
+SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class *clss)
+{
+  SWIG_Lua_get_class_metatable(L, clss->fqname);
+  const int metatable_index = lua_gettop(L);
+  SWIG_Lua_get_inheritable_metamethods(L);
+  assert(lua_istable(L,-1));
+  const int metamethods_info_index = lua_gettop(L);
+  lua_pushnil(L); /* first key */
+  while(lua_next(L, metamethods_info_index) != 0 ) {
+    /* key at index -2, value at index -1 */
+    const int is_inheritable = lua_toboolean(L,-2);
+    lua_pop(L,1); /* remove value - we don't need it anymore */
+
+    if(is_inheritable) { /* if metamethod is inheritable */
+      SWIG_Lua_add_class_user_metamethod(L,clss,metatable_index);
+    }
+  }
+
+  lua_pop(L,1); /* remove inheritable metatmethods table */
+
+  /* Special handling for __tostring method */
+  lua_pushstring(L, "__tostring");
+  lua_pushvalue(L,-1);
+  lua_rawget(L,metatable_index);
+  const int tostring_undefined = lua_isnil(L,-1);
+  lua_pop(L,1);
+  if( tostring_undefined ) {
+    lua_pushcfunction(L, SWIG_Lua_class_tostring);
+    lua_rawset(L, metatable_index);
+  } else {
+    lua_pop(L,1); /* remove copy of the key */
+  }
+
+  /* Warning: __index and __newindex are SWIG-defined. For user-defined operator[]
+   * a __getitem/__setitem method should be defined
+   */
+  lua_pop(L,1); /* pop class metatable */
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */
 SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   lua_checkstack(L,5); /* just in case */
   assert(lua_istable(L,-1));  /* just in case */
   assert(strcmp(clss->name, clss->cls_static->name) == 0); /* in class those 2 must be equal */
@@ -1240,7 +1487,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
  */
 SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
@@ -1266,11 +1513,11 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
    * It would get us all special methods: __getitem, __add etc.
    * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
    */
-  int new_metatable_index = lua_absindex(L,-1);
+  const int new_metatable_index = lua_absindex(L,-1);
   for(i=0;clss->bases[i];i++)
   {
     SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
-    int base_metatable = lua_absindex(L,-1);
+    const int base_metatable = lua_absindex(L,-1);
     SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
     lua_pop(L,1);
   }
@@ -1302,12 +1549,10 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   SWIG_Lua_add_function(L,"__index",SWIG_Lua_class_get);
   SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_class_set);
   SWIG_Lua_add_function(L,"__gc",SWIG_Lua_class_destruct);
-  /* add tostring method for better output */
-  SWIG_Lua_add_function(L,"__tostring",SWIG_Lua_class_tostring);
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
-  assert(lua_gettop(L)==begin);
+  assert(lua_gettop(L) == begin);
 
 #if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
   /* Now merge all symbols from .fn, .set, .get etc from bases to our tables */
@@ -1335,7 +1580,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
    *                                             |                                ".set" --> ....
    *                                             |=============================== ".instance"
    */
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   lua_pushstring(L,clss->cls_static->name);
   lua_rawget(L,-2); /* get class static table */
   assert(lua_istable(L,-1));
@@ -1358,7 +1603,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
 SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_class *clss)
 {
-  int begin = lua_gettop(L);
+  const int SWIGUNUSED begin = lua_gettop(L);
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
