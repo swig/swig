@@ -270,9 +270,7 @@ protected:
 protected:
 
   JSEngine engine;
-
   Hash *templates;
-
   State state;
 
   // contains context specific data (DOHs)
@@ -280,9 +278,7 @@ protected:
   // which are switched on namespace change
   Hash *namespaces;
   Hash *current_namespace;
-
   String *defaultResultName;
-
   File *f_wrappers;
 };
 
@@ -324,7 +320,7 @@ public:
 
 private:
 
-  JSEmitter * emitter;
+  JSEmitter *emitter;
 };
 
 /* ---------------------------------------------------------------------
