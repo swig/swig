@@ -1,17 +1,51 @@
-language: c
+language: cpp
 compiler:
-  - gcc
   - clang
+  - gcc
 env:
   - SWIGLANG=
 matrix:
   include:
+    - compiler: gcc
+      env: SWIGLANG=csharp
+    - compiler: gcc
+      env: SWIGLANG=go
+    - compiler: gcc
+      env: SWIGLANG=guile
+    - compiler: gcc
+      env: SWIGLANG=java
     - compiler: gcc
       env: SWIGLANG=javascript ENGINE=node
     - compiler: gcc
       env: SWIGLANG=javascript ENGINE=jsc
     - compiler: gcc
       env: SWIGLANG=javascript ENGINE=v8
+    - compiler: gcc
+      env: SWIGLANG=lua
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j4
+    - compiler: gcc
+      env: SWIGLANG=perl5
+    - compiler: gcc
+      env: SWIGLANG=php
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.4
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.5
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.6
+    - compiler: gcc
+      env: SWIGLANG=python # 2.7
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 # 3.2
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.3
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.4
+    - compiler: gcc
+      env: SWIGLANG=ruby
+    - compiler: gcc
+      env: SWIGLANG=tcl
   allow_failures:
     # None
 before_install:
@@ -31,10 +65,10 @@ before_install:
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
   - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
-  - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev; fi
+  - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
 script:
-  - ./autogen.sh && ./configure
+  - ./autogen.sh && ./configure $CONFIGOPTS
   - make -s $SWIGJOBS
   - ./swig -version && ./swig -pcreversion
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
@@ -46,4 +80,3 @@ script:
 branches:
   only:
     - master
-    - javascript
