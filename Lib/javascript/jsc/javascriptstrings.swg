@@ -8,7 +8,7 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
   if(JSValueIsString(context, valRef)) {
     JSStringRef js_str = JSValueToStringCopy(context, valRef, NULL);
     size_t len = JSStringGetMaximumUTF8CStringSize(js_str);
-    char* cstr = (char*) malloc(len * sizeof(char));
+    char* cstr = (char*) %new_array(len, char);
     /* JSStringGetUTF8CString returns the length including 0-terminator */
     len = JSStringGetUTF8CString(js_str, cstr, len);
 
