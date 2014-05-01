@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.1 (in progress)
 ===========================
 
+2014-05-01: olly
+	    [PHP] The generated __isset() method now returns true for read-only properties.
+
 2014-04-08: wsfulton
             SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
 
