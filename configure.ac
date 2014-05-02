@@ -19,7 +19,7 @@ AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+/* Deal with attempt by Microsoft to deprecate C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif
@@ -489,7 +489,7 @@ if test x"${with_tclconfig}" != x ; then
    if test -f "${with_tclconfig}/tclConfig.sh" ; then
       TCLCONFIG=`(cd ${with_tclconfig}; pwd)`
    else
-      AC_MSG_ERROR([${with_tcl} directory doesn't contain tclConfig.sh])
+      AC_MSG_ERROR([${with_tcl} directory does not contain tclConfig.sh])
    fi
 fi
 # check in a few common install locations
