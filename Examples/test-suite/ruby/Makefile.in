@@ -42,7 +42,7 @@ SWIGOPT += -w801 -noautorename -features autodoc=4
 ruby_naming.cpptest: SWIGOPT += -autorename
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -52,7 +52,7 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -66,7 +66,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-	
+	@exit 0
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile ruby_clean

@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = chicken
-VARIANT      = 
+VARIANT      =
 SCRIPTSUFFIX = _runme.ss
 PROXYSUFFIX  = _runme_proxy.ss
 srcdir       = @srcdir@
@@ -17,7 +17,7 @@ SO           = @SO@
 # Skip the STD cases for now, except for li_std_string.i
 SKIP_CPP_STD_CASES = Yes
 
-CPP_TEST_CASES += li_std_string 
+CPP_TEST_CASES += li_std_string
 
 EXTRA_TEST_CASES += chicken_ext_test.externaltest
 
@@ -39,7 +39,7 @@ SWIGOPT += -nounit
 %.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -55,7 +55,7 @@ SWIGOPT += -nounit
 	  $(MAKE) $*.cproxy; \
 	fi
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -92,7 +92,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-	
+	@exit 0
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile chicken_clean

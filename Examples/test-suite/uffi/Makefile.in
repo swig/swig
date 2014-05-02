@@ -14,13 +14,13 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 # no C++ tests for now
 CPP_TEST_CASES =
-#C_TEST_CASES += 
+#C_TEST_CASES +=
 
 # Custom tests - tests with additional commandline options
 # none!
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -30,7 +30,7 @@ CPP_TEST_CASES =
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -44,8 +44,7 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra uffi code)
 %.clean:
-	
+	@exit 0
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile uffi_clean
-

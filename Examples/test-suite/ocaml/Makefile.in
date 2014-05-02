@@ -10,7 +10,7 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-C_TEST_CASES = 
+C_TEST_CASES =
 
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -a \
@@ -21,7 +21,7 @@ run_testcase = \
 		$(COMPILETOOL) $(OCAMLC) -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 		$(COMPILETOOL) $(OCAMLC) swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$(*).cmo $(srcdir)/$(*)_runme.cmo $(srcdir)/$(*)_wrap.o && \
 		$(RUNTOOL) ./runme; \
-	fi ; 
+	fi ;
 
 check_quant:
 	cat /dev/null > testing

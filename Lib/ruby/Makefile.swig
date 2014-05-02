@@ -7,7 +7,7 @@
 # 3.  Type 'make -f Makefile.swig' to generate wrapper code and Makefile.
 # 4.  Type 'make' to build your extension.
 # 5.  Type 'make install' to install your extension.
-# 
+#
 
 MODULE    = yourmodule
 FEATURE   = $(MODULE)

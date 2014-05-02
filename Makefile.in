@@ -249,8 +249,8 @@ check-%-examples :
 # gcj individual example
 java.actionexample:
 	@if $(skip-gcj); then					\
-          echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-        else							\
+	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
+	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
 	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION)) \
 	fi
@@ -481,13 +481,13 @@ lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml
 lib-modules = std
 
 
-install-lib: 
+install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-            $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\

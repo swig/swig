@@ -88,7 +88,7 @@ endif
 ##################################################################
 
 CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
-             -L/usr/local/lib -lg++ -lstdc++ -lgcc
+	     -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
 # Solaris workshop 5.0
 # CPP_DLLIBS = -L/opt/SUNWspro/lib -lCrun
@@ -1621,7 +1621,7 @@ R_SCRIPT=$(RUNME).R
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
@@ -1632,7 +1632,7 @@ endif
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
-	$(CXX) -g -c $(CXXFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
+	$(CXX) -g -c $(CXXFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
