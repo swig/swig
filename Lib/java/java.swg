@@ -405,6 +405,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
+  Swig::LocalRefGuard refGuard_$input(jenv, $input);
 }
 
 %typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
@@ -731,6 +732,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
+  Swig::LocalRefGuard refGuard_$input(jenv, $input);
 }
 
 %typemap(argout) char[ANY], char[] ""

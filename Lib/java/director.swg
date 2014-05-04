@@ -380,5 +380,12 @@ namespace Swig {
     return matches;
   }
 
+  class LocalRefGuard {
+      JNIEnv* jenv_;
+      jobject jobj_;
+    public:
+      LocalRefGuard(JNIEnv* jenv, jobject jobj): jenv_(jenv), jobj_(jobj) {}
+      ~LocalRefGuard() { if (jobj_) jenv_->DeleteLocalRef(jobj_); }
+  };
 }
 
