@@ -259,6 +259,11 @@ public:
     director_multiple_inheritance = 1;
     director_language = 1;
   }
+
+  ~PYTHON() {
+    delete doxygenTranslator;
+  }
+
   /* ------------------------------------------------------------
    * Thread Implementation
    * ------------------------------------------------------------ */
