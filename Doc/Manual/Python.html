@@ -5412,7 +5412,7 @@ class M3: pass
 
 <p>
 We edit <tt>pkg1/mod2.py</tt> and want to import module
-<tt>pkg1/pkg2/pkg3.py</tt> in order to derive from class <tt>M3</tt>. We can
+<tt>pkg1/pkg2/mod3.py</tt> in order to derive from class <tt>M3</tt>. We can
 write appropriate Python code in several ways, for example:
 </p>
 
@@ -5570,8 +5570,8 @@ from __future__ import absolute_import
 <p>Imports in <tt>__init__.py</tt> are handy when you want to populate a
 package's namespace with names imported from other modules. In SWIG based
 projects this approach may also be used to split large pieces of code into
-smaller modules, compile them in parallel and then re-assemble everything at another
-level by importing submodules' contents in <tt>__init__.py</tt>, for
+smaller modules, compile them in parallel and then re-assemble everything at
+runtime by importing submodules' contents in <tt>__init__.py</tt>, for
 example.</p>
 
 <p>Unfortunately import directives in <tt>__init__.py</tt> may cause problems,
