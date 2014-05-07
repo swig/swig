@@ -3546,10 +3546,13 @@ doxygen_comment_item : DOXYGENSTRING {
 		  $$ = $1;
 		}
 		| doxygen_comment_item doxygen_comment_item {
-		  if ($1)
-		    Append($1, $2);
-		  else
+		  if ($1) {
+		    if ($2)
+		      Append($1, $2);
+		  }
+		  else {
 		    $1 = $2;
+		  }
 		  $$ = $1;
 		}
 		;
