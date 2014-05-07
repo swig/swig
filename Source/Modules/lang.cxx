@@ -340,6 +340,8 @@ directors(0) {
   director_language = 0;
   assert(!this_);
   this_ = this;
+
+  doxygenTranslator = NULL;
 }
 
 Language::~Language() {

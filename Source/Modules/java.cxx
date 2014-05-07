@@ -171,8 +171,7 @@ public:
   }
   
   ~JAVA() {
-    if (doxygen)
-      delete doxygenTranslator;
+    delete doxygenTranslator;
   }
 
   /* -----------------------------------------------------------------------------
