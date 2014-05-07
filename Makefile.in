@@ -84,6 +84,7 @@ skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-go		= test -n "@SKIP_GO@"
 skip-d		= test -n "@SKIP_D@"
+skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
@@ -129,6 +130,7 @@ check-aliveness:
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
+	@$(skip-javascript) || ./$(TARGET) -javascript -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -139,6 +141,7 @@ check-versions:					\
 	check-perl5-version			\
 	check-python-version			\
 	check-java-version			\
+	check-javascript-version			\
 	check-android-version			\
 	check-guile-version			\
 	check-mzscheme-version			\
@@ -196,7 +199,8 @@ check-examples:					\
 	check-cffi-examples			\
 	check-r-examples			\
 	check-go-examples			\
-	check-d-examples
+	check-d-examples			\
+	check-javascript-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -221,6 +225,7 @@ cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
+javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
 
 # all examples
 check-%-examples :
@@ -244,10 +249,10 @@ check-%-examples :
 # gcj individual example
 java.actionexample:
 	@if $(skip-gcj); then					\
-          echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-        else							\
+	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
+	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
@@ -274,7 +279,8 @@ check-test-suite:				\
 	check-chicken-test-suite		\
 	check-r-test-suite			\
 	check-go-test-suite			\
-	check-d-test-suite
+	check-d-test-suite			\
+	check-javascript-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -326,7 +332,8 @@ all-test-suite:					\
 	all-chicken-test-suite			\
 	all-r-test-suite			\
 	all-go-test-suite			\
-	all-d-test-suite
+	all-d-test-suite			\
+	all-javascript-test-suite
 
 all-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=all
@@ -354,7 +361,8 @@ broken-test-suite:				\
 	broken-chicken-test-suite		\
 	broken-r-test-suite			\
 	broken-go-test-suite			\
-	broken-d-test-suite
+	broken-d-test-suite			\
+	broken-javascript-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=broken
@@ -467,18 +475,19 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
+	javascript/v8
 
 lib-modules = std
 
 
-install-lib: 
+install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-            $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\

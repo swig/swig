@@ -75,4 +75,3 @@ linkchecker:
 	@echo Note linkchecker versions prior to 6.1 do not work properly wrt anchors
 	@echo -----------------------------------------------------------------------
 	linkchecker --config=./linkchecker.config index.html
-

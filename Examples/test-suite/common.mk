@@ -609,6 +609,7 @@ C_TEST_CASES += \
 	global_functions \
 	immutable_values \
 	inctest \
+	infinity \
 	integers \
 	keyword_rename \
 	lextype \
@@ -635,6 +636,7 @@ C_TEST_CASES += \
 	simple_array \
 	sizeof_pointer \
 	sneaky1 \
+	string_simple \
 	struct_rename \
 	struct_initialization \
 	typedef_struct \

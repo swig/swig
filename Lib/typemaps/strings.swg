@@ -499,7 +499,7 @@
  * --- String fragment methods ---
  * ------------------------------------------------------------ */
 
-
+#ifndef %_typemap2_string
 %define %_typemap2_string(StringCode, CharCode,
 			 Char, CharName,
 			 SWIG_AsCharPtrAndSize,
@@ -602,7 +602,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		 SWIG_DeleteCharArray)
 
 %enddef
-
+#endif
 
 /* ------------------------------------------------------------
  *  String typemaps and fragments, with default allocators

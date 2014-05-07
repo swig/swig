@@ -28,7 +28,7 @@ include $(srcdir)/../common.mk
 # none!
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -38,14 +38,14 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_multitestcase)
 
 # Runs the testcase.
-# 
-# Run the runme if it exists.  If not just load the R wrapper to 
+#
+# Run the runme if it exists.  If not just load the R wrapper to
 # check for syntactic correctness
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
@@ -58,7 +58,7 @@ run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
-               $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
+	       $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
 	else \
 	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
 	fi; \
@@ -74,5 +74,3 @@ clean:
 	   rm -f $${f}.R $${f}.Rout ; \
 	done \
 	fi
-
-

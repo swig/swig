@@ -1274,8 +1274,8 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_clas
 #endif
 }
 
-/* helpers to add user defined class metamedhods - __add, __sub etc. Necessity for those helpers
-   arise from the following issue: Lua runtime checks for metamethod existence with rawget function
+/* Helpers to add user defined class metamedhods - __add, __sub etc. The helpers are needed
+   for the following issue: Lua runtime checks for metamethod existence with rawget function
    ignoring our SWIG-provided __index and __newindex functions. Thus our inheritance-aware method
    search algorithm doesn't work in such case. (Not to say that Lua runtime queries metamethod directly
    in metatable and not in object).
@@ -1287,7 +1287,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_clas
 
 SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration*/
 
-/* The real function that resolveds metamethod.
+/* The real function that resolves a metamethod.
  * Function searches given class and all it's bases(recursively) for first instance of something that is
  * not equal to SWIG_Lua_resolve_metatmethod. (Almost always this 'something' is actuall metamethod implementation
  * and it is a SWIG-generated C function.). It returns value on the top of the L and there is no garbage below the
@@ -1367,7 +1367,6 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
  */
 SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *clss, const int metatable_index)
 {
-
   /* metamethod name - on the top of the stack */
   assert(lua_isstring(L,-1));
   
@@ -1381,7 +1380,6 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
     return -1;
   }
   lua_pop(L,1); 
-
 
   /* Iterating over immediate bases */
   int success = 0;
@@ -1410,7 +1408,6 @@ SWIGINTERN int SWIG_Lua_add_class_user_metamethod(lua_State *L, swig_lua_class *
       break;
   }
 
-
   return success; 
 }
 
@@ -1430,7 +1427,6 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
     if(is_inheritable) { /* if metamethod is inheritable */
       SWIG_Lua_add_class_user_metamethod(L,clss,metatable_index);
     }
-
   }
 
   lua_pop(L,1); /* remove inheritable metatmethods table */
@@ -1452,7 +1448,6 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
    * a __getitem/__setitem method should be defined
    */
   lua_pop(L,1); /* pop class metatable */
-
 }
 
 /* Register class static methods,attributes etc as well as constructor proxy */

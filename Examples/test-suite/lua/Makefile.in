@@ -28,7 +28,7 @@ LIBS       = -L.
 lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -38,7 +38,7 @@ lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -52,7 +52,7 @@ run_testcase = \
 
 # Clean: (does nothing, we dont generate extra lua code)
 %.clean:
-	
+	@exit 0
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile lua_clean
@@ -60,5 +60,5 @@ clean:
 cvsignore:
 	@echo '*wrap* *.so *.dll *.exp *.lib'
 	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.lua; done 
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.lua CVS/Entries ; then echo $${i}_runme.lua; fi; done 
+	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.lua; done
+	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.lua CVS/Entries ; then echo $${i}_runme.lua; fi; done

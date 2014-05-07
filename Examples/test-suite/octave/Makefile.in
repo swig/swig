@@ -21,7 +21,7 @@ CPP_TEST_BROKEN += \
 	li_std_set \
 	li_std_stream
 
-#C_TEST_CASES += 
+#C_TEST_CASES +=
 
 #
 # This test only works with modern C compilers
@@ -39,7 +39,7 @@ CSRCS      = $(srcdir)/octave_empty.c
 # none!
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -49,7 +49,7 @@ CSRCS      = $(srcdir)/octave_empty.c
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -72,13 +72,13 @@ clean:
 cvsignore:
 	@echo '*wrap* *.mc *.so *.dll *.exp *.lib'
 	@echo Makefile
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done 
-	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done 
-	@echo clientdata_prop_a.m 
-	@echo clientdata_prop_b.m 
-	@echo imports_a.m 
-	@echo imports_b.m 
-	@echo mod_a.m mod_b.m 
+	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.m; done
+	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do if grep -q $${i}_runme.m CVS/Entries ; then echo $${i}_runme.m; fi; done
+	@echo clientdata_prop_a.m
+	@echo clientdata_prop_b.m
+	@echo imports_a.m
+	@echo imports_b.m
+	@echo mod_a.m mod_b.m
 	@echo hugemod.h hugemod_a.i hugemod_b.i hugemod_a.m hugemod_b.m hugemod_runme.m
 	@echo template_typedef_import.m
 

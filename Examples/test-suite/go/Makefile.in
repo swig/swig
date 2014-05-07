@@ -29,7 +29,7 @@ include $(srcdir)/../common.mk
 .SUFFIXES: .cpptest .ctest .multicpptest
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase_cpp)
@@ -39,7 +39,7 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_multi_testcase)
