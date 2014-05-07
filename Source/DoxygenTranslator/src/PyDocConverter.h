@@ -36,7 +36,7 @@ protected:
 
   /*
    * Format a string so it is justified and split over several lines 
-   * not exeeding a given length.
+   * not exceeding a given length.
    */
   std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
   /*
@@ -46,7 +46,7 @@ protected:
    */
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
   /*
-   * Translate one entity with the appropriate handler, acording
+   * Translate one entity with the appropriate handler, according
    * to the tagHandlers
    */
   void translateEntity(DoxygenEntity & doxyEntity, std::string &translatedComment);
@@ -117,14 +117,14 @@ protected:
 
   void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
 
-  /** Does not ouput params of HTML tag, for example in <table border='1'>
+  /** Does not output params of HTML tag, for example in <table border='1'>
    * 'border=1' is not written to output.
    */
   void handleDoxyHtmlTagNoParam(DoxygenEntity& tag,
                                     std::string& translatedComment,
                                     std::string &arg);
 
-  /** TRanslates tag <a href = "url">text</a> to: text ("url"). */
+  /** Translates tag <a href = "url">text</a> to: text ("url"). */
   void handleDoxyHtmlTag_A(DoxygenEntity& tag,
                               std::string& translatedComment,
                               std::string &arg);
@@ -170,7 +170,7 @@ private:
   Node *currentNode;
   // this contains the handler pointer and one string argument
   static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
-  // this cointains the sectins titiles, like 'Arguments:' or 'Notes:', that are printed only once
+  // this contains the sections tittles, like 'Arguments:' or 'Notes:', that are printed only once
   static std::map<std::string, std::string> sectionTitles;
   void fillStaticTables();
 };

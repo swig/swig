@@ -45,7 +45,7 @@ void DoxygenParser::fillTables()
   if (doxygenCommands.size())
     return;
 
-  // fill in tables with data from DxygenCommands.h
+  // fill in tables with data from DoxygenCommands.h
   for (int i = 0; i < simpleCommandsSize; i++)
     doxygenCommands[simpleCommands[i]] = SIMPLECOMMAND;
 

@@ -50,12 +50,12 @@ void JavaDocConverter::fillStaticTables()
    *     Java src is <x> and therefore invisible on output - browser ignores unknown command.
    *     This is handy in syntax descriptions, for example: more <fileName>.
    *
-   * Standlaone < and > need not be translated, they are rendered properly in
+   * Standalone < and > need not be translated, they are rendered properly in
    *      all three outputs.
    *
    * ., %, and " need not to be translated
    *
-   * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
+   * entities must be translated - remain in Java, something meaningful in Python (&lt, ...)
    *
    * - Python
    * - add comments also to auto-generated methods like equals(), delete() in Java,
@@ -419,7 +419,7 @@ void JavaDocConverter::handleTagHtml(DoxygenEntity& tag,
 {
   if (tag.entityList.size()) { // do not include empty tags
     std::string tagData = translateSubtree(tag);
-    // wrap the thing, ignoring whitespaces
+    // wrap the thing, ignoring whitespace
     size_t wsPos = tagData.find_last_not_of("\n\t ");
     if (wsPos != std::string::npos)
       translatedComment += "<" + arg + ">" + tagData.substr(0, wsPos + 1) + "</"
@@ -791,7 +791,7 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag,
   translatedComment += linkObject;
 }
 
-/* This function moves all endlines at the end of child entities
+/* This function moves all line endings at the end of child entities
  * out of the child entities to the parent.
  * For example, entity tree:
 
@@ -812,7 +812,7 @@ int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
 {
   DoxygenEntityListIt it = root.entityList.begin();
   while (it != root.entityList.end()) {
-    // remove endlines
+    // remove line endings
     int ret = shiftEndlinesUpTree(*it, level + 1);
     // insert them after this element
     it++;
@@ -948,7 +948,7 @@ String *JavaDocConverter::makeDocumentation(Node *node)
 
   shiftEndlinesUpTree(root);
 
-  // strip endlines at the beginning
+  // strip line endings at the beginning
   while (!root.entityList.empty()
       && root.entityList.begin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_front();

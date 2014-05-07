@@ -442,7 +442,7 @@ void PyDocConverter::handleTagWrap(DoxygenEntity& tag,
 {
   if (tag.entityList.size()) { // do not include empty tags
     std::string tagData = translateSubtree(tag);
-    // wrap the thing, ignoring whitespaces
+    // wrap the thing, ignoring whitespace
     size_t wsPos = tagData.find_last_not_of("\n\t ");
     if (wsPos != std::string::npos && wsPos != tagData.size() - 1)
       translatedComment += arg + tagData.substr(0, wsPos + 1) + arg

@@ -13,19 +13,19 @@
 <li><a href="#Doxygen_file_preparation">Preparations</a>
 <ul>
 <li><a href="#Doxygen_running_swig">Enabling Doxygen Translation</a>
-<li><a href="#Doxygen_additional_options">Additional Commandline Options</a>
+<li><a href="#Doxygen_additional_options">Additional Command Line Options</a>
 </ul>
-<li><a href="#Doxygen_to_javadoc">Doxygen To JavaDoc</a>
+<li><a href="#Doxygen_to_javadoc">Doxygen To Javadoc</a>
 <ul>
 <li><a href="#Doxygen_basic_example">Basic Example</a>
-<li><a href="#Doxygen_javadoc_tags">JavaDoc Tags</a>
+<li><a href="#Doxygen_javadoc_tags">Javadoc Tags</a>
 <li><a href="#Doxygen_unsupported_tags">Unsupported tags</a>
 <li><a href="#Doxygen_further_details">Further Details</a>
 </ul>
-<li><a href="#Doxygen_to_pydoc">Doxygen To PythonDoc</a>
+<li><a href="#Doxygen_to_pydoc">Doxygen To Pydoc</a>
 <ul>
 <li><a href="#Doxygen_python_basic_example">Basic Example</a>
-<li><a href="#Doxygen_pydoc_tags">PyDoc translator</a>
+<li><a href="#Doxygen_pydoc_tags">Pydoc translator</a>
 <li><a href="#Doxygen_python_unsupported_tags">Unsupported tags</a>
 <li><a href="#Doxygen_python_further_details">Further Details</a>
 </ul>
@@ -45,7 +45,7 @@
 <p>
 This chapter describes SWIG's support for translating Doxygen comments
 found in interface and header files into a target language's normal
-documentation language.  Currently only JavaDoc and PythonDoc is
+documentation language.  Currently only Javadoc and Pydoc is
 supported.
 </p>
 
@@ -59,8 +59,8 @@ Code</A> proposal from Summer 2008.  It adds an extra layer of
 functionality to SWIG, allowing automated translation of <A HREF=
 "http://www.stack.nl/~dimitri/doxygen/">Doxygen</A> formatted comments
 from input files into a documentation language more suited for the
-target language.  Currently this module only translates into JavaDoc
-and PythonDoc for the SWIG Java and Python Modules, but other
+target language.  Currently this module only translates into Javadoc
+and Pydoc for the SWIG Java and Python Modules, but other
 extensions are to be added in time.
 </p>
 
@@ -87,7 +87,7 @@ itself is a deeper tool and can provide you better feedback for
 correcting any syntax errors that may be present.  Please look at
 Doxygen's <A HREF =
 "http://www.stack.nl/~dimitri/doxygen/docblocks.html"> Documenting the
-code</A> for proper specificatons for comment format.  However, SWIG's
+code</A> for proper specifications for comment format.  However, SWIG's
 Doxygen parser will still point you most of errors and warnings found
 in comments (like unterminated strings or missing ending tags).
 </p>
@@ -107,7 +107,7 @@ Documenting the code</A>). Here they are:
 
 <div class="code"><pre>
 /**
- * JavaDoc style comment, multiline
+ * Javadoc style comment, multiline
  */
 /*!
  * QT-style comment, multiline
@@ -192,7 +192,7 @@ enum E_NUMBERS
 
 <p>
 Just remember, if SWIG shows syntax error parsing the file because of
-your comment, try to move it in some other, 'safer' place as desribed
+your comment, try to move it in some other, 'safer' place as described
 above.
 <br>
 Also, currently only the comments directly before or after the nodes
@@ -205,7 +205,7 @@ assigned to anything.
 <p>
 There is a switch '-doxygen' in every module that supports converting
 documentation comments. Some comments in some target languages can be
-manually overriden by specific swig's features,
+manually overridden by specific swig's features,
 like <i>feature:docstring</i> or <i>feature:autodoc</i>, in this cases
 Doxygen comments have lowest priority.
 </p>
@@ -215,18 +215,18 @@ out in parser and all the resources used by comment parser and
 translator are freed.
 </p>
 
-<H3><a name="Doxygen_additional_options"></a>39.2.2 Additional Commandline Options</H3>
+<H3><a name="Doxygen_additional_options"></a>39.2.2 Additional Command Line Options</H3>
 
 
 <p>
-ALSO TO BE ADDED (JavaDoc Autobrief?)
+ALSO TO BE ADDED (Javadoc auto brief?)
 </p>
 
-<H2><a name="Doxygen_to_javadoc"></a>39.3 Doxygen To JavaDoc</H2>
+<H2><a name="Doxygen_to_javadoc"></a>39.3 Doxygen To Javadoc</H2>
 
 
 <p>
-If translation is enabled, JavaDoc formatted comments should be
+If translation is enabled, Javadoc formatted comments should be
 automatically placed in the correct locations in the resulting module
 and proxy files.
 </p>
@@ -321,7 +321,7 @@ code.
 </p>
 
 <p>
-JavaDoc translator will handle most of the tags conversions (see the
+Javadoc translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects
 params, in \see and \link...\endlink commands. For example,
 'someFunction(std::string)' will be converted to
@@ -332,14 +332,14 @@ commands are stripped out, if specified parameter is not present in
 function. Use 'doxygen:nostripparams' to avoid.
 <br>
 If you intend to use resulting proxy files with Doxygen docs
-generator, rather than JavaDoc, you may want to turn off translator
+generator, rather than Javadoc, you may want to turn off translator
 completely (doxygen:notranslate feature).  Then SWIG will just copy
 the comments to the proxy file and reformat them if needed, but all
 the comment content will be left as is.
 </p>
 
 <p>
-JavaDoc translator features summary
+Javadoc translator features summary
 (see <a href="Customization.html#Customization_features">%feature
 directives</a>):
 <br>
@@ -349,7 +349,7 @@ directives</a>):
 <div class="shell"><pre>
 <table>
 <tr>
-<td>doxygen:noranslate</td>
+<td>doxygen:notranslate</td>
 <td>
 Turn off the whole Doxygen translator.
 The Doxygen comment will be attached to the right node,
@@ -358,7 +358,7 @@ but all the commands and text will be left as-is
 </tr>
 
 <tr>
-<td>doxygen:notlinkranslate</td>
+<td>doxygen:nolinkranslate</td>
 <td>Turn off automatic link-objects translation</td>
 </tr>
 
@@ -373,11 +373,11 @@ Doxygen commands if such parameter is not found
 </pre></div>
 
 
-<H3><a name="Doxygen_javadoc_tags"></a>39.3.2 JavaDoc Tags</H3>
+<H3><a name="Doxygen_javadoc_tags"></a>39.3.2 Javadoc Tags</H3>
 
 
 <p>
-Here is the list of all Doxygen tags and the description of how they are translated to JavaDoc
+Here is the list of all Doxygen tags and the description of how they are translated to Javadoc
 <br>
 <b>Doxygen tags:</b>
 </p>
@@ -422,7 +422,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\copyright</td>
-<td>replaced with 'Copyrigth:'</td>
+<td>replaced with 'Copyright:'</td>
 </tr>
 <tr>
 <td>\deprecated</td>
@@ -554,7 +554,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\throws</td>
-<td>translated to @thtows</td>
+<td>translated to @throws</td>
 </tr>
 <tr>
 <td>\todo</td>
@@ -632,11 +632,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 
 <p>
 Doxygen has a wealth of tags such as @latexonly that have no
-equivalent in JavaDoc.  As a result several tags that have no
+equivalent in Javadoc.  As a result several tags that have no
 translation (or particular use, such as some linking and section tags)
-are supressed with their content just printed out (if it has any
+are suppressed with their content just printed out (if it has any
 sense, typically text content).  If you are interested in more of the
-specifics of JavaDoc, please
+specifics of Javadoc, please
 visit <A HREF="http://java.sun.com/j2se/javadoc/writingdoccomments/">How
 to Write Doc Comments for the Javadoc Tool.</A>
 <br>
@@ -866,15 +866,15 @@ comment, the whole comment block is ignored:
 TO BE ADDED.
 </p>
 
-<H2><a name="Doxygen_to_pydoc"></a>39.4 Doxygen To PythonDoc</H2>
+<H2><a name="Doxygen_to_pydoc"></a>39.4 Doxygen To Pydoc</H2>
 
 
 <p>
-If translation is enabled, PyDoc formatted comments should be
+If translation is enabled, Pydoc formatted comments should be
 automatically placed in the correct locations in the resulting module
-and proxy files.  The problem is that PyDoc has no tag mechanism like
-Doxygen or JavaDoc, so most of Doxygen commands are translated as
-English plaintext pieces.
+and proxy files.  The problem is that Pydoc has no tag mechanism like
+Doxygen or Javadoc, so most of Doxygen commands are translated as
+English plain text pieces.
 </p>
 
 <H3><a name="Doxygen_python_basic_example"></a>39.4.1 Basic Example</H3>
@@ -949,12 +949,12 @@ file, so they have no comment translated for them.
 </p>
 
 <p>
-  <b>Whitespaces and tables</b><br>
-  Whitespaces are preserved when translating comments, so it makes
+  <b>Whitespace and tables</b><br>
+  Whitespace is preserved when translating comments, so it makes
   sense to have Doxygen comments formatted in a readable way. This
   includes tables, where tags &lt;th&gt;, &lt;td&gt; and &lt;/tr&gt;are translated
   to '|'. The line after line with &lt;th&gt; tags contains dashes.
-  If we take care about whitespaces, comments in Python are much more
+  If we take care about whitespace, comments in Python are much more
   readable. Example:
 
 <div class="code"><pre>
@@ -984,11 +984,11 @@ translates to Python as:
 <p>
   <b>Overloaded functions</b><br>
 Since all the overloaded functions in c++ are wrapped into one Python
-function, PyDoc translator will combine every comment of every
+function, Pydoc translator will combine every comment of every
 overloaded function and put it in the comment for wrapping function.
 <br>
 If you intend to use resulting proxy files with Doxygen docs
-generator, rather than PyDoc, you may want to turn off translator
+generator, rather than Pydoc, you may want to turn off translator
 completely (doxygen:notranslate feature).  Then SWIG will just copy
 the comments to the proxy file and reformat them if needed, but all
 the comment content will be left as is. As Doxygen doesn't support
@@ -1000,7 +1000,7 @@ to do the work.
 </p>
 
 <p>
-PyDoc translator features summary (see <a href="Customization.html#Customization_features">%feature directives</a>):
+Pydoc translator features summary (see <a href="Customization.html#Customization_features">%feature directives</a>):
 <br>
 
 </p>
@@ -1008,7 +1008,7 @@ PyDoc translator features summary (see <a href="Customization.html#Customization
 <div class="shell"><pre>
 <table>
 <tr>
-<td>doxygen:noranslate</td>
+<td>doxygen:notranslate</td>
 <td>
 Turn off the whole Doxygen translator.
 The Doxygen comment will be attached to the right node,
@@ -1018,11 +1018,11 @@ but all the commands and text will be left as-is
 </table>
 </pre></div>
 
-<H3><a name="Doxygen_pydoc_tags"></a>39.4.2 PyDoc translator</H3>
+<H3><a name="Doxygen_pydoc_tags"></a>39.4.2 Pydoc translator</H3>
 
 
 <p>
-Here is the list of all Doxygen tags and the description of how they are translated to PyDoc
+Here is the list of all Doxygen tags and the description of how they are translated to Pydoc
 <br>
 <b>Doxygen tags:</b>
 </p>
@@ -1058,7 +1058,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\copyright</td>
-<td>prints'Copyrigth:'</td>
+<td>prints 'Copyright:'</td>
 </tr>
 <tr>
 <td>\deprecated</td>
@@ -1222,7 +1222,7 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </tr>
 <tr>
 <td>\.</td>
-<td>prints . char</td>
+<td>prints . character</td>
 </tr>
 <tr>
 <td>\::</td>
@@ -1236,9 +1236,9 @@ Here is the list of all Doxygen tags and the description of how they are transla
 
 <p>
 Doxygen has a wealth of tags such as @latexonly that have no
-equivalent in PyDoc.  As a result several tags that have no
+equivalent in Pydoc.  As a result several tags that have no
 translation (or particular use, such as some linking and section tags)
-are supressed with their content just printed out (if it has any
+are suppressed with their content just printed out (if it has any
 sense, typically text content).
 <br>
 Here is the list of these tags:
@@ -1449,7 +1449,7 @@ first command, are also present in the parse tree.  These individual
 are passed on individually to the DoxygenTranslator Module.  This
 module builds its own private parse tree and hands it to a separate
 class for translation into the target documentation language.  For
-example, <tt>JavaDocConverter</tt> is the JavaDoc module class.
+example, <tt>JavaDocConverter</tt> is the Javadoc module class.
 </p>
 
 <H3><a name="Doxygen_debugging_commands"></a>39.5.2 Debugging Doxygen parser and translator</H3>
@@ -1483,7 +1483,7 @@ This part of SWIG currently has 6 runtime tests in both Java and Python.
 </pre></div>
 
 <p>
-All this tests are included in common.mk and are build with the
+All this tests are included in common.mk and are built with the
 commands like 'make check-test-suite' or 'make
 check-python-test-suite'. To run them individually, type
 <code>make &lt;testname&gt;.cpptest -s</code> in the language-specific subdir in
@@ -1492,7 +1492,7 @@ check-python-test-suite'. To run them individually, type
   Examples/test-suite/java $ make doxygen_misc_constructs.cpptest -s
 </pre>
 
-If test fails, both expected and translated comments are printed to
+If the test fails, both expected and translated comments are printed to
 std out, but also written to files <i>expected.txt</i>
 and <I>got.txt</I>. Since it is often difficult to find a single
 character difference in several lines of text, we can use some diff
@@ -1504,14 +1504,14 @@ tool, for example:
 
     
 <br>
-Runtime tests in Java are implemented using JavaDoc doclets. To make that work, you
+Runtime tests in Java are implemented using Javadoc doclets. To make that work, you
 should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
 environmental var defined and pointing to the JDK location.
 <br>
 The Java's comment parsing code (the testing part) is located in commentParser.java.
 You may see it to understand how the checking process works. There is also a possibility
 to run that file as stand-alone program, with 'java commentParser <some java package>',
-and it will print the list of comments found in the specified dir (in the format it's used
+and it will print the list of comments found in the specified directory (in the format it's used
 in runtime tests). So, when you want to create the new test of Doxygen comment translator,
 just copy any existing one, and replace the actual comment content (section of entries in
 form 'wantedComments.put(...)' with the output of the above command.
