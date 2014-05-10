@@ -1,6 +1,6 @@
 package main
 
-import . "./array_member"
+import "array_member"
 
 func main() {
 	f := NewFoo()
