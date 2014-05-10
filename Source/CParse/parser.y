@@ -3515,6 +3515,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   } else {
 		     cplus_mode = CPLUS_PUBLIC;
 		   }
+		   if (!cparse_cplusplus) {
+		     set_scope_to_global();
+		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
 		   Swig_inherit_base_symbols(bases);
