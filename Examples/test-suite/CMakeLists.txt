@@ -424,9 +424,11 @@ macro(add_tests language)
       set(SWIG_CXX_EXTENSION ".cxx") 
     endif ()
     
+    math(EXPR _SIZEOF_VOID_P_BITS "8 * ${CMAKE_SIZEOF_VOID_P}")
     if ( ${language} STREQUAL go )
-      set ( SWIG_CXX_FLAG "-intgosize;64;${SWIG_CXX_FLAG}" )
+      set ( SWIG_CXX_FLAG "-intgosize;${_SIZEOF_VOID_P_BITS};${SWIG_CXX_FLAG}" )
     endif ()
+    
     if ( ${language} STREQUAL guile )
       set ( SWIG_CXX_FLAG "-Linkage;passive;${SWIG_CXX_FLAG}" )
     endif()
