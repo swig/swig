@@ -1,4 +1,4 @@
-var typedef_inherit = require("./typedef_inherit");
+var typedef_inherit = require("typedef_inherit");
 
 a = new typedef_inherit.Foo();
 b = new typedef_inherit.Bar();

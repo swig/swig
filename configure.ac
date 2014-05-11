@@ -2677,6 +2677,41 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
+#--------------------------------------------------------------------
+# Building Examples/ out of source directory
+#--------------------------------------------------------------------
+
+# If building out of source tree, replicate Examples/ source tree in
+# build directory, and copy over Makefiles from source directory.
+# Prefix each Makefile with a header which sets SRCDIR to the relative
+# source directory, and provides a rule for updating the Makefile from
+# its original source.
+AC_CONFIG_COMMANDS([Examples],[
+  if test "x${srcdir}" != "x." ; then
+    AC_MSG_NOTICE([generating Examples build tree])
+    for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
+      dir=`dirname ${mkfile}`
+      d=${dir}
+      reldir="";
+      while test "x$d" != "x." ; do
+        d=`dirname $d`
+        reldir="${reldir}../"
+      done
+      relsrcdir=${reldir}${srcdir}/
+      AS_MKDIR_P([${dir}])
+      cat <<EOF >${mkfile}
+# DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
+# and run (cd ${reldir} && ./config.status) to regenerate
+SRCDIR = ${relsrcdir}${dir}/
+
+EOF
+      cat ${srcdir}/${mkfile} >>${mkfile}
+    done
+  fi
+])
+
+#--------------------------------------------------------------------
+
 AC_OUTPUT
 
 langs=""

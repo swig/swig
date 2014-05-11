@@ -4,11 +4,18 @@
 
 LANGUAGE     = perl5
 PERL         = @PERL@
+SCRIPTDIR    = $(srcdir)
 SCRIPTSUFFIX = _runme.pl
-TEST_RUNNER  = run-perl-test.pl
+TEST_RUNNER  = $(srcdir)/run-perl-test.pl
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
 
 CPP_TEST_CASES += \
 	primitive_types \
@@ -49,8 +56,8 @@ include $(srcdir)/../common.mk
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.pl appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PERL) $(TEST_RUNNER) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PERL) $(TEST_RUNNER) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .pm file

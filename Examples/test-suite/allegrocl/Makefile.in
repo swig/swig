@@ -5,9 +5,15 @@
 LANGUAGE     = allegrocl
 ALLEGROCL    = @ALLEGROCLBIN@
 SCRIPTSUFFIX = _runme.lisp
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
 
 
 # these cpp tests generate warnings/errors when compiling

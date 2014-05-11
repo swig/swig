@@ -3,7 +3,7 @@
 // This file illustrates class C++ interface generated
 // by SWIG.
 
-var example = require("./example");
+var example = require("example");
 
 // Calling a module function ( aka global function )
 if (example.module_function() !== 7) {

@@ -53,7 +53,7 @@ JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_
 
 JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 
-%.o: %.cxx
+%.o: $(srcdir)/%.cxx
 	$(JSCXX) $(JS_INTERPRETER_DEFINES) $(CXXFLAGS) $(JSINCLUDES) -o $@ -c $<
 
 javascript: $(JS_INTERPRETER_OBJS)

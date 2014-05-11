@@ -1,4 +1,4 @@
-var typemap_namespace = require("./typemap_namespace");
+var typemap_namespace = require("typemap_namespace");
 
 if (typemap_namespace.test1("hello") != "hello")
     throw "RuntimeError";

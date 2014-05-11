@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 console.log("Trying to catch some exceptions.");
 t = new example.Test();

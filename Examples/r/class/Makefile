@@ -5,11 +5,11 @@ TARGET     = example
 INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile r_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' r_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' r_cpp
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile INTERFACE='$(INTERFACE)' r_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INTERFACE='$(INTERFACE)' r_clean

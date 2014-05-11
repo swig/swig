@@ -4,10 +4,17 @@
 
 LANGUAGE     = lua
 LUA          = @LUABIN@
+SCRIPTDIR    = $(srcdir)
 SCRIPTSUFFIX = _runme.lua
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
 
 # sorry, currently very few test cases work/have been written
 
@@ -46,8 +53,8 @@ lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.lua appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LUA_PATH="$(srcdir)/?.lua;" $(RUNTOOL) $(LUA) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LUA_PATH="$(srcdir)/?.lua;" $(RUNTOOL) $(LUA) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: (does nothing, we dont generate extra lua code)

@@ -1,4 +1,4 @@
-var rename = require("./rename2");
+var rename = require("rename2");
 
 function part1() {
   var xyz = new rename.XYZInt();

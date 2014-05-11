@@ -15,13 +15,13 @@ DFLAGS        = -ofrunme
 
 check: build
 	cd $(WORKING_DIR); \
-	$(MAKE) -f $(TOP)/Makefile d_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' d_run
 
 build:
 	cd $(WORKING_DIR); \
-	$(MAKE) -f $(TOP)/Makefile EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT) -outcurrentdir ../example.i' TARGET='$(TARGET)' d; \
-	$(MAKE) -f $(TOP)/Makefile DSRCS='$(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT) -outcurrentdir ../example.i' TARGET='$(TARGET)' d; \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' DSRCS='$(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
 clean:
 	cd $(WORKING_DIR); \
-	$(MAKE) -f $(TOP)/Makefile d_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' d_clean

@@ -1,4 +1,4 @@
-var rename_simple = require("./rename_simple");
+var rename_simple = require("rename_simple");
 var NewStruct = rename_simple.NewStruct;
 
 var s = new NewStruct();

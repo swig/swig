@@ -1,1 +1,1 @@
-var empty = require("./empty");
+var empty = require("empty");

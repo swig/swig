@@ -1,4 +1,4 @@
-var preproc = require("./preproc");
+var preproc = require("preproc");
 
 if (preproc.endif != 1)
   throw "RuntimeError";
