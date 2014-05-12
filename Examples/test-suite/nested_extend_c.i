@@ -1,5 +1,6 @@
 %module nested_extend_c
 
+#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8)
 %extend hiA {
   hiA() {
    union hiA *self = (union hiA *)malloc(sizeof(union hiA));
@@ -43,6 +44,7 @@
     return $self->num;
   }
 }
+#endif
 
 %inline %{
 typedef struct NestedA {
