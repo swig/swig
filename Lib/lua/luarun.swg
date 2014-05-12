@@ -15,6 +15,12 @@ extern "C" {
 #include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
 
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+# ifndef snprintf
+#  define snprintf _snprintf
+# endif
+#endif
+
 /* -----------------------------------------------------------------------------
  * Lua flavors
  * ----------------------------------------------------------------------------- */
