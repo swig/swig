@@ -601,6 +601,7 @@ C_TEST_CASES += \
 	memberin_extend_c \
 	name \
 	nested \
+	nested_extend_c \
 	nested_structs \
 	newobject2 \
 	overload_extend \
