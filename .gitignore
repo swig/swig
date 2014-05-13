@@ -138,4 +138,4 @@ Examples/test-suite/uffi/*/
 Examples/scratch
 
 # Out of source tree build directories
-_build*/
+*build*/
