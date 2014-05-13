@@ -782,7 +782,7 @@ android_version:
 # -----------------------------------------------------------------
 
 android_clean:
-	ant -q -logfile /dev/null clean
+	cd $(SRCDIR) && ant -q -logfile /dev/null clean
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
 	rm -rf obj
