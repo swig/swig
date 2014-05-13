@@ -26,8 +26,8 @@ Makefile: @srcdir@/Makefile.in ../config.status
 	cd .. && $(SHELL) ./config.status Examples/Makefile
 
 # SRCDIR is the relative path to the current source directory
-# - For in-source-tree builds, SRCDIR with be either '',
-#   or '../' for some of the test suites (e.g. C#, Java)
+# - For in-source-tree builds, SRCDIR with be either '' or './', but
+#   '../' for the test suites that build in a subdir (e.g. C#, Java)
 # - For out-of-source-tree builds, SRCDIR will be a relative
 #   path ending with a '/'
 

@@ -3,7 +3,6 @@
 #######################################################################
 
 LANGUAGE     = csharp
-SCRIPTDIR    = $(srcdir)
 SCRIPTSUFFIX = _runme.cs
 CSHARPCILINTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
@@ -13,11 +12,6 @@ CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR = ../
-else
-SRCDIR = ../$(srcdir)/
-endif
 
 CPP_TEST_CASES = \
 	csharp_attributes \
@@ -37,6 +31,7 @@ CPP_TEST_CASES = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+SRCDIR       = ../$(srcdir)/
 SWIGOPT += -namespace $*Namespace
 
 CSHARPFLAGSSPECIAL =

@@ -9,7 +9,6 @@ GO1		= @GO1@
 GO12		= @GO12@
 GO13		= @GO13@
 GOC		= @GOC@
-SCRIPTDIR       = $(srcdir)
 SCRIPTSUFFIX	= _runme.go
 
 GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
@@ -24,11 +23,6 @@ SO = @SO@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR =
-else
-SRCDIR = $(srcdir)/
-endif
 
 include $(srcdir)/../common.mk
 

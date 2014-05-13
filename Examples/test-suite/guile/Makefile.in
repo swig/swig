@@ -6,17 +6,11 @@ EXTRA_TEST_CASES += guile_ext_test.externaltest
 
 LANGUAGE     = guile
 VARIANT      =
-SCRIPTDIR    = $(srcdir)
 SCRIPTSUFFIX = _runme.scm
 
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR =
-else
-SRCDIR = $(srcdir)/
-endif
 
 GUILE        = @GUILE@
 GUILE_RUNTIME=

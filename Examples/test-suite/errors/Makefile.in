@@ -22,11 +22,6 @@ TODOS        = tr -d '\r'
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR =
-else
-SRCDIR = $(srcdir)/
-endif
 
 # strip source directory from output, so that diffs compare
 srcdir_regexp = $(shell echo $(srcdir)/ | sed 's/\./[.]/g')

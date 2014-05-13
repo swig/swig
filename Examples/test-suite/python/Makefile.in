@@ -14,6 +14,7 @@ PYTHON       = $(PYBIN)
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
 PY3SCRIPTSUFFIX = _runme3.py
+PY2TO3       = 2to3 -x import
 
 ifeq (,$(PY3))
   SCRIPTSUFFIX = $(PY2SCRIPTSUFFIX)
@@ -21,20 +22,9 @@ else
   SCRIPTSUFFIX = $(PY3SCRIPTSUFFIX)
 endif
 
-SCRIPTDIR    = .
-
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR =
-else
-SRCDIR = $(srcdir)/
-endif
-
-
-PY2TO3 = 2to3 -x import
-
 
 CPP_TEST_CASES += \
 	argcargvtest \
@@ -109,7 +99,8 @@ BUILTIN_NOT_BROKEN = $(filter-out $(BUILTIN_BROKEN),$(NOT_BROKEN_TEST_CASES))
 builtin-check : $(BUILTIN_NOT_BROKEN)
 
 # Overridden variables here
-LIBS       = -L.
+SCRIPTDIR    = .
+LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options

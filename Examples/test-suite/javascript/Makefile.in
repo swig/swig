@@ -10,11 +10,6 @@ SCRIPTSUFFIX = _runme.js
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
-ifeq (.,$(srcdir))
-SRCDIR =
-else
-SRCDIR = $(srcdir)/
-endif
 
 SWIG  = $(top_builddir)/preinst_swig
 

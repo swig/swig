@@ -70,6 +70,8 @@ LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
 INTERFACEDIR = ../
+SRCDIR     = $(srcdir)/
+SCRIPTDIR  = $(srcdir)
 
 # Regenerate Makefile if Makefile.in or config.status have changed.
 ifeq (,$(TEST_SUITE_SUBDIR))
