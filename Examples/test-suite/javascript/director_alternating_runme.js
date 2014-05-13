@@ -1,4 +1,4 @@
-var director_alternating = require("./director_alternating");
+var director_alternating = require("director_alternating");
 
 id = director_alternating.getBar().id();
 if (id != director_alternating.idFromGetBar())

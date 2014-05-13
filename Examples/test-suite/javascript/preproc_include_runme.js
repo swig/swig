@@ -1,4 +1,4 @@
-var preproc_include = require("./preproc_include");
+var preproc_include = require("preproc_include");
 
 if (preproc_include.multiply10(10) != 100)
   throw "RuntimeError";

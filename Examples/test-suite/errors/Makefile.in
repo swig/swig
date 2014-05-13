@@ -22,14 +22,26 @@ TODOS        = tr -d '\r'
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
+
+# strip source directory from output, so that diffs compare
+srcdir_regexp = $(shell echo $(srcdir)/ | sed 's/\./[.]/g')
+STRIP_SRCDIR = sed 's|^$(srcdir_regexp)||'
 
 # All .i files with prefix 'cpp_' will be treated as C++ input and remaining .i files as C input
-ALL_ERROR_TEST_CASES := $(patsubst %.i,%, $(wildcard *.i))
+ALL_ERROR_TEST_CASES := $(patsubst %.i,%, $(notdir $(wildcard $(srcdir)/*.i)))
 CPP_ERROR_TEST_CASES := $(filter cpp_%, $(ALL_ERROR_TEST_CASES))
 C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CASES))
 
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest)
+
+# For rebuilding Makefile from Makefile.in in common.mk
+TEST_SUITE_SUBDIR = errors
 
 include $(srcdir)/../common.mk
 
@@ -37,13 +49,13 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest:
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -c++ -python -Wall -Fstandard $(SWIGOPT) $*.i 2>&1 | $(TODOS) > $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c $*.stderr $*.$(ERROR_EXT)
+	-$(SWIG) -c++ -python -Wall -Fstandard $(SWIGOPT) $(srcdir)/$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -c $(srcdir)/$*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
 	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIG) -python -Wall -Fstandard $(SWIGOPT) $*.i 2>&1 | $(TODOS) > $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c $*.stderr $*.$(ERROR_EXT)
+	-$(SWIG) -python -Wall -Fstandard $(SWIGOPT) $(srcdir)/$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -c $(srcdir)/$*.stderr $*.$(ERROR_EXT)
 
 %.clean:
 	@exit 0

@@ -1,4 +1,4 @@
-var cpp_static = require("./cpp_static");
+var cpp_static = require("cpp_static");
 
 cpp_static.StaticFunctionTest.static_func();
 cpp_static.StaticFunctionTest.static_func_2(1);

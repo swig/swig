@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 example.f();
 example.f(1);

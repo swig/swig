@@ -6,9 +6,16 @@ LANGUAGE     = chicken
 VARIANT      =
 SCRIPTSUFFIX = _runme.ss
 PROXYSUFFIX  = _runme_proxy.ss
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
+
 CHICKEN_CSI  = @CHICKEN_CSI@ -quiet -batch -no-init
 SO           = @SO@
 

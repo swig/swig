@@ -3,9 +3,15 @@
 #######################################################################
 
 LANGUAGE     = d
+
 srcdir       = @srcdir@
-top_srcdir   = ../@top_srcdir@
-top_builddir = ../@top_builddir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
 
 ifeq (2,$(D_VERSION))
   VERSIONSUFFIX = .2

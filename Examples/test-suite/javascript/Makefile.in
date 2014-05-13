@@ -4,10 +4,18 @@
 
 LANGUAGE     = javascript
 NODEGYP = @NODEGYP@
+NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+ifeq (.,$(srcdir))
+SRCDIR =
+else
+SRCDIR = $(srcdir)/
+endif
+
 SWIG  = $(top_builddir)/preinst_swig
 
 ifneq (, $(ENGINE))
@@ -47,20 +55,27 @@ ifeq (node,$(JSENGINE))
   constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
+	setup_node = \
+		test -d $* || mkdir $*; \
+		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$srcdir|$(srcdir)|g' \
+			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp; \
+		sed -e 's|$$testcase|$*|g;' \
+			$(srcdir)/node_template/index.js.in > $*/index.js
+
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
-		sh ./setup_test.sh $* $(GYP_CFLAGS); \
-		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx ../$*.i; \
+		$(setup_node); \
+		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i; \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	swig_and_compile_cpp = \
-		sh ./setup_test.sh $* $(GYP_CFLAGS); \
-		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i; \
+		$(setup_node); \
+		$(SWIG) -c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i; \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			node $(srcdir)/$*$(SCRIPTSUFFIX); \
+			env NODE_PATH=$$PWD:$(srcdir) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
 
@@ -83,7 +98,7 @@ else
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			$(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
+			$(top_builddir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
   %.ctest:

@@ -1,1 +1,1 @@
-module.exports = require("./build/Release/example");
+module.exports = require("build/Release/example");
