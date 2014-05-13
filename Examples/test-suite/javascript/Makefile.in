@@ -22,7 +22,7 @@ endif
 include $(srcdir)/../common.mk
 
 _setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
