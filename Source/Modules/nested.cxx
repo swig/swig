@@ -378,8 +378,6 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  decl = nextSibling(decl);
 	}
 	Delete(ty);
-	// Check for extensions
-	// TODO: we can save extensions hash like class hash and move check_extensions() after nesting processing
 	if (extendhash) {
 	  if (Node *am = Getattr(extendhash, name)) {
 	    // Merge the extension into the symbol table

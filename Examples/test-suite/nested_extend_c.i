@@ -44,6 +44,13 @@
     return $self->num;
   }
 }
+
+%extend FOO_bar {
+    void bar_extend()	{
+        $self->d = 1;
+    }
+};
+
 #endif
 
 %inline %{
@@ -72,5 +79,13 @@ typedef struct {
         int num;
     } lowB_instance;
 } NestedB;
+
+typedef struct {
+    int a;
+    union {
+        char c;
+        int d;
+    } bar;
+} FOO;
 %}
 
