@@ -52,7 +52,7 @@ run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
 	fi
 
 run_multitestcase = \
@@ -61,7 +61,7 @@ run_multitestcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
 	       $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
 	fi; \
 	done
 # Clean
