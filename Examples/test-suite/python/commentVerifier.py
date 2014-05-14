@@ -13,12 +13,12 @@ def check(got, expected):
       got = ''
 
   if not got == expected:
-    print "\n\n////////////////////////////////////////////////////////////////////////"
+    print("\n\n////////////////////////////////////////////////////////////////////////")
 
     expectedFileName = "expected.txt"
     gotFileName = "got.txt"
-    print "Output is also saved to files '" + expectedFileName + \
-                                   "' and '" + gotFileName + "'";
+    print("Output is also saved to files '" + expectedFileName + \
+                                   "' and '" + gotFileName + "'")
 
     expectedFile = open(expectedFileName, "w")
     expectedFile.write(expected)
