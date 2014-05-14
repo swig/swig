@@ -661,6 +661,9 @@ class TypePass:private Dispatcher {
    * ------------------------------------------------------------ */
 
   virtual int cDeclaration(Node *n) {
+    if (GetFlag(n, "feature:ignore")) {
+      return SWIG_OK;
+    }
     if (NoExcept) {
       Delattr(n, "throws");
     }

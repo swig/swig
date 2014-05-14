@@ -87,5 +87,9 @@ typedef struct {
         int d;
     } bar;
 } FOO;
+
+struct {
+   int i;
+} THING;
 %}
 
