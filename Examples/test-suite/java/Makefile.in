@@ -87,14 +87,20 @@ setup = \
 	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
+# Doxygen test cases need to be compiled together with the CommentsParser class
+# which depends on com.sun.javadoc package which is located in this JAR.
+JAVA_CLASSPATH := .
+$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := $(JAVA_HOME)/lib/tools.jar:.
+$(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentParser.java
+
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_HOME)/lib/tools.jar:. -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_HOME)/lib/tools.jar:. $*_runme; \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(DOXYGEN_COMMENT_PARSER) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 
 # Clean: remove testcase directories
