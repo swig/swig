@@ -285,9 +285,6 @@ check-test-suite:				\
 	check-javascript-test-suite
 
 check-%-test-suite:
-	@if test -d Examples/test-suite/$*; then			\
-	  cd Examples/test-suite/$* && $(MAKE) Makefile;		\
-	fi
 	@if test -z "$(skip-$*)"; then					\
 	  echo $* unknown;						\
 	  exit 1;							\
