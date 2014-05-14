@@ -542,7 +542,7 @@ java_HAS_DOXYGEN := 1
 $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
 
 ifdef HAS_DOXYGEN
-DOXYGEN_TEST_CASES := \
+DOXYGEN_TEST_CASES += \
 	doxygen_parsing \
 	doxygen_basic_translate \
 	doxygen_basic_notranslate \

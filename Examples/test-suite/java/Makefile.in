@@ -16,10 +16,6 @@ C_TEST_CASES = \
 	java_lib_various
 
 CPP_TEST_CASES = \
-	doxygen_parsing_enums_simple \
-	doxygen_parsing_enums_proper \
-	doxygen_parsing_enums_typesafe \
-	doxygen_parsing_enums_typeunsafe \
 	enum_thorough_proper \
 	enum_thorough_simple \
 	enum_thorough_typeunsafe \
@@ -42,6 +38,12 @@ CPP_TEST_CASES = \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper
 #	li_boost_intrusive_ptr
+
+DOXYGEN_TEST_CASES := \
+	doxygen_parsing_enums_simple \
+	doxygen_parsing_enums_proper \
+	doxygen_parsing_enums_typesafe \
+	doxygen_parsing_enums_typeunsafe \
 
 include $(srcdir)/../common.mk
 
