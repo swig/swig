@@ -68,16 +68,22 @@ before_install:
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
 script:
+  - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - ./autogen.sh && ./configure $CONFIGOPTS
+  - echo -en 'travis_fold:end:script.1\\r'
   - make -s $SWIGJOBS
   - ./swig -version && ./swig -pcreversion
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
+  - echo 'Installing...' && echo -en 'travis_fold:start:script.1\\r'
   - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
+  - echo -en 'travis_fold:end:script.2\\r'
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
+  - echo -n 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
   - make maintainer-clean
+  - echo -en 'travis_fold:end:script.3\\r'
 branches:
   only:
     - master
