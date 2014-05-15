@@ -68,7 +68,11 @@ before_install:
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
 script:
-  - ./autogen.sh && ./configure $CONFIGOPTS
+  - ./autogen.sh
+  - BUILDDIR=_build_$TRAVIS_COMMIT
+  - mkdir $BUILDDIR
+  - cd $BUILDDIR
+  - ../configure $CONFIGOPTS
   - make -s $SWIGJOBS
   - ./swig -version && ./swig -pcreversion
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
