@@ -1,4 +1,4 @@
-var nspace = require("./nspace");
+var nspace = require("nspace");
 
 var color1 = new nspace.Outer.Inner1.Color();
 var color = new nspace.Outer.Inner1.Color(color1);

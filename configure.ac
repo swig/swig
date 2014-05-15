@@ -2677,5 +2677,71 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
+#--------------------------------------------------------------------
+# Building Examples/ out of source directory
+#--------------------------------------------------------------------
+
+# If building out of source tree, replicate Examples/ source tree in
+# build directory, and copy over Makefiles from source directory.
+# Prefix each Makefile with a header which sets SRCDIR to the relative
+# source directory, and provides a rule for updating the Makefile from
+# its original source.
+AC_CONFIG_COMMANDS([Examples],[
+  if test "x${srcdir}" != "x." ; then
+    AC_MSG_NOTICE([generating Examples build tree])
+    for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
+      dir=`dirname ${mkfile}`
+      d=${dir}
+      reldir="";
+      while test "x$d" != "x." ; do
+        d=`dirname $d`
+        reldir="${reldir}../"
+      done
+      relsrcdir=${reldir}${srcdir}/
+      AS_MKDIR_P([${dir}])
+      cat <<EOF >${mkfile}
+# DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
+# and run (cd ${reldir} && ./config.status) to regenerate
+SRCDIR = ${relsrcdir}${dir}/
+
+EOF
+      cat ${srcdir}/${mkfile} >>${mkfile}
+    done
+  fi
+])
+
+#--------------------------------------------------------------------
+
 AC_OUTPUT
+
+langs=""
+test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
+test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
+test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
+test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
+test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
+test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_GO"		|| langs="${langs}go "
+test -n "$SKIP_GUILE"		|| langs="${langs}guile "
+test -n "$SKIP_JAVA"		|| langs="${langs}java "
+test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
+test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
+test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
+test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
+test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
+test -n "$SKIP_PHP"		|| langs="${langs}php "
+test -n "$SKIP_PIKE"		|| langs="${langs}pike "
+test -n "$SKIP_PYTHON"		|| langs="${langs}python "
+test -n "$SKIP_R"		|| langs="${langs}r "
+test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_TCL"		|| langs="${langs}tcl "
+test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
+
+echo "
+The SWIG test-suite and examples are configured for the following languages:
+$langs
+"
+
 dnl configure.ac ends here

@@ -1,4 +1,4 @@
-var disown = require("./disown");
+var disown = require("disown");
 
 var a = new disown.A();
 var tmp = a.thisown;

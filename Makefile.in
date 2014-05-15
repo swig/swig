@@ -100,7 +100,7 @@ skip-errors	= test -n ""
 ACTION = check
 NOSKIP =
 
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
+chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
@@ -243,11 +243,13 @@ check-%-examples :
 
 # individual example
 %.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
 	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@if $(skip-gcj); then					\
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
@@ -438,7 +440,7 @@ maintainer-clean:
 	@echo maintainer-cleaning CCache
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) maintainer-clean)
 	@echo maintainer-cleaning docs
-	@cd $(DOCS) && $(MAKE) $(FLAGS) maintainer-clean
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) $(FLAGS) maintainer-clean
 	@echo maintainer-cleaning Lib files
 	@rm -f $(srcdir)/Lib/swigwarn.swg
 	@echo distcleaning

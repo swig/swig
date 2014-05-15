@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 /* Call our gcd() function */
 

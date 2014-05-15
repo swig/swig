@@ -136,3 +136,6 @@ Examples/test-suite/uffi/*/
 
 # Scratch directories
 Examples/scratch
+
+# Out of source tree build directories
+*build*/

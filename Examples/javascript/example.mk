@@ -15,13 +15,13 @@ INTERFACE = example.i
 SWIGOPT=-$(JSENGINE)
 
 check: build
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile JSENGINE='$(JSENGINE)' TARGET='$(TARGET)' javascript_run
+	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' JSENGINE='$(JSENGINE)' TARGET='$(TARGET)' javascript_run
 
 build:
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile CXXSRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' javascript_wrapper_cpp
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile CXXSRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' JSENGINE='$(JSENGINE)' javascript_build_cpp
 
 clean:
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile javascript_clean
+	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' javascript_clean

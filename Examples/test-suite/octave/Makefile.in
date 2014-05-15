@@ -5,6 +5,7 @@
 LANGUAGE     = octave
 OCTAVE       = @OCTAVE@
 SCRIPTSUFFIX = _runme.m
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -33,7 +34,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.
-CSRCS      = $(srcdir)/octave_empty.c
+CSRCS      = octave_empty.c
 
 # Custom tests - tests with additional commandline options
 # none!
@@ -57,8 +58,8 @@ CSRCS      = $(srcdir)/octave_empty.c
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(RUNTOOL) $(OCTAVE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(RUNTOOL) $(OCTAVE) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .m file

@@ -3,7 +3,7 @@
     {
       "target_name": "$testcase",
       "sources":[ "../$testcase_wrap.cxx" ],
-      "include_dirs": ["../.."],
+      "include_dirs": ["../$srcdir/.."],
       'defines': [
         'BUILDING_NODE_EXTENSION=1',
       ],

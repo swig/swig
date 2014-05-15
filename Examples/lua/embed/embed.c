@@ -13,6 +13,7 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -62,9 +63,13 @@ int main(int argc,char* argv[]) {
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
-  printf("[C] let's load the file 'runme.lua'\n");
+  if (argc != 2 || argv[1] == NULL || strlen(argv[1]) == 0) {
+    printf("[C] ERROR: no lua file given on command line\n");
+    exit(3);
+  }
+  printf("[C] let's load the file '%s'\n", argv[1]);
   printf("[C] any lua code in this file will be executed\n");
-  if (luaL_loadfile(L, "runme.lua") || lua_pcall(L, 0, 0, 0)) {
+  if (luaL_loadfile(L, argv[1]) || lua_pcall(L, 0, 0, 0)) {
     printf("[C] ERROR: cannot run lua file: %s",lua_tostring(L, -1));
     exit(3);
   }

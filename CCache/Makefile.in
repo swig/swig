@@ -14,7 +14,7 @@ NOSOFTLINKSTEST=
 CC=@CC@
 CFLAGS=@CFLAGS@ -I.
 SWIG=swig
-SWIG_LIB=../../Lib
+SWIG_LIB=../$(srcdir)/../Lib
 EXEEXT=@EXEEXT@
 
 # Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
@@ -27,6 +27,10 @@ HEADERS = ccache.h mdfour.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: $(srcdir)/Makefile.in ./config.status
+	$(SHELL) ./config.status
+
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
 docs: $(PACKAGE_NAME).1 web/ccache-man.html
 
@@ -34,7 +38,7 @@ $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(PACKAGE_NAME).1: ccache.yo
-	-yodl2man -o $(PACKAGE_NAME).1 ccache.yo
+	-yodl2man -o $(PACKAGE_NAME).1 $(srcdir)/ccache.yo
 
 web/ccache-man.html: ccache.yo
 	yodl2html -o web/ccache-man.html ccache.yo
@@ -46,7 +50,7 @@ install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
 	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
+	${INSTALLCMD} -m 644 $(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
 uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 	rm -f $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
@@ -55,10 +59,8 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
-check : test
-
 test: test.sh
-	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' ./test.sh
+	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' $(srcdir)/test.sh
 
 check: test
 

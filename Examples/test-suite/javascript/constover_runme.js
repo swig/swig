@@ -1,4 +1,4 @@
-var constover = require("./constover");
+var constover = require("constover");
 
 p = constover.test("test");
 if (p != "test") {

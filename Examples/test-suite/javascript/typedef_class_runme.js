@@ -1,4 +1,4 @@
-var typedef_class = require("./typedef_class");
+var typedef_class = require("typedef_class");
 
 a = new typedef_class.RealA();
 a.a = 3;
