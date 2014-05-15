@@ -13,7 +13,7 @@
 # file (.stderr) in addition to the test case itself.
 #######################################################################
 
-LANGUAGE     = python
+LANGUAGE     = errors
 ERROR_EXT    = newerr
 # Portable dos2unix / todos for stripping CR
 TODOS        = tr -d '\r'
@@ -35,9 +35,6 @@ C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CAS
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest)
 
-# For rebuilding Makefile from Makefile.in in common.mk
-TEST_SUITE_SUBDIR = errors
-
 include $(srcdir)/../common.mk
 
 
@@ -56,5 +53,5 @@ include $(srcdir)/../common.mk
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile $(LANGUAGE)_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile python_clean
 	@rm -f *.$(ERROR_EXT) *.py
