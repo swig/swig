@@ -6,7 +6,6 @@ CXXSRCS     = example.cxx
 TARGET      = class
 INCLUDE     =
 SWIGOPT     =
-CFLAGS      =
 VARIANT     =
 
 # uncomment the following lines to build a static exe (only pick one of the CHICKEN_MAIN lines)

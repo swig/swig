@@ -6,7 +6,6 @@ CXXSRCS     = example.cxx
 TARGET      = overload
 INCLUDE     =
 SWIGOPT     = -proxy -unhideprimitive
-CFLAGS      =
 VARIANT     =
 
 # uncomment the following lines to build a static exe

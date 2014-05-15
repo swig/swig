@@ -6,7 +6,6 @@ CXXSRCS     =
 TARGET      = constants
 INCLUDE     =
 SWIGOPT     =
-CFLAGS      =
 VARIANT     =
 
 # uncomment the following two lines to build a static exe
