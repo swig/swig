@@ -81,7 +81,7 @@ script:
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
-  - echo -n 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
+  - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
   - make maintainer-clean
   - echo -en 'travis_fold:end:script.3\\r'
 branches:
