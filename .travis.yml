@@ -69,7 +69,7 @@ before_install:
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
-  - ./autogen.sh && ./configure $CONFIGOPTS
+  - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure $CONFIGOPTS
   - echo -en 'travis_fold:end:script.1\\r'
   - make -s $SWIGJOBS
   - ./swig -version && ./swig -pcreversion
