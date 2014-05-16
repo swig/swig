@@ -1037,6 +1037,23 @@ SWIGINTERN int  SWIG_Lua_class_disown(lua_State *L)
   return 0;
 }
 
+/* lua callable function to compare userdata's value
+the issue is that two userdata may point to the same thing
+but to lua, they are different objects */
+SWIGRUNTIME int SWIG_Lua_class_equal(lua_State *L)
+{
+  int result;
+  swig_lua_userdata *usr1,*usr2;
+  if (!lua_isuserdata(L,1) || !lua_isuserdata(L,2))  /* just in case */
+    return 0;  /* nil reply */
+  usr1=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+  usr2=(swig_lua_userdata*)lua_touserdata(L,2);  /* get data */
+  /*result=(usr1->ptr==usr2->ptr && usr1->type==usr2->type); only works if type is the same*/
+  result=(usr1->ptr==usr2->ptr);
+   lua_pushboolean(L,result);
+  return 1;
+}
+
 /* populate table at the top of the stack with metamethods that ought to be inherited */
 SWIGINTERN void SWIG_Lua_populate_inheritable_metamethods(lua_State *L)
 {
@@ -1471,6 +1488,18 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
     lua_pop(L,1); /* remove copy of the key */
   }
 
+  /* Special handling for __eq method */
+  lua_pushstring(L, "__eq");
+  lua_pushvalue(L,-1);
+  lua_rawget(L,metatable_index);
+  const int eq_undefined = lua_isnil(L,-1);
+  lua_pop(L,1);
+  if( eq_undefined ) {
+    lua_pushcfunction(L, SWIG_Lua_class_equal);
+    lua_rawset(L, metatable_index);
+  } else {
+    lua_pop(L,1); /* remove copy of the key */
+  }
   /* Warning: __index and __newindex are SWIG-defined. For user-defined operator[]
    * a __getitem/__setitem method should be defined
    */
@@ -1785,23 +1814,6 @@ SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
 SWIGRUNTIME int SWIG_Lua_type(lua_State *L)
 {
   lua_pushstring(L,SWIG_Lua_typename(L,1));
-  return 1;
-}
-
-/* lua callable function to compare userdata's value
-the issue is that two userdata may point to the same thing
-but to lua, they are different objects */
-SWIGRUNTIME int SWIG_Lua_equal(lua_State *L)
-{
-  int result;
-  swig_lua_userdata *usr1,*usr2;
-  if (!lua_isuserdata(L,1) || !lua_isuserdata(L,2))  /* just in case */
-    return 0;  /* nil reply */
-  usr1=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
-  usr2=(swig_lua_userdata*)lua_touserdata(L,2);  /* get data */
-  /*result=(usr1->ptr==usr2->ptr && usr1->type==usr2->type); only works if type is the same*/
-  result=(usr1->ptr==usr2->ptr);
-   lua_pushboolean(L,result);
   return 1;
 }
 
