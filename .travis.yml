@@ -75,7 +75,7 @@ script:
   - ./swig -version && ./swig -pcreversion
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
-  - echo 'Installing...' && echo -en 'travis_fold:start:script.1\\r'
+  - echo 'Installing...' && echo -en 'travis_fold:start:script.2\\r'
   - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
   - echo -en 'travis_fold:end:script.2\\r'
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
