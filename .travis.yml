@@ -50,8 +50,8 @@ matrix:
     # None
 before_install:
   - date -u
-  - lsb_release -a
   - uname -a
+  - lsb_release -a
   - sudo apt-get -qq update
   - time sudo apt-get -qq install libboost-dev
   - if test -z "$SWIGLANG"; then sudo apt-get -qq install yodl; fi
@@ -67,6 +67,8 @@ before_install:
   - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
+  - $CC --version
+  - $CXX --version
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure $CONFIGOPTS
