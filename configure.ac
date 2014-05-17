@@ -1259,7 +1259,7 @@ else
   AC_MSG_CHECKING(for V8 Javascript library)
   AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
-  v8libdirs="$JSV8LIBDIR /usr/lib/ /usr/local/lib/"
+  v8libdirs="$JSV8LIBDIR /usr/lib*/ /usr/local/lib*/"
   for d in $v8libdirs ; do
     if test -r $d/libv8.so; then
       JSV8LIBDIR=$d
