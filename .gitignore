@@ -124,15 +124,18 @@ Examples/test-suite/uffi/*/
 *_wrap.c
 *_wrap.cxx
 
+# C# generated files
+*_runme.exe.mdb
+*_runme.exe
+
+# Javascript generated files
+*.gyp
+
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
 */__pycache__/
 /__pycache__/
-
-# C# generated files
-*_runme.exe.mdb
-*_runme.exe
 
 # Scratch directories
 Examples/scratch

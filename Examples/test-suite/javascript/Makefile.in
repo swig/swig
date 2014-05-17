@@ -116,9 +116,6 @@ endif
 
 %.clean:
 	rm -rf $*
-
-clean:
-	rm -f *_wrap.cxx
-	rm -f *_wrap.c
-	rm -f *.so
-	rm -f *.o
+	rm -f $*_wrap.*
+	rm -f $*.so
+	rm -f $*.o

@@ -730,7 +730,8 @@ javascript_clean:
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
-	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean)
+	rm -f binding.gyp
+	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
 ##################################################################
 #####                       ANDROID                         ######
