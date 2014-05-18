@@ -16,7 +16,7 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
 /**
  * Creates a class template for a class with specified initialization function.
  */
-v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
+SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
     v8::HandleScope scope;
     v8::Local<v8::FunctionTemplate> class_templ = v8::FunctionTemplate::New();
     class_templ->SetClassName(v8::String::NewSymbol(symbol));
@@ -36,7 +36,7 @@ v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) 
 /**
  * Registers a class method with given name for a given class template.
  */
-void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8FunctionCallback _func) {
     v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
     proto_templ->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func));
@@ -45,7 +45,7 @@ void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, cons
 /**
  * Registers a class property with given name for a given class template.
  */
-void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
   v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
   proto_templ->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
@@ -54,7 +54,7 @@ void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, cons
 /**
  * Registers a class method with given name for a given object.
  */
-void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
   const SwigV8FunctionCallback& _func) {
   obj->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func)->GetFunction());
 }
@@ -62,12 +62,12 @@ void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
 /**
  * Registers a class method with given name for a given object.
  */
-void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
   obj->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
 }
 
-void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value,
+SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value,
   const SwigV8PropertyCallbackInfoVoid& info)
 {
     char buffer[256];
