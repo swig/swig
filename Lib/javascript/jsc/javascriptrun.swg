@@ -295,4 +295,5 @@ JSValueRef SWIGJSC_AppendOutput(JSContextRef context, JSValueRef value, JSValueR
 
   length = SWIGJSC_ArrayLength(context, arr);
   JSObjectSetPropertyAtIndex(context, arr, length, obj, 0);
+  return arr;
 }
