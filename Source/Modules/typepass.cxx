@@ -661,15 +661,15 @@ class TypePass:private Dispatcher {
    * ------------------------------------------------------------ */
 
   virtual int cDeclaration(Node *n) {
-    if (GetFlag(n, "feature:ignore")) {
-      return SWIG_OK;
-    }
     if (NoExcept) {
       Delattr(n, "throws");
     }
 
     /* Normalize types. */
     SwigType *ty = Getattr(n, "type");
+    if (!ty) {
+      return SWIG_OK;
+    }
     normalize_type(ty);
     SwigType *decl = Getattr(n, "decl");
     if (decl) {
