@@ -108,8 +108,13 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
 static void $jswrapper(JSObjectRef thisObject)
 {
   SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
-  if(t && t->swigCMemOwn) free (($jstype)t->swigCObject);
-  if(t) free(t);
+  if(t) {
+    if (t->swigCMemOwn) {
+      free (($jstype)t->swigCObject);
+    }
+    JSObjectSetPrivate(thisObject, NULL);
+    free(t);
+  }
 }
 %}
 
@@ -124,11 +129,15 @@ static void $jswrapper(JSObjectRef thisObject)
 static void $jswrapper(JSObjectRef thisObject)
 {
   SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
-  if(t && t->swigCMemOwn) {
-    $jstype arg1 = ($jstype)t->swigCObject;
-    ${destructor_action}
+  if(t) {
+    if (t->swigCMemOwn) {
+      $jstype arg1 = ($jstype)t->swigCObject;
+      ${destructor_action}
+    }
+    /* remove the private data to make sure that it isn't accessed elsewhere */
+    JSObjectSetPrivate(thisObject, NULL);
+    free(t);
   }
-  if(t) free(t);
 }
 %}
 
