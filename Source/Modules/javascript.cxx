@@ -318,6 +318,10 @@ public:
    **/
   virtual int fragmentDirective(Node *n);
 
+public:
+
+  virtual String *getNSpace() const;
+
 private:
 
   JSEmitter *emitter;
@@ -465,6 +469,10 @@ int JAVASCRIPT::fragmentDirective(Node *n) {
   }
 
   return SWIG_OK;
+}
+
+String *JAVASCRIPT::getNSpace() const {
+  return Language::getNSpace();
 }
 
 /* ---------------------------------------------------------------------
@@ -1346,13 +1354,25 @@ int JSEmitter::switchNamespace(Node *n) {
     return SWIG_OK;
   }
 
-  String *nspace = Getattr(n, "sym:nspace");
-
   // if nspace is deactivated, everything goes into the global scope
   if (!GetFlag(n, "feature:nspace")) {
     current_namespace = Getattr(namespaces, "::");
     return SWIG_OK;
   }
+
+// EXPERIMENTAL: we want to use Language::getNSpace() here
+// However, it is not working yet.
+// For namespace functions Language::getNSpace() does not give a valid result
+#if 0
+  JAVASCRIPT *lang = static_cast<JAVASCRIPT*>(Language::instance());
+  String *_nspace = lang->getNSpace();
+  if (!Equal(nspace, _nspace)) {
+    Printf(stdout, "##### Custom vs Language::getNSpace(): %s | %s\n", nspace, _nspace);
+    Swig_print_node(n);
+  }
+#endif
+
+  String *nspace = Getattr(n, "sym:nspace");
 
   if (nspace == NULL) {
     // It seems that only classes have 'sym:nspace' set.
