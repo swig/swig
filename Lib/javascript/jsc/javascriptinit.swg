@@ -59,6 +59,11 @@ bool SWIGJSC_INIT (JSGlobalContextRef context, JSObjectRef *exports) {
 
     *exports = exports_object;
 
+	{
+        JSObjectRef global_object;
+        global_object = JSContextGetGlobalObject(context);	
+        JS_registerNamespace(context, exports_object, global_object, "$jsname");
+    }
     return true;
 }
 #ifdef __cplusplus
