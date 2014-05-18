@@ -341,7 +341,7 @@ static JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_staticFunctions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_staticValues;
   $jsmangledname_classDefinition.callAsConstructor = $jsctor;
-  $jsmangledname_classDefinition.finalize = $jsdtor;
+  $jsmangledname_objectDefinition.finalize = $jsdtor;
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
   $jsclass_inheritance
