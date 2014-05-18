@@ -14,12 +14,12 @@
 %warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerivedDerived;
 
 %{
-template<typename T> void intrusive_ptr_add_ref(const T* r) { r->addref(); }
-template<typename T> void intrusive_ptr_release(const T* r) { r->release(); }
-
 #include <boost/shared_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
 #include <boost/detail/atomic_count.hpp>
+
+template<typename T> void intrusive_ptr_add_ref(const T* r) { r->addref(); }
+template<typename T> void intrusive_ptr_release(const T* r) { r->release(); }
 
 // Uncomment macro below to turn on intrusive_ptr memory leak checking as described above
 //#define INTRUSIVE_PTR_WRAPPER
