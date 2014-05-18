@@ -268,7 +268,7 @@ typedef struct swig_lua_class {
   swig_lua_method   *methods;
   swig_lua_attribute     *attributes;
   swig_lua_namespace    *cls_static;
-  swig_lua_method   *metatable; // 0 for -eluac
+  swig_lua_method   *metatable; /* 0 for -eluac */
   struct swig_lua_class **bases;
   const char **base_names;
 } swig_lua_class;
@@ -1629,7 +1629,7 @@ SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_cla
   lua_pop(L,1);
   assert(lua_gettop(L) == begin);
 }
-#endif // elua && eluac
+#endif /* elua && eluac */
 
 /* -----------------------------------------------------------------------------
  * Class/structure conversion fns
