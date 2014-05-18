@@ -129,6 +129,13 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
 
 SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags) {
   JSObjectRef objRef;
+
+  /* special case: JavaScript null => C NULL pointer */
+  if(JSValueIsNull(context, valRef)) {
+    *ptr=0;
+    return SWIG_OK;
+  }
+  
   if(!JSValueIsObject(context, valRef)) {
     return SWIG_TypeError;
   }
