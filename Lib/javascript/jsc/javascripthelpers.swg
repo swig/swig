@@ -1,6 +1,6 @@
 %insert(wrapper) %{
  
-bool JS_registerClass(JSGlobalContextRef context, JSObjectRef parentObject,
+SWIGINTERN bool JS_registerClass(JSGlobalContextRef context, JSObjectRef parentObject,
                              const char* className,
                              JSClassDefinition* definition) {
 
@@ -14,7 +14,7 @@ bool JS_registerClass(JSGlobalContextRef context, JSObjectRef parentObject,
     return true;
 }
 
-bool JS_registerNamespace(JSGlobalContextRef context, 
+SWIGINTERN bool JS_registerNamespace(JSGlobalContextRef context, 
                            JSObjectRef namespaceObj, JSObjectRef parentNamespace,
                            const char* name)
 {
@@ -28,7 +28,7 @@ bool JS_registerNamespace(JSGlobalContextRef context,
 }
 
 
-bool JS_registerFunction(JSGlobalContextRef context, JSObjectRef object, 
+SWIGINTERN bool JS_registerFunction(JSGlobalContextRef context, JSObjectRef object, 
                         const char* functionName, JSObjectCallAsFunctionCallback callback)
 {
     JSStringRef js_functionName = JSStringCreateWithUTF8CString(functionName);
@@ -39,7 +39,7 @@ bool JS_registerFunction(JSGlobalContextRef context, JSObjectRef object,
     return true;
 }
 
-bool JS_veto_set_variable(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
+SWIGINTERN bool JS_veto_set_variable(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
 {
     char buffer[256];
     char msg[512];
@@ -57,7 +57,7 @@ bool JS_veto_set_variable(JSContextRef context, JSObjectRef thisObject, JSString
     return false;
 }
 
-JSValueRef JS_CharPtrToJSValue(JSContextRef context, char* cstr) {
+SWIGINTERN JSValueRef JS_CharPtrToJSValue(JSContextRef context, char* cstr) {
   JSValueRef val;
   
   JSStringRef jsstring = JSStringCreateWithUTF8CString((char*) cstr);
