@@ -128,11 +128,12 @@ int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void**
 }
 
 int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags) {
+  JSObjectRef objRef;
   if(!JSValueIsObject(context, valRef)) {
     return SWIG_TypeError;
   }
 
-  JSObjectRef objRef = JSValueToObject(context, valRef, NULL);
+  objRef = JSValueToObject(context, valRef, NULL);
   if(objRef == NULL) {
     return SWIG_ERROR;
   }
