@@ -7,13 +7,13 @@
 #define SWIG_exception(code, msg) SWIG_JSC_exception(context, exception, code, msg)
 #define SWIG_fail                 goto fail
 
-void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* type) {
+SWIGRUNTIME void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* type) {
  JSStringRef message = JSStringCreateWithUTF8CString(type);
  *exception = JSValueMakeString(context, message);
  JSStringRelease(message);
 }
 
-void SWIG_JSC_exception(JSContextRef context, JSValueRef *exception, int code, const char* msg) {
+SWIGRUNTIME void SWIG_JSC_exception(JSContextRef context, JSValueRef *exception, int code, const char* msg) {
   SWIG_Javascript_Raise(context, exception, msg);
 }
 
@@ -28,7 +28,7 @@ typedef struct {
   swig_type_info *info;
 } SwigPrivData;
 
-JSValueRef _wrap_SwigObject_disown(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+SWIGRUNTIME JSValueRef _wrap_SwigObject_disown(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   JSValueRef jsresult;
 
@@ -41,7 +41,7 @@ JSValueRef _wrap_SwigObject_disown(JSContextRef context, JSObjectRef function, J
   return jsresult;
 }
 
-JSValueRef _wrap_SwigObject_getCPtr(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+SWIGRUNTIME JSValueRef _wrap_SwigObject_getCPtr(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   JSValueRef jsresult;
   long result;
@@ -55,7 +55,7 @@ JSValueRef _wrap_SwigObject_getCPtr(JSContextRef context, JSObjectRef function, 
   return jsresult;
 }
 
-JSValueRef _wrap_SwigObject_equals(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+SWIGRUNTIME JSValueRef _wrap_SwigObject_equals(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   JSValueRef jsresult;
   bool result;
@@ -72,13 +72,13 @@ JSValueRef _wrap_SwigObject_equals(JSContextRef context, JSObjectRef function, J
   return jsresult;
 }
 
-JSStaticValue _SwigObject_values[] = {
+SWIGRUNTIME JSStaticValue _SwigObject_values[] = {
   {
     0, 0, 0, 0
   }
 };
 
-JSStaticFunction _SwigObject_functions[] = {
+SWIGRUNTIME JSStaticFunction _SwigObject_functions[] = {
   {
     "disown",_wrap_SwigObject_disown, kJSPropertyAttributeNone
   },
@@ -93,12 +93,12 @@ JSStaticFunction _SwigObject_functions[] = {
   }
 };
 
-JSClassDefinition _SwigObject_objectDefinition;
+SWIGRUNTIME JSClassDefinition _SwigObject_objectDefinition;
 
-JSClassRef _SwigObject_classRef;
+SWIGRUNTIME JSClassRef _SwigObject_classRef;
 
 
-int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void** ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void** ptr, swig_type_info *info, int flags) {
   SwigPrivData *cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
   if(cdata == NULL) {
     return SWIG_ERROR;
@@ -127,7 +127,7 @@ int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void**
   return SWIG_OK;
 }
 
-int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swig_type_info *info, int flags) {
   JSObjectRef objRef;
   if(!JSValueIsObject(context, valRef)) {
     return SWIG_TypeError;
@@ -141,7 +141,7 @@ int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, void** ptr, swi
   return SWIG_JSC_ConvertInstancePtr(context, objRef, ptr, info, flags);
 }
 
-JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_info *info, int flags) {
 
   JSClassRef classRef;
   if(info->clientdata == NULL) {
@@ -182,18 +182,18 @@ typedef struct {
   swig_type_info *type;
 } SwigPackedData;
 
-JSStaticValue _SwigPackedData_values[] = {
+SWIGRUNTIME JSStaticValue _SwigPackedData_values[] = {
   {
     0, 0, 0, 0
   }
 };
-JSStaticFunction _SwigPackedData_functions[] = {
+SWIGRUNTIME JSStaticFunction _SwigPackedData_functions[] = {
   {
     0, 0, 0
   }
 };
-JSClassDefinition _SwigPackedData_objectDefinition;
-JSClassRef _SwigPackedData_classRef;
+SWIGRUNTIME JSClassDefinition _SwigPackedData_objectDefinition;
+SWIGRUNTIME JSClassRef _SwigPackedData_classRef;
 
 SWIGRUNTIMEINLINE
 int SwigJSCPacked_Check(JSContextRef context, JSValueRef valRef) {
@@ -244,7 +244,7 @@ JSValueRef SWIG_JSC_NewPackedObj(JSContextRef context, void *data, size_t size, 
 }
 
 /*  SwigPackedData wrappers  */
-
+SWIGRUNTIME
 void _wrap_SwigPackedData_delete(JSObjectRef obj)
 {
   SwigPackedData* cdata = (SwigPackedData*) JSObjectGetPrivate(obj);
@@ -263,7 +263,7 @@ void _wrap_SwigPackedData_delete(JSObjectRef obj)
  * Support for IN/OUTPUT typemaps (see Lib/typemaps/inoutlist.swg)
  *
  * ---------------------------------------------------------------------------*/
-
+SWIGRUNTIME
 unsigned int SWIGJSC_ArrayLength(JSContextRef context, JSObjectRef arr) {
   static JSStringRef LENGTH = 0;
   JSValueRef exception = NULL;
