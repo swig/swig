@@ -156,7 +156,11 @@ SWIGRUNTIME JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, 
   SwigPrivData *cdata;
 
   if (ptr == NULL) {
-    return JSValueToObject(context, JSValueMakeNull(context), 0);
+    // HACK: it is not possible to use JSValueToObject (causing seg-fault)
+    // This static cast turned out to be a workaround
+    // In future, we should change the interface of this method
+    // to return JSValueRef instead of JSObjectRef.
+    return (JSObjectRef) JSValueMakeNull(context);
   }
 
   if(info->clientdata == NULL) {
