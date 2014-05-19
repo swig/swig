@@ -99,9 +99,7 @@ SWIGRUNTIME JSClassRef _SwigObject_classRef;
 
 
 SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef objRef, void** ptr, swig_type_info *info, int flags) {
-  SwigPrivData *cdata;
-
-  cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
+  SwigPrivData *cdata = (SwigPrivData *) JSObjectGetPrivate(objRef);
   if(cdata == NULL) {
     return SWIG_ERROR;
   }
@@ -137,7 +135,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, voi
     *ptr=0;
     return SWIG_OK;
   }
-
+  
   if(!JSValueIsObject(context, valRef)) {
     return SWIG_TypeError;
   }
@@ -151,23 +149,17 @@ SWIGRUNTIME int SWIG_JSC_ConvertPtr(JSContextRef context, JSValueRef valRef, voi
 }
 
 SWIGRUNTIME JSObjectRef SWIG_JSC_NewPointerObj(JSContextRef context, void *ptr, swig_type_info *info, int flags) {
+
   JSClassRef classRef;
-  JSObjectRef result;
-  SwigPrivData *cdata;
-
-  if (ptr == NULL) {
-    return JSValueToObject(context, JSValueMakeNull(context), 0);
-  }
-
   if(info->clientdata == NULL) {
     classRef = _SwigObject_classRef;
   } else {
     classRef = (JSClassRef) info->clientdata;
   }
 
-  result = JSObjectMake(context, classRef, NULL);
+  JSObjectRef result = JSObjectMake(context, classRef, NULL);
 
-  cdata = (SwigPrivData*) malloc(sizeof(SwigPrivData));
+  SwigPrivData* cdata = (SwigPrivData*) malloc(sizeof(SwigPrivData));
   cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;

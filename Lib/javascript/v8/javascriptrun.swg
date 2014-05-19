@@ -220,11 +220,7 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
-  /* special case: JavaScript null => C NULL pointer */
-  if(valRef->IsNull()) {
-    *ptr=0;
-    return SWIG_OK;
-  }
+
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
@@ -232,13 +228,9 @@ int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info 
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
-v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
+v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
   v8::Handle<v8::FunctionTemplate> class_templ;
-
-  if (ptr == NULL) {
-    return scope.Close(v8::Null());
-  }
 
 #if (SWIG_V8_VERSION < 0x031900)
   if(info->clientdata != 0) {
