@@ -1453,6 +1453,7 @@ protected:
   virtual int enterClass(Node *n);
   virtual int exitClass(Node *n);
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
+  virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult = 0, bool emitReturnVariable = true);
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
   virtual int emitNamespaces();
 
@@ -1543,6 +1544,71 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       p = nextSibling(p);
     }
   }
+}
+
+/*
+ * This override is the same as the parent class, except that it must inject a JSObjectMakeArray
+ * in the middle of the code, before the Appends are called.
+ * Since JSCore/JavaScript expects us to always return a value, even for void functions (use undefined object)
+ * it simplifies needing to worry about detecting if we need to return a single value or an array.
+ * Basically if there is any OUT typemap, then we need an array.
+ */
+void JSCEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
+  SwigType *type = Getattr(n, "type");
+  String *tm;
+  Parm *p;
+  bool created_out_array = false;
+
+  // adds a declaration for the result variable
+  if (emitReturnVariable)
+    emit_return_variable(n, type, wrapper);
+  // if not given, use default result identifier ('result') for output typemap
+  if (cresult == 0)
+    cresult = defaultResultName;
+
+  tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
+  bool should_own = GetFlag(n, "feature:new");
+
+  if (tm) {
+    Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
+
+    if (should_own) {
+      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+    } else {
+      Replaceall(tm, "$owner", "0");
+    }
+    Append(wrapper->code, tm);
+
+    if (Len(tm) > 0) {
+      Printf(wrapper->code, "\n");
+    }
+  } else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+  }
+
+  if (params) {
+    for (p = params; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+		    if(!created_out_array) {
+          /* create the array here and put return value in array.
+           * Need brackets because we are declaring a variable but need to support C89
+           */
+          Printf(wrapper->code, "  {\n");
+          Printf(wrapper->code, "    JSObjectRef out_array = JSObjectMakeArray(context, 0, 0, NULL);\n");
+          Printf(wrapper->code, "    jsresult = SWIGJSC_AppendOutput(context, out_array, jsresult);\n");
+          Printf(wrapper->code, "  }\n");
+          created_out_array = true;
+        }
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(wrapper->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+  }
+
+  Replaceall(wrapper->code, "$result", "jsresult");
 }
 
 int JSCEmitter::initialize(Node *n) {
