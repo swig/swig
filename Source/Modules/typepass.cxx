@@ -667,6 +667,9 @@ class TypePass:private Dispatcher {
 
     /* Normalize types. */
     SwigType *ty = Getattr(n, "type");
+    if (!ty) {
+      return SWIG_OK;
+    }
     normalize_type(ty);
     SwigType *decl = Getattr(n, "decl");
     if (decl) {

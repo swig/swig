@@ -41,7 +41,7 @@ int  yyparse();
 
 static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
-static Hash    *extendhash = 0;     /* Hash table of added methods */
+Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Hash    *classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
 static Symtab  *prev_symtab = 0;
@@ -655,7 +655,7 @@ static void add_symbols_copy(Node *n) {
    actually needs to take precedence.  Therefore, we will selectively nuke symbols
    from the current symbol table, replacing them with the added methods */
 
-static void merge_extensions(Node *cls, Node *am) {
+void merge_extensions(Node *cls, Node *am) {
   Node *n;
   Node *csym;
 
@@ -708,7 +708,7 @@ static void merge_extensions(Node *cls, Node *am) {
   }
 }
 
-static void append_previous_extension(Node *cls, Node *am) {
+void append_previous_extension(Node *cls, Node *am) {
   Node *n, *ne;
   Node *pe = 0;
   Node *ae = 0;
@@ -737,7 +737,7 @@ static void append_previous_extension(Node *cls, Node *am) {
 /* Check for unused %extend.  Special case, don't report unused
    extensions for templates */
  
-static void check_extensions() {
+void check_extensions() {
   Iterator ki;
 
   if (!extendhash) return;
@@ -1579,7 +1579,6 @@ program        :  interface {
 		     Setattr(module_node,"name",ModuleName);
 		   }
 		   Setattr($1,"module",module_node);
-		   check_extensions();
 	           top = $1;
                }
                | PARSETYPE parm SEMI {
