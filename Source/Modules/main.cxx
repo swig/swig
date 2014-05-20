@@ -198,6 +198,7 @@ static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
 static List *libfiles = 0;
 static List *all_output_files = 0;
+extern "C" void check_extensions();
 
 /* -----------------------------------------------------------------------------
  * check_extension()
@@ -1172,6 +1173,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Printf(stdout, "Processing unnamed structs...\n");
       Swig_nested_name_unnamed_c_structs(top);
     }
+    check_extensions();
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");
