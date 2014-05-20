@@ -17,7 +17,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
     goto fail;
     fail:
-    return JSValueMakeUndefined(context);
+    return NULL;
 }
 %}
 
@@ -78,7 +78,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
 
     goto fail;
     fail:
-    return JSValueMakeUndefined(context);
+    return NULL;
 }
 %}
 
