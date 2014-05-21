@@ -59,7 +59,7 @@ extern "C" {
   extern void cparse_normalize_void(Node *);
   extern Parm *Swig_cparse_parm(String *s);
   extern ParmList *Swig_cparse_parms(String *s, Node *file_line_node);
-
+  extern Node *new_node(const_String_or_char_ptr tag);
 
 /* templ.c */
   extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope);

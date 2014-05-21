@@ -338,9 +338,7 @@ static void insertNodeAfter(Node *n, Node *c) {
   set_nextSibling(n, c);
   set_previousSibling(c, n);
 }
-extern "C" Hash *extendhash;
-extern "C" void merge_extensions(Node *cls, Node *am);
-extern "C" void append_previous_extension(Node *cls, Node *am);
+
 void Swig_nested_name_unnamed_c_structs(Node *n) {
   if (!classhash)
     classhash = Getattr(n, "classes");
@@ -378,13 +376,11 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  decl = nextSibling(decl);
 	}
 	Delete(ty);
-	if (extendhash) {
-	  if (Node *am = Getattr(extendhash, name)) {
-	    // Merge the extension into the symbol table
-	    merge_extensions(c, am);
-	    append_previous_extension(c, am);
-	    Delattr(extendhash, name);
-	  }
+	if (Node *am = Getattr(Swig_extend_hash(), name)) {
+	  // Merge the extension into the symbol table
+	  Swig_extend_merge(c, am);
+	  Swig_extend_append_previous(c, am);
+	  Delattr(Swig_extend_hash(), name);
 	}
 	Swig_symbol_setscope(Swig_symbol_global_scope());
 	add_symbols_c(c);
