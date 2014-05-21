@@ -5,6 +5,18 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.1 (in progress)
 ===========================
 
+2014-05-18: vkalinin
+	    Bug #175 - Restore %extend to work for unnamed nested structures by using a C
+            symbol comprising the outer structure name and unnamed variable instance name.
+
+2014-05-15: kwwette
+	    Add #166 - 'make check' now works out of source. This required te examples to build
+            out of source. The main languages have been tested - C#, Go, Guile, Java, Javascript,
+            Lua, Octave, Perl, PHP, Python, Ruby and Tcl.
+
+2014-05-01: Oliver Buchtala
+	    Javascript support added, see Javascript chapter in the documentation.
+
 2014-05-01: olly
 	    [PHP] The generated __isset() method now returns true for read-only properties.
 
