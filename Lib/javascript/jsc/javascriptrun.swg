@@ -8,30 +8,24 @@
 #define SWIG_fail                 goto fail
 
 SWIGRUNTIME void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* type) {
- JSStringRef message = JSStringCreateWithUTF8CString(type);
- JSStringRef message_property_key;
- JSObjectRef exception_object;
- JSValueRef exception_value;
- JSValueRef message_value;
- exception_value = JSValueMakeString(context, message);
- /* Converting the result to an object will let JavascriptCore add "sourceURL" (file) and "line" (number) to the exception,
-	  instead of just returning a raw string. This is extremely important for debugging your errors.
-  */
-	exception_object = JSValueToObject(context, exception_value, NULL);
-
-	/* Additionally, JSCore uses "message" which contains the error description.
-	   But it seems that unlike "sourceURL" and "line", converting to an object is not automatically doing this.
-	   So we can add it ourselves.
+  JSStringRef message = JSStringCreateWithUTF8CString(type);
+  JSValueRef error_arguments[1]; 
+  JSObjectRef exception_object;
+  JSValueRef exception_value;
+  exception_value = JSValueMakeString(context, message);
+  /* Converting the result to an object will let JavascriptCore add 
+     "sourceURL" (file) and "line" (number) and "message" to the exception,
+     instead of just returning a raw string. This is extremely important for debugging your errors.
+     Using JSObjectMakeError is better than JSValueToObject because the latter only populates
+     "sourceURL" and "line", but not "message" or any others I don't know about.
    */
-	message_property_key = JSStringCreateWithUTF8CString("message");
-	message_value = JSValueMakeString(context, message);
-	JSObjectSetProperty(context, exception_object, message_property_key, message_value, kJSClassAttributeNone, NULL);
-	
-	/* Return the exception_object */
-	*exception = exception_object;
-	
-	JSStringRelease(message_property_key);
-	JSStringRelease(message);
+  error_arguments[0] = exception_value;
+  exception_object = JSObjectMakeError(context, 1, error_arguments, NULL);
+
+  /* Return the exception_object */
+  *exception = exception_object;
+
+  JSStringRelease(message);
 }
 
 SWIGRUNTIME void SWIG_JSC_exception(JSContextRef context, JSValueRef *exception, int code, const char* msg) {
