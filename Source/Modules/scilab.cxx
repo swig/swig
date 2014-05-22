@@ -325,7 +325,7 @@ public:
     }
 
     /* Write the wrapper function definition (standard Scilab gateway function prototype) */
-    Printv(wrapper->def, "int ", overloadedName, "(char *fname, unsigned long fname_len) {", NIL);
+    Printv(wrapper->def, "int ", overloadedName, "(SWIG_GatewayParameters) {", NIL);
 
     /* Emit all of the local variables for holding arguments */
     // E.g.: double arg1;
@@ -512,10 +512,10 @@ public:
     int maxargs = 0;
 
     /* Generate the dispatch function */
-    String *dispatch = Swig_overload_dispatch(node, "return %s(fname, fname_len);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs);
     String *tmp = NewString("");
 
-    Printv(wrapper->def, "int ", wrapperName, " (char *fname, unsigned long fname_len) {\n", NIL);
+    Printv(wrapper->def, "int ", wrapperName, "(SWIG_GatewayParameters) {\n", NIL);
 
     /* Get the number of the parameters */
     Wrapper_add_local(wrapper, "argc", "int argc = SWIG_NbInputArgument(pvApiCtx)");
@@ -555,7 +555,7 @@ public:
     String *getFunctionName = Swig_name_get(NSPACE_TODO, variableName);
 
     Setattr(node, "wrap:name", getFunctionName);
-    Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
+    Printv(getFunctionWrapper->def, "int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
     /* Check the number of input and output */
     Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
@@ -582,7 +582,7 @@ public:
       String *setFunctionName = Swig_name_set(NSPACE_TODO, variableName);
 
       Setattr(node, "wrap:name", setFunctionName);
-      Printv(setFunctionWrapper->def, "int ", setFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
+      Printv(setFunctionWrapper->def, "int ", setFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
       /* Check the number of input and output */
       Printf(setFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 1, 1);\n");
@@ -657,7 +657,7 @@ public:
     Wrapper *getFunctionWrapper = NewWrapper();
     String *getFunctionName = Swig_name_get(NSPACE_TODO, constantName);
     Setattr(node, "wrap:name", getFunctionName);
-    Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
+    Printv(getFunctionWrapper->def, "int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
     /* Check the number of input and output */
     Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
@@ -835,10 +835,10 @@ public:
     Printf(builderCode, "  ilib_build('%s', table, files, libs, [], ldflags, cflags);\n", libraryName);
     Printf(builderCode, "  libfilename = 'lib%s' + getdynlibext();\n", libraryName);
     Printf(builderCode, "  if ~isfile(libfilename) then\n");
-    Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename ' + '.');\n");
+    Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename;\n");
     Printf(builderCode, "  end\n");
     Printf(builderCode, "  if ~isfile('loader.sce') then\n");
-    Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.');\n");
+    Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.';\n");
     Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");

@@ -27,7 +27,7 @@ SWIG_Scilab_SetModule(swig_module_info *swig_module)
 #ifdef __cplusplus
 extern "C"
 #endif
-int <module>_Init(char *fname, unsigned long fname_len) {
+int <module>_Init(SWIG_GatewayParameters) {
   SWIG_InitializeModule(NULL);
   SWIG_CreateScilabVariables();
 %}

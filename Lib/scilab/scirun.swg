@@ -32,6 +32,15 @@ extern "C" {
 #undef Max
 #undef Min
 
+/* Gateway signature */
+
+#if SWIG_SCILAB_VERSION_MIN(6, 0, 0)
+#define SWIG_GatewayParameters char* fname, void *pvApiCtx
+#define SWIG_GatewayArguments fname, pvApiCtx
+#else
+#define SWIG_GatewayParameters char* fname, unsigned long fname_len
+#define SWIG_GatewayArguments fname, fname_len
+#endif
 
 /* Function name management functions */
 
@@ -256,12 +265,12 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
 #ifdef __cplusplus
 extern "C"
 #endif
-int swig_this(char *fname, unsigned long fname_len) {
+int swig_this(SWIG_GatewayParameters) {
   void *ptrValue = NULL;
   if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
-      createScalarDouble(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + 1,
+      createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
         (double) (unsigned long) ptrValue));
   }
   else {
@@ -273,7 +282,7 @@ int swig_this(char *fname, unsigned long fname_len) {
 #ifdef __cplusplus
 extern "C"
 #endif
-int swig_ptr(char *fname, unsigned long fname_len) {
+int swig_ptr(SWIG_GatewayParameters) {
   double dValue = 0;
   int *piAddr;
   SciErr sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddr);
