@@ -4,19 +4,15 @@
 
 /* Scilab version macro */
 
-#ifndef SWIG_SCILAB_VERSION_MIN
-#define SWIG_SCILAB_VERSION_MIN(major, minor, maintenance) \
-  ((SCI_VERSION_MAJOR << 16) + (SCI_VERSION_MINOR << 8) + SCI_VERSION_MAINTENANCE \
-  >= ((major) << 16) + ((minor) << 8) + maintenance)
-#endif
-
+#include "version.h"
+#define SWIG_SCILAB_VERSION (SCI_VERSION_MAJOR * 100) + (SCI_VERSION_MINOR * 10) + SCI_VERSION_MAINTENANCE
 
 /* Scilab standard headers */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#if !SWIG_SCILAB_VERSION_MIN(5, 4, 0)
+#if SWIG_SCILAB_VERSION < 540
 #define __USE_DEPRECATED_STACK_FUNCTIONS__
 #include "stack-c.h"
 #endif
@@ -34,7 +30,7 @@ extern "C" {
 
 /* Gateway signature */
 
-#if SWIG_SCILAB_VERSION_MIN(6, 0, 0)
+#if SWIG_SCILAB_VERSION >= 600
 #define SWIG_GatewayParameters char* fname, void *pvApiCtx
 #define SWIG_GatewayArguments fname, pvApiCtx
 #else
@@ -59,7 +55,7 @@ static void SWIG_Scilab_SetFname(char* _fname) {
 
 /* Argument management functions */
 
-#if SWIG_SCILAB_VERSION_MIN(5, 4, 0)
+#if SWIG_SCILAB_VERSION >= 540
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
