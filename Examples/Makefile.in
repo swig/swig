@@ -1554,12 +1554,11 @@ r_clean:
 # Make sure these locate your Scilab installation
 SCILAB_LIB = @SCILABLIB@
 SCILAB = @SCILAB@
-SCILABOPT =
-SCILAB_STARTOPT = @SCILABSTARTOPT@
+SCILAB_OPT = @SCILABOPT@
 
 # Returns the Swig Scilab command line args
 define get_swig_scilab_args
-	SWIG_SCILAB_ARGS := -scilab $(SCILABOPT)
+	SWIG_SCILAB_ARGS := -scilab
 	ifdef SRCS
 		SWIG_SCILAB_ARGS += -addsrc "$(SRCS)"
 	endif
@@ -1576,7 +1575,7 @@ scilab: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 	fi
 
 # ----------------------------------------------------------------
@@ -1587,7 +1586,7 @@ scilab_cpp: $(SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 	fi
 
 # -----------------------------------------------------------------
@@ -1596,7 +1595,7 @@ scilab_cpp: $(SRCS)
 
 scilab_run:
 	if [ -f $(RUNME) ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(	SCILAB_STARTOPT) -f $(RUNME).sci $(RUNPIPE); \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME).sci $(RUNPIPE); \
 	fi
 
 # -----------------------------------------------------------------

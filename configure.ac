@@ -964,11 +964,11 @@ else
 
     # Set Scilab startup options depending on version
     AC_MSG_CHECKING(for Scilab startup options)
-    SCILABSTARTOPT="-nwni -nb"
+    SCILABOPT="-nwni -nb"
     if test $SCILAB_VERSION -ge 54; then
-      SCILABSTARTOPT+=" -noatomsautoload"
+      SCILABOPT+=" -noatomsautoload"
     fi
-    AC_MSG_RESULT($SCILABSTARTOPT)
+    AC_MSG_RESULT($SCILABOPT)
   fi
 
   # Check for Scilab header files
@@ -996,7 +996,7 @@ else
 fi
 
 AC_SUBST(SCILAB)
-AC_SUBST(SCILABSTARTOPT)
+AC_SUBST(SCILABOPT)
 
 
 #----------------------------------------------------------------
