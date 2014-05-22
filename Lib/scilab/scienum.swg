@@ -6,11 +6,11 @@
 %fragment(SWIG_AsVal_frag(Enum), "header", fragment="SWIG_Int_AsEnum") {
 %#define SWIG_AsVal_Enum(scilabValue, valuePointer) SWIG_Int_AsEnum(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
-%fragment("SWIG_Int_AsEnum", "header", fragment=SWIG_AsVal_frag(int)) {
+%fragment("SWIG_Int_AsEnum", "header", fragment="SWIG_SciDoubleOrInt32_AsInt") {
 SWIGINTERN int
 SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname) {
   int iValue = 0;
-  if (SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK)
+  if (SWIG_SciDoubleOrInt32_AsInt(_pvApiCtx, _iVar, &iValue, fname) != SWIG_OK)
     return SWIG_ERROR;
   *_enumValue = iValue;
   return SWIG_OK;

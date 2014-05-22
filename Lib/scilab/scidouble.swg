@@ -1,30 +1,33 @@
 /*
  * DOUBLE SCALAR
  */
-%fragment(SWIG_AsVal_frag(double), "header") {
+%fragment(SWIG_AsVal_frag(double), "header", fragment="SWIG_SciDouble_AsDouble") {
+%#define SWIG_AsVal_double(scilabValue, valuePointer) SWIG_SciDouble_AsDouble(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+}
+%fragment("SWIG_SciDouble_AsDouble", "header") {
 SWIGINTERN int
-SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
+SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject _iVar, double *_pdblValue, char *_fname) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isDoubleType(pvApiCtx, piAddrVar) || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), SWIG_Scilab_GetFname(), _iVar);
+  if (!isDoubleType(_pvApiCtx, piAddrVar) || isVarComplex(_pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), SWIG_Scilab_GetFname(), _iVar);
+  if (!isScalar(_pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
-  iRet = getScalarDouble(pvApiCtx, piAddrVar, _pdblValue);
+  iRet = getScalarDouble(_pvApiCtx, piAddrVar, _pdblValue);
   if (iRet) {
     return SWIG_ERROR;
   }
@@ -33,11 +36,13 @@ SWIG_AsVal_dec(double)(SwigSciObject _iVar, double *_pdblValue) {
 }
 }
 
-%fragment(SWIG_From_frag(double), "header") {
+%fragment(SWIG_From_frag(double), "header", fragment="SWIG_SciDouble_FromDouble") { 
+%#define SWIG_From_double(scilabValue) SWIG_SciDouble_FromDouble(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+}
+%fragment("SWIG_SciDouble_FromDouble", "header") {
 SWIGINTERN int
-SWIG_From_dec(double)(double _dblValue) {
-  if (createScalarDouble(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx)
-    + SWIG_Scilab_GetOutputPosition(), _dblValue))
+SWIG_SciDouble_FromDouble(void *_pvApiCtx, int _iVarOut, double _dblValue, char *_fname) {
+  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _dblValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -79,7 +84,6 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int
 SWIGINTERN int
 SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, double *_pdblValue) {
   SciErr sciErr;
-
   sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _pdblValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
