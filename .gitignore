@@ -136,6 +136,9 @@ builder.sce
 loader.sce
 cleaner.sce
 lib*.c
+lib*.cpp
+lib*.h
+lib*.hxx
 
 # Scratch directories
 Examples/scratch
