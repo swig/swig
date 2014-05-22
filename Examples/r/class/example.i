@@ -1,9 +1,9 @@
 /* File : example.i */
 %module example
 
-%inline %{
+%{
 #include "example.h"
 %}
+
+/* Let's just grab the original header file here */
 %include "example.h"
-
-

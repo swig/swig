@@ -240,7 +240,7 @@ String *SwigType_parm(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_split()
  *
- * Splits a type into it's component parts and returns a list of string.
+ * Splits a type into its component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
 List *SwigType_split(const SwigType *t) {

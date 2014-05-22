@@ -319,8 +319,7 @@ overloading(0),
 multiinput(0),
 cplus_runtime(0),
 directors(0) {
-  Hash *symbols = NewHash();
-  Setattr(symtabs, "", symbols); // create top level/global symbol table scope
+  symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -1243,8 +1242,8 @@ int Language::memberfunctionHandler(Node *n) {
 
   String *fname = Swig_name_member(NSpace, ClassPrefix, symname);
   if (Extend && SmartPointer) {
-    if (!Getattr(n, "classname")) {
-      Setattr(n, "classname", Getattr(CurrentClass, "allocate:smartpointerbase"));
+    if (!Getattr(n, "extendsmartclassname")) {
+      Setattr(n, "extendsmartclassname", Getattr(CurrentClass, "allocate:smartpointerpointeeclassname"));
     }
   }
   // Set up the type for the cast to this class for use when wrapping const director (virtual) methods.
@@ -1490,6 +1489,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "type", type);
       Setattr(n, "name", name);
       Setattr(n, "sym:name", symname);
+      Delattr(n, "memberset");
 
       /* Delete all attached typemaps and typemap attributes */
       Iterator ki;
@@ -1507,6 +1507,7 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "sym:name", mrename_get);
       Setattr(n, "memberget", "1");
       functionWrapper(n);
+      Delattr(n, "memberget");
     }
     Delete(mrename_get);
     Delete(mrename_set);
@@ -1561,7 +1562,7 @@ int Language::membervariableHandler(Node *n) {
 int Language::staticmembervariableHandler(Node *n) {
   Swig_require("staticmembervariableHandler", n, "*name", "*sym:name", "*type", "?value", NIL);
   String *value = Getattr(n, "value");
-  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerbase");
+  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerpointeeclassname");
 
   if (!value || !Getattr(n, "hasconsttype")) {
     String *name = Getattr(n, "name");
@@ -2372,6 +2373,7 @@ int Language::classDeclaration(Node *n) {
   String *oldDirectorClassName = DirectorClassName;
   String *oldNSpace = NSpace;
   Node *oldCurrentClass = CurrentClass;
+  int dir = 0;
 
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
@@ -2423,7 +2425,6 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    int dir = 0;
     if (directorsEnabled()) {
       int ndir = GetFlag(n, "feature:director");
       int nndir = GetFlag(n, "feature:nodirector");
@@ -2480,7 +2481,9 @@ int Language::classDeclaration(Node *n) {
   ClassPrefix = oldClassPrefix;
   Delete(ClassName);
   ClassName = oldClassName;
-  Delete(DirectorClassName);
+  if (dir) {
+    Delete(DirectorClassName);
+  }
   DirectorClassName = oldDirectorClassName;
   return SWIG_OK;
 }
@@ -2748,7 +2751,7 @@ int Language::constructorHandler(Node *n) {
     Setattr(n, "handled_as_constructor", "1");
   }
 
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2770,7 +2773,7 @@ int Language::copyconstructorHandler(Node *n) {
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
 						 abstracts);
-  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2951,10 +2954,13 @@ int Language::constantWrapper(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::variableWrapper(Node *n) {
-  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", NIL);
+  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", "?varset", "?varget", NIL);
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
+
+  Delattr(n,"varset");
+  Delattr(n,"varget");
 
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
@@ -2986,12 +2992,16 @@ int Language::variableWrapper(Node *n) {
       Delete(pname0);
     }
     if (make_set_wrapper) {
+      Setattr(n, "varset", "1");
       functionWrapper(n);
+    } else {
+      SetFlag(n, "feature:immutable");
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
     Setattr(n, "type", type);
     Setattr(n, "name", name);
+    Delattr(n, "varset");
 
     /* Delete all attached typemaps and typemap attributes */
     Iterator ki;
@@ -3005,7 +3015,9 @@ int Language::variableWrapper(Node *n) {
   String *gname = Swig_name_get(NSpace, symname);
   Setattr(n, "sym:name", gname);
   Delete(gname);
+  Setattr(n, "varget", "1");
   functionWrapper(n);
+  Delattr(n, "varget");
   Swig_restore(n);
   return SWIG_OK;
 }
@@ -3049,11 +3061,10 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
+  //Printf( stdout, "addSymbol: %s %s\n", s, scope );
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
-    // New scope which has not been added by the target language - lazily created.
-    symbols = NewHash();
-    Setattr(symtabs, scope, symbols);
+    symbols = symbolAddScope(scope);
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
@@ -3067,6 +3078,70 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   }
   Setattr(symbols, s, n);
   return 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolAddScope()
+ *
+ * Creates a scope (symbols Hash) for given name. This method is auxiliary,
+ * you don't have to call it - addSymbols will lazily create scopes automatically.
+ * If scope with given name already exists, then do nothing.
+ * Returns newly created (or already existing) scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
+  Hash *symbols = symbolScopeLookup(scope);
+  if(!symbols) {
+    // The order in which the following code is executed is important. In the Language
+    // constructor addScope("") is called to create a top level scope.
+    // Thus we must first add a symbols hash to symtab and only then add pseudo
+    // symbols to the top-level scope.
+
+    // New scope which has not been added by the target language - lazily created.
+    symbols = NewHash();
+    Setattr(symtabs, scope, symbols);
+
+    // Add the new scope as a symbol in the top level scope.
+    // Alternatively the target language must add it in before attempting to add symbols into the scope.
+    const_String_or_char_ptr top_scope = "";
+    Hash *topscope_symbols = Getattr(symtabs, top_scope);
+    Hash *pseudo_symbol = NewHash();
+    Setattr(pseudo_symbol, "sym:scope", "1");
+    Setattr(topscope_symbols, scope, pseudo_symbol);
+  }
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolScopeLookup()
+ *
+ * Lookup and returns a symtable (hash) representing given scope. Hash contains
+ * all symbols in this scope.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  return symbols;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::symbolScopePseudoSymbolLookup()
+ *
+ * For every scope there is a special pseudo-symbol in the top scope (""). It
+ * exists solely to detect name clashes. This pseudo symbol may contain a few properties,
+ * but more could be added. This is also true for the top level scope ("").
+ * It contains a pseudo symbol with name "" (empty). Pseudo symbol contains the
+ * following properties:
+ *   sym:scope = "1" - a flag that this is a scope pseudo symbol
+ *
+ * Pseudo symbols are a Hash*, not a Node*.
+ * There is no difference from symbolLookup() method except for signature
+ * and return type.
+ * ----------------------------------------------------------------------------- */
+Hash* Language::symbolScopePseudoSymbolLookup( const_String_or_char_ptr scope )
+{
+  /* Getting top scope */
+  const_String_or_char_ptr top_scope = "";
+  Hash *symbols = Getattr(symtabs, top_scope);
+  return Getattr(symbols, scope);
 }
 
 /* -----------------------------------------------------------------------------
@@ -3164,6 +3239,7 @@ Node *Language::classLookup(const SwigType *s) const {
 	(Len(prefix) == 0) ||			      // simple type (pass by value)
 	(Strcmp(prefix, "p.") == 0) ||		      // pointer
 	(Strcmp(prefix, "r.") == 0) ||		      // reference
+	(Strcmp(prefix, "z.") == 0) ||		      // rvalue reference
 	SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
       // Also accept pointer by const reference, not non-const pointer reference
       if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {

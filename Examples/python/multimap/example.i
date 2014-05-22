@@ -98,7 +98,7 @@ extern int count(char *bytes, int len, char c);
 /* This example shows how to wrap a function that mutates a string */
 
 /* Since str is modified, we make a copy of the Python object
-   so that we don't violate it's mutability */
+   so that we don't violate its mutability */
 
 %typemap(in) (char *str, int len) {
 %#if PY_VERSION_HEX >= 0x03000000

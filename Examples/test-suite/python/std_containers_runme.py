@@ -46,7 +46,7 @@ for i in range(0,len(m)):
     if m[i][j] != im[i][j]:
       raise RuntimeError, "bad getslice"
 
-m = ((1,0,1),(1,1),(1,1))
+m = ((True,False,True),(True,True),(True,True))
 im = std_containers.midentb(m)
 for i in range(0,len(m)):
   for j in range(0,len(m[i])):

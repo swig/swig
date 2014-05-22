@@ -195,9 +195,8 @@ namespace swig {
 //
 
 #ifdef SWIG_PYTHON_BACKWARD_COMP
+%fragment("<string>");
 %{
-#include <string>
-                                                                              
 PyObject* SwigInt_FromBool(bool b) {
     return PyInt_FromLong(b ? 1L : 0L);
 }

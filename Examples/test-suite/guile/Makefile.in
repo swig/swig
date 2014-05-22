@@ -7,16 +7,18 @@ EXTRA_TEST_CASES += guile_ext_test.externaltest
 LANGUAGE     = guile
 VARIANT      =
 SCRIPTSUFFIX = _runme.scm
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+
 GUILE        = @GUILE@
 GUILE_RUNTIME=
 
 C_TEST_CASES = long_long \
-               list_vector \
-               multivalue \
-               pointer_in_out
+	       list_vector \
+	       multivalue \
+	       pointer_in_out
 
 
 include $(srcdir)/../common.mk
@@ -28,7 +30,7 @@ INCLUDES    += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guile
 %.multicpptest: SWIGOPT += $(GUILE_RUNTIME)
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -38,7 +40,7 @@ INCLUDES    += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guile
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -51,8 +53,8 @@ INCLUDES    += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guile
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env GUILE_AUTO_COMPILE=0 LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env GUILE_AUTO_COMPILE=0 LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean

@@ -11,7 +11,7 @@
  * array with the correct data and linking the correct swig_cast_info
  * structures together.
  *
- * The generated swig_type_info structures are assigned staticly to an initial
+ * The generated swig_type_info structures are assigned statically to an initial
  * array. We just loop through that array, and handle each type individually.
  * First we lookup if this type has been already loaded, and if so, use the
  * loaded structure instead of the generated one. Then we have to fill in the

@@ -33,7 +33,7 @@
 
 #include <ctype.h>		// for isalnum()
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Pike Options (available with -pike)\n\
      [no additional options]\n\
 \n";

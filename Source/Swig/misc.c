@@ -1244,7 +1244,8 @@ static void copy_with_maybe_case_conversion(String *dst, const char *src, int le
 
   /* If we must convert only the first character, do it and write the rest at once. */
   if (convertNextOnly) {
-    Putc(*convertCase == 1 ? toupper(*src) : tolower(*src), dst);
+    int src_char = *src;
+    Putc(*convertCase == 1 ? toupper(src_char) : tolower(src_char), dst);
     *convertCase = 0;
     if (len > 1) {
       Write(dst, src + 1, len - 1);
@@ -1253,7 +1254,8 @@ static void copy_with_maybe_case_conversion(String *dst, const char *src, int le
     /* We need to convert all characters. */
     int i;
     for (i = 0; i < len; i++, src++) {
-      Putc(*convertCase == 1 ? toupper(*src) : tolower(*src), dst);
+      int src_char = *src;
+      Putc(*convertCase == 1 ? toupper(src_char) : tolower(src_char), dst);
     }
   }
 }

@@ -102,12 +102,11 @@ namespace Swig {
         TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);
         zend_class_entry **ce;
         zend_function *mptr;
-        int name_len = strlen(lc_fname);
 
         if (zend_lookup_class(cname, strlen(cname), &ce TSRMLS_CC) != SUCCESS) {
           return false;
         }
-        if (zend_hash_find(&(*ce)->function_table, lc_fname, name_len + 1, (void **) &mptr) != SUCCESS) {
+        if (zend_hash_find(&(*ce)->function_table, lc_fname, strlen(lc_fname) + 1, (void **) &mptr) != SUCCESS) {
           return false;
         }
         // common.scope points to the declaring class
@@ -128,7 +127,7 @@ namespace Swig {
     std::string swig_msg;
   public:
     DirectorException(int code, const char *hdr, const char *msg TSRMLS_DC) : swig_msg(hdr) {
-      if (strlen(msg)) {
+      if (msg[0]) {
         swig_msg += " ";
         swig_msg += msg;
       }

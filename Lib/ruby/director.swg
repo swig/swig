@@ -118,7 +118,7 @@ namespace Swig {
     }
 
     DirectorException(VALUE error, const char *hdr, const char *msg ="") : swig_error(error), swig_msg(hdr) {
-      if (strlen(msg)) {
+      if (msg[0]) {
 	swig_msg += " ";
 	swig_msg += msg;
       }

@@ -160,9 +160,9 @@ static String *SwigLib = 0; // Library directory
 static String *SwigLibWinUnix = 0; // Extra library directory on Windows
 static int freeze = 0;
 static String *lang_config = 0;
-static char *hpp_extension = (char *) "h";
-static char *cpp_extension = (char *) "cxx";
-static char *depends_extension = (char *) "d";
+static const char *hpp_extension = "h";
+static const char *cpp_extension = "cxx";
+static const char *depends_extension = "d";
 static String *outdir = 0;
 static String *xmlout = 0;
 static int outcurrentdir = 0;
@@ -324,7 +324,7 @@ const String *SWIG_output_directory() {
 }
 
 void SWIG_config_cppext(const char *ext) {
-  cpp_extension = (char *) ext;
+  cpp_extension = ext;
 }
 
 List *SWIG_output_files() {
@@ -465,7 +465,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-D", 2) == 0) {
 	String *d = NewString(argv[i] + 2);
-	Replace(d, (char *) "=", (char *) " ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+	Replace(d, "=", " ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
 	Preprocessor_define((DOH *) d, 0);
 	Delete(d);
 	// Create a symbol
@@ -1172,6 +1172,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Printf(stdout, "Processing unnamed structs...\n");
       Swig_nested_name_unnamed_c_structs(top);
     }
+    Swig_extend_unused_check();
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");

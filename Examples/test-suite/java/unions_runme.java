@@ -34,14 +34,12 @@ public class unions_runme {
     eut.getUni().setSmall(small);
     short Jill1 = eut.getUni().getSmall().getJill();
     if (Jill1 != 200) {
-        System.err.println("Runtime test1 failed. eut.uni.small.jill=" + Jill1);
-        System.exit(1);
+        throw new RuntimeException("Runtime test1 failed. eut.uni.small.jill=" + Jill1);
     }
 
     int Num1 = eut.getNumber();
     if (Num1 != 1) {
-        System.err.println("Runtime test2 failed. eut.number=" + Num1);
-        System.exit(1);
+        throw new RuntimeException("Runtime test2 failed. eut.number=" + Num1);
     }
 
     // Secondly check the BigStruct in EmbeddedUnionTest
@@ -49,20 +47,17 @@ public class unions_runme {
     eut.getUni().setBig(big);
     int Jack1 = eut.getUni().getBig().getJack();
     if (Jack1 != 300) {
-        System.err.println("Runtime test3 failed. eut.uni.big.jack=" + Jack1);
-        System.exit(1);
+        throw new RuntimeException("Runtime test3 failed. eut.uni.big.jack=" + Jack1);
     }
 
     short Jill2 = eut.getUni().getBig().getSmallstruct().getJill();
     if (Jill2 != 200) {
-        System.err.println("Runtime test4 failed. eut.uni.big.smallstruct.jill=" + Jill2);
-        System.exit(1);
+        throw new RuntimeException("Runtime test4 failed. eut.uni.big.smallstruct.jill=" + Jill2);
     }
 
     int Num2 = eut.getNumber();
     if (Num2 != 2) {
-        System.err.println("Runtime test5 failed. eut.number=" + Num2);
-        System.exit(1);
+        throw new RuntimeException("Runtime test5 failed. eut.number=" + Num2);
     }
 }
 }

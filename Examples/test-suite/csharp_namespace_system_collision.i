@@ -23,7 +23,7 @@ namespace TopLevel
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 %nspace;
 #else
-#warning nspace feature not yet supported in this target language
+//#warning nspace feature not yet supported in this target language
 #endif
 
 namespace TopLevel

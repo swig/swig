@@ -5,15 +5,15 @@ TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 CSHARPSRCS = *.cs
-CSHARPFLAGS= -nologo -unsafe -out:runme.exe
+CSHARPFLAGS= -nologo -debug+ -unsafe -out:runme.exe
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile csharp_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' csharp_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' csharp
-	$(MAKE) -f $(TOP)/Makefile CSHARPSRCS='$(CSHARPSRCS)' CSHARPFLAGS='$(CSHARPFLAGS)' csharp_compile
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CSHARPSRCS='$(CSHARPSRCS)' CSHARPFLAGS='$(CSHARPFLAGS)' csharp_compile
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile csharp_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' csharp_clean

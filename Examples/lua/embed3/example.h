@@ -13,7 +13,7 @@ public:
 };
 
 
-/* We also want to pass some events to Lua, so lets have a few classes
+/* We also want to pass some events to Lua, so let's have a few classes
 to do this.
 */
 class Event

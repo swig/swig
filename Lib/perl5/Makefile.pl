@@ -7,7 +7,7 @@
 # 2.  Run perl as 'perl Makefile.pl'
 # 3.  Type 'make' to build your module
 # 4.  Type 'make install' to install your module.
-# 
+#
 # See "Programming Perl", 2nd. Ed, for more gory details than
 # you ever wanted to know.
 
@@ -17,5 +17,3 @@ WriteMakefile(
      'LIBS' => [''],                 # Custom libraries (if any)
      'OBJECT' => '$module_wrap.o'    # Object files
 );
-
-

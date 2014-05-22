@@ -1171,7 +1171,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
   DEFINE_OCTAVE_ALLOCATOR(octave_swig_packed);
   DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_packed, "swig_packed", "swig_packed");
 
-  static octave_value_list octave_set_immutable(const octave_value_list &args, int nargout) {
+  SWIGRUNTIME octave_value_list octave_set_immutable(const octave_value_list &args, int nargout) {
     error("attempt to set immutable member variable");
     return octave_value_list();
   }

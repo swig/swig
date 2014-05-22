@@ -79,6 +79,9 @@ class GO:public Language {
   bool making_variable_wrappers;
   // True when working with a static member function.
   bool is_static_member_function;
+  // A hash table of enum types that we have seen but which may not have
+  // been defined.  The index is a SwigType.
+  Hash *undefined_enum_types;
   // A hash table of types that we have seen but which may not have
   // been defined.  The index is a SwigType.
   Hash *undefined_types;
@@ -124,6 +127,7 @@ public:
      class_methods(NULL),
      making_variable_wrappers(false),
      is_static_member_function(false),
+     undefined_enum_types(NULL),
      undefined_types(NULL),
      defined_types(NULL),
      go_imports(NULL) {
@@ -451,6 +455,7 @@ private:
 
     // Set up the hash table for types not defined by SWIG.
 
+    undefined_enum_types = NewHash();
     undefined_types = NewHash();
     defined_types = NewHash();
     go_imports = NewHash();
@@ -462,6 +467,13 @@ private:
     Delete(go_imports);
 
     // Write out definitions for the types not defined by SWIG.
+
+    if (Len(undefined_enum_types) > 0)
+      Printv(f_go_wrappers, "\n", NULL);
+    for (Iterator p = First(undefined_enum_types); p.key; p = Next(p)) {
+      String *name = p.item;
+      Printv(f_go_wrappers, "type ", name, " int\n", NULL);
+    }
 
     Printv(f_go_wrappers, "\n", NULL);
     for (Iterator p = First(undefined_types); p.key; p = Next(p)) {
@@ -481,6 +493,7 @@ private:
       }
       Delete(ty);
     }
+    Delete(undefined_enum_types);
     Delete(undefined_types);
     Delete(defined_types);
 
@@ -4494,11 +4507,20 @@ private:
 
     SwigType *t = SwigType_typedef_resolve_all(type);
 
-    Node *e = Language::enumLookup(t);
-    if (e) {
-      ret = goEnumName(e);
-    } else if (Strcmp(t, "enum ") == 0) {
-      ret = NewString("int");
+    if (SwigType_isenum(t)) {
+      Node *e = Language::enumLookup(t);
+      if (e) {
+	ret = goEnumName(e);
+      } else if (Strcmp(t, "enum ") == 0) {
+	ret = NewString("int");
+      } else {
+	// An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	String *tt = Copy(t);
+	Replace(tt, "enum ", "", DOH_REPLACE_ANY);
+	ret = exportedName(tt);
+	Setattr(undefined_enum_types, t, ret);
+	Delete(tt);
+      }
     } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
       ret = NewString("_swig_fnptr");
     } else if (SwigType_ismemberpointer(type)) {
@@ -4767,14 +4789,11 @@ private:
       ret = NewString("_Complex double ");
     } else if (is_interface) {
       SwigType *t = SwigType_typedef_resolve_all(type);
-      SwigType_strip_qualifiers(t);
       if (SwigType_ispointer(t)) {
 	SwigType_del_pointer(t);
-	SwigType_strip_qualifiers(t);
       }
       if (SwigType_isreference(t)) {
 	SwigType_del_reference(t);
-	SwigType_strip_qualifiers(t);
       }
       SwigType_add_pointer(t);
       ret = SwigType_lstr(t, name);
@@ -4809,8 +4828,13 @@ private:
 	}
       }
 
-      if (Language::enumLookup(t) != NULL || Strcmp(t, "enum ") == 0) {
+      if (Language::enumLookup(t) != NULL) {
 	is_int = true;
+      } else {
+	SwigType *tstripped = SwigType_strip_qualifiers(t);
+	if (SwigType_isenum(tstripped))
+	  is_int = true;
+	Delete(tstripped);
       }
 
       Delete(t);
@@ -4995,7 +5019,7 @@ extern "C" Language *swig_go(void) {
  * ----------------------------------------------------------------------------- */
 
 // Usage message.
-const char * const GO::usage = (char *) "\
+const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\

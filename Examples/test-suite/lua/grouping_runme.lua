@@ -14,4 +14,5 @@ assert(g.test3 == 37)
 g.test3 = 42
 assert(g.test3 == 42)
 
+assert(g.NEGATE ~= nil)
 assert(g.do_unary(5, g.NEGATE) == -5)

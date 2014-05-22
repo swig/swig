@@ -116,7 +116,7 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
     var = var->next;
   }
   if (res == NULL && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }
@@ -133,7 +133,7 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
     var = var->next;
   }
   if (res == 1 && !PyErr_Occurred()) {
-    PyErr_SetString(PyExc_NameError,"Unknown C global variable");
+    PyErr_Format(PyExc_AttributeError, "Unknown C global variable '%s'", n);
   }
   return res;
 }

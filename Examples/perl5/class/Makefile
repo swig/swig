@@ -6,15 +6,15 @@ INTERFACE  = example.i
 LIBS       = -lm
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile perl5_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' perl5_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' perl5_cpp
 
 static:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='myperl' INTERFACE='$(INTERFACE)' perl5_cpp_static
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile perl5_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' perl5_clean

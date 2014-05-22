@@ -80,6 +80,7 @@
 
 // throws typemaps for c++->java exception conversions
 %typemap(throws,throws="MyJavaException1") MyNS::Exception1 %{
+  (void)$1;
   jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
@@ -88,6 +89,7 @@
 %}
 
 %typemap(throws,throws="MyJavaException1") int %{
+  (void)$1;
   jclass excpcls = jenv->FindClass("java_director_exception_feature/MyJavaException1");
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");
@@ -180,7 +182,7 @@ public:
   virtual std::string ping(int excp) throw(int,MyNS::Exception2) = 0;
   virtual std::string pong(int excp) /* throws MyNS::Exception1 MyNS::Exception2 MyNS::Unexpected) */ = 0;
   virtual std::string genericpong(int excp) /* unspecified throws - exception is always DirectorException in C++, translated back to whatever thrown in java */ = 0;
-  virtual std::string directorthrows_warning(int excp) throw(double) {}
+  virtual std::string directorthrows_warning(int excp) throw(double) { return std::string(); }
 };
 
 // Make a bar from a foo, so a call to Java Bar

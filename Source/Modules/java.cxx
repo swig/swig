@@ -1945,6 +1945,8 @@ public:
     String *old_proxy_class_constants_code = proxy_class_constants_code;
     String *old_proxy_class_def = proxy_class_def;
     String *old_proxy_class_code = proxy_class_code;
+    bool has_outerclass = Getattr(n, "nested:outer") && !GetFlag(n, "feature:flatnested");
+
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
@@ -1997,7 +1999,8 @@ public:
 	  return SWIG_ERROR;
       }
 
-      if (!Getattr(n, "nested:outer")) {
+      // Each outer proxy class goes into a separate file
+      if (!has_outerclass) {
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
 	f_proxy = NewFile(filen, "w", SWIG_output_files());
@@ -2054,7 +2057,6 @@ public:
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
 
-      bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
@@ -3081,10 +3083,19 @@ public:
 
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(classnametype, jnidescriptor);
-      if (enumname)
+      if (enumname) {
 	replacementname = Copy(enumname);
-      else
-	replacementname = NewString("int");
+      } else {
+        bool anonymous_enum = (Cmp(classnametype, "enum ") == 0);
+	if (anonymous_enum) {
+	  replacementname = NewString("int");
+	} else {
+	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	  replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+	  Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+	  Setattr(swig_types_hash, replacementname, classnametype);
+	}
+      }
     } else {
       String *classname = getProxyName(classnametype, jnidescriptor); // getProxyName() works for pointers to classes too
       if (classname) {
@@ -3184,6 +3195,11 @@ public:
     Replaceall(swigtype, "$javaclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
     Replaceall(swigtype, "$imclassname", imclass_name);
+
+    // For unknown enums
+    Replaceall(swigtype, "$static ", "");
+    Replaceall(swigtype, "$enumvalues", "");
+
     Printv(f_swigtype, swigtype, NIL);
 
     Delete(f_swigtype);
@@ -4627,7 +4643,7 @@ extern "C" Language *swig_java(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *JAVA::usage = (char *) "\
+const char *JAVA::usage = "\
 Java Options (available with -java)\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\

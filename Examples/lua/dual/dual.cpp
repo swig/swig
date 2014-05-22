@@ -1,7 +1,7 @@
 /*
-dual.cpp a test for multiple modules and multiple intrepreters staticly linked together.
+dual.cpp a test for multiple modules and multiple interpreters statically linked together.
 
-Earlier version of lua bindings for SWIG would fail if staticly linked.
+Earlier version of lua bindings for SWIG would fail if statically linked.
 
 What is happening is as follows:
 example.i declares a type Foo
@@ -28,13 +28,17 @@ both Foo and Bar.
 #include <stdio.h>
 #include <stdlib.h>
 
-// the 2 libraries which are wrappered via SWIG
+// the 2 libraries which are wrapped via SWIG
 extern "C" int luaopen_example(lua_State*L);
 extern "C" int luaopen_example2(lua_State*L);
 
 #define DEBUG(X) {printf(X);fflush(stdout);}
 #define DEBUG2(X,Y) {printf(X,Y);fflush(stdout);}
 #define DEBUG3(X,Y,Z) {printf(X,Y,Z);fflush(stdout);}
+
+#if LUA_VERSION_NUM > 501
+#define lua_open luaL_newstate
+#endif
 
 void testModule(lua_State *L)
 {

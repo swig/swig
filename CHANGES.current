@@ -2,242 +2,77 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.0 (in progress)
-============================
+Version 3.0.1 (in progress)
+===========================
 
-2014-02-06: gjanssens
-            [Guile] Patch #133. Make scm to string conversion work with non-ascii strings.
-            Guile 2 has a completely rewritten string implementation. SWIG made some assumptions
-            that are no longer valid as to the internals of guile's string representation.
+2014-05-18: vkalinin
+	    Bug #175 - Restore %extend to work for unnamed nested structures by using a C
+            symbol comprising the outer structure name and unnamed variable instance name.
 
-2014-01-30: wsfulton
-            [C#] Add new swigtype_inout.i library containing SWIGTYPE *& OUTPUT typemaps.
+2014-05-15: kwwette
+	    Add #166 - 'make check' now works out of source. This required te examples to build
+            out of source. The main languages have been tested - C#, Go, Guile, Java, Javascript,
+            Lua, Octave, Perl, PHP, Python, Ruby and Tcl.
 
-            Example usage wrapping:
+2014-05-01: Oliver Buchtala
+	    Javascript support added, see Javascript chapter in the documentation.
 
-              void f(XXX *& x) { x = new XXX(111); }
+2014-05-01: olly
+	    [PHP] The generated __isset() method now returns true for read-only properties.
 
-            would be:
+2014-04-24: kwwette
+            [Go] Fix go ./configure parsing of gccgo --version, and
+            goruntime.swg typo in __GNUC_PATCHLEVEL__ (SF Bug #1298)
 
-              XXX x = null;
-              f(out x);
-              // use x
-              x.Dispose(); // manually clear memory or otherwise leave out and leave it to the garbage collector
+2014-04-24: kwwette
+            Fix {python|perl5|ruby|tcl}/java examples
 
-2014-01-21: ianlancetaylor
-	    [Go] Add %go_import directive.
+            In Lib/gcj/cni.i, for compatibility with newer gcj versions:
 
-2014-01-21: ianlancetaylor
-	    [Go] Add support for Go 1.3, not yet released.
+            - remove JvAllocObject() which gcj no longer defines, from gcj Changelog:
+              2004-04-16  Bryce McKinlay  <mckinlay@redhat.com>
+                * gcj/cni.h (JvAllocObject): Remove these obsolete,
+                undocumented CNI calls.
 
-2014-01-20: wsfulton
-            Director exceptions (Swig::DirectorException) now derive from std::exception
-            and hence provide the what() method. In Python and Ruby, this replaces the now
-            deprecated DirectorException::getMessage() method.
-
-2014-01-16: wsfulton
-            [PHP] Fix compilation error in ZTS mode (64 bit windows) due to incorrect placement
-            of TSRMLS_FETCH() in SWIG_Php_GetModule() as reported by Mark Dawson-Butterworth.
-
-2014-01-14: diorcety
-            Patch #112 - Fix symbol resolution involving scopes that have multiple levels
-            of typedefs - fixes some template resolutions as well as some typemap searches.
-
-2014-01-13: kwwette
-            [Octave] update support to Octave version 3.8.0
-
-            - Octave 3.8.0 no longer defines OCTAVE_API_VERSION_NUMBER, but 3.8.1
-              will define OCTAVE_{MAJOR,MINOR,PATCH}_VERSION instead: see
-                http://hg.savannah.gnu.org/hgweb/octave/rev/b6b6e0dc700e
-              So we now use a new macro SWIG_OCTAVE_PREREQ(major,minor,patch) to
-              enable features requiring Octave version major.minor.patch or later.
-
-              For Octave versions prior to 3.8.1, we reconstruct values for
-              OCTAVE_{MAJOR,MINOR,PATCH}_VERSION based on OCTAVE_API_VERSION_NUMBER,
-              extracted from Octave's ChangeLogs. An additional hack is needed to
-              distinguish between Octave <= 3.2.x and 3.8.0, neither of which define
-              OCTAVE_API_VERSION_NUMBER.
-
-            - Octave 3.8.0 deprecates symbol_table::varref(), so remove its use
-              for this and future versions of Octave.
-
-            - Octave 3.8.0 removes octave_value::is_real_nd_array(), used in
-              octave_swig_type::dims(). Its use is not required here, so remove it.
-
-            - Retested against Octave versions 3.0.5, 3.2.4, 3.4.3, 3.6.4, and 3.8.0.
-
-            - Updated Octave documentation with tested Octave versions, and added a
-              warning against using versions <= 3.x.x, which are no longer tested.
-
-2014-01-11: wsfulton
-            Fix and document the naturalvar feature override behaviour - the naturalvar
-            feature attached to a variable name has precedence over the naturalvar
-            feature attached to the variable's type. The overriding was not working
-            when turning the feature off on the variable's name.
-
-            Fix so that any use of the naturalvar feature will override the global
-            setting. Previously when set globally by -naturalvar or %module(naturalvar=1),
-            use of the naturalvar feature was not always honoured.
-
-2014-01-06: ianlancetaylor
-	    [Go] Fix bug that broke using directors from a thread not
-	    created by Go.
-
-2013-12-24: ptomulik
-            [Python] SF Bug #1297
-
-            Resolve several issues related to python imports.
-            For example, it's now possible to import modules having the same module
-            names, but belonging in different packages.
-            
-            From the user's viewpoint, this patch gives a little bit more control on
-            import statements generated by SWIG. The user may choose to use relative
-            or absolute imports.
-            
-            Some details:
-              - we (still) generate import statements in the form 'import a.b.c' which
-                corresponds to absolute imports in python3 and (the only available)
-                ambiguous one in python2.
-              - added -relativeimport option to use explicit relative import syntax
-                (python3),
-
-            The "Python Packages" section in the documentation discusses how to work
-            with importing packages including the new -relativeimport command line option.
-
-2013-12-23: vadz
-            [Octave, Perl, Python, R, Ruby, Tcl] Change the length of strings created from fixed-size char
-            buffers in C code.
-
-            This is a potential backwards compatibility break: a "char buf[5]" containing "ho\0la" was
-            returned as a string of length 5 before, but is returned as a string of length 2 now. Also,
-            it was possible to assign a (non-NUL-terminated) string "hello" to such a buffer before but
-            now this fails and only "helo" can fit.
-
-            Apply "char FIXSIZE[ANY]" typemaps to explicitly choose the old behaviour.
+            - change JvCreateJavaVM() argument from void* to JvVMInitArgs*, from gcj Changelog:
+              2005-02-23  Thomas Fitzsimmons  <fitzsim@redhat.com>
+              PR libgcj/16923
+              ...
+              (JvCreateJavaVM): Declare vm_args as JvVMInitArgs* rather than void*.
 
             *** POTENTIAL INCOMPATIBILITY  ***
 
-2013-12-23: talby
-            [Perl] Add support for directors.
+2014-04-08: wsfulton
+            SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
 
-2013-12-22: wsfulton
-            C++11 support for new versions of erase and insert in the STL containers.
+2014-04-08: wsfulton
+            [Java C#] Enums which have been ignored via %ignore and are subsequently
+            used are handled slightly differently. Type wrapper classes are now generated
+            which are effectively a wrapper of an empty enum. Previously in Java uncompilable
+            code was generated and in C# an int was used.
 
-            The erase and insert methods in the containers use const_iterator instead
-            of iterator in C++11.  There are times when the methods wrapped must match
-            the parameters exactly. Specifically when full type information for
-            template types is missing or SWIG fails to look up the type correctly,
-            for example:
+2014-04-04: wsfulton
+            Fix regression in 3.0.0 where legal code following an operator<< definition might
+            give a syntax error. SF Bug #1365.
 
-              %include <std_vector.i>
-              typedef float Real;
-              %template(RealVector) std::vector<Real>;
+2014-04-03: olly
+	    [PHP] Fix wrapping director constructors with default parameters
+	    with a ZTS-enabled build of PHP.
 
-            SWIG does not find std::vector<Real>::iterator because %template using
-            typedefs does not always work and so SWIG doesn't know if the type is
-            copyable and so uses SwigValueWrapper<iterator> which does
-            not support conversion to another type (const_iterator). This resulted
-            in compilation errors when using the C++11 version of the containers.
+2014-04-02: olly
+	    [PHP] Pass the ZTS context we already have to avoid needing to
+	    call TSRMLS_FETCH, which is relatively expensive.
 
-            Closes #73
+2014-04-02: olly
+	    [PHP] Pass ZTS context through to t_output_helper() so it works
+	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
+	    github PR#155.
 
-2013-12-18: ianlancetaylor
-	    [Go] Don't require that Go environment variables be set
-	    when running examples or testsuite when using Go 1 or
-	    later.
+2014-03-28: wsfulton
+            [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
+            has not been parsed. For D, this fixes a segfault in SWIG. The other languages
+            now produce code that compiles, although the definition of the enum is needed
+            in order to use the enum properly from the target language.
 
-2013-12-17: ianlancetaylor
-	    [Go] Remove -longsize option (for backward compatibility,
-	    ignore it if seen).
-
-2013-12-17: ianlancetaylor
-	    [Go] Add -go-pkgpath option.
-
-2013-12-16: ianlancetaylor
-	    [Go] Update for Go 1.2 release.  Add support for linking
-	    SWIG code directly into executable, rather than using a
-	    shared library.
-
-2013-12-13: ianlancetaylor
-	    [Go] Add SWIG source file name as comments in generated
-	    files.  This can be used by Go documentation tools.
-
-2013-12-12: jleveque
-	    [Lua] Fix typo (wchar instead of wchar_t) which made wchar.i
-	    for Lua useless.
-
-2013-12-12: vmiklos
-	    [PHP] PHP's peculiar call-time pass-by-reference feature was
-	    deprecated in PHP 5.3 and removed in PHP 5.4, so update the REF
-	    typemaps in phppointers.i to specify pass-by-reference in the
-	    function definition.  Examples/php/pointer has been updated
-	    accordingly.
-
-2013-12-12: olly
-	    [PHP] The usage of $input in PHP directorout typemaps has been
-	    changed to be consistent with other languages.  The typemaps
-	    provided by SWIG have been updated accordingly, but if you
-	    have written your own directorout typemaps, you'll need to
-	    update $input to &$input (or make equivalent changes).
-
-            *** POTENTIAL INCOMPATIBILITY  ***
-
-2013-11-27: vadz
-            [C#, Java, Python] Add std_auto_ptr.i defining typemaps for returning std::auto_ptr<>.
-
-2013-11-09: wsfulton
-            [C#] Apply patch #79 from Brant Kyser
-              - Remove using directives from the generated C# code and fully qualify the use of all .NET
-                framework types in order to minimize potential name collisions from input files defining
-                types, namespace, etc with the same name as .NET framework members.
-              - Globally qualify the use of .NET framework types in the System namespace
-              - Remove .NET 1.1 support, .NET 2 is the minimum for the C# module
-
-            This is a potential backwards compatibility break if code has been added relying on these using
-            statements that used to be generated:
-
-              using System;
-              using System.Runtime.InteropServices;
-
-            The quick fix to add these back in is to add the -DSWIG2_CSHARP command line option when
-            executing SWIG. See CSharp.html documentation for more info.
-
-            *** POTENTIAL INCOMPATIBILITY  ***
-
-2013-11-05: wsfulton
-            [Java] Fix some corner cases for the $packagepath/$javaclassname special variable substitution.
-
-2013-11-05: wsfulton
-            [Java] Apply patch #91 from Marvin Greenberg - Add director:except feature for improved
-            exception handling in director methods for Java.
-
-2013-10-17: wsfulton
-            [R] Fix SF #1340 - Visual Studio compile error in C++ wrappers due to #include <exception>
-            within extern "C" block.
-
-2013-10-17: wsfulton
-            [Python] Fix SF #1345 - Missing #include <stddef.h> for offsetof when using -builtin.
-
-2013-10-15: vadz
-            Allow using \l, \L, \u, \U and \E in the substitution part of %(regex:/pattern/subst/)
-            inside %rename to change the case of the text being replaced.
-
-2013-10-12: wsfulton
-            [Lua] Apply #92 - missing return statements for SWIG_Lua_add_namespace_details()
-            and SWIG_Lua_namespace_register().
-
-2013-10-12: wsfulton
-            [CFFI] Apply #96 - superclass not lispify
-
-2013-10-12: wsfulton
-            Merge in C++11 support from the gsoc2009-matevz branch where Matevz Jekovec first
-            started the C++0x additions. Documentation of the C++11 features supported is in a
-            new Chapter of the documentation, "SWIG and C++11" in Doc/Manual/CPlusPlus11.html.
-
-2013-10-04: wsfulton
-            Fix %naturalvar not having any affect on templated classes instantiated with an
-            enum as the template parameter type. Problem reported by Vadim Zeitlin.
-
-2013-09-20: wsfulton
-            [Java] Fix a memory leak for the java char **STRING_ARRAY typemaps.
-
+2014-03-23: v-for-vandal
+            [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.

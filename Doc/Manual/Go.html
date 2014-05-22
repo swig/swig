@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Go"></a>22 SWIG and Go</H1>
+<H1><a name="Go"></a>23 SWIG and Go</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -43,7 +43,7 @@ the Go programming language
 see <a href="http://golang.org/">golang.org</a>.
 </p>
 
-<H2><a name="Go_overview"></a>22.1 Overview</H2>
+<H2><a name="Go_overview"></a>23.1 Overview</H2>
 
 
 <p>
@@ -55,7 +55,7 @@ there is no convenient way to call C++ code.  SWIG fills this gap.
 
 <p>
 There are (at least) two different Go compilers.  One is the gc
-compiler, normally invoked under via the go tool.  The other
+compiler, normally invoked via the go tool.  The other
 is the gccgo compiler, which is a frontend to the gcc compiler suite.
 The interface to C/C++ code is completely different for the two Go
 compilers.  SWIG supports both, selected by a command line option.
@@ -67,7 +67,7 @@ checking and runtime library are not used with Go.  This should be
 borne in mind when reading the rest of the SWIG documentation.
 </p>
 
-<H2><a name="Go_running_swig"></a>22.2 Running SWIG with Go</H2>
+<H2><a name="Go_running_swig"></a>23.2 Running SWIG with Go</H2>
 
 
 <p>
@@ -76,7 +76,7 @@ default SWIG will generate code for the gc compilers.  To generate
 code for gccgo, you should also use the <tt>-gccgo</tt> option.
 </p>
 
-<H3><a name="Go_commandline"></a>22.2.1 Additional Commandline Options</H3>
+<H3><a name="Go_commandline"></a>23.2.1 Additional Commandline Options</H3>
 
 
 <p>
@@ -94,9 +94,9 @@ swig -go -help
 </tr>
 
 <tr>
-<td>-intgo-type-size %lt;s%gt;</td>
+<td>-intgosize &lt;s&gt;</td>
 <td>Set the size for the Go type <tt>int</tt>.  This controls the size
-  that the C/C++ code expects to see.  The %lt;s%gt; argument should
+  that the C/C++ code expects to see.  The &lt;s&gt; argument should
   be 32 or 64.  This option is currently required during the
   transition from Go 1.0 to Go 1.1, as the size of <tt>int</tt> on
   64-bit x86 systems changes between those releases (from 32 bits to
@@ -125,7 +125,7 @@ swig -go -help
 </tr>
 
 <tr>
-<td>-soname %lt;name%gt;</td>
+<td>-soname &lt;name&gt;</td>
 <td>Set the runtime name of the shared library that the dynamic linker
   should include at runtime.  The default is the package name with
   ".so" appended.  This is only used when generating code for
@@ -150,7 +150,7 @@ swig -go -help
 
 </table>
 
-<H3><a name="Go_outputs"></a>22.2.2 Go Output Files</H3>
+<H3><a name="Go_outputs"></a>23.2.2 Go Output Files</H3>
 
 
 <p> When generating Go code, SWIG will generate the following
@@ -226,7 +226,7 @@ this:
 % go tool 6l main.6
 </pre></div>
 
-<H2><a name="Go_basic_tour"></a>22.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Go_basic_tour"></a>23.3 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
@@ -236,7 +236,7 @@ modifications have to occur.  This section briefly covers the
 essential aspects of this wrapping.
 </p>
 
-<H3><a name="Go_package"></a>22.3.1 Go Package Name</H3>
+<H3><a name="Go_package"></a>23.3.1 Go Package Name</H3>
 
 
 <p>
@@ -246,7 +246,7 @@ directive.  You may override this by using SWIG's <tt>-package</tt>
 command line option.
 </p>
 
-<H3><a name="Go_names"></a>22.3.2 Go Names</H3>
+<H3><a name="Go_names"></a>23.3.2 Go Names</H3>
 
 
 <p>
@@ -278,7 +278,7 @@ followed by that name, and the destructor will be
 named <tt>Delete</tt> followed by that name.
 </p>
 
-<H3><a name="Go_constants"></a>22.3.3 Go Constants</H3>
+<H3><a name="Go_constants"></a>23.3.3 Go Constants</H3>
 
 
 <p>
@@ -286,7 +286,7 @@ C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
 directive become Go constants, declared with a <tt>const</tt>
 declaration.
 
-<H3><a name="Go_enumerations"></a>22.3.4 Go Enumerations</H3>
+<H3><a name="Go_enumerations"></a>23.3.4 Go Enumerations</H3>
 
 
 <p>
@@ -296,7 +296,7 @@ usual).  The values of the enumeration will become variables in Go;
 code should avoid modifying those variables.
 </p>
 
-<H3><a name="Go_classes"></a>22.3.5 Go Classes</H3>
+<H3><a name="Go_classes"></a>23.3.5 Go Classes</H3>
 
 
 <p>
@@ -374,7 +374,7 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_inheritance"></a>22.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance"></a>23.3.5.1 Go Class Inheritance</H4>
 
 
 <p>
@@ -386,7 +386,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates"></a>22.3.6 Go Templates</H3>
+<H3><a name="Go_templates"></a>23.3.6 Go Templates</H3>
 
 
 <p>
@@ -394,7 +394,7 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
-<H3><a name="Go_director_classes"></a>22.3.7 Go Director Classes</H3>
+<H3><a name="Go_director_classes"></a>23.3.7 Go Director Classes</H3>
 
 
 <p>
@@ -437,7 +437,7 @@ method defined in Go.  The Go code may of course call other methods on
 itself, and those methods may be defined either in Go or in C++.
 </p>
 
-<H3><a name="Go_primitive_type_mappings"></a>22.3.8 Default Go primitive type mappings</H3>
+<H3><a name="Go_primitive_type_mappings"></a>23.3.8 Default Go primitive type mappings</H3>
 
 
 <p>
@@ -544,7 +544,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments"></a>22.3.9 Output arguments</H3>
+<H3><a name="Go_output_arguments"></a>23.3.9 Output arguments</H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -597,7 +597,7 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code"></a>22.3.10 Adding additional go code</H3>
+<H3><a name="Go_adding_additional_code"></a>23.3.10 Adding additional go code</H3>
 
 
 <p>Often the APIs generated by swig are not very natural in go, especially if

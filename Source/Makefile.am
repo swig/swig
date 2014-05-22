@@ -48,6 +48,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/go.cxx			\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\
+		Modules/javascript.cxx		\
 		Modules/lang.cxx		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
@@ -76,6 +77,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/cwrap.c			\
 		Swig/deprecate.c		\
 		Swig/error.c			\
+		Swig/extend.c			\
 		Swig/fragment.c			\
 		Swig/getopt.c			\
 		Swig/include.c			\
@@ -89,7 +91,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/typeobj.c			\
 		Swig/typemap.c			\
 		Swig/typesys.c			\
-		Swig/wrapfunc.c			
+		Swig/wrapfunc.c
 
 bin_PROGRAMS = eswig
 eswig_LDADD   = @SWIGLIBS@
@@ -98,7 +100,7 @@ eswig_LDADD   = @SWIGLIBS@
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
 # The executable is copied to the root directory for installation and running the test-suite.
-# This occurs on each invocation of make and is a step towards providing support for multiple 
+# This occurs on each invocation of make and is a step towards providing support for multiple
 # build directories.
 all-local: eswig@EXEEXT@
 	cp -f $(top_builddir)/Source/eswig@EXEEXT@ $(top_builddir)/swig@EXEEXT@
@@ -144,4 +146,3 @@ beautify-file:
 	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;
-

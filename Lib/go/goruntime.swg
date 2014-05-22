@@ -116,7 +116,7 @@ extern void _cgo_panic(const char *);
    file is the same as the version of gccgo.  */
 
 #define SWIG_GCC_VERSION \
-  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC__PATH_LEVEL__)
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 
 #if SWIG_GCC_VERSION < 40700
 #define SwigDoCgocall()

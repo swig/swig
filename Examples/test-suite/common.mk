@@ -69,7 +69,13 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/
+INTERFACEDIR = ../
+SRCDIR     = $(srcdir)/
+SCRIPTDIR  = $(srcdir)
+
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: $(srcdir)/Makefile.in ../../../config.status
+	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
 
 #
 # Please keep test cases in alphabetical order.
@@ -86,6 +92,7 @@ CPP_TEST_BROKEN += \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
+	rename_camel \
 	template_default_pointer \
 	template_private_assignment \
 	template_expr \
@@ -196,6 +203,7 @@ CPP_TEST_CASES += \
 	disown \
 	dynamic_cast \
 	empty \
+	enum_ignore \
 	enum_plus \
 	enum_rename \
 	enum_scope_template \
@@ -283,6 +291,7 @@ CPP_TEST_CASES += \
 	naturalvar_more \
 	naturalvar_onoff \
 	nested_class \
+	nested_directors \
 	nested_comment \
 	nested_scope \
 	nested_workaround \
@@ -293,6 +302,7 @@ CPP_TEST_CASES += \
 	operator_pointer_ref \
 	operbool \
 	ordering \
+	overload_bool \
 	overload_copy \
 	overload_extend \
 	overload_method \
@@ -323,6 +333,7 @@ CPP_TEST_CASES += \
 	rename_strip_encoder \
 	rename_pcre_encoder \
 	rename_pcre_enum \
+	rename_predicates \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
@@ -345,6 +356,7 @@ CPP_TEST_CASES += \
 	smart_pointer_simple \
 	smart_pointer_static \
 	smart_pointer_template_const_overload \
+	smart_pointer_template_defaults_overload \
 	smart_pointer_templatemethods \
 	smart_pointer_templatevariables \
 	smart_pointer_typedef \
@@ -402,7 +414,6 @@ CPP_TEST_CASES += \
 	template_partial_arg \
 	template_partial_specialization \
 	template_partial_specialization_typedef \
-	template_qualifier \
 	template_qualifier \
 	template_ref_type \
 	template_rename \
@@ -490,7 +501,8 @@ CPP_TEST_CASES += \
 
 # C++11 test cases.
 CPP11_TEST_CASES = \
-        cpp11_alternate_function_syntax \
+	cpp11_alignment \
+	cpp11_alternate_function_syntax \
 	cpp11_constexpr \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -505,6 +517,7 @@ CPP11_TEST_CASES = \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
+	cpp11_result_of \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
@@ -514,17 +527,18 @@ CPP11_TEST_CASES = \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
 	cpp11_template_typedefs \
-        cpp11_uniform_initialization \
+	cpp11_type_traits \
+	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
-	cpp11_variadic_templates
-
-#	cpp11_hash_tables \           # not fully implemented yet
-#	cpp11_result_of \             # SWIG does not support
-#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 
 # Broken C++11 test cases.
-CPP11_TEST_BROKEN = 
+CPP11_TEST_BROKEN = \
+#	cpp11_hash_tables \           # not fully implemented yet
+#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
+#	cpp11_variadic_templates \    # Broken for some languages (such as Java)
+#	cpp11_reference_wrapper \     # No typemaps
+
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -572,11 +586,14 @@ C_TEST_CASES += \
 	enums \
 	enum_forward \
 	enum_macro \
+	enum_missing \
 	extern_declaration \
 	funcptr \
 	function_typedef \
+	global_functions \
 	immutable_values \
 	inctest \
+	infinity \
 	integers \
 	keyword_rename \
 	lextype \
@@ -590,6 +607,7 @@ C_TEST_CASES += \
 	memberin_extend_c \
 	name \
 	nested \
+	nested_extend_c \
 	nested_structs \
 	newobject2 \
 	overload_extend \
@@ -603,6 +621,7 @@ C_TEST_CASES += \
 	simple_array \
 	sizeof_pointer \
 	sneaky1 \
+	string_simple \
 	struct_rename \
 	struct_initialization \
 	typedef_struct \
@@ -669,14 +688,14 @@ partialcheck:
 	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
 
 swig_and_compile_cpp =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
@@ -684,7 +703,7 @@ swig_and_compile_c =  \
 
 swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
@@ -692,11 +711,11 @@ swig_and_compile_multi_cpp = \
 	done
 
 swig_and_compile_external =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	TARGET="$*_wrap_hdr.h" \
 	$(LANGUAGE)$(VARIANT)_externalhdr; \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS) $*_external.cxx" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
@@ -705,10 +724,10 @@ swig_and_compile_external =  \
 swig_and_compile_runtime = \
 
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi;
 
 

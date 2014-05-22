@@ -8,9 +8,8 @@
 
 %apply size_t { std::size_t };
 
+%fragment("<string>");
 %{
-#include <string>
-
 double SwigSvToNumber(SV* sv) {
     return SvIOK(sv) ? double(SvIVX(sv)) : SvNVX(sv);
 }

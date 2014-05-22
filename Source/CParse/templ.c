@@ -825,7 +825,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
       /* If not a templated class we must have a templated function.
          The template found is not necessarily the one we want when dealing with templated
          functions. We don't want any specialized templated functions as they won't have
-         the default parameters. Lets look for the unspecialized template. Also make sure
+         the default parameters. Let's look for the unspecialized template. Also make sure
          the number of template parameters is correct as it is possible to overload a
          templated function with different numbers of template parameters. */
 

@@ -216,7 +216,7 @@ to use the C++ compiler.  For example:
 <div class="shell">
 <pre>
 $ swig -c++ -tcl example.i
-$ c++ -c example_wrap.cxx 
+$ c++ -fPIC -c example_wrap.cxx 
 $ c++ example_wrap.o $(OBJS) -o example.so
 </pre>
 </div>
@@ -4971,6 +4971,7 @@ public:
 </ul>
 
 <H2><a name="SWIGPlus_nested_classes"></a>6.27 Nested classes</H2>
+
 
 <p>
 If the target language supports the nested classes concept (like Java), the nested C++ classes

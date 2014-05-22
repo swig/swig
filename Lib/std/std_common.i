@@ -23,11 +23,9 @@
 // Common code for supporting the C++ std namespace
 //
 
-%{
-#include <string>
-#include <stdexcept>
-#include <stddef.h>
-%}
+%fragment("<string>");
+%fragment("<stdexcept>");
+%fragment("<stddef.h>");
 
 
 %fragment("StdIteratorTraits","header",fragment="<stddef.h>") %{
@@ -73,7 +71,7 @@ namespace std {
 #endif
 %}
 
-%fragment("StdTraitsCommon","header") %{
+%fragment("StdTraitsCommon","header",fragment="<string>") %{
 namespace swig {  
   template <class Type>
   struct noconst_traits {

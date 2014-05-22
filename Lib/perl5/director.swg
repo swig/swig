@@ -27,7 +27,6 @@
 */
 # ifndef SWIG_DIRECTOR_RTDIR
 # define SWIG_DIRECTOR_RTDIR
-#include <map>
 
 namespace Swig {
   class Director;
