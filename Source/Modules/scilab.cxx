@@ -346,6 +346,7 @@ public:
     Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
     Printf(wrapper->code, "SWIG_CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
     Printf(wrapper->code, "SWIG_Scilab_SetFname(fname);\n");
+    Printf(wrapper->code, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
       // Ignore parameter if the typemap specifies numinputs=0

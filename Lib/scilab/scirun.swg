@@ -51,7 +51,12 @@ static void SWIG_Scilab_SetFname(char* _fname) {
   }
   fname = strdup(_fname);
 }
-
+#if SWIG_SCILAB_VERSION >= 600
+static void *pvApiCtx = NULL;
+static void SWIG_Scilab_SetApiContext(void *_pvApiCtx) { pvApiCtx = _pvApiCtx; };
+#else
+#define SWIG_Scilab_SetApiContext(void *_pvApiCtx)
+#endif
 
 /* Argument management functions */
 
