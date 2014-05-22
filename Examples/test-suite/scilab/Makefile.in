@@ -4,7 +4,7 @@
 
 LANGUAGE     = scilab
 SCILAB       = @SCILAB@
-SCILAB_STARTOPT = @SCILABSTARTOPT@
+SCILAB_OPT = @SCILABOPT@
 SCRIPTSUFFIX = _runme.sci
 srcdir       = $(abspath @srcdir@)
 top_srcdir   = $(abspath @top_srcdir@)
@@ -61,7 +61,7 @@ setup = \
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(RUNME_SCRIPT) ]; then ( \
-		env LD_LIBRARY_PATH=$(srcdir)/$(TEST_DIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_STARTOPT) -f $(RUNME_SCRIPT); )\
+		env LD_LIBRARY_PATH=$(srcdir)/$(TEST_DIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); )\
 	fi
 
 # Clean: remove the generated files
