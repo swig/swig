@@ -392,8 +392,9 @@ static int swig_lua_elua_emulate_unique_key;
 /* This function emulates eLua rotables behaviour. It loads a rotable definition into the usual lua table. */
 SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_entry *table)
 {
+  int i, table_parsed, parsed_tables_array, target_table;
   assert(lua_istable(L,-1));
-  int target_table = lua_gettop(L);
+  target_table = lua_gettop(L);
   /* Get the registry where we put all parsed tables to avoid loops */
   lua_rawgetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
   if(lua_isnil(L,-1)) {
@@ -402,11 +403,10 @@ SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_ent
     lua_pushvalue(L,-1);
     lua_rawsetp(L,LUA_REGISTRYINDEX,(void*)(&swig_lua_elua_emulate_unique_key));
   }
-  int parsed_tables_array = lua_gettop(L);
+  parsed_tables_array = lua_gettop(L);
   lua_pushvalue(L,target_table);
   lua_rawsetp(L, parsed_tables_array, table);
-  int i;
-  int table_parsed = 0;
+  table_parsed = 0;
   const int SWIGUNUSED pairs_start = lua_gettop(L);
   for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
   {
@@ -606,7 +606,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss);
 /* helper function - register namespace methods and attributes into namespace */
 SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State *L, swig_lua_namespace *ns)
 {
-  int i = 0;
+  int i;
   /* There must be namespace table (not metatable) at the top of the stack */
   assert(lua_istable(L,-1));
   SWIG_Lua_InstallConstants(L, ns->ns_constants);
@@ -753,11 +753,13 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
     /* first_arg - position of the object in stack. Everything that is above are arguments
      * and is passed to every evocation of the func */
     int last_arg = lua_gettop(L);/* position of last argument */
-    lua_getmetatable(L,first_arg);
-    int original_metatable = last_arg + 1;
+    int original_metatable;
     size_t bases_count;
+    int result;
+    lua_getmetatable(L,first_arg);
+    original_metatable = last_arg + 1;
     SWIG_LUA_INIT_BASE_SEARCH(bases_count);
-    int result = SWIG_ERROR;
+    result = SWIG_ERROR;
     if(ret)
       *ret = 0;
     if(bases_count>0)
@@ -766,10 +768,11 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
       int j;
       int subcall_first_arg = lua_gettop(L) + 1;/* Here a copy of first_arg and arguments begin */
       int valid = 1;
+      int subcall_last_arg;
+      swig_type_info *base_swig_type = 0;
       for(j=first_arg;j<=last_arg;j++)
         lua_pushvalue(L,j);
-      int subcall_last_arg = lua_gettop(L);
-      swig_type_info *base_swig_type = 0;
+      subcall_last_arg = lua_gettop(L);
 
       /* Trick: temporarily replacing original metatable with metatable for base class and call getter */
       for(i=0;i<bases_count;i++) {
@@ -862,9 +865,11 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   /* Remove the metatable */
   lua_pop(L,1);
   /* Search in base classes */
-  
-  int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
-  return bases_search_result;  /* sorry not known */
+
+  {
+    int bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get,ret);
+    return bases_search_result;  /* sorry not known */
+  }
 }
 
 /* the class.get method, performs the lookup of class attributes
@@ -939,12 +944,14 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   lua_pop(L,1); /* remove value */
 
   lua_pop(L,1); /* remove metatable */
-  /* Search among bases */
-  int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
-  if(ret)
-    assert(*ret == 0);
-  assert(lua_gettop(L) == substack_start + 3);
-  return bases_search_result;
+  {
+    /* Search among bases */
+    int bases_search_result = SWIG_Lua_iterate_bases(L,type,first_arg,SWIG_Lua_class_do_set,ret);
+    if(ret)
+      assert(*ret == 0);
+    assert(lua_gettop(L) == substack_start + 3);
+    return bases_search_result;
+  }
 }
 
 /* This is the actual method exported to Lua. It calls SWIG_Lua_class_do_set and correctly
@@ -1488,6 +1495,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
 SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
 {
   const int SWIGUNUSED begin = lua_gettop(L);
+  int i;
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
@@ -1499,7 +1507,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   }
   lua_pop(L,2); /* tidy stack */
   /* Recursively initialize all bases */
-  int i = 0;
   for(i=0;clss->bases[i];i++)
   {
     SWIG_Lua_class_register_instance(L,clss->bases[i]);
@@ -1604,6 +1611,7 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
 SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_class *clss)
 {
   const int SWIGUNUSED begin = lua_gettop(L);
+  int i;
   /* if name already there (class is already registered) then do nothing */
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
@@ -1615,7 +1623,6 @@ SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_cla
   }
   lua_pop(L,2); /* tidy stack */
   /* Recursively initialize all bases */
-  int i = 0;
   for(i=0;clss->bases[i];i++)
   {
     SWIG_Lua_elua_class_register_instance(L,clss->bases[i]);
