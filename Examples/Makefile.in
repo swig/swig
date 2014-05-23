@@ -498,7 +498,7 @@ guile_externalhdr:
 
 guile_augmented: $(SRCDIR_SRCS)
 	$(SWIG) -guile $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) -o $(TARGET)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) -o $(TARGET)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
@@ -656,8 +656,8 @@ ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	$(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 endif
 
@@ -669,14 +669,14 @@ ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # (v8 | node) # v8 and node must be compiled as c++
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 endif
 
 javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 	$(SWIG) -javascript -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Running a Javascript example
