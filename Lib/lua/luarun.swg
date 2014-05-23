@@ -1838,8 +1838,8 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
 #endif
 /* Executes a C string in Lua which is a really simple way of calling lua from C
 Unfortunately lua keeps changing its APIs, so we need a conditional compile
-In lua 5.0.X its lua_dostring()
-In lua 5.1.X its luaL_dostring()
+In lua 5.0.X it's lua_dostring()
+In lua 5.1.X it's luaL_dostring()
 */
 SWIGINTERN int 
 SWIG_Lua_dostring(lua_State *L, const char *str) {
