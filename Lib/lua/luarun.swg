@@ -1456,6 +1456,7 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
   int metatable_index;
   int metamethods_info_index;
   int tostring_undefined;
+  int eq_undefined = 0;
 
   SWIG_Lua_get_class_metatable(L, clss->fqname);
   metatable_index = lua_gettop(L);
@@ -1492,7 +1493,7 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
   lua_pushstring(L, "__eq");
   lua_pushvalue(L,-1);
   lua_rawget(L,metatable_index);
-  const int eq_undefined = lua_isnil(L,-1);
+  eq_undefined = lua_isnil(L,-1);
   lua_pop(L,1);
   if( eq_undefined ) {
     lua_pushcfunction(L, SWIG_Lua_class_equal);
