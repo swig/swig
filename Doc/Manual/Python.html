@@ -116,6 +116,7 @@
 <li><a href="#Python_nn74">Function annotation</a>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
+<li><a href="#Python_nn77">Byte string output conversion</a>
 </ul>
 </ul>
 </div>
@@ -5926,6 +5927,92 @@ used to define an abstract base class for your own C++ class:
 <p>
 For details of abstract base class, please see
 <a href="http://www.python.org/dev/peps/pep-3119/">PEP 3119</a>.
+</p>
+
+<H3><a name="Python_nn77"></a>35.12.4 Byte string output conversion</H3>
+
+
+<p>
+By default, any byte string (<tt>char*</tt> or <tt>std::string</tt>) returned
+from C or C++ code is decoded to text as UTF-8. This decoding uses the
+<tt>surrogateescape</tt> error handler under Python 3.1 or higher -- this
+error handler decodes invalid byte sequences to high surrogate characters
+in the range U+DC80 to U+DCFF.
+
+As an example, consider the following SWIG interface, which exposes a byte
+string that cannot be completely decoded as UTF-8:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%include &lt;std_string.i&gt;
+
+%inline %{
+
+const char* non_utf8_c_str(void) {
+        return "h\xe9llo w\xc3\xb6rld";
+}
+
+%}
+</pre></div>
+
+<p>
+When this method is called from Python 3, the return value is the following
+text string:
+</p>
+
+<div class="code"><pre>
+&gt;&gt;&gt; s = test.non_utf8_c_str()
+&gt;&gt;&gt; s
+'h\udce9llo w&#246;rld'
+</pre></div>
+
+<p>
+Since the C string contains bytes that cannot be decoded as UTF-8, those raw
+bytes are represented as high surrogate characters that can be used to obtain
+the original byte sequence:
+</p>
+
+<div class="code"><pre>
+&gt;&gt;&gt; b = s.encode('utf-8', errors='surrogateescape')
+&gt;&gt;&gt; b
+b'h\xe9llo w\xc3\xb6rld'
+</pre></div>
+
+<p>
+One can then attempt a different encoding, if desired (or simply leave the
+byte string as a raw sequence of bytes for use in binary protocols):
+</p>
+
+<div class="code"><pre>
+&gt;&gt;&gt; b.decode('latin-1')
+'h&#233;llo w&#195;&#182;rld'
+</pre></div>
+
+<p>
+Note, however, that text strings containing surrogate characters are rejected
+with the default <tt>strict</tt> codec error handler. For example:
+</p>
+
+<div class="code"><pre>
+&gt;&gt;&gt; with open('test', 'w') as f:
+...     print(s, file=f)
+...
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 2, in &lt;module&gt;
+UnicodeEncodeError: 'utf-8' codec can't encode character '\udce9' in position 1: surrogates not allowed
+</pre></div>
+
+<p>
+This requires the user to check most strings returned by SWIG bindings, but
+the alternative is for a non-UTF8 byte string to be completely inaccessible
+in Python 3 code.
+</p>
+
+<p>
+For more details about the <tt>surrogateescape</tt> error handler, please see
+<a href="http://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
 </p>
 
 </body>
