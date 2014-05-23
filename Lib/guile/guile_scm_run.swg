@@ -27,8 +27,7 @@ scm_module_variable (SCM module, SCM sym)
 #endif
 
 #if SCM_MAJOR_VERSION >= 2
-// scm_c_define_gsubr takes a different parameter type
-// depending on the guile version
+/* scm_c_define_gsubr takes a different parameter type depending on the guile version */
 
 typedef scm_t_subr swig_guile_proc;
 #else
