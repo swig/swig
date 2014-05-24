@@ -53,7 +53,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
   lua_getglobal(L, "add");               /* function to be called */
   if (!lua_isfunction(L,-1)) {
     printf("[C] error: cannot find function 'add'\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   lua_pushnumber(L,a);
@@ -61,18 +61,18 @@ int call_add(lua_State *L,int a,int b,int* res) {
   if (lua_pcall(L, 2, 1, 0) != 0)  /* call function with 2 arguments and 1 result */
   {
     printf("[C] error running function `add': %s\n",lua_tostring(L, -1));
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
-  // check results
+  /* check results */
   if (!lua_isnumber(L,-1)) {
     printf("[C] error: returned value is not a number\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   *res=(int)lua_tonumber(L,-1);
   lua_settop(L,top);  /* reset stack */
-  return 1;   // ok
+  return 1;
 }
 
 /* This is a variargs call function for calling from C into Lua.
