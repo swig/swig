@@ -14,7 +14,7 @@
 #
 # 2.   To use this makefile, set required variables, eg SRCS, INTERFACE,
 #      INTERFACEDIR, INCLUDES, LIBS, TARGET, and do a
-#           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
+#           $(MAKE) -f Makefile.template.in SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 #           INCLUDES='$(INCLUDES) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
 #           INTERFACEDIR='$(INTERFACEDIR)' TARGET='$(TARGET)' method
 #
@@ -1660,7 +1660,7 @@ r: $(SRCDIR_SRCS)
 ifneq ($(SRCDIR_SRCS),)
 	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
@@ -1671,7 +1671,7 @@ r_cpp: $(SRCDIR_CXXSRCS)
 ifneq ($(SRCDIR_CXXSRCS),)
 	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 # -----------------------------------------------------------------
 # Run R example
