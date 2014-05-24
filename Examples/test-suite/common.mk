@@ -473,6 +473,7 @@ CPP_TEST_CASES += \
 	typemap_various \
 	typename \
 	types_directive \
+	unicode_strings \
 	union_scope \
 	using1 \
 	using2 \
