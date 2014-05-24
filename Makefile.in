@@ -420,6 +420,11 @@ distclean-examples:
 	@echo distcleaning Examples
 	@$(MAKE) $(FLAGS) clean-examples
 	@cd Examples && $(MAKE) $(FLAGS) distclean
+	@if test "x$(srcdir)" != "x."; then \
+		for mkfile in `cd $(srcdir) && find Examples/ -type f -name Makefile`; do \
+			rm -f "$$mkfile"; \
+		done; \
+	fi
 
 distclean-ccache:
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) distclean)
