@@ -708,46 +708,6 @@ SWIGINTERN void SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns
 
 SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State *L,const char *cname);
 
-/* Macros for iteration among class bases */
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
-#define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
-  (void)swig_type;\
-  SWIG_Lua_get_table(L,".bases");\
-  assert(lua_istable(L,-1));\
-  bases_count = lua_rawlen(L,-1);\
-  const int bases_table = lua_gettop(L);
-#define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
-  lua_rawgeti(L,bases_table,i+1);\
-  base_swig_type = 0;\
-  if(lua_isnil(L,-1)) {\
-    valid = 0;\
-    lua_pop(L,1);\
-  } else\
-    valid = 1;
-  
-#else /* In elua .bases table doesn't exist. Use table from swig_lua_class */
-
-#define SWIG_LUA_INIT_BASE_SEARCH(bases_count)\
-  assert(swig_type!=0);\
-  swig_module_info *module=SWIG_GetModule(L);\
-  swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;\
-  const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;\
-  bases_count = 0;\
-  for(;base_names[bases_count];bases_count++);/* get length of bases */
-
-#define SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type, valid)\
-  swig_lua_class *base_class = bases[i];\
-  if(!base_class)\
-    valid = 0;\
-  else {\
-    valid = 1;\
-    SWIG_Lua_get_class_metatable(L,base_class->fqname);\
-    base_swig_type = SWIG_TypeQueryModule(module,module,base_names[i]);\
-    assert(base_swig_type != 0);\
-  }
-
-#endif
-
 typedef int (*swig_lua_base_iterator_func)(lua_State*,swig_type_info*, int, int *ret);
 
 SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED swig_type,
@@ -759,8 +719,28 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
     int original_metatable = last_arg + 1;
     size_t bases_count;
     int result = SWIG_ERROR;
+    int bases_table;
+    (void)swig_type;
     lua_getmetatable(L,first_arg);
-    SWIG_LUA_INIT_BASE_SEARCH(bases_count);
+
+    /* initialise base search */
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+    SWIG_Lua_get_table(L,".bases");
+    assert(lua_istable(L,-1));
+    bases_count = lua_rawlen(L,-1);
+    bases_table = lua_gettop(L);
+#else
+    /* In elua .bases table doesn't exist. Use table from swig_lua_class */
+    (void)bases_table;
+    assert(swig_type!=0);
+    swig_module_info *module=SWIG_GetModule(L);
+    swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;
+    const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;
+    bases_count = 0;
+    for(;base_names[bases_count];
+      bases_count++);/* get length of bases */
+#endif
+
     if(ret)
       *ret = 0;
     if(bases_count>0)
@@ -778,7 +758,28 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
 
       /* Trick: temporarily replacing original metatable with metatable for base class and call getter */
       for(i=0;i<bases_count;i++) {
-        SWIG_LUA_GET_BASE_METATABLE(i,base_swig_type,valid);
+        /* Iteration through class bases */
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
+        lua_rawgeti(L,bases_table,i+1);
+        base_swig_type = 0;
+        if(lua_isnil(L,-1)) {
+          valid = 0;
+          lua_pop(L,1);
+        } else {
+          valid = 1;
+        }
+#else /* In elua .bases table doesn't exist. Use table from swig_lua_class */
+        swig_lua_class *base_class = bases[i];
+        if(!base_class) {
+          valid = 0;
+        } else {
+          valid = 1;
+          SWIG_Lua_get_class_metatable(L,base_class->fqname);
+          base_swig_type = SWIG_TypeQueryModule(module,module,base_names[i]);
+          assert(base_swig_type != 0);
+        }
+#endif
+
         if(!valid)
           continue;
         assert(lua_isuserdata(L, subcall_first_arg));
