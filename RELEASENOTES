@@ -4,6 +4,14 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-3.0.1 summary:
+- Javascript module added. This supports JavascriptCore (Safari/Webkit),
+  v8 (Chromium) and node.js currently.
+- A few notable regressions introduced in 3.0.0 have been fixed - in 
+  Lua, nested classes and parsing of operator <<.
+- The usual round of bug fixes and minor improvements for:
+  C#, GCJ, Go, Java, Lua, PHP and Python.
+
 SWIG-3.0.0 summary:
 - This is a major new release focusing primarily on C++ improvements.
 - C++11 support added. Please see documentation for details of supported
