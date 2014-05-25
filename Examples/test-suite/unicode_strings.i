@@ -4,12 +4,12 @@
 
 %inline %{
 
-const char* test_c_str(void) {
-        return "h\xe9llo";
+const char* non_utf8_c_str(void) {
+        return "h\xe9llo w\xc3\xb6rld";
 }
 
-std::string test_std_string(void) {
-        return std::string("h\xe9llo");
+std::string non_utf8_std_string(void) {
+        return std::string("h\xe9llo w\xc3\xb6rld");
 }
 
 %}

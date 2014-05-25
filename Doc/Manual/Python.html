@@ -5962,8 +5962,8 @@ When this method is called from Python 3, the return value is the following
 text string:
 </p>
 
-<div class="code"><pre>
-&gt;&gt;&gt; s = test.non_utf8_c_str()
+<div class="targetlang"><pre>
+&gt;&gt;&gt; s = example.non_utf8_c_str()
 &gt;&gt;&gt; s
 'h\udce9llo w&#246;rld'
 </pre></div>
@@ -5974,7 +5974,7 @@ bytes are represented as high surrogate characters that can be used to obtain
 the original byte sequence:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; b = s.encode('utf-8', errors='surrogateescape')
 &gt;&gt;&gt; b
 b'h\xe9llo w\xc3\xb6rld'
@@ -5985,7 +5985,7 @@ One can then attempt a different encoding, if desired (or simply leave the
 byte string as a raw sequence of bytes for use in binary protocols):
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; b.decode('latin-1')
 'h&#233;llo w&#195;&#182;rld'
 </pre></div>
@@ -5995,7 +5995,7 @@ Note, however, that text strings containing surrogate characters are rejected
 with the default <tt>strict</tt> codec error handler. For example:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; with open('test', 'w') as f:
 ...     print(s, file=f)
 ...
