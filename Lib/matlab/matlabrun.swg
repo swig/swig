@@ -1,8 +1,8 @@
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)
-    mexWarnMsgIdAndTxt("SWIG","function %s takes at most %i arguments", func_name, max_args);
+    mexWarnMsgIdAndTxt("SWIG:RuntimeError","function %s takes at most %i arguments", func_name, max_args);
   else if (num_args < min_args)
-    mexWarnMsgIdAndTxt("SWIG","function %s requires at least %i arguments", func_name, min_args);
+    mexWarnMsgIdAndTxt("SWIG:RuntimeError","function %s requires at least %i arguments", func_name, min_args);
   else
     return true;
   return false;
@@ -82,8 +82,12 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   mxArray* pm_command = mxCreateString("_swigCreate");
   mxArray* pm;
   const char* classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
-  char matlab_classname[256];
+  char matlab_classname[1024];
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
+  _snprintf(matlab_classname,sizeof(matlab_classname)-1,"%s.%s",SWIG_pkg_name,classname);
+#else
   snprintf(matlab_classname,sizeof(matlab_classname),"%s.%s",SWIG_pkg_name,classname);
+#endif
 
   mxArray* ex = mexCallMATLABWithTrap(1,&pm,1,&pm_command,matlab_classname);
 

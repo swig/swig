@@ -4,70 +4,36 @@
 
 #ifdef __cplusplus
 
-// operators supported in Octave, and the methods they are routed to
-
-// __brace__      a{args}
-// __brace_asgn__ a{args} = rhs
-// __paren__      a(args)
-// __paren_asgn__ a(args) = rhs
-// __str__        generates string rep
-
-// __not__        !a
-// __uplus__      +a
-// __uminus__     -a
-// __transpose__  a.'
-// __hermitian__  a'
-// __incr__       a++
-// __decr__       a--
-// __add__        a + b
-// __sub__        a - b
-// __mul__        a * b
-// __div__        a / b
-// __pow__        a ^ b
-// __ldiv__       a \ b
-// __lshift__     a << b
-// __rshift__     a >> b
-// __lt__         a < b
-// __le__         a <= b
-// __eq__         a == b
-// __ge__         a >= b
-// __gt__         a > b
-// __ne__         a != b
-// __el_mul__     a .* b
-// __el_div__     a ./ b
-// __el_pow__     a .^ b
-// __el_ldiv__    a .\ b
-// __el_and__     a & b
-// __el_or__      a | b
 
 // operators supported in C++, and the methods that route to them
 
-%rename(__add__)       *::operator+;
-%rename(__add__)       *::operator+();
-%rename(__add__)       *::operator+() const;
-%rename(__sub__)       *::operator-;
-%rename(__uminus__)    *::operator-();
-%rename(__uminus__)    *::operator-() const;
-%rename(__mul__)       *::operator*;
-%rename(__div__)       *::operator/;
-%rename(__mod__)       *::operator%;
-%rename(__lshift__)    *::operator<<;
-%rename(__rshift__)    *::operator>>;
-%rename(__el_and__)    *::operator&&;
-%rename(__el_or__)     *::operator||;
-%rename(__xor__)       *::operator^;
-%rename(__invert__)    *::operator~;
-%rename(__lt__)        *::operator<;
-%rename(__le__)        *::operator<=;
-%rename(__gt__)        *::operator>;
-%rename(__ge__)        *::operator>=;
-%rename(__eq__)        *::operator==;
-%rename(__ne__)        *::operator!=;
-%rename(__not__)       *::operator!;
-%rename(__incr__)      *::operator++;
-%rename(__decr__)      *::operator--;
-%rename(__paren__)     *::operator();
-%rename(__brace__)     *::operator[];
+%rename(plus)       *::operator+;
+%rename(uplus)       *::operator+();
+%rename(uplus)       *::operator+() const;
+%rename(minus)       *::operator-;
+%rename(uminus)    *::operator-();
+%rename(uminus)    *::operator-() const;
+%rename(mult)       *::operator*;
+%rename(mrdivide)       *::operator/;
+%rename(mod)       *::operator%;
+// %rename(lshift)    *::operator<<;
+// %rename(rshift)    *::operator>>;
+%rename(TODOand)    *::operator&&; // TODO cannot rename "and"
+%rename(TODOor)     *::operator||;
+%rename(xor)       *::operator^;
+//%rename(invert)    *::operator~;
+%rename(lt)        *::operator<;
+%rename(le)        *::operator<=;
+%rename(gt)        *::operator>;
+%rename(ge)        *::operator>=;
+%rename(isequal)        *::operator==;
+%rename(ne)        *::operator!=;
+%rename(TODOnot)       *::operator!;
+// non-standard matlab
+%rename(TODOincr)      *::operator++;
+%rename(TODOdecr)      *::operator--;
+%rename(TODOparen)     *::operator();
+%rename(TODObrace)     *::operator[];
 
 // Ignored inplace operators
 %ignoreoperator(PLUSEQ)     operator+=;
@@ -85,4 +51,4 @@
 %ignoreoperator(EQ)         operator=;
 %ignoreoperator(ARROWSTAR)  operator->*;
 
-#endif /* __cplusplus */
+#endif /* cplusplus */

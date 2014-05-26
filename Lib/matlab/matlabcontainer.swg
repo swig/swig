@@ -24,36 +24,36 @@
 
 %include <matlabiterators.swg>
 
-// The Octave C++ Wrap
+// The Matlab C++ Wrap
 
 %fragment("<stdexcept>");
 
 %include <std_except.i>
 
-%fragment(SWIG_Traits_frag(octave_value),"header",fragment="StdTraits") {
+%fragment(SWIG_Traits_frag(mxArray),"header",fragment="StdTraits") {
 namespace swig {
-  template <>  struct traits<octave_value > {
+  template <>  struct traits<mxArray* > {
     typedef value_category category;
-    static const char* type_name() { return  "octave_value"; }
+    static const char* type_name() { return  "mxArray"; }
   };
   
-  template <>  struct traits_from<octave_value> {
-    typedef octave_value value_type;
-    static octave_value from(const value_type& val) {
+  template <>  struct traits_from<mxArray*> {
+    typedef mxArray* value_type;
+    static mxArray* from(const value_type& val) {
       return val;
     }
   };
   
   template <> 
-  struct traits_check<octave_value, value_category> {
-    static bool check(const octave_value&) {
+  struct traits_check<mxArray*, value_category> {
+    static bool check(const mxArray*) {
       return true;
     }
   };
   
-  template <>  struct traits_asval<octave_value > {   
-    typedef octave_value value_type;
-    static int asval(const octave_value& obj, value_type *val) {
+  template <>  struct traits_asval<mxArray* > {   
+    typedef mxArray* value_type;
+    static int asval(const mxArray* obj, value_type *val) {
       if (val) *val = obj;
       return SWIG_OK;
     }
@@ -61,21 +61,24 @@ namespace swig {
 }
 }
 
-%fragment("OctSequence_Base","header",fragment="<stddef.h>")
+%fragment("MatlabSequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 
 namespace std {
+#if 0
+KT do we need this?
   template <>
-  struct less <octave_value>: public binary_function<octave_value, octave_value, bool>
+  struct less <mxArray*>: public binary_function<mxArray*, mxArray*, bool>
   {
     bool
-    operator()(const octave_value& v, const octave_value& w) const
+    operator()(const mxArray* v, const mxArray* w) const
     { 
-      octave_value res = do_binary_op(octave_value::op_le,v,w);
+      mxArray* res = do_binary_op(mxArray*::op_le,v,w);
       return res.is_true();
     }
   };
+#endif
 }
 
 namespace swig {
@@ -181,64 +184,64 @@ namespace swig {
 }
 }
 
-%fragment("OctSequence_Cont","header",
+%fragment("MatlabSequence_Cont","header",
 	  fragment="StdTraits",
-	  fragment="OctSequence_Base",
-	  fragment="OctSwigIterator_T")
+	  fragment="MatlabSequence_Base",
+	  fragment="MatlabSwigIterator_T")
 {
 namespace swig
 {
   template <class T>
-    struct OctSequence_Ref // * octave can't support these, because of how assignment works
+    struct MatlabSequence_Ref // * matlab can't support these, because of how assignment works
   {
-    OctSequence_Ref(const octave_value& seq, int index)
+    MatlabSequence_Ref(const mxArray* seq, int index)
       : _seq(seq), _index(index)
     {
     }
     
     operator T () const
     {
-      //      swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, _index);
-      octave_value item; // * todo
+      //      swig::SwigVar_PyObject item = MatlabSequence_GetItem(_seq, _index);
+      mxArray* item; // * todo
       try {
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
 	sprintf(msg, "in sequence element %d ", _index);
-	if (!Octave_Error_Occurred()) {
+	if (!Matlab_Error_Occurred()) {
 	  %type_error(swig::type_name<T>());
 	}
-	SWIG_Octave_AddErrorMsg(msg);
-	SWIG_Octave_AddErrorMsg(e.what());
+	SWIG_Matlab_AddErrorMsg(msg);
+	SWIG_Matlab_AddErrorMsg(e.what());
 	throw;
       }
     }
 
-    OctSequence_Ref& operator=(const T& v)
+    MatlabSequence_Ref& operator=(const T& v)
     {
-      //      OctSequence_SetItem(_seq, _index, swig::from<T>(v));
+      //      MatlabSequence_SetItem(_seq, _index, swig::from<T>(v));
       // * todo
       return *this;
     }
 
   private:
-    octave_value _seq;
+    mxArray* _seq;
     int _index;
   };
 
   template <class T>
-  struct OctSequence_ArrowProxy
+  struct MatlabSequence_ArrowProxy
   {
-    OctSequence_ArrowProxy(const T& x): m_value(x) {}
+    MatlabSequence_ArrowProxy(const T& x): m_value(x) {}
     const T* operator->() const { return &m_value; }
     operator const T*() const { return &m_value; }
     T m_value;
   };
 
   template <class T, class Reference >
-  struct OctSequence_InputIterator
+  struct MatlabSequence_InputIterator
   {
-    typedef OctSequence_InputIterator<T, Reference > self;
+    typedef MatlabSequence_InputIterator<T, Reference > self;
 
     typedef std::random_access_iterator_tag iterator_category;
     typedef Reference reference;
@@ -246,11 +249,11 @@ namespace swig
     typedef T* pointer;
     typedef int difference_type;
 
-    OctSequence_InputIterator()
+    MatlabSequence_InputIterator()
     {
     }
 
-    OctSequence_InputIterator(const octave_value& seq, int index)
+    MatlabSequence_InputIterator(const mxArray* seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -260,9 +263,9 @@ namespace swig
       return reference(_seq, _index);
     }
 
-    OctSequence_ArrowProxy<T>
+    MatlabSequence_ArrowProxy<T>
     operator->() const {
-      return OctSequence_ArrowProxy<T>(operator*());
+      return MatlabSequence_ArrowProxy<T>(operator*());
     }
 
     bool operator==(const self& ri) const
@@ -326,28 +329,28 @@ namespace swig
     }
 
   private:
-    octave_value _seq;
+    mxArray* _seq;
     difference_type _index;
   };
 
   template <class T>
-  struct OctSequence_Cont
+  struct MatlabSequence_Cont
   {
-    typedef OctSequence_Ref<T> reference;
-    typedef const OctSequence_Ref<T> const_reference;
+    typedef MatlabSequence_Ref<T> reference;
+    typedef const MatlabSequence_Ref<T> const_reference;
     typedef T value_type;
     typedef T* pointer;
     typedef int difference_type;
     typedef int size_type;
     typedef const pointer const_pointer;
-    typedef OctSequence_InputIterator<T, reference> iterator;
-    typedef OctSequence_InputIterator<T, const_reference> const_iterator;
+    typedef MatlabSequence_InputIterator<T, reference> iterator;
+    typedef MatlabSequence_InputIterator<T, const_reference> const_iterator;
 
-    OctSequence_Cont(const octave_value& seq) : _seq(seq)
+    MatlabSequence_Cont(const mxArray* seq) : _seq(seq)
     {
       // * assert that we have map type etc.
       /*
-      if (!OctSequence_Check(seq)) {
+      if (!MatlabSequence_Check(seq)) {
 	throw std::invalid_argument("a sequence is expected");
       }
       _seq = seq;
@@ -355,13 +358,13 @@ namespace swig
       */
     }
 
-    ~OctSequence_Cont()
+    ~MatlabSequence_Cont()
     {
     }
 
     size_type size() const
     {
-      //      return static_cast<size_type>(OctSequence_Size(_seq));
+      //      return static_cast<size_type>(MatlabSequence_Size(_seq));
       return 0; // * todo
     }
 
@@ -404,8 +407,8 @@ namespace swig
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
-	//	swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, i);
-	octave_value item; // * todo
+	//	swig::SwigVar_PyObject item = MatlabSequence_GetItem(_seq, i);
+	mxArray* item; // * todo
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
@@ -419,7 +422,7 @@ namespace swig
     }
 
   private:
-    octave_value _seq;
+    mxArray* _seq;
   };
 
 }
@@ -432,42 +435,42 @@ namespace swig
   class const_iterator;
   class const_reverse_iterator;
 
-  %typemap(out,noblock=1,fragment="OctSequence_Cont")
+  %typemap(out,noblock=1,fragment="MatlabSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
-				 swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN);
+				 swig::MatlabSwigIterator::descriptor(),SWIG_POINTER_OWN);
   }
-  %typemap(out,fragment="OctSequence_Cont")
+  %typemap(out,fragment="MatlabSequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
-    octave_value_list tmpc;
+    mxArray_list tmpc;
     tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+				   swig::MatlabSwigIterator::descriptor(),SWIG_POINTER_OWN));
     tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+				   swig::MatlabSwigIterator::descriptor(),SWIG_POINTER_OWN));
     $result = Cell(tmpc);
   }
 
-  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="OctSequence_Cont") {}
+  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="MatlabSequence_Cont") {}
 
-  %typemap(out,fragment="OctPairBoolOutputIterator")
+  %typemap(out,fragment="MatlabPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
-    octave_value_list tmpc;
+    mxArray_list tmpc;
     tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-				   swig::OctSwigIterator::descriptor(),SWIG_POINTER_OWN));
+				   swig::MatlabSwigIterator::descriptor(),SWIG_POINTER_OWN));
     tmpc.append(SWIG_From(bool)(%static_cast($1,const $type &).second));
     $result = Cell(tmpc);
   }
 
-  %typemap(in,noblock=1,fragment="OctSequence_Cont")
-    iterator(swig::OctSwigIterator *iter = 0, int res),
-    reverse_iterator(swig::OctSwigIterator *iter = 0, int res),
-    const_iterator(swig::OctSwigIterator *iter = 0, int res),
-    const_reverse_iterator(swig::OctSwigIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::OctSwigIterator::descriptor(), 0);
+  %typemap(in,noblock=1,fragment="MatlabSequence_Cont")
+    iterator(swig::MatlabSwigIterator *iter = 0, int res),
+    reverse_iterator(swig::MatlabSwigIterator *iter = 0, int res),
+    const_iterator(swig::MatlabSwigIterator *iter = 0, int res),
+    const_reverse_iterator(swig::MatlabSwigIterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::MatlabSwigIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
-      swig::OctSwigIterator_T<$type > *iter_t = dynamic_cast<swig::OctSwigIterator_T<$type > *>(iter);
+      swig::MatlabSwigIterator_T<$type > *iter_t = dynamic_cast<swig::MatlabSwigIterator_T<$type > *>(iter);
       if (iter_t) {
 	$1 = iter_t->get_current();
       } else {
@@ -476,18 +479,18 @@ namespace swig
     }
   }
 
-  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="OctSequence_Cont")
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="MatlabSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    swig::OctSwigIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::OctSwigIterator::descriptor(), 0);
-    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::OctSwigIterator_T<$type > *>(iter) != 0));
+    swig::MatlabSwigIterator *iter = 0;
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::MatlabSwigIterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::MatlabSwigIterator_T<$type > *>(iter) != 0));
   }
 
-  %fragment("OctSequence_Cont");
+  %fragment("MatlabSequence_Cont");
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 
-// The octave container methods
+// The matlab container methods
 
 %define %swig_container_methods(Container...)
 %enddef
@@ -496,7 +499,7 @@ namespace swig
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
   
-  %fragment("OctSequence_Base");
+  %fragment("MatlabSequence_Base");
 
   %extend {
     value_type pop() throw (std::out_of_range) {
@@ -507,11 +510,13 @@ namespace swig
       return x;
     }
 
-    value_type __paren__(difference_type i) throw (std::out_of_range) {
+    // KT TODO need to get this in matlab conventions
+    value_type paren(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    void __paren_asgn__(difference_type i, value_type x) throw (std::out_of_range) {
+    // KT TODO need to get this in matlab conventions
+    void paren_asgn(difference_type i, value_type x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 
@@ -536,20 +541,20 @@ namespace swig
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="OctSequence_Cont")
+	  fragment="MatlabSequence_Cont")
 {
 namespace swig {
-  template <class OctSeq, class Seq>
+  template <class Matlabseq, class Seq>
   inline void
-  assign(const OctSeq& octseq, Seq* seq) {
+  assign(const Matlabseq& matlabseq, Seq* seq) {
 %#ifdef SWIG_STD_NOASSIGN_STL
-    typedef typename OctSeq::value_type value_type;
-    typename OctSeq::const_iterator it = octseq.begin();
-    for (;it != octseq.end(); ++it) {
+    typedef typename Matlabseq::value_type value_type;
+    typename Matlabseq::const_iterator it = matlabseq.begin();
+    for (;it != matlabseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
 %#else
-    seq->assign(octseq.begin(), octseq.end());
+    seq->assign(matlabseq.begin(), matlabseq.end());
 %#endif
   }
 
@@ -558,7 +563,12 @@ namespace swig {
     typedef Seq sequence;
     typedef T value_type;
 
-    static int asptr(const octave_value& obj, sequence **seq) {
+    static int asptr(const mxArray* obj, sequence **seq) {
+%#if 1
+    // TODO
+    SWIG_Error(SWIG_SystemError, "asptr for seq");
+    return SWIG_ERROR;
+%#else
       if (!obj.is_defined() || Swig::swig_value_deref(obj)) {
 	sequence *p;
 	if (SWIG_ConvertPtr(obj,(void**)&p,
@@ -568,22 +578,23 @@ namespace swig {
 	}
       } else if (obj.is_cell()) {
 	try {
-	  OctSequence_Cont<value_type> octseq(obj);
+	  MatlabSequence_Cont<value_type> matlabseq(obj);
 	  if (seq) {
 	    sequence *pseq = new sequence();
-	    assign(octseq, pseq);
+	    assign(matlabseq, pseq);
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return octseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return matlabseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq&&!error_state)
-	    error("swig type error: %s",e.what());
+	    SWIG_Error(SWIG_TypeError,e.what());
 	  return SWIG_ERROR;
 	}
       }
       return SWIG_ERROR;
+%#endif
     }
   };
 
@@ -594,13 +605,17 @@ namespace swig {
     typedef typename Seq::size_type size_type;
     typedef typename sequence::const_iterator const_iterator;
 
-    static octave_value from(const sequence& seq) {
-#ifdef SWIG_OCTAVE_EXTRA_NATIVE_CONTAINERS
+    static mxArray* from(const sequence& seq) {
+#ifdef SWIG_MATLAB_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
 #endif
+%#if 1
+      SWIG_Error(SWIG_SystemError, "from for seq");
+      return 0;
+%#else
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
 	Cell c(size,1);
@@ -611,10 +626,11 @@ namespace swig {
 	}
 	return c;
       } else {
-	error("swig overflow error: sequence size not valid in octave");
-	return octave_value();
+	SWIG_Error(SWIG_RuntimeError, "swig overflow error: sequence size not valid in matlab");
+	return 0; // KT TODO mxArray();
       }
-      return octave_value();
+      return 0; // KT TODO mxArray();
+%#endif
     }
   };
 }

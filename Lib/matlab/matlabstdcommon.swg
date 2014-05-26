@@ -106,7 +106,7 @@ namespace swig {
       Type v;
       int res = asval(pm, &v);
       if (!pm.is_defined() || !SWIG_IsOK(res)) {
-	if (!Octave_Error_Occurred()) {
+	if (!Matlab_Error_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
@@ -131,7 +131,7 @@ namespace swig {
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-	if (!Octave_Error_Occurred()) {
+	if (!Matlab_Error_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
@@ -149,7 +149,7 @@ namespace swig {
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-	if (!Octave_Error_Occurred()) {
+	if (!Matlab_Error_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
@@ -165,7 +165,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(const octave_value& obj) {
+    static bool check(const mxArray* obj) {
       int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
@@ -173,14 +173,14 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(const octave_value& obj) {
+    static bool check(const mxArray* obj) {
       int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(const octave_value& obj) {
+  inline bool check(const mxArray* obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -191,7 +191,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(const octave_value& obj, value_type *val) {
+    static int asval(const mxArray* obj, value_type *val) {
       if (Check(obj)) {
 	if (val) *val = As(obj);
 	return SWIG_OK;
@@ -201,14 +201,14 @@ namespace swig {
   };
   template <>  struct traits_from<Type > {
     typedef Type value_type;
-    static octave_value from(const value_type& val) {
+    static mxArray* from(const value_type& val) {
       return From(val);
     }
   };
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(const octave_value& obj) {
+    static int check(const mxArray* obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }

@@ -5,14 +5,14 @@
   namespace swig {
     template <class T>
     struct traits_asptr<std::deque<T> >  {
-      static int asptr(octave_value obj, std::deque<T>  **vec) {
+      static int asptr(mxArray* obj, std::deque<T>  **vec) {
 	return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
       }
     };
 
     template <class T>
     struct traits_from<std::deque<T> > {
-      static octave_value from(const std::deque<T> & vec) {
+      static mxArray* from(const std::deque<T> & vec) {
 	return traits_from_stdseq<std::deque<T> >::from(vec);
       }
     };

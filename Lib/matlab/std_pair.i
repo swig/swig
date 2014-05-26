@@ -11,7 +11,7 @@
     struct traits_asval<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
 
-      static int get_pair(const octave_value& first, octave_value second,
+      static int get_pair(const mxArray* first, mxArray* second,
 			  std::pair<T,U> *val)
       {
 	if (val) {
@@ -30,14 +30,15 @@
 	  if (!SWIG_IsOK(res1))
 	    return res1;
 	  U *psecond = 0;
-	  int res2 = swig::asval((PyObject*)second, psecond);
+	  int res2 = swig::asval((mxArray*)second, psecond);
 	  if (!SWIG_IsOK(res2))
 	    return res2;
 	  return res1 > res2 ? res1 : res2;
 	}
       }
 
-      static int asval(const octave_value& obj, std::pair<T,U> *val) {
+      static int asval(const mxArray* obj, std::pair<T,U> *val) {
+	// TODO this is still Octave code
 	if (obj.is_cell()) {
 	  Cell c=obj.cell_value();
 	  if (c.numel()<2) {
@@ -61,7 +62,7 @@
     struct traits_asptr<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
 
-      static int get_pair(const octave_value& first, octave_value second,
+      static int get_pair(const mxArray* first, mxArray* second,
 			  std::pair<T,U> **val) 
       {
 	if (val) {
@@ -90,7 +91,8 @@
 	return SWIG_ERROR;
       }
 
-      static int asptr(const octave_value& obj, std::pair<T,U> **val) {
+      static int asptr(const mxArray* obj, std::pair<T,U> **val) {
+	// TODO this is still Octave code
 	if (obj.is_cell()) {
 	  Cell c=obj.cell_value();
 	  if (c.numel()<2) {
@@ -112,7 +114,8 @@
 #endif
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
-      static octave_value from(const std::pair<T,U>& val) {
+      static mxArray* from(const std::pair<T,U>& val) {
+	// TODO this is still Octave code
 	Cell c(1,2);
 	c(0)=swig::from(val.first);
 	c(1)=swig::from(val.second);

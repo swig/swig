@@ -1,101 +1,101 @@
 /* -----------------------------------------------------------------------------
  * matlabiterators.swg
  *
- * Users can derive form the OctSwigIterator to implemet their
+ * Users can derive from the MatlabSwigIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
- * containers), the template OctSwigIterator_T does the
+ * containers), the template MatlabSwigIterator_T does the
  * implementation for generic C++ iterators.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
 
-%fragment("OctSwigIterator","header",fragment="<stddef.h>") {  
+%fragment("MatlabSwigIterator","header",fragment="<stddef.h>") {  
 namespace swig {
   struct stop_iteration {
   };
 
-  struct OctSwigIterator {
+  struct MatlabSwigIterator {
   private:
-    octave_value _seq;
+    mxArray* _seq;
 
   protected:
-    OctSwigIterator(octave_value seq) : _seq(seq)
+    MatlabSwigIterator(mxArray* seq) : _seq(seq)
     {
     }
       
   public:
-    virtual ~OctSwigIterator() {}
+    virtual ~MatlabSwigIterator() {}
 
-    virtual octave_value value() const = 0;
+    virtual mxArray* value() const = 0;
 
-    virtual OctSwigIterator *incr(size_t n = 1) = 0;
+    virtual MatlabSwigIterator *incr(size_t n = 1) = 0;
 
-    virtual OctSwigIterator *decr(size_t n = 1)
+    virtual MatlabSwigIterator *decr(size_t n = 1)
     {
       throw stop_iteration();
     }
 
-    virtual ptrdiff_t distance(const OctSwigIterator &x) const
+    virtual ptrdiff_t distance(const MatlabSwigIterator &x) const
     {
       throw std::invalid_argument("operation not supported");
     }
 
-    virtual bool equal (const OctSwigIterator &x) const
+    virtual bool equal (const MatlabSwigIterator &x) const
     {
       throw std::invalid_argument("operation not supported");
     }
     
-    virtual OctSwigIterator *copy() const = 0;
+    virtual MatlabSwigIterator *copy() const = 0;
 
-    octave_value next()
+    mxArray* next()
     {
-      octave_value obj = value();
+      mxArray* obj = value();
       incr();
       return obj;
     }
 
-    octave_value previous()
+    mxArray* previous()
     {
       decr();
       return value();
     }
 
-    OctSwigIterator *advance(ptrdiff_t n)
+    MatlabSwigIterator *advance(ptrdiff_t n)
     {
       return  (n > 0) ?  incr(n) : decr(-n);
     }
       
-    bool operator == (const OctSwigIterator& x)  const
+    bool operator == (const MatlabSwigIterator& x)  const
     {
       return equal(x);
     }
       
-    bool operator != (const OctSwigIterator& x) const
+    bool operator != (const MatlabSwigIterator& x) const
     {
       return ! operator==(x);
     }
 
-    OctSwigIterator* operator ++ () {
+    MatlabSwigIterator* operator ++ () {
       incr();
       return this;
     }
 
-    OctSwigIterator* operator -- () {
+    MatlabSwigIterator* operator -- () {
       decr();
       return this;
     }
       
-    OctSwigIterator* operator + (ptrdiff_t n) const
+    MatlabSwigIterator* operator + (ptrdiff_t n) const
     {
       return copy()->advance(n);
     }
 
-    OctSwigIterator* operator - (ptrdiff_t n) const
+    MatlabSwigIterator* operator - (ptrdiff_t n) const
     {
       return copy()->advance(-n);
     }
       
-    ptrdiff_t operator - (const OctSwigIterator& x) const
+    ptrdiff_t operator - (const MatlabSwigIterator& x) const
     {
       return x.distance(*this);
     }
@@ -104,7 +104,7 @@ namespace swig {
       static int init = 0;
       static swig_type_info* desc = 0;
       if (!init) {
-	desc = SWIG_TypeQuery("swig::OctSwigIterator *");
+	desc = SWIG_TypeQuery("swig::MatlabSwigIterator *");
 	init = 1;
       }	
       return desc;
@@ -113,18 +113,18 @@ namespace swig {
 }
 }
 
-%fragment("OctSwigIterator_T","header",fragment="<stddef.h>",fragment="OctSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("MatlabSwigIterator_T","header",fragment="<stddef.h>",fragment="MatlabSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
   template<typename OutIterator>
-  class OctSwigIterator_T :  public OctSwigIterator
+  class MatlabSwigIterator_T :  public MatlabSwigIterator
   {
   public:
     typedef OutIterator out_iterator;
     typedef typename std::iterator_traits<out_iterator>::value_type value_type;    
-    typedef OctSwigIterator_T<out_iterator> self_type;
+    typedef MatlabSwigIterator_T<out_iterator> self_type;
 
-    OctSwigIterator_T(out_iterator curr, octave_value seq)
-      : OctSwigIterator(seq), current(curr)
+    MatlabSwigIterator_T(out_iterator curr, mxArray* seq)
+      : MatlabSwigIterator(seq), current(curr)
     {
     }
 
@@ -134,7 +134,7 @@ namespace swig {
     }
 
     
-    bool equal (const OctSwigIterator &iter) const
+    bool equal (const MatlabSwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -144,7 +144,7 @@ namespace swig {
       }
     }
     
-    ptrdiff_t distance(const OctSwigIterator &iter) const
+    ptrdiff_t distance(const MatlabSwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -162,7 +162,7 @@ namespace swig {
   struct from_oper 
   {
     typedef const ValueType& argument_type;
-    typedef octave_value result_type;
+    typedef mxArray* result_type;
     result_type operator()(argument_type v) const
     {
       return swig::from(v);
@@ -172,30 +172,30 @@ namespace swig {
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class OctSwigIteratorOpen_T :  public OctSwigIterator_T<OutIterator>
+  class MatlabSwigIteratorOpen_T :  public MatlabSwigIterator_T<OutIterator>
   {
   public:
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef OctSwigIterator_T<out_iterator>  base;
-    typedef OctSwigIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
+    typedef MatlabSwigIterator_T<out_iterator>  base;
+    typedef MatlabSwigIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
     
-    OctSwigIteratorOpen_T(out_iterator curr, octave_value seq)
-      : OctSwigIterator_T<OutIterator>(curr, seq)
+    MatlabSwigIteratorOpen_T(out_iterator curr, mxArray* seq)
+      : MatlabSwigIterator_T<OutIterator>(curr, seq)
     {
     }
     
-    octave_value value() const {
+    mxArray* value() const {
       return from(static_cast<const value_type&>(*(base::current)));
     }
     
-    OctSwigIterator *copy() const
+    MatlabSwigIterator *copy() const
     {
       return new self_type(*this);
     }
 
-    OctSwigIterator *incr(size_t n = 1)
+    MatlabSwigIterator *incr(size_t n = 1)
     {
       while (n--) {
 	++base::current;
@@ -203,7 +203,7 @@ namespace swig {
       return this;
     }
 
-    OctSwigIterator *decr(size_t n = 1)
+    MatlabSwigIterator *decr(size_t n = 1)
     {
       while (n--) {
 	--base::current;
@@ -215,21 +215,21 @@ namespace swig {
   template<typename OutIterator, 
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
-  class OctSwigIteratorClosed_T :  public OctSwigIterator_T<OutIterator>
+  class MatlabSwigIteratorClosed_T :  public MatlabSwigIterator_T<OutIterator>
   {
   public:
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef OctSwigIterator_T<out_iterator>  base;    
-    typedef OctSwigIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
+    typedef MatlabSwigIterator_T<out_iterator>  base;    
+    typedef MatlabSwigIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
     
-    OctSwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, octave_value seq)
-      : OctSwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
+    MatlabSwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, mxArray* seq)
+      : MatlabSwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
     {
     }
     
-    octave_value value() const {
+    mxArray* value() const {
       if (base::current == end) {
 	throw stop_iteration();
       } else {
@@ -237,12 +237,12 @@ namespace swig {
       }
     }
     
-    OctSwigIterator *copy() const
+    MatlabSwigIterator *copy() const
     {
       return new self_type(*this);
     }
 
-    OctSwigIterator *incr(size_t n = 1)
+    MatlabSwigIterator *incr(size_t n = 1)
     {
       while (n--) {
 	if (base::current == end) {
@@ -254,7 +254,7 @@ namespace swig {
       return this;
     }
 
-    OctSwigIterator *decr(size_t n = 1)
+    MatlabSwigIterator *decr(size_t n = 1)
     {
       while (n--) {
 	if (base::current == begin) {
@@ -272,23 +272,23 @@ namespace swig {
   };
 
   template<typename OutIter>
-  inline OctSwigIterator*
-  make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, octave_value seq = octave_value())
+  inline MatlabSwigIterator*
+  make_output_iterator(const OutIter& current, const OutIter& begin,const OutIter& end, mxArray* seq = 0 /* KT mxArray()*/)
   {
-    return new OctSwigIteratorClosed_T<OutIter>(current, begin, end, seq);
+    return new MatlabSwigIteratorClosed_T<OutIter>(current, begin, end, seq);
   }
 
   template<typename OutIter>
-  inline OctSwigIterator*
-  make_output_iterator(const OutIter& current, octave_value seq = octave_value())
+  inline MatlabSwigIterator*
+  make_output_iterator(const OutIter& current, mxArray* seq = 0 /* KT mxArray()*/)
   {
-    return new OctSwigIteratorOpen_T<OutIter>(current, seq);
+    return new MatlabSwigIteratorOpen_T<OutIter>(current, seq);
   }
 }
 }
 
 
-%fragment("OctSwigIterator");
+%fragment("MatlabSwigIterator");
 namespace swig 
 {
 // Throw a StopIteration exception
@@ -296,62 +296,62 @@ namespace swig
   struct stop_iteration {};
   
   %typemap(throws) stop_iteration {
-    error("stop_iteration exception");
+    SWIG_Error(SWIG_RuntimeError,"stop_iteration exception"); /* KT TODO */
     SWIG_fail;
   }
 
 // Mark methods that return new objects
-  %newobject OctSwigIterator::copy;
-  %newobject OctSwigIterator::operator + (ptrdiff_t n) const;
-  %newobject OctSwigIterator::operator - (ptrdiff_t n) const;
+  %newobject MatlabSwigIterator::copy;
+  %newobject MatlabSwigIterator::operator + (ptrdiff_t n) const;
+  %newobject MatlabSwigIterator::operator - (ptrdiff_t n) const;
 
-  %nodirector OctSwigIterator;
+  %nodirector MatlabSwigIterator;
 
-  %catches(swig::stop_iteration) OctSwigIterator::value() const;
-  %catches(swig::stop_iteration) OctSwigIterator::incr(size_t n = 1);
-  %catches(swig::stop_iteration) OctSwigIterator::decr(size_t n = 1);
-  %catches(std::invalid_argument) OctSwigIterator::distance(const OctSwigIterator &x) const;
-  %catches(std::invalid_argument) OctSwigIterator::equal (const OctSwigIterator &x) const;
-  %catches(swig::stop_iteration) OctSwigIterator::next();
-  %catches(swig::stop_iteration) OctSwigIterator::previous();
-  %catches(swig::stop_iteration) OctSwigIterator::advance(ptrdiff_t n);
-  %catches(swig::stop_iteration) OctSwigIterator::operator += (ptrdiff_t n);
-  %catches(swig::stop_iteration) OctSwigIterator::operator -= (ptrdiff_t n);
-  %catches(swig::stop_iteration) OctSwigIterator::operator + (ptrdiff_t n) const;
-  %catches(swig::stop_iteration) OctSwigIterator::operator - (ptrdiff_t n) const;
+  %catches(swig::stop_iteration) MatlabSwigIterator::value() const;
+  %catches(swig::stop_iteration) MatlabSwigIterator::incr(size_t n = 1);
+  %catches(swig::stop_iteration) MatlabSwigIterator::decr(size_t n = 1);
+  %catches(std::invalid_argument) MatlabSwigIterator::distance(const MatlabSwigIterator &x) const;
+  %catches(std::invalid_argument) MatlabSwigIterator::equal (const MatlabSwigIterator &x) const;
+  %catches(swig::stop_iteration) MatlabSwigIterator::next();
+  %catches(swig::stop_iteration) MatlabSwigIterator::previous();
+  %catches(swig::stop_iteration) MatlabSwigIterator::advance(ptrdiff_t n);
+  %catches(swig::stop_iteration) MatlabSwigIterator::operator += (ptrdiff_t n);
+  %catches(swig::stop_iteration) MatlabSwigIterator::operator -= (ptrdiff_t n);
+  %catches(swig::stop_iteration) MatlabSwigIterator::operator + (ptrdiff_t n) const;
+  %catches(swig::stop_iteration) MatlabSwigIterator::operator - (ptrdiff_t n) const;
 
 
-  struct OctSwigIterator
+  struct MatlabSwigIterator
   {
   protected:
-    OctSwigIterator(octave_value seq);
+    MatlabSwigIterator(mxArray* seq);
 
   public:
-    virtual ~OctSwigIterator();
+    virtual ~MatlabSwigIterator();
 
-    virtual octave_value value() const = 0;
+    virtual mxArray* value() const = 0;
 
-    virtual OctSwigIterator *incr(size_t n = 1) = 0;
+    virtual MatlabSwigIterator *incr(size_t n = 1) = 0;
     
-    virtual OctSwigIterator *decr(size_t n = 1);
+    virtual MatlabSwigIterator *decr(size_t n = 1);
 
-    virtual ptrdiff_t distance(const OctSwigIterator &x) const;
+    virtual ptrdiff_t distance(const MatlabSwigIterator &x) const;
 
-    virtual bool equal (const OctSwigIterator &x) const;
+    virtual bool equal (const MatlabSwigIterator &x) const;
     
-    virtual OctSwigIterator *copy() const = 0;
+    virtual MatlabSwigIterator *copy() const = 0;
 
-    octave_value next();
-    octave_value previous();
-    OctSwigIterator *advance(ptrdiff_t n);
+    mxArray* next();
+    mxArray* previous();
+    MatlabSwigIterator *advance(ptrdiff_t n);
 
-    bool operator == (const OctSwigIterator& x)  const;
-    bool operator != (const OctSwigIterator& x) const;
-    OctSwigIterator* operator ++ ();
-    OctSwigIterator* operator -- ();
-    OctSwigIterator* operator + (ptrdiff_t n) const;
-    OctSwigIterator* operator - (ptrdiff_t n) const;
-    ptrdiff_t operator - (const OctSwigIterator& x) const;
+    bool operator == (const MatlabSwigIterator& x)  const;
+    bool operator != (const MatlabSwigIterator& x) const;
+    MatlabSwigIterator* operator ++ ();
+    MatlabSwigIterator* operator -- ();
+    MatlabSwigIterator* operator + (ptrdiff_t n) const;
+    MatlabSwigIterator* operator - (ptrdiff_t n) const;
+    ptrdiff_t operator - (const MatlabSwigIterator& x) const;
   };
 }
 

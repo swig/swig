@@ -1,5 +1,6 @@
 %define %array_class(TYPE,NAME)
-  %array_class_wrap(TYPE,NAME,__paren__,__paren_asgn__)
+    // KT TODO need to get this in matlab conventions
+  %array_class_wrap(TYPE,NAME,paren,paren_asgn)
 %enddef
 
 %include <typemaps/carrays.swg>

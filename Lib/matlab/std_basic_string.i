@@ -10,22 +10,26 @@
 %fragment(SWIG_AsPtr_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN int
-SWIG_AsPtr(std::basic_string<char>)(octave_value obj, std::string **val)
+SWIG_AsPtr(std::basic_string<char>)(mxArray* obj, std::string **val)
 {
-  if (obj.is_string()) {
+  if (mxIsChar(obj) {
     if (val)
-      *val = new std::string(obj.string_value());
+      {
+	char * str = mxArrayToString(obj);
+	*val = new std::string(str);
+	mxFree(str);
+      }
     return SWIG_NEWOBJ;
   }
   if (val)
-    error("a string is expected");
+    SWIG_Error(SWIG_RuntimeError,"a string is expected");
   return 0;
 }
 }
 
 %fragment(SWIG_From_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_FromCharPtrAndSize") {
-SWIGINTERNINLINE octave_value
+SWIGINTERNINLINE mxArray*
   SWIG_From(std::basic_string<char>)(const std::string& s)
   {
     return SWIG_FromCharPtrAndSize(s.data(), s.size());
@@ -41,7 +45,7 @@ SWIGINTERNINLINE octave_value
 
 
 #if !defined(SWIG_STD_WSTRING)
-
+#error THIS CODE IS PYTHON
 %fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int

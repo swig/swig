@@ -149,6 +149,8 @@ void MATLAB::main(int argc, char *argv[]){
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering main\n");
 #endif
+  int cppcast = 1;
+
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
@@ -162,6 +164,12 @@ void MATLAB::main(int argc, char *argv[]){
         } else {
           Swig_arg_error();
         }
+      } else if (strcmp(argv[i], "-cppcast") == 0) {
+	  cppcast = 1;
+	  Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-nocppcast") == 0) {
+	cppcast = 0;
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-pkgname") == 0) {
         if (argv[i + 1]) {
           pkg_name = NewString(argv[i + 1]);
@@ -180,6 +188,9 @@ void MATLAB::main(int argc, char *argv[]){
     
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
+  if (cppcast) {
+    Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+  }
   SWIG_config_file("matlab.swg");
   SWIG_typemap_lang("matlab");
   allow_overloading();
@@ -378,14 +389,16 @@ void MATLAB::process_autodoc(Node *n) {
     String *decl_str = NewString("");
     String *args_str = NewString("");
     make_autodocParmList(n, decl_str, args_str);
-    Append(decl_info, "@deftypefn {Loadable Function} ");
+    Append(decl_info, "Usage: ");
 
     SwigType *type = Getattr(n, "type");
     if (type && Strcmp(type, "void")) {
+      // TODO this is probably wrong. we need sym:name all the time
+      // (currently reporting C++ name)
       Node *nn = classLookup(Getattr(n, "type"));
       String *type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
-      Append(decl_info, "@var{retval} = ");
-      Printf(args_str, "%s@var{retval} is of type %s. ", args_str, type_str);
+      Append(decl_info, "retval = ");
+      Printf(args_str, "%sretval is of type %s. ", args_str, type_str);
       Delete(type_str);
     }
 
@@ -486,9 +499,9 @@ void MATLAB::make_autodocParmList(Node *n, String *decl_str, String *args_str) {
 
     String *tex_name = NewString("");
     if (name)
-      Printf(tex_name, "@var{%s}", name);
+      Printf(tex_name, "%s", name);
     else
-      Printf(tex_name, "@var{?}");
+      Printf(tex_name, "?");
 
     if (Len(decl_str))
       Append(decl_str, ", ");
@@ -1019,7 +1032,7 @@ int MATLAB::classHandler(Node *n) {
     // Loop over base classes
     for (Iterator b = First(baselist); b.item; b = Next(b)) {
       // Get base class name, possibly ignore
-      String *bname = Getattr(b.item, "name");
+      String *bname = Getattr(b.item, "sym:name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
       base_count++;
         
@@ -1071,7 +1084,7 @@ int MATLAB::classHandler(Node *n) {
 
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
-      String *bname = Getattr(b.item, "name");
+      String *bname = Getattr(b.item, "sym:name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
       Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s.%s(self,i);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
@@ -1088,7 +1101,7 @@ int MATLAB::classHandler(Node *n) {
 
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
-      String *bname = Getattr(b.item, "name");
+      String *bname = Getattr(b.item, "sym:name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
       Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s.%s(self,i,v);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
@@ -1163,25 +1176,50 @@ void MATLAB::initGateway(){
   // The first argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
-  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n  ",CMD_MAXLENGTH);
+  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
+
+#if 1
+  Printf(f_gateway,"  typedef void (*CallBackType)(int resc, mxArray *resv[], int argc, mxArray *argv[]);\n");
+  Printf(f_gateway,"  typedef std::map<std::string, CallBackType> CallBackMapType;\n");
+  Printf(f_gateway,"  static CallBackMapType callback_map;\n");
+  Printf(f_gateway,"  if (!callback_map.size())\n  {\n");
+#endif
 }
 
 void MATLAB::toGateway(String *fullname, String *wname){
   if(Len(fullname)>CMD_MAXLENGTH){
     SWIG_exit(EXIT_FAILURE);
   }
+#if 1
+  Printf(f_gateway,"   callback_map[\"%s\"] = &%s;\n", fullname, wname);
+#else
   Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
   Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",wname);
   Printf(f_gateway,"  } else ");
+#endif
 }
 
 void MATLAB::finalizeGateway(){
   String* swigConstant=NewString("swigConstant");
   toGateway(swigConstant,swigConstant);
   Delete(swigConstant);
+#if 1
+  Printf(f_gateway," }\n");
+  Printf(f_gateway," CallBackType callback;\n");
+  Printf(f_gateway," try\n");
   Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG\",\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"   callback = callback_map.at(cmd);\n");
+  Printf(f_gateway," }\n");
+  Printf(f_gateway," catch(...)\n");
+  Printf(f_gateway," {\n");
+  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No command %%s.\",cmd);\n");
+  Printf(f_gateway," }\n");
+  Printf(f_gateway," (*callback)(resc,resv,argc-1,(mxArray**)(argv+1));\n");
+#else
+  Printf(f_gateway," {\n");
+  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No command %%s.\",cmd);\n");
   Printf(f_gateway,"  }\n");
+#endif
   Printf(f_gateway,"}\n");
 }
 
@@ -1208,7 +1246,7 @@ void MATLAB::toConstant(String *constname, String *constdef){
 
 void MATLAB::finalizeConstant(){
   Printf(f_constants," {\n");
-  Printf(f_constants,"    mexErrMsgIdAndTxt(\"SWIG\",\"No constant %%s.\",cmd);\n");
+  Printf(f_constants,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No constant %%s.\",cmd);\n");
   Printf(f_constants,"  }\n");
   Printf(f_constants,"}\n");
 }
@@ -1407,7 +1445,10 @@ int MATLAB::staticmembervariableHandler(Node *n) {
 
   // Add to function switch
   toGateway(getname,getwname);
+#if 0
+    // KT TODO the set functions are not wrapped yet/reenable?
   toGateway(setname,setwname);
+#endif
 
   // Tidy up
   Delete(getname);
@@ -1534,7 +1575,7 @@ void MATLAB::dispatchFunction(Node *n) {
 
   Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
-  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG\",\"No matching function for overload\");\n", iname);
+  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload\");\n", iname);
   Printf(f->code, "return;\n");
   Printv(f->code, "}\n", NIL);
 
@@ -1585,9 +1626,7 @@ void MATLAB::emit_doc_texinfo() {
 
     if (Len(doc_str)>0) {
       Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
-      Printf(f_doc,"\"-*- texinfo -*-\\n\\\n%s", escaped_doc_str);
-      if (Len(decl_info))
-        Printf(f_doc,"\\n\\\n@end deftypefn");
+      Printf(f_doc,"\"%%%s", escaped_doc_str);
       Printf(f_doc,"\";\n");
     }
 
@@ -1605,7 +1644,7 @@ String* MATLAB::texinfo_escape(String *_s) {
   String *r = NewString("");
   for (int j=0;s[j];++j) {
     if (s[j] == '\n') {
-      Append(r, "\\n\\\n");
+      Append(r, "\\n\\\n%");
     } else if (s[j] == '\r') {
       Append(r, "\\r");
     } else if (s[j] == '\t') {
