@@ -90,6 +90,7 @@ Lib/swigwarn.swg
 Source/CParse/parser.c
 Source/CParse/parser.h
 Source/eswig
+Source/TAGS
 swig
 Tools/javascript/javascript
 
