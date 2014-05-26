@@ -134,6 +134,9 @@ Examples/test-suite/uffi/*/
 # Javascript generated files
 *.gyp
 
+# Octave generated files
+swigexample*.oct
+
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
