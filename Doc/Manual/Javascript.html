@@ -128,32 +128,22 @@ $ make check-javascript-examples ENGINE=jsc</pre>
 <pre>
 $ make check-javascript-test-suite ENGINE=jsc</pre>
 </div>
-<p>Tests should run without any problems, i.e., have been tried out, on the following platforms/interpreters:</p>
-<div class="code">
-<pre>
-- Ubuntu Precise 12.04 64bit
-    - JavascriptCore (Webkit 1.8.3)
-    - Node.js (0.10.26)
-    - v8 (3.7.12)
-- Ubuntu Saucy 13.10 64bit
-    - JavascriptCore (Webkit 1.10.2)
-    - Node.js
-    - v8 (3.14.5)
-- Mac OSX Mountain Lion 10.8
-    - JavascriptCore (built-in)
-    - Node.js
-- Windows 7 64bit (VS 2010)
-    - Node.js</pre>
-</div>
 
-<H3><a name="Javascript_future_work"></a>26.2.3 Future work</H3>
+<H3><a name="Javascript_known_issues"></a>26.2.1 Known Issues</H3>
 
+<p>At the moment, the Javascript generators pass all tests syntactically, i.e., the generated source code compiles. However, there are still remaining runtime issues.</p>
 
-<p>The Javascript module is not yet as mature as other modules and some things are still missing. As it makes use of SWIG's Unified Typemap Library (UTL), many typemaps are inherited. We could work on that if requested:</p>
 <ul>
-<li><p>More typemaps: compared to other modules there are only a few typemaps implemented. For instance a lot of the <code>std_*.i</code> typemaps are missing, such as <code>std_iostream</code>, for instance.</p></li>
-<li><p>Director support: this would allow to extend a C++ abstract base class in Javascript. A pragmatic intermediate step for the most important usecase would be to support Javascript callbacks as arguments.</p></li>
+    <li><p>Default optional arguments do not work for all targeted interpreters</p></li>
+    <li><p>Mutliple output arguments do not work for JSC</p></li>
+    <li><p>Memory leaks have been observed for all generators</p></li>
+    <li><p>C89 incompatibily: the JSC generator might still generate C89 violating code</p></li>
+    <li><p><code>long long</code> is not supported q</p></li>
+    <li><p>Javascript callbacks are not supported</p></li>
+    <li><p><code>instanceOf</code> does not work under JSC</p></li>
 </ul>
+
+<p>The primary development environment has been Linux (Ubuntu 12.04). Windows and OSX have been tested sporadically. Therefore, the generators might have more issues on those platforms. Please report back any problem you observe to help us improving this module quickly.</p>
 
 <H2><a name="Javascript_integration"></a>26.3 Integration</H2>
 
