@@ -1415,11 +1415,17 @@ public:
       if (!addSymbol(name, n, scope))
 	return SWIG_ERROR;
 
+      const String *javaannotations = Getattr(n, "feature:java:annotations");
+
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
 	// Emit the enum item.
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
+
+        if (javaannotations)
+          Printf(enum_code, "  %s\n", javaannotations);
+
 	Printf(enum_code, "  %s", symname);
 	if (Getattr(n, "enumvalue")) {
 	  String *value = enumValue(n);
@@ -1436,6 +1442,9 @@ public:
 	substituteClassname(typemap_lookup_type, return_type);
         const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+        if (javaannotations)
+          Printf(enum_code, "  %s\n", javaannotations);
 
 	if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
 	  // Wrap (non-anonymous) enum using the typesafe enum pattern
@@ -2254,6 +2263,9 @@ public:
     }
 
     /* Start generating the proxy function */
+    const String *javaannotations = Getattr(n, "feature:java:annotations");
+    if (javaannotations)
+      Printf(function_code, "  %s\n", javaannotations);
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
     Printf(function_code, "  %s ", methodmods);
@@ -2468,6 +2480,12 @@ public:
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
+
+      const String *javaannotations = Getattr(n, "feature:java:annotations");
+      if (javaannotations) {
+        Printf(function_code, "  %s\n", javaannotations);
+        Printf(helper_code, "  %s\n", javaannotations);
+      }
 
       const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
@@ -2770,6 +2788,9 @@ public:
     }
 
     /* Start generating the function */
+    const String *javaannotations = Getattr(n, "feature:java:annotations");
+    if (javaannotations)
+      Printf(function_code, "  %s\n", javaannotations);
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
