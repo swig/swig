@@ -15,7 +15,7 @@
 <ul>
 <li><a href="#Javascript_running_swig">Running SWIG</a>
 <li><a href="#Javascript_running_tests_examples">Running Tests and Examples</a>
-<li><a href="#Javascript_future_work">Future work</a>
+<li><a href="#Javascript_known_issues">Known Issues</a>
 </ul>
 <li><a href="#Javascript_integration">Integration</a>
 <ul>
@@ -137,9 +137,9 @@ $ make check-javascript-test-suite ENGINE=jsc</pre>
 <ul>
     <li><p>Default optional arguments do not work for all targeted interpreters</p></li>
     <li><p>Mutliple output arguments do not work for JSC</p></li>
-    <li><p>Memory leaks have been observed for all generators</p></li>
     <li><p>C89 incompatibily: the JSC generator might still generate C89 violating code</p></li>
-    <li><p><code>long long</code> is not supported q</p></li>
+    <li><p><code>long long</code> is not supported</p></li>
+    <li><p><code>%native</code> is not supported</p></li>
     <li><p>Javascript callbacks are not supported</p></li>
     <li><p><code>instanceOf</code> does not work under JSC</p></li>
 </ul>
