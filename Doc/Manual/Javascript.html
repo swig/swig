@@ -223,13 +223,21 @@ $ sudo apt-get remove gyp</pre>
 <pre>
 #import "appDelegate.h"
 
-extern bool example_initialize(JSGlobalContextRef context);
+extern bool example_initialize(JSGlobalContextRef context, JSObjectRef* exports);
 
 
 @implementation ExampleAppDelegate
 
 @synthesize webView;
 
+- (void)addGlobalObject:(JSContextRef) context:(NSString *)objectName:(JSObjectRef) theObject {
+  JSObjectRef global = JSContextGetGlobalObject(context);
+  JSStringRef objectJSName = JSStringCreateWithCFString( (CFStringRef) objectName )
+  if ( objectJSName != NULL ) {
+    JSObjectSetProperty(context, global, objectJSName, theObject, kJSPropertyAttributeReadOnly, NULL);
+    JSStringRelease( objectJSName );
+  }
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 
@@ -240,7 +248,11 @@ extern bool example_initialize(JSGlobalContextRef context);
   WebFrame *webframe = [webView mainFrame];
   JSGlobalContextRef context = [webframe globalContext];
 
-  example_initialize(context);
+  JSObjectRef example;
+  example_initialize(context, &amp;example);
+  [self addGlobalObject:context:@"example":example]
+
+  JSObjectSetProperty(context, global, JSStringRef propertyName, example, JSPropertyAttributes attributes, NULL);
 
   [ [webView mainFrame] loadRequest:
     [NSURLRequest requestWithURL: [NSURL URLWithString:url] ]
@@ -273,7 +285,13 @@ int main(int argc, char* argv[])
     WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
     WebFrame *webframe = webkit_web_view_get_main_frame(webView);
     JSGlobalContextRef context = webkit_web_frame_get_global_context(webFrame);
-    example_initialize(context);
+    JSObjectRef global = JSContextGetGlobalObject(context);
+
+    JSObjectRef exampleModule;
+    example_initialize(context, &amp;exampleModule);
+    JSStringRef jsName = JSStringCreateWithUTF8CString("example");
+    JSObjectSetProperty(context, global, jsName, exampleModule, kJSPropertyAttributeReadOnly, NULL);
+    JSStringRelease(jsName);
 
     ...
 
