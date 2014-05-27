@@ -41,6 +41,7 @@
 <li><a href="#Javascript_code_templates">Code Templates</a>
 <li><a href="#Javascript_emitter">Emitter</a>
 <li><a href="#Javascript_emitter_states">Emitter states</a>
+<li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
 </ul>
 </ul>
 </div>
@@ -870,5 +871,87 @@ state.clazz(RESET);
 state.clazz(NAME, Getattr(n, "sym:name"));</pre>
 </div>
 <p>State information can be retrieved using <code>state.clazz(NAME)</code> or with <code>Getattr</code> on <code>state.clazz()</code> which actually returns a <code>Hash</code> instance.</p>
+
+
+<H3><a name="Javascript_jsc_exceptions"></a>26.5.5. Handling Exceptions in JavascriptCore</H3>
+
+
+<p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian Barnes on how these exception details can be extracted.</p>
+<div class="code">
+<pre>
+void script_exception_to_string(JSContextRef js_context,JSValueRef exception_value_ref,char* return_error_string, int return_error_string_max_length)
+{
+  JSObjectRef exception_object;
+  JSValueRef value_ref;
+  JSStringRef jsstring_property_name = NULL;
+  JSValueRef temporary_exception = NULL;
+  JSStringRef js_return_string = NULL;
+  size_t bytes_needed;
+  char* c_result_string = NULL;
+  exception_object = JSValueToObject(js_context, exception_value_ref, NULL);
+
+  /* source url */
+  strcpy(return_error_string,&quot;[&quot;);
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;sourceURL&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;:&quot;, return_error_string_max_length-1);
+
+  /* line number */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;line&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;]&quot;, return_error_string_max_length-1);
+
+  /* error message */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;message&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  if(NULL == value_ref)
+  {
+    strncat(return_error_string, &quot;Unknown Error&quot;, return_error_string_max_length-1);
+  }
+  else
+  {
+    js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+    bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+    c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+    JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+    JSStringRelease(js_return_string);
+    strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+    free(c_result_string);
+  }
+}</pre>
+</div>
+
+<p>It would be used in the following way:</p>
+<div class="code">
+<pre>
+if(js_exception)
+{
+  char return_error_string[256];
+  script_exception_to_string(js_context, js_exception, return_error_string, 256);
+  printf("Compile error is %s", return_error_string);
+}</pre>
+</div>
+
 </body>
 </html>
