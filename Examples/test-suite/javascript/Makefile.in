@@ -107,7 +107,15 @@ endif
 
 
 %.clean:
-	rm -rf $*
-	rm -f $*_wrap.*
-	rm -f $*.so
-	rm -f $*.o
+	@rm -rf $*
+	@rm -f $*_wrap.* $*.so $*.o
+
+clean:
+	for ext in _wrap.cxx _wrap.o .so; do \
+		rm -f clientdata_prop_a$${ext} clientdata_prop_b$${ext}; \
+		rm -f imports_a$${ext} imports_b$${ext}; \
+		rm -f import_stl_a$${ext} import_stl_b$${ext}; \
+		rm -f mod_a$${ext} mod_b$${ext}; \
+		rm -f multi_import_a$${ext} multi_import_b$${ext}; \
+		rm -f packageoption_a$${ext} packageoption_b$${ext} packageoption_c$${ext}; \
+	done
