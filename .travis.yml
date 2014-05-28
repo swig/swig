@@ -113,7 +113,7 @@ script:
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples CFLAGS="${CFLAGS_EXAMPLES[$SWIGLANG]}" CXXFLAGS="${CXXFLAGS_EXAMPLES[$SWIGLANG]}"; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
   - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
-  - make maintainer-clean && find . -type f | sed 's/^/File left after maintainer-clean - /' && ../../configure $CONFIGOPTS
+  - make check-maintainer-clean && ../../configure $CONFIGOPTS
   - echo -en 'travis_fold:end:script.3\\r'
 branches:
   only:

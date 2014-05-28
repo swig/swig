@@ -455,6 +455,14 @@ maintainer-clean:
 	@echo distcleaning
 	@$(MAKE) $(FLAGS) distclean-helper
 
+check-maintainer-clean: maintainer-clean
+	@if test "x$(srcdir)" != "x."; then \
+		for file in `find . -type f`; do \
+			echo "file missed by maintainer-clean: $$file"; \
+		done; \
+	fi; \
+	test "x$$file" = x && echo "all files cleaned by maintainer-clean"
+
 #####################################################################
 # Update the Lib/swigwarn.swg file
 # Note: Generated into the source tree rather than build tree
