@@ -65,7 +65,13 @@ run_testcase = \
 
 # Clean: remove the generated .php file
 %.clean:
-	@rm -f $*.php;
+	@rm -f $*.php php_$*.h
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile php_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" php_clean
+	rm -f clientdata_prop_a.php clientdata_prop_b.php php_clientdata_prop_a.h php_clientdata_prop_b.h
+	rm -f import_stl_a.php import_stl_b.php php_import_stl_a.h php_import_stl_b.h
+	rm -f imports_a.php imports_b.php php_imports_a.h php_imports_b.h
+	rm -f mod_a.php mod_b.php php_mod_a.h php_mod_b.h
+	rm -f multi_import_a.php multi_import_b.php php_multi_import_a.h php_multi_import_b.h
+	rm -f packageoption_a.php packageoption_b.php packageoption_c.php php_packageoption_a.h php_packageoption_b.h php_packageoption_c.h
