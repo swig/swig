@@ -1514,7 +1514,6 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
  */
 SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *clss)
 {
-  int new_metatable_index;
   const int SWIGUNUSED begin = lua_gettop(L);
   int i;
   /* if name already there (class is already registered) then do nothing */
@@ -1541,14 +1540,16 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
    * It would get us all special methods: __getitem, __add etc.
    * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
    */
-  new_metatable_index = lua_absindex(L,-1);
-  for(i=0;clss->bases[i];i++)
   {
-    int base_metatable;
-    SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
-    base_metatable = lua_absindex(L,-1);
-    SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
-    lua_pop(L,1);
+    int new_metatable_index = lua_absindex(L,-1);
+    for(i=0;clss->bases[i];i++)
+    {
+      int base_metatable;
+      SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
+      base_metatable = lua_absindex(L,-1);
+      SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
+      lua_pop(L,1);
+    }
   }
   /* And now we will overwrite all incorrectly set data */
 #endif
