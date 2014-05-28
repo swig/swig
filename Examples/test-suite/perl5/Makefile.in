@@ -59,4 +59,4 @@ run_testcase = \
 	@rm -f $*.pm;
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile perl5_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" perl5_clean

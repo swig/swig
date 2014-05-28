@@ -53,5 +53,5 @@ include $(srcdir)/../common.mk
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile python_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" python_clean
 	@rm -f *.$(ERROR_EXT) *.py
