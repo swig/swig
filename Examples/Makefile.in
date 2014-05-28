@@ -401,7 +401,8 @@ python_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
 	rm -f $(TARGET).py
-	if [ -f $(RUNME).py ]; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
+	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
+	if test "x$(SRCDIR)" != x; then rm -f $(RUNME).py; fi
 
 
 ##################################################################
