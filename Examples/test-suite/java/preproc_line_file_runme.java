@@ -13,13 +13,21 @@ public class preproc_line_file_runme {
 
   private static void test_file(String file, String suffix) throws Throwable
   {
-      String FILENAME_WINDOWS = "Examples\\test-suite\\preproc_line_file.i";
-      String FILENAME_UNIX = "Examples/test-suite/preproc_line_file.i";
+// For swig-3.0.1 and earlier
+//      String FILENAME_WINDOWS = "Examples\\test-suite\\preproc_line_file.i";
+//      String FILENAME_UNIX = "Examples/test-suite/preproc_line_file.i";
+
+      String FILENAME_WINDOWS2 = "Examples\\test-suite\\java\\..\\preproc_line_file.i";
+      String FILENAME_UNIX2 = "Examples/test-suite/java/../preproc_line_file.i";
+
+      String FILENAME_WINDOWS3 = "..\\.\\..\\preproc_line_file.i";
+      String FILENAME_UNIX3 = ".././../preproc_line_file.i";
 
       // We don't test for exact equality here because the file names are relative to the build directory, which can be different from the source directory,
       // under Unix. But they do need to end with the same path components.
-      if (!file.endsWith(FILENAME_UNIX + suffix) && !file.endsWith(FILENAME_WINDOWS + suffix))
-          throw new RuntimeException("file \"" + file + "\" doesn't end with " + FILENAME_UNIX + suffix);
+      if (!file.endsWith(FILENAME_UNIX2 + suffix) && !file.endsWith(FILENAME_WINDOWS2 + suffix) &&
+          !file.endsWith(FILENAME_UNIX3 + suffix) && !file.endsWith(FILENAME_WINDOWS3 + suffix))
+          throw new RuntimeException("file \"" + file + "\" doesn't end with " + FILENAME_UNIX2 + suffix + " or " + FILENAME_UNIX3 + suffix);
   }
 
   public static void main(String argv[]) throws Throwable

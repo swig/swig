@@ -576,7 +576,7 @@ JAVAC = @JAVAC@ -d .
 # ----------------------------------------------------------------
 
 java: $(SRCDIR_SRCS)
-	$(SWIG) -java $(SWIGOPT) -o $(ISRCS) $(realpath $(INTERFACEPATH))
+	$(SWIG) -java $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVALDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
@@ -585,7 +585,7 @@ java: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -java -c++ $(SWIGOPT) -o $(ICXXSRCS) $(realpath $(INTERFACEPATH))
+	$(SWIG) -java -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVACXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
@@ -1373,7 +1373,7 @@ csharp_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 ifneq (,$(SRCDIR))
-SRCDIR_CSHARPSRCS = $(wildcard $(addprefix $(SRCDIR),$(CSHARPSRCS)))
+SRCDIR_CSHARPSRCS = $(addprefix $(SRCDIR),$(CSHARPSRCS))
 else
 SRCDIR_CSHARPSRCS =
 endif
