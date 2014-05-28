@@ -403,7 +403,7 @@ clean-ccache:
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
 
-distclean-helper: distclean-test-suite distclean-examples distclean-dead
+distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
 distclean: distclean-source distclean-ccache distclean-helper
 
@@ -428,6 +428,10 @@ distclean-examples:
 
 distclean-ccache:
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) distclean)
+
+distclean-tools:
+	@echo distcleaning Tools
+	@cd Tools/javascript && $(MAKE) $(FLAGS) distclean
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)

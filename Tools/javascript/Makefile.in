@@ -64,3 +64,6 @@ javascript: $(JS_INTERPRETER_OBJS)
 clean:
 	rm -f *.o
 	rm -f javascript
+
+distclean: clean
+	rm -f Makefile
