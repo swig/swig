@@ -2,8 +2,17 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.1 (in progress)
+Version 3.0.1 (27 May 2014)
 ===========================
+
+2014-05-25: hfalcic
+	    [Python] Python 3 byte string output: use errors="surrogateescape"
+            if available on the version of Python that's in use. This allows
+            obtaining the original byte string (and potentially trying a fallback
+            encoding) if the bytes can't be decoded as UTF-8.
+
+            Previously, a UnicodeDecodeError would be raised with no way to treat
+            the data as bytes or try another codec.
 
 2014-05-18: vkalinin
 	    Bug #175 - Restore %extend to work for unnamed nested structures by using a C

@@ -724,19 +724,19 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 	// detected via the 'view' attribute.
 	|| (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
 	) {
-      bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
-      bool is_static = GetFlag(state.function(), IS_STATIC);
+      bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+      bool is_static = GetFlag(state.function(), IS_STATIC) != 0;
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
-      bool is_static = GetFlag(state.variable(), IS_STATIC);
+      bool is_static = GetFlag(state.variable(), IS_STATIC) != 0;
       // HACK: smartpointeraccessed static variables are not treated as statics
       if (GetFlag(n, "allocate:smartpointeraccess")) {
 	is_static = false;
       }
 
-      bool is_member = GetFlag(n, "ismember");
-      bool is_setter = GetFlag(n, "memberset") || GetFlag(n, "varset");
-      bool is_getter = GetFlag(n, "memberget") || GetFlag(n, "varget");
+      bool is_member = GetFlag(n, "ismember") != 0;
+      bool is_setter = GetFlag(n, "memberset") != 0 || GetFlag(n, "varset") != 0;
+      bool is_getter = GetFlag(n, "memberget") != 0 || GetFlag(n, "varget") != 0;
       if (is_setter) {
 	ret = emitSetter(n, is_member, is_static);
       } else if (is_getter) {
@@ -840,7 +840,7 @@ int JSEmitter::emitCtor(Node *n) {
 
   Wrapper *wrapper = NewWrapper();
 
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
 
   Template t_ctor(getTemplate("js_ctor"));
 
@@ -1160,7 +1160,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
   Template t_function(getTemplate("js_function"));
 
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
 
   // prepare the function wrapper name
   String *iname = Getattr(n, "sym:name");
@@ -1288,7 +1288,7 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
     cresult = defaultResultName;
 
   tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
-  bool should_own = GetFlag(n, "feature:new");
+  bool should_own = GetFlag(n, "feature:new") != 0;
 
   if (tm) {
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
@@ -1628,8 +1628,8 @@ int JSCEmitter::enterFunction(Node *n) {
 int JSCEmitter::exitFunction(Node *n) {
   Template t_function = getTemplate("jsc_function_declaration");
 
-  bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
 
   // handle overloaded functions
   if (is_overloaded) {
@@ -2077,10 +2077,10 @@ int V8Emitter::exitVariable(Node *n) {
 }
 
 int V8Emitter::exitFunction(Node *n) {
-  bool is_member = GetFlag(n, "ismember") | GetFlag(n, "feature:extend");
+  bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
 
   // create a dispatcher for overloaded functions
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
   if (is_overloaded) {
     if (!Getattr(n, "sym:nextSibling")) {
       //state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
