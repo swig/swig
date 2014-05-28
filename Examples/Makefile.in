@@ -730,7 +730,7 @@ javascript_clean:
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
-	rm -f binding.gyp
+	rm -f binding.gyp example-gypcopy.cxx
 	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
 ##################################################################

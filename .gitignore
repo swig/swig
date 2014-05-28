@@ -124,6 +124,7 @@ Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 *_wrap.c
 *_wrap.cxx
+*-gypcopy.cxx
 
 # C# generated files
 *_runme.exe.mdb
