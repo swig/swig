@@ -1259,6 +1259,11 @@ public:
 	const String *pure_baseclass = typemapLookup(n, "javabase", typemap_lookup_type, WARN_NONE);
 	const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
+        // Class annotations
+        const String *javaannotations = typemapLookup(n, "javaannotations", typemap_lookup_type, WARN_NONE);
+	if (javaannotations && *Char(javaannotations))
+	  Printf(enum_code, "%s\n", javaannotations);
+
 	// Emit the enum
 	Printv(enum_code, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
 	       " ", symname, *Char(pure_baseclass) ?	// Bases
@@ -1810,8 +1815,15 @@ public:
     // Start writing the proxy class
     if (!has_outerclass) // Import statements
       Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
-    else
+
+    // Class attributes
+    const String *javaannotations = typemapLookup(n, "javaannotations", typemap_lookup_type, WARN_NONE);
+    if (javaannotations && *Char(javaannotations))
+      Printf(proxy_class_def, "%s\n", javaannotations);
+
+    if (has_outerclass)
       Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
+
     Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(pure_interfaces) ?	// Pure Java interfaces
@@ -3195,7 +3207,14 @@ public:
 
     // Emit the class
     Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+	   "\n", NIL);
+
+    // Class attributes
+    const String *javaannotations = typemapLookup(n, "javaannotations", type, WARN_NONE);
+    if (javaannotations && *Char(javaannotations))
+      Printf(swigtype, "%s\n", javaannotations);
+
+    Printv(swigtype, typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   *Char(pure_baseclass) ? " extends " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
 	   " implements " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
