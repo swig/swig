@@ -94,13 +94,6 @@ public:
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
           fputs(usage, stdout);
-        } else if (strcmp(argv[i], "-global") == 0 ||
-                   strcmp(argv[i], "-noglobal") == 0) {
-          Printv(stderr,
-                 "*** -global/-noglobal are no longer supported\n"
-                 "*** global load behaviour is now determined at module load\n"
-                 "*** see the Perl section in the manual for details.\n", NIL);
-          SWIG_exit(EXIT_FAILURE);
         } else if (strcmp(argv[i], "-globals") == 0) {
           if (argv[i + 1]) {
             global_name = NewString(argv[i + 1]);
