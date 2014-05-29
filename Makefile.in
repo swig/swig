@@ -456,11 +456,13 @@ maintainer-clean:
 	@$(MAKE) $(FLAGS) distclean-helper
 
 check-maintainer-clean: maintainer-clean
-	@if test "x$(srcdir)" != "x."; then \
-		for file in `find . -type f`; do \
-			echo "file missed by maintainer-clean: $$file"; \
-		done; \
+	@if test "x$(srcdir)" = "x."; then \
+		echo "skipping maintainer-clean check (in-source-tree build)"; \
+		exit 0; \
 	fi; \
+	for file in `find . -type f`; do \
+		echo "file missed by maintainer-clean: $$file"; \
+	done; \
 	test "x$$file" = x && echo "all files cleaned by maintainer-clean"
 
 #####################################################################
