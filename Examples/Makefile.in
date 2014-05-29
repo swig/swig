@@ -402,7 +402,7 @@ python_clean:
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
 	rm -f $(TARGET).py
 	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
-	if test "x$(SRCDIR)" != x; then rm -f $(RUNME).py; fi
+	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
 
 ##################################################################

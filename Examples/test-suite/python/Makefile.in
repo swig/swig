@@ -161,7 +161,7 @@ endif
 %.clean:
 	@rm -f $*.py
 	@if test -f $(srcdir)/$(py2_runme); then rm -f $(SCRIPTDIR)/$(py3_runme) $(SCRIPTDIR)/$(py3_runme).bak; fi
-	@if test "x$(SRCDIR)" != x; then rm -f $(SCRIPTDIR)/$(py2_runme); fi
+	@if test "x$(SCRIPTDIR)" != "x$(srcdir)"; then rm -f $(SCRIPTDIR)/$(py2_runme); fi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" python_clean
