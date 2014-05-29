@@ -55,6 +55,7 @@ float use_infinity(float inf_val)
 
 /* This will allow us to bind the real INFINITY value through SWIG via MYINFINITY. Use %rename to fix the name. */
 const double MYINFINITY = INFINITY;
+void initialise_MYINFINITY(void);
 /* Use of float is intentional because the original bug was in the float conversion due to overflow checking. */
 float use_infinity(float inf_val);
 
