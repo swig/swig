@@ -136,6 +136,7 @@ Examples/test-suite/uffi/*/
 
 # Octave generated files
 swigexample*.oct
+Examples/test-suite/octave/*.oct
 
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
