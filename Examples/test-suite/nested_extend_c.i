@@ -10,7 +10,7 @@
   char hi_extend() {
     return $self->c;
   }
-  static const long swig_size = sizeof(hiA);
+  static const long swig_size = sizeof(union hiA);
 }
 %extend lowA {
   lowA() {
@@ -22,7 +22,7 @@
   int low_extend() {
     return $self->num;
   }
-  static const long swig_size = sizeof(lowA);
+  static const long swig_size = sizeof(struct lowA);
 }
 
 %extend hiB {
@@ -34,7 +34,7 @@
   char hi_extend() {
     return $self->c;
   }
-  static const long swig_size = sizeof(hiB);
+  static const long swig_size = sizeof(union hiB);
 }
 %extend lowB {
   lowB() {
@@ -46,7 +46,7 @@
   int low_extend() {
     return $self->num;
   }
-  static const long swig_size = sizeof(lowB);
+  static const long swig_size = sizeof(struct lowB);
 }
 
 %extend FOO_bar {
@@ -55,7 +55,7 @@
     }
 };
 %extend NestedA {
-  static const long swig_size = sizeof(NestedA);
+  static const long swig_size = sizeof(struct NestedA);
 }
 
 #endif
