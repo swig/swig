@@ -1,17 +1,10 @@
 exec("swigtest.start", -1);
 
-try
-    // This call must fail
-    abstract_foo_meth(1);
-    swigtesterror();
-catch
-end
+// These calls must fail
+ierr = execstr('abstract_foo_meth(1)', 'errcatch');
+if ierr == 0 then swigtesterror(); end
 
-try
-    // This call must fail
-    abstract_bar_meth(1);
-    swigtesterror();
-catch
-end
+ierr = execstr('abstract_bar_meth(1)', 'errcatch');
+if ierr == 0 then swigtesterror(); end
 
 exec("swigtest.quit", -1);
