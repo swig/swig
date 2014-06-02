@@ -1,22 +1,29 @@
-// Deques
+//
+// std_deque.i - STL deque support
+//
 
-%fragment("StdDequeTraits","header",fragment="StdSequenceTraits")
+%fragment("StdDequeTraits", "header", fragment = "StdSequenceTraits")
 %{
-  namespace swig {
+
+  namespace swig
+  {
+
     template <class T>
     struct traits_asptr<std::deque<T> >  {
-      static int asptr(octave_value obj, std::deque<T>  **vec) {
-	return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
+      static int asptr(octave_value obj, std::deque<T> **vec) {
+        return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
       }
     };
 
     template <class T>
     struct traits_from<std::deque<T> > {
       static octave_value from(const std::deque<T> & vec) {
-	return traits_from_stdseq<std::deque<T> >::from(vec);
+        return traits_from_stdseq<std::deque<T> >::from(vec);
       }
     };
+
   }
+
 %}
 
 #define %swig_deque_methods(Type...) %swig_sequence_methods(Type)

@@ -1,8 +1,19 @@
+//
+// octave.swg - Octave configuration module
+//
+
+// Include standard SWIG macros and fragments
 %include <typemaps/swigmacros.swg>
 %include <typemaps/fragments.swg>
+
+// Include Octave runtime code
 %include <octruntime.swg>
-%include <octuserdir.swg>
+
+// Include Octave typemaps
 %include <octtypemaps.swg>
+
+// Include Octave overloaded operator support
 %include <octopers.swg>
 
-%define %docstring %feature("docstring") %enddef
+// Include Octave special user directives
+%include <octuserdir.swg>

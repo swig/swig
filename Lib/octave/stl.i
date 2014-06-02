@@ -1,4 +1,7 @@
-/* initial STL definition. extended as needed in each language */
+//
+// stl.i - STL support
+//
+
 %include <std_common.i>
 %include <std_string.i>
 %include <std_vector.i>

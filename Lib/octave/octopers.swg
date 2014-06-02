@@ -1,17 +1,17 @@
-/* ------------------------------------------------------------
- * Overloaded operator support
- * ------------------------------------------------------------ */
+//
+// octopers.swg - Octave overloaded operator support
+//
 
 #ifdef __cplusplus
 
-// operators supported in Octave, and the methods they are routed to
-
+// Operators supported in Octave, and the methods they are routed to:
+//
 // __brace__      a{args}
 // __brace_asgn__ a{args} = rhs
 // __paren__      a(args)
 // __paren_asgn__ a(args) = rhs
 // __str__        generates string rep
-
+//
 // __not__        !a
 // __uplus__      +a
 // __uminus__     -a
@@ -40,8 +40,7 @@
 // __el_and__     a & b
 // __el_or__      a | b
 
-// operators supported in C++, and the methods that route to them
-
+// Operators supported in C++, and the methods that route to them:
 %rename(__add__)       *::operator+;
 %rename(__add__)       *::operator+();
 %rename(__add__)       *::operator+() const;
@@ -85,4 +84,4 @@
 %ignoreoperator(EQ)         operator=;
 %ignoreoperator(ARROWSTAR)  operator->*;
 
-#endif /* __cplusplus */
+#endif // __cplusplus
