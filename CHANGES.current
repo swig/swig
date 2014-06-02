@@ -5,7 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.2 (in progress)
 ===========================
 
-2014-04-24: kwwette
+2014-06-02: vkalinin
+            Fix #183 - %extend and unnamed nested structs
+
+2014-05-24: kwwette
             [Octave] Remove deprecated -global/-noglobal command-line arguments
 
             *** POTENTIAL INCOMPATIBILITY  ***
