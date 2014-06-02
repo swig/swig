@@ -34,5 +34,12 @@ public class nested_extend_c_runme {
       if (low.low_extend() != 99)
         throw new RuntimeException("test failed");
     }
+    {
+      FOO_bar foobar = new FOO_bar();
+      foobar.setD(1234);
+      if (foobar.getD() != 1234)
+        throw new RuntimeException("test failed");
+      foobar.bar_extend();
+    }
   }
 }
