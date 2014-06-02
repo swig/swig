@@ -4,6 +4,8 @@
 
 %module swigexample
 
+%feature("autodoc", 1);
+
 %{
 #include "example.h"
 %}

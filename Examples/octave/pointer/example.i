@@ -1,6 +1,8 @@
 /* File : example.i */
 %module swigexample
 
+%feature("autodoc", 1);
+
 %{
 extern void add(int *, int *, int *);
 extern void sub(int *, int *, int *);
