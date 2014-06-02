@@ -210,6 +210,7 @@ CPP_TEST_CASES += \
 	enum_template \
 	enum_thorough \
 	enum_var \
+	equality \
 	evil_diamond \
 	evil_diamond_ns \
 	evil_diamond_prop \
