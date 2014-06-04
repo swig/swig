@@ -2,14 +2,13 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.2 (in progress)
+Version 3.0.2 (4 Jun 2014)
 ===========================
 
 2014-06-02: v-for-vandal
             [Lua] Pull request #176:
             If class has no __eq implemented, then default __eq is generated. 
             Default __eq compares actual pointers stored inside Lua userdata.
-
 
 2014-06-02: vkalinin
             Fix #183 - %extend and unnamed nested structs
