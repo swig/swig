@@ -204,7 +204,7 @@ tcl_version:
 tcl_clean:
 	rm -f *_wrap* *~ .~* mytclsh@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *$(TCL_SO)
 
 ##################################################################
 #####                       PERL 5                          ######
@@ -399,7 +399,7 @@ python_clean:
 	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
+	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
 	rm -f $(TARGET).py
 	if test -f $(SRCDIR)$(RUNME).py; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
@@ -461,7 +461,7 @@ octave_clean:
 	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@ *@OCTAVE_SO@
+	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
 
 ##################################################################
 #####                       GUILE                           ######
@@ -551,7 +551,7 @@ guile_version:
 guile_clean:
 	rm -f *_wrap* *~ .~* my-guile@EXEEXT@ $(TARGET)@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@GUILE_SO@
+	rm -f *.@OBJEXT@ *$(GUILE_SO)
 
 ##################################################################
 #####                       JAVA                            ######
@@ -874,7 +874,7 @@ mzscheme_version:
 mzscheme_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
 
 ##################################################################
 #####                          Ocaml                         #####
@@ -1097,7 +1097,7 @@ ruby_version:
 ruby_clean:
 	rm -f *_wrap* *~ .~* myruby@EXEEXT@ *.pm
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
 ##################################################################
 #####                       PHP                             ######
@@ -1147,7 +1147,7 @@ php_version:
 php_clean:
 	rm -f *_wrap* *~ .~* example.php php_example.h
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *$(PHP_SO)
 
 ##################################################################
 #####                       Pike                            ######
@@ -1480,7 +1480,7 @@ lua_version:
 lua_clean:
 	rm -f *_wrap* *~ .~* mylua@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.@OBJEXT@ *$(LUA_SO)
 
 ##################################################################
 #####                   ALLEGRO CL                          ######
