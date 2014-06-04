@@ -6,6 +6,8 @@
 
 %module equality
 
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) operator==;
+
 %inline %{
 
 /* Point has no equality operator */
@@ -40,7 +42,7 @@ public:
   inline static const EqualOpWrong* GetStaticObject();
 };
  
-static const EqualOpWrong s_wrongEqOp;
+static EqualOpWrong s_wrongEqOp;
 
 const EqualOpWrong* EqualOpWrong::GetStaticObject()
   { return &s_wrongEqOp; }
