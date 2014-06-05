@@ -2029,15 +2029,15 @@ public:
     /* Make a wrapper function to insert the code into */
     Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
     if (have_docstring(n))
-      Printv(f_dest, "  ", docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+      Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
     if (have_pythonprepend(n))
-      Printv(f_dest, pythoncode(pythonprepend(n), "  "), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonprepend(n), tab4), "\n", NIL);
     if (have_pythonappend(n)) {
-      Printv(f_dest, "  val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, pythoncode(pythonappend(n), "  "), "\n", NIL);
-      Printv(f_dest, "  return val\n", NIL);
+      Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonappend(n), tab4), "\n", NIL);
+      Printv(f_dest, tab4 "return val\n", NIL);
     } else {
-      Printv(f_dest, "  return ", funcCall(name, callParms), "\n", NIL);
+      Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
     }
 
     if (Getattr(n, "feature:python:callback") || !have_addtofunc(n)) {
