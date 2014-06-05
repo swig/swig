@@ -29,5 +29,5 @@ extern "C"
 #endif
 int <module>_Init(SWIG_GatewayParameters) {
   SWIG_InitializeModule(NULL);
-  SWIG_CreateScilabVariables();
+  SWIG_CreateScilabVariables(pvApiCtx);
 %}

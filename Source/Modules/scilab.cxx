@@ -27,8 +27,6 @@ Scilab options (available with -scilab)\n\
      -ol <library name> - Set name of the output library\n\n"
      ;
 
-static const char *SWIG_CREATE_VARIABLES_FUNCTION_NAME = "SWIG_CreateScilabVariables";
-
 class SCILAB:public Language {
 protected:
   /* General objects used for holding the strings */
@@ -224,7 +222,7 @@ public:
 
     // Open Scilab wrapper variables creation function
     variablesCode = NewString("");
-    Printf(variablesCode, "int %s() {\n", SWIG_CREATE_VARIABLES_FUNCTION_NAME);
+    Printf(variablesCode, "int SWIG_CreateScilabVariables(void *_pvApiCtx) {");
 
     /* Emit code for children */
     if (CPlusPlus) {
