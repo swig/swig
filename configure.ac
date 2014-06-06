@@ -335,7 +335,7 @@ AC_MSG_CHECKING([whether to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
-if test x"$enable_cpp11_testing" = xyes; then 
+if test x"$enable_cpp11_testing" = xyes; then
   AC_LANG_PUSH([C++])
   CXXFLAGS_SAVED=$CXXFLAGS
   AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
@@ -353,7 +353,7 @@ if test x"$enable_cpp11_testing" = xyes; then
 fi
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
-# libc++ for tests and examples to run under mono. May affect 
+# libc++ for tests and examples to run under mono. May affect
 # other language targets as well - problem is an OSX incompatibility
 # between libraries depending on libstdc++ and libc++.
 CLANGXX=
@@ -2824,6 +2824,7 @@ test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
+test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:
