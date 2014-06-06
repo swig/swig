@@ -525,10 +525,12 @@ public:
     Printf(tmp, "}");
     Wrapper_add_local(wrapper, "argv", tmp);
 
+    Printf(wrapper->code, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
+
     /* Dump the dispatch function */
     Printv(wrapper->code, dispatch, "\n", NIL);
     Printf(wrapper->code, "Scierror(999, _(\"No matching function for overload\"));\n");
-    Printf(wrapper->code, "return SWIG_OK;\n");
+    Printf(wrapper->code, "return SWIG_ERROR;\n");
     Printv(wrapper->code, "}\n", NIL);
     Wrapper_print(wrapper, wrappersSection);
 

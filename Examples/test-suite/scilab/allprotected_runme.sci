@@ -17,12 +17,12 @@ catch
 end
 
 if PublicBase_virtualMethod(publicBase) <> "PublicBase" then swigtesterror(); end
-if Klass_getName(PublicBase_instanceMetho(publicBase, klass)) <> "allprotected_klass" then swigtesterror(); end
-if Klass_getName(PublicBase_instanceOverl(publicBase, klass)) <> "allprotected_klass" then swigtesterror(); end
-if Klass_getName(PublicBase_instanceOverl(publicBase, klass, "allprotected_klass2")) <> "allprotected_klass2" then swigtesterror(); end
+if Klass_getName(PublicBase_instanceMethod(publicBase, klass)) <> "allprotected_klass" then swigtesterror(); end
+if Klass_getName(PublicBase_instanceOverloaded(publicBase, klass)) <> "allprotected_klass" then swigtesterror(); end
+if Klass_getName(PublicBase_instanceOverloaded(publicBase, klass, "allprotected_klass2")) <> "allprotected_klass2" then swigtesterror(); end
 if Klass_getName(PublicBase_staticMethod(klass)) <> "allprotected_klass" then swigtesterror(); end
-if Klass_getName(PublicBase_staticOverloa(klass)) <> "allprotected_klass" then swigtesterror(); end
-if Klass_getName(PublicBase_staticOverloa(klass, "allprotected_klass3")) <> "allprotected_klass3" then swigtesterror(); end
+if Klass_getName(PublicBase_staticOverloaded(klass)) <> "allprotected_klass" then swigtesterror(); end
+if Klass_getName(PublicBase_staticOverloaded(klass, "allprotected_klass3")) <> "allprotected_klass3" then swigtesterror(); end
 if PublicBase_EnumVal1_get() <> 0 then swigtesterror(); end
 if PublicBase_EnumVal2_get() <> 1 then swigtesterror(); end
 
@@ -48,8 +48,8 @@ try
 catch
 end
 
-if ProtectedBase_EnumVal1_g() <> 0 then swigtesterror(); end
-if ProtectedBase_EnumVal2_g() <> 1 then swigtesterror(); end
+if ProtectedBase_EnumVal1_get() <> 0 then swigtesterror(); end
+if ProtectedBase_EnumVal2_get() <> 1 then swigtesterror(); end
 
 try
   delete_Klass(klass);
