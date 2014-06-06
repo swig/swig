@@ -852,14 +852,14 @@ public:
 	Printf(f_shadow, "from %s import *\n", module);
       }
       if (modern || !classic) {
-	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n", NULL);
+	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
       }
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       {
 	// Python-2.2 object hack
 	Printv(f_shadow,
-	       "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
+	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own(value)\n",
 	       tab4, "if (name == \"this\"):\n", tab4, tab4, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
@@ -874,16 +874,16 @@ public:
 	       tab4, tab4, "self.__dict__[name] = value\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
-	       "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
+	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
 
 	Printv(f_shadow,
-	       "def _swig_getattr(self, class_type, name):\n",
+	        "\n", "def _swig_getattr(self, class_type, name):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
 	       tab4, "if method:\n", tab4, tab4, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
 
 	Printv(f_shadow,
-	       "def _swig_repr(self):\n",
+	        "\n", "def _swig_repr(self):\n",
 	       tab4, "try:\n", tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
 	       tab4, "except:\n", tab4, tab4, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
@@ -901,7 +901,7 @@ public:
 	}
       }
       if (modern) {
-	Printv(f_shadow, "def _swig_setattr_nondynamic_method(set):\n", tab4, "def set_attr(self, name, value):\n",
+	Printv(f_shadow,  "\n", "def _swig_setattr_nondynamic_method(set):\n", tab4, "def set_attr(self, name, value):\n",
 #ifdef USE_THISOWN
 	       tab4, tab4, "if hasattr(self, name) or (name in (\"this\", \"thisown\")):\n",
 #else
@@ -4056,7 +4056,7 @@ public:
       Delete(realct);
       if (!have_constructor) {
 	if (!builtin)
-	  Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs):\n", tab8, "raise AttributeError(\"", "No constructor defined",
+	  Printv(f_shadow_file, "\n", tab4, "def __init__(self, *args, **kwargs):\n", tab8, "raise AttributeError(\"", "No constructor defined",
 		 (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\")\n", NIL);
       } else if (fastinit && !builtin) {
 
@@ -4108,7 +4108,7 @@ public:
 	  List *shadow_list = Getattr(n, "shadow_methods");
 	  for (int i = 0; i < Len(shadow_list); ++i) {
 	    String *symname = Getitem(shadow_list, i);
-	    Printf(f_shadow_file, "%s.%s = new_instancemethod(%s.%s,None,%s)\n", class_name, symname, module, Swig_name_member(NSPACE_TODO, class_name, symname),
+	    Printf(f_shadow_file, "%s.%s = new_instancemethod(%s.%s, None, %s)\n", class_name, symname, module, Swig_name_member(NSPACE_TODO, class_name, symname),
 		   class_name);
 	  }
 	}
@@ -4223,11 +4223,11 @@ public:
 	  String *callParms = make_pyParmList(n, true, true, allow_kwargs);
 	  if (!have_addtofunc(n)) {
 	    if (!fastproxy || olddefs) {
-	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	      Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
-	    Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	    Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	    if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
@@ -4313,7 +4313,7 @@ public:
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
-	Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
@@ -4426,7 +4426,7 @@ public:
 		Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
 	      }
 
-	      Printv(f_shadow, tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	      Printv(f_shadow, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	      if (have_docstring(n))
 		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
