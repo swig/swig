@@ -3901,7 +3901,7 @@ public:
 	  Printv(base_class, bname, NIL);
 	  b = Next(b);
 	  if (b.item) {
-	    Putc(',', base_class);
+            Printv(base_class, ", ", NIL);
 	  }
 	}
       }
@@ -3922,7 +3922,7 @@ public:
       String *abcs = Getattr(n, "feature:python:abc");
       if (py3 && abcs) {
 	if (Len(base_class)) {
-	  Putc(',', base_class);
+	  Printv(base_class, ", ", NIL);
 	}
 	Printv(base_class, abcs, NIL);
       }
