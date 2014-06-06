@@ -63,6 +63,24 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#endif
     return SWIG_OK;
   } else {
+%#if PY_VERSION_HEX<0x03000000
+    if (PyUnicode_Check(obj)) {
+      char *cstr; Py_ssize_t len;
+      obj = PyUnicode_AsUTF8String(obj);
+      if (PyString_AsStringAndSize(obj, &cstr, &len) == -1) {
+        Py_XDECREF(obj);
+        return SWIG_TypeError;
+      }
+
+      if (alloc) *alloc = SWIG_NEWOBJ;
+      if (psize) *psize = len + 1;
+      *cptr = %new_copy_array(cstr, len + 1, char);
+
+      Py_XDECREF(obj);
+      return SWIG_OK;
+    }
+%#endif
+
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
       void* vptr = 0;
