@@ -17,6 +17,7 @@ function [classAPtr_list, classAPtr1, classAPtr2] = testCreateContainerPtr(conta
   if ~exists('classAPtr_list') | (size(classAPtr_list) <> 2) then
     swigtesterror(func);
   end
+
   checkequal(ClassA_a_get(classAPtr_list(1)), value1, "ClassA_a_get(classAPtr_list(1))");
   checkequal(ClassA_a_get(classAPtr_list(2)), value2, "ClassA_a_get(classAPtr_list(2))");
 endfunction
@@ -58,9 +59,9 @@ function testContainerType(container, value_type, value1, value2, ..
   expected_returned_container, expected_accumulate_value)
   // test container of basic type returned from fonction
   func = msprintf("ret_%s_%s", value_type, container);
-  if value_type = "string" then
+  if value_type == "string" then
     cmd = msprintf("c = %s(''%s'', ''%s'');", func, value1, value2);
-  elseif value_type = "bool" then
+  elseif value_type == "bool" then
     cmd = msprintf("c = %s(%s, %s);", func, "%"+string(value1), "%"+string(value2));
   else
     cmd = msprintf("c = %s(%d, %d);", func, value1, value2);
