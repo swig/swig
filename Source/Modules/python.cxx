@@ -807,7 +807,7 @@ public:
       Printv(f_shadow, "\nfrom sys import version_info\n", NULL);
 
       if (!builtin && fastproxy) {
-	Printv(f_shadow, "if version_info >= (3,0,0):\n", NULL);
+	Printv(f_shadow, "if version_info >= (3, 0, 0):\n", NULL);
 	Printf(f_shadow, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
 	Printv(f_shadow, "else:\n", NULL);
 	Printv(f_shadow, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
@@ -822,7 +822,7 @@ public:
        * isn't available in python 2.4 or earlier, so we have to write some
        * code conditional on the python version.
        */
-      Printv(f_shadow, "if version_info >= (2,6,0):\n", NULL);
+      Printv(f_shadow, "if version_info >= (2, 6, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab8, "import imp\n", NULL);
@@ -852,20 +852,20 @@ public:
 	Printf(f_shadow, "from %s import *\n", module);
       }
       if (modern || !classic) {
-	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass # Python < 2.2 doesn't have 'property'.\n", NULL);
+	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n", NULL);
       }
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       {
 	// Python-2.2 object hack
 	Printv(f_shadow,
-	       "def _swig_setattr_nondynamic(self,class_type,name,value,static=1):\n",
-	       tab4, "if (name == \"thisown\"): return self.this.own(value)\n",
+	       "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
+	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own(value)\n",
 	       tab4, "if (name == \"this\"):\n", tab4, tab4, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
 	       tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
 #endif
-	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name,None)\n", tab4, "if method: return method(self,value)\n",
+	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
 #ifdef USE_THISOWN
 	       tab4, "if (not static) or (name == \"thisown\"):\n",
 #else
@@ -874,18 +874,18 @@ public:
 	       tab4, tab4, "self.__dict__[name] = value\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
-	       "def _swig_setattr(self,class_type,name,value):\n", tab4, "return _swig_setattr_nondynamic(self,class_type,name,value,0)\n\n", NIL);
+	       "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
 
 	Printv(f_shadow,
-	       "def _swig_getattr(self,class_type,name):\n",
-	       tab4, "if (name == \"thisown\"): return self.this.own()\n",
-	       tab4, "method = class_type.__swig_getmethods__.get(name,None)\n",
-	       tab4, "if method: return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
+	       "def _swig_getattr(self, class_type, name):\n",
+	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own()\n",
+	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
+	       tab4, "if method:\n", tab4, tab4, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
 
 	Printv(f_shadow,
 	       "def _swig_repr(self):\n",
-	       tab4, "try: strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except: strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
+	       tab4, "try:\n", tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
+	       tab4, "except:\n", tab4, tab4, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
 	if (!classic) {
 	  /* Usage of types.ObjectType is deprecated.
@@ -895,19 +895,19 @@ public:
 //               "import types\n",
 		 "try:\n",
 //               "    _object = types.ObjectType\n",
-		 "    _object = object\n", "    _newclass = 1\n", "except AttributeError:\n", "    class _object : pass\n", "    _newclass = 0\n",
+		 tab4, "_object = object\n", tab4, "_newclass = 1\n", "except AttributeError:\n", tab4, "class _object:\n", tab4, tab4, "pass\n", tab4, "_newclass = 0\n",
 //                 "del types\n", 
 		 "\n\n", NIL);
 	}
       }
       if (modern) {
-	Printv(f_shadow, "def _swig_setattr_nondynamic_method(set):\n", tab4, "def set_attr(self,name,value):\n",
+	Printv(f_shadow, "def _swig_setattr_nondynamic_method(set):\n", tab4, "def set_attr(self, name, value):\n",
 #ifdef USE_THISOWN
-	       tab4, tab4, "if hasattr(self,name) or (name in (\"this\", \"thisown\")):\n",
+	       tab4, tab4, "if hasattr(self, name) or (name in (\"this\", \"thisown\")):\n",
 #else
-	       tab4, tab4, "if (name == \"thisown\"): return self.this.own(value)\n", tab4, tab4, "if hasattr(self,name) or (name == \"this\"):\n",
+	       tab4, tab4, "if (name == \"thisown\"): return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
 #endif
-	       tab4, tab4, tab4, "set(self,name,value)\n",
+	       tab4, tab4, tab4, "set(self, name, value)\n",
 	       tab4, tab4, "else:\n",
 	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n", tab4, "return set_attr\n\n\n", NIL);
       }
@@ -2154,7 +2154,7 @@ public:
 	Append(f->code, "--argc;\n");
     }
 
-    Replaceall(dispatch, "$args", "self,args");
+    Replaceall(dispatch, "$args", "self, args");
 
     Printv(f->code, dispatch, "\n", NIL);
 
@@ -3957,7 +3957,7 @@ public:
 	if (!modern) {
 	  Printv(f_shadow, tab4, "__swig_setmethods__ = {}\n", NIL);
 	  if (Len(base_class)) {
-	    Printf(f_shadow, "%sfor _s in [%s]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))\n", tab4, base_class);
+	    Printv(f_shadow, tab4, "for _s in [", base_class, "]:\n", tab8, "__swig_setmethods__.update(getattr(_s, '__swig_setmethods__', {}))\n", NIL);
 	  }
 
 	  if (!GetFlag(n, "feature:python:nondynamic")) {
@@ -3968,7 +3968,7 @@ public:
 
 	  Printv(f_shadow, tab4, "__swig_getmethods__ = {}\n", NIL);
 	  if (Len(base_class)) {
-	    Printf(f_shadow, "%sfor _s in [%s]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))\n", tab4, base_class);
+	    Printv(f_shadow, tab4, "for _s in [", base_class, "]:\n", tab8, "__swig_getmethods__.update(getattr(_s, '__swig_getmethods__', {}))\n", NIL);
 	  }
 
 	  Printv(f_shadow, tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n", NIL);
@@ -4056,7 +4056,7 @@ public:
       Delete(realct);
       if (!have_constructor) {
 	if (!builtin)
-	  Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"", "No constructor defined",
+	  Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs):\n", tab8, "raise AttributeError(\"", "No constructor defined",
 		 (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\")\n", NIL);
       } else if (fastinit && !builtin) {
 
@@ -4094,12 +4094,12 @@ public:
 	Printv(f_shadow_file, "\nclass ", class_name, "Ptr(", class_name, "):\n", tab4, "def __init__(self, this):\n", NIL);
 	if (!modern) {
 	  Printv(f_shadow_file,
-		 tab8, "try: self.this.append(this)\n",
-		 tab8, "except: self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
+		 tab8, "except:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	} else {
 	  Printv(f_shadow_file,
-		 tab8, "try: self.this.append(this)\n",
-		 tab8, "except: self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
+		 tab8, "except:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	}
       }
 
@@ -4223,12 +4223,11 @@ public:
 	  String *callParms = make_pyParmList(n, true, true, allow_kwargs);
 	  if (!have_addtofunc(n)) {
 	    if (!fastproxy || olddefs) {
-	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
-	      Printv(f_shadow, " return ", funcCall(fullname, callParms), "\n", NIL);
+	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
-	    Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
-	    Printv(f_shadow, "\n", NIL);
+	    Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	    if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
@@ -4427,7 +4426,7 @@ public:
 		Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
 	      }
 
-	      Printv(f_shadow, tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ": \n", NIL);
+	      Printv(f_shadow, tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	      if (have_docstring(n))
 		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
@@ -4438,7 +4437,7 @@ public:
 	      } else {
 		Printv(f_shadow,
 		       tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
-		       tab8, "try: self.this.append(this)\n", tab8, "except: self.this = this\n", NIL);
+		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except:\n", tab8, tab4, "self.this = this\n", NIL);
 	      }
 	      if (have_pythonappend(n))
 		Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n\n", NIL);
@@ -4524,7 +4523,7 @@ public:
 	Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "\n", NIL);
 	if (!have_pythonprepend(n) && !have_pythonappend(n)) {
 	  if (proxydel) {
-	    Printv(f_shadow, tab4, "__del__ = lambda self : None;\n", NIL);
+	    Printv(f_shadow, tab4, "__del__ = lambda self: None\n", NIL);
 	  }
 	  return SWIG_OK;
 	}
@@ -4535,7 +4534,7 @@ public:
 	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 #ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
-	Printv(f_shadow, tab8, tab4, "if self.thisown: ", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
+	Printv(f_shadow, tab8, tab4, "if self.thisown:", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
 	Printv(f_shadow, tab8, "except: pass\n", NIL);
 #else
 #endif
