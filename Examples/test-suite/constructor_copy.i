@@ -73,7 +73,7 @@ public:
 
 %include "std_vector.i"
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGSCILAB) || defined(SWIGRUBY)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGJAVASCRIPT) || defined(SWIGSCILAB)
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(size_type);
 %ignore std::vector<Space::Flow>::resize(size_type);
@@ -94,14 +94,16 @@ public:
 
 namespace Space {
 class Flow {
+int x;
 public:
-  Flow(int i) {}
+ Flow(int i) : x(i) {}
 };
 
 
 class FlowFlow {
+int x;
 public:
-  FlowFlow(int i) {}
+ FlowFlow(int i) : x(i) {}
 };
 
 }

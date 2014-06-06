@@ -22,10 +22,14 @@ class GO:public Language {
   bool gccgo_flag;
   // Prefix to use with gccgo.
   String *go_prefix;
+  // -fgo-prefix option.
+  String *prefix_option;
+  // -fgo-pkgpath option.
+  String *pkgpath_option;
+  // Whether to use a shared library.
+  bool use_shlib;
   // Name of shared library to import.
   String *soname;
-  // Size in bits of the C type "long".
-  int long_type_size;
   // Size in bits of the Go type "int".  0 if not specified.
   int intgo_type_size;
 
@@ -41,6 +45,7 @@ class GO:public Language {
   File *f_c_init;
   File *f_c_directors;
   File *f_c_directors_h;
+  File *f_go_imports;
   File *f_go_runtime;
   File *f_go_header;
   File *f_go_wrappers;
@@ -74,20 +79,28 @@ class GO:public Language {
   bool making_variable_wrappers;
   // True when working with a static member function.
   bool is_static_member_function;
+  // A hash table of enum types that we have seen but which may not have
+  // been defined.  The index is a SwigType.
+  Hash *undefined_enum_types;
   // A hash table of types that we have seen but which may not have
   // been defined.  The index is a SwigType.
   Hash *undefined_types;
   // A hash table of classes which were defined.  The index is a Go
   // type name.
   Hash *defined_types;
+  // A hash table of all the go_imports already imported. The index is a full
+  // import name e.g. '"runtime"' or '_ "runtime/cgo"' or 'sc "syscall"'.
+  Hash *go_imports;
 
 public:
   GO():package(NULL),
      module(NULL),
      gccgo_flag(false),
      go_prefix(NULL),
+     prefix_option(NULL),
+     pkgpath_option(NULL),
+     use_shlib(false),
      soname(NULL),
-     long_type_size(32),
      intgo_type_size(0),
      f_c_begin(NULL),
      f_go_begin(NULL),
@@ -98,6 +111,7 @@ public:
      f_c_init(NULL),
      f_c_directors(NULL),
      f_c_directors_h(NULL),
+     f_go_imports(NULL),
      f_go_runtime(NULL),
      f_go_header(NULL),
      f_go_wrappers(NULL),
@@ -113,8 +127,10 @@ public:
      class_methods(NULL),
      making_variable_wrappers(false),
      is_static_member_function(false),
+     undefined_enum_types(NULL),
      undefined_types(NULL),
-     defined_types(NULL) {
+     defined_types(NULL),
+     go_imports(NULL) {
     director_multiple_inheritance = 1;
     director_language = 1;
     director_prot_ctor_code = NewString("_swig_gopanic(\"accessing abstract class or protected constructor\");");
@@ -146,13 +162,25 @@ private:
 	  gccgo_flag = true;
 	} else if (strcmp(argv[i], "-go-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    go_prefix = NewString(argv[i + 1]);
+	    prefix_option = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if (strcmp(argv[i], "-go-pkgpath") == 0) {
+	  if (argv[i + 1]) {
+	    pkgpath_option = NewString(argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if (strcmp(argv[i], "-use-shlib") == 0) {
+	  Swig_mark_arg(i);
+	  use_shlib = true;
 	} else if (strcmp(argv[i], "-soname") == 0) {
 	  if (argv[i + 1]) {
 	    soname = NewString(argv[i + 1]);
@@ -163,12 +191,8 @@ private:
 	    Swig_arg_error();
 	  }
 	} else if (strcmp(argv[i], "-longsize") == 0) {
+	  // Ignore for backward compatibility.
 	  if (argv[i + 1]) {
-	    long_type_size = atoi(argv[i + 1]);
-	    if (long_type_size != 32 && long_type_size != 64) {
-	      Printf(stderr, "-longsize not 32 or 64\n");
-	      Swig_arg_error();
-	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    ++i;
@@ -195,8 +219,8 @@ private:
       }
     }
 
-    if (gccgo_flag && !go_prefix) {
-      go_prefix = NewString("go");
+    if (gccgo_flag && !pkgpath_option && !prefix_option) {
+      prefix_option = NewString("go");
     }
 
     // Add preprocessor symbol to parser.
@@ -204,12 +228,6 @@ private:
 
     if (gccgo_flag) {
       Preprocessor_define("SWIGGO_GCCGO 1", 0);
-    }
-
-    if (long_type_size == 32) {
-      Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 32", 0);
-    } else {
-      Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 64", 0);
     }
 
     // This test may be removed in the future, when we can assume that
@@ -274,13 +292,35 @@ private:
     if (!package) {
       package = Copy(module);
     }
-    if (!soname) {
+    if (!soname && use_shlib) {
       soname = Copy(package);
       Append(soname, ".so");
     }
 
+    if (gccgo_flag) {
+      String *pref;
+      if (pkgpath_option) {
+	pref = pkgpath_option;
+      } else {
+	pref = prefix_option;
+      }
+      go_prefix = NewString("");
+      for (char *p = Char(pref); *p != '\0'; p++) {
+	if ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z') || (*p >= '0' && *p <= '9') || *p == '.' || *p == '$') {
+	  Putc(*p, go_prefix);
+	} else {
+	  Putc('_', go_prefix);
+	}
+      }
+      if (!pkgpath_option) {
+	Append(go_prefix, ".");
+	Append(go_prefix, package);
+      }
+    }
+
     // Get filenames.
 
+    String *swig_filename = Getattr(n, "infile");
     String *c_filename = Getattr(n, "outfile");
     String *c_filename_h = Getattr(n, "outfile_h");
 
@@ -332,6 +372,7 @@ private:
     f_c_wrappers = NewString("");
     f_c_init = NewString("");
     f_c_directors = NewString("");
+    f_go_imports = NewString("");
     f_go_runtime = NewString("");
     f_go_header = NewString("");
     f_go_wrappers = NewString("");
@@ -349,6 +390,7 @@ private:
     Swig_register_filebyname("director", f_c_directors);
     Swig_register_filebyname("director_h", f_c_directors_h);
     Swig_register_filebyname("go_begin", f_go_begin);
+    Swig_register_filebyname("go_imports", f_go_imports);
     Swig_register_filebyname("go_runtime", f_go_runtime);
     Swig_register_filebyname("go_header", f_go_header);
     Swig_register_filebyname("go_wrapper", f_go_wrappers);
@@ -360,13 +402,23 @@ private:
     }
 
     Swig_banner(f_c_begin);
+    if (CPlusPlus) {
+      Printf(f_c_begin, "\n// source: %s\n\n", swig_filename);
+    } else {
+      Printf(f_c_begin, "\n/* source: %s */\n\n", swig_filename);
+    }
 
     Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
+    if (gccgo_flag) {
+      Printf(f_c_runtime, "#define SWIGGO_PREFIX %s\n", go_prefix);
+    }
 
     if (directorsEnabled()) {
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
 
       Swig_banner(f_c_directors_h);
+      Printf(f_c_directors_h, "\n// source: %s\n\n", swig_filename);
+
       Printf(f_c_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_c_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
 
@@ -377,9 +429,11 @@ private:
     }
 
     Swig_banner(f_go_begin);
+    Printf(f_go_begin, "\n// source: %s\n", swig_filename);
 
-    if (!gccgo_flag) {
+    if (!gccgo_flag && soname) {
       Swig_banner(f_gc_begin);
+      Printf(f_gc_begin, "\n/* source: %s */\n\n", swig_filename);
       Printf(f_gc_begin, "\n/* This file should be compiled with 6c/8c.  */\n");
       Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
     }
@@ -388,14 +442,12 @@ private:
 
     Printf(f_go_begin, "\npackage %s\n\n", package);
 
-    Printf(f_go_runtime, "//extern %sSwigCgocall\n", module);
-    Printf(f_go_runtime, "func SwigCgocall()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallDone\n", module);
-    Printf(f_go_runtime, "func SwigCgocallDone()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallBack\n", module);
-    Printf(f_go_runtime, "func SwigCgocallBack()\n");
-    Printf(f_go_runtime, "//extern %sSwigCgocallBackDone\n", module);
-    Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
+    if (gccgo_flag) {
+      Printf(f_go_runtime, "func SwigCgocall()\n");
+      Printf(f_go_runtime, "func SwigCgocallDone()\n");
+      Printf(f_go_runtime, "func SwigCgocallBack()\n");
+      Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
+    }
 
     // All the C++ wrappers should be extern "C".
 
@@ -403,14 +455,25 @@ private:
 
     // Set up the hash table for types not defined by SWIG.
 
+    undefined_enum_types = NewHash();
     undefined_types = NewHash();
     defined_types = NewHash();
+    go_imports = NewHash();
 
     // Emit code.
 
     Language::top(n);
 
+    Delete(go_imports);
+
     // Write out definitions for the types not defined by SWIG.
+
+    if (Len(undefined_enum_types) > 0)
+      Printv(f_go_wrappers, "\n", NULL);
+    for (Iterator p = First(undefined_enum_types); p.key; p = Next(p)) {
+      String *name = p.item;
+      Printv(f_go_wrappers, "type ", name, " int\n", NULL);
+    }
 
     Printv(f_go_wrappers, "\n", NULL);
     for (Iterator p = First(undefined_types); p.key; p = Next(p)) {
@@ -430,6 +493,7 @@ private:
       }
       Delete(ty);
     }
+    Delete(undefined_enum_types);
     Delete(undefined_types);
     Delete(defined_types);
 
@@ -453,6 +517,7 @@ private:
     Dump(f_c_runtime, f_c_begin);
     Dump(f_c_wrappers, f_c_begin);
     Dump(f_c_init, f_c_begin);
+    Dump(f_go_imports, f_go_begin);
     Dump(f_go_header, f_go_begin);
     Dump(f_go_runtime, f_go_begin);
     Dump(f_go_wrappers, f_go_begin);
@@ -466,6 +531,7 @@ private:
     Delete(f_c_header);
     Delete(f_c_wrappers);
     Delete(f_c_init);
+    Delete(f_go_imports);
     Delete(f_go_runtime);
     Delete(f_go_header);
     Delete(f_go_wrappers);
@@ -495,13 +561,41 @@ private:
     String *hold_import = imported_package;
     String *modname = Getattr(n, "module");
     if (modname) {
-      Printv(f_go_begin, "import \"", modname, "\"\n", NULL);
+      if (!Getattr(go_imports, modname)) {
+        Setattr(go_imports, modname, modname);
+        Printv(f_go_imports, "import \"", modname, "\"\n", NULL);
+      }
       imported_package = modname;
       saw_import = true;
     }
     int r = Language::importDirective(n);
     imported_package = hold_import;
     return r;
+  }
+
+  /* ----------------------------------------------------------------------
+   * Language::insertDirective()
+   *
+   * If the section is go_imports, store them for later.
+   * ---------------------------------------------------------------------- */
+  virtual int insertDirective(Node *n) {
+    char *section = Char(Getattr(n, "section"));
+    if ((ImportMode && !Getattr(n, "generated")) ||
+        !section || (strcmp(section, "go_imports") != 0)) {
+      return Language::insertDirective(n);
+    }
+
+    char *code = Char(Getattr(n, "code"));
+    char *pch = strtok(code, ",");
+    while (pch != NULL) {
+      // Do not import same thing more than once.
+      if (!Getattr(go_imports, pch)) {
+        Setattr(go_imports, pch, pch);
+        Printv(f_go_imports, "import ", pch, "\n", NULL);
+      }
+      pch = strtok(NULL, ",");
+    }
+    return SWIG_OK;
   }
 
   /* ----------------------------------------------------------------------
@@ -1074,6 +1168,7 @@ private:
     Wrapper *f = NewWrapper();
 
     Printv(f->def, "#pragma dynimport ", wname, " ", wname, " \"\"\n", NULL);
+    Printv(f->def, "#pragma cgo_import_static ", wname, "\n", NULL);
     Printv(f->def, "extern void (*", wname, ")(void*);\n", NULL);
     Printv(f->def, "static void (*x", wname, ")(void*) = ", wname, ";\n", NULL);
     Printv(f->def, "\n", NULL);
@@ -1323,7 +1418,7 @@ private:
     // Start the function definition.
 
     String *fnname = NewString("");
-    Printv(fnname, go_prefix, "_", wname, "(", NULL);
+    Printv(fnname, "go_", wname, "(", NULL);
 
     if (parm_count > required_count) {
       Printv(fnname, "intgo _swig_optargc", NULL);
@@ -1352,17 +1447,21 @@ private:
 
     Printv(fnname, ")", NULL);
 
+    String *fndef = NewString("");
     if (SwigType_type(result) == T_VOID) {
-      Printv(f->def, "void ", fnname, NULL);
+      Printv(fndef, "void ", fnname, NULL);
     } else {
       String *ct = gccgoCTypeForGoValue(n, result, fnname);
-      Printv(f->def, ct, NULL);
+      Printv(fndef, ct, NULL);
       Delete(ct);
     }
 
-    Printv(f->def, " {\n", NULL);
+    Printv(f->def, fndef, " __asm__(\"", go_prefix, "_", wname, "\");\n", NULL);
+
+    Printv(f->def, fndef, " {\n", NULL);
 
     Delete(fnname);
+    Delete(fndef);
 
     if (SwigType_type(result) != T_VOID) {
       String *ln = NewString("go_result");
@@ -1611,7 +1710,7 @@ private:
       return goComplexConstant(n, type);
     }
 
-    if (Getattr(n, "storage") && Strcmp(Getattr(n, "storage"), "static") == 0) {
+    if (Swig_storage_isstatic(n)) {
       return goComplexConstant(n, type);
     }
 
@@ -2794,7 +2893,7 @@ private:
       if (!gccgo_flag) {
 	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*, int);\n", NULL);
       } else {
-	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*) __asm__(\"", go_prefix, ".", package, ".", go_name, "\");\n", NULL);
+	Printv(f_c_directors, "extern \"C\" void ", wname, "(void*) __asm__(\"", go_prefix, ".", go_name, "\");\n", NULL);
       }
     }
 
@@ -2815,6 +2914,8 @@ private:
 	Printv(f_c_directors, "  crosscall2(", wname, ", &a, (int) sizeof a);\n", NULL);
 
 	Printv(f_gc_wrappers, "#pragma dynexport ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_wrappers, "#pragma cgo_export_static ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_wrappers, "#pragma textflag 7\n", NULL);
 	Printv(f_gc_wrappers, "extern void \xc2\xb7", go_name, "();\n", NULL);
 	Printv(f_gc_wrappers, "void\n", NULL);
 	Printv(f_gc_wrappers, wname, "(void *a, int32 n)\n", NULL);
@@ -2908,17 +3009,20 @@ private:
 	  return r;
 	}
 
-	String *go_upcall = NewString("Director");
-	Append(go_upcall, cn);
-	Append(go_upcall, go_name);
-	r = makeDispatchFunction(on, go_upcall, director_struct_name, is_static, director_struct_name, true);
-	if (r != SWIG_OK) {
-	  return r;
+	if (!GetFlag(n, "abstract")) {
+	  String *go_upcall = NewString("Director");
+	  Append(go_upcall, cn);
+	  Append(go_upcall, go_name);
+	  r = makeDispatchFunction(on, go_upcall, director_struct_name, is_static, director_struct_name, true);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
+	  Delete(go_upcall);
 	}
-	Delete(cn);
-	Delete(go_name);
+
 	Delete(director_struct_name);
-	Delete(go_upcall);
+	Delete(go_name);
+	Delete(cn);
       }
     }
     Setattr(class_methods, name, NewString(""));
@@ -3000,6 +3104,11 @@ private:
     Append(upcall_name, go_name);
 
     String *upcall_wname = Swig_name_wrapper(upcall_name);
+    if (overname) {
+      Append(upcall_wname, overname);
+    }
+
+    String *upcall_gc_name = buildGoWrapperName(upcall_name, overname);
 
     String *go_with_over_name = Copy(go_name);
     if (overname) {
@@ -3042,39 +3151,35 @@ private:
       Printv(f_go_wrappers, "\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
 
-      // Declare the upcall function, which calls the method on the
-      // parent class.
+      if (!GetFlag(n, "abstract")) {
+	// Declare the upcall function, which calls the method on the
+	// parent class.
 
-      if (overname) {
-	Append(upcall_wname, overname);
+	if (gccgo_flag) {
+	  Printv(f_go_wrappers, "//extern ", go_prefix, "_", upcall_wname, "\n", NULL);
+	}
+
+	Printv(f_go_wrappers, "func ", upcall_gc_name, "(", go_type_name, NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  p = getParm(p);
+	  String *tm = goWrapperType(p, Getattr(p, "type"), false);
+	  Printv(f_go_wrappers, ", ", tm, NULL);
+	  Delete(tm);
+	  p = nextParm(p);
+	}
+
+	Printv(f_go_wrappers, ")", NULL);
+
+	if (SwigType_type(result) != T_VOID) {
+	  String *tm = goWrapperType(n, result, true);
+	  Printv(f_go_wrappers, " ", tm, NULL);
+	  Delete(tm);
+	}
+
+	Printv(f_go_wrappers, "\n", NULL);
       }
-
-      String *upcall_gc_name = buildGoWrapperName(upcall_name, overname);
-
-      if (gccgo_flag) {
-	Printv(f_go_wrappers, "//extern ", go_prefix, "_", upcall_wname, "\n", NULL);
-      }
-
-      Printv(f_go_wrappers, "func ", upcall_gc_name, "(", go_type_name, NULL);
-
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	String *tm = goWrapperType(p, Getattr(p, "type"), false);
-	Printv(f_go_wrappers, ", ", tm, NULL);
-	Delete(tm);
-	p = nextParm(p);
-      }
-
-      Printv(f_go_wrappers, ")", NULL);
-
-      if (SwigType_type(result) != T_VOID) {
-	String *tm = goWrapperType(n, result, true);
-	Printv(f_go_wrappers, " ", tm, NULL);
-	Delete(tm);
-      }
-
-      Printv(f_go_wrappers, "\n", NULL);
 
       // Define the method on the director class in Go.
 
@@ -3126,181 +3231,189 @@ private:
       }
       Printv(f_go_wrappers, "\t}\n", NULL);
 
-      if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
-      }
-
-      Printv(f_go_wrappers, "\t", NULL);
-      if (SwigType_type(result) != T_VOID) {
-	Printv(f_go_wrappers, "return ", NULL);
-      }
-      Printv(f_go_wrappers, upcall_gc_name, "(swig_p.", go_type_name, NULL);
-
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	SwigType *pt = Getattr(p, "type");
-	Printv(f_go_wrappers, ", ", Getattr(p, "lname"), NULL);
-	if (goTypeIsInterface(p, pt)) {
-	  Printv(f_go_wrappers, ".Swigcptr()", NULL);
+      if (GetFlag(n, "abstract")) {
+	Printv(f_go_wrappers, "\tpanic(\"call to pure virtual method\")\n", NULL);
+      } else {
+	if (gccgo_flag) {
+	  Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	  Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
 	}
-	p = nextParm(p);
+
+	Printv(f_go_wrappers, "\t", NULL);
+	if (SwigType_type(result) != T_VOID) {
+	  Printv(f_go_wrappers, "return ", NULL);
+	}
+	Printv(f_go_wrappers, upcall_gc_name, "(swig_p.", go_type_name, NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  p = getParm(p);
+	  SwigType *pt = Getattr(p, "type");
+	  Printv(f_go_wrappers, ", ", Getattr(p, "lname"), NULL);
+	  if (goTypeIsInterface(p, pt)) {
+	    Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	  }
+	  p = nextParm(p);
+	}
+
+	Printv(f_go_wrappers, ")\n", NULL);
       }
 
-      Printv(f_go_wrappers, ")\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
 
       // Define a method in the C++ director class that the C++ upcall
       // function can call.  This permits an upcall to a protected
       // method.
 
-      String *upcall_method_name = NewString("_swig_upcall_");
-      Append(upcall_method_name, name);
-      if (overname) {
-	Append(upcall_method_name, overname);
-      }
-      SwigType *rtype = Getattr(n, "classDirectorMethods:type");
-      String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
-      Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
-      Delete(upcall_decl);
-
-      Printv(f_c_directors_h, "    ", NULL);
-      if (SwigType_type(result) != T_VOID) {
-	Printv(f_c_directors_h, "return ", NULL);
-      }
-
-      String *super_call = Swig_method_call(super, parms);
-      Printv(f_c_directors_h, super_call, ";\n", NULL);
-      Delete(super_call);
-
-      Printv(f_c_directors_h, "  }\n", NULL);
-
-      // Define the C++ function that the Go function calls.
-
-      SwigType *first_type = NULL;
-      Parm *first_parm = parms;
-      if (!is_static) {
-	first_type = NewString("SwigDirector_");
-	Append(first_type, class_name);
-	SwigType_add_pointer(first_type);
-	first_parm = NewParm(first_type, "p", n);
-	set_nextSibling(first_parm, parms);
-      }
-
-      Swig_save("classDirectorMethod", n, "wrap:name", "wrap:action", NULL);
-
-      Setattr(n, "wrap:name", upcall_wname);
-
-      String *action = NewString("");
-      if (SwigType_type(result) != T_VOID) {
-	Printv(action, Swig_cresult_name(), " = (", SwigType_lstr(result, 0), ")", NULL);
-	if (SwigType_isreference(result)) {
-	  Printv(action, "&", NULL);
+      if (!GetFlag(n, "abstract")) {
+	String *upcall_method_name = NewString("_swig_upcall_");
+	Append(upcall_method_name, name);
+	if (overname) {
+	  Append(upcall_method_name, overname);
 	}
-      }
-      Printv(action, Swig_cparm_name(NULL, 0), "->", upcall_method_name, "(", NULL);
+	SwigType *rtype = Getattr(n, "classDirectorMethods:type");
+	String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
+	Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
+	Delete(upcall_decl);
 
-      p = parms;
-      int i = 0;
-      while (p != NULL) {
-	if (SwigType_type(Getattr(p, "type")) != T_VOID) {
-	  String *pname = Swig_cparm_name(NULL, i + 1);
-	  if (i > 0) {
-	    Printv(action, ", ", NULL);
+	Printv(f_c_directors_h, "    ", NULL);
+	if (SwigType_type(result) != T_VOID) {
+	  Printv(f_c_directors_h, "return ", NULL);
+	}
+
+	String *super_call = Swig_method_call(super, parms);
+	Printv(f_c_directors_h, super_call, ";\n", NULL);
+	Delete(super_call);
+
+	Printv(f_c_directors_h, "  }\n", NULL);
+
+	// Define the C++ function that the Go function calls.
+
+	SwigType *first_type = NULL;
+	Parm *first_parm = parms;
+	if (!is_static) {
+	  first_type = NewString("SwigDirector_");
+	  Append(first_type, class_name);
+	  SwigType_add_pointer(first_type);
+	  first_parm = NewParm(first_type, "p", n);
+	  set_nextSibling(first_parm, parms);
+	}
+
+	Swig_save("classDirectorMethod", n, "wrap:name", "wrap:action", NULL);
+
+	Setattr(n, "wrap:name", upcall_wname);
+
+	String *action = NewString("");
+	if (SwigType_type(result) != T_VOID) {
+	  Printv(action, Swig_cresult_name(), " = (", SwigType_lstr(result, 0), ")", NULL);
+	  if (SwigType_isreference(result)) {
+	    Printv(action, "&", NULL);
 	  }
+	}
+	Printv(action, Swig_cparm_name(NULL, 0), "->", upcall_method_name, "(", NULL);
 
-	  // A parameter whose type is a reference is converted into a
-	  // pointer type by gcCTypeForGoValue.  We are calling a
-	  // function which expects a reference so we need to convert
-	  // back.
-	  if (SwigType_isreference(Getattr(p, "type"))) {
-	    Printv(action, "*", NULL);
+	p = parms;
+	int i = 0;
+	while (p != NULL) {
+	  if (SwigType_type(Getattr(p, "type")) != T_VOID) {
+	    String *pname = Swig_cparm_name(NULL, i + 1);
+	    if (i > 0) {
+	      Printv(action, ", ", NULL);
+	    }
+
+	    // A parameter whose type is a reference is converted into a
+	    // pointer type by gcCTypeForGoValue.  We are calling a
+	    // function which expects a reference so we need to convert
+	    // back.
+	    if (SwigType_isreference(Getattr(p, "type"))) {
+	      Printv(action, "*", NULL);
+	    }
+
+	    Printv(action, pname, NULL);
+	    Delete(pname);
+	    i++;
 	  }
-
-	  Printv(action, pname, NULL);
-	  Delete(pname);
-	  i++;
+	  p = nextSibling(p);
 	}
-	p = nextSibling(p);
-      }
-      Printv(action, ");", NULL);
-      Setattr(n, "wrap:action", action);
+	Printv(action, ");", NULL);
+	Setattr(n, "wrap:action", action);
 
-      if (!gccgo_flag) {
-	// Write the upcall wrapper function.  This is compiled by gc
-	// and calls the C++ function.
-	int r = gcFunctionWrapper(n, upcall_name, upcall_name, overname, upcall_wname, first_parm, result, is_static, true);
-	if (r != SWIG_OK) {
-	  return r;
+	if (!gccgo_flag) {
+	  // Write the upcall wrapper function.  This is compiled by gc
+	  // and calls the C++ function.
+	  int r = gcFunctionWrapper(n, upcall_name, upcall_name, overname, upcall_wname, first_parm, result, is_static, true);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
+	  r = gccFunctionWrapper(n, NULL, upcall_wname, first_parm, result);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
+	} else {
+	  int r = gccgoFunctionWrapper(n, NULL, upcall_wname, first_parm, result);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
 	}
-	r = gccFunctionWrapper(n, NULL, upcall_wname, first_parm, result);
-	if (r != SWIG_OK) {
-	  return r;
+
+	Delete(first_type);
+	if (first_parm != parms) {
+	  Delete(first_parm);
 	}
-      } else {
-	int r = gccgoFunctionWrapper(n, NULL, upcall_wname, first_parm, result);
-	if (r != SWIG_OK) {
-	  return r;
+
+	Swig_restore(n);
+	Delete(upcall_method_name);
+
+	// Define a function that uses the Go director type that other
+	// methods in the Go type can call to get parent methods.
+
+	Printv(f_go_wrappers, "func Director", cn, go_with_over_name, "(p ", cn, NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  p = getParm(p);
+	  Printv(f_go_wrappers, ", ", Getattr(p, "lname"), " ", NULL);
+	  String *tm = goType(p, Getattr(p, "type"));
+	  Printv(f_go_wrappers, tm, NULL);
+	  Delete(tm);
+	  p = nextParm(p);
 	}
-      }
 
-      Delete(first_type);
-      if (first_parm != parms) {
-	Delete(first_parm);
-      }
+	Printv(f_go_wrappers, ")", NULL);
 
-      Swig_restore(n);
-
-      // Define a function which uses the Go director type that other
-      // methods in the Go type can call to get parent methods.
-
-      Printv(f_go_wrappers, "func Director", cn, go_with_over_name, "(p ", cn, NULL);
-
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	Printv(f_go_wrappers, ", ", Getattr(p, "lname"), " ", NULL);
-	String *tm = goType(p, Getattr(p, "type"));
-	Printv(f_go_wrappers, tm, NULL);
-	Delete(tm);
-	p = nextParm(p);
-      }
-
-      Printv(f_go_wrappers, ")", NULL);
-
-      if (SwigType_type(result) != T_VOID) {
-	String *tm = goType(n, result);
-	Printv(f_go_wrappers, " ", tm, NULL);
-	Delete(tm);
-      }
-
-      Printv(f_go_wrappers, " {\n", NULL);
-
-      if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
-      }
-
-      Printv(f_go_wrappers, "\t", NULL);
-      if (SwigType_type(result) != T_VOID) {
-	Printv(f_go_wrappers, "return ", NULL);
-      }
-      Printv(f_go_wrappers, upcall_gc_name, "(p.(*", director_struct_name, ").", go_type_name, NULL);
-
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	SwigType *pt = Getattr(p, "type");
-	Printv(f_go_wrappers, ", ", Getattr(p, "lname"), NULL);
-	if (goTypeIsInterface(p, pt)) {
-	  Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	if (SwigType_type(result) != T_VOID) {
+	  String *tm = goType(n, result);
+	  Printv(f_go_wrappers, " ", tm, NULL);
+	  Delete(tm);
 	}
-	p = nextParm(p);
-      }
 
-      Printv(f_go_wrappers, ")\n", NULL);
-      Printv(f_go_wrappers, "}\n\n", NULL);
+	Printv(f_go_wrappers, " {\n", NULL);
+
+	if (gccgo_flag) {
+	  Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	  Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	}
+
+	Printv(f_go_wrappers, "\t", NULL);
+	if (SwigType_type(result) != T_VOID) {
+	  Printv(f_go_wrappers, "return ", NULL);
+	}
+	Printv(f_go_wrappers, upcall_gc_name, "(p.(*", director_struct_name, ").", go_type_name, NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  p = getParm(p);
+	  SwigType *pt = Getattr(p, "type");
+	  Printv(f_go_wrappers, ", ", Getattr(p, "lname"), NULL);
+	  if (goTypeIsInterface(p, pt)) {
+	    Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	  }
+	  p = nextParm(p);
+	}
+
+	Printv(f_go_wrappers, ")\n", NULL);
+	Printv(f_go_wrappers, "}\n\n", NULL);
+      }
 
       // The Go function which invokes the method.  This is called
       // from by the C++ method on the director class.
@@ -3380,17 +3493,16 @@ private:
 	}
 
 	Printv(f_go_wrappers, "\n", NULL);
-
-	Delete(upcall_gc_name);
       }
 
       Printv(f_go_wrappers, "}\n\n", NULL);
 
       Delete(result_wrapper);
 
-      // Build the C++ functions.
-
       Delete(upcall_wname);
+      Delete(upcall_gc_name);
+
+      // Build the C++ functions.
 
       if (!gccgo_flag) {
 	Printv(f_c_directors, "extern \"C\" void ", callback_wname, "(void*, int);\n", NULL);
@@ -3424,10 +3536,9 @@ private:
 
 	Delete(fnname);
 
-	Printv(f_c_directors, " __asm__(\"", go_prefix, ".", package, ".", callback_name, "\");\n", NULL);
+	Printv(f_c_directors, " __asm__(\"", go_prefix, ".", callback_name, "\");\n", NULL);
       }
 
-      Delete(upcall_method_name);
       Delete(go_with_over_name);
     }
 
@@ -3534,6 +3645,8 @@ private:
 
 	  // The C wrapper code which calls the Go function.
 	  Printv(f_gc_wrappers, "#pragma dynexport ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_wrappers, "#pragma cgo_export_static ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_wrappers, "#pragma textflag 7\n", NULL);
 	  Printv(f_gc_wrappers, "extern void \xc2\xb7", callback_name, "();\n", NULL);
 	  Printv(f_gc_wrappers, "void\n", NULL);
 	  Printv(f_gc_wrappers, callback_wname, "(void *a, int32 n)\n", NULL);
@@ -4394,11 +4507,20 @@ private:
 
     SwigType *t = SwigType_typedef_resolve_all(type);
 
-    Node *e = Language::enumLookup(t);
-    if (e) {
-      ret = goEnumName(e);
-    } else if (Strcmp(t, "enum ") == 0) {
-      ret = NewString("int");
+    if (SwigType_isenum(t)) {
+      Node *e = Language::enumLookup(t);
+      if (e) {
+	ret = goEnumName(e);
+      } else if (Strcmp(t, "enum ") == 0) {
+	ret = NewString("int");
+      } else {
+	// An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	String *tt = Copy(t);
+	Replace(tt, "enum ", "", DOH_REPLACE_ANY);
+	ret = exportedName(tt);
+	Setattr(undefined_enum_types, t, ret);
+	Delete(tt);
+      }
     } else if (SwigType_isfunctionpointer(type) || SwigType_isfunction(type)) {
       ret = NewString("_swig_fnptr");
     } else if (SwigType_ismemberpointer(type)) {
@@ -4667,14 +4789,11 @@ private:
       ret = NewString("_Complex double ");
     } else if (is_interface) {
       SwigType *t = SwigType_typedef_resolve_all(type);
-      SwigType_strip_qualifiers(t);
       if (SwigType_ispointer(t)) {
 	SwigType_del_pointer(t);
-	SwigType_strip_qualifiers(t);
       }
       if (SwigType_isreference(t)) {
 	SwigType_del_reference(t);
-	SwigType_strip_qualifiers(t);
       }
       SwigType_add_pointer(t);
       ret = SwigType_lstr(t, name);
@@ -4694,6 +4813,9 @@ private:
 	      if (is_int) {
 		ret = NewString("intgo ");
 		Append(ret, name);
+	      } else if (is_int64) {
+		ret = NewString("long long ");
+		Append(ret, name);
 	      } else {
 		ret = SwigType_lstr(t, name);
 	      }
@@ -4706,8 +4828,13 @@ private:
 	}
       }
 
-      if (Language::enumLookup(t) != NULL || Strcmp(t, "enum ") == 0) {
+      if (Language::enumLookup(t) != NULL) {
 	is_int = true;
+      } else {
+	SwigType *tstripped = SwigType_strip_qualifiers(t);
+	if (SwigType_isenum(tstripped))
+	  is_int = true;
+	Delete(tstripped);
       }
 
       Delete(t);
@@ -4860,7 +4987,7 @@ private:
 
   bool isStatic(Node *n) {
     String *storage = Getattr(n, "storage");
-    return (storage && (Strcmp(storage, "static") == 0 || Strcmp(storage, "friend") == 0) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
+    return (storage && (Swig_storage_isstatic(n) || Strcmp(storage, "friend") == 0) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
   }
 
   /* ----------------------------------------------------------------------
@@ -4892,12 +5019,13 @@ extern "C" Language *swig_go(void) {
  * ----------------------------------------------------------------------------- */
 
 // Usage message.
-const char * const GO::usage = (char *) "\
+const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
+     -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
-     -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
      -package <name>     - Set name of the Go package to <name>\n\
+     -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";

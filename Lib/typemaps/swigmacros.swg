@@ -3,16 +3,16 @@
  * ----------------------------------------------------------------------------- */
 /*
   This file implements the internal macros of the 'SWIG API', which
-  are useful to implement all the SWIG target languges.
+  are useful to implement all the SWIG target languages.
 
   Basic preprocessor macros:
   --------------------------
 
     %arg(Arg)               Safe argument wrap
-    %str(Arg)               Stringtify the argument
-    %begin_block            Begin a execution block
-    %end_block              End a execution block
-    %block(Block)           Execute Block as a excecution block
+    %str(Arg)               Stringify the argument
+    %begin_block            Begin an execution block
+    %end_block              End an execution block
+    %block(Block)           Execute Block as an execution block
     %define_as(Def, Val)    Define 'Def' as 'Val', expanding Def and Val first
     %ifcplusplus(V1, V2)    if C++ Mode; then V1; else V2; fi
 

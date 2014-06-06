@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.0],[http://www.swig.org])
+AC_INIT([swig],[3.0.2],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -19,7 +19,7 @@ AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Deal with Microsofts attempt at deprecating C standard runtime functions */
+/* Deal with attempt by Microsoft to deprecate C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif
@@ -130,13 +130,13 @@ AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
 if test -n "$YODL2MAN"; then
   AC_MSG_CHECKING([yodl2man version >= 2.02])
-  yodl_version=`$YODL2MAN --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\).*/\1/g'`
+  [yodl_version=`$YODL2MAN --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\).*/\1/g'`]
   AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
 fi
 
 if test -n "$YODL2HTML"; then
   AC_MSG_CHECKING([yodl2html version >= 2.02])
-  yodl_version=`$YODL2HTML --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`
+  [yodl_version=`$YODL2HTML --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`]
   AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
 fi
 
@@ -318,16 +318,52 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATFLAGS)
+AC_MSG_CHECKING(PLATCFLAGS)
 case $host in
   *-*-solaris*) if test "$GCC" = yes
-    then PLATFLAGS=
-    else PLATFLAGS=
-      #    else PLATFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
+    then PLATCFLAGS=
+    else PLATCFLAGS=
+      #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
-  *) PLATFLAGS=
+  *) PLATCFLAGS=
 esac
-AC_MSG_RESULT($PLATFLAGS)
+AC_MSG_RESULT($PLATCFLAGS)
+
+# Add switch if necessary to enable C++11 support - just for tests
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
+AC_MSG_CHECKING([whether to enable C++11 testing])
+AC_MSG_RESULT([$enable_cpp11_testing])
+
+PLATCXXFLAGS="$PLATCFLAGS"
+if test x"$enable_cpp11_testing" = xyes; then 
+  AC_LANG_PUSH([C++])
+  CXXFLAGS_SAVED=$CXXFLAGS
+  AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
+  CXXFLAGS=$CXXFLAGS_SAVED
+  AC_LANG_POP([C++])
+  if test x"$CXX11FLAGS" != x; then
+    PLATCXXFLAGS="$CXX11FLAGS $PLATCXXFLAGS"
+  fi
+  AC_MSG_CHECKING([for C++11 enabled compiler])
+  if test x"$HAVE_CXX11_COMPILER" = x; then
+    AC_MSG_RESULT([no])
+  else
+    AC_MSG_RESULT([$HAVE_CXX11_COMPILER])
+  fi
+fi
+
+# On darwin 10.7,10.8,10.9 using clang++, need to ensure using
+# libc++ for tests and examples to run under mono. May affect 
+# other language targets as well - problem is an OSX incompatibility
+# between libraries depending on libstdc++ and libc++.
+CLANGXX=
+$CXX -v 2>&1 | grep -i clang >/dev/null && CLANGXX=yes
+case $host in
+  *-*-darwin11* | *-*-darwin12* |*-*-darwin13*  ) if test "$CLANGXX" = "yes";
+    then PLATCXXFLAGS="$PLATCXXFLAGS -stdlib=libc++"
+    fi;;
+  *) ;;
+esac
 
 # Set info about shared libraries.
 AC_SUBST(SO)
@@ -336,7 +372,9 @@ AC_SUBST(CCSHARED)
 AC_SUBST(CXXSHARED)
 AC_SUBST(TRYLINKINGWITHCXX)
 AC_SUBST(RPATH)
-AC_SUBST(PLATFLAGS)
+AC_SUBST(PLATCFLAGS)
+AC_SUBST(PLATCXXFLAGS)
+AC_SUBST(HAVE_CXX11_COMPILER)
 AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
@@ -451,15 +489,15 @@ if test x"${with_tclconfig}" != x ; then
    if test -f "${with_tclconfig}/tclConfig.sh" ; then
       TCLCONFIG=`(cd ${with_tclconfig}; pwd)`
    else
-      AC_MSG_ERROR([${with_tcl} directory doesn't contain tclConfig.sh])
+      AC_MSG_ERROR([${with_tcl} directory does not contain tclConfig.sh])
    fi
 fi
 # check in a few common install locations
 if test x"${TCLCONFIG}" = x ; then
-    for i in `ls -d /usr/lib/ 2>/dev/null` \
-	     `ls -d -r /usr/lib/tcl*/ 2>/dev/null` \
-	     `ls -d /usr/local/lib/ 2>/dev/null` \
-	     `ls -d -r /usr/local/lib/tcl*/ 2>/dev/null` ; do
+    for i in `ls -d -r /usr/lib*/ 2>/dev/null` \
+	     `ls -d -r /usr/lib*/tcl*/ 2>/dev/null` \
+	     `ls -d -r /usr/local/lib*/ 2>/dev/null` \
+	     `ls -d -r /usr/local/lib*/tcl*/ 2>/dev/null` ; do
 	if test -f $i"tclConfig.sh" ; then
 	    TCLCONFIG=`(cd $i; pwd)`
 	    break
@@ -669,15 +707,21 @@ AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[
 if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Python 3.x support])
 else
-  for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
-    AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-    if test -n "$PYTHON3"; then
-      AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-      if test -n "$PY3CONFIG"; then
-        break
+  if test "x$PY3BIN" = xyes; then
+    for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
+        fi
       fi
-    fi
-  done
+    done
+  else
+    PYTHON3="$PY3BIN"
+    AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+  fi
+
 
   if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
@@ -826,6 +870,13 @@ if test -n "$PERL"; then
       else
       AC_MSG_RESULT($PERL5LDFLAGS)
     fi
+    AC_MSG_CHECKING(for Perl5 Test::More module) # For test-suite
+    PERL5TESTMORE=`($PERL -e 'use Test::More; print "good";') 2>/dev/null`
+    if test -z "$PERL5TESTMORE" ; then
+      AC_MSG_RESULT(not found)
+      else
+      AC_MSG_RESULT(found)
+    fi
 	else
 		AC_MSG_RESULT(unable to determine perl5 configuration)
 		PERL5EXT=$PERL5DIR
@@ -887,13 +938,13 @@ if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
    for n in CPPFLAGS INCFLAGS; do
-     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`${mkoctfile} -p $n`
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`unset CPPFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
    for n in ALL_CXXFLAGS; do
-     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`${mkoctfile} -p $n`
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`unset CXXFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
    AC_MSG_CHECKING([for Octave linker flags])
@@ -1029,7 +1080,7 @@ AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
 if test -z "$JAVAINCDIR" ; then
-  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
+  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
 
   # Add in default installation directory on Windows for Cygwin
   case $host in
@@ -1114,6 +1165,231 @@ AC_SUBST(JAVASO)
 AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVACFLAGS)
+
+#----------------------------------------------------------------
+# Look for Javascript
+#----------------------------------------------------------------
+AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable Javascript]), [with_javascript="$withval"], [with_javascript=yes])
+
+# First, check for "--without-javascript" or "--with-javascript=no".
+if test x"${with_javascript}" = xno -o x"${with_alllang}" = xno ; then
+  AC_MSG_NOTICE([Disabling Javascript])
+  JAVASCRIPT=
+else
+  JAVASCRIPT=1
+
+  #----------------------------------------------------------------
+  # General Javascript settings shared by JSC and V8
+  #----------------------------------------------------------------
+
+  case $host in
+  *-*-cygwin* | *-*-mingw*)
+    JSLIBRARYPREFIX=""
+    ;;
+  *)
+    JSLIBRARYPREFIX="lib"
+    ;;
+  esac
+
+  case $host in
+  *-*-darwin*)
+    JSSO=".dylib"
+    JSLDSHARED='$(CC) -dynamiclib'
+    JSCXXSHARED='$(CXX) -dynamiclib'
+    # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
+    JSINTERPRETERCXX='c++'
+    JSINTERPRETERLINKFLAGS='-g -Wl,-search_paths_first -Wl,-headerpad_max_install_names'
+    ;;
+  *)
+    JSSO=$SO
+    JSLDSHARED='$(LDSHARED)'
+    JSCXXSHARED='$(CXXSHARED)'
+    JSINTERPRETERCXX='$(CXX)'
+    JSINTERPRETERLINKFLAGS='-ldl'
+    ;;
+  esac
+
+  #----------------------------------------------------------------
+  # Look for Node.js which is the default Javascript engine
+  #----------------------------------------------------------------
+
+  AC_CHECK_PROGS(NODEJS, node)
+
+  if test -n "$NODEJS"; then
+    # node-gyp is needed to run the test-suite/examples
+    AC_CHECK_PROGS(NODEGYP, node-gyp)
+    if test -z "$NODEGYP"; then
+      NODEJS=
+    fi
+  fi
+
+  #----------------------------------------------------------------
+  # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
+  AC_ARG_WITH(jscoreinc, [  --with-jscinc=path    Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
+
+  JSCOREVERSION=
+
+  if test -z "$JSCOREINCDIR"; then
+    JSCOREINCDIR="/usr/include/ /usr/local/include/"
+
+    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    case $host in
+    *-*-linux*)
+      JSCOREINCDIR="/usr/include/webkit-1.0/ /usr/include/webkitgtk-1.0/ /usr/local/include/webkit-1.0/JavaScriptCore/ $JSCOREINCDIR"
+      ;;
+    *-*-darwin*)
+      JSCOREINCDIR="/System/Library/Frameworks/JavaScriptCore.framework/Headers/ $JSCOREINCDIR"
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  for d in $JSCOREINCDIR ; do
+    if test -r "$d/JavaScriptCore/JavaScript.h" || test -r "$d/JavaScript.h" ; then
+      AC_MSG_RESULT($d)
+      JSCOREINCDIR=$d
+      JSCOREINC=-I\"$d\"
+      break
+    fi
+  done
+
+  if test "$JSCOREINC" = "" ; then
+    AC_MSG_RESULT(not found)
+  fi
+
+  # check for JavaScriptCore/Webkit libraries
+  AC_ARG_WITH(jscorelib,[  --with-jsclib =path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
+
+  # look for the library when not provided
+  if test -z "$JSCORELIB"; then
+    case $host in
+    *-*-linux*)
+      dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
+      for i in $dirs ; do
+        if test -r $i/libjavascriptcoregtk-1.0.so; then
+          AC_MSG_RESULT($i)
+          JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
+          JSCOREVERSION=`pkg-config --modversion javascriptcoregtk-1.0`
+          break
+        fi
+      done
+
+      if test -z "$JSCORELIB"; then
+        AC_MSG_RESULT(not found)
+        JSCENABLED=
+      else
+        JSCOREDYNAMICLINKING="$JSCORELIB"
+        JSCENABLED=1
+      fi
+      ;;
+    *-*-darwin*)
+      JSCOREDYNAMICLINKING="-framework JavaScriptCore"
+      JSCENABLED=1
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  #----------------------------------------------------------------
+  # Look for V8 settings (JSV8INCDIR, JSV8DYNAMICLINKING)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for V8 Javascript v8.h)
+  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+
+  # if not include dir is specified we try to find
+  if test -z "$JSV8INCDIR"; then
+    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    case $host in
+    *-*-linux*)
+      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
+      ;;
+    *-*-darwin*)
+      JSV8INCDIR="$JSV8INCDIR"
+      ;;
+    *)
+      ;;
+    esac
+  fi
+
+  for d in $JSV8INCDIR ; do
+    if test -r "$d/v8.h" ; then
+      JSV8INCDIR=$d
+      JSV8INC=-I\"$d\"
+      break
+    fi
+  done
+
+  if test "$JSV8INC" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+    AC_MSG_RESULT($JSV8INCDIR)
+  fi
+
+  # check for V8 library
+  AC_MSG_CHECKING(for V8 Javascript library)
+  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+
+  v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
+  for d in $v8libdirs ; do
+    if test -r $d/libv8.so; then
+      JSV8LIBDIR=$d
+      JSV8LIB="-L$d -lv8"
+      break
+    fi
+  done
+
+  if test "$JSV8LIB" = "" ; then
+    AC_MSG_RESULT(not found)
+    JSV8ENABLED=
+  else
+    AC_MSG_RESULT($JSV8LIBDIR)
+    JSV8ENABLED=1
+  fi
+
+
+  # linking options
+  case $host in
+  *-*-darwin*)
+    JSV8DYNAMICLINKING="" # TODO: add osx configuration
+    ;;
+  *-*-linux*)
+    JSV8DYNAMICLINKING="$JSV8LIB"
+    ;;
+  *)
+    JSV8DYNAMICLINKING=""
+    ;;
+  esac
+
+fi
+
+AC_SUBST(JSLIBRARYPREFIX)
+AC_SUBST(JSSO)
+AC_SUBST(JSLDSHARED)
+AC_SUBST(JSCXXSHARED)
+
+AC_SUBST(JSINTERPRETERCXX)
+AC_SUBST(JSINTERPRETERLINKFLAGS)
+
+AC_SUBST(JSCOREINC)
+AC_SUBST(JSCOREDYNAMICLINKING)
+AC_SUBST(JSCOREVERSION)
+AC_SUBST(JSV8INC)
+AC_SUBST(JSV8DYNAMICLINKING)
+
+AC_SUBST(JSCENABLED)
+AC_SUBST(JSV8ENABLED)
+
+AC_SUBST(NODEJS)
+AC_SUBST(NODEGYP)
 
 #----------------------------------------------------------------
 # Look for gcj
@@ -1321,7 +1597,7 @@ fi
 
 AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
-        # Try Ruby1.9 first
+        # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
 		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
@@ -1330,20 +1606,20 @@ if test -n "$RUBY"; then
         fi
 	if test x"$RUBYDIR" != x""; then
 		dirs="$RUBYDIR"
-		RUBYINCLUDE=none
+		RUBYINCLUDE=
 		for i in $dirs; do
 			if test -r $i/ruby.h; then
-				AC_MSG_RESULT($i)
-				RUBYINCLUDE="-I$i"
+				if test x"$RUBYARCH" = x""; then
+					RUBYINCLUDE="-I$i"
+				else
+					RUBYINCLUDE="-I$i -I$i/$RUBYARCH"
+				fi
+				AC_MSG_RESULT($RUBYINCLUDE)
 				break
 			fi
 		done
-		if test x"$RUBYARCH" != x""; then
-			RUBYINCLUDE="-I$RUBYDIR -I$RUBYDIR/$RUBYARCH"
-		fi
-		if test "$RUBYINCLUDE" = none; then
-			RUBYINCLUDE="-I$RUBYDIR"
-			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
+		if test x"$RUBYINCLUDE" = x""; then
+			AC_MSG_RESULT(could not locate ruby.h)
 		fi
 
 		# Find library and path for linking.
@@ -1397,8 +1673,6 @@ if test -n "$RUBY"; then
 		fi
 	else
 		AC_MSG_RESULT(unable to determine ruby configuration)
-		RUBYINCLUDE="-I$RUBYDIR"
-		RUBYLIB="$RUBYDIR"
 	fi
 
 	case $host in
@@ -1410,9 +1684,6 @@ if test -n "$RUBY"; then
 	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
-	RUBYINCLUDE="-I/usr/local/lib/ruby/1.4/arch"
-	RUBYLIB="/usr/local/lib/ruby/1.4/arch"
-	RUBYLINK="-lruby -lm"
 fi
 
 case $host in
@@ -1788,7 +2059,7 @@ if test -z "$CSHARPBIN" ; then
         echo "mcs is not a working Mono C# compiler"
       fi
     fi
-    if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER"; then
+    if test "mcs" = "$CSHARPCOMPILER" || test "gmcs" = "$CSHARPCOMPILER" || test "mono-csc" = "$CSHARPCOMPILER"; then
         AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
         CSHARPCILINTERPRETER_FLAGS="--debug"
     else
@@ -2050,6 +2321,8 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GO=
   GOC=
   GO1=false
+  GO12=false
+  GO13=false
   GOGCC=false
   GOOPT=
   GOVERSIONOPTION=
@@ -2063,6 +2336,8 @@ else
 
   GOGCC=false
   GO1=false
+  GO12=false
+  GO13=false
   GOOPT=
   GOVERSIONOPTION=
   if test -n "$GO" ; then
@@ -2070,9 +2345,13 @@ else
       GOGCC=true
       GOVERSIONOPTION=--version
       AC_MSG_CHECKING([whether gccgo version is too old])
-      go_version=`$GO $GOVERSIONOPTION | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
-      if test "$go_version" -lt 470; then
+      go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
+      if test "x$go_version" = x; then
+        AC_MSG_RESULT([could not determine gccgo version - disabling Go])
+        GO=
+      elif test "$go_version" -lt 470; then
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
+        GO=
       else
 	AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
@@ -2100,6 +2379,17 @@ else
 	 fi
 	 ;;
       esac
+      case $go_version in
+      go1.0* | go1.1*)
+	GOOPT="$GOOPT -use-shlib"
+	;;
+      go1.2*)
+        GO12=true
+	;;
+      *)
+	GO13=true
+	;;
+      esac
     else
       GOC=`echo $GO | sed -e 's/g/c/'`
       GOVERSIONOPTION=-V
@@ -2113,6 +2403,8 @@ else
         AC_MSG_RESULT([no])
       fi
       GOOPT="-intgosize 32"
+      GO12=false
+      GO13=false
     fi
   fi
 fi
@@ -2121,6 +2413,8 @@ AC_SUBST(GOGCC)
 AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
+AC_SUBST(GO12)
+AC_SUBST(GO13)
 AC_SUBST(GOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
@@ -2220,7 +2514,7 @@ AC_SUBST(SKIP_TCL)
 
 
 SKIP_PERL5=
-if test -z "$PERL" || test -z "$PERL5EXT" ; then
+if test -z "$PERL" || test -z "$PERL5EXT" || test -z "$PERL5TESTMORE"; then
     SKIP_PERL5="1"
 fi
 AC_SUBST(SKIP_PERL5)
@@ -2252,6 +2546,11 @@ if test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then
 fi
 AC_SUBST(SKIP_JAVA)
 
+SKIP_JAVASCRIPT=
+if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" ) ; then
+    SKIP_JAVASCRIPT="1"
+fi
+AC_SUBST(SKIP_JAVASCRIPT)
 
 SKIP_GUILE=
 if test -z "$GUILE" || test -z "$GUILE_LIBS" ; then
@@ -2429,38 +2728,106 @@ case $build in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-AC_CONFIG_FILES([			        \
-    Makefile				        \
-    swig.spec				        \
-    Source/Makefile			        \
-    Examples/Makefile			        \
-    Examples/xml/Makefile		        \
-    Examples/test-suite/chicken/Makefile	\
-    Examples/test-suite/csharp/Makefile	        \
-    Examples/test-suite/d/Makefile	        \
-    Examples/test-suite/guile/Makefile	        \
-    Examples/test-suite/java/Makefile	        \
-    Examples/test-suite/mzscheme/Makefile	\
-    Examples/test-suite/ocaml/Makefile	        \
-    Examples/test-suite/octave/Makefile	        \
-    Examples/test-suite/perl5/Makefile	        \
-    Examples/test-suite/php/Makefile	        \
-    Examples/test-suite/pike/Makefile	        \
-    Examples/test-suite/python/Makefile	        \
-    Examples/test-suite/ruby/Makefile	        \
-    Examples/test-suite/tcl/Makefile	        \
-    Examples/test-suite/lua/Makefile	        \
-    Examples/test-suite/allegrocl/Makefile	\
-    Examples/test-suite/clisp/Makefile		\
-    Examples/test-suite/cffi/Makefile		\
-    Examples/test-suite/uffi/Makefile		\
-    Examples/test-suite/r/Makefile		\
-    Examples/test-suite/scilab/Makefile		\
-    Examples/test-suite/go/Makefile		\
-    Lib/ocaml/swigp4.ml
+AC_CONFIG_FILES([
+    Makefile
+    swig.spec
+    Examples/Makefile
+    Examples/xml/Makefile
+    Examples/test-suite/errors/Makefile
+    Examples/test-suite/chicken/Makefile
+    Examples/test-suite/csharp/Makefile
+    Examples/test-suite/d/Makefile
+    Examples/test-suite/guile/Makefile
+    Examples/test-suite/java/Makefile
+    Examples/test-suite/javascript/Makefile
+    Examples/test-suite/mzscheme/Makefile
+    Examples/test-suite/ocaml/Makefile
+    Examples/test-suite/octave/Makefile
+    Examples/test-suite/perl5/Makefile
+    Examples/test-suite/php/Makefile
+    Examples/test-suite/pike/Makefile
+    Examples/test-suite/python/Makefile
+    Examples/test-suite/ruby/Makefile
+    Examples/test-suite/tcl/Makefile
+    Examples/test-suite/lua/Makefile
+    Examples/test-suite/allegrocl/Makefile
+    Examples/test-suite/clisp/Makefile
+    Examples/test-suite/cffi/Makefile
+    Examples/test-suite/uffi/Makefile
+    Examples/test-suite/r/Makefile
+    Examples/test-suite/go/Makefile
+    Examples/test-suite/scilab/Makefile
+    Source/Makefile
+    Tools/javascript/Makefile
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
+#--------------------------------------------------------------------
+# Building Examples/ out of source directory
+#--------------------------------------------------------------------
+
+# If building out of source tree, replicate Examples/ source tree in
+# build directory, and copy over Makefiles from source directory.
+# Prefix each Makefile with a header which sets SRCDIR to the relative
+# source directory, and provides a rule for updating the Makefile from
+# its original source.
+AC_CONFIG_COMMANDS([Examples],[
+  if test "x${srcdir}" != "x." ; then
+    AC_MSG_NOTICE([generating Examples build tree])
+    for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
+      dir=`dirname ${mkfile}`
+      d=${dir}
+      reldir="";
+      while test "x$d" != "x." ; do
+        d=`dirname $d`
+        reldir="${reldir}../"
+      done
+      relsrcdir=${reldir}${srcdir}/
+      AS_MKDIR_P([${dir}])
+      cat <<EOF >${mkfile}
+# DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
+# and run (cd ${reldir} && ./config.status) to regenerate
+SRCDIR = ${relsrcdir}${dir}/
+
+EOF
+      cat ${srcdir}/${mkfile} >>${mkfile}
+    done
+  fi
+])
+
+#--------------------------------------------------------------------
+
 AC_OUTPUT
+
+langs=""
+test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
+test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
+test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
+test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
+test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
+test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_GO"		|| langs="${langs}go "
+test -n "$SKIP_GUILE"		|| langs="${langs}guile "
+test -n "$SKIP_JAVA"		|| langs="${langs}java "
+test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
+test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
+test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
+test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
+test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
+test -n "$SKIP_PHP"		|| langs="${langs}php "
+test -n "$SKIP_PIKE"		|| langs="${langs}pike "
+test -n "$SKIP_PYTHON"		|| langs="${langs}python "
+test -n "$SKIP_R"		|| langs="${langs}r "
+test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_TCL"		|| langs="${langs}tcl "
+test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
+
+echo "
+The SWIG test-suite and examples are configured for the following languages:
+$langs
+"
+
 dnl configure.ac ends here

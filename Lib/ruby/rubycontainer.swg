@@ -26,9 +26,7 @@
 
 /**** The RubySequence C++ Wrap ***/
 
-%insert(header) %{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %include <std_except.i>
 
@@ -805,7 +803,6 @@ namespace swig
 	  rb_raise( rb_eTypeError, "not a valid index or range" );
 	}
 
-      VALUE r = Qnil;
       static ID id_end   = rb_intern("end");
       static ID id_start = rb_intern("begin");
       static ID id_noend = rb_intern("exclude_end?");

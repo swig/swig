@@ -7,8 +7,8 @@
 
 %{
 #include <cwchar>
-#include <string>
 %}
+%fragment("<string>");
 
 namespace std
 {

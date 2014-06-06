@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Warnings"></a>14 Warning Messages</H1>
+<H1><a name="Warnings"></a>15 Warning Messages</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -35,7 +35,7 @@
 
 
 
-<H2><a name="Warnings_nn2"></a>14.1 Introduction</H2>
+<H2><a name="Warnings_nn2"></a>15.1 Introduction</H2>
 
 
 <p>
@@ -55,7 +55,7 @@ where the generated wrapper code will probably compile, but it may not
 work like you expect.
 </p>
 
-<H2><a name="Warnings_suppression"></a>14.2 Warning message suppression</H2>
+<H2><a name="Warnings_suppression"></a>15.2 Warning message suppression</H2>
 
 
 <p>
@@ -147,7 +147,7 @@ your interface.  Ignore the warning messages at your own peril.
 </p>
 
 
-<H2><a name="Warnings_nn4"></a>14.3 Enabling extra warnings</H2>
+<H2><a name="Warnings_nn4"></a>15.3 Enabling extra warnings</H2>
 
 
 <p>
@@ -220,7 +220,7 @@ that is, any warnings suppressed or added in <tt>%warnfilter</tt>, <tt>#pragma S
 or the <tt>-w</tt> option.
 </p>
 
-<H2><a name="Warnings_nn5"></a>14.4 Issuing a warning message</H2>
+<H2><a name="Warnings_nn5"></a>15.4 Issuing a warning message</H2>
 
 
 <p>
@@ -274,7 +274,7 @@ example.i:24: Warning 901: You are really going to regret this usage of blah * s
 </pre>
 </div>
 
-<H2><a name="Warnings_symbolic_symbols"></a>14.5 Symbolic symbols</H2>
+<H2><a name="Warnings_symbolic_symbols"></a>15.5 Symbolic symbols</H2>
 
 
 <p>
@@ -309,7 +309,7 @@ or
 </pre>
 </div>
 
-<H2><a name="Warnings_nn6"></a>14.6 Commentary</H2>
+<H2><a name="Warnings_nn6"></a>15.6 Commentary</H2>
 
 
 <p>
@@ -326,7 +326,7 @@ no obvious recovery.  There is no mechanism for suppressing error
 messages.
 </p>
 
-<H2><a name="Warnings_nn7"></a>14.7 Warnings as errors</H2>
+<H2><a name="Warnings_nn7"></a>15.7 Warnings as errors</H2>
 
 
 <p>
@@ -335,7 +335,7 @@ option. This will cause SWIG to exit with a non successful exit code if a
 warning is encountered.
 </p>
 
-<H2><a name="Warnings_nn8"></a>14.8 Message output format</H2>
+<H2><a name="Warnings_nn8"></a>15.8 Message output format</H2>
 
 
 <p>
@@ -354,10 +354,10 @@ $ swig -python -Fmicrosoft example.i
 example.i(4) : Syntax error in input.
 </pre></div>
 
-<H2><a name="Warnings_nn9"></a>14.9 Warning number reference</H2>
+<H2><a name="Warnings_nn9"></a>15.9 Warning number reference</H2>
 
 
-<H3><a name="Warnings_nn10"></a>14.9.1 Deprecated features (100-199)</H3>
+<H3><a name="Warnings_nn10"></a>15.9.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -382,9 +382,10 @@ example.i(4) : Syntax error in input.
 <li>119. Deprecated <tt>%typemap(ignore)</tt>.
 <li>120. Deprecated command line option (-runtime, -noruntime).
 <li>121. Deprecated <tt>%name</tt> directive.
+<li>126. The 'nestedworkaround' feature is deprecated.
 </ul>
 
-<H3><a name="Warnings_nn11"></a>14.9.2 Preprocessor (200-299)</H3>
+<H3><a name="Warnings_nn11"></a>15.9.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -396,7 +397,7 @@ example.i(4) : Syntax error in input.
 <li>206. Unexpected tokens after #<em>directive</em> directive.
 </ul>
 
-<H3><a name="Warnings_nn12"></a>14.9.3 C/C++ Parser (300-399)</H3>
+<H3><a name="Warnings_nn12"></a>15.9.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -473,7 +474,7 @@ example.i(4) : Syntax error in input.
 <li>395. operator delete[] ignored.
 </ul>
 
-<H3><a name="Warnings_nn13"></a>14.9.4 Types and typemaps (400-499) </H3>
+<H3><a name="Warnings_nn13"></a>15.9.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -498,11 +499,13 @@ example.i(4) : Syntax error in input.
 <li>471. Unable to use return type <em>type</em> in director method
 <li>474. Method <em>method</em> usage of the optimal attribute ignored in the out typemap as the following cannot be used to generate optimal code: <em>code</em>
 <li>475. Multiple calls to <em>method</em> might be generated due to optimal attribute usage in the out typemap.
+<li>476. Initialization using std::initializer_list.
+<li>477. No directorthrows typemap defined for <em>type</em>
 </ul>
 
 
 
-<H3><a name="Warnings_nn14"></a>14.9.5 Code generation (500-599)</H3>
+<H3><a name="Warnings_nn14"></a>15.9.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -531,7 +534,7 @@ example.i(4) : Syntax error in input.
 <li>523. Use of an illegal destructor name '<em>name</em>' in %extend is deprecated, the destructor name should be '<em>name</em>'.
 </ul>
 
-<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (700-899) </H3>
+<H3><a name="Warnings_nn15"></a>15.9.6 Language module specific (700-899) </H3>
 
 
 <ul>
@@ -582,14 +585,14 @@ example.i(4) : Syntax error in input.
 <li>871. Unrecognized pragma <em>pragma</em>.   (Php).
 </ul>
 
-<H3><a name="Warnings_nn16"></a>14.9.7 User defined (900-999)</H3>
+<H3><a name="Warnings_nn16"></a>15.9.7 User defined (900-999)</H3>
 
 
 <p>
 These numbers can be used by your own application.
 </p>
 
-<H2><a name="Warnings_nn17"></a>14.10 History</H2>
+<H2><a name="Warnings_nn17"></a>15.10 History</H2>
 
 
 <p>

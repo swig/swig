@@ -13,7 +13,7 @@
 
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 CLISP Options (available with -clisp)\n\
      -extern-all       - Create clisp definitions for all the functions and\n\
                          global variables otherwise only definitions for\n\
@@ -148,7 +148,7 @@ int CLISP::top(Node *n) {
 int CLISP::functionWrapper(Node *n) {
   is_function = 1;
   String *storage = Getattr(n, "storage");
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && !Swig_storage_isexternc(n))))
     return SWIG_OK;
 
   String *func_name = Getattr(n, "sym:name");
@@ -217,10 +217,9 @@ int CLISP::constantWrapper(Node *n) {
 
 int CLISP::variableWrapper(Node *n) {
   is_function = 0;
-  //  SwigType *type=;
   String *storage = Getattr(n, "storage");
 
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && !Swig_storage_isexternc(n))))
     return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");

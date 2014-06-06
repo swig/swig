@@ -1,7 +1,9 @@
 # see top-level Makefile.in
+callback
 class
 constants
 constants2
+extend
 funcptr
 import
 java

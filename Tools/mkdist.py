@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # This script builds a swig-x.y.z distribution.
-# Usage : mkdist.py version, where version should be x.y.z
+# Usage: mkdist.py version branch, where version should be x.y.z and branch is normally 'master'
 
 import sys
 import string
@@ -16,9 +16,15 @@ def failed():
 try:
    version = sys.argv[1]
    dirname = "swig-" + version
+   branch = sys.argv[2]
 except:
-   print "Usage: mkdist.py version, where version should be x.y.z"
+   print "Usage: mkdist.py version branch, where version should be x.y.z and branch is normally 'master'"
    sys.exit(1)
+
+if sys.version_info[0:2] < (2, 7):
+   print "Error: Python 2.7 is required"
+   sys.exit(3)
+
 
 # Check name matches normal unix conventions
 if string.lower(dirname) != dirname:
@@ -38,7 +44,7 @@ os.system("rm -f "+dirname+".tar")
 # Grab the code from git
 
 print "Checking git repository is in sync with remote repository"
-os.system("git remote update") == 0 or failed()
+os.system("git remote update origin") == 0 or failed()
 command = ["git", "status", "--porcelain", "-uno"]
 out = subprocess.check_output(command)
 if out.strip() != "":
@@ -47,7 +53,7 @@ if out.strip() != "":
   print out
   sys.exit(3)
 
-command = ["git", "log", "--oneline", "master..origin/master"]
+command = ["git", "log", "--oneline", branch + "..origin/" + branch]
 out = subprocess.check_output(command)
 if out.strip() != "":
   print "Remote repository has additional modifications to local repository"
@@ -55,7 +61,7 @@ if out.strip() != "":
   print out
   sys.exit(3)
 
-command = ["git", "log", "--oneline", "origin/master..master"]
+command = ["git", "log", "--oneline", "origin/" + branch + ".." + branch]
 out = subprocess.check_output(command)
 if out.strip() != "":
   print "Local repository has modifications not pushed to the remote repository"

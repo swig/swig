@@ -15,7 +15,7 @@
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Tcl 8 Options (available with -tcl)\n\
      -itcl           - Enable ITcl support\n\
      -nosafe         - Leave out SafeInit module function.\n\

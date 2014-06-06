@@ -7,10 +7,11 @@
   /* do nothing */
 }
 
-%typemap(out) Integer1 
-{
-  /* do nothing */
-}
+#ifdef SWIGCSHARP
+%typemap(out) Integer1 { /* do nothing */ $result = 0; }
+#else
+%typemap(out) Integer1 { /* do nothing */ }
+#endif
 
 %typemap(in) Integer2 
 {
@@ -18,10 +19,11 @@
   /* do nothing */
 }
 
-%typemap(out) Integer2 
-{
-  /* do nothing */
-}
+#ifdef SWIGCSHARP
+%typemap(out) Integer2 { /* do nothing */ $result = 0; }
+#else
+%typemap(out) Integer2 { /* do nothing */ }
+#endif
 
 %{
   typedef int Integer1;

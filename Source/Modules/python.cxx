@@ -94,6 +94,7 @@ static int castmode = 0;
 static int extranative = 0;
 static int outputtuple = 0;
 static int nortti = 0;
+static int relativeimport = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -106,7 +107,7 @@ enum autodoc_t {
 };
 
 
-static const char *usage1 = (char *) "\
+static const char *usage1 = "\
 Python Options (available with -python)\n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -buildnone      - Use Py_BuildValue(" ") to obtain Py_None (default in Windows)\n\
@@ -126,7 +127,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -modernargs     - Use \"modern\" args mechanism to pack/unpack the function arguments\n";
-static const char *usage2 = (char *) "\
+static const char *usage2 = "\
      -newrepr        - Use more informative version of __repr__ in proxy classes (default) \n\
      -newvwm         - New value wrapper mode, use only when everything else fails \n\
      -noaliasobj0    - Don't generate an obj0 alias when using fastunpack (default) \n\
@@ -143,7 +144,7 @@ static const char *usage2 = (char *) "\
      -noh            - Don't generate the output header file\n\
      -nomodern       - Don't use modern python features which are not backwards compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n";
-static const char *usage3 = (char *) "\
+static const char *usage3 = "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\
      -nooutputtuple  - Use a PyList for appending output values (default) \n\
      -noproxy        - Don't generate proxy classes \n\
@@ -156,6 +157,7 @@ static const char *usage3 = (char *) "\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
+     -relativeimport - Use relative python imports \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
@@ -519,6 +521,9 @@ public:
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-relativeimport") == 0) {
+	  relativeimport = 1;
 	  Swig_mark_arg(i);
 	}
 
@@ -1029,6 +1034,267 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * subpkg_tail()
+   *
+   * Return the name of 'other' package relative to 'base'.
+   *
+   * 1. If 'other' is a sub-package of 'base', returns the 'other' relative to
+   *    'base'.
+   * 2. If 'other' and 'base' are equal, returns empty string "".
+   * 3. In any other case, NULL pointer is returned.
+   *
+   * The 'base' and 'other' are expected to be fully qualified names.
+   *
+   * NOTE: none of 'base' nor 'other' can be null.
+   *
+   * Examples:
+   *
+   *  #  base       other         tail
+   * --  ----       -----         ----
+   *  1  "Foo"      "Foo.Bar" ->  "Bar"
+   *  2	 "Foo"      "Foo."    ->  ""
+   *  3	 "Foo"      "FooB.ar" ->  NULL
+   *  4	 "Foo.Bar"  "Foo.Bar" ->  ""
+   *  5  "Foo.Bar"  "Foo"     ->  NULL
+   *  6  "Foo.Bar"  "Foo.Gez" ->  NULL
+   *
+   *  NOTE: the example #2 is actually a syntax error (at input). I believe
+   *        swig parser prevents us from this case happening here.
+   * ------------------------------------------------------------ */
+
+  static String *subpkg_tail(const String *base, const String *other) {
+    int baselen = Len(base);
+    int otherlen = Len(other);
+
+    if (Strncmp(other, base, baselen) == 0) {
+      if ((baselen < otherlen) && (Char(other))[baselen] == '.') {
+        return NewString((Char(other)) + baselen + 1);
+      } else if (baselen == otherlen) {
+        return NewString("");
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  }
+
+  /* ------------------------------------------------------------
+   * abs_import_directive_string()
+   *
+   * Return a string containing python code to import module.
+   *
+   * 	pkg     package name or the module being imported
+   * 	mod     module name of the module being imported
+   * 	pfx     optional prefix to module name
+   *
+   * NOTE: keep this function consistent with abs_import_name_string().
+   * ------------------------------------------------------------ */
+
+  static String *abs_import_directive_string(const String *pkg, const String *mod, const char *pfx = "") {
+    String *out = NewString("");
+
+    if (pkg && *Char(pkg)) {
+      Printf(out, "import %s.%s%s\n", pkg, pfx, mod);
+    } else {
+      Printf(out, "import %s%s\n", pfx, mod);
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * rel_import_directive_string()
+   *
+   * Return a string containing python code to import module that
+   * is potentially within a package.
+   *
+   * 	mainpkg	package name of the module which imports the other module
+   * 	pkg     package name or the module being imported
+   * 	mod     module name of the module being imported
+   * 	pfx     optional prefix to module name
+   *
+   * NOTE: keep this function consistent with rel_import_name_string().
+   * ------------------------------------------------------------ */
+
+  static String *rel_import_directive_string(const String *mainpkg, const String *pkg, const String *mod, const char *pfx = "") {
+
+    /* NOTE: things are not so trivial. This is what we do here (by examples):
+     *
+     * 0. To import module 'foo', which is not in any package, we do absolute
+     *    import:
+     *
+     *       import foo
+     *
+     * 1. To import 'pkg1.pkg2.foo', when mainpkg != "pkg1" and
+     *    mainpkg != "pkg1.pkg2" or when mainpkg is not given we do absolute
+     *    import:
+     *
+     *          import pkg1.pkg2.foo
+     *
+     * 2. To import module pkg1.foo, when mainpkg == "pkg1", we do:
+     *
+     *    - for py3 = 0:
+     *
+     *          import foo
+     *
+     *    - for py3 = 1:
+     *
+     *          from . import foo
+     *
+     * 3. To import "pkg1.pkg2.pkg3.foo", when mainpkg = "pkg1", we do:
+     *
+     *    - for py3 == 0:
+     *
+     *          import pkg2.pkg3.foo
+     *
+     *    - for py3 == 1:
+     *
+     *          from . import pkg2  # [1]
+     *          import pkg1.pkg2.pkg3.foo
+     *
+     * NOTE: [1] is necessary for pkg2.foo to be present in the importing module
+     */
+
+    String *apkg = 0; // absolute (FQDN) package name of pkg
+    String *rpkg = 0; // relative package name
+    int py3_rlen1 = 0; // length of 1st level sub-package name, used by py3
+    String *out = NewString("");
+
+    if (pkg && *Char(pkg)) {
+      if (mainpkg) {
+	String *tail = subpkg_tail(mainpkg, pkg);
+	if (tail) {
+	  if (*Char(tail)) {
+	    rpkg = NewString(tail);
+	    const char *py3_end1 = Strchr(rpkg, '.');
+	    if (!py3_end1)
+	      py3_end1 = (Char(rpkg)) + Len(rpkg);
+	    py3_rlen1 = py3_end1 - (Char(rpkg));
+	  } else {
+	    rpkg = NewString("");
+	  }
+	  Delete(tail);
+	} else {
+	  apkg = NewString(pkg);
+	}
+      } else {
+	apkg = NewString(pkg);
+      }
+    } else {
+      apkg = NewString("");
+    }
+
+    if (apkg) {
+      Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
+      Delete(apkg);
+    } else {
+      if (py3) {
+        if (py3_rlen1)
+	  Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
+        Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
+      } else {
+        Printf(out, "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
+      }
+      Delete(rpkg);
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * import_directive_string()
+   * ------------------------------------------------------------ */
+
+  static String *import_directive_string(const String *mainpkg, const String *pkg, const String *mod, const char *pfx = "") {
+    if (!relativeimport) {
+      return abs_import_directive_string(pkg, mod, pfx);
+    } else {
+      return rel_import_directive_string(mainpkg, pkg, mod, pfx);
+    }
+  }
+
+  /* ------------------------------------------------------------
+   * abs_import_name_string()
+   *
+   * Return a string with the name of a symbol (perhaps imported
+   * from external module by absolute import directive).
+   *
+   * mainpkg  package name of current module
+   * mainmod  module name of current module
+   * pkg      package name of (perhaps other) module
+   * mod      module name of (perhaps other) module
+   * sym      symbol name
+   *
+   * NOTE: mainmod, mod, and sym can't be NULL.
+   * NOTE: keep this function consistent with abs_import_directive_string()
+   * ------------------------------------------------------------ */
+
+  static String *abs_import_name_string(const String *mainpkg, const String *mainmod, const String *pkg, const String *mod, const String *sym) {
+    String *out = NewString("");
+    if (pkg && *Char(pkg)) {
+      if (mainpkg && *Char(mainpkg)) {
+        if (Strcmp(mainpkg,pkg) != 0 || Strcmp(mainmod, mod) != 0) {
+          Printf(out, "%s.%s.", pkg, mod);
+        }
+      } else {
+        Printf(out, "%s.%s.", pkg, mod);
+      }
+    } else if ((mainpkg && *Char(mainpkg)) || Strcmp(mainmod, mod) != 0) {
+      Printf(out, "%s.", mod);
+    }
+    Append(out, sym);
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * rel_import_name_string()
+   *
+   * Return a string with the name of a symbol (perhaps imported
+   * from external module by relative import directive).
+   *
+   * mainpkg  package name of current module
+   * mainmod  module name of current module
+   * pkg      package name of (perhaps other) module
+   * mod      module name of (perhaps other) module
+   * sym      symbol name
+   *
+   * NOTE: mainmod, mod, and sym can't be NULL.
+   * NOTE: keep this function consistent with rel_import_directive_string()
+   * ------------------------------------------------------------ */
+
+  static String *rel_import_name_string(const String *mainpkg, const String *mainmod, const String *pkg, const String *mod, const String *sym) {
+    String *out = NewString("");
+    if (pkg && *Char(pkg)) {
+      String *tail = 0;
+      if (mainpkg)
+        tail = subpkg_tail(mainpkg, pkg);
+      if (!tail)
+        tail = NewString(pkg);
+      if (*Char(tail)) {
+        Printf(out, "%s.%s.", tail, mod);
+      } else if (Strcmp(mainmod, mod) != 0) {
+        Printf(out, "%s.", mod);
+      }
+      Delete(tail);
+    } else if ((mainpkg && *Char(mainpkg)) || Strcmp(mainmod, mod) != 0) {
+      Printf(out, "%s.", mod);
+    }
+    Append(out, sym);
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * import_name_string()
+   *  ------------------------------------------------------------ */
+
+  static String *import_name_string(const String *mainpkg, const String *mainmod, const String *pkg, const String *mod, const String *sym) {
+    if (!relativeimport) {
+      return abs_import_name_string(mainpkg,mainmod,pkg,mod,sym);
+    } else {
+      return rel_import_name_string(mainpkg,mainmod,pkg,mod,sym);
+    }
+  }
+
+  /* ------------------------------------------------------------
    * importDirective()
    * ------------------------------------------------------------ */
 
@@ -1037,38 +1303,26 @@ public:
       String *modname = Getattr(n, "module");
 
       if (modname) {
-	String *import = NewString("import ");
-
 	// Find the module node for this imported module.  It should be the
 	// first child but search just in case.
 	Node *mod = firstChild(n);
 	while (mod && Strcmp(nodeType(mod), "module") != 0)
 	  mod = nextSibling(mod);
 
-	// Is the imported module in another package?  (IOW, does it use the
-	// %module(package="name") option and it's different than the package
-	// of this module.)
 	Node *options = Getattr(mod, "options");
 	String *pkg = options ? Getattr(options, "package") : 0;
-	if (pkg) {
-	  Printf(import, "%s.", pkg);
-	}
-	// finally, output the name of the imported module
 	if (shadowimport) {
 	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
-	    Printf(import, "_%s\n", modname);
-	    if (!GetFlagAttr(f_shadow_imports, import)) {
-	      if (pkg) {
-		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s.%s\n", pkg, modname);
-	      } else {
-		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s\n", modname);
-	      }
-	      SetFlag(f_shadow_imports, import);
+	    String *_import = import_directive_string(package, pkg, modname, "_");
+	    if (!GetFlagAttr(f_shadow_imports, _import)) {
+	      String *import = import_directive_string(package, pkg, modname);
+	      Printf(builtin ? f_shadow_builtin_imports : f_shadow, "%s", import);
+	      Delete(import);
+	      SetFlag(f_shadow_imports, _import);
 	    }
+	    Delete(_import);
 	  }
 	}
-
-	Delete(import);
       }
     }
     return Language::importDirective(n);
@@ -1563,7 +1817,7 @@ public:
 	return NewString("True");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
-      if (Strcmp(v, "NULL") == 0)
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
     }
     return 0;
@@ -2311,7 +2565,7 @@ public:
 	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  }
 	}
-      } else if (tuple_arguments > 0) {
+      } else {
 	Printf(parse_args, "if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
 	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       }
@@ -3074,22 +3328,23 @@ public:
 
          But for now, this seems to be the least intrusive way.
        */
-      Printf(f_directors_h, "\n\n");
-      Printf(f_directors_h, "/* Internal Director utilities */\n");
+      Printf(f_directors_h, "\n");
+      Printf(f_directors_h, "/* Internal director utilities */\n");
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "    bool swig_get_inner(const char* swig_protected_method_name) const {\n");
+      Printf(f_directors_h, "    bool swig_get_inner(const char *swig_protected_method_name) const {\n");
       Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(swig_protected_method_name);\n");
       Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
-      Printf(f_directors_h, "    }\n\n");
+      Printf(f_directors_h, "    }\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char* swig_protected_method_name, bool val) const\n");
-      Printf(f_directors_h, "    { swig_inner[swig_protected_method_name] = val;}\n\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool val) const {\n");
+      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = val;\n");
+      Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
       Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");
 
     }
     if (director_method_index) {
-      Printf(f_directors_h, "\n\n");
+      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#if defined(SWIG_PYTHON_DIRECTOR_VTABLE)\n");
       Printf(f_directors_h, "/* VTable implementation */\n");
       Printf(f_directors_h, "    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
@@ -3163,19 +3418,13 @@ public:
     if (shadow && !Getattr(n, "feature:onlychildren")) {
       Node *mod = Getattr(n, "module");
       if (mod) {
-	String *importname = NewString("");
 	String *modname = Getattr(mod, "name");
-	if (Strcmp(modname, mainmodule) != 0) {
-	  // check if the module has a package option
-	  Node *options = Getattr(mod, "options");
-	  String *pkg = options ? Getattr(options, "package") : 0;
-	  if (pkg) {
-	    Printf(importname, "%s.", pkg);
-	  }
-	  Printf(importname, "%s.", modname);
-	}
-	Append(importname, Getattr(n, "sym:name"));
+	Node *options = Getattr(mod, "options");
+	String *pkg = options ? Getattr(options, "package") : 0;
+	String *sym = Getattr(n, "sym:name");
+	String *importname = import_name_string(package, mainmodule, pkg, modname, sym);
 	Setattr(n, "python:proxy", importname);
+	Delete(importname);
       }
     }
     int result = Language::classDeclaration(n);
@@ -3343,7 +3592,20 @@ public:
     if (GetFlag(n, "feature:python:nondynamic"))
       Setattr(n, "feature:python:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
 
-    String *quoted_symname = NewStringf("\"%s\"", symname);
+    Node *mod = Getattr(n, "module");
+    String *modname = mod ? Getattr(mod, "name") : 0;
+    String *quoted_symname;
+    if (package) {
+      if (modname)
+	quoted_symname = NewStringf("\"%s.%s.%s\"", package, modname, symname);
+      else
+	quoted_symname = NewStringf("\"%s.%s\"", package, symname);
+    } else {
+      if (modname)
+	quoted_symname = NewStringf("\"%s.%s\"", modname, symname);
+      else
+	quoted_symname = NewStringf("\"%s\"", symname);
+    }
     String *quoted_rname = NewStringf("\"%s\"", rname);
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit";
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");

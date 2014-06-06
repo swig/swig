@@ -4,6 +4,7 @@ Windows.html
 Scripting.html
 SWIG.html
 SWIGPlus.html
+CPlusPlus11.html
 Preprocessor.html
 Library.html
 Arguments.html
@@ -22,6 +23,7 @@ D.html
 Go.html
 Guile.html
 Java.html
+Javascript.html
 Lisp.html
 Lua.html
 Modula3.html

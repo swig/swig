@@ -116,7 +116,7 @@ struct PrePost3 {
 // Check attributes in the typemaps
 %typemap(cstype, inattributes="[CustomInt]") int val "int"
 %typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int val "tmp_$csinput"
-%typemap(imtype, out="IntPtr/*overridden*/", outattributes="[CustomIntPtr]") CsinAttributes * "HandleRef/*overridden*/"
+%typemap(imtype, out="global::System.IntPtr/*overridden*/", outattributes="[CustomIntPtr]") CsinAttributes * "global::System.Runtime.InteropServices.HandleRef/*overridden*/"
 
 %inline %{
 class CsinAttributes {
@@ -216,8 +216,8 @@ void subtractYears(CDate *pDate, int years) {
 %typemap(csvarout, excode=SWIGEXCODE2) CDate * %{
     /* csvarout typemap code */
     get {
-      IntPtr cPtr = $imcall;
-      CDate tempDate = (cPtr == IntPtr.Zero) ? null : new CDate(cPtr, $owner);$excode
+      global::System.IntPtr cPtr = $imcall;
+      CDate tempDate = (cPtr == global::System.IntPtr.Zero) ? null : new CDate(cPtr, $owner);$excode
       return new System.DateTime(tempDate.getYear(), tempDate.getMonth(), tempDate.getDay(),
                                  0, 0, 0);
     } %}

@@ -7,33 +7,117 @@ env:
 matrix:
   include:
     - compiler: gcc
-      env: SWIGLANG=python
+      env: SWIGLANG=csharp
+    - compiler: gcc
+      env: SWIGLANG=go
+    - compiler: gcc
+      env: SWIGLANG=guile
+    - compiler: gcc
+      env: SWIGLANG=java
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=node
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=jsc
+    - compiler: gcc
+      env: SWIGLANG=javascript ENGINE=v8
+    - compiler: gcc
+      env: SWIGLANG=lua
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j4
+    - compiler: gcc
+      env: SWIGLANG=perl5
+    - compiler: gcc
+      env: SWIGLANG=php
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.4
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.5
+    - compiler: gcc
+      env: SWIGLANG=python VER=2.6
+    - compiler: gcc
+      env: SWIGLANG=python # 2.7
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 # 3.2
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.3
+    - compiler: gcc
+      env: SWIGLANG=python PY3=3 VER=3.4
+    - compiler: gcc
+      env: SWIGLANG=ruby
+    - compiler: gcc
+      env: SWIGLANG=tcl
     - compiler: gcc
       env: SWIGLANG=scilab SWIGJOBS=-j4
   allow_failures:
-      # None
+    # None
 before_install:
-  - lsb_release -a
+  - date -u
   - uname -a
+  - lsb_release -a
   - sudo apt-get -qq update
   - time sudo apt-get -qq install libboost-dev
+  - if test -z "$SWIGLANG"; then sudo apt-get -qq install yodl; fi
   - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
   - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
+  - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "node"; then sudo apt-get install -qq rlwrap python-software-properties && echo 'yes' | sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get -qq update && sudo apt-get install -qq nodejs && sudo npm install -g node-gyp; fi
+  - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "jsc"; then sudo apt-get install -qq libwebkitgtk-dev; fi
+  - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "v8"; then sudo apt-get install -qq libv8-dev; fi
   - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
   - if test "$SWIGLANG" = "scilab"; then sudo apt-get -qq install scilab; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
-  - if test "$SWIGLANG" = "python" -a "$PY3"; then sudo apt-get install python3-dev; fi
+  - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
+  - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
+  # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+  - declare -A CFLAGS_EXAMPLES && CFLAGS_EXAMPLES=(
+        ["csharp"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+            ["go"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+         ["guile"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+          ["java"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+    ["javascript"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+           ["lua"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+        ["octave"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+         ["perl5"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+           ["php"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+        ["python"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+          ["ruby"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+           ["tcl"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+    )
+  - declare -A CXXFLAGS_EXAMPLES && CXXFLAGS_EXAMPLES=(
+        ["csharp"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+            ["go"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+         ["guile"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+          ["java"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+    ["javascript"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+           ["lua"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+        ["octave"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+         ["perl5"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+           ["php"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+        ["python"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+          ["ruby"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+           ["tcl"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+    )
+  - $CC --version
+  - $CXX --version
 script:
-  - ./autogen.sh && ./configure
+  - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
+  - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure $CONFIGOPTS
+  - echo -en 'travis_fold:end:script.1\\r'
   - make -s $SWIGJOBS
-  - if test -z "$SWIGLANG"; then make -s check-ccache; fi
-  - ./swig -version
+  - ./swig -version && ./swig -pcreversion
+  - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
+  - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
+  - echo 'Installing...' && echo -en 'travis_fold:start:script.2\\r'
+  - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
+  - echo -en 'travis_fold:end:script.2\\r'
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples; fi
+  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples CFLAGS="${CFLAGS_EXAMPLES[$SWIGLANG]}" CXXFLAGS="${CXXFLAGS_EXAMPLES[$SWIGLANG]}"; fi
   - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
+  - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
+  - make check-maintainer-clean && ../../configure $CONFIGOPTS
+  - echo -en 'travis_fold:end:script.3\\r'
 branches:
   only:
     - master

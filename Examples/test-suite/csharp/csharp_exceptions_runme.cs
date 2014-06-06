@@ -323,7 +323,9 @@ public class TestThread {
          } catch (ArgumentOutOfRangeException e) {
            String expectedMessage = "caught:" + i + "\n" + "Parameter name: input";
            if (e.Message.Replace(runme.CRLF,"\n") != expectedMessage)
-             throw new Exception("Exception message incorrect. Expected:\n[" + expectedMessage + "]\n" + "Received:\n[" + e.Message + "]");
+             throw new Exception("Exception message incorrect. Expected:\n[" + 
+                 expectedMessage + "]\n" + "Received:\n[" + 
+                 e.Message + "]");
            if (e.ParamName != "input")
              throw new Exception("Exception ParamName incorrect. Expected:\n[input]\n" + "Received:\n[" + e.ParamName + "]");
            if (e.InnerException != null)
@@ -333,7 +335,7 @@ public class TestThread {
            throw new Exception("throwsException.dub = " + throwsClass.dub + " expected: 1234.5678");
        }
      } catch (Exception e) {
-       Console.Error.WriteLine("Test failed (thread " + threadId + "): " + e.Message);
+       Console.Error.WriteLine("Test failed (thread " + threadId + "): " + e.Message + "\n  TestThread Inner stack trace: " + e.StackTrace);
        Failed = true;
      }
    }

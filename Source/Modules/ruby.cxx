@@ -130,7 +130,7 @@ enum autodoc_t {
   AUTODOC_NONE
 };
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
      -cppcast        - Enable C++ casting operators (default)\n\
@@ -788,7 +788,7 @@ private:
 	else
 	  return v;
       }
-      if (Strcmp(v, "NULL") == 0)
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
       if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("True");
@@ -1111,7 +1111,7 @@ public:
     /* typedef void *VALUE */
     SwigType *value = NewSwigType(T_VOID);
     SwigType_add_pointer(value);
-    SwigType_typedef(value, (char *) "VALUE");
+    SwigType_typedef(value, "VALUE");
     Delete(value);
 
     /* Set module name */

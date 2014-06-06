@@ -38,7 +38,7 @@
 SWIG is a software development tool that simplifies the task of
 interfacing different languages to C and C++ programs.  In a
 nutshell, SWIG is a compiler that takes C/C++ declarations and creates
-the wrappers needed to access those declarations from other languages including
+the wrappers needed to access those declarations from other languages
 including Perl, Python, Tcl, Ruby, Guile, and Java.  SWIG normally
 requires no modifications to existing code and can often be used to
 build a usable interface in only a few minutes.  Possible applications
@@ -49,7 +49,7 @@ of SWIG include:
 <li>Building interpreted interfaces to existing C programs.
 <li>Rapid prototyping and application development.
 <li>Interactive debugging.
-<li>Reengineering or refactoring of legacy software into a scripting language components.
+<li>Reengineering or refactoring of legacy software into scripting language components.
 <li>Making a graphical user interface (using Tk for example).
 <li>Testing of C libraries and programs (using scripts).
 <li>Building high performance C modules for scripting languages.
@@ -98,7 +98,7 @@ of other libraries).
 <li>Testing is time consuming (the compile/debug cycle).
 <li>Not easy to reconfigure or customize without recompilation.
 <li>Modularization can be tricky.
-<li>Security concerns (buffer overflow for instance).
+<li>Security concerns (buffer overflows for instance).
 </ul>
 <p>
 To address these limitations, many programmers have arrived at the
@@ -345,7 +345,7 @@ not only parses C++, it implements the full C++ type system and it is
 able to understand C++ semantics.  SWIG generates its wrappers with
 full knowledge of this information.  As a result, you will find SWIG
 to be just as capable of dealing with nasty corner cases as it is in
-wrapping simple C++ code.  In fact, SWIG is able handle C++ code that
+wrapping simple C++ code.  In fact, SWIG is able to handle C++ code that
 stresses the very limits of many C++ compilers.
 
 
@@ -388,8 +388,8 @@ There is growing support for SWIG in some build tools, for example <a href="http
 is a cross-platform, open-source build manager with built in support for SWIG. CMake can detect the SWIG executable
 and many of the target language libraries for linking against.
 CMake knows how to build shared libraries and loadable modules on many different operating systems.
-This allows easy cross platform SWIG development.  It also can generate the custom commands necessary for
-driving SWIG from IDE's and makefiles.  All of this can be done from a single cross platform input file.
+This allows easy cross platform SWIG development.  It can also generate the custom commands necessary for
+driving SWIG from IDEs and makefiles.  All of this can be done from a single cross platform input file.
 The following example is a CMake input file for creating a python wrapper for the SWIG interface file, example.i:
 </p>
 
@@ -449,7 +449,7 @@ to work with complicated and unusual C/C++ applications.
 
 <p>
 Ironically, the freedom that SWIG provides is countered by an
-extremely conservative approach to code generation. At it's core, SWIG
+extremely conservative approach to code generation. At its core, SWIG
 tries to distill even the most advanced C++ code down to a small
 well-defined set of interface building techniques based on ANSI C
 programming.  Because of this, you will find that SWIG interfaces can

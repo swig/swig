@@ -16,7 +16,7 @@
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
-static const char *usage = (char *) "\
+static const char *usage = "\
 Guile Options (available with -guile)\n\
      -emitsetters            - Emit procedures-with-setters for variables\n\
                                and structure slots.\n\
@@ -24,7 +24,7 @@ Guile Options (available with -guile)\n\
      -exportprimitive        - Add the (export ...) code from scmstub into the\n\
                                GOOPS file.\n\
      -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
-     -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
+     -Linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
                                passive linking (no C-level module-handling code),\n\
@@ -1018,7 +1018,7 @@ public:
       if (in_class)
 	goops_name = NewString(memberfunction_name);
       else
-	goops_name = goopsNameMapping(proc_name, (char *) "");
+	goops_name = goopsNameMapping(proc_name, "");
       String *primitive_name = NewString("");
       if (primRenamer)
 	Printv(primitive_name, "primitive:", proc_name, NIL);
@@ -1204,7 +1204,7 @@ public:
       // export wrapper into goops file
       if (!in_class) {		// only if the variable is not part of a class
 	String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
-	String *goops_name = goopsNameMapping(proc_name, (char *) "");
+	String *goops_name = goopsNameMapping(proc_name, "");
 	String *primitive_name = NewString("");
 	if (primRenamer)
 	  Printv(primitive_name, "primitive:", NIL);
@@ -1350,7 +1350,7 @@ public:
       Printv(f_header, tm, "\n", NIL);
     } else {
       // Create variable and assign it a value
-      Printf(f_header, "static %s = %s;\n", SwigType_lstr(nctype, var_name), rvalue);
+      Printf(f_header, "static %s = %s;\n", SwigType_str(type, var_name), rvalue);
     }
     {
       /* Hack alert: will cleanup later -- Dave */

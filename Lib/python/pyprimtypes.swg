@@ -12,6 +12,8 @@ SWIGINTERNINLINE PyObject*
 }
 }
 
+#ifdef SWIG_PYTHON_LEGACY_BOOL
+// Default prior to SWIG 3.0.0
 %fragment(SWIG_AsVal_frag(bool),"header",
 	  fragment=SWIG_AsVal_frag(long)) {
 SWIGINTERN int
@@ -24,6 +26,23 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
   return SWIG_OK;
 }
 }
+#else
+%fragment(SWIG_AsVal_frag(bool),"header",
+	  fragment=SWIG_AsVal_frag(long)) {
+SWIGINTERN int
+SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
+{
+  int r;
+  if (!PyBool_Check(obj))
+    return SWIG_ERROR;
+  r = PyObject_IsTrue(obj);
+  if (r == -1)
+    return SWIG_ERROR;
+  if (val) *val = r ? true : false;
+  return SWIG_OK;
+}
+}
+#endif
 
 /* int */
 

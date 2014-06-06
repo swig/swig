@@ -6,6 +6,13 @@ public class runme
   // Debugging flag
   public static bool debug = false;
 
+  private static void WaitForGC()
+  {
+    System.GC.Collect(); 
+    System.GC.WaitForPendingFinalizers();
+    System.Threading.Thread.Sleep(10);
+  }
+
   static void Main() 
   {
     if (debug)
@@ -27,22 +34,24 @@ public class runme
     if (debug)
       Console.WriteLine("Nearly finished");
 
-    int countdown = 100;
-    while (true) {
-      System.GC.Collect(); 
-      System.GC.WaitForPendingFinalizers();
-      System.Threading.Thread.Sleep(10);
-      if (--countdown == 0)
-        break;
-      if (Klass.getTotal_count() == 1) // Expect 1 instance - the one global variable (GlobalValue)
-        break;
-    };
-    if (Klass.getTotal_count() != 1)
-      throw new ApplicationException("Klass.total_count=" + Klass.getTotal_count());
+    {
+      int countdown = 500;
+      int expectedCount = 1;
+      while (true) {
+        WaitForGC();
+        if (--countdown == 0)
+          break;
+        if (Klass.getTotal_count() == expectedCount) // Expect the one global variable (GlobalValue)
+          break;
+      }
+      int actualCount = Klass.getTotal_count();
+      if (actualCount != expectedCount)
+        throw new ApplicationException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+    }
 
     int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 
     if (wrapper_count != li_boost_shared_ptr.NOT_COUNTING)
-      if (wrapper_count != 1) // Expect 1 instance - the one global variable (GlobalSmartValue)
+      if (wrapper_count != 1) // Expect the one global variable (GlobalSmartValue)
         throw new ApplicationException("shared_ptr wrapper count=" + wrapper_count);
 
     if (debug)

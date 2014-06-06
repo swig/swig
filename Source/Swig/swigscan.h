@@ -22,6 +22,7 @@ extern int          Scanner_token(Scanner *);
 extern String      *Scanner_text(Scanner *);
 extern void         Scanner_skip_line(Scanner *);
 extern int          Scanner_skip_balanced(Scanner *, int startchar, int endchar);
+extern String      *Scanner_get_raw_text_balanced(Scanner *, int startchar, int endchar);
 extern void         Scanner_set_location(Scanner *, String *file, int line);
 extern String      *Scanner_file(Scanner *);
 extern int          Scanner_line(Scanner *);
@@ -67,6 +68,9 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_QUESTION     30       /* ? */
 #define   SWIG_TOKEN_COMMENT      31       /* C or C++ comment */
 #define   SWIG_TOKEN_BOOL         32       /* true or false */
+#define   SWIG_TOKEN_WSTRING      33       /* L"str" */
+#define   SWIG_TOKEN_WCHAR        34       /* L'c' */
+
 #define   SWIG_TOKEN_ILLEGAL      99
 #define   SWIG_TOKEN_ERROR        -1
 

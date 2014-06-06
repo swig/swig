@@ -178,6 +178,20 @@ class TypePass:private Dispatcher {
 		    }
 		    continue;
 		  }
+		  // A case when both outer and nested classes inherit from the same parent. Constructor may be found instead of the class itself.
+		} else if (GetFlag(cls, "nested") && checkAttribute(bcls, "nodeType", "constructor")) {
+		  bcls = Getattr(bcls, "parentNode");
+		  if (Getattr(bcls, "typepass:visit")) {
+		    if (!Getattr(bcls, "feature:onlychildren")) {
+		      if (!ilist)
+			ilist = alist = NewList();
+		      Append(ilist, bcls);
+		    } else {
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		    }
+		  }
+		  break;
 		}
 		if (Strcmp(nodeType(bcls), "classforward") != 0) {
 		  Swig_error(Getfile(bname), Getline(bname), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
@@ -403,7 +417,7 @@ class TypePass:private Dispatcher {
     String *unnamed = Getattr(n, "unnamed");
     String *storage = Getattr(n, "storage");
     String *kind = Getattr(n, "kind");
-    Node *oldinclass = inclass;
+    save_value<Node*> oldinclass(inclass);
     List *olist = normalize;
     Symtab *symtab;
     String *nname = 0;
@@ -462,6 +476,17 @@ class TypePass:private Dispatcher {
     if (unnamed && tdname && (Cmp(storage, "typedef") == 0)) {
       SwigType_typedef(unnamed, tdname);
     }
+    // name of the outer class should already be patched to contain its outer classes names, but not to contain namespaces
+    // namespace name (if present) is added after processing child nodes
+    if (Getattr(n, "nested:outer") && name) {
+      String *outerName = Getattr(Getattr(n, "nested:outer"), "name");
+      name = NewStringf("%s::%s", outerName, name);
+      Setattr(n, "name", name);
+      if (tdname) {
+	tdname = NewStringf("%s::%s", outerName, tdname);
+	Setattr(n, "tdname", tdname);
+      }
+    }
 
     if (nsname && name) {
       nname = NewStringf("%s::%s", nsname, name);
@@ -479,7 +504,8 @@ class TypePass:private Dispatcher {
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
     /* Inherit type definitions into the class */
-    if (name) {
+    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
+      (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
@@ -512,8 +538,6 @@ class TypePass:private Dispatcher {
 
     normalize = olist;
 
-    inclass = oldinclass;
-
     /* If in a namespace, patch the class name */
     if (nname) {
       Setattr(n, "name", nname);
@@ -524,7 +548,7 @@ class TypePass:private Dispatcher {
   }
 
   /* ------------------------------------------------------------
-   * namespaceDeclaration()
+   * templateDeclaration()
    * ------------------------------------------------------------ */
 
   virtual int templateDeclaration(Node *n) {
@@ -540,6 +564,14 @@ class TypePass:private Dispatcher {
       Delete(rname);
       /*      SwigType_typedef_class(name); */
     }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * lambdaDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int lambdaDeclaration(Node *) {
     return SWIG_OK;
   }
 
@@ -635,6 +667,9 @@ class TypePass:private Dispatcher {
 
     /* Normalize types. */
     SwigType *ty = Getattr(n, "type");
+    if (!ty) {
+      return SWIG_OK;
+    }
     normalize_type(ty);
     SwigType *decl = Getattr(n, "decl");
     if (decl) {
@@ -645,7 +680,7 @@ class TypePass:private Dispatcher {
     if (GetFlag(n, "conversion_operator")) {
       /* The call to the operator in the generated wrapper must be fully qualified in order to compile */
       SwigType *name = Getattr(n, "name");
-      SwigType *qualifiedname = Swig_symbol_string_qualify(name,0);
+      SwigType *qualifiedname = Swig_symbol_string_qualify(name, 0);
       Clear(name);
       Append(name, qualifiedname);
       Delete(qualifiedname);
@@ -844,16 +879,17 @@ class TypePass:private Dispatcher {
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
     String *value = Getattr(n, "value");
+    String *scopedenum = Getattr(parentNode(n), "scopedenum");
     if (!value)
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if ((nsname || inclass) && cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
       }
-      if ((nsname || inclass) && !cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && !cparse_cplusplus) {
 	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
 	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }
@@ -986,7 +1022,7 @@ class TypePass:private Dispatcher {
 	      String *symname = Getattr(n, "sym:name");
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
-		  if (!(checkAttribute(c, "storage", "static")
+		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
 			|| checkAttribute(c, "storage", "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
@@ -1081,8 +1117,7 @@ class TypePass:private Dispatcher {
 	       * list of overloaded methods we have just added in as child nodes to the "using" node.
 	       * The node will still exist, it is just the symbol table linked list of overloaded methods
 	       * which is hacked. */
-	      if (Getattr(n, "sym:overloaded"))
-	      {
+	      if (Getattr(n, "sym:overloaded")) {
 		int cnt = 0;
 #ifdef DEBUG_OVERLOADED
 		Node *debugnode = n;
@@ -1145,7 +1180,7 @@ class TypePass:private Dispatcher {
 #ifdef DEBUG_OVERLOADED
 		show_overloaded(debugnode);
 #endif
-		clean_overloaded(n); // Needed?
+		clean_overloaded(n);	// Needed?
 	      }
 	    }
 	  }
@@ -1249,3 +1284,4 @@ void Swig_process_types(Node *n) {
     return;
   TypePass::pass(n);
 }
+

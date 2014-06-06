@@ -3,9 +3,10 @@
 #######################################################################
 
 LANGUAGE     = d
+
 srcdir       = @srcdir@
-top_srcdir   = ../@top_srcdir@
-top_builddir = ../@top_builddir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
 ifeq (2,$(D_VERSION))
   VERSIONSUFFIX = .2
@@ -13,7 +14,7 @@ else
   VERSIONSUFFIX = .1
 endif
 
-TESTSUFFIX = _runme$(VERSIONSUFFIX).d
+SCRIPTSUFFIX = _runme$(VERSIONSUFFIX).d
 
 CPP_TEST_CASES = \
 	d_nativepointers \
@@ -45,10 +46,10 @@ SWIGOPT+=-splitproxy -package $*
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	if [ -f $(srcdir)/$(TESTPREFIX)$*$(TESTSUFFIX) ]; then			\
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ;	\
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then			\
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ;	\
 	else									\
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;			\
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;			\
 	fi;									\
 	if [ ! -d $*$(VERSIONSUFFIX) ]; then					\
 	  mkdir $*$(VERSIONSUFFIX);						\
@@ -60,11 +61,11 @@ setup = \
 # Compiles D files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.d appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(TESTPREFIX)$*$(TESTSUFFIX) ]; then \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  cd $*$(VERSIONSUFFIX) && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  DFLAGS='-of$*_runme' \
-	  DSRCS='../$(srcdir)/$(TESTPREFIX)$*$(TESTSUFFIX) `find $* -name *.d`' d_compile && \
+	  DSRCS='../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) `find $* -name *.d`' d_compile && \
 	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme; \
 	else \
 	  cd $*$(VERSIONSUFFIX) && \

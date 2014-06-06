@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Perl5"></a>31 SWIG and Perl5</H1>
+<H1><a name="Perl5"></a>33 SWIG and Perl5</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -68,6 +68,15 @@
 <li><a href="#Perl5_nn46">Modifying the proxy methods</a>
 </ul>
 <li><a href="#Perl5_nn47">Adding additional Perl code</a>
+<li><a href="#Perl5_directors">Cross language polymorphism</a>
+<ul>
+<li><a href="#Perl5_nn48">Enabling directors</a>
+<li><a href="#Perl5_nn49">Director classes</a>
+<li><a href="#Perl5_nn50">Ownership and object destruction</a>
+<li><a href="#Perl5_nn51">Exception unrolling</a>
+<li><a href="#Perl5_nn52">Overhead and code bloat</a>
+<li><a href="#Perl5_nn53">Typemaps</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -87,7 +96,7 @@ later. We're no longer testing regularly with older versions, but
 Perl 5.6 seems to mostly work, while older versions don't.
 </p>
 
-<H2><a name="Perl5_nn2"></a>31.1 Overview</H2>
+<H2><a name="Perl5_nn2"></a>33.1 Overview</H2>
 
 
 <p>
@@ -108,7 +117,7 @@ described.  Advanced customization features, typemaps, and other
 options are found near the end of the chapter.
 </p>
 
-<H2><a name="Perl5_nn3"></a>31.2 Preliminaries</H2>
+<H2><a name="Perl5_nn3"></a>33.2 Preliminaries</H2>
 
 
 <p>
@@ -133,7 +142,7 @@ To build the module, you will need to compile the file
 <tt>example_wrap.c</tt> and link it with the rest of your program.
 </p>
 
-<H3><a name="Perl5_nn4"></a>31.2.1 Getting the right header files</H3>
+<H3><a name="Perl5_nn4"></a>33.2.1 Getting the right header files</H3>
 
 
 <p>
@@ -165,7 +174,7 @@ $ perl -e 'use Config; print "$Config{archlib}\n";'
 </pre>
 </div>
 
-<H3><a name="Perl5_nn5"></a>31.2.2 Compiling a dynamic module</H3>
+<H3><a name="Perl5_nn5"></a>33.2.2 Compiling a dynamic module</H3>
 
 
 <p>
@@ -198,7 +207,7 @@ the target should be named `<tt>example.so</tt>',
 `<tt>example.sl</tt>', or the appropriate dynamic module name on your system.
 </p>
 
-<H3><a name="Perl5_nn6"></a>31.2.3 Building a dynamic module with MakeMaker</H3>
+<H3><a name="Perl5_nn6"></a>33.2.3 Building a dynamic module with MakeMaker</H3>
 
 
 <p>
@@ -232,7 +241,7 @@ the preferred approach to compilation.  More information about MakeMaker can be
 found in "Programming Perl, 2nd ed." by Larry Wall, Tom Christiansen,
 and Randal Schwartz.</p>
 
-<H3><a name="Perl5_nn7"></a>31.2.4 Building a static version of Perl</H3>
+<H3><a name="Perl5_nn7"></a>33.2.4 Building a static version of Perl</H3>
 
 
 <p>
@@ -301,7 +310,7 @@ added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 </p>
 
-<H3><a name="Perl5_nn8"></a>31.2.5 Using the module</H3>
+<H3><a name="Perl5_nn8"></a>33.2.5 Using the module</H3>
 
 
 <p>
@@ -454,7 +463,7 @@ system configuration (this requires root access and you will need to
 read the man pages).
 </p>
 
-<H3><a name="Perl5_nn9"></a>31.2.6 Compilation problems and compiling with C++</H3>
+<H3><a name="Perl5_nn9"></a>33.2.6 Compilation problems and compiling with C++</H3>
 
 
 <p>
@@ -484,8 +493,8 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
 <div class="code"><pre>
 $ swig -c++ -perl example.i
-$ CC -c example.cxx
-$ CC -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
+$ CC -Kpic -c example.cxx
+$ CC -Kpic -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
 $ CC -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
 </pre></div>
 
@@ -597,7 +606,7 @@ have to find the macro that conflicts and add an #undef into the .i file.  Pleas
 any conflicting macros you find to <a href="http://www.swig.org/mail.html">swig-user mailing list</a>.
 </p>
 
-<H3><a name="Perl5_nn10"></a>31.2.7 Compiling for 64-bit platforms</H3>
+<H3><a name="Perl5_nn10"></a>33.2.7 Compiling for 64-bit platforms</H3>
 
 
 <p>
@@ -624,7 +633,7 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 </p>
 
-<H2><a name="Perl5_nn11"></a>31.3 Building Perl Extensions under Windows</H2>
+<H2><a name="Perl5_nn11"></a>33.3 Building Perl Extensions under Windows</H2>
 
 
 <p>
@@ -635,7 +644,7 @@ section assumes you are using SWIG with Microsoft Visual C++
 although the procedure may be similar with other compilers.  
 </p>
 
-<H3><a name="Perl5_nn12"></a>31.3.1 Running SWIG from Developer Studio</H3>
+<H3><a name="Perl5_nn12"></a>33.3.1 Running SWIG from Developer Studio</H3>
 
 
 <p>
@@ -698,7 +707,7 @@ print "$a\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn13"></a>31.3.2 Using other compilers</H3>
+<H3><a name="Perl5_nn13"></a>33.3.2 Using other compilers</H3>
 
 
 <p>
@@ -706,7 +715,7 @@ SWIG is known to work with Cygwin and may work with other compilers on Windows.
 For general hints and suggestions refer to the <a href="Windows.html#Windows">Windows</a> chapter.
 </p>
 
-<H2><a name="Perl5_nn14"></a>31.4 The low-level interface</H2>
+<H2><a name="Perl5_nn14"></a>33.4 The low-level interface</H2>
 
 
 <p>
@@ -716,7 +725,7 @@ can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
 </p>
 
-<H3><a name="Perl5_nn15"></a>31.4.1 Functions</H3>
+<H3><a name="Perl5_nn15"></a>33.4.1 Functions</H3>
 
 
 <p>
@@ -739,7 +748,7 @@ use example;
 $a = &amp;example::fact(2);
 </pre></div>
 
-<H3><a name="Perl5_nn16"></a>31.4.2 Global variables</H3>
+<H3><a name="Perl5_nn16"></a>33.4.2 Global variables</H3>
 
 
 <p>
@@ -809,7 +818,7 @@ extern char *path;       // Declared later in the input
 </pre>
 </div>
 
-<H3><a name="Perl5_nn17"></a>31.4.3 Constants</H3>
+<H3><a name="Perl5_nn17"></a>33.4.3 Constants</H3>
 
 
 <p>
@@ -849,7 +858,7 @@ print example::FOO,"\n";
 </pre>
 </div>
 
-<H3><a name="Perl5_nn18"></a>31.4.4 Pointers</H3>
+<H3><a name="Perl5_nn18"></a>33.4.4 Pointers</H3>
 
 
 <p>
@@ -958,7 +967,7 @@ as XS and <tt>xsubpp</tt>.  Given the advancement of the SWIG typesystem and the
 SWIG and XS, this is no longer supported.
 </p>
 
-<H3><a name="Perl5_nn19"></a>31.4.5 Structures</H3>
+<H3><a name="Perl5_nn19"></a>33.4.5 Structures</H3>
 
 
 <p>
@@ -1092,7 +1101,7 @@ void Bar_f_set(Bar *b, Foo *val) {
 </div>
 
 
-<H3><a name="Perl5_nn20"></a>31.4.6 C++ classes</H3>
+<H3><a name="Perl5_nn20"></a>33.4.6 C++ classes</H3>
 
 
 <p>
@@ -1157,7 +1166,7 @@ provides direct access to C++ objects.  A higher level interface using Perl prox
 can be built using these low-level accessors.  This is described shortly.
 </p>
 
-<H3><a name="Perl5_nn21"></a>31.4.7 C++ classes and type-checking</H3>
+<H3><a name="Perl5_nn21"></a>33.4.7 C++ classes and type-checking</H3>
 
 
 <p>
@@ -1193,7 +1202,7 @@ If necessary, the type-checker also adjusts the value of the pointer (as is nece
 multiple inheritance is used).
 </p>
 
-<H3><a name="Perl5_nn22"></a>31.4.8 C++ overloaded functions</H3>
+<H3><a name="Perl5_nn22"></a>33.4.8 C++ overloaded functions</H3>
 
 
 <p>
@@ -1237,7 +1246,7 @@ example::Spam_foo_d($s,3.14);
 Please refer to the "SWIG Basics" chapter for more information. 
 </p>
 
-<H3><a name="Perl5_nn23"></a>31.4.9 Operators</H3>
+<H3><a name="Perl5_nn23"></a>33.4.9 Operators</H3>
 
 
     <p>
@@ -1264,7 +1273,7 @@ The following C++ operators are currently supported by the Perl module:
 <li>operator or  </li>
     </ul>
 
-<H3><a name="Perl5_nn24"></a>31.4.10 Modules and packages</H3>
+<H3><a name="Perl5_nn24"></a>33.4.10 Modules and packages</H3>
 
 
 <p>
@@ -1359,7 +1368,7 @@ print Foo::fact(4),"\n";        # Call a function in package FooBar
 </pre></div>
 -->
 
-<H2><a name="Perl5_nn25"></a>31.5 Input and output parameters</H2>
+<H2><a name="Perl5_nn25"></a>33.5 Input and output parameters</H2>
 
 
 <p>
@@ -1578,7 +1587,7 @@ print "$c\n";
 <b>Note:</b> The <tt>REFERENCE</tt> feature is only currently supported for numeric types (integers and floating point).
 </p>
 
-<H2><a name="Perl5_nn26"></a>31.6 Exception handling</H2>
+<H2><a name="Perl5_nn26"></a>33.6 Exception handling</H2>
 
 
 <p>
@@ -1743,7 +1752,7 @@ This is still supported, but it is deprecated.  The newer <tt>%exception</tt> di
 functionality, but it has additional capabilities that make it more powerful.
 </p>
 
-<H2><a name="Perl5_nn27"></a>31.7 Remapping datatypes with typemaps</H2>
+<H2><a name="Perl5_nn27"></a>33.7 Remapping datatypes with typemaps</H2>
 
 
 <p>
@@ -1760,7 +1769,7 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Perl interface.
 </p>
 
-<H3><a name="Perl5_nn28"></a>31.7.1 A simple typemap example</H3>
+<H3><a name="Perl5_nn28"></a>33.7.1 A simple typemap example</H3>
 
 
 <p>
@@ -1864,7 +1873,7 @@ example::count("e","Hello World");
 </div>
 
 
-<H3><a name="Perl5_nn29"></a>31.7.2 Perl5 typemaps</H3>
+<H3><a name="Perl5_nn29"></a>33.7.2 Perl5 typemaps</H3>
 
 
 <p>
@@ -1969,7 +1978,7 @@ Return of C++ member data (all languages).
 Check value of input parameter.
 </div>
 
-<H3><a name="Perl5_nn30"></a>31.7.3 Typemap variables</H3>
+<H3><a name="Perl5_nn30"></a>33.7.3 Typemap variables</H3>
 
 
 <p>
@@ -2040,7 +2049,7 @@ properly assigned.
 The Perl name of the wrapper function being created.
 </div>
 
-<H3><a name="Perl5_nn31"></a>31.7.4 Useful functions</H3>
+<H3><a name="Perl5_nn31"></a>33.7.4 Useful functions</H3>
 
 
 <p>
@@ -2109,7 +2118,7 @@ int       sv_isa(SV *, char *0;
 </div>
 
 
-<H2><a name="Perl5_nn32"></a>31.8 Typemap Examples</H2>
+<H2><a name="Perl5_nn32"></a>33.8 Typemap Examples</H2>
 
 
 <p>
@@ -2118,7 +2127,7 @@ might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Perl5_nn33"></a>31.8.1 Converting a Perl5 array to a char **</H3>
+<H3><a name="Perl5_nn33"></a>33.8.1 Converting a Perl5 array to a char **</H3>
 
 
 <p>
@@ -2210,7 +2219,7 @@ print @$b,"\n";                                  # Print it out
 </pre></div>
 
 
-<H3><a name="Perl5_nn34"></a>31.8.2 Return values</H3>
+<H3><a name="Perl5_nn34"></a>33.8.2 Return values</H3>
 
 
 <p>
@@ -2239,7 +2248,7 @@ can be done using the <tt>EXTEND()</tt> macro as in:
 }
 </pre></div>
 
-<H3><a name="Perl5_nn35"></a>31.8.3 Returning values from arguments</H3>
+<H3><a name="Perl5_nn35"></a>33.8.3 Returning values from arguments</H3>
 
 
 <p>
@@ -2293,7 +2302,7 @@ print "multout(7,13) = @r\n";
 ($x,$y) = multout(7,13);
 </pre></div>
 
-<H3><a name="Perl5_nn36"></a>31.8.4 Accessing array structure members</H3>
+<H3><a name="Perl5_nn36"></a>33.8.4 Accessing array structure members</H3>
 
 
 <p>
@@ -2356,7 +2365,7 @@ the "in" typemap in the previous section would be used to convert an
 to copy the converted array into a C data structure.
 </p>
 
-<H3><a name="Perl5_nn37"></a>31.8.5 Turning Perl references into C pointers</H3>
+<H3><a name="Perl5_nn37"></a>33.8.5 Turning Perl references into C pointers</H3>
 
 
 <p>
@@ -2421,7 +2430,7 @@ print "$c\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn38"></a>31.8.6 Pointer handling</H3>
+<H3><a name="Perl5_nn38"></a>33.8.6 Pointer handling</H3>
 
 
 <p>
@@ -2500,7 +2509,7 @@ For example:
 </pre>
 </div>
 
-<H2><a name="Perl5_nn39"></a>31.9 Proxy classes</H2>
+<H2><a name="Perl5_nn39"></a>33.9 Proxy classes</H2>
 
 
 <p>
@@ -2516,7 +2525,7 @@ to the underlying code.  This section describes the implementation
 details of the proxy interface.
 </p>
 
-<H3><a name="Perl5_nn40"></a>31.9.1 Preliminaries</H3>
+<H3><a name="Perl5_nn40"></a>33.9.1 Preliminaries</H3>
 
 
 <p>
@@ -2538,7 +2547,7 @@ SWIG creates a collection of high-level Perl wrappers.  In your scripts, you wil
 high level wrappers.  The wrappers, in turn, interact with the low-level procedural module.
 </p>
 
-<H3><a name="Perl5_nn41"></a>31.9.2 Structure and class wrappers</H3>
+<H3><a name="Perl5_nn41"></a>33.9.2 Structure and class wrappers</H3>
 
 
 <p>
@@ -2664,7 +2673,7 @@ $v-&gt;DESTROY();
 
 </pre></div>
 
-<H3><a name="Perl5_nn42"></a>31.9.3 Object Ownership</H3>
+<H3><a name="Perl5_nn42"></a>33.9.3 Object Ownership</H3>
 
 
 <p>
@@ -2751,7 +2760,7 @@ counting, garbage collection, or advanced features one might find in
 sophisticated languages.
 </p>
 
-<H3><a name="Perl5_nn43"></a>31.9.4 Nested Objects</H3>
+<H3><a name="Perl5_nn43"></a>33.9.4 Nested Objects</H3>
 
 
 <p>
@@ -2804,7 +2813,7 @@ $p-&gt;{f}-&gt;{x} = 0.0;
 %${$p-&gt;{v}} = ( x=&gt;0, y=&gt;0, z=&gt;0);         
 </pre></div>
 
-<H3><a name="Perl5_nn44"></a>31.9.5 Proxy Functions</H3>
+<H3><a name="Perl5_nn44"></a>33.9.5 Proxy Functions</H3>
 
 
 <p>
@@ -2838,7 +2847,7 @@ This function replaces the original function, but operates in an
 identical manner.
 </p>
 
-<H3><a name="Perl5_nn45"></a>31.9.6 Inheritance</H3>
+<H3><a name="Perl5_nn45"></a>33.9.6 Inheritance</H3>
 
 
 <p>
@@ -2914,7 +2923,7 @@ particular, inheritance of data members is extremely tricky (and I'm
 not even sure if it really works).
 </p>
 
-<H3><a name="Perl5_nn46"></a>31.9.7 Modifying the proxy methods</H3>
+<H3><a name="Perl5_nn46"></a>33.9.7 Modifying the proxy methods</H3>
 
 
 <p>
@@ -2942,7 +2951,7 @@ public:
 };
 </pre></div>
 
-<H2><a name="Perl5_nn47"></a>31.10 Adding additional Perl code</H2>
+<H2><a name="Perl5_nn47"></a>33.10 Adding additional Perl code</H2>
 
 
 <p>
@@ -2992,6 +3001,363 @@ my $a =
 set_transform($im, $a);
 </pre>
 </div>
+
+<H2><a name="Perl5_directors"></a>33.11 Cross language polymorphism</H2>
+
+
+<p>
+Proxy classes provide a more natural, object-oriented way to access
+extension classes. As described above, each proxy instance has an
+associated C++ instance, and method calls to the proxy are passed to the
+C++ instance transparently via C wrapper functions.
+</p>
+
+<p>
+This arrangement is asymmetric in the sense that no corresponding
+mechanism exists to pass method calls down the inheritance chain from
+C++ to Perl. In particular, if a C++ class has been extended in Perl
+(by extending the proxy class), these extensions will not be visible
+from C++ code. Virtual method calls from C++ are thus not able access
+the lowest implementation in the inheritance chain.
+</p>
+
+<p>
+Changes have been made to SWIG to address this problem and
+make the relationship between C++ classes and proxy classes more
+symmetric. To achieve this goal, new classes called directors are
+introduced at the bottom of the C++ inheritance chain. The job of the
+directors is to route method calls correctly, either to C++
+implementations higher in the inheritance chain or to Perl
+implementations lower in the inheritance chain. The upshot is that C++
+classes can be extended in Perl and from C++ these extensions look
+exactly like native C++ classes. Neither C++ code nor Perl code needs
+to know where a particular method is implemented: the combination of
+proxy classes, director classes, and C wrapper functions takes care of
+all the cross-language method routing transparently.
+</p>
+
+<H3><a name="Perl5_nn48"></a>33.11.1 Enabling directors</H3>
+
+
+<p>
+The director feature is disabled by default.  To use directors you
+must make two changes to the interface file.  First, add the "directors"
+option to the %module directive, like this:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") modulename
+</pre>
+</div>
+
+<p>
+Without this option no director code will be generated.  Second, you
+must use the %feature("director") directive to tell SWIG which classes 
+and methods should get directors.  The %feature directive can be applied 
+globally, to specific classes, and to specific methods, like this:
+</p>
+
+<div class="code">
+<pre>
+// generate directors for all classes that have virtual methods
+%feature("director");         
+
+// generate directors for all virtual methods in class Foo
+%feature("director") Foo;      
+</pre>
+</div>
+
+<p>
+You can use the %feature("nodirector") directive to turn off
+directors for specific classes or methods.  So for example,
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+%feature("nodirector") Foo::bar;
+</pre>
+</div>
+
+<p>
+will generate directors for all virtual methods of class Foo except
+bar().  
+</p>
+
+<p>
+Directors can also be generated implicitly through inheritance. 
+In the following, class Bar will get a director class that handles
+the methods one() and two() (but not three()):
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+class Foo {
+public:
+    Foo(int foo);
+    virtual void one();
+    virtual void two();
+};
+
+class Bar: public Foo {
+public:
+    virtual void three();
+};
+</pre>
+</div>
+
+<p>
+then at the Perl side you can define
+</p>
+
+<div class="targetlang">
+<pre>
+use mymodule;
+
+package MyFoo;
+use base 'mymodule::Foo';
+
+sub one {
+  print "one from Perl\n";
+}
+</pre>
+</div>
+
+
+<H3><a name="Perl5_nn49"></a>33.11.2 Director classes</H3>
+
+
+ 
+
+
+<p>
+For each class that has directors enabled, SWIG generates a new class
+that derives from both the class in question and a special
+<tt>Swig::Director</tt> class. These new classes, referred to as director
+classes, can be loosely thought of as the C++ equivalent of the Perl
+proxy classes. The director classes store a pointer to their underlying
+Perl object and handle various issues related to object ownership.
+</p>
+
+<p>
+For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the
+original C++ class as the director's base class. By default, a director
+class extends all virtual methods in the inheritance chain of its base
+class (see the preceding section for how to modify this behavior).
+Thus all virtual method calls, whether they originate in C++ or in
+Perl via proxy classes, eventually end up in at the implementation in
+the director class. The job of the director methods is to route these
+method calls to the appropriate place in the inheritance chain. By
+"appropriate place" we mean the method that would have been called if
+the C++ base class and its extensions in Perl were seamlessly
+integrated. That seamless integration is exactly what the director
+classes provide, transparently skipping over all the messy extension API
+glue that binds the two languages together.
+</p>
+
+<p>
+In reality, the "appropriate place" is one of only two possibilities:
+C++ or Perl. Once this decision is made, the rest is fairly easy. If
+the correct implementation is in C++, then the lowest implementation of
+the method in the C++ inheritance chain is called explicitly. If the
+correct implementation is in Perl, the Perl API is used to call the
+method of the underlying Perl object (after which the usual virtual
+method resolution in Perl automatically finds the right
+implementation).
+</p>
+
+<p>
+Now how does the director decide which language should handle the method call?
+The basic rule is to handle the method in Perl, unless there's a good
+reason not to. The reason for this is simple: Perl has the most
+"extended" implementation of the method. This assertion is guaranteed,
+since at a minimum the Perl proxy class implements the method. If the
+method in question has been extended by a class derived from the proxy
+class, that extended implementation will execute exactly as it should.
+If not, the proxy class will route the method call into a C wrapper
+function, expecting that the method will be resolved in C++. The wrapper
+will call the virtual method of the C++ instance, and since the director
+extends this the call will end up right back in the director method. Now
+comes the "good reason not to" part. If the director method were to blindly
+call the Perl method again, it would get stuck in an infinite loop. We avoid this
+situation by adding special code to the C wrapper function that tells
+the director method to not do this. The C wrapper function compares the
+pointer to the Perl object that called the wrapper function to the
+pointer stored by the director. If these are the same, then the C
+wrapper function tells the director to resolve the method by calling up
+the C++ inheritance chain, preventing an infinite loop.
+</p>
+
+<p>
+One more point needs to be made about the relationship between director
+classes and proxy classes. When a proxy class instance is created in
+Perl, SWIG creates an instance of the original C++ class.
+This is exactly what happens without directors and
+is true even if directors are enabled for the particular class in
+question. When a class <i>derived</i> from a proxy class is created,
+however, SWIG then creates an instance of the corresponding C++ director
+class. The reason for this difference is that user-defined subclasses
+may override or extend methods of the original class, so the director
+class is needed to route calls to these methods correctly. For
+unmodified proxy classes, all methods are ultimately implemented in C++
+so there is no need for the extra overhead involved with routing the
+calls through Perl.
+</p>
+
+<H3><a name="Perl5_nn50"></a>33.11.3 Ownership and object destruction</H3>
+
+
+<p>
+Memory management issues are slightly more complicated with directors
+than for proxy classes alone. Perl instances hold a pointer to the
+associated C++ director object, and the director in turn holds a pointer
+back to a Perl object. By default, proxy classes own their C++
+director object and take care of deleting it when they are garbage
+collected.
+</p>
+
+<p>
+This relationship can be reversed by calling the special
+<tt>DISOWN()</tt> method of the proxy class. After calling this
+method the director
+class increments the reference count of the Perl object. When the
+director class is deleted it decrements the reference count. Assuming no
+outstanding references to the Perl object remain, the Perl object
+will be destroyed at the same time. This is a good thing, since
+directors and proxies refer to each other and so must be created and
+destroyed together. Destroying one without destroying the other will
+likely cause your program to segfault.
+</p>
+
+<p>
+Also note that due to the proxy implementation, the <tt>DESTROY()</tt>
+method on directors can be called for several reasons, many of which
+have little to do with the teardown of an object instance.  To help
+disambiguate this, a second argument is added to the <tt>DESTROY()</tt>
+call when a C++ director object is being released.  So, to avoid running
+your clean-up code when an object is not really going away, or after it
+has already been reclaimed, it is suggested that custom destructors in
+Perl subclasses looks something like:
+</p>
+
+<div class="targetlang">
+<pre>
+sub DESTROY {
+  my($self, $final) = @_;
+  if($final) {
+    # real teardown code
+  }
+  shift-&gt;SUPER::DESTROY(@_);
+}
+</pre>
+</div>
+
+
+<H3><a name="Perl5_nn51"></a>33.11.4 Exception unrolling</H3>
+
+
+<p>
+With directors routing method calls to Perl, and proxies routing them
+to C++, the handling of exceptions is an important concern. By default, the
+directors ignore exceptions that occur during method calls that are
+resolved in Perl. To handle such exceptions correctly, it is necessary
+to temporarily translate them into C++ exceptions. This can be done with
+the %feature("director:except") directive. The following code should
+suffice in most cases:
+</p>
+
+<div class="code">
+<pre>
+%feature("director:except") {
+    if ($error != NULL) {
+        throw Swig::DirectorMethodException();
+    }
+}
+</pre>
+</div>
+
+<p>
+This code will check the Perl error state after each method call from
+a director into Perl, and throw a C++ exception if an error occurred.
+This exception can be caught in C++ to implement an error handler.
+</p>
+
+<p>
+It may be the case that a method call originates in Perl, travels up
+to C++ through a proxy class, and then back into Perl via a director
+method. If an exception occurs in Perl at this point, it would be nice
+for that exception to find its way back to the original caller. This can
+be done by combining a normal %exception directive with the
+<tt>director:except</tt> handler shown above. Here is an example of a
+suitable exception handler:
+</p>
+
+<div class="code">
+<pre>
+%exception {
+    try { $action }
+    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+}
+</pre>
+</div>
+
+<p>
+The class Swig::DirectorException used in this example is actually a
+base class of Swig::DirectorMethodException, so it will trap this
+exception. Because the Perl error state is still set when
+Swig::DirectorMethodException is thrown, Perl will register the
+exception as soon as the C wrapper function returns.
+</p>
+
+<H3><a name="Perl5_nn52"></a>33.11.5 Overhead and code bloat</H3>
+
+
+<p>
+Enabling directors for a class will generate a new director method for
+every virtual method in the class' inheritance chain. This alone can
+generate a lot of code bloat for large hierarchies. Method arguments
+that require complex conversions to and from target language types can
+result in large director methods. For this reason it is recommended that
+you selectively enable directors only for specific classes that are
+likely to be extended in Perl and used in C++.
+</p>
+
+<p>
+Compared to classes that do not use directors, the call routing in the
+director methods does add some overhead. In particular, at least one
+dynamic cast and one extra function call occurs per method call from
+Perl. Relative to the speed of Perl execution this is probably
+completely negligible. For worst case routing, a method call that
+ultimately resolves in C++ may take one extra detour through Perl in
+order to ensure that the method does not have an extended Perl
+implementation. This could result in a noticeable overhead in some cases.
+</p>
+
+<p>
+Although directors make it natural to mix native C++ objects with Perl
+objects (as director objects) via a common base class pointer, one
+should be aware of the obvious fact that method calls to Perl objects
+will be much slower than calls to C++ objects. This situation can be
+optimized by selectively enabling director methods (using the %feature
+directive) for only those methods that are likely to be extended in
+Perl.
+</p>
+
+<H3><a name="Perl5_nn53"></a>33.11.6 Typemaps</H3>
+
+
+<p>
+Typemaps for input and output of most of the basic types from director
+classes have been written. These are roughly the reverse of the usual
+input and output typemaps used by the wrapper code. The typemap
+operation names are 'directorin', 'directorout', and 'directorargout'.
+The director code does not currently use any of the other kinds of typemaps.
+It is not clear at this point which kinds are appropriate and
+need to be supported.
+</p>
+
 
 
 

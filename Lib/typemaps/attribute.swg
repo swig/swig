@@ -130,6 +130,9 @@
       };
     %} 
 
+  The %attributestring also works for class types that have %naturalvar turned
+  on and so is also useful for shared_ptr which has %naturalvar turned on in %shared_ptr.
+
 */
 
 //
@@ -275,7 +278,7 @@
   %ignore Class::GetMethod();
   %ignore Class::GetMethod() const;
   %newobject Class::AttributeName;
-  %typemap(newfree) const AttributeType &AttributeName "delete $1;// my newfree override"
+  %typemap(newfree) const AttributeType &AttributeName "delete $1;"
   %extend Class {
     AttributeType AttributeName;
   }

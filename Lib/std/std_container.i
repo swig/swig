@@ -46,8 +46,11 @@
   void resize(size_type new_size);
   
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator erase(iterator pos);
-  iterator erase(iterator first, iterator last);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  iterator erase(iterator pos) { return $self->erase(pos); }
+  iterator erase(iterator first, iterator last) { return $self->erase(first, last); }
+}
   #endif
   
 %enddef
@@ -68,8 +71,11 @@
   void resize(size_type new_size, const value_type& x);
   
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator pos, const value_type& x);
-  void insert(iterator pos, size_type n, const value_type& x);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  iterator insert(iterator pos, const value_type& x) { return $self->insert(pos, x); }
+  void insert(iterator pos, size_type n, const value_type& x) { $self->insert(pos, n, x); }
+}
   #endif
   
 %enddef
@@ -89,8 +95,11 @@
   void resize(size_type new_size, value_type x);
   
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator pos, value_type x);
-  void insert(iterator pos, size_type n, value_type x);
+%extend {
+  // %extend wrapper used for differing definitions of these methods introduced in C++11
+  iterator insert(iterator pos, value_type x) { return $self->insert(pos, x); }
+  void insert(iterator pos, size_type n, value_type x) { $self->insert(pos, n, x); }
+}
   #endif
   
 %enddef

@@ -313,7 +313,7 @@ SWIG_Chicken_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
     swig_module_info *ret = 0;
     C_word sym;
 
-    /* lookup the type pointer... it is stored in it's own symbol table */
+    /* lookup the type pointer... it is stored in its own symbol table */
     C_SYMBOL_TABLE *stable = C_find_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION);
     if (stable != NULL) {
       sym = SWIG_Chicken_LookupSymbol(chicken_runtimevar_name, stable);
@@ -333,7 +333,7 @@ SWIG_Chicken_SetModule(swig_module_info *module) {
     C_word pointer;
     static C_word *space = 0;
     
-    /* type pointer is stored in it's own symbol table */
+    /* type pointer is stored in its own symbol table */
     stable = C_find_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION);
     if (stable == NULL) {
       stable = C_new_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION, 16);

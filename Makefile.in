@@ -9,9 +9,16 @@ exec_prefix = @exec_prefix@
 srcdir      = @srcdir@
 datarootdir = @datarootdir@
 
-##############################################################################
+#####################################################################
+# Make options - override these to see more output
+#####################################################################
+
+RUNPIPE     = \>/dev/null
+FLAGS       = -k -s
+
+#####################################################################
 # Compiler and system configuration
-##############################################################################
+#####################################################################
 
 SHELL       = /bin/sh
 SWIG_LIB    = @swig_lib@
@@ -22,7 +29,7 @@ TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 CCACHE      = CCache
 DOCS        = Doc/Manual
-RUNPIPE     = \>/dev/null
+HAVE_CXX11_COMPILER = @HAVE_CXX11_COMPILER@
 
 swig: libfiles source ccache
 
@@ -78,10 +85,14 @@ skip-r		= test -n "@SKIP_R@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
 skip-d		= test -n "@SKIP_D@"
+skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
 skip-android    = test -n "@SKIP_ANDROID@"
+
+# Special errors test-case
+skip-errors	= test -n ""
 
 #####################################################################
 # CHECK
@@ -90,7 +101,7 @@ skip-android    = test -n "@SKIP_ANDROID@"
 ACTION = check
 NOSKIP =
 
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
+chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
@@ -121,6 +132,7 @@ check-aliveness:
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
+	@$(skip-javascript) || ./$(TARGET) -javascript -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -131,6 +143,7 @@ check-versions:					\
 	check-perl5-version			\
 	check-python-version			\
 	check-java-version			\
+	check-javascript-version			\
 	check-android-version			\
 	check-guile-version			\
 	check-mzscheme-version			\
@@ -162,7 +175,7 @@ check-%-version :
 	  echo skipping $* version;				\
 	else							\
 	  echo showing $* version;				\
-	  (cd Examples && $(MAKE) -s $*_version)		\
+	  (cd Examples && $(MAKE) $(FLAGS) $*_version)		\
 	fi
 
 # Checks examples for compilation (does not run them)
@@ -190,7 +203,8 @@ check-examples:					\
 	check-r-examples			\
 	check-scilab-examples			\
 	check-go-examples			\
-	check-d-examples
+	check-d-examples			\
+	check-javascript-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -216,6 +230,7 @@ r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
+javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
 
 # all examples
 check-%-examples :
@@ -228,25 +243,28 @@ check-%-examples :
 	elif test -z "$($(strip $*_examples))"; then		\
 	  echo empty $* $(ACTION);				\
 	else							\
-	  $(MAKE) -k -s $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
+	  $(MAKE) $(FLAGS) $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
 	fi
 
 # individual example
 %.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@if $(skip-gcj); then					\
-          echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-        else							\
+	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
+	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
+	check-errors-test-suite			\
 	check-tcl-test-suite			\
 	check-perl5-test-suite			\
 	check-python-test-suite			\
@@ -269,7 +287,8 @@ check-test-suite:				\
 	check-r-test-suite			\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
-	check-d-test-suite
+	check-d-test-suite			\
+	check-javascript-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -284,17 +303,17 @@ check-%-test-suite:
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
 	  echo $(ACTION)ing $* test-suite;				\
-	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
+	  (cd $$dir && $(MAKE) $(FLAGS) $(ACTION) HAVE_CXX11_COMPILER=$(HAVE_CXX11_COMPILER)) \
 	  || passed=false;						\
 	fi;								\
 	test $$passed = true
 
 # Partial test-suite check - it only invokes SWIG, ie no compilation and no runtime testing
 partialcheck-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=partialcheck NOSKIP=1
+	@$(MAKE) $(FLAGS) check-test-suite ACTION=partialcheck NOSKIP=1
 
 partialcheck-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck NOSKIP=1
+	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
 check: check-aliveness check-ccache check-versions check-examples check-test-suite
 
@@ -322,10 +341,11 @@ all-test-suite:					\
 	all-r-test-suite			\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
-	all-d-test-suite
+	all-d-test-suite			\
+	all-javascript-test-suite
 
 all-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=all
+	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=all
 
 # Run known-to-be-broken testcases in the test-suite
 broken-test-suite:				\
@@ -351,10 +371,11 @@ broken-test-suite:				\
 	broken-r-test-suite			\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
-	broken-d-test-suite
+	broken-d-test-suite			\
+	broken-javascript-test-suite
 
 broken-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
+	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=broken
 
 #####################################################################
 # CLEAN
@@ -366,50 +387,59 @@ clean-objects: clean-source clean-ccache
 
 clean-source:
 	@echo cleaning Source
-	@cd $(SOURCE) && $(MAKE) -s clean
+	@cd $(SOURCE) && $(MAKE) $(FLAGS) clean
 	@rm -f $(TARGET)
 
 clean-examples:
-	@$(MAKE) -k -s check-examples ACTION=clean
+	@$(MAKE) $(FLAGS) check-examples ACTION=clean
 
 clean-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=clean NOSKIP=1
+	@$(MAKE) $(FLAGS) check-test-suite ACTION=clean NOSKIP=1
 
 clean-%-examples:
-	@$(MAKE) -k -s check-$*-examples ACTION=clean
+	@$(MAKE) $(FLAGS) check-$*-examples ACTION=clean
 
 clean-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=clean NOSKIP=1
+	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=clean NOSKIP=1
 
 clean-ccache:
-	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s clean)
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) clean)
 
 #####################################################################
 # DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig Lib/ocaml/swigp4.ml
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
 
-distclean-helper: distclean-test-suite distclean-examples distclean-dead
+distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
 distclean: distclean-source distclean-ccache distclean-helper
 
 distclean-source:
 	@echo distcleaning Source
-	@cd $(SOURCE) && $(MAKE) -s distclean
+	@cd $(SOURCE) && $(MAKE) $(FLAGS) distclean
 	@rm -f $(TARGET)
 
 distclean-test-suite:
 	@echo distcleaning Examples/test-suite
-	@$(MAKE) -k -s check-test-suite ACTION=distclean NOSKIP=1
+	@$(MAKE) $(FLAGS) check-test-suite ACTION=distclean NOSKIP=1
 
 distclean-examples:
 	@echo distcleaning Examples
-	@$(MAKE) -k -s clean-examples
-	@cd Examples && $(MAKE) -k -s distclean
+	@$(MAKE) $(FLAGS) clean-examples
+	@cd Examples && $(MAKE) $(FLAGS) distclean
+	@if test "x$(srcdir)" != "x."; then \
+		for mkfile in `cd $(srcdir) && find Examples/ -type f -name Makefile`; do \
+			rm -f "$$mkfile"; \
+		done; \
+	fi
 
 distclean-ccache:
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) distclean)
+
+distclean-tools:
+	@echo distcleaning Tools
+	@cd Tools/javascript && $(MAKE) $(FLAGS) distclean
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
@@ -423,15 +453,25 @@ distclean-dead:
 
 maintainer-clean:
 	@echo maintainer-cleaning source
-	@cd $(SOURCE) && $(MAKE) -k -s maintainer-clean
+	@cd $(SOURCE) && $(MAKE) $(FLAGS) maintainer-clean
 	@echo maintainer-cleaning CCache
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s maintainer-clean)
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) maintainer-clean)
 	@echo maintainer-cleaning docs
-	@cd $(DOCS) && $(MAKE) -k -s maintainer-clean
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) $(FLAGS) maintainer-clean
 	@echo maintainer-cleaning Lib files
 	@rm -f $(srcdir)/Lib/swigwarn.swg
 	@echo distcleaning
-	@$(MAKE) -k -s distclean-helper
+	@$(MAKE) $(FLAGS) distclean-helper
+
+check-maintainer-clean: maintainer-clean
+	@if test "x$(srcdir)" = "x."; then \
+		echo "skipping maintainer-clean check (in-source-tree build)"; \
+		exit 0; \
+	fi; \
+	for file in `find . -type f`; do \
+		echo "file missed by maintainer-clean: $$file"; \
+	done; \
+	test "x$$file" = x && echo "all files cleaned by maintainer-clean"
 
 #####################################################################
 # Update the Lib/swigwarn.swg file
@@ -464,18 +504,19 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r scilab go d
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
+	javascript/v8 scilab
 
 lib-modules = std
 
 
-install-lib: 
+install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-            $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\
@@ -499,7 +540,7 @@ install-lib:
 	done
 
 install-ccache:
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s install)
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) install)
 
 
 #####################################################################
