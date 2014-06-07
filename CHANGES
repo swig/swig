@@ -3,6 +3,26 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.2 (4 Jun 2014)
+==========================
+
+2014-06-02: v-for-vandal
+            [Lua] Pull request #176:
+            If class has no __eq implemented, then default __eq is generated. 
+            Default __eq compares actual pointers stored inside Lua userdata.
+
+2014-06-02: vkalinin
+            Fix #183 - %extend and unnamed nested structs
+
+2014-05-28: kwwette
+            Fix install failure when using an 'out of source' build using the shipped
+            tarball - regression introduced in swig-3.0.1.
+
+2014-05-24: kwwette
+            [Octave] Remove deprecated -global/-noglobal command-line arguments
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 Version 3.0.1 (27 May 2014)
 ===========================
 

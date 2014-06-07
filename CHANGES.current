@@ -2,10 +2,6 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.2 (in progress)
+Version 3.0.3 (in progress)
 ===========================
 
-2014-04-24: kwwette
-            [Octave] Remove deprecated -global/-noglobal command-line arguments
-
-            *** POTENTIAL INCOMPATIBILITY  ***
