@@ -7,6 +7,10 @@ int module_variable = 9;
 void print(double) {}
 void print(float) {}
 
+void print2(float) {}
+
+void print3(double) {}
+void print3(float) {}
 
 namespace MyWorld {
   class World {
@@ -24,6 +28,12 @@ namespace MyWorld {
   }
 
   void print(unsigned) {}
+
+  void print2(unsigned) {}
+
+  void print3(int) {}
+  void print3(unsigned) {}
+
 }
 
 
