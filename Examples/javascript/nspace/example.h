@@ -5,7 +5,7 @@ int module_function() { return 7; }
 int module_variable = 9;
 
 void print(double) {}
-void print(int) {}
+void print(float) {}
 
 
 namespace MyWorld {
@@ -23,7 +23,6 @@ namespace MyWorld {
     };
   }
 
-  void print(float) {}
   void print(unsigned) {}
 }
 
