@@ -10,6 +10,7 @@ endif
 
 LANGUAGE     = python
 PYTHON       = $(PYBIN)
+PEP8         = @PEP8@
 
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
@@ -111,12 +112,14 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 	+$(convert_testcase)
 	$(setup)
 	+$(swig_and_compile_cpp)
+	$(check_pep8)
 	$(run_testcase)
 
 %.ctest:
 	+$(convert_testcase)
 	$(setup)
 	+$(swig_and_compile_c)
+	$(check_pep8)
 	$(run_testcase)
 
 %.multicpptest:
@@ -126,12 +129,18 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 	$(run_testcase)
 
 
+
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.py (or _runme3.py for Python 3) appended after the testcase name.
 
 py_runme  = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 py2_runme = $(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
 py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
+
+check_pep8 = \
+	if [ -n "$(PEP8)" ]; then \
+	  $(PEP8) --ignore=E501,E30,W291,W391 `echo $(py2_runme)|sed "s|_runme||g"`;\
+	fi
 
 run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(py_runme)
 
