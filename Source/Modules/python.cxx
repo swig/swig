@@ -860,10 +860,10 @@ public:
 	// Python-2.2 object hack
 	Printv(f_shadow,
 	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
-	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own(value)\n",
-	       tab4, "if (name == \"this\"):\n", tab4, tab4, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
+	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own(value)\n",
+	       tab4, "if (name == \"this\"):\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
-	       tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
+	       tab4, tab8, "if hasattr(value,\"thisown\"):\n", tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
 #endif
 	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
 #ifdef USE_THISOWN
@@ -878,14 +878,14 @@ public:
 
 	Printv(f_shadow,
 	        "\n", "def _swig_getattr(self, class_type, name):\n",
-	       tab4, "if (name == \"thisown\"):\n", tab4, tab4, "return self.this.own()\n",
+	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
-	       tab4, "if method:\n", tab4, tab4, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
+	       tab4, "if method:\n", tab8, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
 
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
-	       tab4, "try:\n", tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except:\n", tab4, tab4, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
+	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
+	       tab4, "except:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
 	if (!classic) {
 	  /* Usage of types.ObjectType is deprecated.
@@ -895,7 +895,7 @@ public:
 //               "import types\n",
 		 "try:\n",
 //               "    _object = types.ObjectType\n",
-		 tab4, "_object = object\n", tab4, "_newclass = 1\n", "except AttributeError:\n", tab4, "class _object:\n", tab4, tab4, "pass\n", tab4, "_newclass = 0\n",
+		 tab4, "_object = object\n", tab4, "_newclass = 1\n", "except AttributeError:\n", tab4, "class _object:\n", tab8, "pass\n", tab4, "_newclass = 0\n",
 //                 "del types\n", 
 		 "\n\n", NIL);
 	}
@@ -905,7 +905,7 @@ public:
 #ifdef USE_THISOWN
 	       tab4, tab4, "if hasattr(self, name) or (name in (\"this\", \"thisown\")):\n",
 #else
-	       tab4, tab4, "if (name == \"thisown\"): return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
+	       tab4, tab4, "if (name == \"thisown\"):\n", tab8, tab4, "return self.this.own(value)\n", tab4, tab4, "if hasattr(self, name) or (name == \"this\"):\n",
 #endif
 	       tab4, tab4, tab4, "set(self, name, value)\n",
 	       tab4, tab4, "else:\n",
@@ -1637,7 +1637,7 @@ public:
       }
       // Write the function annotation
       if (func_annotation)
-	Printf(doc, " : '%s'", type_str);
+	Printf(doc, ": '%s'", type_str);
 
       // Write default value
       if (value && !calling) {
@@ -2012,7 +2012,7 @@ public:
       if (ret)
 	ret = SwigType_str(ret, 0);
     }
-    return (ret && py3) ? NewStringf(" -> \"%s\" ", ret)
+    return (ret && py3) ? NewStringf(" -> \"%s\"", ret)
 	: NewString("");
   }
 
