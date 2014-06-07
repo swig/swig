@@ -4,6 +4,10 @@
 int module_function() { return 7; }
 int module_variable = 9;
 
+void print(double) {}
+void print(int) {}
+
+
 namespace MyWorld {
   class World {
   public:
@@ -18,6 +22,10 @@ namespace MyWorld {
         static int count() { return 19; }
     };
   }
+
+  void print(float) {}
+  void print(unsigned) {}
 }
+
 
 #endif
