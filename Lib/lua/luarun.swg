@@ -14,6 +14,7 @@ extern "C" {
 #include "lauxlib.h"
 #include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
+#include <limits.h> /* for some constants */
 
 /* -----------------------------------------------------------------------------
  * Lua flavors
@@ -318,9 +319,8 @@ typedef struct {
   goto fail;}
 #define SWIG_fail_ptr(func_name,argnum,type) \
   SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
-/* b == -1 is a special condition for functions with unlimited number of args */
 #define SWIG_check_num_args(func_name,a,b) \
-  if (lua_gettop(L)<a || ( lua_gettop(L)>b && b != -1 ) ) \
+  if (lua_gettop(L)<a || ( lua_gettop(L)>b ) ) \
   {SWIG_Lua_pushferrstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
   goto fail;}
 

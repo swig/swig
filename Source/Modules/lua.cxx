@@ -610,9 +610,12 @@ public:
      * must have lua_State *L as one of their input arguments.
      * Although currently no checks for this condition are made
      */
-    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n", Swig_name_str(n),
-            num_required + args_to_ignore,
-            (has_unlimited_args) ? -1 : num_arguments + args_to_ignore);
+    if(has_unlimited_args)
+        Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,INT_MAX)\n", Swig_name_str(n),
+                num_required + args_to_ignore );
+    else
+        Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n", Swig_name_str(n),
+                num_required + args_to_ignore, num_arguments + args_to_ignore);
 
     for (i = 0, p = l; i < num_arguments; i++) {
 

@@ -46,7 +46,7 @@
 %ignore is_type_callable;
 
 %inline %{
-  /* Auxilary function. Input - class metatable on the top of the stack.
+  /* Auxiliary function. Input - class metatable on the top of the stack.
    * Output - new SWIG_Lua_metaclass structure
    */
   SWIG_Lua_metaclass* SWIG_Lua_metaclass_create_by_metatable( lua_State *L )
@@ -64,7 +64,7 @@
     return m;
   }
 
-  /* Auxilary function. Checks that given type is potentially callable */
+  /* Auxiliary function. Checks that given type is potentially callable */
   static int is_type_callable( int type ) {
     return type == LUA_TUSERDATA || type == LUA_TTABLE || type == LUA_TFUNCTION;
   }
