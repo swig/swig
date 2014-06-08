@@ -81,6 +81,7 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   mxArray* pm_command = mxCreateString("_swigCreate");
   mxArray* pm;
+#if 0
   const char* classname = type->name+3;   /* FIXME: Hack to dereferece pointer */
   char matlab_classname[1024];
 #if defined(_MSC_VER) || defined(__BORLANDC__) || defined(_WATCOM)
@@ -89,10 +90,22 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   snprintf(matlab_classname,sizeof(matlab_classname),"%s.%s",SWIG_pkg_name,classname);
 #endif
 
+#else
+  const char * matlab_classname;
+  if (type->clientdata)
+        matlab_classname = (const char *)type->clientdata;
+  else {
+       // TODO do we really want this? it's a fall-back for non-package types (e.g pointer-to-float)
+       matlab_classname = type->name+3;    /* FIXME: Hack to dereference pointer */
+       mexWarnMsgIdAndTxt("SWIG:NewPointerObj","NewPointerObj failed. clientdata NULL. guessed %s", matlab_classname);
+  }       
+#endif
+
   mxArray* ex = mexCallMATLABWithTrap(1,&pm,1,&pm_command,matlab_classname);
 
   /* Hack hack */
   if(ex){
+    // the above failed, so let's just create a SwigRef
     mxDestroyArray(ex);
     ex = mexCallMATLABWithTrap(1,&pm,0,0,"SwigRef");
   }
@@ -131,6 +144,8 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     if(ptr) *ptr = (void*)(*(uint64_T*)mxGetData(pm_ptr));
   }
   if(pm_ptr) mxDestroyArray(pm_ptr);
+  if (ret == SWIG_ERROR)
+    return ret;
 
   /* Get ownership marker */
   mxArray *pm_own = mxGetProperty(pm,0,"swigOwn");
@@ -140,6 +155,8 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     if(own) *own = mxIsLogicalScalarTrue(pm_own);
   }
   if(pm_own) mxDestroyArray(pm_own);
+  if (ret == SWIG_ERROR)
+    return ret;
 
   /* Set ownership marker to false? */
   if(flags & SWIG_POINTER_DISOWN){
@@ -148,6 +165,17 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     mxDestroyArray(pm_own);
   }
 
+  /* Get type */
+  mxArray *pm_type = mxGetProperty(pm,0,"swigType");
+  char type_str[1024];
+  if(!pm_type || !mxIsChar(pm_type)){
+    ret = SWIG_ERROR;
+  } else if (mxGetString(pm_type, type_str, 1024)) {
+      ret = SWIG_ERROR;
+  } else if (!SWIG_TypeCheck(type_str, type)) {
+      ret = SWIG_ERROR;
+  }
+  if(pm_type) mxDestroyArray(pm_type);
   return ret;
 }
 

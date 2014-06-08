@@ -993,6 +993,7 @@ int MATLAB::enumvalueDeclaration(Node *n) {
 int MATLAB::classHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering classHandler\n");
+  //Printf(stderr,"name %s\nsymname %s\n",Getattr(n,"name"),Getattr(n,"sym:name"));
 #endif
   // Typedef C name for the class
   //    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
@@ -1000,7 +1001,30 @@ int MATLAB::classHandler(Node *n) {
   // Save current class name
   if(class_name) SWIG_exit(EXIT_FAILURE);
   class_name = Getattr(n, "sym:name");
-
+  // store class_name for use by NewPointerObj
+  {
+    // need to add quotes around class_name
+    String *quoted_class_name = NewStringf("\"%s\"", class_name);
+    // different processing for smart or ordinary pointers
+    String *smartptr = Getattr(n, "feature:smartptr");
+    if (smartptr) {
+      SwigType *spt = Swig_cparse_type(smartptr);
+      SwigType *smart = SwigType_typedef_resolve_all(spt);
+      SwigType_add_pointer(smart);
+      SwigType_remember_clientdata(smart, quoted_class_name);
+      Delete(spt);
+      Delete(smart);
+    }
+    else
+      {
+	SwigType *t = Copy(Getattr(n, "name"));
+	SwigType_add_pointer(t);
+	SwigType_remember_clientdata(t, quoted_class_name);
+	Delete(t);
+      }
+    Delete(quoted_class_name);
+    Delete(smartptr);
+  }
   // No destructor or constructor found yet
   have_constructor = false;
   have_destructor = false;
@@ -1032,6 +1056,17 @@ int MATLAB::classHandler(Node *n) {
     // Loop over base classes
     for (Iterator b = First(baselist); b.item; b = Next(b)) {
       // Get base class name, possibly ignore
+#if 0
+      // some prints for debugging
+      {
+	String *tmpname = Getattr(b.item, "name");
+	if (tmpname)
+	  Printf(stderr,"BASE %s\n", tmpname);
+	tmpname = Getattr(b.item, "sym:name");
+	if (tmpname)
+	  Printf(stderr,"BASEsym %s\n", tmpname);
+      }
+#endif
       String *bname = Getattr(b.item, "sym:name");
       if(!bname || GetFlag(b.item,"feature:ignore")) continue;
       base_count++;
