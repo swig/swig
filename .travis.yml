@@ -64,7 +64,7 @@ before_install:
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
   - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
-  - if test "$SWIGLANG" = "python"; git clone https://github.com/jcrocholl/pep8.git && pushd pep8 && git checkout tags/1.5.7 && python ./setup.py build && sudo python ./setup.py install && popd; fi
+  - if test "$SWIGLANG" = "python"; then git clone https://github.com/jcrocholl/pep8.git && pushd pep8 && git checkout tags/1.5.7 && python ./setup.py build && sudo python ./setup.py install && popd; fi
   - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
