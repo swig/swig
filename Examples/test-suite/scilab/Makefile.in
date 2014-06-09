@@ -6,10 +6,10 @@ LANGUAGE     = scilab
 SCILAB       = @SCILAB@
 SCILAB_OPT = @SCILABOPT@
 SCRIPTSUFFIX = _runme.sci
-srcdir       = $(abspath @srcdir@)
-top_srcdir   = $(abspath @top_srcdir@)
-top_builddir = $(abspath @top_builddir@)
-SCRIPTDIR = .
+
+srcdir       = @srcdir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 C_TEST_CASES += \
 	scilab_enums \
@@ -26,10 +26,14 @@ CPP_TEST_CASES += \
 CPP_STD_TEST_CASES += \
 	li_std_container_typemaps \
 
+include $(srcdir)/../common.mk
+
+# overriden variables
+SRCDIR = ../$(srcdir)/
+
+# local variables
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
-
-include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
@@ -70,4 +74,3 @@ run_testcase = \
 	@rm -rf $(TEST_DIR)
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
