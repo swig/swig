@@ -60,6 +60,12 @@ setup = \
 	fi;								  \
 	if [ ! -d $(TEST_DIR) ]; then						  \
 	  mkdir $(TEST_DIR);							  \
+	fi; \
+	if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
+	  cp $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/scilab/swigtest.start $(SCRIPTDIR); \
+	fi; \
+	if [ ! -f $(SCRIPTDIR)/swigtest.quit ]; then \
+	  cp $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/scilab/swigtest.quit $(SCRIPTDIR); \
 	fi
 
 # Runs the testcase. A testcase is only run if
