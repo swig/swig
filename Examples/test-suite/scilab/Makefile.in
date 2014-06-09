@@ -9,6 +9,7 @@ SCRIPTSUFFIX = _runme.sci
 srcdir       = $(abspath @srcdir@)
 top_srcdir   = $(abspath @top_srcdir@)
 top_builddir = $(abspath @top_builddir@)
+SCRIPTDIR = .
 
 C_TEST_CASES += \
 	scilab_enums \
@@ -26,7 +27,7 @@ CPP_STD_TEST_CASES += \
 	li_std_container_typemaps \
 
 TEST_DIR = $*.dir
-RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+RUNME_SCRIPT = $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 include $(srcdir)/../common.mk
 
@@ -48,7 +49,7 @@ include $(srcdir)/../common.mk
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(RUNME_SCRIPT) ]; then	  \
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
