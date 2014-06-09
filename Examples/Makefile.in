@@ -1760,7 +1760,10 @@ scilab_version:
 # -----------------------------------------------------------------
 
 scilab_clean:
-	rm -f *.sce *.so lib*.c lib*.cpp lib*.h lib*.hxx *_wrap.*
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.sce lib*.c lib*.cpp lib*.h lib*.hxx
 
 ##################################################################
 #####                        Go                             ######
