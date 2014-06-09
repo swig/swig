@@ -1666,7 +1666,6 @@ endif
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
 # ----------------------------------------------------------------
-
 r_cpp: $(SRCDIR_CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(SRCDIR_CXXSRCS),)
@@ -1711,7 +1710,7 @@ SCILAB_OPT = @SCILABOPT@
 define get_swig_scilab_args
 	SWIG_SCILAB_ARGS := -scilab
 	ifdef SRCS
-		SWIG_SCILAB_ARGS += -addsrc "$(SRCS)"
+		SWIG_SCILAB_ARGS += -addsrc "$(SRCDIR_SRCS)"
 	endif
 	ifdef INCLUDES
 		SWIG_SCILAB_ARGS += -addcflag "$(INCLUDES)"
@@ -1722,7 +1721,7 @@ endef
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
-scilab: $(SRCS)
+scilab: $(SRCDIR_SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
@@ -1733,7 +1732,7 @@ scilab: $(SRCS)
 # Build a C++ dynamically loadable module
 # ----------------------------------------------------------------
 
-scilab_cpp: $(SRCS)
+scilab_cpp: $(SRCDIR_SRCS)
 	$(eval $(call get_swig_scilab_args))
 	$(SWIG) $(SWIGOPT) -c++ $(SWIG_SCILAB_ARGS) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \

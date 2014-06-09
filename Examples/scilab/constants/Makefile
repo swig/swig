@@ -5,11 +5,11 @@ TARGET     = example_wrap.c
 INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile scilab_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' scilab_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' scilab
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile scilab_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' scilab_clean
