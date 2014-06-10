@@ -30,6 +30,7 @@ include $(srcdir)/../common.mk
 
 # overriden variables
 SRCDIR = ../$(srcdir)/
+SCRIPTDIR = .
 
 # local variables
 TEST_DIR = $*.dir
@@ -66,10 +67,10 @@ setup = \
 	  mkdir $(TEST_DIR);							  \
 	fi; \
 	if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
-	  cp $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/scilab/swigtest.start $(SCRIPTDIR); \
+	  cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
 	fi; \
 	if [ ! -f $(SCRIPTDIR)/swigtest.quit ]; then \
-	  cp $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/scilab/swigtest.quit $(SCRIPTDIR); \
+	  cp $(srcdir)/swigtest.quit $(SCRIPTDIR); \
 	fi
 
 # Runs the testcase. A testcase is only run if
