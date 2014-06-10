@@ -5,22 +5,22 @@ Testcase to test %pythonprepend and %pythonappend %pythoncode %pythonbegin
 %module python_append 
 
 %pythoncode %{
-  mypath = os.path.dirname("/a/b/c/d.txt")
-  funcpath = None
-  staticfuncpath = None
-  def grabpath():
+mypath = os.path.dirname("/a/b/c/d.txt")
+funcpath = None
+staticfuncpath = None
+def grabpath():
     return funcpath
-  def grabstaticpath():
+def grabstaticpath():
     return staticfuncpath
 %}
 
 %pythonappend Test::func %{
-    funcpath = os.path.dirname(funcpath)
+funcpath = os.path.dirname(funcpath)
 %}
 
 %pythonprepend Test::func %{
-        global funcpath
-        funcpath = mypath
+global funcpath
+funcpath = mypath
 %}
 
 %pythonappend Test::static_func %{
@@ -29,9 +29,9 @@ pass
 %}
 
 %pythonprepend Test::static_func {
-    global staticfuncpath
-    staticfuncpath = mypath
-    pass
+global staticfuncpath
+staticfuncpath = mypath
+pass
 }
 
 %pythonbegin %{
