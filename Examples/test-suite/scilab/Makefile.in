@@ -61,7 +61,7 @@ $(warning SCRIPTDIR = "$(SCRIPTDIR)" abspath = "$(abspath $(SCRIPTDIR))")
 setup = \
 	if [ -f $(RUNME_SCRIPT) ]; then	\
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	  cp $(srcdir)/$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(SCRIPTDIR); \
+	  cp $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(SCRIPTDIR); \
 	  if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
 	    cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
 	  fi; \
