@@ -35,6 +35,7 @@ SCRIPTDIR = .
 # local variables
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 $(warning srcdir = "$(srcdir)" abspath = "$(abspath $(srcdir))")
 $(warning SRCDIR = "$(SRCDIR)" abspath = "$(abspath $(SRCDIR))")
@@ -59,9 +60,9 @@ $(warning SCRIPTDIR = "$(SCRIPTDIR)" abspath = "$(abspath $(SCRIPTDIR))")
 # Logs the test case execution
 # Copies files and creates directories needed for the test case
 setup = \
-	if [ -f $(RUNME_SCRIPT) ]; then	\
+	if [ -f $(SRC_RUNME_SCRIPT) ]; then	\
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	  cp $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(SCRIPTDIR); \
+	  cp $(SRC_RUNME_SCRIPT) $(SCRIPTDIR); \
 	  if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
 	    cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
 	  fi; \
