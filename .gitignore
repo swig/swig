@@ -121,6 +121,7 @@ Examples/test-suite/pike/*/
 Examples/test-suite/python/*/
 Examples/test-suite/r/*/
 Examples/test-suite/ruby/*/
+Examples/test-suite/scilab/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 *_wrap.c
