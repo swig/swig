@@ -56,22 +56,25 @@ $(warning SCRIPTDIR = "$(SCRIPTDIR)" abspath = "$(abspath $(SCRIPTDIR))")
 	+(cd $(TEST_DIR) && $(swig_and_compile_multi_cpp))
 	$(run_testcase)
 
-# Makes a directory for the testcase if it does not exist
+# Logs the test case execution
+# Copies files and creates directories needed for the test case
 setup = \
-	if [ -f $(RUNME_SCRIPT) ]; then	  \
+	if [ -f $(RUNME_SCRIPT) ]; then	\
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
-	fi;								  \
-	if [ ! -d $(TEST_DIR) ]; then						  \
-	  mkdir $(TEST_DIR);							  \
+	  cp $(srcdir)/$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(SCRIPTDIR); \
+	  if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
+	    cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
+	  fi; \
+	  if [ ! -f $(SCRIPTDIR)/swigtest.quit ]; then \
+	    cp $(srcdir)/swigtest.quit $(SCRIPTDIR); \
+	  fi; \
+	else \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ; \
 	fi; \
-	if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
-	  cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
+	if [ ! -d $(TEST_DIR) ]; then	\
+	  mkdir $(TEST_DIR); \
 	fi; \
-	if [ ! -f $(SCRIPTDIR)/swigtest.quit ]; then \
-	  cp $(srcdir)/swigtest.quit $(SCRIPTDIR); \
-	fi
+
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
