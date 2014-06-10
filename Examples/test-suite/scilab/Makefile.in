@@ -35,6 +35,10 @@ SRCDIR = ../$(srcdir)/
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
+$(warning srcdir = "$(srcdir)" abspath = "$(abspath $(srcdir))")
+$(warning SRCDIR = "$(SRCDIR)" abspath = "$(abspath $(SRCDIR))")
+$(warning SCRIPTDIR = "$(SCRIPTDIR)" abspath = "$(abspath $(SCRIPTDIR))")
+
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)

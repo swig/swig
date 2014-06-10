@@ -1,3 +1,9 @@
+disp("pwd()");
+disp(pwd());
+
+disp("ls()");
+disp(ls());
+
 exec("swigtest.start", -1);
 
 // Check passing by value
