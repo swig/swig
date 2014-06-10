@@ -126,6 +126,7 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 	+$(convert_testcase)
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
+	$(check_pep8_multi_cpp)
 	$(run_testcase)
 
 
@@ -139,7 +140,14 @@ py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
 
 check_pep8 = \
 	if [ -n "$(PEP8)" ]; then \
-	  $(PEP8) --ignore=E501,E30,W291,W391 `echo $(py2_runme)|sed "s|_runme||g"`;\
+	  $(PEP8) --ignore=E501,E30,W291,W391 $(SCRIPTPREFIX)$*.py;\
+	fi
+
+check_pep8_multi_cpp = \
+	if [ -n "$(PEP8)" ]; then \
+	  for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	  $(PEP8) --ignore=E501,E30,W291,W391 $$f.py; \
+	  done \
 	fi
 
 run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(py_runme)
