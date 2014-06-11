@@ -1,4 +1,4 @@
-var enum_template = require("./enum_template");
+var enum_template = require("enum_template");
 
 if (enum_template.MakeETest() != 1)
   throw "RuntimeError";

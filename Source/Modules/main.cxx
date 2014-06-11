@@ -1172,6 +1172,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Printf(stdout, "Processing unnamed structs...\n");
       Swig_nested_name_unnamed_c_structs(top);
     }
+    Swig_extend_unused_check();
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");

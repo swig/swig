@@ -113,6 +113,6 @@ void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*modul
 }
 
 #if defined(BUILDING_NODE_EXTENSION)
-NODE_MODULE($jsname, $jsname_initialize);
+NODE_MODULE($jsname, $jsname_initialize)
 #endif
 %}

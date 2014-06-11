@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 a = new example.Complex(2,3);
 b = new example.Complex(-5,10);

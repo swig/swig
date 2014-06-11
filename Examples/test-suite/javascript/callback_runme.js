@@ -1,4 +1,4 @@
-var callback = require("./callback");
+var callback = require("callback");
 
 if (callback.foo(2) !== 2) {
   throw new Error("Failed.");

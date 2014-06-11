@@ -1,4 +1,4 @@
-var class_ignore = require("./class_ignore");
+var class_ignore = require("class_ignore");
 
 a = new class_ignore.Bar();
 

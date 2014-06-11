@@ -5,6 +5,7 @@
 LANGUAGE     = cffi
 CFFI         = @CFFIBIN@
 SCRIPTSUFFIX = _runme.lisp
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -38,8 +39,8 @@ CPP_TEST_CASES =
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.lisp appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CFFI) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CFFI) -batch -s $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: (does nothing, we dont generate extra cffi code)
@@ -47,4 +48,4 @@ run_testcase = \
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile cffi_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" cffi_clean

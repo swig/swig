@@ -61,7 +61,6 @@ extern "C" {
   extern Parm *Swig_cparse_parm(String *s);
   extern ParmList *Swig_cparse_parms(String *s, Node *file_line_node);
 
-
 /* templ.c */
   extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope);
   extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms, Symtab *tscope);

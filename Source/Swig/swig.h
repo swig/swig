@@ -423,6 +423,13 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_fragment_emit(String *name);
   extern void Swig_fragment_clear(String *section);
 
+/* --- Extension support --- */
+
+  extern Hash *Swig_extend_hash(void);
+  extern void Swig_extend_merge(Node *cls, Node *am);
+  extern void Swig_extend_append_previous(Node *cls, Node *am);
+  extern void Swig_extend_unused_check(void);
+
 /* hacks defined in C++ ! */
   extern int Swig_director_mode(void);
   extern int Swig_director_protected_mode(void);

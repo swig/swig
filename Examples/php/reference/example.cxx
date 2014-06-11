@@ -19,23 +19,23 @@ Vector operator+(const Vector &a, const Vector &b) {
 
 char *Vector::as_string() {
   static char temp[512];
-  sprintf(temp,"Vector %p (%g,%g,%g)", this, x,y,z);
+  sprintf(temp,"Vector %p (%g,%g,%g)", (void *)this, x,y,z);
   return temp;
 }
 
 VectorArray::VectorArray(int size) {
   items = new Vector[size];
   maxsize = size;
-  printf("VectorArray new: self=%p\n",this);
+  printf("VectorArray new: self=%p\n", (void *)this);
 }
 
 VectorArray::~VectorArray() {
-  printf("VectorArray delete: self=%p\n",this);
+  printf("VectorArray delete: self=%p\n", (void *)this);
   delete [] items;
 }
 
 Vector &VectorArray::operator[](int index) {
-  printf("VectorArray: read[%d] self=%p\n",index,this);
+  printf("VectorArray: read[%d] self=%p\n", index, (void *)this);
   if ((index < 0) || (index >= maxsize)) {
     printf("Panic! Array index out of bounds.\n");
     exit(1);
@@ -44,6 +44,6 @@ Vector &VectorArray::operator[](int index) {
 }
 
 int VectorArray::size() {
-  printf("VectorArray: size %d self=%p\n",maxsize,this);
+  printf("VectorArray: size %d self=%p\n", maxsize, (void *)this);
   return maxsize;
 }

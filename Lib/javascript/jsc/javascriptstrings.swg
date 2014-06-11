@@ -8,7 +8,7 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
   if(JSValueIsString(context, valRef)) {
     JSStringRef js_str = JSValueToStringCopy(context, valRef, NULL);
     size_t len = JSStringGetMaximumUTF8CStringSize(js_str);
-    char* cstr = (char*) malloc(len * sizeof(char));
+    char* cstr = (char*) %new_array(len, char);
     /* JSStringGetUTF8CString returns the length including 0-terminator */
     len = JSStringGetUTF8CString(js_str, cstr, len);
 
@@ -53,7 +53,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
     } else {
       JSStringRef jsstring;
       if(size < 2) {
-        char c[size+1];
+        char c[2];
         int i;
         for(i=0;i<size;++i) {
           c[i] = carray[i];

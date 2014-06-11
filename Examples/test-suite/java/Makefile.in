@@ -7,6 +7,7 @@ JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = -Xcheck:jni
 SCRIPTSUFFIX = _runme.java
+
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -48,6 +49,7 @@ DOXYGEN_TEST_CASES := \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+SRCDIR       = ../$(srcdir)/
 JAVA_PACKAGE = $*
 JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
@@ -59,6 +61,7 @@ nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
 director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
+doxygen_misc_constructs.%: INCLUDES = -I../$(srcdir)/..
 
 # Rules for the different types of tests
 %.cpptest:
@@ -78,7 +81,7 @@ director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;			  \
@@ -98,8 +101,8 @@ $(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentPars
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(DOXYGEN_COMMENT_PARSER) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(DOXYGEN_COMMENT_PARSER) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 
