@@ -261,8 +261,7 @@ public:
 
     SWIG_library_directory("java");
 
-    bool debug_doxygen_translator = false;
-    bool debug_doxygen_parser = false;
+    int doxygen_translator_flags = 0;
 
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
@@ -289,12 +288,12 @@ public:
 	  Swig_mark_arg(i);
 	  doxygen = true;
 	  scan_doxygen_comments = true;
-  } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
-    Swig_mark_arg(i);
-    debug_doxygen_translator = true;
-  } else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
-    Swig_mark_arg(i);
-    debug_doxygen_parser = true;
+	} else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
+	  Swig_mark_arg(i);
+	  doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+	} else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
+	  Swig_mark_arg(i);
+	  doxygen_translator_flags |= DoxygenTranslator::debug_parser;
 	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  Swig_mark_arg(i);
 	  proxy_flag = false;
@@ -320,7 +319,7 @@ public:
     }
     
     if (doxygen)
-      doxygenTranslator = new JavaDocConverter(debug_doxygen_translator, debug_doxygen_parser);
+      doxygenTranslator = new JavaDocConverter(doxygen_translator_flags);
 
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGJAVA 1", 0);

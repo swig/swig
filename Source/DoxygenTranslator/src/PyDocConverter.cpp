@@ -227,8 +227,8 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["&rarr"] = make_pair(&PyDocConverter::handleHtmlEntity, "-->");
 }
 
-PyDocConverter::PyDocConverter(bool debugTranslator, bool debugParser) :
-    DoxygenTranslator(debugTranslator, debugParser), m_tableLineLen(0), m_prevRowIsTH(
+PyDocConverter::PyDocConverter(int flags) :
+    DoxygenTranslator(flags), m_tableLineLen(0), m_prevRowIsTH(
         false)
 {
   fillStaticTables();
@@ -665,7 +665,7 @@ String *PyDocConverter::makeDocumentation(Node *n)
 
     result = pyDocString;
 
-    if (debug) {
+    if (m_flags & debug_translator) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;
       std::cout << result;
       std::cout << std::endl;

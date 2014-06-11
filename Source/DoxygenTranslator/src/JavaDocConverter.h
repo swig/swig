@@ -22,7 +22,7 @@
  */
 class JavaDocConverter : public DoxygenTranslator {
 public:
-  JavaDocConverter(bool debugTranslator = false, bool debugParser = false);
+  JavaDocConverter(int flags = 0);
   String *makeDocumentation(Node *node);
 
 protected:

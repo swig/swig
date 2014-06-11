@@ -30,9 +30,22 @@
 class DoxygenTranslator {
 public:
   /*
+   * Bit flags for the translator ctor.
+   *
+   * Derived classes may define additional flags.
+   */
+  enum {
+    // Use DoxygenParser in "noisy" mode.
+    debug_parser = 1,
+
+    // Output results of translating Doxygen comments.
+    debug_translator = 2
+  };
+
+  /*
    * Constructor
    */
-  DoxygenTranslator(bool debugTranslator = false, bool debugParser = false);
+  DoxygenTranslator(int flags = 0);
 
   /*
    * Virtual destructor.
@@ -56,7 +69,9 @@ public:
   String *getDoxygenComment(Node *node);
 
 protected:
-  bool debug;
+  // The flags passed to the ctor.
+  const int m_flags;
+
   DoxygenParser parser;
 
   /*

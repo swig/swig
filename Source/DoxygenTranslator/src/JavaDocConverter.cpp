@@ -274,8 +274,8 @@ void JavaDocConverter::fillStaticTables()
       "&rarr");
 }
 
-JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser) :
-    DoxygenTranslator(debugTranslator, debugParser)
+JavaDocConverter::JavaDocConverter(int flags) :
+    DoxygenTranslator(flags)
 {
   fillStaticTables();
 }
@@ -933,7 +933,7 @@ String *JavaDocConverter::makeDocumentation(Node *node)
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
 
-  if (debug) {
+  if (m_flags & debug_translator) {
     std::cout << "---RESORTED LIST---" << std::endl;
     printTree(entityList);
   }
@@ -964,7 +964,7 @@ String *JavaDocConverter::makeDocumentation(Node *node)
 
   javaDocString += "\n */\n";
 
-  if (debug) {
+  if (m_flags & debug_translator) {
     std::cout << "\n---RESULT IN JAVADOC---" << std::endl;
     std::cout << javaDocString;
   }

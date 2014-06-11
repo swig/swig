@@ -339,8 +339,7 @@ public:
 
     SWIG_library_directory("python");
 
-    bool debug_doxygen_parser = false;
-    bool debug_doxygen_translator = false;
+    int doxygen_translator_flags = 0;
 
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -436,12 +435,12 @@ public:
 	  doxygen = 1;
 	  scan_doxygen_comments = 1;
 	  Swig_mark_arg(i);
-  } else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
-    debug_doxygen_translator = true;
-    Swig_mark_arg(i);
-  } else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
-    debug_doxygen_parser = true;
-    Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
+	  doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
+	  doxygen_translator_flags |= DoxygenTranslator::debug_parser;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastunpack") == 0) {
 	  fastunpack = 1;
 	  Swig_mark_arg(i);
@@ -564,7 +563,7 @@ public:
     }
     
     if (doxygen)
-      doxygenTranslator = new PyDocConverter(debug_doxygen_translator, debug_doxygen_parser);
+      doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
 
     if (!global_name)
       global_name = NewString("cvar");
