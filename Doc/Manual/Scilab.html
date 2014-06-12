@@ -174,7 +174,6 @@ In Scilab, the generated builder script <tt>builder.sce</tt> is used to build th
 </p>
 
 <div class="shell"><pre>
-$ ./scilab-cli
 --&gt; exec builder.sce
 </pre></div>
 
@@ -192,8 +191,8 @@ Note: two other files are generated:
 </p>
 
 <ul>
-<li>the Scilab gateway source file <tt>libexample.c</tt>: it a file used during the build.</li>
-<li>the cleaner script <tt>cleaner.sce</tt>: used to clean (delete) the shared library.</li>
+<li>the Scilab gateway source file <tt>libexample.c</tt>: used by Scilab at run time to link each module new declared function in Scilab to the related wrapped C/C++function (ex: <tt>foo()</tt> in Scilab is routed to the C/C++ function <tt>wrap_foo()</tt>)</li>
+<li>the cleaner script <tt>cleaner.sce</tt>: used to delete the shared library and other build files.</li>
 </ul>
 </p>
 
