@@ -256,28 +256,28 @@ The following table lists the Scilab specific command line options in addition t
 <table summary="Scilab specific options">
 
 <tr>
-<td>-addcflag &lt;opt&gt;</td>
-<td>Additional compiler options &lt;opt&gt; to include in build script</td>
+<td>-addcflags &lt;cflags&gt;</td>
+<td>Add compiler flags &lt;cflags&gt;</td>
 </tr>
 
 <tr>
-<td>-addldflag &lt;opt&gt;</td>
-<td>Additional link options &lt;opt&gt; to include in build script</td>
+<td>-addldflags &lt;ldflags&gt;</td>
+<td>Add linker flags &lt;ldflags&gt;</td>
 </tr>
 
 <tr>
-<td>-addsrc &lt;files&gt;</td>
-<td>Additional comma separated source &lt;files&gt; to include in build script</td>
+<td>-addsources &lt;files&gt;</td>
+<td>Add comma separated source files &lt;files&gt;</td>
 </tr>
 
 <tr>
-<td>-vbl &lt;level&gt;</td>
-<td>Sets the build verbose &lt;level&gt; (default 0)</td>
+<td>-buildverbosity &lt;level&gt;</td>
+<td>Set the build verbosity &lt;level&gt; (default 0)</td>
 </tr>
 
 <tr>
 <td>-buildflags &lt;file&gt;</td>
-<td>Uses a Scilab script in &lt;file&gt; to set build flags level</td>
+<td>Use the Scilab script &lt;file&gt; to set build flags</td>
 </tr>
 
 <tr>
@@ -286,12 +286,12 @@ The following table lists the Scilab specific command line options in addition t
 </tr>
 
 <tr>
-<td>-intmod &lt;gateway id&gt;</td>
+<td>-internalmodule &lt;gateway id&gt;</td>
 <td>Generate an internal module with the given &lt;gateway id&gt;</td>
 </tr>
 
 <tr>
-<td>-ol &lt;library name&gt;</td>
+<td>-outputlibrary &lt;name&gt;</td>
 <td>Set name of the output library</td>
 </tr>
 
@@ -311,9 +311,9 @@ Some examples:
 </p>
 
 <div class="shell"><pre>
-$ swig -scilab -addcflag -I/usr/includes example.i
-$ swig -scilab -addldflag "-lm example.i"
-$ swig -scilab -addsrc file1.cxx,file2.cxx,example.i
+$ swig -scilab -addcflags -I/usr/includes example.i
+$ swig -scilab -addldflags "-lm example.i"
+$ swig -scilab -addsources file1.cxx,file2.cxx,example.i
 </pre></div>
 </p>
 
@@ -1862,9 +1862,9 @@ To generate the code and the builder script, the following options may be used w
 </p>
 
 <ul>
-<li><tt><b>addsrc</b></tt>: to add in the compilation source files</li>
-<li><tt><b>addcflag</b></tt>: to set the header include paths</li>
-<li><tt><b>addldflag</b></tt>: to set the third party library paths and names</li>
+<li><tt><b>addsources</b></tt>: to add source files to build with</li>
+<li><tt><b>addcflags</b></tt>: to add compiler flags (to set header include paths....)</li>
+<li><tt><b>addldflags</b></tt>: to add linker flags (to set library paths and names...)</li>
 </ul>
 
 <p>
@@ -1872,7 +1872,7 @@ The SWIG command to use may be something like this:
 </p>
 
 <div class="shell"><pre>
-swig -scilab -addcflag "-I[inc_path]..." -addsrc [source],... -addldflag "-L[lib_path] -l[lib_name]" [module_name].i
+swig -scilab -addcflags "-I[inc_path]..." -addsources [source],... -addldflags "-L[lib_path] -l[lib_name]" [module_name].i
 </pre></div>
 
 <H3><a name="Scilab_module_builder"></a>37.5.4 Builder script</H3>

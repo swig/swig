@@ -17,14 +17,14 @@
 
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
-     -addcflag <flag> - Additional compilation flag <flag> to include in build script\n\
-     -addldflag <flag> - Additional link flag <flag> to include in build script\n\
-     -addsrc <files> - Additional comma separated source <files> to include in build script\n\
-     -vbl <level> - Sets the build verbose <level> (default 0)\n\
-     -buildflags <file> - Uses a Scilab script in <file> to set build flags\n\
-     -nobuilder - Do not generate builder script\n\
-     -intmod <gateway id> - Generate internal module files with the given <gateway id>\n\
-     -ol <library name> - Set name of the output library\n\n"
+     -addcflags <cflags>           - Add compiler flags <cflags>\n\
+     -addldflags <ldflags>         - Add linker flags <ldflags>\n\
+     -addsources <files>           - Add comma separated source files <files>\n\
+     -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
+     -buildflags <file>            - Use the Scilab script <file> to set build flags\n\
+     -nobuilder                    - Do not generate builder script\n\
+     -internalmodule <gateway id>  - Generate internal module files with the given <gateway id>\n\
+     -outputlibrary <name>         - Set name of the output library to <name>\n\n"
      ;
 
 class SCILAB:public Language {
@@ -90,7 +90,7 @@ public:
       if (argv[argIndex] != NULL) {
         if (strcmp(argv[argIndex], "-help") == 0) {
           Printf(stdout, "%s\n", usage);
-        } else if (strcmp(argv[argIndex], "-addsrc") == 0) {
+        } else if (strcmp(argv[argIndex], "-addsources") == 0) {
           if (argv[argIndex + 1] != NULL) {
             Swig_mark_arg(argIndex);
             char *sourceFile = strtok(argv[argIndex + 1], ",");
@@ -100,19 +100,19 @@ public:
             }
             Swig_mark_arg(argIndex + 1);
           }
-        } else if (strcmp(argv[argIndex], "-addcflag") == 0) {
+        } else if (strcmp(argv[argIndex], "-addcflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
             DohInsertitem(cflags, Len(cflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
-        } else if (strcmp(argv[argIndex], "-addldflag") == 0) {
+        } else if (strcmp(argv[argIndex], "-addldflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
             DohInsertitem(ldflags, Len(ldflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
-        } else if (strcmp(argv[argIndex], "-vbl") == 0) {
+        } else if (strcmp(argv[argIndex], "-buildverbositylevel") == 0) {
           Swig_mark_arg(argIndex);
           verboseBuildLevel = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
@@ -124,14 +124,14 @@ public:
           Swig_mark_arg(argIndex);
           generateBuilder = false;
         }
-        else if (strcmp(argv[argIndex], "-intmod") == 0) {
+        else if (strcmp(argv[argIndex], "-internalmodule") == 0) {
           Swig_mark_arg(argIndex);
           generateBuilder = false;
           internalModule = true;
           gatewayID = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
         }
-        else if (strcmp(argv[argIndex], "-ol") == 0) {
+        else if (strcmp(argv[argIndex], "-outputlibrary") == 0) {
           Swig_mark_arg(argIndex);
           libraryName = NewString(argv[argIndex + 1]);
           Swig_mark_arg(argIndex + 1);
@@ -900,7 +900,7 @@ public:
   /* -----------------------------------------------------------------------
    * createGatewayGenerator()
    * Creates a Scilab macro to generate the gateway source (entry point gw_<module>.c)
-   * Used in the context of internal module generation (-intmod)
+   * Used in the context of internal module generation (-internalmodule)
    * ----------------------------------------------------------------------- */
   void createGatewayGeneratorFile() {
     String *gatewayGeneratorFilename = NewString("generate_gateway.sce");
