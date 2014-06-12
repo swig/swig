@@ -1386,6 +1386,11 @@ int MATLAB::destructorHandler(Node *n) {
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
   Printf(f_wrap_m,"      if self.swigOwn\n");
   Printf(f_wrap_m,"        %s('%s',self);\n",mex_fcn,fullname);
+  // Prevent that the object gets deleted another time.
+  // This is important for MATLAB as for class hierarchies, it calls delete for 
+  // each class in the hierarchy. This isn't the case for C++ which only calls the
+  // destructor of the "leaf-class", which should take care of deleting everything.
+  Printf(f_wrap_m,"        self.swigOwn=false;\n");
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
