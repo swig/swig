@@ -2,14 +2,14 @@
 
 %include matrix.i
 
-%apply (double *matrixIn, int matrixInRowCount, int matrixInColCount) { (double *inputMatrix, int nbRow, int nbCol) }
-%apply (double **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (double **resultMatrix, int *nbRowRes, int *nbColRes) }
+%apply (double *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (double *inputMatrix, int nbRow, int nbCol) }
+%apply (double **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (double **resultMatrix, int *nbRowRes, int *nbColRes) }
 
-%apply (int *matrixIn, int matrixInRowCount, int matrixInColCount) { (int *inputMatrix, int nbRow, int nbCol) }
-%apply (int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (int **resultMatrix, int *nbRowRes, int *nbColRes) }
+%apply (int *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (int *inputMatrix, int nbRow, int nbCol) }
+%apply (int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (int **resultMatrix, int *nbRowRes, int *nbColRes) }
 
-%apply (char **matrixIn, int matrixInSize) { (char **inputVector, int size) }
-%apply (char ***matrixOut, int *matrixOutSize) { (char ***resultVector, int *sizeRes) }
+%apply (char **IN, int IN_SIZE) { (char **inputVector, int size) }
+%apply (char ***OUT, int *OUT_SIZE) { (char ***resultVector, int *sizeRes) }
 
 %inline %{
   extern double sumDoubleMatrix(double *inputMatrix, int nbRow, int nbCol);

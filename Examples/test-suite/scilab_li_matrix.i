@@ -3,10 +3,10 @@
 %include matrix.i
 
 %define %use_matrix_apply(TYPE...)
-%apply (TYPE *matrixIn, int matrixInRowCount, int matrixInColCount) { (TYPE *matrix, int nbRow, int nbCol) }
-%apply (TYPE **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (TYPE **matrixRes, int *nbRowRes, int *nbColRes) }
-%apply (TYPE *matrixIn, int matrixInSize) { (TYPE *matrix, int size) }
-%apply (TYPE **matrixOut, int *matrixOutSize) { (TYPE **matrixRes, int *sizeRes) }
+%apply (TYPE *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (TYPE *matrix, int nbRow, int nbCol) }
+%apply (TYPE **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (TYPE **matrixRes, int *nbRowRes, int *nbColRes) }
+%apply (TYPE *IN, int IN_SIZE) { (TYPE *matrix, int size) }
+%apply (TYPE **OUT, int *OUT_SIZE) { (TYPE **matrixRes, int *sizeRes) }
 %enddef
 
 %use_matrix_apply(int);

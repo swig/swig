@@ -1549,19 +1549,19 @@ Several typemaps are available for the common Scilab matrix types:
 <p>
 For example: for a matrix of <tt>int</tt>, we have the typemaps, for input:
 <ul>
-<li><tt>(int *matrixIn, int matrixInRowCount, int matrixInColCount)</tt></li>
-<li><tt>(int matrixInRowCount, int matrixInColCount, int *matrixIn)</tt></li>
-<li><tt>(int *matrixIn, int matrixInSize)</tt></li>
-<li><tt>(int matrixInSize, int *matrixIn)</tt></li>
+<li><tt>(int *IN, int IN_ROWCOUNT, int IN_COLCOUNT)</tt></li>
+<li><tt>(int IN_ROWCOUNT, int IN_COLCOUNT, int *IN)</tt></li>
+<li><tt>(int *IN, int IN_SIZE)</tt></li>
+<li><tt>(int IN_SIZE, int *IN)</tt></li>
 </ul>
 </p>
 <p>
 and output:
 <ul>
-<li><tt>(int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount)</tt></li>
-<li><tt>(int *matrixOutRowCount, int *matrixOutColCount, int **matrixOut)</tt></li>
-<li><tt>(int **matrixOut, int *matrixOutSize)</tt></li>
-<li><tt>(int *matrixOutSize, int **matrixOut)</tt></li>
+<li><tt>(int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT)</tt></li>
+<li><tt>(int *OUT_ROWCOUNT, int *OUT_COLCOUNT, int **OUT)</tt></li>
+<li><tt>(int **OUT, int *OUT_SIZE)</tt></li>
+<li><tt>(int *OUT_SIZE, int **OUT)</tt></li>
 </ul>
 </p>
 
@@ -1575,8 +1575,8 @@ The following is an example using the typemaps in this library:
 
 %include &lt;matrix.i&gt;
 
-%apply (int *matrixIn, int matrixInRowCount, int matrixInColCount) { (int *matrix, int matrixNbRow, int matrixNbCol) };
-%apply (int **matrixOut, int *matrixOutRowCount, int *matrixOutColCount) { (int **outMatrix, int *outMatrixNbRow, int *outMatrixNbCol) };
+%apply (int *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (int *matrix, int matrixNbRow, int matrixNbCol) };
+%apply (int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (int **outMatrix, int *outMatrixNbRow, int *outMatrixNbCol) };
 
 %inline %{
 
