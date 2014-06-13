@@ -67,6 +67,7 @@ protected:
   bool have_constructor;
   bool have_destructor;
   //String *constructor_name;
+  int num_gateway;
 
   // Options
   String *op_prefix;
@@ -77,7 +78,7 @@ protected:
   static void nameUnnamedParams(ParmList *parms, bool all);
   String *getOverloadedName(Node *n);
   void initGateway();
-  void toGateway(String *fullname, String *wname);
+  int toGateway(String *fullname, String *wname);
   void finalizeGateway();
   void initConstant();
   void toConstant(String *constname, String *constdef);
@@ -93,7 +94,7 @@ protected:
   bool is_empty_doc_node(Node* n);
   void emit_doc_texinfo();
   String* texinfo_escape(String *_s);
-  void wrapConstructor(String *symname, String *fullname);
+  void wrapConstructor(int gw_ind, String *symname, String *fullname);
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -124,6 +125,7 @@ MATLAB::MATLAB() :
   docs(0),
   have_constructor(false),
   have_destructor(false),
+  num_gateway(0),
   op_prefix(0),
   pkg_name(0),
   pkg_name_fullpath(0)
@@ -824,14 +826,15 @@ int MATLAB::globalfunctionHandler(Node *n){
       SWIG_exit(EXIT_FAILURE);
     }
 
-    // Add function to matlab proxy
+    // Add to function switch
     String *wname = Swig_name_wrapper(symname);
+    int gw_ind = toGateway(wname,wname);
+
+    // Add function to matlab proxy
     Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
-    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s('%s',varargin{:});\n",mex_fcn,wname);
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
     Printf(f_wrap_m,"end\n");
 
-    // Add to function switch
-    toGateway(wname,wname);
     Delete(wname);
     Delete(mfile);
     Delete(f_wrap_m);
@@ -874,24 +877,24 @@ int MATLAB::variableWrapper(Node *n){
   }
 
   // Add getter/setter function
+  int gw_ind_get = toGateway(getname,getwname);
   if(GetFlag(n, "feature:immutable")){
     Printf(f_wrap_m,"function v = %s()\n",symname);  
-    Printf(f_wrap_m,"  v = %s('%s');\n",mex_fcn,getname);
+    Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(f_wrap_m,"end\n");
   } else {
+    int gw_ind_set = toGateway(setname,setwname);
     Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
     Printf(f_wrap_m,"  narginchk(0,1)\n");
     Printf(f_wrap_m,"  if nargin==0\n");
     Printf(f_wrap_m,"    nargoutchk(0,1)\n");
-    Printf(f_wrap_m,"    varargout{1} = %s('%s');\n",mex_fcn,getname);
+    Printf(f_wrap_m,"    varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(f_wrap_m,"  else\n");
     Printf(f_wrap_m,"    nargoutchk(0,0)\n");
-    Printf(f_wrap_m,"    %s('%s',varargin{1});\n",mex_fcn,setname);
+    Printf(f_wrap_m,"    %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"end\n");
-    toGateway(setname,setwname);
   }
-  toGateway(getname,getwname);
 
   // Tidy up
   Delete(getname);
@@ -955,7 +958,7 @@ int MATLAB::constantWrapper(Node *n){
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
-    Printf(f_wrap_m,"    vInitialized = %s('swigConstant','%s');\n",mex_fcn,symname);
+    Printf(f_wrap_m,"    vInitialized = %s(0,'swigConstant','%s');\n",mex_fcn,symname);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"  v = vInitialized;\n");
     Printf(f_wrap_m,"end\n");
@@ -1105,7 +1108,7 @@ int MATLAB::classHandler(Node *n) {
 
   // Add constructor, if none added
   if(!have_constructor){
-    wrapConstructor(class_name,0);
+    wrapConstructor(-1,class_name,0);
     have_constructor = true;
   }
 
@@ -1181,16 +1184,17 @@ int MATLAB::memberfunctionHandler(Node *n) {
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
   if(!overloaded || last_overload){
-    // Add function to .m wrapper
+    // Add to function switch
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+    String *wname = Swig_name_wrapper(fullname);
+    int gw_ind = toGateway(fullname,wname);
+
+    // Add function to .m wrapper
     Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
-    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s('%s',self,varargin{:});\n",mex_fcn,fullname);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
     Printf(f_wrap_m,"    end\n");
 
-    // Add to function switch
-    String *wname = Swig_name_wrapper(fullname);
-    toGateway(fullname,wname);
     Delete(wname);
     Delete(fullname);
   }
@@ -1208,7 +1212,12 @@ void MATLAB::initGateway(){
   Printf(f_gateway,"    is_loaded=true;\n");
   Printf(f_gateway,"  }\n");
 
-  // The first argument is always the function name
+  // The first argument is always the ID
+  Printf(f_gateway,"  if(--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");
+  Printf(f_gateway,"    mexErrMsgTxt(\"First input should be the function ID .\");\n");
+  Printf(f_gateway,"  int fcn_id = int(mxGetScalar(*argv++));\n");
+
+  // The second argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
   Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
@@ -1219,9 +1228,12 @@ void MATLAB::initGateway(){
   Printf(f_gateway,"  static CallBackMapType callback_map;\n");
   Printf(f_gateway,"  if (!callback_map.size())\n  {\n");
 #endif
+  String* swigConstant=NewString("swigConstant");
+  toGateway(swigConstant,swigConstant);
+  Delete(swigConstant);
 }
 
-void MATLAB::toGateway(String *fullname, String *wname){
+int MATLAB::toGateway(String *fullname, String *wname){
   if(Len(fullname)>CMD_MAXLENGTH){
     SWIG_exit(EXIT_FAILURE);
   }
@@ -1232,12 +1244,10 @@ void MATLAB::toGateway(String *fullname, String *wname){
   Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",wname);
   Printf(f_gateway,"  } else ");
 #endif
+  return num_gateway++;
 }
 
 void MATLAB::finalizeGateway(){
-  String* swigConstant=NewString("swigConstant");
-  toGateway(swigConstant,swigConstant);
-  Delete(swigConstant);
 #if 1
   Printf(f_gateway," }\n");
   Printf(f_gateway," CallBackType callback;\n");
@@ -1299,13 +1309,11 @@ int MATLAB::membervariableHandler(Node *n) {
   String *getwname = Swig_name_wrapper(getname);
 
   // Add getter function
+  int gw_ind_get = toGateway(getname,getwname);
   Printf(get_field,"        case '%s'\n",symname);
-  Printf(get_field,"          v = %s('%s',self);\n",mex_fcn,getname);
+  Printf(get_field,"          v = %s(%d,'%s',self);\n",mex_fcn,gw_ind_get,getname);
   Printf(get_field,"          ok = true;\n");
   Printf(get_field,"          return\n");
-
-  // Add to function switch
-  toGateway(getname,getwname);
 
   // Tidy up
   Delete(getname);
@@ -1316,13 +1324,11 @@ int MATLAB::membervariableHandler(Node *n) {
   String *setwname = Swig_name_wrapper(setname);
   
   // Add setter function
+  int gw_ind_set = toGateway(setname,setwname);
   Printf(set_field,"        case '%s'\n",symname);
-  Printf(set_field,"          %s('%s',self,v);\n",mex_fcn,setname);
+  Printf(set_field,"          %s(%d,'%s',self,v);\n",mex_fcn,gw_ind_set,setname);
   Printf(set_field,"          ok = true;\n");
   Printf(set_field,"          return\n");
-
-  // Add to function switch
-  toGateway(setname,setwname);
 
   // Tidy up
   Delete(setname);
@@ -1331,7 +1337,7 @@ int MATLAB::membervariableHandler(Node *n) {
   return Language::membervariableHandler(n);
 }
 
-void MATLAB::wrapConstructor(String *symname, String *fullname){
+void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname){
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin~=1 || ~ischar(varargin{1}) || ~strcmp(varargin{1},'_swigCreate')\n");
@@ -1339,9 +1345,9 @@ void MATLAB::wrapConstructor(String *symname, String *fullname){
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
-      Printf(f_wrap_m,"        %%self.swigCPtr = %s('%s',varargin{:});\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"        %%self.swigCPtr = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
       Printf(f_wrap_m,"        %%self.swigOwn = true;\n");
-      Printf(f_wrap_m,"        tmp = %s('%s',varargin{:}); %% FIXME\n",mex_fcn,fullname);
+      Printf(f_wrap_m,"        tmp = %s(%d,'%s',varargin{:}); %% FIXME\n",mex_fcn,gw_ind,fullname);
       Printf(f_wrap_m,"        self.swigCPtr = tmp.swigCPtr;\n");
       Printf(f_wrap_m,"        self.swigOwn = tmp.swigOwn;\n");
       Printf(f_wrap_m,"        self.swigType = tmp.swigType;\n");
@@ -1364,12 +1370,13 @@ int MATLAB::constructorHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_construct(NSPACE_TODO, symname);
 
-    // Add to .m file
-    wrapConstructor(symname,fullname);
-
     // Add to function switch
     String *wname = Swig_name_wrapper(fullname);
-    toGateway(fullname,wname);
+    int gw_ind = toGateway(fullname,wname);
+
+    // Add to .m file
+    wrapConstructor(gw_ind,symname,fullname);
+
     Delete(wname);
     Delete(fullname);
   }
@@ -1384,8 +1391,12 @@ int MATLAB::destructorHandler(Node *n) {
   Printf(f_wrap_m,"    function delete(self)\n");
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_destroy(NSPACE_TODO, symname);
+
+  // Add to function switch
+  String *wname = Swig_name_wrapper(fullname);
+  int gw_ind = toGateway(fullname,wname);
   Printf(f_wrap_m,"      if self.swigOwn\n");
-  Printf(f_wrap_m,"        %s('%s',self);\n",mex_fcn,fullname);
+  Printf(f_wrap_m,"        %s(%d,'%s',self);\n",mex_fcn,gw_ind,fullname);
   // Prevent that the object gets deleted another time.
   // This is important for MATLAB as for class hierarchies, it calls delete for 
   // each class in the hierarchy. This isn't the case for C++ which only calls the
@@ -1394,9 +1405,6 @@ int MATLAB::destructorHandler(Node *n) {
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
-  // Add to function switch
-  String *wname = Swig_name_wrapper(fullname);
-  toGateway(fullname,wname);
   Delete(wname);
   Delete(fullname);
   
@@ -1412,16 +1420,18 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
   if(!overloaded || last_overload){
-    // Add function to .m wrapper
-    String *symname = Getattr(n, "sym:name");
-    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
-    Printf(static_methods,"      [varargout{1:nargout}] = %s('%s',varargin{:});\n",mex_fcn,fullname);
-    Printf(static_methods,"    end\n");
 
     // Add to function switch
+    String *symname = Getattr(n, "sym:name");
+    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
     String *wname = Swig_name_wrapper(fullname);
-    toGateway(fullname,wname);
+    int gw_ind = toGateway(fullname,wname);
+
+    // Add function to .m wrapper
+    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+    Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
+    Printf(static_methods,"    end\n");
+
     Delete(wname);
     Delete(fullname);
   }
@@ -1444,7 +1454,7 @@ int MATLAB::memberconstantHandler(Node *n) {
   Printf(static_methods,"    function v = %s()\n",symname);  
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
-  Printf(static_methods,"        vInitialized = %s('swigConstant','%s');\n",mex_fcn,fullname);
+  Printf(static_methods,"        vInitialized = %s(0,'swigConstant','%s');\n",mex_fcn,fullname);
   Printf(static_methods,"      end\n");
   Printf(static_methods,"      v = vInitialized;\n");
   Printf(static_methods,"    end\n");
@@ -1471,24 +1481,21 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
   String *setwname = Swig_name_wrapper(setname);
 
+  // Add to function switch
+  int gw_ind_get = toGateway(getname,getwname);
+  int gw_ind_set = toGateway(setname,setwname);
+
   // Add getter/setter function
   Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
   Printf(static_methods,"      narginchk(0,1)\n");
   Printf(static_methods,"      if nargin==0\n");
   Printf(static_methods,"        nargoutchk(0,1)\n");
-  Printf(static_methods,"        varargout{1} = %s('%s');\n",mex_fcn,getname);
+  Printf(static_methods,"        varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
   Printf(static_methods,"      else\n");
   Printf(static_methods,"        nargoutchk(0,0)\n");
-  Printf(static_methods,"        %s('%s',varargin{1});\n",mex_fcn,setname);
+  Printf(static_methods,"        %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
   Printf(static_methods,"      end\n");
   Printf(static_methods,"    end\n");
-
-  // Add to function switch
-  toGateway(getname,getwname);
-#if 0
-    // KT TODO the set functions are not wrapped yet/reenable?
-  toGateway(setname,setwname);
-#endif
 
   // Tidy up
   Delete(getname);
