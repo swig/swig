@@ -3175,8 +3175,8 @@ public:
 	if (anonymous_enum) {
 	  replacementname = NewString("int");
 	} else {
-	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition)
-	  replacementname = SwigType_base(classnametype);
+	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	  replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 	  Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
 	  Setattr(swig_types_hash, replacementname, classnametype);
 	}
@@ -4303,7 +4303,7 @@ extern "C" Language *swig_csharp(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *CSHARP::usage = (char *) "\
+const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\

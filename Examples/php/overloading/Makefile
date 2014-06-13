@@ -7,17 +7,17 @@ LIBS       =
 SWIGOPT    =
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile php_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
 	php_cpp
 
 static:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='myphp' INTERFACE='$(INTERFACE)' \
 	php_cpp_static
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile php_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_clean

@@ -86,11 +86,11 @@ extern "C"
  you can add new ones here
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
-static const char *usage = (char *) "\
+static const char *usage = "\
 Lua Options (available with -lua)\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
-     -elua-emulate   - Emulates behaviour of eLua. Usefull only for testing.\n\
+     -elua-emulate   - Emulates behaviour of eLua. Useful only for testing.\n\
                        Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
@@ -205,7 +205,7 @@ public:
   }
 
   /* NEW LANGUAGE NOTE:***********************************************
-     This is called to initalise the system & read any command line args
+     This is called to initialise the system & read any command line args
      most of this is boilerplate code, except the command line args
      which depends upon what args your code supports
      NEW LANGUAGE NOTE:END *********************************************** */
@@ -380,7 +380,7 @@ public:
     Dump(f_header, f_begin);
     Dump(f_wrappers, f_begin);
     Dump(f_initbeforefunc, f_begin);
-    /* for the Lua code it needs to be properly excaped to be added into the C/C++ code */
+    /* for the Lua code it needs to be properly escaped to be added into the C/C++ code */
     escapeCode(s_luacode);
     Printf(f_begin, "const char* SWIG_LUACODE=\n  \"%s\";\n\n", s_luacode);
     Wrapper_pretty_print(f_init, f_begin);
@@ -436,9 +436,9 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is it!
      you get this one right, and most of your work is done
-     but its going to take soem file to get it working right
+     but its going to take some file to get it working right
      quite a bit of this is generally boilerplate code
-     (or stuff I dont understand)
+     (or stuff I don't understand)
      that which matters will have extra added comments
      NEW LANGUAGE NOTE:END *********************************************** */
   /* ---------------------------------------------------------------------
@@ -534,7 +534,7 @@ public:
     }
 
     /* NEW LANGUAGE NOTE:***********************************************
-       the wrapper object holds all the wrappering code
+       the wrapper object holds all the wrapper code
        we need to add a couple of local variables
        NEW LANGUAGE NOTE:END *********************************************** */
     Wrapper *f = NewWrapper();
@@ -554,7 +554,7 @@ public:
     /* NEW LANGUAGE NOTE:***********************************************
        the format of a lua fn is:
        static int wrap_XXX(lua_State* L){...}
-       this line adds this into the wrappering code
+       this line adds this into the wrapper code
        NEW LANGUAGE NOTE:END *********************************************** */
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
 
@@ -657,7 +657,7 @@ public:
 	continue;
       } else {
 	/* NEW LANGUAGE NOTE:***********************************************
-	   // why is this code not called when I dont have a typemap?
+	   // why is this code not called when I don't have a typemap?
 	   // instead of giving a warning, no code is generated
 	   NEW LANGUAGE NOTE:END *********************************************** */
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
@@ -792,7 +792,7 @@ public:
     Replaceall(f->code, "$result", Swig_cresult_name());
 
     /* Dump the function out */
-    /* in Lua we will not emit the destructor as a wrappered function,
+    /* in Lua we will not emit the destructor as a wrapper function,
        Lua will automatically call the destructor when the object is free'd
        However: you cannot just skip this function as it will not emit
        any custom destructor (using %extend), as you need to call emit_action()
@@ -835,7 +835,7 @@ public:
   /* NEW LANGUAGE NOTE:***********************************************
      This is an extra function used for overloading of functions
      it checks the args & then calls the relevant fn
-     nost of the real work in again typemaps:
+     most of the real work in again typemaps:
      look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
      NEW LANGUAGE NOTE:END *********************************************** */
   int dispatchFunction(Node *n) {
@@ -1958,6 +1958,10 @@ public:
 
     SetFlag(carrays_hash, "lua:closed");
 
+    // Do arrays describe class instance part or class static part
+    const int is_instance = GetFlag(carrays_hash, "lua:class_instance");
+
+
     String *attr_tab = Getattr(carrays_hash, "attributes");
     Printf(attr_tab, "    {0,0,0}\n};\n");
     Printv(output, attr_tab, NIL);
@@ -1968,7 +1972,17 @@ public:
       Printv(const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
     else
       Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
-    Printv(output, const_tab, NIL);
+    
+    // For the sake of compiling with -Wall -Werror we print constants
+    // only when necessary
+    int need_constants = 0;
+    if ( (elua_ltr || eluac_ltr) && (old_metatable_bindings) )
+      need_constants = 1;
+    else if (!is_instance) // static part need constants tab
+      need_constants = 1;
+
+    if (need_constants)
+      Printv(output, const_tab, NIL);
 
     if (elua_ltr) {
       // Put forward declaration of metatable array
@@ -2009,7 +2023,18 @@ public:
       Printv(output, set_tab, NIL);
     }
 
-    if (!eluac_ltr) {
+    // Heuristic whether we need to print metatable or not.
+    // For the sake of compiling with -Wall -Werror we don't print
+    // metatable for static part.
+    int need_metatable = 0;
+    if (eluac_ltr)
+      need_metatable = 0;
+    else if(!is_instance)
+      need_metatable = 0;
+    else
+      need_metatable = 1;
+
+    if (need_metatable) {
       String *metatable_tab = Getattr(carrays_hash, "metatable");
       assert(metatable_tab);
       if (elua_ltr) {

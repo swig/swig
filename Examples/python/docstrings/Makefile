@@ -7,17 +7,17 @@ LIBS       = -lm
 SWIGOPT    = -O
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile python_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python_cpp
 
 static:
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' \
 	TARGET='mypython' INTERFACE='$(INTERFACE)' python_cpp_static
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' python_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' python_clean

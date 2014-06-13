@@ -5,6 +5,8 @@
 # Editor files and various other junk
 .*.sw?
 *.bak
+*.log
+.DS_Store
 
 # Local PCRE
 pcre
@@ -23,6 +25,7 @@ pcre
 *.so
 *.so.*
 *.dylib
+*.bundle
 
 # C/C++ static libraries, based on:
 #   https://github.com/github/gitignore/blob/master/C.gitignore
@@ -71,6 +74,7 @@ Examples/xml/Makefile
 Source/Include/stamp-h1
 Source/Include/swigconfig.h
 Source/Makefile
+Tools/javascript/Makefile
 .deps
 config.log
 config.status
@@ -81,10 +85,14 @@ swig.spec
 .dirstamp
 CCache/ccache-swig
 CCache/ccache-swig.1
+CCache/web/ccache-man.html
+Lib/swigwarn.swg
 Source/CParse/parser.c
 Source/CParse/parser.h
 Source/eswig
+Source/TAGS
 swig
+Tools/javascript/javascript
 
 # Generated documentation
 Doc/Manual/CCache.html
@@ -102,6 +110,7 @@ Examples/test-suite/d/*/
 Examples/test-suite/go/*/
 Examples/test-suite/guile/*/
 Examples/test-suite/java/*/
+Examples/test-suite/javascript/*/
 Examples/test-suite/lua/*/
 Examples/test-suite/mzscheme/*/
 Examples/test-suite/ocaml/*/
@@ -114,6 +123,19 @@ Examples/test-suite/r/*/
 Examples/test-suite/ruby/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
+*_wrap.c
+*_wrap.cxx
+*-gypcopy.cxx
+
+# C# generated files
+*_runme.exe.mdb
+*_runme.exe
+
+# Javascript generated files
+*.gyp
+
+# Octave generated files
+swigexample*.oct
 
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
@@ -121,9 +143,8 @@ Examples/test-suite/uffi/*/
 */__pycache__/
 /__pycache__/
 
-# C# generated files
-*_runme.exe.mdb
-*_runme.exe
-
 # Scratch directories
 Examples/scratch
+
+# Out of source tree build directories
+*build*/

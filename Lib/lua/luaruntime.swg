@@ -29,6 +29,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 {
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC) /* valid for both Lua and eLua */
   int i;
+  int globalRegister = 0;
   /* start with global table */
   lua_pushglobaltable (L);
   /* SWIG's internal initialisation */
@@ -39,7 +40,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 #if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)) || defined(SWIG_LUA_ELUA_EMULATE)
   /* add a global fn */
   SWIG_Lua_add_function(L,"swig_type",SWIG_Lua_type);
-  SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_equal);
+  SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_class_equal);
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
@@ -49,7 +50,6 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
     }
   }
-  int globalRegister = 0;
 #ifdef SWIG_LUA_MODULE_GLOBAL
   globalRegister = 1;
 #endif
@@ -69,10 +69,10 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 
 #if defined(SWIG_LUA_ELUA_EMULATE)
   lua_newtable(L);
-  SWIG_Lua_elua_emulate_register(L,swig___Module.ns_methods);
+  SWIG_Lua_elua_emulate_register(L,swig_SwigModule.ns_methods);
   SWIG_Lua_elua_emulate_register_clear(L);
   if(globalRegister) {
-    lua_pushstring(L,swig___Module.name);
+    lua_pushstring(L,swig_SwigModule.name);
     lua_pushvalue(L,-2);
     lua_rawset(L,-4);
   }

@@ -3,6 +3,110 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.2 (4 Jun 2014)
+==========================
+
+2014-06-02: v-for-vandal
+            [Lua] Pull request #176:
+            If class has no __eq implemented, then default __eq is generated. 
+            Default __eq compares actual pointers stored inside Lua userdata.
+
+2014-06-02: vkalinin
+            Fix #183 - %extend and unnamed nested structs
+
+2014-05-28: kwwette
+            Fix install failure when using an 'out of source' build using the shipped
+            tarball - regression introduced in swig-3.0.1.
+
+2014-05-24: kwwette
+            [Octave] Remove deprecated -global/-noglobal command-line arguments
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+Version 3.0.1 (27 May 2014)
+===========================
+
+2014-05-25: hfalcic
+	    [Python] Python 3 byte string output: use errors="surrogateescape"
+            if available on the version of Python that's in use. This allows
+            obtaining the original byte string (and potentially trying a fallback
+            encoding) if the bytes can't be decoded as UTF-8.
+
+            Previously, a UnicodeDecodeError would be raised with no way to treat
+            the data as bytes or try another codec.
+
+2014-05-18: vkalinin
+	    Bug #175 - Restore %extend to work for unnamed nested structures by using a C
+            symbol comprising the outer structure name and unnamed variable instance name.
+
+2014-05-15: kwwette
+	    Add #166 - 'make check' now works out of source. This required te examples to build
+            out of source. The main languages have been tested - C#, Go, Guile, Java, Javascript,
+            Lua, Octave, Perl, PHP, Python, Ruby and Tcl.
+
+2014-05-01: Oliver Buchtala
+	    Javascript support added, see Javascript chapter in the documentation.
+
+2014-05-01: olly
+	    [PHP] The generated __isset() method now returns true for read-only properties.
+
+2014-04-24: kwwette
+            [Go] Fix go ./configure parsing of gccgo --version, and
+            goruntime.swg typo in __GNUC_PATCHLEVEL__ (SF Bug #1298)
+
+2014-04-24: kwwette
+            Fix {python|perl5|ruby|tcl}/java examples
+
+            In Lib/gcj/cni.i, for compatibility with newer gcj versions:
+
+            - remove JvAllocObject() which gcj no longer defines, from gcj Changelog:
+              2004-04-16  Bryce McKinlay  <mckinlay@redhat.com>
+                * gcj/cni.h (JvAllocObject): Remove these obsolete,
+                undocumented CNI calls.
+
+            - change JvCreateJavaVM() argument from void* to JvVMInitArgs*, from gcj Changelog:
+              2005-02-23  Thomas Fitzsimmons  <fitzsim@redhat.com>
+              PR libgcj/16923
+              ...
+              (JvCreateJavaVM): Declare vm_args as JvVMInitArgs* rather than void*.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2014-04-08: wsfulton
+            SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
+
+2014-04-08: wsfulton
+            [Java C#] Enums which have been ignored via %ignore and are subsequently
+            used are handled slightly differently. Type wrapper classes are now generated
+            which are effectively a wrapper of an empty enum. Previously in Java uncompilable
+            code was generated and in C# an int was used.
+
+2014-04-04: wsfulton
+            Fix regression in 3.0.0 where legal code following an operator<< definition might
+            give a syntax error. SF Bug #1365.
+
+2014-04-03: olly
+	    [PHP] Fix wrapping director constructors with default parameters
+	    with a ZTS-enabled build of PHP.
+
+2014-04-02: olly
+	    [PHP] Pass the ZTS context we already have to avoid needing to
+	    call TSRMLS_FETCH, which is relatively expensive.
+
+2014-04-02: olly
+	    [PHP] Pass ZTS context through to t_output_helper() so it works
+	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
+	    github PR#155.
+
+2014-03-28: wsfulton
+            [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
+            has not been parsed. For D, this fixes a segfault in SWIG. The other languages
+            now produce code that compiles, although the definition of the enum is needed
+            in order to use the enum properly from the target language.
+
+2014-03-23: v-for-vandal
+            [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.
+
 Version 3.0.0 (16 Mar 2014)
 ===========================
 
@@ -9970,7 +10074,7 @@ Version 1.3.23 (November 11, 2004)
             - Remove the ability to share type information by using c linking.
               All type sharing happens through a global variable in the target language.
                 + Remove SWIG_NOIMPORT, SWIG_RUNTIME, and related defines.
-                + Depreciate -runtime, -noruntime command line options
+                + Deprecate -runtime, -noruntime command line options
                 + Update test-suite common.mk to correctly build multicpptest
                 + Remove reference to precommon.swg
                 + Update the guile_gh interface to share data by a global var instead
@@ -21212,9 +21316,9 @@ Version 1.3 Alpha 1 (February 11, 2000)
           *** POTENTIAL INCOMPATIBILITY ***
 
 1/30/00 : loic
-	  Conditionaly compile experimental code with --enable-experiment
+	  Conditionally compile experimental code with --enable-experiment
 	  configure flag.
-	  Fix .cvsignore to ignore configrue & yacc generated files
+	  Fix .cvsignore to ignore configure & yacc generated files
 
 1/28/00 : loic
 	  Apply automake everywhere

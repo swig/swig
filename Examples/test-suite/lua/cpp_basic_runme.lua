@@ -76,3 +76,24 @@ assert(cb.test_func_ptr(f,2)==-8)
 
 -- Test that __tostring metamethod produce no internal asserts
 f2_name = tostring(f2)
+
+f3 = cb.FooSub()
+f3_name = tostring(f3)
+
+f4 = cb.FooSubSub()
+f4_name = tostring(f4)
+
+assert( f2_name == "Foo" )
+assert( f3_name == "Foo" )
+assert( f4_name == "FooSubSub" )
+
+-- Test __eq implementation supplied by default
+
+-- eq_f1 and eq_f2 must be different userdata with same Foo* pointer. If eq_f1 and eq_f2 are the same userdata (e.g.)
+-- > eq_f1 = smth
+-- > eq_f2 = eq_f1
+-- then default Lua equality comparison kicks in and considers them equal. Access to global_fptr is actually a
+-- function call (internally) and it returns new userdata each time.
+eq_f1 = cb.Bar.global_fptr
+eq_f2 = cb.Bar.global_fptr
+assert( eq_f1 == eq_f2 )

@@ -1,7 +1,7 @@
 /*
-dual.cpp a test for multiple modules and multiple intrepreters staticly linked together.
+dual.cpp a test for multiple modules and multiple interpreters statically linked together.
 
-Earlier version of lua bindings for SWIG would fail if staticly linked.
+Earlier version of lua bindings for SWIG would fail if statically linked.
 
 What is happening is as follows:
 example.i declares a type Foo
@@ -28,7 +28,7 @@ both Foo and Bar.
 #include <stdio.h>
 #include <stdlib.h>
 
-// the 2 libraries which are wrappered via SWIG
+// the 2 libraries which are wrapped via SWIG
 extern "C" int luaopen_example(lua_State*L);
 extern "C" int luaopen_example2(lua_State*L);
 
@@ -45,14 +45,14 @@ void testModule(lua_State *L)
   swig_type_info *pTypeInfo=0,*pTypeInfo2=0;
   swig_module_info *pModule=0;
   pModule=SWIG_GetModule(L);
-  DEBUG2("  SWIG_GetModule() returns %p\n",pModule)
+  DEBUG2("  SWIG_GetModule() returns %p\n", (void *)pModule)
   if(pModule==0) return;
   pTypeInfo = SWIG_TypeQuery(L,"Foo *");
   DEBUG2("  Type (Foo*) is %s\n",pTypeInfo==0?"unknown":"known");
-  DEBUG3("    Module %p typeinfo(Foo*) %p\n",pModule,pTypeInfo);
+  DEBUG3("    Module %p typeinfo(Foo*) %p\n", (void *)pModule, (void *)pTypeInfo);
   pTypeInfo2 = SWIG_TypeQuery(L,"Bar *");
   DEBUG2("  Type (Bar*) is %s\n",pTypeInfo2==0?"unknown":"known");
-  DEBUG3("    Module %p typeinfo(Bar*) %p\n",pModule,pTypeInfo2);
+  DEBUG3("    Module %p typeinfo(Bar*) %p\n", (void *)pModule, (void *)pTypeInfo2);
 }
 
 int main(int argc,char* argv[])

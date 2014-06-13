@@ -14,7 +14,6 @@
 #include "swigmod.h"
 
 static const double DEFAULT_NUMBER = .0000123456712312312323;
-static const int MAX_OVERLOAD_ARGS = 5;
 
 static String* replaceInitialDash(const String *name)
 {
@@ -206,7 +205,7 @@ static void writeListByLine(List *l, File *out, bool quote = 0) {
 }
 
 
-static const char *usage = (char *)"\
+static const char *usage = "\
 R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\
@@ -2161,7 +2160,7 @@ int R::functionWrapper(Node *n) {
   /* If we are dealing with a method in an C++ class, then 
      add the name of the R function and its definition. 
      XXX need to figure out how to store the Wrapper if possible in the hash/list.
-     Would like to be able to do this so that we can potentialy insert
+     Would like to be able to do this so that we can potentially insert
   */
   if(processing_member_access_function || processing_class_member_function) {
     addAccessor(member_name, sfun, iname);

@@ -2,7 +2,9 @@
 
 /* check C++ delete keyword is okay in C wrappers */
 
-#if !defined(SWIGOCTAVE) /* Octave compiles wrappers as C++ */
+%warnfilter(SWIGWARN_PARSE_KEYWORD) delete;
+
+#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8) /* Octave and Javascript/v8 compiles wrappers as C++ */
 
 %inline %{
 double delete(double d) { return d; }

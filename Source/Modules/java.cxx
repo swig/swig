@@ -3090,8 +3090,8 @@ public:
 	if (anonymous_enum) {
 	  replacementname = NewString("int");
 	} else {
-	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition)
-	  replacementname = SwigType_base(classnametype);
+	  // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+	  replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 	  Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
 	  Setattr(swig_types_hash, replacementname, classnametype);
 	}
@@ -4643,7 +4643,7 @@ extern "C" Language *swig_java(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *JAVA::usage = (char *) "\
+const char *JAVA::usage = "\
 Java Options (available with -java)\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\

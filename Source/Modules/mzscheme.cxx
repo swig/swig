@@ -15,7 +15,7 @@
 
 #include <ctype.h>
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 Mzscheme Options (available with -mzscheme)\n\
      -declaremodule                         - Create extension that declares a module\n\
      -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
@@ -36,7 +36,7 @@ static bool declaremodule = false;
 static bool noinit = false;
 static String *load_libraries = NULL;
 static String *module = 0;
-static char *mzscheme_path = (char *) "mzscheme";
+static const char *mzscheme_path = "mzscheme";
 static String *init_func_def = 0;
 
 static File *f_begin = 0;

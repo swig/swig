@@ -2,27 +2,6 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.1 (in progress)
+Version 3.0.3 (in progress)
 ===========================
 
-2014-04-03: olly
-	    [PHP] Fix wrapping director constructors with default parameters
-	    with a ZTS-enabled build of PHP.
-
-2014-04-02: olly
-	    [PHP] Pass the ZTS context we already have to avoid needing to
-	    call TSRMLS_FETCH, which is relatively expensive.
-
-2014-04-02: olly
-	    [PHP] Pass ZTS context through to t_output_helper() so it works
-	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
-	    github PR#155.
-
-2014-03-28: wsfulton
-            [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
-            has not been parsed. For D, this fixes a segfault in SWIG. The other languages
-            now produce code that compiles, although the definition of the enum is needed
-            in order to use the enum properly from the target language.
-
-2014-03-23: v-for-vandal
-            [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.

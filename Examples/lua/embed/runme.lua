@@ -1,7 +1,7 @@
 print "[lua] This is runme.lua"
--- test program for embeded lua
--- we do not need to load the library, as it was already in the intrepreter
--- but lets check anyway
+-- test program for embedded lua
+-- we do not need to load the library, as it was already in the interpreter
+-- but let's check anyway
 assert(type(example)=='table',"Don't appear to have loaded the example module")
 
 -- a test function to run the tests

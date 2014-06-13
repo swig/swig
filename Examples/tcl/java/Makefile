@@ -1,26 +1,22 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = 
+CXXSRCS    =
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile tcl_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' tcl_run
 
-build: Example.class
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj"  \
-	TCL_CXXSHARED="gcj -fpic -shared Example.class " LIBS="-lstdc++" DEFS='' tcl_cpp
+build: Example.class Example.h
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
+	TCLCXXSHARED="gcj -fpic -shared Example.class " LIBS="-lstdc++" DEFS='' tcl_cpp
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile tcl_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' tcl_clean
 	rm -f *.class Example.h
 
-run:
-	tclsh runme.tcl
-
-Example.class: Example.java
-	gcj -fPIC -C -c -g Example.java
-	gcjh  Example
-
+Example.class Example.h: $(SRCDIR)Example.java
+	gcj -d . -fPIC -C -c -g $(SRCDIR)Example.java
+	gcjh Example.class

@@ -24,6 +24,14 @@ public:
   int operator<<(ABC &) { return 0; }
 };
 
+class DEF {
+public:
+  int a;
+  int operator<<(DEF &) { return 0; }
+  int operator>>(DEF &) { return 0; }
+};
+
+
 template<class T>
 class ABC2 {
 public:
@@ -35,5 +43,11 @@ public:
   template<typename U>
     U operator<<(ABC &);
 };
+%}
+
+// Test shifts are still working
+%inline %{
+int shift_init1 = 4 << 2 >> 1;
+int shift_init2 = 4 >> 2 << 1 << 1 >> 2;
 %}
 
