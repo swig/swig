@@ -1219,15 +1219,14 @@ void MATLAB::initGateway(){
 
   // The second argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
-  Printf(f_gateway,"  if(argc < 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
+  Printf(f_gateway,"  if(--argc < 0 || mxGetString(*argv++, cmd, sizeof(cmd)))\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
 
-#if 1
-  Printf(f_gateway,"  typedef void (*CallBackType)(int resc, mxArray *resv[], int argc, mxArray *argv[]);\n");
-  Printf(f_gateway,"  typedef std::map<std::string, CallBackType> CallBackMapType;\n");
-  Printf(f_gateway,"  static CallBackMapType callback_map;\n");
-  Printf(f_gateway,"  if (!callback_map.size())\n  {\n");
-#endif
+  // Begin the switch:
+  Printf(f_gateway,"  int name_ok = 0;\n");
+  Printf(f_gateway,"  switch(fcn_id){\n");
+
+  // Constants have index 0
   String* swigConstant=NewString("swigConstant");
   toGateway(swigConstant,swigConstant);
   Delete(swigConstant);
@@ -1237,34 +1236,16 @@ int MATLAB::toGateway(String *fullname, String *wname){
   if(Len(fullname)>CMD_MAXLENGTH){
     SWIG_exit(EXIT_FAILURE);
   }
-#if 1
-  Printf(f_gateway,"   callback_map[\"%s\"] = &%s;\n", fullname, wname);
-#else
-  Printf(f_gateway,"if(!strcmp(\"%s\",cmd)){\n",fullname);
-  Printf(f_gateway,"    %s(resc,resv,argc-1,(mxArray**)(argv+1));\n",wname);
-  Printf(f_gateway,"  } else ");
-#endif
+  Printf(f_gateway,"  case %d: if((name_ok=!strcmp(\"%s\",cmd))) %s(resc,resv,argc,(mxArray**)(argv)); break;\n",num_gateway,fullname,wname);
   return num_gateway++;
 }
 
 void MATLAB::finalizeGateway(){
-#if 1
-  Printf(f_gateway," }\n");
-  Printf(f_gateway," CallBackType callback;\n");
-  Printf(f_gateway," try\n");
-  Printf(f_gateway," {\n");
-  Printf(f_gateway,"   callback = callback_map.at(cmd);\n");
-  Printf(f_gateway," }\n");
-  Printf(f_gateway," catch(...)\n");
-  Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No command %%s.\",cmd);\n");
-  Printf(f_gateway," }\n");
-  Printf(f_gateway," (*callback)(resc,resv,argc-1,(mxArray**)(argv+1));\n");
-#else
-  Printf(f_gateway," {\n");
-  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No command %%s.\",cmd);\n");
+  Printf(f_gateway,"  default: mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No function id %%d.\",fcn_id);\n");
   Printf(f_gateway,"  }\n");
-#endif
+  Printf(f_gateway,"  if(!name_ok){\n");
+  Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"Mismatching name (%%s) for function ID %%d.\",cmd,fcn_id);\n");
+  Printf(f_gateway,"  }\n");
   Printf(f_gateway,"}\n");
 }
 
