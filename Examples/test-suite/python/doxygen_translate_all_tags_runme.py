@@ -79,7 +79,7 @@ r"""
 
     _italicword_
 
-    emphazedWord 
+    emphazedWord
 
 
 
@@ -89,7 +89,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func04.__doc__,
 r"""
-    Throws: SuperError
+    :raises: SuperError
 
 
 
@@ -219,8 +219,8 @@ r"""
 
 
 
-    Arguments:
-      a (int) -- the first param
+    :type a: int
+    :param a: the first param
 
 
 
@@ -255,11 +255,11 @@ r"""
 
     Another remarks section
 
-    Return: Whatever
+    :return: Whatever
 
-    it
+    :return: it
 
-    Returns: may return
+    :return: may return
 
     """)
 
@@ -295,17 +295,17 @@ r"""
 
 
 
-    Throw: superException
+    :raises: superException
 
-    Throws: RuntimeError
+    :raises: RuntimeError
     """)
 
 commentVerifier.check(doxygen_translate_all_tags.func10.__doc__,
 r"""
     TODO: Some very important task
 
-    Arguments:
-      b (float) -- B is mentioned again...
+    :type b: float
+    :param b: B is mentioned again...
 
 
 

@@ -50,21 +50,13 @@ void PyDocConverter::fillStaticTables()
   sectionTitles["copyright"] = "Copyright: ";
   sectionTitles["deprecated"] = "Deprecated: ";
   sectionTitles["example"] = "Example: ";
-  sectionTitles["exception"] = "Throws: ";
-  sectionTitles["param"] = "Arguments:\n";
-  sectionTitles["tparam"] = "Arguments:\n";
   sectionTitles["note"] = "Notes: ";
   sectionTitles["remark"] = "Remarks: ";
   sectionTitles["remarks"] = "Remarks: ";
   sectionTitles["warning"] = "Warning: ";
-  sectionTitles["result"] = "Return: ";
-  sectionTitles["return"] = "Return: ";
-  sectionTitles["returns"] = "Returns: ";
 //  sectionTitles["sa"] = "See also: ";
 //  sectionTitles["see"] = "See also: ";
   sectionTitles["since"] = "Since: ";
-  sectionTitles["throw"] = "Throw: ";
-  sectionTitles["throws"] = "Throws: ";
   sectionTitles["todo"] = "TODO: ";
   sectionTitles["version"] = "Version: ";
 
@@ -100,7 +92,9 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["details"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["em"] = make_handler(&PyDocConverter::handleParagraph, " ");
   tagHandlers["example"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["exception"] = make_handler(&PyDocConverter::handleParagraph);
+  tagHandlers["exception"] =
+  tagHandlers["throw"] =
+  tagHandlers["throws"] = make_handler(&PyDocConverter::handleTagException);
   tagHandlers["htmlonly"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["invariant"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["latexonly"] = make_handler(&PyDocConverter::handleParagraph);
@@ -110,9 +104,6 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["p"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["partofdescription"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["rtfonly"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["return"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["returns"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["result"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["remark"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["remarks"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["sa"] = make_handler(&PyDocConverter::handleTagMessage, "See also: ");
@@ -120,8 +111,6 @@ void PyDocConverter::fillStaticTables()
       "See also: ");
   tagHandlers["since"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["short"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["throw"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["throws"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["todo"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["version"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["verbatim"] = make_handler(&PyDocConverter::handleParagraph);
@@ -144,9 +133,13 @@ void PyDocConverter::fillStaticTables()
           " convenience.\nIt differs from the above function only in what"
           " argument(s) it accepts.");
   tagHandlers["par"] = make_handler(&PyDocConverter::handleTagPar);
-  tagHandlers["param"] = make_handler(&PyDocConverter::handleTagParam);
+  tagHandlers["param"] =
   tagHandlers["tparam"] = make_handler(&PyDocConverter::handleTagParam);
   tagHandlers["ref"] = make_handler(&PyDocConverter::handleTagRef);
+  tagHandlers["result"] =
+  tagHandlers["return"] =
+  tagHandlers["returns"] = make_handler(&PyDocConverter::handleTagReturn);
+
   // this command just prints it's contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_handler(&PyDocConverter::handlePlainString);
@@ -417,11 +410,31 @@ void PyDocConverter::handleTagParam(DoxygenEntity& tag,
   DoxygenEntity paramNameEntity = *tag.entityList.begin();
   tag.entityList.pop_front();
 
-  std::string paramType = getParamType(paramNameEntity.data);
-  if (!paramType.size())
-    paramType = "none";
+  const std::string& paramName = paramNameEntity.data;
 
-  translatedComment += "  " + paramNameEntity.data + " (" + paramType + ") --";
+  const std::string paramType = getParamType(paramName);
+  if (!paramType.empty())
+    translatedComment += ":type " + paramName + ": " + paramType + "\n";
+
+  translatedComment += ":param " + paramName + ":";
+  handleParagraph(tag, translatedComment);
+}
+
+
+void PyDocConverter::handleTagReturn(DoxygenEntity &tag,
+                                     std::string &translatedComment,
+                                     const std::string &)
+{
+  translatedComment += ":return: ";
+  handleParagraph(tag, translatedComment);
+}
+
+
+void PyDocConverter::handleTagException(DoxygenEntity &tag,
+                                        std::string &translatedComment,
+                                        const std::string &)
+{
+  translatedComment += ":raises: ";
   handleParagraph(tag, translatedComment);
 }
 

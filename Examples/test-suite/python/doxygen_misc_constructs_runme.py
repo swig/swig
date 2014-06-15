@@ -10,10 +10,12 @@ commentVerifier.check(doxygen_misc_constructs.getAddress.__doc__,
     r"""
     Returns address of file line.
 
-    Arguments:
-      fileName (int &) -- name of the file, where the source line is located
-      line (int) -- line number
-      isGetSize (bool) -- if set, for every object location both address and size are returned
+    :type fileName: int &
+    :param fileName: name of the file, where the source line is located
+    :type line: int
+    :param line: line number
+    :type isGetSize: bool
+    :param isGetSize: if set, for every object location both address and size are returned
 
     Connection::getId() 
 
@@ -127,8 +129,8 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
     Similar __for__: double colon.
 
     Spaces at the start of line should be taken into account:
-    Arguments:
-      id (int) -- used as prefix in log
+    :type id: int
+    :param id: used as prefix in log
         statements. The default value is empty string, which is OK if
         there is only one app. instance. Example:
         
@@ -139,6 +141,7 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
             main_ctrl.setBP("func1");
         
 
-      fileName (char *) -- name of the log file
+    :type fileName: char *
+    :param fileName: name of the log file
     """
 );

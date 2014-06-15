@@ -37,7 +37,7 @@ r"""
     Example: someFile.txt
     Some details on using the example
 
-    Throws: SuperError
+    :raises: SuperError
 
     If: ANOTHERCONDITION {
       First part of comment
@@ -88,18 +88,18 @@ r"""
     The paragraph text.
     Maybe even multiline
 
-    Arguments:
-      a (int) -- the first param
+    :type a: int
+    :param a: the first param
 
     Remarks: Some remark text
 
     Another remarks section
 
-    Return: Whatever
+    :return: Whatever
 
-    it
+    :return: it
 
-    Returns: may return
+    :return: may return
 
     See also: someOtherMethod
 
@@ -107,14 +107,14 @@ r"""
 
     Since: version 0.0.0.1
 
-    Throw: superException
+    :raises: superException
 
-    Throws: RuntimeError
+    :raises: RuntimeError
 
     TODO: Some very important task
 
-    Arguments:
-      b (float) -- B is mentioned again...
+    :type b: float
+    :param b: B is mentioned again...
 
 
     very long
@@ -225,8 +225,8 @@ commentVerifier.check(doxygen_translate.htmlTableFunction.__doc__,
 r"""
     The meaning of flags:
 
-    Arguments:
-      byFlags (int) -- bits marking required items:
+    :type byFlags: int
+    :param byFlags: bits marking required items:
       
       | Size in bits| Items Required |
       --------------------------------

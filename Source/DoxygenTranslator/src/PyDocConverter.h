@@ -72,6 +72,10 @@ protected:
    */
   void handleTagChar(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
+   * Format the contents of the \exception tag or its synonyms.
+   */
+  void handleTagException(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+  /*
    * Print only the content and strip original tag
    */
   void handleParagraph(DoxygenEntity &tag, std::string &translatedComment,
@@ -109,6 +113,10 @@ protected:
    * Format nice param description with type information
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+  /*
+   * Format the contents of the \return tag or its synonyms.
+   */
+  void handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Writes text for \ref tag. 
    */

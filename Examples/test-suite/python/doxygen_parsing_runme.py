@@ -27,18 +27,20 @@ commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended.__doc
     r"""
         The class method with parameter
 
-        Arguments:
-          a (int) -- Parameter a
-          b (int) -- Parameter b
+        :type a: int
+        :param a: Parameter a
+        :type b: int
+        :param b: Parameter b
         """
 )
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended2.__doc__, 
     r"""
         The class method with parameter
 
-        Arguments:
-          a (int) -- Parameter a
-          b (int) -- Parameter b
+        :type a: int
+        :param a: Parameter a
+        :type b: int
+        :param b: Parameter b
         """
 )
 commentVerifier.check(doxygen_parsing.SomeAnotherStruct.structMethod.__doc__,
@@ -49,16 +51,18 @@ commentVerifier.check(doxygen_parsing.SomeAnotherStruct.structMethodExtended.__d
     r"""
         The struct method with parameter
 
-        Arguments:
-          a (int) -- Parameter a
-          b (int) -- Parameter b
+        :type a: int
+        :param a: Parameter a
+        :type b: int
+        :param b: Parameter b
         """
 )
 commentVerifier.check(doxygen_parsing.SomeAnotherStruct.structMethodExtended2.__doc__,
     r"""
         The struct method with parameter
 
-        Arguments:
-          a (int) -- Parameter a
-          b (int) -- Parameter b
+        :type a: int
+        :param a: Parameter a
+        :type b: int
+        :param b: Parameter b
         """)

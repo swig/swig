@@ -13,7 +13,7 @@ commentVerifier.check(doxygen_basic_translate.function.__doc__,
 
     Author: Some author
 
-    Return: Some number
+    :return: Some number
 
     See also: function2
     """
@@ -65,15 +65,15 @@ commentVerifier.check(doxygen_basic_translate.function5.__doc__,
 commentVerifier.check(doxygen_basic_translate.function6.__doc__,
     """
     Test for default args
-    Arguments:
-      a (int) -- Some parameter, default is 42
+    :type a: int
+    :param a: Some parameter, default is 42
     """
 )
 commentVerifier.check(doxygen_basic_translate.function7.__doc__,
     """
     Test for a parameter with difficult type
     (mostly for python)
-    Arguments:
-      a (Shape::superType *[10]) -- Very strange param
+    :type a: Shape::superType *[10]
+    :param a: Very strange param
     """
 )
