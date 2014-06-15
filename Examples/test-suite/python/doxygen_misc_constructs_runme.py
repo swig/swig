@@ -41,8 +41,8 @@ commentVerifier.check(doxygen_misc_constructs.CConnectionConfig.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.waitTime.__doc__,
     r"""
-    Determines how long the 'isystem.connect' should wait for running 
-    instances to respond. Only one of 'lfWaitXXX' flags from IConnect::ELaunchFlags
+    Determines how long the ``isystem.connect`` should wait for running 
+    instances to respond. Only one of ``lfWaitXXX`` flags from IConnect::ELaunchFlags
     may be specified.
     """
 )
@@ -84,7 +84,7 @@ commentVerifier.check(doxygen_misc_constructs.isNoSpaceValidC.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.backslashA.__doc__,
     r"""
-    Backslash following'word' is a valid doxygen command. Output contains
+    Backslash following``word`` is a valid doxygen command. Output contains
     'followingword' with 'word' in code font.
     """
 )
@@ -108,8 +108,8 @@ commentVerifier.check(doxygen_misc_constructs.backslashB.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.backslashC.__doc__,
     r"""
-    Backslash e at end of _line_ froze SWIG 
-    _with_ old comment parser. 
+    Backslash e at end of *line* froze SWIG 
+    *with* old comment parser. 
 
     See also: MyClass::fun(char,
      float)
@@ -124,9 +124,9 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
     ['retVal < 10', 'g_counter == 23 && g_mode & 3']
 
 
-    Both words should be emphasized __isystem.connect__.
-    But not the last period. For __example__, comma should not be emphasized.
-    Similar __for__: double colon.
+    Both words should be emphasized **isystem.connect**.
+    But not the last period. For **example**, comma should not be emphasized.
+    Similar **for**: double colon.
 
     Spaces at the start of line should be taken into account:
     :type id: int
@@ -136,7 +136,7 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
         
             ctrl.setBP("func1");
         
-        If we set the id to 'main_', we get:
+        If we set the id to ``main_``, we get:
         
             main_ctrl.setBP("func1");
         

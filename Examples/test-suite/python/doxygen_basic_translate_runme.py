@@ -30,13 +30,13 @@ commentVerifier.check(doxygen_basic_translate.function3.__doc__,
     Overload 1:
     ----------------------------------------------------------------
     A test for overloaded functions
-    This is function __one__
+    This is function **one**
 
     ----------------------------------------------------------------
     Overload 2:
     ----------------------------------------------------------------
     A test for overloaded functions
-    This is function __two__
+    This is function **two**
 
     """
 )
@@ -44,11 +44,11 @@ commentVerifier.check(doxygen_basic_translate.function4.__doc__,
     """
     A test of some mixed tag usage
     If: CONDITION {
-    This _code_ fragment shows us something .
+    This *code* fragment shows us something .
     Title: Minuses:
-     -it\'s senseless
-     -it\'s stupid
-     -it\'s null
+    * it\'s senseless
+    * it\'s stupid
+    * it\'s null
 
     Warning: This may not work as expected
 

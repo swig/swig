@@ -8,13 +8,13 @@ import commentVerifier
 
 commentVerifier.check(doxygen_translate_all_tags.func01.__doc__,
 r"""
-    _Hello_
+    *Hello*
 
 
 
 
 
-     -some list item
+    * some list item
 
     This is attention!
     You were warned!
@@ -22,13 +22,13 @@ r"""
     Authors: lots of them
     Author: Zubr
 
-    __boldword__
+    **boldword**
 
     Some brief description,
     extended to many lines.
 
     Not everything works right now...
-    'codeword'
+    ``codeword``
 
 
 
@@ -67,7 +67,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func03.__doc__,
 r"""
-    Comment for __func03()__.
+    Comment for **func03()**.
 
 
 
@@ -77,7 +77,7 @@ r"""
 
 
 
-    _italicword_
+    *italicword*
 
     emphazedWord
 
@@ -155,7 +155,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func06.__doc__,
 r"""
-    Comment for __func06()__.
+    Comment for **func06()**.
 
 
 
@@ -165,9 +165,9 @@ r"""
 
 
 
-     -Some unordered list
-     -With lots of items
-     -lots of lots of items
+    * Some unordered list
+    * With lots of items
+    * lots of lots of items
 
 
 
@@ -194,7 +194,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func07.__doc__,
 r"""
-    Comment for __func07()__.
+    Comment for **func07()**.
 
 
 

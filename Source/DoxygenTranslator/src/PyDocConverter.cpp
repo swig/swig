@@ -60,12 +60,12 @@ void PyDocConverter::fillStaticTables()
   sectionTitles["todo"] = "TODO: ";
   sectionTitles["version"] = "Version: ";
 
-  tagHandlers["a"] = make_handler(&PyDocConverter::handleTagWrap, "_");
-  tagHandlers["b"] = make_handler(&PyDocConverter::handleTagWrap, "__");
+  tagHandlers["a"] = make_handler(&PyDocConverter::handleTagWrap, "*");
+  tagHandlers["b"] = make_handler(&PyDocConverter::handleTagWrap, "**");
   // \c command is translated as single quotes around next word
-  tagHandlers["c"] = make_handler(&PyDocConverter::handleTagWrap, "'"); // see markdown support in doxy, section 'code wraps'
+  tagHandlers["c"] = make_handler(&PyDocConverter::handleTagWrap, "``");
   tagHandlers["cite"] = make_handler(&PyDocConverter::handleTagWrap, "'");
-  tagHandlers["e"] = make_handler(&PyDocConverter::handleTagWrap, "_");
+  tagHandlers["e"] = make_handler(&PyDocConverter::handleTagWrap, "*");
   // these commands insert just a single char, some of them need to be escaped
   tagHandlers["$"] = make_handler(&PyDocConverter::handleTagChar);
   tagHandlers["@"] = make_handler(&PyDocConverter::handleTagChar);
@@ -117,7 +117,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["warning"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["xmlonly"] = make_handler(&PyDocConverter::handleParagraph);
   // these commands have special handlers
-  tagHandlers["arg"] = make_handler(&PyDocConverter::handleTagMessage, " -");
+  tagHandlers["arg"] = make_handler(&PyDocConverter::handleTagMessage, "* ");
   tagHandlers["cond"] = make_handler(&PyDocConverter::handleTagMessage,
       "Conditional comment: ");
   tagHandlers["else"] = make_handler(&PyDocConverter::handleTagIf, "Else: ");
@@ -127,7 +127,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["if"] = make_handler(&PyDocConverter::handleTagIf, "If: ");
   tagHandlers["ifnot"] = make_handler(&PyDocConverter::handleTagIf, "If not: ");
   tagHandlers["image"] = make_handler(&PyDocConverter::handleTagImage);
-  tagHandlers["li"] = make_handler(&PyDocConverter::handleTagMessage, " -");
+  tagHandlers["li"] = make_handler(&PyDocConverter::handleTagMessage, "* ");
   tagHandlers["overload"] = make_handler(&PyDocConverter::handleTagMessage,
       "This is an overloaded member function, provided for"
           " convenience.\nIt differs from the above function only in what"
@@ -153,7 +153,7 @@ void PyDocConverter::fillStaticTables()
 
   // HTML tags
   tagHandlers["<a"] = make_handler(&PyDocConverter::handleDoxyHtmlTag_A);
-  tagHandlers["<b"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "__");
+  tagHandlers["<b"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "**");
   tagHandlers["<blockquote"] = make_handler(&PyDocConverter::handleDoxyHtmlTag_A,
       "Quote: ");
   tagHandlers["<body"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
@@ -163,7 +163,7 @@ void PyDocConverter::fillStaticTables()
   // not used in HTML 5
   tagHandlers["<center"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<caption"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
-  tagHandlers["<code"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "'");
+  tagHandlers["<code"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "``");
 
   tagHandlers["<dl"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<dd"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "    ");
@@ -171,17 +171,17 @@ void PyDocConverter::fillStaticTables()
 
   tagHandlers["<dfn"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<div"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
-  tagHandlers["<em"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "__");
+  tagHandlers["<em"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "**");
   tagHandlers["<form"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<hr"] = make_handler(&PyDocConverter::handleDoxyHtmlTag,
       "--------------------------------------------------------------------\n");
   tagHandlers["<h1"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "# ");
   tagHandlers["<h2"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "## ");
   tagHandlers["<h3"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "### ");
-  tagHandlers["<i"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "_");
+  tagHandlers["<i"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "*");
   tagHandlers["<input"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<img"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "Image:");
-  tagHandlers["<li"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "- ");
+  tagHandlers["<li"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, "* ");
   tagHandlers["<meta"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<multicol"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<ol"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
@@ -189,7 +189,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["<pre"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<small"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<span"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "'");
-  tagHandlers["<strong"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "__");
+  tagHandlers["<strong"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "**");
 
   // make a space between text and super/sub script.
   tagHandlers["<sub"] = make_handler(&PyDocConverter::handleDoxyHtmlTag, " ");
@@ -202,7 +202,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["<tt"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<kbd"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
   tagHandlers["<ul"] = make_handler(&PyDocConverter::handleDoxyHtmlTag);
-  tagHandlers["<var"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "_");
+  tagHandlers["<var"] = make_handler(&PyDocConverter::handleDoxyHtmlTag2, "*");
 
   // HTML entities
   tagHandlers["&copy"] = make_handler(&PyDocConverter::handleHtmlEntity, "(C)");

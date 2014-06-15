@@ -8,17 +8,17 @@ import commentVerifier
 
 commentVerifier.check(doxygen_translate.function.__doc__,
 r"""
-    _Hello_
+    *Hello*
 
-     -some list item
+    * some list item
 
     Authors: lots of them
 
     Author: Zubr
 
-    __boldword__
+    **boldword**
 
-    'codeword'
+    ``codeword``
 
     'citationword'
 
@@ -32,7 +32,7 @@ r"""
 
     Deprecated: Now use another function
 
-    _italicword_
+    *italicword*
 
     Example: someFile.txt
     Some details on using the example
@@ -61,9 +61,9 @@ r"""
 
 
 
-     -Some unordered list
-     -With lots of items
-     -lots of lots of items
+    * Some unordered list
+    * With lots of items
+    * lots of lots of items
 
 
 
@@ -139,14 +139,14 @@ r"""
     Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
 
     This is link ("http://acme.com/index.html")
-    __bold__
-    Quote: 
+    **bold**
+    Quote:
     Quotation block.
      ("http://www.worldwildlife.org/who/index.html")
 
 
     center
-    'this is code'
+    ``this is code``
 
 
     Starts an item title.
@@ -157,7 +157,7 @@ r"""
 
     Starts a section with a specific style (HTML only)
 
-    __Starts a piece of text displayed in an italic font.__
+    **Starts a piece of text displayed in an italic font.**
 
     'Form' does not generate any output.
 
@@ -169,7 +169,7 @@ r"""
 
     ### Heading 3
 
-    _Starts a piece of text displayed in an italic font._
+    *Starts a piece of text displayed in an italic font.*
     Input tag.
     Image: src="slika.png" 
     Meta tag.
@@ -177,8 +177,8 @@ r"""
 
 
 
-    - List item 1.
-    - List item 2.
+    * List item 1.
+    * List item 2.
 
 
 
@@ -189,7 +189,7 @@ r"""
     Starts a section of text displayed in a smaller font.
 
     'Starts an inline text fragment with a specific style.'
-    __Starts a section of bold text.__
+    **Starts a section of bold text.**
      Starts a piece of text displayed in subscript.
      Starts a piece of text displayed in superscript.
 
@@ -208,12 +208,12 @@ r"""
 
 
 
-    - List item 1.
-    - List item 2.
-    - List item 3.
+    * List item 1.
+    * List item 2.
+    * List item 3.
 
 
-    _Starts a piece of text displayed in an italic font._
+    *Starts a piece of text displayed in an italic font.*
 
 
     <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
@@ -235,7 +235,7 @@ r"""
       | 17 - 32     |      4         |
       
       Almost all combinations of above flags are supported by
-      'htmlTable...' functions.
+      ``htmlTable...`` functions.
     """)                      
 
 
