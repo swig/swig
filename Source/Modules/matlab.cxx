@@ -1007,7 +1007,7 @@ int MATLAB::classHandler(Node *n) {
   // store class_name for use by NewPointerObj
   {
     // need to add quotes around class_name
-    String *quoted_class_name = NewStringf("\"%s\"", class_name);
+    String *quoted_class_name = NewStringf("\"%s.%s\"", pkg_name, class_name);
     // different processing for smart or ordinary pointers
     String *smartptr = Getattr(n, "feature:smartptr");
     if (smartptr) {
