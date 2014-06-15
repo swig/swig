@@ -1,29 +1,8 @@
-
 def check(got, expected):
-  #if got is Null
-  #  raise RuntimeError('Expected comment string\n')
-  #gotStr = string.replace(got, ' ', '')
-  #gotStr = string.replace(gotStr, '\n', '')
-  # gotStr = string.replace(gotStr, '\t', '')
-  #expectedStr = string.replace(expected, ' ', '')
-  #expectedStr = string.replace(expectedStr, '\n', '')
-  #expectedStr = string.replace(expectedStr, '\t', '')
-
-  if got == None:  # when there is no commant attached to a class or function
+  if got is None:  # Absence of comment is equivalent to empty comment.
       got = ''
 
-  if not got == expected:
-    print("\n\n////////////////////////////////////////////////////////////////////////")
-
-    expectedFileName = "expected.txt"
-    gotFileName = "got.txt"
-    print("Output is also saved to files '" + expectedFileName + \
-                                   "' and '" + gotFileName + "'")
-
-    expectedFile = open(expectedFileName, "w")
-    expectedFile.write(expected)
-    expectedFile.close()
-    gotFile = open(gotFileName, "w")
-    gotFile.write(got)
-    gotFile.close()
-    raise RuntimeError("Expected: [" + str(expected) + "]\n" + "Got     : [" + str(got) + "]\n")
+  if got != expected:
+    from difflib import unified_diff
+    diff = unified_diff(expected.splitlines(True), got.splitlines(True), "expected", "got")
+    raise RuntimeError("Comments don't match:\n" + "".join(diff))
