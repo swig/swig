@@ -56,78 +56,79 @@ protected:
    * arg - some string argument to easily pass it through lookup table
    */
   typedef void (PyDocConverter::*tagHandler)(DoxygenEntity &tag,
-      std::string &translatedComment, std::string &arg);
+      std::string &translatedComment, const std::string &arg);
 
   /*
    * Wrap the command data with the some string
    * arg - string to wrap with, like '_' or '*'
    */
-  void handleTagWrap(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagWrap(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Just prints new line
    */
-  void handleNewLine(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleNewLine(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Print the name of tag to the output, used for escape-commands
    */
-  void handleTagChar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagChar(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Print only the content and strip original tag
    */
-  void handleParagraph(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleParagraph(DoxygenEntity &tag, std::string &translatedComment,
+                       const std::string &arg = std::string());
   /*
    * Print only data part of code
    */
-  void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /**
    * Copies verbatim args of the tag to output, used for commands like \f$, ...
    */
   void handleTagVerbatim(DoxygenEntity& tag,
                             std::string& translatedComment,
-                            std::string &arg);
+                            const std::string &arg);
 
   /*
    * Print the if-elseif-else-endif section
    */
-  void handleTagIf(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagIf(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Prints the specified message, than the contents of the tag
    * arg - message
    */
-  void handleTagMessage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagMessage(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Insert 'Title: ...'
    */
-  void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Insert 'Image: ...'
    */
-  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Format nice param description with type information
    */
-  void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
   /*
    * Writes text for \ref tag. 
    */
-  void handleTagRef(DoxygenEntity& tag, std::string& translatedComment, std::string&);
-    
+  void handleTagRef(DoxygenEntity& tag, std::string& translatedComment, const std::string &arg);
+
   /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
 
-  void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
+  void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, const std::string &arg);
 
   /** Does not output params of HTML tag, for example in <table border='1'>
    * 'border=1' is not written to output.
    */
   void handleDoxyHtmlTagNoParam(DoxygenEntity& tag,
                                     std::string& translatedComment,
-                                    std::string &arg);
+                                    const std::string &arg);
 
   /** Translates tag <a href = "url">text</a> to: text ("url"). */
   void handleDoxyHtmlTag_A(DoxygenEntity& tag,
                               std::string& translatedComment,
-                              std::string &arg);
+                              const std::string &arg);
 
   /*
    * Handles HTML tags, which are translated to markdown-like syntax, for example
@@ -135,22 +136,22 @@ protected:
    */
   void handleDoxyHtmlTag2(DoxygenEntity& tag,
                              std::string& translatedComment,
-                             std::string &arg);
+                             const std::string &arg);
 
   /* Handles HTML table, tag <tr> */
   void handleDoxyHtmlTag_tr(DoxygenEntity& tag, std::string& translatedComment,
-                               std::string &arg);
+                               const std::string &arg);
 
   /* Handles HTML table, tag <th> */
   void handleDoxyHtmlTag_th(DoxygenEntity& tag, std::string& translatedComment,
-                               std::string &arg);
+                               const std::string &arg);
 
   /* Handles HTML table, tag <td> */
   void handleDoxyHtmlTag_td(DoxygenEntity& tag, std::string& translatedComment,
-                                std::string &arg);
+                                const std::string &arg);
 
   /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
-  void handleHtmlEntity(DoxygenEntity&, std::string& translatedComment, std::string &arg);
+  void handleHtmlEntity(DoxygenEntity&, std::string& translatedComment, const std::string &arg);
 
 
   /*
@@ -168,10 +169,18 @@ protected:
 private:
   // temporary thing, should be refactored somehow
   Node *currentNode;
+
   // this contains the handler pointer and one string argument
-  static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
+  typedef std::map<std::string, std::pair<tagHandler, std::string> > TagHandlersMap;
+  static TagHandlersMap tagHandlers;
+
   // this contains the sections tittles, like 'Arguments:' or 'Notes:', that are printed only once
   static std::map<std::string, std::string> sectionTitles;
+
+  // Helper functions for fillStaticTables(): make a new tag handler object.
+  TagHandlersMap::mapped_type make_handler(tagHandler handler);
+  TagHandlersMap::mapped_type make_handler(tagHandler handler, const char* arg);
+
   void fillStaticTables();
 };
 
