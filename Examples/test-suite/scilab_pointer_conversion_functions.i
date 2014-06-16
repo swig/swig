@@ -8,7 +8,7 @@ bool isNull(void *p) { return p == NULL; }
 int foo = 3;
 int *pfoo = &foo;
 
-unsigned long getFooAddress() { return (unsigned long) pfoo; }
+double getFooAddress() { return (double) (unsigned long) pfoo; }
 bool equalFooPointer(void *p) { return p == pfoo; }
 
 %}
