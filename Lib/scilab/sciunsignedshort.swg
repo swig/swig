@@ -1,8 +1,8 @@
 /*
  * C-type: unsigned short
- * Scilab type: uint16 scalar
+ * Scilab type: double or uint16 scalar
  */
-%fragment(SWIG_AsVal_frag(unsigned short), "header", fragment="SWIG_SciUint16_AsUnsignedShort") {
+%fragment(SWIG_AsVal_frag(unsigned short), "header", fragment="SWIG_SciUint16_AsUnsignedShort", fragment="<limits.h>") {
 %#define SWIG_AsVal_unsigned_SS_short(scilabValue, valuePointer) SWIG_SciUint16_AsUnsignedShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciUint16_AsUnsignedShort", "header") {
@@ -27,32 +27,60 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (iType != sci_ints) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
 
-  sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iPrec != SCI_UINT16) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
+  if (iType == sci_ints) {
+    if (_pusValue) {
+      sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+      if (sciErr.iErr) {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+      }
+      if (iPrec != SCI_UINT16) {
+        Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
+        return SWIG_ERROR;
+      }
 
-  sciErr = getMatrixOfUnsignedInteger16(_pvApiCtx, piAddrVar, &iRows, &iCols, &pusData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+      sciErr = getMatrixOfUnsignedInteger16(_pvApiCtx, piAddrVar, &iRows, &iCols, &pusData);
+      if (sciErr.iErr) {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+      }
+      if (iRows * iCols != 1) {
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
+        return SWIG_ERROR;
+      }
+      *_pusValue = *pusData;
+    }
+  }
+  else if (iType == sci_matrix) {
+    if (_pusValue) {
+      double *pdData = NULL;
+      double dValue = 0.0f;
+      sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+      if (sciErr.iErr) {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+      }
+      if (iRows * iCols != 1) {
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        return SWIG_TypeError;
+      }
+      dValue = *pdData;
+      if (dValue != floor(dValue)) {
+        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, _iVar);
+        return SWIG_ValueError;
+      }
+      if ((dValue < 0) || (dValue > USHRT_MAX)) {
+        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, _iVar);
+        return SWIG_OverflowError;
+      }
+      *_pusValue = (unsigned short) dValue;
+    }
+  }
+  else {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
-  if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
-
-  *_pusValue = *pusData;
 
   return SWIG_OK;
 }
@@ -65,7 +93,7 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
 SWIGINTERN int
 SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _usValue, char *_fname) {
   int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarUnsignedInteger16(_pvApiCtx, iVarOut, _usValue))
+  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _usValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
