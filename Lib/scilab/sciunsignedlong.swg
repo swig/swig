@@ -30,23 +30,24 @@ SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int _iVarOut, unsigned long _
 
 %fragment("SWIG_SciUint32_FromUnsignedLongArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned long *_pulData) {
+SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned long *_pulValues) {
   SciErr sciErr;
+  double *pdValues = NULL;
   int i;
-  unsigned int *puiValues = NULL;
 
-  puiValues = (unsigned int*) malloc(_iRows * _iCols * sizeof(unsigned int));
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
   for (i=0; i<_iRows * _iCols; i++) {
-    puiValues[i] = _pulData[i];
+    pdValues[i] = _pulValues[i];
   }
 
-  sciErr = createMatrixOfUnsignedInteger32(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, puiValues);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
-    free(puiValues);
+    free(pdValues);
     return SWIG_ERROR;
   }
-  free(puiValues);
+
+  free(pdValues);
   return SWIG_OK;
 }
 }

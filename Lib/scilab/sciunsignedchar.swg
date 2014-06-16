@@ -122,41 +122,77 @@ SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (iType != sci_ints) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer vector expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
 
-  sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
-  }
-  if (iPrec != SCI_UINT8) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer vector expected.\n"), _fname, _iVar);
-    return SWIG_ERROR;
-  }
+  if (iType == sci_matrix)
+  {
+    double *pdData = NULL;
+    int size = 0;
+    int i;
 
-  sciErr = getMatrixOfUnsignedInteger8(_pvApiCtx, piAddrVar, _iRows, _iCols, _pucValue);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    size = (*_iRows) * (*_iCols);
+    *_pucValue = (unsigned char*) malloc(size * sizeof(int*));
+    for (i = 0; i < size; i++)
+      (*_pucValue)[i] = (unsigned char) pdData[i];
+  }
+  else if (iType == sci_ints)
+  {
+    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    if (iPrec != SCI_UINT8)
+    {
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
+      return SWIG_ERROR;
+    }
+
+    sciErr = getMatrixOfUnsignedInteger8(_pvApiCtx, piAddrVar, _iRows, _iCols, _pucValue);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+  }
+  else
+  {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
     return SWIG_ERROR;
   }
 
   return SWIG_OK;
 }
 }
+
 %fragment("SWIG_SciUint8_FromUnsignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint8_FromUnsignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned char *_puscValue) {
+SWIG_SciUint8_FromUnsignedCharArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned char *_pucValues) {
   SciErr sciErr;
+  double *pdValues = NULL;
+  int i;
 
-  sciErr = createMatrixOfUnsignedInteger8(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, _puscValue);
-  if (sciErr.iErr) {
+  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
+  for (i=0; i<_iRows * _iCols; i++)
+    pdValues[i] = _pucValues[i];
+
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  if (sciErr.iErr)
+  {
     printError(&sciErr, 0);
+    free(pdValues);
     return SWIG_ERROR;
   }
 
+  free(pdValues);
   return SWIG_OK;
 }
 }
