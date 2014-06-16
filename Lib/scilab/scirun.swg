@@ -263,6 +263,7 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
  *  Pointer utility functions
  */
 
+
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -296,7 +297,7 @@ int swig_ptr(SWIG_GatewayParameters) {
       Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_ValueError;
     }
-    if ((dValue < LONG_MIN) || (dValue > LONG_MAX)) {
+    if ((dValue < 0) || (dValue > ULONG_MAX)) {
       Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_OverflowError;
     }
