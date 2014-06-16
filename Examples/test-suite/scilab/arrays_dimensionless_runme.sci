@@ -1,44 +1,42 @@
 exec("swigtest.start", -1);
 
 // bool
-a = [%T %F %F %T %F %T %T %T];
-checkequal(arr_bool(a, 8), 5, "arr_bool");
+checkequal(arr_bool([%T %F %F %T %F %T %T %T], 8), 5, "arr_bool");
 
 // char
-a = ["charptr"]
-checkequal(arr_char(a, 7), 756, "arr_char");
+checkequal(arr_char(["charptr"], 7), 756, "arr_char");
 
 // signed char
-a = int8([1, 2, 3, 4]);
-checkequal(arr_schar(a, 4), 10, "arr_schar");
+checkequal(arr_schar([1, 2, 3, 4], 4), 10, "arr_schar");
+checkequal(arr_schar(int8([1, 2, 3, 4]), 4), 10, "arr_schar");
 
 // unsigned char
-a = uint8([1, 2, 3, 4]);
-checkequal(arr_uchar(a, 4), 10, "arr_uchar");
+checkequal(arr_uchar([1, 2, 3, 4], 4), 10, "arr_uchar");
+checkequal(arr_uchar(uint8([1, 2, 3, 4]), 4), 10, "arr_uchar");
 
 // short
-a = int16([1, 2, 3, 4]);
-checkequal(arr_short(a, 4), 10, "arr_short");
+checkequal(arr_short([1, 2, 3, 4], 4), 10, "arr_short");
+checkequal(arr_short(int16([1, 2, 3, 4]), 4), 10, "arr_short");
 
 // unsigned short
-a = uint16([1, 2, 3, 4]);
-checkequal(arr_ushort(a, 4), 10, "arr_ushort");
+checkequal(arr_ushort([1, 2, 3, 4], 4), 10, "arr_ushort");
+checkequal(arr_ushort(uint16([1, 2, 3, 4]), 4), 10, "arr_ushort");
 
 // int
-a = int32([1, 2, 3, 4]);
-checkequal(arr_int(a, 4), 10, "arr_int");
+checkequal(arr_int([1, 2, 3, 4], 4), 10, "arr_int");
+checkequal(arr_int(int32([1, 2, 3, 4]), 4), 10, "arr_int");
 
 // unsigned int
-a = uint32([1, 2, 3, 4]);
-checkequal(arr_uint(a, 4), 10, "");
+checkequal(arr_uint([1, 2, 3, 4], 4), 10, "");
+checkequal(arr_uint(uint32([1, 2, 3, 4]), 4), 10, "");
 
 // long
-a = [1, 2, 3, 4];
-checkequal(arr_long(a, 4), 10, "arr_long");
+checkequal(arr_long([1, 2, 3, 4], 4), 10, "arr_long");
+checkequal(arr_long(int32([1, 2, 3, 4]), 4), 10, "arr_long");
 
 // unsigned long
-a = [1, 2, 3, 4];
-checkequal(arr_ulong(uint32(a), 4), 10, "arr_ulong");
+checkequal(arr_ulong([1, 2, 3, 4], 4), 10, "arr_ulong");
+checkequal(arr_ulong(uint32([1, 2, 3, 4]), 4), 10, "arr_ulong");
 
 // long long
 // No equivalent in Scilab 5
