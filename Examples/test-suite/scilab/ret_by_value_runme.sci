@@ -7,8 +7,8 @@ catch
 end
 
 // Test default values
-if test_myInt_get(a) <> 100 then swigtesterror(); end
-if test_myShort_get(a) <> 200 then swigtesterror(); end
+checkequal(test_myInt_get(a), 100, "test_myInt_get() test fails.");
+checkequal(test_myShort_get(a), 200, "test_myShort_get() test fails.");
 
 // Write new values
 try
@@ -19,8 +19,8 @@ catch
 end
 
 // Read new values
-if test_myInt_get(a) <> 42 then swigtesterror(); end
-if test_myShort_get(a) <> 12 then swigtesterror(); end
+checkequal(test_myInt_get(a), 42, "test_myInt_get() test fails.");
+checkequal(test_myShort_get(a), 12, "test_myShort_get() test fails.");
 
 // Destroy pointer
 delete_test(a);
