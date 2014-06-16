@@ -6,55 +6,50 @@ catch
     swigtesterror();
 end
 
-if Foo_x_get(foo)<>0 then swigtesterror(); end
-if typeof(Foo_x_get(foo))<>"constant" then swigtesterror(); end
+checkequal(Foo_x_get(foo), 0, "Foo_x_get()");
 
-if Foo_y_get(foo)<>0 then swigtesterror(); end
-if typeof(Foo_y_get(foo))<>"constant" then swigtesterror(); end
+checkequal(Foo_y_get(foo), 0, "Foo_y_get()");
 
-if Foo_z_get(foo)<>0 then swigtesterror(); end
-if typeof(Foo_z_get(foo))<>"constant" then swigtesterror(); end
+checkequal(Foo_z_get(foo), 0, "Foo_y_get()");
 
-if Foo_f_get(foo)<>uint32(0) then swigtesterror(); end
-if typeof(Foo_f_get(foo))<>"uint32" then swigtesterror(); end
+checkequal(Foo_f_get(foo), 0, "Foo_f_get()");
 
-if Foo_seq_get(foo)<>uint32(0) then swigtesterror(); end
-if typeof(Foo_seq_get(foo))<>"uint32" then swigtesterror(); end
+checkequal(Foo_seq_get(foo), 0, "Foo_seq_get()");
 
 try
     Foo_x_set(foo, 5);
 catch
     swigtesterror();
 end
-if Foo_x_get(foo)<>5 then swigtesterror(); end
+checkequal(Foo_x_get(foo), 5, "Foo_x_get()");
 
 try
     Foo_y_set(foo, 5);
 catch
     swigtesterror();
 end
-if Foo_y_get(foo)<>5 then swigtesterror(); end
+checkequal(Foo_y_get(foo), 5, "Foo_y_get()");
 
 try
-    Foo_f_set(foo, uint32(5));
+    Foo_f_set(foo, 1);
 catch
     swigtesterror();
 end
-if Foo_y_get(foo)<>uint32(5) then swigtesterror(); end
+checkequal(Foo_f_get(foo), 1, "Foo_f_get()");
 
 try
     Foo_z_set(foo, 13);
 catch
     swigtesterror();
 end
-if Foo_z_get(foo)<>13 then swigtesterror(); end
+checkequal(Foo_z_get(foo), 13, "Foo_z_get()");
 
 try
-    Foo_seq_set(foo, uint32(3));
+    Foo_seq_set(foo, 3);
 catch
     swigtesterror();
 end
-if Foo_seq_get(foo)<>uint32(3) then swigtesterror(); end
+checkequal(Foo_seq_get(foo), 3, "Foo_seq_get()");
 
 try
     delete_Foo(foo);
