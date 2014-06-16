@@ -1351,13 +1351,13 @@ The following table provides the equivalent Scilab type for C/C++ primitive type
 <tr><td>bool</td><td>boolean</td></tr>
 <tr><td>char</td><td>string</td></tr>
 <tr><td>signed char</td><td>double or int8</td></tr>
-<tr><td>unsigned char</td><td>uint8</td></tr>
+<tr><td>unsigned char</td><td>double or uint8</td></tr>
 <tr><td>short</td><td>double or int16</td></tr>
-<tr><td>unsigned short</td><td>uint16</td></tr>
+<tr><td>unsigned short</td><td>double or uint16</td></tr>
 <tr><td>int</td><td>double or int32</td></tr>
-<tr><td>unsigned int</td><td>uint32</td></tr>
+<tr><td>unsigned int</td><td>double or uint32</td></tr>
 <tr><td>long</td><td>double or int32</td></tr>
-<tr><td>unsigned long</td><td>uint32</td></tr>
+<tr><td>unsigned long</td><td>double or uint32</td></tr>
 <tr><td>signed long long</td><td>not supported in Scilab 5.x</td></tr>
 <tr><td>unsigned long long</td><td>not supported in Scilab 5.x</td></tr>
 <tr><td>float</td><td>double</td></tr>
@@ -1370,15 +1370,14 @@ The following table provides the equivalent Scilab type for C/C++ primitive type
 Notes:
 <ul>
 <li>In Scilab the <tt>double</tt> type is used far more than any integer type.
-This is why signed integer values (<tt>short, int, integer, long</tt>) are automatically converted to Scilab <tt>double</tt> values when marshalled from C into Scilab.
-Additionally on input to a C function, Scilab <tt>double</tt> values are converted from into the related integer type.
-Unsigned integers are not concerned by these conversions.
+This is why integer values (<tt>int32</tt>, <tt>uint32</tt>, ...) are automatically converted to Scilab <tt>double</tt> values when marshalled from C into Scilab.
+Additionally on input to a C function, Scilab <tt>double</tt> values are converted into the related integer type.
 </li>
 <li>
 When an integer is expected, if the input is a double, the value must be an integer, i.e. it must not have any decimal part, otherwise a SWIG value error occurs.
 </li>
 <li>
-In SWIG for Scilab 5.x the <tt>long long</tt> type is not supported since Scilab 5.x does not have a 64-bit integer type.
+In SWIG for Scilab 5.x, the <tt>long long</tt> type is not supported, since Scilab 5.x does not have a 64-bit integer type.
 The default behaviour is for SWIG to generate code that will give a runtime error if <tt>long long</tt> type arguments are used from Scilab.
 </li>
 </ul>
