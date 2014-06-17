@@ -24,6 +24,7 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -52,7 +53,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
   lua_getglobal(L, "add");               /* function to be called */
   if (!lua_isfunction(L,-1)) {
     printf("[C] error: cannot find function 'add'\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   lua_pushnumber(L,a);
@@ -60,18 +61,18 @@ int call_add(lua_State *L,int a,int b,int* res) {
   if (lua_pcall(L, 2, 1, 0) != 0)  /* call function with 2 arguments and 1 result */
   {
     printf("[C] error running function `add': %s\n",lua_tostring(L, -1));
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
-  // check results
+  /* check results */
   if (!lua_isnumber(L,-1)) {
     printf("[C] error: returned value is not a number\n");
-    lua_settop(L,top);  // reset
+    lua_settop(L,top);
     return 0;
   }
   *res=(int)lua_tonumber(L,-1);
   lua_settop(L,top);  /* reset stack */
-  return 1;   // ok
+  return 1;
 }
 
 /* This is a variargs call function for calling from C into Lua.
@@ -189,9 +190,13 @@ int main(int argc,char* argv[]) {
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
-  printf("[C] let's load the file 'runme.lua'\n");
+  if (argc != 2 || argv[1] == NULL || strlen(argv[1]) == 0) {
+    printf("[C] ERROR: no lua file given on command line\n");
+    exit(3);
+  }
+  printf("[C] let's load the file '%s'\n", argv[1]);
   printf("[C] any lua code in this file will be executed\n");
-  if (luaL_loadfile(L, "runme.lua") || lua_pcall(L, 0, 0, 0)) {
+  if (luaL_loadfile(L, argv[1]) || lua_pcall(L, 0, 0, 0)) {
     printf("[C] ERROR: cannot run lua file: %s",lua_tostring(L, -1));
     exit(3);
   }

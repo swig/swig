@@ -1,4 +1,4 @@
-var struct_value = require("./struct_value");
+var struct_value = require("struct_value");
 
 b = new struct_value.Bar();
 

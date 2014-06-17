@@ -1,4 +1,4 @@
-var nspace_extend = require("./nspace_extend");
+var nspace_extend = require("nspace_extend");
 
 // constructors and destructors
 var color1 = new nspace_extend.Outer.Inner1.Color();

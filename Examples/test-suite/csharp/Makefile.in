@@ -8,6 +8,7 @@ CSHARPCILINTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
 CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
+
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -30,6 +31,7 @@ CPP_TEST_CASES = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+SRCDIR       = ../$(srcdir)/
 SWIGOPT += -namespace $*Namespace
 
 CSHARPFLAGSSPECIAL =
@@ -57,7 +59,7 @@ csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
@@ -71,10 +73,10 @@ setup = \
 # Note C# uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
 # DYLD_FALLBACK_LIBRARY_PATH is cleared for MacOSX.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
-	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
+	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$*_runme.exe; \
 	else \
 	  cd $* && \

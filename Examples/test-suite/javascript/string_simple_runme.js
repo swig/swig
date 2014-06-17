@@ -1,4 +1,4 @@
-var string_simple = require("./string_simple");
+var string_simple = require("string_simple");
 
 // Test unicode string
 var str = "olé";

@@ -5,6 +5,7 @@
 LANGUAGE     = mzscheme
 MZSCHEME     = mzscheme
 SCRIPTSUFFIX = _runme.scm
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -36,8 +37,8 @@ include $(srcdir)/../common.mk
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(MZSCHEME) -r $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean
@@ -45,4 +46,4 @@ run_testcase = \
 	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile mzscheme_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" mzscheme_clean

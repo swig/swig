@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 console.log("ICONST  = " + example.ICONST  + " (should be 42)");
 console.log("FCONST  = " + example.FCONST  + " (should be 2.1828)");

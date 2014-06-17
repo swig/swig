@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.1],[http://www.swig.org])
+AC_INIT([swig],[3.0.3],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -19,7 +19,7 @@ AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+/* Deal with attempt by Microsoft to deprecate C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif
@@ -489,7 +489,7 @@ if test x"${with_tclconfig}" != x ; then
    if test -f "${with_tclconfig}/tclConfig.sh" ; then
       TCLCONFIG=`(cd ${with_tclconfig}; pwd)`
    else
-      AC_MSG_ERROR([${with_tcl} directory doesn't contain tclConfig.sh])
+      AC_MSG_ERROR([${with_tcl} directory does not contain tclConfig.sh])
    fi
 fi
 # check in a few common install locations
@@ -789,7 +789,7 @@ AC_SUBST(PY3INCLUDE)
 AC_SUBST(PY3LIB)
 AC_SUBST(PY3LINK)
 AC_SUBST(PYTHON3DYNAMICLINKING)
-
+AC_CHECK_PROGS(PEP8, pep8)
 
 #----------------------------------------------------------------
 # Look for Perl5
@@ -1191,7 +1191,7 @@ else
   if test -z "$JSCORELIB"; then
     case $host in
     *-*-linux*)
-      dirs="/usr/lib/ /usr/local/lib/"
+      dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
       for i in $dirs ; do
         if test -r $i/libjavascriptcoregtk-1.0.so; then
           AC_MSG_RESULT($i)
@@ -1203,7 +1203,7 @@ else
 
       if test -z "$JSCORELIB"; then
         AC_MSG_RESULT(not found)
-        JSCENABLED=0
+        JSCENABLED=
       else
         JSCOREDYNAMICLINKING="$JSCORELIB"
         JSCENABLED=1
@@ -1259,7 +1259,7 @@ else
   AC_MSG_CHECKING(for V8 Javascript library)
   AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
-  v8libdirs="$JSV8LIBDIR /usr/lib/ /usr/local/lib/"
+  v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
   for d in $v8libdirs ; do
     if test -r $d/libv8.so; then
       JSV8LIBDIR=$d
@@ -1270,7 +1270,7 @@ else
 
   if test "$JSV8LIB" = "" ; then
     AC_MSG_RESULT(not found)
-    JSV8ENABLED=0
+    JSV8ENABLED=
   else
     AC_MSG_RESULT($JSV8LIBDIR)
     JSV8ENABLED=1
@@ -2266,9 +2266,13 @@ else
       GOGCC=true
       GOVERSIONOPTION=--version
       AC_MSG_CHECKING([whether gccgo version is too old])
-      go_version=`$GO $GOVERSIONOPTION | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
-      if test "$go_version" -lt 470; then
+      go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
+      if test "x$go_version" = x; then
+        AC_MSG_RESULT([could not determine gccgo version - disabling Go])
+        GO=
+      elif test "$go_version" -lt 470; then
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
+        GO=
       else
 	AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
@@ -2673,5 +2677,71 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
+#--------------------------------------------------------------------
+# Building Examples/ out of source directory
+#--------------------------------------------------------------------
+
+# If building out of source tree, replicate Examples/ source tree in
+# build directory, and copy over Makefiles from source directory.
+# Prefix each Makefile with a header which sets SRCDIR to the relative
+# source directory, and provides a rule for updating the Makefile from
+# its original source.
+AC_CONFIG_COMMANDS([Examples],[
+  if test "x${srcdir}" != "x." ; then
+    AC_MSG_NOTICE([generating Examples build tree])
+    for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
+      dir=`dirname ${mkfile}`
+      d=${dir}
+      reldir="";
+      while test "x$d" != "x." ; do
+        d=`dirname $d`
+        reldir="${reldir}../"
+      done
+      relsrcdir=${reldir}${srcdir}/
+      AS_MKDIR_P([${dir}])
+      cat <<EOF >${mkfile}
+# DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
+# and run (cd ${reldir} && ./config.status) to regenerate
+SRCDIR = ${relsrcdir}${dir}/
+
+EOF
+      cat ${srcdir}/${mkfile} >>${mkfile}
+    done
+  fi
+])
+
+#--------------------------------------------------------------------
+
 AC_OUTPUT
+
+langs=""
+test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
+test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
+test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
+test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
+test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
+test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_GO"		|| langs="${langs}go "
+test -n "$SKIP_GUILE"		|| langs="${langs}guile "
+test -n "$SKIP_JAVA"		|| langs="${langs}java "
+test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
+test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
+test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
+test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
+test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
+test -n "$SKIP_PHP"		|| langs="${langs}php "
+test -n "$SKIP_PIKE"		|| langs="${langs}pike "
+test -n "$SKIP_PYTHON"		|| langs="${langs}python "
+test -n "$SKIP_R"		|| langs="${langs}r "
+test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_TCL"		|| langs="${langs}tcl "
+test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
+
+echo "
+The SWIG test-suite and examples are configured for the following languages:
+$langs
+"
+
 dnl configure.ac ends here

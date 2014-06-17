@@ -33,7 +33,7 @@ public class li_boost_intrusive_ptr_runme {
     // Change loop count to run for a long time to monitor memory
     final int loopCount = 5000; //5000;
     for (int i=0; i<loopCount; i++) {
-      new li_boost_intrusive_ptr_runme().runtest();
+      new li_boost_intrusive_ptr_runme().runtest(i);
       System.gc();
       System.runFinalization();
       try {
@@ -78,7 +78,9 @@ public class li_boost_intrusive_ptr_runme {
       System.out.println("Finished");
   }
 
-  private void runtest() {
+  private int loopCount = 0;
+  private void runtest(int loopCount) {
+    this.loopCount = loopCount;
     // simple shared_ptr usage - created in C++
     {
       Klass k = new Klass("me oh my");
@@ -671,36 +673,36 @@ private void toIgnore() {
   }
   private void verifyValue(String expected, String got) {
     if (!expected.equals(got))
-      throw new RuntimeException("verify value failed. Expected: " + expected + " Got: " + got);
+      throw new RuntimeException("verify value failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyCount(int expected, Klass k) {
     int got = li_boost_intrusive_ptr.use_count(k);
     if (expected != got)
-      throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+      throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyCount(int expected, KlassDerived kd) {
       int got = li_boost_intrusive_ptr.use_count(kd);
       if (expected != got)
-        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyCount(int expected, KlassDerivedDerived kdd) {
       int got = li_boost_intrusive_ptr.use_count(kdd);
       if (expected != got)
-        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyIntrusiveCount(int expected, Klass k) {
     int got = k.use_count();
     if (expected != got)
-      throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+      throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyIntrusiveCount(int expected, KlassDerived kd) {
       int got = kd.use_count();
       if (expected != got)
-        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
   private void verifyIntrusiveCount(int expected, KlassDerivedDerived kdd) {
       int got = kdd.use_count();
       if (expected != got)
-        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
+        throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got + " loopCount: " + loopCount);
   }
 }

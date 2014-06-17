@@ -6,6 +6,7 @@ LANGUAGE     = r
 SCRIPTSUFFIX = _runme.R
 WRAPSUFFIX   = .R
 RUNR         = R CMD BATCH --no-save --no-restore
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -48,24 +49,24 @@ include $(srcdir)/../common.mk
 # Run the runme if it exists.  If not just load the R wrapper to
 # check for syntactic correctness
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
 	fi
 
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
-	       $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
+	       $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
 	fi; \
 	done
 # Clean
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile r_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" r_clean
 
 %.clean:
 	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_wrap.o $*_runme.Rout $*.Rout
