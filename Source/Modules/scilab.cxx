@@ -20,10 +20,10 @@ Scilab options (available with -scilab)\n\
      -addcflags <cflags>           - Add compiler flags <cflags>\n\
      -addldflags <ldflags>         - Add linker flags <ldflags>\n\
      -addsources <files>           - Add comma separated source files <files>\n\
-     -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
      -buildflags <file>            - Use the Scilab script <file> to set build flags\n\
-     -nobuilder                    - Do not generate builder script\n\
+     -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
      -internalmodule <gateway id>  - Generate internal module files with the given <gateway id>\n\
+     -nobuilder                    - Do not generate builder script\n\
      -outputlibrary <name>         - Set name of the output library to <name>\n\n"
      ;
 
