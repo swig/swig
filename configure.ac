@@ -1000,9 +1000,8 @@ else
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
     SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
-    AC_MSG_NOTICE([Scilab version: $SCILAB_FULL_VERSION])
 
-    AC_MSG_CHECKING(for Scilab version is 5.3.3 or higher)
+    AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
     SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
@@ -1012,7 +1011,6 @@ else
       AC_MSG_RESULT(yes)
     else
       AC_MSG_RESULT(no)
-      AC_MSG_NOTICE([Disabling Scilab])
       SCILAB=
     fi
 
@@ -2753,6 +2751,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
+    Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/allegrocl/Makefile
@@ -2761,7 +2760,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/uffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
-    Examples/test-suite/scilab/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -2827,9 +2825,9 @@ test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
-test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:
