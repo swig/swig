@@ -59,7 +59,9 @@ SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 setup = \
 	if [ -f $(SRC_RUNME_SCRIPT) ]; then	\
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	  cp $(SRC_RUNME_SCRIPT) $(SCRIPTDIR); \
+	  if [ ! -f $(RUNME_SCRIPT) ]; then	\
+	    cp $(SRC_RUNME_SCRIPT) $(SCRIPTDIR); \
+	  fi; \
 	  if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
 	    cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
 	  fi; \
