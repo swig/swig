@@ -1756,7 +1756,7 @@ scilab_run:
 # -----------------------------------------------------------------
 
 scilab_version:
-	echo `$(SCILAB) -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+	echo `$(SCILAB) -version | head -1`
 
 # -----------------------------------------------------------------
 # Cleaning the scilab examples
