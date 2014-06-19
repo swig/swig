@@ -12,10 +12,10 @@ catch
     swigtesterror();
 end
 
-if Outer_inner1_val_get(inner1) <> 10 then swigtesterror(); end
-if Outer_inner2_val_get(inner2) <> 20 then swigtesterror(); end
-if Outer_inner3_val_get(inner3) <> 20 then swigtesterror(); end
-if Outer_inner4_val_get(inner4) <> 40 then swigtesterror(); end
+checkequal(Outer_inner1_val_get(inner1), 10, "Outer_inner1_val_get(inner1)");
+checkequal(Outer_inner1_val_get(inner2), 20, "Outer_inner1_val_get(inner2)");
+checkequal(Outer_inner1_val_get(inner3), 20, "Outer_inner1_val_get(inner3)");
+checkequal(Outer_inner1_val_get(inner4), 40, "Outer_inner1_val_get(inner4)");
 
 try
     inside1 = Outer_inside1_get(outer);
@@ -26,9 +26,9 @@ catch
     swigtesterror();
 end
 
-if Outer_inside1_val_get(inside1) <> 100 then swigtesterror(); end
-if Outer_inside2_val_get(inside2) <> 200 then swigtesterror(); end
-if Outer_inside3_val_get(inside3) <> 200 then swigtesterror(); end
-if Outer_inside4_val_get(inside4) <> 400 then swigtesterror(); end
+checkequal(Named_val_get(inside1), 100, "Named_val_get(inside1)");
+checkequal(Named_val_get(inside2), 200, "Named_val_get(inside2)");
+checkequal(Named_val_get(inside3), 200, "Named_val_get(inside3)");
+checkequal(Named_val_get(inside4), 400, "Named_val_get(inside4)");
 
 exec("swigtest.quit", -1);
