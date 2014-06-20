@@ -17,4 +17,3 @@ int mul(int a, int b) {
 }
 
 int (*funcvar)(int,int) = add;
-
