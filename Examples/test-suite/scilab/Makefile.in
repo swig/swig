@@ -35,7 +35,7 @@ INCLUDES = $(abspath $(srcdir)/..)
 
 # Local variables
 TEST_DIR = $*.dir
-RUNME_SCRIPT = $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+RUNME_SCRIPT = $(TEST_DIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 # Rules for the different types of tests
@@ -57,24 +57,23 @@ SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 # Logs the test case execution
 # Copies files and creates directories needed for the test case
 setup = \
+	if [ ! -d $(TEST_DIR) ]; then	\
+	  mkdir $(TEST_DIR); \
+	fi; \
 	if [ -f $(SRC_RUNME_SCRIPT) ]; then	\
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	  if [ ! -f $(RUNME_SCRIPT) ]; then	\
-	    cp $(SRC_RUNME_SCRIPT) $(SCRIPTDIR); \
+	  if [ ! -f $(TEST_DIR) ]; then	\
+	    cp $(SRC_RUNME_SCRIPT) $(TEST_DIR); \
 	  fi; \
-	  if [ ! -f $(SCRIPTDIR)/swigtest.start ]; then	\
-	    cp $(srcdir)/swigtest.start $(SCRIPTDIR); \
+	  if [ ! -f $(TEST_DIR)/swigtest.start ]; then	\
+	    cp $(srcdir)/swigtest.start $(TEST_DIR); \
 	  fi; \
-	  if [ ! -f $(SCRIPTDIR)/swigtest.quit ]; then \
-	    cp $(srcdir)/swigtest.quit $(SCRIPTDIR); \
+	  if [ ! -f $(TEST_DIR)/swigtest.quit ]; then \
+	    cp $(srcdir)/swigtest.quit $(TEST_DIR); \
 	  fi; \
 	else \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ; \
 	fi; \
-	if [ ! -d $(TEST_DIR) ]; then	\
-	  mkdir $(TEST_DIR); \
-	fi; \
-
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
