@@ -1164,7 +1164,7 @@ int MATLAB::classHandler(Node *n) {
   base_init=0;
   Delete(f_wrap_m);
   f_wrap_m = 0;
-  Delete(class_name);
+  //note: don't Delete class_name as it's not a new object
   class_name=0;
   Delete(mfile);
   Delete(get_field);
