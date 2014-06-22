@@ -175,10 +175,35 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     ret = SWIG_ERROR;
   } else if (mxGetString(pm_type, type_str, 1024)) {
       ret = SWIG_ERROR;
-  } else if (!SWIG_TypeCheck(type_str, type)) {
-      ret = SWIG_ERROR;
   }
   if(pm_type) mxDestroyArray(pm_type);
+  if (ret == SWIG_ERROR)
+    return ret;
+
+  if (strcmp(type_str, type->name)==0) {
+      /* no type cast needed */
+      return SWIG_OK;
+  }
+  swig_cast_info *tc = SWIG_TypeCheck(type_str,type);
+  if (!tc) {
+    /* type doesn't match */
+    return SWIG_ERROR;
+  }
+  /* do type-cast (but only if non-zero ptr, otherwise it's trivial) */
+  if (ptr) {
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc,*ptr,&newmemory);
+    if (newmemory == SWIG_CAST_NEW_MEMORY) {
+       if (own)
+         *own = *own | SWIG_CAST_NEW_MEMORY;
+        else {
+         /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+         mexErrMsgIdAndTxt("SWIG:ConvertPointerObj","SWIG error in converting pointer for type %s. Bad typemap?",type->name);
+         ret=SWIG_ERROR;
+        }
+    } 
+  }
+
   return ret;
 }
 
