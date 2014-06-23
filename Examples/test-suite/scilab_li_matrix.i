@@ -1,6 +1,6 @@
 %module scilab_li_matrix
 
-%include matrix.i
+%include "matrix.i"
 
 %define %use_matrix_apply(TYPE...)
 %apply (TYPE *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (TYPE *matrix, int nbRow, int nbCol) }
