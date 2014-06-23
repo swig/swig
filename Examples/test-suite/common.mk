@@ -303,6 +303,7 @@ CPP_TEST_CASES += \
 	operator_pointer_ref \
 	operbool \
 	ordering \
+	overload_arrays \
 	overload_bool \
 	overload_copy \
 	overload_extend \

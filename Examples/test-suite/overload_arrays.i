@@ -1,4 +1,5 @@
 // Tests of overloaded functions of arrays
+// Based on overload_simple testcase
 %module overload_arrays
 
 #ifdef SWIGCHICKEN

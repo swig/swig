@@ -12,16 +12,15 @@ top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
 C_TEST_CASES += \
-	scilab_enums \
 	scilab_consts \
+	scilab_enums \
 
 CPP_TEST_CASES += \
-  primitive_types \
-  inout \
-  scilab_li_matrix \
-  scilab_pointer_conversion_functions \
-  scilab_multivalue \
-  overload_arrays \
+	inout \
+	primitive_types \
+	scilab_li_matrix \
+	scilab_multivalue \
+	scilab_pointer_conversion_functions \
 
 CPP_STD_TEST_CASES += \
 	li_std_container_typemaps \
