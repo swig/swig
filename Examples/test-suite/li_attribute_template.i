@@ -6,13 +6,6 @@
 %include <attribute.i>
 %include <std_string.i>
 
-// Swig Scilab uses gettext which defines a _d macro
-#if defined(SWIGSCILAB)
-%{
-#undef _d
-%}
-#endif
-
 %inline
 {
   class Foo {
@@ -34,38 +27,38 @@
   struct C
   {
     C(int a, int b, int c) :
-        _a(a), _b(b), _c(c), _d(a), _e(b),
+        a(a), b(b), c(c), d(a), _e(b),
         _f(a,b), _g(b,c)
     {
 
 /*
-        _f.first = _a;
-        _f.second = _b;
+        _f.first = a;
+        _f.second = b;
 
-        _g.first = _b;
-        _g.second = _c;
+        _g.first = b;
+        _g.second = c;
 */
 
     }
 
     int get_value() const
     {
-      return _a;
+      return a;
     }
 
     void set_value(int aa)
     {
-      _a = aa;
+      a = aa;
     }
 
     /* only one ref method */
     int& get_ref()
     {
-      return _b;
+      return b;
     }
 
-    Foo get_class_value() const { return _d; }
-    void set_class_value( Foo foo) { _d = foo; }
+    Foo get_class_value() const { return d; }
+    void set_class_value( Foo foo) { d = foo; }
 
     const Foo& get_class_ref() const { return _e; }
     void set_class_ref( const Foo& foo ) { _e = foo; }
@@ -80,10 +73,10 @@
     void set_string(std::string other) { str = other; }
 
   private:
-    int _a;
-    int _b;
-    int _c;
-    Foo _d;
+    int a;
+    int b;
+    int c;
+    Foo d;
     Foo _e;
     pair<T1,T2> _f;
     pair<T1,T2> _g;
