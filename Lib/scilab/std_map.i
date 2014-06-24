@@ -1,7 +1,5 @@
 //
 // SWIG typemaps for std::map
-// Luigi Ballabio
-// Jan. 2003
 //
 // Common implementation
 
