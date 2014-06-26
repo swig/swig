@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = example.i
+SRCS       =
 TARGET     = example_wrap.c
 INTERFACE  = example.i
 
