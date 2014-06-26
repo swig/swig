@@ -1739,6 +1739,7 @@ scilab: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
+	pwd
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # ----------------------------------------------------------------
@@ -1775,6 +1776,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
+	pwd
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # -----------------------------------------------------------------
