@@ -1705,22 +1705,23 @@ r_clean:
 SCILAB = @SCILAB@
 SCILAB_OPT = @SCILABOPT@
 
+SCILAB_SWIGOPT :=
+ifdef SRCS
+	SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)"
+endif
+ifdef INCLUDES
+	SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))"
+endif
+ifdef SRCDIR
+	SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))"
+endif
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab: $(SRCDIR_SRCS)
-	ifdef SRCS \
-		SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)" \
-	endif \
-	ifdef INCLUDES \
-		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))" \
-	endif \
-	ifdef SRCDIR \
-		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))" \
-	endif \
-	$(SWIG) -scilab $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH) \
+	$(SWIG) -scilab $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # ----------------------------------------------------------------
@@ -1728,17 +1729,7 @@ scilab: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCDIR_SRCS)
-	SCILAB_SWIGOPT = \
-	ifdef SRCS \
-		SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)" \
-	endif \
-	ifdef INCLUDES \
-		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))" \
-	endif \
-	ifdef SRCDIR \
-		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))" \
-	endif \
-	$(SWIG) -scilab -c++ $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH) \
+	$(SWIG) -scilab -c++ $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # -----------------------------------------------------------------
