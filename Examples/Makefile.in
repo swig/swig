@@ -1721,6 +1721,35 @@ endif
 # ----------------------------------------------------------------
 
 scilab: $(SRCDIR_SRCS)
+	@if test ! -z "$(SRCS)"; then \
+		if test ! -z "$(INCLUDES)"; then \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		else \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		fi \
+	else \
+		if test ! -z "$(INCLUDES)"; then \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		else \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		fi \
+	fi
 	$(SWIG) -scilab $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
@@ -1729,6 +1758,35 @@ scilab: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCDIR_SRCS)
+	@if test ! -z "$(SRCS)"; then \
+		if test ! -z "$(INCLUDES)"; then \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		else \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		fi \
+	else \
+		if test ! -z "$(INCLUDES)"; then \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -c++ -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -c++ -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		else \
+			if test ! -z "$(SRCDIR); then \
+				$(SWIG) -scilab -c++ -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+			else \
+				$(SWIG) -scilab -c++ $(SWIGOPT) $(INTERFACEPATH); \
+			fi \
+		fi \
+	fi
 	$(SWIG) -scilab -c++ $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
