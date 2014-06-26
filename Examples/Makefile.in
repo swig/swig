@@ -1702,54 +1702,51 @@ r_clean:
 ##################################################################
 
 # Make sure these locate your Scilab installation
-SCILAB_LIB = @SCILABLIB@
 SCILAB = @SCILAB@
 SCILAB_OPT = @SCILABOPT@
 
-# Returns the SWIG Scilab command line args
-define get_swig_scilab_args
-  SCILAB_SWIGOPT :=
-  ifdef SRCS
-    SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)"
-  endif
-  ifdef INCLUDES
-    SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))"
-  endif
-  ifdef SRCDIR
-    SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))"
-  endif
-endef
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab: $(SRCDIR_SRCS)
-	$(eval $(call get_swig_scilab_args))
-	$(SWIG) -scilab $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
-	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
-	fi
+	ifdef SRCS \
+		SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)" \
+	endif \
+	ifdef INCLUDES \
+		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))" \
+	endif \
+	ifdef SRCDIR \
+		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))" \
+	endif \
+	$(SWIG) -scilab $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH) \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # ----------------------------------------------------------------
 # Build a C++ dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCDIR_SRCS)
-	$(eval $(call get_swig_scilab_args))
-	$(SWIG) -scilab -c++ $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH)
-	if [ -f builder.sce ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
-	fi
+	SCILAB_SWIGOPT = \
+	ifdef SRCS \
+		SCILAB_SWIGOPT += -addsources "$(SRCDIR_SRCS)" \
+	endif \
+	ifdef INCLUDES \
+		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(INCLUDES))" \
+	endif \
+	ifdef SRCDIR \
+		SCILAB_SWIGOPT += -addcflags "-I$(abspath $(SRCDIR))" \
+	endif \
+	$(SWIG) -scilab -c++ $(SCILAB_SWIGOPT) $(SWIGOPT) $(INTERFACEPATH) \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "exit(exec('builder.sce', 'errcatch', -1))"; \
 
 # -----------------------------------------------------------------
 # Running a Scilab example
 # -----------------------------------------------------------------
 
 scilab_run:
-	if [ -f $(RUNME) ]; then \
-		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME).sci $(RUNPIPE); \
-	fi
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME).sci $(RUNPIPE); \
 
 # -----------------------------------------------------------------
 # Scilab version
