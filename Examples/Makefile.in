@@ -1721,7 +1721,7 @@ scilab: $(SRCDIR_SRCS)
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
@@ -1757,7 +1757,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
