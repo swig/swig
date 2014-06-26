@@ -1028,20 +1028,21 @@ else
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
       else
-        dirs="/usr/local/include /usr/include /opt/local/include"
+        dirs=`pkg-config scilab --cflags-only-I | sed -e 's/-I//g'`
       fi
       for i in $dirs; do
-        if test -r $i/scilab/api_scilab.h; then
+        if test -r $i/api_scilab.h; then
           SCILABINCLUDE="$i"
           break;
         fi
-        if test -r $i/scilab/scilab/api_scilab.h; then
+        if test -r $i/scilab/api_scilab.h; then
           SCILABINCLUDE="$i/scilab"
           break;
         fi
       done
       if test "$SCILABINCLUDE" = "" ; then
         AC_MSG_RESULT(not found)
+        SCILAB=
       else
         AC_MSG_RESULT($SCILABINCLUDE)
       fi
