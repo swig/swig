@@ -1,6 +1,6 @@
 exec("swigtest.start", -1);
 
-NULL = swig_ptr(0);
+NULL = SWIG_ptr(0);
 p = new_Pop(NULL);
 p = new_Pop(NULL, %T);
 

@@ -747,8 +747,8 @@ However, in some cases it can be useful, such as for testing or debugging.
 <p>
 SWIG comes with two pointer utility functions:
 <ul>
-<li><tt>swig_this()</tt>: returns the address value of a pointer</li>
-<li><tt>swig_ptr()</tt>: creates a pointer from an address value</li>
+<li><tt>SWIG_this()</tt>: returns the address value of a pointer</li>
+<li><tt>SWIG_ptr()</tt>: creates a pointer from an address value</li>
 </ul>
 </p>
 
@@ -757,12 +757,12 @@ SWIG comes with two pointer utility functions:
 <div class="targetlang"><pre>
 --&gt; f = fopen("junk", "w");
 --&gt; fputs("Hello", f);
---&gt; addr = swig_this(f)
+--&gt; addr = SWIG_this(f)
  ans  =
 
     8219088.
 
---&gt; p = swig_ptr(addr);
+--&gt; p = SWIG_ptr(addr);
 --&gt; fputs(" World", p);
 --&gt; fclose(f);
 </pre></div>
@@ -770,12 +770,12 @@ SWIG comes with two pointer utility functions:
 <H4><a name="Scilab_wrapping_pointers_null_pointers"></a>Null pointers</H4>
 
 <p>By default, Scilab does not provide a way to test or create null pointers.
-But it is possible to have a null pointer by using the previous functions <tt>swig_this()</tt> and <tt>swig_ptr()</tt>, like this:
+But it is possible to have a null pointer by using the previous functions <tt>SWIG_this()</tt> and <tt>SWIG_ptr()</tt>, like this:
 </p>
 
 <div class="targetlang"><pre>
---&gt; p = swig_ptr(0);
---&gt; swig_this(p) == 0
+--&gt; p = SWIG_ptr(0);
+--&gt; SWIG_this(p) == 0
  ans  =
 
   T

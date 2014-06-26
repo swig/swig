@@ -267,7 +267,7 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
 #ifdef __cplusplus
 extern "C"
 #endif
-int swig_this(SWIG_GatewayParameters) {
+int SWIG_this(SWIG_GatewayParameters) {
   void *ptrValue = NULL;
   if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
     SWIG_Scilab_SetOutputPosition(1);
@@ -284,7 +284,7 @@ int swig_this(SWIG_GatewayParameters) {
 #ifdef __cplusplus
 extern "C"
 #endif
-int swig_ptr(SWIG_GatewayParameters) {
+int SWIG_ptr(SWIG_GatewayParameters) {
   double dValue = 0;
   int *piAddr;
   SciErr sciErr = getVarAddressFromPosition(pvApiCtx, 1, &piAddr);

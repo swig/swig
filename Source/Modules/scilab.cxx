@@ -750,8 +750,8 @@ public:
    * addHelperFunctions()
    * ----------------------------------------------------------------------- */
   void addHelperFunctions() {
-    addFunctionToScilab("swig_this", "swig_this");
-    addFunctionToScilab("swig_ptr", "swig_ptr");
+    addFunctionToScilab("SWIG_this", "SWIG_this");
+    addFunctionToScilab("SWIG_ptr", "SWIG_ptr");
   }
 
   /* -----------------------------------------------------------------------
