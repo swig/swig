@@ -41,7 +41,7 @@
   fragment=SWIG_FromCreate_Sequence_frag(ptr),
   fragment=SWIG_FromSet_Sequence_frag(ptr),
   fragment="StdTraits",
-  fragment="include_for_uintptr") {
+  fragment="<stdint.h>") {
 
 namespace swig {
   // Error returned for sequence containers of default item type
@@ -130,7 +130,7 @@ namespace swig {
   fragment=SWIG_AsVal_SequenceItem_frag(ptr),
   fragment=SWIG_From_SequenceItem_frag(ptr),
   fragment="StdTraits",
-  fragment="include_for_uintptr") {
+  fragment="<stdint.h>") {
 
 namespace swig {
   // Error returned for sequence containers of default item type
