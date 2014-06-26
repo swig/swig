@@ -24,8 +24,7 @@ Scilab options (available with -scilab)\n\
      -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
      -internalmodule <gateway id>  - Generate internal module files with the given <gateway id>\n\
      -nobuilder                    - Do not generate builder script\n\
-     -outputlibrary <name>         - Set name of the output library to <name>\n\n"
-     ;
+     -outputlibrary <name>         - Set name of the output library to <name>\n\n";
 
 class SCILAB:public Language {
 protected:
@@ -68,6 +67,7 @@ public:
   /* ------------------------------------------------------------------------
    * main()
    * ----------------------------------------------------------------------*/
+
   virtual void main(int argc, char *argv[]) {
 
     sourceFileList = NewList();
@@ -88,57 +88,54 @@ public:
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
-        if (strcmp(argv[argIndex], "-help") == 0) {
-          Printf(stdout, "%s\n", usage);
-        } else if (strcmp(argv[argIndex], "-addsources") == 0) {
-          if (argv[argIndex + 1] != NULL) {
-            Swig_mark_arg(argIndex);
-            char *sourceFile = strtok(argv[argIndex + 1], ",");
-            while (sourceFile != NULL) {
-              Insert(sourceFileList, Len(sourceFileList), sourceFile);
-              sourceFile = strtok(NULL, ",");
-            }
-            Swig_mark_arg(argIndex + 1);
-          }
-        } else if (strcmp(argv[argIndex], "-addcflags") == 0) {
-          Swig_mark_arg(argIndex);
-          if (argv[argIndex + 1] != NULL) {
-            Insert(cflags, Len(cflags), argv[argIndex + 1]);
-            Swig_mark_arg(argIndex + 1);
-          }
-        } else if (strcmp(argv[argIndex], "-addldflags") == 0) {
-          Swig_mark_arg(argIndex);
-          if (argv[argIndex + 1] != NULL) {
-            Insert(ldflags, Len(ldflags), argv[argIndex + 1]);
-            Swig_mark_arg(argIndex + 1);
-          }
-        } else if (strcmp(argv[argIndex], "-buildverbositylevel") == 0) {
-          Swig_mark_arg(argIndex);
-          verboseBuildLevel = NewString(argv[argIndex + 1]);
-          Swig_mark_arg(argIndex + 1);
-        } else if (strcmp(argv[argIndex], "-buildflags") == 0) {
-          Swig_mark_arg(argIndex);
-          buildFlagsScript = NewString(argv[argIndex + 1]);
-          Swig_mark_arg(argIndex + 1);
-        } else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
-          Swig_mark_arg(argIndex);
-          generateBuilder = false;
-        }
-        else if (strcmp(argv[argIndex], "-internalmodule") == 0) {
-          Swig_mark_arg(argIndex);
-          generateBuilder = false;
-          internalModule = true;
-          gatewayID = NewString(argv[argIndex + 1]);
-          Swig_mark_arg(argIndex + 1);
-        }
-        else if (strcmp(argv[argIndex], "-outputlibrary") == 0) {
-          Swig_mark_arg(argIndex);
-          libraryName = NewString(argv[argIndex + 1]);
-          Swig_mark_arg(argIndex + 1);
-        }
-        else if (strcmp(argv[argIndex], "-Wextra") == 0) {
-          extraWarning = true;
-        }
+	if (strcmp(argv[argIndex], "-help") == 0) {
+	  Printf(stdout, "%s\n", usage);
+	} else if (strcmp(argv[argIndex], "-addsources") == 0) {
+	  if (argv[argIndex + 1] != NULL) {
+	    Swig_mark_arg(argIndex);
+	    char *sourceFile = strtok(argv[argIndex + 1], ",");
+	    while (sourceFile != NULL) {
+	      Insert(sourceFileList, Len(sourceFileList), sourceFile);
+	      sourceFile = strtok(NULL, ",");
+	    }
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-addcflags") == 0) {
+	  Swig_mark_arg(argIndex);
+	  if (argv[argIndex + 1] != NULL) {
+	    Insert(cflags, Len(cflags), argv[argIndex + 1]);
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-addldflags") == 0) {
+	  Swig_mark_arg(argIndex);
+	  if (argv[argIndex + 1] != NULL) {
+	    Insert(ldflags, Len(ldflags), argv[argIndex + 1]);
+	    Swig_mark_arg(argIndex + 1);
+	  }
+	} else if (strcmp(argv[argIndex], "-buildverbositylevel") == 0) {
+	  Swig_mark_arg(argIndex);
+	  verboseBuildLevel = NewString(argv[argIndex + 1]);
+	  Swig_mark_arg(argIndex + 1);
+	} else if (strcmp(argv[argIndex], "-buildflags") == 0) {
+	  Swig_mark_arg(argIndex);
+	  buildFlagsScript = NewString(argv[argIndex + 1]);
+	  Swig_mark_arg(argIndex + 1);
+	} else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
+	  Swig_mark_arg(argIndex);
+	  generateBuilder = false;
+	} else if (strcmp(argv[argIndex], "-internalmodule") == 0) {
+	  Swig_mark_arg(argIndex);
+	  generateBuilder = false;
+	  internalModule = true;
+	  gatewayID = NewString(argv[argIndex + 1]);
+	  Swig_mark_arg(argIndex + 1);
+	} else if (strcmp(argv[argIndex], "-outputlibrary") == 0) {
+	  Swig_mark_arg(argIndex);
+	  libraryName = NewString(argv[argIndex + 1]);
+	  Swig_mark_arg(argIndex + 1);
+	} else if (strcmp(argv[argIndex], "-Wextra") == 0) {
+	  extraWarning = true;
+	}
       }
     }
 
@@ -164,6 +161,7 @@ public:
   /* ------------------------------------------------------------------------
    * top()
    * ----------------------------------------------------------------------*/
+
   virtual int top(Node *node) {
 
     /* Get the module name */
@@ -203,13 +201,11 @@ public:
       createBuilderFile();
       startBuilderCode(outputFilename);
     }
-
     // In the case of internal module, create gateway gateway XML and generation script
     if (internalModule) {
       createGatewayXMLFile(moduleName);
       createGatewayGeneratorFile();
     }
-
     // Module initialization function
     String *moduleInitFunctionName = NewString("");
     Printf(moduleInitFunctionName, "%s_Init", moduleName);
@@ -234,7 +230,6 @@ public:
     if (CPlusPlus) {
       Printf(wrappersSection, "}\n");
     }
-
     // Close Scilab wrapper variables creation function
     Printf(variablesCode, "  return SWIG_OK;\n}\n");
 
@@ -280,6 +275,7 @@ public:
   /* ------------------------------------------------------------------------
    * emitBanner()
    * ----------------------------------------------------------------------*/
+
   void emitBanner(File *f) {
     Printf(f, "// ----------------------------------------------------------------------------\n");
     Swig_banner_target_lang(f, "// ");
@@ -289,6 +285,7 @@ public:
   /* ------------------------------------------------------------------------
    * functionWrapper()
    * ----------------------------------------------------------------------*/
+
   virtual int functionWrapper(Node *node) {
 
     /* Get some useful attributes of this function */
@@ -349,34 +346,34 @@ public:
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
       // Ignore parameter if the typemap specifies numinputs=0
       while (checkAttribute(param, "tmap:in:numinputs", "0")) {
-	      param = Getattr(param, "tmap:in:next");
+	param = Getattr(param, "tmap:in:next");
       }
 
       SwigType *paramType = Getattr(param, "type");
       String *paramTypemap = Getattr(param, "tmap:in");
 
       if (paramTypemap) {
-        // Replace $input by the position on Scilab stack
-        char source[64];
-        sprintf(source, "%d", paramIndex + 1);
-        Setattr(param, "emit:input", source);
-        Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
+	// Replace $input by the position on Scilab stack
+	char source[64];
+	sprintf(source, "%d", paramIndex + 1);
+	Setattr(param, "emit:input", source);
+	Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
 
-        if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
-          Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
-        } else {
-          Replaceall(paramTypemap, "$disown", "0");
-        }
+	if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
+	  Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
+	} else {
+	  Replaceall(paramTypemap, "$disown", "0");
+	}
 
-        if (paramIndex >= minInputArguments) {	/* Optional input argument management */
-          Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
-        } else {
-          Printf(wrapper->code, "%s\n", paramTypemap);
-        }
-        param = Getattr(param, "tmap:in:next");
+	if (paramIndex >= minInputArguments) {	/* Optional input argument management */
+	  Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
+	} else {
+	  Printf(wrapper->code, "%s\n", paramTypemap);
+	}
+	param = Getattr(param, "tmap:in:next");
       } else {
-	      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
-	      break;
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
+	break;
       }
     }
 
@@ -398,22 +395,22 @@ public:
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
       if (Len(functionReturnTypemap) > 0) {
-	      Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
       }
       Replaceall(functionReturnTypemap, "$result", "1");
 
       if (GetFlag(node, "feature:new")) {
-	      Replaceall(functionReturnTypemap, "$owner", "1");
+	Replaceall(functionReturnTypemap, "$owner", "1");
       } else {
-	      Replaceall(functionReturnTypemap, "$owner", "0");
+	Replaceall(functionReturnTypemap, "$owner", "0");
       }
 
       Printf(wrapper->code, "%s\n", functionReturnTypemap);
 
       /* If the typemap is not empty, the function return one more argument than the typemaps gives */
       if (Len(functionReturnTypemap) > 0) {
-        minOutputArguments++;
-        maxOutputArguments++;
+	minOutputArguments++;
+	maxOutputArguments++;
       }
       Delete(functionReturnTypemap);
 
@@ -426,30 +423,30 @@ public:
     for (param = functionParamsList; param;) {
       String *paramTypemap = Getattr(param, "tmap:argout");
       if (paramTypemap) {
-        minOutputArguments++;
-        maxOutputArguments++;
-        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
-        char result[64] = { };
-        sprintf(result, "%d", minOutputArguments);
-        Replaceall(paramTypemap, "$result", result);
-        Printf(wrapper->code, "%s\n", paramTypemap);
-        Delete(paramTypemap);
-        param = Getattr(param, "tmap:argout:next");
+	minOutputArguments++;
+	maxOutputArguments++;
+	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
+	char result[64] = { };
+	sprintf(result, "%d", minOutputArguments);
+	Replaceall(paramTypemap, "$result", result);
+	Printf(wrapper->code, "%s\n", paramTypemap);
+	Delete(paramTypemap);
+	param = Getattr(param, "tmap:argout:next");
       } else {
-        param = nextSibling(param);
+	param = nextSibling(param);
       }
     }
     /* Add cleanup code */
     for (param = functionParamsList; param;) {
       String *tm;
       if ((tm = Getattr(param, "tmap:freearg"))) {
-        if (tm && (Len(tm) != 0)) {
-          Replaceall(tm, "$source", Getattr(param, "lname"));
-          Printf(wrapper->code, "%s\n", tm);
-        }
-        param = Getattr(param, "tmap:freearg:next");
+	if (tm && (Len(tm) != 0)) {
+	  Replaceall(tm, "$source", Getattr(param, "lname"));
+	  Printf(wrapper->code, "%s\n", tm);
+	}
+	param = Getattr(param, "tmap:freearg:next");
       } else {
-        param = nextSibling(param);
+	param = nextSibling(param);
       }
     }
 
@@ -503,6 +500,7 @@ public:
   /* -----------------------------------------------------------------------
    * dispatchFunction()
    * ----------------------------------------------------------------------- */
+
   void dispatchFunction(Node *node) {
     Wrapper *wrapper = NewWrapper();
 
@@ -543,6 +541,7 @@ public:
   /* -----------------------------------------------------------------------
    * variableWrapper()
    * ----------------------------------------------------------------------- */
+
   virtual int variableWrapper(Node *node) {
 
     /* Get information about variable */
@@ -593,9 +592,9 @@ public:
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
-	      Replaceall(varinTypemap, "$input", "1");
-	      emit_action_code(node, setFunctionWrapper->code, varinTypemap);
-	      Delete(varinTypemap);
+	Replaceall(varinTypemap, "$input", "1");
+	emit_action_code(node, setFunctionWrapper->code, varinTypemap);
+	Delete(varinTypemap);
       }
       Append(setFunctionWrapper->code, "return SWIG_OK;\n");
       Append(setFunctionWrapper->code, "}\n");
@@ -611,6 +610,7 @@ public:
   /* -----------------------------------------------------------------------
    * constantWrapper()
    * ----------------------------------------------------------------------- */
+
   virtual int constantWrapper(Node *node) {
 
     /* Get the useful information from the node */
@@ -629,21 +629,21 @@ public:
       bool isEnum = (Cmp(nodeType(node), "enumitem") == 0);
 
       if (isConstant || isEnum) {
-        if (isEnum) {
-          Setattr(node, "type", "double");
-          constantValue = Getattr(node, "enumvalue");
-        }
+	if (isEnum) {
+	  Setattr(node, "type", "double");
+	  constantValue = Getattr(node, "enumvalue");
+	}
 
-        constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
-        if (constantTypemap != NULL) {
-          Setattr(node, "wrap:name", constantName);
-          Replaceall(constantTypemap, "$result", constantName);
-          Replaceall(constantTypemap, "$value", constantValue);
+	constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
+	if (constantTypemap != NULL) {
+	  Setattr(node, "wrap:name", constantName);
+	  Replaceall(constantTypemap, "$result", constantName);
+	  Replaceall(constantTypemap, "$value", constantValue);
 
-          emit_action_code(node, variablesCode, constantTypemap);
-          Delete(constantTypemap);
-          return SWIG_OK;
-        }
+	  emit_action_code(node, variablesCode, constantTypemap);
+	  Delete(constantTypemap);
+	  return SWIG_OK;
+	}
       }
     }
 
@@ -692,6 +692,7 @@ public:
   /* ---------------------------------------------------------------------
    * enumvalueDeclaration()
    * --------------------------------------------------------------------- */
+
   virtual int enumvalueDeclaration(Node *node) {
     static int iPreviousEnumValue = 0;
 
@@ -704,26 +705,23 @@ public:
       // First enum value ?
       String *firstenumitem = Getattr(node, "firstenumitem");
       if (firstenumitem) {
-        if (enumValue) {
-          // Value is in 'enumvalue'
-          iPreviousEnumValue = atoi(Char(enumValue));
-        }
-        else if (enumValueEx) {
-          // Or value is in 'enumValueEx'
-          iPreviousEnumValue = atoi(Char(enumValueEx));
+	if (enumValue) {
+	  // Value is in 'enumvalue'
+	  iPreviousEnumValue = atoi(Char(enumValue));
+	} else if (enumValueEx) {
+	  // Or value is in 'enumValueEx'
+	  iPreviousEnumValue = atoi(Char(enumValueEx));
 
-          enumValue = NewString("");
-          Printf(enumValue, "%d", iPreviousEnumValue);
-          Setattr(node, "enumvalue", enumValue);
-        }
+	  enumValue = NewString("");
+	  Printf(enumValue, "%d", iPreviousEnumValue);
+	  Setattr(node, "enumvalue", enumValue);
+	}
+      } else if (!enumValue && enumValueEx) {
+	// Value is not specified, set it by incrementing last value
+	enumValue = NewString("");
+	Printf(enumValue, "%d", ++iPreviousEnumValue);
+	Setattr(node, "enumvalue", enumValue);
       }
-      else if (!enumValue && enumValueEx) {
-        // Value is not specified, set it by incrementing last value
-        enumValue = NewString("");
-        Printf(enumValue, "%d", ++iPreviousEnumValue);
-        Setattr(node, "enumvalue", enumValue);
-      }
-
       // Enums in Scilab are mapped to double
       Setattr(node, "type", "double");
     }
@@ -736,12 +734,12 @@ public:
    * Display a warning for too long generated identifier names
    * Scilab identifier name (functions, variables) can have 24 chars max
    * ----------------------------------------------------------------------- */
+
   void checkIdentifierName(String *name) {
     if (Len(name) > 24) {
       if (extraWarning) {
-        // Warning on too long identifiers
-        Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
-          "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
+	// Warning on too long identifiers
+	Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
       }
     }
   }
@@ -749,6 +747,7 @@ public:
   /* -----------------------------------------------------------------------
    * addHelperFunctions()
    * ----------------------------------------------------------------------- */
+
   void addHelperFunctions() {
     addFunctionToScilab("SWIG_this", "SWIG_this");
     addFunctionToScilab("SWIG_ptr", "SWIG_ptr");
@@ -757,6 +756,7 @@ public:
   /* -----------------------------------------------------------------------
    * createBuilderCode()
    * ----------------------------------------------------------------------- */
+
   void createBuilderFile() {
     String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
@@ -770,11 +770,12 @@ public:
   /* -----------------------------------------------------------------------
    * startBuilderCode()
    * ----------------------------------------------------------------------- */
+
   void startBuilderCode(String *outputFilename) {
     builderFunctionCount = 0;
     builderCode = NewString("");
     Printf(builderCode, "mode(-1);\n");
-    Printf(builderCode, "lines(0);\n"); /* Useful for automatic tests */
+    Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
     // Scilab needs to be in the build directory
     Printf(builderCode, "originaldir = pwd();\n");
@@ -796,15 +797,14 @@ public:
 
     if (Len(ldflags) > 0) {
       for (int i = 0; i < Len(ldflags); i++) {
-        String *ldflag = Getitem(ldflags, i);
-        if (i == 0) {
-          Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
-        } else {
-          Printf(builderCode, "ldflags = ldflags + \" %s\";\n", ldflag);
-        }
+	String *ldflag = Getitem(ldflags, i);
+	if (i == 0) {
+	  Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
+	} else {
+	  Printf(builderCode, "ldflags = ldflags + \" %s\";\n", ldflag);
+	}
       }
-    }
-    else {
+    } else {
       Printf(builderCode, "ldflags = [];\n");
     }
 
@@ -814,15 +814,14 @@ public:
       Printf(builderCode, "cflags = cflags + getCompilationFlags();\n");
       Printf(builderCode, "ldflags = ldflags + getLinkFlags();\n");
     }
-
     // Additional sources
     Insert(sourceFileList, 0, outputFilename);
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-         Printf(builderCode, "files = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-         Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
@@ -832,6 +831,7 @@ public:
   /* -----------------------------------------------------------------------
    * terminateBuilderCode()
    * ----------------------------------------------------------------------- */
+
   void terminateBuilderCode() {
     Printf(builderCode, "];\n");
     Printf(builderCode, "err_msg = [];\n");
@@ -854,6 +854,7 @@ public:
   /* -----------------------------------------------------------------------
    * saveBuilderCode()
    * ----------------------------------------------------------------------- */
+
   void saveBuilderFile() {
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
@@ -863,6 +864,7 @@ public:
    * createGatewayXMLFile()
    * This XML file is used by Scilab in the context of internal modules
    * ----------------------------------------------------------------------- */
+
   void createGatewayXMLFile(String *moduleName) {
     String *gatewayXMLFilename = NewStringf("%s_gateway.xml", moduleName);
     gatewayXMLFile = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
@@ -891,6 +893,7 @@ public:
   /* -----------------------------------------------------------------------
    * saveGatewayXMLFile()
    * ----------------------------------------------------------------------- */
+
   void saveGatewayXMLFile() {
     Printv(gatewayXML, "</GATEWAY>\n");
     Printv(gatewayXMLFile, gatewayXML, NIL);
@@ -902,6 +905,7 @@ public:
    * Creates a Scilab macro to generate the gateway source (entry point gw_<module>.c)
    * Used in the context of internal module generation (-internalmodule)
    * ----------------------------------------------------------------------- */
+
   void createGatewayGeneratorFile() {
     String *gatewayGeneratorFilename = NewString("generate_gateway.sce");
     gatewayGeneratorFile = NewFile(gatewayGeneratorFilename, "w", SWIG_output_files());
@@ -915,6 +919,7 @@ public:
   /* -----------------------------------------------------------------------
    * saveGatewayGenerator()
    * ----------------------------------------------------------------------- */
+
   void saveGatewayGeneratorFile(String *moduleName) {
     Printf(gatewayGeneratorCode, "];\n");
     Printv(gatewayGeneratorFile, gatewayGeneratorCode, NIL);
@@ -927,6 +932,7 @@ public:
    * addFunctionToScilab()
    * Add a function wrapper in Scilab file (builder, XML, ...)
    * ----------------------------------------------------------------------- */
+
   void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
     if (generateBuilder) {
       addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
@@ -934,10 +940,10 @@ public:
 
     if (internalModule) {
       if (gatewayGeneratorFile) {
-        addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
+	addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
       }
       if (gatewayXMLFile) {
-        Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
+	Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
       }
     }
   }
@@ -948,7 +954,8 @@ public:
    * This table will be either given in parameter to ilib_build or ilib_gen_gateway,
    * called later in the script
    * ----------------------------------------------------------------------- */
-  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName, String* scriptCode) {
+
+  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName, String *scriptCode) {
     if (++builderFunctionCount % 10 == 0) {
       Printf(scriptCode, "];\ntable = [table;");
     }
