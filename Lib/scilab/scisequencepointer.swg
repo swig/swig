@@ -6,7 +6,7 @@
 
 %include <scilist.swg>
 
-%fragment("include_for_uintptr", "header") {
+%fragment("<stdint.h>", "header") {
 %#include <stdint.h>
 }
 
