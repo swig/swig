@@ -95,7 +95,7 @@ public:
             Swig_mark_arg(argIndex);
             char *sourceFile = strtok(argv[argIndex + 1], ",");
             while (sourceFile != NULL) {
-              DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
+              Insert(sourceFileList, Len(sourceFileList), sourceFile);
               sourceFile = strtok(NULL, ",");
             }
             Swig_mark_arg(argIndex + 1);
@@ -103,13 +103,13 @@ public:
         } else if (strcmp(argv[argIndex], "-addcflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
-            DohInsertitem(cflags, Len(cflags), argv[argIndex + 1]);
+            Insert(cflags, Len(cflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
         } else if (strcmp(argv[argIndex], "-addldflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
-            DohInsertitem(ldflags, Len(ldflags), argv[argIndex + 1]);
+            Insert(ldflags, Len(ldflags), argv[argIndex + 1]);
             Swig_mark_arg(argIndex + 1);
           }
         } else if (strcmp(argv[argIndex], "-buildverbositylevel") == 0) {
@@ -816,7 +816,7 @@ public:
     }
 
     // Additional sources
-    DohInsertitem(sourceFileList, 0, outputFilename);
+    Insert(sourceFileList, 0, outputFilename);
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
