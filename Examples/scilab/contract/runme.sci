@@ -25,10 +25,17 @@ Foo_set (3.1415926);
 printf("Foo = %f\n", Foo_get());
 
 // Check error message if violate contract
-g = gcd(-42,105); 
-fact(-4); 
+try
+    g = gcd(-42,105);
+catch
+   printf("%s\n", lasterror());
+end
 
-
+try
+    fact(-4);
+catch
+   printf("%s\n", lasterror());
+end
 
 exit
 
