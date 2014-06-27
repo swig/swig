@@ -1710,7 +1710,7 @@ SCILAB_OPT = @SCILABOPT@
 # ----------------------------------------------------------------
 
 scilab: $(SRCDIR_SRCS)
-	@if test ! -z "$(SRCS)"; then \
+	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
@@ -1746,7 +1746,7 @@ scilab: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCDIR_SRCS)
-	@if test ! -z "$(SRCS)"; then \
+	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -c++ -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
@@ -1782,7 +1782,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 scilab_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME).sci $(RUNPIPE); \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME).sci \
 
 # -----------------------------------------------------------------
 # Scilab version
