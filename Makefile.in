@@ -243,14 +243,14 @@ check-%-examples :
 	elif test -z "$($(strip $*_examples))"; then		\
 	  echo empty $* $(ACTION);				\
 	else							\
-	  $(MAKE) -k $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
+	  $(MAKE) -k MAKEFLAGS="-j1" $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
 	fi
 
 # individual example
 %.actionexample:
 	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) MAKEFLAGS="-j1" $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
