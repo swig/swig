@@ -758,7 +758,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void createBuilderFile() {
-    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
+    String *builderFilename = NewStringf("builder.sce");
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
     if (!builderFile) {
       FileErrorDisplay(builderFilename);
