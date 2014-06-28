@@ -63,7 +63,6 @@ protected:
   String* set_field;
   String* static_methods;
 
-  Hash *docs;
   bool have_constructor;
   bool have_destructor;
   //String *constructor_name;
@@ -84,16 +83,14 @@ protected:
   void toConstant(String *constname, String *constdef);
   void finalizeConstant();
   void createSwigRef();
+  void autodoc_to_m(Node *n);
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
   void addMissingParameterNames(ParmList *plist, int arg_offset);
   String* convertValue(String *v, SwigType *t);
   const char* get_implicitconv_flag(Node *n);
   void dispatchFunction(Node *n);
-  String* texinfo_name(Node* n, const char* defval = "0");
-  bool is_empty_doc_node(Node* n);
-  void emit_doc_texinfo();
-  String* texinfo_escape(String *_s);
+  static String* matlab_escape(String *_s);
   void wrapConstructor(int gw_ind, String *symname, String *fullname);
 };
 
@@ -122,7 +119,6 @@ MATLAB::MATLAB() :
   get_field(0),
   set_field(0),
   static_methods(0),
-  docs(0),
   have_constructor(false),
   have_destructor(false),
   num_gateway(0),
@@ -144,7 +140,6 @@ MATLAB::MATLAB() :
   allow_overloading();
   director_multiple_inheritance = 1;
   director_language = 1;
-  docs = NewHash();
 }
 
 void MATLAB::main(int argc, char *argv[]){
@@ -325,9 +320,6 @@ int MATLAB::top(Node *n) {
   if (!CPlusPlus)
     Printf(f_header,"}\n");
 
-  if (Len(docs))
-    emit_doc_texinfo();
-
   //  if (directorsEnabled())
   //    Swig_insert_file("director.swg", f_runtime);
 
@@ -365,27 +357,17 @@ int MATLAB::top(Node *n) {
 }
 
 void MATLAB::process_autodoc(Node *n) {
-  String *iname = Getattr(n, "sym:name");
-  String *name = Getattr(n, "name");
-  String *wname = Swig_name_wrapper(iname);
   String *str = Getattr(n, "feature:docstring");
   bool autodoc_enabled = !Cmp(Getattr(n, "feature:autodoc"), "1");
-  Node* d = Getattr(docs, wname);
-  if (!d) {
-    d = NewHash();
-    Setattr(d, "synopsis", NewString(""));
-    Setattr(d, "decl_info", NewString(""));
-    Setattr(d, "cdecl_info", NewString(""));
-    Setattr(d, "args_info", NewString(""));
-    Setattr(docs, wname, d);
-  }
+  Setattr(n, "matlab:synopsis", NewString(""));
+  Setattr(n, "matlab:decl_info", NewString(""));
+  Setattr(n, "matlab:cdecl_info", NewString(""));
+  Setattr(n, "matlab:args_info", NewString(""));
 
-  String *synopsis = Getattr(d, "synopsis");
-  String *decl_info = Getattr(d, "decl_info");
-  //    String *cdecl_info = Getattr(d, "cdecl_info");
-  String *args_info = Getattr(d, "args_info");
-
-  // * couldn't we just emit the docs here?
+  String *synopsis = Getattr(n, "matlab:synopsis");
+  String *decl_info = Getattr(n, "matlab:decl_info");
+  //    String *cdecl_info = Getattr(n, "matlab:cdecl_info");
+  String *args_info = Getattr(n, "matlab:args_info");
 
   if (autodoc_enabled) {
     String *decl_str = NewString("");
@@ -404,7 +386,7 @@ void MATLAB::process_autodoc(Node *n) {
       Delete(type_str);
     }
 
-    Append(decl_info, name);
+    Append(decl_info, Getattr(n, "sym:name") );
     Append(decl_info, " (");
     Append(decl_info, decl_str);
     Append(decl_info, ")\n");
@@ -581,9 +563,6 @@ int MATLAB::functionWrapper(Node *n){
 
   if (overloaded)
     Append(overname, Getattr(n, "sym:overname"));
-
-  if (!overloaded || last_overload)
-    process_autodoc(n);
 
   Wrapper *f = NewWrapper();
   Printf(f->def, "void %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", overname);
@@ -832,6 +811,7 @@ int MATLAB::globalfunctionHandler(Node *n){
 
     // Add function to matlab proxy
     Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
+    autodoc_to_m(n);
     Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
     Printf(f_wrap_m,"end\n");
 
@@ -1192,6 +1172,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
     // Add function to .m wrapper
     Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
+    autodoc_to_m(n);
     Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
     Printf(f_wrap_m,"    end\n");
 
@@ -1410,6 +1391,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
 
     // Add function to .m wrapper
     Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+    autodoc_to_m(n);
     Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
     Printf(static_methods,"    end\n");
 
@@ -1613,78 +1595,39 @@ void MATLAB::dispatchFunction(Node *n) {
   Delete(dispatch);
   Delete(wname);
 }
-
-String *MATLAB::texinfo_name(Node* n, const char* defval) {
-  String *tname = NewString("");
-  String *iname = Getattr(n, "sym:name");
-  String *wname = Swig_name_wrapper(iname);
-  Node* d = Getattr(docs, wname);
-
-  if (is_empty_doc_node(d))
-    Printf(tname, defval);
-  else
-    Printf(tname, "%s_texinfo", wname);
-
-  return tname;
-}
-
-bool MATLAB::is_empty_doc_node(Node* n) {
-  if (!n)
-    return true;
-  String *synopsis = Getattr(n, "synopsis");
-  String *decl_info = Getattr(n, "decl_info");
-  String *cdecl_info = Getattr(n, "cdecl_info");
-  String *args_info = Getattr(n, "args_info");
-  return !Len(synopsis) && !Len(decl_info) && 
-    !Len(cdecl_info) && !Len(args_info);
-}
-
-void MATLAB::emit_doc_texinfo() {
-  for (Iterator it = First(docs); it.key; it = Next(it)) {
-    String *wrap_name = it.key;
-
-    String *synopsis = Getattr(it.item, "synopsis");
-    String *decl_info = Getattr(it.item, "decl_info");
-    String *cdecl_info = Getattr(it.item, "cdecl_info");
-    String *args_info = Getattr(it.item, "args_info");
-
-    String *doc_str = NewString("");
-    Printv(doc_str, synopsis, decl_info, cdecl_info, args_info, NIL);
-    String *escaped_doc_str = texinfo_escape(doc_str);
-
-    if (Len(doc_str)>0) {
-      Printf(f_doc,"static const char* %s_texinfo = ",wrap_name);
-      Printf(f_doc,"\"%%%s", escaped_doc_str);
-      Printf(f_doc,"\";\n");
-    }
-
-    Delete(escaped_doc_str);
-    Delete(doc_str);
-    Delete(wrap_name);
-  }
-  Printf(f_doc,"\n");
-}
-
-String* MATLAB::texinfo_escape(String *_s) {
+ 
+// this function is used on autodoc strings
+// it currently just appends "    %" after every explicit newline
+String* MATLAB::matlab_escape(String *_s) {
   const char* s=(const char*)Data(_s);
   while (*s&&(*s=='\t'||*s=='\r'||*s=='\n'||*s==' '))
     ++s;
   String *r = NewString("");
   for (int j=0;s[j];++j) {
     if (s[j] == '\n') {
-      Append(r, "\\n\\\n%");
-    } else if (s[j] == '\r') {
-      Append(r, "\\r");
-    } else if (s[j] == '\t') {
-      Append(r, "\\t");
-    } else if (s[j] == '\\') {
-      Append(r, "\\\\");
-    } else if (s[j] == '\'') {
-      Append(r, "\\\'");
-    } else if (s[j] == '\"') {
-      Append(r, "\\\"");
+      Append(r, "\n    %");
     } else
       Putc(s[j], r);
   }
   return r;
+}
+
+void MATLAB::autodoc_to_m(Node *n)
+{
+  if (!n)
+    return;
+  process_autodoc(n);
+  String *synopsis = Getattr(n, "matlab:synopsis");
+  String *decl_info = Getattr(n, "matlab:decl_info");
+  String *cdecl_info = Getattr(n, "matlab:cdecl_info");
+  String *args_info = Getattr(n, "matlab:args_info");
+
+  if (Len(synopsis)>0)
+    Printf(f_wrap_m,"    %%%s\n", matlab_escape(synopsis));
+  if (Len(decl_info)>0)
+    Printf(f_wrap_m,"    %%%s\n", matlab_escape(decl_info));
+  if (Len(cdecl_info)>0)
+    Printf(f_wrap_m,"    %%%s\n", matlab_escape(cdecl_info));
+  if (Len(args_info)>0)
+    Printf(f_wrap_m,"    %%%s\n", matlab_escape(args_info));
 }
