@@ -25,7 +25,8 @@
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
 
-%typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = mxGetClassID($input) != mxUNKNOWN_CLASS;";
+
 #if 0
 // disable typemaps with octave_value_list.
 // no equivalent for Matlab?
