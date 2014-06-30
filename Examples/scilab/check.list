@@ -1,5 +1,5 @@
 # see top-level Makefile.in
-class
+#class
 constants
 contract
 enum
