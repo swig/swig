@@ -1713,15 +1713,15 @@ scilab: $(SRCDIR_SRCS)
 	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		else \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR_SRCS)" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
@@ -1751,15 +1751,15 @@ scilab_cpp: $(SRCDIR_SRCS)
 	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		else \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR_SRCS)" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR_SRCS)" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
