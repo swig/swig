@@ -1739,6 +1739,8 @@ scilab: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
+	echo $(abspath  ../../../../../Examples/scilab/class)
+	ls  ../../../../../Examples/scilab/class
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # ----------------------------------------------------------------
@@ -1775,6 +1777,8 @@ scilab_cpp: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
+	echo $(abspath  ../../../../../Examples/scilab/class)
+	ls  ../../../../../Examples/scilab/class
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(pwd()); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # -----------------------------------------------------------------
