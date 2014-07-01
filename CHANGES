@@ -1021,13 +1021,13 @@ Version 2.0.9 (16 December 2012)
 
 2012-10-11: wsfulton
             Most of the special variables available for use in %exception are now also available for expansion in
-            %extend blocks. These are: $name $symname $overname $decl $fulldecl $parentname $parentsymname, see docs
+            %extend blocks. These are: $name $symname $overname $decl $fulldecl $parentclassname $parentclasssymname, see docs
             on "Class extension" in SWIGPlus.html. Patch based on submission from Kris Thielemans.
 
 2012-10-10: wsfulton
             Additional new special variables in %exception are expanded as follows:
-              $parentname - The parent class name (if any) for a method.
-              $parentsymname - The target language parent class name (if any) for a method.
+              $parentclassname - The parent class name (if any) for a method.
+              $parentclasssymname - The target language parent class name (if any) for a method.
 
 2012-10-08: iant
 	    [Go] Generating Go code now requires using the -intgosize option to
