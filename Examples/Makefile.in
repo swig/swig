@@ -1713,15 +1713,15 @@ scilab: $(SRCDIR_SRCS)
 	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		else \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -o $(ISRCS) -addsources "$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
@@ -1739,8 +1739,6 @@ scilab: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	echo $(abspath  ../../../../../Examples/scilab/class)
-	ls  ../../../../../Examples/scilab/class
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR)); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # ----------------------------------------------------------------
@@ -1751,15 +1749,15 @@ scilab_cpp: $(SRCDIR_SRCS)
 	if test ! -z "$(SRCS)"; then \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(INCLUDES))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		else \
 			if test ! -z "$(SRCDIR)"; then \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
 			else \
-				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
+				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCDIR)/a.c,$(abspath $(SRCDIR_SRCS))" $(SWIGOPT) $(INTERFACEPATH); \
 			fi \
 		fi \
 	else \
@@ -1777,8 +1775,6 @@ scilab_cpp: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	echo $(abspath  ../../../../../Examples/scilab/class)
-	ls  ../../../../../Examples/scilab/class
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR)); disp(pwd()); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # -----------------------------------------------------------------
