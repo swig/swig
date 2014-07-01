@@ -839,6 +839,8 @@ public:
     Printf(builderCode, "err_msg = [];\n");
     Printf(builderCode, "if ~isempty(table) then\n");
     Printf(builderCode, "  ilib_build('%s', table, files, libs, [], ldflags, cflags);\n", libraryName);
+    Printf(builderCode, "  disp(TMPDIR + '/%s');\n", libraryName);
+    Printf(builderCode, "  disp(ls(TMPDIR + '/%s'));\n", libraryName);
     Printf(builderCode, "  libfilename = 'lib%s' + getdynlibext();\n", libraryName);
     Printf(builderCode, "  if ~isfile(libfilename) then\n");
     Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename;\n");
