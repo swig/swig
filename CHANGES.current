@@ -5,3 +5,6 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-07-01: wsfulton
+            Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains 
+            brackets in the expanded name.
