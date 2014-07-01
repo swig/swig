@@ -1739,7 +1739,7 @@ scilab: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR)); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR + "/example")); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # ----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -1775,7 +1775,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR)); disp(pwd()); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "disp(copyfile('/home/travis/build/swig/swig/Examples/scilab/contract/example1.c', TMPDIR + "/example")); disp(pwd()); disp(ls()); exit(exec('builder.sce', 'errcatch', 3))"; \
 
 # -----------------------------------------------------------------
 # Running a Scilab example
