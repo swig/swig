@@ -1710,8 +1710,8 @@ SCILAB_OPT = @SCILABOPT@
 # ----------------------------------------------------------------
 
 scilab: $(SRCDIR_SRCS)
-	if test ! -z "$(SRCS)"; then \
-		cp $(SRCDIR_SRCS) . ; \
+	@if test ! -z "$(SRCS)"; then \
+		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -o $(ISRCS) -addsources "$(SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
@@ -1741,15 +1741,15 @@ scilab: $(SRCDIR_SRCS)
 		fi \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', 3); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
-	rm $(SRCS)
+	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # ----------------------------------------------------------------
 # Build a C++ dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab_cpp: $(SRCDIR_SRCS)
-	if test ! -z "$(SRCS)"; then \
-		cp $(SRCDIR_SRCS) . ; \
+	@if test ! -z "$(SRCS)"; then \
+		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
 		if test ! -z "$(INCLUDES)"; then \
 			if test ! -z "$(SRCDIR)"; then \
 				$(SWIG) -scilab -c++ -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "-I$(abspath $(INCLUDES))" -addcflags "-I$(abspath $(SRCDIR))" $(SWIGOPT) $(INTERFACEPATH); \
@@ -1779,7 +1779,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 		fi \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', 3); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
-	rm $(SRCS)
+	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # -----------------------------------------------------------------
 # Running a Scilab example
