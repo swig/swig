@@ -836,22 +836,23 @@ public:
 
   void terminateBuilderCode() {
     Printf(builderCode, "];\n");
-    Printf(builderCode, "err_msg = [];\n");
+    Printf(builderCode, "ierr = 0;\n");
     Printf(builderCode, "if ~isempty(table) then\n");
-    Printf(builderCode, "  disp(TMPDIR + '/%s');\n", libraryName);
-    Printf(builderCode, "  disp(ls(TMPDIR + '/%s'));\n", libraryName);
-    Printf(builderCode, "  ilib_build('%s', table, files, libs, [], ldflags, cflags);\n", libraryName);
     Printf(builderCode, "  libfilename = 'lib%s' + getdynlibext();\n", libraryName);
-    Printf(builderCode, "  if ~isfile(libfilename) then\n");
+    Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", libraryName);
+    Printf(builderCode, "  if ierr <> 0 then\n");
+    Printf(builderCode, "    err_msg = lasterror();\n");
+    Printf(builderCode, "  else if ~isfile(libfilename) then\n");
+    Printf(builderCode, "    ierr = 1;\n");
     Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename;\n");
-    Printf(builderCode, "  end\n");
-    Printf(builderCode, "  if ~isfile('loader.sce') then\n");
+    Printf(builderCode, "  else if ~isfile('loader.sce') then\n");
+    Printf(builderCode, "    ierr = 1;\n");
     Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.';\n");
     Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");
-    Printf(builderCode, "if err_msg <> [] then\n");
-    Printf(builderCode, "  error(err_msg, 1);\n");
+    Printf(builderCode, "if ierr <> 0 then\n");
+    Printf(builderCode, "  error(ierr, err_msg);\n");
     Printf(builderCode, "end\n");
   }
 
