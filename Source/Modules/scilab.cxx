@@ -774,8 +774,7 @@ public:
   void startBuilderCode(String *outputFilename) {
     builderFunctionCount = 0;
     builderCode = NewString("");
-    //Printf(builderCode, "mode(-1);\n");
-    Printf(builderCode, "mode(3);\n");
+    Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
     // Scilab needs to be in the build directory
@@ -783,8 +782,7 @@ public:
     Printf(builderCode, "builddir = get_absolute_file_path('builder.sce');\n");
     Printf(builderCode, "cd(builddir);\n");
 
-    //Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
-    Printf(builderCode, "ilib_verbose(2);\n", verboseBuildLevel);
+    Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
 
     Printf(builderCode, "lib_name = \"%s\";\n", libraryName);
 

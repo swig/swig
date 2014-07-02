@@ -1740,7 +1740,7 @@ scilab: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', 3); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # ----------------------------------------------------------------
@@ -1778,7 +1778,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 			fi \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', 3); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # -----------------------------------------------------------------
