@@ -1719,9 +1719,9 @@ endif
 scilab: $(SRCDIR_SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
-		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
 	else \
-		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
 	fi; \
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
@@ -1733,9 +1733,9 @@ scilab: $(SRCDIR_SRCS)
 scilab_cpp: $(SRCDIR_SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
-		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
 	else \
-		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
 	fi; \
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)

@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
-TARGET     = example_wrap.c
+TARGET     = example
 INTERFACE  = example.i
 
 check: build

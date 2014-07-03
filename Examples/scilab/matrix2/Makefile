@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SRCS       = matrixlib.c
-TARGET     = matrixlib_wrap.c
+TARGET     = matrixlib
 INTERFACE  = matrixlib.i
 
 check: build
