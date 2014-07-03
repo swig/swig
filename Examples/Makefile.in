@@ -1719,10 +1719,18 @@ endif
 scilab: $(SRCDIR_SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
-		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
+		if test ! -z "$(INCLUDES)"; then \
+			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
+		else \
+			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		fi \
 	else \
-		$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
-	fi; \
+		if test ! -z "$(INCLUDES)"; then \
+			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
+		else \
+			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		fi \
+	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
@@ -1733,10 +1741,18 @@ scilab: $(SRCDIR_SRCS)
 scilab_cpp: $(SRCDIR_SRCS)
 	@if test ! -z "$(SRCS)"; then \
 		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
-		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
+		if test ! -z "$(INCLUDES)"; then \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
+		else \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		fi \
 	else \
-		$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" -outputlibrary $(TARGET) $(INTERFACEPATH); \
-	fi; \
+		if test ! -z "$(INCLUDES)"; then \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
+		else \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+		fi \
+	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
