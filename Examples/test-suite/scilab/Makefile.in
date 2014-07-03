@@ -29,7 +29,6 @@ include $(srcdir)/../common.mk
 
 # Overriden variables
 SRCDIR = ../$(srcdir)/
-SCRIPTDIR = .
 
 # Local variables
 TEST_DIR = $*.dir
