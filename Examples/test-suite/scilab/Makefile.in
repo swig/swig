@@ -30,7 +30,6 @@ include $(srcdir)/../common.mk
 # Overriden variables
 SRCDIR = ../$(srcdir)/
 SCRIPTDIR = .
-INCLUDES = $(abspath $(srcdir)/..)
 
 # Local variables
 TEST_DIR = $*.dir
