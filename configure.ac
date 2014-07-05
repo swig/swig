@@ -972,6 +972,113 @@ AC_SUBST(OCTAVE_CXXFLAGS)
 AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
+# Look for Matlab
+#----------------------------------------------------------------
+
+# Try to detect if there is matlab installed on the system and set the
+# MATLAB_HOME, MATLAB and MATLAB_MEXSUFFIX variable
+
+AC_ARG_WITH([matlab], AS_HELP_STRING([--without-matlab], [Disable Matlab])
+  AS_HELP_STRING([--with-matlab=path], 
+               [specify location of matlab installation for the matlab interface.  The "mex" compiler should be in MATLAB_HOME/bin]),
+  [use_matlab=$withval], [use_matlab=yes])
+
+# First, check for "--without-matlab" or "--with-matlab=no".
+if test x"${use_matlab}" = xno -o x"${with_alllang}" = xno ; then
+   AC_MSG_NOTICE([Disabling Matlab per request])
+   MATLAB=
+else
+ 
+  # If we're in Windows, need to add .bat extension to find mex and mexext, and set conditional to modify Matlab interface Makefile
+  batext=
+  case $build in
+    *-cygwin* | *-mingw*)
+      batext=.bat
+      ;;
+  esac
+  AM_CONDITIONAL([MATLAB_MEX_WINDOWS], test x"$batext" != x)
+
+  if test x"$use_matlab" = xyes; then
+    # Try to detect matlab home automatically
+    AC_MSG_CHECKING([for matlab installation])
+    # First figure out what the name of Matlab is
+    AC_PATH_PROG(MATLAB, [matlab], [])
+    if test  x"$MATLAB" = x; then
+      AC_MSG_RESULT([no, Disabling Matlab])
+    else
+      # follow symbolic link
+      # JDK defined a macro BASIC_REMOVE_SYMBOLIC_LINKS that might be more portable
+      if test -L "$MATLAB"; then
+        # matlab is a symbolic link, follow it
+        MATLAB=`ls -l "$MATLAB" | awk '{print $NF}'`
+      fi
+      # strip matlab and bin to find home
+      MATLAB_HOME=`dirname "$MATLAB"`
+      MATLAB_HOME=`dirname "$MATLAB_HOME"`
+      AC_MSG_RESULT([$MATLAB_HOME])
+    fi
+  else
+    MATLAB_HOME="$use_matlab"
+    AC_MSG_RESULT([$MATLAB_HOME])
+    AC_PATH_PROG(MATLAB, [matlab], [notfound], [$MATLAB_HOME/bin])
+    if test  x"$MATLAB" = xnotfound; then
+      AC_MSG_RESULT([matlab excecutable not found, Disabling Matlab])
+      MATLAB=
+    fi
+  fi
+fi
+
+MATLAB_MEX=
+if test x"$MATLAB" != x; then
+  AC_MSG_CHECKING([for Matlab mex command])
+  AC_PATH_PROG(MATLAB_MEX, [mex], [], [$MATLAB_HOME/bin])
+  if test x"$MATLAB_MEX" = x; then
+    AC_MSG_WARN([Cannot find mex command. Disabling matlab])
+    MATLAB=
+  fi
+fi
+
+MATLAB_MEXSUFFIX=
+if test x"$MATLAB" != x; then
+  AC_MSG_CHECKING([for Matlab executable extension (MATLAB_MEXSUFFIX)])
+
+##   cat >conftest.c <<_ACEOF
+## #include "mex.h"
+## void mexFunction(int nlhs, mxArray *plhs@<:@@:>@,
+##   int nrhs, const mxArray *prhs@<:@@:>@) {
+##   int i=0;
+## }
+## _ACEOF
+##   if $MATLAB_HOME/bin/mex conftest.c >5 2>&5; then
+##    MATLAB_MEXSUFFIX=`ls conftest.mex* 5>/dev/null | sed -e 's=conftest.=='`
+##    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
+##  else
+##    AC_MSG_RESULT([error running MATLAB_MEX compiler])
+##  fi
+
+  if ! test -x "$MATLAB_HOME/bin/mexext$batext"; then
+    AC_MSG_WARN([Cannot find $MATLAB_HOME/bin/mexext$batext executable to determine MATLAB_MEXSUFFIX])
+    MATLAB=
+  else
+    case $build in
+      *-mingw*)
+        # MinGW cannot execute .bat files natively, so use cmd /c
+        MATLAB_MEXSUFFIX=$(cd "$MATLAB_HOME/bin"; cmd /c mexext$batext)
+        ;;
+      *)
+        MATLAB_MEXSUFFIX=`"$MATLAB_HOME/bin/mexext$batext"`
+        ;;
+    esac
+    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
+  fi
+fi
+
+AC_SUBST(MATLAB)
+AC_SUBST(MATLAB_HOME)
+AC_SUBST(MATLAB_MEX)
+AC_SUBST(MATLAB_MEXSUFFIX)
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
@@ -2448,6 +2555,12 @@ fi
 AC_SUBST(SKIP_OCTAVE)
 
 
+SKIP_MATLAB=
+if test -z "$MATLAB" ; then
+    SKIP_MATLAB="1"
+fi
+AC_SUBST(SKIP_MATLAB)
+
 SKIP_PYTHON=
 if (test -z "$PYINCLUDE") &&
    (test -z "$PY3INCLUDE") ; then
@@ -2658,6 +2771,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
+    Examples/test-suite/matlab/Makefile
     Examples/test-suite/perl5/Makefile
     Examples/test-suite/php/Makefile
     Examples/test-suite/pike/Makefile
@@ -2730,6 +2844,7 @@ test -n "$SKIP_MODULA3"		|| langs="${langs}modula3 "
 test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
+test -n "$SKIP_MATLAB"		|| langs="${langs}matlab "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
 test -n "$SKIP_PHP"		|| langs="${langs}php "
 test -n "$SKIP_PIKE"		|| langs="${langs}pike "
