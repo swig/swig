@@ -987,16 +987,7 @@ AC_ARG_WITH([matlab], AS_HELP_STRING([--without-matlab], [Disable Matlab])
 if test x"${use_matlab}" = xno -o x"${with_alllang}" = xno ; then
    AC_MSG_NOTICE([Disabling Matlab per request])
    MATLAB=
-else
- 
-  # If we're in Windows, need to add .bat extension to find mex and mexext, and set conditional to modify Matlab interface Makefile
-  batext=
-  case $build in
-    *-cygwin* | *-mingw*)
-      batext=.bat
-      ;;
-  esac
-  AM_CONDITIONAL([MATLAB_MEX_WINDOWS], test x"$batext" != x)
+else   
 
   if test x"$use_matlab" = xyes; then
     # Try to detect matlab home automatically
@@ -1040,37 +1031,14 @@ fi
 
 MATLAB_MEXSUFFIX=
 if test x"$MATLAB" != x; then
-  AC_MSG_CHECKING([for Matlab executable extension (MATLAB_MEXSUFFIX)])
-
-##   cat >conftest.c <<_ACEOF
-## #include "mex.h"
-## void mexFunction(int nlhs, mxArray *plhs@<:@@:>@,
-##   int nrhs, const mxArray *prhs@<:@@:>@) {
-##   int i=0;
-## }
-## _ACEOF
-##   if $MATLAB_HOME/bin/mex conftest.c >5 2>&5; then
-##    MATLAB_MEXSUFFIX=`ls conftest.mex* 5>/dev/null | sed -e 's=conftest.=='`
-##    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
-##  else
-##    AC_MSG_RESULT([error running MATLAB_MEX compiler])
-##  fi
-
-  if ! test -x "$MATLAB_HOME/bin/mexext$batext"; then
-    AC_MSG_WARN([Cannot find $MATLAB_HOME/bin/mexext$batext executable to determine MATLAB_MEXSUFFIX])
+  AC_MSG_CHECKING([for Matlab mexext command])
+  AC_PATH_PROG(MATLAB_MEXEXT, [mexext], [], [$MATLAB_HOME/bin])
+  if test x"$MATLAB_MEXEXT" = x; then
+    AC_MSG_WARN([Cannot find mexext command. Disabling matlab])
     MATLAB=
-  else
-    case $build in
-      *-mingw*)
-        # MinGW cannot execute .bat files natively, so use cmd /c
-        MATLAB_MEXSUFFIX=$(cd "$MATLAB_HOME/bin"; cmd /c mexext$batext)
-        ;;
-      *)
-        MATLAB_MEXSUFFIX=`"$MATLAB_HOME/bin/mexext$batext"`
-        ;;
-    esac
-    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
   fi
+  MATLAB_MEXSUFFIX=`"$MATLAB_MEXEXT"`
+  AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
 fi
 
 AC_SUBST(MATLAB)
