@@ -105,7 +105,7 @@ namespace swig {
     static Type as(mxArray* pm, bool throw_error) {
       Type v;
       int res = asval(pm, &v);
-      if (!pm.is_defined() || !SWIG_IsOK(res)) {
+      if (mxGetClassID(pm) == mxUNKNOWN_CLASS || !SWIG_IsOK(res)) {
 	if (!Matlab_Error_Occurred()) {
 	  %type_error(swig::type_name<Type>());
 	}
