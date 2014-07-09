@@ -4,13 +4,13 @@
 
 %fragment(SWIG_AsVal_frag(float), "header", fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
-SWIG_AsVal_dec(float)(SwigSciObject _iVar, float *_pfValue) {
+SWIG_AsVal_dec(float)(SwigSciObject iVar, float *pfValue) {
   double dblValue = 0.0;
-  if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
+  if(SWIG_AsVal_dec(double)(iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;
   }
-  if (_pfValue)
-    *_pfValue = (float) dblValue;
+  if (pfValue)
+    *pfValue = (float) dblValue;
   return SWIG_OK;
 }
 }
@@ -27,12 +27,12 @@ SWIG_From_dec(float)(float _flValue) {
 
 %fragment("SWIG_SciDouble_AsFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, float **_pfValue, char *_fname) {
+SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *_fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   double *pdValue = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -41,20 +41,20 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int 
   if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar)) {
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdValue);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    *_pfValue = (float *) malloc((*_iRows) * (*_iCols) * sizeof(float));
-    for (i=0; i < (*_iRows) * (*_iCols); i++)
-      (*_pfValue)[i] = (float) pdValue[i];
+    *pfValue = (float *) malloc((*iRows) * (*iCols) * sizeof(float));
+    for (i=0; i < (*iRows) * (*iCols); i++)
+      (*pfValue)[i] = (float) pdValue[i];
 
     return SWIG_OK;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), _fname, iVar);
     return SWIG_ERROR;
   }
 }
@@ -62,16 +62,16 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int 
 
 %fragment("SWIG_SciDouble_FromFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromFloatArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, float *_pfValue) {
+SWIG_SciDouble_FromFloatArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, float *pfValue) {
   SciErr sciErr;
   double *pdValue;
   int i;
 
-  pdValue = (double *) malloc(_iRows * _iCols * sizeof(double));
-  for (i = 0; i < _iRows * _iCols; i++)
-    pdValue[i] = _pfValue[i];
+  pdValue = (double *) malloc(iRows * iCols * sizeof(double));
+  for (i = 0; i < iRows * iCols; i++)
+    pdValue[i] = pfValue[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValue);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;

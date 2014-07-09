@@ -8,11 +8,11 @@
 }
 %fragment("SWIG_Int_AsEnum", "header", fragment="SWIG_SciDoubleOrInt32_AsInt") {
 SWIGINTERN int
-SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname) {
+SWIG_Int_AsEnum(void *_pvApiCtx, int iVar, int *enumValue, char *_fname) {
   int iValue = 0;
-  if (SWIG_SciDoubleOrInt32_AsInt(_pvApiCtx, _iVar, &iValue, fname) != SWIG_OK)
+  if (SWIG_SciDoubleOrInt32_AsInt(_pvApiCtx, iVar, &iValue, fname) != SWIG_OK)
     return SWIG_ERROR;
-  *_enumValue = iValue;
+  *enumValue = iValue;
   return SWIG_OK;
 }
 }
@@ -22,10 +22,10 @@ SWIG_Int_AsEnum(void *_pvApiCtx, int _iVar, int *_enumValue, char *_fname) {
 }
 %fragment("SWIG_Int_FromEnum", "header", fragment="SWIG_SciDouble_FromInt") {
 SWIGINTERN int
-SWIG_Int_FromEnum(void *_pvApiCtx, int _iVarOut, int _enumValue, char *_fname) {
-  if (SWIG_SciDouble_FromInt(_pvApiCtx, _iVarOut, _enumValue, fname) != SWIG_OK)
+SWIG_Int_FromEnum(void *_pvApiCtx, int iVarOut, int enumValue, char *_fname) {
+  if (SWIG_SciDouble_FromInt(_pvApiCtx, iVarOut, enumValue, fname) != SWIG_OK)
     return SWIG_ERROR;
-  SWIG_Scilab_SetOutput(_pvApiCtx, _iVarOut);
+  SWIG_Scilab_SetOutput(_pvApiCtx, iVarOut);
   return SWIG_OK;
 }
 }

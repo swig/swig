@@ -8,12 +8,12 @@
 }
 %fragment("SWIG_UnsignedInt_AsUnsignedLong", "header", fragment=SWIG_AsVal_frag(unsigned int)) {
 SWIGINTERN int
-SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject _iVar, unsigned long *_pulValue, char *_fname) {
+SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject iVar, unsigned long *pulValue, char *_fname) {
   unsigned int uiValue = 0;
-  if(SWIG_AsVal_unsigned_SS_int(_iVar, &uiValue) != SWIG_OK) {
+  if(SWIG_AsVal_unsigned_SS_int(iVar, &uiValue) != SWIG_OK) {
     return SWIG_ERROR;
   }
-  *_pulValue = (unsigned long) uiValue;
+  *pulValue = (unsigned long) uiValue;
   return SWIG_OK;
 }
 }
@@ -23,24 +23,24 @@ SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject _iVar, unsigned l
 }
 %fragment("SWIG_UnsignedInt_FromUnsignedLong", "header", fragment=SWIG_From_frag(unsigned int)) {
 SWIGINTERN int
-SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int _iVarOut, unsigned long _ulValue, char *_fname) {
-  return SWIG_From_unsigned_SS_int((unsigned int)_ulValue);
+SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int iVarOut, unsigned long ulValue, char *_fname) {
+  return SWIG_From_unsigned_SS_int((unsigned int)ulValue);
 }
 }
 
 %fragment("SWIG_SciUint32_FromUnsignedLongArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, const unsigned long *_pulValues) {
+SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, const unsigned long *pulValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
 
-  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
-  for (i=0; i<_iRows * _iCols; i++) {
-    pdValues[i] = _pulValues[i];
+  pdValues = (double*) malloc(iRows * iCols * sizeof(double));
+  for (i=0; i<iRows * iCols; i++) {
+    pdValues[i] = pulValues[i];
   }
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);

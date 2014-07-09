@@ -9,11 +9,11 @@
 %fragment(SWIG_AsCheck_Sequence_frag(std::string), "header") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
+SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject obj) {
   SciErr sciErr;
   int *piAddrVar;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -25,7 +25,7 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), _obj);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }
 }
@@ -35,10 +35,10 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject _obj) {
   fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject _obj, char ***_pSequence) {
+SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject obj, char ***pSequence) {
   int iRows = 0;
   int iCols = 0;
-  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, _obj, &iRows, &iCols, _pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, pSequence, SWIG_Scilab_GetFname()));
 }
 }
 
@@ -46,12 +46,12 @@ SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject _obj, char ***_pSequence) {
   fragment="SWIG_SciString_AsCharPtrArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject obj, int *piSize) {
   char **pstMatrix;
   int iCols = 0;
   int iRows = 0;
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, _obj, &iRows, &iCols, &pstMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
-    *_piSize = iRows * iCols;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, &pstMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+    *piSize = iRows * iCols;
     return SWIG_OK;
   }
   return SWIG_ERROR;
@@ -61,9 +61,9 @@ SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject _obj, int *_piSize) {
 %fragment(SWIG_FromCreate_Sequence_frag(std::string), "header") {
 
 SWIGINTERN int
-SWIG_FromCreate_Sequence_dec(std::string)(int _size, char ***_sequence) {
-  *_sequence = new char*[_size];
-  return *_sequence != NULL ? SWIG_OK : SWIG_ERROR;
+SWIG_FromCreate_Sequence_dec(std::string)(int size, char ***pSequence) {
+  *pSequence = new char*[size];
+  return *pSequence != NULL ? SWIG_OK : SWIG_ERROR;
 }
 }
 
@@ -71,9 +71,9 @@ SWIG_FromCreate_Sequence_dec(std::string)(int _size, char ***_sequence) {
   fragment="SWIG_SciString_FromCharPtrArrayAndSize") {
 
 SWIGINTERN SwigSciObject
-SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
-  SwigSciObject obj = SWIG_SciString_FromCharPtrArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
-  delete (char **)_sequence;
+SWIG_FromSet_Sequence_dec(std::string)(int size, char **pSequence) {
+  SwigSciObject obj = SWIG_SciString_FromCharPtrArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, size, pSequence);
+  delete (char **)pSequence;
   return obj;
 }
 }
@@ -81,18 +81,18 @@ SWIG_FromSet_Sequence_dec(std::string)(int _size, char **_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(std::string), "header") {
 
 SWIGINTERN std::string
-SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject _obj, char **_pSequence, int _iItemIndex) {
-  return std::string(_pSequence[_iItemIndex]);
+SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject obj, char **pSequence, int iItemIndex) {
+  return std::string(pSequence[iItemIndex]);
 }
 }
 
 %fragment(SWIG_From_SequenceItem_frag(std::string), "header") {
 
 SWIGINTERN int
-SWIG_From_SequenceItem_dec(std::string)(char **_pSequence, int _iItemIndex, std::string _itemValue) {
-  char *pChar = new char(_itemValue.size() + 1);
-  strcpy(pChar, _itemValue.c_str());
-  _pSequence[_iItemIndex] = pChar;
+SWIG_From_SequenceItem_dec(std::string)(char **pSequence, int iItemIndex, std::string itemValue) {
+  char *pChar = new char(itemValue.size() + 1);
+  strcpy(pChar, itemValue.c_str());
+  pSequence[iItemIndex] = pChar;
   return SWIG_OK;
 }
 }

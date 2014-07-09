@@ -9,11 +9,11 @@
 %fragment(SWIG_AsCheck_Sequence_frag(float), "header") {
 
 SWIGINTERN int
-SWIG_AsCheck_Sequence_dec(float)(SwigSciObject _obj) {
+SWIG_AsCheck_Sequence_dec(float)(SwigSciObject obj) {
   SciErr sciErr;
   int *piAddrVar;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -25,7 +25,7 @@ SWIG_AsCheck_Sequence_dec(float)(SwigSciObject _obj) {
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A double is expected.\n"), SWIG_Scilab_GetFname(), _obj);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A double is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }
 }
@@ -35,11 +35,10 @@ SWIG_AsCheck_Sequence_dec(float)(SwigSciObject _obj) {
   fragment="SWIG_SciDouble_AsFloatArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsGet_Sequence_dec(float)(SwigSciObject _obj, float **_pSequence) {
+SWIG_AsGet_Sequence_dec(float)(SwigSciObject obj, float **pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-
-  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, _pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFname()));
 }
 }
 
@@ -47,16 +46,16 @@ SWIG_AsGet_Sequence_dec(float)(SwigSciObject _obj, float **_pSequence) {
   fragment="SWIG_SciDouble_AsFloatArrayAndSize") {
 
 SWIGINTERN int
-SWIG_AsSize_Sequence_dec(float)(SwigSciObject _obj, int *_piSize) {
+SWIG_AsSize_Sequence_dec(float)(SwigSciObject obj, int *piSize) {
   float *pdblMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, _obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A float vector is expected.\n"), SWIG_Scilab_GetFname(), _obj);
+      Scierror(999, _("%s: Wrong size for input argument #%d: A float vector is expected.\n"), SWIG_Scilab_GetFname(), obj);
       return SWIG_ERROR;
     }
-    *_piSize = iMatrixRowCount * iMatrixColCount;
+    *piSize = iMatrixRowCount * iMatrixColCount;
     return SWIG_OK;
   }
   return SWIG_ERROR;
@@ -66,9 +65,9 @@ SWIG_AsSize_Sequence_dec(float)(SwigSciObject _obj, int *_piSize) {
 %fragment(SWIG_FromCreate_Sequence_frag(float), "header") {
 
 SWIGINTERN int
-SWIG_FromCreate_Sequence_dec(float)(int _size, float **_sequence) {
-  *_sequence = new float[_size];
-  return *_sequence != NULL ? SWIG_OK : SWIG_ERROR;
+SWIG_FromCreate_Sequence_dec(float)(int size, float **pSequence) {
+  *pSequence = new float[size];
+  return *pSequence != NULL ? SWIG_OK : SWIG_ERROR;
 }
 }
 
@@ -76,9 +75,9 @@ SWIG_FromCreate_Sequence_dec(float)(int _size, float **_sequence) {
   fragment="SWIG_SciDouble_FromFloatArrayAndSize") {
 
 SWIGINTERN SwigSciObject
-SWIG_FromSet_Sequence_dec(float)(int _size, float *_sequence) {
-  SwigSciObject obj = SWIG_SciDouble_FromFloatArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, _size, _sequence);
-  delete (float *)_sequence;
+SWIG_FromSet_Sequence_dec(float)(int size, float *pSequence) {
+  SwigSciObject obj = SWIG_SciDouble_FromFloatArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, size, pSequence);
+  delete (float *)pSequence;
   return obj;
 }
 }
@@ -86,16 +85,15 @@ SWIG_FromSet_Sequence_dec(float)(int _size, float *_sequence) {
 %fragment(SWIG_AsVal_SequenceItem_frag(float), "header") {
 
 SWIGINTERN float
-SWIG_AsVal_SequenceItem_dec(float)(SwigSciObject _obj, float *_pSequence, int _iItemIndex) {
-  return _pSequence[_iItemIndex];
+SWIG_AsVal_SequenceItem_dec(float)(SwigSciObject obj, float *pSequence, int iItemIndex) {
+  return pSequence[iItemIndex];
 }
 }
 
 %fragment(SWIG_From_SequenceItem_frag(float), "header") {
-
 SWIGINTERN int
-SWIG_From_SequenceItem_dec(float)(float *_pSequence, int _iItemIndex, float _itemValue) {
-  _pSequence[_iItemIndex] = _itemValue;
+SWIG_From_SequenceItem_dec(float)(float *pSequence, int iItemIndex, float itemValue) {
+  pSequence[iItemIndex] = itemValue;
   return SWIG_OK;
 }
 }

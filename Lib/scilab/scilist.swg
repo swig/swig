@@ -6,11 +6,11 @@
 %fragment("SWIG_ScilabList", "header")
 {
 SWIGINTERN int
-SWIG_GetScilabList(SwigSciObject _obj, int **_piListAddr)
+SWIG_GetScilabList(SwigSciObject obj, int **piListAddr)
 {
   SciErr sciErr;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, _piListAddr);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, piListAddr);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
@@ -21,19 +21,19 @@ SWIG_GetScilabList(SwigSciObject _obj, int **_piListAddr)
 }
 
 SWIGINTERN int
-SWIG_GetScilabListSize(SwigSciObject _obj, int *_piListSize)
+SWIG_GetScilabListSize(SwigSciObject obj, int *piListSize)
 {
   SciErr sciErr;
   int *piListAddr;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, &piListAddr);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, &piListAddr);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getListItemNumber(pvApiCtx, piListAddr, _piListSize);
+  sciErr = getListItemNumber(pvApiCtx, piListAddr, piListSize);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
@@ -44,18 +44,18 @@ SWIG_GetScilabListSize(SwigSciObject _obj, int *_piListSize)
 }
 
 SWIGINTERN int
-SWIG_GetScilabListAndSize(SwigSciObject _obj, int **_piListAddr, int *_piListSize)
+SWIG_GetScilabListAndSize(SwigSciObject obj, int **piListAddr, int *piListSize)
 {
   SciErr sciErr;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, _piListAddr);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, piListAddr);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getListItemNumber(pvApiCtx, *_piListAddr, _piListSize);
+  sciErr = getListItemNumber(pvApiCtx, *piListAddr, piListSize);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
@@ -66,13 +66,13 @@ SWIG_GetScilabListAndSize(SwigSciObject _obj, int **_piListAddr, int *_piListSiz
 }
 
 SWIGINTERN int
-SWIG_CheckScilabList(SwigSciObject _obj)
+SWIG_CheckScilabList(SwigSciObject obj)
 {
   SciErr sciErr;
   int *piListAddr;
   int iType;
 
-  sciErr = getVarAddressFromPosition(pvApiCtx, _obj, &piListAddr);
+  sciErr = getVarAddressFromPosition(pvApiCtx, obj, &piListAddr);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
@@ -88,7 +88,7 @@ SWIG_CheckScilabList(SwigSciObject _obj)
 
   if ((iType != sci_list) && (iType != sci_tlist) && (iType != sci_mlist))
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A list is expected.\n"), fname, _obj);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A list is expected.\n"), fname, obj);
     return SWIG_ERROR;
   }
 

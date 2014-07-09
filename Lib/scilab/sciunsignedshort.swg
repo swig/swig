@@ -7,7 +7,7 @@
 }
 %fragment("SWIG_SciUint16_AsUnsignedShort", "header") {
 SWIGINTERN int
-SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusValue, char *_fname) {
+SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int iVar, unsigned short *pusValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -16,7 +16,7 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
   int *piAddrVar = NULL;
   unsigned short *pusData = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -29,14 +29,14 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
   }
 
   if (iType == sci_ints) {
-    if (_pusValue) {
+    if (pusValue) {
       sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
       }
       if (iPrec != SCI_UINT16) {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_ERROR;
       }
 
@@ -46,14 +46,14 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_ERROR;
       }
-      *_pusValue = *pusData;
+      *pusValue = *pusData;
     }
   }
   else if (iType == sci_matrix) {
-    if (_pusValue) {
+    if (pusValue) {
       double *pdData = NULL;
       double dValue = 0.0f;
       sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
@@ -62,23 +62,23 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_TypeError;
       }
       dValue = *pdData;
       if (dValue != floor(dValue)) {
-        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, iVar);
         return SWIG_ValueError;
       }
       if ((dValue < 0) || (dValue > USHRT_MAX)) {
-        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), _fname, iVar);
         return SWIG_OverflowError;
       }
-      *_pusValue = (unsigned short) dValue;
+      *pusValue = (unsigned short) dValue;
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), _fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -91,9 +91,8 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
 }
 %fragment("SWIG_SciUint16_FromUnsignedShort", "header") {
 SWIGINTERN int
-SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _usValue, char *_fname) {
-  int iVarOut = SWIG_NbInputArgument(_pvApiCtx) + _iVarOut;
-  if (createScalarDouble(_pvApiCtx, iVarOut, (double) _usValue))
+SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int iVarOut, unsigned short usValue, char *_fname) {
+  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, (double) usValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -105,13 +104,13 @@ SWIG_SciUint16_FromUnsignedShort(void *_pvApiCtx, int _iVarOut, unsigned short _
  */
 %fragment("SWIG_SciUint16_AsUnsignedShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, unsigned short **_pusValue, char *_fname) {
+SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, unsigned short **pusValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -129,17 +128,17 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRo
     int size = 0;
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdData);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    size = (*_iRows) * (*_iCols);
-    *_pusValue = (unsigned short*) malloc(size * sizeof(int*));
+    size = (*iRows) * (*iCols);
+    *pusValue = (unsigned short*) malloc(size * sizeof(int*));
     for (i = 0; i < size; i++)
-      (*_pusValue)[i] = (unsigned short) pdData[i];
+      (*pusValue)[i] = (unsigned short) pdData[i];
   }
   else if (iType == sci_ints)
   {
@@ -152,11 +151,11 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRo
 
     if (iPrec != SCI_UINT16)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
       return SWIG_ERROR;
     }
 
-    sciErr = getMatrixOfUnsignedInteger16(_pvApiCtx, piAddrVar, _iRows, _iCols, _pusValue);
+    sciErr = getMatrixOfUnsignedInteger16(_pvApiCtx, piAddrVar, iRows, iCols, pusValue);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -165,7 +164,7 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRo
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -175,16 +174,16 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRo
 
 %fragment("SWIG_SciUint16_FromUnsignedShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, unsigned short *_pusValues) {
+SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, unsigned short *pusValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
 
-  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
-  for (i=0; i<_iRows * _iCols; i++)
-    pdValues[i] = _pusValues[i];
+  pdValues = (double*) malloc(iRows * iCols * sizeof(double));
+  for (i=0; i<iRows * iCols; i++)
+    pdValues[i] = pusValues[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);

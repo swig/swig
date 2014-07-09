@@ -3,23 +3,23 @@
  */
 %fragment(SWIG_AsPtr_frag(std::string), "header", fragment="SWIG_SciString_AsCharPtrAndSize") {
 SWIGINTERN int
-SWIG_AsPtr_dec(std::string)(int _iVar, std::string **_pstValue) {
+SWIG_AsPtr_dec(std::string)(int iVar, std::string **pstValue) {
   char* buf = 0;
   size_t size = 0;
   int alloc = SWIG_OLDOBJ;
 
-  if (SWIG_IsOK((SWIG_SciString_AsCharPtrAndSize(pvApiCtx, _iVar, &buf, &size, &alloc, SWIG_Scilab_GetFname())))) {
+  if (SWIG_IsOK((SWIG_SciString_AsCharPtrAndSize(pvApiCtx, iVar, &buf, &size, &alloc, SWIG_Scilab_GetFname())))) {
     if (buf) {
-      if (_pstValue) {
-        *_pstValue = new std::string(buf, size);
+      if (pstValue) {
+        *pstValue = new std::string(buf, size);
       }
       if (alloc == SWIG_NEWOBJ) {
         delete[] buf;
       }
       return SWIG_NEWOBJ;
     } else {
-      if (_pstValue) {
-        *_pstValue = NULL;
+      if (pstValue) {
+        *pstValue = NULL;
       }
       return SWIG_OLDOBJ;
     }
@@ -31,8 +31,8 @@ SWIG_AsPtr_dec(std::string)(int _iVar, std::string **_pstValue) {
 
 %fragment(SWIG_From_frag(std::string), "header", fragment="SWIG_SciString_FromCharPtr") {
 SWIGINTERN int
-SWIG_From_dec(std::string)(std::string _pstValue) {
-    return SWIG_SciString_FromCharPtr(pvApiCtx, SWIG_Scilab_GetOutputPosition(), _pstValue.c_str());
+SWIG_From_dec(std::string)(std::string pstValue) {
+    return SWIG_SciString_FromCharPtr(pvApiCtx, SWIG_Scilab_GetOutputPosition(), pstValue.c_str());
 }
 }
 

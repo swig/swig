@@ -101,12 +101,12 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
 /* Pointer conversion functions */
 
 SWIGINTERN int
-SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
+SwigScilabPtrToObject(void *_pvApiCtx, int iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -133,10 +133,10 @@ SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_i
 }
 
 SWIGRUNTIMEINLINE int
-SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_info *_descriptor, int _flags) {
+SwigScilabPtrFromObject(void *_pvApiCtx, int iVarOut, void *obj, swig_type_info *_descriptor, int _flags) {
   SciErr sciErr;
 
-  sciErr = createPointer(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, (void *)_object);
+  sciErr = createPointer(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, (void *)obj);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -146,13 +146,13 @@ SwigScilabPtrFromObject(void *_pvApiCtx, int _iVarOut, void *_object, swig_type_
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int _iVar, void *_ptr, int sz, swig_type_info *ty, char *_fname) {
+SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int iVar, void *_ptr, int sz, swig_type_info *ty, char *_fname) {
   swig_cast_info *tc;
   int *piAddrVar = NULL;
   char *pstStrings = NULL;
   SciErr sciErr;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -183,7 +183,7 @@ SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int _iVar, void *_ptr, int sz, swig_t
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swig_type_info *_type) {
+SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int iVarOut, void *_ptr, int _sz, swig_type_info *_type) {
   char result[1024];
   char *r = result;
 
@@ -194,7 +194,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   r = SWIG_PackData(r, _ptr, _sz);
   strcpy(r, _type->name);
 
-  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, &result[0]))
+  if (createSingleString(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, &result[0]))
     return SWIG_ERROR;
 
   return SWIG_OK;

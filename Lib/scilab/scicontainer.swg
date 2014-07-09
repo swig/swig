@@ -52,7 +52,7 @@ namespace swig
     SciSequence_Ref(const SwigSciObject& seq, int index)
       : _seq(seq), _index(index)
     {
-      if (traits_as_sequence<T>::get(_seq, &_piSeqAddr) != SWIG_OK)
+      if (traits_as_sequence<T>::get(_seq, &piSeqAddr) != SWIG_OK)
       {
         throw std::invalid_argument("Cannot get sequence data.");
       }
@@ -62,7 +62,7 @@ namespace swig
     {
       try
       {
-        return traits_asval_sequenceitem<T>::asval(_seq, _piSeqAddr, _index);
+        return traits_asval_sequenceitem<T>::asval(_seq, piSeqAddr, _index);
       }
       catch (std::exception& e)
       {
@@ -79,7 +79,7 @@ namespace swig
     private:
       SwigSciObject _seq;
       int _index;
-      void *_piSeqAddr;
+      void *piSeqAddr;
   };
 
 

@@ -7,7 +7,7 @@
 }
 %fragment("SWIG_SciUint32_AsUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue, char *_fname) {
+SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -16,7 +16,7 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
   int *piAddrVar = NULL;
   unsigned int *puiData = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -29,14 +29,14 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
   }
 
   if (iType == sci_ints) {
-    if (_puiValue) {
+    if (puiValue) {
       sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
       }
       if (iPrec != SCI_UINT32) {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_ERROR;
       }
 
@@ -46,14 +46,14 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_ERROR;
       }
-      *_puiValue = *puiData;
+      *puiValue = *puiData;
     }
   }
   else if (iType == sci_matrix) {
-    if (_puiValue) {
+    if (puiValue) {
       double *pdData = NULL;
       double dValue = 0.0f;
       sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
@@ -62,23 +62,23 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, iVar);
         return SWIG_TypeError;
       }
       dValue = *pdData;
       if (dValue != floor(dValue)) {
-        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), _fname, iVar);
         return SWIG_ValueError;
       }
       if ((dValue < 0) || (dValue > UINT_MAX)) {
-        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), _fname, _iVar);
+        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), _fname, iVar);
         return SWIG_OverflowError;
       }
-      *_puiValue = (unsigned int) dValue;
+      *puiValue = (unsigned int) dValue;
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), _fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -91,9 +91,9 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValue
 }
 %fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int _iVarOut, unsigned int _uiValue, char *_fname) {
+SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int iVarOut, unsigned int uiValue, char *_fname) {
   if (createScalarDouble(_pvApiCtx,
-    SWIG_NbInputArgument(_pvApiCtx) + _iVarOut, (double) _uiValue))
+    SWIG_NbInputArgument(_pvApiCtx) + iVarOut, (double) uiValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -105,13 +105,13 @@ SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int _iVarOut, unsigned int _uiVa
  */
 %fragment("SWIG_SciUint32_AsUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows, int *_iCols, unsigned int **_puiValue, char *_fname) {
+SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, unsigned int **puiValue, char *_fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -129,17 +129,17 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows
     int size = 0;
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, _iRows, _iCols, &pdData);
+    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdData);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    size = (*_iRows) * (*_iCols);
-    *_puiValue = (unsigned int*) malloc(size * sizeof(int*));
+    size = (*iRows) * (*iCols);
+    *puiValue = (unsigned int*) malloc(size * sizeof(int*));
     for (i = 0; i < size; i++)
-      (*_puiValue)[i] = (unsigned int) pdData[i];
+      (*puiValue)[i] = (unsigned int) pdData[i];
   }
   else if (iType == sci_ints)
   {
@@ -152,11 +152,11 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows
 
     if (iPrec != SCI_UINT32)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
       return SWIG_ERROR;
     }
 
-    sciErr = getMatrixOfUnsignedInteger32(_pvApiCtx, piAddrVar, _iRows, _iCols, _puiValue);
+    sciErr = getMatrixOfUnsignedInteger32(_pvApiCtx, piAddrVar, iRows, iCols, puiValue);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -165,7 +165,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), _fname, _iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -175,16 +175,16 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVar, int *_iRows
 
 %fragment("SWIG_SciUint32_FromUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int _iVarOut, int _iRows, int _iCols, unsigned int *_puiValues) {
+SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, unsigned int *puiValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
 
-  pdValues = (double*) malloc(_iRows * _iCols * sizeof(double));
-  for (i=0; i<_iRows * _iCols; i++)
-    pdValues[i] = _puiValues[i];
+  pdValues = (double*) malloc(iRows * iCols * sizeof(double));
+  for (i=0; i<iRows * iCols; i++)
+    pdValues[i] = puiValues[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + _iVarOut, _iRows, _iCols, pdValues);
+  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);
