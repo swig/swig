@@ -194,7 +194,7 @@ namespace swig
   template <class T>
     struct MatlabSequence_Ref // * matlab can't support these, because of how assignment works
   {
-    MatlabSequence_Ref(const mxArray* seq, int index)
+    MatlabSequence_Ref(mxArray* const seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -253,7 +253,7 @@ namespace swig
     {
     }
 
-    MatlabSequence_InputIterator(const mxArray* seq, int index)
+    MatlabSequence_InputIterator(mxArray* const seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -346,7 +346,7 @@ namespace swig
     typedef MatlabSequence_InputIterator<T, reference> iterator;
     typedef MatlabSequence_InputIterator<T, const_reference> const_iterator;
 
-    MatlabSequence_Cont(const mxArray* seq) : _seq(seq)
+    MatlabSequence_Cont(mxArray* const seq) : _seq(seq)
     {
       // * assert that we have map type etc.
       /*
