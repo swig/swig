@@ -7,6 +7,7 @@
 %}
 
 %include stl.i
+%include std_list.i
 
 /* instantiate the required template specializations */
 namespace std

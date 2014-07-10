@@ -1,6 +1,9 @@
 %module li_std_container_typemaps
 
 %include stl.i
+%include std_list.i
+%include std_deque.i
+%include std_set.i
 
 %{
 #include <vector>
