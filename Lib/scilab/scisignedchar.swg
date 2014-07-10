@@ -127,7 +127,7 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *_pvApiCtx, int iVar, int *iR
 
     sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdData);
     if (sciErr.iErr)
-    {i
+    {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
