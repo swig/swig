@@ -6,7 +6,7 @@
 }
 %fragment("SWIG_SciDouble_AsDouble", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, char *_fname) {
+SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, char *fname) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
@@ -18,12 +18,12 @@ SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, 
   }
 
   if (!isDoubleType(_pvApiCtx, piAddrVar) || isVarComplex(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
   if (!isScalar(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -41,7 +41,7 @@ SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, 
 }
 %fragment("SWIG_SciDouble_FromDouble", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromDouble(void *_pvApiCtx, int iVarOut, double dblValue, char *_fname) {
+SWIG_SciDouble_FromDouble(void *_pvApiCtx, int iVarOut, double dblValue, char *fname) {
   if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, dblValue))
     return SWIG_ERROR;
   return SWIG_OK;
@@ -54,7 +54,7 @@ SWIG_SciDouble_FromDouble(void *_pvApiCtx, int iVarOut, double dblValue, char *_
 
 %fragment("SWIG_SciDouble_AsDoubleArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, double **pdValue, char *_fname) {
+SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, double **pdValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
 
@@ -72,7 +72,7 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 

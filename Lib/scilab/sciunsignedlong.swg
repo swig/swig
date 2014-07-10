@@ -8,7 +8,7 @@
 }
 %fragment("SWIG_UnsignedInt_AsUnsignedLong", "header", fragment=SWIG_AsVal_frag(unsigned int)) {
 SWIGINTERN int
-SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject iVar, unsigned long *pulValue, char *_fname) {
+SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject iVar, unsigned long *pulValue, char *fname) {
   unsigned int uiValue = 0;
   if(SWIG_AsVal_unsigned_SS_int(iVar, &uiValue) != SWIG_OK) {
     return SWIG_ERROR;
@@ -23,7 +23,7 @@ SWIG_UnsignedInt_AsUnsignedLong(void *_pvApiCtx, SwigSciObject iVar, unsigned lo
 }
 %fragment("SWIG_UnsignedInt_FromUnsignedLong", "header", fragment=SWIG_From_frag(unsigned int)) {
 SWIGINTERN int
-SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int iVarOut, unsigned long ulValue, char *_fname) {
+SWIG_UnsignedInt_FromUnsignedLong(void *_pvApiCtx, int iVarOut, unsigned long ulValue, char *fname) {
   return SWIG_From_unsigned_SS_int((unsigned int)ulValue);
 }
 }

@@ -7,7 +7,7 @@
 }
 %fragment("SWIG_SciUint8_AsUnsignedChar", "header") {
 SWIGINTERN int
-SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int iVar, unsigned char *pucValue, char *_fname) {
+SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int iVar, unsigned char *pucValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -36,7 +36,7 @@ SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int iVar, unsigned char *pucValue,
         return SWIG_ERROR;
       }
       if (iPrec != SCI_UINT8) {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), _fname, iVar);
+        Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
 
@@ -46,7 +46,7 @@ SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int iVar, unsigned char *pucValue,
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), _fname, iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
       *pucValue = *pucData;
@@ -62,23 +62,23 @@ SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int iVar, unsigned char *pucValue,
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), _fname, iVar);
+        Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_TypeError;
       }
       dValue = *pdData;
       if (dValue != floor(dValue)) {
-        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 8-bit unsigned integer.\n"), _fname, iVar);
+        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 8-bit unsigned integer.\n"), fname, iVar);
         return SWIG_ValueError;
       }
       if ((dValue < 0) || (dValue > UCHAR_MAX)) {
-        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 8-bit unsigned integer.\n"), _fname, iVar);
+        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 8-bit unsigned integer.\n"), fname, iVar);
         return SWIG_OverflowError;
       }
       *pucValue = (unsigned char) dValue;
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -105,7 +105,7 @@ SWIG_SciUint8_FromUnsignedChar(void *_pvApiCtx, int iVarOut, unsigned char ucVal
  */
 %fragment("SWIG_SciUint8_AsUnsignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, char *_fname) {
+SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -152,7 +152,7 @@ SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
 
     if (iPrec != SCI_UINT8)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
+      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
@@ -165,7 +165,7 @@ SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 

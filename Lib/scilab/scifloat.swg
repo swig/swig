@@ -27,7 +27,7 @@ SWIG_From_dec(float)(float _flValue) {
 
 %fragment("SWIG_SciDouble_AsFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *_fname) {
+SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   double *pdValue = NULL;
@@ -54,7 +54,7 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *i
     return SWIG_OK;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 }
