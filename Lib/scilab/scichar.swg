@@ -8,11 +8,11 @@
  */
 
 %fragment(SWIG_AsVal_frag(char), "header", fragment="SWIG_SciString_AsChar") {
-#define SWIG_AsVal_char(scilabValue, valuePointer) SWIG_SciString_AsChar(pvApiCtx, scilabValue, valuePointer, fname)
+#define SWIG_AsVal_char(scilabValue, valuePointer) SWIG_SciString_AsChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciString_AsChar", "header") {
 SWIGINTERN int
-SWIG_SciString_AsChar(void *_pvApiCtx, int iVar, char *pcValue, char *_fname) {
+SWIG_SciString_AsChar(void *_pvApiCtx, int iVar, char *pcValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -33,7 +33,7 @@ SWIG_SciString_AsChar(void *_pvApiCtx, int iVar, char *pcValue, char *_fname) {
     return SWIG_ERROR;
   }
   if (iType != sci_strings) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -44,7 +44,7 @@ SWIG_SciString_AsChar(void *_pvApiCtx, int iVar, char *pcValue, char *_fname) {
     return SWIG_ERROR;
   }
   if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), _fname, iVar);
+    Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
   *pcValue = pstStrings[0];
@@ -78,11 +78,11 @@ SWIG_SciString_FromChar(void *_pvApiCtx, int iVarOut, char chValue) {
 */
 
 %fragment("SWIG_AsCharArray", "header", fragment = "SWIG_SciString_AsCharPtr") {
-#define SWIG_AsCharArray(scilabValue, charPtrPointer, charPtrLength) SWIG_SciString_AsCharPtr(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, fname)
+#define SWIG_AsCharArray(scilabValue, charPtrPointer, charPtrLength) SWIG_SciString_AsCharPtr(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciString_AsCharPtr", "header") {
 SWIGINTERN int
-SWIG_SciString_AsCharPtr(void *_pvApiCtx, int iVar, char *pcValue, int iLength, char *_fname) {
+SWIG_SciString_AsCharPtr(void *_pvApiCtx, int iVar, char *pcValue, int iLength, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   char* pcTmpValue = NULL;
@@ -110,11 +110,11 @@ SWIG_SciString_AsCharPtr(void *_pvApiCtx, int iVar, char *pcValue, int iLength, 
 }
 
 %fragment("SWIG_AsCharPtrAndSize", "header", fragment = "SWIG_SciString_AsCharPtrAndSize") {
-#define SWIG_AsCharPtrAndSize(scilabValue, charPtrPointer, charPtrLength, allocMemory) SWIG_SciString_AsCharPtrAndSize(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, allocMemory, fname)
+#define SWIG_AsCharPtrAndSize(scilabValue, charPtrPointer, charPtrLength, allocMemory) SWIG_SciString_AsCharPtrAndSize(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, allocMemory, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciString_AsCharPtrAndSize", "header") {
 SWIGINTERN int
-SWIG_SciString_AsCharPtrAndSize(void *_pvApiCtx, int iVar, char **pcValue, size_t *piLength, int *alloc, char *_fname) {
+SWIG_SciString_AsCharPtrAndSize(void *_pvApiCtx, int iVar, char **pcValue, size_t *piLength, int *alloc, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   int iRet;
@@ -187,7 +187,7 @@ SWIG_SciString_FromCharPtr(void *_pvApiCtx, int iVarOut, const char *pchValue) {
 
 %fragment("SWIG_SciString_AsCharPtrArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, char ***charPtrArray, char *_fname) {
+SWIG_SciString_AsCharPtrArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, char ***charPtrArray, char *fname) {
   SciErr sciErr;
   int i = 0;
   int *piAddrVar = NULL;

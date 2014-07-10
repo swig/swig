@@ -88,7 +88,7 @@ SWIG_CheckScilabList(SwigSciObject obj)
 
   if ((iType != sci_list) && (iType != sci_tlist) && (iType != sci_mlist))
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A list is expected.\n"), fname, obj);
+    Scierror(999, _("%s: Wrong type for input argument #%d: A list is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }
 

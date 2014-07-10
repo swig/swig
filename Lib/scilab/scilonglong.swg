@@ -4,11 +4,11 @@
  * Scilab 6 type: int64
  */
 %fragment(SWIG_AsVal_frag(long long), "header", fragment="SWIG_SciInt64_ToLongLong") {
-%#define SWIG_AsVal_long_SS_long(scilabValue, valuePointer) SWIG_SciInt64_ToLongLong(pvApiCtx, scilabValue, valuePointer, fname)
+%#define SWIG_AsVal_long_SS_long(scilabValue, valuePointer) SWIG_SciInt64_ToLongLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciInt64_ToLongLong", "header") {
 SWIGINTERN int
-SWIG_SciInt64_ToLongLong(void *_pvApiCtx, int iVar, long long *pllValue, char *_fname) {
+SWIG_SciInt64_ToLongLong(void *_pvApiCtx, int iVar, long long *pllValue, char *fname) {
   Scierror(999, _("%s: Scilab 5.X does not manage '%s' data type.\n"), "SWIG_SciInt64_ToLongLong", "int64");
   return SWIG_ERROR;
 }
@@ -31,11 +31,11 @@ SWIG_SciInt64_FromLongLong(void *_pvApiCtx, int iVarOut, long long llValue) {
  * Scilab 6 type: uint64
  */
 %fragment(SWIG_AsVal_frag(unsigned long long), "header", fragment="SWIG_SciUint64_ToUnsignedLongLong") {
-#define SWIG_AsVal_unsigned_SS_long_SS_long(scilabValue, valuePointer) SWIG_SciUint64_ToUnsignedLongLong(pvApiCtx, scilabValue, valuePointer, fname)
+#define SWIG_AsVal_unsigned_SS_long_SS_long(scilabValue, valuePointer) SWIG_SciUint64_ToUnsignedLongLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciUint64_ToUnsignedLongLong", "header") {
 SWIGINTERN int
-SWIG_SciUint64_ToUnsignedLongLong(void *_pvApiCtx, int iVar, unsigned long long *pullValue, char *_fname) {
+SWIG_SciUint64_ToUnsignedLongLong(void *_pvApiCtx, int iVar, unsigned long long *pullValue, char *fname) {
   Scierror(999, _("%s: Scilab 5.X does not manage '%s' data type.\n"), "SWIG_SciUint64_ToLongLong", "uint64");
   return SWIG_ERROR;
 }

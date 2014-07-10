@@ -2,7 +2,7 @@
  * POINTER
  */
 %fragment("SWIG_ConvertPtr", "header") {
-#define SWIG_ConvertPtr(scilabValue, voidPointer, pointerDescriptor, flags) SwigScilabPtrToObject(pvApiCtx, scilabValue, voidPointer, pointerDescriptor, flags, fname)
+#define SWIG_ConvertPtr(scilabValue, voidPointer, pointerDescriptor, flags) SwigScilabPtrToObject(pvApiCtx, scilabValue, voidPointer, pointerDescriptor, flags, SWIG_Scilab_GetFname())
 }
 
 %fragment("SWIG_NewPointerObj", "header") {
@@ -13,7 +13,7 @@
  * FUNCTION POINTER
  */
 %fragment("SWIG_ConvertFunctionPtr", "header") {
-#define SWIG_ConvertFunctionPtr(scilabValue, voidPointer, pointerDescriptor) SwigScilabPtrToObject(pvApiCtx, scilabValue, voidPointer, pointerDescriptor, 0, fname)
+#define SWIG_ConvertFunctionPtr(scilabValue, voidPointer, pointerDescriptor) SwigScilabPtrToObject(pvApiCtx, scilabValue, voidPointer, pointerDescriptor, 0, SWIG_Scilab_GetFname())
 }
 
 %fragment("SWIG_NewFunctionPtrObj", "header") {
@@ -28,5 +28,5 @@
 #define SWIG_NewMemberObj(ptr, sz, tp) SWIG_Scilab_NewMemberObj(pvApiCtx, $result, ptr, sz, tp)
 }
 %fragment("SWIG_ConvertMember", "header") {
-#define SWIG_ConvertMember(obj, ptr, sz, ty) SWIG_Scilab_ConvertPacked(pvApiCtx, obj, ptr, sz, ty, fname)
+#define SWIG_ConvertMember(obj, ptr, sz, ty) SWIG_Scilab_ConvertPacked(pvApiCtx, obj, ptr, sz, ty, SWIG_Scilab_GetFname())
 }

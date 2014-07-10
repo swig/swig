@@ -41,15 +41,15 @@ extern "C" {
 /* Function name management functions */
 
 #include <stdlib.h>
-static char* fname = NULL;
+static char* g_fname = NULL;
 static char* SWIG_Scilab_GetFname(void) {
-  return fname;
+  return g_fname;
 }
-static void SWIG_Scilab_SetFname(char* _fname) {
-  if (fname != NULL) {
-    free(fname);
+static void SWIG_Scilab_SetFname(char* fname) {
+  if (g_fname != NULL) {
+    free(g_fname);
   }
-  fname = strdup(_fname);
+  g_fname = strdup(fname);
 }
 #if SWIG_SCILAB_VERSION >= 600
 static void *pvApiCtx = NULL;
@@ -101,7 +101,7 @@ SWIG_Scilab_SetOutput(void *_pvApiCtx, SwigSciObject _output) {
 /* Pointer conversion functions */
 
 SWIGINTERN int
-SwigScilabPtrToObject(void *_pvApiCtx, int iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
+SwigScilabPtrToObject(void *_pvApiCtx, int iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
@@ -146,7 +146,7 @@ SwigScilabPtrFromObject(void *_pvApiCtx, int iVarOut, void *obj, swig_type_info 
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int iVar, void *_ptr, int sz, swig_type_info *ty, char *_fname) {
+SWIG_Scilab_ConvertPacked(void *_pvApiCtx, int iVar, void *_ptr, int sz, swig_type_info *ty, char *fname) {
   swig_cast_info *tc;
   int *piAddrVar = NULL;
   char *pstStrings = NULL;
