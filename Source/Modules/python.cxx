@@ -106,7 +106,8 @@ enum autodoc_t {
   AUTODOC_DTOR,
   AUTODOC_STATICFUNC,
   AUTODOC_FUNC,
-  AUTODOC_METHOD
+  AUTODOC_METHOD,
+  AUTODOC_CONST
 };
 
 
@@ -1817,17 +1818,24 @@ public:
 	  break;
 
 	case AUTODOC_METHOD:
-	  String *paramList = make_autodocParmList(n, showTypes);
-	  Printf(doc, "%s(", symname);
-	  if (showTypes)
-	    Printf(doc, "%s ", class_name);
-	  if (Len(paramList))
-	    Printf(doc, "self, %s)", paramList);
-	  else
-	    Printf(doc, "self)");
-	  if (type_str)
-	    Printf(doc, " -> %s", type_str);
+	  {
+	    String *paramList = make_autodocParmList(n, showTypes);
+	    Printf(doc, "%s(", symname);
+	    if (showTypes)
+	      Printf(doc, "%s ", class_name);
+	    if (Len(paramList))
+	      Printf(doc, "self, %s)", paramList);
+	    else
+	      Printf(doc, "self)");
+	    if (type_str)
+	      Printf(doc, " -> %s", type_str);
+	  }
 	  break;
+
+	case AUTODOC_CONST:
+	  // There is no autodoc support for constants currently, this enum
+	  // element only exists to allow calling docstring() with it.
+	  return NULL;
 	}
 	Delete(type_str);
       }
@@ -3215,12 +3223,17 @@ public:
     }
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      String *f_s;
       if (!in_class) {
-	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
+	f_s = f_shadow;
       } else {
-	if (!(Getattr(n, "feature:python:callback"))) {
-	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
-	}
+	f_s = Getattr(n, "feature:python:callback") ? NIL : f_shadow_stubs;
+      }
+
+      if (f_s) {
+	Printv(f_s, iname, " = ", module, ".", iname, "\n", NIL);
+	if (have_docstring(n))
+	  Printv(f_s, docstring(n, AUTODOC_CONST, ""), "\n", NIL);
       }
     }
     return SWIG_OK;
@@ -4750,6 +4763,8 @@ public:
       Swig_restore(n);
     } else if (shadow) {
       Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      if (have_docstring(n))
+	Printv(f_shadow, tab4, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
     }
     return SWIG_OK;
   }
