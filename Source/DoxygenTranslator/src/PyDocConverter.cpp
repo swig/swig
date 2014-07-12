@@ -239,12 +239,16 @@ PyDocConverter::PyDocConverter(int flags) :
 
 std::string PyDocConverter::getParamType(std::string param)
 {
+  std::string type;
+
   ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
   Parm *p = NULL;
   for (p = plist; p;) {
     if (Char (Getattr(p, "name")) == param) {
-      std::string type = Char (SwigType_str(Getattr(p, "type"), ""));
-      return type;
+      String *s = SwigType_str(Getattr(p, "type"), "");
+      type = Char (s);
+      Delete(s);
+      break;
     }
     /*
      * doesn't seem to work always: in some cases (especially for 'self' parameters)
@@ -254,7 +258,7 @@ std::string PyDocConverter::getParamType(std::string param)
     p = nextSibling(p);
   }
   Delete(plist);
-  return "";
+  return type;
 }
 
 std::string PyDocConverter::justifyString(std::string documentString,
