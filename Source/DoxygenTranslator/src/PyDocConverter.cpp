@@ -246,8 +246,16 @@ std::string PyDocConverter::getParamType(std::string param)
     if (Char (Getattr(p, "name")) != param)
       continue;
 
-    String *s = SwigType_str(Getattr(p, "type"), "");
+    String *s = Swig_typemap_lookup("doctype", p, Getattr(p, "name"), 0);
+    if (!s)
+      s = SwigType_str(Getattr(p, "type"), "");
+
+    // In Python C++ namespaces are flattened, so remove all but last component
+    // of the name.
+    String * const last = Swig_scopename_last(s);
+
     type = Char (s);
+    Delete(last);
     Delete(s);
     break;
   }

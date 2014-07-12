@@ -73,7 +73,7 @@ commentVerifier.check(doxygen_basic_translate.function7.__doc__,
     """
     Test for a parameter with difficult type
     (mostly for python)
-    :type a: Shape::superType *[10]
+    :type a: Shape
     :param a: Very strange param
     """
 )

@@ -10,11 +10,11 @@ commentVerifier.check(doxygen_misc_constructs.getAddress.__doc__,
     r"""
     Returns address of file line.
 
-    :type fileName: int &
+    :type fileName: int
     :param fileName: name of the file, where the source line is located
     :type line: int
     :param line: line number
-    :type isGetSize: bool
+    :type isGetSize: boolean
     :param isGetSize: if set, for every object location both address and size are returned
 
     Connection::getId() 
@@ -141,7 +141,7 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
             main_ctrl.setBP("func1");
         
 
-    :type fileName: char *
+    :type fileName: string
     :param fileName: name of the log file
     """
 );

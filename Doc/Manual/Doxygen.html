@@ -944,6 +944,43 @@ class Shape(_object):
 </pre></div>
 
 <p>
+If any parameters of a function or a method are documented in the Doxygen comment,
+their description is copied into the generated output using
+<a href="http://sphinx-doc.org/">Sphinx </a> documentation conventions. For example
+</p>
+<div class="code"><pre>
+/**
+    Set a breakpoint at the given location.
+
+    @param filename The full path to the file.
+    @param line_number The line number in the file.
+ */
+bool SetBreakpoint(const char* filename, int line_number);
+</pre></div>
+would be translated to
+<div class="targetlang"><pre>
+def SetBreakpoint(*args):
+    r"""
+    Set a breakpoint at the given location.
+
+    :type filename: string
+    :param filename: The full path to the file.
+    :type line_number: int
+    :param line_number: The line number in the file.
+    """
+</pre></div>
+<p>
+The types used for the parameter documentation come from <tt>doctype</tt> typemap which
+is defined for all the primitive types and a few others (e.g. <tt>std::string</tt> and
+<tt>shared_ptr&lt;T&gt;</tt>) but for non-primitive types is taken to be just the C++
+name of the type with namespace scope delimiters (<tt>::</tt>) replaced with a dot. To
+change this, you can define your own typemaps for the custom types, e.g:
+</p>
+<div class="code"><pre>
+%typemap(doctype) MyDate "datetime.date";
+</pre></div>
+
+<p>
 Currently Doxygen comments assigned to vars are not present in proxy
 file, so they have no comment translated for them.
 </p>

@@ -22,3 +22,24 @@
 %typemap(doc) SWIGTYPE *INPUT, SWIGTYPE &INPUT "$1_name: $1_type (input)";
 %typemap(doc) SWIGTYPE *OUTPUT, SWIGTYPE &OUTPUT "$1_name: $1_type (output)";
 #endif
+
+
+// Types to use in Python documentation for the parameters of the given C++ type.
+%typemap(doctype) bool "boolean";
+
+%define int_doctype_for_cppint_type(cppint_type)
+    %typemap(doctype) cppint_type, unsigned cppint_type "int";
+%enddef
+%formacro(int_doctype_for_cppint_type, short, int, long, long long)
+
+%typemap(doctype) size_t "int";
+
+%typemap(doctype) enum SWIGTYPE "int";
+
+%typemap(doctype) float, double, long double "float";
+
+%typemap(doctype) char*, std::string "string";
+
+%typemap(doctype) SWIGTYPE "$1_basetype"
+%typemap(doctype) SWIGTYPE * "$typemap(doctype, $*1_ltype)"
+%typemap(doctype) SWIGTYPE & "$typemap(doctype, $*1_ltype)"
