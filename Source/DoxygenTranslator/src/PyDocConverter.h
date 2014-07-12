@@ -80,6 +80,12 @@ protected:
    */
   void handleParagraph(DoxygenEntity &tag, std::string &translatedComment,
                        const std::string &arg = std::string());
+
+  /*
+   * Handle one of the Doxygen formula-related tags.
+   */
+  void handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+
   /*
    * Print only data part of code
    */

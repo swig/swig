@@ -147,9 +147,9 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["n"] = make_handler(&PyDocConverter::handleNewLine);
 
   // \f commands output literal Latex formula, which is still better than nothing.
-  tagHandlers["f$"] = make_handler(&PyDocConverter::handleTagVerbatim);
-  tagHandlers["f["] = make_handler(&PyDocConverter::handleTagVerbatim);
-  tagHandlers["f{"] = make_handler(&PyDocConverter::handleTagVerbatim);
+  tagHandlers["f$"] =
+  tagHandlers["f["] =
+  tagHandlers["f{"] = make_handler(&PyDocConverter::handleMath);
 
   // HTML tags
   tagHandlers["<a"] = make_handler(&PyDocConverter::handleDoxyHtmlTag_A);
@@ -326,6 +326,47 @@ void PyDocConverter::handleParagraph(DoxygenEntity& tag,
                                      const std::string&)
 {
   translatedComment += translateSubtree(tag);
+}
+
+void PyDocConverter::handleMath(DoxygenEntity &tag,
+                                std::string &translatedComment,
+                                const std::string& arg)
+{
+  // Only \f$ is translated to inline formulae, \f[ and \f{ are for the block ones.
+  const bool inlineFormula = tag.typeOfEntity == "f$";
+
+  if (inlineFormula) {
+    translatedComment += ":math:`";
+  } else {
+    translatedComment += ".. math::\n\n    ";
+  }
+
+  std::string formula;
+  handleTagVerbatim(tag, formula, arg);
+
+  // It is important to ensure that we have no spaces around the inline math
+  // contents, so strip them.
+  const size_t start = formula.find_first_not_of(" \t\n");
+  const size_t end = formula.find_last_not_of(" \t\n");
+  if (start != std::string::npos) {
+    for (size_t n = start; n <= end; n++) {
+      if (formula[n] == '\n') {
+        // New lines must be suppressed in inline maths and indented in the
+        // block ones.
+        if (!inlineFormula)
+          translatedComment += "\n    ";
+      } else {
+        // Just copy everything else.
+        translatedComment += formula[n];
+      }
+    }
+  }
+
+  if (inlineFormula) {
+    translatedComment += "`";
+  } else {
+    translatedComment += "\n\n";
+  }
 }
 
 void PyDocConverter::handlePlainString(DoxygenEntity& tag,
