@@ -242,20 +242,14 @@ std::string PyDocConverter::getParamType(std::string param)
   std::string type;
 
   ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
-  Parm *p = NULL;
-  for (p = plist; p;) {
-    if (Char (Getattr(p, "name")) == param) {
-      String *s = SwigType_str(Getattr(p, "type"), "");
-      type = Char (s);
-      Delete(s);
-      break;
-    }
-    /*
-     * doesn't seem to work always: in some cases (especially for 'self' parameters)
-     * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
-     */
-    //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
-    p = nextSibling(p);
+  for (Parm *p = plist; p;p = nextSibling(p)) {
+    if (Char (Getattr(p, "name")) != param)
+      continue;
+
+    String *s = SwigType_str(Getattr(p, "type"), "");
+    type = Char (s);
+    Delete(s);
+    break;
   }
   Delete(plist);
   return type;
