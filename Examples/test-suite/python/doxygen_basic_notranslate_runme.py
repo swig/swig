@@ -28,15 +28,13 @@ commentVerifier.check(doxygen_basic_notranslate.function2.__doc__,
 
 commentVerifier.check(doxygen_basic_notranslate.function3.__doc__,
     r"""
-    ----------------------------------------------------------------
-    Overload 1:
-    ----------------------------------------------------------------
+    *Overload 1:*
+
      A test for overloaded functions
      This is function \b one
      
-    ----------------------------------------------------------------
-    Overload 2:
-    ----------------------------------------------------------------
+    *Overload 2:*
+
      A test for overloaded functions
      This is function \b two
      

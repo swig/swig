@@ -169,11 +169,6 @@ protected:
 
 
   /*
-   * Utility method to generate a diving line for a documentation string.
-   */
-  std::string generateDivider();
-
-  /*
    * Simple helper function that calculates correct parameter type
    * of the node stored in 'currentNode'
    * If param with specified name is not found, empty string is returned

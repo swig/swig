@@ -692,10 +692,8 @@ String *PyDocConverter::makeDocumentation(Node *n)
       for (int realOverloadCount = 0;
           realOverloadCount < (int) allDocumentation.size();
           realOverloadCount++) {
-        concatDocString << generateDivider() << std::endl;
-        concatDocString << "Overload " << (realOverloadCount + 1) << ":"
+        concatDocString << "*Overload " << (realOverloadCount + 1) << ":*"
             << std::endl;
-        concatDocString << generateDivider();
         concatDocString << allDocumentation[realOverloadCount] << std::endl;
       }
       pyDocString = concatDocString.str();
@@ -743,10 +741,4 @@ String *PyDocConverter::makeDocumentation(Node *n)
   }
 
   return NewString("");
-}
-
-std::string PyDocConverter::generateDivider()
-{
-  static string dividerString(DOC_STRING_LENGTH, '-');
-  return dividerString;
 }
