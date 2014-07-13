@@ -22,7 +22,7 @@ r"""
 
     'citationword'
 
-    some test code 
+    some test code
 
     Conditional comment: SOMECONDITION
     Some conditional comment
@@ -67,7 +67,7 @@ r"""
 
 
 
-    someMember Some description follows 
+    someMember Some description follows
 
 
 
@@ -171,7 +171,7 @@ r"""
 
     *Starts a piece of text displayed in an italic font.*
     Input tag.
-    Image: src="slika.png" 
+    Image: src="slika.png"
     Meta tag.
     Multicol is ignored by doxygen.
 
@@ -227,16 +227,16 @@ r"""
 
     :type byFlags: int
     :param byFlags: bits marking required items:
-      
-      | Size in bits| Items Required |
-      --------------------------------
-      | 1 - 8       |      1         |
-      | 9 - 16      |      2         |
-      | 17 - 32     |      4         |
-      
-      Almost all combinations of above flags are supported by
-      ``htmlTable...`` functions.
-    """)                      
+
+          | Size in bits| Items Required |
+          --------------------------------
+          | 1 - 8       |      1         |
+          | 9 - 16      |      2         |
+          | 17 - 32     |      4         |
+
+          Almost all combinations of above flags are supported by
+          ``htmlTable...`` functions.
+    """)
 
 
 commentVerifier.check(doxygen_translate.htmlEntitiesFunction.__doc__,
@@ -253,7 +253,7 @@ r"""
     "
     -
     --
-     
+
     x
     -
     .

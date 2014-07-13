@@ -174,6 +174,10 @@ private:
   // temporary thing, should be refactored somehow
   Node *currentNode;
 
+  // Extra indent for the current paragraph, must be output after each new line.
+  std::string m_indent;
+
+
   // this contains the handler pointer and one string argument
   typedef std::map<std::string, std::pair<tagHandler, std::string> > TagHandlersMap;
   static TagHandlersMap tagHandlers;

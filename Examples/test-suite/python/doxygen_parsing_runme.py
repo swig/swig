@@ -21,7 +21,7 @@ commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethod.__doc__,
     r"""
         The class method comment.
 
-        SomeAnotherClass#classMethodExtended(int, int) a link text 
+        SomeAnotherClass#classMethodExtended(int, int) a link text
         """)
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended.__doc__,
     r"""
@@ -33,7 +33,7 @@ commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended.__doc
         :param b: Parameter b
         """
 )
-commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended2.__doc__, 
+commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethodExtended2.__doc__,
     r"""
         The class method with parameter
 

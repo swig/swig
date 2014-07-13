@@ -23,7 +23,7 @@ commentVerifier.check(doxygen_misc_constructs.getAddress.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.CConnectionConfig.__doc__,
     r"""
-    This class contains information for connection to winIDEA. Its methods 
+    This class contains information for connection to winIDEA. Its methods
     return reference to self, so we can use it like this:
 
     CConnectionConfig config = new CConnectionConfig();
@@ -41,7 +41,7 @@ commentVerifier.check(doxygen_misc_constructs.CConnectionConfig.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.waitTime.__doc__,
     r"""
-    Determines how long the ``isystem.connect`` should wait for running 
+    Determines how long the ``isystem.connect`` should wait for running
     instances to respond. Only one of ``lfWaitXXX`` flags from IConnect::ELaunchFlags
     may be specified.
     """
@@ -123,8 +123,8 @@ commentVerifier.check(doxygen_misc_constructs.backslashB.__doc__,
 
 commentVerifier.check(doxygen_misc_constructs.backslashC.__doc__,
     r"""
-    Backslash e at end of *line* froze SWIG 
-    *with* old comment parser. 
+    Backslash e at end of *line* froze SWIG
+    *with* old comment parser.
 
     See also: MyClass::fun(char,
      float)
@@ -146,15 +146,15 @@ commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
     Spaces at the start of line should be taken into account:
     :type id: int
     :param id: used as prefix in log
-        statements. The default value is empty string, which is OK if
-        there is only one app. instance. Example:
-        
-            ctrl.setBP("func1");
-        
-        If we set the id to ``main_``, we get:
-        
-            main_ctrl.setBP("func1");
-        
+            statements. The default value is empty string, which is OK if
+            there is only one app. instance. Example:
+
+                ctrl.setBP("func1");
+
+            If we set the id to ``main_``, we get:
+
+                main_ctrl.setBP("func1");
+
 
     :type fileName: string
     :param fileName: name of the log file

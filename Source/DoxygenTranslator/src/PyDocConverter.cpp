@@ -24,6 +24,72 @@ std::map<std::string, std::string> PyDocConverter::sectionTitles;
 
 using std::string;
 
+// Helper class increasing the provided indent string in its ctor and decreasing
+// it in its dtor.
+class IndentGuard
+{
+public:
+  // One indent level.
+  static const char* Level() { return "    "; }
+
+  // Ctor takes the output to determine the current indent and to remove the
+  // extra indent added to it in the dtor and the variable containing the indent
+  // to use, which must be used after every new line by the code actually
+  // updating the output.
+  explicit IndentGuard(string& output, string& indent) :
+    m_output(output),
+    m_indent(indent)
+  {
+    const size_t lastNonSpace = m_output.find_last_not_of(' ');
+    if (lastNonSpace == string::npos) {
+      m_firstLineIndent = m_output.length();
+    } else if (m_output[lastNonSpace] == '\n') {
+      m_firstLineIndent = m_output.length() - (lastNonSpace + 1);
+    } else {
+      m_firstLineIndent = 0;
+    }
+
+    // Notice that the indent doesn't include the first line indent because it's
+    // implicit, i.e. it is present in the input and so is copied into the
+    // output anyhow.
+    m_indent = Level();
+  }
+
+  // Get the indent for the first line of the paragraph, which is smaller than
+  // the indent for the subsequent lines.
+  string getFirstLineIndent() const { return string(m_firstLineIndent, ' '); }
+
+  ~IndentGuard()
+  {
+    m_indent.clear();
+
+    // Get rid of possible remaining extra indent, e.g. if there were any trailing
+    // new lines: we shouldn't add the extra indent level to whatever follows
+    // this paragraph.
+    static const size_t lenIndentLevel = strlen(Level());
+    if (m_output.length() > lenIndentLevel) {
+      const size_t start = m_output.length() - lenIndentLevel;
+      if (m_output.compare(start, string::npos, Level()) == 0)
+          m_output.erase(start);
+    }
+  }
+
+private:
+  string& m_output;
+  string& m_indent;
+  unsigned m_firstLineIndent;
+
+  IndentGuard(const IndentGuard&);
+  IndentGuard& operator=(const IndentGuard&);
+};
+
+static void trimWhitespace(string& s)
+{
+  const size_t lastNonSpace = s.find_last_not_of(' ');
+  if (lastNonSpace != string::npos)
+    s.erase(lastNonSpace + 1);
+}
+
 /* static */
 PyDocConverter::TagHandlersMap::mapped_type
 PyDocConverter::make_handler(tagHandler handler)
@@ -311,13 +377,27 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
                                 std::string &translatedComment,
                                 const std::string& arg)
 {
+  IndentGuard indent(translatedComment, m_indent);
+
   // Only \f$ is translated to inline formulae, \f[ and \f{ are for the block ones.
   const bool inlineFormula = tag.typeOfEntity == "f$";
+
+  string formulaNL;
 
   if (inlineFormula) {
     translatedComment += ":math:`";
   } else {
-    translatedComment += ".. math::\n\n    ";
+    trimWhitespace(translatedComment);
+    translatedComment += '\n';
+
+    const string formulaIndent = indent.getFirstLineIndent();
+    translatedComment += formulaIndent;
+    translatedComment += ".. math::\n";
+
+    formulaNL = '\n';
+    formulaNL += formulaIndent;
+    formulaNL += m_indent;
+    translatedComment += formulaNL;
   }
 
   std::string formula;
@@ -330,10 +410,9 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
   if (start != std::string::npos) {
     for (size_t n = start; n <= end; n++) {
       if (formula[n] == '\n') {
-        // New lines must be suppressed in inline maths and indented in the
-        // block ones.
+        // New lines must be suppressed in inline maths and indented in the block ones.
         if (!inlineFormula)
-          translatedComment += "\n    ";
+          translatedComment += formulaNL;
       } else {
         // Just copy everything else.
         translatedComment += formula[n];
@@ -344,7 +423,7 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
   if (inlineFormula) {
     translatedComment += "`";
   } else {
-    translatedComment += "\n\n";
+    translatedComment += '\n';
   }
 }
 
@@ -427,16 +506,21 @@ void PyDocConverter::handleTagParam(DoxygenEntity& tag,
   if (tag.entityList.size() < 2)
     return;
 
+  IndentGuard indent(translatedComment, m_indent);
+
   DoxygenEntity paramNameEntity = *tag.entityList.begin();
   tag.entityList.pop_front();
 
   const std::string& paramName = paramNameEntity.data;
 
   const std::string paramType = getParamType(paramName);
-  if (!paramType.empty())
+  if (!paramType.empty()) {
     translatedComment += ":type " + paramName + ": " + paramType + "\n";
+    translatedComment += indent.getFirstLineIndent();
+  }
 
   translatedComment += ":param " + paramName + ":";
+
   handleParagraph(tag, translatedComment);
 }
 
@@ -445,6 +529,8 @@ void PyDocConverter::handleTagReturn(DoxygenEntity &tag,
                                      std::string &translatedComment,
                                      const std::string &)
 {
+  IndentGuard indent(translatedComment, m_indent);
+
   translatedComment += ":return: ";
   handleParagraph(tag, translatedComment);
 }
@@ -454,6 +540,8 @@ void PyDocConverter::handleTagException(DoxygenEntity &tag,
                                         std::string &translatedComment,
                                         const std::string &)
 {
+  IndentGuard indent(translatedComment, m_indent);
+
   translatedComment += ":raises: ";
   handleParagraph(tag, translatedComment);
 }
@@ -618,7 +706,11 @@ void PyDocConverter::handleNewLine(DoxygenEntity&,
                                    std::string& translatedComment,
                                    const std::string&)
 {
+  trimWhitespace(translatedComment);
+
   translatedComment += "\n";
+  if (!m_indent.empty())
+    translatedComment += m_indent;
 }
 
 String *PyDocConverter::makeDocumentation(Node *n)

@@ -36,7 +36,7 @@ r"""
 
     'citationword'
 
-    some test code 
+    some test code
     """)
 
 commentVerifier.check(doxygen_translate_all_tags.func02.__doc__,
@@ -95,16 +95,16 @@ r"""
 
     :math:`\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}`
 
-    .. math::
-
-        \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
-
-
 
     .. math::
 
         \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
+
+
+    .. math::
+
+        \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
 
 
@@ -176,7 +176,7 @@ r"""
 
 
 
-    someMember Some description follows 
+    someMember Some description follows
 
 
 
