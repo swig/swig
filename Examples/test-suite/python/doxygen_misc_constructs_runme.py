@@ -64,6 +64,21 @@ commentVerifier.check(doxygen_misc_constructs.ClassWithNestedEnum.__doc__,
     """
 )
 
+commentVerifier.check(doxygen_misc_constructs.showList.__doc__,
+    r"""
+    An example of a list in a documentation comment.
+
+        - The first item of the list.
+        - The second list item, on
+          several indented lines,
+          showing that the indentation
+          is preserved.
+        - And the final list item after it.
+
+    And this is not a list item any more.
+    """
+)
+
 commentVerifier.check(doxygen_misc_constructs.isNoSpaceValidA.__doc__,
     r"""
     This comment without space after '*' is valid in Doxygen.

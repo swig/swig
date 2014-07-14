@@ -102,6 +102,20 @@
 
     };
 
+    /**
+        An example of a list in a documentation comment.
+
+            - The first item of the list.
+            - The second list item, on
+              several indented lines,
+              showing that the indentation
+              is preserved.
+            - And the final list item after it.
+
+        And this is not a list item any more.
+     */
+    void showList() { }
+
     #include "doxygen_misc_constructs.h"
     
 %}

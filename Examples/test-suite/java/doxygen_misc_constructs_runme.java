@@ -117,6 +117,18 @@ public class doxygen_misc_constructs_runme {
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.THREE",
     		" desc of three\n");
 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.showList()",
+"         An example of a list in a documentation comment.<br>\n" +
+" <br>\n" +
+"             - The first item of the list.<br>\n" +
+"             - The second list item, on<br>\n" +
+"               several indented lines,<br>\n" +
+"               showing that the indentation<br>\n" +
+"               is preserved.<br>\n" +
+"             - And the final list item after it.<br>\n" +
+" <br>\n" +
+"        And this is not a list item any more.\n" +
+    		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidA()",
     		" This comment without space after '*' is valid in Doxygen.\n" +
     		"\n" +

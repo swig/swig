@@ -1338,18 +1338,22 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
     // line[pos] may be ' \t' or start of word, it there was no '*', '/' or '!'
     // at beginning of the line. Make sure it points to start of the first word
     // in the line.
-    size_t firstWordPos = line.find_first_not_of(" \t", pos);
-    if (firstWordPos == string::npos) {
-      m_tokenList.push_back(Token(END_LINE, "\n"));
-      continue;
-    }
+    if (isStartOfCommentLineCharFound) {
+      size_t firstWordPos = line.find_first_not_of(" \t", pos);
+      if (firstWordPos == string::npos) {
+        m_tokenList.push_back(Token(END_LINE, "\n"));
+        continue;
+      }
 
-    if (isStartOfCommentLineCharFound && firstWordPos > pos) {
-      m_tokenList.push_back(
-          Token(PLAINSTRING, line.substr(pos, firstWordPos - pos)));
+      if (firstWordPos > pos) {
+        m_tokenList.push_back(
+            Token(PLAINSTRING, line.substr(pos, firstWordPos - pos)));
+        pos = firstWordPos;
+      }
+    } else {
+        m_tokenList.push_back(
+            Token(PLAINSTRING, line.substr(0, pos)));
     }
-
-    pos = firstWordPos;
 
     while (pos != string::npos) {
       // find the end of the word
