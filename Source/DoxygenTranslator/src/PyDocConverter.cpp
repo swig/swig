@@ -651,7 +651,7 @@ void PyDocConverter::handleNewLine(DoxygenEntity&,
 String *PyDocConverter::makeDocumentation(Node *n)
 {
   String *documentation;
-  std::string pyDocString, result;
+  std::string pyDocString;
 
   // store the node, we may need it later
   currentNode = n;
@@ -721,7 +721,7 @@ String *PyDocConverter::makeDocumentation(Node *n)
     }
   }
 
-  // if we got something log the result and construct DOH string to return
+  // if we got something log the result
   if (!pyDocString.empty()) {
 
     // remove the last '\n' since additional one is added during writing to file
@@ -729,16 +729,12 @@ String *PyDocConverter::makeDocumentation(Node *n)
       pyDocString.erase(pyDocString.size() - 1);
     }
 
-    result = pyDocString;
-
     if (m_flags & debug_translator) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;
-      std::cout << result;
+      std::cout << pyDocString;
       std::cout << std::endl;
     }
-
-    return NewString(result.c_str());
   }
 
-  return NewString("");
+  return NewString(pyDocString.c_str());
 }
