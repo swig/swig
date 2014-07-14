@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-07-14: ianlancetaylor
+	    [Go] Change struct definition to use void *, not uint8, so
+	    that the type is recorded as possibly containing
+	    pointers.  This ensures that the 1.3 garbage collector
+	    does not collect pointers passed to C++ code.
+
 2014-07-01: wsfulton
             Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains 
             brackets in the expanded name.
