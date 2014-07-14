@@ -35,11 +35,6 @@ protected:
   std::string m_url;
 
   /*
-   * Format a string so it is justified and split over several lines 
-   * not exceeding a given length.
-   */
-  std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
-  /*
    * Translate every entity in a tree, also manages sections
    * display. Prints title for every group of tags that have
    * a section title associated with them

@@ -263,33 +263,6 @@ std::string PyDocConverter::getParamType(std::string param)
   return type;
 }
 
-std::string PyDocConverter::justifyString(std::string documentString,
-                                          int indent, int maxWidth)
-{
-  std::string formattedString;
-  std::string currentLine;
-
-  for (std::string::iterator stringPosition = documentString.begin();
-      stringPosition != documentString.end(); ++stringPosition) {
-    if (currentLine.length() == 0)
-      currentLine.resize(indent, ' ');
-
-    currentLine += *stringPosition;
-
-    if ((iswspace(*stringPosition) && (int) currentLine.size() >= maxWidth)
-        || (stringPosition + 1) == documentString.end()) {
-      formattedString += currentLine + "\n";
-      currentLine = "";
-    }
-  }
-
-  // strip the last endl
-  if (formattedString.size())
-    formattedString = formattedString.substr(0, formattedString.size() - 1);
-
-  return formattedString;
-}
-
 std::string PyDocConverter::translateSubtree(DoxygenEntity & doxygenEntity)
 {
   std::string translatedComment;
