@@ -154,3 +154,40 @@
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
 
+/* 
+ * unsigned char *NIOBUFFER typemaps. 
+ * This is for mapping java nio buffers to c char array. it is useful for long standing pointers for callbacks
+ * and wherever performance is critical (and thus memory copy + marshaling is a burdon)
+ * Note: The Java buffer have to be allocated with allocateDirect.
+ *
+ * Example usage wrapping:
+ *   void foo(unsigned char *buf);
+ *  
+ * Java usage:
+ *   byte b[] = new byte[20]A;
+ *   java.nio.ByteBuffer b = ByteBuffer.allocateDirect(<size>); 
+ *   modulename.foo(b);
+ */
+%typemap(jni) unsigned char *NIOBUFFER "jobject"  
+%typemap(jtype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
+%typemap(jstype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
+%typemap(javain,
+  pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") unsigned char *NIOBUFFER "$javainput"
+%typemap(javaout) unsigned char *NIOBUFFER {  
+  return $jnicall;  
+}  
+%typemap(in) unsigned char *NIOBUFFER {  
+  $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input); 
+  if ($1 == NULL) {  
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of direct buffer. Buffer must be allocated direct.");  
+  }  
+}  
+%typemap(memberin) unsigned char *NIOBUFFER {  
+  if ($input) {  
+    $1 = $input;  
+  } else {  
+    $1 = 0;  
+  }  
+}  
+%typemap(freearg) unsigned char *NIOBUFFER ""  
+//define end  
