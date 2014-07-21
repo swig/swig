@@ -734,7 +734,9 @@ public:
   void checkIdentifierName(String *name) {
     if (Len(name) > 24) {
       // Warning on too long identifiers
-      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
+      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number,
+        "Identifier name '%s' exceeds 24 characters, it is truncated to '%s'.\n",
+        name, DohNewStringWithSize(name, 24));
     }
   }
 
