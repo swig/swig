@@ -44,6 +44,7 @@ before_install:
         ["python"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
           ["ruby"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
            ["tcl"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+        ["scilab"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type -w720"
     )
   - declare -A CXXFLAGS_EXAMPLES && CXXFLAGS_EXAMPLES=(
         ["csharp"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
@@ -58,6 +59,7 @@ before_install:
         ["python"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
           ["ruby"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
            ["tcl"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+        ["scilab"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type -w720"
     )
   - $CC --version
   - $CXX --version
