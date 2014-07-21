@@ -61,7 +61,6 @@ protected:
 
   bool generateBuilder;
   bool internalModule;
-  bool extraWarning;
 public:
 
   /* ------------------------------------------------------------------------
@@ -83,7 +82,6 @@ public:
     libraryName = NULL;
     generateBuilder = true;
     internalModule = false;
-    extraWarning = false;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -133,8 +131,6 @@ public:
 	  Swig_mark_arg(argIndex);
 	  libraryName = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-	} else if (strcmp(argv[argIndex], "-Wextra") == 0) {
-	  extraWarning = true;
 	}
       }
     }
@@ -737,10 +733,8 @@ public:
 
   void checkIdentifierName(String *name) {
     if (Len(name) > 24) {
-      if (extraWarning) {
-	// Warning on too long identifiers
-	Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
-      }
+      // Warning on too long identifiers
+      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Identifier %s exceeds 24 characters, it may be impossible to use it.\n", name);
     }
   }
 
