@@ -7,7 +7,7 @@
 }
 %fragment("SWIG_SciUint32_AsUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, char *fname) {
+SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -16,13 +16,13 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, 
   int *piAddrVar = NULL;
   unsigned int *puiData = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -30,7 +30,7 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, 
 
   if (iType == sci_ints) {
     if (puiValue) {
-      sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+      sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -40,7 +40,7 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, 
         return SWIG_ERROR;
       }
 
-      sciErr = getMatrixOfUnsignedInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &puiData);
+      sciErr = getMatrixOfUnsignedInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, &puiData);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -56,7 +56,7 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, 
     if (puiValue) {
       double *pdData = NULL;
       double dValue = 0.0f;
-      sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+      sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -91,9 +91,9 @@ SWIG_SciUint32_AsUnsignedInt(void *_pvApiCtx, int iVar, unsigned int *puiValue, 
 }
 %fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int iVarOut, unsigned int uiValue, char *fname) {
-  if (createScalarDouble(_pvApiCtx,
-    SWIG_NbInputArgument(_pvApiCtx) + iVarOut, (double) uiValue))
+SWIG_SciUint32_FromUnsignedInt(void *pvApiCtx, int iVarOut, unsigned int uiValue, char *fname) {
+  if (createScalarDouble(pvApiCtx,
+    SWIG_NbInputArgument(pvApiCtx) + iVarOut, (double) uiValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -105,19 +105,19 @@ SWIG_SciUint32_FromUnsignedInt(void *_pvApiCtx, int iVarOut, unsigned int uiValu
  */
 %fragment("SWIG_SciUint32_AsUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, unsigned int **puiValue, char *fname) {
+SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned int **puiValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -129,7 +129,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
     int size = 0;
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdData);
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdData);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -143,7 +143,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
   }
   else if (iType == sci_ints)
   {
-    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -156,7 +156,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
       return SWIG_ERROR;
     }
 
-    sciErr = getMatrixOfUnsignedInteger32(_pvApiCtx, piAddrVar, iRows, iCols, puiValue);
+    sciErr = getMatrixOfUnsignedInteger32(pvApiCtx, piAddrVar, iRows, iCols, puiValue);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -175,7 +175,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, 
 
 %fragment("SWIG_SciUint32_FromUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, unsigned int *puiValues) {
+SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, unsigned int *puiValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
@@ -184,7 +184,7 @@ SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRo
   for (i=0; i<iRows * iCols; i++)
     pdValues[i] = puiValues[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);

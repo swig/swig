@@ -27,21 +27,21 @@ SWIG_From_dec(float)(float _flValue) {
 
 %fragment("SWIG_SciDouble_AsFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *fname) {
+SWIG_SciDouble_AsFloatArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   double *pdValue = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar)) {
+  if (isDoubleType(pvApiCtx, piAddrVar) && !isVarComplex(pvApiCtx, piAddrVar)) {
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdValue);
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -62,7 +62,7 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *i
 
 %fragment("SWIG_SciDouble_FromFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromFloatArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, float *pfValue) {
+SWIG_SciDouble_FromFloatArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, float *pfValue) {
   SciErr sciErr;
   double *pdValue;
   int i;
@@ -71,7 +71,7 @@ SWIG_SciDouble_FromFloatArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, in
   for (i = 0; i < iRows * iCols; i++)
     pdValue[i] = pfValue[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValue);
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;

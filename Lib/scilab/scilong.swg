@@ -8,20 +8,20 @@
 }
 %fragment("SWIG_SciDoubleOrInt32_AsLong", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject iVar, long *plValue, char *fname) {
+SWIG_SciDoubleOrInt32_AsLong(void *pvApiCtx, SwigSciObject iVar, long *plValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
   int iCols = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -31,7 +31,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject iVar, long *plValue,
     int iPrec = 0;
     int *piData = NULL;
 
-    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -40,7 +40,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject iVar, long *plValue,
       Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
-    sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
+    sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -55,7 +55,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject iVar, long *plValue,
     double *pdData = NULL;
     double dValue = 0.0f;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -89,9 +89,9 @@ SWIG_SciDoubleOrInt32_AsLong(void *_pvApiCtx, SwigSciObject iVar, long *plValue,
 }
 %fragment("SWIG_SciDouble_FromLong", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromLong(void *_pvApiCtx, int iVarOut, long lValue, char *fname) {
-  if (createScalarDouble(_pvApiCtx,
-    SWIG_NbInputArgument(_pvApiCtx) + iVarOut, (double) lValue))
+SWIG_SciDouble_FromLong(void *pvApiCtx, int iVarOut, long lValue, char *fname) {
+  if (createScalarDouble(pvApiCtx,
+    SWIG_NbInputArgument(pvApiCtx) + iVarOut, (double) lValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -100,7 +100,7 @@ SWIG_SciDouble_FromLong(void *_pvApiCtx, int iVarOut, long lValue, char *fname) 
 
 %fragment("SWIG_SciDouble_FromLongArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromLongArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, const long *plData) {
+SWIG_SciDouble_FromLongArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const long *plData) {
   SciErr sciErr;
   int i;
   double *pdValues = NULL;
@@ -110,7 +110,7 @@ SWIG_SciDouble_FromLongArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int
     pdValues[i] = plData[i];
   }
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValues);
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);

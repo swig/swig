@@ -8,7 +8,7 @@
 }
 %fragment("SWIG_SciDoubleOrInt32_AsInt", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, char *fname)
+SWIG_SciDoubleOrInt32_AsInt(void *pvApiCtx, SwigSciObject iVar, int *piValue, char *fname)
 {
   SciErr sciErr;
   int iType = 0;
@@ -16,13 +16,13 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, c
   int iCols = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -33,7 +33,7 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, c
       int iPrec = 0;
       int *piData = NULL;
 
-      sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+      sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -42,7 +42,7 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, c
         Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
         return SWIG_TypeError;
       }
-      sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
+      sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -58,7 +58,7 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, c
     if (piValue) {
       double *pdData = NULL;
       double dValue = 0.0f;
-      sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
+      sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, &pdData);
       if (sciErr.iErr) {
         printError(&sciErr, 0);
         return SWIG_ERROR;
@@ -93,8 +93,8 @@ SWIG_SciDoubleOrInt32_AsInt(void *_pvApiCtx, SwigSciObject iVar, int *piValue, c
 }
 %fragment("SWIG_SciDouble_FromInt", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromInt(void *_pvApiCtx, int iVarOut, int iValue, char *fname){
-  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx)
+SWIG_SciDouble_FromInt(void *pvApiCtx, int iVarOut, int iValue, char *fname){
+  if (createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx)
     + iVarOut, (double) iValue))
     return SWIG_ERROR;
   return SWIG_OK;
@@ -107,19 +107,19 @@ SWIG_SciDouble_FromInt(void *_pvApiCtx, int iVarOut, int iValue, char *fname){
  */
 %fragment("SWIG_SciDoubleOrInt32_AsIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
+SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr)
   {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  sciErr = getVarType(_pvApiCtx, piAddrVar, &iType);
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -131,7 +131,7 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, i
     int size = 0;
     int i;
 
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, &pdData);
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdData);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -146,7 +146,7 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, i
   else if (iType == sci_ints)
   {
     int iPrec = 0;
-    sciErr = getMatrixOfIntegerPrecision(_pvApiCtx, piAddrVar, &iPrec);
+    sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -157,7 +157,7 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, i
       Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double matrix expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
-    sciErr = getMatrixOfInteger32(_pvApiCtx, piAddrVar, iRows, iCols, piValue);
+    sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, iRows, iCols, piValue);
     if (sciErr.iErr)
     {
       printError(&sciErr, 0);
@@ -175,7 +175,7 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, i
 
 %fragment("SWIG_SciDouble_FromIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, const int *piData) {
+SWIG_SciDouble_FromIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const int *piData) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
@@ -184,7 +184,7 @@ SWIG_SciDouble_FromIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int 
   for (i=0; i<iRows * iCols; i++)
     pdValues[i] = piData[i];
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdValues);
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);
@@ -198,9 +198,9 @@ SWIG_SciDouble_FromIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int 
 
 %fragment(SWIG_CreateScilabVariable_frag(int), "wrapper") {
 SWIGINTERN int
-SWIG_CreateScilabVariable_dec(int)(void *_pvApiCtx, const char* psVariableName, const int iVariableValue) {
+SWIG_CreateScilabVariable_dec(int)(void *pvApiCtx, const char* psVariableName, const int iVariableValue) {
   SciErr sciErr;
-  sciErr = createNamedMatrixOfInteger32(_pvApiCtx, psVariableName, 1, 1, &iVariableValue);
+  sciErr = createNamedMatrixOfInteger32(pvApiCtx, psVariableName, 1, 1, &iVariableValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;

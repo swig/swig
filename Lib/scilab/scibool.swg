@@ -53,20 +53,20 @@ SWIG_From_dec(bool)(bool _bValue) {
  */
 %fragment("SWIG_SciBoolean_AsBoolArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsBoolArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, bool **pbValue, char *fname) {
+SWIG_SciBoolean_AsBoolArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, bool **pbValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   int *piValue = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (isBooleanType(_pvApiCtx, piAddrVar)) {
+  if (isBooleanType(pvApiCtx, piAddrVar)) {
     int i;
-    sciErr = getMatrixOfBoolean(_pvApiCtx, piAddrVar, iRows, iCols, &piValue);
+    sciErr = getMatrixOfBoolean(pvApiCtx, piAddrVar, iRows, iCols, &piValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -87,7 +87,7 @@ SWIG_SciBoolean_AsBoolArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *i
 
 %fragment("SWIG_SciBoolean_FromBoolArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_FromBoolArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, bool *pbValue) {
+SWIG_SciBoolean_FromBoolArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, bool *pbValue) {
   SciErr sciErr;
   int *piValue = NULL;
   int i;
@@ -96,7 +96,7 @@ SWIG_SciBoolean_FromBoolArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, in
   for (i = 0; i < iRows * iCols; i++)
     piValue[i] = pbValue[i];
 
-  sciErr = createMatrixOfBoolean(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, piValue);
+  sciErr = createMatrixOfBoolean(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, piValue);
   if(sciErr.iErr) {
     printError(&sciErr, 0);
     free(piValue);
@@ -114,19 +114,19 @@ SWIG_SciBoolean_FromBoolArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, in
  */
 %fragment("SWIG_SciBoolean_AsIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
+SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (isBooleanType(_pvApiCtx, piAddrVar)) {
+  if (isBooleanType(pvApiCtx, piAddrVar)) {
     int i;
-    sciErr = getMatrixOfBoolean(_pvApiCtx, piAddrVar, iRows, iCols, piValue);
+    sciErr = getMatrixOfBoolean(pvApiCtx, piAddrVar, iRows, iCols, piValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -143,10 +143,10 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iC
 
 %fragment("SWIG_SciBoolean_FromIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_FromIntArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, int *piValue) {
+SWIG_SciBoolean_FromIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, int *piValue) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfBoolean(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, piValue);
+  sciErr = createMatrixOfBoolean(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, piValue);
   if(sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;

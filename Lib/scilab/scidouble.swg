@@ -6,28 +6,28 @@
 }
 %fragment("SWIG_SciDouble_AsDouble", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, char *fname) {
+SWIG_SciDouble_AsDouble(void *pvApiCtx, SwigSciObject iVar, double *pdblValue, char *fname) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isDoubleType(_pvApiCtx, piAddrVar) || isVarComplex(_pvApiCtx, piAddrVar)) {
+  if (!isDoubleType(pvApiCtx, piAddrVar) || isVarComplex(pvApiCtx, piAddrVar)) {
     Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(_pvApiCtx, piAddrVar)) {
+  if (!isScalar(pvApiCtx, piAddrVar)) {
     Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
-  iRet = getScalarDouble(_pvApiCtx, piAddrVar, pdblValue);
+  iRet = getScalarDouble(pvApiCtx, piAddrVar, pdblValue);
   if (iRet) {
     return SWIG_ERROR;
   }
@@ -41,8 +41,8 @@ SWIG_SciDouble_AsDouble(void *_pvApiCtx, SwigSciObject iVar, double *pdblValue, 
 }
 %fragment("SWIG_SciDouble_FromDouble", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromDouble(void *_pvApiCtx, int iVarOut, double dblValue, char *fname) {
-  if (createScalarDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, dblValue))
+SWIG_SciDouble_FromDouble(void *pvApiCtx, int iVarOut, double dblValue, char *fname) {
+  if (createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, dblValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
@@ -54,18 +54,18 @@ SWIG_SciDouble_FromDouble(void *_pvApiCtx, int iVarOut, double dblValue, char *f
 
 %fragment("SWIG_SciDouble_AsDoubleArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *iCols, double **pdValue, char *fname) {
+SWIG_SciDouble_AsDoubleArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, double **pdValue, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (isDoubleType(_pvApiCtx, piAddrVar) && !isVarComplex(_pvApiCtx, piAddrVar)) {
-    sciErr = getMatrixOfDouble(_pvApiCtx, piAddrVar, iRows, iCols, pdValue);
+  if (isDoubleType(pvApiCtx, piAddrVar) && !isVarComplex(pvApiCtx, piAddrVar)) {
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, pdValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -82,9 +82,9 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *_pvApiCtx, int iVar, int *iRows, int *
 
 %fragment("SWIG_SciDouble_FromDoubleArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, int iCols, double *pdblValue) {
+SWIG_SciDouble_FromDoubleArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, double *pdblValue) {
   SciErr sciErr;
-  sciErr = createMatrixOfDouble(_pvApiCtx, SWIG_NbInputArgument(_pvApiCtx) + iVarOut, iRows, iCols, pdblValue);
+  sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdblValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -96,9 +96,9 @@ SWIG_SciDouble_FromDoubleArrayAndSize(void *_pvApiCtx, int iVarOut, int iRows, i
 
 %fragment(SWIG_CreateScilabVariable_frag(double), "wrapper") {
 SWIGINTERN int
-SWIG_CreateScilabVariable_dec(double)(void *_pvApiCtx, const char* psVariableName, const double dVariableValue) {
+SWIG_CreateScilabVariable_dec(double)(void *pvApiCtx, const char* psVariableName, const double dVariableValue) {
   SciErr sciErr;
-  sciErr = createNamedMatrixOfDouble(_pvApiCtx, psVariableName, 1, 1, &dVariableValue);
+  sciErr = createNamedMatrixOfDouble(pvApiCtx, psVariableName, 1, 1, &dVariableValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;

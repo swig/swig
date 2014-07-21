@@ -11,7 +11,7 @@
 %fragment("SWIG_Int_AsSize", "header", fragment=SWIG_AsVal_frag(int))
 {
 SWIGINTERN int
-SWIG_Int_AsSize(void *_pvApiCtx, SwigSciObject iVar, size_t *piValue, char *fname) {
+SWIG_Int_AsSize(void *pvApiCtx, SwigSciObject iVar, size_t *piValue, char *fname) {
   int iValue = 0;
   if (SWIG_AsVal_dec(int)(iVar, &iValue) != SWIG_OK)
     return SWIG_ERROR;
@@ -29,7 +29,7 @@ SWIG_Int_AsSize(void *_pvApiCtx, SwigSciObject iVar, size_t *piValue, char *fnam
 %fragment("SWIG_Int_FromSize", "header", fragment=SWIG_From_frag(int))
 {
 SWIGINTERN int
-SWIG_Int_FromSize(void *_pvApiCtx, int iVarOut, size_t iValue, char *fname) {
+SWIG_Int_FromSize(void *pvApiCtx, int iVarOut, size_t iValue, char *fname) {
   return SWIG_From_dec(int)((int)iValue);
 }
 }
@@ -45,7 +45,7 @@ SWIG_Int_FromSize(void *_pvApiCtx, int iVarOut, size_t iValue, char *fname) {
 %fragment("SWIG_Int_AsPtrDiff", "header", fragment=SWIG_AsVal_frag(int))
 {
 SWIGINTERN int
-SWIG_Int_AsPtrDiff(void *_pvApiCtx, SwigSciObject iVar, ptrdiff_t *piValue, char *fname) {
+SWIG_Int_AsPtrDiff(void *pvApiCtx, SwigSciObject iVar, ptrdiff_t *piValue, char *fname) {
   int iValue = 0;
   if (SWIG_AsVal_dec(int)(iVar, &iValue) != SWIG_OK)
     return SWIG_ERROR;
@@ -62,7 +62,7 @@ SWIG_Int_AsPtrDiff(void *_pvApiCtx, SwigSciObject iVar, ptrdiff_t *piValue, char
 }
 %fragment("SWIG_Int_FromPtrDiff", "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
-SWIG_Int_FromPtrDiff(void *_pvApiCtx, int iVarOut, ptrdiff_t iValue, char *fname) {
+SWIG_Int_FromPtrDiff(void *pvApiCtx, int iVarOut, ptrdiff_t iValue, char *fname) {
   return SWIG_From_dec(int)((int)iValue);
 }
 }

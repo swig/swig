@@ -176,31 +176,31 @@
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(int)) int
 %{
-  if (SWIG_CreateScilabVariable_int(_pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_int(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(double)) double
 %{
-  if (SWIG_CreateScilabVariable_double(_pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_double(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(char)) char
 %{
-  if (SWIG_CreateScilabVariable_char(_pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_char(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(charptr)) char *
 %{
-  if (SWIG_CreateScilabVariable_charptr(_pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_charptr(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
 
 %typemap(scilabconstcode, fragment=SWIG_CreateScilabVariable_frag(double)) enum SWIGTYPE
 %{
-  if (SWIG_CreateScilabVariable_double(_pvApiCtx, "$result", $value) != SWIG_OK)
+  if (SWIG_CreateScilabVariable_double(pvApiCtx, "$result", $value) != SWIG_OK)
     return SWIG_ERROR;
 %}
 
