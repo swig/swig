@@ -465,10 +465,16 @@ public:
     String *argnumber = NewString("");
     Printf(argnumber, "%d", minInputArguments);
     Replaceall(wrapper->code, "$mininputarguments", argnumber);
+
+    argnumber = NewString("");
     Printf(argnumber, "%d", maxInputArguments);
     Replaceall(wrapper->code, "$maxinputarguments", argnumber);
+
+    argnumber = NewString("");
     Printf(argnumber, "%d", minOutputArguments);
     Replaceall(wrapper->code, "$minoutputarguments", argnumber);
+
+    argnumber = NewString("");
     Printf(argnumber, "%d", maxOutputArguments);
     Replaceall(wrapper->code, "$maxoutputarguments", argnumber);
 
