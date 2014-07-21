@@ -354,8 +354,8 @@ public:
 
       if (paramTypemap) {
 	// Replace $input by the position on Scilab stack
-	char source[64];
-	sprintf(source, "%d", paramIndex + 1);
+	String *source = NewString("");
+	Printf(source, "%d", paramIndex + 1);
 	Setattr(param, "emit:input", source);
 	Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
 
@@ -426,8 +426,8 @@ public:
 	minOutputArguments++;
 	maxOutputArguments++;
 	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
-	char result[64] = { };
-	sprintf(result, "%d", minOutputArguments);
+	String *result = NewString("");
+	Printf(result, "%d", minOutputArguments);
 	Replaceall(paramTypemap, "$result", result);
 	Printf(wrapper->code, "%s\n", paramTypemap);
 	Delete(paramTypemap);
@@ -466,14 +466,14 @@ public:
     if (minOutputArguments == 0) {
       maxOutputArguments = 1;
     }
-    char argnumber[64] = { };
-    sprintf(argnumber, "%d", minInputArguments);
+    String *argnumber = NewString("");
+    Printf(argnumber, "%d", minInputArguments);
     Replaceall(wrapper->code, "$mininputarguments", argnumber);
-    sprintf(argnumber, "%d", maxInputArguments);
+    Printf(argnumber, "%d", maxInputArguments);
     Replaceall(wrapper->code, "$maxinputarguments", argnumber);
-    sprintf(argnumber, "%d", minOutputArguments);
+    Printf(argnumber, "%d", minOutputArguments);
     Replaceall(wrapper->code, "$minoutputarguments", argnumber);
-    sprintf(argnumber, "%d", maxOutputArguments);
+    Printf(argnumber, "%d", maxOutputArguments);
     Replaceall(wrapper->code, "$maxoutputarguments", argnumber);
 
     /* Dump the function out */
