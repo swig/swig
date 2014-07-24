@@ -1,36 +1,39 @@
 lines(0);
 ilib_verbose(0);
 exec loader.sce;
+example_Init();
 
-function printShape(shape, name)
-    printf("\nShape %s position:\n", name);
-    printf("  (x, y) = (%f, %f)\n", ShapeDouble_x_get(shape), ShapeDouble_y_get(shape))
+// Call some templated functions
+printf("maxint(3, 7) = %i\n", maxint(3, 7));
+printf("maxdouble(3.14, 2.18) = %3.2f\n", maxdouble(3.14, 2.18));
 
-    printf("\nShape %s properties:\n", name);
-    printf("  area      = %f\n", ShapeDouble_area(shape));
-    printf("  perimeter = %f\n", ShapeDouble_perimeter(shape));
+// Create some class
 
-    printf("\n");
-endfunction
+iv = new_vecint(100);
+dv = new_vecdouble(1000);
 
-printf("Creating some objects:\n");
-c = new_CircleDouble(10);
-s = new_SquareDouble(10);
+for i = 0:100
+  vecint_setitem(iv, i, 2*i);
+end
 
-printf("\nA total of %i shapes were created\n", ShapeDouble_getNbShapes());
+for i = 0:100
+  vecdouble_setitem(dv, i, 1.0/(i+1));
+end
 
-ShapeDouble_move(c, 20, 30);
-ShapeDouble_move(s, -10, 0);
+isum = 0
+for i = 0:100
+    isum = isum + vecint_getitem(iv, i);
+end
 
-printShape(c, "circle");
-printShape(s, "square");
+printf("isum = %i\n", isum);
 
-printf("\nGuess I will clean up now\n");
+dsum = 0
+for i = 0:100
+    dsum = dsum + vecdouble_getitem(dv, i);
+end
 
-delete_CircleDouble(c);
-delete_SquareDouble(s);
+printf("dsum = %3.2f\n", dsum);
 
-printf("%i shapes remain\n", ShapeDouble_getNbShapes());
-
-exit
+delete_vecint(iv);
+delete_vecdouble(dv);
 

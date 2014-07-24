@@ -1,36 +1,32 @@
 /* File : example.h */
 
-template<typename T>
-class Shape {
-private:
-  static int nbshapes;
-public:
-  Shape()  { x = 0; y = 0; nbshapes++; }
-  virtual ~Shape() { nbshapes--; };
-  T x, y;
-  void move(T dx, T dy);
-  virtual T area() = 0;
-  virtual T perimeter() = 0;
-  static int getNbShapes();
-};
+// Some template definitions
 
-template<typename T>
-class Circle : public Shape<T> {
-private:
-  T radius;
-public:
-  Circle(T r) : Shape<T>() { radius = r; };
-  virtual T area();
-  virtual T perimeter();
-};
+template<class T> T max(T a, T b) { return  a>b ? a : b; }
 
-template<typename T>
-class Square : public Shape<T> {
-private:
-  T width;
-public:
-  Square(T w) : Shape<T>() { width = w; };
-  virtual T area();
-  virtual T perimeter();
+template<class T> class vector {
+  T *v;
+  int sz;
+ public:
+  vector(int _sz) {
+    v = new T[_sz];
+    sz = _sz;
+  }
+  T &get(int index) {
+    return v[index];
+  }
+  void set(int index, T &val) {
+    v[index] = val;
+  }
+#ifdef SWIG
+  %extend {
+    T getitem(int index) {
+      return $self->get(index);
+    }
+    void setitem(int index, T val) {
+      $self->set(index,val);
+    }
+  }
+#endif
 };
 
