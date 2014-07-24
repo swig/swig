@@ -1705,7 +1705,7 @@ r_clean:
 SCILAB = @SCILAB@
 SCILAB_OPT = @SCILABOPT@
 
-# Scialb build need include absolute paths
+# Scilab build need include absolute paths
 ifeq (,$(SRCDIR))
 SRCDIR_INCLUDE = -I$(abspath .)
 else
