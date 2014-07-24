@@ -2,5 +2,12 @@
 
 typedef enum  { RED, BLUE, GREEN } color;
 
-void enum_test(color c);
+class Foo {
+ public:
+  Foo() { }
+  enum speed { IMPULSE, WARP, LUDICROUS };
+  void enum_test(speed s);
+};
+
+void enum_test(color c, Foo::speed s);
 
