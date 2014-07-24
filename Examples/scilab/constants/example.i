@@ -1,9 +1,6 @@
 /* File : example.i */
 %module example
 
-/* Wraps constants as Scilab variables (instead of getter functions) */
-%scilabconst(1);
-
 #define ICONST 42
 #define FCONST 2.1828
 #define SCONST "Hello World"
