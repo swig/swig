@@ -6,6 +6,10 @@ Version 3.0.3 (in progress)
 ===========================
 
 2014-08-04: wsfulton
+            [C#] Merge patch #200 from gpetrou - Changed CSharp license header to include auto-generated
+            tag so that StyleCop ignores the files.
+
+2014-08-04: wsfulton
             [Java] Merge patch #198 from Yuval Kashtan - Support for java.nio.ByteBuffer mapping to 
             unsigned char * in various.i in NIOBUFFER typemaps.
 
