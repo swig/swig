@@ -75,3 +75,15 @@ commentVerifier.check(doxygen_basic_translate.function7.__doc__,
     :param a: Very strange param
     """
 )
+
+commentVerifier.check(doxygen_basic_translate.Atan2.__doc__,
+"""
+    Multiple parameters test.
+
+    :type y: float
+    :param y: Vertical coordinate.
+    :type x: float
+    :param x: Horizontal coordinate.
+    :return: Arc tangent of ``y/x``.
+    """
+)

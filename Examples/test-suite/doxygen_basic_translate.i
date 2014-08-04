@@ -93,6 +93,18 @@ void function7(Shape::superType *a[10])
 }
 
 /**
+    Multiple parameters test.
+
+    @param y Vertical coordinate.
+    @param x Horizontal coordinate.
+    @return Arc tangent of @c y/x.
+ */
+double Atan2(double y, double x)
+{
+    return 0;
+}
+
+/**
  * Comment at the end of file should be ignored.
  */
 %}

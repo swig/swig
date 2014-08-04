@@ -85,7 +85,14 @@ public class doxygen_basic_translate_runme {
     		" This is function <b>two </b>\n" +
     		" \n" +
     		"");
-    
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.Atan2(double, double)",
+    		" Multiple parameters test.\n" +
+    		" \n" +
+    		" @param y Vertical coordinate.\n" +
+    		" @param x Horizontal coordinate.\n" +
+    		" @return Arc tangent of <code>y/x</code>.\n" +
+    		"");
+
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }
