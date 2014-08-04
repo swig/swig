@@ -92,6 +92,7 @@
  * The returned string appears in the 1st element of the passed in Java String array.
  *
  * Example usage wrapping:
+ *   %apply char **STRING_OUT { char **string_out };
  *   void foo(char **string_out);
  *  
  * Java usage:
@@ -156,16 +157,16 @@
 
 /* 
  * unsigned char *NIOBUFFER typemaps. 
- * This is for mapping java nio buffers to c char array. it is useful for long standing pointers for callbacks
- * and wherever performance is critical (and thus memory copy + marshaling is a burdon)
- * Note: The Java buffer have to be allocated with allocateDirect.
+ * This is for mapping Java nio buffers to C char arrays.
+ * It is useful for performance critical code as it reduces the memory copy an marshaling overhead.
+ * Note: The Java buffer has to be allocated with allocateDirect.
  *
  * Example usage wrapping:
+ *   %apply unsigned char *NIOBUFFER { unsigned char *buf };
  *   void foo(unsigned char *buf);
  *  
  * Java usage:
- *   byte b[] = new byte[20]A;
- *   java.nio.ByteBuffer b = ByteBuffer.allocateDirect(<size>); 
+ *   java.nio.ByteBuffer b = ByteBuffer.allocateDirect(20); 
  *   modulename.foo(b);
  */
 %typemap(jni) unsigned char *NIOBUFFER "jobject"  
@@ -179,7 +180,7 @@
 %typemap(in) unsigned char *NIOBUFFER {  
   $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input); 
   if ($1 == NULL) {  
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of direct buffer. Buffer must be allocated direct.");  
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of a java.nio.ByteBuffer direct byte buffer. Buffer must be a direct buffer and not a non-direct buffer.");  
   }  
 }  
 %typemap(memberin) unsigned char *NIOBUFFER {  
@@ -190,4 +191,4 @@
   }  
 }  
 %typemap(freearg) unsigned char *NIOBUFFER ""  
-//define end  
+
