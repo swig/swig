@@ -18,6 +18,8 @@
 #include <vector>
 #include <iostream>
 
+#include "swigmod.h"
+
 // define static tables, they are filled in PyDocConverter's constructor
 PyDocConverter::TagHandlersMap PyDocConverter::tagHandlers;
 std::map<std::string, std::string> PyDocConverter::sectionTitles;
@@ -309,19 +311,31 @@ std::string PyDocConverter::getParamType(std::string param)
 
   ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
   for (Parm *p = plist; p;p = nextSibling(p)) {
-    if (Char (Getattr(p, "name")) != param)
+    String* pname = Getattr(p, "name");
+    if (Char (pname) != param)
       continue;
 
-    String *s = Swig_typemap_lookup("doctype", p, Getattr(p, "name"), 0);
+    String *s = Swig_typemap_lookup("doctype", p, pname, 0);
     if (!s)
       s = SwigType_str(Getattr(p, "type"), "");
 
-    // In Python C++ namespaces are flattened, so remove all but last component
-    // of the name.
-    String * const last = Swig_scopename_last(s);
+    if (Language::classLookup(s)) {
+      // In Python C++ namespaces are flattened, so remove all but last component
+      // of the name.
+      String * const last = Swig_scopename_last(s);
 
-    type = Char (s);
-    Delete(last);
+      // We are not actually sure whether it's a documented class or not, but
+      // there doesn't seem to be any harm in making it a reference if it isn't,
+      // while there is a lot of benefit in having a hyperlink if it is.
+      type = ":py:class:`";
+      type += Char (last);
+      type += "`";
+
+      Delete(last);
+    } else {
+      type = Char(s);
+    }
+
     Delete(s);
     break;
   }
