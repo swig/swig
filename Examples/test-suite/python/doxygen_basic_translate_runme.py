@@ -50,7 +50,10 @@ commentVerifier.check(doxygen_basic_translate.function4.__doc__,
 
     Warning: This may not work as expected
 
-    int main() { while(true); }
+    .. code-block:: c++
+
+
+        int main() { while(true); }
 
     }
     """

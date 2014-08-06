@@ -36,7 +36,11 @@ r"""
 
     'citationword'
 
-    some test code
+
+    .. code-block:: c++
+
+         some test code
+
     """)
 
 commentVerifier.check(doxygen_translate_all_tags.func02.__doc__,

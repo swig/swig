@@ -153,7 +153,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["authors"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["brief"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["bug"] = make_handler(&PyDocConverter::handleParagraph);
-  tagHandlers["code"] = make_handler(&PyDocConverter::handleParagraph);
+  tagHandlers["code"] = make_handler(&PyDocConverter::handleCode);
   tagHandlers["copyright"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["date"] = make_handler(&PyDocConverter::handleParagraph);
   tagHandlers["deprecated"] = make_handler(&PyDocConverter::handleParagraph);
@@ -439,6 +439,51 @@ void PyDocConverter::handleMath(DoxygenEntity &tag,
   } else {
     translatedComment += '\n';
   }
+}
+
+void PyDocConverter::handleCode(DoxygenEntity &tag,
+                                std::string &translatedComment,
+                                const std::string &arg)
+{
+  IndentGuard indent(translatedComment, m_indent);
+
+  trimWhitespace(translatedComment);
+  translatedComment += '\n';
+
+  // Use the current indent for the code-block line itself.
+  string codeIndent = indent.getFirstLineIndent();
+  translatedComment += codeIndent;
+
+  // Go out on a limb and assume that examples in the C or C++ sources use C++.
+  // In the worst case, we'll highlight C code using C++ syntax which is not a
+  // big deal (TODO: handle Doxygen code command language argument).
+  translatedComment += ".. code-block:: c++\n\n";
+
+  // For now on, use extra indent level for all the subsequent lines.
+  codeIndent += m_indent;
+
+  std::string code;
+  handleTagVerbatim(tag, code, arg);
+
+  translatedComment += codeIndent;
+  for (size_t n = 0; n < code.length(); n++) {
+    if (code[n] == '\n') {
+      // Don't leave trailing white space, this results in PEP8 validation
+      // errors in Python code (which are performed by our own unit tests).
+      trimWhitespace(translatedComment);
+      translatedComment += '\n';
+
+      // Ensure that we indent all the lines by the code indent.
+      translatedComment += codeIndent;
+    } else {
+      // Just copy everything else.
+      translatedComment += code[n];
+    }
+  }
+
+  trimWhitespace(translatedComment);
+  if (*translatedComment.rbegin() != '\n')
+    translatedComment += '\n';
 }
 
 void PyDocConverter::handlePlainString(DoxygenEntity& tag,

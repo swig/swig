@@ -82,6 +82,11 @@ protected:
   void handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
+   * Handle a code snippet.
+   */
+  void handleCode(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+
+  /*
    * Print only data part of code
    */
   void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);

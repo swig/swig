@@ -22,7 +22,11 @@ r"""
 
     'citationword'
 
-    some test code
+
+    .. code-block:: c++
+
+         some test code
+
 
     Conditional comment: SOMECONDITION
     Some conditional comment
