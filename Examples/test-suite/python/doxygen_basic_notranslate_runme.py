@@ -61,9 +61,7 @@ commentVerifier.check(doxygen_basic_notranslate.function4.__doc__,
     """
 )
 commentVerifier.check(doxygen_basic_notranslate.function5.__doc__,
-    r"""
-    This is a post comment. 
-    """
+    r""" This is a post comment. """
 )
 commentVerifier.check(doxygen_basic_notranslate.function6.__doc__,
     r"""

@@ -124,19 +124,17 @@ if sys.version_info[0:2] > (2, 4):
   # Python 2.4 does not seem to work
   commentVerifier.check(A.variable_a.__doc__, "A_variable_a_get(self) -> int")
   commentVerifier.check(A.variable_b.__doc__, "A_variable_b_get(A self) -> int")
-  commentVerifier.check(A.variable_c.__doc__, "\n"
+  commentVerifier.check(A.variable_c.__doc__,
   "A_variable_c_get(self) -> int\n"
   "\n"
   "Parameters:\n"
   "    self: A *\n"
-  "\n"
   )
-  commentVerifier.check(A.variable_d.__doc__, "\n"
+  commentVerifier.check(A.variable_d.__doc__,
   "A_variable_d_get(A self) -> int\n"
   "\n"
   "Parameters:\n"
   "    self: A *\n"
-  "\n"
   )
 
 commentVerifier.check(B.__doc__, "Proxy of C++ B class")
@@ -166,9 +164,9 @@ commentVerifier.check(F.__init__.__doc__, "\n"
 commentVerifier.check(B.funk.__doc__, "funk(B self, int c, int d) -> int")
 commentVerifier.check(funk.__doc__, "funk(A e, short arg2, int c, int d) -> int")
 commentVerifier.check(funkdefaults.__doc__, "\n"
-"  funkdefaults(A e, short arg2, int c, int d, double f=2) -> int\n"
-"  funkdefaults(A e, short arg2, int c, int d) -> int\n"
-"  "
+"    funkdefaults(A e, short arg2, int c, int d, double f=2) -> int\n"
+"    funkdefaults(A e, short arg2, int c, int d) -> int\n"
+"    "
 )
 
 commentVerifier.check(func_input.__doc__, "func_input(int * INPUT) -> int")

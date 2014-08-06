@@ -1476,38 +1476,76 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * docstring()
-   *    Get the docstring text, stripping off {} if neccessary,
-   *    and enclose in triple double quotes.  If autodoc is also
-   *    set then it will build a combined docstring.
+   * build_combined_docstring()
+   *    Build the full docstring which may be a combination of the
+   *    explicit docstring and autodoc string or, if none of them
+   *    is specified, obtained by translating Doxygen comment to
+   *    Python.
+   *
+   *    Return new string to be deleted by caller (never NIL but
+   *    may be empty if there is no docstring).
    * ------------------------------------------------------------ */
-
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool use_triple = true) {
-    String *str = Getattr(n, "feature:docstring");
-    String *doxygen_comment = 0;
-    bool have_ds = (str && Len(str) > 0);
-    bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
-    bool have_doxygen = doxygen && doxygenTranslator->hasDocumentation(n);
-    const char *triple_double = use_triple ? "\"\"\"" : "";
-    String *autodoc = NULL;
-    String *doc = NULL;
-
-    if (have_ds) {
-      char *t = Char(str);
+  String *build_combined_docstring(Node *n, autodoc_t ad_type) {
+    String *docstr = Getattr(n, "feature:docstring");
+    if (docstr && Len(docstr)) {
+      docstr = Copy(docstr);
+      char *t = Char(docstr);
       if (*t == '{') {
-	Delitem(str, 0);
-	Delitem(str, DOH_END);
+	Delitem(docstr, 0);
+	Delitem(docstr, DOH_END);
       }
     }
 
-    if (have_auto) {
-      autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc && Len(autodoc) > 0);
+    if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
+      String* autodoc = make_autodoc(n, ad_type);
+      if (autodoc && Len(autodoc) > 0) {
+	if (docstr && Len(docstr)) {
+	  Append(autodoc, "\n");
+	  Append(autodoc, docstr);
+	}
+
+	String* tmp = autodoc;
+	autodoc = docstr;
+	docstr = tmp;
+      }
+
+      Delete(autodoc);
     }
-    if (have_doxygen) {
-      doxygen_comment = doxygenTranslator->getDocumentation(n);
-      have_doxygen = (doxygen_comment && Len(doxygen_comment) > 0);
+
+    if (!docstr || !Len(docstr)) {
+      if (doxygen) {
+	docstr = Getattr(n, "python:docstring");
+	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
+	  docstr = doxygenTranslator->getDocumentation(n);
+
+	  // Avoid rebuilding it again the next time: notice that we can't do
+	  // this for the combined doc string as autodoc part of it depends on
+	  // the sym:name of the node and it is changed while handling it, so
+	  // the cached results become incorrect. But Doxygen docstring only
+	  // depends on the comment which is not going to change, so we can
+	  // safely cache it.
+	  Setattr(n, "python:docstring", Copy(docstr));
+	}
+      }
     }
+
+    if (!docstr)
+      docstr = NewString("");
+
+    return docstr;
+  }
+
+  /* ------------------------------------------------------------
+   * docstring()
+   *    Get the docstring text enclosed in triple double quotes.
+   * ------------------------------------------------------------ */
+
+  String *docstring(Node *n, autodoc_t ad_type, const String *indent) {
+    String *docstr = build_combined_docstring(n, ad_type);
+    if (!Len(docstr))
+      return docstr;
+
+
     // If there is more than one line then make docstrings like this:
     //
     //      """
@@ -1517,45 +1555,32 @@ public:
     //
     // otherwise, put it all on a single line
     //
-    // All comments translated from doxygen are given as raw strings (prefix "r"),
+    // Notice that all comments are created as raw strings (prefix "r"),
     // because '\' is used often in comments, but may break Python module from
     // loading. For example, in doxy comment one may write path in quotes:
     //
     //     This is path to file "C:\x\file.txt"
     //
-    // Python will no load the module with such comment because of illegal
+    // Python will not load the module with such comment because of illegal
     // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
     // of doxygen doc, Latex expressions, ...
-    if (have_auto && have_ds) {	// Both autodoc and docstring are present
-      doc = NewString("");
-      Printv(doc, "r", triple_double, "\n", pythoncode(autodoc, indent), "\n", pythoncode(str, indent), indent, triple_double, NIL);
-    } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == 0) {
-	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
-      } else {
-	doc = NewString("");
-	Printv(doc, "r", triple_double, "\n", pythoncode(str, indent), indent, triple_double, NIL);
-      }
-    } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == 0) {
-	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
-      } else {
-	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), indent, triple_double, NIL);
-      }
-    } else if (have_doxygen) { // the lowest priority
-      doc = NewString("");
-      Printv(doc, "r", triple_double, "\n", pythoncode(doxygen_comment, indent), indent, triple_double, NIL);
-    }
-    else
-      doc = NewString("");
+    String *doc = NewString("");
+    Append(doc, "r\"\"\"");
 
-    // Save the generated strings in the parse tree in case they are used later
-    // by post processing tools
-    Setattr(n, "python:docstring", doc);
-    Setattr(n, "python:autodoc", autodoc);
+    if (Strchr(docstr, '\n') == 0) {
+      Append(doc, docstr);
+    } else {
+      Append(doc, "\n");
+      Append(doc, pythoncode(docstr, indent));
+      Append(doc, indent);
+    }
+
+    Append(doc, "\"\"\"");
+
+    Delete(docstr);
+
     return doc;
-  }   
+  }
 
   /* ------------------------------------------------------------
    * cdocstring()
@@ -1565,7 +1590,7 @@ public:
 
   String *cdocstring(Node *n, autodoc_t ad_type)
   {
-    String *ds = docstring(n, ad_type, "", false);
+    String *ds = build_combined_docstring(n, ad_type);
     Replaceall(ds, "\\", "\\\\");
     Replaceall(ds, "\"", "\\\"");
     Replaceall(ds, "\n", "\\n\"\n\t\t\"");
