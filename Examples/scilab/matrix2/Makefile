@@ -1,8 +1,8 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-SRCS       = matrixlib.c
-TARGET     = matrixlib
-INTERFACE  = matrixlib.i
+SRCS       = example.c
+TARGET     = example
+INTERFACE  = example.i
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' scilab_run
