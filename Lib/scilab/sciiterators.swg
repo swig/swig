@@ -297,8 +297,8 @@ namespace swig
 
   %typemap(throws, noblock=1) stop_iteration
   {
-    Scierror(999, "%s: stop_iteration exception", SWIG_Scilab_GetFname());
-    SWIG_fail;
+    SWIG_Scilab_Raise(0, "stop_iteration", NULL);
+    return SWIG_ERROR;
   }
 
 // Mark methods that return new objects
