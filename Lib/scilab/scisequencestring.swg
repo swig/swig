@@ -25,7 +25,7 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject obj) {
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), obj);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }
 }

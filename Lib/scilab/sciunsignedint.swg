@@ -36,7 +36,7 @@ SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, c
         return SWIG_ERROR;
       }
       if (iPrec != SCI_UINT32) {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
 
@@ -46,7 +46,7 @@ SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, c
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
       *puiValue = *puiData;
@@ -62,23 +62,23 @@ SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, c
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_TypeError;
       }
       dValue = *pdData;
       if (dValue != floor(dValue)) {
-        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), fname, iVar);
         return SWIG_ValueError;
       }
       if ((dValue < 0) || (dValue > UINT_MAX)) {
-        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit unsigned integer.\n"), fname, iVar);
         return SWIG_OverflowError;
       }
       *puiValue = (unsigned int) dValue;
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -152,7 +152,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
 
     if (iPrec != SCI_UINT32)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
@@ -165,7 +165,7 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 

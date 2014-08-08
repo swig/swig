@@ -54,7 +54,7 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iC
     return SWIG_OK;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 }

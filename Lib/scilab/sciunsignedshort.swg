@@ -36,7 +36,7 @@ SWIG_SciUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValu
         return SWIG_ERROR;
       }
       if (iPrec != SCI_UINT16) {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
 
@@ -46,7 +46,7 @@ SWIG_SciUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValu
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_ERROR;
       }
       *pusValue = *pusData;
@@ -62,23 +62,23 @@ SWIG_SciUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValu
         return SWIG_ERROR;
       }
       if (iRows * iCols != 1) {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
         return SWIG_TypeError;
       }
       dValue = *pdData;
       if (dValue != floor(dValue)) {
-        Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), fname, iVar);
         return SWIG_ValueError;
       }
       if ((dValue < 0) || (dValue > USHRT_MAX)) {
-        Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), fname, iVar);
+        Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit unsigned integer.\n"), fname, iVar);
         return SWIG_OverflowError;
       }
       *pusValue = (unsigned short) dValue;
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -151,7 +151,7 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows,
 
     if (iPrec != SCI_UINT16)
     {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
@@ -164,7 +164,7 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows,
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 

@@ -37,7 +37,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *pvApiCtx, SwigSciObject iVar, long *plValue, 
       return SWIG_ERROR;
     }
     if (iPrec != SCI_INT32) {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, &piData);
@@ -46,7 +46,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *pvApiCtx, SwigSciObject iVar, long *plValue, 
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     *plValue = (long) *piData;
@@ -61,22 +61,22 @@ SWIG_SciDoubleOrInt32_AsLong(void *pvApiCtx, SwigSciObject iVar, long *plValue, 
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     dValue = *pdData;
     if (dValue != floor(dValue)) {
-      Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 32-bit signed integer.\n"), fname, iVar);
       return SWIG_ValueError;
     }
     if ((dValue < LONG_MIN) || (dValue > LONG_MAX)) {
-      Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 32-bit signed integer.\n"), fname, iVar);
       return SWIG_OverflowError;
     }
     *plValue = (long) dValue;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double expected.\n"), fname, iVar);
     return SWIG_TypeError;
   }
 

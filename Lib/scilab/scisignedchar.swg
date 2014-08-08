@@ -36,7 +36,7 @@ SWIG_SciDoubleOrInt8_AsShort(void *pvApiCtx, int iVar, signed char *pscValue, ch
       return SWIG_ERROR;
     }
     if (iPrec != SCI_INT8) {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     sciErr = getMatrixOfInteger8(pvApiCtx, piAddrVar, &iRows, &iCols, &pcData);
@@ -45,7 +45,7 @@ SWIG_SciDoubleOrInt8_AsShort(void *pvApiCtx, int iVar, signed char *pscValue, ch
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     *pscValue = *pcData;
@@ -60,22 +60,22 @@ SWIG_SciDoubleOrInt8_AsShort(void *pvApiCtx, int iVar, signed char *pscValue, ch
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     dValue = *pdData;
     if (dValue != floor(dValue)) {
-      Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 8-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 8-bit signed integer.\n"), fname, iVar);
       return SWIG_ValueError;
     }
     if ((dValue < SCHAR_MIN) || (dValue > SCHAR_MAX)) {
-      Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 8-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 8-bit signed integer.\n"), fname, iVar);
       return SWIG_OverflowError;
     }
     *pscValue = (signed char) dValue;
   }
   else {
-     Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
+     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double expected.\n"), fname, iVar);
     return SWIG_TypeError;
   }
 
@@ -147,7 +147,7 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
       return SWIG_ERROR;
     }
     if (iPrec != SCI_INT8) {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
@@ -159,7 +159,7 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
   return SWIG_OK;

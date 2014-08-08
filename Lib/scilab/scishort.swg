@@ -37,7 +37,7 @@ SWIG_SciDoubleOrInt16_AsShort(void *pvApiCtx, int iVar, short *psValue, char *fn
       return SWIG_ERROR;
     }
     if (iPrec != SCI_INT16) {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     sciErr = getMatrixOfInteger16(pvApiCtx, piAddrVar, &iRows, &iCols, &psData);
@@ -46,7 +46,7 @@ SWIG_SciDoubleOrInt16_AsShort(void *pvApiCtx, int iVar, short *psValue, char *fn
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     *psValue = *psData;
@@ -61,22 +61,22 @@ SWIG_SciDoubleOrInt16_AsShort(void *pvApiCtx, int iVar, short *psValue, char *fn
       return SWIG_ERROR;
     }
     if (iRows * iCols != 1) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
       return SWIG_TypeError;
     }
     dValue = *pdData;
     if (dValue != floor(dValue)) {
-      Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a 16-bit signed integer.\n"), fname, iVar);
       return SWIG_ValueError;
     }
     if ((dValue < SHRT_MIN) || (dValue > SHRT_MAX)) {
-      Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit signed integer.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a 16-bit signed integer.\n"), fname, iVar);
       return SWIG_OverflowError;
     }
     *psValue = (short) dValue;
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double expected.\n"), fname, iVar);
     return SWIG_TypeError;
   }
 
@@ -149,7 +149,7 @@ SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, 
       return SWIG_ERROR;
     }
     if (iPrec != SCI_INT16) {
-      Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double matrix expected.\n"), fname, iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double matrix expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
@@ -161,7 +161,7 @@ SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, 
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double matrix expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 

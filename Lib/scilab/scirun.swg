@@ -203,6 +203,8 @@ SWIG_Scilab_NewMemberObj(void *pvApiCtx, int iVarOut, void *_ptr, int _sz, swig_
 
 /* Error functions */
 
+#define SCILAB_API_ARGUMENT_ERROR 999
+
 SWIGINTERN const char*
 SWIG_Scilab_ErrorType(int code) {
   switch(code) {
@@ -276,7 +278,7 @@ int SWIG_this(SWIG_GatewayParameters) {
         (double) (unsigned long) ptrValue));
   }
   else {
-    Scierror(999, _("%s: Incorrect value for input argument #%d: The value is not a pointer.\n"), fname, 1);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The value is not a pointer.\n"), fname, 1);
     return SWIG_ERROR;
   }
 }
@@ -294,11 +296,11 @@ int SWIG_ptr(SWIG_GatewayParameters) {
 	}
   if (getScalarDouble(pvApiCtx, piAddr, &dValue) == 0) {
     if (dValue != (unsigned long)dValue) {
-      Scierror(999, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_ValueError;
     }
     if ((dValue < 0) || (dValue > ULONG_MAX)) {
-      Scierror(999, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Overflow error for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_OverflowError;
     }
     SWIG_Scilab_SetOutputPosition(1);

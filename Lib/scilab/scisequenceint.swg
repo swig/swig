@@ -32,7 +32,7 @@ SWIG_AsCheck_Sequence_dec(int)(SwigSciObject obj) {
   }
   else
   {
-    Scierror(999, _("%s: Wrong type for input argument #%d: An integer is expected.\n"), SWIG_Scilab_GetFname(), obj);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: An integer is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }
 }
@@ -58,7 +58,7 @@ SWIG_AsSize_Sequence_dec(int)(SwigSciObject obj, int *piSize) {
   int iMatrixColCount;
   if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &piMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
-      Scierror(999, _("%s: Wrong size for input argument #%d: An integer vector is expected.\n"), SWIG_Scilab_GetFname(), obj);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: An integer vector is expected.\n"), SWIG_Scilab_GetFname(), obj);
       return SWIG_ERROR;
     }
     *piSize = iMatrixRowCount * iMatrixColCount;

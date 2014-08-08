@@ -33,7 +33,7 @@ SWIG_SciString_AsChar(void *pvApiCtx, int iVar, char *pcValue, char *fname) {
     return SWIG_ERROR;
   }
   if (iType != sci_strings) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -44,7 +44,7 @@ SWIG_SciString_AsChar(void *pvApiCtx, int iVar, char *pcValue, char *fname) {
     return SWIG_ERROR;
   }
   if (iRows * iCols != 1) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
   *pcValue = pstStrings[0];

@@ -18,12 +18,12 @@ SWIG_SciDouble_AsDouble(void *pvApiCtx, SwigSciObject iVar, double *pdblValue, c
   }
 
   if (!isDoubleType(pvApiCtx, piAddrVar) || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
   if (!isScalar(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
@@ -72,7 +72,7 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *i
     }
   }
   else {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
 
