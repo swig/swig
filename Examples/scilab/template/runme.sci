@@ -37,3 +37,5 @@ printf("dsum = %3.2f\n", dsum);
 delete_vecint(iv);
 delete_vecdouble(dv);
 
+exit
+
