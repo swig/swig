@@ -853,6 +853,9 @@ int MATLAB::variableWrapper(Node *n){
   if(class_name)
     return Language::variableWrapper(n);
 
+  if (Language::variableWrapper(n) != SWIG_OK)
+    return SWIG_ERROR;
+
   // Name of variable
   String *symname = Getattr(n, "sym:name");
 
@@ -905,7 +908,7 @@ int MATLAB::variableWrapper(Node *n){
   Delete(f_wrap_m);
   f_wrap_m = 0;
 
-  return Language::variableWrapper(n);
+  return SWIG_OK;
 }
 
 int MATLAB::constantWrapper(Node *n){
@@ -1301,21 +1304,22 @@ int MATLAB::membervariableHandler(Node *n) {
   Delete(getname);
   Delete(getwname);
 
-  // Name setter function
-  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  String *setwname = Swig_name_wrapper(setname);
-  
-  // Add setter function
-  int gw_ind_set = toGateway(setname,setwname);
-  Printf(set_field,"        case '%s'\n",symname);
-  Printf(set_field,"          %s(%d,'%s',self,v);\n",mex_fcn,gw_ind_set,setname);
-  Printf(set_field,"          ok = true;\n");
-  Printf(set_field,"          return\n");
+  if (!GetFlag(n,"feature:immutable")) {
+    // Name setter function
+    String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+    String *setwname = Swig_name_wrapper(setname);
 
-  // Tidy up
-  Delete(setname);
-  Delete(setwname);
+    // Add setter function
+    int gw_ind_set = toGateway(setname,setwname);
+    Printf(set_field,"        case '%s'\n",symname);
+    Printf(set_field,"          %s(%d,'%s',self,v);\n",mex_fcn,gw_ind_set,setname);
+    Printf(set_field,"          ok = true;\n");
+    Printf(set_field,"          return\n");
 
+    // Tidy up
+    Delete(setname);
+    Delete(setwname);
+  }
   return Language::membervariableHandler(n);
 }
 
@@ -1453,8 +1457,15 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   Printf(stderr,"Entering staticmembervariableHandler\n");
 #endif
 
+  // call Language implementation first, as this sets wrappedasconstant
+  if (Language::staticmembervariableHandler(n) != SWIG_OK)
+    return SWIG_ERROR;
+  
   // Name of variable
   String *symname = Getattr(n, "sym:name");
+
+  if (GetFlag(n, "wrappedasconstant"))
+      return SWIG_OK;
 
   // Name getter function
   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
@@ -1466,19 +1477,23 @@ int MATLAB::staticmembervariableHandler(Node *n) {
 
   // Add to function switch
   int gw_ind_get = toGateway(getname,getwname);
-  int gw_ind_set = toGateway(setname,setwname);
-
-  // Add getter/setter function
-  Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
-  Printf(static_methods,"      narginchk(0,1)\n");
-  Printf(static_methods,"      if nargin==0\n");
-  Printf(static_methods,"        nargoutchk(0,1)\n");
-  Printf(static_methods,"        varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
-  Printf(static_methods,"      else\n");
-  Printf(static_methods,"        nargoutchk(0,0)\n");
-  Printf(static_methods,"        %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
-  Printf(static_methods,"      end\n");
-  Printf(static_methods,"    end\n");
+  if(GetFlag(n, "feature:immutable")){
+    Printf(f_wrap_m,"function v = %s()\n",symname);  
+    Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
+    Printf(f_wrap_m,"end\n");
+  } else {
+    int gw_ind_set = toGateway(setname,setwname);
+    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
+    Printf(static_methods,"      narginchk(0,1)\n");
+    Printf(static_methods,"      if nargin==0\n");
+    Printf(static_methods,"        nargoutchk(0,1)\n");
+    Printf(static_methods,"        varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
+    Printf(static_methods,"      else\n");
+    Printf(static_methods,"        nargoutchk(0,0)\n");
+    Printf(static_methods,"        %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
+    Printf(static_methods,"      end\n");
+    Printf(static_methods,"    end\n");
+  }
 
   // Tidy up
   Delete(getname);
@@ -1486,7 +1501,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   Delete(setname);
   Delete(setwname);
 
-  return Language::staticmembervariableHandler(n);
+  return SWIG_OK;
 }
 
 /*
