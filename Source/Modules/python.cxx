@@ -1733,14 +1733,8 @@ public:
       // Write default value
       if (value && !calling) {
 	String *new_value = convertValue(value, Getattr(p, "type"));
-	if (new_value) {
-	  value = new_value;
-	} else {
-	  Node *lookup = Swig_symbol_clookup(value, 0);
-	  if (lookup)
-	    value = Getattr(lookup, "sym:name");
-	}
-	Printf(doc, "=%s", value);
+	if (new_value)
+	  Printf(doc, "=%s", new_value);
       }
       Delete(type_str);
       Delete(made_name);
@@ -1898,39 +1892,46 @@ public:
 
   /* ------------------------------------------------------------
    * convertValue()
-   *    Check if string v can be a Python value literal,
-   *    (eg. number or string), or translate it to a Python literal.
+   *    Check if string v can be a Python value literal or a
+   *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-	/* number or string (or maybe NULL pointer) */
-	if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	  return NewString("None");
-	else
-	  return v;
-      }
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("True");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("False");
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+    char fc = (Char(v))[0];
+    if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
+      /* number or string (or maybe NULL pointer) */
+      if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
+	return NewString("None");
+      else
+	return v;
     }
-    return 0;
+    if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+      return NewString("True");
+    if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+      return NewString("False");
+    if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+
+    // This could also be an enum type, default value of which is perfectly
+    // representable in Python.
+    Node *lookup = Swig_symbol_clookup(v, 0);
+    if (lookup) {
+      if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	return Getattr(lookup, "sym:name");
+    }
+
+    return NIL;
   }
+
   /* ------------------------------------------------------------
-   * is_primitive_defaultargs()
+   * is_representable_as_pyargs()
    *    Check if the function parameters default argument values
-   *    have primitive types, so that their default values could be
-   *    used in Python code.
+   *    can be represented in Python.
    *
    *    If this method returns false, the parameters will be translated
    *    to a generic "*args" which allows us to deal with default values
    *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
-  bool is_primitive_defaultargs(Node *n) {
+  bool is_representable_as_pyargs(Node *n) {
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
@@ -1994,7 +1995,7 @@ public:
       n = nn;
 
     /* For overloaded function, just use *args */
-    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_primitive_defaultargs(n)) {
+    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_representable_as_pyargs(n)) {
       String *parms = NewString("");
       if (in_class)
 	Printf(parms, "self, ");
