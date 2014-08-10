@@ -781,7 +781,7 @@ String *PyDocConverter::makeDocumentation(Node *n)
   currentNode = n;
 
   // for overloaded functions we must concat documentation for underlying overloads
-  if (Checkattr(n, "kind", "function") && Getattr(n, "sym:overloaded")) {
+  if (Getattr(n, "sym:overloaded")) {
     // rewind to the first overload
     while (Getattr(n, "sym:previousSibling"))
       n = Getattr(n, "sym:previousSibling");

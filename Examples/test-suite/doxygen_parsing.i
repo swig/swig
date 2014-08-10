@@ -39,6 +39,12 @@ int someVar=42;
 class SomeAnotherClass
 {
 public:
+	/// First overloaded constructor.
+	SomeAnotherClass(int) { }
+
+	/// Second overloaded constructor.
+	SomeAnotherClass(const char*) { }
+
 
 	/**
 	 * The class attribute comment

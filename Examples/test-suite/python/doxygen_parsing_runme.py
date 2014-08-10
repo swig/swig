@@ -17,6 +17,15 @@ commentVerifier.check(doxygen_parsing.SomeStruct.__doc__,
     r"""
     The struct comment
     """)
+commentVerifier.check(doxygen_parsing.SomeAnotherClass.__init__.__doc__,
+    r"""
+        *Overload 1:*
+         First overloaded constructor.
+
+        *Overload 2:*
+         Second overloaded constructor.
+
+        """)
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethod.__doc__,
     r"""
         The class method comment.
