@@ -1480,9 +1480,9 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   // Add to function switch
   int gw_ind_get = toGateway(getname,getwname);
   if(GetFlag(n, "feature:immutable")){
-    Printf(f_wrap_m,"function v = %s()\n",symname);  
-    Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
-    Printf(f_wrap_m,"end\n");
+    Printf(static_methods,"function v = %s()\n",symname);  
+    Printf(static_methods,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
+    Printf(static_methods,"end\n");
   } else {
     int gw_ind_set = toGateway(setname,setwname);
     Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
