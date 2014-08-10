@@ -233,7 +233,7 @@ SWIG_AsCharPtrAndSize(mxArray* pm, char** cptr, size_t* psize, int *alloc)
   if(!mxIsChar(pm) || mxGetM(pm)!=1) return SWIG_TypeError;
   size_t len=mxGetN(pm);
   static char buf[256];
-  int flag = mxGetString(pm,buf,mwSize(sizeof(buf)));
+  int flag = mxGetString(pm,buf,(mwSize)sizeof(buf));
   if(flag) return SWIG_TypeError;
 
   if (alloc) {
@@ -251,8 +251,8 @@ SWIG_AsCharPtrAndSize(mxArray* pm, char** cptr, size_t* psize, int *alloc)
 SWIGINTERNINLINE mxArray*
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-   mwSize dims[2] = {1,mwSize(size)};
-   mxArray* ret = mxCreateCharArray(mwSize(2),dims);
+   mwSize dims[2] = {1,(mwSize)size};
+   mxArray* ret = mxCreateCharArray((mwSize)2,dims);
    if(!ret) mexErrMsgIdAndTxt("SWIG:FromCharPtrAndSize","mxCreateCharArray failed");
    mxChar *ret_data = (mxChar *)mxGetData(ret);
    int i;

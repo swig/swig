@@ -1,8 +1,6 @@
 %insert(runtime) %{
-#include <cstdlib>
-#include <iostream>
 #include <mex.h>
-#include <math.h>
+#include <math.h> /* need this for floor() */
 %}
 
 %insert(runtime) "swigrun.swg";

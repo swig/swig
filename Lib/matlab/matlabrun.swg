@@ -68,15 +68,11 @@ SWIGRUNTIME void SWIG_Error(int code, const char *msg) {
 SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *clientdata);
 SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *pointer);
 
-// For backward compatibility only
+/* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
 #define SWIG_arg_fail(arg)      0
 
-// Runtime API implementation
-
-#include <map>
-#include <vector>
-#include <string>
+/* Runtime API implementation */
 
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   mxArray* pm_command = mxCreateString("_swigCreate");
@@ -95,9 +91,10 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   if (type->clientdata)
         matlab_classname = (const char *)type->clientdata;
   else {
-       // TODO do we really want this? it's a fall-back for non-package types (e.g pointer-to-float)
-       // However, it will fail anyway because the mexCallMATLABWithTrap call will fail 
-       // (as there'd be no package.float matlab-type)
+       /* TODO do we really want this? it's a fall-back for non-package types (e.g pointer-to-float)
+          However, it will fail anyway because the mexCallMATLABWithTrap call will fail 
+          (as there'd be no package.float matlab-type)
+       */
        matlab_classname = type->name+3;    /* FIXME: Hack to dereference pointer */
        mexWarnMsgIdAndTxt("SWIG:NewPointerObj","NewPointerObj problem. clientdata NULL. guessed %s", matlab_classname);
   }       
@@ -107,7 +104,7 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
 
   /* Hack hack */
   if(ex){
-    // the above failed, so let's just create a SwigRef
+    /* the above failed, so let's just create a SwigRef */
     mxDestroyArray(ex);
     mexWarnMsgIdAndTxt("SWIG:NewPointerObj","NewPointerObj problem. creating SwigRef as opposed to %s", matlab_classname);
     ex = mexCallMATLABWithTrap(1,&pm,0,0,"SwigRef");

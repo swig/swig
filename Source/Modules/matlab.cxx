@@ -319,9 +319,6 @@ int MATLAB::top(Node *n) {
 
   Printf(f_runtime, "\n");
 
-  if (!CPlusPlus)
-    Printf(f_header,"extern \"C\" {\n");
-
   // Constant lookup
   initConstant();
 
@@ -336,9 +333,6 @@ int MATLAB::top(Node *n) {
     
   // Finalize Mex-file gate way
   finalizeGateway();
-
-  if (!CPlusPlus)
-    Printf(f_header,"}\n");
 
   //  if (directorsEnabled())
   //    Swig_insert_file("director.swg", f_runtime);
@@ -1219,7 +1213,7 @@ void MATLAB::initGateway(){
   // The first argument is always the ID
   Printf(f_gateway,"  if(--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"First input should be the function ID .\");\n");
-  Printf(f_gateway,"  int fcn_id = int(mxGetScalar(*argv++));\n");
+  Printf(f_gateway,"  int fcn_id = (int)mxGetScalar(*argv++);\n");
 
   // The second argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
