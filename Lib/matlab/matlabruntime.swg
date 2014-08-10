@@ -9,6 +9,11 @@
 
 %insert(initbeforefunc) "swiginit.swg"
 
+/* Define the LoadModule function.
+   This will be called by mexFunction.
+   Note that its bracket isn't closed here as that will be done
+   in MATLAB::top() in matlab.cxx, see comments there why we do this.
+*/
 %insert(initbeforefunc) %{
 static bool is_loaded = false;
 void SWIG_Matlab_LoadModule(const char* name) {
@@ -17,5 +22,4 @@ void SWIG_Matlab_LoadModule(const char* name) {
   if(false){
     mexErrMsgIdAndTxt("SWIG:LoadFailure","Could not load module %s",name);
   }
-}
 %}

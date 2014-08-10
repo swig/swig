@@ -338,6 +338,14 @@ int MATLAB::top(Node *n) {
   //    Swig_insert_file("director.swg", f_runtime);
 
 
+  /* Finish off our init function:
+     we need to close the bracket of the initialisation function (LoadModule).
+     This was left open such that any dynamic_cast variables are
+     set inside that function (as those are set via %init in swig.swg, see macro
+     DYNAMIC_CAST).
+  */
+  Printf(f_init, "}\n");
+
   SwigType_emit_type_table(f_runtime, f_wrappers);
   Dump(f_runtime, f_begin);
   Dump(f_header, f_begin);
