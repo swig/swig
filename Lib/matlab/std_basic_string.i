@@ -45,49 +45,5 @@ SWIGINTERNINLINE mxArray*
 
 
 #if !defined(SWIG_STD_WSTRING)
-#error THIS CODE IS PYTHON
-%fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
-	  fragment="SWIG_AsWCharPtrAndSize") {
-SWIGINTERN int
-  SWIG_AsPtr(std::basic_string<wchar_t>)(PyObject* obj, std::wstring **val)
-  {
-    static swig_type_info* string_info = 
-      SWIG_TypeQuery("std::basic_string<wchar_t> *");
-    std::wstring *vptr;    
-    if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) == SWIG_OK) {
-      if (val) *val = vptr;
-      return SWIG_OLDOBJ;
-    } else {
-      PyErr_Clear();
-      wchar_t *buf = 0 ; size_t size = 0; int alloc = 0;
-      if (SWIG_AsWCharPtrAndSize(obj, &buf, &size, &alloc) == SWIG_OK) {
-	if (buf) {
-	  if (val) *val = new std::wstring(buf, size - 1);
-	  if (alloc == SWIG_NEWOBJ) %delete_array(buf);
-	  return SWIG_NEWOBJ;
-	}
-      } else {
-	PyErr_Clear();
-      }  
-      if (val) {
-	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	PyErr_SetString(PyExc_TypeError,"a wstring is expected");
-	SWIG_PYTHON_THREAD_END_BLOCK;
-      }
-      return 0;
-    }
-  }
-}
-
-%fragment(SWIG_From_frag(std::basic_string<wchar_t>),"header",
-	  fragment="SWIG_FromWCharPtrAndSize") {
-SWIGINTERNINLINE PyObject*
-  SWIG_From(std::basic_string<wchar_t>)(const std::wstring& s)
-  {
-    return SWIG_FromWCharPtrAndSize(s.data(), s.size());
-  }
-}
-
-%typemaps_asptrfromn(%checkcode(UNISTRING), std::basic_string<wchar_t>);
-
+// TODO Python has lots of stuff here
 #endif
