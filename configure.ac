@@ -1224,7 +1224,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
@@ -1257,11 +1257,11 @@ else
 
   # check for V8 library
   AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
   v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
   for d in $v8libdirs ; do
-    if test -r $d/libv8.so; then
+    if test -r $d/libv8$JSSO; then
       JSV8LIBDIR=$d
       JSV8LIB="-L$d -lv8"
       break
@@ -1280,7 +1280,7 @@ else
   # linking options
   case $host in
   *-*-darwin*)
-    JSV8DYNAMICLINKING="" # TODO: add osx configuration
+    JSV8DYNAMICLINKING="$JSV8LIB"
     ;;
   *-*-linux*)
     JSV8DYNAMICLINKING="$JSV8LIB"
