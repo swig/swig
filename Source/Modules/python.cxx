@@ -1563,9 +1563,7 @@ public:
     Parm *pnext;
 
 
-    int lines = 0;
     int start_arg_num = is_wrapping_class() ? 1 : 0;
-    const int maxwidth = 80;
 
     if (calling)
       func_annotation = false;
@@ -1615,12 +1613,6 @@ public:
       if (Len(doc)) {
 	// add a comma to the previous one if any
 	Append(doc, ", ");
-
-	// Do we need to wrap a long line?
-	if ((Len(doc) - lines * maxwidth) > maxwidth) {
-	  Printf(doc, "\n%s", tab4);
-	  lines += 1;
-	}
       }
 
       // Do the param type too?
