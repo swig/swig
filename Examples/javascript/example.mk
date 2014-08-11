@@ -7,12 +7,18 @@ else
 	JSENGINE=node
 endif
 
+ifneq (, $(V8_VERSION))
+	JSV8_VERSION=$(V8_VERSION)
+else
+	JSV8_VERSION=0x031110
+endif
+
 EXAMPLES_TOP=../..
 SWIG_TOP=../../..
 SWIG = $(SWIG_TOP)/preinst-swig
 TARGET = example
 INTERFACE = example.i
-SWIGOPT=-$(JSENGINE)
+SWIGOPT=-$(JSENGINE) -DV8_VERSION=$(JSV8_VERSION)
 
 check: build
 	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' JSENGINE='$(JSENGINE)' TARGET='$(TARGET)' javascript_run
