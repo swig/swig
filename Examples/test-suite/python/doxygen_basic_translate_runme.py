@@ -13,6 +13,7 @@ commentVerifier.check(doxygen_basic_translate.function.__doc__,
 
     Author: Some author
 
+    :rtype: int
     :return: Some number
 
     See also: function2
@@ -86,6 +87,7 @@ commentVerifier.check(doxygen_basic_translate.Atan2.__doc__,
     :param y: Vertical coordinate.
     :type x: float
     :param x: Horizontal coordinate.
+    :rtype: float
     :return: Arc tangent of ``y/x``.
     """
 )

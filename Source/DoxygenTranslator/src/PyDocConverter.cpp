@@ -334,6 +334,38 @@ PyDocConverter::PyDocConverter(int flags) :
   fillStaticTables();
 }
 
+// Return the type as it should appear in the output documentation.
+static
+std::string getPyDocType(Node* n, const_String_or_char_ptr lname = "")
+{
+  std::string type;
+
+  String *s = Swig_typemap_lookup("doctype", n, lname, 0);
+  if (!s)
+    s = SwigType_str(Getattr(n, "type"), "");
+
+  if (Language::classLookup(s)) {
+    // In Python C++ namespaces are flattened, so remove all but last component
+    // of the name.
+    String * const last = Swig_scopename_last(s);
+
+    // We are not actually sure whether it's a documented class or not, but
+    // there doesn't seem to be any harm in making it a reference if it isn't,
+    // while there is a lot of benefit in having a hyperlink if it is.
+    type = ":py:class:`";
+    type += Char (last);
+    type += "`";
+
+    Delete(last);
+  } else {
+    type = Char(s);
+  }
+
+  Delete(s);
+
+  return type;
+}
+
 std::string PyDocConverter::getParamType(std::string param)
 {
   std::string type;
@@ -344,28 +376,7 @@ std::string PyDocConverter::getParamType(std::string param)
     if (Char (pname) != param)
       continue;
 
-    String *s = Swig_typemap_lookup("doctype", p, pname, 0);
-    if (!s)
-      s = SwigType_str(Getattr(p, "type"), "");
-
-    if (Language::classLookup(s)) {
-      // In Python C++ namespaces are flattened, so remove all but last component
-      // of the name.
-      String * const last = Swig_scopename_last(s);
-
-      // We are not actually sure whether it's a documented class or not, but
-      // there doesn't seem to be any harm in making it a reference if it isn't,
-      // while there is a lot of benefit in having a hyperlink if it is.
-      type = ":py:class:`";
-      type += Char (last);
-      type += "`";
-
-      Delete(last);
-    } else {
-      type = Char(s);
-    }
-
-    Delete(s);
+    type = getPyDocType(p, pname);
     break;
   }
   Delete(plist);
@@ -618,6 +629,14 @@ void PyDocConverter::handleTagReturn(DoxygenEntity &tag,
                                      const std::string &)
 {
   IndentGuard indent(translatedComment, m_indent);
+
+  const std::string pytype = getPyDocType(currentNode);
+  if (!pytype.empty()) {
+    translatedComment += ":rtype: ";
+    translatedComment += pytype;
+    translatedComment += "\n";
+    translatedComment += indent.getFirstLineIndent();
+  }
 
   translatedComment += ":return: ";
   handleParagraph(tag, translatedComment);

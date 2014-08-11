@@ -263,10 +263,13 @@ r"""
 
     Another remarks section
 
+    :rtype: int
     :return: Whatever
 
+    :rtype: int
     :return: it
 
+    :rtype: int
     :return: may return
 
     """)
