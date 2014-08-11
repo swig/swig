@@ -115,7 +115,11 @@ The usual (and recommended) way is to build the extension as a separate
 dynamically loaded module (which is supported by all modern operating
 systems).  You can then specify that this be loaded
 automatically in <tt>php.ini</tt> or load it explicitly for any script which
-needs it.
+needs it.  As of version 5.3 of PHP, the <a href="http://php.net/manual/en/function.dl.php">dl() 
+function</a> cannot be used and your only option is to  
+add to the <tt>php.ini</tt> something like
+
+extension = /usr/lib64/php/modules/mymodule.so
 </p>
 
 <p>
