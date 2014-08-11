@@ -20,11 +20,12 @@ commentVerifier.check(doxygen_parsing.SomeStruct.__doc__,
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.__init__.__doc__,
     r"""
         *Overload 1:*
-         First overloaded constructor.
+        First overloaded constructor.
+
+        |
 
         *Overload 2:*
-         Second overloaded constructor.
-
+        Second overloaded constructor.
         """)
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethod.__doc__,
     r"""

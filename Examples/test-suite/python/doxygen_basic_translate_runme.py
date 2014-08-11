@@ -31,11 +31,12 @@ commentVerifier.check(doxygen_basic_translate.function3.__doc__,
     A test for overloaded functions
     This is function **one**
 
+    |
+
     *Overload 2:*
 
     A test for overloaded functions
     This is function **two**
-
     """
 )
 commentVerifier.check(doxygen_basic_translate.function4.__doc__,

@@ -85,6 +85,35 @@ private:
   IndentGuard& operator=(const IndentGuard&);
 };
 
+// Return the indent of the given multiline string, i.e. the maximal number of
+// spaces present in the beginning of all its non-empty lines.
+static size_t determineIndent(const string& s)
+{
+  size_t minIndent = static_cast<size_t>(-1);
+
+  for (size_t lineStart = 0; lineStart < s.length();) {
+    const size_t lineEnd = s.find('\n', lineStart);
+    const size_t firstNonSpace = s.find_first_not_of(' ', lineStart);
+
+    // If inequality doesn't hold, it means that this line contains only spaces
+    // (notice that this works whether lineEnd is valid or string::npos), in
+    // which case it doesn't matter when determining the indent.
+    if (firstNonSpace < lineEnd) {
+      // Here we can be sure firstNonSpace != string::npos.
+      const size_t lineIndent = firstNonSpace - lineStart;
+      if (lineIndent < minIndent)
+        minIndent = lineIndent;
+    }
+
+    if (lineEnd == string::npos)
+      break;
+
+    lineStart = lineEnd + 1;
+  }
+
+  return minIndent;
+}
+
 static void trimWhitespace(string& s)
 {
   const size_t lastNonSpace = s.find_last_not_of(' ');
@@ -788,7 +817,11 @@ String *PyDocConverter::makeDocumentation(Node *n)
 
     std::vector<std::string> allDocumentation;
 
+    // minimal indent of any documentation comments, not initialized yet
+    size_t minIndent = static_cast<size_t>(-1);
+
     // for each real method (not a generated overload) append the documentation
+    string oneDoc;
     while (n) {
       documentation = getDoxygenComment(n);
       if (!Swig_is_generated_overload(n) && documentation) {
@@ -797,28 +830,48 @@ String *PyDocConverter::makeDocumentation(Node *n)
           String *comment = NewString("");
           Append(comment, documentation);
           Replaceall(comment, "\n *", "\n");
-          allDocumentation.push_back(Char (comment));
+          oneDoc = Char (comment);
           Delete(comment);
         } else {
           std::list<DoxygenEntity> entityList = parser.createTree(
               Char (documentation), Char (Getfile(documentation)),
               Getline(documentation));
           DoxygenEntity root("root", entityList);
-          allDocumentation.push_back(translateSubtree(root));
+
+          oneDoc = translateSubtree(root);
         }
+
+        // find the minimal indent of this documentation comment, we need to
+        // ensure that the entire comment is indented by it to avoid the leading
+        // parts of the other lines being simply discarded later
+        const size_t oneIndent = determineIndent(oneDoc);
+        if (oneIndent < minIndent)
+          minIndent = oneIndent;
+
+        allDocumentation.push_back(oneDoc);
       }
       n = Getattr(n, "sym:nextSibling");
     }
 
     // construct final documentation string
     if (allDocumentation.size() > 1) {
+      string indentStr;
+      if (minIndent != static_cast<size_t>(-1))
+        indentStr.assign(minIndent, ' ');
+
       std::ostringstream concatDocString;
-      for (int realOverloadCount = 0;
-          realOverloadCount < (int) allDocumentation.size();
+      for (size_t realOverloadCount = 0;
+          realOverloadCount < allDocumentation.size();
           realOverloadCount++) {
-        concatDocString << "*Overload " << (realOverloadCount + 1) << ":*"
-            << std::endl;
-        concatDocString << allDocumentation[realOverloadCount] << std::endl;
+        if (realOverloadCount != 0) {
+          // separate it from the preceding one.
+          concatDocString << "\n" << indentStr << "|\n\n";
+        }
+
+        oneDoc = allDocumentation[realOverloadCount];
+        trimWhitespace(oneDoc);
+        concatDocString << indentStr << "*Overload " << (realOverloadCount + 1) << ":*\n"
+                        << oneDoc;
       }
       pyDocString = concatDocString.str();
     } else if (allDocumentation.size() == 1) {
