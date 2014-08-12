@@ -113,13 +113,7 @@ more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
 <p>
 The usual (and recommended) way is to build the extension as a separate
 dynamically loaded module (which is supported by all modern operating
-systems).  You can then specify that this be loaded
-automatically in <tt>php.ini</tt> or load it explicitly for any script which
-needs it.  As of version 5.3 of PHP, the <a href="http://php.net/manual/en/function.dl.php">dl() 
-function</a> cannot be used and your only option is to  
-add to the <tt>php.ini</tt> something like
-
-extension = /usr/lib64/php/modules/mymodule.so
+systems).
 </p>
 
 <p>
@@ -147,10 +141,9 @@ least work for Linux though):
 
 <H3><a name="Php_nn1_3"></a>34.1.2 Using PHP Extensions</H3>
 
-
 <p>
-To test the extension from a PHP script, you need to load it first. You
-can load it for every script by adding this line to the <tt>[PHP]</tt> section of
+To test the extension from a PHP script, you first need to load tell PHP to
+load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
 <tt>php.ini</tt>:
 </p>
 
@@ -159,8 +152,14 @@ can load it for every script by adding this line to the <tt>[PHP]</tt> section o
 </pre></div>
 
 <p>
-Alternatively, you can load it explicitly only for scripts which need it
-by adding this line to the start of each such PHP script::
+If the module is in PHP's default extension directory, you can omit the path.
+</p>
+
+<p>
+For some SAPIs (for example, the CLI SAPI) you can instead use the
+<a href="http://php.net/manual/en/function.dl.php">dl() function</a> to load
+an extension at run time, by adding a like like this to the start of each
+PHP script which uses your extension:
 </p>
 
 <div class="code"><pre>
@@ -168,13 +167,24 @@ by adding this line to the start of each such PHP script::
 </pre></div>
 
 <p>
-SWIG also generates a php module, which
-attempts to do the <tt>dl()</tt> call for you:
+But note that this doesn't work when running PHP through a webserver in PHP5.3
+and later - you'll need to use <tt>extension</tt> in <tt>php.ini</tt> as
+described above.
+</p>
+
+<p>
+The PHP module which SWIG generates will also attempt to do the <tt>dl()</tt>
+call for you if the extension isn't already loaded:
 </p>
 
 <div class="code"><pre>
 	include("example.php");
 </pre></div>
+
+<p>
+This PHP module also defines the PHP classes for the wrapped API, so you'll
+almost certainly want to include it anyway.
+</p>
 
 <H2><a name="Php_nn2"></a>34.2 Basic PHP interface</H2>
 
