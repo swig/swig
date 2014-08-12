@@ -116,7 +116,7 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031511)
   v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
 #else
@@ -164,7 +164,7 @@ int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void** ptr) {
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031511)
   v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
 #else
@@ -186,8 +186,11 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031511)
   obj->SetPointerInInternalField(0, cdata);
+  cdata->handle = v8::Persistent<v8::Object>::New(obj);
+#elif (SWIG_V8_VERSION < 0x031900)
+  obj->SetAlignedPointerInInternalField(0, cdata);
   cdata->handle = v8::Persistent<v8::Object>::New(obj);
 #else
   obj->SetAlignedPointerInInternalField(0, cdata);
@@ -367,7 +370,7 @@ swig_type_info* SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr,
 
     v8::Handle<v8::Object> objRef = valRef->ToObject();
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031511)
     v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
     sobj = static_cast<SwigV8PackedData*>(v8::External::Unwrap(cdataRef));
 #else
@@ -425,8 +428,11 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
 
   obj->SetHiddenValue(v8::String::New("__swig__packed_data__"), v8::Boolean::New(true));
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031511)
   obj->SetPointerInInternalField(0, cdata);
+  cdata->handle = v8::Persistent<v8::Object>::New(obj);
+#elif (SWIG_V8_VERSION < 0x031900)
+  obj->SetAlignedPointerInInternalField(0, cdata);
   cdata->handle = v8::Persistent<v8::Object>::New(obj);
 #else
   obj->SetAlignedPointerInInternalField(0, cdata);
