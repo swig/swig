@@ -70,7 +70,13 @@ V8Shell::~V8Shell() {}
 bool V8Shell::RunScript(const std::string& scriptPath) {
 
   if (!context.IsEmpty()) {
+#if (V8_VERSION < 0x031710)
     context.Dispose();
+#elif (V8_VERSION < 0x031900)
+    context.Dispose(v8::Isolate::GetCurrent());
+#else
+    context.Dispose();
+#endif
   }
 
   std::string source = ReadFile(scriptPath);
@@ -85,7 +91,15 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
   bool success = _ExecuteScript(source, scriptPath);
 
   context->Exit();
-  context.Dispose();
+
+#if (V8_VERSION < 0x031710)
+    context.Dispose();
+#elif (V8_VERSION < 0x031900)
+    context.Dispose(v8::Isolate::GetCurrent());
+#else
+    context.Dispose();
+#endif
+
   v8::V8::Dispose();
 
   return true;
@@ -112,7 +126,13 @@ bool V8Shell::_ExecuteScript(const std::string& source, const std::string& scrip
 bool V8Shell::RunShell() {
 
   if (!context.IsEmpty()) {
+#if (V8_VERSION < 0x031710)
     context.Dispose();
+#elif (V8_VERSION < 0x031900)
+    context.Dispose(v8::Isolate::GetCurrent());
+#else
+    context.Dispose();
+#endif
   }
 
   context = CreateShellContext();
@@ -139,7 +159,13 @@ bool V8Shell::RunShell() {
   printf("\n");
 
   context->Exit();
+#if (V8_VERSION < 0x031710)
   context.Dispose();
+#elif (V8_VERSION < 0x031900)
+  context.Dispose(v8::Isolate::GetCurrent());
+#else
+  context.Dispose();
+#endif
   v8::V8::Dispose();
 
   return true;
