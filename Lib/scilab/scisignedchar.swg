@@ -119,15 +119,13 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
     return SWIG_ERROR;
   }
 
-  if (iType == sci_matrix)
-  {
+  if (iType == sci_matrix) {
     double *pdData = NULL;
     int size = 0;
     int i;
 
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdData);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -137,12 +135,10 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
     for (i = 0; i < size; i++)
       (*pscValue)[i] = (signed char) pdData[i];
   }
-  else if (iType == sci_ints)
-  {
+  else if (iType == sci_ints) {
     int iPrec = 0;
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -157,8 +153,7 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
       return SWIG_ERROR;
     }
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }

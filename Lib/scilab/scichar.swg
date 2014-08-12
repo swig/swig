@@ -132,8 +132,7 @@ SWIG_SciString_AsCharPtrAndSize(void *pvApiCtx, int iVar, char **pcValue, size_t
   }
 
   // TODO: return SWIG_ERROR if pcValue NULL (now returning SWIG_ERROR fails some typechecks)
-  if (pcValue)
-  {
+  if (pcValue) {
     *pcValue = pstStrings;
   }
 
@@ -214,8 +213,7 @@ SWIG_SciString_AsCharPtrArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *
   }
 
   *charPtrArray = (char**) malloc((*iRows) * (*iCols) * sizeof(char*));
-  for(i = 0 ; i < (*iRows) * (*iCols); i++)
-  {
+  for(i = 0 ; i < (*iRows) * (*iCols); i++) {
     (*charPtrArray)[i] = (char*) malloc(sizeof(char) * (piLength[i] + 1));
   }
 

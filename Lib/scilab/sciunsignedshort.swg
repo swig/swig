@@ -122,15 +122,13 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows,
     return SWIG_ERROR;
   }
 
-  if (iType == sci_matrix)
-  {
+  if (iType == sci_matrix) {
     double *pdData = NULL;
     int size = 0;
     int i;
 
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdData);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -140,30 +138,25 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows,
     for (i = 0; i < size; i++)
       (*pusValue)[i] = (unsigned short) pdData[i];
   }
-  else if (iType == sci_ints)
-  {
+  else if (iType == sci_ints) {
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    if (iPrec != SCI_UINT16)
-    {
+    if (iPrec != SCI_UINT16) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
     sciErr = getMatrixOfUnsignedInteger16(pvApiCtx, piAddrVar, iRows, iCols, pusValue);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
@@ -184,8 +177,7 @@ SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *pvApiCtx, int iVarOut, int iR
     pdValues[i] = pusValues[i];
 
   sciErr = createMatrixOfDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, pdValues);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     free(pdValues);
     return SWIG_ERROR;

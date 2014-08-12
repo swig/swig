@@ -19,12 +19,10 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject obj) {
     return SWIG_ERROR;
   }
 
-  if (isStringType(pvApiCtx, piAddrVar))
-  {
+  if (isStringType(pvApiCtx, piAddrVar)) {
     return SWIG_OK;
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }

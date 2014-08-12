@@ -58,17 +58,14 @@ SWIG_FromSet_Sequence_dec(ptr)(int size, uintptr_t *pSequence) {
   int iVarOut = SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition();
 
   sciErr = createList(pvApiCtx, iVarOut, size, &piListAddr);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  for (int i=0; i<size; i++)
-  {
+  for (int i=0; i<size; i++) {
     sciErr = createPointerInList(pvApiCtx, iVarOut, piListAddr, i + 1, (void *)pSequence[i]);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -89,28 +86,24 @@ SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject obj, int *piSequence, int itemInd
   void* pItemValue = NULL;
 
   sciErr = getListItemAddress(pvApiCtx, piSequence, itemIndex + 1, &piItemAddr);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     return NULL;
   }
 
   sciErr = getVarType(pvApiCtx, piItemAddr, &iType);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     return NULL;
   }
 
-  if (iType != sci_pointer)
-  {
+  if (iType != sci_pointer) {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A pointer is expected at list item #%d.\n"), SWIG_Scilab_GetFname(), obj, itemIndex + 1);
     return NULL;
   }
 
   sciErr = getPointerInList(pvApiCtx, piSequence, itemIndex + 1, &pItemValue);
-  if (sciErr.iErr)
-  {
+  if (sciErr.iErr) {
     printError(&sciErr, 0);
     return NULL;
   }

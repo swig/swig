@@ -26,12 +26,10 @@ SWIG_AsCheck_Sequence_dec(int)(SwigSciObject obj) {
     return SWIG_ERROR;
   }
 
-  if ((iType == sci_matrix) || (iType == sci_ints))
-  {
+  if ((iType == sci_matrix) || (iType == sci_ints)) {
     return SWIG_OK;
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: An integer is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }

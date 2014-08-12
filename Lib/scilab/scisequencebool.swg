@@ -19,12 +19,10 @@ SWIG_AsCheck_Sequence_dec(bool)(SwigSciObject obj) {
     return SWIG_ERROR;
   }
 
-  if (isBooleanType(pvApiCtx, piAddrVar))
-  {
+  if (isBooleanType(pvApiCtx, piAddrVar)) {
     return SWIG_OK;
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean is expected.\n"), SWIG_Scilab_GetFname(), obj);
     return SWIG_ERROR;
   }

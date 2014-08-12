@@ -9,8 +9,7 @@
 
 %typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int *IN, int IN_ROWCOUNT, int IN_COLCOUNT)
 {
-  if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, fname) != SWIG_OK)
-  {
+  if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
@@ -20,8 +19,7 @@
 
 %typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int IN_ROWCOUNT, int IN_COLCOUNT, int *IN)
 {
-  if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK)
-  {
+  if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
@@ -33,12 +31,10 @@
 {
     int rowCount;
     int colCount;
-    if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK)
-    {
+    if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK) {
         $2 = rowCount * colCount;
     }
-    else
-    {
+    else {
         return SWIG_ERROR;
     }
 }
@@ -50,12 +46,10 @@
 {
     int rowCount;
     int colCount;
-    if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK)
-    {
+    if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK) {
         $1 = rowCount * colCount;
     }
-    else
-    {
+    else {
         return SWIG_ERROR;
     }
 }
@@ -75,12 +69,10 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") (int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT)
 {
-  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$3, *$1) == SWIG_OK)
-  {
+  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$3, *$1) == SWIG_OK) {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
-  else
-  {
+  else {
     return SWIG_ERROR;
   }
 }
@@ -109,12 +101,10 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") (int *OUT_ROWCOUNT, int *OUT_COLCOUNT, int **OUT)
 {
-  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2, *$3) == SWIG_OK)
-  {
+  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2, *$3) == SWIG_OK) {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
-  else
-  {
+  else {
     return SWIG_ERROR;
   }
 }
@@ -142,12 +132,10 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") (int **OUT, int *OUT_SIZE)
 {
-  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK)
-  {
+  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK) {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
-  else
-  {
+  else {
     return SWIG_ERROR;
   }
 }
@@ -174,12 +162,10 @@
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromIntArrayAndSize") (int *OUT_SIZE, int **OUT)
 {
-  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK)
-  {
+  if (SWIG_SciDouble_FromIntArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK) {
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
-  else
-  {
+  else {
     return SWIG_ERROR;
   }
 }

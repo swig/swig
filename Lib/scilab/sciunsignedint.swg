@@ -123,15 +123,13 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
     return SWIG_ERROR;
   }
 
-  if (iType == sci_matrix)
-  {
+  if (iType == sci_matrix) {
     double *pdData = NULL;
     int size = 0;
     int i;
 
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, &pdData);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
@@ -141,30 +139,25 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
     for (i = 0; i < size; i++)
       (*puiValue)[i] = (unsigned int) pdData[i];
   }
-  else if (iType == sci_ints)
-  {
+  else if (iType == sci_ints) {
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    if (iPrec != SCI_UINT32)
-    {
+    if (iPrec != SCI_UINT32) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
       return SWIG_ERROR;
     }
 
     sciErr = getMatrixOfUnsignedInteger32(pvApiCtx, piAddrVar, iRows, iCols, puiValue);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
   }
-  else
-  {
+  else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit unsigned integer or a double vector expected.\n"), fname, iVar);
     return SWIG_ERROR;
   }
