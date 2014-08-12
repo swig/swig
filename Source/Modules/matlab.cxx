@@ -1210,7 +1210,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
 void MATLAB::initGateway(){
   if(CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
-  Printf(f_gateway,"SWIGEXPORT void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]){\n");
+  Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]){\n");
   
   // Load module if first call
   Printf(f_gateway,"  if(!is_loaded){\n");
