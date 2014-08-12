@@ -81,8 +81,10 @@ void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*modul
 %fragment("js_initializer", "templates")
 %{
   // a class template for creating proxies of undefined types
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
   SWIGV8_SWIGTYPE_Proxy_class_templ = v8::Persistent<v8::FunctionTemplate>::New(SWIGV8_CreateClassTemplate("SwigProxy"));
+#elif (SWIG_V8_VERSION < 0x031900)
+  SWIGV8_SWIGTYPE_Proxy_class_templ = v8::Persistent<v8::FunctionTemplate>::New(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
 #else
   SWIGV8_SWIGTYPE_Proxy_class_templ.Reset(v8::Isolate::GetCurrent(), SWIGV8_CreateClassTemplate("SwigProxy"));
 #endif

@@ -80,12 +80,15 @@ public:
   };
 
   ~SWIGV8_Proxy() {
-#if (SWIG_V8_VERSION < 0x031900 || SWIG_V8_VERSION >= 0x032100)
+#if (SWIG_V8_VERSION < 0x031710)
     handle.ClearWeak();
     handle.Dispose();
-#else
+#elif (SWIG_V8_VERSION < 0x032100)
     handle.ClearWeak(v8::Isolate::GetCurrent());
     handle.Dispose(v8::Isolate::GetCurrent());
+#else    
+    handle.ClearWeak();
+    handle.Dispose();
 #endif
 
     handle.Clear();
@@ -102,8 +105,10 @@ class SWIGV8_ClientData {
 public:
   v8::Persistent<v8::FunctionTemplate> class_templ;
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
   void (*dtor) (v8::Persistent< v8::Value> object, void *parameter);
+#elif (SWIG_V8_VERSION < 0x031900)
+  void (*dtor) (v8::Isolate *isolate, v8::Persistent< v8::Value> object, void *parameter);
 #else
   void (*dtor) (v8::Isolate *isolate, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy);
 #endif
@@ -143,8 +148,10 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   return SWIG_OK;
 }
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
 void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Value > object, void *parameter)
+#elif (SWIG_V8_VERSION < 0x031900)
+void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Value > object, void *parameter)
 #else
 void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy)
 #endif
@@ -188,37 +195,41 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
 
 #if (SWIG_V8_VERSION < 0x031511)
   obj->SetPointerInInternalField(0, cdata);
-  cdata->handle = v8::Persistent<v8::Object>::New(obj);
-#elif (SWIG_V8_VERSION < 0x031900)
-  obj->SetAlignedPointerInInternalField(0, cdata);
-  cdata->handle = v8::Persistent<v8::Object>::New(obj);
 #else
   obj->SetAlignedPointerInInternalField(0, cdata);
+#endif
+
+#if (SWIG_V8_VERSION < 0x031710)
+  cdata->handle = v8::Persistent<v8::Object>::New(obj);
+#elif (SWIG_V8_VERSION < 0x031900)
+  cdata->handle = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), obj);
+#else
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 #endif
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
   // clientdata must be set for owned data as we need to register the dtor
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
-  cdata->handle.MarkIndependent();
 #else
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
   }
+#endif
 
-#if (SWIG_V8_VERSION < 0x032100)
+#if (SWIG_V8_VERSION < 0x031710)
+  cdata->handle.MarkIndependent();
+#elif (SWIG_V8_VERSION < 0x032100)
   cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
 #else
   cdata->handle.MarkIndependent();
 #endif
 
-#endif
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
@@ -398,8 +409,12 @@ int SWIGV8_ConvertPacked(v8::Handle<v8::Value> valRef, void *ptr, size_t sz, swi
   return SWIG_OK;
 }
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
 void _wrap_SwigV8PackedData_delete(v8::Persistent< v8::Value > object, void *parameter)
+{
+  SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
+#elif (SWIG_V8_VERSION < 0x031900)
+void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter)
 {
   SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
 #else
@@ -409,9 +424,12 @@ void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Obj
 
   delete cdata;
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031710)
   object.Clear();
   object.Dispose();
+#elif (SWIG_V8_VERSION < 0x031900)
+  object.Clear();
+  object.Dispose(isolate);
 #elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
 #else
@@ -430,25 +448,31 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
 
 #if (SWIG_V8_VERSION < 0x031511)
   obj->SetPointerInInternalField(0, cdata);
-  cdata->handle = v8::Persistent<v8::Object>::New(obj);
-#elif (SWIG_V8_VERSION < 0x031900)
-  obj->SetAlignedPointerInInternalField(0, cdata);
-  cdata->handle = v8::Persistent<v8::Object>::New(obj);
 #else
   obj->SetAlignedPointerInInternalField(0, cdata);
+#endif
+
+#if (SWIG_V8_VERSION < 0x031710)
+  cdata->handle = v8::Persistent<v8::Object>::New(obj);
+#elif (SWIG_V8_VERSION < 0x031900)
+  cdata->handle = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), obj);
+#else
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 #endif
 
-#if (SWIG_V8_VERSION < 0x031900)
+
+#if (SWIG_V8_VERSION < 0x031710)
   cdata->handle.MakeWeak(cdata, _wrap_SwigV8PackedData_delete);
-  cdata->handle.MarkIndependent();
 #else
   cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, _wrap_SwigV8PackedData_delete);
-# if (SWIG_V8_VERSION < 0x032100)
-  cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
-# else
+#endif
+
+#if (SWIG_V8_VERSION < 0x031710)
   cdata->handle.MarkIndependent();
-# endif
+#elif (SWIG_V8_VERSION < 0x032100)
+  cdata->handle.MarkIndependent(v8::Isolate::GetCurrent());
+#else
+  cdata->handle.MarkIndependent();
 #endif
 
   return scope.Close(obj);
