@@ -227,7 +227,8 @@ public:
 
     m_sPendingException = e;
     synchronized {
-      ++m_sPendingCount;
+      import core.atomic;
+      core.atomic.atomicOp!"+="(m_sPendingCount, 1);
     }
   }
 
@@ -238,7 +239,8 @@ public:
         e = m_sPendingException;
         m_sPendingException = null;
         synchronized {
-          --m_sPendingCount;
+          import core.atomic;
+          core.atomic.atomicOp!"-="(m_sPendingCount, 1);
         }
       }
     }
