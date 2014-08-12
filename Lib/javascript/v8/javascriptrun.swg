@@ -49,7 +49,7 @@ public:
 
 // Note: these typedefs and defines are used to deal with  v8 API changes since version 3.19.00
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
 typedef v8::Handle<v8::Value> SwigV8ReturnValue;
 typedef v8::Arguments SwigV8Arguments;
 typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
@@ -254,7 +254,7 @@ v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int
     return scope.Close(v8::Null());
   }
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
   if(info->clientdata != 0) {
     class_templ = ((SWIGV8_ClientData*) info->clientdata)->class_templ;
   } else {
@@ -287,7 +287,7 @@ v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
 v8::Handle<v8::Value> _SWIGV8_wrap_equals(const v8::Arguments &args) {
 #else
 void _SWIGV8_wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
@@ -320,7 +320,7 @@ fail:
   SWIGV8_RETURN(v8::Undefined());
 }
 
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
 v8::Handle<v8::Value> _wrap_getCPtr(const v8::Arguments &args) {
 #else
 void _wrap_getCPtr(const v8::FunctionCallbackInfo<v8::Value>& args) {

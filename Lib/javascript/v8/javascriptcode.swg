@@ -98,7 +98,7 @@ fail:
 %{
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
-#if SWIG_V8_VERSION < 0x031900
+#if SWIG_V8_VERSION < 0x031903
     self = $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       return scope.Close(self);
@@ -311,7 +311,7 @@ fail:
 
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
     jsresult = $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       return scope.Close(jsresult);
@@ -366,7 +366,7 @@ fail:
 %{
   if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
   {
-#if (SWIG_V8_VERSION < 0x031900)
+#if (SWIG_V8_VERSION < 0x031903)
     $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
 #else
     $jsmangledname_class->Inherit(
