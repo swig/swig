@@ -214,11 +214,17 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   } else {
     cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
-#else
+#elif (SWIG_V8_VERSION < 0x031918)
   if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
     cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, SWIGV8_Proxy_DefaultDtor);
+  }
+#else
+  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
+    cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+  } else {
+    cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
 #endif
 
@@ -463,8 +469,10 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
 
 #if (SWIG_V8_VERSION < 0x031710)
   cdata->handle.MakeWeak(cdata, _wrap_SwigV8PackedData_delete);
-#else
+#elif (SWIG_V8_VERSION < 0x031918)
   cdata->handle.MakeWeak(v8::Isolate::GetCurrent(), cdata, _wrap_SwigV8PackedData_delete);
+#else
+  cdata->handle.MakeWeak(cdata, _wrap_SwigV8PackedData_delete);
 #endif
 
 #if (SWIG_V8_VERSION < 0x031710)

@@ -35,7 +35,11 @@ private:
 
   v8::Handle<v8::Value> Import(const std::string& moduleName);
 
+#if (V8_VERSION < 0x031900)
   v8::Persistent<v8::Context> CreateShellContext();
+#else
+  v8::Local<v8::Context> CreateShellContext();
+#endif
 
   void ReportException(v8::TryCatch* handler);
 
@@ -49,11 +53,6 @@ private:
 
   static const char* ToCString(const v8::String::Utf8Value& value);
 
-  virtual bool _ExecuteScript(const std::string& source, const std::string& scriptPath);
-
-protected:
-
-  v8::Persistent<v8::Context> context;
 };
 
 #ifdef __GNUC__
@@ -68,27 +67,35 @@ V8Shell::V8Shell(){}
 V8Shell::~V8Shell() {}
 
 bool V8Shell::RunScript(const std::string& scriptPath) {
-
-  if (!context.IsEmpty()) {
-#if (V8_VERSION < 0x031710)
-    context.Dispose();
-#elif (V8_VERSION < 0x031900)
-    context.Dispose(v8::Isolate::GetCurrent());
-#else
-    context.Dispose();
-#endif
-  }
-
   std::string source = ReadFile(scriptPath);
 
-  context = CreateShellContext();
+  v8::HandleScope scope;
+
+#if (V8_VERSION < 0x031900)
+  v8::Persistent<v8::Context> context = CreateShellContext();
+#else
+  v8::Local<v8::Context> context = CreateShellContext();
+#endif
+
   if (context.IsEmpty()) {
       printf("Could not create context.\n");
       return false;
   }
+
   context->Enter();
 
-  bool success = _ExecuteScript(source, scriptPath);
+  // Store a pointer to this shell for later use
+
+  v8::Handle<v8::Object> global = context->Global();
+  v8::Local<v8::External> __shell__ = v8::External::New((void*) (long) this);
+  global->SetHiddenValue(v8::String::New("__shell__"), __shell__);
+
+  // Node.js compatibility: make `print` available as `console.log()`
+  ExecuteScript("var console = {}; console.log = print;", "<console>");
+
+  bool success = ExecuteScript(source, scriptPath);
+
+  // Cleanup
 
   context->Exit();
 
@@ -97,45 +104,23 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
 #elif (V8_VERSION < 0x031900)
     context.Dispose(v8::Isolate::GetCurrent());
 #else
-    context.Dispose();
+//    context.Dispose();
 #endif
 
-  v8::V8::Dispose();
+//  v8::V8::Dispose();
 
-  return true;
-}
-
-bool V8Shell::_ExecuteScript(const std::string& source, const std::string& scriptPath) {
-  v8::HandleScope scope;
-
-  // Store a pointer to this shell for later use
-  v8::Handle<v8::Object> global = context->Global();
-  v8::Local<v8::External> __shell__ = v8::External::New((void*) (long) this);
-  global->SetHiddenValue(v8::String::New("__shell__"), __shell__);
-
-  // Node.js compatibility: make `print` available as `console.log()`
-  ExecuteScript("var console = {}; console.log = print;", "<console>");
-
-  if(!ExecuteScript(source, scriptPath)) {
-    return false;
-  }
-
-  return true;
+  return success;
 }
 
 bool V8Shell::RunShell() {
+  v8::HandleScope scope;
 
-  if (!context.IsEmpty()) {
-#if (V8_VERSION < 0x031710)
-    context.Dispose();
-#elif (V8_VERSION < 0x031900)
-    context.Dispose(v8::Isolate::GetCurrent());
+#if (V8_VERSION < 0x031900)
+  v8::Persistent<v8::Context> context = CreateShellContext();
 #else
-    context.Dispose();
+  v8::Local<v8::Context> context = CreateShellContext();
 #endif
-  }
 
-  context = CreateShellContext();
   if (context.IsEmpty()) {
       printf("Could not create context.\n");
       return false;
@@ -158,15 +143,19 @@ bool V8Shell::RunShell() {
   }
   printf("\n");
 
+  // Cleanup
+
   context->Exit();
+
 #if (V8_VERSION < 0x031710)
-  context.Dispose();
+    context.Dispose();
 #elif (V8_VERSION < 0x031900)
-  context.Dispose(v8::Isolate::GetCurrent());
+    context.Dispose(v8::Isolate::GetCurrent());
 #else
-  context.Dispose();
+//    context.Dispose();
 #endif
-  v8::V8::Dispose();
+
+//  v8::V8::Dispose();
 
   return true;
 }
@@ -203,7 +192,11 @@ bool V8Shell::DisposeEngine() {
   return true;
 }
 
+#if (V8_VERSION < 0x031900)
 v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
+#else
+v8::Local<v8::Context> V8Shell::CreateShellContext() {
+#endif
   v8::HandleScope scope;
 
   // Create a template for the global object.
@@ -215,9 +208,18 @@ v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
   global->Set(v8::String::New("require"), v8::FunctionTemplate::New(V8Shell::Require));
   global->Set(v8::String::New("version"), v8::FunctionTemplate::New(V8Shell::Version));
 
-  v8::Persistent<v8::Context> _context = v8::Context::New(NULL, global);
 
-  return _context;
+#if (V8_VERSION < 0x031900)
+  v8::Persistent<v8::Context> context = v8::Context::New(NULL, global);
+  return context;
+#else
+//  v8::Local<v8::Context> context_ = v8::Context::New(v8::Isolate::GetCurrent(), NULL, global);
+//  v8::Persistent<v8::Context> context;
+//  context.Reset(v8::Isolate::GetCurrent(), context_);
+  v8::Local<v8::Context> context = v8::Context::New(v8::Isolate::GetCurrent(), NULL, global);
+  return scope.Close(context);
+#endif
+
 }
 
 v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
