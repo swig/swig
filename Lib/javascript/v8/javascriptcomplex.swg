@@ -15,7 +15,12 @@
 SWIGINTERNINLINE v8::Handle<v8::Value>
 SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
   v8::Local<v8::Array> vals = v8::Array::New(2);
 
   vals->Set(0, SWIG_From(double)(Real(c)));
@@ -33,7 +38,11 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
   
   if (o->IsArray()) {
     v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);
@@ -75,7 +84,11 @@ SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
 
   if (o->IsArray()) {
     v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);

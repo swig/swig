@@ -17,7 +17,12 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
  * Creates a class template for a class with specified initialization function.
  */
 SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
+#if (SWIG_V8_VERSION < 0x032117)
     v8::HandleScope scope;
+#else
+    v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+    
     v8::Local<v8::FunctionTemplate> class_templ = v8::FunctionTemplate::New();
     class_templ->SetClassName(v8::String::NewSymbol(symbol));
 

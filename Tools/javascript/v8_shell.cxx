@@ -11,6 +11,22 @@
 
 typedef int (*V8ExtensionInitializer) (v8::Handle<v8::Object> module);
 
+// Note: these typedefs and defines are used to deal with  v8 API changes since version 3.19.00
+
+#if (V8_VERSION < 0x031903)
+typedef v8::Handle<v8::Value> SwigV8ReturnValue;
+typedef v8::Arguments SwigV8Arguments;
+typedef v8::AccessorInfo SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) return scope.Close(val)
+#define SWIGV8_RETURN_INFO(val, info) return scope.Close(val)
+#else
+typedef void SwigV8ReturnValue;
+typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
+typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
+#define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
+#define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
+#endif
+
 class V8Shell: public JSShell {
 
 public:
@@ -43,13 +59,13 @@ private:
 
   void ReportException(v8::TryCatch* handler);
 
-  static v8::Handle<v8::Value> Print(const v8::Arguments& args);
+  static SwigV8ReturnValue Print(const SwigV8Arguments& args);
 
-  static v8::Handle<v8::Value> Require(const v8::Arguments& args);
+  static SwigV8ReturnValue Require(const SwigV8Arguments& args);
 
-  static v8::Handle<v8::Value> Quit(const v8::Arguments& args);
+  static SwigV8ReturnValue Quit(const SwigV8Arguments& args);
 
-  static v8::Handle<v8::Value> Version(const v8::Arguments& args);
+  static SwigV8ReturnValue Version(const SwigV8Arguments& args);
 
   static const char* ToCString(const v8::String::Utf8Value& value);
 
@@ -69,7 +85,11 @@ V8Shell::~V8Shell() {}
 bool V8Shell::RunScript(const std::string& scriptPath) {
   std::string source = ReadFile(scriptPath);
 
+#if (V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
 
 #if (V8_VERSION < 0x031900)
   v8::Persistent<v8::Context> context = CreateShellContext();
@@ -113,7 +133,12 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
 }
 
 bool V8Shell::RunShell() {
+#if (V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
 
 #if (V8_VERSION < 0x031900)
   v8::Persistent<v8::Context> context = CreateShellContext();
@@ -166,7 +191,13 @@ bool V8Shell::InitializeEngine() {
 }
 
 bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) {
-  v8::HandleScope handle_scope;
+#if (V8_VERSION < 0x032117)
+  v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
+
   v8::TryCatch try_catch;
   v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(source.c_str()), v8::String::New(name.c_str()));
 
@@ -197,7 +228,12 @@ v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
 #else
 v8::Local<v8::Context> V8Shell::CreateShellContext() {
 #endif
+
+#if (V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
 
   // Create a template for the global object.
   v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
@@ -224,7 +260,12 @@ v8::Local<v8::Context> V8Shell::CreateShellContext() {
 
 v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
 {
+#if (V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
 
   HANDLE library;
   std::string module_name = LoadModule(module_path, &library);
@@ -243,10 +284,16 @@ v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
   return scope.Close(module);
 }
 
-v8::Handle<v8::Value> V8Shell::Print(const v8::Arguments& args) {
+SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments& args) {
   bool first = true;
   for (int i = 0; i < args.Length(); i++) {
-    v8::HandleScope handle_scope;
+
+#if (V8_VERSION < 0x032117)
+    v8::HandleScope scope;
+#else
+    v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
     if (first) {
       first = false;
     } else {
@@ -258,11 +305,16 @@ v8::Handle<v8::Value> V8Shell::Print(const v8::Arguments& args) {
   }
   printf("\n");
   fflush(stdout);
-  return v8::Undefined();
+  SWIGV8_RETURN(v8::Undefined());
 }
 
-v8::Handle<v8::Value> V8Shell::Require(const v8::Arguments& args) {
+SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments& args) {
+#if (V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
 
   if (args.Length() != 1) {
     printf("Illegal arguments for `require`");
@@ -279,23 +331,29 @@ v8::Handle<v8::Value> V8Shell::Require(const v8::Arguments& args) {
 
   v8::Handle<v8::Value> module = _this->Import(moduleName);
 
-  return scope.Close(module);
+  SWIGV8_RETURN(module);
 }
 
-v8::Handle<v8::Value> V8Shell::Quit(const v8::Arguments& args) {
+SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments& args) {
   int exit_code = args[0]->Int32Value();
   fflush(stdout);
   fflush(stderr);
   exit(exit_code);
-  return v8::Undefined();
+  SWIGV8_RETURN(v8::Undefined());
 }
 
-v8::Handle<v8::Value> V8Shell::Version(const v8::Arguments& args) {
-  return v8::String::New(v8::V8::GetVersion());
+SwigV8ReturnValue V8Shell::Version(const SwigV8Arguments& args) {
+    SWIGV8_RETURN(v8::String::New(v8::V8::GetVersion()));
 }
 
 void V8Shell::ReportException(v8::TryCatch* try_catch) {
-  v8::HandleScope handle_scope;
+#if (V8_VERSION < 0x032117)
+  v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+
+
   v8::String::Utf8Value exception(try_catch->Exception());
   const char* exception_string = V8Shell::ToCString(exception);
   v8::Handle<v8::Message> message = try_catch->Message();

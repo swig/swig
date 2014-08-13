@@ -117,7 +117,11 @@ public:
 v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
 int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
@@ -239,7 +243,12 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   /* special case: JavaScript null => C NULL pointer */
   if(valRef->IsNull()) {
     *ptr=0;
@@ -253,7 +262,12 @@ int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info 
 }
 
 v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   v8::Handle<v8::FunctionTemplate> class_templ;
 
   if (ptr == NULL) {
@@ -293,12 +307,14 @@ v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
-#if (SWIG_V8_VERSION < 0x031903)
-v8::Handle<v8::Value> _SWIGV8_wrap_equals(const v8::Arguments &args) {
-#else
-void _SWIGV8_wrap_equals(const v8::FunctionCallbackInfo<v8::Value>& args) {
-#endif
+SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
+
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   v8::Handle<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
   void *arg2 = (void *) 0 ;
@@ -326,12 +342,14 @@ fail:
   SWIGV8_RETURN(v8::Undefined());
 }
 
-#if (SWIG_V8_VERSION < 0x031903)
-v8::Handle<v8::Value> _wrap_getCPtr(const v8::Arguments &args) {
-#else
-void _wrap_getCPtr(const v8::FunctionCallbackInfo<v8::Value>& args) {
-#endif
+SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
+
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   v8::Handle<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
   long result;
@@ -372,7 +390,13 @@ public:
 
 SWIGRUNTIMEINLINE
 int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
+
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   v8::Handle<v8::Object> objRef = valRef->ToObject();
   if(objRef->InternalFieldCount() < 1) return false;
   v8::Handle<v8::Value> flag = objRef->GetHiddenValue(v8::String::New("__swig__packed_data__"));
@@ -382,7 +406,13 @@ int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
 SWIGRUNTIME
 swig_type_info* SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr, size_t size) {
   if (SwigV8Packed_Check(valRef)) {
+  
+#if (SWIG_V8_VERSION < 0x032117)
     v8::HandleScope scope;
+#else
+    v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+    
     SwigV8PackedData *sobj;
 
     v8::Handle<v8::Object> objRef = valRef->ToObject();
@@ -445,7 +475,11 @@ void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent< v8::Obj
 
 SWIGRUNTIME
 v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
 
   SwigV8PackedData* cdata = new SwigV8PackedData(data, size, type);
   v8::Handle<v8::Object> obj = v8::Object::New();
@@ -497,7 +531,12 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
 
 SWIGRUNTIME
 v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   if (result->IsUndefined()) {
     result = v8::Array::New();
   }

@@ -61,7 +61,12 @@ void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*modul
 {
   SWIG_InitializeModule(static_cast<void *>(&exports));
 
+#if (SWIG_V8_VERSION < 0x032117)
   v8::HandleScope scope;
+#else
+  v8::HandleScope scope(v8::Isolate::GetCurrent());
+#endif
+  
   v8::Handle<v8::Object> exports_obj = exports;
 %}
 
