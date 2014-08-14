@@ -38,14 +38,14 @@
       }
 
       static int asval(const mxArray* obj, std::pair<T,U> *val) {
-	// TODO this is still Octave code
-	if (obj.is_cell()) {
-	  Cell c=obj.cell_value();
-	  if (c.numel()<2) {
-	    error("pair from Cell array requires at least two elements");
+	if (mxGetClassID(obj)==mxCELL_CLASS) {
+          mxArray* c0 = mxGetCell(obj,0);
+          mxArray* c1 = mxGetCell(obj,1);
+	  if (c0==0 || c1==0) {
+            SWIG_Error(SWIG_SystemError,"pair from Cell array requires at least two elements");
 	    return SWIG_ERROR;
 	  }
-	  return get_pair(c(0),c(1),val);
+	  return get_pair(c0,c1,val);
 	} else {
 	  value_type *p;
 	  int res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
@@ -92,14 +92,14 @@
       }
 
       static int asptr(const mxArray* obj, std::pair<T,U> **val) {
-	// TODO this is still Octave code
-	if (obj.is_cell()) {
-	  Cell c=obj.cell_value();
-	  if (c.numel()<2) {
-	    error("pair from Cell array requires at least two elements");
+	if (mxGetClassID(obj)==mxCELL_CLASS) {
+          mxArray* c0 = mxGetCell(obj,0);
+          mxArray* c1 = mxGetCell(obj,1);
+	  if (c0==0 || c1==0) {
+            SWIG_Error(SWIG_SystemError,"pair from Cell array requires at least two elements");
 	    return SWIG_ERROR;
 	  }
-	  return get_pair(c(0),c(1),val);
+	  return get_pair(c0,c1,val);
 	} else {
 	  value_type *p;
 	  int res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<value_type>(),0);
@@ -115,10 +115,9 @@
     template <class T, class U >
     struct traits_from<std::pair<T,U> >   {
       static mxArray* from(const std::pair<T,U>& val) {
-	// TODO this is still Octave code
-	Cell c(1,2);
-	c(0)=swig::from(val.first);
-	c(1)=swig::from(val.second);
+	mxArray* c = mxCreateCellMatrix(1,2);
+        mxSetCell(c,0,val.first);
+        mxSetCell(c,1,val.second);
 	return c;
       }
     };

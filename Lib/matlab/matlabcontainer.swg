@@ -576,7 +576,7 @@ namespace swig {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
-      } else if (obj.is_cell()) {
+      } else if (mxGetClassID(obj)==mxCELL_CLASS) {
 	try {
 	  MatlabSequence_Cont<value_type> matlabseq(obj);
 	  if (seq) {
