@@ -13,7 +13,7 @@
 #define VOID_Object (mxArray*)0
 
 // append output
-#define SWIG_AppendOutput(result, obj)  SWIG_Matlab_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj)  obj
 
 // set constant
 #define SWIG_SetConstant(name, obj)     SWIG_Matlab_SetConstant(module_ns,name,obj) 
