@@ -303,6 +303,9 @@ protected:
   /* Return true if the current method is part of a smart-pointer */
   int is_smart_pointer() const;
 
+  /* Return the name to use for the given parameter. */
+  virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter = false) const;
+
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
 
