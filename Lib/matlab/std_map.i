@@ -28,10 +28,10 @@
     };
 
     template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
-    struct OctMapIterator_T : OctSwigIteratorClosed_T<OutIterator, ValueType, FromOper>
+    struct MatlabMapIterator_T : MatlabSwigIteratorClosed_T<OutIterator, ValueType, FromOper>
     {
-      OctMapIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
-	: OctSwigIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
+      MatlabMapIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
+	: MatlabSwigIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
       {
       }
     };
@@ -39,37 +39,37 @@
 
     template<class OutIterator,
 	     class FromOper = from_key_oper<typename OutIterator::value_type> >
-    struct OctMapKeyIterator_T : OctMapIterator_T<OutIterator, FromOper>
+    struct MatlabMapKeyIterator_T : MatlabMapIterator_T<OutIterator, FromOper>
     {
-      OctMapKeyIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
-	: OctMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      MatlabMapKeyIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
+	: MatlabMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
     };
 
     template<typename OutIter>
-    inline OctSwigIterator*
+    inline MatlabSwigIterator*
     make_output_key_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, mxArray* seq = 0)
     {
-      return new OctMapKeyIterator_T<OutIter>(current, begin, end, seq);
+      return new MatlabMapKeyIterator_T<OutIter>(current, begin, end, seq);
     }
 
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
-    struct OctMapValueIterator_T : OctMapIterator_T<OutIterator, FromOper>
+    struct MatlabMapValueIterator_T : MatlabMapIterator_T<OutIterator, FromOper>
     {
-      OctMapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
-	: OctMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
+      MatlabMapValueIterator_T(OutIterator curr, OutIterator first, OutIterator last, mxArray* seq)
+	: MatlabMapIterator_T<OutIterator, FromOper>(curr, first, last, seq)
       {
       }
     };
     
 
     template<typename OutIter>
-    inline OctSwigIterator*
+    inline MatlabSwigIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, mxArray* seq = 0)
     {
-      return new OctMapValueIterator_T<OutIter>(current, begin, end, seq);
+      return new MatlabMapValueIterator_T<OutIter>(current, begin, end, seq);
     }
   }
 }
@@ -77,12 +77,12 @@
 %fragment("StdMapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
-    template <class OctSeq, class K, class T >
+    template <class MatlabSeq, class K, class T >
     inline void
-    assign(const OctSeq& octseq, std::map<K,T > *map) {
+    assign(const MatlabSeq& matlabseq, std::map<K,T > *map) {
       typedef typename std::map<K,T>::value_type value_type;
-      typename OctSeq::const_iterator it = octseq.begin();
-      for (;it != octseq.end(); ++it) {
+      typename MatlabSeq::const_iterator it = matlabseq.begin();
+      for (;it != matlabseq.end(); ++it) {
 	map->insert(value_type(it->first, it->second));
       }
     }
