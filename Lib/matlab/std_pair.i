@@ -11,7 +11,7 @@
     struct traits_asval<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
 
-      static int get_pair(const mxArray* first, mxArray* second,
+      static int get_pair(mxArray* first, mxArray* second,
 			  std::pair<T,U> *val)
       {
 	if (val) {
@@ -37,7 +37,7 @@
 	}
       }
 
-      static int asval(const mxArray* obj, std::pair<T,U> *val) {
+      static int asval(mxArray* obj, std::pair<T,U> *val) {
 	if (mxGetClassID(obj)==mxCELL_CLASS) {
           mxArray* c0 = mxGetCell(obj,0);
           mxArray* c1 = mxGetCell(obj,1);
@@ -62,7 +62,7 @@
     struct traits_asptr<std::pair<T,U> >  {
       typedef std::pair<T,U> value_type;
 
-      static int get_pair(const mxArray* first, mxArray* second,
+      static int get_pair(mxArray* first, mxArray* second,
 			  std::pair<T,U> **val) 
       {
 	if (val) {
@@ -91,7 +91,7 @@
 	return SWIG_ERROR;
       }
 
-      static int asptr(const mxArray* obj, std::pair<T,U> **val) {
+      static int asptr(mxArray* obj, std::pair<T,U> **val) {
 	if (mxGetClassID(obj)==mxCELL_CLASS) {
           mxArray* c0 = mxGetCell(obj,0);
           mxArray* c1 = mxGetCell(obj,1);
@@ -116,8 +116,8 @@
     struct traits_from<std::pair<T,U> >   {
       static mxArray* from(const std::pair<T,U>& val) {
 	mxArray* c = mxCreateCellMatrix(1,2);
-        mxSetCell(c,0,val.first);
-        mxSetCell(c,1,val.second);
+        mxSetCell(c,0,swig::from(val.first));
+        mxSetCell(c,1,swig::from(val.second));
 	return c;
       }
     };
