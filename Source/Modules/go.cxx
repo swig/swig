@@ -1206,7 +1206,7 @@ private:
     }
 
     if (Len(parm_size) == 0) {
-      Append(parm_size, "1");
+      Append(parm_size, "SWIG_PARM_SIZE");
     }
 
     String *fn_name;
@@ -1220,7 +1220,7 @@ private:
     }
 
     // \xc2\xb7 is UTF-8 for U+00B7 which is Unicode 'Middle Dot'
-    Printv(f->def, "\xc2\xb7", fn_name, "(struct { uint8 x[", parm_size, "];} p)", NULL);
+    Printv(f->def, "\xc2\xb7", fn_name, "(struct { void *x[(", parm_size, ") / SWIG_PARM_SIZE];} p)", NULL);
 
     Delete(fn_name);
     Delete(parm_size);

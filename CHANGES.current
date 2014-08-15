@@ -5,3 +5,20 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-08-04: wsfulton
+            [C#] Merge patch #200 from gpetrou - Changed CSharp license header to include auto-generated
+            tag so that StyleCop ignores the files.
+
+2014-08-04: wsfulton
+            [Java] Merge patch #198 from Yuval Kashtan - Support for java.nio.ByteBuffer mapping to 
+            unsigned char * in various.i in NIOBUFFER typemaps.
+
+2014-07-14: ianlancetaylor
+	    [Go] Change struct definition to use void *, not uint8, so
+	    that the type is recorded as possibly containing
+	    pointers.  This ensures that the 1.3 garbage collector
+	    does not collect pointers passed to C++ code.
+
+2014-07-01: wsfulton
+            Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains 
+            brackets in the expanded name.
