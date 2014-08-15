@@ -3622,35 +3622,6 @@ MODULA3():
   }
 
   /* -----------------------------------------------------------------------------
-   * makeParameterName()
-   *
-   * Inputs: 
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   * Return:
-   *   arg - a unique parameter name
-   * ----------------------------------------------------------------------------- */
-
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    String *pn = Getattr(p, "name");
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	count++;
-      plist = nextSibling(plist);
-    }
-    String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",
-						    arg_num) : Copy(Getattr(p,
-									    "name"));
-
-    return arg;
-  }
-
-  /* -----------------------------------------------------------------------------
    * attachParameterNames()
    *
    * Inputs: 
