@@ -2044,7 +2044,7 @@ public:
    *    check if using kwargs is allowed for this Node
    * ------------------------------------------------------------ */
 
-  int check_kwargs(Node *n) {
+  int check_kwargs(Node *n) const {
     return (use_kw || GetFlag(n, "feature:kwargs"))
 	&& !GetFlag(n, "memberset") && !GetFlag(n, "memberget");
   }
