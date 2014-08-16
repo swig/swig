@@ -342,11 +342,18 @@ public:
     Node *options = Getattr(mod, "options");
     module = Copy(Getattr(n,"name"));
 
+    String *underscore_module = Copy(module);
+    Replaceall(underscore_module,":","_");
+
+    if (verbose > 0) {
+      fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
+    }
+
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
-      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
-      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", underscore_module);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", underscore_module);
       if (dirprot_mode()) {
 	Printf(f_directors_h, "#include <map>\n");
 	Printf(f_directors_h, "#include <string>\n\n");
@@ -379,13 +386,6 @@ public:
 	fprintf(stdout, "top: No package found\n");
       }
     }
-    String *underscore_module = Copy(module);
-    Replaceall(underscore_module,":","_");
-
-    if (verbose > 0) {
-      fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
-    }
-
     /* If we're in blessed mode, change the package name to "packagec" */
 
     if (blessed) {

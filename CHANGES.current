@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-08-15: talby
+            [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
+
 2014-08-04: wsfulton
             [C#] Merge patch #200 from gpetrou - Changed CSharp license header to include auto-generated
             tag so that StyleCop ignores the files.
