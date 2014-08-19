@@ -271,7 +271,7 @@ The following table lists the Scilab specific command line options in addition t
 </tr>
 
 <tr>
-<td>-buildverbosity &lt;level&gt;</td>
+<td>-buildverbositylevel &lt;level&gt;</td>
 <td>Set the build verbosity &lt;level&gt; (default 0)</td>
 </tr>
 
@@ -490,7 +490,7 @@ ans =  4
 </pre></div>
 
 <p>
-The above shows variables of primitive type, but non-primitive types (structs/classes) also work and are detailed later.
+It works for variables of primitive type, but also for non-primitive types: arrays, and structs/classes which are described later.
 For now, an example with two global primitive arrays x and y is shown:
 </p>
 
@@ -539,7 +539,7 @@ It works the same:</p>
 <H4><a name="Scilab_wrapping_constants"></a>Constants</H4>
 
 <p>
-There is no constant in Scilab. By default, C/C++ constants are wrapped as getter functions. For example, for the following constants:
+There is not any constant in Scilab. By default, C/C++ constants are wrapped as getter functions. For example, for the following constants:
 </p>
 
 <div class="code"><pre>
@@ -590,9 +590,12 @@ the following getter functions are generated:
 <p>
 There is another mode in which constants are wrapped as Scilab variables.
 The variables are easier to use than functions, but the drawback is that variables are not constant and so can be modified.
+</p>
+
+<p>
 This mode can be enabled/disabled at any time in the interface file with <tt>%scilabconst()</tt>, which
 works like all the other <a href="Customization.html#Customization_features">%feature directives</a>.
-Use the argument value "1" to enable and "0" to disable.
+Use the argument value "1" to enable and "0" to disable this mode.
 For example in this mode the previous constants:
 </p>
 
@@ -609,7 +612,7 @@ For example in this mode the previous constants:
 </pre></div>
 
 <p>
-Are mapped to Scilab variables, with the same name:
+are mapped to Scilab variables, with the same name:
 </p>
 
 <div class="targetlang"><pre>
@@ -1649,6 +1652,7 @@ Typemaps are available for the following container types:
 
 <p>
 Containers of other item types are not supported. Using them does not break compilation, but provokes a runtime error.
+Containers of enum are not supported yet.
 </p>
 
 <p>
