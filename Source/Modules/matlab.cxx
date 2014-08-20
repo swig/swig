@@ -92,6 +92,7 @@ protected:
   void dispatchFunction(Node *n);
   static String* matlab_escape(String *_s);
   void wrapConstructor(int gw_ind, String *symname, String *fullname);
+  int getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_returns);
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -708,6 +709,9 @@ int MATLAB::functionWrapper(Node *n){
     }
   }
 
+  // Total number of function outputs, including return value
+  int num_returns = 1;
+
   // Insert argument output code
   String *outarg = NewString("");
   for (p = l; p;) {
@@ -719,6 +723,7 @@ int MATLAB::functionWrapper(Node *n){
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       Printv(outarg, tm, "\n", NIL);
       p = Getattr(p, "tmap:argout:next");
+      num_returns++;
     } else {
       p = nextSibling(p);
     }
@@ -736,9 +741,17 @@ int MATLAB::functionWrapper(Node *n){
   String *actioncode = emit_action(n);
 
   Wrapper_add_local(f, "_out", "mxArray * _out");
-    
+
   // Return the function value
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+
+    // Check if void return
+    if (SwigType_issimple(d)) {
+      String * typestr = SwigType_str(d, 0);
+      if (Strcmp(typestr,"void")==0) num_returns--;
+      Delete(typestr);
+    }
+
     Replaceall(tm, "$source", Swig_cresult_name());
     Replaceall(tm, "$target", "_out");
     Replaceall(tm, "$result", "_out");
@@ -749,7 +762,6 @@ int MATLAB::functionWrapper(Node *n){
       Replaceall(tm, "$owner", "0");
 
     Printf(f->code, "%s\n", tm);
-
 
     Printf(f->code, "if(_out && --resc>=0) *resv++ = _out;\n");
     Delete(tm);
@@ -774,6 +786,10 @@ int MATLAB::functionWrapper(Node *n){
     Printf(f->code, "%s\n", tm);
     Delete(tm);
   }
+
+  // Store the number of return values to the node
+  String* num_returns_str=NewStringf("%d", num_returns);
+  Setattr(n, "matlab:num_returns", num_returns_str);
 
   Printf(f->code, "return;\n");
   Printf(f->code, "fail:\n");	// we should free locals etc if this happens
@@ -804,46 +820,56 @@ int MATLAB::globalfunctionHandler(Node *n){
   Printf(stderr,"Entering globalfunctionHandler\n");
 #endif
 
+  // Emit C wrappers
+  int flag = Language::globalfunctionHandler(n);
+  if (flag!=SWIG_OK) return flag;
+
   // Skip if inside class
-  if(class_name)
-    return Language::globalfunctionHandler(n);
+  if(class_name) return flag;
 
   // Name of function
   String *symname = Getattr(n, "sym:name");
 
+  // No MATLAB wrapper for the overloads
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");  
-  if(!overloaded || last_overload){
+  if (overloaded && !last_overload) return flag;
 
-    // Create MATLAB proxy
-    String* mfile=NewString(pkg_name_fullpath);
-    Append(mfile,"/");
-    Append(mfile,symname);
-    Append(mfile,".m");
-    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
-    f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-    if (!f_wrap_m){
-      FileErrorDisplay(mfile);
-      SWIG_exit(EXIT_FAILURE);
-    }
+  // Get the range of the number of return values
+  int max_num_returns, min_num_returns;
+  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
 
-    // Add to function switch
-    String *wname = Swig_name_wrapper(symname);
-    int gw_ind = toGateway(wname,wname);
-
-    // Add function to matlab proxy
-    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
-    autodoc_to_m(n);
-    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
-    Printf(f_wrap_m,"end\n");
-
-    Delete(wname);
-    Delete(mfile);
-    Delete(f_wrap_m);
-    f_wrap_m = 0;
+  // Create MATLAB proxy
+  String* mfile=NewString(pkg_name_fullpath);
+  Append(mfile,"/");
+  Append(mfile,symname);
+  Append(mfile,".m");
+  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m){
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
   }
 
-  return Language::globalfunctionHandler(n);
+  // Add to function switch
+  String *wname = Swig_name_wrapper(symname);
+  int gw_ind = toGateway(wname,wname);
+
+  // Add function to matlab proxy
+  Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
+  autodoc_to_m(n);
+  if (min_num_returns==0) {
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
+  } else {
+    Printf(f_wrap_m,"  [varargout{1:max(1,nargout)}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
+  }
+  Printf(f_wrap_m,"end\n");
+
+  Delete(wname);
+  Delete(mfile);
+  Delete(f_wrap_m);
+  f_wrap_m = 0;
+  return flag;
 }
 
 int MATLAB::variableWrapper(Node *n){
@@ -1185,27 +1211,39 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
+  
+  // Emit C wrappers
+  int flag = Language::memberfunctionHandler(n);
+  if (flag!=SWIG_OK) return flag;
+
+  // No MATLAB wrapper for the overloads
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+  if (overloaded && !last_overload) return flag;
 
-  if(!overloaded || last_overload){
-    // Add to function switch
-    String *symname = Getattr(n, "sym:name");
-    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    String *wname = Swig_name_wrapper(fullname);
-    int gw_ind = toGateway(fullname,wname);
+  // Get the range of the number of return values
+  int max_num_returns, min_num_returns;
+  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
 
-    // Add function to .m wrapper
-    Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
-    autodoc_to_m(n);
+  // Add to function switch
+  String *symname = Getattr(n, "sym:name");
+  String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+  String *wname = Swig_name_wrapper(fullname);
+  int gw_ind = toGateway(fullname,wname);
+
+  // Add function to .m wrapper
+  Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
+  autodoc_to_m(n);
+  if (min_num_returns==0) {
     Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
-    Printf(f_wrap_m,"    end\n");
-
-    Delete(wname);
-    Delete(fullname);
+  } else {
+    Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
   }
+  Printf(f_wrap_m,"    end\n");
 
-  return Language::memberfunctionHandler(n);
+  Delete(wname);
+  Delete(fullname);
+  return flag;
 }
 
 void MATLAB::initGateway(){
@@ -1404,28 +1442,39 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   Printf(stderr,"Entering staticmemberfunctionHandler\n");
 #endif
 
+  // Emit C wrappers
+  int flag = Language::staticmemberfunctionHandler(n);
+  if (flag!=SWIG_OK) return flag;
+
+  // No MATLAB wrapper for the overloads
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+  if (overloaded && !last_overload) return flag;
 
-  if(!overloaded || last_overload){
+  // Get the range of the number of return values
+  int max_num_returns, min_num_returns;
+  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
 
-    // Add to function switch
-    String *symname = Getattr(n, "sym:name");
-    String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    String *wname = Swig_name_wrapper(fullname);
-    int gw_ind = toGateway(fullname,wname);
+  // Add to function switch
+  String *symname = Getattr(n, "sym:name");
+  String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+  String *wname = Swig_name_wrapper(fullname);
+  int gw_ind = toGateway(fullname,wname);
 
-    // Add function to .m wrapper
-    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
-    autodoc_to_m(n);
+  // Add function to .m wrapper
+  Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+  autodoc_to_m(n);
+  if (min_num_returns==0) {
     Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
-    Printf(static_methods,"    end\n");
-
-    Delete(wname);
-    Delete(fullname);
+  } else {
+    Printf(static_methods,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
   }
+  Printf(static_methods,"    end\n");
 
-  return Language::staticmemberfunctionHandler(n);
+  Delete(wname);
+  Delete(fullname);
+
+  return flag;
 }
 
 int MATLAB::memberconstantHandler(Node *n) {
@@ -1668,3 +1717,26 @@ void MATLAB::autodoc_to_m(Node *n)
   if (Len(args_info)>0)
     Printf(f_wrap_m,"    %%%s\n", matlab_escape(args_info));
 }
+
+int MATLAB::getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_returns) {
+  bool overloaded = !!Getattr(n, "sym:overloaded");
+  Node *n_overload = n;
+  while (n_overload) {
+    String *symname = Getattr(n_overload, "sym:name");
+    if (symname==0) return SWIG_ERROR;
+    String *num_returns_str = Getattr(n_overload, "matlab:num_returns");
+    if (num_returns_str==0) return SWIG_ERROR;
+    int num_returns = 0;
+    sscanf(Char(num_returns_str), "%d", &num_returns);
+    if (n==n_overload) {
+      max_num_returns = min_num_returns = num_returns;
+    } else {
+      if (num_returns < min_num_returns) min_num_returns = num_returns;
+      if (num_returns > max_num_returns) max_num_returns = num_returns;
+    }
+    if (!overloaded) break;
+    n_overload = Getattr(n_overload, "sym:previousSibling");
+  }
+  return SWIG_OK;
+}
+
