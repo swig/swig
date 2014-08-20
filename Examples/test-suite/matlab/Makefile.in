@@ -457,7 +457,7 @@ include $(srcdir)/../common.mk
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX).m ]; then \
 	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MATLABPATH=$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH \
-	 $(RUNTOOL) $(MATLAB) -r "try $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)"; \
+	 $(RUNTOOL) $(MATLAB) -r "try; $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)"; \
 	fi
 
 # Clean: remove the generated .m file
