@@ -979,9 +979,7 @@ AC_SUBST(OCTAVE_LDFLAGS)
 # MATLAB_HOME, MATLAB and MATLAB_MEXSUFFIX variable
 
 AC_ARG_WITH([matlab], AS_HELP_STRING([--without-matlab], [Disable Matlab])
-  AS_HELP_STRING([--with-matlab=path], 
-               [specify location of matlab installation for the matlab interface.  The "mex" compiler should be in MATLAB_HOME/bin]),
-  [use_matlab=$withval], [use_matlab=yes])
+AS_HELP_STRING([--with-matlab=path], [specify location of matlab installation for the matlab interface.  The "mex" compiler should be in MATLAB_HOME/bin]),[use_matlab=$withval], [use_matlab=yes])
 
 # First, check for "--without-matlab" or "--with-matlab=no".
 if test x"${use_matlab}" = xno -o x"${with_alllang}" = xno ; then
