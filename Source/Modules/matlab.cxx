@@ -751,7 +751,7 @@ int MATLAB::functionWrapper(Node *n){
     Printf(f->code, "%s\n", tm);
 
 
-    Printf(f->code, "if(--resc>=0) *resv++ = _out;\n");
+    Printf(f->code, "if(_out && --resc>=0) *resv++ = _out;\n");
     Delete(tm);
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
