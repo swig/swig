@@ -1011,7 +1011,7 @@ else
     AC_MSG_RESULT([$MATLAB_HOME])
     AC_PATH_PROG(MATLAB, [matlab], [notfound], [$MATLAB_HOME/bin])
     if test  x"$MATLAB" = xnotfound; then
-      AC_MSG_RESULT([matlab excecutable not found, Disabling Matlab])
+      AC_MSG_RESULT([matlab executable not found, Disabling Matlab])
       MATLAB=
     fi
   fi
