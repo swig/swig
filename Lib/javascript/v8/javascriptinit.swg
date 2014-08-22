@@ -4,16 +4,16 @@
 
 SWIGRUNTIME void
 SWIG_V8_SetModule(void *, swig_module_info *swig_module) {
-  v8::Local<v8::Object> global_obj = v8::Context::GetCurrent()->Global();
-  v8::Local<v8::External> mod = v8::External::New(swig_module);
+  v8::Local<v8::Object> global_obj = SWIGV8_CURRENT_CONTEXT()->Global();
+  v8::Local<v8::External> mod = SWIGV8_EXTERNAL_NEW(swig_module);
   assert(!mod.IsEmpty());
-  global_obj->SetHiddenValue(v8::String::New("swig_module_info_data"), mod);
+  global_obj->SetHiddenValue(SWIGV8_STRING_NEW("swig_module_info_data"), mod);
 }
 
 SWIGRUNTIME swig_module_info *
 SWIG_V8_GetModule(void *) {
-  v8::Local<v8::Object> global_obj = v8::Context::GetCurrent()->Global();
-  v8::Local<v8::Value> moduleinfo = global_obj->GetHiddenValue(v8::String::New("swig_module_info_data"));
+  v8::Local<v8::Object> global_obj = SWIGV8_CURRENT_CONTEXT()->Global();
+  v8::Local<v8::Value> moduleinfo = global_obj->GetHiddenValue(SWIGV8_STRING_NEW("swig_module_info_data"));
 
   if (moduleinfo.IsEmpty())
   {
@@ -61,11 +61,7 @@ void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*modul
 {
   SWIG_InitializeModule(static_cast<void *>(&exports));
 
-#if (SWIG_V8_VERSION < 0x032117)
-  v8::HandleScope scope;
-#else
-  v8::HandleScope scope(v8::Isolate::GetCurrent());
-#endif
+  SWIGV8_HANDLESCOPE();
   
   v8::Handle<v8::Object> exports_obj = exports;
 %}

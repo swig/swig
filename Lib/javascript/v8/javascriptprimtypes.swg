@@ -33,7 +33,7 @@ int SWIG_AsVal_dec(bool)(v8::Handle<v8::Value> obj, bool *val)
 SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
 {
-  return v8::Int32::New(value);
+  return SWIGV8_INT32_NEW(value);
 }
 }
 
@@ -56,7 +56,7 @@ int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
 SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
 {
-  return v8::Number::New(value);
+  return SWIGV8_NUMBER_NEW(value);
 }
 }
 
@@ -82,7 +82,7 @@ SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
-    v8::Integer::NewFromUnsigned(value) : v8::Integer::New(%numeric_cast(value,long));
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
 }
 }
 
@@ -116,7 +116,7 @@ int SWIG_AsVal_dec(unsigned long)(v8::Handle<v8::Value> obj, unsigned long *val)
 SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(long long)(long long value)
 {
-  return v8::Number::New(value);
+  return SWIGV8_NUMBER_NEW(value);
 }
 }
 
@@ -146,7 +146,7 @@ SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    v8::Integer::NewFromUnsigned(value) : v8::Integer::New(%numeric_cast(value,long));
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(%numeric_cast(value,long));
 }
 }
 
@@ -179,7 +179,7 @@ int SWIG_AsVal_dec(unsigned long long)(v8::Handle<v8::Value> obj, unsigned long 
 SWIGINTERN
 v8::Handle<v8::Value> SWIG_From_dec(double) (double val)
 {
-  return v8::Number::New(val);
+  return SWIGV8_NUMBER_NEW(val);
 }
 }
 

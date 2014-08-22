@@ -17,25 +17,21 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
  * Creates a class template for a class with specified initialization function.
  */
 SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
-#if (SWIG_V8_VERSION < 0x032117)
-    v8::HandleScope scope;
-#else
-    v8::HandleScope scope(v8::Isolate::GetCurrent());
-#endif
+    SWIGV8_HANDLESCOPE_ESC();
     
-    v8::Local<v8::FunctionTemplate> class_templ = v8::FunctionTemplate::New();
-    class_templ->SetClassName(v8::String::NewSymbol(symbol));
+    v8::Local<v8::FunctionTemplate> class_templ = SWIGV8_FUNCTEMPLATE_NEW_VOID();
+    class_templ->SetClassName(SWIGV8_SYMBOL_NEW(symbol));
 
     v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
     inst_templ->SetInternalFieldCount(1);
 
     v8::Handle<v8::ObjectTemplate> equals_templ = class_templ->PrototypeTemplate();
-    equals_templ->Set(v8::String::NewSymbol("equals"), v8::FunctionTemplate::New(_SWIGV8_wrap_equals));
+    equals_templ->Set(SWIGV8_SYMBOL_NEW("equals"), SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals));
 
     v8::Handle<v8::ObjectTemplate> cptr_templ = class_templ->PrototypeTemplate();
-    cptr_templ->Set(v8::String::NewSymbol("getCPtr"), v8::FunctionTemplate::New(_wrap_getCPtr));
+    cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
 
-    return scope.Close(class_templ);
+    SWIGV8_ESCAPE(class_templ);
 }
 
 /**
@@ -44,7 +40,7 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
 SWIGRUNTIME void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8FunctionCallback _func) {
     v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
-    proto_templ->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func));
+    proto_templ->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func));
 }
 
 /**
@@ -53,7 +49,7 @@ SWIGRUNTIME void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class
 SWIGRUNTIME void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
   v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
-  proto_templ->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
+  proto_templ->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 }
 
 /**
@@ -61,7 +57,7 @@ SWIGRUNTIME void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class
  */
 SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
   const SwigV8FunctionCallback& _func) {
-  obj->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(_func)->GetFunction());
+  obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
 }
 
 /**
@@ -69,7 +65,7 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char
  */
 SWIGRUNTIME void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
-  obj->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
+  obj->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 }
 
 SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value,
