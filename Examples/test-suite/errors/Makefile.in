@@ -24,11 +24,23 @@ top_builddir = @top_builddir@
 ALL_ERROR_TEST_CASES := $(patsubst %.i,%, $(notdir $(wildcard $(srcdir)/*.i)))
 CPP_ERROR_TEST_CASES := $(filter cpp_%, $(ALL_ERROR_TEST_CASES))
 C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CASES))
+DOXYGEN_ERROR_TEST_CASES := $(filter doxygen_%, $(C_ERROR_TEST_CASES))
+C_ERROR_TEST_CASES := $(filter-out $(DOXYGEN_ERROR_TEST_CASES), $(C_ERROR_TEST_CASES))
+
+# Always use C++ for Doxygen tests, there doesn't seem to be any need to
+# distinguish between C and C++ Doxygen tests.
+DOXYGEN_ERROR_TEST_CASES := $(DOXYGEN_ERROR_TEST_CASES:=.cpptest)
 
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
-		    $(C_ERROR_TEST_CASES:=.ctest)
+		    $(C_ERROR_TEST_CASES:=.ctest) \
+		    $(DOXYGEN_ERROR_TEST_CASES)
 
 include $(srcdir)/../common.mk
+
+# This is tricky: we need to let common.mk define SWIGOPT before appending to
+# it, if we do it before including it, its defining of SWIGOPT would override
+# whatever we do here.
+$(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 
 # Portable dos2unix / todos for stripping CR
 TODOS        = tr -d '\r'

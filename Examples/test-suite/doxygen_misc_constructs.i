@@ -3,6 +3,8 @@
 
 %module doxygen_misc_constructs
 
+%warnfilter(SWIGWARN_DOXYGEN_UNKNOWN_COMMAND) backslashB;
+
 %inline %{
 
     // Tag '@endink' must be recognized even if it is not

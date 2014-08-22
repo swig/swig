@@ -1028,11 +1028,22 @@ bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
     tokList.push_back(Token(COMMAND, cmd));
     return true;
   } else {
-    // Unknown commands are ignored, because they are
-    // also ignored by Doxygen - see test doxygen_misc_constructs.h, f. backslashB().
-    // This differs from original implementation in this class. Uncomment
-    // the line below to put unknown commands to output.
-    // tokList.push_back(Token(PLAINSTRING, cmd));
+    // This function is called for the special Doxygen commands, but also for
+    // HTML commands (or anything that looks like them, actually) and entities.
+    // We don't recognize all of those, so just ignore them and pass them
+    // through, but warn about unknown Doxygen commands as ignoring them will
+    // often result in wrong output being generated.
+    const char ch = *cmd.begin();
+    if (ch != '<' && ch != '&') {
+      // Before calling printListError() we must ensure that m_tokenListIt used
+      // by it is valid.
+      const TokenListCIt itSave = m_tokenListIt;
+      m_tokenListIt = m_tokenList.end();
+
+      printListError(WARN_DOXYGEN_UNKNOWN_COMMAND, "unknown command \"" + cmd + '"');
+
+      m_tokenListIt = itSave;
+    }
   }
 
   return false;
@@ -1431,5 +1442,5 @@ void DoxygenParser::printListError(int warningType, const std::string &message)
   }
 
   Swig_warning(warningType, m_fileName.c_str(), curLine,
-      "Doxygen parser warning: %s. \n", message.c_str());
+      "Doxygen parser warning: %s.\n", message.c_str());
 }
