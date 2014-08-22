@@ -125,16 +125,17 @@ fail:
 %{
 
 #if (SWIG_V8_VERSION < 0x031710)
-void $jswrapper(v8::Persistent< v8::Value > object, void *parameter)
-{
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
 #elif (SWIG_V8_VERSION < 0x031900)
-void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter)
-{
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
+#elif (SWIG_V8_VERSION < 0x032403)
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
 #else
-void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy)
-{
+void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
+  v8::Local<v8::Object> object = data.GetValue();
+  SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
 
   if(proxy->swigCMemOwn && proxy->swigCObject) {
@@ -146,6 +147,7 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   delete proxy;
 
   object.Clear();
+  
 #if (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
 #elif (SWIG_V8_VERSION < 0x031900)
@@ -167,17 +169,19 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
 %fragment ("js_dtoroverride", "templates")
 %{
 #if (SWIG_V8_VERSION < 0x031710)
-void $jswrapper(v8::Persistent< v8::Value > object, void *parameter)
-{
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
 #elif (SWIG_V8_VERSION < 0x031900)
-void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter)
-{
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
+#elif (SWIG_V8_VERSION < 0x032403)
+void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
 #else
-void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy)
-{
+void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
+  v8::Local<v8::Object> object = data.GetValue();
+  SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
+
   if(proxy->swigCMemOwn && proxy->swigCObject) {
     $jstype arg1 = ($jstype)proxy->swigCObject;
     ${destructor_action}
@@ -190,8 +194,10 @@ void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWI
   object.Dispose(isolate);
 #elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
-#else
+#elif (SWIG_V8_VERSION < 0x032403)
   object->Dispose();
+#else
+  object.Clear();
 #endif
 }
 %}
