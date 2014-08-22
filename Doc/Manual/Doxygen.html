@@ -14,6 +14,7 @@
 <ul>
 <li><a href="#Doxygen_running_swig">Enabling Doxygen Translation</a>
 <li><a href="#Doxygen_additional_options">Additional Command Line Options</a>
+<li><a href="#Doxygen_features">Doxygen-specific %feature Directives</a>
 </ul>
 <li><a href="#Doxygen_to_javadoc">Doxygen To Javadoc</a>
 <ul>
@@ -201,21 +202,46 @@ assigned to anything.
 </p>
 <H3><a name="Doxygen_running_swig"></a>39.2.1 Enabling Doxygen Translation</H3>
 
-
 <p>
-There is a switch '-doxygen' in every module that supports converting
-documentation comments. Some comments in some target languages can be
-manually overridden by specific swig's features,
-like <i>feature:docstring</i> or <i>feature:autodoc</i>, in this cases
-Doxygen comments have lowest priority.
-</p>
-<p>
-If Doxygen parsing is switched off, then all the comments are stripped
-out in parser and all the resources used by comment parser and
-translator are freed.
+Doxygen comments translation is disabled by default and needs to be explicitly
+enabled using the command line <tt>-doxygen</tt> switch for the languages that
+do support it (currently Java and Python).
 </p>
 
-<H3><a name="Doxygen_additional_options"></a>39.2.2 Additional Command Line Options</H3>
+<H3><a name="Doxygen_features"></a>39.2.2 Doxygen-specific %feature Directives</H3>
+
+<p>
+Translation of Doxygen comments is influenced by the following <a
+href="Customization.html#Customization_features">%feature directives</a>:
+</p>
+
+<h4>doxygen:notranslate</h4>
+
+<p>
+Turns off translation of Doxygen comments to the target language syntax: the
+original comment will be copied to the output unchanged. This is useful if you
+want to use Doxygen itself to generate documentation for the target language
+instead of the corresponding language tool (<tt>javadoc</tt>, <tt>sphinx</tt>,
+...).
+</p>
+
+
+<h4>doxygen:nolinkranslate (Java-only currently)</h4>
+
+<p>
+Turn off automatic link-objects translation.
+</p>
+
+
+<h4>doxygen:nostripparams (Java-only currently)</h4>
+
+<p>
+Turn off stripping of <tt>@param</tt> and <tt>@tparam</tt>
+Doxygen commands if the parameter is not found in the function signature.
+</p>
+
+
+<H3><a name="Doxygen_additional_options"></a>39.2.3 Additional Command Line Options</H3>
 
 
 <p>
@@ -330,12 +356,6 @@ you don't want such behaviour, you could turn this off by using
 'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
 commands are stripped out, if specified parameter is not present in
 function. Use 'doxygen:nostripparams' to avoid.
-<br>
-If you intend to use resulting proxy files with Doxygen docs
-generator, rather than Javadoc, you may want to turn off translator
-completely (doxygen:notranslate feature).  Then SWIG will just copy
-the comments to the proxy file and reformat them if needed, but all
-the comment content will be left as is.
 </p>
 
 <p>
@@ -345,33 +365,6 @@ directives</a>):
 <br>
 
 </p>
-
-<div class="shell"><pre>
-<table>
-<tr>
-<td>doxygen:notranslate</td>
-<td>
-Turn off the whole Doxygen translator.
-The Doxygen comment will be attached to the right node,
-but all the commands and text will be left as-is
-</td>
-</tr>
-
-<tr>
-<td>doxygen:nolinkranslate</td>
-<td>Turn off automatic link-objects translation</td>
-</tr>
-
-<tr>
-<td>doxygen:nostripparams</td>
-<td>
-Turn off stripping of @param and @tparam
-Doxygen commands if such parameter is not found
-</td>
-</tr>
-</table>
-</pre></div>
-
 
 <H3><a name="Doxygen_javadoc_tags"></a>39.3.2 Javadoc Tags</H3>
 
@@ -1035,25 +1028,6 @@ docs</a>), you may want to use some tool like doxypy
 (<a href="http://code.foosel.org/doxypy">http://code.foosel.org/doxypy</a>)
 to do the work.
 </p>
-
-<p>
-Pydoc translator features summary (see <a href="Customization.html#Customization_features">%feature directives</a>):
-<br>
-
-</p>
-
-<div class="shell"><pre>
-<table>
-<tr>
-<td>doxygen:notranslate</td>
-<td>
-Turn off the whole Doxygen translator.
-The Doxygen comment will be attached to the right node,
-but all the commands and text will be left as-is
-</td>
-</tr>
-</table>
-</pre></div>
 
 <H3><a name="Doxygen_pydoc_tags"></a>39.4.2 Pydoc translator</H3>
 
