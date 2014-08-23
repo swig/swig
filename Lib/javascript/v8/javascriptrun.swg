@@ -47,8 +47,13 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym)
 #endif
 
-#if (SWIG_V8_VERSION < 0x032318)
+#if (SWIG_V8_VERSION < 0x031803)
+#define SWIGV8_STRING_NEW2(cstr, len) v8::String::New(cstr, len)
+#else
 #define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
+#endif
+
+#if (SWIG_V8_VERSION < 0x032318)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(func)
 #define SWIGV8_FUNCTEMPLATE_NEW_VOID() v8::FunctionTemplate::New()
 #define SWIGV8_OBJECT_NEW() v8::Object::New()
@@ -62,7 +67,6 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_INTEGER_NEW_UNS(num) v8::Integer::NewFromUnsigned(num)
 #define SWIGV8_INT32_NEW(num) v8::Int32::New(num)
 #else
-#define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), func)
 #define SWIGV8_FUNCTEMPLATE_NEW_VOID() v8::FunctionTemplate::New(v8::Isolate::GetCurrent())
 #define SWIGV8_OBJECT_NEW() v8::Object::New(v8::Isolate::GetCurrent())
