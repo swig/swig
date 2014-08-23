@@ -9,7 +9,7 @@ SWIGINTERNINLINE
 v8::Handle<v8::Value>
 SWIG_From_dec(bool)(bool value)
 {
-  return v8::Boolean::New(value);
+  return SWIGV8_BOOLEAN_NEW(value);
 }
 }
 
