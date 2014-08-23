@@ -130,7 +130,7 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
 #elif (SWIG_V8_VERSION < 0x031900)
 void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < 0x032403)
+#elif (SWIG_V8_VERSION < SWIG_SETWEAK_VERSION)
 void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
 #else
 void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
@@ -174,7 +174,7 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
 #elif (SWIG_V8_VERSION < 0x031900)
 void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < 0x032403)
+#elif (SWIG_V8_VERSION < SWIG_SETWEAK_VERSION)
 void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object > * object, SWIGV8_Proxy *proxy) {
 #else
 void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
@@ -194,7 +194,7 @@ void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
   object.Dispose(isolate);
 #elif (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
-#elif (SWIG_V8_VERSION < 0x032403)
+#elif (SWIG_V8_VERSION < SWIG_SETWEAK_VERSION)
   object->Dispose();
 #else
   object.Clear();
