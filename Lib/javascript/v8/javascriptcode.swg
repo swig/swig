@@ -385,7 +385,7 @@ fail:
     $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
 #else
     $jsmangledname_class->Inherit(
-      v8::Handle<v8::FunctionTemplate>::New(
+      v8::Local<v8::FunctionTemplate>::New(
         v8::Isolate::GetCurrent(),
         static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ)
      );
