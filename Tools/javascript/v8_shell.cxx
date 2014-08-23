@@ -282,10 +282,10 @@ v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
 }
 
 SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments& args) {
+  SWIGV8_HANDLESCOPE();
+
   bool first = true;
   for (int i = 0; i < args.Length(); i++) {
-
-    SWIGV8_HANDLESCOPE();
 
     if (first) {
       first = false;
@@ -325,6 +325,8 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments& args) {
 }
 
 SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments& args) {
+  SWIGV8_HANDLESCOPE();
+
   int exit_code = args[0]->Int32Value();
   fflush(stdout);
   fflush(stderr);
@@ -334,6 +336,7 @@ SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments& args) {
 }
 
 SwigV8ReturnValue V8Shell::Version(const SwigV8Arguments& args) {
+    SWIGV8_HANDLESCOPE();
     SWIGV8_RETURN(SWIGV8_STRING_NEW(v8::V8::GetVersion()));
 }
 

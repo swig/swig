@@ -338,9 +338,12 @@ v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int
   v8::Handle<v8::FunctionTemplate> class_templ;
 
   if (ptr == NULL) {
-//    SWIGV8_ESCAPE(SWIGV8_NULL());
+#if (SWIG_V8_VERSION < 0x031903)
+    SWIGV8_ESCAPE(SWIGV8_NULL());
+#else    
     v8::Local<v8::Primitive> result = SWIGV8_NULL();
     SWIGV8_ESCAPE(result);
+#endif    
   }
 
 #if (SWIG_V8_VERSION < 0x031903)
@@ -583,15 +586,22 @@ v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_inf
  * ---------------------------------------------------------------------------*/
 
 SWIGRUNTIME
-//v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
+
+#if (SWIG_V8_VERSION < 0x031903)
+v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
+#else
 v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Local<v8::Value> result, v8::Handle<v8::Value> obj) {
+#endif
   SWIGV8_HANDLESCOPE_ESC();
   
   if (result->IsUndefined()) {
     result = SWIGV8_ARRAY_NEW();
   }
-  //v8::Handle<v8::Array> arr = v8::Handle<v8::Array>::Cast(result);
+#if (SWIG_V8_VERSION < 0x031903)
+  v8::Handle<v8::Array> arr = v8::Handle<v8::Array>::Cast(result);
+#else  
   v8::Local<v8::Array> arr = v8::Local<v8::Array>::Cast(result);
+#endif  
   arr->Set(arr->Length(), obj);
 
   SWIGV8_ESCAPE(arr);
