@@ -119,6 +119,9 @@ V8Shell::~V8Shell() {}
 bool V8Shell::RunScript(const std::string& scriptPath) {
   std::string source = ReadFile(scriptPath);
 
+  v8::Isolate* isolate = v8::Isolate::New();
+  v8::Isolate::Scope isolate_scope(isolate);
+
   SWIGV8_HANDLESCOPE();
 
   SwigV8Context context = CreateShellContext();
