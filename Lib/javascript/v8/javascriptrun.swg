@@ -350,12 +350,12 @@ v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int
     class_templ = SWIGV8_SWIGTYPE_Proxy_class_templ;
   }
 #else
-  v8::Isolate *iso = v8::Isolate::GetCurrent();
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
 
   if(info->clientdata != 0) {
-    class_templ = v8::Handle<v8::FunctionTemplate>::New(iso, ((SWIGV8_ClientData*) info->clientdata)->class_templ);
+    class_templ = v8::Handle<v8::FunctionTemplate>::New(isolate, ((SWIGV8_ClientData*) info->clientdata)->class_templ);
   } else {
-    class_templ = v8::Handle<v8::FunctionTemplate>::New(iso, SWIGV8_SWIGTYPE_Proxy_class_templ);
+    class_templ = v8::Handle<v8::FunctionTemplate>::New(isolate, SWIGV8_SWIGTYPE_Proxy_class_templ);
   }
 #endif
 
