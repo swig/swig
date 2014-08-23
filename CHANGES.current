@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-08-23: richie765
+            [Javascript] Added support for a variety of V8 versions
+
 2014-08-15: talby
             [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
 
