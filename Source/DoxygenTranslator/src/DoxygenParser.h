@@ -22,6 +22,7 @@ class DoxygenParser {
 private:
 
   typedef enum {
+    NONE = -1,
     SIMPLECOMMAND,
     COMMANDWORD,
     COMMANDLINE,

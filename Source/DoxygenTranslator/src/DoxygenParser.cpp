@@ -138,7 +138,7 @@ int DoxygenParser::commandBelongs(const std::string &theCommand)
   if (it != doxygenCommands.end()) {
     return it->second;
   }
-  return 0;
+  return NONE;
 }
 
 std::string DoxygenParser::trim(const std::string &text)
