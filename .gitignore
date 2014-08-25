@@ -143,6 +143,10 @@ swigexample*.oct
 */__pycache__/
 /__pycache__/
 
+# Go generated files
+*.[5689]
+*_gc.c
+
 # Scratch directories
 Examples/scratch
 
