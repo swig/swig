@@ -105,11 +105,6 @@ private:
   std::string stringToLower(const std::string &stringToConvert);
 
   /* 
-   * Finds out if a command exists (is a possible command)
-   * returns -1 if no match is found
-   */
-  bool findCommand(const std::string &smallString);
-  /* 
    * isSectionIndicator returns a boolean if the command is a section indicator
    * This is a helper method for finding the end of a paragraph
    * by Doxygen's terms

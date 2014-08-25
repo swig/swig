@@ -102,17 +102,6 @@ std::string DoxygenParser::stringToLower(const std::string &stringToConvert)
   return result;
 }
 
-bool DoxygenParser::findCommand(const std::string &smallString)
-{
-  // I'm not sure if we can really do so, because there are different commands
-  // in doxygenCommands and original commandArray
-
-  std::map<std::string, DoxyCommandEnum>::iterator it = doxygenCommands.find(
-      stringToLower(smallString));
-
-  return it != doxygenCommands.end(); // returns true if command was found
-}
-
 bool DoxygenParser::isSectionIndicator(const std::string &smallString)
 {
 
@@ -1021,7 +1010,7 @@ bool DoxygenParser::isStartOfDoxyCommentChar(char c)
 bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
                                    const std::string &cmd)
 {
-  if (findCommand(cmd)) {
+  if (commandBelongs(cmd) != NONE) {
     tokList.push_back(Token(COMMAND, cmd));
     return true;
   } else {
