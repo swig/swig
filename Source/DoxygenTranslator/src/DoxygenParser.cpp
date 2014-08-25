@@ -133,10 +133,7 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList)
 
 int DoxygenParser::commandBelongs(const std::string &theCommand)
 {
-
-  std::string smallString = stringToLower(theCommand);
-  //cout << " Looking for command " << theCommand << endl;
-  DoxyCommandsMapIt it = doxygenCommands.find(smallString);
+  DoxyCommandsMapIt it = doxygenCommands.find(stringToLower(theCommand));
 
   if (it != doxygenCommands.end()) {
     return it->second;
@@ -899,7 +896,7 @@ int DoxygenParser::addCommand(const std::string &commandString,
     return 1;
   }
 
-  switch (commandBelongs(theCommand)) {
+  switch (commandBelongs(commandString)) {
   case SIMPLECOMMAND:
     return addSimpleCommand(theCommand, doxyList);
   case COMMANDWORD:
