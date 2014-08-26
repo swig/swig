@@ -22,6 +22,14 @@ using std::string;
 using std::cout;
 using std::endl;
 
+// This constant defines the (only) characters valid inside a Doxygen "word".
+// It includes some unusual ones because of the commands such as \f[, \f{, \f],
+// \f} and \f$.
+static const char* DOXYGEN_WORD_CHARS = "abcdefghijklmnopqrstuvwxyz"
+                                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                        "0123456789"
+                                        "$[]{}";
+
 // Define static class members
 DoxygenParser::DoxyCommandsMap DoxygenParser::doxygenCommands;
 std::set<std::string> DoxygenParser::doxygenSectionIndicators;
@@ -1049,9 +1057,7 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
   if (line[pos] == '\\' || line[pos] == '@') { // check for end commands
 
     pos++;
-    // characters '$[]{}' are used in commands \f$, \f[, and \f{
-    size_t endOfWordPos = line.find_first_not_of(
-        "abcdefghijklmnopqrstuvwxyz$[]{}", pos);
+    size_t endOfWordPos = line.find_first_not_of( DOXYGEN_WORD_CHARS, pos);
     string cmd = line.substr(pos, endOfWordPos - pos);
 
     if (cmd == CMD_END_HTML_ONLY || cmd == CMD_END_VERBATIM
@@ -1125,9 +1131,7 @@ bool DoxygenParser::processEscapedChars(size_t &pos, const std::string &line)
 void DoxygenParser::processWordCommands(size_t &pos, const std::string &line)
 {
   pos++;
-  // characters '$[]{}' are used in commands \f$, \f[, ...
-
-  size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz$[]{}", pos);
+  size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
 
   string cmd = line.substr(pos, endOfWordPos - pos);
   addDoxyCommand(m_tokenList, cmd);
