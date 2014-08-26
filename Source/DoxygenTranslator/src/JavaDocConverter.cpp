@@ -928,8 +928,7 @@ String *JavaDocConverter::makeDocumentation(Node *node)
     return comment;
   }
 
-  DoxygenEntityList entityList = parser.createTree(Char (documentation),
-      Char (Getfile(documentation)), Getline(documentation));
+  DoxygenEntityList entityList = parser.createTree(node, documentation);
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
 

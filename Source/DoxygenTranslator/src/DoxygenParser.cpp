@@ -954,12 +954,16 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
   return aNewList;
 }
 
-DoxygenEntityList DoxygenParser::createTree(const std::string &doxygenBlob,
-                                            const std::string &fileName,
-                                            int lineNumber)
+DoxygenEntityList DoxygenParser::createTree(Node* node, String* documentation)
 {
+  m_node = node;
 
-  tokenizeDoxygenComment(doxygenBlob, fileName, lineNumber);
+  tokenizeDoxygenComment(
+      Char(documentation),
+      Char(Getfile(documentation)),
+      Getline(documentation)
+    );
+
   if (noisy) {
     cout << "---TOKEN LIST---" << endl;
     printList();

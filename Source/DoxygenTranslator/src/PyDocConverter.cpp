@@ -852,9 +852,7 @@ String *PyDocConverter::makeDocumentation(Node *n)
           oneDoc = Char (comment);
           Delete(comment);
         } else {
-          std::list<DoxygenEntity> entityList = parser.createTree(
-              Char (documentation), Char (Getfile(documentation)),
-              Getline(documentation));
+          std::list<DoxygenEntity> entityList = parser.createTree(n, documentation);
           DoxygenEntity root("root", entityList);
 
           oneDoc = translateSubtree(root);
@@ -908,9 +906,7 @@ String *PyDocConverter::makeDocumentation(Node *n)
         pyDocString = Char (comment);
         Delete(comment);
       } else {
-        std::list<DoxygenEntity> entityList = parser.createTree(
-            Char (documentation), Char (Getfile(documentation)),
-            Getline(documentation));
+        std::list<DoxygenEntity> entityList = parser.createTree(n, documentation);
         DoxygenEntity root("root", entityList);
         pyDocString = translateSubtree(root);
       }

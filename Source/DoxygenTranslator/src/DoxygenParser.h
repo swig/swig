@@ -16,6 +16,9 @@
 #include <map>
 #include <vector>
 #include <set>
+
+#include "swig.h"
+
 #include "DoxygenEntity.h"
 
 class DoxygenParser {
@@ -91,6 +94,7 @@ private:
   bool m_isVerbatimText; // used to handle \htmlonly and \verbatim commands
   bool m_isInQuotedString;
 
+  Node* m_node;
   std::string m_fileName;
   int m_fileLineNo;
 
@@ -375,9 +379,7 @@ private:
 public:
   DoxygenParser(bool noisy = false);
   virtual ~DoxygenParser();
-  DoxygenEntityList createTree(const std::string &doxygen,
-                                const std::string &fileName,
-                                int lineNumber);
+  DoxygenEntityList createTree(Node* node, String* documentation);
 };
 
 #endif
