@@ -37,7 +37,7 @@ RUNME_SCRIPT = $(TEST_DIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 # Hide too long identifier warnings
-SWIGOPT = -w720
+SWIGOPT += -w720
 
 # Rules for the different types of tests
 %.cpptest:
