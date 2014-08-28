@@ -738,10 +738,10 @@ javascript_clean:
 #####                       ANDROID                         ######
 ##################################################################
 
-ANDROID = android
-ANDROID_NDK_BUILD = ndk-build
-ANDROID_ADB = adb
-ANT = ant
+ANDROID = @ANDROID@
+ANDROID_NDK_BUILD = @NDKBUILD@
+ANDROID_ADB = @ADB@
+ANT = @ANT@
 TARGETID = 1
 
 # ----------------------------------------------------------------
@@ -784,7 +784,7 @@ android_version:
 # -----------------------------------------------------------------
 
 android_clean:
-	test -n "$(SRCDIR)" && cd $(SRCDIR) ; ant -q -logfile /dev/null clean
+	test -n "$(SRCDIR)" && cd $(SRCDIR) ; $(ANT) -q -logfile /dev/null clean
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
 	rm -rf obj
