@@ -741,7 +741,7 @@ public:
     if (Len(name) > 24) {
       // Warning on too long identifiers
       Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
-        "Identifier name '%s' exceeds 24 characters, it is truncated to '%s'.\n",
+        "Identifier name '%s' exceeds 24 characters and has been truncated to '%s'.\n",
         name, DohNewStringWithSize(name, 24));
     }
   }
