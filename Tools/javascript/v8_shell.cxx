@@ -72,7 +72,7 @@ public:
 
   virtual ~V8Shell();
 
-  virtual bool RunScript(const std::string& scriptPath);
+  virtual bool RunScript(const std::string &scriptPath);
 
   virtual bool RunShell();
 
@@ -81,27 +81,27 @@ protected:
 
   virtual bool InitializeEngine();
 
-  virtual bool ExecuteScript(const std::string& source, const std::string& scriptPath);
+  virtual bool ExecuteScript(const std::string &source, const std::string &scriptPath);
 
   virtual bool DisposeEngine();
 
 private:
 
-  v8::Handle<v8::Value> Import(const std::string& moduleName);
+  v8::Handle<v8::Value> Import(const std::string &moduleName);
 
   SwigV8Context CreateShellContext();
 
-  void ReportException(v8::TryCatch* handler);
+  void ReportException(v8::TryCatch *handler);
 
-  static SwigV8ReturnValue Print(const SwigV8Arguments& args);
+  static SwigV8ReturnValue Print(const SwigV8Arguments &args);
 
-  static SwigV8ReturnValue Require(const SwigV8Arguments& args);
+  static SwigV8ReturnValue Require(const SwigV8Arguments &args);
 
-  static SwigV8ReturnValue Quit(const SwigV8Arguments& args);
+  static SwigV8ReturnValue Quit(const SwigV8Arguments &args);
 
-  static SwigV8ReturnValue Version(const SwigV8Arguments& args);
+  static SwigV8ReturnValue Version(const SwigV8Arguments &args);
 
-  static const char* ToCString(const v8::String::Utf8Value& value);
+  static const char* ToCString(const v8::String::Utf8Value &value);
 
 };
 
@@ -116,10 +116,10 @@ V8Shell::V8Shell() {}
 
 V8Shell::~V8Shell() {}
 
-bool V8Shell::RunScript(const std::string& scriptPath) {
+bool V8Shell::RunScript(const std::string &scriptPath) {
   std::string source = ReadFile(scriptPath);
 
-  v8::Isolate* isolate = v8::Isolate::New();
+  v8::Isolate *isolate = v8::Isolate::New();
   v8::Isolate::Scope isolate_scope(isolate);
 
   SWIGV8_HANDLESCOPE();
@@ -182,7 +182,7 @@ bool V8Shell::RunShell() {
   while (true) {
     char buffer[kBufferSize];
     printf("> ");
-    char* str = fgets(buffer, kBufferSize, stdin);
+    char *str = fgets(buffer, kBufferSize, stdin);
     if (str == NULL) break;
     std::string source(str);
     ExecuteScript(source, "(shell)");
@@ -211,7 +211,7 @@ bool V8Shell::InitializeEngine() {
   return true;
 }
 
-bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) {
+bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) {
   SWIGV8_HANDLESCOPE();
 
   v8::TryCatch try_catch;
@@ -258,7 +258,7 @@ SwigV8Context V8Shell::CreateShellContext() {
 #endif
 }
 
-v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
+v8::Handle<v8::Value> V8Shell::Import(const std::string &module_path)
 {
   SWIGV8_HANDLESCOPE_ESC();
 
@@ -281,7 +281,7 @@ v8::Handle<v8::Value> V8Shell::Import(const std::string& module_path)
   SWIGV8_ESCAPE(module);
 }
 
-SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments& args) {
+SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
 
   bool first = true;
@@ -293,7 +293,7 @@ SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments& args) {
       printf(" ");
     }
     v8::String::Utf8Value str(args[i]);
-    const char* cstr = V8Shell::ToCString(str);
+    const char *cstr = V8Shell::ToCString(str);
     printf("%s", cstr);
   }
   printf("\n");
@@ -302,7 +302,7 @@ SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments& args) {
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 
-SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments& args) {
+SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
 
   if (args.Length() != 1) {
@@ -310,21 +310,21 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments& args) {
   };
 
   v8::String::Utf8Value str(args[0]);
-  const char* cstr = V8Shell::ToCString(str);
+  const char *cstr = V8Shell::ToCString(str);
   std::string moduleName(cstr);
 
   v8::Local<v8::Object> global = SWIGV8_CURRENT_CONTEXT()->Global();
 
   v8::Local<v8::Value> hidden = global->GetHiddenValue(SWIGV8_STRING_NEW("__shell__"));
   v8::Local<v8::External> __shell__ = v8::Local<v8::External>::Cast(hidden);
-  V8Shell* _this = (V8Shell*) (long) __shell__->Value();
+  V8Shell *_this = (V8Shell *) (long) __shell__->Value();
 
   v8::Handle<v8::Value> module = _this->Import(moduleName);
 
   SWIGV8_RETURN(module);
 }
 
-SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments& args) {
+SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
 
   int exit_code = args[0]->Int32Value();
@@ -335,16 +335,16 @@ SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments& args) {
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 
-SwigV8ReturnValue V8Shell::Version(const SwigV8Arguments& args) {
+SwigV8ReturnValue V8Shell::Version(const SwigV8Arguments &args) {
     SWIGV8_HANDLESCOPE();
     SWIGV8_RETURN(SWIGV8_STRING_NEW(v8::V8::GetVersion()));
 }
 
-void V8Shell::ReportException(v8::TryCatch* try_catch) {
+void V8Shell::ReportException(v8::TryCatch *try_catch) {
   SWIGV8_HANDLESCOPE();
 
   v8::String::Utf8Value exception(try_catch->Exception());
-  const char* exception_string = V8Shell::ToCString(exception);
+  const char *exception_string = V8Shell::ToCString(exception);
   v8::Handle<v8::Message> message = try_catch->Message();
   if (message.IsEmpty()) {
     // V8 didn't provide any extra information about this error; just
@@ -353,12 +353,12 @@ void V8Shell::ReportException(v8::TryCatch* try_catch) {
   } else {
     // Print (filename):(line number): (message).
     v8::String::Utf8Value filename(message->GetScriptResourceName());
-    const char* filename_string = V8Shell::ToCString(filename);
+    const char *filename_string = V8Shell::ToCString(filename);
     int linenum = message->GetLineNumber();
     printf("%s:%i: %s\n", filename_string, linenum, exception_string);
     // Print line of source code.
     v8::String::Utf8Value sourceline(message->GetSourceLine());
-    const char* sourceline_string = V8Shell::ToCString(sourceline);
+    const char *sourceline_string = V8Shell::ToCString(sourceline);
     printf("%s\n", sourceline_string);
     // Print wavy underline (GetUnderline is deprecated).
     int start = message->GetStartColumn();
@@ -372,17 +372,17 @@ void V8Shell::ReportException(v8::TryCatch* try_catch) {
     printf("\n");
     v8::String::Utf8Value stack_trace(try_catch->StackTrace());
     if (stack_trace.length() > 0) {
-      const char* stack_trace_string = V8Shell::ToCString(stack_trace);
+      const char *stack_trace_string = V8Shell::ToCString(stack_trace);
       printf("%s\n", stack_trace_string);
     }
   }
 }
 
 // Extracts a C string from a V8 Utf8Value.
-const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
+const char *V8Shell::ToCString(const v8::String::Utf8Value &value) {
   return *value ? *value : "<string conversion failed>";
 }
 
-JSShell* V8Shell_Create() {
+JSShell *V8Shell_Create() {
   return new V8Shell();
 }
