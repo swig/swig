@@ -2622,12 +2622,12 @@ done:
 	Printf(w->code, "zval *args[%d];\n", idx);
       }
       Printf(w->code, "zval *%s, funcname;\n", Swig_cresult_name());
-      Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
-      const char * funcname = GetChar(n, "sym:name");
-      Printf(w->code, "ZVAL_STRINGL(&funcname, (char *)\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");
+      Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
+      const char * funcname = GetChar(n, "sym:name");
+      Printf(w->code, "ZVAL_STRINGL(&funcname, (char *)\"%s\", %d, 0);\n", funcname, strlen(funcname));
 
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
