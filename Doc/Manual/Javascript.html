@@ -92,7 +92,7 @@ $ swig -c++ -javascript -jsc example.i</pre>
 <p>Specify the V8 version when running SWIG (e.g. 3.25.30)</p>
 <div class="shell">
 <pre>
-$ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i
+$ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i</pre>
 </div>
 <p>This creates a C/C++ source file <code>example_wrap.c</code> or <code>example_wrap.cxx</code>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
 <p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is <code>example.i</code>, the name of the wrapper file is <code>example_wrap.c</code>. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
