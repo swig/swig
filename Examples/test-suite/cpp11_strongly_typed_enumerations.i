@@ -112,6 +112,121 @@ public:
   };
 };
 
+class Class2
+{
+public:
+  enum class Enum12
+  {
+    Val1 = 300,
+    Val2 = 400,
+    Val3,
+    Val4
+  };
+
+  enum Enum13
+  {
+    Val1 = 300,
+    Val2 = 400,
+    Val3,
+    Val4
+  };
+
+  struct Struct1
+  {
+    enum class Enum14
+    {
+      Val1 = 300,
+      Val2 = 400,
+      Val3,
+      Val4
+    };
+
+    enum Enum15
+    {
+      Val1 = 300,
+      Val2 = 400,
+      Val3,
+      Val4
+    };
+  };
+};
+
+/*
+enum class Enum12
+{
+  Val1 = 300,
+  Val2 = 400,
+  Val3,
+  Val4
+};
+
+enum Enum13
+{
+  Val1 = 300,
+  Val2 = 400,
+  Val3,
+  Val4
+};
+*/
+
+namespace NS1
+{
+  enum class Enum12
+  {
+    Val1 = 300,
+    Val2 = 400,
+    Val3,
+    Val4
+  };
+
+  enum Enum13
+  {
+    Val1 = 300,
+    Val2 = 400,
+    Val3,
+    Val4
+  };
+
+  class Class3
+  {
+  public:
+    enum class Enum12
+    {
+      Val1 = 300,
+      Val2 = 400,
+      Val3,
+      Val4
+    };
+
+    enum Enum13
+    {
+      Val1 = 300,
+      Val2 = 400,
+      Val3,
+      Val4
+    };
+
+    struct Struct1
+    {
+      enum class Enum14
+      {
+	Val1 = 300,
+	Val2 = 400,
+	Val3,
+	Val4
+      };
+
+      enum Enum15
+      {
+	Val1 = 300,
+	Val2 = 400,
+	Val3,
+	Val4
+      };
+    };
+  };
+}
+
 /*
 TODO
 enum class MyClass {AAA, BBB, CCC};

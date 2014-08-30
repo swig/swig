@@ -838,7 +838,7 @@ public:
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
+      if (!addSymbol(symname, n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1556,6 +1556,22 @@ public:
     } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
+      String* pureSymname = NULL;
+      if (Equal(Getattr(n, "nodeType"), "enumitem")) {
+	// If enum is strongly-typed, generate fully-qualified symname
+	Node* parent = parentNode(n);
+	String* pureSymname = NULL;
+	if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope")) {
+	  pureSymname = symname;
+
+	  String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
+	  symname = Swig_name_member(0, enumClassName, pureSymname);
+	  Delete(enumClassName);
+
+	  /* Printf(stdout, "Renamed strong enum value symname (java:1) '%s' -> '%s'\n", pureSymname, symname); */
+	}
+      }
+
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
@@ -1566,6 +1582,13 @@ public:
 	}
       } else {
 	Printf(constants_code, "%s.%s();\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+      }
+
+      // Delete temporary symname if it was created
+      if (pureSymname) {
+	Delete(symname);
+	symname = pureSymname;
+	pureSymname = NULL;
       }
 
       // Each constant and enum value is wrapped with a separate JNI function call
@@ -2959,6 +2982,19 @@ public:
 	// Use the C syntax to make a true Java constant and hope that it compiles as Java code
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
+	// If enum is strongly-typed, generate fully-qualified symname
+	Node* parent = parentNode(n);
+	String* pureSymname = NULL;
+	if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope")) {
+	  pureSymname = symname;
+
+	  String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
+	  symname = Swig_name_member(0, enumClassName, pureSymname);
+	  Delete(enumClassName);
+
+	  /* Printf(stdout, "Renamed strong enum value symname (java:2) '%s' -> '%s'\n", pureSymname, symname); */
+	}
+
 	// Get the enumvalue from a JNI call
 	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
 	  // Strange hack to change the name
@@ -2967,7 +3003,17 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, proxy_class_name, symname)));
+	  String* full_proxy_class_sym_name = NewString(full_proxy_class_name);
+	  Replaceall(full_proxy_class_sym_name, ".", "_");
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, full_proxy_class_sym_name, symname)));
+	  Delete(full_proxy_class_sym_name);
+	}
+
+	// Delete temporary symname if it was created
+	if (pureSymname) {
+	  Delete(symname);
+	  symname = pureSymname;
+	  pureSymname = NULL;
 	}
       }
     }

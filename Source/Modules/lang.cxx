@@ -1721,6 +1721,24 @@ int Language::memberconstantHandler(Node *n) {
   String *value = Getattr(n, "value");
 
   String *mrename = Swig_name_member(0, ClassPrefix, symname);
+  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
+    // If enum is strongly-typed, generate fully-qualified symname
+    Node* parent = parentNode(n);
+    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope"))
+    {
+      SetFlag(n, "symname_has_enumscope");
+      Delete(mrename);
+
+      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
+      String* scopedItemName = Swig_name_member(0, enumClassName, symname);
+      mrename = Swig_name_member(0, ClassPrefix, scopedItemName);
+
+      /* Printf(stdout, "Renamed strong enum value symname (lang:1) '%s' -> '%s'\n", symname, mrename); */
+
+      Delete(enumClassName);
+      Delete(scopedItemName);
+    }
+  }
   Setattr(n, "sym:name", mrename);
 
   String *new_name = 0;
@@ -1728,6 +1746,24 @@ int Language::memberconstantHandler(Node *n) {
     new_name = Copy(value);
   else
     new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName, name);
+  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
+    // If enum is strongly-typed, generate fully-qualified symname
+    Node* parent = parentNode(n);
+    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "name_has_enumscope"))
+    {
+      SetFlag(n, "name_has_enumscope");
+      Delete(new_name);
+
+      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
+      String* scopedItemName = NewStringf("%s::%s", enumClassName, name);
+      new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName, scopedItemName);
+
+      /* Printf(stdout, "Renamed strong enum value name (lang:1) '%s' -> '%s'\n", name, new_name); */
+
+      Delete(enumClassName);
+      Delete(scopedItemName);
+    }
+  }
   Setattr(n, "name", new_name);
 
   constantWrapper(n);
@@ -2962,6 +2998,22 @@ int Language::variableWrapper(Node *n) {
   Delattr(n,"varset");
   Delattr(n,"varget");
 
+  String* pureSymname = NULL;
+  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
+    // If enum is strongly-typed, generate fully-qualified symname
+    Node* parent = parentNode(n);
+    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope"))
+    {
+      pureSymname = symname;
+
+      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
+      symname = Swig_name_member(0, enumClassName, pureSymname);
+      Delete(enumClassName);
+
+      /* Printf(stdout, "Renamed strong enum value symname (lang:2) '%s' -> '%s'\n", pureSymname, symname); */
+    }
+  }
+
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
   int flags = use_naturalvar_mode(n);
@@ -3019,6 +3071,14 @@ int Language::variableWrapper(Node *n) {
   functionWrapper(n);
   Delattr(n, "varget");
   Swig_restore(n);
+
+  // Delete temporary symname if it was created
+  if (pureSymname) {
+    Delete(symname);
+    symname = pureSymname;
+    pureSymname = NULL;
+  }
+
   return SWIG_OK;
 }
 
