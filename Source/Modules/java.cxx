@@ -837,13 +837,8 @@ public:
     String *nondir_args = NewString("");
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
-    // If enum is strongly-typed, generate fully-qualified symname
-    Node* parent = parentNode(n);
-    if (GetFlag(parent, "scopedenum"))
-      symname = Swig_name_member(0, Swig_scopename_last(Getattr(parent, "name")), symname);
-
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(symname, n, imclass_name))
+      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1560,11 +1555,6 @@ public:
       Printf(constants_code, "%s;\n", value);
     } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
-
-      // If enum is strongly-typed, generate fully-qualified symname
-      Node* parent = parentNode(n);
-      if (GetFlag(parent, "scopedenum"))
-	symname = Swig_name_member(0, Swig_scopename_last(Getattr(parent, "name")), symname);
 
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
@@ -2719,14 +2709,7 @@ public:
      * a Java long is used for all classes in the SWIG intermediary class.
      * The intermediary class methods are thus mangled when overloaded to give
      * a unique name. */
-
-    // If enum is strongly-typed, generate fully-qualified symname
-    String* symname = Getattr(n, "sym:name");
-    Node* parent = parentNode(n);
-    if (GetFlag(parent, "scopedenum"))
-      symname = Swig_name_member(0, Swig_scopename_last(Getattr(parent, "name")), symname);
-
-    String *overloaded_name = NewStringf("%s", symname);
+    String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
 
     if (Getattr(n, "sym:overloaded")) {
       Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
@@ -2978,10 +2961,6 @@ public:
       } else {
 	// Get the enumvalue from a JNI call
 	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
-	  // If enum is strongly-typed, generate fully-qualified symname
-	  Node* parent = parentNode(n);
-	  if (GetFlag(parent, "scopedenum"))
-	    symname = Swig_name_member(0, Swig_scopename_last(Getattr(parent, "name")), symname);
 	  // Strange hack to change the name
 	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
 	  constantWrapper(n);
