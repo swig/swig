@@ -3761,8 +3761,18 @@ public:
     String *imcall_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    String *qualified_classname = Copy(classname);
     String *nspace = getNSpace();
+
+    String *outerClassesPrefix = 0;
+    if (Node *outer = Getattr(parent, "nested:outer")) {
+      outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+      for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+	Push(outerClassesPrefix, ".");
+	Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+      }
+    }
+    String* qualified_classname = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, classname) : NewStringf("%s", classname);
+    /* Printf(stdout, "Director qualified_classname '%s' instead of '%s'\n", qualified_classname, classname); */
 
     if (nspace && package)
       Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
