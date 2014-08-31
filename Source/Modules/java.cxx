@@ -3003,10 +3003,21 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  String* full_proxy_class_sym_name = NewString(full_proxy_class_name);
+	  String* outerClassesPrefix = NULL;
+	  if (Node *outer = Getattr(getCurrentClass(), "nested:outer")) {
+	    outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+	    for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+	      Push(outerClassesPrefix, ".");
+	      Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+	    }
+	  }
+	  String* full_proxy_class_sym_name = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, proxy_class_name) : NewStringf("%s", proxy_class_name);
 	  Replaceall(full_proxy_class_sym_name, ".", "_");
+	  /* Printf(stdout, "Change proxy class symname '%s' -> '%s'\n", proxy_class_name, full_proxy_class_sym_name); */
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, full_proxy_class_sym_name, symname)));
 	  Delete(full_proxy_class_sym_name);
+	  if (outerClassesPrefix)
+	    Delete(outerClassesPrefix);
 	}
 
 	// Delete temporary symname if it was created
