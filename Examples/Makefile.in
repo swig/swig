@@ -1765,7 +1765,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 scilab_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci \
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Scilab version
