@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-01: olly
+	    Issue an error for unknown SWIG preprocessor directives, rather
+	    than quietly ignoring them.  Reported by jrhelsey in issue#217.
+
 2014-08-15: talby
             [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
 
