@@ -4572,11 +4572,12 @@ public:
 	Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
       }
       if (!classic) {
-	if (!assignable) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	} else {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	}
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	if (assignable)
+	  Printv(f_shadow, ", ", module, ".", setname, NIL);
+	Printv(f_shadow, ")\n", NIL);
       }
       Delete(mname);
       Delete(setname);
@@ -4645,11 +4646,12 @@ public:
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
 	if (!classic && !builtin) {
-	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	  }
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	  if (assignable)
+	    Printv(f_shadow, ", ", module, ".", setname, NIL);
+	  Printv(f_shadow, ")\n", NIL);
 	}
 	String *getter = Getattr(n, "pybuiltin:getter");
 	String *setter = Getattr(n, "pybuiltin:setter");

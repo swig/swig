@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-02: olly
+	    [Python] Fix regression in indentation of python code produced with
+	    -modern, introduced by changes in #188.  Reported by fabiencastan
+	    in #218.
+
 2014-09-01: olly
 	    Issue an error for unknown SWIG preprocessor directives, rather
 	    than quietly ignoring them.  Reported by jrhelsey in issue#217.
