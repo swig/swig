@@ -1,6 +1,6 @@
 /* File : example.cpp */
 
-#include "example.hxx"
+#include "example.h"
 
 #include <iostream>
 #include <iterator>

@@ -1,4 +1,4 @@
-/* File : example.hxx */
+/* File : example.h */
 
 #include <list>
 #include <string>

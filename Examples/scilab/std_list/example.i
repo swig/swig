@@ -3,7 +3,7 @@
 %module example
 
 %{
-#include "example.hxx"
+#include "example.h"
 %}
 
 %include stl.i
@@ -16,4 +16,4 @@ namespace std
     %template(StringList) list<std::string>;
 }
 
-%include "example.hxx"
+%include "example.h"
