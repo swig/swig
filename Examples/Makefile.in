@@ -1716,7 +1716,7 @@ endif
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
-scilab: $(SRCDIR_SRCS)
+scilab:
 	if test ! -z "$(SRCS)"; then \
 		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
 		if test ! -z "$(INCLUDES)"; then \
@@ -1740,13 +1740,13 @@ scilab: $(SRCDIR_SRCS)
 # Build a C++ dynamically loadable module
 # ----------------------------------------------------------------
 
-scilab_cpp: $(SRCDIR_SRCS)
-	if test ! -z "$(SRCS)"; then \
-		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
+scilab_cpp:
+	if test ! -z "$(CXXSRCS)"; then \
+		test "$(CXXSRCS)" = "$(SRCDIR_CXXSRCS)" || cp $(SRCDIR_CXXSRCS) . ; \
 		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(CXXSRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
 		else \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
+			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(CXXSRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
 		fi \
 	else \
 		if test ! -z "$(INCLUDES)"; then \
@@ -1757,7 +1757,7 @@ scilab_cpp: $(SRCDIR_SRCS)
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
 	STATUS=$$? \
-	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS); \
+	test "x$(CXXSRCS)" = "x$(SRCDIR_CXXSRCS)" || rm $(CXXSRCS); \
 	exit $(STATUS)
 
 # -----------------------------------------------------------------
