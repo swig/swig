@@ -7,7 +7,6 @@ funcptr
 matrix
 matrix2
 pointer
-scilab_const
 simple
 std_list
 std_vector
