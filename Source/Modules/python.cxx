@@ -4325,7 +4325,9 @@ public:
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
 	}
-	Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", symname, ")\n", NIL);
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
 
 	if (!modern) {
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", symname, "\n", NIL);
@@ -4337,7 +4339,9 @@ public:
 		 NIL);
 	}
 	if (!classic) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 		 ")\n", NIL);
 	}
       }
