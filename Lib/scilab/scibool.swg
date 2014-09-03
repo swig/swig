@@ -39,9 +39,9 @@ SWIG_AsVal_dec(bool)(SwigSciObject iVar, bool *pbValue) {
 
 %fragment(SWIG_From_frag(bool), "header") {
 SWIGINTERN int
-SWIG_From_dec(bool)(bool _bValue) {
+SWIG_From_dec(bool)(bool bValue) {
   if (createScalarBoolean(pvApiCtx, SWIG_NbInputArgument(pvApiCtx)
-    + SWIG_Scilab_GetOutputPosition(), _bValue))
+    + SWIG_Scilab_GetOutputPosition(), bValue))
     return SWIG_ERROR;
   return SWIG_OK;
 }
