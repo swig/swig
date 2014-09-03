@@ -1,6 +1,6 @@
 /* File : example.h */
 
-typedef enum  { RED, BLUE, GREEN } color;
+enum color { RED, BLUE, GREEN };
 
 class Foo {
  public:

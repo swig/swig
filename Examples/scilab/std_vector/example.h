@@ -9,7 +9,7 @@ double average(std::vector<int> v) {
     return std::accumulate(v.begin(),v.end(),0.0)/v.size();
 }
 
-std::vector<double> half(const std::vector<double> v) {
+std::vector<double> half(const std::vector<double>& v) {
     std::vector<double> w(v);
     for (unsigned int i=0; i<w.size(); i++)
         w[i] /= 2.0;

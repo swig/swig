@@ -8,7 +8,6 @@
 %}
 
 %include stl.i
-
 /* instantiate the required template specializations */
 namespace std {
     %template(IntVector)    vector<int>;
