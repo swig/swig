@@ -226,6 +226,126 @@ instead of the corresponding language tool (<tt>javadoc</tt>, <tt>sphinx</tt>,
 </p>
 
 
+<h4>doxygen:ignore:&lt;command-name&gt;</h4>
+
+<p>
+Specify that the Doxygen command with the given name should be ignored. This is
+useful for custom Doxygen commands which can be defined using <tt>ALIASES</tt>
+option for Doxygen itself but which are unknown to SWIG. <tt>"command-name"</tt>
+is the real name of the command, e.g. you could use
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:transferfull");
+</pre></div>
+
+<p>
+if you use a custom Doxygen <tt>transferfull</tt> command to indicate that the
+return value ownership is transferred to the caller, as this information doesn't
+make much sense for the other languages without explicit ownership management.
+</p>
+
+<p>
+Doxygen syntax is rather rich and, in addition to simple commands such as
+<tt>@transferfull</tt>, it is also possible to define commands with arguments.
+As explained in <a href="http://www.stack.nl/~dimitri/doxygen/manual/commands.html">Doxygen documentation</a>,
+the arguments can have a range of a single word, everything until the end of
+line or everything until the end of the next paragraph. Currently, only the "end
+of line" case is supported using the <tt>range="line"</tt> argument of the
+feature directive:
+</p>
+
+<div class="code"><pre>
+// Ignore occurrences of
+//
+//    @compiler-options Some special C++ compiler options.
+//
+// in Doxygen comments as C++ options are not interested for the target language
+// developers.
+%feature("doxygen:ignore:compileroptions", range="line");
+</pre></div>
+
+<p>
+In addition, it is also possible to have custom pairs of begin/end tags,
+similarly to the standard Doxygen <tt>@code/@endcode</tt>, for example. Such
+tags can also be ignored using the special value of <tt>range</tt> starting with
+<tt>end</tt> to indicate that the range is an interval, for example:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:forcpponly", range="end"); // same as "end:endforcpponly"
+</pre></div>
+
+<p>
+would ignore everything between <tt>@forcpponly</tt> and <tt>@endforcpponly</tt>
+commands in Doxygen comments. By default, the name of the end command is the
+same as of the start one with "end" prefix, following Doxygen conventions, but
+this can be overridden by providing the end command name after the colon.
+</p>
+<p>
+This example shows how custom tags can be used to bracket anything specific to
+C++ and prevent it from appearing in the target language documentation.
+Conversely, another pair of custom tags could be used to put target language
+specific information in the C++ comments. In this case, only the custom tags
+themselves should be ignored, but their contents should be parsed as usual and
+<tt>contents="parse"</tt> can be used for this:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:beginPythonOnly", range="end:endPythonOnly", contents="parse");
+</pre></div>
+
+<p>
+Putting everything together, if these directives are in effect:
+</p>
+
+<div class="code"><pre>
+%feature("doxygen:ignore:transferfull");
+%feature("doxygen:ignore:compileroptions", range="line");
+%feature("doxygen:ignore:forcpponly", range="end");
+%feature("doxygen:ignore:beginPythonOnly", range="end:endPythonOnly", contents="parse");
+</pre></div>
+
+<p>
+then the following C++ Doxygen comment:
+</p>
+
+<div class="code"><pre>
+/**
+    A contrived example of ignoring too many commands in one comment.
+
+    @forcpponly
+    This is C++-specific.
+    @endforcpponly
+
+    @beginPythonOnly
+    This is specific to @b Python.
+    @endPythonOnly
+
+    @transferfull Command ignored, but anything here is still included.
+
+    @compileroptions This function must be compiled with /EHa when using MSVC.
+ */
+void func();
+</pre></div>
+
+<p>
+would be translated to this comment in Python:
+</p>
+
+<div class="code"><pre>
+def func():
+    r"""
+    A contrived example of ignoring too many commands in one comment.
+
+    This is specific to **Python**.
+
+    Command ignored, but anything here is still included.
+    """
+    ...
+</pre></div>
+
+
 <h4>doxygen:nolinkranslate (Java-only currently)</h4>
 
 <p>

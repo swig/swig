@@ -39,6 +39,7 @@ private:
     COMMANDUNIQUE,
     COMMAND_HTML,
     COMMAND_HTML_ENTITY,
+    COMMAND_IGNORE,
     END_LINE,
     PARAGRAPH_END,
     PLAINSTRING,
@@ -97,6 +98,17 @@ private:
   Node* m_node;
   std::string m_fileName;
   int m_fileLineNo;
+
+  /*
+   * Return the end command for a command appearing in "ignore" feature or empty
+   * string if this is a simple command and not a block one.
+   */
+  std::string getIgnoreFeatureEndCommand(const std::string& theCommand) const;
+
+  /*
+   * Helper for getting the value of doxygen:ignore feature or its argument.
+   */
+  String* getIgnoreFeature(const std::string& theCommand, const char* argument = NULL) const;
 
     /*
      * Whether to print lots of debug info during parsing
@@ -333,6 +345,14 @@ private:
   int addCommandUnique(const std::string &theCommand,
                        const TokenList &tokList,
                        DoxygenEntityList &doxyList);
+
+  /*
+   * Simply ignore the given command, possibly with the word following it or
+   * until the matching end command.
+   */
+  int ignoreCommand(const std::string& theCommand,
+                    const TokenList &tokList,
+                    DoxygenEntityList &doxyList);
 
   /* 
    * The actual "meat" of the doxygen parser. Calls the correct addCommand...()

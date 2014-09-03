@@ -135,6 +135,28 @@ int DoxygenParser::commandBelongs(const std::string &theCommand)
   if (it != doxygenCommands.end()) {
     return it->second;
   }
+
+  // Check if this command should be ignored.
+  if (String* const ignore = getIgnoreFeature(theCommand)) {
+    // Check that no value is specified for this feature ("1" is the implicit
+    // one given to it by SWIG itself), we may use the value in the future, but
+    // for now we only use the attributes.
+    if (Strcmp(ignore, "1") != 0) {
+      Swig_warning(WARN_PP_UNEXPECTED_TOKENS, m_fileName.c_str(), m_fileLineNo,
+          "Feature \"doxygen:ignore\" value ignored for Doxygen command \"%s\".\n",
+          theCommand.c_str());
+    }
+
+    // Also ensure that the matching end command, if any, will be recognized.
+    const string endCommand = getIgnoreFeatureEndCommand(theCommand);
+    if (!endCommand.empty()) {
+      Setattr(m_node, ("feature:doxygen:ignore:" + endCommand).c_str(),
+          NewString("1"));
+    }
+
+    return COMMAND_IGNORE;
+  }
+
   return NONE;
 }
 
@@ -878,6 +900,95 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
   return 0;
 }
 
+String* DoxygenParser::getIgnoreFeature(const std::string& theCommand,
+                                        const char* argument) const
+{
+  string feature_name = "feature:doxygen:ignore:" + theCommand;
+  if (argument) {
+    feature_name += ':';
+    feature_name += argument;
+  }
+
+  return Getattr(m_node, feature_name.c_str());
+}
+
+string DoxygenParser::getIgnoreFeatureEndCommand(const std::string& theCommand) const
+{
+  // We may be dealing either with a simple command or with the starting command
+  // of a block, as indicated by the value of "range" starting with "end".
+  string endCommand;
+  if (String* const range = getIgnoreFeature(theCommand, "range")) {
+    const char* const p = Char(range);
+    if (strncmp(p, "end", 3) == 0) {
+      if (p[3] == ':') {
+        // Normally the end command name follows after the colon.
+        endCommand = p + 4;
+      } else if (p[3] == '\0') {
+        // But it may be omitted in which case the default Doxygen convention of
+        // using "something"/"endsomething" is used.
+        endCommand = "end" + theCommand;
+      }
+    }
+  }
+
+  return endCommand;
+}
+
+int DoxygenParser::ignoreCommand(const std::string& theCommand,
+                                 const TokenList &tokList,
+                                 DoxygenEntityList &doxyList)
+{
+  const string endCommand = getIgnoreFeatureEndCommand(theCommand);
+  if (!endCommand.empty()) {
+    TokenListCIt itEnd = getEndCommand(endCommand, tokList);
+    if (itEnd == tokList.end()) {
+      printListError(WARN_DOXYGEN_COMMAND_EXPECTED, "Expected " + endCommand);
+      return 0;
+    }
+
+    // Determine what to do with the part of the comment between the start and
+    // end commands: by default, we simply throw it away, but "contents"
+    // attribute may be used to change this.
+    if (String* const contents = getIgnoreFeature(theCommand, "contents")) {
+      // Currently only "parse" is supported but we may need to add "copy" to
+      // handle custom tags which contain text that is supposed to be copied
+      // verbatim in the future.
+      if (Strcmp(contents, "parse") == 0) {
+        DoxygenEntityList aNewList = parse(itEnd, tokList);
+        doxyList.splice(doxyList.end(), aNewList);
+      } else {
+        Swig_error(m_fileName.c_str(), m_fileLineNo,
+            "Invalid \"doxygen:ignore\" feature \"contents\" attribute \"%s\".\n",
+            Char(contents)
+          );
+        return 0;
+      }
+    }
+
+    m_tokenListIt = itEnd;
+    m_tokenListIt++;
+  } else if (String* const range = getIgnoreFeature(theCommand, "range")) {
+    // Currently we only support "line" but, in principle, we should also
+    // support "word" and "paragraph" for consistency with the built-in Doxygen
+    // commands which can have either of these three ranges (which are indicated
+    // using <word-arg>, (line-arg) and {para-arg} respectively in Doxygen
+    // documentation).
+    if (Strcmp(range, "line") == 0) {
+      // Consume everything until the end of line.
+      m_tokenListIt = getOneLine(tokList);
+      skipEndOfLine();
+    } else {
+      Swig_error(m_fileName.c_str(), m_fileLineNo,
+          "Invalid \"doxygen:ignore\" feature \"range\" attribute \"%s\".\n",
+          Char(range)
+        );
+      return 0;
+    }
+  }
+
+  return 1;
+}
+
 int DoxygenParser::addCommand(const std::string &commandString,
                               const TokenList &tokList,
                               DoxygenEntityList &doxyList)
@@ -920,6 +1031,8 @@ int DoxygenParser::addCommand(const std::string &commandString,
     return addCommandHtml(theCommand, tokList, doxyList);
   case COMMAND_HTML_ENTITY:
     return addCommandHtmlEntity(theCommand, tokList, doxyList);
+  case COMMAND_IGNORE:
+    return ignoreCommand(commandString, tokList, doxyList);
   }
   return 0;
 }
