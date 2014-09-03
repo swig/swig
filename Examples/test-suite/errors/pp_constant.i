@@ -29,7 +29,9 @@ comment */
 %constant int ddd=;
 
 #define E1 1234
-#/*C comment*/define E2 1234
+// This case doesn't actually work, but appeared to before we gave an error
+// for unknown preprocessor directives.
+// #/*C comment*/define E2 1234
 #define E3 1234
 
 %constant int eee=;
