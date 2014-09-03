@@ -1,5 +1,5 @@
-# This file contains tests for situations, which do not normally
-# appear in the code, but must neverthless be handled correctly.
+// This file contains tests for situations, which do not normally
+// appear in the code, but must nevertheless be handled correctly.
 
 %module doxygen_misc_constructs
 
