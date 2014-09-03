@@ -1,5 +1,7 @@
 %module scilab_pointer_conversion_functions
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) pfoo; /* Setting a pointer/reference variable may leak memory. */
+
 %inline %{
 
 void* getNull() { return NULL; }
