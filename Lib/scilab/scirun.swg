@@ -41,21 +41,23 @@ extern "C" {
 /* Function name management functions */
 
 #include <stdlib.h>
-static char* fname = NULL;
-static char* SWIG_Scilab_GetFname(void) {
-  return fname;
+static char *SwigFname = NULL;
+static char *SWIG_Scilab_GetFname(void) {
+  return SwigFname;
 }
-static void SWIG_Scilab_SetFname(char* _fname) {
-  if (fname != NULL) {
-    free(fname);
+static void SWIG_Scilab_SetFname(char *fname) {
+  if (SwigFname != NULL) {
+    free(SwigFname);
   }
-  fname = strdup(_fname);
+  SwigFname = strdup(fname);
 }
 #if SWIG_SCILAB_VERSION >= 600
 static void *pvApiCtx = NULL;
-static void SWIG_Scilab_SetApiContext(void *_pvApiCtx) { pvApiCtx = _pvApiCtx; };
+static void SWIG_Scilab_SetApiContext(void *context) {
+  pvApiCtx = context;
+}
 #else
-#define SWIG_Scilab_SetApiContext(_pvApiCtx)
+#define SWIG_Scilab_SetApiContext(context)
 #endif
 
 /* Argument management functions */
@@ -74,17 +76,17 @@ static void SWIG_Scilab_SetApiContext(void *_pvApiCtx) { pvApiCtx = _pvApiCtx; }
 
 typedef int SwigSciObject;
 
-static int outputPosition = -1;
+static int SwigOutputPosition = -1;
 static int SWIG_Scilab_GetOutputPosition(void) {
-  return outputPosition;
+  return SwigOutputPosition;
 }
 static int SWIG_Scilab_GetOutputPositionAndReset(void) {
-  int returnValue = outputPosition;
-  outputPosition = -1; /* Set as read */
+  int returnValue = SwigOutputPosition;
+  SwigOutputPosition = -1; /* Set as read */
   return returnValue;
 }
-static void SWIG_Scilab_SetOutputPosition(int _outputPosition) {
-  outputPosition = _outputPosition;
+static void SWIG_Scilab_SetOutputPosition(int outputPosition) {
+  SwigOutputPosition = outputPosition;
 }
 
 SWIGRUNTIME int
