@@ -41,15 +41,15 @@ extern "C" {
 /* Function name management functions */
 
 #include <stdlib.h>
-static char *SwigFname = NULL;
+static char *fname = NULL;
 static char *SWIG_Scilab_GetFname(void) {
-  return SwigFname;
+  return fname;
 }
-static void SWIG_Scilab_SetFname(char *fname) {
-  if (SwigFname != NULL) {
-    free(SwigFname);
+static void SWIG_Scilab_SetFname(char *filename) {
+  if (fname != NULL) {
+    free(fname);
   }
-  SwigFname = strdup(fname);
+  fname = strdup(filename);
 }
 #if SWIG_SCILAB_VERSION >= 600
 static void *pvApiCtx = NULL;
