@@ -4548,6 +4548,14 @@ public:
 
     Wrapper *w = NewWrapper();
 
+    // Form full classname including outer classes
+    if (classname && !GetFlag(n, "feature:flatnested")) {
+      for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+	Push(classname, "$");
+	Push(classname, Getattr(outer_class, "sym:name"));
+      }
+    }
+
     if (Len(package_path) > 0 && Len(getNSpace()) > 0)
       internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
     else if (Len(package_path) > 0)
