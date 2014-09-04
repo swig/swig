@@ -68,24 +68,57 @@ static Node *previousNode = NULL; /* Pointer to the previous node (for post comm
 static Node *currentNode = NULL; /* Pointer to the current node (for post comments) */
 
 int isStructuralDoxygen(String *s){
+	static const char* const structuralTags[] = {
+	  "addtogroup",
+	  "callgraph",
+	  "callergraph",
+	  "category",
+	  "class",
+	  "def",
+	  "defgroup",
+	  "dir",
+	  "enum",
+	  "example",
+	  "file",
+	  "fn",
+	  "headerfile",
+	  "hideinitializer",
+	  "interface",
+	  "internal",
+	  "mainpage",
+	  "name",
+	  "namespace",
+	  "nosubgrouping",
+	  "overload",
+	  "package",
+	  "page",
+	  "property",
+	  "protocol",
+	  "relates",
+	  "relatesalso",
+	  "showinitializer",
+	  "struct",
+	  "typedef",
+	  "union",
+	  "var",
+	  "weakgroup",
+	};
+
+	unsigned n;
 	char *slashPointer = Strchr(s, '\\');
 	char *atPointer = Strchr(s,'@');
 	if (slashPointer == NULL && atPointer == NULL) return 0;
 	else if( slashPointer == NULL) slashPointer = atPointer;
-	/* Perhaps a better solution exists... */
-	slashPointer++;
-	if (strncmp(slashPointer, "addtogroup", 10) == 0 || strncmp(slashPointer, "callgraph", 9) == 0 || strncmp(slashPointer, "callergraph", 11) == 0 
-	      || strncmp(slashPointer, "category", 8) == 0 || strncmp(slashPointer, "class", 5) == 0 || strncmp(slashPointer, "def", 3) == 0
-	      || strncmp(slashPointer, "defgroup", 8) == 0 || strncmp(slashPointer, "dir", 3) == 0 || strncmp(slashPointer, "enum", 4) == 0
-	      || strncmp(slashPointer, "example", 7) == 0 || strncmp(slashPointer, "file", 4) == 0 || strncmp(slashPointer, "fn", 2) == 0
-	      || strncmp(slashPointer, "headerfile", 9) == 0 || strncmp(slashPointer, "hideinitializer", 12) == 0
-	      || strncmp(slashPointer, "interface", 9) == 0 || strncmp(slashPointer, "internal", 8) == 0 || strncmp(slashPointer, "mainpage", 8) == 0
-	      || strncmp(slashPointer, "name", 4) == 0 || strncmp(slashPointer, "namespace", 9) == 0 || strncmp(slashPointer, "nosubgrouping", 13) == 0
-	      || strncmp(slashPointer, "overload", 8) == 0 || strncmp(slashPointer, "package", 7) == 0 || strncmp(slashPointer, "page", 4) == 0
-	      || strncmp(slashPointer, "property", 8) == 0 || strncmp(slashPointer, "protocol", 8) == 0 || strncmp(slashPointer, "relates", 7) == 0
-	      || strncmp(slashPointer, "relatesalso", 5) == 0 || strncmp(slashPointer, "showinitializer", 5) == 0 || strncmp(slashPointer, "struct", 5) == 0
-	      || strncmp(slashPointer, "typedef", 7) == 0 || strncmp(slashPointer, "union", 5) == 0 || strncmp(slashPointer, "var", 3) == 0
-	      || strncmp(slashPointer, "weakgroup", 9) == 0){ return 1;}
+
+	slashPointer++; /* skip backslash or at sign */
+
+	for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+	  const size_t len = strlen(structuralTags[n]);
+	  if (strncmp(slashPointer, structuralTags[n], len) == 0) {
+	    return 1;
+	  }
+	}
+
 	return 0;
 }
 
