@@ -396,16 +396,4 @@ int func10(int a, float b)
 {
 }
 
-
-/**
- * \interface someInterface someHeader.h "Header name"
- *
- * Because of structural Doxygen command at the start of comment block,
- * the whole comment block is ignored. See parser.y, f. isStructuralDoxygen()
- * or documentation for the list of commands.
- */
-int func11(int a, float b)
-{
-}
-
 %}
