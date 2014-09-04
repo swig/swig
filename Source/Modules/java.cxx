@@ -4542,7 +4542,7 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
-    String *classname = Getattr(n, "sym:name");
+    String *classname = Copy(Getattr(n, "sym:name"));
     String *director_classname = directorClassName(n);
     String *internal_classname;
 
@@ -4564,6 +4564,7 @@ public:
       internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
+    Delete(classname);
 
     // If the namespace is multiple levels, the result of getNSpace() will have inserted
     // .'s to delimit namespaces, so we need to replace those with /'s
