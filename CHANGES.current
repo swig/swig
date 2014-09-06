@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-05: ianlancetaylor
+	    [Go] Add imtype, goin, goout, godirectorin, and
+	    godirectorout typemaps, to support writing Go code to
+	    convert between types.
+
 2014-09-02: olly
 	    [Python] Fix regression in indentation of python code produced with
 	    -modern, introduced by changes in #188.  Reported by fabiencastan

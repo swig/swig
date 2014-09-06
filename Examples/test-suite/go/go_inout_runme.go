@@ -1,0 +1,35 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+
+	"./go_inout"
+)
+
+type S struct {
+	A int
+	B string
+	C float64
+}
+
+func (p *S) MarshalJSON() ([]byte, error) {
+	return json.Marshal(*p)
+}
+
+func main() {
+	v := &S{12, "hi", 34.5}
+	m := go_inout.Same(v)
+	want := map[string]interface{}{
+		// The type of A changes from int to float64 because
+		// JSON has no ints.
+		"A": float64(12),
+		"B": "hi",
+		"C": 34.5,
+	}
+	if !reflect.DeepEqual(m, want) {
+		fmt.Println("got", m, "want", want)
+		panic(m)
+	}
+}
