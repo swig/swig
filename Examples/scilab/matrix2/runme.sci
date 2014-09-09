@@ -12,8 +12,8 @@ s = sumDoubleMatrix(doubleMatrix);
 disp(s);
 
 disp("Call lib function squareDoubleMatrix()");
-squareDoubleMatrix = squareDoubleMatrix(doubleMatrix);
-disp(squareDoubleMatrix);
+sqrd = squareDoubleMatrix(doubleMatrix);
+disp(sqrd);
 
 
 // Test lib integer matrix functions
@@ -27,8 +27,8 @@ s = sumIntegerMatrix(integerMatrix);
 disp(s);
 
 disp("Call lib function squareIntegerMatrix()");
-squareIntegerMatrix = squareIntegerMatrix(integerMatrix);
-disp(squareIntegerMatrix);
+sqri = squareIntegerMatrix(integerMatrix);
+disp(sqri);
 
 
 // Test lib string matrix functions
