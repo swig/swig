@@ -27,14 +27,15 @@ printf("Foo = %f\n", Foo_get());
 // Check error message if violate contract
 try
     g = gcd(-42, 105);
+    error("g = gcd(-42, 105) must provoke a RunTimeError");
 catch
-   printf("%s\n", lasterror());
+
 end
 
 try
     fact(-4);
+    error("fact(-4) must provoke a RunTimeError");
 catch
-   printf("%s\n", lasterror());
 end
 
 exit
