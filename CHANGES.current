@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-09: ianlancetaylor
+	    [Go] Add goargout typemap.
+
 2014-09-09: olly
 	    [PHP] Fix segmentation faults with directors in PHP >= 5.4, and
 	    reenable runme tests for director_basic testcase.  Fix from

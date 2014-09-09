@@ -225,13 +225,13 @@
 %{ $1 = *($&1_ltype)&$input; %}
 
 %typemap(out) SWIGTYPE *
-%{ *($&1_ltype)&$result = $1; %}
+%{ *($&1_ltype)&$result = ($1_ltype)$1; %}
 
 %typemap(directorin) SWIGTYPE *
-%{ $input = ($1_ltype)$1; %}
+%{ *($&1_ltype)&$input = ($1_ltype)$1; %}
 
 %typemap(directorout) SWIGTYPE *
-%{ $result = ($1_ltype)$input; %}
+%{ $result = *($&1_ltype)&$input; %}
 
 %apply SWIGTYPE * { SWIGTYPE *const }
 

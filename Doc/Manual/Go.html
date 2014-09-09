@@ -774,6 +774,27 @@ to gotype.  If this is not defined no conversion is done.
 </tr>
 
 <tr>
+<td>argout</td>
+<td>
+C/C++ code to adjust an argument value when returning from a function.
+This is called after the real C/C++ function has run.  This uses the
+internally generated C/C++ type, based on imtype.  This is only useful
+for a pointer type of some sort.  If this is not defined nothing will
+be done.
+</td>
+</tr>
+
+<tr>
+<td>goargout</td>
+<td>
+Go code to adjust an argument value when returning from a function.
+This is called after the real C/C++ function has run.  The value will
+be in imtype.  This is only useful for a pointer type of some sort.
+If this is not defined nothing will be done.
+</td>
+</tr>
+
+<tr>
 <td>directorin</td>
 <td>
 C/C++ code to convert the C/C++ type used to call a director method

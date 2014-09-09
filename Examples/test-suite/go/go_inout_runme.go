@@ -32,4 +32,12 @@ func main() {
 		fmt.Println("got", m, "want", want)
 		panic(m)
 	}
+
+	a := []string{"a", "bc", "def"}
+	go_inout.DoubleArray(&a)
+	dwant := []string{"a", "bc", "def", "aa", "bcbc", "defdef"}
+	if !reflect.DeepEqual(a, dwant) {
+		fmt.Println("got", a, "want", dwant)
+		panic(a)
+	}
 }
