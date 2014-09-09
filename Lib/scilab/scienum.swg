@@ -25,7 +25,7 @@ SWIGINTERN int
 SWIG_Int_FromEnum(void *pvApiCtx, int iVarOut, int enumValue, char *fname) {
   if (SWIG_SciDouble_FromInt(pvApiCtx, iVarOut, enumValue, fname) != SWIG_OK)
     return SWIG_ERROR;
-  SWIG_Scilab_SetOutput(pvApiCtx, iVarOut);
+  SWIG_Scilab_SetOutput(pvApiCtx);
   return SWIG_OK;
 }
 }

@@ -75,7 +75,7 @@
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (double **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT)
 {
   if (SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$2, *$3, *$1) == SWIG_OK) {
-    SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
+    SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     return SWIG_ERROR;
@@ -98,7 +98,7 @@
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (int *IN_ROWCOUNT, int *IN_COLCOUNT, double **OUT)
 {
   if (SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), *$1, *$2, *$3) == SWIG_OK) {
-    SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
+    SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     return SWIG_ERROR;
@@ -129,7 +129,7 @@
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (double **OUT, int *OUT_SIZE)
 {
   if (SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$2, *$1) == SWIG_OK) {
-    SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
+    SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     return SWIG_ERROR;
@@ -159,7 +159,7 @@
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (int *OUT_SIZE, double **OUT)
 {
   if (SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), 1, *$1, *$2) == SWIG_OK) {
-    SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
+    SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     return SWIG_ERROR;
