@@ -865,12 +865,21 @@ private:
   int goFunctionWrapper(Node *n, String *name, String *go_name, String *overname, String *wname, List *base, ParmList *parms, SwigType *result, bool is_static, bool *p_needs_wrapper) {
     Wrapper *dummy = NewWrapper();
     emit_attach_parmmaps(parms, dummy);
+
+    Parm *p = parms;
+    int parm_count = emit_num_arguments(parms);
+    for (int i = 0; i < parm_count; ++i) {
+      p = getParm(p);
+      Swig_cparm_name(p, i);
+      p = nextParm(p);
+    }
+
     Swig_typemap_attach_parms("default", parms, dummy);
     Swig_typemap_attach_parms("gotype", parms, dummy);
     Swig_typemap_attach_parms("goin", parms, dummy);
     Swig_typemap_attach_parms("goargout", parms, dummy);
     Swig_typemap_attach_parms("imtype", parms, dummy);
-    int parm_count = emit_num_arguments(parms);
+
     int required_count = emit_num_required(parms);
 
     String *receiver = class_receiver;
@@ -901,7 +910,7 @@ private:
     // See whether any of the function parameters are represented by
     // interface values.  When calling the C++ code, we need to convert
     // back to a uintptr.
-    Parm *p = parms;
+    p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
       String *ty = Getattr(p, "type");
@@ -935,7 +944,6 @@ private:
 	Printv(f_go_wrappers, "int", NULL);
       }
       Parm *p = getParm(parms);
-      Swig_cparm_name(p, 0);
       int i = 0;
       if (is_destructor) {
 	if (parm_count > required_count) {
@@ -956,8 +964,6 @@ private:
       }
       for (; i < parm_count; ++i) {
 	p = getParm(p);
-	// Give the parameter a name we will use below.
-	Swig_cparm_name(p, i);
 	if (i > 0 || (base && receiver) || parm_count > required_count) {
 	  Printv(f_go_wrappers, ", ", NULL);
 	}
@@ -1264,6 +1270,7 @@ private:
     }
 
     // \xc2\xb7 is UTF-8 for U+00B7 which is Unicode 'Middle Dot'
+    Printv(f->def, "#pragma textflag 7\n", NULL);
     Printv(f->def, "\xc2\xb7", fn_name, "(struct { void *x[(", parm_size, ") / SWIG_PARM_SIZE];} p)", NULL);
 
     Delete(fn_name);
