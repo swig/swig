@@ -310,8 +310,8 @@ int SWIG_ptr(SWIG_GatewayParameters) {
       return SWIG_OverflowError;
     }
     SWIG_Scilab_SetOutputPosition(1);
-    return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (unsigned long) dValue, NULL, 0));
+    SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (unsigned long) dValue, NULL, 0);
+    return SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     return SWIG_ERROR;
