@@ -842,10 +842,10 @@ public:
     Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", libraryName);
     Printf(builderCode, "  if ierr <> 0 then\n");
     Printf(builderCode, "    err_msg = lasterror();\n");
-    Printf(builderCode, "  else if ~isfile(libfilename) then\n");
+    Printf(builderCode, "  elseif ~isfile(libfilename) then\n");
     Printf(builderCode, "    ierr = 1;\n");
     Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename;\n");
-    Printf(builderCode, "  else if ~isfile('loader.sce') then\n");
+    Printf(builderCode, "  elseif ~isfile('loader.sce') then\n");
     Printf(builderCode, "    ierr = 1;\n");
     Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.';\n");
     Printf(builderCode, "  end\n");
