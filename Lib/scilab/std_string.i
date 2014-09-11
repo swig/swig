@@ -8,7 +8,7 @@ SWIG_AsPtr_dec(std::string)(int iVar, std::string **pstValue) {
   size_t size = 0;
   int alloc = SWIG_OLDOBJ;
 
-  if (SWIG_IsOK((SWIG_SciString_AsCharPtrAndSize(pvApiCtx, iVar, &buf, &size, &alloc, SWIG_Scilab_GetFname())))) {
+  if (SWIG_IsOK((SWIG_SciString_AsCharPtrAndSize(pvApiCtx, iVar, &buf, &size, &alloc, SWIG_Scilab_GetFuncName())))) {
     if (buf) {
       if (pstValue) {
         *pstValue = new std::string(buf, size);

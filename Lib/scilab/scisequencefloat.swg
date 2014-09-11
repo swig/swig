@@ -23,7 +23,7 @@ SWIG_AsCheck_Sequence_dec(float)(SwigSciObject obj) {
     return SWIG_OK;
   }
   else {
-    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A double is expected.\n"), SWIG_Scilab_GetFname(), obj);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A double is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
     return SWIG_ERROR;
   }
 }
@@ -36,7 +36,7 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(float)(SwigSciObject obj, float **pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,9 +48,9 @@ SWIG_AsSize_Sequence_dec(float)(SwigSciObject obj, int *piSize) {
   float *pdblMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
-      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A float vector is expected.\n"), SWIG_Scilab_GetFname(), obj);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A float vector is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
       return SWIG_ERROR;
     }
     *piSize = iMatrixRowCount * iMatrixColCount;

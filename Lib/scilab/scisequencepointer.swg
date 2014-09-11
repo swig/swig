@@ -98,7 +98,7 @@ SWIG_AsVal_SequenceItem_dec(ptr)(SwigSciObject obj, int *piSequence, int itemInd
   }
 
   if (iType != sci_pointer) {
-    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A pointer is expected at list item #%d.\n"), SWIG_Scilab_GetFname(), obj, itemIndex + 1);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A pointer is expected at list item #%d.\n"), SWIG_Scilab_GetFuncName(), obj, itemIndex + 1);
     return NULL;
   }
 

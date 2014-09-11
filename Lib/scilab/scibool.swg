@@ -17,12 +17,12 @@ SWIG_AsVal_dec(bool)(SwigSciObject iVar, bool *pbValue) {
   }
 
   if (!isBooleanType(pvApiCtx, piAddrVar)) {
-      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFname(), iVar);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFuncName(), iVar);
     return SWIG_ERROR;
   }
 
   if (!isScalar(pvApiCtx, piAddrVar)) {
-    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFname(), iVar);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFuncName(), iVar);
     return SWIG_ERROR;
   }
 

@@ -2,7 +2,7 @@
  * DOUBLE SCALAR
  */
 %fragment(SWIG_AsVal_frag(double), "header", fragment="SWIG_SciDouble_AsDouble") {
-%#define SWIG_AsVal_double(scilabValue, valuePointer) SWIG_SciDouble_AsDouble(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%#define SWIG_AsVal_double(scilabValue, valuePointer) SWIG_SciDouble_AsDouble(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciDouble_AsDouble", "header") {
 SWIGINTERN int
@@ -37,7 +37,7 @@ SWIG_SciDouble_AsDouble(void *pvApiCtx, SwigSciObject iVar, double *pdblValue, c
 }
 
 %fragment(SWIG_From_frag(double), "header", fragment="SWIG_SciDouble_FromDouble") { 
-%#define SWIG_From_double(scilabValue) SWIG_SciDouble_FromDouble(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%#define SWIG_From_double(scilabValue) SWIG_SciDouble_FromDouble(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciDouble_FromDouble", "header") {
 SWIGINTERN int

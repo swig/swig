@@ -23,7 +23,7 @@ SWIG_AsCheck_Sequence_dec(bool)(SwigSciObject obj) {
     return SWIG_OK;
   }
   else {
-    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean is expected.\n"), SWIG_Scilab_GetFname(), obj);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
     return SWIG_ERROR;
   }
 }
@@ -36,7 +36,7 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(bool)(SwigSciObject obj, int **pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-  return (SWIG_SciBoolean_AsIntArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciBoolean_AsIntArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,9 +48,9 @@ SWIG_AsSize_Sequence_dec(bool)(SwigSciObject obj, int *piSize) {
   int *piMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciBoolean_AsIntArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &piMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciBoolean_AsIntArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &piMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
-      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: An integer vector is expected.\n"), SWIG_Scilab_GetFname(), obj);
+      Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: An integer vector is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
       return SWIG_ERROR;
     }
     *piSize = iMatrixRowCount * iMatrixColCount;

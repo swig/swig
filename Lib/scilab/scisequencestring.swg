@@ -23,7 +23,7 @@ SWIG_AsCheck_Sequence_dec(std::string)(SwigSciObject obj) {
     return SWIG_OK;
   }
   else {
-    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFname(), obj);
+    Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A string is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
     return SWIG_ERROR;
   }
 }
@@ -36,7 +36,7 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject obj, char ***pSequence) {
   int iRows = 0;
   int iCols = 0;
-  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, pSequence, SWIG_Scilab_GetFname()));
+  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, pSequence, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,7 +48,7 @@ SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject obj, int *piSize) {
   char **pstMatrix;
   int iCols = 0;
   int iRows = 0;
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, &pstMatrix, SWIG_Scilab_GetFname()) == SWIG_OK) {
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, &pstMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
     *piSize = iRows * iCols;
     return SWIG_OK;
   }

@@ -3,7 +3,7 @@
  * Scilab type: double or uint32 scalar
  */
 %fragment(SWIG_AsVal_frag(unsigned int), "header", fragment="SWIG_SciUint32_AsUnsignedInt", fragment="<limits.h>") {
-%#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SWIG_SciUint32_AsUnsignedInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SWIG_SciUint32_AsUnsignedInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciUint32_AsUnsignedInt", "header") {
 SWIGINTERN int
@@ -87,7 +87,7 @@ SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, c
 }
 
 %fragment(SWIG_From_frag(unsigned int), "header", fragment="SWIG_SciUint32_FromUnsignedInt") {
-%#define SWIG_From_unsigned_SS_int(scilabValue) SWIG_SciUint32_FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%#define SWIG_From_unsigned_SS_int(scilabValue) SWIG_SciUint32_FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
 SWIGINTERN int

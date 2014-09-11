@@ -27,7 +27,7 @@
 %define %scilab_in_typemap_withcast(TYPEMAPTYPE, FRAGMENTNAME, CTYPE, TEMPTYPE, TEMPINIT)
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
   TEMPTYPE tempValue = TEMPINIT;
-  if(FRAGMENTNAME(pvApiCtx, $input, &tempValue, SWIG_Scilab_GetFname()) != SWIG_OK) {
+  if(FRAGMENTNAME(pvApiCtx, $input, &tempValue, SWIG_Scilab_GetFuncName()) != SWIG_OK) {
     return SWIG_ERROR;
   }
   $1 = (CTYPE) tempValue;
@@ -35,7 +35,7 @@
 %enddef
 %define %scilab_inptr_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
-  if (FRAGMENTNAME(pvApiCtx, $input, %as_voidptrptr(&$1), SWIG_Scilab_GetFname()) != SWIG_OK) {
+  if (FRAGMENTNAME(pvApiCtx, $input, %as_voidptrptr(&$1), SWIG_Scilab_GetFuncName()) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
@@ -75,7 +75,7 @@
 
 %define %scilab_in_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
-  if (FRAGMENTNAME(pvApiCtx, $input, &$1, SWIG_Scilab_GetFname()) != SWIG_OK) {
+  if (FRAGMENTNAME(pvApiCtx, $input, &$1, SWIG_Scilab_GetFuncName()) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }

@@ -4,7 +4,7 @@
  */
 
 %fragment(SWIG_AsVal_frag(Enum), "header", fragment="SWIG_Int_AsEnum") {
-%#define SWIG_AsVal_Enum(scilabValue, valuePointer) SWIG_Int_AsEnum(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+%#define SWIG_AsVal_Enum(scilabValue, valuePointer) SWIG_Int_AsEnum(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_Int_AsEnum", "header", fragment="SWIG_SciDoubleOrInt32_AsInt") {
 SWIGINTERN int
@@ -18,7 +18,7 @@ SWIG_Int_AsEnum(void *pvApiCtx, int iVar, int *enumValue, char *fname) {
 }
 
 %fragment(SWIG_From_frag(Enum), "header", fragment="SWIG_Int_FromEnum") {
-%#define SWIG_From_Enum(scilabValue) SWIG_Int_FromEnum(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%#define SWIG_From_Enum(scilabValue) SWIG_Int_FromEnum(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_Int_FromEnum", "header", fragment="SWIG_SciDouble_FromInt") {
 SWIGINTERN int

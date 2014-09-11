@@ -42,22 +42,25 @@ extern "C" {
 
 #include <stdlib.h>
 static char *SwigFuncName = NULL;
-static char *SWIG_Scilab_GetFname(void) {
+static char *SWIG_Scilab_GetFuncName(void) {
   return SwigFuncName;
 }
-static void SWIG_Scilab_SetFname(char *funcName) {
+static void SWIG_Scilab_SetFuncName(char *funcName) {
   if (SwigFuncName != NULL) {
     free(SwigFuncName);
   }
   SwigFuncName = strdup(funcName);
 }
+
+/* Api context management functions */
+
 #if SWIG_SCILAB_VERSION >= 600
 static void *pvApiCtx = NULL;
-static void SWIG_Scilab_SetApiContext(void *context) {
-  pvApiCtx = context;
+static void SWIG_Scilab_SetApiContext(void *apiCtx) {
+  pvApiCtx = apiCtx;
 }
 #else
-#define SWIG_Scilab_SetApiContext(context)
+#define SWIG_Scilab_SetApiContext(apiCtx)
 #endif
 
 /* Argument management functions */

@@ -4,7 +4,7 @@
  */
 
 %fragment(SWIG_AsVal_frag(long), "header", fragment="SWIG_SciDoubleOrInt32_AsLong", fragment="<limits.h>") {
-%#define SWIG_AsVal_long(scilabValue, valuePointer) SWIG_SciDoubleOrInt32_AsLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname());
+%#define SWIG_AsVal_long(scilabValue, valuePointer) SWIG_SciDoubleOrInt32_AsLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName());
 }
 %fragment("SWIG_SciDoubleOrInt32_AsLong", "header") {
 SWIGINTERN int
@@ -85,7 +85,7 @@ SWIG_SciDoubleOrInt32_AsLong(void *pvApiCtx, SwigSciObject iVar, long *plValue, 
 }
 
 %fragment(SWIG_From_frag(long), "header", fragment="SWIG_SciDouble_FromLong") {
-%#define SWIG_From_long(scilabValue) SWIG_SciDouble_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+%#define SWIG_From_long(scilabValue) SWIG_SciDouble_FromLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciDouble_FromLong", "header") {
 SWIGINTERN int

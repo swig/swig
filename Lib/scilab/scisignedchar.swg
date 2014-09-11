@@ -3,7 +3,7 @@
  * Scilab type: int8
  */
 %fragment(SWIG_AsVal_frag(signed char), "header", fragment="SWIG_SciDoubleOrInt8_AsShort", fragment="<limits.h>") {
-#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciDoubleOrInt8_AsShort", "header") {
 SWIGINTERN int

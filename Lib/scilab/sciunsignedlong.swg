@@ -4,7 +4,7 @@
  */
 
 %fragment(SWIG_AsVal_frag(unsigned long), "header", fragment="SWIG_UnsignedInt_AsUnsignedLong") {
-#define SWIG_AsVal_unsigned_SS_long(scilabValue, valuePointer) SWIG_UnsignedInt_AsUnsignedLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
+#define SWIG_AsVal_unsigned_SS_long(scilabValue, valuePointer) SWIG_UnsignedInt_AsUnsignedLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_UnsignedInt_AsUnsignedLong", "header", fragment=SWIG_AsVal_frag(unsigned int)) {
 SWIGINTERN int
@@ -19,7 +19,7 @@ SWIG_UnsignedInt_AsUnsignedLong(void *pvApiCtx, SwigSciObject iVar, unsigned lon
 }
 
 %fragment(SWIG_From_frag(unsigned long), "header", fragment="SWIG_UnsignedInt_FromUnsignedLong") {
-#define SWIG_From_unsigned_SS_long(scilabValue) SWIG_UnsignedInt_FromUnsignedLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFname())
+#define SWIG_From_unsigned_SS_long(scilabValue) SWIG_UnsignedInt_FromUnsignedLong(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_UnsignedInt_FromUnsignedLong", "header", fragment=SWIG_From_frag(unsigned int)) {
 SWIGINTERN int
