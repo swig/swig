@@ -280,7 +280,7 @@ int SWIG_this(SWIG_GatewayParameters) {
   if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
     SWIG_Scilab_SetOutputPosition(1);
     createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
-        (double) (unsigned long) ptrValue);
+        (double) (unsigned long) ptrValue));
     return SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
