@@ -90,7 +90,7 @@ static void SWIG_Scilab_SetOutputPosition(int outputPosition) {
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_SetOutput(void *pvApiCtx) {
+SWIG_Scilab_SetOutput(void *pvApiCtx, SwigSciObject output) {
   int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
   if (outputPosition < 0)
       return SWIG_ERROR;
@@ -279,9 +279,9 @@ int SWIG_this(SWIG_GatewayParameters) {
   void *ptrValue = NULL;
   if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
     SWIG_Scilab_SetOutputPosition(1);
-    createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
+    return SWIG_Scilab_SetOutput(pvApiCtx,
+      createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
         (double) (unsigned long) ptrValue));
-    return SWIG_Scilab_SetOutput(pvApiCtx);
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The value is not a pointer.\n"), fname, 1);
