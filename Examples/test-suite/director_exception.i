@@ -106,7 +106,7 @@ Foo *launder(Foo *f) {
 %}
 
 %feature("director") Bar;
-
+%feature("director") ReturnAllTypes;
 
 %inline %{
   struct Exception1
@@ -132,4 +132,21 @@ Foo *launder(Foo *f) {
     virtual std::string pang() throw () { return "Bar::pang()"; }
   };
   
+  // Class to allow regression testing SWIG/PHP not checking if an exception
+  // had been thrown in directorout typemaps.
+  class ReturnAllTypes
+  {
+  public:
+    int call_int() { return return_int(); }
+    double call_double() { return return_double(); }
+    const char * call_const_char_star() { return return_const_char_star(); }
+    std::string call_std_string() { return return_std_string(); }
+    Bar call_Bar() { return return_Bar(); }
+
+    virtual int return_int() { return 0; }
+    virtual double return_double() { return 0.0; }
+    virtual const char * return_const_char_star() { return ""; }
+    virtual std::string return_std_string() { return std::string(); }
+    virtual Bar return_Bar() { return Bar(); }
+  };
 %}

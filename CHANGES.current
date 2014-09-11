@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-11: olly
+	    [PHP] Fix throwing a PHP exception through C++ from a subclassed
+	    director method - PHP NULL gets returned by the subclassed method
+	    in this case, so the directorout typemap needs to allow that (at
+	    least if an exception is active).
+
 2014-09-09: ianlancetaylor
 	    [Go] Add goargout typemap.
 
