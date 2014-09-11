@@ -83,18 +83,13 @@ static int SwigOutputPosition = -1;
 static int SWIG_Scilab_GetOutputPosition(void) {
   return SwigOutputPosition;
 }
-static int SWIG_Scilab_GetOutputPositionAndReset(void) {
-  int returnValue = SwigOutputPosition;
-  SwigOutputPosition = -1; /* Set as read */
-  return returnValue;
-}
 static void SWIG_Scilab_SetOutputPosition(int outputPosition) {
   SwigOutputPosition = outputPosition;
 }
 
 SWIGRUNTIME int
 SWIG_Scilab_SetOutput(void *pvApiCtx, SwigSciObject output) {
-  int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
+  int outputPosition = SWIG_Scilab_GetOutputPosition();
   if (outputPosition < 0)
       return SWIG_ERROR;
   SWIG_AssignOutputArgument(pvApiCtx, outputPosition,
