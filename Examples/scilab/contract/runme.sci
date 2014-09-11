@@ -1,6 +1,11 @@
 lines(0);
 ilib_verbose(0);
-exec loader.sce;
+ierr = exec('loader.sce', 'errcatch');
+if ierr <> 0 then
+  disp(lasterror());
+  exit(ierr);
+end
+
 
 // Call our gcd() function
 x = 42;
