@@ -3,7 +3,7 @@
   * Scilab type: double or uint8 scalar
  */
 %fragment(SWIG_AsVal_frag(unsigned char), "header", fragment="SWIG_SciUint8_AsUnsignedChar", fragment="<limits.h>") {
-#define SWIG_AsVal_unsigned_SS_char(scilabValue, valuePointer) SWIG_SciUint8_AsUnsignedChar(pvApiCtx, scilabValue, valuePointer, fname)
+#define SWIG_AsVal_unsigned_SS_char(scilabValue, valuePointer) SWIG_SciUint8_AsUnsignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFname())
 }
 %fragment("SWIG_SciUint8_AsUnsignedChar", "header") {
 SWIGINTERN int
