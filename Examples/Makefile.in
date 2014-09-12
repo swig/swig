@@ -1731,10 +1731,8 @@ scilab:
 			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
-	STATUS=$$? \
-	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS); \
-	exit $(STATUS)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"
+	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # ----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -1755,10 +1753,8 @@ scilab_cpp:
 			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
 		fi \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"; \
-	STATUS=$$? \
-	test "x$(CXXSRCS)" = "x$(SRCDIR_CXXSRCS)" || rm $(CXXSRCS); \
-	exit $(STATUS)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"
+	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
 
 # -----------------------------------------------------------------
 # Running a Scilab example
