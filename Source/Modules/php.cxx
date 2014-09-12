@@ -2045,6 +2045,17 @@ done:
       } else if (GetFlag(n, "feature:exceptionclass")) {
 	Append(s_phpclasses, "extends Exception ");
       }
+      {
+	Node *node = NewHash();
+	Setattr(node, "type", Getattr(n, "name"));
+	Setfile(node, Getfile(n));
+	Setline(node, Getline(n));
+	String * interfaces = Swig_typemap_lookup("phpinterfaces", node, "", 0);
+	if (interfaces) {
+	  Printf(s_phpclasses, "implements %s ", interfaces);
+	}
+	Delete(node);
+      }
       Printf(s_phpclasses, "{\n\tpublic $%s=null;\n", SWIG_PTR);
       if (!baseclass) {
 	// Only store this in the base class (NB !baseclass means we *are*

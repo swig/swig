@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-12: olly
+	    [PHP] Add support for specifying any PHP interfaces a wrapped class
+	    implements, e.g.: %typemap("phpinterfaces") MyIterator "Iterator";
+
 2014-09-11: olly
 	    [PHP] Fix throwing a PHP exception through C++ from a subclassed
 	    director method - PHP NULL gets returned by the subclassed method

@@ -29,6 +29,7 @@
 <li><a href="#Php_nn2_6_2">Constructors and Destructors</a>
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
+<li><a href="#Php_nn2_6_5">Specifying Implemented Interfaces</a>
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
@@ -769,6 +770,23 @@ include("example.php");
 Ko::threats();
 </pre></div>
 
+
+<H4><a name="Php_nn2_6_5"></a>34.2.6.5 Specifying Implemented Interfaces</H4>
+
+<p>
+PHP supports the concept of abstract interfaces which a class can implement.
+Since SWIG 3.0.3, you can tell SWIG that a wrapped class (for example
+<code>MyIterator</code>) implements the <code>Iterator</code> interface like
+so:
+</p>
+
+<div class="code"><pre>
+%typemap("phpinterfaces") MyIterator "Iterator";
+</pre></div>
+
+<p>
+If there are multiple interfaces, just list them separated by commas.
+</p>
 
 <H3><a name="Php_nn2_7"></a>34.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
