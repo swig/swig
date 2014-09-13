@@ -1095,7 +1095,7 @@ private:
 
       String *call = NewString("");
 
-      bool need_return_var = SwigType_type(result) != T_VOID && ((gccgo_flag && is_constructor) || goout != NULL);
+      bool need_return_var = SwigType_type(result) != T_VOID && ((gccgo_flag && is_constructor) || has_goout);
       if (need_return_var) {
 	Printv(f_go_wrappers, "\tvar swig_r ", NULL);
 	if (is_constructor) {
