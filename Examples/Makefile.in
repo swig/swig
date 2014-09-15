@@ -1754,7 +1754,7 @@ scilab_cpp:
 		fi \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"
-	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
+	test "x$(CXXSRCS)" = "x$(SRCDIR_CXXSRCS)" || rm $(CXXSRCS)
 
 # -----------------------------------------------------------------
 # Running a Scilab example
