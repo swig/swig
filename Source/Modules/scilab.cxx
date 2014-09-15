@@ -821,9 +821,9 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	Printf(builderCode, "files = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files = fullpath(\"%s\");\n", sourceFile);
       } else {
-	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+	Printf(builderCode, "files($ + 1) = fullpath(\"%s\");\n", sourceFile);
       }
     }
 
