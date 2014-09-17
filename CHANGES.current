@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-17: wsfulton
+            [C#] Merge patch #229 from contre - Add bool array types to arrays_csharp.i
+
 2014-09-12: olly
 	    [PHP] Add support for specifying any PHP interfaces a wrapped class
 	    implements, e.g.: %typemap("phpinterfaces") MyIterator "Iterator";
