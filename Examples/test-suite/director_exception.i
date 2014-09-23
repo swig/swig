@@ -1,5 +1,7 @@
 %module(directors="1") director_exception
 
+%warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) return_const_char_star;
+
 %{
 
 #if defined(_MSC_VER)
@@ -148,5 +150,6 @@ Foo *launder(Foo *f) {
     virtual const char * return_const_char_star() { return ""; }
     virtual std::string return_std_string() { return std::string(); }
     virtual Bar return_Bar() { return Bar(); }
+    virtual ~ReturnAllTypes() {}
   };
 %}
