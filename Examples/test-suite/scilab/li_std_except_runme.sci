@@ -2,7 +2,7 @@ exec('swigtest.start', -1);
 
 function checkException(cmd, expected_error_msg)
   ierr = execstr(cmd, 'errcatch');
-  checkequal(ierr, 999, cmd + ': ierr');
+  checkequal(ierr, 20010, cmd + ': ierr');
   checkequal(lasterror(), 'SWIG/Scilab: ' + expected_error_msg, cmd + ': msg');
 endfunction
 
