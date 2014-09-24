@@ -336,8 +336,12 @@ public:
     /* Insert calls to CheckInputArgument and CheckOutputArgument */
     Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
     Printf(wrapper->code, "SWIG_CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
+
+    /* Set context */
     Printf(wrapper->code, "SWIG_Scilab_SetFuncName(fname);\n");
     Printf(wrapper->code, "SWIG_Scilab_SetApiContext(pvApiCtx);\n");
+
+    /* Write typemaps(in) */
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
       // Ignore parameter if the typemap specifies numinputs=0
@@ -373,15 +377,13 @@ public:
       }
     }
 
-    /* Write typemaps(in) */
-
-    /* Write constraints */
+    /* TODO write constraints */
 
     Setattr(node, "wrap:name", overloadedName);
 
     /* Emit the function call */
     Swig_director_emit_dynamic_cast(node, wrapper);
-    String *functionActionCode = emit_action(node);	/* Function code with standard args names (arg1, ...) */
+    String *functionActionCode = emit_action(node);
 
     /* Insert the return variable */
     emit_return_variable(node, functionReturnType, wrapper);
