@@ -33,7 +33,7 @@ INCLUDES = $(abspath $(srcdir)/..)
 
 # Local variables
 TEST_DIR = $*.dir
-RUNME_SCRIPT = $(TEST_DIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+RUNME_SCRIPT = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 # Hide too long identifier warnings
@@ -80,7 +80,7 @@ setup = \
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(RUNME_SCRIPT) ]; then ( \
-		env LD_LIBRARY_PATH=$(srcdir)/$(TEST_DIR):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); )\
+		env LD_LIBRARY_PATH=$(srcdir):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); )\
 	fi
 
 # Clean: remove the generated files

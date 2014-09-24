@@ -1,17 +1,11 @@
 // Clean files
 
-exec(fullfile(testdir, "cleaner.sce"), -1);
-
-mdelete(fullfile(testdir, "builder.sce"));
-mdelete(fullfile(testdir, "cleaner.sce"));
-mdelete(fullfile(testdir, swigtestname + "_wrap.c"));
-mdelete(fullfile(testdir, swigtestname + "_wrap.cxx"));
-mdelete(fullfile(testdir, swigtestname + ".i"));
-removedir(testdir);
-
-//mprintf("******************\n")
-//mprintf("* TEST SUCCEEDED *\n")
-//mprintf("******************\n")
+exec("cleaner.sce", -1);
+mdelete("builder.sce");
+mdelete("cleaner.sce");
+mdelete(swigtestname + "_wrap.c");
+mdelete(swigtestname + "_wrap.cxx");
+mdelete(swigtestname + ".i");
 
 // Exit from Scilab
 exit
