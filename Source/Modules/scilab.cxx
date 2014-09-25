@@ -15,6 +15,9 @@
 
 /*#define SWIG_DEBUG*/
 
+#define SCILAB_IDENTIFIER_CHAR_MAX 24
+
+
 static const char *usage = (char *) "\
 Scilab options (available with -scilab)\n\
      -addcflags <cflags>           - Add compiler flags <cflags>\n\
@@ -289,8 +292,6 @@ public:
     SwigType *functionReturnType = Getattr(node, "type");
     ParmList *functionParamsList = Getattr(node, "parms");
 
-    checkIdentifierName(functionName);
-
     int paramIndex = 0;		// Used for loops over ParmsList
     Parm *param = NULL;		// Used for loops over ParamsList
 
@@ -483,14 +484,16 @@ public:
     /* Dump the function out */
     Wrapper_print(wrapper, wrappersSection);
 
+    String *scilabFunctionName = checkIdentifierName(functionName, SCILAB_IDENTIFIER_CHAR_MAX);
+
     /* Update builder.sce contents */
     if (isLastOverloaded) {
-      addFunctionToScilab(functionName, wrapperName);
+      addFunctionToScilab(scilabFunctionName, wrapperName);
       dispatchFunction(node);
     }
 
     if (!isOverloaded) {
-      addFunctionToScilab(functionName, wrapperName);
+      addFunctionToScilab(scilabFunctionName, wrapperName);
     }
 
     /* tidy up */
@@ -552,11 +555,13 @@ public:
     String *origVariableName = Getattr(node, "name");	// Ex: Shape::nshapes
     String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
 
-    checkIdentifierName(variableName);
+    // Variable names can have SCILAB_IDENTIFIER_CHAR_MAX - 4 because of suffixes "_get" or "_set" added to function
+    String* scilabVariableName = checkIdentifierName(variableName, SCILAB_IDENTIFIER_CHAR_MAX - 4);
 
     /* Manage GET function */
     Wrapper *getFunctionWrapper = NewWrapper();
     String *getFunctionName = Swig_name_get(NSPACE_TODO, variableName);
+    String *scilabGetFunctionName = Swig_name_get(NSPACE_TODO, scilabVariableName);
 
     Setattr(node, "wrap:name", getFunctionName);
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
@@ -579,12 +584,13 @@ public:
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
     /* Add function to builder table */
-    addFunctionToScilab(getFunctionName, getFunctionName);
+    addFunctionToScilab(scilabGetFunctionName, getFunctionName);
 
     /* Manage SET function */
     if (is_assignable(node)) {
       Wrapper *setFunctionWrapper = NewWrapper();
       String *setFunctionName = Swig_name_set(NSPACE_TODO, variableName);
+      String *scilabSetFunctionName = Swig_name_set(NSPACE_TODO, scilabVariableName);
 
       Setattr(node, "wrap:name", setFunctionName);
       Printv(setFunctionWrapper->def, "int ", setFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
@@ -605,7 +611,7 @@ public:
       Wrapper_print(setFunctionWrapper, wrappersSection);
 
       /* Add function to builder table */
-      addFunctionToScilab(setFunctionName, setFunctionName);
+      addFunctionToScilab(scilabSetFunctionName, setFunctionName);
     }
 
     return SWIG_OK;
@@ -625,8 +631,6 @@ public:
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
 
-    checkIdentifierName(constantName);
-
     // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables
     if (GetFlag(node, "feature:scilab:const")) {
       bool isConstant = ((SwigType_issimple(type)) || (SwigType_type(type) == T_STRING));
@@ -640,8 +644,10 @@ public:
 
 	constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
 	if (constantTypemap != NULL) {
+	  String *scilabConstantName = checkIdentifierName(constantName, SCILAB_IDENTIFIER_CHAR_MAX);
+
 	  Setattr(node, "wrap:name", constantName);
-	  Replaceall(constantTypemap, "$result", constantName);
+	  Replaceall(constantTypemap, "$result", scilabConstantName);
 	  Replaceall(constantTypemap, "$value", constantValue);
 
 	  emit_action_code(node, variablesCode, constantTypemap);
@@ -660,9 +666,13 @@ public:
       constantValue = wname;
     }
 
+    // Constant names can have SCILAB_IDENTIFIER_CHAR_MAX - 4 because of suffixes "_get" added to function
+    String *scilabConstantName = checkIdentifierName(constantName, SCILAB_IDENTIFIER_CHAR_MAX - 4);
+
     /* Create GET function to get the constant value */
     Wrapper *getFunctionWrapper = NewWrapper();
     String *getFunctionName = Swig_name_get(NSPACE_TODO, constantName);
+    String *scilabGetFunctionName = Swig_name_get(NSPACE_TODO, scilabConstantName);
     Setattr(node, "wrap:name", getFunctionName);
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
@@ -686,7 +696,7 @@ public:
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
     /* Add the function to Scilab  */
-    addFunctionToScilab(getFunctionName, getFunctionName);
+    addFunctionToScilab(scilabGetFunctionName, getFunctionName);
 
     DelWrapper(getFunctionWrapper);
 
@@ -735,17 +745,20 @@ public:
 
   /* -----------------------------------------------------------------------
    * checkIdentifierName()
-   * Display a warning for too long generated identifier names
-   * Scilab identifier name (functions, variables) can have 24 chars max
+   * Truncates (and displays a warning) too long identifier names
+   * (Scilab identifiers names are limited to 24 chars max)
    * ----------------------------------------------------------------------- */
 
-  void checkIdentifierName(String *name) {
-    if (Len(name) > 24) {
-      // Warning on too long identifiers
+  String *checkIdentifierName(String *name, int char_size_max) {
+    String *scilabFunctionName;
+    if (Len(name) > char_size_max) {
+      scilabFunctionName = DohNewStringWithSize(name, char_size_max);
       Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
         "Identifier name '%s' exceeds 24 characters and has been truncated to '%s'.\n",
-        name, DohNewStringWithSize(name, 24));
-    }
+        name, scilabFunctionName);
+    } else
+      scilabFunctionName = name;
+    return scilabFunctionName;
   }
 
   /* -----------------------------------------------------------------------
