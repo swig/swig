@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-25: ianlancetaylor
+	    [Go] Adjust generated code to work with upcoming Go 1.4
+	    release.
+
 2014-09-23: wsfulton
             [Python] Add patch from Thomas Maslach to fix crash in wrappers when using -threads in
             the STL iterators (SwigPyIterator destructor).
