@@ -15,7 +15,8 @@
 
 /*#define SWIG_DEBUG*/
 
-#define SCILAB_IDENTIFIER_CHAR_MAX 24
+#define SCILAB_IDENTIFIER_NAME_CHAR_MAX 24
+#define SCILAB_VARIABLE_NAME_CHAR_MAX SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4
 
 
 static const char *usage = (char *) "\
@@ -484,7 +485,7 @@ public:
     /* Dump the function out */
     Wrapper_print(wrapper, wrappersSection);
 
-    String *scilabFunctionName = checkIdentifierName(functionName, SCILAB_IDENTIFIER_CHAR_MAX);
+    String *scilabFunctionName = checkIdentifierName(functionName, SCILAB_IDENTIFIER_NAME_CHAR_MAX);
 
     /* Update builder.sce contents */
     if (isLastOverloaded) {
@@ -555,8 +556,8 @@ public:
     String *origVariableName = Getattr(node, "name");	// Ex: Shape::nshapes
     String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
 
-    // Variable names can have SCILAB_IDENTIFIER_CHAR_MAX - 4 because of suffixes "_get" or "_set" added to function
-    String* scilabVariableName = checkIdentifierName(variableName, SCILAB_IDENTIFIER_CHAR_MAX - 4);
+    // Variable names can have SCILAB_VARIABLE_NAME_CHAR_MAX because of suffixes "_get" or "_set" added to function
+    String* scilabVariableName = checkIdentifierName(variableName, SCILAB_VARIABLE_NAME_CHAR_MAX);
 
     /* Manage GET function */
     Wrapper *getFunctionWrapper = NewWrapper();
@@ -644,7 +645,7 @@ public:
 
 	constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
 	if (constantTypemap != NULL) {
-	  String *scilabConstantName = checkIdentifierName(constantName, SCILAB_IDENTIFIER_CHAR_MAX);
+	  String *scilabConstantName = checkIdentifierName(constantName, SCILAB_IDENTIFIER_NAME_CHAR_MAX);
 
 	  Setattr(node, "wrap:name", constantName);
 	  Replaceall(constantTypemap, "$result", scilabConstantName);
@@ -666,8 +667,8 @@ public:
       constantValue = wname;
     }
 
-    // Constant names can have SCILAB_IDENTIFIER_CHAR_MAX - 4 because of suffixes "_get" added to function
-    String *scilabConstantName = checkIdentifierName(constantName, SCILAB_IDENTIFIER_CHAR_MAX - 4);
+    // Constant names can have SCILAB_VARIABLE_NAME_CHAR_MAX because of suffixes "_get" added to function
+    String *scilabConstantName = checkIdentifierName(constantName, SCILAB_VARIABLE_NAME_CHAR_MAX);
 
     /* Create GET function to get the constant value */
     Wrapper *getFunctionWrapper = NewWrapper();
@@ -743,23 +744,69 @@ public:
     return Language::enumvalueDeclaration(node);
   }
 
+  /* ---------------------------------------------------------------------
+   * membervariableHandler()
+   * --------------------------------------------------------------------- */
+  virtual int membervariableHandler(Node *node) {
+    checkMemberIdentifierName(node, SCILAB_VARIABLE_NAME_CHAR_MAX);
+    return Language::membervariableHandler(node);
+  }
+
   /* -----------------------------------------------------------------------
    * checkIdentifierName()
-   * Truncates (and displays a warning) too long identifier names
+   * Truncates (and displays a warning) for too long identifier names
+   * (applies on functions, variables, constants...)
    * (Scilab identifiers names are limited to 24 chars max)
    * ----------------------------------------------------------------------- */
 
   String *checkIdentifierName(String *name, int char_size_max) {
-    String *scilabFunctionName;
+    String *scilabIdentifierName;
     if (Len(name) > char_size_max) {
-      scilabFunctionName = DohNewStringWithSize(name, char_size_max);
+      scilabIdentifierName = DohNewStringWithSize(name, char_size_max);
       Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
         "Identifier name '%s' exceeds 24 characters and has been truncated to '%s'.\n",
-        name, scilabFunctionName);
+	name, scilabIdentifierName);
     } else
-      scilabFunctionName = name;
-    return scilabFunctionName;
+      scilabIdentifierName = name;
+    return scilabIdentifierName;
   }
+
+  /* -----------------------------------------------------------------------
+   * checkMemberIdentifierName()
+   * Truncates (and displays a warning) too long member identifier names
+   * (applies on members of structs, classes...)
+   * (Scilab identifiers names are limited to 24 chars max)
+   * ----------------------------------------------------------------------- */
+
+  void checkMemberIdentifierName(Node *node, int char_size_max) {
+
+    String *memberName = Getattr(node, "sym:name");
+
+    Node *containerNode = parentNode(node);
+    String *containerName = Getattr(containerNode, "sym:name");
+
+    int lenContainerName = Len(containerName);
+    int lenMemberName = Len(memberName);
+
+    if (lenContainerName + lenMemberName + 1 > char_size_max) {
+      int lenScilabMemberName = char_size_max - lenContainerName - 1;
+      String *scilabMemberName = DohNewStringWithSize(memberName, lenScilabMemberName);
+
+      if (lenScilabMemberName > 0) {
+	Setattr(node, "sym:name", scilabMemberName);
+	Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
+	  "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
+	  "so member name has been truncated to '%s'.\n",
+	  containerName, memberName, scilabMemberName);
+      } else
+	Swig_error(input_file, line_number,
+	  "Wrapping functions names for member name '%s.%s' will exceed 24 characters, "
+	  "please rename the container of member '%s'.\n",
+	  containerName, memberName, containerName);
+    }
+  }
+
+
 
   /* -----------------------------------------------------------------------
    * addHelperFunctions()

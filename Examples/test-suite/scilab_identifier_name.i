@@ -1,17 +1,18 @@
 %module scilab_identifier_name
 
+//
+// Test long identifier name (> 24 characters) truncating
+//
 
-// Test identifier name truncating
-// (when variables, fonctions, constants names exceed 24 charaters long)
+// Test truncating variables, constants, functions identifier names
 
 %inline %{
-
-// These identifier names wont be truncated
+// these identifier names wont be truncated
 int gvar_identifier_name = -1;
 #define CONS_IDENTIFIER_NAME -11
 int function_identifier_name() { return -21; };
 
-// These identifier names will be truncated
+// these identifier names will be truncated
 int too_long_gvar_identifier_name_1 = 1;
 int too_long_gvar_identifier_name_2 = 2;
 
@@ -20,11 +21,9 @@ int too_long_gvar_identifier_name_2 = 2;
 
 int too_long_function_identifier_name_1() { return 21; };
 int too_long_function_identifier_name_2() { return 22; };
-
 %}
 
-
-// Test when %scilabconst mode is activated
+// Test truncating when %scilabconst mode is activated
 %scilabconst(1);
 
 %inline %{
@@ -33,3 +32,25 @@ int too_long_function_identifier_name_2() { return 22; };
 #define SC_TOO_LONG_CONST_IDENTIFIER_NAME_1 13
 #define SC_TOO_LONG_CONST_IDENTIFIER_NAME_2 14
 %}
+%scilabconst(0);
+
+// Test truncating in the case of struct
+%inline %{
+struct st {
+  int m_identifier_name;
+  int too_long_member_identifier_name;
+  int too_long_member_function_name() { return 31; };
+};
+
+%}
+
+
+
+
+
+
+
+
+
+
+
