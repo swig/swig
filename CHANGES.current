@@ -6,6 +6,10 @@ Version 3.0.3 (in progress)
 ===========================
 
 2014-09-27: wsfulton
+            [Ruby] Patch #187 - Fix crash on shutdown of the Ruby interpreter if more than one
+            module was loaded at a time when data is being shared between modules.
+
+2014-09-27: wsfulton
             [Java] Patch #168 - Fix leak in Java director string handling after the Java
             upcall when called from a native thread.
 
