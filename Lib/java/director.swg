@@ -100,6 +100,22 @@ namespace Swig {
     bool weak_global_;
   };
 
+  /* Local JNI reference deleter */
+  class LocalRefGuard {
+    JNIEnv *jenv_;
+    jobject jobj_;
+
+    // non-copyable
+    LocalRefGuard(const LocalRefGuard &);
+    LocalRefGuard &operator=(const LocalRefGuard &);
+  public:
+    LocalRefGuard(JNIEnv *jenv, jobject jobj): jenv_(jenv), jobj_(jobj) {}
+    ~LocalRefGuard() {
+      if (jobj_)
+        jenv_->DeleteLocalRef(jobj_);
+    }
+  };
+
   /* director base class */
   class Director {
     /* pointer to Java virtual machine */
@@ -152,6 +168,7 @@ namespace Swig {
       JNIEnvWrapper jnienv(this) ;
       JNIEnv *jenv = jnienv.getJNIEnv() ;
       jobject jobj = swig_self_.get(jenv);
+      LocalRefGuard ref_deleter(jenv, jobj);
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
 #endif
@@ -164,7 +181,6 @@ namespace Swig {
           jenv->CallVoidMethod(jobj, disconn_meth);
         }
       }
-      jenv->DeleteLocalRef(jobj);
     }
 
   public:
@@ -379,17 +395,5 @@ namespace Swig {
     }
     return matches;
   }
-
-  class LocalRefGuard {
-      JNIEnv* jenv_;
-      jobject jobj_;
-
-      // non-copyable
-      LocalRefGuard(const LocalRefGuard &);
-      LocalRefGuard &operator=(const LocalRefGuard &);
-    public:
-      LocalRefGuard(JNIEnv* jenv, jobject jobj): jenv_(jenv), jobj_(jobj) {}
-      ~LocalRefGuard() { if (jobj_) jenv_->DeleteLocalRef(jobj_); }
-  };
 }
 
