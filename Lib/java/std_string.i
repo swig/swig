@@ -50,7 +50,7 @@ class string;
 
 %typemap(directorin,descriptor="Ljava/lang/String;") string 
 %{ $input = jenv->NewStringUTF($1.c_str());
-   Swig::LocalRefGuard refGuard_$input(jenv, $input); %}
+   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) string 
 %{ $result = jenv->NewStringUTF($1.c_str()); %}
@@ -100,7 +100,7 @@ class string;
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const string &
 %{ $input = jenv->NewStringUTF($1.c_str());
-   Swig::LocalRefGuard refGuard_$input(jenv, $input); %}
+   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(out) const string & 
 %{ $result = jenv->NewStringUTF($1->c_str()); %}
