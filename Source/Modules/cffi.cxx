@@ -963,19 +963,19 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
 
   // very basic parsing of infix expressions.
   if (try_to_split) {
-    if ((res = infix_to_prefix(num, '|', "cl:logior", type)))
-      return res;
-    if ((res = infix_to_prefix(num, '&', "cl:logand", type)))
-      return res;
-    if ((res = infix_to_prefix(num, '^', "cl:logxor", type)))
-      return res;
-    if ((res = infix_to_prefix(num, '*', "cl:*", type)))
-      return res;
-    if ((res = infix_to_prefix(num, '/', "cl:/", type)))
+    if ((res = infix_to_prefix(num, '-', "cl:-", type)))
       return res;
     if ((res = infix_to_prefix(num, '+', "cl:+", type)))
       return res;
-    if ((res = infix_to_prefix(num, '-', "cl:-", type)))
+    if ((res = infix_to_prefix(num, '/', "cl:/", type)))
+      return res;
+    if ((res = infix_to_prefix(num, '*', "cl:*", type)))
+      return res;
+    if ((res = infix_to_prefix(num, '^', "cl:logxor", type)))
+      return res;
+    if ((res = infix_to_prefix(num, '&', "cl:logand", type)))
+      return res;
+    if ((res = infix_to_prefix(num, '|', "cl:logior", type)))
       return res;
   }
 

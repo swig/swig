@@ -612,6 +612,7 @@ C_TEST_CASES += \
 	nested_extend_c \
 	nested_structs \
 	newobject2 \
+	operator_precedence \
 	overload_extend \
 	overload_extendc \
 	preproc \
