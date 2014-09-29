@@ -6,6 +6,22 @@ Also tests reported error when a #define placed in a deeply embedded struct/unio
 
 %module nested
 
+
+#ifdef SWIGSCILAB
+%rename(OutStNamed) OuterStructNamed;
+%rename(InStNamed) InnerStructNamed;
+%rename(inUnNamed) inner_union_named;
+%rename(OutStUnnamed) OuterStructUnnamed;
+%rename(inStUnnamed) inner_struct_unnamed;
+%rename(OutStUnnamed_inUnUnnamed) OuterStructUnnamed::inner_union_unnamed;
+%rename(OutSt) OuterStruct;
+
+%rename(OutNestedSt) outer_nested_struct;
+%rename(InNestedSt) inner_nested_struct;
+%rename(InNestedUn) InnerNestedUnion;
+%rename(EmbdUn) EmbeddedUnion;
+#endif
+
 %inline %{
 
 struct TestStruct {

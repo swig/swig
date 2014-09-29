@@ -1,5 +1,33 @@
 %module nested_class
 
+
+#if defined(SWIGSCILAB)
+%rename(Out) Outer;
+%rename(InSt1) InnerStruct1;
+%rename(InCls1) InnerClass1;
+%rename(InCls2) InnerClass2;
+%rename(InClas3Inst) InnerClass3Instance;
+%rename(InSt3Inst) InnerStruct3Instance;
+%rename(InCls4Type) InnerClass4Typedef;
+%rename(InSt4Type) InnerStruct4Typedef;
+%rename(InCls5Type) InnerClass5Typedef;
+%rename(InSt5Type) InnerStruct5Typedef;
+%rename(InMul) InnerMultiple;
+%rename(InMulDrv) InnerMultipleDerived;
+%rename(MulInst1) MultipleInstance1;
+%rename(MulInst2) MultipleInstance2;
+%rename(MulInst3) MultipleInstance3;
+%rename(MulInst4) MultipleInstance4;
+%rename(MulDrvInst1) MultipleDerivedInstance1;
+%rename(MulDrvInst2) MultipleDerivedInstance2;
+%rename(MulDrvInst3) MultipleDerivedInstance3;
+%rename(MulDrvInst4) MultipleDerivedInstance4;
+%rename(MulInstAnnDrv1) MultipleInstanceAnonDerived1;
+%rename(MulInstAnnDrv2) MultipleInstanceAnonDerived2;
+%rename(MulInstAnnDrv3) MultipleInstanceAnonDerived3;
+%rename(MulInstAnnDrv4) MultipleInstanceAnonDerived4;
+#endif
+
 #pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct1;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass1;
