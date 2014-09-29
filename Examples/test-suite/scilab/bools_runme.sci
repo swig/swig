@@ -13,8 +13,8 @@ checkBool(bool2_get(), %f);
 checkBool(bo(%t), %t);
 checkBool(bo(%f), %f);
 
-bs = new_BoolStructure();
-checkBool(BoolStructure_m_bool1_get(bs), %t);
-checkBool(BoolStructure_m_bool2_get(bs), %f);
+bs = new_BoolSt();
+checkBool(BoolSt_m_bool1_get(bs), %t);
+checkBool(BoolSt_m_bool2_get(bs), %f);
 
 exec("swigtest.quit", -1);

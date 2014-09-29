@@ -1,5 +1,9 @@
 %module enum_missing
 
+#if defined(SWIGSCILAB)
+%rename(AvCodecCtx) AVCodecContext;
+#endif
+
 // Test when SWIG does not parse the enum definition
 %{
 enum AVPixelFormat {

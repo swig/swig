@@ -1,5 +1,11 @@
 %module li_stdint
 
+#if defined(SWIGSCILAB)
+%rename(StdI) StdInts;
+%rename(StdIf) StdIntFasts;
+%rename(StdIl) StdIntLeasts;
+#endif
+
 %include <stdint.i>
 
 %inline %{

@@ -2,15 +2,15 @@ exec("swigtest.start", -1);
 
 testString = "Scilab test string";
 
-if UCharFunction(testString) <> testString then swigtesterror(); end
-if SCharFunction(testString) <> testString then swigtesterror(); end
-if CUCharFunction(testString) <> testString then swigtesterror(); end
-if CSCharFunction(testString) <> testString then swigtesterror(); end
-//if CharFunction(testString) <> testString then swigtesterror(); end
-//if CCharFunction(testString) <> testString then swigtesterror(); end
+checkequal(UCharFunction(testString), testString, "UCharFunction(testString)");
+checkequal(SCharFunction(testString), testString, "SCharFunction(testString)");
+checkequal(CUCharFunction(testString), testString, "CUCharFunction(testString)");
+checkequal(CSCharFunction(testString), testString, "CSCharFunction(testString)");
+//checkequal(CharFunction(testString), testString, "CharFunction(testString)");
+//checkequal(CCharFunction(testString), testString, "CCharFunction(testString)");
 
 try
-  tNumber = new_TNumber()
+  tNum = new_TNum();
 catch
   swigtesterror();
 end
@@ -19,25 +19,25 @@ end
 //TNumber_DigitsMemberB_get()
 //TNumber_DigitsMemberB_set
 try
-  delete_TNumber(tNumber)
+  delete_TNum(tNum);
 catch
   swigtesterror();
 end
 
 try
-  directorTest = new_DirectorTest();
+  dirTest = new_DirTest();
 catch
   swigtesterror();
 end
 
-if DirectorTest_UCharFunction(directorTest, testString) <> testString then swigtesterror(); end
-if DirectorTest_SCharFunction(directorTest, testString) <> testString then swigtesterror(); end
-if DirectorTest_CUCharFunction(directorTest, testString) <> testString then swigtesterror(); end
-if DirectorTest_CSCharFunction(directorTest, testString) <> testString then swigtesterror(); end
-//if DirectorTest_CharFunction(directorTest, testString) <> testString then swigtesterror(); end
-//if DirectorTest_CCharFunction(directorTest, testString) <> testString then swigtesterror(); end
+checkequal(DirTest_UCharFunction(dirTest, testString), testString, "DirTest_UCharFunction");
+checkequal(DirTest_SCharFunction(dirTest, testString), testString, "DirTest_SCharFunction(dirTest, testString)");
+checkequal(DirTest_CUCharFunction(dirTest, testString), testString, "DirTest_CUCharFunction(dirTest, testString)");
+checkequal(DirTest_CSCharFunction(dirTest, testString), testString, "DirTest_CSharFunction(dirTest, testString)");
+//checkequal(DirTest_CharFunction(dirTest, testString), testString, "DirTest_CharFunction(dirTest, testString)");
+//checkequal(DirTest_CCharFunction(dirTest, testString), testString, "DirTest_CCharFunction(dirTest, testString)");
 try
-  delete_DirectorTest(directorTest);
+  delete_DirTest(dirTest);
 catch
   swigtesterror();
 end

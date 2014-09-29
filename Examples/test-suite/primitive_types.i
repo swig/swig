@@ -3,6 +3,7 @@
 
 #if defined(SWIGSCILAB)
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_val;
+%rename(TestDir) TestDirector;
 #endif
 
 %{

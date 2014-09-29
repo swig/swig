@@ -39,7 +39,6 @@ int too_long_function_identifier_name_2() { return 22; };
 struct st {
   int m_identifier_name;
   int too_long_member_identifier_name;
-  int too_long_member_function_name() { return 31; };
 };
 
 %}

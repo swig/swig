@@ -4,6 +4,13 @@ This testcase tests whether the sizeof operator on a pointer is working.
 
 %module sizeof_pointer
 
+
+#if defined(SWIGSCILAB)
+%rename(SizePtrTst) SizeofPointerTest;
+#endif
+
+
+
 %inline %{
 
 #define  NO_PROBLEM sizeof(char)
