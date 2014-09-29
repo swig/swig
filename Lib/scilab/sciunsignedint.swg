@@ -1,13 +1,13 @@
 /*
  * C-type: unsigned int
- * Scilab type: double or uint32 scalar
+ * Scilab type: double or uint32
  */
-%fragment(SWIG_AsVal_frag(unsigned int), "header", fragment="SWIG_SciUint32_AsUnsignedInt", fragment="<limits.h>") {
-%#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SWIG_SciUint32_AsUnsignedInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_AsVal_frag(unsigned int), "header", fragment="SWIG_SciDoubleOrUint32_AsUnsignedInt", fragment="<limits.h>") {
+%#define SWIG_AsVal_unsigned_SS_int(scilabValue, valuePointer) SWIG_SciDoubleOrUint32_AsUnsignedInt(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciUint32_AsUnsignedInt", "header") {
+%fragment("SWIG_SciDoubleOrUint32_AsUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, char *fname) {
+SWIG_SciDoubleOrUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -86,12 +86,12 @@ SWIG_SciUint32_AsUnsignedInt(void *pvApiCtx, int iVar, unsigned int *puiValue, c
 }
 }
 
-%fragment(SWIG_From_frag(unsigned int), "header", fragment="SWIG_SciUint32_FromUnsignedInt") {
-%#define SWIG_From_unsigned_SS_int(scilabValue) SWIG_SciUint32_FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_From_frag(unsigned int), "header", fragment="SWIG_SciDouble_FromUnsignedInt") {
+%#define SWIG_From_unsigned_SS_int(scilabValue) SWIG_SciDouble_FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciUint32_FromUnsignedInt", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedInt", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedInt(void *pvApiCtx, int iVarOut, unsigned int uiValue, char *fname) {
+SWIG_SciDouble_FromUnsignedInt(void *pvApiCtx, int iVarOut, unsigned int uiValue, char *fname) {
   if (createScalarDouble(pvApiCtx,
     SWIG_NbInputArgument(pvApiCtx) + iVarOut, (double) uiValue))
     return SWIG_ERROR;
@@ -103,9 +103,9 @@ SWIG_SciUint32_FromUnsignedInt(void *pvApiCtx, int iVarOut, unsigned int uiValue
  * C-type: unsigned int[]
  * Scilab type: uint32 vector
  */
-%fragment("SWIG_SciUint32_AsUnsignedIntArrayAndSize", "header") {
+%fragment("SWIG_SciDoubleOrUint32_AsUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned int **puiValue, char *fname) {
+SWIG_SciDoubleOrUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned int **puiValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -166,9 +166,9 @@ SWIG_SciUint32_AsUnsignedIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
 }
 }
 
-%fragment("SWIG_SciUint32_FromUnsignedIntArrayAndSize", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, unsigned int *puiValues) {
+SWIG_SciDouble_FromUnsignedIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, unsigned int *puiValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;

@@ -1,13 +1,13 @@
 /*
  * C-type: signed char
- * Scilab type: int8
+ * Scilab type: double or int8
  */
-%fragment(SWIG_AsVal_frag(signed char), "header", fragment="SWIG_SciDoubleOrInt8_AsShort", fragment="<limits.h>") {
-#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_AsVal_frag(signed char), "header", fragment="SWIG_SciDoubleOrInt8_AsSignedChar", fragment="<limits.h>") {
+#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsSignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciDoubleOrInt8_AsShort", "header") {
+%fragment("SWIG_SciDoubleOrInt8_AsSignedChar", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt8_AsShort(void *pvApiCtx, int iVar, signed char *pscValue, char *fname) {
+SWIG_SciDoubleOrInt8_AsSignedChar(void *pvApiCtx, int iVar, signed char *pscValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;

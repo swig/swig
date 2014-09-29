@@ -28,9 +28,9 @@ SWIG_UnsignedInt_FromUnsignedLong(void *pvApiCtx, int iVarOut, unsigned long ulV
 }
 }
 
-%fragment("SWIG_SciUint32_FromUnsignedLongArrayAndSize", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedLongArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint32_FromUnsignedLongArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const unsigned long *pulValues) {
+SWIG_SciDouble_FromUnsignedLongArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const unsigned long *pulValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;

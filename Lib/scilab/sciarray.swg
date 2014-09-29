@@ -74,32 +74,32 @@
   SWIG_SciDouble_FromSignedCharArrayAndSize, signed char);
 
 // Unsigned char
-%scilab_array_typemaps(unsigned char, SWIG_SciUint8_AsUnsignedCharArrayAndSize,
-  SWIG_SciUint8_FromUnsignedCharArrayAndSize, unsigned char);
+%scilab_array_typemaps(unsigned char, SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize,
+  SWIG_SciDouble_FromUnsignedCharArrayAndSize, unsigned char);
 
 // Short
 %scilab_array_typemaps(short, SWIG_SciDoubleOrInt16_AsShortArrayAndSize,
   SWIG_SciDouble_FromShortArrayAndSize, short);
 
 // Unsigned short
-%scilab_array_typemaps(unsigned short, SWIG_SciUint16_AsUnsignedShortArrayAndSize,
-  SWIG_SciUint16_FromUnsignedShortArrayAndSize, unsigned short);
+%scilab_array_typemaps(unsigned short, SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize,
+  SWIG_SciDouble_FromUnsignedShortArrayAndSize, unsigned short);
 
 // Int
 %scilab_array_typemaps(int, SWIG_SciDoubleOrInt32_AsIntArrayAndSize,
   SWIG_SciDouble_FromIntArrayAndSize, int);
 
 // Unsigned int
-%scilab_array_typemaps(unsigned int, SWIG_SciUint32_AsUnsignedIntArrayAndSize,
-  SWIG_SciUint32_FromUnsignedIntArrayAndSize, unsigned int);
+%scilab_array_typemaps(unsigned int, SWIG_SciDoubleOrUint32_AsUnsignedIntArrayAndSize,
+  SWIG_SciDouble_FromUnsignedIntArrayAndSize, unsigned int);
 
 // Long
 %scilab_array_typemaps(long, SWIG_SciDoubleOrInt32_AsIntArrayAndSize,
   SWIG_SciDouble_FromLongArrayAndSize, int);
 
 // Unsigned long
-%scilab_array_typemaps(unsigned long, SWIG_SciUint32_AsUnsignedIntArrayAndSize,
-  SWIG_SciUint32_FromUnsignedLongArrayAndSize, unsigned int);
+%scilab_array_typemaps(unsigned long, SWIG_SciDoubleOrUint32_AsUnsignedIntArrayAndSize,
+  SWIG_SciDouble_FromUnsignedLongArrayAndSize, unsigned int);
 
 // Float
 %scilab_array_typemaps(float, SWIG_SciDouble_AsFloatArrayAndSize,

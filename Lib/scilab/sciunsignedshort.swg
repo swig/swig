@@ -1,13 +1,13 @@
 /*
  * C-type: unsigned short
- * Scilab type: double or uint16 scalar
+ * Scilab type: double or uint16
  */
-%fragment(SWIG_AsVal_frag(unsigned short), "header", fragment="SWIG_SciUint16_AsUnsignedShort", fragment="<limits.h>") {
-%#define SWIG_AsVal_unsigned_SS_short(scilabValue, valuePointer) SWIG_SciUint16_AsUnsignedShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_AsVal_frag(unsigned short), "header", fragment="SWIG_SciDoubleOrUint16_AsUnsignedShort", fragment="<limits.h>") {
+%#define SWIG_AsVal_unsigned_SS_short(scilabValue, valuePointer) SWIG_SciDoubleOrUint16_AsUnsignedShort(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciUint16_AsUnsignedShort", "header") {
+%fragment("SWIG_SciDoubleOrUint16_AsUnsignedShort", "header") {
 SWIGINTERN int
-SWIG_SciUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValue, char *fname) {
+SWIG_SciDoubleOrUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -86,12 +86,12 @@ SWIG_SciUint16_AsUnsignedShort(void *pvApiCtx, int iVar, unsigned short *pusValu
 }
 }
 
-%fragment(SWIG_From_frag(unsigned short), "header", fragment="SWIG_SciUint16_FromUnsignedShort") {
-%#define SWIG_From_unsigned_SS_short(scilabValue) SWIG_SciUint16_FromUnsignedShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_From_frag(unsigned short), "header", fragment="SWIG_SciDouble_FromUnsignedShort") {
+%#define SWIG_From_unsigned_SS_short(scilabValue) SWIG_SciDouble_FromUnsignedShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciUint16_FromUnsignedShort", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedShort", "header") {
 SWIGINTERN int
-SWIG_SciUint16_FromUnsignedShort(void *pvApiCtx, int iVarOut, unsigned short usValue, char *fname) {
+SWIG_SciDouble_FromUnsignedShort(void *pvApiCtx, int iVarOut, unsigned short usValue, char *fname) {
   if (createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, (double) usValue))
     return SWIG_ERROR;
   return SWIG_OK;
@@ -102,9 +102,9 @@ SWIG_SciUint16_FromUnsignedShort(void *pvApiCtx, int iVarOut, unsigned short usV
  * C-type: unsigned short[]
  * Scilab type: uint16 vector
  */
-%fragment("SWIG_SciUint16_AsUnsignedShortArrayAndSize", "header") {
+%fragment("SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned short **pusValue, char *fname) {
+SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned short **pusValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -165,9 +165,9 @@ SWIG_SciUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows,
 }
 }
 
-%fragment("SWIG_SciUint16_FromUnsignedShortArrayAndSize", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint16_FromUnsignedShortArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, unsigned short *pusValues) {
+SWIG_SciDouble_FromUnsignedShortArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, unsigned short *pusValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;

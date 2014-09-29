@@ -1,13 +1,13 @@
 /*
  * C-type: unsigned char
-  * Scilab type: double or uint8 scalar
+ * Scilab type: double or uint8
  */
-%fragment(SWIG_AsVal_frag(unsigned char), "header", fragment="SWIG_SciUint8_AsUnsignedChar", fragment="<limits.h>") {
-#define SWIG_AsVal_unsigned_SS_char(scilabValue, valuePointer) SWIG_SciUint8_AsUnsignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%fragment(SWIG_AsVal_frag(unsigned char), "header", fragment="SWIG_SciDoubleOrUint8_AsUnsignedChar", fragment="<limits.h>") {
+#define SWIG_AsVal_unsigned_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrUint8_AsUnsignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciUint8_AsUnsignedChar", "header") {
+%fragment("SWIG_SciDoubleOrUint8_AsUnsignedChar", "header") {
 SWIGINTERN int
-SWIG_SciUint8_AsUnsignedChar(void *pvApiCtx, int iVar, unsigned char *pucValue, char *fname) {
+SWIG_SciDoubleOrUint8_AsUnsignedChar(void *pvApiCtx, int iVar, unsigned char *pucValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iRows = 0;
@@ -86,12 +86,12 @@ SWIG_SciUint8_AsUnsignedChar(void *pvApiCtx, int iVar, unsigned char *pucValue, 
 }
 }
 
-%fragment(SWIG_From_frag(unsigned char), "header", fragment="SWIG_SciUint8_FromUnsignedChar") {
-#define SWIG_From_unsigned_SS_char(value) SWIG_SciUint8_FromUnsignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
+%fragment(SWIG_From_frag(unsigned char), "header", fragment="SWIG_SciDouble_FromUnsignedChar") {
+#define SWIG_From_unsigned_SS_char(value) SWIG_SciDouble_FromUnsignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
 }
-%fragment("SWIG_SciUint8_FromUnsignedChar", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedChar", "header") {
 SWIGINTERN int
-SWIG_SciUint8_FromUnsignedChar(void *pvApiCtx, int iVarOut, unsigned char ucValue) {
+SWIG_SciDouble_FromUnsignedChar(void *pvApiCtx, int iVarOut, unsigned char ucValue) {
   if (createScalarDouble(pvApiCtx,
     SWIG_NbInputArgument(pvApiCtx) + iVarOut, (double) ucValue))
     return SWIG_ERROR;
@@ -101,11 +101,11 @@ SWIG_SciUint8_FromUnsignedChar(void *pvApiCtx, int iVarOut, unsigned char ucValu
 
 /*
  * C-type: unsigned char[]
-  * Scilab type: uint8 vector
+  * Scilab type: double or uint8 matrix
  */
-%fragment("SWIG_SciUint8_AsUnsignedCharArrayAndSize", "header") {
+%fragment("SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, char *fname) {
+SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -166,9 +166,9 @@ SWIG_SciUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, i
 }
 }
 
-%fragment("SWIG_SciUint8_FromUnsignedCharArrayAndSize", "header") {
+%fragment("SWIG_SciDouble_FromUnsignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciUint8_FromUnsignedCharArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const unsigned char *pucValues) {
+SWIG_SciDouble_FromUnsignedCharArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, const unsigned char *pucValues) {
   SciErr sciErr;
   double *pdValues = NULL;
   int i;
