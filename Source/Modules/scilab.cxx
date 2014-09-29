@@ -790,9 +790,9 @@ public:
 
     if (lenContainerName + lenMemberName + 1 > char_size_max) {
       int lenScilabMemberName = char_size_max - lenContainerName - 1;
-      String *scilabMemberName = DohNewStringWithSize(memberName, lenScilabMemberName);
 
       if (lenScilabMemberName > 0) {
+	String *scilabMemberName = DohNewStringWithSize(memberName, lenScilabMemberName);
 	Setattr(node, "sym:name", scilabMemberName);
 	Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
 	  "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
@@ -800,7 +800,7 @@ public:
 	  containerName, memberName, scilabMemberName);
       } else
 	Swig_error(input_file, line_number,
-	  "Wrapping functions names for member name '%s.%s' will exceed 24 characters, "
+	  "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
 	  "please rename the container of member '%s'.\n",
 	  containerName, memberName, containerName);
     }
