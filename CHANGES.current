@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-30: wsfulton
+            [Python] Patch #207 - Fix No module error with -relativeimport when using single
+            header file import.
+
 2014-09-27: wsfulton
             Patch #208 - Initialise newly created array when using array_functions in the
             carrays.i library (C++ usage).
