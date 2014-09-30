@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-30: ianlancetaylor
+	    [Go] In configure script, require Go 1.1 or later.
+
 2014-09-30: wsfulton
             [Python] Patch #207 - Fix No module error with -relativeimport when using single
             header file import.
