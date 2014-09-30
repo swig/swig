@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-09-30: oliverb
+            [Javascript] Merge patch #216 by Richie765 - Added support for many versions of v8 javascript.
+
+2014-09-30: oliverb
+            [Javascript] Merge patch #195 by zittix - Fixed JSClassRef declaration not using the static one.
+
 2014-09-27: wsfulton
             Patch #208 - Initialise newly created array when using array_functions in the
             carrays.i library (C++ usage).
@@ -59,9 +65,6 @@ Version 3.0.3 (in progress)
 2014-09-01: olly
 	    Issue an error for unknown SWIG preprocessor directives, rather
 	    than quietly ignoring them.  Reported by jrhelsey in issue#217.
-
-2014-08-23: richie765
-            [Javascript] Added support for a variety of V8 versions
 
 2014-08-15: talby
             [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
