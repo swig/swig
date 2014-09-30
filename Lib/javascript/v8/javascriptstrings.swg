@@ -47,13 +47,13 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
   if (carray) {
     if (size > INT_MAX) {
       // TODO: handle extra long strings
-      return v8::Undefined();
+      return SWIGV8_UNDEFINED();
     } else {
-      v8::Handle<v8::String> js_str = v8::String::New(carray, size);
+      v8::Handle<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
       return js_str;
     }
   } else {
-    return v8::Undefined();
+    return SWIGV8_UNDEFINED();
   }
 }
 }
