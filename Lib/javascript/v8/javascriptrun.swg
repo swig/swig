@@ -83,6 +83,14 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_NULL() v8::Null(v8::Isolate::GetCurrent())
 #endif
 
+#if (SWIG_V8_VERSION < 0x031710)
+#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ = v8::Persistent<v8::FunctionTemplate>::New(class);
+#elif (SWIG_V8_VERSION < 0x031900)
+#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ = v8::Persistent<v8::FunctionTemplate>::New(v8::Isolate::GetCurrent(), class);
+#else
+#define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
+#endif
+
 /* ---------------------------------------------------------------------------
  * Error handling
  *

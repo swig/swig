@@ -357,14 +357,9 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_define_class_template", "templates")
 %{
+  /* Name: $jsmangledname, Type: $jsmangledtype, Dtor: $jsdtor */
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
-#if (SWIG_V8_VERSION < 0x031710)
-  $jsmangledname_clientData.class_templ = v8::Persistent<v8::FunctionTemplate>::New($jsmangledname_class);
-#elif (SWIG_V8_VERSION < 0x031900)
-  $jsmangledname_clientData.class_templ = v8::Persistent<v8::FunctionTemplate>::New(v8::Isolate::GetCurrent(), $jsmangledname_class);
-#else
-  $jsmangledname_clientData.class_templ.Reset(v8::Isolate::GetCurrent(), $jsmangledname_class);
-#endif
+  SWIGV8_SET_CLASS_TEMPL($jsmangledname_clientData.class_templ, $jsmangledname_class);
   $jsmangledname_clientData.dtor = $jsdtor;
   if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
     SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_clientData;
@@ -408,6 +403,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_create_class_instance", "templates")
 %{
+  /* Class: $jsname ($jsmangledname) */
   v8::Handle<v8::FunctionTemplate> $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
   $jsmangledname_class_0->SetCallHandler($jsctor);
   $jsmangledname_class_0->Inherit($jsmangledname_class);
