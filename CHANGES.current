@@ -11,6 +11,13 @@ Version 3.0.3 (in progress)
 2014-09-30: oliverb
             [Javascript] Merge patch #195 by zittix - Fixed JSClassRef declaration not using the static one.
 
+2014-09-30: ianlancetaylor
+	    [Go] In configure script, require Go 1.1 or later.
+
+2014-09-30: wsfulton
+            [Python] Patch #207 - Fix No module error with -relativeimport when using single
+            header file import.
+
 2014-09-27: wsfulton
             Patch #208 - Initialise newly created array when using array_functions in the
             carrays.i library (C++ usage).
@@ -74,7 +81,7 @@ Version 3.0.3 (in progress)
             tag so that StyleCop ignores the files.
 
 2014-08-04: wsfulton
-            [Java] Merge patch #198 from Yuval Kashtan - Support for java.nio.ByteBuffer mapping to 
+            [Java] Merge patch #198 from Yuval Kashtan - Support for java.nio.ByteBuffer mapping to
             unsigned char * in various.i in NIOBUFFER typemaps.
 
 2014-07-14: ianlancetaylor
@@ -84,5 +91,5 @@ Version 3.0.3 (in progress)
 	    does not collect pointers passed to C++ code.
 
 2014-07-01: wsfulton
-            Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains 
+            Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains
             brackets in the expanded name.

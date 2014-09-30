@@ -2291,14 +2291,21 @@ else
       GOVERSIONOPTION=version
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
       go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+      AC_MSG_CHECKING([whether go version is too old])
       case $go_version in
-      go1.0*) GOOPT="-intgosize 32" ;;
-      *) if test "$GOC" = "6c"; then
-           GOOPT="-intgosize 64"
-         else
-           GOOPT="-intgosize 32"
-	 fi
-	 ;;
+      go1.0*)
+	AC_MSG_RESULT([yes - minimum version is 1.1])
+	GO=
+	GOOPT="-intgosize 32"
+	;;
+      *)
+	AC_MSG_RESULT([no])
+	if test "$GOC" = "6c"; then
+          GOOPT="-intgosize 64"
+        else
+          GOOPT="-intgosize 32"
+	fi
+	;;
       esac
       case $go_version in
       go1.0* | go1.1*)
@@ -2315,14 +2322,17 @@ else
       GOC=`echo $GO | sed -e 's/g/c/'`
       GOVERSIONOPTION=-V
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
-      go_min_version=7077
-      if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
-        AC_MSG_RESULT([yes - minimum version is $go_min_version])
-        GO=
-      else
-        AC_MSG_RESULT([no])
-      fi
+      AC_MSG_RESULT([yes - minimum version is 1.1])
+      GO=
+      dnl Old code retained for now in case we implement an option for it.
+      dnl go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
+      dnl go_min_version=7077
+      dnl if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
+      dnl   AC_MSG_RESULT([yes - minimum version is $go_min_version])
+      dnl   GO=
+      dnl else
+      dnl   AC_MSG_RESULT([no])
+      dnl fi
       GOOPT="-intgosize 32"
       GO12=false
       GO13=false
