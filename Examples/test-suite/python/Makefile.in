@@ -90,8 +90,6 @@ BUILTIN_BROKEN = \
     autodoc.cpptest \
     default_constructor.cpptest \
     import_nomodule.cpptest \
-    li_std_string_extra.cpptest \
-    li_std_wstring.cpptest \
     python_abstractbase.cpptest \
 
 BUILTIN_NOT_BROKEN = $(filter-out $(BUILTIN_BROKEN),$(NOT_BROKEN_TEST_CASES))
