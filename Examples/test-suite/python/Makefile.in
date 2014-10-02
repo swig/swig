@@ -88,7 +88,6 @@ include $(srcdir)/../common.mk
 
 BUILTIN_BROKEN = \
     autodoc.cpptest \
-    default_constructor.cpptest \
     import_nomodule.cpptest \
     python_abstractbase.cpptest \
 
