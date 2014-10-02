@@ -87,9 +87,12 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 BUILTIN_BROKEN = \
+    autodoc.cpptest \
     default_constructor.cpptest \
     director_exception.cpptest \
     exception_order.cpptest \
+    import_nomodule.cpptest \
+    li_std_except_as_class.cpptest \
     li_std_string_extra.cpptest \
     li_std_wstring.cpptest \
     python_abstractbase.cpptest \
