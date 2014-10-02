@@ -152,4 +152,10 @@ Foo *launder(Foo *f) {
     virtual Bar return_Bar() { return Bar(); }
     virtual ~ReturnAllTypes() {}
   };
+
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
 %}
