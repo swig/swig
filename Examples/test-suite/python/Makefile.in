@@ -87,7 +87,6 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 BUILTIN_BROKEN = \
-    autodoc.cpptest \
     import_nomodule.cpptest \
     python_abstractbase.cpptest \
 
