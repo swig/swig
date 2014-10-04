@@ -87,7 +87,6 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 BUILTIN_BROKEN = \
-    import_nomodule.cpptest \
     python_abstractbase.cpptest \
 
 BUILTIN_NOT_BROKEN = $(filter-out $(BUILTIN_BROKEN),$(NOT_BROKEN_TEST_CASES))
