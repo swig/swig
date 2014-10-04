@@ -130,14 +130,10 @@ SWIGOCTRT void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& 
 
 SWIGOCTRT void SWIG_Octave_LinkGlobalValue(std::string name)
 {
-#if !SWIG_OCTAVE_PREREQ(3,2,0)
-  link_to_global_variable(curr_sym_tab->lookup(name, true));
-#else
 #if !SWIG_OCTAVE_PREREQ(3,8,0)
   symbol_table::varref(name);
 #endif
   symbol_table::mark_global(name);
-#endif
 }
 
 SWIGOCTRT swig_module_info* SWIG_Octave_GetModule(void* clientdata)

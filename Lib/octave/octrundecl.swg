@@ -101,6 +101,11 @@
 
 #endif // !defined(OCTAVE_MAJOR_VERSION)
 
+// Set minimum supported Octave version
+#if !SWIG_OCTAVE_PREREQ(3,2,0)
+#error This version of SWIG supports only Octave version 3.2.0 or later
+#endif
+
 // Octave_map was renamed to octave_map in v3.3.52
 #if !SWIG_OCTAVE_PREREQ(3,3,52)
 #define octave_map Octave_map
@@ -108,11 +113,7 @@
 
 ////////// Declare/define SWIG interface function loadable by Octave //////////
 
-#if !SWIG_OCTAVE_PREREQ(3,2,0)
-#define SWIG_DEFUN(cname, wname, doc)			DEFUNX_DLD(#cname, wname, FS ## cname, args, nargout, doc)
-#else
-#define SWIG_DEFUN(cname, wname, doc)			DEFUNX_DLD(#cname, wname, G ## cname, args, nargout, doc)
-#endif
+#define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, G ## cname, args, nargout, doc)
 
 ////////// Define visibility of Octave runtime functions //////////
 
