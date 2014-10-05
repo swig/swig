@@ -229,7 +229,6 @@ struct SwigOctClass {
   swig_type_info** type;
   int director;
   SwigOctFuncPtr constructor;
-  const char* constructor_doc;
   SwigOctFuncPtr destructor;
   const SwigOctMember* members;
   const char** base_names;
