@@ -47,9 +47,7 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=tcl
   allow_failures:
-    # g++-4.6.3 internal compiler error for li_std_vector testcase
-    - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
+    # None
 before_install:
   - date -u
   - uname -a
