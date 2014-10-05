@@ -329,18 +329,6 @@ long SwigOctType::swig_this() const
   return (long) types[0].second.ptr;
 }
 
-const char* SwigOctType::help_text() const
-{
-  if (!types.size()) {
-    return 0;
-  }
-  if (!types[0].first->clientdata) {
-    return 0;
-  }
-  SwigOctClass* c = (SwigOctClass*) types[0].first->clientdata;
-  return c->constructor_doc;
-}
-
 std::string SwigOctType::swig_type_name() const
 {
   // * need some way to manually name subclasses.
