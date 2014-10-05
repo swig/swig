@@ -23,7 +23,7 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=lua
     - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
+      env: SWIGLANG=octave SWIGJOBS=-j3
     - compiler: gcc
       env: SWIGLANG=perl5
     - compiler: gcc
