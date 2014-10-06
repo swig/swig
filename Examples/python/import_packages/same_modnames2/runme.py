@@ -1,3 +1,8 @@
+import os.path
+
+testname = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
+print "Testing " + testname + " - %module(package=...) + python 'import' in __init__.py"
+
 import pkg1.pkg2.foo
 print "  Finished importing pkg1.pkg2.foo"
 
