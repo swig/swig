@@ -1,0 +1,25 @@
+%module overload_polymorphic
+
+#ifndef SWIG_NO_OVERLOAD
+
+%inline %{
+
+class Base {
+public:
+	Base(){}
+	virtual ~Base(){}
+};
+
+class Derived : public Base {
+public:
+	Derived(){}
+	virtual ~Derived(){}
+};
+
+
+
+void test(Base* base){}
+void test(int hello){}
+
+%}
+#endif

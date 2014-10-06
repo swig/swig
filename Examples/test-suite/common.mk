@@ -308,6 +308,7 @@ CPP_TEST_CASES += \
 	overload_extend \
 	overload_method \
 	overload_numeric \
+	overload_polymorphic \
 	overload_rename \
 	overload_return_type \
 	overload_simple \
