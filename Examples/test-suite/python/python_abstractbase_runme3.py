@@ -3,6 +3,8 @@ from collections import *
 
 # This is expected to fail with -builtin option
 # Builtin types can't inherit from pure-python abstract bases
+if is_python_builtin():
+  exit(0)
 
 assert issubclass(Mapii, MutableMapping)
 assert issubclass(Multimapii, MutableMapping)
