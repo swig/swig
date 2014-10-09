@@ -317,6 +317,7 @@ public:
   static bool				dispatch_global_op(const std::string& symbol, const octave_value_list& args, octave_value& ret);
   static octave_value			dispatch_unary_op(const octave_base_value& x, const char* op_name);
   octave_base_value*			empty_clone() const;
+  const char*				help_text() const;
   void					incref();
   bool					is_defined() const;
   virtual bool				is_map() const;
