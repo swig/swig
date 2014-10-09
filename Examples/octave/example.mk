@@ -6,34 +6,27 @@ SWIG       = $(TOP)/../preinst-swig
 TARGET     = swigexample
 INTERFACE  = example.i
 
-BUILDCMD = \
-	$(MAKE) -f $(TOP)/Makefile \
-	SRCDIR='$(SRCDIR)' \
-	SWIG='$(SWIG)' \
-	INTERFACE='$(INTERFACE)'
-
-ifneq (,$(SRCS))
-  BUILDCMD += SRCS='$(SRCS)'
-  BUILDTARGET = octave
-else
-  BUILDCMD += CXXSRCS='$(CXXSRCS)'
-  BUILDTARGET = octave_cpp
-endif
-
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' octave_run
 
 build:
-	$(BUILDCMD) SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' $(BUILDTARGET)
-
-ifneq (,$(TARGET2)$(SWIGOPT2))
-
-check: build2
-
-build2:
-	$(BUILDCMD) SWIGOPT='$(SWIGOPT2)' TARGET='$(TARGET2)' $(BUILDTARGET)
-
+ifneq (,$(SRCS))
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave
+else
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave_cpp
 endif
+ifneq (,$(TARGET2)$(SWIGOPT2))
+ifneq (,$(SRCS))
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT2)' TARGET='$(TARGET2)' INTERFACE='$(INTERFACE)' octave
+else
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+	SWIGOPT='$(SWIGOPT2)' TARGET='$(TARGET2)' INTERFACE='$(INTERFACE)' octave_cpp
+endif
+endif
+
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' octave_clean
