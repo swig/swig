@@ -205,8 +205,8 @@ public:
 
     Printf(f_runtime, "\n");
 
-    Printf(s_global_tab, "\nstatic const struct SwigOctMember swig_globals[] = {\n");
-    Printf(f_init, "SWIGINTERN bool SWIG_Octave_InitUser(SwigOctType* module_ns)\n{\n");
+    Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
+    Printf(f_init, "static bool SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
     if (!CPlusPlus) {
       Printf(f_header, "extern \"C\" {\n");
@@ -220,6 +220,10 @@ public:
 
     if (Len(docs)) {
       emit_doc_texinfo();
+    }
+
+    if (directorsEnabled()) {
+      Swig_insert_file("director.swg", f_runtime);
     }
 
     Printf(f_init, "return true;\n}\n");
@@ -586,7 +590,7 @@ public:
     int varargs = emit_isvarargs(l);
     char source[64];
 
-    Printf(w->code, "if (!SWIG_Octave_CheckNumArgs(\"%s\",args.length(),%i,%i,%i)) "
+    Printf(w->code, "if (!SWIG_check_num_args(\"%s\",args.length(),%i,%i,%i)) "
            "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
 
     if (constructor && num_arguments == 1 && num_required == 1) {
@@ -807,9 +811,9 @@ public:
 
     Octave_begin_function(n, w->def, iname, wname, true);
     Wrapper_add_local(w, "argc", "int argc = args.length()");
-    Printf(tmp, "SwigOctValueRef argv[%d] = {", maxargs);
+    Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
     for (int j = 0; j < maxargs; ++j) {
-      Printf(tmp, "%sSwigOctValueRef(args,%d)", j ? "," : " ", j);
+      Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
     }
     Printf(tmp, "}");
     Wrapper_add_local(w, "argv", tmp);
@@ -845,7 +849,7 @@ public:
     String* setwname = Swig_name_wrapper(setname);
 
     Octave_begin_function(n, setw->def, setname, setwname, true);
-    Printf(setw->def, "if (!SWIG_Octave_CheckNumArgs(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
+    Printf(setw->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
@@ -863,7 +867,7 @@ public:
       Append(setw->code, "fail:\n");
       Printf(setw->code, "return octave_value_list();\n");
     } else {
-      Printf(setw->code, "return SWIG_Octave_SetImmutable(args,nargout);");
+      Printf(setw->code, "return octave_set_immutable(args,nargout);");
     }
     Append(setw->code, "}\n");
     Wrapper_print(setw, f_wrappers);
@@ -973,7 +977,7 @@ public:
 
     assert(!s_members_tab);
     s_members_tab = NewStringEmpty();
-    Printv(s_members_tab, "static SwigOctMember swig_", class_name, "_members[] = {\n", NIL);
+    Printv(s_members_tab, "static swig_octave_member swig_", class_name, "_members[] = {\n", NIL);
 
     Language::classHandler(n);
 
@@ -1033,7 +1037,7 @@ public:
 
     Printv(f_wrappers, "static const char *swig_", class_name, "_base_names[] = {", base_class_names, "0};\n", NIL);
     Printv(f_wrappers, "static const swig_type_info *swig_", class_name, "_base[] = {", base_class, "0};\n", NIL);
-    Printv(f_wrappers, "static SwigOctClass _wrap_class_", class_name, " = {\"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+    Printv(f_wrappers, "static swig_octave_class _wrap_class_", class_name, " = {\"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
     Printv(f_wrappers, Swig_directorclass(n) ? "1," : "0,", NIL);
     if (have_constructor) {
       String* nspace = Getattr(n, "sym:nspace");
@@ -1107,7 +1111,7 @@ public:
     String* getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
     String* setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
     String* getwname = Swig_name_wrapper(getname);
-    String* setwname = GetFlag(n, "feature:immutable") ? NewString("SWIG_Octave_SetImmutable") : Swig_name_wrapper(setname);
+    String* setwname = GetFlag(n, "feature:immutable") ? NewString("octave_set_immutable") : Swig_name_wrapper(setname);
     assert(s_members_tab);
 
     Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getwname, setwname);
@@ -1196,7 +1200,7 @@ public:
       String* getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
       String* setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
       String* getwname = Swig_name_wrapper(getname);
-      String* setwname = GetFlag(n, "feature:immutable") ? NewString("SWIG_Octave_SetImmutable") : Swig_name_wrapper(setname);
+      String* setwname = GetFlag(n, "feature:immutable") ? NewString("octave_set_immutable") : Swig_name_wrapper(setname);
       assert(s_members_tab);
 
       Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getwname, setwname);
@@ -1277,12 +1281,12 @@ public:
     {
       Wrapper* w = NewWrapper();
       Printf(w->def, "SwigDirector_%s::SwigDirector_%s(void* self) :"
-             "\nSwig::Director((SwigOctType*)self,static_cast<%s*>(this)) { \n", classname, classname, classname);
+             "\nSwig::Director((octave_swig_type*)self,static_cast<%s*>(this)) { \n", classname, classname, classname);
       Append(w->def, "}\n");
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
-    Printf(f_directors_h, "    SwigDirector_%s(SwigOctType* self);\n", classname);
+    Printf(f_directors_h, "    SwigDirector_%s(octave_swig_type* self);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }
@@ -1563,20 +1567,12 @@ public:
 
   String* runtimeCode() {
     String* s = NewStringEmpty();
-    const char* runtimeFiles[] = {
-      "octrundecl.swg",
-      "octrunfunc.swg",
-      "octrunclass.swg",
-      "octruninit.swg"
-    };
-    for (size_t i = 0; i < sizeof(runtimeFiles)/sizeof(runtimeFiles[0]); ++i) {
-      String* srun = Swig_include_sys(runtimeFiles[i]);
-      if (!srun) {
-        Printf(stderr, "*** Unable to open '%s'\n", runtimeFiles[i]);
-      } else {
-        Append(s, srun);
-        Delete(srun);
-      }
+    String* srun = Swig_include_sys("octrun.swg");
+    if (!srun) {
+      Printf(stderr, "*** Unable to open 'octrun.swg'\n");
+    } else {
+      Append(s, srun);
+      Delete(srun);
     }
     return s;
   }
