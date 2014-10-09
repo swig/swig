@@ -295,7 +295,7 @@ DEFUN_DLD(SWIG_name, args, nargout, SWIG_name_usage)
   // definitely affects version 3.2.*, not sure about 3.3.*, seems to be fixed in
   // version 3.4.* and above. can be turned off with macro definition.
 #ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if !SWIG_OCTAVE_PREREQ(3,4,1)
+#if SWIG_OCTAVE_PREREQ(3,2,0) && !SWIG_OCTAVE_PREREQ(3,4,1)
   octave_exit = ::_Exit;
 #endif
 #endif
@@ -311,6 +311,7 @@ DEFUN_DLD(SWIG_name, args, nargout, SWIG_name_usage)
 
     // workaround bug in octave where installing global variable of custom type and then
     // exiting without explicitly clearing the variable causes octave to segfault.
+#if SWIG_OCTAVE_PREREQ(3,2,0)
     octave_value_list eval_args;
     eval_args.append("base");
     eval_args.append("function __swig_atexit__; "
@@ -324,6 +325,7 @@ DEFUN_DLD(SWIG_name, args, nargout, SWIG_name_usage)
                      "atexit(\"__swig_atexit__\", false); "
                      "atexit(\"__swig_atexit__\")");
     feval("evalin", eval_args, 0);
+#endif
 
     SwigOctRef::register_type();
     SwigOctPacked::register_type();
@@ -396,7 +398,11 @@ DEFUN_DLD(SWIG_name, args, nargout, SWIG_name_usage)
       }
     }
 
+#if !SWIG_OCTAVE_PREREQ(3,2,0)
+    mlock(me->name());
+#else
     mlock();
+#endif
 
   }
 

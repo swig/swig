@@ -5,13 +5,6 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
-2014-10-04: kwwette
-            [Octave] Drop support for Octave versions older than 3.2.0
-            - Latest non-supported version is 3.0.5, released 2009-04-09
-            - Earliest supported version is 3.2.0, released 2009-06-05
-
-            *** POTENTIAL INCOMPATIBILITY  ***
-
 2014-09-30: oliverb
             [Javascript] Merge patch #216 by Richie765 - Added support for many versions of v8 javascript.
 
