@@ -1039,11 +1039,13 @@ public:
       String* nspace = Getattr(n, "sym:nspace");
       String* cname = Swig_name_construct(nspace, constructor_name);
       String* wcname = Swig_name_wrapper(cname);
-      Printf(f_wrappers, "%s,", wcname);
+      String* tname = texinfo_name(n);
+      Printf(f_wrappers, "%s,%s,", wcname, tname);
+      Delete(tname);
       Delete(wcname);
       Delete(cname);
     } else {
-      Printv(f_wrappers, "0,", NIL);
+      Printv(f_wrappers, "0,0,", NIL);
     }
     if (have_destructor) {
       String* nspace = Getattr(n, "sym:nspace");
