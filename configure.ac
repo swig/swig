@@ -937,38 +937,25 @@ fi
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
-   for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
-         case ${flag} in
-            -D*|-I*) OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} ${flag}";;
-            *) ;;
-         esac
-      done
+   for n in CPPFLAGS INCFLAGS; do
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`unset CPPFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
-   for var in ALL_CXXFLAGS; do
-      for flag in `env - ${mkoctfile} -p ${var}`; do
-         case ${flag} in
-            -g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
-            *) ;;
-         esac
-      done
+   for n in ALL_CXXFLAGS; do
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`unset CXXFLAGS; ${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
-   AC_LANG_PUSH([C++])
-   AX_CHECK_COMPILE_FLAG([-O0],[OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"],[],[-Werror])
-   AC_LANG_POP([C++])
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
-   for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
+   for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p $n`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
    for octave_opt in --silent --norc --no-history --no-window-system; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
-      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1p' | sed -n '/unrecognized/p'`
+      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
       AS_IF([test "x${octave_out}" = x],[
          AC_MSG_RESULT([yes])
          OCTAVE="${OCTAVE} ${octave_opt}"
