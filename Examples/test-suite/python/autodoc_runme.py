@@ -3,7 +3,9 @@ import sys
 
 def check(got, expected, expected_builtin = None, skip = False):
   if not skip:
-    expect = expected_builtin if is_python_builtin() and expected_builtin != None else expected
+    expect = expected
+    if is_python_builtin() and expected_builtin != None:
+      expect = expected_builtin
     if expect != got:
       raise RuntimeError("\n" + "Expected: [" + str(expect) + "]\n" + "Got     : [" + str(got) + "]")
 
