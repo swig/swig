@@ -2365,7 +2365,7 @@ Tcl extension by specifying the following in an interface file :
     $action                // Gets substituted by actual function call
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2384,7 +2384,7 @@ exception handler to only apply to specific methods like this:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2394,7 +2394,7 @@ exception handler to only apply to specific methods like this:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2419,7 +2419,7 @@ For example:
     $action
   }
   catch (RangeError) {
-    Tcl_SetStringObj(tcl_result,"Array index out-of-bounds");
+    Tcl_SetResult(interp, (char *)"Array index out-of-bounds", TCL_STATIC);
     return TCL_ERROR;
   }
 }
@@ -2921,7 +2921,6 @@ int       Tcl_GetDoubleFromObj(Tcl_Interp *, Tcl_Obj *o, double *dp);
 <div class="code">
 <pre>
 Tcl_Obj  *Tcl_NewStringObj(char *str, int len);
-void      Tcl_SetStringObj(Tcl_Obj *obj, char *str, int len);
 char     *Tcl_GetStringFromObj(Tcl_Obj *obj, int *len);
 void      Tcl_AppendToObj(Tcl_Obj *obj, char *str, int len);
 </pre>
@@ -3037,9 +3036,10 @@ work)
 
 <div class="code">
 <pre>
-%typemap(out) char * {
-   Tcl_SetStringObj($result,$1);
+%typemap(out,noblock=1,fragment="SWIG_FromCharPtr") char *, const char * {
+  Tcl_SetObjResult(interp,SWIG_FromCharPtr((const char *)$1));
 }
+
 </pre>
 </div>
 
