@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-10-10: diorcety
+            [Python] Patch #232 Fix property access using directors
+
 2014-09-23: wsfulton
             [Python] Add patch from Thomas Maslach to fix crash in wrappers when using -threads in
             the STL iterators (SwigPyIterator destructor).
