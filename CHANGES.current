@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-10-06: wsfulton
+            [Python] Fixes when using -builtin and std::vector/std::list wrappers to allow deletion
+            of single elements, such as 'del vec[0]'.
+
 2014-09-30: oliverb
             [Javascript] Merge patch #216 by Richie765 - Added support for many versions of v8 javascript.
 

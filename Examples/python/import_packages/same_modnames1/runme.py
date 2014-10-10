@@ -1,5 +1,9 @@
+import os.path
+
 # Test import of same modules from different packages
-print "Testing %module(package=...) + %import + same modules in different packages"
+testname = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
+print "Testing " + testname + " - %module(package=...) + python 'import' in __init__.py"
+
 import pkg2.foo
 print "  Finished importing pkg2.foo"
 

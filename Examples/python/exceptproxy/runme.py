@@ -1,9 +1,15 @@
 # file: runme.py
 import example
 
+if example.is_python_builtin():
+  print "Skipping example: -builtin option does not support %exceptionclass"
+  exit(0)
+
 q = example.intQueue(10)
 
 print "Inserting items into intQueue"
+
+print type(example.FullError)
 
 try:
       for i in range(0,100):

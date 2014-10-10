@@ -20,15 +20,16 @@ except RuntimeError,e:
 
 # This is expected fail with -builtin option
 # Throwing builtin classes as exceptions not supported
-try:
-  t.hosed()
-except threads_exception.Exc,e:
-  code = e.code
-  if code != 42:
-    raise RuntimeError, "bad... code: %d" % code
-  msg = e.msg
-  if msg != "Hosed":
-    raise RuntimeError, "bad... msg: '%s' len: %d" % (msg, len(msg))
+if not threads_exception.is_python_builtin():
+  try:
+    t.hosed()
+  except threads_exception.Exc,e:
+    code = e.code
+    if code != 42:
+      raise RuntimeError, "bad... code: %d" % code
+    msg = e.msg
+    if msg != "Hosed":
+      raise RuntimeError, "bad... msg: '%s' len: %d" % (msg, len(msg))
 
 for i in range(1,4):
   try:
