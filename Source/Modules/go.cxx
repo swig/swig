@@ -919,6 +919,18 @@ private:
       } else if (goTypeIsInterface(p, ty) || Getattr(p, "tmap:goin")) {
 	needs_wrapper = true;
       }
+
+      // If the parameter has an argout or freearg typemap, we need to
+      // make sure that it escapes, in case it contains any pointers.
+      if (Getattr(p, "tmap:argout") || Getattr(p, "tmap:freearg")) {
+	if (!goTypeIsInterface(p, Getattr(p, "type"))) {
+	  String *tm = goWrapperType(p, Getattr(p, "type"), false);
+	  Printf(f_go_wrappers, "var %s_escape_%d %s\n", wname, i, tm);
+	  Delete(tm);
+	  needs_wrapper = true;
+	}
+      }
+
       p = nextParm(p);
     }
     if (goTypeIsInterface(n, result) || goout != NULL) {
@@ -1204,6 +1216,15 @@ private:
 	  Setattr(p, "emit:goinput", ivar);
 	}
 
+	// If the parameter has an argout or freearg typemap, make
+	// sure that it escapes.
+	if (Getattr(p, "tmap:argout") || Getattr(p, "tmap:freearg")) {
+	  // No need to do anything for C++ class type.
+	  if (!goTypeIsInterface(p, pt)) {
+	    Printf(f_go_wrappers, "\t%s_escape_%d = %s\n", wname, i, Getattr(p, "emit:goinput"));
+	  }
+	}
+
 	p = nextParm(p);
       }
       Printv(call, ")\n", NULL);
@@ -1342,11 +1363,19 @@ private:
     Parm *p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
+
       String *ln = Getattr(p, "lname");
       SwigType *pt = Getattr(p, "type");
       String *ct = gcCTypeForGoValue(p, pt, ln);
       Printv(f->code, "\t\t\t", ct, ";\n", NULL);
       Delete(ct);
+
+      String *gn = NewStringf("_swig_go_%d", i);
+      ct = gcCTypeForGoValue(p, pt, gn);
+      Setattr(p, "emit:input", gn);
+      Wrapper_add_local(f, gn, ct);
+      Delete(ct);
+
       p = nextParm(p);
     }
     if (SwigType_type(result) != T_VOID) {
@@ -1367,23 +1396,28 @@ private:
 
     Printv(f->code, "\n", NULL);
 
-    // Copy the input arguments out of the structure into the
-    // parameter variables.
-
+    // Copy the input arguments out of the structure into the Go local
+    // variables.
     p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
+      String *ln = Getattr(p, "lname");
+      String *gn = Getattr(p, "emit:input");
+      Printv(f->code, "\t", gn, " = swig_a->", ln, ";\n", NULL);
+      p = nextParm(p);
+    }
 
+    // Apply the in typemaps.
+    p = parms;
+    for (int i = 0; i < parm_count; ++i) {
+      p = getParm(p);
       String *tm = Getattr(p, "tmap:in");
       if (!tm) {
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument\n", SwigType_str(Getattr(p, "type"), 0));
       } else {
-	String *ln = Getattr(p, "lname");
-	String *input = NewString("");
-	Printv(input, "swig_a->", ln, NULL);
 	tm = Copy(tm);
-	Replaceall(tm, "$input", input);
-	Setattr(p, "emit:input", input);
+	String *gn = Getattr(p, "emit:input");
+	Replaceall(tm, "$input", gn);
 	if (i < required_count) {
 	  Printv(f->code, "\t", tm, "\n", NULL);
 	} else {
