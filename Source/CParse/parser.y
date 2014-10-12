@@ -3451,7 +3451,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Delattr($<node>$, "nested:nscope");
 		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) { /* actual parent class for this class */
 		     Node* forward_declaration = Swig_symbol_clookup_no_inherit(Getattr($<node>$,"name"), Getattr(nscope_inner, "symtab"));
-		     if (nscope_inner) {
+		     if (forward_declaration) {
 		       Setattr($<node>$, "access", Getattr(forward_declaration, "access"));
 		     }
 		     Setattr($<node>$, "nested:outer", nscope_inner);
