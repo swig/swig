@@ -3449,8 +3449,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   nscope = Getattr($<node>$, "nested:nscope");
 		   Delattr($<node>$, "nested:innerscope");
 		   Delattr($<node>$, "nested:nscope");
-		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) /* actual parent class for this class */
-		     Setattr($$, "nested:outer", nscope_inner);
+		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) { /* actual parent class for this class */
+		     Node* forward_declaration = Swig_symbol_clookup_no_inherit(Getattr($<node>$,"name"), Getattr(nscope_inner, "symtab"));
+		     if (nscope_inner) {
+		       Setattr($<node>$, "access", Getattr(forward_declaration, "access"));
+		     }
+		     Setattr($<node>$, "nested:outer", nscope_inner);
+		     SetFlag($<node>$, "nested");
+                   }
 		   if (!currentOuterClass)
 		     inclass = 0;
 		   cscope = Getattr($$, "prev_symtab");
@@ -3529,7 +3535,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
-		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag((yyval.node), "feature:flatnested"))
+		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag($$, "feature:flatnested"))
 		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
