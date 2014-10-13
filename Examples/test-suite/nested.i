@@ -1,4 +1,4 @@
-/* 
+/*
 This testcase tests that nested structs/unions work. Named structs/unions declared within
 a struct produced redefinition errors in SWIG 1.3.6 as reported by SF bug #447488.
 Also tests reported error when a #define placed in a deeply embedded struct/union.
@@ -9,17 +9,17 @@ Also tests reported error when a #define placed in a deeply embedded struct/unio
 
 #ifdef SWIGSCILAB
 %rename(OutStNamed) OuterStructNamed;
-%rename(InStNamed) InnerStructNamed;
-%rename(inUnNamed) inner_union_named;
-%rename(OutStUnnamed) OuterStructUnnamed;
-%rename(inStUnnamed) inner_struct_unnamed;
-%rename(OutStUnnamed_inUnUnnamed) OuterStructUnnamed::inner_union_unnamed;
-%rename(OutSt) OuterStruct;
+%rename(InStNamed) OuterStructUnnamed::InnerStructNamed;
+%rename(InUnNamed) OuterStructUnnamed::Inner_union_named;
 
-%rename(OutNestedSt) outer_nested_struct;
-%rename(InNestedSt) inner_nested_struct;
-%rename(InNestedUn) InnerNestedUnion;
-%rename(EmbdUn) EmbeddedUnion;
+%rename(OutStUnnamed) OuterStructUnnamed;
+%rename(inStUnnamed) OuterStructUnnamed::inner_struct_unnamed;
+%rename(inUnUnnamed) OuterStructUnnamed::inner_union_unnamed;
+
+%rename(OutSt) OuterStruct;
+%rename(OutNestedSt) OuterStruct::outer_nested_struct;
+%rename(InNestedSt) OuterStruct::outer_nested_struct::inner_nested_struct;
+%rename(InNestedUn) OuterStruct::outer_nested_struct::innerNestedUnion;
 #endif
 
 %inline %{
