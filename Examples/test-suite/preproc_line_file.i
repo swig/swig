@@ -2,7 +2,7 @@
 
 // Test __LINE__ and __FILE__ (don't change line numbering in here else runtime tests will need modifying)
 #define MYLINE __LINE__
-#define MYLINE_ADJUSTED __LINE__ + 100 
+#define MYLINE_ADJUSTED __LINE__ + 100
 
 #define MYFILE __FILE__
 #define MYFILE_ADJUSTED __FILE__ ".bak"
@@ -39,6 +39,10 @@ const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
 %ignore LINE_NUMBER;
 %ignore LINE_NUM;
 /* spare space */
+#endif
+
+#ifdef SWIGSCILAB
+%rename(SillyMulMacroSt) SillyMultipleMacroStruct;
 #endif
 
 %{
