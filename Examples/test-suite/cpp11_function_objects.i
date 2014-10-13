@@ -18,7 +18,7 @@ public:
     value=x+y;
   }
   Test() : value(0) {}
-  ~Test() {}
+  virtual ~Test() {}
 };
 
 Test test;
