@@ -12,6 +12,10 @@
 #error "implement dll loading"
 #endif
 
+#ifdef JSCGARBAGE
+extern "C" void JSSynchronousGarbageCollectForDebugging(JSContextRef);
+#endif
+
 class JSCShell: public JSShell {
 
 typedef int (*JSCIntializer)(JSGlobalContextRef context, JSObjectRef *module);
@@ -35,7 +39,8 @@ private:
   JSObjectRef Import(const std::string &moduleName);
 
   static JSValueRef Print(JSContextRef context, JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef args[], JSValueRef* ex);
-
+  static JSValueRef Garbage(JSContextRef context, JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef args[], JSValueRef* ex);
+  static JSValueRef Engine(JSContextRef context, JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef args[], JSValueRef* ex);
   static JSValueRef Require(JSContextRef context, JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef args[], JSValueRef* ex);
 
   static bool RegisterFunction(JSGlobalContextRef context, JSObjectRef object, const char* functionName, JSObjectCallAsFunctionCallback cbFunction);
@@ -80,6 +85,8 @@ bool JSCShell::InitializeEngine() {
 
   JSCShell::RegisterFunction(context, globalObject, "print", JSCShell::Print);
   JSCShell::RegisterFunction(context, globalObject, "require", JSCShell::Require);
+  JSCShell::RegisterFunction(context, globalObject, "engine", JSCShell::Engine);
+  JSCShell::RegisterFunction(context, globalObject, "garbage", JSCShell::Garbage);
 
   return true;
 }
@@ -120,6 +127,26 @@ JSValueRef JSCShell::Print(JSContextRef context, JSObjectRef object,
   }
 
   return JSValueMakeUndefined(context);
+}
+
+JSValueRef JSCShell::Garbage(JSContextRef context, JSObjectRef object,
+                           JSObjectRef globalobj, size_t argc,
+                           const JSValueRef args[], JSValueRef* ex) {
+  bool ret = false;
+#ifdef JSCGARBAGE
+  JSSynchronousGarbageCollectForDebugging(context);
+  ret = true;
+#endif
+  return JSValueMakeBoolean(context, ret);
+}
+
+JSValueRef JSCShell::Engine(JSContextRef context, JSObjectRef object,
+                           JSObjectRef globalobj, size_t argc,
+                           const JSValueRef args[], JSValueRef* ex) {
+  JSStringRef string = JSStringCreateWithUTF8CString("jsc");
+  JSValueRef result = JSValueMakeString(context, string);
+  JSStringRelease(string);
+  return result;
 }
 
 // Attention: this feature should not create too high expectations.

@@ -11,13 +11,13 @@
 static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
+  v8::Handle<v8::Value> jsresult;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  SWIGV8_RETURN(self);
+  SWIGV8_RETURN(jsresult);
 
   goto fail;
 fail:
@@ -77,13 +77,13 @@ fail:
 static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
+  v8::Handle<v8::Value> jsresult;
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
   if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  SWIGV8_RETURN(self);
+  SWIGV8_RETURN(jsresult);
 
   goto fail;
 fail:
@@ -145,18 +145,6 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
     $jsfree proxy->swigCObject;
   }
   delete proxy;
-
-  object.Clear();
-  
-#if (SWIG_V8_VERSION < 0x031710)
-  object.Dispose();
-#elif (SWIG_V8_VERSION < 0x031900)
-  object.Dispose(isolate);
-#elif (SWIG_V8_VERSION < 0x032100)
-  object->Dispose(isolate);
-#else
-  object->Dispose();
-#endif
 }
 %}
 
@@ -187,18 +175,9 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
     ${destructor_action}
   }
   delete proxy;
-
-#if (SWIG_V8_VERSION < 0x031710)
-  object.Dispose();
-#elif (SWIG_V8_VERSION < 0x031900)
-  object.Dispose(isolate);
-#elif (SWIG_V8_VERSION < 0x032100)
-  object->Dispose(isolate);
-#elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
-  object->Dispose();
-#else
-  object.Clear();
-#endif
+  goto fail;
+fail:
+  return;
 }
 %}
 
@@ -374,15 +353,15 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsv8_inherit", "templates")
 %{
-  if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
+  if (SWIGTYPE_$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_$jsbaseclass->clientdata)->class_templ.IsEmpty()))
   {
 #if (SWIG_V8_VERSION < 0x031903)
-    $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
+    $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_$jsbaseclass->clientdata)->class_templ);
 #else
     $jsmangledname_class->Inherit(
       v8::Local<v8::FunctionTemplate>::New(
         v8::Isolate::GetCurrent(),
-        static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ)
+        static_cast<SWIGV8_ClientData *>(SWIGTYPE_$jsbaseclass->clientdata)->class_templ)
      );
 #endif
 

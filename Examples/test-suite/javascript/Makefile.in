@@ -70,7 +70,7 @@ ifeq (node,$(JSENGINE))
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			env NODE_PATH=$$PWD:$(srcdir) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
+			env NODE_PATH=$$PWD:$(srcdir) $(NODEJS) --expose-gc $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
 

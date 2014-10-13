@@ -200,7 +200,7 @@ public:
 
 static v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
-static int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr, swig_type_info *info, int flags) {
+int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags, int*own) {
   SWIGV8_HANDLESCOPE();
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
@@ -224,8 +224,17 @@ static int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr,
     if(!type_valid) {
       return SWIG_TypeError;
     }
+    {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc,cdata->swigCObject,&newmemory);
+      if (newmemory == SWIG_CAST_NEW_MEMORY) {
+        if (own)
+          *own = *own | SWIG_CAST_NEW_MEMORY;
+      }
+    }
+  } else {
+    *ptr = cdata->swigCObject;
   }
-  *ptr = cdata->swigCObject;
   if(flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
@@ -330,7 +339,7 @@ static void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, swig_ty
 
 }
 
-static int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_type_info *info, int flags) {
+int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags, int *own) {
   SWIGV8_HANDLESCOPE();
   
   /* special case: JavaScript null => C NULL pointer */
@@ -342,7 +351,7 @@ static int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_typ
     return SWIG_TypeError;
   }
   v8::Handle<v8::Object> objRef = valRef->ToObject();
-  return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
+  return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags, own);
 }
 
 static v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
@@ -382,13 +391,14 @@ static v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *in
   SWIGV8_ESCAPE(result);
 }
 
-#define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_V8_ConvertPtr(obj, ptr, info, flags)
+#define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_V8_ConvertPtr(obj, ptr, info, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags, own)  SWIG_V8_ConvertPtr(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, info, flags)      SWIG_V8_NewPointerObj(ptr, info, flags)
 
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_V8_ConvertInstancePtr(obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_V8_NewPointerObj(thisvalue, type, flags)
 
-#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_V8_ConvertPtr(obj, pptr, type, 0)
+#define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_V8_ConvertPtr(obj, pptr, type, 0, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_V8_NewPointerObj(ptr, type, 0)
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)

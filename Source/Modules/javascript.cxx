@@ -116,6 +116,7 @@ protected:
     Setter,
     Getter,
     Ctor,
+    Dtor,
     Function
   };
 
@@ -265,6 +266,9 @@ protected:
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
 
   virtual int emitNamespaces() = 0;
+  
+  
+  String *getNodeMangledName(Node *n);
 
 
 protected:
@@ -511,6 +515,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   // Set javascript subdirectory in SWIG library
   SWIG_library_directory("javascript");
 
+  int cppcast = 1;
   int engine = -1;
 
   for (int i = 1; i < argc; i++) {
@@ -579,6 +584,11 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       SWIG_exit(-1);
       break;
     }
+  }
+
+  if (cppcast) {
+    /* Turn on cppcast mode */
+    Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
   }
 
   // Add a symbol to the parser for conditional compilation
@@ -686,6 +696,39 @@ Parm *JSEmitter::skipIgnoredArgs(Parm *p) {
 }
 
 /* -----------------------------------------------------------------------------
+ * JSEmitter::getNodeMangledName() :  the node mangled name
+ * ----------------------------------------------------------------------------- */
+
+String *JSEmitter::getNodeMangledName(Node *n) {
+  String *real_classname = Getattr(n, "classtype");
+  String *smartptr = Getattr(n, "feature:smartptr");	// Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+  SwigType *smart = 0;
+  if (smartptr) {
+    SwigType *cpt = Swig_cparse_type(smartptr);
+    if (cpt) {
+      smart = SwigType_typedef_resolve_all(cpt);
+      Delete(cpt);
+    } else {
+      // TODO: report line number of where the feature comes from
+      Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, real_classname);
+    }
+  } else {
+      SwigType *cpt = Swig_cparse_type(real_classname);
+      smart = SwigType_typedef_resolve_all(cpt);
+      Delete(cpt);
+  }
+  
+  state.clazz(TYPE, SwigType_str(smart, 0));
+
+  String *type = SwigType_manglestr(smart);
+  String *classtype_mangled = NewString("");
+  Printf(classtype_mangled, "p%s", type);
+  Delete(type);
+  Delete(smart);
+  return classtype_mangled;
+}
+
+/* -----------------------------------------------------------------------------
  * JSEmitter::getBaseClass() :  the node of the base class or NULL
  *
  * Note: the first base class is provided. Multiple inheritance is not
@@ -778,13 +821,7 @@ int JSEmitter::enterClass(Node *n) {
   state.clazz(NAME_MANGLED, SwigType_manglestr(mangled_name));
   Delete(mangled_name);
 
-  state.clazz(TYPE, NewString(Getattr(n, "classtype")));
-
-  String *type = SwigType_manglestr(Getattr(n, "classtypeobj"));
-  String *classtype_mangled = NewString("");
-  Printf(classtype_mangled, "p%s", type);
-  state.clazz(TYPE_MANGLED, classtype_mangled);
-  Delete(type);
+  state.clazz(TYPE_MANGLED, getNodeMangledName(n));
 
   String *ctor_wrapper = NewString("_wrap_new_veto_");
   Append(ctor_wrapper, state.clazz(NAME));
@@ -795,7 +832,6 @@ int JSEmitter::enterClass(Node *n) {
   // HACK: assume that a class is abstract
   // this is resolved by emitCtor (which is only called for non abstract classes)
   SetFlag(state.clazz(), IS_ABSTRACT);
-
   return SWIG_OK;
 }
 
@@ -861,12 +897,13 @@ int JSEmitter::emitCtor(Node *n) {
   // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
   Delete(wrapper->code);
   wrapper->code = NewString("");
-
-  Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
+  
+  //Printf(wrapper->locals, "%sjsresult;", SwigType_str(Getattr(n, "type"), 0));
 
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
   String *action = emit_action(n);
   Printv(wrapper->code, action, "\n", 0);
+  marshalOutput(n, params, wrapper, NewString(""));
 
   emitCleanupCode(n, wrapper, params);
 
@@ -903,9 +940,9 @@ int JSEmitter::emitCtor(Node *n) {
 }
 
 int JSEmitter::emitDtor(Node *n) {
-
+  Wrapper *wrapper = NewWrapper();
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-
+  Setattr(n, "wrap:name", wrap_name);
   SwigType *type = state.clazz(TYPE);
   String *p_classtype = SwigType_add_pointer(state.clazz(TYPE));
   String *ctype = SwigType_lstr(p_classtype, "");
@@ -958,6 +995,20 @@ int JSEmitter::emitDtor(Node *n) {
   }
 
   String *destructor_action = Getattr(n, "wrap:action");
+  
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generates an extra line of applied typemap.
+  // Deleting wrapper->code here fixes the problem, and seems to have no side effect elsewhere
+  Delete(wrapper->code);
+  wrapper->code = NewString("");
+
+  marshalInputArgs(n, params, wrapper, Dtor, true, false);
+  emitCleanupCode(n, wrapper, params);
+  
   // Adapted from the JSCore implementation.
   /* The next challenge is to generate the correct finalize function for JavaScriptCore to call.
      Originally, it would use this fragment from javascriptcode.swg
@@ -999,12 +1050,14 @@ int JSEmitter::emitDtor(Node *n) {
      Maybe the fix for the destructor_action always true problem is that this is supposed to be embedded in the if(Extend) block above.
      But I don't fully understand the conditions of any of these things, and since it works for the moment, I don't want to break more stuff.
    */
-  if (destructor_action) {
+  if (destructor_action) { 
     Template t_dtor = getTemplate("js_dtoroverride");
     state.clazz(DTOR, wrap_name);
     t_dtor.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
 	.replace("$jswrapper", wrap_name)
+	.replace("$jslocals", wrapper->locals)
 	.replace("$jsfree", free)
+	.replace("$jscode", wrapper->code)
 	.replace("$jstype", ctype);
 
     t_dtor.replace("${destructor_action}", destructor_action);
@@ -1022,6 +1075,7 @@ int JSEmitter::emitDtor(Node *n) {
   Delete(p_classtype);
   Delete(ctype);
   Delete(free);
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
@@ -1503,7 +1557,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   // determine an offset index, as members have an extra 'this' argument
   // except: static members and ctors.
   int startIdx = 0;
-  if (is_member && !is_static && mode != Ctor) {
+  if (is_member && !is_static && mode != Ctor && mode != Dtor) {
     startIdx = 1;
   }
   // store number of arguments for argument checks
@@ -1537,6 +1591,9 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       } else {
 	Printv(arg, "value", 0);
       }
+      break;
+    case Dtor:
+      Printf(arg, "object", i);
       break;
     case Ctor:
       Printf(arg, "argv[%d]", i);
@@ -1739,7 +1796,7 @@ int JSCEmitter::exitClass(Node *n) {
   if (base_class != NULL) {
     Template t_inherit(getTemplate("jsc_class_inherit"));
     t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	.replace("$jsbaseclassmangled", SwigType_manglestr(Getattr(base_class, "name")))
+	.replace("$jsbaseclassmangled", getNodeMangledName(base_class))
 	.pretty_print(jsclass_inheritance);
   } else {
     Template t_inherit(getTemplate("jsc_class_noinherit"));
@@ -2020,16 +2077,12 @@ int V8Emitter::exitClass(Node *n) {
   //  emit inheritance setup
   Node *baseClass = getBaseClass(n);
   if (baseClass) {
-    String *base_name = Getattr(baseClass, "name");
-
     Template t_inherit = getTemplate("jsv8_inherit");
 
-    String *base_name_mangled = SwigType_manglestr(base_name);
     t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	.replace("$jsbaseclass", base_name_mangled)
+	.replace("$jsbaseclass", getNodeMangledName(baseClass))
 	.trim()
 	.pretty_print(f_init_inheritance);
-    Delete(base_name_mangled);
   }
   //  emit registeration of class template
   Template t_register = getTemplate("jsv8_register_class");
@@ -2135,7 +2188,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   String *tm;
 
   int startIdx = 0;
-  if (is_member && !is_static && mode != Ctor) {
+  if (is_member && !is_static && mode != Ctor && mode != Dtor) {
     startIdx = 1;
   }
   // store number of arguments for argument checks
@@ -2174,6 +2227,9 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       } else {
 	Printv(arg, "value", 0);
       }
+      break;
+    case Dtor:
+      Printf(arg, "object", i);
       break;
     case Ctor:
       Printf(arg, "args[%d]", i);

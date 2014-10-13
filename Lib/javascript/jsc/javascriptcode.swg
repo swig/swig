@@ -11,10 +11,14 @@
 static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
+    JSObjectRef jsresult;
+    
     if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
     $jscode
-    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+    
+    return jsresult;
+
     goto fail;
     fail:
     return NULL;
@@ -53,7 +57,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     $jsdispatchcases
 
     // default:
-    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of $jsname");
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
     fail:
     return thisObject;
@@ -73,8 +77,11 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
 static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
+    JSObjectRef jsresult;
+    
     $jscode
-    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+    
+    return jsresult;
 
     goto fail;
     fail:
@@ -360,8 +367,8 @@ static JSStaticFunction $jsmangledname_functions[] = {
 
 %fragment ("jsc_class_inherit", templates)
 %{
-    if (SWIGTYPE_p$jsbaseclassmangled != NULL) {
-      $jsmangledname_objectDefinition.parentClass = (JSClassRef) SWIGTYPE_p$jsbaseclassmangled->clientdata;
+    if (SWIGTYPE_$jsbaseclassmangled != NULL) {
+      $jsmangledname_objectDefinition.parentClass = (JSClassRef) SWIGTYPE_$jsbaseclassmangled->clientdata;
     }
 %}
 

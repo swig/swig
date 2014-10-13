@@ -95,6 +95,8 @@ private:
 
   static SwigV8ReturnValue Print(const SwigV8Arguments &args);
 
+  static v8::Handle<v8::Value> Engine(const v8::Arguments& args);
+
   static SwigV8ReturnValue Require(const SwigV8Arguments &args);
 
   static SwigV8ReturnValue Quit(const SwigV8Arguments &args);
@@ -240,14 +242,17 @@ bool V8Shell::DisposeEngine() {
 }
 
 SwigV8Context V8Shell::CreateShellContext() {
+  v8::V8::SetFlagsFromString("--expose_gc", 11);
+
   // Create a template for the global object.
   v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 
   // Bind global functions
-  global->Set(SWIGV8_STRING_NEW("print"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Print));
-  global->Set(SWIGV8_STRING_NEW("quit"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Quit));
-  global->Set(SWIGV8_STRING_NEW("require"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Require));
-  global->Set(SWIGV8_STRING_NEW("version"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Version));
+  global->Set(v8::String::New("print"), v8::FunctionTemplate::New(V8Shell::Print));
+  
+  global->Set(v8::String::New("quit"), v8::FunctionTemplate::New(V8Shell::Quit));
+  global->Set(v8::String::New("require"), v8::FunctionTemplate::New(V8Shell::Require));
+  global->Set(v8::String::New("version"), v8::FunctionTemplate::New(V8Shell::Version));
 
 #if (SWIG_V8_VERSION < 0x031900)
   SwigV8Context context = v8::Context::New(NULL, global);
@@ -300,6 +305,10 @@ SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments &args) {
   fflush(stdout);
 
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+v8::Handle<v8::Value> V8Shell::Engine(const v8::Arguments& args) {
+  return v8::String::New("v8");
 }
 
 SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
