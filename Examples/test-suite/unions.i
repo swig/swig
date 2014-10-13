@@ -4,10 +4,6 @@ This testcase checks that unions can be set and read.
 
 %module unions
 
-#if defined(SWIGSCILAB)
-%rename(EmbedUnion) EmbeddedUnionTest;
-#endif
-
 %{
 /* Must undefine small to work on Windows.  small is defined as a
 char in rpcndr.h */
@@ -33,7 +29,14 @@ typedef union {
   SmallStruct   ss;
 } UnionTest;
 
+%}
+
 /* This union checks the parser and will be used in a runtime test */
+
+#if not defined(SWIGSCILAB)
+
+%inline %{
+
 typedef struct {
   union
   {
@@ -44,3 +47,20 @@ typedef struct {
 } EmbeddedUnionTest;
 
 %}
+
+#else
+
+%inline %{
+
+typedef struct {
+  union
+  {
+    BigStruct   big;
+    SmallStruct small;
+  } uni;
+  int           number;
+} EmbedUnionTst;
+
+%}
+
+#endif

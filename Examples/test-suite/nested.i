@@ -7,19 +7,10 @@ Also tests reported error when a #define placed in a deeply embedded struct/unio
 %module nested
 
 
-#ifdef SWIGSCILAB
+#if defined(SWIGSCILAB)
 %rename(OutStNamed) OuterStructNamed;
-%rename(InStNamed) OuterStructUnnamed::InnerStructNamed;
-%rename(InUnNamed) OuterStructUnnamed::Inner_union_named;
-
-%rename(OutStUnnamed) OuterStructUnnamed;
-%rename(inStUnnamed) OuterStructUnnamed::inner_struct_unnamed;
-%rename(inUnUnnamed) OuterStructUnnamed::inner_union_unnamed;
-
-%rename(OutSt) OuterStruct;
-%rename(OutNestedSt) OuterStruct::outer_nested_struct;
-%rename(InNestedSt) OuterStruct::outer_nested_struct::inner_nested_struct;
-%rename(InNestedUn) OuterStruct::outer_nested_struct::innerNestedUnion;
+%rename(InStNamed) OuterStructNamed::InnerStructNamed;
+%rename(InUnNamed) OuterStructNamed::Inner_union_named;
 #endif
 
 %inline %{
@@ -38,6 +29,13 @@ struct OuterStructNamed {
   } inner_union_named;
 };
 
+%}
+
+
+#if not defined(SWIGSCILAB)
+
+%inline %{
+
 struct OuterStructUnnamed {
   struct {
     double xx;
@@ -47,7 +45,6 @@ struct OuterStructUnnamed {
     int zz;
   } inner_union_unnamed;
 };
-
 
 typedef struct OuterStruct {
   union {
@@ -68,3 +65,41 @@ typedef struct OuterStruct {
 } OuterStruct;
 
 %}
+
+#else
+
+%inline %{
+
+struct OutStUnnamed {
+  struct {
+    double xx;
+  } inSt;
+  union {
+    double yy;
+    int zz;
+  } inUn;
+};
+
+typedef struct OutSt {
+  union {
+
+    struct nst_st {
+      union in_un {
+#define BAD_STYLE 1
+        int red;
+        struct TestStruct green;
+      } InUn;
+
+      struct in_st {
+        int blue;
+      } InSt;
+    } NstdSt;
+
+  } EmbedUn;
+} OutSt;
+
+%}
+
+#endif
+
+
