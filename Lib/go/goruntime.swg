@@ -225,6 +225,16 @@ type _ unsafe.Pointer
 
 %}
 
+/* Swig_always_false is used to conditionally assign parameters to
+   Swig_escape_val so that the compiler thinks that they escape.  We
+   only assign them if Swig_always_false is true, which it never is.
+   We export the variable so that the compiler doesn't realize that it
+   is never set. */
+%insert(go_header) %{
+var Swig_escape_always_false bool
+var Swig_escape_val interface{}
+%}
+
 /* Function pointers are translated by the code in go.cxx into
    _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */
 

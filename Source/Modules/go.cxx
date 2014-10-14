@@ -920,15 +920,8 @@ private:
 	needs_wrapper = true;
       }
 
-      // If the parameter has an argout or freearg typemap, we need to
-      // make sure that it escapes, in case it contains any pointers.
-      if (Getattr(p, "tmap:argout") || Getattr(p, "tmap:freearg")) {
-	if (!goTypeIsInterface(p, Getattr(p, "type"))) {
-	  String *tm = goWrapperType(p, Getattr(p, "type"), false);
-	  Printf(f_go_wrappers, "var %s_escape_%d %s\n", wname, i, tm);
-	  Delete(tm);
-	  needs_wrapper = true;
-	}
+      if (paramNeedsEscape(p)) {
+	needs_wrapper = true;
       }
 
       p = nextParm(p);
@@ -1218,11 +1211,10 @@ private:
 
 	// If the parameter has an argout or freearg typemap, make
 	// sure that it escapes.
-	if (Getattr(p, "tmap:argout") || Getattr(p, "tmap:freearg")) {
-	  // No need to do anything for C++ class type.
-	  if (!goTypeIsInterface(p, pt)) {
-	    Printf(f_go_wrappers, "\t%s_escape_%d = %s\n", wname, i, Getattr(p, "emit:goinput"));
-	  }
+	if (paramNeedsEscape(p)) {
+	  Printv(f_go_wrappers, "\tif Swig_escape_always_false {\n", NULL);
+	  Printv(f_go_wrappers, "\t\tSwig_escape_val = ", Getattr(p, "emit:goinput"), "\n", NULL);
+	  Printv(f_go_wrappers, "\t}\n", NULL);
 	}
 
 	p = nextParm(p);
@@ -1289,6 +1281,31 @@ private:
     }
     *arg = true;
     return "base";
+  }
+
+  /* ----------------------------------------------------------------------
+   * paramNeedsEscape()
+   *
+   * A helper for goFunctionWrapper that returns whether a parameter
+   * needs to explicitly escape.  This is true if the parameter has a
+   * non-empty argout or freearg typemap, because in those cases the
+   * Go argument might be or contain a pointer.  We need to ensure
+   * that that pointer does not oint into the stack, which means that
+   * it needs to escape.
+   * ---------------------------------------------------------------------- */
+  bool paramNeedsEscape(Parm *p) {
+    String *argout = Getattr(p, "tmap:argout");
+    String *freearg = Getattr(p, "tmap:freearg");
+    if ((!argout || Len(argout) == 0) && (!freearg || Len(freearg) == 0)) {
+      return false;
+    }
+    // If a C++ type is represented as an interface type in Go, then
+    // we don't care whether it escapes, because we know that the
+    // pointer is a C++ pointer.
+    if (goTypeIsInterface(p, Getattr(p, "type"))) {
+      return false;
+    }
+    return true;
   }
 
   /* ----------------------------------------------------------------------
