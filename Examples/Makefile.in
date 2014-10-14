@@ -1396,6 +1396,7 @@ csharp_run:
 # Version check below also works with MS csc.exe which does not understand --version
 csharp_version:
 	$(CSHARPCOMPILER) --version | head -n 1
+	if test -n "$(CSHARPCILINTERPRETER)" ; then "$(CSHARPCILINTERPRETER)" --version ; fi
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples
