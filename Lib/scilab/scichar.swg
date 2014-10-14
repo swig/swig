@@ -156,18 +156,14 @@ SWIGINTERN int
 SWIG_SciString_FromCharPtr(void *pvApiCtx, int iVarOut, const char *pchValue) {
   if (pchValue) {
     SciErr sciErr;
-    char **pstData = NULL;
+    const char* pstStrings[1];
+    pstStrings[0] = pchValue;
 
-    pstData = (char **)malloc(sizeof(char *));
-    pstData[0] = strdup(pchValue);
-
-    sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 1, 1, (char **)pstData);
+    sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 1, 1, pstStrings);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
-
-    free(pstData[0]);
   }
   else {
     int iRet = createEmptyMatrix(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut);
