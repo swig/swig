@@ -10,6 +10,11 @@
 #define SCONST0   "Hello World"
 #define SCONST0_2 "\"Hello World\""
 
+/* Constants with type */
+#define UNSIGNED0 0x5FFFU
+#define LONG0 0x3FFF0000L
+#define ULONG0 0x5FF0000UL
+
 /* Expressions should work too */
 #define EXPR0 ICONST0 + 3*FCONST0
 
@@ -30,6 +35,11 @@
 #define CCONST1_2 '\n'
 #define SCONST1   "Hello World"
 #define SCONST1_2 "\"Hello World\""
+
+/* Constants with type */
+#define UNSIGNED1 0x5FFFU
+#define LONG1 0x3FFF0000L
+#define ULONG1 0x5FF0000UL
 
 /* Expressions should work too */
 #define EXPR1 ICONST1 + 3*FCONST1

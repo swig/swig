@@ -189,3 +189,16 @@ SWIG_SciDouble_FromUnsignedIntArrayAndSize(void *pvApiCtx, int iVarOut, int iRow
 }
 }
 
+%fragment(SWIG_CreateScilabVariable_frag(uint), "wrapper") {
+SWIGINTERN int
+SWIG_CreateScilabVariable_dec(uint)(void *pvApiCtx, const char* psVariableName, const unsigned int uiVariableValue) {
+  SciErr sciErr;
+  sciErr = createNamedMatrixOfUnsignedInteger32(pvApiCtx, psVariableName, 1, 1, &uiVariableValue);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
+}
+}
+
