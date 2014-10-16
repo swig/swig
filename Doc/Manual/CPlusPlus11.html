@@ -525,19 +525,19 @@ class Color {
 <p>A workaround is to write these as a series of separate classes containing anonymous enums:</p>
 
 <div class="code"><pre>
-class PrintingColors {
+struct PrintingColors {
   enum : unsigned int {
     Cyan, Magenta, Yellow, Black
   };
 };
 
-class BasicColors {
+struct BasicColors {
   enum : unsigned int {
     Red, Green, Blue
   };
 };
 
-class AllColors {
+struct AllColors {
   enum : unsigned int {
     Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
   };
