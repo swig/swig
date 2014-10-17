@@ -53,9 +53,10 @@ protected:
   String *verboseBuildLevel;
   String *buildFlagsScript;
 
-  bool createGatewayGenerator;
-  File *gatewayGeneratorFile;
-  String *gatewayGeneratorCode;
+  bool createGatewaySource;
+  File *gatewaySourceFile;
+  String *gatewaySourceWrapperDeclaration;
+  String *gatewaySourceFunctionTable;
 
   bool createGatewayXML;
   File *gatewayXMLFile;
@@ -63,6 +64,7 @@ protected:
 
   String *gatewayID;
   int primitiveID;
+
   String *libraryName;
 public:
 
@@ -72,20 +74,24 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
+    generateBuilder = true;
     sourceFileList = NewList();
     cflags = NewList();
     ldflags = NewList();
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
-    gatewayID = NULL;
+
+    createGatewaySource = false;
+    gatewaySourceWrapperDeclaration = NULL;
+    gatewaySourceFunctionTable = NULL;
+    gatewaySourceFile = NULL;
+
+    createGatewayXML = false;
     gatewayXML = NULL;
     gatewayXMLFile = NULL;
-    gatewayGeneratorCode = NULL;
-    gatewayGeneratorFile = NULL;
+    gatewayID = NULL;
+
     libraryName = NULL;
-    generateBuilder = true;
-    createGatewayGenerator = false;
-    createGatewayXML = false;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -125,6 +131,7 @@ public:
 	} else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = false;
+	  createGatewaySource = true;
 	} else if (strcmp(argv[argIndex], "-gatewayxml") == 0) {
 	  Swig_mark_arg(argIndex);
 	  createGatewayXML = true;
@@ -201,9 +208,9 @@ public:
       startBuilderCode(outputFilename);
     }
 
-    // Create  gateway generator script if required
-    if (createGatewayGenerator) {
-      createGatewayGeneratorFile();
+    // Create gateway source if required
+    if (createGatewaySource) {
+      createGatewaySourceFile(moduleName);
     }
 
     // Create gateway XML if required
@@ -257,9 +264,8 @@ public:
     Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
-    // Save gateway generator script
-    if (createGatewayGenerator) {
-      saveGatewayGeneratorFile(moduleName);
+    if (createGatewaySource) {
+      saveGatewaySourceFile();
     }
 
     if (createGatewayXML) {
@@ -826,6 +832,26 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * addFunctionToScilab()
+   * Declare a wrapped function in Scilab (builder, gateway, XML, ...)
+   * ----------------------------------------------------------------------- */
+
+  void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+    if (generateBuilder) {
+      addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
+    }
+
+    if (gatewaySourceFile) {
+      addFunctionInGatewaySource(scilabFunctionName, wrapperFunctionName);
+    }
+
+    if (gatewayXMLFile) {
+      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
+    }
+  }
+
+
+  /* -----------------------------------------------------------------------
    * createBuilderCode()
    * ----------------------------------------------------------------------- */
 
@@ -898,6 +924,18 @@ public:
     }
 
     Printf(builderCode, "table = [");
+  }
+
+  /* -----------------------------------------------------------------------
+   * addFunctionInBuilderCode()
+   * Add a function wrapper in the function table of generated builder script
+   * ----------------------------------------------------------------------- */
+
+  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName, String *scriptCode) {
+    if (++builderFunctionCount % 10 == 0) {
+      Printf(scriptCode, "];\ntable = [table;");
+    }
+    Printf(scriptCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
   }
 
   /* -----------------------------------------------------------------------
@@ -976,66 +1014,81 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * createGatewayGenerator()
-   * Creates a Scilab macro to generate the gateway source (entry point gw_<module>.c)
-   * Used in the context of internal module generation (-internalmodule)
+   * createGatewaySourceFile()
+   * Creates the gateway entry point source file (entry point gw_<module>.c)
    * ----------------------------------------------------------------------- */
 
-  void createGatewayGeneratorFile() {
-    String *gatewayGeneratorFilename = NewString("generate_gateway.sce");
-    gatewayGeneratorFile = NewFile(gatewayGeneratorFilename, "w", SWIG_output_files());
-    if (!gatewayGeneratorFile) {
-      FileErrorDisplay(gatewayGeneratorFilename);
+  void createGatewaySourceFile(String *moduleName) {
+    String *gatewaySourceFilename = NewString("");
+    Printf(gatewaySourceFilename, "gw_%s.c", moduleName);
+    gatewaySourceFile = NewFile(gatewaySourceFilename, "w", SWIG_output_files());
+    if (!gatewaySourceFile) {
+      FileErrorDisplay(gatewaySourceFilename);
       SWIG_exit(EXIT_FAILURE);
     }
-    gatewayGeneratorCode = NewString("table = [");
+
+    emitBanner(gatewaySourceFile);
+    Printv(gatewaySourceFile, "#ifdef __cplusplus\n", NIL);
+    Printv(gatewaySourceFile, "extern \"C\" {\n", NIL);
+    Printv(gatewaySourceFile, "#endif\n", NIL);
+    Printv(gatewaySourceFile, "\n", NIL);
+    Printv(gatewaySourceFile, "#include <sci_gateway.h>\n", NIL);
+    Printv(gatewaySourceFile, "#include <api_scilab.h>\n", NIL);
+    Printv(gatewaySourceFile, "#include <MALLOC.h>\n", NIL);
+    Printv(gatewaySourceFile, "\n", NIL);
+    Printv(gatewaySourceFile, "static int direct_gateway(char *fname, void F(void)) { F(); return 0; };\n", NIL);
+
+    gatewaySourceWrapperDeclaration = NewString("");
   }
 
   /* -----------------------------------------------------------------------
-   * saveGatewayGenerator()
+   * addFunctionInGatewaySource()
+   * Add a function in the gateway entry point source
    * ----------------------------------------------------------------------- */
 
-  void saveGatewayGeneratorFile(String *moduleName) {
-
-    Printf(gatewayGeneratorCode, "];\n");
-    Printv(gatewayGeneratorFile, gatewayGeneratorCode, NIL);
-    String *gatewayGenerateCommand = NewStringf("ilib_gen_gateway('gw_%s.c', table);\n", moduleName);
-    Printv(gatewayGeneratorFile, gatewayGenerateCommand, NIL);
-    Delete(gatewayGeneratorFile);
+  void addFunctionInGatewaySource(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+    Printf(gatewaySourceWrapperDeclaration, "extern Gatefunc %s;\n", wrapperFunctionName);
+    if (gatewaySourceFunctionTable == NULL) {
+      gatewaySourceFunctionTable = NewString("static GenericTable Tab[] = {\n");
+      Printf(gatewaySourceFunctionTable, "  {(Myinterfun)sci_gateway, %s, \"%s\"}\n", wrapperFunctionName, scilabFunctionName);
+    } else
+      Printf(gatewaySourceFunctionTable, " ,{(Myinterfun)sci_gateway, %s, \"%s\"}\n", wrapperFunctionName, scilabFunctionName);
   }
 
   /* -----------------------------------------------------------------------
-   * addFunctionToScilab()
-   * Add a function wrapper in Scilab file (builder, XML, ...)
+   * saveGatewaySourceFile()
+   * Saves the gateway entry point source file
    * ----------------------------------------------------------------------- */
 
-  void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    if (generateBuilder) {
-      addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
-    }
+  void saveGatewaySourceFile() {
+    Printv(gatewaySourceFile, gatewaySourceWrapperDeclaration, NIL);
+    Printf(gatewaySourceFunctionTable, "};\n");
+    Printv(gatewaySourceFile, gatewaySourceFunctionTable, NIL);
 
-    if (createGatewayGenerator) {
-      addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
-    }
+    Printv(gatewaySourceFile, "\n", NIL);
+    Printv(gatewaySourceFile, "int C2F(libtypedef_array_member)()\n", NIL);
+    Printv(gatewaySourceFile, "{\n", NIL);
+    Printv(gatewaySourceFile, "  Rhs = Max(0, Rhs);\n", NIL);
+    Printv(gatewaySourceFile, "  if (*(Tab[Fin-1].f) != NULL)\n", NIL);
+    Printv(gatewaySourceFile, "  {\n", NIL);
+    Printv(gatewaySourceFile, "    if(pvApiCtx == NULL)\n", NIL);
+    Printv(gatewaySourceFile, "    {\n", NIL);
+    Printv(gatewaySourceFile, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n", NIL);
+    Printv(gatewaySourceFile, "    }\n", NIL);
+    Printv(gatewaySourceFile, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n", NIL);
+    Printv(gatewaySourceFile, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);\n", NIL);
+    Printv(gatewaySourceFile, "  }\n", NIL);
+    Printv(gatewaySourceFile, "  return 0;\n", NIL);
+    Printv(gatewaySourceFile, "}\n", NIL);
+    Printv(gatewaySourceFile, "\n", NIL);
+    Printv(gatewaySourceFile, "#ifdef __cplusplus\n", NIL);
+    Printv(gatewaySourceFile, "}\n", NIL);
+    Printv(gatewaySourceFile, "#endif\n", NIL);
 
-    if (gatewayXMLFile) {
-      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
-    }
+    Delete(gatewaySourceFile);
   }
 
-  /* -----------------------------------------------------------------------
-   * addFunctionInScriptTable()
-   * Add a function wrapper in a table in a generated script
-   * This table will be either given in parameter to ilib_build or ilib_gen_gateway,
-   * called later in the script
-   * ----------------------------------------------------------------------- */
 
-  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName, String *scriptCode) {
-    if (++builderFunctionCount % 10 == 0) {
-      Printf(scriptCode, "];\ntable = [table;");
-    }
-    Printf(scriptCode, "\"%s\",\"%s\";", scilabFunctionName, wrapperFunctionName);
-  }
 };
 
 extern "C" Language *swig_scilab(void) {
