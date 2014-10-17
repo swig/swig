@@ -26,7 +26,7 @@ Scilab options (available with -scilab)\n\
      -addsources <files>           - Add comma separated source files <files>\n\
      -buildflags <file>            - Use the Scilab script <file> to set build flags\n\
      -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
-     -internalmodule <gateway id>  - Generate internal module files with the given <gateway id>\n\
+     -gatewayxml <gateway_id>  - Generate gateway xml with the given <gateway_id>\n\
      -nobuilder                    - Do not generate builder script\n\
      -outputlibrary <name>         - Set name of the output library to <name>\n\n";
 
@@ -41,6 +41,7 @@ protected:
 
   String *variablesCode;
 
+  bool generateBuilder;
   File *builderFile;
   String *builderCode;
   int builderFunctionCount;
@@ -52,19 +53,17 @@ protected:
   String *verboseBuildLevel;
   String *buildFlagsScript;
 
-  File *gatewayXMLFile;
-  String *gatewayXML;
-
+  bool createGatewayGenerator;
   File *gatewayGeneratorFile;
   String *gatewayGeneratorCode;
 
+  bool createGatewayXML;
+  File *gatewayXMLFile;
+  String *gatewayXML;
+
   String *gatewayID;
   int primitiveID;
-
   String *libraryName;
-
-  bool generateBuilder;
-  bool internalModule;
 public:
 
   /* ------------------------------------------------------------------------
@@ -85,7 +84,8 @@ public:
     gatewayGeneratorFile = NULL;
     libraryName = NULL;
     generateBuilder = true;
-    internalModule = false;
+    createGatewayGenerator = false;
+    createGatewayXML = false;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -125,10 +125,9 @@ public:
 	} else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = false;
-	} else if (strcmp(argv[argIndex], "-internalmodule") == 0) {
+	} else if (strcmp(argv[argIndex], "-gatewayxml") == 0) {
 	  Swig_mark_arg(argIndex);
-	  generateBuilder = false;
-	  internalModule = true;
+	  createGatewayXML = true;
 	  gatewayID = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
 	} else if (strcmp(argv[argIndex], "-outputlibrary") == 0) {
@@ -196,16 +195,22 @@ public:
     /* Output module initialization code */
     Swig_banner(beginSection);
 
-    // Add builder header code
+    // Create builder file if required
     if (generateBuilder) {
       createBuilderFile();
       startBuilderCode(outputFilename);
     }
-    // In the case of internal module, create gateway gateway XML and generation script
-    if (internalModule) {
-      createGatewayXMLFile(moduleName);
+
+    // Create  gateway generator script if required
+    if (createGatewayGenerator) {
       createGatewayGeneratorFile();
     }
+
+    // Create gateway XML if required
+    if (createGatewayXML) {
+      createGatewayXMLFile(moduleName);
+    }
+
     // Module initialization function
     String *moduleInitFunctionName = NewString("");
     Printf(moduleInitFunctionName, "%s_Init", moduleName);
@@ -252,10 +257,13 @@ public:
     Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
-    // In the case of internal module, terminate and save gateway XML and generation script
-    if (internalModule) {
-      saveGatewayXMLFile();
+    // Save gateway generator script
+    if (createGatewayGenerator) {
       saveGatewayGeneratorFile(moduleName);
+    }
+
+    if (createGatewayXML) {
+      saveGatewayXMLFile();
     }
 
     /* Cleanup files */
@@ -988,6 +996,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void saveGatewayGeneratorFile(String *moduleName) {
+
     Printf(gatewayGeneratorCode, "];\n");
     Printv(gatewayGeneratorFile, gatewayGeneratorCode, NIL);
     String *gatewayGenerateCommand = NewStringf("ilib_gen_gateway('gw_%s.c', table);\n", moduleName);
@@ -1005,13 +1014,12 @@ public:
       addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
     }
 
-    if (internalModule) {
-      if (gatewayGeneratorFile) {
-	addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
-      }
-      if (gatewayXMLFile) {
-	Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
-      }
+    if (createGatewayGenerator) {
+      addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, gatewayGeneratorCode);
+    }
+
+    if (gatewayXMLFile) {
+      Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
     }
   }
 
