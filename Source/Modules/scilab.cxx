@@ -1008,7 +1008,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void saveGatewayXMLFile() {
-    Printv(gatewayXML, "</GATEWAY>\n");
+    Printv(gatewayXML, "</GATEWAY>\n", NIL);
     Printv(gatewayXMLFile, gatewayXML, NIL);
     Delete(gatewayXMLFile);
   }
