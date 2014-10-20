@@ -229,7 +229,7 @@ SWIGINTERN int
 SWIG_SciString_FromCharPtrArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, char **charPtrArray) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, charPtrArray);
+  sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, (const char* const*) charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
