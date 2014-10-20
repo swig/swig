@@ -1090,7 +1090,7 @@ public:
     Printv(gatewaySourceFile, "\n", NIL);
 
     String* gatewaySourceEntryPoint = NewString("");
-    Printf(gatewaySourceEntryPoint, "int C2F(lib%s)()\n", moduleName);
+    Printf(gatewaySourceEntryPoint, "int C2F(gw_%s)()\n", moduleName);
     Printf(gatewaySourceEntryPoint, "{\n");
     Printf(gatewaySourceEntryPoint, "  Rhs = Max(0, Rhs);\n");
     Printf(gatewaySourceEntryPoint, "  if (*(Tab[Fin-1].f) != NULL)\n");
@@ -1163,7 +1163,7 @@ public:
     String *libName = NewString("");
     Printf(libName, "lib%s", moduleName);
 
-    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n", libName, libName, libName);
+    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), 'gw_%s', list_functions);\n", libName, libName, moduleName);
     Printf(loaderScript, "clear %s_path;\n", libName);
     Printf(loaderScript, "clear bOK;\n");
     Printf(loaderScript, "clear ilib;\n");
