@@ -1028,7 +1028,7 @@ else
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
       else
-        dirs=`pkg-config scilab --cflags-only-I`
+        dirs=`pkg-config scilab --cflags-only-I | sed -e 's/-I//g'`
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
