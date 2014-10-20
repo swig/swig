@@ -2600,7 +2600,6 @@ public:
 
     /* Insert cleanup code */
     for (p = l; p;) {
-      //      if (!checkAttribute(p,"tmap:in:numinputs","0") && !Getattr(p,"tmap:in:parse")) {
       if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
 	if (Getattr(p, "tmap:freearg:implicitconv")) {
 	  const char *convflag = "0";
@@ -3208,7 +3207,7 @@ public:
    * BEGIN C++ Director Class modifications
    * ------------------------------------------------------------------------- */
 
-  /* C++/Python polymorphism demo code, copyright (C) 2002 Mark Rose <mrose@stm.lbl.gov>
+  /* C++/Python polymorphism demo code
    *
    * TODO
    *

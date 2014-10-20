@@ -4285,6 +4285,10 @@ public:
     Delete(dirclassname);
   }
 
+  /*----------------------------------------------------------------------
+   * nestedClassesSupport()
+   *--------------------------------------------------------------------*/
+
   NestedClassSupport nestedClassesSupport() const {
     return NCS_Full;
   }

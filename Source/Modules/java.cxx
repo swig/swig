@@ -4598,6 +4598,7 @@ public:
   /*----------------------------------------------------------------------
    * extraDirectorProtectedCPPMethodsRequired()
    *--------------------------------------------------------------------*/
+
   bool extraDirectorProtectedCPPMethodsRequired() const {
     return false;
   }
@@ -4622,6 +4623,10 @@ public:
     Setattr(n, "director:decl", declaration);
     Setattr(n, "director:ctor", class_ctor);
   }
+
+  /*----------------------------------------------------------------------
+   * nestedClassesSupport()
+   *--------------------------------------------------------------------*/
 
   NestedClassSupport nestedClassesSupport() const {
     return NCS_Full;
