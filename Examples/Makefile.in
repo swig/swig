@@ -1701,60 +1701,33 @@ r_clean:
 #####                 SCILAB                                ######
 ##################################################################
 
-# Make sure these locate your Scilab installation
 SCILAB = @SCILAB@
+SCILAB_INC= @SCILABINCLUDE@
 SCILAB_OPT = @SCILABOPT@
+SCILAB_LIBPREFIX = lib
 
-# Scilab build need include absolute paths
-ifeq (,$(SRCDIR))
-SRCDIR_INCLUDE = -I$(abspath .)
-else
-SRCDIR_INCLUDE = -I$(abspath $(SRCDIR))
-endif
+# Gateway entry point source file
+SCILAB_GW = $(addprefix gw_, $(INTERFACE))
+SCILAB_GWSRCS = $(SCILAB_GW:.i=.c)
+SCILAB_GWOBJS = $(SCILAB_GW:.i=.o)
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab:
-	if test ! -z "$(SRCS)"; then \
-		test "$(SRCS)" = "$(SRCDIR_SRCS)" || cp $(SRCDIR_SRCS) . ; \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addsources "$(SRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
-		fi \
-	else \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
-		else \
-			$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
-		fi \
-	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"
-	test "x$(SRCS)" = "x$(SRCDIR_SRCS)" || rm $(SRCS)
+	$(SWIG) -scilab -nobuilder $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH);
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SCILAB_GWSRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(SCILAB_GWOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a C++ dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab_cpp:
-	if test ! -z "$(CXXSRCS)"; then \
-		test "$(CXXSRCS)" = "$(SRCDIR_CXXSRCS)" || cp $(SRCDIR_CXXSRCS) . ; \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(CXXSRCS)" -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
-		else \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addsources "$(CXXSRCS)" -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
-		fi \
-	else \
-		if test ! -z "$(INCLUDES)"; then \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" -addcflags "-I$(abspath $(INCLUDES))" $(INTERFACEPATH); \
-		else \
-			$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) -addcflags "$(SRCDIR_INCLUDE)" $(INTERFACEPATH); \
-		fi \
-	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MAKEFLAGS="-j1" $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -e "ierr = exec('builder.sce', 'errcatch', -1); if ierr <> 0 then disp(lasterror()); end; exit(ierr);"
-	test "x$(CXXSRCS)" = "x$(SRCDIR_CXXSRCS)" || rm $(CXXSRCS)
+	$(SWIG) -scilab -c++ -nobuilder $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH);
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SCILAB_GWSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(SCILAB_GWOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Running a Scilab example
@@ -1778,7 +1751,7 @@ scilab_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
-	rm -f *.sce lib*.c lib*.cpp lib*.h lib*.hxx
+	rm -f *.sce gw_*.c
 
 ##################################################################
 #####                        Go                             ######
