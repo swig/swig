@@ -61,9 +61,12 @@ protected:
   bool createGatewayXML;
   File *gatewayXMLFile;
   String *gatewayXML;
-
   String *gatewayID;
   int primitiveID;
+
+  bool createLoader;
+  File *loaderFile;
+  String* loaderScript;
 
   String *libraryName;
 public:
@@ -90,6 +93,10 @@ public:
     gatewayXML = NULL;
     gatewayXMLFile = NULL;
     gatewayID = NULL;
+
+    createLoader = false;
+    loaderFile = NULL;
+    loaderScript =  NULL;
 
     libraryName = NULL;
 
@@ -132,6 +139,7 @@ public:
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = false;
 	  createGatewaySource = true;
+	  createLoader = true;
 	} else if (strcmp(argv[argIndex], "-gatewayxml") == 0) {
 	  Swig_mark_arg(argIndex);
 	  createGatewayXML = true;
@@ -218,6 +226,11 @@ public:
       createGatewayXMLFile(moduleName);
     }
 
+    // Create loader script if required
+    if (createLoader) {
+      createLoaderFile(moduleName);
+    }
+
     // Module initialization function
     String *moduleInitFunctionName = NewString("");
     Printf(moduleInitFunctionName, "%s_Init", moduleName);
@@ -270,6 +283,10 @@ public:
 
     if (createGatewayXML) {
       saveGatewayXMLFile();
+    }
+
+    if (createLoader) {
+      saveLoaderFile(moduleName);
     }
 
     /* Cleanup files */
@@ -845,6 +862,10 @@ public:
       addFunctionInGatewaySource(scilabFunctionName, wrapperFunctionName);
     }
 
+    if (createLoader) {
+      addFunctionInLoader(scilabFunctionName);
+    }
+
     if (gatewayXMLFile) {
       Printf(gatewayXML, "<PRIMITIVE gatewayId=\"%s\" primitiveId=\"%d\" primitiveName=\"%s\"/>\n", gatewayID, primitiveID++, scilabFunctionName);
     }
@@ -1092,6 +1113,65 @@ public:
     Delete(gatewaySourceFile);
   }
 
+
+  /* -----------------------------------------------------------------------
+   * createLoaderScriptFile()
+   * Creates the loader script file (loader.sce)
+   * ----------------------------------------------------------------------- */
+
+  void createLoaderFile(String *moduleName) {
+    String *loaderFilename = NewString("");
+    Printf(loaderFilename, "loader.sce");
+
+    loaderFile = NewFile(loaderFilename, "w", SWIG_output_files());
+    if (!loaderFile) {
+      FileErrorDisplay(loaderFilename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    String *libName = NewString("");
+    Printf(libName, "lib%s", moduleName);
+
+    emitBanner(loaderFile);
+
+    loaderScript = NewString("");
+    Printf(loaderScript, "%s_path = get_absolute_file_path('loader.sce');\n", libName);
+    Printf(loaderScript, "[bOK, ilib] = c_link('%s');\n", libName);
+    Printf(loaderScript, "if bOK then\n");
+    Printf(loaderScript, "  ulink(ilib);\n");
+    Printf(loaderScript, "end\n");
+    Printf(loaderScript, "list_functions = [..\n");
+  }
+
+  /* -----------------------------------------------------------------------
+   * addFunctionInLoaderScript()
+   * Add a function in the loader script table
+   * ----------------------------------------------------------------------- */
+
+  void addFunctionInLoader(const_String_or_char_ptr scilabFunctionName) {
+    Printf(loaderScript, "  '%s'; ..\n", scilabFunctionName);
+  }
+
+  /* -----------------------------------------------------------------------
+   * saveLoaderScriptFile()
+   * Terminates and saves the loader script
+   * ----------------------------------------------------------------------- */
+
+  void saveLoaderFile(String *moduleName) {
+    Printf(loaderScript, "];\n");
+
+    String *libName = NewString("");
+    Printf(libName, "lib%s", moduleName);
+
+    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n", libName, libName, libName);
+    Printf(loaderScript, "clear %s_path;\n", libName);
+    Printf(loaderScript, "clear bOK;\n");
+    Printf(loaderScript, "clear ilib;\n");
+    Printf(loaderScript, "clear list_functions;\n");
+    Printv(loaderFile, loaderScript, NIL);
+
+    Delete(loaderFile);
+  }
 
 };
 
