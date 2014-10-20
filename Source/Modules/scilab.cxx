@@ -265,7 +265,7 @@ public:
     Wrapper_pretty_print(initSection, beginSection);
 
     if (createGatewaySource) {
-      saveGatewaySourceFile();
+      saveGatewaySourceFile(moduleName);
     }
 
     if (createGatewayXML) {
@@ -1032,6 +1032,7 @@ public:
     Printv(gatewaySourceFile, "extern \"C\" {\n", NIL);
     Printv(gatewaySourceFile, "#endif\n", NIL);
     Printv(gatewaySourceFile, "\n", NIL);
+    Printv(gatewaySourceFile, "#include <mex.h>\n", NIL);
     Printv(gatewaySourceFile, "#include <sci_gateway.h>\n", NIL);
     Printv(gatewaySourceFile, "#include <api_scilab.h>\n", NIL);
     Printv(gatewaySourceFile, "#include <MALLOC.h>\n", NIL);
@@ -1060,30 +1061,33 @@ public:
    * Saves the gateway entry point source file
    * ----------------------------------------------------------------------- */
 
-  void saveGatewaySourceFile() {
+  void saveGatewaySourceFile(String *moduleName) {
     Printv(gatewaySourceFile, gatewaySourceWrapperDeclaration, NIL);
     Printf(gatewaySourceFunctionTable, "};\n");
-    Printv(gatewaySourceFile, gatewaySourceFunctionTable, NIL);
 
+    Printv(gatewaySourceFile, gatewaySourceFunctionTable, NIL);
     Printv(gatewaySourceFile, "\n", NIL);
-    Printv(gatewaySourceFile, "int C2F(libtypedef_array_member)()\n", NIL);
-    Printv(gatewaySourceFile, "{\n", NIL);
-    Printv(gatewaySourceFile, "  Rhs = Max(0, Rhs);\n", NIL);
-    Printv(gatewaySourceFile, "  if (*(Tab[Fin-1].f) != NULL)\n", NIL);
-    Printv(gatewaySourceFile, "  {\n", NIL);
-    Printv(gatewaySourceFile, "    if(pvApiCtx == NULL)\n", NIL);
-    Printv(gatewaySourceFile, "    {\n", NIL);
-    Printv(gatewaySourceFile, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n", NIL);
-    Printv(gatewaySourceFile, "    }\n", NIL);
-    Printv(gatewaySourceFile, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n", NIL);
-    Printv(gatewaySourceFile, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);\n", NIL);
-    Printv(gatewaySourceFile, "  }\n", NIL);
-    Printv(gatewaySourceFile, "  return 0;\n", NIL);
-    Printv(gatewaySourceFile, "}\n", NIL);
-    Printv(gatewaySourceFile, "\n", NIL);
-    Printv(gatewaySourceFile, "#ifdef __cplusplus\n", NIL);
-    Printv(gatewaySourceFile, "}\n", NIL);
-    Printv(gatewaySourceFile, "#endif\n", NIL);
+
+    String* gatewaySourceEntryPoint = NewString("");
+    Printf(gatewaySourceEntryPoint, "int C2F(lib%s)()\n", moduleName);
+    Printf(gatewaySourceEntryPoint, "{\n");
+    Printf(gatewaySourceEntryPoint, "  Rhs = Max(0, Rhs);\n");
+    Printf(gatewaySourceEntryPoint, "  if (*(Tab[Fin-1].f) != NULL)\n");
+    Printf(gatewaySourceEntryPoint, "  {\n");
+    Printf(gatewaySourceEntryPoint, "    if(pvApiCtx == NULL)\n");
+    Printf(gatewaySourceEntryPoint, "    {\n");
+    Printf(gatewaySourceEntryPoint, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
+    Printf(gatewaySourceEntryPoint, "    }\n");
+    Printf(gatewaySourceEntryPoint, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
+    Printf(gatewaySourceEntryPoint, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);\n");
+    Printf(gatewaySourceEntryPoint, "  }\n");
+    Printf(gatewaySourceEntryPoint, "  return 0;\n");
+    Printf(gatewaySourceEntryPoint, "}\n");
+    Printf(gatewaySourceEntryPoint, "\n");
+    Printf(gatewaySourceEntryPoint, "#ifdef __cplusplus\n");
+    Printf(gatewaySourceEntryPoint, "}\n");
+    Printf(gatewaySourceEntryPoint, "#endif\n");
+    Printv(gatewaySourceFile, gatewaySourceEntryPoint, NIL);
 
     Delete(gatewaySourceFile);
   }
