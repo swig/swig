@@ -1,4 +1,4 @@
-%module matrixlib
+%module example
 
 %include matrix.i
 
