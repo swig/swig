@@ -12,13 +12,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "api_scilab.h"
 #if SWIG_SCILAB_VERSION < 540
 #define __USE_DEPRECATED_STACK_FUNCTIONS__
 #include "stack-c.h"
 #endif
 #include "MALLOC.h"
 #include "Scierror.h"
-#include "api_scilab.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
 #ifdef __cplusplus

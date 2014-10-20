@@ -1049,16 +1049,18 @@ public:
     }
 
     emitBanner(gatewaySourceFile);
-    Printv(gatewaySourceFile, "#ifdef __cplusplus\n", NIL);
-    Printv(gatewaySourceFile, "extern \"C\" {\n", NIL);
-    Printv(gatewaySourceFile, "#endif\n", NIL);
-    Printv(gatewaySourceFile, "\n", NIL);
-    Printv(gatewaySourceFile, "#include <mex.h>\n", NIL);
-    Printv(gatewaySourceFile, "#include <sci_gateway.h>\n", NIL);
-    Printv(gatewaySourceFile, "#include <api_scilab.h>\n", NIL);
-    Printv(gatewaySourceFile, "#include <MALLOC.h>\n", NIL);
-    Printv(gatewaySourceFile, "\n", NIL);
-    Printv(gatewaySourceFile, "static int direct_gateway(char *fname, void F(void)) { F(); return 0; };\n", NIL);
+    String *gatewaySource = NewString("");
+    Printf(gatewaySource, "#ifdef __cplusplus\n");
+    Printf(gatewaySource, "extern \"C\" {\n");
+    Printf(gatewaySource, "#endif\n");
+    Printf(gatewaySource, "\n");
+    Printf(gatewaySource, "#include <api_scilab.h>\n");
+    Printf(gatewaySource, "#include <mex.h>\n");
+    Printf(gatewaySource, "#include <sci_gateway.h>\n");
+    Printf(gatewaySource, "#include <MALLOC.h>\n");
+    Printf(gatewaySource, "\n");
+    Printf(gatewaySource, "static int direct_gateway(char *fname, void F(void)) { F(); return 0; };\n");
+    Printv(gatewaySourceFile, gatewaySource, NIL);
 
     gatewaySourceWrapperDeclaration = NewString("");
   }
