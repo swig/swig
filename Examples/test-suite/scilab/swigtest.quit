@@ -1,11 +1,2 @@
-// Clean files
-
-exec("cleaner.sce", -1);
-mdelete("builder.sce");
-mdelete("cleaner.sce");
-mdelete(swigtestname + "_wrap.c");
-mdelete(swigtestname + "_wrap.cxx");
-mdelete(swigtestname + ".i");
-
 // Exit from Scilab
 exit

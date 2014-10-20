@@ -4,7 +4,7 @@
 
 LANGUAGE     = scilab
 SCILAB       = @SCILAB@
-SCILAB_OPT = @SCILABOPT@
+SCILAB_OPT   = @SCILABOPT@
 SCRIPTSUFFIX = _runme.sci
 
 srcdir       = @srcdir@
@@ -31,12 +31,11 @@ include $(srcdir)/../common.mk
 
 # Overriden variables
 SRCDIR = ../$(srcdir)/
-INCLUDES = $(abspath $(srcdir)/..)
 
 # Local variables
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
-SRC_RUNME_SCRIPT = $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+SRC_RUNME_SCRIPT = $(srcdir)/$(RUNME_SCRIPT)
 
 # Hide too long identifier warnings
 SWIGOPT += -w720
@@ -57,7 +56,6 @@ SWIGOPT += -w720
 	+(cd $(TEST_DIR) && $(swig_and_compile_multi_cpp))
 	cd $(TEST_DIR) && $(run_testcase)
 
-# Logs the test case execution
 # Copies files and creates directories needed for the test case
 setup = \
 	if [ ! -d $(TEST_DIR) ]; then	\
@@ -82,7 +80,7 @@ setup = \
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(RUNME_SCRIPT) ]; then ( \
-		env LD_LIBRARY_PATH=$(srcdir):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); )\
+	  env LD_LIBRARY_PATH=$(srcdir):$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(RUNME_SCRIPT); ) \
 	fi
 
 # Clean: remove the generated files
