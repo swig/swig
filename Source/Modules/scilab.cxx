@@ -27,8 +27,7 @@ Scilab options (available with -scilab)\n\
      -buildflags <file>            - Use the Scilab script <file> to set build flags\n\
      -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
      -gatewayxml <gateway_id>  - Generate gateway xml with the given <gateway_id>\n\
-     -nobuilder                    - Do not generate builder script\n\
-     -outputlibrary <name>         - Set name of the output library to <name>\n\n";
+     -nobuilder                    - Do not generate builder script\n\n";
 
 class SCILAB:public Language {
 protected:
@@ -67,8 +66,6 @@ protected:
   bool createLoader;
   File *loaderFile;
   String* loaderScript;
-
-  String *libraryName;
 public:
 
   /* ------------------------------------------------------------------------
@@ -97,8 +94,6 @@ public:
     createLoader = false;
     loaderFile = NULL;
     loaderScript =  NULL;
-
-    libraryName = NULL;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -145,10 +140,6 @@ public:
 	  createGatewayXML = true;
 	  gatewayID = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-	} else if (strcmp(argv[argIndex], "-outputlibrary") == 0) {
-	  Swig_mark_arg(argIndex);
-	  libraryName = NewString(argv[argIndex + 1]);
-	  Swig_mark_arg(argIndex + 1);
 	}
       }
     }
@@ -179,12 +170,11 @@ public:
   virtual int top(Node *node) {
 
     /* Get the module name */
-    String *moduleName = Getattr(node, "name");
+    String *gatewayName = Getattr(node, "name");
 
-    /* Set the library name if not specified */
-    if (libraryName == NULL) {
-      libraryName = moduleName;
-    }
+    // Set gateway source and library name
+    String* gatewaySourceName = NewStringf("gw_%s", gatewayName);
+    String* gatewayLibraryName = NewStringf("lib%s", gatewayName);
 
     /* Get the output file name */
     String *outputFilename = Getattr(node, "outfile");
@@ -212,31 +202,29 @@ public:
 
     // Create builder file if required
     if (generateBuilder) {
-      createBuilderFile();
-      startBuilderCode(outputFilename);
+      createBuilderFile(outputFilename);
     }
 
     // Create gateway source if required
     if (createGatewaySource) {
-      createGatewaySourceFile(moduleName);
+      createGatewaySourceFile(gatewaySourceName);
     }
 
     // Create gateway XML if required
     if (createGatewayXML) {
-      createGatewayXMLFile(moduleName);
+      createGatewayXMLFile(gatewayName);
     }
 
     // Create loader script if required
     if (createLoader) {
-      createLoaderFile(moduleName);
+      createLoaderFile(gatewayLibraryName);
     }
 
     // Module initialization function
-    String *moduleInitFunctionName = NewString("");
-    Printf(moduleInitFunctionName, "%s_Init", moduleName);
+    String *gatewayInitFunctionName = NewStringf("%s_Init", gatewayName);
 
     /* Add initialization function to builder table */
-    addFunctionToScilab(moduleInitFunctionName, moduleInitFunctionName);
+    addFunctionToScilab(gatewayInitFunctionName, gatewayInitFunctionName);
 
     // Add helper functions to builder table
     addHelperFunctions();
@@ -260,13 +248,12 @@ public:
 
     // Add Builder footer code and save
     if (generateBuilder) {
-      terminateBuilderCode();
-      saveBuilderFile();
+      saveBuilderFile(gatewayLibraryName);
     }
 
     /* Close the init function and rename with module name */
     Printf(initSection, "return 0;\n}\n");
-    Replaceall(initSection, "<module>", moduleName);
+    Replaceall(initSection, "<module>", gatewayName);
 
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
@@ -278,7 +265,7 @@ public:
     Wrapper_pretty_print(initSection, beginSection);
 
     if (createGatewaySource) {
-      saveGatewaySourceFile(moduleName);
+      saveGatewaySourceFile(gatewaySourceName);
     }
 
     if (createGatewayXML) {
@@ -286,7 +273,7 @@ public:
     }
 
     if (createLoader) {
-      saveLoaderFile(moduleName);
+      saveLoaderFile(gatewaySourceName, gatewayLibraryName);
     }
 
     /* Cleanup files */
@@ -876,7 +863,7 @@ public:
    * createBuilderCode()
    * ----------------------------------------------------------------------- */
 
-  void createBuilderFile() {
+  void createBuilderFile(String *outputFilename) {
     String *builderFilename = NewStringf("builder.sce");
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
     if (!builderFile) {
@@ -884,13 +871,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
     emitBanner(builderFile);
-  }
 
-  /* -----------------------------------------------------------------------
-   * startBuilderCode()
-   * ----------------------------------------------------------------------- */
-
-  void startBuilderCode(String *outputFilename) {
     builderFunctionCount = 0;
     builderCode = NewString("");
     Printf(builderCode, "mode(-1);\n");
@@ -902,8 +883,6 @@ public:
     Printf(builderCode, "cd(builddir);\n");
 
     Printf(builderCode, "ilib_verbose(%s);\n", verboseBuildLevel);
-
-    Printf(builderCode, "lib_name = \"%s\";\n", libraryName);
 
     Printf(builderCode, "libs = [];\n");
 
@@ -960,15 +939,15 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * terminateBuilderCode()
+   * saveBuilderFile()
    * ----------------------------------------------------------------------- */
 
-  void terminateBuilderCode() {
+  void saveBuilderFile(String *gatewayLibraryName) {
     Printf(builderCode, "];\n");
     Printf(builderCode, "ierr = 0;\n");
     Printf(builderCode, "if ~isempty(table) then\n");
-    Printf(builderCode, "  libfilename = 'lib%s' + getdynlibext();\n", libraryName);
-    Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", libraryName);
+    Printf(builderCode, "  libfilename = '%s' + getdynlibext();\n", gatewayLibraryName);
+    Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", gatewayLibraryName);
     Printf(builderCode, "  if ierr <> 0 then\n");
     Printf(builderCode, "    err_msg = lasterror();\n");
     Printf(builderCode, "  elseif ~isfile(libfilename) then\n");
@@ -983,13 +962,6 @@ public:
     Printf(builderCode, "if ierr <> 0 then\n");
     Printf(builderCode, "  error(ierr, err_msg);\n");
     Printf(builderCode, "end\n");
-  }
-
-  /* -----------------------------------------------------------------------
-   * saveBuilderCode()
-   * ----------------------------------------------------------------------- */
-
-  void saveBuilderFile() {
     Printv(builderFile, builderCode, NIL);
     Delete(builderFile);
   }
@@ -999,17 +971,17 @@ public:
    * This XML file is used by Scilab in the context of internal modules
    * ----------------------------------------------------------------------- */
 
-  void createGatewayXMLFile(String *moduleName) {
-    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", moduleName);
+  void createGatewayXMLFile(String *gatewayName) {
+    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", gatewayName);
     gatewayXMLFile = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
     if (!gatewayXMLFile) {
       FileErrorDisplay(gatewayXMLFilename);
       SWIG_exit(EXIT_FAILURE);
     }
-
+    
     gatewayXML = NewString("");
     Printf(gatewayXML, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
-    Printf(gatewayXML, "<GATEWAY name=\"%s\">\n", moduleName);
+    Printf(gatewayXML, "<GATEWAY name=\"%s\">\n", gatewayName);
     Printf(gatewayXML, "<!--\n");
     Printf(gatewayXML, "Scilab Interface description. In this file, we define the list of the function which\n");
     Printf(gatewayXML, "will be available into Scilab and the link to the \"native\" function.\n\n");
@@ -1029,7 +1001,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void saveGatewayXMLFile() {
-    Printv(gatewayXML, "</GATEWAY>\n", NIL);
+    Printf(gatewayXML, "</GATEWAY>\n");
     Printv(gatewayXMLFile, gatewayXML, NIL);
     Delete(gatewayXMLFile);
   }
@@ -1039,9 +1011,8 @@ public:
    * Creates the gateway entry point source file (entry point gw_<module>.c)
    * ----------------------------------------------------------------------- */
 
-  void createGatewaySourceFile(String *moduleName) {
-    String *gatewaySourceFilename = NewString("");
-    Printf(gatewaySourceFilename, "gw_%s.c", moduleName);
+  void createGatewaySourceFile(String *gatewaySourceName) {
+    String *gatewaySourceFilename = NewStringf("%s.c", gatewaySourceName);
     gatewaySourceFile = NewFile(gatewaySourceFilename, "w", SWIG_output_files());
     if (!gatewaySourceFile) {
       FileErrorDisplay(gatewaySourceFilename);
@@ -1084,7 +1055,7 @@ public:
    * Saves the gateway entry point source file
    * ----------------------------------------------------------------------- */
 
-  void saveGatewaySourceFile(String *moduleName) {
+  void saveGatewaySourceFile(String *gatewaySourceName) {
     Printv(gatewaySourceFile, gatewaySourceWrapperDeclaration, NIL);
     Printf(gatewaySourceFunctionTable, "};\n");
 
@@ -1092,7 +1063,7 @@ public:
     Printv(gatewaySourceFile, "\n", NIL);
 
     String* gatewaySourceEntryPoint = NewString("");
-    Printf(gatewaySourceEntryPoint, "int C2F(gw_%s)()\n", moduleName);
+    Printf(gatewaySourceEntryPoint, "int C2F(%s)()\n", gatewaySourceName);
     Printf(gatewaySourceEntryPoint, "{\n");
     Printf(gatewaySourceEntryPoint, "  Rhs = Max(0, Rhs);\n");
     Printf(gatewaySourceEntryPoint, "  if (*(Tab[Fin-1].f) != NULL)\n");
@@ -1121,24 +1092,19 @@ public:
    * Creates the loader script file (loader.sce)
    * ----------------------------------------------------------------------- */
 
-  void createLoaderFile(String *moduleName) {
-    String *loaderFilename = NewString("");
-    Printf(loaderFilename, "loader.sce");
-
+  void createLoaderFile(String *gatewayLibraryName) {
+    String *loaderFilename = NewString("loader.sce");
     loaderFile = NewFile(loaderFilename, "w", SWIG_output_files());
     if (!loaderFile) {
       FileErrorDisplay(loaderFilename);
       SWIG_exit(EXIT_FAILURE);
     }
 
-    String *libName = NewString("");
-    Printf(libName, "lib%s", moduleName);
-
     emitBanner(loaderFile);
 
     loaderScript = NewString("");
-    Printf(loaderScript, "%s_path = get_absolute_file_path('loader.sce');\n", libName);
-    Printf(loaderScript, "[bOK, ilib] = c_link('%s');\n", libName);
+    Printf(loaderScript, "%s_path = get_absolute_file_path('loader.sce');\n", gatewayLibraryName);
+    Printf(loaderScript, "[bOK, ilib] = c_link('%s');\n", gatewayLibraryName);
     Printf(loaderScript, "if bOK then\n");
     Printf(loaderScript, "  ulink(ilib);\n");
     Printf(loaderScript, "end\n");
@@ -1159,14 +1125,12 @@ public:
    * Terminates and saves the loader script
    * ----------------------------------------------------------------------- */
 
-  void saveLoaderFile(String *moduleName) {
+  void saveLoaderFile(String *gatewaySourceName, String *gatewayLibraryName) {
     Printf(loaderScript, "];\n");
 
-    String *libName = NewString("");
-    Printf(libName, "lib%s", moduleName);
-
-    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), 'gw_%s', list_functions);\n", libName, libName, moduleName);
-    Printf(loaderScript, "clear %s_path;\n", libName);
+    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n",
+      gatewayLibraryName, gatewayLibraryName, gatewaySourceName);
+    Printf(loaderScript, "clear %s_path;\n", gatewayLibraryName);
     Printf(loaderScript, "clear bOK;\n");
     Printf(loaderScript, "clear ilib;\n");
     Printf(loaderScript, "clear list_functions;\n");
