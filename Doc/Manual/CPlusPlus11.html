@@ -506,7 +506,7 @@ This is usually not a problem, however,
 there may be some name clashes. For example, the following code:</p>
 
 <div class="code"><pre>
-class Color {
+struct Color {
   enum class PrintingColors : unsigned int {
     Cyan, Magenta, Yellow, Black
   };
@@ -611,6 +611,7 @@ The following is an example of an alias template:
 <div class="code"><pre>
 template&lt; typename T1, typename T2, int &gt;
 class SomeType {
+public:
   T1 a;
   T2 b;
   int c;
