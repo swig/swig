@@ -148,10 +148,7 @@ swigexample*.oct
 builder.sce
 loader.sce
 cleaner.sce
-lib*.c
-lib*.cpp
-lib*.h
-lib*.hxx
+gw_*.c
 
 # Scratch directories
 Examples/scratch
