@@ -19,15 +19,17 @@
 #define SCILAB_VARIABLE_NAME_CHAR_MAX SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4
 
 
-static const char *usage = (char *) "\
-Scilab options (available with -scilab)\n\
-     -addcflags <cflags>           - Add compiler flags <cflags>\n\
-     -addldflags <ldflags>         - Add linker flags <ldflags>\n\
-     -addsources <files>           - Add comma separated source files <files>\n\
-     -buildflags <file>            - Use the Scilab script <file> to set build flags\n\
-     -buildverbositylevel <level>  - Set the build verbosity <level> (default 0)\n\
-     -gatewayxml <gateway_id>  - Generate gateway xml with the given <gateway_id>\n\
-     -nobuilder                    - Do not generate builder script\n\n";
+static const char *usage = (char *) " \
+Scilab options (available with -scilab)\n \
+     -builder                        - Generate a Scilab builder script (default)\n \
+     -buildercflags <cflags>         - Add <cflags> to the builder compiler flags\n \
+     -builderldflags <ldflags>       - Add <ldflags> to the builder linker flags\n \
+     -buildersources <files>         - Add the (comma separated) files <files> to the builder sources\n \
+     -builderflagscript <file>       - Set the Scilab script <file> to use by builder to configure the build flags\n \
+     -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0)\n \
+     -nobuilder                      - Do not generate the Scilab builder script\n \
+     -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n\n";
+
 
 class SCILAB:public Language {
 protected:
@@ -100,7 +102,12 @@ public:
       if (argv[argIndex] != NULL) {
 	if (strcmp(argv[argIndex], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
-	} else if (strcmp(argv[argIndex], "-addsources") == 0) {
+	} else if (strcmp(argv[argIndex], "-builder") == 0) {
+	  Swig_mark_arg(argIndex);
+	  generateBuilder = true;
+	  createGatewaySource = false;
+	  createLoader = false;
+	} else if (strcmp(argv[argIndex], "-buildersources") == 0) {
 	  if (argv[argIndex + 1] != NULL) {
 	    Swig_mark_arg(argIndex);
 	    char *sourceFile = strtok(argv[argIndex + 1], ",");
@@ -110,23 +117,23 @@ public:
 	    }
 	    Swig_mark_arg(argIndex + 1);
 	  }
-	} else if (strcmp(argv[argIndex], "-addcflags") == 0) {
+	} else if (strcmp(argv[argIndex], "-buildercflags") == 0) {
 	  Swig_mark_arg(argIndex);
 	  if (argv[argIndex + 1] != NULL) {
 	    Insert(cflags, Len(cflags), argv[argIndex + 1]);
 	    Swig_mark_arg(argIndex + 1);
 	  }
-	} else if (strcmp(argv[argIndex], "-addldflags") == 0) {
+	} else if (strcmp(argv[argIndex], "-builderldflags") == 0) {
 	  Swig_mark_arg(argIndex);
 	  if (argv[argIndex + 1] != NULL) {
 	    Insert(ldflags, Len(ldflags), argv[argIndex + 1]);
 	    Swig_mark_arg(argIndex + 1);
 	  }
-	} else if (strcmp(argv[argIndex], "-buildverbositylevel") == 0) {
+	} else if (strcmp(argv[argIndex], "-builderverbositylevel") == 0) {
 	  Swig_mark_arg(argIndex);
 	  verboseBuildLevel = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-	} else if (strcmp(argv[argIndex], "-buildflags") == 0) {
+	} else if (strcmp(argv[argIndex], "-builderflagscript") == 0) {
 	  Swig_mark_arg(argIndex);
 	  buildFlagsScript = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);

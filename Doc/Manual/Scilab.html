@@ -256,33 +256,38 @@ The following table lists the Scilab specific command line options in addition t
 <table summary="Scilab specific options">
 
 <tr>
-<td>-addcflags &lt;cflags&gt;</td>
-<td>Add compiler flags &lt;cflags&gt;</td>
+<td>-builder</td>
+<td>Generate the Scilab builder script (default)</td>
 </tr>
 
 <tr>
-<td>-addldflags &lt;ldflags&gt;</td>
-<td>Add linker flags &lt;ldflags&gt;</td>
+<td>-buildercflags &lt;cflags&gt;</td>
+<td>Add &lt;cflags&gt; to the builder compiler flags</td>
 </tr>
 
 <tr>
-<td>-addsources &lt;files&gt;</td>
-<td>Add comma separated source files &lt;files&gt;</td>
+<td>-builderldflags &lt;ldflags&gt;</td>
+<td>Add &lt;ldlags&gt; to the builder linker flags</td>
 </tr>
 
 <tr>
-<td>-buildverbositylevel &lt;level&gt;</td>
-<td>Set the build verbosity &lt;level&gt; (default 0)</td>
+<td>-buildersources &lt;files&gt;</td>
+<td>Add the (comma separated) files &lt;files&gt; to the builder sources</td>
 </tr>
 
 <tr>
-<td>-buildflags &lt;file&gt;</td>
-<td>Use the Scilab script &lt;file&gt; to set build flags</td>
+<td>-builderverbositylevel &lt;level&gt;</td>
+<td>Set the build verbosity level to &lt;level&gt; (default 0)</td>
+</tr>
+
+<tr>
+<td>-builderflagscript &lt;file&gt;</td>
+<td>Use the Scilab script &lt;file&gt; to configure the compiler and linker flags</td>
 </tr>
 
 <tr>
 <td>-nobuilder</td>
-<td>Do not generate builder script</td>
+<td>Do not generate the Scilab builder script</td>
 </tr>
 
 <tr>
@@ -305,9 +310,9 @@ Some examples:
 </p>
 
 <div class="shell"><pre>
-$ swig -scilab -addcflags -I/usr/includes example.i
-$ swig -scilab -addldflags "-lm example.i"
-$ swig -scilab -addsources file1.cxx,file2.cxx,example.i
+$ swig -scilab -buildercflags -I/usr/includes example.i
+$ swig -scilab -builderldflags "-lm example.i"
+$ swig -scilab -buildersources file1.cxx,file2.cxx,example.i
 </pre></div>
 </p>
 
@@ -1859,9 +1864,9 @@ To generate the code and the builder script, the following options may be used w
 </p>
 
 <ul>
-<li><tt><b>addsources</b></tt>: to add source files to build with</li>
-<li><tt><b>addcflags</b></tt>: to add compiler flags (to set header include paths....)</li>
-<li><tt><b>addldflags</b></tt>: to add linker flags (to set library paths and names...)</li>
+<li><tt><b>buildersources</b></tt>: to add sources to the sources to the builder sources</li>
+<li><tt><b>buildercflags</b></tt>: to add compiler flags to the builder (to add include paths, for example)</li>
+<li><tt><b>builderldflags</b></tt>: to add linker flags to the builder (to add library dependencies, for example)</li>
 </ul>
 
 <p>
@@ -1869,7 +1874,7 @@ The SWIG command to use may be something like this:
 </p>
 
 <div class="shell"><pre>
-swig -scilab -addcflags "-I[inc_path]..." -addsources [source],... -addldflags "-L[lib_path] -l[lib_name]" [module_name].i
+swig -scilab -buildercflags "-I[inc_path]..." -buildersources [source],... -builderldflags "-L[lib_path] -l[lib_name]" [module_name].i
 </pre></div>
 
 <H3><a name="Scilab_module_builder"></a>37.5.4 Builder script</H3>
