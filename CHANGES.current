@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-10-21: wsfulton
+            Fix issue #242 - Use of the "kwargs" feature no longer automatically turns on the
+            "compactdefaultargs" feature if the target language does not support kwargs.
+            Only Java and Python support kwargs, so this affects all the other languages.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2014-10-10: diorcety
             [Python] Patch #232 Fix property access using directors
 

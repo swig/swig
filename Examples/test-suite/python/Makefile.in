@@ -39,7 +39,6 @@ CPP_TEST_CASES += \
 	inout \
 	inplaceadd \
 	input \
-	kwargs_feature \
 	li_cstring \
 	li_cwstring \
 	li_factory \

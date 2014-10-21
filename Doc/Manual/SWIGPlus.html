@@ -1191,8 +1191,10 @@ values have to be public).
 </p>
 
 <p>
-This feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>
-and whenever keyword arguments (kwargs) are specified for either C or C++ code.
+The <tt>compactdefaultargs</tt> feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>.
+Some target languages will also automatically turn on this feature
+if the keyword arguments feature (kwargs) is specified for either C or C++ functions, and the target language supports kwargs,
+the <tt>compactdefaultargs</tt> feature is also automatically turned on.
 Keyword arguments are a language feature of some scripting languages, for example Ruby and Python.
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>

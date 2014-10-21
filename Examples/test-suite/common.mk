@@ -249,6 +249,7 @@ CPP_TEST_CASES += \
 	insert_directive \
 	keyword_rename \
 	kind \
+	kwargs_feature \
 	langobj \
 	li_attribute \
 	li_attribute_template \

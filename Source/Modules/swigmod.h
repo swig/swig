@@ -315,6 +315,9 @@ public:
   */
   virtual NestedClassSupport nestedClassesSupport() const;
 
+  /* Returns true if the target language supports key word arguments (kwargs) */
+  virtual bool kwargsSupport() const;
+
 protected:
   /* Identifies if a protected members that are generated when the allprotected option is used.
      This does not include protected virtual methods as they are turned on with the dirprot option. */
