@@ -137,7 +137,7 @@
 
 //
 // Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates instead of macros for the C++ get and set wrapper methods
-// Does not always generate compileable code, use at your peril!
+// Does not always generate compilable code, use at your peril!
 //
 //#define SWIG_ATTRIBUTE_TEMPLATE
 

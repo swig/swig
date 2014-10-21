@@ -1622,7 +1622,7 @@ Version 2.0.5 (19 April 2012)
             -tmsearch and -tmused.
 
 2011-08-26: wsfulton
-            [C#, D] Fix %callback which was generating uncompileable code.
+            [C#, D] Fix %callback which was generating uncompilable code.
 
 2011-08-25: wsfulton
             Fix constructors in named typedef class declarations as reported by Gregory Bronner:
@@ -1861,7 +1861,7 @@ Version 2.0.4 (21 May 2011)
 	    PySlice_GetIndices, which changed signatures in python3.2.
 
 2011-04-07: wsfulton
-            Fix wrapping of const array typedefs which were generating uncompileable code as
+            Fix wrapping of const array typedefs which were generating uncompilable code as
             reported by Karl Wette.
 
 2011-04-03: szager
@@ -2299,7 +2299,7 @@ Version 2.0.1 (4 October 2010)
 	    in this case).
 
 2010-06-03: wsfulton
-            Fix uncompileable code when %rename results in two enum items
+            Fix uncompilable code when %rename results in two enum items
             with the same name. Reported by Vadim Zeitlin.
 
 Version 2.0.0 (2 June 2010)
@@ -2812,7 +2812,7 @@ Version 2.0.0 (2 June 2010)
             Fix #2310483 - function pointer typedef within extern "C" block.
 
 2009-11-13: wsfulton
-            Fix usage of nested template classes within templated classes so that compileable code 
+            Fix usage of nested template classes within templated classes so that compilable code 
             is generated.
 
 2009-11-13: olly
@@ -2820,7 +2820,7 @@ Version 2.0.0 (2 June 2010)
 	    wasn't being used.  Patch from gverbruggen in SF#2892647.
 
 2009-11-12: wsfulton
-            Fix usage of nested template classes so that compileable code is generated - the nested
+            Fix usage of nested template classes so that compilable code is generated - the nested
             template class is now treated like a normal nested classes, that is, as an opaque type
             unless the nestedworkaround feature is used.
 
@@ -2846,7 +2846,7 @@ Version 2.0.0 (2 June 2010)
 
 2009-11-11: wsfulton
             There were a number of C++ cases where nested classes/structs/unions were being handled
-            as if C code was being parsed which would oftentimes lead to uncompileable code as an
+            as if C code was being parsed which would oftentimes lead to uncompilable code as an
             attempt was made to wrap the nested structs like it is documented for C code. Now all
             nested structs/classes/unions are ignored in C++ mode, as was always documented. However,
             there is an improvement as usage of nested structs/classes/unions is now always treated
@@ -2858,7 +2858,7 @@ Version 2.0.0 (2 June 2010)
 	    Fix R for -fcompact and add std_map.i
 
 2009-11-08: wsfulton
-            Fix inconsistency for nested structs/unions/classes. Uncompileable code was being
+            Fix inconsistency for nested structs/unions/classes. Uncompilable code was being
             generated when inner struct and union declarations were used as types within the
             inner struct. The inner struct/union is now treated as a forward declaration making the
             behaviour the same as an inner class. (C++ code), eg:
@@ -2872,7 +2872,7 @@ Version 2.0.0 (2 June 2010)
 	    Ignored nested class/struct warnings now display the name of the ignored class/struct.
 
 2009-11-07: wsfulton
-	    Bug #1514681 - Fix nested template classes within a namespace generated uncompileable
+	    Bug #1514681 - Fix nested template classes within a namespace generated uncompilable
             code and introduced strange side effects to other wrapper code especially code
             after the nested template class. Note that nested template classes are still ignored.
 
@@ -3727,7 +3727,7 @@ Version 1.3.36 (24 June 2008)
 
 06/19/2008: wsfulton
             [Java, C#] C# and Java keywords will be renamed instead of just issuing a warning
-            and then generating uncompileable code. Warning 314 gives the new name when a 
+            and then generating uncompilable code. Warning 314 gives the new name when a 
             keyword is found.
 
 06/19/2008: wsfulton
@@ -4170,7 +4170,7 @@ Version 1.3.34 (27 February 2008)
 11/30/2007: wsfulton
 	    Fix using statements using a base class method where the methods were overloaded.
             Depending on the order of the using statements and method declarations, these
-            were previously generating uncompileable wrappers, eg:
+            were previously generating uncompilable wrappers, eg:
 
               struct Derived : Base {
                 virtual void funk();
@@ -5258,7 +5258,7 @@ Version 1.3.30 (November 13, 2006)
 
 10/03/2006: wsfulton
             [Ruby] Fix #1527885 - Overloaded director virtual methods sometimes produced
-            uncompileable code when used with the director:except feature.
+            uncompilable code when used with the director:except feature.
 
 10/03/2006: wsfulton
             Directors: Directors are output in the order in which they are declared in 
@@ -10842,7 +10842,7 @@ Version 1.3.22 (September 4, 2004)
                 ...
               }
 
-            Previously, none of BIG, LARGE or BAR would have produced compileable code
+            Previously, none of BIG, LARGE or BAR would have produced compilable code
             when using %javaconst(1).
 
 06/27/2004: wsfulton
