@@ -255,7 +255,7 @@ public:
 
     // Add Builder footer code and save
     if (generateBuilder) {
-      saveBuilderFile(gatewayLibraryName);
+      saveBuilderFile(gatewayName);
     }
 
     /* Close the init function and rename with module name */
@@ -894,7 +894,7 @@ public:
     Printf(builderCode, "libs = [];\n");
 
     // Flags from command line arguments
-    Printf(builderCode, "cflags = \"-g -I\" + builddir;\n");
+    Printf(builderCode, "cflags = [];\n");
     for (int i = 0; i < Len(cflags); i++) {
       String *cflag = Getitem(cflags, i);
       Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
@@ -924,9 +924,9 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	Printf(builderCode, "files = fullpath(\"%s\");\n", sourceFile);
+	Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-	Printf(builderCode, "files($ + 1) = fullpath(\"%s\");\n", sourceFile);
+	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 
@@ -949,21 +949,13 @@ public:
    * saveBuilderFile()
    * ----------------------------------------------------------------------- */
 
-  void saveBuilderFile(String *gatewayLibraryName) {
+  void saveBuilderFile(String *gatewayName) {
     Printf(builderCode, "];\n");
     Printf(builderCode, "ierr = 0;\n");
     Printf(builderCode, "if ~isempty(table) then\n");
-    Printf(builderCode, "  libfilename = '%s' + getdynlibext();\n", gatewayLibraryName);
-    Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", gatewayLibraryName);
+    Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", gatewayName);
     Printf(builderCode, "  if ierr <> 0 then\n");
     Printf(builderCode, "    err_msg = lasterror();\n");
-    Printf(builderCode, "  elseif ~isfile(libfilename) then\n");
-    Printf(builderCode, "    ierr = 1;\n");
-    Printf(builderCode, "    err_msg = 'Error while building library ' + libfilename;\n");
-    Printf(builderCode, "  elseif ~isfile('loader.sce') then\n");
-    Printf(builderCode, "    ierr = 1;\n");
-    Printf(builderCode, "    err_msg = 'Error while generating loader script loader.sce.';\n");
-    Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");
     Printf(builderCode, "if ierr <> 0 then\n");
