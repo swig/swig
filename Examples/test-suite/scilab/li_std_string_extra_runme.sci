@@ -12,10 +12,7 @@ checkequal(test_value(x), x, "test_value()");
 
 checkequal(test_const_reference(x), x, "test_const_reference(x)");
 checkequal(test_reference_input(x), x, "test_reference_input(x)");
-
-// TODO: following test is broken
-// Typemaps seem to be OK, but returned string from test_reference_inout() in wrapping code is x instead of x+x
-//checkequal(test_reference_inout(x), x+x, "test_reference_inout(x)");
+checkequal(test_reference_inout(x), x+x, "test_reference_inout(x)");
 
 //checkequal(test_reference_out(), "test_reference_out message", "test_reference_out()");
 //checkequal(test_const_pointer_out(), "x", "test_const_pointer_out()");
