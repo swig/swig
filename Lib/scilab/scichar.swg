@@ -141,7 +141,7 @@ SWIG_SciString_AsCharPtrAndSize(void *pvApiCtx, int iVar, char **pcValue, size_t
   }
 
   if (piLength != NULL) {
-    *piLength = strlen(*pcValue) + 1;
+    *piLength = strlen(*pcValue);
   }
 
   return SWIG_OK;
