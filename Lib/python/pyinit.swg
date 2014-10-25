@@ -401,6 +401,12 @@ SWIG_init(void) {
 #else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
+
+#ifdef SWIGPYTHON_BUILTIN
+  PyObject *self = m;
+  (void)self;
+#endif
+
   md = d = PyModule_GetDict(m);
   (void)md;
 
