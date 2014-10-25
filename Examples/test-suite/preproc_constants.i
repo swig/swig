@@ -85,6 +85,8 @@
 /// constant assignment in enum
 #if defined(SWIGCSHARP)
 %csconstvalue("1<<2") kValue;
+#elif defined(SWIGD)
+%dconstvalue("1<<2") kValue;
 #endif
 
 %{
