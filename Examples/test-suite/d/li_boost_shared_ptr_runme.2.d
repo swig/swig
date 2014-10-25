@@ -2,6 +2,7 @@ module li_boost_shared_ptr_runme;
 
 import core.memory;
 import core.thread;
+import core.time;
 import std.conv;
 import std.exception;
 import std.stdio;
@@ -37,7 +38,7 @@ void main() {
     GC.collect();
     if (Klass.getTotal_count() == 1)
       break;
-    Thread.sleep(100);
+    Thread.sleep(100.usecs);
   }
 
   // A single remaining instance expected: the global variable (GlobalValue).
