@@ -2850,7 +2850,7 @@ private:
       // polymorphic call or an explicit method call. Needed to prevent infinite
       // recursion when calling director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
-      if (explicit_n) {
+      if (explicit_n && Swig_directorclass(getCurrentClass())) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
 	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 
