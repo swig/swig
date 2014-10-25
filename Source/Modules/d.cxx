@@ -2594,7 +2594,7 @@ private:
     const_String_or_char_ptr wrapper_function_name) {
 
     // TODO: Add support for static linking here.
-    Printf(im_dmodule_code, "extern(C) %s function%s %s;\n", return_type,
+    Printf(im_dmodule_code, "SwigExternC!(%s function%s) %s;\n", return_type,
       parameters, d_name);
     Printv(wrapper_loader_bind_code, wrapper_loader_bind_command, NIL);
     Replaceall(wrapper_loader_bind_code, "$function", d_name);
