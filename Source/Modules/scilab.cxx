@@ -15,6 +15,7 @@
 
 /*#define SWIG_DEBUG*/
 
+
 #define SCILAB_IDENTIFIER_NAME_CHAR_MAX 24
 #define SCILAB_VARIABLE_NAME_CHAR_MAX SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4
 
@@ -26,7 +27,7 @@ Scilab options (available with -scilab)\n \
      -builderldflags <ldflags>       - Add <ldflags> to the builder linker flags\n \
      -buildersources <files>         - Add the (comma separated) files <files> to the builder sources\n \
      -builderflagscript <file>       - Set the Scilab script <file> to use by builder to configure the build flags\n \
-     -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0)\n \
+     -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0: off, 2: most verbose)\n \
      -nobuilder                      - Do not generate the Scilab builder script\n \
      -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n\n";
 
