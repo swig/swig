@@ -1528,6 +1528,21 @@ public:
     return ds;
   }
 
+  virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool = false) const {
+    // For the keyword arguments, we want to preserve the names as much as possible,
+    // so we only minimally rename them in Swig_name_make(), e.g. replacing "keyword"
+    // with "_keyword" if they have any name at all.
+    if (check_kwargs(n)) {
+      String* name = Getattr(p, "name");
+      if (name)
+	return Swig_name_make(p, 0, name, 0, 0);
+    }
+
+    // For the other cases use the general function which replaces arguments whose
+    // names clash with keywords with (less useful) "argN".
+    return Language::makeParameterName(n, p, arg_num);
+  }
+
   /* -----------------------------------------------------------------------------
    * addMissingParameterNames()
    *  For functions that have not had nameless parameters set in the Language class.
@@ -1539,13 +1554,14 @@ public:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *pname = Swig_cparm_name(p, i);
-	Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -1568,14 +1584,18 @@ public:
     Parm *pnext;
 
 
-    int lines = 0;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
-    const int maxwidth = 80;
+    // Normally we start counting auto-generated argument names from 1, but we should do it from 2
+    // if the first argument is "self", i.e. if we're handling a non-static member function.
+    int arg_num = 1;
+    if (is_wrapping_class()) {
+      if (Cmp(Getattr(n, "storage"), "static") != 0)
+	arg_num++;
+    }
 
     if (calling)
       func_annotation = false;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
 
@@ -1584,7 +1604,7 @@ public:
       return doc;
     }
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -1607,25 +1627,22 @@ public:
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
 
-      if (SwigType_isvarargs(type))
+      if (SwigType_isvarargs(type)) {
+	Delete(made_name);
 	break;
+      }
 
       if (Len(doc)) {
 	// add a comma to the previous one if any
 	Append(doc, ", ");
-
-	// Do we need to wrap a long line?
-	if ((Len(doc) - lines * maxwidth) > maxwidth) {
-	  Printf(doc, "\n%s", tab4);
-	  lines += 1;
-	}
       }
 
       // Do the param type too?
@@ -1647,17 +1664,11 @@ public:
       // Write default value
       if (value && !calling) {
 	String *new_value = convertValue(value, Getattr(p, "type"));
-	if (new_value) {
-	  value = new_value;
-	} else {
-	  Node *lookup = Swig_symbol_clookup(value, 0);
-	  if (lookup)
-	    value = Getattr(lookup, "sym:name");
-	}
-	Printf(doc, "=%s", value);
+	if (new_value)
+	  Printf(doc, "=%s", new_value);
       }
       Delete(type_str);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
@@ -1805,40 +1816,50 @@ public:
 
   /* ------------------------------------------------------------
    * convertValue()
-   *    Check if string v can be a Python value literal,
-   *    (eg. number or string), or translate it to a Python literal.
+   *    Check if string v can be a Python value literal or a
+   *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-	/* number or string (or maybe NULL pointer) */
-	if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	  return NewString("None");
-	else
-	  return v;
-      }
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("True");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("False");
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+    char fc = (Char(v))[0];
+    if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
+      /* number or string (or maybe NULL pointer) */
+      if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
+	return NewString("None");
+      else
+	return v;
     }
-    return 0;
+    if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+      return NewString("True");
+    if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+      return NewString("False");
+    if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+
+    // This could also be an enum type, default value of which is perfectly
+    // representable in Python.
+    Node *lookup = Swig_symbol_clookup(v, 0);
+    if (lookup) {
+      if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	return Getattr(lookup, "sym:name");
+    }
+
+    return NIL;
   }
+
   /* ------------------------------------------------------------
-   * is_primitive_defaultargs()
-   *    Check if all the default args have primitive type.
-   *    (So we can generate proper parameter list with default 
-   *    values..)
+   * is_representable_as_pyargs()
+   *    Check if the function parameters default argument values
+   *    can be represented in Python.
+   *
+   *    If this method returns false, the parameters will be translated
+   *    to a generic "*args" which allows us to deal with default values
+   *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
-  bool is_primitive_defaultargs(Node *n) {
+  bool is_representable_as_pyargs(Node *n) {
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
 
-    Swig_typemap_attach_parms("in", plist, 0);
     for (p = plist; p; p = pnext) {
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -1849,10 +1870,11 @@ public:
       } else {
 	pnext = nextSibling(p);
       }
-      String *type = Getattr(p, "type");
-      String *value = Getattr(p, "value");
-      if (!convertValue(value, type))
-	return false;
+      if (String *value = Getattr(p, "value")) {
+	String *type = Getattr(p, "type");
+	if (!convertValue(value, type))
+	  return false;
+      }
     }
     return true;
   }
@@ -1897,7 +1919,7 @@ public:
       n = nn;
 
     /* For overloaded function, just use *args */
-    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_primitive_defaultargs(n)) {
+    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_representable_as_pyargs(n)) {
       String *parms = NewString("");
       if (in_class)
 	Printf(parms, "self, ");
@@ -2057,7 +2079,7 @@ public:
    *    check if using kwargs is allowed for this Node
    * ------------------------------------------------------------ */
 
-  int check_kwargs(Node *n) {
+  int check_kwargs(Node *n) const {
     return (use_kw || GetFlag(n, "feature:kwargs"))
 	&& !GetFlag(n, "memberset") && !GetFlag(n, "memberget");
   }
@@ -2436,7 +2458,6 @@ public:
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *pn = Getattr(p, "name");
       String *ln = Getattr(p, "lname");
       bool parse_from_tuple = (i > 0 || !add_self);
       if (SwigType_type(pt) == T_VARARGS) {
@@ -2458,18 +2479,9 @@ public:
 
       /* Keyword argument handling */
       if (allow_kwargs && parse_from_tuple) {
-	if (Len(pn)) {
-	  String *tmp = 0;
-	  String *name = pn;
-	  if (!Getattr(p, "hidden")) {
-	    name = tmp = Swig_name_make(p, 0, pn, 0, 0); // rename parameter if a keyword
-	  }
-	  Printf(kwargs, "(char *) \"%s\",", name);
-	  if (tmp)
-	    Delete(tmp);
-	} else {
-	  Printf(kwargs, "(char *)\"arg%d\",", i + 1);
-	}
+	String *name = makeParameterName(n, p, i + 1);
+	Printf(kwargs, "(char *) \"%s\",", name);
+	Delete(name);
       }
 
       /* Look for an input typemap */

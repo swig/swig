@@ -1,5 +1,8 @@
 import default_args 
 
+ec = default_args.EnumClass()
+if not ec.blah():
+  raise RuntimeError,"EnumClass::blah() default arguments don't work"
 
 if default_args.Statics_staticMethod() != 60:
   raise RuntimeError
