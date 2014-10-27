@@ -163,7 +163,7 @@ check(A.func0static.__doc__,
 ,
 "\n"
 "func0static(e, arg2, hello, f=2) -> int\n"
-"func0static(e, arg3, hello) -> int\n"
+"func0static(e, arg2, hello) -> int\n"
 ""
 )
 check(A.func1static.__doc__,
@@ -174,7 +174,7 @@ check(A.func1static.__doc__,
 ,
 "\n"
 "func1static(A e, short arg2, Tuple hello, double f=2) -> int\n"
-"func1static(A e, short arg3, Tuple hello) -> int\n"
+"func1static(A e, short arg2, Tuple hello) -> int\n"
 ""
 )
 check(A.func2static.__doc__,
@@ -205,11 +205,11 @@ check(A.func2static.__doc__,
 "    hello: int tuple[2]\n"
 "    f: double\n"
 "\n"
-"func2static(e, arg3, hello) -> int\n"
+"func2static(e, arg2, hello) -> int\n"
 "\n"
 "Parameters:\n"
 "    e: A *\n"
-"    arg3: short\n"
+"    arg2: short\n"
 "    hello: int tuple[2]\n"
 "\n"
 ""
@@ -242,11 +242,11 @@ check(A.func3static.__doc__,
 "    hello: int tuple[2]\n"
 "    f: double\n"
 "\n"
-"func3static(A e, short arg3, Tuple hello) -> int\n"
+"func3static(A e, short arg2, Tuple hello) -> int\n"
 "\n"
 "Parameters:\n"
 "    e: A *\n"
-"    arg3: short\n"
+"    arg2: short\n"
 "    hello: int tuple[2]\n"
 "\n"
 ""
@@ -287,7 +287,7 @@ check(B.__doc__,
 "Proxy of C++ B class",
 "::B"
 )
-check(C.__init__.__doc__, "__init__(self, a, b, h) -> C", None, skip)
+check(C.__init__.__doc__, "__init__(self, a, b, h) -> C")
 check(D.__init__.__doc__, "__init__(D self, int a, int b, Hola h) -> D", None, skip)
 check(E.__init__.__doc__,
 "\n"
