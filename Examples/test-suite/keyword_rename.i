@@ -35,6 +35,10 @@ KW(chan, fallthrough)
 KW(end, function)
 KW(nil,local)
 
+struct Keywords {
+  void selfkw(int self) {}
+};
+
 %}
 
 
