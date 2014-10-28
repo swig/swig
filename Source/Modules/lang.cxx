@@ -3530,6 +3530,7 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
     // Some languages (C#) insist on calling the input variable "value" while
     // others (D, Java) could, in principle, use something different but this
     // would require more work, and so we just use "value" for them too.
+    // For setters the parameter name sometimes includes C++ scope resolution which needs removing.
     Delete(arg);
     arg = NewString("value");
   }

@@ -1533,7 +1533,7 @@ public:
     // so we only minimally rename them in Swig_name_make(), e.g. replacing "keyword"
     // with "_keyword" if they have any name at all.
     if (check_kwargs(n)) {
-      String* name = Getattr(p, "name");
+      String *name = Getattr(p, "name");
       if (name)
 	return Swig_name_make(p, 0, name, 0, 0);
     }
@@ -1554,7 +1554,7 @@ public:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node *n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
