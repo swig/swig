@@ -35,11 +35,9 @@ KW(chan, fallthrough)
 KW(end, function)
 KW(nil,local)
 
-#ifdef __cplusplus
 struct Keywords {
   void selfkw(int self) {}
 };
-#endif /* __cplusplus */
 
 %}
 
