@@ -130,7 +130,7 @@ PYTHONKW(None);
 /* 
    'self' is also a bad Name
 */
-PYTHONKW(self);
+PYTHONBN(self);
 
 #undef PYTHONBN
 #undef PYTHONKW
