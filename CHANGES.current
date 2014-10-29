@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-10-28: vadz
+            [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
+            Instead, the parameters are named using the C++ parameter names.
+
+2014-10-24: timotheecour
+            [D] Patch #204 Use core.atomic.atomicOp to mutate shared variables
+
 2014-10-21: wsfulton
             Fix issue #242 - Use of the "kwargs" feature no longer automatically turns on the
             "compactdefaultargs" feature if the target language does not support kwargs.
