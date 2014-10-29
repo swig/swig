@@ -287,7 +287,7 @@ check(B.__doc__,
 "Proxy of C++ B class",
 "::B"
 )
-check(C.__init__.__doc__, "__init__(self, a, b, h) -> C")
+check(C.__init__.__doc__, "__init__(self, a, b, h) -> C", None, skip)
 check(D.__init__.__doc__, "__init__(D self, int a, int b, Hola h) -> D", None, skip)
 check(E.__init__.__doc__,
 "\n"
