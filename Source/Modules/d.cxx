@@ -803,23 +803,23 @@ public:
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    if (!GetFlag(n, "nonempty")) {
-      // Do not wrap empty enums; the resulting D code would be illegal.
-      Delete(proxy_enum_code);
-      return SWIG_NOWRAP;
-    }
-
-    // Finish the enum.
-    if (typemap_lookup_type) {
-      Printv(proxy_enum_code,
-	lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
-	"\n}\n", NIL);
+    if (GetFlag(n, "nonempty")) {
+      // Finish the enum.
+      if (typemap_lookup_type) {
+	Printv(proxy_enum_code,
+	  lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
+	  "\n}\n", NIL);
+      } else {
+	// Handle anonymous enums.
+	Printv(proxy_enum_code, "\n}\n", NIL);
+      }
+      Replaceall(proxy_enum_code, "$dclassname", symname);
     } else {
-      // Handle anonymous enums.
-      Printv(proxy_enum_code, "\n}\n", NIL);
+      // D enum declarations must have at least one member to be legal, so emit
+      // an alias to int instead (their ctype/imtype is always int).
+      Delete(proxy_enum_code);
+      proxy_enum_code = NewStringf("\nalias int %s;\n", symname);
     }
-
-    Replaceall(proxy_enum_code, "$dclassname", symname);
 
     const String* imports =
       lookupCodeTypemap(n, "dimports", typemap_lookup_type, WARN_NONE);
