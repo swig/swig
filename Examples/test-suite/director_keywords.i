@@ -1,13 +1,15 @@
 // Checks if collisions of argument names with target language keywords are
-// resolved properly when directors are used (currently only »abstract« for
-// C#, D and Java is checked).
+// resolved properly when directors are used
 %module(directors="1") director_keywords
+
+%warnfilter(SWIGWARN_PARSE_KEYWORD);
 
 %feature("director") Foo;
 
 %inline %{
 struct Foo {
   virtual ~Foo() {}
-  virtual void bar(int abstract) {}
+  virtual void check_abstract(int abstract) {} // for Java, C#, D...
+  virtual void check_self(int self) {} // self for Python
 };
 %}
