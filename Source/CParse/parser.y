@@ -1018,7 +1018,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
     }
   }
 
-  if (!GetFlag(currentOuterClass, "nested")) {
+  if (!currentOuterClass || !GetFlag(currentOuterClass, "nested")) {
     if (nn && Equal(nodeType(nn), "classforward")) {
       Node *n = nn;
       SWIG_WARN_NODE_BEGIN(n);
@@ -3531,6 +3531,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
+		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag((yyval.node), "feature:flatnested"))
+		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
