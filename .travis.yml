@@ -7,7 +7,7 @@ env:
 matrix:
   include:
     - compiler: gcc
-      env: SWIGLANG=scilab SWIGJOBS=-j4
+      env: SWIGLANG=scilab
   allow_failures:
     # None
 before_install:
