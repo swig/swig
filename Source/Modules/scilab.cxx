@@ -13,12 +13,8 @@
 
 #include "swigmod.h"
 
-/*#define SWIG_DEBUG*/
-
-
-#define SCILAB_IDENTIFIER_NAME_CHAR_MAX 24
-#define SCILAB_VARIABLE_NAME_CHAR_MAX SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4
-
+static const int SCILAB_IDENTIFIER_NAME_CHAR_MAX = 24;
+static const int SCILAB_VARIABLE_NAME_CHAR_MAX = SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4;
 
 static const char *usage = (char *) " \
 Scilab options (available with -scilab)\n \
