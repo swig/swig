@@ -4841,6 +4841,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   int idx;
   bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
+  if (builtin) {
+    // Rename any wrapped parameters called 'self' as the generated code contains a variable with same name
+    Parm *p;
+    for (p = l; p; p = nextSibling(p)) {
+      String *arg = Getattr(p, "name");
+      if (arg && Cmp(arg, "self") == 0)
+	Delattr(p, "name");
+    }
+  }
+
   if (Cmp(storage, "virtual") == 0) {
     if (Cmp(value, "0") == 0) {
       pure_virtual = true;

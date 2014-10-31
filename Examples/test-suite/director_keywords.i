@@ -11,5 +11,6 @@ struct Foo {
   virtual ~Foo() {}
   virtual void check_abstract(int abstract) {} // for Java, C#, D...
   virtual void check_self(int self) {} // self for Python
+  virtual void check_from(int from) {} // for Python
 };
 %}
