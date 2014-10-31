@@ -461,6 +461,8 @@ fi])
 
 AC_ARG_WITH(alllang, AS_HELP_STRING([--without-alllang], [Disable all languages]), with_alllang="$withval")
 
+AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
+
 #--------------------------------------------------------------------
 # Look for Tcl
 #--------------------------------------------------------------------
@@ -1027,8 +1029,10 @@ else
       AC_MSG_CHECKING(for Scilab header files)
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -n "$PKGCONFIG"; then
+        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=`pkg-config scilab --cflags-only-I | sed -e 's/-I//g'`
+        dirs=""
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
@@ -1275,15 +1279,17 @@ else
   if test -z "$JSCORELIB"; then
     case $host in
     *-*-linux*)
-      dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-      for i in $dirs ; do
-        if test -r $i/libjavascriptcoregtk-1.0.so; then
-          AC_MSG_RESULT($i)
-          JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
-          JSCOREVERSION=`pkg-config --modversion javascriptcoregtk-1.0`
-          break
-        fi
-      done
+      if test -n "$PKGCONFIG"; then
+        dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
+        for i in $dirs ; do
+          if test -r $i/libjavascriptcoregtk-1.0.so; then
+            AC_MSG_RESULT($i)
+            JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
+            JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+            break
+          fi
+        done
+      fi
 
       if test -z "$JSCORELIB"; then
         AC_MSG_RESULT(not found)
