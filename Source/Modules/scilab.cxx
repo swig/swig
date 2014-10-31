@@ -64,7 +64,7 @@ protected:
 
   bool createLoader;
   File *loaderFile;
-  String* loaderScript;
+  String *loaderScript;
 public:
 
   /* ------------------------------------------------------------------------
@@ -92,7 +92,7 @@ public:
 
     createLoader = false;
     loaderFile = NULL;
-    loaderScript =  NULL;
+    loaderScript = NULL;
 
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
@@ -177,8 +177,8 @@ public:
     String *gatewayName = Getattr(node, "name");
 
     // Set gateway source and library name
-    String* gatewaySourceName = NewStringf("gw_%s", gatewayName);
-    String* gatewayLibraryName = NewStringf("lib%s", gatewayName);
+    String *gatewaySourceName = NewStringf("gw_%s", gatewayName);
+    String *gatewayLibraryName = NewStringf("lib%s", gatewayName);
 
     /* Get the output file name */
     String *outputFilename = Getattr(node, "outfile");
@@ -208,22 +208,18 @@ public:
     if (generateBuilder) {
       createBuilderFile(outputFilename);
     }
-
     // Create gateway source if required
     if (createGatewaySource) {
       createGatewaySourceFile(gatewaySourceName);
     }
-
     // Create gateway XML if required
     if (createGatewayXML) {
       createGatewayXMLFile(gatewayName);
     }
-
     // Create loader script if required
     if (createLoader) {
       createLoaderFile(gatewayLibraryName);
     }
-
     // Module initialization function
     String *gatewayInitFunctionName = NewStringf("%s_Init", gatewayName);
 
@@ -327,7 +323,7 @@ public:
     /* Deal with overloading */
     String *overloadedName = Copy(wrapperName);
     /* Determine whether the function is overloaded or not */
-    bool isOverloaded = !!Getattr(node, "sym:overloaded");
+    bool isOverloaded = ! !Getattr(node, "sym:overloaded");
     /* Determine whether the function is the last overloaded */
     bool isLastOverloaded = isOverloaded && !Getattr(node, "sym:nextSibling");
 
@@ -579,7 +575,7 @@ public:
     String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
 
     // Variable names can have SCILAB_VARIABLE_NAME_CHAR_MAX because of suffixes "_get" or "_set" added to function
-    String* scilabVariableName = checkIdentifierName(variableName, SCILAB_VARIABLE_NAME_CHAR_MAX);
+    String *scilabVariableName = checkIdentifierName(variableName, SCILAB_VARIABLE_NAME_CHAR_MAX);
 
     /* Manage GET function */
     Wrapper *getFunctionWrapper = NewWrapper();
@@ -688,7 +684,6 @@ public:
       Delete(str);
       constantValue = wname;
     }
-
     // Constant names can have SCILAB_VARIABLE_NAME_CHAR_MAX because of suffixes "_get" added to function
     String *scilabConstantName = checkIdentifierName(constantName, SCILAB_VARIABLE_NAME_CHAR_MAX);
 
@@ -786,8 +781,7 @@ public:
     if (Len(name) > char_size_max) {
       scilabIdentifierName = DohNewStringWithSize(name, char_size_max);
       Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
-        "Identifier name '%s' exceeds 24 characters and has been truncated to '%s'.\n",
-	name, scilabIdentifierName);
+		   "Identifier name '%s' exceeds 24 characters and has been truncated to '%s'.\n", name, scilabIdentifierName);
     } else
       scilabIdentifierName = name;
     return scilabIdentifierName;
@@ -817,14 +811,12 @@ public:
 	String *scilabMemberName = DohNewStringWithSize(memberName, lenScilabMemberName);
 	Setattr(node, "sym:name", scilabMemberName);
 	Swig_warning(WARN_SCILAB_TRUNCATED_NAME, input_file, line_number,
-	  "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
-	  "so member name has been truncated to '%s'.\n",
-	  containerName, memberName, scilabMemberName);
+		     "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
+		     "so member name has been truncated to '%s'.\n", containerName, memberName, scilabMemberName);
       } else
 	Swig_error(input_file, line_number,
-	  "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
-	  "please rename the container of member '%s'.\n",
-	  containerName, memberName, containerName);
+		   "Wrapping functions names for member '%s.%s' will exceed 24 characters, "
+		   "please rename the container of member '%s'.\n", containerName, memberName, containerName);
     }
   }
 
@@ -974,7 +966,6 @@ public:
       FileErrorDisplay(gatewayXMLFilename);
       SWIG_exit(EXIT_FAILURE);
     }
-
     // Add a slightly modified SWIG banner to the gateway XML ("--modify" is illegal in XML)
     gatewayXML = NewString("");
     Printf(gatewayXML, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
@@ -1056,7 +1047,7 @@ public:
     Printv(gatewaySourceFile, gatewaySourceFunctionTable, NIL);
     Printv(gatewaySourceFile, "\n", NIL);
 
-    String* gatewaySourceEntryPoint = NewString("");
+    String *gatewaySourceEntryPoint = NewString("");
     Printf(gatewaySourceEntryPoint, "int C2F(%s)()\n", gatewaySourceName);
     Printf(gatewaySourceEntryPoint, "{\n");
     Printf(gatewaySourceEntryPoint, "  Rhs = Max(0, Rhs);\n");
@@ -1123,7 +1114,7 @@ public:
     Printf(loaderScript, "];\n");
 
     Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n",
-      gatewayLibraryName, gatewayLibraryName, gatewaySourceName);
+	   gatewayLibraryName, gatewayLibraryName, gatewaySourceName);
     Printf(loaderScript, "clear %s_path;\n", gatewayLibraryName);
     Printf(loaderScript, "clear bOK;\n");
     Printf(loaderScript, "clear ilib;\n");
