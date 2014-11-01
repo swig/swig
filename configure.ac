@@ -2675,6 +2675,7 @@ AC_CONFIG_FILES([
     Makefile
     swig.spec
     Examples/Makefile
+    Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
     Examples/test-suite/chicken/Makefile
