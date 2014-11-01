@@ -93,31 +93,26 @@ private class SwigExceptionHelper {
 
   static void setException(char* message) {
     auto exception = new object.Exception(tango.stdc.stringz.fromStringz(message).dup);
-    exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
   static void setIllegalArgumentException(char* message) {
     auto exception = new tango.core.Exception.IllegalArgumentException(tango.stdc.stringz.fromStringz(message).dup);
-    exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
   static void setIllegalElementException(char* message) {
     auto exception = new tango.core.Exception.IllegalElementException(tango.stdc.stringz.fromStringz(message).dup);
-    exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
   static void setIOException(char* message) {
     auto exception = new tango.core.Exception.IOException(tango.stdc.stringz.fromStringz(message).dup);
-    exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
   static void setNoSuchElementException(char* message) {
     auto exception = new tango.core.Exception.NoSuchElementException(tango.stdc.stringz.fromStringz(message).dup);
-    exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 }
@@ -125,51 +120,31 @@ private class SwigExceptionHelper {
 package class SwigPendingException {
 public:
   static this() {
-    m_sPendingCount = 0;
     m_sPendingException = new ThreadLocalData(null);
   }
 
   static bool isPending() {
-    bool pending = false;
-    if (m_sPendingCount > 0) {
-      if (m_sPendingException.val !is null) {
-        pending = true;
-      }
-    }
-    return pending;
+    return m_sPendingException.val !is null;
   }
 
   static void set(object.Exception e) {
-    if (m_sPendingException.val !is null) {
-      throw new object.Exception("FATAL: An earlier pending exception from C/C++ code " ~
-        "was missed and thus not thrown (" ~ m_sPendingException.val.classinfo.name ~
-        ": " ~ m_sPendingException.val.msg ~ ")!", e);
+    auto pending = m_sPendingException.val;
+    if (pending !is null) {
+      e.next = pending;
+      throw new object.Exception("FATAL: An earlier pending exception from C/C++ " ~
+        "code was missed and thus not thrown (" ~ pending.classinfo.name ~ ": " ~
+        pending.msg ~ ")!", e);
     }
-
     m_sPendingException.val = e;
-    synchronized {
-      ++m_sPendingCount;
-    }
   }
 
   static object.Exception retrieve() {
-    object.Exception e = null;
-    if (m_sPendingCount > 0) {
-      if (m_sPendingException.val !is null) {
-        e = m_sPendingException.val;
-        m_sPendingException.val = null;
-        synchronized {
-          --m_sPendingCount;
-        }
-      }
-    }
+    auto e = m_sPendingException.val;
+    m_sPendingException.val = null;
     return e;
   }
 
 private:
-  // The pending exception counter is stored thread-global.
-  static int m_sPendingCount;
-
   // The reference to the pending exception (if any) is stored thread-local.
   alias tango.core.Thread.ThreadLocal!(object.Exception) ThreadLocalData;
   static ThreadLocalData m_sPendingException;
@@ -195,8 +170,7 @@ private class SwigExceptionHelper {
   }
 
   static void setException(const char* message) {
-    auto exception = new object.Exception(std.conv.to!string(message).idup);
-    exception.next = SwigPendingException.retrieve();
+    auto exception = new object.Exception(std.conv.to!string(message));
     SwigPendingException.set(exception);
   }
 }
@@ -204,53 +178,31 @@ private class SwigExceptionHelper {
 package struct SwigPendingException {
 public:
   static this() {
-    m_sPendingCount = 0;
     m_sPendingException = null;
   }
 
   static bool isPending() {
-    bool pending = false;
-    if (m_sPendingCount > 0) {
-      if (m_sPendingException !is null) {
-        pending = true;
-      }
-    }
-    return pending;
+    return m_sPendingException !is null;
   }
 
   static void set(object.Exception e) {
     if (m_sPendingException !is null) {
+      e.next = m_sPendingException;
       throw new object.Exception("FATAL: An earlier pending exception from C/C++ code " ~
         "was missed and thus not thrown (" ~ m_sPendingException.classinfo.name ~
         ": " ~ m_sPendingException.msg ~ ")!", e);
     }
 
     m_sPendingException = e;
-    synchronized {
-      import core.atomic;
-      core.atomic.atomicOp!"+="(m_sPendingCount, 1);
-    }
   }
 
   static object.Exception retrieve() {
-    object.Exception e = null;
-    if (m_sPendingCount > 0) {
-      if (m_sPendingException !is null) {
-        e = m_sPendingException;
-        m_sPendingException = null;
-        synchronized {
-          import core.atomic;
-          core.atomic.atomicOp!"-="(m_sPendingCount, 1);
-        }
-      }
-    }
+    auto e = m_sPendingException;
+    m_sPendingException = null;
     return e;
   }
 
 private:
-  // The pending exception counter is stored thread-global.
-  static shared int m_sPendingCount;
-
   // The reference to the pending exception (if any) is stored thread-local.
   static object.Exception m_sPendingException;
 }
