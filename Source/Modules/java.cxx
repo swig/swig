@@ -1556,22 +1556,6 @@ public:
     } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
-      String* pureSymname = NULL;
-      if (Equal(Getattr(n, "nodeType"), "enumitem")) {
-	// If enum is strongly-typed, generate fully-qualified symname
-	Node* parent = parentNode(n);
-	String* pureSymname = NULL;
-	if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope")) {
-	  pureSymname = symname;
-
-	  String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
-	  symname = Swig_name_member(0, enumClassName, pureSymname);
-	  Delete(enumClassName);
-
-	  /* Printf(stdout, "Renamed strong enum value symname (java:1) '%s' -> '%s'\n", pureSymname, symname); */
-	}
-      }
-
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
@@ -1582,13 +1566,6 @@ public:
 	}
       } else {
 	Printf(constants_code, "%s.%s();\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
-      }
-
-      // Delete temporary symname if it was created
-      if (pureSymname) {
-	Delete(symname);
-	symname = pureSymname;
-	pureSymname = NULL;
       }
 
       // Each constant and enum value is wrapped with a separate JNI function call
