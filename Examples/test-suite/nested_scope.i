@@ -26,4 +26,15 @@ namespace ns {
 #endif
 	};
 }
+#ifndef __clang__
+		class Outer1 {
+			struct Nested1;
+		public:
+			struct Nested2;
+		};
+		struct Outer1::Nested2 {
+			int data;
+		};
+#endif
+
 %}
