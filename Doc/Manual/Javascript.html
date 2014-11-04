@@ -195,7 +195,7 @@ $ sudo npm install -g node-gyp</pre>
 <p>First create the wrapper using SWIG:</p>
 <div class="shell">
 <pre>
-$ swig -javascript -node -c++ example.cxx</pre>
+$ swig -javascript -node -c++ example.i</pre>
 </div>
 <p>Then run <code>node-gyp</code></p>
 <div class="shell">
@@ -353,8 +353,8 @@ It has some extras to configure <code>node-webkit</code>. See the <a href="https
 <div class="code">
 <pre>
 {
-  "name": "example"
-  "main": "app.html"
+  "name": "example",
+  "main": "app.html",
   "window": {
     "show": true,
     "width": 800,
