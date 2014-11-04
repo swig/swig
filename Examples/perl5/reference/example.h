@@ -20,7 +20,3 @@ public:
   Vector &operator[](int);
   int size();
 };
-
-
-
-  
