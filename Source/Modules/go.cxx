@@ -637,8 +637,10 @@ private:
       bool is_set = Strcmp(Char(name) + Len(name) - 4, "_set") == 0;
       assert(is_set || Strcmp(Char(name) + Len(name) - 4, "_get") == 0);
 
-      // Start with Set or Get.
-      go_name = NewString(is_set ? "Set" : "Get");
+      // If this is a setter, start the Go name with Set
+      // If this is a getter, use it directly.
+      // See http://golang.org/doc/effective_go.html#Getters
+      go_name = NewString(is_set ? "Set" : "");
 
       // If this is a static variable, put in the class name,
       // capitalized.
