@@ -1524,7 +1524,7 @@ private:
       Delete(ct);
       Delete(ln);
     }
-    Printv(swigargs, "\t} *swig_a = (struct swigargs *) swig_v;\n", NULL);
+    Printv(swigargs, "\t} SWIGSTRUCTPACKED *swig_a = (struct swigargs *) swig_v;\n", NULL);
 
     // Copy the input arguments out of the structure into the Go local
     // variables.
@@ -3217,7 +3217,7 @@ private:
     Printv(f_c_directors, director_sig, NULL);
 
     if (!gccgo_flag) {
-      Printv(f_c_directors, "  struct { void *p; } a;\n", NULL);
+      Printv(f_c_directors, "  struct { void *p; } SWIGSTRUCTPACKED a;\n", NULL);
       Printv(f_c_directors, "  a.p = go_val;\n", NULL);
       Printv(f_c_directors, "  crosscall2(", wname, ", &a, (int) sizeof a);\n", NULL);
 
@@ -4127,7 +4127,7 @@ private:
 	Delete(rname);
       }
 
-      Printv(w->code, "  } swig_a;\n", NULL);
+      Printv(w->code, "  } SWIGSTRUCTPACKED swig_a;\n", NULL);
       Printv(w->code, "  swig_a.go_val = go_val;\n", NULL);
 
       p = parms;
