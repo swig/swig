@@ -37,14 +37,14 @@ check: build
 
 build:
 	mkdir -p $(VERSION_DIR)
-	if [ -f ../$(SRCDIR)example.cxx ]; then \
-		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CXXFLAGS='$(EXTRA_CXXFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' CXXSRCS='example.cxx' d_cpp \
-	elif [ -f ../$(SRCDIR)example.c ]; then \
-		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' SRCS='example.c' d \
+	if [ -f $(SRCDIR)example.cxx ]; then \
+		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CXXFLAGS='$(EXTRA_CXXFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' CXXSRCS='example.cxx' d_cpp; \
+	elif [ -f $(SRCDIR)example.c ]; then \
+		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' SRCS='example.c' d; \
 	else \
-		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' SRCS='' d \
+		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' SRCS='' d; \
 	fi
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='../$(SRCDIR)$(VERSION_DIR)runme.d $(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
+	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='../$(SRCDIR)$(VERSION_DIR)runme.d $(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
 clean:
 	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_clean
