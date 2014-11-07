@@ -19,6 +19,12 @@ public class director_nested_class_runme {
       if (DirectorOuter.callMethod(d, 999) != 9990) {
           throw new RuntimeException("callMethod(999) failed");
       }
+
+      director_nested_class_DerivedInnerInner dinner = new director_nested_class_DerivedInnerInner();
+
+      if (DirectorOuter.callInnerInnerMethod(dinner, 999) != 999000) {
+          throw new RuntimeException("callMethod(999) failed");
+      }
   }
 }
 
@@ -28,3 +34,8 @@ class director_nested_class_Derived extends DirectorOuter.DirectorInner {
     }
 }
 
+class director_nested_class_DerivedInnerInner extends DirectorOuter.DirectorInner.DirectorInnerInner {
+    public int innervmethod(int input) {
+        return input * 1000;
+    }
+}
