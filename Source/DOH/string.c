@@ -181,10 +181,10 @@ static int String_hash(DOH *so) {
     return s->hashkey;
   } else {
     register char *c = s->str;
-    register int len = s->len > 50 ? 50 : s->len;
-    register int h = 0;
-    register int mlen = len >> 2;
-    register int i = mlen;
+    register unsigned int len = s->len > 50 ? 50 : s->len;
+    register unsigned int h = 0;
+    register unsigned int mlen = len >> 2;
+    register unsigned int i = mlen;
     for (; i; --i) {
       h = (h << 5) + *(c++);
       h = (h << 5) + *(c++);
@@ -195,7 +195,7 @@ static int String_hash(DOH *so) {
       h = (h << 5) + *(c++);
     }
     h &= 0x7fffffff;
-    s->hashkey = h;
+    s->hashkey = (int)h;
     return h;
   }
 }
