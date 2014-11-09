@@ -136,8 +136,8 @@ least work for Linux though):
 </p>
 
 <div class="code"><pre>
-	gcc `php-config --includes` -fpic -c example_wrap.c
-	gcc -shared example_wrap.o -o example.so
+	gcc `php-config --includes` -fpic -c example_wrap.c example.c
+	gcc -shared example_wrap.o example.o -o example.so
 </pre></div>
 
 <H3><a name="Php_nn1_3"></a>34.1.2 Using PHP Extensions</H3>
