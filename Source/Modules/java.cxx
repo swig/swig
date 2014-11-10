@@ -3704,7 +3704,6 @@ public:
    * --------------------------------------------------------------- */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
@@ -3738,24 +3737,7 @@ public:
     String *imcall_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    String *nspace = getNSpace();
-
-    String *outerClassesPrefix = 0;
-    if (Node *outer = Getattr(parent, "nested:outer")) {
-      outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
-      for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
-	Push(outerClassesPrefix, ".");
-	Push(outerClassesPrefix, Getattr(outer, "sym:name"));
-      }
-    }
-    String* qualified_classname = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, classname) : NewStringf("%s", classname);
-    /* Printf(stdout, "Director qualified_classname '%s' instead of '%s'\n", qualified_classname, classname); */
-
-    if (nspace && package)
-      Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
-    else if(nspace)
-      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
-
+    String *qualified_classname = getProxyName(getClassName());
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3878,7 +3860,6 @@ public:
     }
 
     Delete(adjustedreturntypeparm);
-    Delete(qualified_classname);
 
     Swig_director_parms_fixup(l);
 
@@ -4519,29 +4500,17 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
-    String *classname = Copy(Getattr(n, "sym:name"));
+    String *full_classname = Getattr(n, "name");
+    String *classname = getProxyName(full_classname, true);
     String *director_classname = directorClassName(n);
     String *internal_classname;
 
     Wrapper *w = NewWrapper();
 
-    // Form full classname including outer classes
-    if (classname && !GetFlag(n, "feature:flatnested")) {
-      for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-	Push(classname, "$");
-	Push(classname, Getattr(outer_class, "sym:name"));
-      }
-    }
-
-    if (Len(package_path) > 0 && Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
-    else if (Len(package_path) > 0)
+    if (Len(package_path) > 0)
       internal_classname = NewStringf("%s/%s", package_path, classname);
-    else if (Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
-    Delete(classname);
 
     // If the namespace is multiple levels, the result of getNSpace() will have inserted
     // .'s to delimit namespaces, so we need to replace those with /'s
