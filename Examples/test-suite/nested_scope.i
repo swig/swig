@@ -31,9 +31,22 @@ namespace ns {
 			struct Nested1;
 		public:
 			struct Nested2;
+			template <class T> class Abstract;
+			class Real;
 		};
 		struct Outer1::Nested2 {
 			int data;
+		};
+		template <class T> class Class::Abstract {
+		public:
+			virtual void Method() = 0;
+		};
+ 
+		%template(abstract_int) Class::Abstract <int>;
+ 
+		class Class::Real : public Abstract <int> {
+		public:
+			virtual void Method() {}
 		};
 #endif
 

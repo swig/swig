@@ -2504,6 +2504,7 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
+		  Node *outer_class = currentOuterClass;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  int     variadic = 0;
@@ -2515,6 +2516,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
 		  if (!inclass) {
 		    $5 = resolve_create_node_scope($5);
+		  }
+		  if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) {
+		    outer_class	= nscope_inner;
 		  }
 
 		  /*
@@ -2648,7 +2652,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:typename","1");
                           }
 			  /* for now, nested %template is allowed only in the same scope as the template declaration */
-                          if ($3 && !(nnisclass && ((currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))
+                          if ($3 && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
 			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer")))))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
@@ -2677,9 +2681,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
-			  if (currentOuterClass) {
+			  if (outer_class) {
 			    SetFlag(templnode, "nested");
-			    Setattr(templnode, "nested:outer", currentOuterClass);
+			    Setattr(templnode, "nested:outer", outer_class);
 			  }
                           add_symbols_copy(templnode);
 
@@ -4017,7 +4021,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			Swig_symbol_setscope(cscope);
 			Delete(Namespaceprefix);
 			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-			if (error) $$ = 0;
+			if (error || (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0)) {
+			  $$ = 0;
+			}
 			if (currentOuterClass)
 			  template_parameters = Getattr(currentOuterClass, "template_parameters");
 			else
