@@ -48,10 +48,13 @@ namespace ns {
 		public:
 			virtual void Method() = 0;
 		};
+#endif
 %} 
+#ifndef __clang__
 		%template(abstract_int) Class::Abstract <int>;
+#endif
 %inline %{
- 
+#ifndef __clang__
 		class Class::Real : public Abstract <int> {
 		public:
 			virtual void Method() {}
