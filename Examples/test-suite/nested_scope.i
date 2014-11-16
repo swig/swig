@@ -48,8 +48,9 @@ namespace ns {
 		public:
 			virtual void Method() = 0;
 		};
- 
+%} 
 		%template(abstract_int) Class::Abstract <int>;
+%inline %{
  
 		class Class::Real : public Abstract <int> {
 		public:
