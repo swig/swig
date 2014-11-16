@@ -37,6 +37,13 @@ namespace ns {
 		struct Outer1::Nested2 {
 			int data;
 		};
+		
+		class Class {
+		public:
+			template <class T> class Abstract;
+			class Real;
+		};
+
 		template <class T> class Class::Abstract {
 		public:
 			virtual void Method() = 0;
