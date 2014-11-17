@@ -235,9 +235,9 @@ echo "E = " . E . "\n";
 <p>
 There's one peculiarity of how constants work in PHP which it is useful
 to note (this is not specific to SWIG though) - if you try to use an undeclared
-constant, PHP will issue a warning and then expand the constant to a string
-version of the constant's name.  The warning will often be missed though as
-if you're using PHP in a webserver, it will probably end up in error.log or
+constant, PHP will emit a notice and then expand the constant to a string
+version of the constant's name.  Unfortunately it is easy to miss the notice
+if you're using PHP in a webserver, as it will probably end up in error.log or
 similar.
 </p>
 
