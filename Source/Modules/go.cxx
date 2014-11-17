@@ -4414,7 +4414,7 @@ private:
 	    }
 
 	    fn = i + 1;
-	    Printf(f_go_wrappers, "\t\tif _, ok := a[%d].(%s); !ok {\n", j, tm);
+	    Printf(f_go_wrappers, "\t\tif _, ok := a[%d].(%s); !ok {\n", j, goType(pj, Getattr(pj, "type")));
 	    Printf(f_go_wrappers, "\t\t\tgoto check_%d\n", fn);
 	    Printv(f_go_wrappers, "\t\t}\n", NULL);
 	  }
