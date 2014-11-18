@@ -2959,17 +2959,14 @@ public:
 	// Use the C syntax to make a true Java constant and hope that it compiles as Java code
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
-	// If enum is strongly-typed, generate fully-qualified symname
-	Node* parent = parentNode(n);
-	String* pureSymname = NULL;
-	if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope")) {
-	  pureSymname = symname;
-
-	  String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
-	  symname = Swig_name_member(0, enumClassName, pureSymname);
-	  Delete(enumClassName);
-
-	  /* Printf(stdout, "Renamed strong enum value symname (java:2) '%s' -> '%s'\n", pureSymname, symname); */
+	String *newsymname = 0;
+	if (!getCurrentClass() || !proxy_flag) {
+	  String *enumClassPrefix = getEnumClassPrefix();
+	  if (enumClassPrefix) {
+	    // A global scoped enum
+	    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+	    symname = newsymname;
+	  }
 	}
 
 	// Get the enumvalue from a JNI call
@@ -2980,29 +2977,9 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  String* outerClassesPrefix = NULL;
-	  if (Node *outer = Getattr(getCurrentClass(), "nested:outer")) {
-	    outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
-	    for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
-	      Push(outerClassesPrefix, ".");
-	      Push(outerClassesPrefix, Getattr(outer, "sym:name"));
-	    }
-	  }
-	  String* full_proxy_class_sym_name = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, proxy_class_name) : NewStringf("%s", proxy_class_name);
-	  Replaceall(full_proxy_class_sym_name, ".", "_");
-	  /* Printf(stdout, "Change proxy class symname '%s' -> '%s'\n", proxy_class_name, full_proxy_class_sym_name); */
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, full_proxy_class_sym_name, symname)));
-	  Delete(full_proxy_class_sym_name);
-	  if (outerClassesPrefix)
-	    Delete(outerClassesPrefix);
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
 	}
-
-	// Delete temporary symname if it was created
-	if (pureSymname) {
-	  Delete(symname);
-	  symname = pureSymname;
-	  pureSymname = NULL;
-	}
+	Delete(newsymname);
       }
     }
     return value;

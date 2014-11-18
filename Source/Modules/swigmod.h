@@ -291,6 +291,9 @@ protected:
   /* Return the current class prefix */
   String *getClassPrefix() const;
 
+  /* Return the current enum class prefix */
+  String *getEnumClassPrefix() const;
+
   /* Fully qualified type name to use */
   String *getClassType() const;
 

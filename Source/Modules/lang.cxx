@@ -57,7 +57,9 @@ extern "C" {
 /* Some status variables used during parsing */
 static int InClass = 0; /* Parsing C++ or not */
 static String *ClassName = 0;	/* This is the real name of the current class */
+static String *EnumClassName = 0; /* Enum class name */
 static String *ClassPrefix = 0;	/* Class prefix */
+static String *EnumClassPrefix = 0; /* Prefix for strongly typed enums (including ClassPrefix) */
 static String *NSpace = 0;	/* Namespace for the nspace feature */
 static String *ClassType = 0;	/* Fully qualified type name to use */
 static String *DirectorClassName = 0;	/* Director name of the current class */
@@ -1650,10 +1652,24 @@ int Language::enumDeclaration(Node *n) {
   String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
 
+  String *oldEnumClassPrefix = EnumClassPrefix;
+  if (GetFlag(n, "scopedenum")) {
+    assert(Getattr(n, "sym:name"));
+    assert(Getattr(n, "name"));
+    EnumClassPrefix = ClassPrefix ? NewStringf("%s_", ClassPrefix) : NewString("");
+    Printv(EnumClassPrefix, Getattr(n, "sym:name"), NIL);
+    EnumClassName = Copy(Getattr(n, "name"));
+  }
   if (!ImportMode) {
     emit_children(n);
   }
 
+  if (GetFlag(n, "scopedenum")) {
+    Delete(EnumClassName);
+    EnumClassName = 0;
+    Delete(EnumClassPrefix);
+    EnumClassPrefix = oldEnumClassPrefix;
+  }
   NSpace = oldNSpace;
 
   return SWIG_OK;
@@ -1720,50 +1736,16 @@ int Language::memberconstantHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
 
-  String *mrename = Swig_name_member(0, ClassPrefix, symname);
-  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
-    // If enum is strongly-typed, generate fully-qualified symname
-    Node* parent = parentNode(n);
-    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope"))
-    {
-      SetFlag(n, "symname_has_enumscope");
-      Delete(mrename);
-
-      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
-      String* scopedItemName = Swig_name_member(0, enumClassName, symname);
-      mrename = Swig_name_member(0, ClassPrefix, scopedItemName);
-
-      /* Printf(stdout, "Renamed strong enum value symname (lang:1) '%s' -> '%s'\n", symname, mrename); */
-
-      Delete(enumClassName);
-      Delete(scopedItemName);
-    }
-  }
+  String *mrename = Swig_name_member(0, EnumClassPrefix, symname);
   Setattr(n, "sym:name", mrename);
 
   String *new_name = 0;
   if (Extend)
     new_name = Copy(value);
+  else if (EnumClassName)
+    new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : EnumClassName, name);
   else
     new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName, name);
-  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
-    // If enum is strongly-typed, generate fully-qualified symname
-    Node* parent = parentNode(n);
-    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "name_has_enumscope"))
-    {
-      SetFlag(n, "name_has_enumscope");
-      Delete(new_name);
-
-      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
-      String* scopedItemName = NewStringf("%s::%s", enumClassName, name);
-      new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName, scopedItemName);
-
-      /* Printf(stdout, "Renamed strong enum value name (lang:1) '%s' -> '%s'\n", name, new_name); */
-
-      Delete(enumClassName);
-      Delete(scopedItemName);
-    }
-  }
   Setattr(n, "name", new_name);
 
   constantWrapper(n);
@@ -2405,6 +2387,7 @@ int Language::classDeclaration(Node *n) {
   int oldInClass = InClass;
   String *oldClassType = ClassType;
   String *oldClassPrefix = ClassPrefix;
+  String *oldEnumClassPrefix = EnumClassPrefix;
   String *oldClassName = ClassName;
   String *oldDirectorClassName = DirectorClassName;
   String *oldNSpace = NSpace;
@@ -2446,6 +2429,7 @@ int Language::classDeclaration(Node *n) {
     Push(ClassPrefix, "_");
     Push(ClassPrefix, Getattr(outerClass, "sym:name"));
   }
+  EnumClassPrefix = Copy(ClassPrefix);
   if (strip) {
     ClassType = Copy(name);
   } else {
@@ -2513,6 +2497,8 @@ int Language::classDeclaration(Node *n) {
   CurrentClass = oldCurrentClass;
   Delete(ClassType);
   ClassType = oldClassType;
+  Delete(EnumClassPrefix);
+  EnumClassPrefix = oldEnumClassPrefix;
   Delete(ClassPrefix);
   ClassPrefix = oldClassPrefix;
   Delete(ClassName);
@@ -2998,20 +2984,10 @@ int Language::variableWrapper(Node *n) {
   Delattr(n,"varset");
   Delattr(n,"varget");
 
-  String* pureSymname = NULL;
-  if (Equal(Getattr(n, "nodeType"), "enumitem")) {
-    // If enum is strongly-typed, generate fully-qualified symname
-    Node* parent = parentNode(n);
-    if (GetFlag(parent, "scopedenum") && !GetFlag(n, "symname_has_enumscope"))
-    {
-      pureSymname = symname;
-
-      String* enumClassName = Swig_scopename_last(Getattr(parent, "name"));
-      symname = Swig_name_member(0, enumClassName, pureSymname);
-      Delete(enumClassName);
-
-      /* Printf(stdout, "Renamed strong enum value symname (lang:2) '%s' -> '%s'\n", pureSymname, symname); */
-    }
+  String *newsymname = 0;
+  if (!CurrentClass && EnumClassPrefix) {
+    newsymname = Swig_name_member(0, EnumClassPrefix, symname);
+    symname = newsymname;
   }
 
   /* If no way to set variables.  We simply create functions */
@@ -3071,14 +3047,7 @@ int Language::variableWrapper(Node *n) {
   functionWrapper(n);
   Delattr(n, "varget");
   Swig_restore(n);
-
-  // Delete temporary symname if it was created
-  if (pureSymname) {
-    Delete(symname);
-    symname = pureSymname;
-    pureSymname = NULL;
-  }
-
+  Delete(newsymname);
   return SWIG_OK;
 }
 
@@ -3618,6 +3587,14 @@ String *Language::getClassName() const {
 
 String *Language::getClassPrefix() const {
   return ClassPrefix;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::getEnumClassPrefix()
+ * ----------------------------------------------------------------------------- */
+
+String *Language::getEnumClassPrefix() const {
+  return EnumClassPrefix;
 }
 
 /* -----------------------------------------------------------------------------
