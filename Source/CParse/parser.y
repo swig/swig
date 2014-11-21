@@ -2681,7 +2681,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
-			  if (outer_class) {
+			  if (outer_class && nnisclass) {
 			    SetFlag(templnode, "nested");
 			    Setattr(templnode, "nested:outer", outer_class);
 			  }
