@@ -209,7 +209,7 @@ public:
 	   String *symname = Copy(Getattr(n, "sym:name"));
 	   if (symname && !GetFlag(n, "feature:flatnested")) {
 	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-	       Push(symname, ".");
+	       Push(symname, jnidescriptor ? "$" : ".");
 	       Push(symname, Getattr(outer_class, "sym:name"));
 	     }
 	   }
@@ -838,7 +838,7 @@ public:
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
+      if (!addSymbol(symname, n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -2959,6 +2959,16 @@ public:
 	// Use the C syntax to make a true Java constant and hope that it compiles as Java code
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
+	String *newsymname = 0;
+	if (!getCurrentClass() || !proxy_flag) {
+	  String *enumClassPrefix = getEnumClassPrefix();
+	  if (enumClassPrefix) {
+	    // A global scoped enum
+	    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+	    symname = newsymname;
+	  }
+	}
+
 	// Get the enumvalue from a JNI call
 	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
 	  // Strange hack to change the name
@@ -2967,8 +2977,9 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, proxy_class_name, symname)));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
 	}
+	Delete(newsymname);
       }
     }
     return value;
@@ -3632,7 +3643,6 @@ public:
    * --------------------------------------------------------------- */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
@@ -3666,14 +3676,7 @@ public:
     String *imcall_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    String *qualified_classname = Copy(classname);
-    String *nspace = getNSpace();
-
-    if (nspace && package)
-      Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
-    else if(nspace)
-      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
-
+    String *qualified_classname = getProxyName(getClassName());
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3796,7 +3799,6 @@ public:
     }
 
     Delete(adjustedreturntypeparm);
-    Delete(qualified_classname);
 
     Swig_director_parms_fixup(l);
 
@@ -4437,18 +4439,15 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
-    String *classname = Getattr(n, "sym:name");
+    String *full_classname = Getattr(n, "name");
+    String *classname = getProxyName(full_classname, true);
     String *director_classname = directorClassName(n);
     String *internal_classname;
 
     Wrapper *w = NewWrapper();
 
-    if (Len(package_path) > 0 && Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
-    else if (Len(package_path) > 0)
+    if (Len(package_path) > 0)
       internal_classname = NewStringf("%s/%s", package_path, classname);
-    else if (Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
 

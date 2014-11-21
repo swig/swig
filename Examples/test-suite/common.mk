@@ -527,6 +527,7 @@ CPP11_TEST_CASES = \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
+	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
@@ -539,7 +540,6 @@ CPP11_TEST_CASES = \
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
 #	cpp11_hash_tables \           # not fully implemented yet
-#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
