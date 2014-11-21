@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-11-21: wsfulton
+            [Java C#] Fix multiply defined error when using %rename of enum items when using the "simple enum" wrappers.
+
 2014-10-28: vadz
             [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
             Instead, the parameters are named using the C++ parameter names.

@@ -1308,7 +1308,7 @@ public:
 	else
 	  Printf(scope, ".%s", Getattr(parent, "sym:name"));
       }
-      if (!addSymbol(name, n, scope))
+      if (!addSymbol(symname, n, scope))
 	return SWIG_ERROR;
 
       const String *csattributes = Getattr(n, "feature:cs:attributes");
