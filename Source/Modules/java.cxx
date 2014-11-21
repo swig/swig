@@ -1194,15 +1194,13 @@ public:
     return ret;
   }
 
-  String *getCurrentScopeName(String *nspace)
-  {
+  String *getCurrentScopeName(String *nspace) {
     String *scope = 0;
     if (nspace || getCurrentClass()) {
       scope = NewString("");
       if (nspace)
 	Printf(scope, "%s", nspace);
-      if (Node* cls = getCurrentClass())
-      {
+      if (Node* cls = getCurrentClass()) {
 	if (Node *outer = Getattr(cls, "nested:outer")) {
 	  String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	  for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
