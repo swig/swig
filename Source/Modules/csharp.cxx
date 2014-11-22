@@ -719,7 +719,7 @@ public:
     String *overloaded_name = getOverloadedName(n);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
+      if (!addSymbol(symname, n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1266,6 +1266,7 @@ public:
     int unnamedinstance = GetFlag(parent, "unnamedinstance");
     String *parent_name = Getattr(parent, "name");
     String *nspace = getNSpace();
+    String *newsymname = 0;
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1290,14 +1291,20 @@ public:
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
 
+      if ((enum_feature == SimpleEnum) && GetFlag(parent, "scopedenum")) {
+	newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+	symname = newsymname;
+      }
+
       // Add to language symbol table
       String *scope = 0;
       if (unnamedinstance || !parent_name || enum_feature == SimpleEnum) {
-	if (proxy_class_name) {
+	String *enumClassPrefix = getEnumClassPrefix();
+	if (enumClassPrefix) {
 	  scope = NewString("");
 	  if (nspace)
 	    Printf(scope, "%s.", nspace);
-	  Printf(scope, "%s", proxy_class_name);
+	  Printf(scope, "%s", enumClassPrefix);
 	} else {
 	  scope = Copy(module_class_name);
 	}
@@ -1380,6 +1387,7 @@ public:
       Delete(scope);
     }
 
+    Delete(newsymname);
     Delete(tmpValue);
     Swig_restore(n);
     return SWIG_OK;
@@ -3053,6 +3061,16 @@ public:
 	// Use the C syntax to make a true C# constant and hope that it compiles as C# code
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
+	String *newsymname = 0;
+	if (!getCurrentClass() || !proxy_flag) {
+	  String *enumClassPrefix = getEnumClassPrefix();
+	  if (enumClassPrefix) {
+	    // A global scoped enum
+	    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+	    symname = newsymname;
+	  }
+	}
+
 	// Get the enumvalue from a PINVOKE call
 	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
 	  // Strange hack to change the name
@@ -3061,7 +3079,7 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, proxy_class_name, symname)));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
 	}
       }
     }
