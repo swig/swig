@@ -14,14 +14,18 @@ enum class Enum1 {
   Val1,
   Val2,
   Val3 = 13,
-  Val4
+  Val4,
+  Val5a = 13,
+  Val6a
 };
 
 enum class Enum2 : short {
   Val1,
   Val2,
   Val3 = 23,
-  Val4
+  Val4,
+  Val5b = 23,
+  Val6b
 };
 %}
 
@@ -77,7 +81,9 @@ public:
     Val1 = 1121,
     Val2 = 1122,
     Val3,
-    Val4
+    Val4,
+    Val5c = 1121,
+    Val6c
   };
 
   enum Enum13
@@ -85,7 +91,9 @@ public:
     Val1 = 1131,
     Val2 = 1132,
     Val3,
-    Val4
+    Val4,
+    Val5d = 1131,
+    Val6d
   };
 
   enum class Enum14
@@ -93,7 +101,9 @@ public:
     Val1 = 1141,
     Val2 = 1142,
     Val3,
-    Val4
+    Val4,
+    Val5e = 1141,
+    Val6e
   };
 
   struct Struct1
@@ -103,7 +113,9 @@ public:
       Val1 = 3121,
       Val2 = 3122,
       Val3,
-      Val4
+      Val4,
+      Val5f = 3121,
+      Val6f
     };
 
     enum Enum13
@@ -111,7 +123,7 @@ public:
       Val1 = 3131,
       Val2 = 3132,
       Val3,
-      Val4
+      Val4,
     };
 
     enum class Enum14
@@ -119,7 +131,9 @@ public:
       Val1 = 3141,
       Val2 = 3142,
       Val3,
-      Val4
+      Val4,
+      Val5g = 3141,
+      Val6g
     };
   };
 };
@@ -132,7 +146,9 @@ public:
     Val1 = 2121,
     Val2 = 2122,
     Val3,
-    Val4
+    Val4,
+    Val5h = 2121,
+    Val6h
   };
 
   enum Enum13
@@ -140,7 +156,9 @@ public:
     Val1 = 2131,
     Val2 = 2132,
     Val3,
-    Val4
+    Val4,
+    Val5i = 2131,
+    Val6i
   };
 
   enum class Enum14
@@ -148,7 +166,9 @@ public:
     Val1 = 2141,
     Val2 = 2142,
     Val3,
-    Val4
+    Val4,
+    Val5j = 2141,
+    Val6j
   };
 
   struct Struct1
@@ -158,7 +178,9 @@ public:
       Val1 = 4121,
       Val2 = 4122,
       Val3,
-      Val4
+      Val4,
+      Val5k = 4121,
+      Val6k
     };
 
     enum Enum13
@@ -166,7 +188,9 @@ public:
       Val1 = 4131,
       Val2 = 4132,
       Val3,
-      Val4
+      Val4,
+      Val5l = 4131,
+      Val6l
     };
 
     enum class Enum14
@@ -174,7 +198,9 @@ public:
       Val1 = 4141,
       Val2 = 4142,
       Val3,
-      Val4
+      Val4,
+      Val5m = 4141,
+      Val6m
     };
   };
 };
