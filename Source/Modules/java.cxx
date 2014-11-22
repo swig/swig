@@ -1368,6 +1368,7 @@ public:
     int unnamedinstance = GetFlag(parent, "unnamedinstance");
     String *parent_name = Getattr(parent, "name");
     String *nspace = getNSpace();
+    String *newsymname = 0;
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1392,14 +1393,20 @@ public:
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
 
+      if ((enum_feature == SimpleEnum) && GetFlag(parent, "scopedenum")) {
+	newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+	symname = newsymname;
+      }
+
       // Add to language symbol table
       String *scope = 0;
       if (unnamedinstance || !parent_name || enum_feature == SimpleEnum) {
-	if (proxy_class_name) {
+	String *enumClassPrefix = getEnumClassPrefix();
+	if (enumClassPrefix) {
 	  scope = NewString("");
 	  if (nspace)
 	    Printf(scope, "%s.", nspace);
-	  Printf(scope, "%s", proxy_class_name);
+	  Printf(scope, "%s", enumClassPrefix);
 	} else {
 	  scope = Copy(constants_interface_name);
 	}
@@ -1464,6 +1471,7 @@ public:
       Delete(scope);
     }
 
+    Delete(newsymname);
     Delete(tmpValue);
     Swig_restore(n);
     return SWIG_OK;
