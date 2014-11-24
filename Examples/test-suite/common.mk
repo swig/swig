@@ -86,6 +86,7 @@ Makefile: $(srcdir)/Makefile.in ../../../config.status
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	director_nested_class \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
