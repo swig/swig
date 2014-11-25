@@ -152,3 +152,13 @@ val = enumCheck(Class2.Enum14_Val6j, val)
 #val = enumCheck(Class2.Struct1.Enum14_Val4, val)
 #val = enumCheck(Class2.Struct1.Enum14_Val5m, 4141)
 #val = enumCheck(Class2.Struct1.Enum14_Val6m, val)
+
+class1 = Class1()
+enumCheck(class1.class1Test1(Enum1_Val5a), 13)
+enumCheck(class1.class1Test2(Class1.Enum12_Val5c), 1121)
+#enumCheck(class1.class1Test3(Class1.Struct1.Enum12_Val5f), 3121)
+
+enumCheck(globalTest1(Enum1_Val5a), 13)
+enumCheck(globalTest2(Class1.Enum12_Val5c), 1121)
+#enumCheck(globalTest3(Class1.Struct1.Enum12_Val5f), 3121)
+

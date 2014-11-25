@@ -138,6 +138,9 @@ public:
       Val6g
     };
   };
+  Enum1 class1Test1(Enum1 e) { return e; }
+  Enum12 class1Test2(Enum12 e) { return e; }
+  Struct1::Enum12 class1Test3(Struct1::Enum12 e) { return e; }
 };
 
 class Class2
@@ -206,6 +209,10 @@ public:
     };
   };
 };
+
+Enum1 globalTest1(Enum1 e) { return e; }
+Class1::Enum12 globalTest2(Class1::Enum12 e) { return e; }
+Class1::Struct1::Enum12 globalTest3(Class1::Struct1::Enum12 e) { return e; }
 
 %}
 

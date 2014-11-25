@@ -163,5 +163,14 @@ public class cpp11_strongly_typed_enumerations_runme {
     val = enumCheck(Class2.Struct1.Enum14.Val4.swigValue(), val);
     val = enumCheck(Class2.Struct1.Enum14.Val5m.swigValue(), 4141);
     val = enumCheck(Class2.Struct1.Enum14.Val6m.swigValue(), val);
+
+    Class1 class1 = new Class1();
+    enumCheck(class1.class1Test1(Enum1.Val5a).swigValue(), 13);
+    enumCheck(class1.class1Test2(Class1.Enum12.Val5c).swigValue(), 1121);
+    enumCheck(class1.class1Test3(Class1.Struct1.Enum12.Val5f).swigValue(), 3121);
+
+    enumCheck(cpp11_strongly_typed_enumerations.globalTest1(Enum1.Val5a).swigValue(), 13);
+    enumCheck(cpp11_strongly_typed_enumerations.globalTest2(Class1.Enum12.Val5c).swigValue(), 1121);
+    enumCheck(cpp11_strongly_typed_enumerations.globalTest3(Class1.Struct1.Enum12.Val5f).swigValue(), 3121);
   }
 }
