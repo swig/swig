@@ -1,7 +1,9 @@
-/* This testcase checks whether SWIG produces the correct wrapper for the
-   strongly typed enums. Enums with the same type are comparable. Enum classes
-   require support for nested classes. */
+// This testcase checks whether SWIG produces the correct wrappers for strongly typed enums.
+
 %module cpp11_strongly_typed_enumerations
+
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Class1::Struct1;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Class2::Struct1;
 
 /* Forward declarations (illegally accepted by SWIG - oh well!) */
 enum Enum1 : short;
@@ -205,15 +207,5 @@ public:
   };
 };
 
-/*
-TODO
-enum class MyClass {AAA, BBB, CCC};
-namespace Space {
-enum MyEnum {XXX, YYY, ZZZ};
-}
-struct SSS {
-  MyClass m;
-};
-*/
 %}
 
