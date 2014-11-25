@@ -1683,7 +1683,7 @@ int Language::enumvalueDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != PUBLIC))
     return SWIG_NOWRAP;
 
-  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  Swig_require("enumvalueDeclaration", n, "*name", "*sym:name", "?value", NIL);
   String *value = Getattr(n, "value");
   String *name = Getattr(n, "name");
   String *tmpValue;
@@ -1693,6 +1693,13 @@ int Language::enumvalueDeclaration(Node *n) {
   else
     tmpValue = NewString(name);
   Setattr(n, "value", tmpValue);
+
+  Node *parent = parentNode(n);
+  if (GetFlag(parent, "scopedenum")) {
+    String *symname = Swig_name_member(0, Getattr(parent, "sym:name"), Getattr(n, "sym:name"));
+    Setattr(n, "sym:name", symname);
+    Delete(symname);
+  }
 
   if (!CurrentClass || !cparse_cplusplus) {
     Setattr(n, "name", tmpValue);	/* for wrapping of enums in a namespace when emit_action is used */
@@ -1732,11 +1739,12 @@ int Language::memberconstantHandler(Node *n) {
     Setattr(n, "feature:except", Getattr(n, "feature:exceptvar"));
   }
 
+  String *enumvalue_symname = Getattr(n, "enumvalueDeclaration:sym:name"); // Only set if a strongly typed enum
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
 
-  String *mrename = Swig_name_member(0, EnumClassPrefix, symname);
+  String *mrename = Swig_name_member(0, EnumClassPrefix, enumvalue_symname ? enumvalue_symname : symname);
   Setattr(n, "sym:name", mrename);
 
   String *new_name = 0;
