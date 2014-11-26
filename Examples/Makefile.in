@@ -492,7 +492,7 @@ matlab: $(SRCDIR_SRCS)
 
 matlab_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -matlab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(MATLAB_MEX) -g $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES) $(LIBS) -o $(TARGET)_wrap
+	$(MATLAB_MEX) -g $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -o $(TARGET)_wrap
 
 # -----------------------------------------------------------------
 # Running an Matlab example
