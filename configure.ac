@@ -1020,7 +1020,7 @@ fi
 MATLAB_MEX=
 if test x"$MATLAB" != x; then
   AC_MSG_CHECKING([for Matlab mex command])
-  AC_PATH_PROG(MATLAB_MEX, [mex], [], [$MATLAB_HOME/bin])
+  AC_PATH_PROG(MATLAB_MEX, [mex], [], [$MATLAB_HOME/bin$PATH_SEPARATOR$PATH])
   if test x"$MATLAB_MEX" = x; then
     AC_MSG_WARN([Cannot find mex command. Disabling matlab])
     MATLAB=
@@ -1030,13 +1030,14 @@ fi
 MATLAB_MEXSUFFIX=
 if test x"$MATLAB" != x; then
   AC_MSG_CHECKING([for Matlab mexext command])
-  AC_PATH_PROG(MATLAB_MEXEXT, [mexext], [], [$MATLAB_HOME/bin])
+  AC_PATH_PROG(MATLAB_MEXEXT, [mexext], [], [$MATLAB_HOME/bin$PATH_SEPARATOR$PATH])
   if test x"$MATLAB_MEXEXT" = x; then
     AC_MSG_WARN([Cannot find mexext command. Disabling matlab])
     MATLAB=
+  else
+    MATLAB_MEXSUFFIX=`"$MATLAB_MEXEXT"`
+    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
   fi
-  MATLAB_MEXSUFFIX=`"$MATLAB_MEXEXT"`
-  AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
 fi
 
 AC_SUBST(MATLAB)
