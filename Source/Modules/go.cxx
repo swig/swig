@@ -1959,15 +1959,28 @@ private:
    * ------------------------------------------------------------------------ */
 
   virtual int enumvalueDeclaration(Node *n) {
+    Swig_require("enumvalueDeclaration", n, "*sym:name", NIL);
+    Node *parent = parentNode(n);
+
     if (!is_public(n)) {
       return SWIG_OK;
     }
-    if (Getattr(parentNode(n), "unnamed")) {
+    if (Getattr(parent, "unnamed")) {
       Setattr(n, "type", NewString("int"));
     } else {
-      Setattr(n, "type", Getattr(parentNode(n), "enumtype"));
+      Setattr(n, "type", Getattr(parent, "enumtype"));
     }
-    return goComplexConstant(n, Getattr(n, "type"));
+
+    if (GetFlag(parent, "scopedenum")) {
+      String *symname = Getattr(n, "sym:name");
+      symname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+      Setattr(n, "sym:name", symname);
+      Delete(symname);
+    }
+
+    int ret = goComplexConstant(n, Getattr(n, "type"));
+    Swig_restore(n);
+    return ret;
   }
 
   /* -----------------------------------------------------------------------
