@@ -32,25 +32,25 @@ Makefile: $(srcdir)/Makefile.in ./config.status
 	$(SHELL) ./config.status
 
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
-docs: $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/ccache-man.html
+docs: ccache.man web/ccache-man.html
 
 $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-$(srcdir)/$(PACKAGE_NAME).1: $(srcdir)/ccache.yo
-	-yodl2man -o $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/ccache.yo
+ccache.man: ccache.yo
+	yodl2man -o ccache.man ccache.yo
 
 $(srcdir)/web/ccache-man.html: $(srcdir)/ccache.yo
 	yodl2html -o $(srcdir)/web/ccache-man.html $(srcdir)/ccache.yo
 
-install: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
+install: $(PACKAGE_NAME)$(EXEEXT) ccache.man
 	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
 	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
+	${INSTALLCMD} -m 644 ${srcdir}/ccache.man $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
 uninstall: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
 	rm -f $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
@@ -69,8 +69,7 @@ distclean: clean
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
-	/bin/rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/ccache-man.html
-
+	/bin/rm -f ccache.man web/ccache-man.html
 
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.
