@@ -1,6 +1,12 @@
 /* File : example.i */
 %module swigexample
 
+%{
+#include <complex>
+%}
+
+%include std_complex.i
+
 /* A few preprocessor macros */
 
 #define    ICONST      42
@@ -23,3 +29,4 @@
 
 %constant int iconst = 37;
 %constant double fconst = 3.14;
+%constant std::complex<double> cxconst(3.14,-3);

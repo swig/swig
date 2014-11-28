@@ -26,3 +26,13 @@ double Square::area(void) {
 double Square::perimeter(void) {
   return 4*width;
 }
+
+double CircleInscribedInSquare::area(void) {
+  return Square::area() - Circle::area();
+}
+
+#ifdef FIXME_SWIGMATLAB
+double CircleInscribedInSquare::perimeter(void) {
+  return Square::perimeter() + Circle::area();
+}
+#endif

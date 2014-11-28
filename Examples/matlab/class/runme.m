@@ -8,6 +8,7 @@
 disp('Creating some objects:')
 c = swigexample.Circle(10);
 s = swigexample.Square(10);
+u = swigexample.CircleInscribedInSquare(10);
 
 % ----- Access a static member -----
 
@@ -23,19 +24,26 @@ c.y = 30;
 s.x = -10;
 s.y = 5;
 
+u.x = 1;
+u.y = 1;
+
 disp(sprintf('Here is their current position:'))
 disp(sprintf('    Circle = (%f, %f)',c.x,c.y))
 disp(sprintf('    Square = (%f, %f)',s.x,s.y))
+disp(sprintf(' CinSquare = (%f, %f)',u.x,u.y))
 
 % ----- Call some methods -----
 
 disp('Here are some properties of the shapes:')
-for i=0:1
-  if i
+for i=0:2
+  if i==0
     o = c;
-  else
+  elseif i==1
     o = s;
+  elseif i==2
+    o = u;
   end
+  disp(sprintf('  type      = %s', o.swigType()))
   disp(sprintf('  area      = %f', o.area()))
   disp(sprintf('  perimeter = %f', o.perimeter()))
 end
@@ -48,6 +56,7 @@ disp('Guess I will clean up now')
 % Note: this invokes the virtual destructor
 clear c
 clear s
+clear u
 
 disp(sprintf('%i shapes remain', swigexample.Shape.nshapes));
 disp('Goodbye')

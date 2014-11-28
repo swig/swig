@@ -43,3 +43,17 @@ public:
   virtual double area();
   virtual double perimeter();
 };
+
+// Test multiple inheritance
+class CircleInscribedInSquare : public Circle, public Square {
+private:
+public:
+  CircleInscribedInSquare(double w) : Circle(w/2.0), Square(w) { }
+
+  virtual double area();
+//#define FIXME_SWIGMATLAB // uncomment this to demonstrate matlab choke
+#ifdef FIXME_SWIGMATLAB
+  virtual double perimeter();
+#endif
+  // let perimeter resolve itself
+};

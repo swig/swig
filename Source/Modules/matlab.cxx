@@ -83,7 +83,7 @@ protected:
   void toConstant(String *constname, String *constdef);
   void finalizeConstant();
   void createSwigRef();
-  void autodoc_to_m(Node *n);
+  void autodoc_to_m(File* f, Node *n);
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
   void addMissingParameterNames(ParmList *plist, int arg_offset);
@@ -857,7 +857,7 @@ int MATLAB::globalfunctionHandler(Node *n){
 
   // Add function to matlab proxy
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
-  autodoc_to_m(n);
+  autodoc_to_m(f_wrap_m, n);
   if (min_num_returns==0) {
     Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
   } else {
@@ -1233,7 +1233,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
   // Add function to .m wrapper
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
-  autodoc_to_m(n);
+  autodoc_to_m(f_wrap_m, n);
   if (min_num_returns==0) {
     Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
   } else {
@@ -1463,7 +1463,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
 
   // Add function to .m wrapper
   Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
-  autodoc_to_m(n);
+  autodoc_to_m(static_methods, n);
   if (min_num_returns==0) {
     Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
   } else {
@@ -1698,24 +1698,24 @@ String* MATLAB::matlab_escape(String *_s) {
   return r;
 }
 
-void MATLAB::autodoc_to_m(Node *n)
+void MATLAB::autodoc_to_m(File* f, Node *n)
 {
   if (!n)
     return;
   process_autodoc(n);
   String *synopsis = Getattr(n, "matlab:synopsis");
   String *decl_info = Getattr(n, "matlab:decl_info");
-  String *cdecl_info = Getattr(n, "matlab:cdecl_info");
+  // String *cdecl_info = Getattr(n, "matlab:cdecl_info");
   String *args_info = Getattr(n, "matlab:args_info");
 
   if (Len(synopsis)>0)
-    Printf(f_wrap_m,"    %%%s\n", matlab_escape(synopsis));
+    Printf(f,"    %%%s\n", matlab_escape(synopsis));
   if (Len(decl_info)>0)
-    Printf(f_wrap_m,"    %%%s\n", matlab_escape(decl_info));
-  if (Len(cdecl_info)>0)
-    Printf(f_wrap_m,"    %%%s\n", matlab_escape(cdecl_info));
+    Printf(f,"    %%%s\n", matlab_escape(decl_info));
+  // if (Len(cdecl_info)>0)
+  //   Printf(f,"    %%%s\n", matlab_escape(cdecl_info));
   if (Len(args_info)>0)
-    Printf(f_wrap_m,"    %%%s\n", matlab_escape(args_info));
+    Printf(f,"    %%%s\n", matlab_escape(args_info));
 }
 
 int MATLAB::getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_returns) {
