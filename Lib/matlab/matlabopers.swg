@@ -50,7 +50,7 @@
 %ignoreoperator(EQ)         operator=;
 %ignoreoperator(ARROWSTAR)  operator->*;
 %ignoreoperator(ARROW)      operator->;
-%ignoreoperator(PARENS)     operator*();
-%ignoreoperator(PARENSC)    operator*() const;
+// %ignoreoperator(PARENS)     operator*();
+// %ignoreoperator(PARENSC)    operator*() const;
 
 #endif /* cplusplus */
