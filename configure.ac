@@ -1004,11 +1004,11 @@ else
       # strip matlab and bin to find home
       MATLAB_HOME=`dirname "$MATLAB"`
       MATLAB_HOME=`dirname "$MATLAB_HOME"`
-      AC_MSG_RESULT([$MATLAB_HOME])
+      AC_MSG_RESULT([found matlab home: $MATLAB_HOME])
     fi
   else
     MATLAB_HOME="$use_matlab"
-    AC_MSG_RESULT([$MATLAB_HOME])
+    AC_MSG_RESULT([looking for matlab in: $MATLAB_HOME])
     AC_PATH_PROG(MATLAB, [matlab], [notfound], [$MATLAB_HOME/bin])
     if test  x"$MATLAB" = xnotfound; then
       AC_MSG_RESULT([matlab executable not found, Disabling Matlab])
@@ -1036,7 +1036,7 @@ if test x"$MATLAB" != x; then
     MATLAB=
   else
     MATLAB_MEXSUFFIX=`"$MATLAB_MEXEXT"`
-    AC_MSG_RESULT([$MATLAB_MEXSUFFIX])
+    AC_MSG_RESULT([matlab mex suffix: $MATLAB_MEXSUFFIX])
   fi
 fi
 
