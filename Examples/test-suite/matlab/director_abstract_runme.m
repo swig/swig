@@ -1,18 +1,14 @@
 import director_abstract.*
 
-MyFoo=@() subclass(director_abstract.Foo(),@ping);
-function out=ping(self)
-  out='MyFoo::ping()';
-end
-
+MyFoo=@() subclass(director_abstract.Foo(),@director_abstract_helper);
 
 a = MyFoo();
 
-if (~strcmp(a.ping(),'MyFoo::ping()'))
-  error(a.ping())
+if (~strcmp(a.director_abstract_helper(),'MyFoo::director_abstract_helper()'))
+  error(a.director_abstract_helper())
 end
 
-if (~strcmp(a.pong(),'Foo::pong();MyFoo::ping()'))
+if (~strcmp(a.pong(),'Foo::pong();MyFoo::director_abstract_helper()'))
   error(a.pong())
 end
 

@@ -13,86 +13,57 @@ TargetLangSemiGrandChild=@() subclass(GrandChild());
 TargetLangOrphanPerson=@() subclass(OrphanPerson(),'id',@(self) 'TargetLangOrphanPerson');
 TargetLangOrphanChild=@() subclass(OrphanChild(),'id',@(self) 'TargetLangOrphanChild');
 
-
-function check(person,expected)
-  global Caller;
-
-  % Normal target language polymorphic call
-  ret = person.id();
-  if (ret ~= expected)
-    raise ('Failed. Received: ' + ret + ' Expected: ' + expected);
-  end
-
-  % Polymorphic call from C++
-  caller = Caller();
-  caller.setCallback(person);
-  ret = caller.call();
-  if (ret ~= expected)
-    error ('Failed. Received: ' + ret + ' Expected: ' + expected);
-  end
-
-  % Polymorphic call of object created in target language and passed to C++ and back again
-  baseclass = caller.baseClass();
-  ret = baseclass.id();
-  if (ret ~= expected)
-    error ('Failed. Received: ' + ret + ' Expected: ' + expected);
-  end
-
-  caller.resetCallback();
-end
-
-
 person = Person();
-check(person, 'Person');
+director_classic_helper(person, 'Person');
 clear person;
 
 person = Child();
-check(person, 'Child');
+director_classic_helper(person, 'Child');
 clear person;
 
 person = GrandChild();
-check(person, 'GrandChild'); 
+director_classic_helper(person, 'GrandChild');
 clear person;
 
 person = TargetLangPerson();
-check(person, 'TargetLangPerson'); 
+director_classic_helper(person, 'TargetLangPerson');
 clear person;
 
 person = TargetLangChild();
-check(person, 'TargetLangChild'); 
+director_classic_helper(person, 'TargetLangChild');
 clear person;
 
 person = TargetLangGrandChild();
-check(person, 'TargetLangGrandChild'); 
+director_classic_helper(person, 'TargetLangGrandChild');
 clear person;
 
 % Semis - don't override id() in target language
 person = TargetLangSemiPerson();
-check(person, 'Person'); 
+director_classic_helper(person, 'Person');
 clear person;
 
 person = TargetLangSemiChild();
-check(person, 'Child'); 
+director_classic_helper(person, 'Child');
 clear person;
 
 person = TargetLangSemiGrandChild();
-check(person, 'GrandChild'); 
+director_classic_helper(person, 'GrandChild');
 clear person;
 
 % Orphans - don't override id() in C++
 person = OrphanPerson();
-check(person, 'Person');
+director_classic_helper(person, 'Person');
 clear person;
 
 person = OrphanChild();
-check(person, 'Child');
+director_classic_helper(person, 'Child');
 clear person;
 
 person = TargetLangOrphanPerson();
-check(person, 'TargetLangOrphanPerson'); 
+director_classic_helper(person, 'TargetLangOrphanPerson');
 clear person;
 
 person = TargetLangOrphanChild();
-check(person, 'TargetLangOrphanChild'); 
+director_classic_helper(person, 'TargetLangOrphanChild');
 clear person;
 
