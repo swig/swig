@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = matlab
-MATLAB        = @MATLAB@ -nodisplay -nosplash
+MATLAB        = @MATLAB@ -nodisplay -nosplash -nojvm
 SCRIPTSUFFIX = _runme
 
 srcdir       = @srcdir@
@@ -381,7 +381,7 @@ CPP_TEST_BROKEN += \
 	apply_signed_char \
 	apply_strings \
 	nested_directors \
- 	special_variables \
+	special_variables \
 	typemap_directorout \
 	director_abstract \
 	director_alternating \
@@ -456,8 +456,24 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX).m ]; then \
+	 RUNSCRIPT="\
+	  try; \
+	    $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  catch err; \
+	    fprintf(1, ['ERROR: ' err.message '\\\n']); \
+	    fprintf(2, ['ERROR: ' err.message '\\\n']); \
+	    exit(1); \
+	    end; \
+	  exit(0)" ; \
 	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MATLABPATH=$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH \
-	 $(RUNTOOL) $(MATLAB) -r "try; $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)"; \
+	 $(RUNTOOL) $(MATLAB) -r "$$RUNSCRIPT"  $(RUNPIPE); \
+	 if [ $$? -ne 0 ] ; then \
+	   echo "\n$* failed" $(RUNPIPE) ; \
+	 else \
+	   echo "\n$* passed" $(RUNPIPE) ; \
+	 fi \
+	else \
+	 echo "skipping test $* : $*$(SCRIPTSUFFIX).m not found"  $(RUNPIPE); \
 	fi
 
 # Clean: remove the generated .m file

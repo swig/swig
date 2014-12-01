@@ -134,6 +134,13 @@ Examples/test-suite/uffi/*/
 # Javascript generated files
 *.gyp
 
+# Matlab generated files
+*.mex*
+# module directories
+[+]*/
+# matlab swig class
+SwigRef.m
+
 # Octave generated files
 swigexample*.oct
 
