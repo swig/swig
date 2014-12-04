@@ -461,6 +461,8 @@ fi])
 
 AC_ARG_WITH(alllang, AS_HELP_STRING([--without-alllang], [Disable all languages]), with_alllang="$withval")
 
+AC_CHECK_PROGS(PKGCONFIG, [pkg-config])
+
 #--------------------------------------------------------------------
 # Look for Tcl
 #--------------------------------------------------------------------
@@ -1203,37 +1205,21 @@ else
 
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jsclib =path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
-  AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
 
-  # look for the library when not provided
-  if test -z "$JSCORELIB"; then
-    case $host in
-    *-*-linux*)
-      dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-      for i in $dirs ; do
-        if test -r $i/libjavascriptcoregtk-1.0.so; then
-          AC_MSG_RESULT($i)
-          JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
-          JSCOREVERSION=`pkg-config --modversion javascriptcoregtk-1.0`
-          break
-        fi
-      done
-
-      if test -z "$JSCORELIB"; then
-        AC_MSG_RESULT(not found)
-        JSCENABLED=
-      else
-        JSCOREDYNAMICLINKING="$JSCORELIB"
-        JSCENABLED=1
-      fi
-      ;;
-    *-*-darwin*)
-      JSCOREDYNAMICLINKING="-framework JavaScriptCore"
+  if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
+    AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
+    if pkg-config javascriptcoregtk-1.0; then
+      JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
+      JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+    fi
+    if test -z "$JSCORELIB"; then
+      AC_MSG_RESULT(not found)
+      JSCENABLED=
+    else
+      AC_MSG_RESULT([$JSCORELIB])
+      JSCOREDYNAMICLINKING="$JSCORELIB"
       JSCENABLED=1
-      ;;
-    *)
-      ;;
-    esac
+    fi
   fi
 
   #----------------------------------------------------------------
