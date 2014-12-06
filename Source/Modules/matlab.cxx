@@ -143,7 +143,7 @@ MATLAB::MATLAB() :
   director_language = 1;
 }
 
-void MATLAB::main(int argc, char *argv[]){
+void MATLAB::main(int argc, char *argv[]) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering main\n");
 #endif
@@ -231,7 +231,7 @@ int MATLAB::top(Node *n) {
   String *outfile = Getattr(n, "outfile");
 
   // Add default package prefix
-  if (!pkg_name){
+  if (!pkg_name) {
     pkg_name = Copy(module);
   }
 
@@ -372,9 +372,9 @@ int MATLAB::top(Node *n) {
   Delete(f_begin);
   Delete(f_constants);
   Delete(f_gateway);
-  if(pkg_name) Delete(pkg_name);
-  if(pkg_name_fullpath) Delete(pkg_name_fullpath);
-  if(op_prefix) Delete(op_prefix);
+  if (pkg_name) Delete(pkg_name);
+  if (pkg_name_fullpath) Delete(pkg_name_fullpath);
+  if (op_prefix) Delete(op_prefix);
 
   return SWIG_OK;
 }
@@ -559,7 +559,7 @@ String* MATLAB::convertValue(String *v, SwigType *t) {
   return 0;
 }
 
-int MATLAB::functionWrapper(Node *n){
+int MATLAB::functionWrapper(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering functionWrapper\n");
 #endif
@@ -717,8 +717,8 @@ int MATLAB::functionWrapper(Node *n){
   for (p = l; p;) {
     if ((tm = Getattr(p, "tmap:argout"))) {
       Replaceall(tm, "$source", Getattr(p, "lname"));
-      Replaceall(tm, "$target", "if(--resc>=0) *resv++");
-      Replaceall(tm, "$result", "if(--resc>=0) *resv++");
+      Replaceall(tm, "$target", "if (--resc>=0) *resv++");
+      Replaceall(tm, "$result", "if (--resc>=0) *resv++");
       Replaceall(tm, "$arg", Getattr(p, "emit:input"));
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       Printv(outarg, tm, "\n", NIL);
@@ -763,7 +763,7 @@ int MATLAB::functionWrapper(Node *n){
 
     Printf(f->code, "%s\n", tm);
 
-    Printf(f->code, "if(_out && --resc>=0) *resv++ = _out;\n");
+    Printf(f->code, "if (_out && --resc>=0) *resv++ = _out;\n");
     Delete(tm);
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -815,7 +815,7 @@ int MATLAB::functionWrapper(Node *n){
   return SWIG_OK;
 }
 
-int MATLAB::globalfunctionHandler(Node *n){
+int MATLAB::globalfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering globalfunctionHandler\n");
 #endif
@@ -825,7 +825,7 @@ int MATLAB::globalfunctionHandler(Node *n){
   if (flag!=SWIG_OK) return flag;
 
   // Skip if inside class
-  if(class_name) return flag;
+  if (class_name) return flag;
 
   // Name of function
   String *symname = Getattr(n, "sym:name");
@@ -844,9 +844,9 @@ int MATLAB::globalfunctionHandler(Node *n){
   Append(mfile,"/");
   Append(mfile,symname);
   Append(mfile,".m");
-  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_wrap_m){
+  if (!f_wrap_m) {
     FileErrorDisplay(mfile);
     SWIG_exit(EXIT_FAILURE);
   }
@@ -872,13 +872,13 @@ int MATLAB::globalfunctionHandler(Node *n){
   return flag;
 }
 
-int MATLAB::variableWrapper(Node *n){
+int MATLAB::variableWrapper(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering variableWrapper\n");
 #endif
   
   // Skip if inside class
-  if(class_name)
+  if (class_name)
     return Language::variableWrapper(n);
 
   if (Language::variableWrapper(n) != SWIG_OK)
@@ -900,16 +900,16 @@ int MATLAB::variableWrapper(Node *n){
   Append(mfile,"/");
   Append(mfile,symname);
   Append(mfile,".m");
-  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_wrap_m){
+  if (!f_wrap_m) {
     FileErrorDisplay(mfile);
     SWIG_exit(EXIT_FAILURE);
   }
 
   // Add getter/setter function
   int gw_ind_get = toGateway(getname,getwname);
-  if(GetFlag(n, "feature:immutable")){
+  if (GetFlag(n, "feature:immutable")) {
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(f_wrap_m,"end\n");
@@ -939,7 +939,7 @@ int MATLAB::variableWrapper(Node *n){
   return SWIG_OK;
 }
 
-int MATLAB::constantWrapper(Node *n){
+int MATLAB::constantWrapper(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering constantWrapper\n");
 #endif
@@ -972,15 +972,15 @@ int MATLAB::constantWrapper(Node *n){
     return SWIG_NOWRAP;
   }
 
-  if(!class_name){
+  if (!class_name) {
     // Create MATLAB proxy
     String* mfile=NewString(pkg_name_fullpath);
     Append(mfile,"/");
     Append(mfile,symname);
     Append(mfile,".m");
-    if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+    if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
     f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-    if (!f_wrap_m){
+    if (!f_wrap_m) {
       FileErrorDisplay(mfile);
       SWIG_exit(EXIT_FAILURE);
     }
@@ -1033,7 +1033,7 @@ int MATLAB::classHandler(Node *n) {
   //    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
 
   // Save current class name
-  if(class_name) SWIG_exit(EXIT_FAILURE);
+  if (class_name) SWIG_exit(EXIT_FAILURE);
   class_name = Getattr(n, "sym:name");
   // store class_name for use by NewPointerObj
   {
@@ -1070,9 +1070,9 @@ int MATLAB::classHandler(Node *n) {
   Append(mfile,".m");
 
   // Create wrapper .m file
-  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_wrap_m){
+  if (!f_wrap_m) {
     FileErrorDisplay(mfile);
     SWIG_exit(EXIT_FAILURE);
   }
@@ -1086,7 +1086,7 @@ int MATLAB::classHandler(Node *n) {
   // Declare base classes, if any
   List *baselist = Getattr(n, "bases");
   int base_count = 0;
-  if(baselist){
+  if (baselist) {
     // Loop over base classes
     for (Iterator b = First(baselist); b.item; b = Next(b)) {
       // Get base class name, possibly ignore
@@ -1102,11 +1102,11 @@ int MATLAB::classHandler(Node *n) {
       }
 #endif
       String *bname = Getattr(b.item, "sym:name");
-      if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
       base_count++;
         
       // Separate multiple base classes with &
-      if(base_count>1) Printf(f_wrap_m," & ");
+      if (base_count>1) Printf(f_wrap_m," & ");
       
       // Add to list of bases
       Printf(f_wrap_m,"%s.%s",pkg_name,bname);
@@ -1124,7 +1124,7 @@ int MATLAB::classHandler(Node *n) {
   static_methods=NewString("");
 
   // If no bases, top level class
-  if(base_count==0){
+  if (base_count==0) {
     Printf(f_wrap_m,"SwigRef");
   }
     
@@ -1138,7 +1138,7 @@ int MATLAB::classHandler(Node *n) {
   Language::classHandler(n);
 
   // Add constructor, if none added
-  if(!have_constructor){
+  if (!have_constructor) {
     wrapConstructor(-1,class_name,0);
     have_constructor = true;
   }
@@ -1154,7 +1154,7 @@ int MATLAB::classHandler(Node *n) {
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "sym:name");
-      if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
       Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s.%s(self,i);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
       Printf(f_wrap_m,"        return\n");
@@ -1171,7 +1171,7 @@ int MATLAB::classHandler(Node *n) {
   // Fallback to base class (does not work with multiple overloading)
   for (Iterator b = First(baselist); b.item; b = Next(b)) {
       String *bname = Getattr(b.item, "sym:name");
-      if(!bname || GetFlag(b.item,"feature:ignore")) continue;
+      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
       Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s.%s(self,i,v);\n",pkg_name,bname);
       Printf(f_wrap_m,"      if ok\n");
       Printf(f_wrap_m,"        return\n");
@@ -1246,29 +1246,29 @@ int MATLAB::memberfunctionHandler(Node *n) {
   return flag;
 }
 
-void MATLAB::initGateway(){
-  if(CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
-  Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]){\n");
+void MATLAB::initGateway() {
+  if (CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
+  Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {\n");
   
   // Load module if first call
-  Printf(f_gateway,"  if(!is_loaded){\n");
+  Printf(f_gateway,"  if (!is_loaded) {\n");
   Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name_d);\n");
   Printf(f_gateway,"    is_loaded=true;\n");
   Printf(f_gateway,"  }\n");
 
   // The first argument is always the ID
-  Printf(f_gateway,"  if(--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");
+  Printf(f_gateway,"  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"This mex file should only be called from inside the .m files generated by SWIG. First input should be the function ID .\");\n");
   Printf(f_gateway,"  int fcn_id = (int)mxGetScalar(*argv++);\n");
 
   // The second argument is always the function name
   Printf(f_gateway,"  char cmd[%d];\n",CMD_MAXLENGTH);
-  Printf(f_gateway,"  if(--argc < 0 || mxGetString(*argv++, cmd, sizeof(cmd)))\n");
+  Printf(f_gateway,"  if (--argc < 0 || mxGetString(*argv++, cmd, sizeof(cmd)))\n");
   Printf(f_gateway,"    mexErrMsgTxt(\"First input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
 
   // Begin the switch:
   Printf(f_gateway,"  int name_ok = 0;\n");
-  Printf(f_gateway,"  switch(fcn_id){\n");
+  Printf(f_gateway,"  switch(fcn_id) {\n");
 
   // Constants have index 0
   String* swigConstant=NewString("swigConstant");
@@ -1276,45 +1276,45 @@ void MATLAB::initGateway(){
   Delete(swigConstant);
 }
 
-int MATLAB::toGateway(String *fullname, String *wname){
-  if(Len(fullname)>CMD_MAXLENGTH){
+int MATLAB::toGateway(String *fullname, String *wname) {
+  if (Len(fullname)>CMD_MAXLENGTH) {
     SWIG_exit(EXIT_FAILURE);
   }
-  Printf(f_gateway,"  case %d: if((name_ok=!strcmp(\"%s\",cmd))) %s(resc,resv,argc,(mxArray**)(argv)); break;\n",num_gateway,fullname,wname);
+  Printf(f_gateway,"  case %d: if ((name_ok=!strcmp(\"%s\",cmd))) %s(resc,resv,argc,(mxArray**)(argv)); break;\n",num_gateway,fullname,wname);
   return num_gateway++;
 }
 
-void MATLAB::finalizeGateway(){
+void MATLAB::finalizeGateway() {
   Printf(f_gateway,"  default: mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No function id %%d.\",fcn_id);\n");
   Printf(f_gateway,"  }\n");
-  Printf(f_gateway,"  if(!name_ok){\n");
+  Printf(f_gateway,"  if (!name_ok) {\n");
   Printf(f_gateway,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"Mismatching name (%%s) for function ID %%d.\",cmd,fcn_id);\n");
   Printf(f_gateway,"  }\n");
   Printf(f_gateway,"}\n");
 }
 
-void MATLAB::initConstant(){
-  if(CPlusPlus) Printf(f_constants,"extern \"C\"\n");
-  Printf(f_constants,"void swigConstant(int resc, mxArray *resv[], int argc, mxArray *argv[]){\n");
+void MATLAB::initConstant() {
+  if (CPlusPlus) Printf(f_constants,"extern \"C\"\n");
+  Printf(f_constants,"void swigConstant(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
   
   // Get constant name and check inputs
   Printf(f_constants,"  char cmd[%d];\n",CMD_MAXLENGTH);
-  Printf(f_constants,"  if(argc != 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
+  Printf(f_constants,"  if (argc != 1 || mxGetString(argv[0], cmd, sizeof(cmd)))\n");
   Printf(f_constants,"    mexErrMsgTxt(\"Second input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
-  Printf(f_constants,"  if(resc != 1)\n");
+  Printf(f_constants,"  if (resc != 1)\n");
   Printf(f_constants,"    mexErrMsgTxt(\"Expected exactly one output.\");\n  ");
 }
 
-void MATLAB::toConstant(String *constname, String *constdef){
-  if(Len(constname)>CMD_MAXLENGTH){
+void MATLAB::toConstant(String *constname, String *constdef) {
+  if (Len(constname)>CMD_MAXLENGTH) {
     SWIG_exit(EXIT_FAILURE);
   }
-  Printf(f_constants,"if(!strcmp(\"%s\",cmd)){\n",constname);
+  Printf(f_constants,"if (!strcmp(\"%s\",cmd)) {\n",constname);
   Printf(f_constants,"    *resv = %s\n",constdef);
   Printf(f_constants,"  } else ");
 }
 
-void MATLAB::finalizeConstant(){
+void MATLAB::finalizeConstant() {
   Printf(f_constants," {\n");
   Printf(f_constants,"    mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No constant %%s.\",cmd);\n");
   Printf(f_constants,"  }\n");
@@ -1363,11 +1363,11 @@ int MATLAB::membervariableHandler(Node *n) {
   return Language::membervariableHandler(n);
 }
 
-void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname){
+void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname) {
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin~=1 || ~ischar(varargin{1}) || ~strcmp(varargin{1},'_swigCreate')\n");
-    if(fullname==0){
+    if (fullname==0) {
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
@@ -1391,7 +1391,7 @@ int MATLAB::constructorHandler(Node *n) {
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
 
-  if(!overloaded || last_overload){
+  if (!overloaded || last_overload) {
     // Add function to .m wrapper
     String *symname = Getattr(n, "sym:name");
     String *fullname = Swig_name_construct(NSPACE_TODO, symname);
@@ -1528,7 +1528,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
 
   // Add to function switch
   int gw_ind_get = toGateway(getname,getwname);
-  if(GetFlag(n, "feature:immutable")){
+  if (GetFlag(n, "feature:immutable")) {
     Printf(static_methods,"function v = %s()\n",symname);  
     Printf(static_methods,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(static_methods,"end\n");
@@ -1565,7 +1565,7 @@ void MATLAB::nameUnnamedParams(ParmList *parms, bool all) {
   Parm *p;
   int i;
   for (p = parms, i=1; p; p = nextSibling(p),i++) {
-    if(all || !Getattr(p,"name")) {
+    if (all || !Getattr(p,"name")) {
       String* parname=NewStringf("swig_par_name_%d", i);
       Setattr(p,"name",parname);
     }
@@ -1581,12 +1581,12 @@ String *MATLAB::getOverloadedName(Node *n) {
   return overloaded_name;
 }
 
-void MATLAB::createSwigRef(){
+void MATLAB::createSwigRef() {
   // Create file
   String* mfile = NewString("SwigRef.m");
-  if(f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_wrap_m){
+  if (!f_wrap_m) {
     FileErrorDisplay(mfile);
     SWIG_exit(EXIT_FAILURE);
   }
