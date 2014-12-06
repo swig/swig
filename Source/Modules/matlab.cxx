@@ -93,6 +93,7 @@ protected:
   static String* matlab_escape(String *_s);
   void wrapConstructor(int gw_ind, String *symname, String *fullname);
   int getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_returns);
+  void checkValidSymName(Node *node);
 };
 
 extern "C" Language *swig_matlab(void) {
@@ -856,6 +857,7 @@ int MATLAB::globalfunctionHandler(Node *n) {
   int gw_ind = toGateway(wname,wname);
 
   // Add function to matlab proxy
+  checkValidSymName(n);
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
   if (min_num_returns==0) {
@@ -908,6 +910,7 @@ int MATLAB::variableWrapper(Node *n) {
 
   // Add getter/setter function
   int gw_ind_get = toGateway(getname,getwname);
+  checkValidSymName(n);
   if (GetFlag(n, "feature:immutable")) {
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
@@ -984,6 +987,7 @@ int MATLAB::constantWrapper(Node *n) {
     }
 
     // Add getter function
+    checkValidSymName(n);
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
@@ -1135,6 +1139,7 @@ int MATLAB::classHandler(Node *n) {
 
   // Add constructor, if none added
   if (!have_constructor) {
+    checkValidSymName(n);
     wrapConstructor(-1,class_name,0);
     have_constructor = true;
   }
@@ -1228,6 +1233,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
   int gw_ind = toGateway(fullname,wname);
 
   // Add function to .m wrapper
+  checkValidSymName(n);
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
   if (min_num_returns==0) {
@@ -1397,6 +1403,7 @@ int MATLAB::constructorHandler(Node *n) {
     int gw_ind = toGateway(fullname,wname);
 
     // Add to .m file
+    checkValidSymName(n);
     wrapConstructor(gw_ind,symname,fullname);
 
     Delete(wname);
@@ -1458,6 +1465,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   int gw_ind = toGateway(fullname,wname);
 
   // Add function to .m wrapper
+  checkValidSymName(n);
   Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
   autodoc_to_m(static_methods, n);
   if (min_num_returns==0) {
@@ -1485,6 +1493,7 @@ int MATLAB::memberconstantHandler(Node *n) {
   String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
     
   // Add getter function
+  checkValidSymName(n);
   Printf(static_methods,"    function v = %s()\n",symname);  
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
@@ -1523,6 +1532,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   String *setwname = Swig_name_wrapper(setname);
 
   // Add to function switch
+  checkValidSymName(n);
   int gw_ind_get = toGateway(getname,getwname);
   if (GetFlag(n, "feature:immutable")) {
     Printf(static_methods,"function v = %s()\n",symname);  
@@ -1737,3 +1747,12 @@ int MATLAB::getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_retur
   return SWIG_OK;
 }
 
+void MATLAB::checkValidSymName(Node *node) {
+  String *symname = Getattr(node, "sym:name");
+  String *kind = Getattr(node, "kind");
+  if (symname && !Strncmp(symname, "_", 1)) {
+    Printf(stderr, "Warning: invalid MATLAB symbol '%s' (%s)\n"
+           "  Symbols may not start with '_'.  Maybe try something like this: %%rename(u%s) %s;\n",
+           symname, kind, symname, symname);
+  }
+}
