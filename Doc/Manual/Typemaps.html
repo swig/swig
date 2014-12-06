@@ -2052,7 +2052,19 @@ wrap_foo() {
 
 <p>There is an exception: if the variable name starts with the <tt>_global_</tt> prefix,
 the argument number is not appended. Such variables can be used throughout the generated
-wrapper function.</p>
+wrapper function. For example, the above typemap could be rewritten to use <tt>_global_temp</tt>
+instead of <tt>temp</tt> and the generated code would then contain a single <tt>_global_temp</tt> variable
+instead of <tt>temp1</tt>, <tt>temp2</tt> and <tt>temp3</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) std::string * <b>(std::string _global_temp)</b> {
+ ... as above ...
+}
+</pre>
+</div>
+
 
 <p>
 Some typemaps do not recognize local variables (or they may simply not
