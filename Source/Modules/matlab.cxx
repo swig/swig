@@ -236,11 +236,12 @@ int MATLAB::top(Node *n) {
   }
 
   // Create subdirectory
-  const String* basedirectory = SWIG_output_directory();
-  pkg_name_fullpath = NewString("+");
-  Append(pkg_name_fullpath,pkg_name);
-  (void)Replace(pkg_name_fullpath,".","+/",DOH_REPLACE_ANY);
-  Swig_new_subdirectory((String*)basedirectory,pkg_name_fullpath);
+  String* pkg_directory_name = NewString("+");
+  Append(pkg_directory_name, pkg_name);
+  (void)Replace(pkg_directory_name,".","+/", DOH_REPLACE_ANY);
+  pkg_name_fullpath = NewString("");
+  Printf(pkg_name_fullpath, "%s%s", SWIG_output_directory(), pkg_directory_name);
+  Swig_new_subdirectory((String*)SWIG_output_directory(), pkg_directory_name);
 
   // Create output (mex) file
   f_begin = NewFile(outfile, "w", SWIG_output_files());
@@ -840,11 +841,10 @@ int MATLAB::globalfunctionHandler(Node *n) {
   if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
 
   // Create MATLAB proxy
-  String* mfile=NewString(pkg_name_fullpath);
-  Append(mfile,"/");
-  Append(mfile,symname);
-  Append(mfile,".m");
-  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  String* mfile = NewString("");
+  Printf(mfile, "%s/%s.m", pkg_name_fullpath, symname);
+  if (f_wrap_m)
+    SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
   if (!f_wrap_m) {
     FileErrorDisplay(mfile);
@@ -896,11 +896,10 @@ int MATLAB::variableWrapper(Node *n) {
   String *setwname = Swig_name_wrapper(setname);
 
   // Create MATLAB proxy
-  String* mfile=NewString(pkg_name_fullpath);
-  Append(mfile,"/");
-  Append(mfile,symname);
-  Append(mfile,".m");
-  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  String* mfile = NewString("");
+  Printf(mfile, "%s/%s.m", pkg_name_fullpath, symname);
+  if (f_wrap_m)
+    SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
   if (!f_wrap_m) {
     FileErrorDisplay(mfile);
@@ -974,11 +973,10 @@ int MATLAB::constantWrapper(Node *n) {
 
   if (!class_name) {
     // Create MATLAB proxy
-    String* mfile=NewString(pkg_name_fullpath);
-    Append(mfile,"/");
-    Append(mfile,symname);
-    Append(mfile,".m");
-    if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+    String* mfile = NewString("");
+    Printf(mfile, "%s/%s.m", pkg_name_fullpath, symname);
+    if (f_wrap_m)
+      SWIG_exit(EXIT_FAILURE);
     f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
     if (!f_wrap_m) {
       FileErrorDisplay(mfile);
@@ -1064,10 +1062,8 @@ int MATLAB::classHandler(Node *n) {
   have_destructor = false;
 
   // Name of wrapper .m file
-  String* mfile=NewString(pkg_name_fullpath);
-  Append(mfile,"/");
-  Append(mfile,class_name);
-  Append(mfile,".m");
+  String* mfile = NewString("");
+  Printf(mfile, "%s/%s.m", pkg_name_fullpath, class_name);
 
   // Create wrapper .m file
   if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
@@ -1583,7 +1579,8 @@ String *MATLAB::getOverloadedName(Node *n) {
 
 void MATLAB::createSwigRef() {
   // Create file
-  String* mfile = NewString("SwigRef.m");
+  String* mfile = NewString(SWIG_output_directory());
+  Append(mfile, "SwigRef.m");
   if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
   if (!f_wrap_m) {
