@@ -1959,12 +1959,13 @@ private:
    * ------------------------------------------------------------------------ */
 
   virtual int enumvalueDeclaration(Node *n) {
-    Swig_require("enumvalueDeclaration", n, "*sym:name", NIL);
-    Node *parent = parentNode(n);
-
     if (!is_public(n)) {
       return SWIG_OK;
     }
+
+    Swig_require("enumvalueDeclaration", n, "*sym:name", NIL);
+    Node *parent = parentNode(n);
+
     if (Getattr(parent, "unnamed")) {
       Setattr(n, "type", NewString("int"));
     } else {

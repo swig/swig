@@ -1,6 +1,3 @@
-
-// This is the bool runtime testcase. It checks that the C++ bool type works.
-
 using System;
 using cpp11_strongly_typed_enumerationsNamespace;
 
