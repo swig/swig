@@ -23,6 +23,7 @@
 <li><a href="#Go_enumerations">Go Enumerations</a>
 <li><a href="#Go_classes">Go Classes</a>
 <ul>
+<li><a href="#Go_class_memory">Go Class Memory Management</a>
 <li><a href="#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
 <li><a href="#Go_templates">Go Templates</a>
@@ -375,7 +376,40 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_inheritance"></a>23.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_memory"></a>23.3.5.1 Go Class Memory Management</H4>
+
+
+<p>
+Calling <tt>NewClassName</tt> for some C++ class <tt>ClassName</tt>
+will allocate memory using the C++ memory allocator.  This memory will
+not be automatically freed by Go's garbage collector.  When you are
+done with the C++ object you must free it using <tt>DeleteClassName</tt>.
+</p>
+
+<p>
+A common technique is to store the C++ object into a Go object, and
+use the Go function <tt>runtime.SetFinalizer</tt> to free the C++
+object when the Go object is freed.  For example, if the SWIG package
+is imported as "wrap":
+</p>
+<div class="code">
+<pre>
+type GoClassName struct {
+	w wrap.ClassName
+}
+
+func NewGoClassName() *GoClassName {
+	r := &amp;GoClassName{wrap.NewClassName()}
+	runtime.SetFinalizer(r,
+		func(r *GoClassName) {
+			wrap.DeleteClassName(r.w)
+		})
+	return r
+}
+</pre>
+</div>
+
+<H4><a name="Go_class_inheritance"></a>23.3.5.2 Go Class Inheritance</H4>
 
 
 <p>
