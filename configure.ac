@@ -2297,7 +2297,7 @@ else
       go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
       AC_MSG_CHECKING([whether go version is too old])
       case $go_version in
-      go1.0*)
+      go1.0* | go1 )
 	AC_MSG_RESULT([yes - minimum version is 1.1])
 	GO=
 	GOOPT="-intgosize 32"
@@ -2312,7 +2312,7 @@ else
 	;;
       esac
       case $go_version in
-      go1.0* | go1.1*)
+      go1.0* | go1 | go1.1*)
 	GOOPT="$GOOPT -use-shlib"
 	;;
       go1.2*)
