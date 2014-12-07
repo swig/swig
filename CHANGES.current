@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-12-07: wsfulton
+            Add support for C++11 strongly typed enumerations.
+
 2014-11-21: wsfulton
             [Java C#] Fix multiply defined error when using %rename of enum items when using the "simple enum" wrappers.
 
