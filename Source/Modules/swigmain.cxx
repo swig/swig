@@ -31,6 +31,7 @@ extern "C" {
   Language *swig_perl5(void);
   Language *swig_ruby(void);
   Language *swig_guile(void);
+  Language *swig_matlab(void);
   Language *swig_modula3(void);
   Language *swig_mzscheme(void);
   Language *swig_java(void);
@@ -38,7 +39,6 @@ extern "C" {
   Language *swig_php4(void);
   Language *swig_ocaml(void);
   Language *swig_octave(void);
-  Language *swig_matlab(void);
   Language *swig_pike(void);
   Language *swig_sexp(void);
   Language *swig_xml(void);
@@ -77,11 +77,11 @@ static swig_module modules[] = {
   {"-java", swig_java, "Java"},
   {"-javascript", swig_javascript, "Javascript"},
   {"-lua", swig_lua, "Lua"},
+  {"-matlab", swig_matlab, "Matlab"},
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},
   {"-ocaml", swig_ocaml, "Ocaml"},
   {"-octave", swig_octave, "Octave"},
-  {"-matlab", swig_matlab, "Matlab"},
   {"-perl", swig_perl5, "Perl"},
   {"-perl5", swig_perl5, 0},
   {"-php", swig_php, "PHP"},
