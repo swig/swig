@@ -389,6 +389,7 @@ CPP_TEST_CASES += \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
+	swig_exception \
 	symbol_clash \
 	template_arg_replace \
 	template_arg_scope \
