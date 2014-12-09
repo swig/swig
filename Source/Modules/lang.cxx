@@ -2694,7 +2694,8 @@ int Language::constructorDeclaration(Node *n) {
       String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
       String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
       Delete(scope);
-      if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name)) {
+      if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name) && !SwigType_istemplate(actual_name)) {
+	// Checking templates is skipped but they ought to be checked... they are just somewhat more tricky to check correctly
 	bool illegal_name = true;
 	if (Extend) {
 	  // Check for typedef names used as a constructor name in %extend. This is deprecated except for anonymous
