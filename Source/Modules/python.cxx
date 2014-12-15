@@ -1545,21 +1545,12 @@ public:
    *    Get the docstring text enclosed in triple double quotes.
    * ------------------------------------------------------------ */
 
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent) {
+  String *docstring(Node *n, autodoc_t ad_type) {
     String *docstr = build_combined_docstring(n, ad_type);
     if (!Len(docstr))
       return docstr;
 
 
-    // If there is more than one line then make docstrings like this:
-    //
-    //      """
-    //      This is line1
-    //      And here is line2 followed by the rest of them
-    //      """
-    //
-    // otherwise, put it all on a single line
-    //
     // Notice that all comments are created as raw strings (prefix "r"),
     // because '\' is used often in comments, but may break Python module from
     // loading. For example, in doxy comment one may write path in quotes:
@@ -1571,15 +1562,7 @@ public:
     // of doxygen doc, Latex expressions, ...
     String *doc = NewString("");
     Append(doc, "r\"\"\"");
-
-    if (Strchr(docstr, '\n') == 0) {
-      Append(doc, docstr);
-    } else {
-      Append(doc, "\n");
-      Append(doc, pythoncode(docstr, indent));
-      Append(doc, indent);
-    }
-
+    Append(doc, docstr);
     Append(doc, "\"\"\"");
 
     Delete(docstr);
@@ -2137,7 +2120,7 @@ public:
     /* Make a wrapper function to insert the code into */
     Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
     if (have_docstring(n))
-      Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+      Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC), "\n", NIL);
     if (have_pythonprepend(n))
       Printv(f_dest, pythoncode(pythonprepend(n), tab4), "\n", NIL);
     if (have_pythonappend(n)) {
@@ -3274,7 +3257,7 @@ public:
       if (f_s) {
 	Printv(f_s, iname, " = ", module, ".", iname, "\n", NIL);
 	if (have_docstring(n))
-	  Printv(f_s, docstring(n, AUTODOC_CONST, ""), "\n", NIL);
+	  Printv(f_s, docstring(n, AUTODOC_CONST), "\n", NIL);
       }
     }
     return SWIG_OK;
@@ -4053,7 +4036,7 @@ public:
 
 	// write docstrings if requested
 	if (have_docstring(n)) {
-	  String *str = docstring(n, AUTODOC_CLASS, tab4);
+	  String *str = docstring(n, AUTODOC_CLASS);
 	  if (str && Len(str))
 	    Printv(f_shadow, tab4, str, "\n", NIL);
 	}
@@ -4333,7 +4316,7 @@ public:
 	  } else {
 	    Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	    if (have_docstring(n))
-	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
+	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
@@ -4419,7 +4402,7 @@ public:
 	String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	if (have_docstring(n))
-	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
+	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC), "\n", NIL);
 	if (have_pythonprepend(n))
 	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	if (have_pythonappend(n)) {
@@ -4536,7 +4519,7 @@ public:
 
 	      Printv(f_shadow, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	      if (have_docstring(n))
-		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
+		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR), "\n", NIL);
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
@@ -4569,7 +4552,7 @@ public:
 
 	    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	    if (have_docstring(n))
-	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR), "\n", NIL);
 	    if (have_pythonprepend(n))
 	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4), "\n", NIL);
 	    String *subfunc = NULL;
@@ -4637,7 +4620,7 @@ public:
 	}
 	Printv(f_shadow, tab4, "def __del__(self):\n", NIL);
 	if (have_docstring(n))
-	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
+	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR), "\n", NIL);
 	if (have_pythonprepend(n))
 	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 #ifdef USE_THISOWN
@@ -4811,7 +4794,7 @@ public:
     } else if (shadow) {
       Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
       if (have_docstring(n))
-	Printv(f_shadow, tab4, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
+	Printv(f_shadow, tab4, docstring(n, AUTODOC_CONST), "\n", NIL);
     }
     return SWIG_OK;
   }
