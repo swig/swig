@@ -1573,7 +1573,7 @@ public:
   /* ------------------------------------------------------------
    * cdocstring()
    *    Get the docstring text as it would appear in C-language
-   *	source code.
+   *	source code (but without quotes around it).
    * ------------------------------------------------------------ */
 
   String *cdocstring(Node *n, autodoc_t ad_type)
@@ -1581,7 +1581,7 @@ public:
     String *ds = build_combined_docstring(n, ad_type);
     Replaceall(ds, "\\", "\\\\");
     Replaceall(ds, "\"", "\\\"");
-    Replaceall(ds, "\n", "\\n\"\n\t\t\"");
+    Replaceall(ds, "\n", "\\n\"\n\t\"");
     return ds;
   }
 
@@ -3734,7 +3734,16 @@ public:
     Printv(f, "#else\n", NIL);
     printSlot(f, tp_flags, "tp_flags");
     Printv(f, "#endif\n", NIL);
-    printSlot(f, quoted_rname, "tp_doc");
+    if (have_docstring(n)) {
+      String *ds = cdocstring(n, AUTODOC_CLASS);
+      String *tp_doc = NewString("");
+      Printf(tp_doc, "\"%s\"", ds);
+      Delete(ds);
+      printSlot(f, tp_doc, "tp_doc");
+      Delete(tp_doc);
+    } else {
+      printSlot(f, quoted_rname, "tp_doc");
+    }
     printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
     printSlot(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
     printSlot(f, richcompare_func, "feature:python:tp_richcompare", "richcmpfunc");
@@ -4012,13 +4021,7 @@ public:
 	Printv(base_class, abcs, NIL);
       }
 
-      if (builtin) {
-	if (have_docstring(n)) {
-	  String *str = cdocstring(n, AUTODOC_CLASS);
-	  Setattr(n, "feature:python:tp_doc", str);
-	  Delete(str);
-	}
-      } else {
+      if (!builtin) {
 	Printv(f_shadow, "class ", class_name, NIL);
 
 	if (Len(base_class)) {
