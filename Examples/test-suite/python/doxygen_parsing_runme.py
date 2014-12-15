@@ -2,6 +2,7 @@
 
 import doxygen_parsing
 import string
+import os
 import sys
 import commentVerifier
 
@@ -14,7 +15,12 @@ The class comment""")
 commentVerifier.check(doxygen_parsing.SomeStruct.__doc__,
     r"""
 The struct comment""")
-commentVerifier.check(doxygen_parsing.SomeAnotherClass.__init__.__doc__,
+
+# There doesn't seem to be any way to specify the doc string for __init__ when
+# using "-builtin" (see http://stackoverflow.com/q/11913492/15275), so skip
+# this test in this case.
+if str(os.environ.get('SWIG_FEATURES')).find('-builtin') == -1:
+    commentVerifier.check(doxygen_parsing.SomeAnotherClass.__init__.__doc__,
     r""" *Overload 1:*
  First overloaded constructor.
 
@@ -22,6 +28,7 @@ commentVerifier.check(doxygen_parsing.SomeAnotherClass.__init__.__doc__,
 
  *Overload 2:*
  Second overloaded constructor.""")
+
 commentVerifier.check(doxygen_parsing.SomeAnotherClass.classMethod.__doc__,
     r"""
 The class method comment.
