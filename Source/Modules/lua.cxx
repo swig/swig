@@ -1184,10 +1184,12 @@ public:
     if (getCurrentClass() && (cplus_mode != PUBLIC))
       return SWIG_NOWRAP;
 
-    Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+    Swig_require("enumvalueDeclaration", n, "*name", "?value", "*sym:name", NIL);
+    String *symname = Getattr(n, "sym:name");
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
     String *tmpValue;
+    Node *parent = parentNode(n);
 
     if (value)
       tmpValue = NewString(value);
@@ -1196,6 +1198,13 @@ public:
     Setattr(n, "value", tmpValue);
 
     Setattr(n, "name", tmpValue);	/* for wrapping of enums in a namespace when emit_action is used */
+
+    if (GetFlag(parent, "scopedenum")) {
+      symname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+      Setattr(n, "sym:name", symname);
+      Delete(symname);
+    }
+
     int result = constantWrapper(n);
 
     Delete(tmpValue);

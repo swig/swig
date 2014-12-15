@@ -898,16 +898,21 @@ public:
 #else
 	       tab4, "if (not static):\n",
 #endif
-	       tab4, tab4, "self.__dict__[name] = value\n",
+	       tab4, tab4, "object.__setattr__(self, name, value)\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
 	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
 
 	Printv(f_shadow,
-	        "\n", "def _swig_getattr(self, class_type, name):\n",
+	       "\n", "def _swig_getattr_nondynamic(self, class_type, name, static=1):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
-	       tab4, "if method:\n", tab8, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
+	       tab4, "if method:\n", tab8, "return method(self)\n",
+	       tab4, "if (not static):\n",
+	       tab4, tab4, "return object.__getattr__(self, name)\n",
+	       tab4, "else:\n",
+	       tab4, tab4, "raise AttributeError(name)\n\n",
+	       "def _swig_getattr(self, class_type, name):\n", tab4, "return _swig_getattr_nondynamic(self, class_type, name, 0)\n\n", NIL);
 
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
@@ -1602,7 +1607,7 @@ public:
     // so we only minimally rename them in Swig_name_make(), e.g. replacing "keyword"
     // with "_keyword" if they have any name at all.
     if (check_kwargs(n)) {
-      String* name = Getattr(p, "name");
+      String *name = Getattr(p, "name");
       if (name)
 	return Swig_name_make(p, 0, name, 0, 0);
     }
@@ -1623,7 +1628,7 @@ public:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(Node* n, ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node *n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
@@ -2688,7 +2693,6 @@ public:
 
     /* Insert cleanup code */
     for (p = l; p;) {
-      //      if (!checkAttribute(p,"tmap:in:numinputs","0") && !Getattr(p,"tmap:in:parse")) {
       if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
 	if (Getattr(p, "tmap:freearg:implicitconv")) {
 	  const char *convflag = "0";
@@ -3301,7 +3305,7 @@ public:
    * BEGIN C++ Director Class modifications
    * ------------------------------------------------------------------------- */
 
-  /* C++/Python polymorphism demo code, copyright (C) 2002 Mark Rose <mrose@stm.lbl.gov>
+  /* C++/Python polymorphism demo code
    *
    * TODO
    *
@@ -4425,7 +4429,9 @@ public:
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
 	}
-	Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", symname, ")\n", NIL);
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
 
 	if (!modern) {
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", symname, "\n", NIL);
@@ -4437,7 +4443,9 @@ public:
 		 NIL);
 	}
 	if (!classic) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 		 ")\n", NIL);
 	}
       }
@@ -4672,11 +4680,12 @@ public:
 	Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
       }
       if (!classic) {
-	if (!assignable) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	} else {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	}
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	if (assignable)
+	  Printv(f_shadow, ", ", module, ".", setname, NIL);
+	Printv(f_shadow, ")\n", NIL);
       }
       Delete(mname);
       Delete(setname);
@@ -4745,11 +4754,12 @@ public:
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
 	if (!classic && !builtin) {
-	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	  }
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	  if (assignable)
+	    Printv(f_shadow, ", ", module, ".", setname, NIL);
+	  Printv(f_shadow, ")\n", NIL);
 	}
 	String *getter = Getattr(n, "pybuiltin:getter");
 	String *setter = Getattr(n, "pybuiltin:setter");
@@ -4877,6 +4887,13 @@ public:
     return NewString("swigpyrun.h");
   }
 
+  /*----------------------------------------------------------------------
+   * kwargsSupport()
+   *--------------------------------------------------------------------*/
+
+  bool kwargsSupport() const {
+    return true;
+  }
 };
 
 /* ---------------------------------------------------------------
@@ -4913,6 +4930,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   int status = SWIG_OK;
   int idx;
   bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+
+  if (builtin) {
+    // Rename any wrapped parameters called 'self' as the generated code contains a variable with same name
+    Parm *p;
+    for (p = l; p; p = nextSibling(p)) {
+      String *arg = Getattr(p, "name");
+      if (arg && Cmp(arg, "self") == 0)
+	Delattr(p, "name");
+    }
+  }
 
   if (Cmp(storage, "virtual") == 0) {
     if (Cmp(value, "0") == 0) {

@@ -130,6 +130,7 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
+	rm -f d/example.mk
 	rm -f xml/Makefile
 
 ##################################################################
@@ -738,10 +739,10 @@ javascript_clean:
 #####                       ANDROID                         ######
 ##################################################################
 
-ANDROID = android
-ANDROID_NDK_BUILD = ndk-build
-ANDROID_ADB = adb
-ANT = ant
+ANDROID = @ANDROID@
+ANDROID_NDK_BUILD = @NDKBUILD@
+ANDROID_ADB = @ADB@
+ANT = @ANT@
 TARGETID = 1
 
 # ----------------------------------------------------------------
@@ -784,7 +785,7 @@ android_version:
 # -----------------------------------------------------------------
 
 android_clean:
-	test -n "$(SRCDIR)" && cd $(SRCDIR) ; ant -q -logfile /dev/null clean
+	test -n "$(SRCDIR)" && cd $(SRCDIR) ; $(ANT) -q -logfile /dev/null clean
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
 	rm -rf obj
@@ -1396,6 +1397,7 @@ csharp_run:
 # Version check below also works with MS csc.exe which does not understand --version
 csharp_version:
 	$(CSHARPCOMPILER) --version | head -n 1
+	if test -n "$(CSHARPCILINTERPRETER)" ; then "$(CSHARPCILINTERPRETER)" --version ; fi
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples
@@ -1874,7 +1876,7 @@ d_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 d_run:
-	$(RUNTOOL) $(D_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

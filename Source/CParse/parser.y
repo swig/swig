@@ -60,6 +60,7 @@ static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
+int		kwargs_supported = 0;
 /* -----------------------------------------------------------------------------
  *                            Doxygen Comment Globals and Assist Functions
  * ----------------------------------------------------------------------------- */
@@ -1112,7 +1113,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
     }
   }
 
-  if (!GetFlag(currentOuterClass, "nested")) {
+  if (!currentOuterClass || !GetFlag(currentOuterClass, "nested")) {
     if (nn && Equal(nodeType(nn), "classforward")) {
       Node *n = nn;
       SWIG_WARN_NODE_BEGIN(n);
@@ -1273,7 +1274,7 @@ static void default_arguments(Node *n) {
     if (compact_default_args 
 	|| is_cfunction(function) 
 	|| GetFlag(function,"feature:compactdefaultargs") 
-	|| GetFlag(function,"feature:kwargs")) {
+	|| (GetFlag(function,"feature:kwargs") && kwargs_supported)) {
       ParmList *p = Getattr(function,"parms");
       if (p) 
         Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
@@ -1997,6 +1998,7 @@ include_directive: includetype options string BEGINFILE {
 			   Node *nint = new_node("import");
 			   Node *mnode = new_node("module");
 			   Setattr(mnode,"name", mname);
+                           Setattr(mnode,"options",$2);
 			   appendChild(nint,mnode);
 			   Delete(mnode);
 			   appendChild(nint,firstChild($$));
@@ -2619,6 +2621,7 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
+		  Node *outer_class = currentOuterClass;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  int     variadic = 0;
@@ -2630,6 +2633,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
 		  if (!inclass) {
 		    $5 = resolve_create_node_scope($5);
+		  }
+		  if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) {
+		    outer_class	= nscope_inner;
 		  }
 
 		  /*
@@ -2763,7 +2769,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:typename","1");
                           }
 			  /* for now, nested %template is allowed only in the same scope as the template declaration */
-                          if ($3 && !(nnisclass && ((currentOuterClass && (currentOuterClass != Getattr(nn, "nested:outer")))
+                          if ($3 && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
 			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer")))))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
@@ -2792,9 +2798,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
-			  if (currentOuterClass) {
+			  if (outer_class && nnisclass) {
 			    SetFlag(templnode, "nested");
-			    Setattr(templnode, "nested:outer", currentOuterClass);
+			    Setattr(templnode, "nested:outer", outer_class);
 			  }
                           add_symbols_copy(templnode);
 
@@ -3623,8 +3629,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   nscope = Getattr($<node>$, "nested:nscope");
 		   Delattr($<node>$, "nested:innerscope");
 		   Delattr($<node>$, "nested:nscope");
-		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) /* actual parent class for this class */
-		     Setattr($$, "nested:outer", nscope_inner);
+		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) { /* actual parent class for this class */
+		     Node* forward_declaration = Swig_symbol_clookup_no_inherit(Getattr($<node>$,"name"), Getattr(nscope_inner, "symtab"));
+		     if (forward_declaration) {
+		       Setattr($<node>$, "access", Getattr(forward_declaration, "access"));
+		     }
+		     Setattr($<node>$, "nested:outer", nscope_inner);
+		     SetFlag($<node>$, "nested");
+                   }
 		   if (!currentOuterClass)
 		     inclass = 0;
 		   cscope = Getattr($$, "prev_symtab");
@@ -3703,6 +3715,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
+		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag($$, "feature:flatnested"))
+		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
@@ -4181,7 +4195,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			Swig_symbol_setscope(cscope);
 			Delete(Namespaceprefix);
 			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-			if (error) $$ = 0;
+			if (error || (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0)) {
+			  $$ = 0;
+			}
 			if (currentOuterClass)
 			  template_parameters = Getattr(currentOuterClass, "template_parameters");
 			else

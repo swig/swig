@@ -297,6 +297,9 @@ protected:
   /* Return the current class prefix */
   String *getClassPrefix() const;
 
+  /* Return the current enum class prefix */
+  String *getEnumClassPrefix() const;
+
   /* Fully qualified type name to use */
   String *getClassType() const;
 
@@ -323,6 +326,9 @@ public:
     the nested classes will be moved to the global scope (like implicit global %feature "flatnested").
   */
   virtual NestedClassSupport nestedClassesSupport() const;
+
+  /* Returns true if the target language supports key word arguments (kwargs) */
+  virtual bool kwargsSupport() const;
 
 protected:
   /* Identifies if a protected members that are generated when the allprotected option is used.

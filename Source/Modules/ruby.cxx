@@ -3426,6 +3426,14 @@ public:
   String *defaultExternalRuntimeFilename() {
     return NewString("swigrubyrun.h");
   }
+
+  /*----------------------------------------------------------------------
+   * kwargsSupport()
+   *--------------------------------------------------------------------*/
+
+  bool kwargsSupport() const {
+    return true;
+  }
 };				/* class RUBY */
 
 /* -----------------------------------------------------------------------------

@@ -40,6 +40,9 @@ CPP_TEST_CASES = \
 	java_typemaps_typewrapper
 #	li_boost_intrusive_ptr
 
+CPP11_TEST_CASES = \
+	cpp11_strongly_typed_enumerations_simple \
+
 DOXYGEN_TEST_CASES := \
 	doxygen_parsing_enums_simple \
 	doxygen_parsing_enums_proper \

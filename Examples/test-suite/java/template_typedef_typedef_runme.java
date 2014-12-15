@@ -12,13 +12,13 @@ public class template_typedef_typedef_runme {
   }
 
   public static void main(String argv[]) {
-    ObjectBase ob1 = new ObjectBase();
-    ob1.getBlabla1(new ObjectBase());
+    Object1Base ob1 = new Object1Base();
+    ob1.getBlabla1(new Object1Base());
     Object2Base ob2 = new Object2Base();
     ob2.getBlabla2(new Object2Base());
 
     Factory factory = new Factory();
-    factory.getBlabla3(new ObjectBase());
+    factory.getBlabla3(new Object1Base());
     factory.getBlabla4(new Object2Base());
   }
 }

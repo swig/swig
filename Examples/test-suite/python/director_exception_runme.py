@@ -68,14 +68,13 @@ if not ok:
 
 # This is expected to fail with -builtin option
 # Throwing builtin classes as exceptions not supported
-try:
-	raise Exception2()
-except Exception2:
-	pass
+if not is_python_builtin():
+	try:
+		raise Exception2()
+	except Exception2:
+		pass
 
-# This is expected to fail with -builtin option
-# Throwing builtin classes as exceptions not supported
-try:
-	raise Exception1()
-except Exception1:
-	pass
+	try:
+		raise Exception1()
+	except Exception1:
+		pass

@@ -495,58 +495,58 @@ struct DerivedStruct : BaseStruct {
 <H3><a name="CPlusPlus11_strongly_typed_enumerations"></a>7.2.13 Strongly typed enumerations</H3>
 
 
-<p>SWIG parses the new <tt>enum class</tt> syntax and forward declarator for the enums:</p>
+<p>SWIG supports strongly typed enumerations and parses the new <tt>enum class</tt> syntax and forward declarator for the enums, such as:</p>
 <div class="code"><pre>
 enum class MyEnum : unsigned int;
 </pre></div>
 
-<p>The strongly typed enumerations are treated the same as the ordinary and anonymous enums.
-This is because the required nested class support in SWIG is new and has not yet been incorporated into the wrapping of these strongly typed enum classes.
-This is usually not a problem, however,
-there may be some name clashes. For example, the following code:</p>
+<p>
+Strongly typed enums are often used to avoid name clashes such as the following:
+</p>
 
 <div class="code"><pre>
-class Color {
-  enum class PrintingColors : unsigned int {
-    Cyan, Magenta, Yellow, Black
+struct Color {
+  enum class RainbowColors : unsigned int {
+    Red, Orange, Yellow, Green, Blue, Indigo, Violet
   };
   
-  enum class BasicColors {
-    Red, Green, Blue
+  enum class WarmColors {
+    Yellow, Orange, Red
   };
-  
-  enum class AllColors {
-    // produces warnings because of duplicate names
-    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
-  };
-};
-</pre></div>
 
-<p>A workaround is to write these as a series of separate classes containing anonymous enums:</p>
-
-<div class="code"><pre>
-class PrintingColors {
-  enum : unsigned int {
-    Cyan, Magenta, Yellow, Black
-  };
-};
-
-class BasicColors {
-  enum : unsigned int {
-    Red, Green, Blue
-  };
-};
-
-class AllColors {
-  enum : unsigned int {
-    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
+  // Note normal enum
+  enum PrimeColors {
+    Red=100, Green, Blue
   };
 };
 </pre></div>
 
 <p>
-Expect to see this improved in a future version of SWIG.
+There are various ways that the target languages handle enums, so it is not possible to precisely state how they are handled in this section.
+However, generally, most scripting languages mangle in the strongly typed enumeration's class name,
+but do not use any additional mangling for normal enumerations. For example, in Python, the following code
 </p>
+
+<div class="targetlang"><pre>
+print Color.RainbowColors_Red, Color.WarmColors_Red, Color.Red
+</pre></div>
+
+<p>
+results in
+</p>
+
+<div class="shell"><pre>
+0 2 100
+</pre></div>
+
+<p>
+The strongly typed languages often wrap normal enums into an enum class and so treat normal enums and strongly typed enums the same.
+The equivalent in Java is:
+</p>
+
+<div class="targetlang"><pre>
+System.out.println(Color.RainbowColors.Red.swigValue() + " " + Color.WarmColors.Red.swigValue() + " " + Color.PrimeColors.Red.swigValue());
+</pre></div>
 
 <H3><a name="CPlusPlus11_double_angle_brackets"></a>7.2.14 Double angle brackets</H3>
 
@@ -611,6 +611,7 @@ The following is an example of an alias template:
 <div class="code"><pre>
 template&lt; typename T1, typename T2, int &gt;
 class SomeType {
+public:
   T1 a;
   T2 b;
   int c;

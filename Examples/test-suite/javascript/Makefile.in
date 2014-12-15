@@ -19,7 +19,15 @@ else
 	JSENGINE=node
 endif
 
+ifneq (, $(V8_VERSION))
+    JSV8_VERSION=$(V8_VERSION)
+else
+    JSV8_VERSION=0x031110
+endif
+
 include $(srcdir)/../common.mk
+
+SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 
 _setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \

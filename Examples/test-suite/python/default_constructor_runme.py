@@ -1,8 +1,10 @@
+import _default_constructor
+
 # This test is expected to fail with -builtin option.
 # It uses the old static syntax (e.g., dc.new_A() rather than dc.A()),
 # which is not provided with the -builtin option.
-
-import _default_constructor
+if _default_constructor.is_python_builtin():
+  exit(0)
 
 dc = _default_constructor
 

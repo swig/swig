@@ -92,6 +92,12 @@ void test_throw() throw(std::wstring){
   #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
 
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+
 %}
 
 

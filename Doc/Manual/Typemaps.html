@@ -2050,6 +2050,22 @@ wrap_foo() {
 </pre>
 </div>
 
+<p>There is an exception: if the variable name starts with the <tt>_global_</tt> prefix,
+the argument number is not appended. Such variables can be used throughout the generated
+wrapper function. For example, the above typemap could be rewritten to use <tt>_global_temp</tt>
+instead of <tt>temp</tt> and the generated code would then contain a single <tt>_global_temp</tt> variable
+instead of <tt>temp1</tt>, <tt>temp2</tt> and <tt>temp3</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) std::string * <b>(std::string _global_temp)</b> {
+ ... as above ...
+}
+</pre>
+</div>
+
+
 <p>
 Some typemaps do not recognize local variables (or they may simply not
 apply). At this time, only typemaps that apply to argument conversion support this (input typemaps such as the "in" typemap).
@@ -3360,7 +3376,7 @@ list of strings like this:
 </div>
 
 <p>
-To do this, you not only need to map a list of strings to <tt> char *argv[]</tt>, but the
+To do this, you not only need to map a list of strings to <tt>char *argv[]</tt>, but the
 value of <tt>int argc</tt> is implicitly determined by the length of the list.   Using only simple
 typemaps, this type of conversion is possible, but extremely painful.
 Multi-argument typemaps help in this situation.

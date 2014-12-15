@@ -803,23 +803,23 @@ public:
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    if (!GetFlag(n, "nonempty")) {
-      // Do not wrap empty enums; the resulting D code would be illegal.
-      Delete(proxy_enum_code);
-      return SWIG_NOWRAP;
-    }
-
-    // Finish the enum.
-    if (typemap_lookup_type) {
-      Printv(proxy_enum_code,
-	lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
-	"\n}\n", NIL);
+    if (GetFlag(n, "nonempty")) {
+      // Finish the enum.
+      if (typemap_lookup_type) {
+	Printv(proxy_enum_code,
+	  lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
+	  "\n}\n", NIL);
+      } else {
+	// Handle anonymous enums.
+	Printv(proxy_enum_code, "\n}\n", NIL);
+      }
+      Replaceall(proxy_enum_code, "$dclassname", symname);
     } else {
-      // Handle anonymous enums.
-      Printv(proxy_enum_code, "\n}\n", NIL);
+      // D enum declarations must have at least one member to be legal, so emit
+      // an alias to int instead (their ctype/imtype is always int).
+      Delete(proxy_enum_code);
+      proxy_enum_code = NewStringf("\nalias int %s;\n", symname);
     }
-
-    Replaceall(proxy_enum_code, "$dclassname", symname);
 
     const String* imports =
       lookupCodeTypemap(n, "dimports", typemap_lookup_type, WARN_NONE);
@@ -2594,7 +2594,7 @@ private:
     const_String_or_char_ptr wrapper_function_name) {
 
     // TODO: Add support for static linking here.
-    Printf(im_dmodule_code, "extern(C) %s function%s %s;\n", return_type,
+    Printf(im_dmodule_code, "SwigExternC!(%s function%s) %s;\n", return_type,
       parameters, d_name);
     Printv(wrapper_loader_bind_code, wrapper_loader_bind_command, NIL);
     Replaceall(wrapper_loader_bind_code, "$function", d_name);
@@ -2850,7 +2850,7 @@ private:
       // polymorphic call or an explicit method call. Needed to prevent infinite
       // recursion when calling director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
-      if (explicit_n) {
+      if (explicit_n && Swig_directorclass(getCurrentClass())) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
 	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 

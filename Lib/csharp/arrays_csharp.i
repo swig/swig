@@ -106,6 +106,7 @@ CSHARP_ARRAYS(long long, long)
 CSHARP_ARRAYS(unsigned long long, ulong)
 CSHARP_ARRAYS(float, float)
 CSHARP_ARRAYS(double, double)
+CSHARP_ARRAYS(bool, bool)
 
 
 %define CSHARP_ARRAYS_FIXED( CTYPE, CSTYPE )
@@ -137,4 +138,5 @@ CSHARP_ARRAYS_FIXED(long long, long)
 CSHARP_ARRAYS_FIXED(unsigned long long, ulong)
 CSHARP_ARRAYS_FIXED(float, float)
 CSHARP_ARRAYS_FIXED(double, double)
+CSHARP_ARRAYS_FIXED(bool, bool)
 

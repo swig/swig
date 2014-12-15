@@ -23,6 +23,7 @@
 <li><a href="#Go_enumerations">Go Enumerations</a>
 <li><a href="#Go_classes">Go Classes</a>
 <ul>
+<li><a href="#Go_class_memory">Go Class Memory Management</a>
 <li><a href="#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
 <li><a href="#Go_templates">Go Templates</a>
@@ -30,6 +31,7 @@
 <li><a href="#Go_primitive_type_mappings">Default Go primitive type mappings</a>
 <li><a href="#Go_output_arguments">Output arguments</a>
 <li><a href="#Go_adding_additional_code">Adding additional go code</a>
+<li><a href="#Go_typemaps">Go typemaps</a>
 </ul>
 </ul>
 </div>
@@ -374,7 +376,40 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_inheritance"></a>23.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_memory"></a>23.3.5.1 Go Class Memory Management</H4>
+
+
+<p>
+Calling <tt>NewClassName</tt> for some C++ class <tt>ClassName</tt>
+will allocate memory using the C++ memory allocator.  This memory will
+not be automatically freed by Go's garbage collector.  When you are
+done with the C++ object you must free it using <tt>DeleteClassName</tt>.
+</p>
+
+<p>
+A common technique is to store the C++ object into a Go object, and
+use the Go function <tt>runtime.SetFinalizer</tt> to free the C++
+object when the Go object is freed.  For example, if the SWIG package
+is imported as "wrap":
+</p>
+<div class="code">
+<pre>
+type GoClassName struct {
+	w wrap.ClassName
+}
+
+func NewGoClassName() *GoClassName {
+	r := &amp;GoClassName{wrap.NewClassName()}
+	runtime.SetFinalizer(r,
+		func(r *GoClassName) {
+			wrap.DeleteClassName(r.w)
+		})
+	return r
+}
+</pre>
+</div>
+
+<H4><a name="Go_class_inheritance"></a>23.3.5.2 Go Class Inheritance</H4>
 
 
 <p>
@@ -691,6 +726,145 @@ func bar() {
 %}
 </pre>
 </div>
+
+<H3><a name="Go_typemaps"></a>23.3.11 Go typemaps</H3>
+
+
+<p>
+You can use the <tt>%typemap</tt> directive to modify SWIG's default
+wrapping behavior for specific C/C++ types.  You need to be familiar
+with the material in the general
+"<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.  That chapter
+explains how to define a typemap.  This section describes some
+specific typemaps used for Go.
+</p>
+
+<p>
+In general type conversion code may be written either in C/C++ or in
+Go.  The choice to make normally depends on where memory should be
+allocated.  To allocate memory controlled by the Go garbage collector,
+write Go code.  To allocate memory in the C/C++ heap, write C code.
+</p>
+
+<table BORDER summary="Go Typemaps">
+<tr>
+<td><b>Typemap</b></td>
+<td><b>Description</b></td>
+</tr>
+
+<tr>
+<td>gotype</td>
+<td>
+The Go type to use for a C++ type.  This type will appear in the
+generated Go wrapper function.  If this is not defined SWIG will use a
+default as <a href="#Go_primitive_type_mappings">described above</a>.
+</td>
+</tr>
+
+<tr>
+<td>imtype</td>
+<td>
+An intermediate Go type used by the "goin", "goout", "godirectorin",
+and "godirectorout" typemaps.  If this typemap is not defined for a
+C/C++ type, the gotype typemape will be used.  This is useful when
+gotype is best converted to C/C++ using Go code.
+</td>
+</tr>
+
+<tr>
+<td>goin</td>
+<td>
+Go code to convert from gotype to imtype when calling a C/C++
+function.  SWIG will then internally convert imtype to a C/C++ type
+and pass it down.  If this is not defined no conversion is done.
+</td>
+</tr>
+
+<tr>
+<td>in</td>
+<td>
+C/C++ code to convert the internally generated C/C++ type, based on
+imtype, into the C/C++ type that a function call expects.  If this is
+not defined the value will simply be cast to the desired type.
+</td>
+</tr>
+
+<tr>
+<td>out</td>
+<td>
+C/C++ code to convert the C/C++ type that a function call returns into
+the internally generated C/C++ type, based on imtype, that will be
+returned to Go.  If this is not defined the value will simply be cast
+to the desired type.
+</td>
+</tr>
+
+<tr>
+<td>goout</td>
+<td>
+Go code to convert a value returned from a C/C++ function from imtype
+to gotype.  If this is not defined no conversion is done.
+</td>
+</tr>
+
+<tr>
+<td>argout</td>
+<td>
+C/C++ code to adjust an argument value when returning from a function.
+This is called after the real C/C++ function has run.  This uses the
+internally generated C/C++ type, based on imtype.  This is only useful
+for a pointer type of some sort.  If this is not defined nothing will
+be done.
+</td>
+</tr>
+
+<tr>
+<td>goargout</td>
+<td>
+Go code to adjust an argument value when returning from a function.
+This is called after the real C/C++ function has run.  The value will
+be in imtype.  This is only useful for a pointer type of some sort.
+If this is not defined nothing will be done.
+</td>
+</tr>
+
+<tr>
+<td>directorin</td>
+<td>
+C/C++ code to convert the C/C++ type used to call a director method
+into the internally generated C/C++ type, based on imtype, that will
+be passed to Go.  If this is not defined the value will simply be cast
+to the desired type.
+</td>
+</tr>
+
+<tr>
+<td>godirectorin</td>
+<td>
+Go code to convert a value used to call a director method from imtype
+to gotype.  If this is not defined no conversion is done.
+</td>
+</tr>
+
+<tr>
+<td>godirectorout</td>
+<td>
+Go code to convert a value returned from a director method from gotype
+to imtype.  If this is not defined no conversion is done.
+</td>
+</tr>
+
+<tr>
+<td>directorout</td>
+<td>
+C/C++ code to convert a value returned from a director method from the
+internally generated C/C++ type, based on imtype, into the type that
+the method should return  If this is not defined the value will simply
+be cast to the desired type.
+</td>
+</tr>
+
+</table>
 
 </body>
 </html>

@@ -35,6 +35,13 @@ JSCENABLED = @JSCENABLED@
 
 srcdir = @srcdir@
 
+
+ifneq (, $(V8_VERSION))
+    JSV8_VERSION=$(V8_VERSION)
+else
+    JSV8_VERSION=0x031110
+endif
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../config.status
 	cd ../.. && $(SHELL) ./config.status Tools/javascript/Makefile
@@ -42,7 +49,7 @@ Makefile: $(srcdir)/Makefile.in ../../config.status
 # These settings are provided by 'configure' (see '/configure.in')
 ifeq (1, $(JSV8ENABLED))
 JS_INTERPRETER_SRC_V8 = v8_shell.cxx
-JS_INTERPRETER_ENABLE_V8 = -DENABLE_V8
+JS_INTERPRETER_ENABLE_V8 = -DENABLE_V8 -DSWIG_V8_VERSION=$(JSV8_VERSION) -DV8_DEPRECATION_WARNINGS
 endif
 
 ifeq (1, $(JSCENABLED))

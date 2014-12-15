@@ -277,6 +277,18 @@ OldNameStruct::doublenametag        renameTest6(OldNameStruct::doublenametag e) 
 OldNameStruct::singlename           renameTest7(OldNameStruct::singlename e) { return e; }
 %}
 
+%rename(Clash1_di1) Clash1::di1;
+%rename(Clash1_di2) Clash1::di2;
+%rename(Clash1_di3) Clash1::di3;
+%inline %{
+namespace Clash1 {
+  enum DuplicateItems1 { di1, di2 = 10, di3 };
+}
+namespace Clash2 {
+  enum DuplicateItems2 { di1, di2 = 10, di3 };
+}
+%}
+
 %inline %{
 struct TreesClass {
   enum trees {oak, fir, pine };
