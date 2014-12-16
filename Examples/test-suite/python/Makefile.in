@@ -11,6 +11,7 @@ endif
 LANGUAGE     = python
 PYTHON       = $(PYBIN)
 PEP8         = @PEP8@
+PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
 
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
@@ -126,13 +127,13 @@ py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
 
 check_pep8 = \
 	if [ -n "$(PEP8)" ]; then \
-	  $(PEP8) --ignore=E501,E30,W291,W391 $(SCRIPTPREFIX)$*.py;\
+	  $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py;\
 	fi
 
 check_pep8_multi_cpp = \
 	if [ -n "$(PEP8)" ]; then \
 	  for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(PEP8) --ignore=E501,E30,W291,W391 $$f.py; \
+	  $(PEP8) $(PEP8_FLAGS) $$f.py; \
 	  done \
 	fi
 
