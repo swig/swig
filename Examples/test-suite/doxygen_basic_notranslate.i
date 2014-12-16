@@ -14,7 +14,7 @@
 /**
  * \brief
  * Brief description.
- * 
+ *
  * The comment text
  * \author Some author
  * \return Some number

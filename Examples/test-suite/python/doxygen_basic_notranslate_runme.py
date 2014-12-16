@@ -9,7 +9,7 @@ commentVerifier.check(doxygen_basic_notranslate.function.__doc__,
     r"""
  \brief
  Brief description.
- 
+
  The comment text
  \author Some author
  \return Some number
