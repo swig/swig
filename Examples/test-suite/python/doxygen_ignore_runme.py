@@ -7,11 +7,11 @@ commentVerifier.check(doxygen_ignore.func.__doc__,
     r"""
     A contrived example of ignoring too many commands in one comment.
 
-    
 
-    
 
-    
+
+
+
     This is specific to **Python**.
 
 

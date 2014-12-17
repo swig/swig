@@ -946,6 +946,19 @@ int DoxygenParser::ignoreCommand(const std::string& theCommand,
       return 0;
     }
 
+    // If we ignore the command, also ignore any whitespace preceding it as we
+    // want to avoid having lines consisting of whitespace only or trailing
+    // whitespace in general (at least Python, with its pep8 tool, really
+    // doesn't like it).
+    if (!doxyList.empty()) {
+      DoxygenEntityList::iterator i = doxyList.end();
+      --i;
+      if (i->typeOfEntity == "plainstd::string" &&
+          i->data.find_first_not_of(" \t") == std::string::npos) {
+        doxyList.erase(i);
+      }
+    }
+
     // Determine what to do with the part of the comment between the start and
     // end commands: by default, we simply throw it away, but "contents"
     // attribute may be used to change this.
