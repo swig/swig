@@ -375,6 +375,7 @@ SWIG_init(void) {
   PyObject *public_interface, *public_symbol;
   PyObject *this_descr;
   PyObject *thisown_descr;
+  PyObject *self = 0;
   int i;
 
   (void)builtin_pytype;
@@ -382,6 +383,7 @@ SWIG_init(void) {
   (void)builtin_basetype;
   (void)tuple;
   (void)static_getset;
+  (void)self;
 
   /* metatype is used to implement static member variables. */
   metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
@@ -400,11 +402,6 @@ SWIG_init(void) {
   m = PyModule_Create(&SWIG_module);
 #else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
-#endif
-
-#ifdef SWIGPYTHON_BUILTIN
-  PyObject *self = m;
-  (void)self;
 #endif
 
   md = d = PyModule_GetDict(m);
