@@ -143,6 +143,7 @@ CPP_TEST_CASES += \
 	class_scope_weird \
 	compactdefaultargs \
 	const_const_2 \
+	constant_directive \
 	constant_pointers \
 	constover \
 	constructor_copy \
