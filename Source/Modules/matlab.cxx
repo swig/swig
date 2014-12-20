@@ -1638,10 +1638,10 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"            return\n");
   Printf(f_wrap_m,"          end\n");
   Printf(f_wrap_m,"        elseif S.type=='()'\n");
-  Printf(f_wrap_m,"          setitem(self,S.subs{:},v);\n");
+  Printf(f_wrap_m,"          setitem(self,v,S.subs{:});\n");
   Printf(f_wrap_m,"          return;\n");
   Printf(f_wrap_m,"        else\n");
-  Printf(f_wrap_m,"          setitemcurl(self,S.subs{:},v);\n");
+  Printf(f_wrap_m,"          setitemcurl(self,v,S.subs{:});\n");
   Printf(f_wrap_m,"          return;\n");
   Printf(f_wrap_m,"        end\n");  
   Printf(f_wrap_m,"      end\n");
