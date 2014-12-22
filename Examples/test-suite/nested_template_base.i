@@ -19,7 +19,7 @@
 %inline %{
   class OuterC {
   public:
-    class InnerS;
+    struct InnerS;
     class InnerC;
   };
  
