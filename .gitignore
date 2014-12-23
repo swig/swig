@@ -67,6 +67,7 @@ CCache/config.h
 CCache/config.log
 CCache/config.status
 Examples/Makefile
+Examples/d/example.mk
 Examples/guile/Makefile
 Examples/test-suite/*/Makefile
 Examples/xml/Makefile
