@@ -35,7 +35,7 @@ namespace ns {
 			int data;
 		};
 #endif
-			template <class T> class Abstract;
+			template <class T> class AbstractClass;
 			class Real;
 		};
 #ifndef __clang__
@@ -44,23 +44,23 @@ namespace ns {
 		};
 #endif
 		
-		class Class {
+		class Klass {
 		public:
-			template <class T> class Abstract;
+			template <class T> class AbstractClass;
 			class Real;
 		};
 
-		template <class T> class Class::Abstract {
+		template <class T> class Klass::AbstractClass {
 		public:
 			virtual void Method() = 0;
-			virtual ~Abstract() {}
+			virtual ~AbstractClass() {}
 		};
 %} 
 
-%template(abstract_int) Class::Abstract <int>;
+%template(abstract_int) Klass::AbstractClass <int>;
 
 %inline %{
-		class Class::Real : public Abstract <int> {
+		class Klass::Real : public AbstractClass <int> {
 		public:
 			virtual void Method() {}
 		};

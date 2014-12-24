@@ -3,7 +3,7 @@ require "tests.php";
 require "import_nomodule.php";
 
 // No new functions
-check::functions(array(create_foo,delete_foo,test1));
+check::functions(array(create_foo,delete_foo,test1,is_python_builtin));
 // No new classes
 check::classes(array(import_nomodule,Bar));
 // now new vars
