@@ -6,5 +6,5 @@ import "mod_b"
 func main() {
 	c := mod_b.NewC()
 	d := mod_b.NewD()
-	d.DoSomething(mod_a.SwigClassA(c.Swigcptr()))
+	d.DoSomething(mod_a.SwigClassA{Cptr: c.Swigcptr()})
 }

@@ -8,16 +8,16 @@
 
 %import "import_nomodule.h"
 
-#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN)
+#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGGO) && !defined(SWIGPYTHON_BUILTIN)
 
 /**
  * The proxy class does not have Bar derived from Foo, yet an instance of Bar
- * can successfully be passed to a proxy function taking a Foo pointer (for some
- * language modules).
- * 
- * This violation of the type system is not possible in Java, C# and D due to
- * static type checking. It's also not (currently) possible in Ruby, but this may
- * be fixable (needs more investigation).
+ * can successfully be passed to a proxy function taking a Foo pointer (for
+ * some language modules).
+ *
+ * This violation of the type system is not possible in Java, C#, D and Go due
+ * to static type checking. It's also not (currently) possible in Ruby, but
+ * this may be fixable (needs more investigation).
  */
 
 %newobject create_Foo;

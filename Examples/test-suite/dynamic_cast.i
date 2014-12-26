@@ -47,7 +47,7 @@ public:
 #if defined(SWIGGO)
 %insert(go_runtime) %{
 func FooToBar(f Foo) Bar {
-	return SwigClassBar(f.Swigcptr())
+	return SwigClassBar{Cptr: f.Swigcptr()}
 }
 %}
 #endif
