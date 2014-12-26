@@ -5121,11 +5121,11 @@ private:
 	if (add_to_hash) {
 	  Setattr(undefined_types, ty, ty);
 	}
-	ret = NewString("Swigcptr");
+	ret = NewString("SwigClass");
 	Append(ret, ex);
       } else {
 	ret = NewString("");
-	Printv(ret, Getattr(cnmod, "name"), ".Swigcptr", ex, NULL);
+	Printv(ret, Getattr(cnmod, "name"), ".SwigClass", ex, NULL);
       }
     }
     Delete(ty);
