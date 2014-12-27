@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-12-27: talby
+            [Perl] Issue #282 perl5 archlib vs archlibexp
+
 2014-12-09: wsfulton
             Fix #245 - regression (since swig-3.0.0) in templated constructors.
             Templated constructors could not be instantiated - they were incorrectly ignored with a warning 504:
