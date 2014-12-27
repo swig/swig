@@ -821,7 +821,7 @@ fi
 # perl -MExtUtils::Embed -e ccopts
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
-	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
+	PERL5DIR=`($PERL -MConfig -le 'print $Config{archlibexp}') 2>/dev/null`
 	if test -n "$PERL5DIR" ; then
 		dirs="$PERL5DIR $PERL5DIR/CORE"
 		PERL5EXT=none
