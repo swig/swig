@@ -47,5 +47,4 @@ build:
 	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='../$(SRCDIR)$(VERSION_DIR)runme.d $(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
 clean:
-	rm -rf $(VERSION_DIR)
-
+	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_clean

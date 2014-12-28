@@ -1888,5 +1888,6 @@ d_version:
 # -----------------------------------------------------------------
 
 d_clean:
-	@exit 0
-
+	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
