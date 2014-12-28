@@ -58,7 +58,10 @@ namespace Tpetra {
 }
 %}
 
+#ifdef SWIGJAVA
+// Fixes still required for other languages
 %template(MapDefaults) Tpetra::Map<>;
+#endif
 
 %inline %{
 namespace Details {
@@ -73,4 +76,4 @@ namespace Details {
 %}
 
 // Below is not resolving correctly yet
-%template(TransferDefaults) Details::Transfer<>;
+//%template(TransferDefaults) Details::Transfer<>;
