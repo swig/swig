@@ -633,9 +633,6 @@ java_clean:
 ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
-JSSO =@JSSO@
-JSLDSHARED = @JSLDSHARED@
-JSCXXSHARED = @JSCXXSHARED@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
 
@@ -731,7 +728,7 @@ javascript_clean:
 	rm -rf build
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
+	rm -f *.@OBJEXT@ *@SO@
 	rm -f binding.gyp example-gypcopy.cxx
 	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
