@@ -1096,7 +1096,7 @@ ruby_version:
 # -----------------------------------------------------------------
 
 ruby_clean:
-	rm -f *_wrap* *~ .~* myruby@EXEEXT@ *.pm
+	rm -f *_wrap* *~ .~* myruby@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 

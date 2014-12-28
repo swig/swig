@@ -1507,6 +1507,7 @@ AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
 AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=yes])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
+RUBYSO=$SO
 if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Ruby])
 RUBY=
