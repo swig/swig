@@ -55,7 +55,9 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=tcl
   allow_failures:
-    # None
+    # Occasional gcc internal compiler error
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
 before_install:
   - date -u
   - uname -a
