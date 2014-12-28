@@ -31,3 +31,46 @@ namespace Space {
 %template(FooAnotherType) Space::Foo<Space::AnotherType>;
 
 %template() Space::ATemplate<>;
+
+
+// Github issue #280 segfault
+%inline %{
+namespace Teuchos {
+  class Describable {};
+}
+namespace KokkosClassic {
+  namespace DefaultNode {
+    struct DefaultNodeType {};
+  };
+}
+
+namespace Tpetra {
+  template <class LocalOrdinal = int,
+            class GlobalOrdinal = LocalOrdinal,
+            class Node = KokkosClassic::DefaultNode::DefaultNodeType>
+  class Map : public Teuchos::Describable {
+  public:
+    typedef LocalOrdinal local_ordinal_type;
+    typedef GlobalOrdinal global_ordinal_type;
+    typedef Node node_type;
+    void test_func(LocalOrdinal, GlobalOrdinal, Node) {}
+  };
+}
+%}
+
+%template(MapDefaults) Tpetra::Map<>;
+
+%inline %{
+namespace Details {
+  template < class LO = ::Tpetra::Map<>::local_ordinal_type,
+            class GO = typename ::Tpetra::Map<LO>::global_ordinal_type,
+            class NT = typename ::Tpetra::Map<LO, GO>::node_type >
+  class Transfer : public Teuchos::Describable {
+  public:
+    void transfer_func(LO, GO, NT) {}
+  };
+}
+%}
+
+// Below is not resolving correctly yet
+%template(TransferDefaults) Details::Transfer<>;

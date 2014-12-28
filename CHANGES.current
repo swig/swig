@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.3 (in progress)
 ===========================
 
+2014-12-27: wsfulton
+            Fix #280 - abort using all default template parameters within other template
+            parameters.
+
 2014-12-27: talby
             [Perl] Issue #282 perl5 archlib vs archlibexp
             [Perl] tidy "warning: duplicate 'extern' declaration specifier" when building generated code under clang
