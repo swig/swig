@@ -47,4 +47,7 @@ build:
 	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='../$(SRCDIR)$(VERSION_DIR)runme.d $(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
 clean:
-	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_clean
+	if [ -d $(VERSION_DIR) ]; then \
+		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_clean; \
+	fi
+	test -f $(VERSION_DIR)/runme.d || rm -rf $(VERSION_DIR) # Only delete dir if out of source
