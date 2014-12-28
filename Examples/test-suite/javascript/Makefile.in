@@ -6,7 +6,7 @@ LANGUAGE     = javascript
 NODEGYP = @NODEGYP@
 NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
-OBJ = @OBJ@
+OBJEXT = @OBJEXT@
 SO = @SO@
 
 srcdir       = @srcdir@
@@ -118,10 +118,10 @@ endif
 
 %.clean:
 	@rm -rf $*
-	@rm -f $*_wrap.* $*$(SO) $*$(OBJ)
+	@rm -f $*_wrap.* $*$(SO) $*$(OBJEXT)
 
 clean:
-	for ext in _wrap.cxx _wrap$(OBJ) $(SO); do \
+	for ext in _wrap.cxx _wrap$(OBJEXT) $(SO); do \
 		rm -f clientdata_prop_a$${ext} clientdata_prop_b$${ext}; \
 		rm -f imports_a$${ext} imports_b$${ext}; \
 		rm -f import_stl_a$${ext} import_stl_b$${ext}; \
