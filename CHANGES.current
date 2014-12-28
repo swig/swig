@@ -7,6 +7,7 @@ Version 3.0.3 (in progress)
 
 2014-12-27: talby
             [Perl] Issue #282 perl5 archlib vs archlibexp
+            [Perl] tidy "warning: duplicate 'extern' declaration specifier" when building generated code under clang
 
 2014-12-09: wsfulton
             Fix #245 - regression (since swig-3.0.0) in templated constructors.
