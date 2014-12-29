@@ -29,8 +29,14 @@ EXTRA_CXXFLAGS =
 EXTRA_LDFLAGS  =
 TARGET         = example_wrap
 SWIGOPT        = -outcurrentdir
-DSRCS          = *.d
 DFLAGS         = -ofrunme
+
+ifeq (,$(SRCDIR))
+DSRCS          = *.d
+else
+DSRCS          = *.d $(addprefix ../$(SRCDIR)$(VERSION_DIR),runme.d)
+endif
+
 
 check: build
 	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_run
@@ -44,10 +50,10 @@ build:
 	else \
 		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' SRCS='' d; \
 	fi
-	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='../$(SRCDIR)$(VERSION_DIR)runme.d $(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
+	$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' DSRCS='$(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
 clean:
 	if [ -d $(VERSION_DIR) ]; then \
 		$(MAKE) -C $(VERSION_DIR) -f $(EXAMPLES_TOP)/Makefile SRCDIR='../$(SRCDIR)' d_clean; \
 	fi
-	test -f $(VERSION_DIR)/runme.d || rm -rf $(VERSION_DIR) # Only delete dir if out of source
+	test -f $(VERSION_DIR)runme.d || rm -rf $(VERSION_DIR) # Only delete dir if out of source
