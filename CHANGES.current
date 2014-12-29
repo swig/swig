@@ -11,7 +11,11 @@ Version 3.0.3 (in progress)
 
 2014-12-27: talby
             [Perl] Issue #282 perl5 archlib vs archlibexp
-            [Perl] tidy "warning: duplicate 'extern' declaration specifier" when building generated code under clang
+            [Perl] tidy "warning: duplicate 'extern' declaration specifier" when building generated code
+            under clang
+
+2014-12-18: wsfulton
+            Add support for %constant and structs/classes - issue #272
 
 2014-12-09: wsfulton
             Fix #245 - regression (since swig-3.0.0) in templated constructors.
@@ -22,7 +26,8 @@ Version 3.0.3 (in progress)
             Add support for C++11 strongly typed enumerations.
 
 2014-11-21: wsfulton
-            [Java C#] Fix multiply defined error when using %rename of enum items when using the "simple enum" wrappers.
+            [Java C#] Fix multiply defined error when using %rename of enum items when using the "simple enum"
+            wrappers.
 
 2014-10-28: vadz
             [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
@@ -112,6 +117,8 @@ Version 3.0.3 (in progress)
 2014-09-01: olly
 	    Issue an error for unknown SWIG preprocessor directives, rather
 	    than quietly ignoring them.  Reported by jrhelsey in issue#217.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
 
 2014-08-15: talby
             [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
