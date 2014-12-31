@@ -1,21 +1,15 @@
 import constant_directive
 
 if type(constant_directive.TYPE1_CONSTANT1) != constant_directive.Type1:
-  print("TYPE1_CONSTANT1    type: {}".format(type(constant_directive.TYPE1_CONSTANT1)))
-  raise RuntimeError("fail");
+  raise RuntimeError("Failure: TYPE1_CONSTANT1 type: {}".format(type(constant_directive.TYPE1_CONSTANT1)))
 if type(constant_directive.getType1Instance()) != constant_directive.Type1:
-  print("getType1Instance() type: {}".format(type(constant_directive.getType1Instance())))
-  raise RuntimeError("fail");
+  raise RuntimeError("Failure: getType1Instance() type: {}".format(type(constant_directive.getType1Instance())))
 
 if constant_directive.TYPE1_CONSTANT1.val != 1:
-  print "constant_directive.TYPE1_CONSTANT1.val != 1"
-  print "constant_directive.TYPE1_CONSTANT1.val is %r" % constant_directive.TYPE1_CONSTANT1.val
-  raise RuntimeError("fail")
+  raise RuntimeError("constant_directive.TYPE1_CONSTANT1.val is %r (should be 1)" % constant_directive.TYPE1_CONSTANT1.val)
+
 if constant_directive.TYPE1_CONSTANT2.val != 2:
-  print "constant_directive.TYPE1_CONSTANT2.val != 2"
-  print "constant_directive.TYPE1_CONSTANT2.val is %r" % constant_directive.TYPE1_CONSTANT2.val
-  raise RuntimeError("fail")
+  raise RuntimeError("constant_directive.TYPE1_CONSTANT2.val is %r (should be 2)" % constant_directive.TYPE1_CONSTANT2.val)
+
 if constant_directive.TYPE1_CONSTANT3.val != 3:
-  print "constant_directive.TYPE1_CONSTANT3.val != 3"
-  print "constant_directive.TYPE1_CONSTANT3.val is %r" % constant_directive.TYPE1_CONSTANT3.val
-  raise RuntimeError("fail")
+  raise RuntimeError("constant_directive.TYPE1_CONSTANT3.val is %r (should be 3)" % constant_directive.TYPE1_CONSTANT3.val)
