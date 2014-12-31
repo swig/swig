@@ -3,6 +3,145 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.3 (30 Dec 2014)
+===========================
+
+2014-12-27: wsfulton
+            Fix #280 - abort using all default template parameters within other template
+            parameters.
+
+2014-12-27: talby
+            [Perl] Issue #282 perl5 archlib vs archlibexp
+            [Perl] tidy "warning: duplicate 'extern' declaration specifier" when building generated code
+            under clang
+
+2014-12-18: wsfulton
+            Add support for %constant and structs/classes - issue #272
+
+2014-12-09: wsfulton
+            Fix #245 - regression (since swig-3.0.0) in templated constructors.
+            Templated constructors could not be instantiated - they were incorrectly ignored with a warning 504:
+            "Function: xyz must have a return type. Ignored."
+
+2014-12-07: wsfulton
+            Add support for C++11 strongly typed enumerations.
+
+2014-11-21: wsfulton
+            [Java C#] Fix multiply defined error when using %rename of enum items when using the "simple enum"
+            wrappers.
+
+2014-10-28: vadz
+            [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
+            Instead, the parameters are named using the C++ parameter names.
+
+2014-10-24: timotheecour
+            [D] Patch #204 Use core.atomic.atomicOp to mutate shared variables
+
+2014-10-21: wsfulton
+            Fix issue #242 - Use of the "kwargs" feature no longer automatically turns on the
+            "compactdefaultargs" feature if the target language does not support kwargs.
+            Only Java and Python support kwargs, so this affects all the other languages.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2014-10-10: diorcety
+            [Python] Patch #232 Fix property access using directors
+
+2014-10-06: wsfulton
+            [Python] Fixes when using -builtin and std::vector/std::list wrappers to allow deletion
+            of single elements, such as 'del vec[0]'.
+
+2014-09-30: oliverb
+            [Javascript] Merge patch #216 by Richie765 - Added support for many versions of v8 javascript.
+
+2014-09-30: oliverb
+            [Javascript] Merge patch #195 by zittix - Fixed JSClassRef declaration not using the static one.
+
+2014-09-30: ianlancetaylor
+	    [Go] In configure script, require Go 1.1 or later.
+
+2014-09-30: wsfulton
+            [Python] Patch #207 - Fix No module error with -relativeimport when using single
+            header file import.
+
+2014-09-27: wsfulton
+            Patch #208 - Initialise newly created array when using array_functions in the
+            carrays.i library (C++ usage).
+
+2014-09-27: wsfulton
+            [Ruby] Patch #187 - Fix crash on shutdown of the Ruby interpreter if more than one
+            module was loaded at a time when data is being shared between modules.
+
+2014-09-27: wsfulton
+            [Java] Patch #168 - Fix leak in Java director string handling after the Java
+            upcall when called from a native thread.
+
+2014-09-25: ianlancetaylor
+	    [Go] Adjust generated code to work with upcoming Go 1.4
+	    release.
+
+2014-09-23: wsfulton
+            [Python] Add patch from Thomas Maslach to fix crash in wrappers when using -threads in
+            the STL iterators (SwigPyIterator destructor).
+
+2014-09-17: wsfulton
+            [C#] Merge patch #229 from contre - Add bool array types to arrays_csharp.i
+
+2014-09-12: olly
+	    [PHP] Add support for specifying any PHP interfaces a wrapped class
+	    implements, e.g.: %typemap("phpinterfaces") MyIterator "Iterator";
+
+2014-09-11: olly
+	    [PHP] Fix throwing a PHP exception through C++ from a subclassed
+	    director method - PHP NULL gets returned by the subclassed method
+	    in this case, so the directorout typemap needs to allow that (at
+	    least if an exception is active).
+
+2014-09-09: ianlancetaylor
+	    [Go] Add goargout typemap.
+
+2014-09-09: olly
+	    [PHP] Fix segmentation faults with directors in PHP >= 5.4, and
+	    reenable runme tests for director_basic testcase.  Fix from
+	    pavel-charvat in issue#164.
+
+2014-09-05: ianlancetaylor
+	    [Go] Add imtype, goin, goout, godirectorin, and
+	    godirectorout typemaps, to support writing Go code to
+	    convert between types.
+
+2014-09-02: olly
+	    [Python] Fix regression in indentation of python code produced with
+	    -modern, introduced by changes in #188.  Reported by fabiencastan
+	    in #218.
+
+2014-09-01: olly
+	    Issue an error for unknown SWIG preprocessor directives, rather
+	    than quietly ignoring them.  Reported by jrhelsey in issue#217.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2014-08-15: talby
+            [Perl] Include guard fix for nested modules from Anthony Heading (SF Patch #350).
+
+2014-08-04: wsfulton
+            [C#] Merge patch #200 from gpetrou - Changed CSharp license header to include auto-generated
+            tag so that StyleCop ignores the files.
+
+2014-08-04: wsfulton
+            [Java] Merge patch #198 from Yuval Kashtan - Support for java.nio.ByteBuffer mapping to
+            unsigned char * in various.i in NIOBUFFER typemaps.
+
+2014-07-14: ianlancetaylor
+	    [Go] Change struct definition to use void *, not uint8, so
+	    that the type is recorded as possibly containing
+	    pointers.  This ensures that the 1.3 garbage collector
+	    does not collect pointers passed to C++ code.
+
+2014-07-01: wsfulton
+            Fix SF Bug #1375 - Expansion of the $parentclassname special variable incorrectly contains
+            brackets in the expanded name.
+
 Version 3.0.2 (4 Jun 2014)
 ==========================
 
