@@ -1046,7 +1046,7 @@ def filecopy(source,target):
 </pre></div>
 
 <p>
-In this case <tt>f1</tt>,<tt> f2</tt>, and <tt>buffer</tt> are all
+In this case <tt>f1</tt>, <tt>f2</tt>, and <tt>buffer</tt> are all
 opaque objects containing C pointers. It doesn't matter what value
 they contain--our program works just fine without this knowledge.</p>
 
@@ -1711,7 +1711,7 @@ wrapping a header file like this:
 </pre></div>
 
 <p>
-<tt>%rename </tt>applies a renaming operation to all future
+<tt>%rename</tt> applies a renaming operation to all future
 occurrences of a name. The renaming applies to functions, variables,
 class and structure names, member functions, and member data. For
 example, if you had two-dozen C++ classes, all with a member function
@@ -3316,7 +3316,7 @@ Most importantly, define a type before it is used! A C compiler will tell you
 if the full type information is not available if it is needed, whereas
 SWIG will usually not warn or error out as it is designed to work without
 full type information. However, if type information is not specified
-correctly, the wrappers can be sub-optimal and even result in uncompileable C/C++ code.
+correctly, the wrappers can be sub-optimal and even result in uncompilable C/C++ code.
 
 <li>If your program has a main() function, you may need to rename it
 (read on).

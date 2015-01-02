@@ -346,3 +346,20 @@ int method(struct TypeNameTraits tnt) {
   return tnt.val;
 }
 %}
+
+/* Null directive */
+# /* comment 1 */
+# // comment 2
+# /** comment 3 */
+# /* comment 4 */ /*comment 5*/
+# /** comment 6
+#
+# more comment 6 */
+# 
+#
+#	    
+int methodX(int x);
+%{
+int methodX(int x) { return x+100; }
+%}
+

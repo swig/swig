@@ -153,7 +153,7 @@ SWIG_strdup(const char *str)
 }
 }
 
-# This is modified from the R header files
+//# This is modified from the R header files
 
 %fragment("SWIG_FromCharPtrAndSize","header") 
 {

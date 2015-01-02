@@ -400,11 +400,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 }
 
 %typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * {
- $input = 0;
+  $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
+  Swig::LocalRefGuard $1_refguard(jenv, $input);
+// boohoo
 }
 
 %typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
@@ -731,6 +733,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
     if (!$input) return $null;
   }
+  Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
 
 %typemap(argout) char[ANY], char[] ""

@@ -803,23 +803,23 @@ public:
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    if (!GetFlag(n, "nonempty")) {
-      // Do not wrap empty enums; the resulting D code would be illegal.
-      Delete(proxy_enum_code);
-      return SWIG_NOWRAP;
-    }
-
-    // Finish the enum.
-    if (typemap_lookup_type) {
-      Printv(proxy_enum_code,
-	lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
-	"\n}\n", NIL);
+    if (GetFlag(n, "nonempty")) {
+      // Finish the enum.
+      if (typemap_lookup_type) {
+	Printv(proxy_enum_code,
+	  lookupCodeTypemap(n, "dcode", typemap_lookup_type, WARN_NONE), // Extra D code
+	  "\n}\n", NIL);
+      } else {
+	// Handle anonymous enums.
+	Printv(proxy_enum_code, "\n}\n", NIL);
+      }
+      Replaceall(proxy_enum_code, "$dclassname", symname);
     } else {
-      // Handle anonymous enums.
-      Printv(proxy_enum_code, "\n}\n", NIL);
+      // D enum declarations must have at least one member to be legal, so emit
+      // an alias to int instead (their ctype/imtype is always int).
+      Delete(proxy_enum_code);
+      proxy_enum_code = NewStringf("\nalias int %s;\n", symname);
     }
-
-    Replaceall(proxy_enum_code, "$dclassname", symname);
 
     const String* imports =
       lookupCodeTypemap(n, "dimports", typemap_lookup_type, WARN_NONE);
@@ -1701,20 +1701,9 @@ public:
     String *null_attribute = 0;
     // Now write code to make the function call
     if (!native_function_flag) {
-      if (Cmp(nodeType(n), "constant") == 0) {
-	// Wrapping a constant hack
-	Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-	// below based on Swig_VargetToFunction()
-	SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-	Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-      }
 
       Swig_director_emit_dynamic_cast(n, f);
       String *actioncode = emit_action(n);
-
-      if (Cmp(nodeType(n), "constant") == 0)
-	Swig_restore(n);
 
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
@@ -2594,7 +2583,7 @@ private:
     const_String_or_char_ptr wrapper_function_name) {
 
     // TODO: Add support for static linking here.
-    Printf(im_dmodule_code, "extern(C) %s function%s %s;\n", return_type,
+    Printf(im_dmodule_code, "SwigExternC!(%s function%s) %s;\n", return_type,
       parameters, d_name);
     Printv(wrapper_loader_bind_code, wrapper_loader_bind_command, NIL);
     Replaceall(wrapper_loader_bind_code, "$function", d_name);
@@ -2850,7 +2839,7 @@ private:
       // polymorphic call or an explicit method call. Needed to prevent infinite
       // recursion when calling director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
-      if (explicit_n) {
+      if (explicit_n && Swig_directorclass(getCurrentClass())) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
 	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 
@@ -4299,40 +4288,8 @@ private:
     return proxyname;
   }
 
-  /* ---------------------------------------------------------------------------
-   * D::makeParameterName()
-   *
-   * Inputs:
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping variables
-   * Return:
-   *   arg - a unique parameter name
-   * --------------------------------------------------------------------------- */
   String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) const {
-    String *arg = 0;
-    String *pn = Getattr(p, "name");
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	count++;
-      plist = nextSibling(plist);
-    }
-    String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-    arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
-
-    if (setter && Cmp(arg, "self") != 0) {
-      // In theory, we could use the normal parameter name for setter functions.
-      // Unfortunately, it is set to "Class::VariableName" for static public
-      // members by the parser, which is not legal D syntax. Thus, we just force
-      // it to "value".
-      Delete(arg);
-      arg = NewString("value");
-    }
+    String *arg = Language::makeParameterName(n, p, arg_num, setter);
 
     if (split_proxy_dmodule && Strncmp(arg, package, Len(arg)) == 0) {
       // If we are in split proxy mode and the argument is named like the target

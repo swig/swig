@@ -172,11 +172,11 @@
   }
   * (int *) &($1) = scm_to_int($input);
 }
-%typemap(out)    enum SWIGTYPE  { $result = scm_from_long($1); }
-%typemap(varout) enum SWIGTYPE  { $result = scm_from_long($1); }
+%typemap(out)    enum SWIGTYPE  { $result = scm_from_long((int)$1); }
+%typemap(varout) enum SWIGTYPE  { $result = scm_from_long((int)$1); }
 %typemap(throws) enum SWIGTYPE {
   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
-     scm_listify(scm_from_long($1), SCM_UNDEFINED));
+     scm_listify(scm_from_long((int)$1), SCM_UNDEFINED));
 }
 
 /* The SIMPLE_MAP_WITH_EXPR macro below defines the whole set of

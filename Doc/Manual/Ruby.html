@@ -685,7 +685,7 @@ For example, this struct declaration: </p>
 </div>
 
 <p> gets wrapped as a <tt>Vector</tt> class, with
-Ruby instance methods <tt>x</tt>, <tt> x=</tt>,
+Ruby instance methods <tt>x</tt>, <tt>x=</tt>,
 <tt>y</tt> and <tt>y=</tt>. These methods can
 be used to access structure data from Ruby as follows: </p>
 
@@ -1313,7 +1313,7 @@ chapter.</p>
 
 <p>Some containers in the STL allow you to modify their default
 behavior by using so called functors or function objects.
-Functors are often just a very simple struct with<tt> operator()</tt>
+Functors are often just a very simple struct with <tt>operator()</tt>
 redefined or an actual C/C++ function. This allows you, for
 example, to always keep the sort order of a STL container to your
 liking.</p>
@@ -1327,7 +1327,7 @@ this includes <tt>std::set</tt>,
 <tt>std::multiset</tt>
 and <tt>std::multimap</tt>.</p>
 
-<p>The functors in swig are called<tt> swig::UnaryFunction</tt>
+<p>The functors in swig are called <tt>swig::UnaryFunction</tt>
 and <tt>swig::BinaryFunction</tt>.
 
 For C++ predicates (ie. functors that must return bool as a result) <tt>swig::UnaryPredicate</tt>
@@ -1380,8 +1380,8 @@ values they point at, while the non-const iterators can both read and
 modify the values.</p>
 
 <p>The Ruby STL wrappings support both type of iterators by using
-a proxy class in-between. This proxy class is <tt>swig::Iterator or
-swig::ConstIterator. </tt> Derived from them are template
+a proxy class in-between. This proxy class is <tt>swig::Iterator</tt> or
+<tt>swig::ConstIterator</tt>. Derived from them are template
 classes that need to be initialized with the actual iterator for the
 container you are wrapping and often times with the beginning and
 ending points of the iteration range.</p>
@@ -1450,7 +1450,7 @@ i
 </pre>
 </div>
 
-<p>If you'd rather have STL classes without any iterators, you should define<tt> -DSWIG_NO_EXPORT_ITERATOR_METHODS </tt>when running swig.</p>
+<p>If you'd rather have STL classes without any iterators, you should define <tt>-DSWIG_NO_EXPORT_ITERATOR_METHODS</tt> when running swig.</p>
 
 <H3><a name="Ruby_nn24"></a>38.3.16 C++ Smart Pointers</H3>
 
@@ -4997,7 +4997,7 @@ object from its underlying C++ object.</p>
 <p>In general, you will only need to use the <tt>SWIG_RubyInstanceFor</tt>,
 which is required for implementing mark functions as shown below.
 However, if you implement your own free functions (see below) you may
-also have to call the<tt> SWIG_RubyRemoveTracking</tt> and <tt>RubyUnlinkObjects</tt>
+also have to call the <tt>SWIG_RubyRemoveTracking</tt> and <tt>RubyUnlinkObjects</tt>
 methods.</p>
 
 <H3><a name="Ruby_nn61"></a>38.10.4 Mark Functions</H3>

@@ -67,6 +67,7 @@ CCache/config.h
 CCache/config.log
 CCache/config.status
 Examples/Makefile
+Examples/d/example.mk
 Examples/guile/Makefile
 Examples/test-suite/*/Makefile
 Examples/xml/Makefile
@@ -136,12 +137,17 @@ Examples/test-suite/uffi/*/
 
 # Octave generated files
 swigexample*.oct
+Examples/test-suite/octave/*.oct
 
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
 */__pycache__/
 /__pycache__/
+
+# Go generated files
+*.[5689]
+*_gc.c
 
 # Scratch directories
 Examples/scratch

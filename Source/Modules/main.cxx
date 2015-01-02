@@ -50,6 +50,7 @@ int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
 extern "C" {
   extern String *ModuleName;
   extern int ignore_nested_classes;
+  extern int kwargs_supported;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
@@ -903,6 +904,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
   ignore_nested_classes = l->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+
+  kwargs_supported = l->kwargsSupport() ? 1 : 0;
 
   // Create Library search directories
 

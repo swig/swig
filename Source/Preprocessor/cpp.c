@@ -1768,6 +1768,10 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_level)) {
 	Swig_error(Getfile(s), Getline(id), "cpp debug: level = %d, startlevel = %d\n", level, start_level);
+      } else if (Equal(id, "")) {
+	/* Null directive */
+      } else {
+	Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s\n", id);
       }
       for (i = 0; i < cpp_lines; i++)
 	Putc('\n', ns);

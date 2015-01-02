@@ -43,7 +43,7 @@ public class li_std_auto_ptr_runme {
       }
       int actualCount = Klass.getTotal_count();
       if (actualCount != expectedCount)
-        throw new RuntimeException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        System.err.println("GC failed to run (li_std_auto_ptr 1). Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
     }
 
     if (!k2.getLabel().equals("second"))
@@ -62,7 +62,7 @@ public class li_std_auto_ptr_runme {
       };
       int actualCount = Klass.getTotal_count();
       if (actualCount != expectedCount)
-        throw new RuntimeException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        System.err.println("GC failed to run (li_std_auto_ptr 2). Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
     }
   }
 }

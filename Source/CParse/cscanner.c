@@ -147,7 +147,7 @@ String *get_raw_text_balanced(int startchar, int endchar) {
  *  friend ostream& operator<<(ostream&, const char *s);
  *
  * or
- *  friend ostream& operator<<(ostream&, const char *s) { };
+ *  friend ostream& operator<<(ostream&, const char *s) { }
  *
  * ------------------------------------------------------------------------- */
 

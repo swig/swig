@@ -23,7 +23,7 @@
 #ifdef SWIGD
 %typemap(ddirectorout) MyType & %{ WILL_NOT_COMPILE %}
 %typemap(ddirectorout) MyType &USEME = SWIGTYPE &;
-%typemap(ddirectorout) MyType &Class1::foo2, MyType &foo1 %{ /* special start */ $typemap(ddirectorout, MyType &USEME) /* special end */ %}
+%typemap(ddirectorout, nativepointer="cast(void*)$dcall") MyType &Class1::foo2, MyType &foo1 %{ /* special start */ $typemap(ddirectorout, MyType &USEME) /* special end */ %}
 #endif
 
 #ifdef SWIGJAVA

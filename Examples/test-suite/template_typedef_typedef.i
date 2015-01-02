@@ -1,7 +1,7 @@
 %module template_typedef_typedef
 
 // Github issue #50
-// The Object2::getBlabla2 and Object::getBlabla1 functions were not resolving to the correct template types
+// The Object2::getBlabla2 and Object1::getBlabla1 functions were not resolving to the correct template types
 
 %inline%{
 
@@ -20,7 +20,7 @@ namespace TT{
                 };
         };
         template <typename T>
-        class Object:public T {
+        class Object1:public T {
         public:
                 void getBlabla1(typename T::ABCD::CC1 c) {
                 };
@@ -29,7 +29,7 @@ namespace TT{
 
 class Factory {
         public:
-        typedef TT::Object<Base> CC1;
+        typedef TT::Object1<Base> CC1;
         typedef TT::Object2<Base> CC2;
         void getBlabla4(CC2 c) {
         };
@@ -38,6 +38,6 @@ class Factory {
 };
 %}
 
-%template(ObjectBase) TT::Object<Base>;
+%template(Object1Base) TT::Object1<Base>;
 %template(Object2Base) TT::Object2<Base>;
 

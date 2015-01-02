@@ -1350,9 +1350,6 @@ public:
 
   /*
    * Modified polymorphism code for Ocaml language module.
-   * Original:
-   * C++/Python polymorphism demo code, copyright (C) 2002 Mark Rose 
-   * <mrose@stm.lbl.gov>
    *
    * TODO
    *

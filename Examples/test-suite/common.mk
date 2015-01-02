@@ -86,6 +86,7 @@ Makefile: $(srcdir)/Makefile.in ../../../config.status
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	director_nested_class \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
@@ -142,6 +143,7 @@ CPP_TEST_CASES += \
 	class_scope_weird \
 	compactdefaultargs \
 	const_const_2 \
+	constant_directive \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -172,6 +174,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
+	director_property \
 	director_binary_string \
 	director_classes \
 	director_classic \
@@ -250,6 +253,7 @@ CPP_TEST_CASES += \
 	insert_directive \
 	keyword_rename \
 	kind \
+	kwargs_feature \
 	langobj \
 	li_attribute \
 	li_attribute_template \
@@ -297,6 +301,7 @@ CPP_TEST_CASES += \
 	nested_directors \
 	nested_comment \
 	nested_scope \
+	nested_template_base \
 	nested_workaround \
 	newobject1 \
 	null_pointer \
@@ -310,6 +315,7 @@ CPP_TEST_CASES += \
 	overload_extend \
 	overload_method \
 	overload_numeric \
+	overload_polymorphic \
 	overload_rename \
 	overload_return_type \
 	overload_simple \
@@ -380,6 +386,7 @@ CPP_TEST_CASES += \
 	template_classes \
 	template_const_ref \
 	template_construct \
+	template_templated_constructors \
 	template_default \
 	template_default2 \
 	template_default_arg \
@@ -527,6 +534,7 @@ CPP11_TEST_CASES = \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
+	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
@@ -539,7 +547,6 @@ CPP11_TEST_CASES = \
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
 #	cpp11_hash_tables \           # not fully implemented yet
-#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 

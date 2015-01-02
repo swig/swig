@@ -88,6 +88,12 @@ $ swig -javascript -jsc example.i</pre>
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
+<p>The V8 code that SWIG generates should work with most versions from 3.11.10 up to 3.29.14 and later.</p>
+<p>Specify the V8 version when running SWIG (e.g. 3.25.30)</p>
+<div class="shell">
+<pre>
+$ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i</pre>
+</div>
 <p>This creates a C/C++ source file <code>example_wrap.c</code> or <code>example_wrap.cxx</code>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
 <p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is <code>example.i</code>, the name of the wrapper file is <code>example_wrap.c</code>. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
 <div class="code">
@@ -128,6 +134,11 @@ $ make check-javascript-examples ENGINE=jsc</pre>
 <div class="shell">
 <pre>
 $ make check-javascript-test-suite ENGINE=jsc</pre>
+</div>
+<p>You can specify a specific <code>V8</code> version for running the examples and tests</p>
+<div class="shell">
+<pre>
+$ make check-javascript-examples V8_VERSION=0x032530 ENGINE=v8</pre>
 </div>
 
 <H3><a name="Javascript_known_issues"></a>26.2.3 Known Issues</H3>
@@ -184,7 +195,7 @@ $ sudo npm install -g node-gyp</pre>
 <p>First create the wrapper using SWIG:</p>
 <div class="shell">
 <pre>
-$ swig -javascript -node -c++ example.cxx</pre>
+$ swig -javascript -node -c++ example.i</pre>
 </div>
 <p>Then run <code>node-gyp</code></p>
 <div class="shell">
@@ -342,8 +353,8 @@ It has some extras to configure <code>node-webkit</code>. See the <a href="https
 <div class="code">
 <pre>
 {
-  "name": "example"
-  "main": "app.html"
+  "name": "example",
+  "main": "app.html",
   "window": {
     "show": true,
     "width": 800,
@@ -446,7 +457,7 @@ var x = 42;
 var y = 105;
 var g = example.gcd(x,y);
 
-// Accessing the globak variable
+// Accessing the global variable
 var f = example.Foo;
 example.Foo = 3.1415926;</pre>
 </div>
@@ -467,7 +478,7 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;
   void    move(double dx, double dy);
   virtual double area(void) = 0;
@@ -479,7 +490,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area(void);
   virtual double perimeter(void);
 };
@@ -488,7 +499,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area(void);
   virtual double perimeter(void);
 };</pre>
@@ -765,7 +776,7 @@ class JSEmitter {
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -777,7 +788,7 @@ class JSEmitter {
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -789,7 +800,7 @@ class JSEmitter {
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.

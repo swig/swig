@@ -2,7 +2,7 @@ pp_constant.i:9: Warning 305: Bad constant value (ignored).
 pp_constant.i:15: Warning 305: Bad constant value (ignored).
 pp_constant.i:23: Warning 305: Bad constant value (ignored).
 pp_constant.i:29: Warning 305: Bad constant value (ignored).
-pp_constant.i:35: Warning 305: Bad constant value (ignored).
-pp_constant.i:42: Warning 305: Bad constant value (ignored).
-pp_constant.i:46: Warning 305: Bad constant value (ignored).
-pp_constant.i:49: Warning 305: Bad constant value (ignored).
+pp_constant.i:37: Warning 305: Bad constant value (ignored).
+pp_constant.i:44: Warning 305: Bad constant value (ignored).
+pp_constant.i:48: Warning 305: Bad constant value (ignored).
+pp_constant.i:51: Warning 305: Bad constant value (ignored).
