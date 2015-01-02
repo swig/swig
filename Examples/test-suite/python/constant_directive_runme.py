@@ -1,8 +1,8 @@
 import constant_directive
 
-if type(constant_directive.TYPE1_CONSTANT1) != constant_directive.Type1:
+if not isinstance(constant_directive.TYPE1_CONSTANT1,constant_directive.Type1):
   raise RuntimeError("Failure: TYPE1_CONSTANT1 type: {}".format(type(constant_directive.TYPE1_CONSTANT1)))
-if type(constant_directive.getType1Instance()) != constant_directive.Type1:
+if not isinstance(constant_directive.getType1Instance(),constant_directive.Type1):
   raise RuntimeError("Failure: getType1Instance() type: {}".format(type(constant_directive.getType1Instance())))
 
 if constant_directive.TYPE1_CONSTANT1.val != 1:
