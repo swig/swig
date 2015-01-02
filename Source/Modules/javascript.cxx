@@ -1175,7 +1175,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   if (methodclass)
   {
     String *class_name = Getattr(methodclass, "sym:name");
-    if (class_name) {
+    if (class_name && Strcmp(class_name, "_wrap") != 0) {
       String *new_string = NewStringf("%s_%s", class_name, wrap_name);
       wrap_name = Swig_name_wrapper(new_string);
     }
@@ -1253,9 +1253,14 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   int l2 = Len(overname);
   Delslice(wrap_name, l1 - l2, l1);
 
-  String *new_string = NewStringf("%s_%s", class_name, wrap_name);
-  String *final_wrap_name = Swig_name_wrapper(new_string);
-     
+  String *final_wrap_name = wrap_name;
+
+  if (class_name && Strcmp(class_name, "") != 0)
+  {
+    String *new_string = NewStringf("%s_%s", class_name, wrap_name);
+    final_wrap_name = Swig_name_wrapper(new_string);
+  }
+
   Setattr(n, "wrap:name", final_wrap_name);
   state.function(WRAPPER_NAME, final_wrap_name);
 
