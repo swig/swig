@@ -4,14 +4,6 @@
 int module_function() { return 7; }
 int module_variable = 9;
 
-void print(double) {}
-void print(float) {}
-
-void print2(float) {}
-
-void print3(double) {}
-void print3(float) {}
-
 namespace MyWorld {
   class World {
   public:
@@ -26,15 +18,6 @@ namespace MyWorld {
         static int count() { return 19; }
     };
   }
-
-  void print(unsigned) {}
-
-  void print2(unsigned) {}
-
-  void print3(int) {}
-  void print3(unsigned) {}
-
 }
-
 
 #endif

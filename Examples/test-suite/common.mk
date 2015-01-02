@@ -234,6 +234,7 @@ CPP_TEST_CASES += \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
+	global_overloads_with_namespace_overloads \
 	global_scope_types \
 	global_vars \
 	grouping \
