@@ -1861,15 +1861,19 @@ public:
     Parm *pnext;
 
     for (p = plist; p; p = pnext) {
+      pnext = NIL;
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
 	pnext = Getattr(p, "tmap:in:next");
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  continue;
 	}
-      } else {
+      }
+
+      if (!pnext) {
 	pnext = nextSibling(p);
       }
+
       if (String *value = Getattr(p, "value")) {
 	String *type = Getattr(p, "type");
 	if (!convertValue(value, type))

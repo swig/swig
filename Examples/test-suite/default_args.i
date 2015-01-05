@@ -199,6 +199,7 @@ namespace Space {
 struct Klass {
   int val;
   Klass(int val = -1) : val(val) {}
+  static Klass inc(int n = 1, const Klass& k = Klass()) { return Klass(k.val + n); }
 };
 Klass constructorcall(const Klass& k = Klass()) { return k; }
 
