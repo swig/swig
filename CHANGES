@@ -179,7 +179,7 @@ Version 3.0.1 (27 May 2014)
             symbol comprising the outer structure name and unnamed variable instance name.
 
 2014-05-15: kwwette
-	    Add #166 - 'make check' now works out of source. This required te examples to build
+	    Add #166 - 'make check' now works out of source. This required the examples to build
             out of source. The main languages have been tested - C#, Go, Guile, Java, Javascript,
             Lua, Octave, Perl, PHP, Python, Ruby and Tcl.
 
