@@ -2231,6 +2231,7 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GO1=false
   GO12=false
   GO13=false
+  GO15=false
   GOGCC=false
   GOOPT=
   GOVERSIONOPTION=
@@ -2246,6 +2247,7 @@ else
   GO1=false
   GO12=false
   GO13=false
+  GO15=false
   GOOPT=
   GOVERSIONOPTION=
   if test -n "$GO" ; then
@@ -2301,8 +2303,11 @@ else
       go1.2*)
         GO12=true
 	;;
-      *)
+      go1.3* | go1.4*)
 	GO13=true
+	;;
+      go1.5* | devel*)
+	GO15=true
 	;;
       esac
     else
@@ -2323,6 +2328,7 @@ else
       GOOPT="-intgosize 32"
       GO12=false
       GO13=false
+      GO15=false
     fi
   fi
 fi
@@ -2333,6 +2339,7 @@ AC_SUBST(GOC)
 AC_SUBST(GO1)
 AC_SUBST(GO12)
 AC_SUBST(GO13)
+AC_SUBST(GO15)
 AC_SUBST(GOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
