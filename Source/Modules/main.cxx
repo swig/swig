@@ -80,6 +80,9 @@ static const char *usage1 = (const char *) "\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
+";
+
+static const char *usage2 = (const char *) "\
      -E              - Preprocess only, does not generate wrapper code\n\
      -external-runtime [file] - Export the SWIG runtime stack\n\
      -fakeversion <v>- Make SWIG fake the program version number to <v>\n\
@@ -87,9 +90,6 @@ static const char *usage1 = (const char *) "\
      -features <list>- Set global features, where <list> is a comma separated list of\n\
                        features, eg -features directors,autodoc=1\n\
                        If no explicit value is given to the feature, a default of 1 is used\n\
-";
-
-static const char *usage2 = (const char *) "\
      -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
@@ -101,6 +101,9 @@ static const char *usage2 = (const char *) "\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
+";
+
+static const char *usage3 = (const char *) "\
      -macroerrors    - Report errors inside macros\n\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -M              - List all dependencies\n\
@@ -120,10 +123,10 @@ static const char *usage2 = (const char *) "\
      -noexcept       - Do not wrap exception specifiers\n\
      -nofastdispatch - Disable fast dispatch mode (default)\n\
      -nopreprocess   - Skip the preprocessor step\n\
+     -notemplatereduce - Disable reduction of the typedefs in templates\n\
 ";
 
-static const char *usage3 = (const char *) "\
-     -notemplatereduce - Disable reduction of the typedefs in templates\n\
+static const char *usage4 = (const char *) "\
      -O              - Enable the optimization options: \n\
                         -fastdispatch -fvirtual \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
@@ -851,6 +854,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	fputs(usage1, stdout);
 	fputs(usage2, stdout);
 	fputs(usage3, stdout);
+	fputs(usage4, stdout);
 	Swig_mark_arg(i);
 	help = 1;
       }
