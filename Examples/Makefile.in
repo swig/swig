@@ -1706,18 +1706,13 @@ SCILAB_INC= @SCILABINCLUDE@
 SCILAB_OPT = @SCILABOPT@
 SCILAB_LIBPREFIX = lib
 
-# Gateway entry point source file
-SCILAB_GW = $(addprefix gw_, $(INTERFACE))
-SCILAB_GWSRCS = $(SCILAB_GW:.i=.c)
-SCILAB_GWOBJS = $(SCILAB_GW:.i=.o)
-
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab:
 	$(SWIG) -scilab -nobuilder $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH);
-	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SCILAB_GWSRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(SCILAB_GWOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -1726,9 +1721,8 @@ scilab:
 
 scilab_cpp:
 	$(SWIG) -scilab -c++ -nobuilder $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH);
-	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(SCILAB_GWSRCS)
 	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(SCILAB_GWOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Running a Scilab example
@@ -1752,7 +1746,7 @@ scilab_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
-	rm -f *.sce gw_*.c
+	rm -f *.sce
 
 ##################################################################
 #####                        Go                             ######

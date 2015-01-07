@@ -21,12 +21,11 @@ extern "C" {
 #include "Scierror.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
+#include <sci_gateway.h>
+#include <mex.h>
 #ifdef __cplusplus
 }
 #endif
-
-#undef Max
-#undef Min
 
 /* Gateway signature */
 

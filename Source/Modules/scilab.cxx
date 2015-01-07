@@ -51,10 +51,7 @@ protected:
   String *verboseBuildLevel;
   String *buildFlagsScript;
 
-  bool createGatewaySource;
-  File *gatewaySourceFile;
-  String *gatewaySourceWrapperDeclaration;
-  String *gatewaySourceFunctionTable;
+  String *gatewayHeader;
 
   bool createGatewayXML;
   File *gatewayXMLFile;
@@ -80,10 +77,7 @@ public:
     verboseBuildLevel = NULL;
     buildFlagsScript = NULL;
 
-    createGatewaySource = false;
-    gatewaySourceWrapperDeclaration = NULL;
-    gatewaySourceFunctionTable = NULL;
-    gatewaySourceFile = NULL;
+    gatewayHeader = NULL;
 
     createGatewayXML = false;
     gatewayXML = NULL;
@@ -102,7 +96,6 @@ public:
 	} else if (strcmp(argv[argIndex], "-builder") == 0) {
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = true;
-	  createGatewaySource = false;
 	  createLoader = false;
 	} else if (strcmp(argv[argIndex], "-buildersources") == 0) {
 	  if (argv[argIndex + 1] != NULL) {
@@ -137,7 +130,6 @@ public:
 	} else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = false;
-	  createGatewaySource = true;
 	  createLoader = true;
 	} else if (strcmp(argv[argIndex], "-gatewayxml") == 0) {
 	  Swig_mark_arg(argIndex);
@@ -176,8 +168,7 @@ public:
     /* Get the module name */
     String *gatewayName = Getattr(node, "name");
 
-    // Set gateway source and library name
-    String *gatewaySourceName = NewStringf("gw_%s", gatewayName);
+    // Set library name
     String *gatewayLibraryName = NewStringf("lib%s", gatewayName);
 
     /* Get the output file name */
@@ -208,18 +199,17 @@ public:
     if (generateBuilder) {
       createBuilderFile(outputFilename);
     }
-    // Create gateway source if required
-    if (createGatewaySource) {
-      createGatewaySourceFile(gatewaySourceName);
-    }
+
     // Create gateway XML if required
     if (createGatewayXML) {
       createGatewayXMLFile(gatewayName);
     }
+
     // Create loader script if required
     if (createLoader) {
       createLoaderFile(gatewayLibraryName);
     }
+
     // Module initialization function
     String *gatewayInitFunctionName = NewStringf("%s_Init", gatewayName);
 
@@ -258,22 +248,22 @@ public:
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
 
+    // Add gateway functions declaration to init section
+    terminateGatewayHeader(gatewayName);
+    Printv(initSection, gatewayHeader, NIL);
+
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
     Dump(wrappersSection, beginSection);
     Dump(variablesCode, beginSection);
     Wrapper_pretty_print(initSection, beginSection);
 
-    if (createGatewaySource) {
-      saveGatewaySourceFile(gatewaySourceName);
-    }
-
     if (createGatewayXML) {
       saveGatewayXMLFile();
     }
 
     if (createLoader) {
-      saveLoaderFile(gatewaySourceName, gatewayLibraryName);
+      saveLoaderFile(gatewayName, gatewayLibraryName);
     }
 
     /* Cleanup files */
@@ -837,12 +827,10 @@ public:
    * ----------------------------------------------------------------------- */
 
   void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+    addFunctionInGatewayHeader(scilabFunctionName, wrapperFunctionName);
+
     if (generateBuilder) {
       addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
-    }
-
-    if (gatewaySourceFile) {
-      addFunctionInGatewaySource(scilabFunctionName, wrapperFunctionName);
     }
 
     if (createLoader) {
@@ -992,83 +980,51 @@ public:
   }
 
   /* -----------------------------------------------------------------------
-   * createGatewaySourceFile()
-   * Creates the gateway entry point source file (entry point gw_<module>.c)
+   * addFunctionInGatewayHeader()
+   * Add a function in the gateway header
    * ----------------------------------------------------------------------- */
 
-  void createGatewaySourceFile(String *gatewaySourceName) {
-    String *gatewaySourceFilename = NewStringf("%s.c", gatewaySourceName);
-    gatewaySourceFile = NewFile(gatewaySourceFilename, "w", SWIG_output_files());
-    if (!gatewaySourceFile) {
-      FileErrorDisplay(gatewaySourceFilename);
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    emitBanner(gatewaySourceFile);
-    String *gatewaySource = NewString("");
-    Printf(gatewaySource, "#ifdef __cplusplus\n");
-    Printf(gatewaySource, "extern \"C\" {\n");
-    Printf(gatewaySource, "#endif\n");
-    Printf(gatewaySource, "\n");
-    Printf(gatewaySource, "#include <api_scilab.h>\n");
-    Printf(gatewaySource, "#include <mex.h>\n");
-    Printf(gatewaySource, "#include <sci_gateway.h>\n");
-    Printf(gatewaySource, "#include <MALLOC.h>\n");
-    Printf(gatewaySource, "\n");
-    Printf(gatewaySource, "static int direct_gateway(char *fname, void F(void)) { F(); return 0; };\n");
-    Printv(gatewaySourceFile, gatewaySource, NIL);
-
-    gatewaySourceWrapperDeclaration = NewString("");
-  }
-
-  /* -----------------------------------------------------------------------
-   * addFunctionInGatewaySource()
-   * Add a function in the gateway entry point source
-   * ----------------------------------------------------------------------- */
-
-  void addFunctionInGatewaySource(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    Printf(gatewaySourceWrapperDeclaration, "extern Gatefunc %s;\n", wrapperFunctionName);
-    if (gatewaySourceFunctionTable == NULL) {
-      gatewaySourceFunctionTable = NewString("static GenericTable Tab[] = {\n");
-      Printf(gatewaySourceFunctionTable, "  {(Myinterfun)sci_gateway, %s, \"%s\"}\n", wrapperFunctionName, scilabFunctionName);
+  void addFunctionInGatewayHeader(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+    if (gatewayHeader == NULL) {
+      gatewayHeader = NewString("");
+      Printf(gatewayHeader, "\n");
+      Printf(gatewayHeader, "#ifdef __cplusplus\n");
+      Printf(gatewayHeader, "extern \"C\" {\n");
+      Printf(gatewayHeader, "#endif\n");
+      Printf(gatewayHeader, "static int direct_gateway(char *fname, void F(void)) { F();\n");
+      Printf(gatewayHeader, "return 0; };\n");
+      Printf(gatewayHeader, "static GenericTable Tab[] = {\n");
+      Printf(gatewayHeader, "  {(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}\n", wrapperFunctionName, scilabFunctionName);
     } else
-      Printf(gatewaySourceFunctionTable, " ,{(Myinterfun)sci_gateway, %s, \"%s\"}\n", wrapperFunctionName, scilabFunctionName);
+      Printf(gatewayHeader, " ,{(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}\n", wrapperFunctionName, scilabFunctionName);
   }
 
   /* -----------------------------------------------------------------------
-   * saveGatewaySourceFile()
-   * Saves the gateway entry point source file
+   * terminateGatewayHeader()
+   * Terminates the gateway header
    * ----------------------------------------------------------------------- */
 
-  void saveGatewaySourceFile(String *gatewaySourceName) {
-    Printv(gatewaySourceFile, gatewaySourceWrapperDeclaration, NIL);
-    Printf(gatewaySourceFunctionTable, "};\n");
-
-    Printv(gatewaySourceFile, gatewaySourceFunctionTable, NIL);
-    Printv(gatewaySourceFile, "\n", NIL);
-
-    String *gatewaySourceEntryPoint = NewString("");
-    Printf(gatewaySourceEntryPoint, "int C2F(%s)()\n", gatewaySourceName);
-    Printf(gatewaySourceEntryPoint, "{\n");
-    Printf(gatewaySourceEntryPoint, "  Rhs = Max(0, Rhs);\n");
-    Printf(gatewaySourceEntryPoint, "  if (*(Tab[Fin-1].f) != NULL)\n");
-    Printf(gatewaySourceEntryPoint, "  {\n");
-    Printf(gatewaySourceEntryPoint, "    if(pvApiCtx == NULL)\n");
-    Printf(gatewaySourceEntryPoint, "    {\n");
-    Printf(gatewaySourceEntryPoint, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
-    Printf(gatewaySourceEntryPoint, "    }\n");
-    Printf(gatewaySourceEntryPoint, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
-    Printf(gatewaySourceEntryPoint, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,Tab[Fin-1].F);\n");
-    Printf(gatewaySourceEntryPoint, "  }\n");
-    Printf(gatewaySourceEntryPoint, "  return 0;\n");
-    Printf(gatewaySourceEntryPoint, "}\n");
-    Printf(gatewaySourceEntryPoint, "\n");
-    Printf(gatewaySourceEntryPoint, "#ifdef __cplusplus\n");
-    Printf(gatewaySourceEntryPoint, "}\n");
-    Printf(gatewaySourceEntryPoint, "#endif\n");
-    Printv(gatewaySourceFile, gatewaySourceEntryPoint, NIL);
-
-    Delete(gatewaySourceFile);
+  void terminateGatewayHeader(String *moduleName) {
+    Printf(gatewayHeader, "};\n");
+    Printf(gatewayHeader, "\n");
+    Printf(gatewayHeader, "int C2F(gw_%s)()\n", moduleName);
+    Printf(gatewayHeader, "{\n");
+    Printf(gatewayHeader, "  Rhs = Max(0, Rhs);\n");
+    Printf(gatewayHeader, "  if (*(Tab[Fin-1].f) != NULL)\n");
+    Printf(gatewayHeader, "  {\n");
+    Printf(gatewayHeader, "    if(pvApiCtx == NULL)\n");
+    Printf(gatewayHeader, "    {\n");
+    Printf(gatewayHeader, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
+    Printf(gatewayHeader, "    }\n");
+    Printf(gatewayHeader, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
+    Printf(gatewayHeader, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,(GatefuncH)Tab[Fin-1].F);\n");
+    Printf(gatewayHeader, "  }\n");
+    Printf(gatewayHeader, "  return 0;\n");
+    Printf(gatewayHeader, "}\n");
+    Printf(gatewayHeader, "\n");
+    Printf(gatewayHeader, "#ifdef __cplusplus\n");
+    Printf(gatewayHeader, "}\n");
+    Printf(gatewayHeader, "#endif\n");
   }
 
 
@@ -1110,11 +1066,10 @@ public:
    * Terminates and saves the loader script
    * ----------------------------------------------------------------------- */
 
-  void saveLoaderFile(String *gatewaySourceName, String *gatewayLibraryName) {
+  void saveLoaderFile(String *gatewayName, String *gatewayLibraryName) {
     Printf(loaderScript, "];\n");
-
-    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n",
-	   gatewayLibraryName, gatewayLibraryName, gatewaySourceName);
+    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), 'gw_%s', list_functions);\n",
+	   gatewayLibraryName, gatewayLibraryName, gatewayName);
     Printf(loaderScript, "clear %s_path;\n", gatewayLibraryName);
     Printf(loaderScript, "clear bOK;\n");
     Printf(loaderScript, "clear ilib;\n");
