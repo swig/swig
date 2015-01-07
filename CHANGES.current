@@ -6,6 +6,11 @@ Version 3.0.4 (in progress)
 ===========================
 
 2015-01-08: olly
+	    Improve error message when an unknown SWIG directive is used - this
+	    previously gave the cryptic "Error: Syntax error in input(1).", but
+	    now gives "Error: Unknown directive '%foo'."
+
+2015-01-08: olly
 	    Provide -cppext as a general command line option for setting the
 	    extension used for generated C++ files (previously it was specific
 	    to the PHP backend).  Deprecate the equivalent -suffix option
