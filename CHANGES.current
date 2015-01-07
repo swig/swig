@@ -5,3 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.4 (in progress)
 ===========================
 
+2015-01-08: olly
+	    Provide -cppext as a general command line option for setting the
+	    extension used for generated C++ files (previously it was specific
+	    to the PHP backend).  Deprecate the equivalent -suffix option
+	    provided by the Ocaml backend, but continue to support that for
+	    now.

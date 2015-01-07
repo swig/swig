@@ -63,6 +63,8 @@ static const char *usage1 = (const char *) "\
      -co <file>      - Check <file> out of the SWIG library\n\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
      -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)\n\
+     -cppext <ext>   - Change file extension of generated C++ files to <ext>\n\
+                       (default is cxx, except for PHP which uses cpp)\n\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -681,6 +683,15 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nocpperraswarn") == 0) {
 	Preprocessor_error_as_warning(0);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-cppext") == 0) {
+	Swig_mark_arg(i);
+	if (argv[i + 1]) {
+	  SWIG_config_cppext(argv[i + 1]);
+	  Swig_mark_arg(i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
       } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
 	tm_debug = 1;
 	Swig_mark_arg(i);

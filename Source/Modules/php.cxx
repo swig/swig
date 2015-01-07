@@ -44,7 +44,6 @@
 
 static const char *usage = "\
 PHP Options (available with -php)\n\
-     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -215,15 +214,6 @@ public:
       if (strcmp(argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
 	  prefix = NewString(argv[i + 1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i + 1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      } else if (strcmp(argv[i], "-cppext") == 0) {
-	if (argv[i + 1]) {
-	  SWIG_config_cppext(argv[i + 1]);
 	  Swig_mark_arg(i);
 	  Swig_mark_arg(i + 1);
 	  i++;
