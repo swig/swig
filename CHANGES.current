@@ -7,7 +7,8 @@ Version 3.0.4 (in progress)
 
 2015-01-08: olly
 	    Allow C++11 "explicit constexpr".  Fixes github issue#284 reported
-	    by Paweł Tomulik.
+	    by Paweł Tomulik.  Also handle "constexpr explicit" and "constexpr
+	    static".
 
 2015-01-08: olly
 	    When reporting an error for a construct which hasn't been
