@@ -13,6 +13,12 @@
 %inline %{
   #include <string>
 
+  // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
+  void lots_of_args(int pos = -1, unsigned rgb = 0xabcdef, int mode = 0644) { }
+
+  // Long long arguments are not handled at Python level currently but still work.
+  void seek(long long offset = 0LL) {}
+
   // Anonymous arguments
   int anonymous(int = 7771);
   int anonymous(int x) { return x; }
@@ -27,6 +33,12 @@
       enum speed { FAST, SLOW };
       // Note: default values should be EnumClass::FAST and SWEET 
       bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
+  };
+
+  // using base class enum in a derived class
+  class DerivedEnumClass : public EnumClass {
+  public:
+    void accelerate(speed s = SLOW) { }
   };
 
   // casts
@@ -199,6 +211,7 @@ namespace Space {
 struct Klass {
   int val;
   Klass(int val = -1) : val(val) {}
+  static Klass inc(int n = 1, const Klass& k = Klass()) { return Klass(k.val + n); }
 };
 Klass constructorcall(const Klass& k = Klass()) { return k; }
 
