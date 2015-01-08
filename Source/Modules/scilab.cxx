@@ -18,13 +18,13 @@ static const int SCILAB_VARIABLE_NAME_CHAR_MAX = SCILAB_IDENTIFIER_NAME_CHAR_MAX
 
 static const char *usage = (char *) " \
 Scilab options (available with -scilab)\n \
-     -builder                        - Generate a Scilab builder script (default)\n \
+     -builder                        - Generate a Scilab builder script\n \
      -buildercflags <cflags>         - Add <cflags> to the builder compiler flags\n \
      -builderldflags <ldflags>       - Add <ldflags> to the builder linker flags\n \
      -buildersources <files>         - Add the (comma separated) files <files> to the builder sources\n \
      -builderflagscript <file>       - Set the Scilab script <file> to use by builder to configure the build flags\n \
      -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0: off, 2: most verbose)\n \
-     -nobuilder                      - Do not generate the Scilab builder script\n \
+     -nobuilder                      - Do not generate the Scilab builder script (default)\n \
      -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n\n";
 
 
@@ -70,7 +70,7 @@ public:
 
   virtual void main(int argc, char *argv[]) {
 
-    generateBuilder = true;
+    generateBuilder = false;
     sourceFileList = NewList();
     cflags = NewList();
     ldflags = NewList();
@@ -84,7 +84,7 @@ public:
     gatewayXMLFile = NULL;
     gatewayID = NULL;
 
-    createLoader = false;
+    createLoader = true;
     loaderFile = NULL;
     loaderScript = NULL;
 
