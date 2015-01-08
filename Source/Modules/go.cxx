@@ -10,6 +10,7 @@
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
+#include <stdint.h>
 
 class GO:public Language {
   static const char *const usage;
@@ -342,6 +343,22 @@ private:
       Printf(gc_go_filename, "%s%s_gc.go", SWIG_output_directory(), module);
     }
 
+    // Generate unique id based on hash of SWIG input
+
+    void siphash(uint64_t *out, const char *in, uint64_t inlen);
+    uint64_t hash = 0;
+    String *unique_id = NewString("");
+    FILE *swig_input = Swig_open(swig_filename);
+    if (swig_input == NULL) {
+      FileErrorDisplay(swig_filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    String *swig_input_content = Swig_read_file(swig_input);
+    siphash(&hash, Char(swig_input_content), Len(swig_input_content));
+    Delete(swig_input_content);
+    fclose(swig_input);
+    Printf(unique_id, "%08x%08x", hash>>32, hash & 0xffffffffful);
+
     // Open files.
 
     f_c_begin = NewFile(c_filename, "w", SWIG_output_files());
@@ -465,7 +482,7 @@ private:
       Printf(f_gc_go_begin, "\n//go:linkname __cgo_runtime_cgocall runtime.cgocall");
       Printf(f_gc_go_begin, "\nfunc __cgo_runtime_cgocall(unsafe.Pointer, uintptr)\n\n");
 
-      Printf(f_gc_go_inits, "\n//go:linkname swig_init_go swig_init_go_%s", Char(package));
+      Printf(f_gc_go_inits, "\n//go:linkname swig_init_go swig_init_go_%s", unique_id);
       Printf(f_gc_go_inits, "\nfunc swig_init_go() {\n");
 
       Printf(f_gc_go_inits, "\t_cgo_runtime_cgocall = __cgo_runtime_cgocall\n");
@@ -488,9 +505,10 @@ private:
     } else {
       Printf(f_go_begin, "import \"sync\"\n");
       Printf(f_go_runtime, "var _swig_once sync.Once\n\n");
-      Printf(f_go_runtime, "//go:linkname swig_init_c swig_init_go_%s\n", Char(package));
+      Printf(f_go_runtime, "//go:linkname swig_init_c swig_init_go_%s\n", unique_id);
       Printf(f_go_runtime, "func swig_init_c()\n\n");
     }
+    Delete(unique_id);
 
     // All the C++ wrappers should be extern "C".
 
@@ -5554,3 +5572,52 @@ Go Options (available with -go)\n\
      -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";
+
+/* -----------------------------------------------------------------------------
+ * siphash: 64-bit SipHash-2-4 to generate unique id for each module
+ * ----------------------------------------------------------------------------- */
+#define ROTL(x,b) (uint64_t)( ((x) << (b)) | ((x) >> (64 - (b))) )
+
+#define SIPROUND                                        \
+  do {                                                  \
+    v0 += v1; v1=ROTL(v1,13); v1 ^= v0; v0=ROTL(v0,32); \
+    v2 += v3; v3=ROTL(v3,16); v3 ^= v2;                 \
+    v0 += v3; v3=ROTL(v3,21); v3 ^= v0;                 \
+    v2 += v1; v1=ROTL(v1,17); v1 ^= v2; v2=ROTL(v2,32); \
+  } while(0)
+
+void siphash(uint64_t *out, const char *inc, uint64_t inlen) {
+  const int cROUNDS = 2, dROUNDS = 4;
+  /* "somepseudorandomlygeneratedbytes" */
+  uint64_t v0 = ((uint64_t)0x736f6d65UL<<32) | 0x70736575UL;
+  uint64_t v1 = ((uint64_t)0x646f7261UL<<32) | 0x6e646f6dUL;
+  uint64_t v2 = ((uint64_t)0x6c796765UL<<32) | 0x6e657261UL;
+  uint64_t v3 = ((uint64_t)0x74656462UL<<32) | 0x79746573UL;
+  uint64_t b;
+  // hard-coded key (k0, k1)
+  uint64_t k0 = ((uint64_t)0x07060504UL<<32) | 0x03020100UL;
+  uint64_t k1 = ((uint64_t)0x0F0E0D0CUL<<32) | 0x0B0A0908UL;
+  uint64_t m;
+  int i;
+  const uint8_t *in = (const uint8_t *)inc;
+  const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
+  int left = inlen & 7;
+  b = ( ( uint64_t )inlen ) << 56;
+  v3 ^= k1; v2 ^= k0; v1 ^= k1; v0 ^= k0;
+  for (; in != end; in += 8) {
+    m = 0;
+    for (i = 0; i < 8; i++)
+      m |= ((uint64_t)in[i]) << (8*i);
+    v3 ^= m;
+    for (i = 0; i < cROUNDS; i++) SIPROUND;
+    v0 ^= m;
+  }
+  for (; left; left--)
+    b |= ((uint64_t)in[left-1]) << (8*left-8);
+  v3 ^= b;
+  for(i=0; i<cROUNDS; i++) SIPROUND;
+  v0 ^= b; v2 ^= 0xff;
+  for(i=0; i<dROUNDS; i++) SIPROUND;
+  b = v0 ^ v1 ^ v2  ^ v3;
+  *out = b;
+}
