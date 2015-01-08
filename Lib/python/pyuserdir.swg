@@ -185,6 +185,16 @@ These methods "may be called" if needed.
 #define %clearpythonappend    %feature("pythonappend","")
 
 
+/* ------------------------------------------------------------------------- */
+/*
+  Python default argument handling (for non-builtin)
+*/
+
+#define %pythondefaultargs      %feature("python:defaultargs")
+#define %nopythondefaultargs    %feature("python:defaultargs", "0")
+#define %clearpythondefaultargs %feature("python:defaultargs", "")
+
+
 
 /* ------------------------------------------------------------------------- */
 /* 

@@ -1856,27 +1856,37 @@ public:
    *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
   bool is_representable_as_pyargs(Node *n) {
-    ParmList *plist = CopyParmList(Getattr(n, "parms"));
-    Parm *p;
-    Parm *pnext;
+    bool is_representable = true;
 
-    for (p = plist; p; p = pnext) {
-      String *tm = Getattr(p, "tmap:in");
-      if (tm) {
-	pnext = Getattr(p, "tmap:in:next");
-	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	  continue;
+    if (Getattr(n, "sym:overloaded")) {
+      if (GetFlag(n, "feature:python:defaultargs")) {
+	ParmList *plist = CopyParmList(Getattr(n, "parms"));
+	Parm *p;
+	Parm *pnext;
+
+	for (p = plist; p; p = pnext) {
+	  String *tm = Getattr(p, "tmap:in");
+	  if (tm) {
+	    pnext = Getattr(p, "tmap:in:next");
+	    if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	      continue;
+	    }
+	  } else {
+	    pnext = nextSibling(p);
+	  }
+	  if (String *value = Getattr(p, "value")) {
+	    String *type = Getattr(p, "type");
+	    if (!convertValue(value, type)) {
+	      is_representable = false;
+	      break;
+	    }
+	  }
 	}
       } else {
-	pnext = nextSibling(p);
-      }
-      if (String *value = Getattr(p, "value")) {
-	String *type = Getattr(p, "type");
-	if (!convertValue(value, type))
-	  return false;
+	is_representable = false;
       }
     }
-    return true;
+    return is_representable;
   }
 
 

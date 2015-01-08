@@ -58,6 +58,7 @@ CPP_TEST_CASES += \
 	primitive_types \
 	python_abstractbase \
 	python_append \
+	python_default_args \
 	python_director \
 	python_nondynamic \
 	python_overload_simple_cast \
