@@ -3029,7 +3029,7 @@ c_decl_tail    : SEMI {
 		   if (yychar == RPAREN) {
 		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
 		   } else {
-		       Swig_error(cparse_file, cparse_line, "Syntax error - missing ';'?\n");
+		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
 		   }
 		   exit(1);
                }
