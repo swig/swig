@@ -35,6 +35,12 @@
       bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
   };
 
+  // using base class enum in a derived class
+  class DerivedEnumClass : public EnumClass {
+  public:
+    void accelerate(speed s = SLOW) { }
+  };
+
   // casts
   const char * casts1(const char *m = (const char *) NULL) {
     char *ret = NULL; 

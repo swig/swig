@@ -1946,12 +1946,15 @@ public:
     if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
       return SwigType_ispointer(t) ? NewString("None") : NewString("0");
 
-    // This could also be an enum type, default value of which is perfectly
-    // representable in Python.
-    Node *lookup = Swig_symbol_clookup(v, 0);
-    if (lookup) {
-      if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	return Getattr(lookup, "sym:name");
+    // This could also be an enum type, default value of which could be
+    // representable in Python if it doesn't include any scope (which could,
+    // but currently is not, translated).
+    if (!Strchr(s, ':')) {
+      Node *lookup = Swig_symbol_clookup(v, 0);
+      if (lookup) {
+	if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	  return Getattr(lookup, "sym:name");
+      }
     }
 
     return NIL;
