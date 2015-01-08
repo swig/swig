@@ -17,6 +17,8 @@
 static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
 
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
@@ -1815,19 +1817,128 @@ public:
   }
 
   /* ------------------------------------------------------------
+   *  convertDoubleValue()
+   *    Check if the given string looks like a decimal floating point constant
+   *    and return it if it does, otherwise return NIL.
+   * ------------------------------------------------------------ */
+  String *convertDoubleValue(String *v) {
+    const char *const s = Char(v);
+    char *end;
+
+    (void)strtod(s, &end);
+    if (errno != ERANGE && end != s) {
+      // An added complication: at least some versions of strtod() recognize
+      // hexadecimal floating point numbers which don't exist in Python, so
+      // detect them ourselves and refuse to convert them (this can't be done
+      // without loss of precision in general).
+      //
+      // Also don't accept neither "NAN" nor "INFINITY" (both of which
+      // conveniently contain "n").
+      if (strpbrk(s, "xXnN"))
+	return NIL;
+
+      // Disregard optional "f" suffix, it can be just dropped in Python as it
+      // uses doubles for everything anyhow.
+      for (char* p = end; *p != '\0'; ++p) {
+	switch (*p) {
+	  case 'f':
+	  case 'F':
+	    break;
+
+	  default:
+	    return NIL;
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
+    }
+
+    return NIL;
+  }
+
+  /* ------------------------------------------------------------
    * convertValue()
    *    Check if string v can be a Python value literal or a
    *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *t) {
-    char fc = (Char(v))[0];
-    if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-      /* number or string (or maybe NULL pointer) */
-      if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	return NewString("None");
-      else
-	return v;
+    const char *const s = Char(v);
+    char *end;
+
+    // Check if this is a number in any base.
+    (void)strtol(s, &end, 0);
+    if (end != s) {
+      if (errno == ERANGE) {
+	// There was an overflow, we could try representing the value as Python
+	// long integer literal, but for now don't bother with it.
+	return NIL;
+      }
+
+      if (*end != '\0') {
+	// If there is a suffix after the number, we can safely ignore any
+	// combination of "l" and "u", but not anything else (again, stuff like
+	// "LL" could be handled, but we don't bother to do it currently).
+	bool seen_long = false;
+	for (char* p = end; *p != '\0'; ++p) {
+	  switch (*p) {
+	    case 'l':
+	    case 'L':
+	      // Bail out on "LL".
+	      if (seen_long)
+		return NIL;
+	      seen_long = true;
+	      break;
+
+	    case 'u':
+	    case 'U':
+	      break;
+
+	    default:
+	      // Except that our suffix could actually be the fractional part of
+	      // a floating point number, so we still have to check for this.
+	      return convertDoubleValue(v);
+	  }
+	}
+      }
+
+      // Deal with the values starting with 0 first as they can be octal or
+      // hexadecimal numbers or even pointers.
+      if (s[0] == '0') {
+	if (Len(v) == 1) {
+	  // This is just a lone 0, but it needs to be represented differently
+	  // in Python depending on whether it's a zero or a null pointer.
+	  if (SwigType_ispointer(t))
+	    return NewString("None");
+	  else
+	    return v;
+	} else if (s[1] == 'x' || s[1] == 'X') {
+	  // This must have been a hex number, we can use it directly in Python,
+	  // so nothing to do here.
+	} else {
+	  // This must have been an octal number, we have to change its prefix
+	  // to be "0o" in Python 3 only (and as long as we still support Python
+	  // 2.5, this can't be done unconditionally).
+	  if (py3) {
+	    String *res = NewString("0o");
+	    Append(res, NewStringWithSize(s + 1, end - s - 1));
+	    return res;
+	  }
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
     }
+
+    // Check if this is a floating point number (notice that it wasn't
+    // necessarily parsed as a long above, consider e.g. ".123").
+    if (String *res = convertDoubleValue(v)) {
+      return res;
+    }
+
     if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
       return NewString("True");
     if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)

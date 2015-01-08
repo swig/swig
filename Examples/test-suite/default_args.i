@@ -13,6 +13,12 @@
 %inline %{
   #include <string>
 
+  // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
+  void lots_of_args(int pos = -1, unsigned rgb = 0xabcdef, int mode = 0644) { }
+
+  // Long long arguments are not handled at Python level currently but still work.
+  void seek(long long offset = 0LL) {}
+
   // Anonymous arguments
   int anonymous(int = 7771);
   int anonymous(int x) { return x; }
