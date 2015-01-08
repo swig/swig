@@ -4680,6 +4680,7 @@ storage_class  : EXTERN { $$ = "extern"; }
                | FRIEND { $$ = "friend"; }
                | EXPLICIT { $$ = "explicit"; }
                | CONSTEXPR { $$ = "constexpr"; }
+               | EXPLICIT CONSTEXPR { $$ = "explicit constexpr"; }
                | STATIC CONSTEXPR { $$ = "static constexpr"; }
                | THREAD_LOCAL { $$ = "thread_local"; }
                | THREAD_LOCAL STATIC { $$ = "static thread_local"; }

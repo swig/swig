@@ -6,6 +6,10 @@ Version 3.0.4 (in progress)
 ===========================
 
 2015-01-08: olly
+	    Allow C++11 "explicit constexpr".  Fixes github issue#284 reported
+	    by Paweł Tomulik.
+
+2015-01-08: olly
 	    When reporting an error for a construct which hasn't been
 	    terminated when the end of the file is reached, report it at the
 	    start line rather than "EOF" as then tools like editors and IDEs

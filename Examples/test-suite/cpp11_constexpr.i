@@ -18,6 +18,8 @@ struct ConstExpressions {
   static const int LLL = 300;
   constexpr int MMM() { return 400; }
   constexpr const int NNN() { return 500; }
+  // Regression test for https://github.com/swig/swig/issues/284 :
+  explicit constexpr ConstExpressions(int) { }
 };
 %}
 
