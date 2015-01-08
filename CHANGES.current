@@ -13,12 +13,8 @@ Version 3.0.4 (in progress)
 	    problem.
 
 2015-01-08: olly
-	    Improve error message for extraneous '%}'.
-
-2015-01-08: olly
-	    Improve error message when an unknown SWIG directive is used - this
-	    previously gave the cryptic "Error: Syntax error in input(1).", but
-	    now gives "Error: Unknown directive '%foo'."
+	    Improve error messages for a few cases which previously gave the
+	    one of the cryptic catch-all errors "Syntax error in input".
 
 2015-01-08: olly
 	    Provide -cppext as a general command line option for setting the

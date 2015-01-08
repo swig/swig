@@ -3024,6 +3024,15 @@ c_decl_tail    : SEMI {
                    skip_balanced('{','}');
                    $$ = 0;
                }
+               | error {
+		   $$ = 0;
+		   if (yychar == RPAREN) {
+		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
+		   } else {
+		       Swig_error(cparse_file, cparse_line, "Syntax error - missing ';'?\n");
+		   }
+		   exit(1);
+               }
               ;
 
 initializer   : def_args { 
