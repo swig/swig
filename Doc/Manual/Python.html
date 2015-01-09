@@ -3368,6 +3368,18 @@ print("Loading", "Whizz", "Bang", sep=' ... ')
 </pre>
 </div>
 
+<p>When using <tt>%pythoncode</tt> and <tt>%pythonbegin</tt> you generally
+want to make sure that the block is delimited by <tt>%{</tt> and <tt>%}</tt>.
+If you delimit it with <tt>{</tt> and <tt>}</tt> then any lines with a
+leading <tt>#</tt> will be handled by SWIG as preprocessor directives, when
+you probably meant them as Python comments.  Prior to SWIG 3.0.3, invalid
+preprocessor directives were silently ignored, so generally using the wrong
+delimiters resulted in such comments not appearing in the generated output
+(though a comment starting with a valid preprocessor directive could cause
+problems, for example: <tt># error handling</tt>).  SWIG 3.0.3 and later report
+an error for invalid preprocessor directives, so you may have to update
+existing interface files to delimit blocks of Python code correctly.</p>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
