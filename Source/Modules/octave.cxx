@@ -19,8 +19,10 @@ static String *op_prefix   = 0;
 
 static const char *usage = "\
 Octave Options (available with -octave)\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
+     -nocppcast      - Disable C++ casting operators\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";
 
