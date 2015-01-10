@@ -14,54 +14,72 @@
 /* -----------------------------------------------------------------------------
  * siphash: 64-bit SipHash-2-4 to generate unique id for each module
  * ----------------------------------------------------------------------------- */
-#include <stdint.h>
-#define ROTL(x,b) (uint64_t)( ((x) << (b)) | ((x) >> (64 - (b))) )
-
+typedef struct { /* assume unsigned long is at least 32-bit */
+  unsigned long hi;
+  unsigned long lo;
+} _uint64;
+static inline void _rotl(_uint64 *v, int bits) { /* bits must <=32 */
+  unsigned long tmp = v->hi;
+  if (bits == 32) {
+    v->hi = v->lo;
+    v->lo = tmp;
+  } else if (bits < 32) {
+    v->hi = (tmp << bits) | ((0xfffffffful & v->lo) >> (32-bits));
+    v->lo = (v->lo << bits) | ((0xfffffffful & tmp) >> (32-bits));
+  }
+}
+static inline void _xor(_uint64 *dst, _uint64 *src) {
+  dst->hi ^= src->hi; dst->lo ^= src->lo;
+}
+static inline void _add(_uint64 *dst, _uint64 *src) {
+  dst->lo += src->lo;
+  dst->hi += src->hi + ((dst->lo & 0xfffffffful) < (src->lo&0xfffffffful) ? 1:0);
+}
 #define SIPROUND                                        \
   do {                                                  \
-    v0 += v1; v1=ROTL(v1,13); v1 ^= v0; v0=ROTL(v0,32); \
-    v2 += v3; v3=ROTL(v3,16); v3 ^= v2;                 \
-    v0 += v3; v3=ROTL(v3,21); v3 ^= v0;                 \
-    v2 += v1; v1=ROTL(v1,17); v1 ^= v2; v2=ROTL(v2,32); \
+    _add(&v0, &v1); _rotl(&v1, 13); _xor(&v1, &v0); _rotl(&v0, 32); \
+    _add(&v2, &v3); _rotl(&v3, 16); _xor(&v3, &v2); \
+    _add(&v0, &v3); _rotl(&v3, 21); _xor(&v3, &v0); \
+    _add(&v2, &v1); _rotl(&v1, 17); _xor(&v1, &v2); _rotl(&v2, 32); \
   } while(0)
-
-static void siphash(uint64_t *out, const char *inc, uint64_t inlen) {
-  const int cROUNDS = 2, dROUNDS = 4;
+static void siphash(_uint64 *out, const char *inc, unsigned long inlen) {
   /* "somepseudorandomlygeneratedbytes" */
-  uint64_t v0 = ((uint64_t)0x736f6d65UL<<32) | 0x70736575UL;
-  uint64_t v1 = ((uint64_t)0x646f7261UL<<32) | 0x6e646f6dUL;
-  uint64_t v2 = ((uint64_t)0x6c796765UL<<32) | 0x6e657261UL;
-  uint64_t v3 = ((uint64_t)0x74656462UL<<32) | 0x79746573UL;
-  uint64_t b;
-  // hard-coded key (k0, k1)
-  uint64_t k0 = ((uint64_t)0x07060504UL<<32) | 0x03020100UL;
-  uint64_t k1 = ((uint64_t)0x0F0E0D0CUL<<32) | 0x0B0A0908UL;
-  uint64_t m;
+  _uint64 v0 = {0x736f6d65UL, 0x70736575UL};
+  _uint64 v1 = {0x646f7261UL, 0x6e646f6dUL};
+  _uint64 v2 = {0x6c796765UL, 0x6e657261UL};
+  _uint64 v3 = {0x74656462UL, 0x79746573UL};
+  _uint64 b;
+  /* hard-coded k. */
+  _uint64 k0 = {0x07060504UL, 0x03020100UL};
+  _uint64 k1 = {0x0F0E0D0CUL, 0x0B0A0908UL};
   int i;
-  const uint8_t *in = (const uint8_t *)inc;
-  const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
+  const int cROUNDS = 2, dROUNDS = 4;
+  const unsigned char *in = (unsigned char *)inc;
+  const unsigned char *end = in + inlen - (inlen % 8);
   int left = inlen & 7;
-  b = ( ( uint64_t )inlen ) << 56;
-  v3 ^= k1; v2 ^= k0; v1 ^= k1; v0 ^= k0;
+  _xor(&v3, &k1); _xor(&v2, &k0); _xor(&v1, &k1); _xor(&v0, &k0);
   for (; in != end; in += 8) {
-    m = 0;
-    for (i = 0; i < 8; i++)
-      m |= ((uint64_t)in[i]) << (8*i);
-    v3 ^= m;
+    b.hi = 0; b.lo = 0;
+    for (i = 0; i < 4; i++) b.lo |= ((unsigned long)in[i]) << (8*i);
+    for (i = 0; i < 4; i++) b.hi |= ((unsigned long)in[i+4]) << (8*i);
+    _xor(&v3, &b);
     for (i = 0; i < cROUNDS; i++) SIPROUND;
-    v0 ^= m;
+    _xor(&v0, &b);
   }
+  b.hi = (inlen & 0xff)<<24; b.lo = 0;
   for (; left; left--)
-    b |= ((uint64_t)in[left-1]) << (8*left-8);
-  v3 ^= b;
+    if (left > 4)
+      b.hi |= ((unsigned long)in[left-1]) << (8*left-8-32);
+    else
+      b.lo |= ((unsigned long)in[left-1]) << (8*left-8);
+  _xor(&v3, &b);
   for(i=0; i<cROUNDS; i++) SIPROUND;
-  v0 ^= b; v2 ^= 0xff;
+  _xor(&v0, &b); v2.lo ^= 0xff;
   for(i=0; i<dROUNDS; i++) SIPROUND;
-  b = v0 ^ v1 ^ v2  ^ v3;
-  *out = b;
+  out->lo = 0; out->hi = 0;
+  _xor(out, &v0); _xor(out, &v1); _xor(out, &v2); _xor(out, &v3);
 }
 #undef SIPROUND
-#undef ROTL
 
 class GO:public Language {
   static const char *const usage;
@@ -396,7 +414,7 @@ private:
 
     // Generate unique id based on hash of SWIG input
 
-    uint64_t hash = 0;
+    _uint64 hash = {0, 0};
     String *unique_id = NewString("");
     FILE *swig_input = Swig_open(swig_filename);
     if (swig_input == NULL) {
@@ -407,7 +425,7 @@ private:
     siphash(&hash, Char(swig_input_content), Len(swig_input_content));
     Delete(swig_input_content);
     fclose(swig_input);
-    Printf(unique_id, "%s_%08x%08x", package, hash>>32, hash & 0xffffffffful);
+    Printf(unique_id, "%s_%08x%08x", package, hash.hi, hash.lo);
 
     // Open files.
 
