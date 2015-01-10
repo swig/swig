@@ -2306,7 +2306,10 @@ else
       go1.3* | go1.4*)
 	GO13=true
 	;;
-      go1.5* | devel*)
+      go1.5*)
+	GO15=true
+	;;
+      *)
 	GO15=true
 	;;
       esac

@@ -1765,7 +1765,7 @@ go: $(SRCDIR_SRCS)
 	if test -f $(SRCDIR)$(RUNME).go; then \
 	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).%@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
+	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
