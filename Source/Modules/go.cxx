@@ -557,7 +557,7 @@ private:
 
       if (soname) {
         Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
-        Printf(f_gc_go_begin, "//go:cgo_dynimport _ _ \"%s\"\n", soname);
+        Printf(f_gc_go_begin, "//go:cgo_import_dynamic _ _ \"%s\"\n\n", soname);
       }
     }
 
@@ -1489,7 +1489,7 @@ private:
    * ---------------------------------------------------------------------- */
 
   int gcgoFunctionWrapper(String *wname) {
-    Printv(f_gc_go_wrappers, "//go:cgo_dynimport ", wname, " ", wname, " \"\"\n", NULL);
+    Printv(f_gc_go_wrappers, "//go:cgo_import_dynamic ", wname, " ", wname, " \"\"\n", NULL);
     Printv(f_gc_go_wrappers, "//go:cgo_import_static ", wname, "\n", NULL);
     Printv(f_gc_go_wrappers, "//go:linkname _cgo_", wname, " ", wname, "\n", NULL);
     Printv(f_gc_go_wrappers, "var _cgo_", wname, " byte\n\n", NULL);
