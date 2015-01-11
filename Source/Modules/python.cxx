@@ -1825,7 +1825,8 @@ public:
     const char *const s = Char(v);
     char *end;
 
-    (void)strtod(s, &end);
+    double value = strtod(s, &end);
+    (void) value;
     if (errno != ERANGE && end != s) {
       // An added complication: at least some versions of strtod() recognize
       // hexadecimal floating point numbers which don't exist in Python, so
@@ -1868,7 +1869,8 @@ public:
     char *end;
 
     // Check if this is a number in any base.
-    (void)strtol(s, &end, 0);
+    long value = strtol(s, &end, 0);
+    (void) value;
     if (end != s) {
       if (errno == ERANGE) {
 	// There was an overflow, we could try representing the value as Python

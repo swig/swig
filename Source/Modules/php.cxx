@@ -1268,7 +1268,7 @@ public:
 		  break;
 		char *p;
 		errno = 0;
-		int n = strtol(Char(value), &p, 0);
+		long n = strtol(Char(value), &p, 0);
 	        Clear(value);
 		if (errno || *p) {
 		  Append(value, "?");
@@ -1286,7 +1286,7 @@ public:
 	      case T_LONG: {
 		char *p;
 		errno = 0;
-		unsigned int n = strtol(Char(value), &p, 0);
+		long n = strtol(Char(value), &p, 0);
 		(void) n;
 		if (errno || *p) {
 		  Clear(value);
