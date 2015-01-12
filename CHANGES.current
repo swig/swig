@@ -9,18 +9,13 @@ Version 3.0.4 (in progress)
 	    [PHP] Fix segfault in director upcall check when using PHP built with
 	    ZTS enabled.  Fixes #155, reported by Pierre Labastie.
 
-2015-01-08: wsfulton
+2015-01-12: vadz
             [Python] Fix #294 #296 - Regression introduced in SWIG-3.0.3 when
-            wrapping functions with default arguments. Now any method with default
-            arguments obtains the default arguments from C++ instead of generating
-            Python code with the default arguments.
-
-            The "python:defaultargs" feature has been introduced for users to
-            optionally generate Python methods with the default arguments instead
-            the default *args.
+            wrapping functions with default arguments. Invalid or missing default
+            arguments were sometimes being generated into the python layer.
 
 2015-01-08: olly
-	    Allow C++11 "explicit constexpr".  Fixes github issue#284 reported
+	    Allow C++11 "explicit constexpr".  Fixes github issue #284 reported
 	    by Paweł Tomulik.  Also handle "constexpr explicit" and "constexpr
 	    static".
 

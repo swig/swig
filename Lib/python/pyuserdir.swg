@@ -186,17 +186,6 @@ These methods "may be called" if needed.
 
 
 /* ------------------------------------------------------------------------- */
-/*
-  Python default argument handling (for non-builtin)
-*/
-
-#define %pythondefaultargs      %feature("python:defaultargs")
-#define %nopythondefaultargs    %feature("python:defaultargs", "0")
-#define %clearpythondefaultargs %feature("python:defaultargs", "")
-
-
-
-/* ------------------------------------------------------------------------- */
 /* 
    %extend_smart_pointer extend the smart pointer support.
 
