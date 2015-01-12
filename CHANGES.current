@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.4 (in progress)
 ===========================
 
+2015-01-12: olly
+	    [PHP] Fix segfault in director upcall check when using PHP built with
+	    ZTS enabled.  Fixes #155, reported by Pierre Labastie.
+
 2015-01-08: wsfulton
             [Python] Fix #294 #296 - Regression introduced in SWIG-3.0.3 when
             wrapping functions with default arguments. Now any method with default

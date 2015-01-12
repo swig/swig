@@ -826,13 +826,6 @@ public:
       Delete(args);
       args = NULL;
     }
-    if (is_member_director(n)) {
-      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-      Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
-      Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
-	  prefix, Swig_class_name(Swig_methodclass(n)), name);
-    }
 
     // This generated code may be called:
     // 1) as an object method, or
@@ -919,6 +912,14 @@ public:
 	Printf(f->code, "\t}\n");
       }
       Delete(source);
+    }
+
+    if (is_member_director(n)) {
+      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
+      Wrapper_add_local(f, "upcall", "bool upcall = false");
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     Swig_director_emit_dynamic_cast(n, f);
