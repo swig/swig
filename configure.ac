@@ -1508,7 +1508,7 @@ if test -n "$RUBY"; then
         # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
-		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+		RUBYDIR=`($RUBY -rmkmf -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
         else
                 RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
         fi
@@ -1533,13 +1533,13 @@ if test -n "$RUBY"; then
 		# Find library and path for linking.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
-		rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
-		rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
+		rb_libdir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]') 2>/dev/null`
+		rb_bindir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]') 2>/dev/null`
 		dirs="$dirs $rb_libdir $rb_bindir"
 
-        rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
-            c = Config::CONFIG
+            c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
                 if c[["LIBRUBY"]] == c[["LIBRUBY_A"]]
                     link = c[["LIBRUBYARG_STATIC"]]
@@ -1585,11 +1585,11 @@ if test -n "$RUBY"; then
 
 	case $host in
 		*-*-mingw*) ;; # do nothing, the default windows libraries are already included
-		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`";;
+		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBS"]]') 2>/dev/null`";;
 	esac
 
-	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
-	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
+	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
+	RUBYSO=.`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
 fi
