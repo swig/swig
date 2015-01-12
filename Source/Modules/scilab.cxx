@@ -52,6 +52,8 @@ protected:
   String *buildFlagsScript;
 
   String *gatewayHeader;
+  String *gatewayHeaderV5;
+  String *gatewayHeaderV6;
 
   bool createGatewayXML;
   File *gatewayXMLFile;
@@ -78,6 +80,8 @@ public:
     buildFlagsScript = NULL;
 
     gatewayHeader = NULL;
+    gatewayHeaderV5 = NULL;
+    gatewayHeaderV6 = NULL;
 
     createGatewayXML = false;
     gatewayXML = NULL;
@@ -195,6 +199,10 @@ public:
     /* Output module initialization code */
     Swig_banner(beginSection);
 
+    // Gateway header source merged with wrapper source in nobuilder mode
+    if (!generateBuilder)
+      startGatewayHeader(gatewayLibraryName);
+
     // Create builder file if required
     if (generateBuilder) {
       createBuilderFile(outputFilename);
@@ -248,9 +256,11 @@ public:
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
 
-    // Add gateway functions declaration to init section
-    terminateGatewayHeader(gatewayName);
-    Printv(initSection, gatewayHeader, NIL);
+    // Gateway header source merged with wrapper source in nobuilder mode
+    if (!generateBuilder) {
+      terminateGatewayHeader(gatewayLibraryName);
+      Printv(initSection, gatewayHeader, NIL);
+    }
 
     Dump(runtimeSection, beginSection);
     Dump(headerSection, beginSection);
@@ -263,7 +273,7 @@ public:
     }
 
     if (createLoader) {
-      saveLoaderFile(gatewayName, gatewayLibraryName);
+      saveLoaderFile(gatewayLibraryName);
     }
 
     /* Cleanup files */
@@ -827,7 +837,8 @@ public:
    * ----------------------------------------------------------------------- */
 
   void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    addFunctionInGatewayHeader(scilabFunctionName, wrapperFunctionName);
+    if (!generateBuilder)
+      addFunctionInGatewayHeader(scilabFunctionName, wrapperFunctionName);
 
     if (generateBuilder) {
       addFunctionInScriptTable(scilabFunctionName, wrapperFunctionName, builderCode);
@@ -980,23 +991,49 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * startGatewayHeader()
+   * Start the gateway header
+   * ----------------------------------------------------------------------- */
+  void startGatewayHeader(String *gatewayLibraryName) {
+    gatewayHeader = NewString("");
+    Printf(gatewayHeader, "\n");
+    Printf(gatewayHeader, "#ifdef __cplusplus\n");
+    Printf(gatewayHeader, "extern \"C\" {\n");
+    Printf(gatewayHeader, "static int direct_gateway(char *fname, void F(void)) { F();\n");
+    Printf(gatewayHeader, "return 0; };\n");
+    Printf(gatewayHeader, "};\n");
+    Printf(gatewayHeader, "#endif\n");
+    Printf(gatewayHeader, "\n");
+
+    gatewayHeaderV6 = NewString("");
+    Printf(gatewayHeaderV6, "#include \"c_gateway_prototype.h\"\n");
+    Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
+    Printf(gatewayHeaderV6, "extern \"C\" {\n");
+    Printf(gatewayHeaderV6, "#include \"addfunction.h\"\n");
+    Printf(gatewayHeaderV6, "}\n");
+    Printf(gatewayHeaderV6, "#endif\n");
+    Printf(gatewayHeaderV6, "#define MODULE_NAME L\"%s\"\n", gatewayLibraryName);
+    Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
+    Printf(gatewayHeaderV6, "extern \"C\"\n");
+    Printf(gatewayHeaderV6, "#endif\n");
+    Printf(gatewayHeaderV6, "int %s(wchar_t* _pwstFuncName) {\n", gatewayLibraryName);
+    Printf(gatewayHeaderV6, "\n");
+  }
+
+  /* -----------------------------------------------------------------------
    * addFunctionInGatewayHeader()
    * Add a function in the gateway header
    * ----------------------------------------------------------------------- */
 
   void addFunctionInGatewayHeader(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr wrapperFunctionName) {
-    if (gatewayHeader == NULL) {
-      gatewayHeader = NewString("");
-      Printf(gatewayHeader, "\n");
-      Printf(gatewayHeader, "#ifdef __cplusplus\n");
-      Printf(gatewayHeader, "extern \"C\" {\n");
-      Printf(gatewayHeader, "#endif\n");
-      Printf(gatewayHeader, "static int direct_gateway(char *fname, void F(void)) { F();\n");
-      Printf(gatewayHeader, "return 0; };\n");
-      Printf(gatewayHeader, "static GenericTable Tab[] = {\n");
-      Printf(gatewayHeader, "  {(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}\n", wrapperFunctionName, scilabFunctionName);
+    if (gatewayHeaderV5 == NULL) {
+      gatewayHeaderV5 = NewString("");
+      Printf(gatewayHeaderV5, "static GenericTable Tab[] = {\n");
     } else
-      Printf(gatewayHeader, " ,{(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}\n", wrapperFunctionName, scilabFunctionName);
+      Printf(gatewayHeaderV5, ",\n");
+    Printf(gatewayHeaderV5, " {(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}", wrapperFunctionName, scilabFunctionName);
+
+    Printf(gatewayHeaderV6, "if (wcscmp(_pwstFuncName, L\"%s\") == 0) { addCFunction((wchar_t *)L\"%s\", &%s, (wchar_t *)MODULE_NAME); }\n", scilabFunctionName, scilabFunctionName, wrapperFunctionName);
   }
 
   /* -----------------------------------------------------------------------
@@ -1004,26 +1041,35 @@ public:
    * Terminates the gateway header
    * ----------------------------------------------------------------------- */
 
-  void terminateGatewayHeader(String *moduleName) {
-    Printf(gatewayHeader, "};\n");
-    Printf(gatewayHeader, "\n");
-    Printf(gatewayHeader, "int C2F(gw_%s)()\n", moduleName);
-    Printf(gatewayHeader, "{\n");
-    Printf(gatewayHeader, "  Rhs = Max(0, Rhs);\n");
-    Printf(gatewayHeader, "  if (*(Tab[Fin-1].f) != NULL)\n");
-    Printf(gatewayHeader, "  {\n");
-    Printf(gatewayHeader, "    if(pvApiCtx == NULL)\n");
-    Printf(gatewayHeader, "    {\n");
-    Printf(gatewayHeader, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
-    Printf(gatewayHeader, "    }\n");
-    Printf(gatewayHeader, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
-    Printf(gatewayHeader, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,(GatefuncH)Tab[Fin-1].F);\n");
-    Printf(gatewayHeader, "  }\n");
-    Printf(gatewayHeader, "  return 0;\n");
-    Printf(gatewayHeader, "}\n");
-    Printf(gatewayHeader, "\n");
-    Printf(gatewayHeader, "#ifdef __cplusplus\n");
-    Printf(gatewayHeader, "}\n");
+  void terminateGatewayHeader(String *gatewayLibraryName) {
+    Printf(gatewayHeaderV5, "};\n");
+    Printf(gatewayHeaderV5, "\n");
+    Printf(gatewayHeaderV5, "#ifdef __cplusplus\n");
+    Printf(gatewayHeaderV5, "extern \"C\" {\n");
+    Printf(gatewayHeaderV5, "#endif\n");
+    Printf(gatewayHeaderV5, "int C2F(%s)() {\n", gatewayLibraryName);
+    Printf(gatewayHeaderV5, "  Rhs = Max(0, Rhs);\n");
+    Printf(gatewayHeaderV5, "  if (*(Tab[Fin-1].f) != NULL) {\n");
+    Printf(gatewayHeaderV5, "    if(pvApiCtx == NULL) {\n");
+    Printf(gatewayHeaderV5, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
+    Printf(gatewayHeaderV5, "    }\n");
+    Printf(gatewayHeaderV5, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
+    Printf(gatewayHeaderV5, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,(GatefuncH)Tab[Fin-1].F);\n");
+    Printf(gatewayHeaderV5, "  }\n");
+    Printf(gatewayHeaderV5, "  return 0;\n");
+    Printf(gatewayHeaderV5, "}\n");
+    Printf(gatewayHeaderV5, "\n");
+    Printf(gatewayHeaderV5, "#ifdef __cplusplus\n");
+    Printf(gatewayHeaderV5, "}\n");
+    Printf(gatewayHeaderV5, "#endif\n");
+
+    Printf(gatewayHeaderV6, "return 1;\n");
+    Printf(gatewayHeaderV6, "};\n");
+
+    Printf(gatewayHeader, "#if SWIG_SCILAB_VERSION >= 600\n");
+    Printv(gatewayHeader, gatewayHeaderV6, NIL);
+    Printf(gatewayHeader, "#else\n");
+    Printv(gatewayHeader, gatewayHeaderV5, NIL);
     Printf(gatewayHeader, "#endif\n");
   }
 
@@ -1066,10 +1112,10 @@ public:
    * Terminates and saves the loader script
    * ----------------------------------------------------------------------- */
 
-  void saveLoaderFile(String *gatewayName, String *gatewayLibraryName) {
+  void saveLoaderFile(String *gatewayLibraryName) {
     Printf(loaderScript, "];\n");
-    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), 'gw_%s', list_functions);\n",
-	   gatewayLibraryName, gatewayLibraryName, gatewayName);
+    Printf(loaderScript, "addinter(fullfile(%s_path, '%s' + getdynlibext()), '%s', list_functions);\n",
+	   gatewayLibraryName, gatewayLibraryName, gatewayLibraryName);
     Printf(loaderScript, "clear %s_path;\n", gatewayLibraryName);
     Printf(loaderScript, "clear bOK;\n");
     Printf(loaderScript, "clear ilib;\n");
