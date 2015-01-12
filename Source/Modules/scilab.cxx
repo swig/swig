@@ -944,6 +944,7 @@ public:
     Printf(builderCode, "  ierr = execstr(\"ilib_build(''%s'', table, files, libs, [], ldflags, cflags);\", 'errcatch');\n", gatewayName);
     Printf(builderCode, "  if ierr <> 0 then\n");
     Printf(builderCode, "    err_msg = lasterror();\n");
+    Printf(builderCode, "  end\n");
     Printf(builderCode, "end\n");
     Printf(builderCode, "cd(originaldir);\n");
     Printf(builderCode, "if ierr <> 0 then\n");
