@@ -21,10 +21,10 @@ checkequal(PubBase_virtualMethod(pubBase), "PublicBase", "PubBase_virtualMethod(
 class = PubBase_instanceMethod(pubBase, klass);
 checkequal(Klass_getName(class), "allprotected_klass", "Klass_getName(PubBase_instanceMethod(pubBase, klass))");
 
-class = PubBase_instanceOverloaded(pubBase, klass);
+class = PubBase_instanceOverload(pubBase, klass);
 checkequal(Klass_getName(class), "allprotected_klass", "Klass_getName(PubBase_instanceOverloaded(pubBase, klass))");
 
-class = PubBase_instanceOverloaded(pubBase, klass, "allprotected_klass2");
+class = PubBase_instanceOverload(pubBase, klass, "allprotected_klass2");
 checkequal(Klass_getName(class), "allprotected_klass2", "Klass_getName(PubBase_instanceOverloaded(pubBase, klass, ""allprotected_klass2""))");
 
 class = PubBase_staticMethod(klass);

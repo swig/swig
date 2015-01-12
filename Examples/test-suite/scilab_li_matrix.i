@@ -20,7 +20,7 @@
  * (T *matrixIn, int matrixInSize) pattern functions
  */
 
-template<typename T> T in_matrix_size(T *matrix, int size) {
+template<typename T> T inMatrixSize(T *matrix, int size) {
   T sum = 0;
   int i;
   for (i = 0; i < size; i++)
@@ -28,7 +28,7 @@ template<typename T> T in_matrix_size(T *matrix, int size) {
   return sum;
 }
 
-template<typename T> void out_matrix_size(T **matrixRes, int *sizeRes) {
+template<typename T> void outMatrixSize(T **matrixRes, int *sizeRes) {
   int size;
   int i;
   *sizeRes = 6;
@@ -37,7 +37,7 @@ template<typename T> void out_matrix_size(T **matrixRes, int *sizeRes) {
     (*matrixRes)[i] = i;
 }
 
-template<typename T> void inout_matrix_size(T *matrix, int size, T **matrixRes, int *sizeRes) {
+template<typename T> void inoutMatrixSize(T *matrix, int size, T **matrixRes, int *sizeRes) {
   int i;
   *sizeRes = size;
   *matrixRes = (T*) malloc(size * sizeof(T));
@@ -50,7 +50,7 @@ template<typename T> void inout_matrix_size(T *matrix, int size, T **matrixRes, 
  * (char **matrixIn, int matrixInSize) pattern functions
  */
 
-template<> char* in_matrix_size(char **matrix, int size) {
+template<> char* inMatrixSize(char **matrix, int size) {
   char *s = (char *) calloc(size + 1, sizeof(char));
   int i;
   for (i = 0; i < size; i++)
@@ -58,7 +58,7 @@ template<> char* in_matrix_size(char **matrix, int size) {
   return s;
 }
 
-template<> void out_matrix_size(char ***matrixRes, int *sizeRes) {
+template<> void outMatrixSize(char ***matrixRes, int *sizeRes) {
   char *s;
   int i;
   *sizeRes = 6;
@@ -70,7 +70,7 @@ template<> void out_matrix_size(char ***matrixRes, int *sizeRes) {
   }
 }
 
-template<> void inout_matrix_size(char **matrix, int size,
+template<> void inoutMatrixSize(char **matrix, int size,
   char ***matrixRes, int *sizeRes) {
   int i;
   char *s;
@@ -87,7 +87,7 @@ template<> void inout_matrix_size(char **matrix, int size,
  * (bool **matrixIn, int matrixInSize) pattern functions
  */
 
-template<> bool in_matrix_size(bool *matrix, int size) {
+template<> bool inMatrixSize(bool *matrix, int size) {
   bool b = true;
   int i;
   b = matrix[0];
@@ -96,7 +96,7 @@ template<> bool in_matrix_size(bool *matrix, int size) {
   return b;
 }
 
-template<> void out_matrix_size(bool **matrixRes, int *sizeRes) {
+template<> void outMatrixSize(bool **matrixRes, int *sizeRes) {
   int i;
   *sizeRes = 6;
   *matrixRes = (bool*) malloc(*sizeRes * sizeof(bool));
@@ -105,7 +105,7 @@ template<> void out_matrix_size(bool **matrixRes, int *sizeRes) {
   }
 }
 
-template<> void inout_matrix_size(bool *matrix, int size,
+template<> void inoutMatrixSize(bool *matrix, int size,
   bool **matrixRes, int *sizeRes) {
   int i;
   *sizeRes = size;
@@ -119,41 +119,40 @@ template<> void inout_matrix_size(bool *matrix, int size,
  * (T *matrixIn, int matrixInRowCount, int matrixInColCount) pattern functions
  */
 
-template<typename T> T in_matrix_dims(T *matrix, int nbRow, int nbCol) {
-  return in_matrix_size(matrix, nbRow * nbCol);
+template<typename T> T inMatrixDims(T *matrix, int nbRow, int nbCol) {
+  return inMatrixSize(matrix, nbRow * nbCol);
 }
 
-template<typename T> void out_matrix_dims(T **matrixRes, int *nbRowRes, int *nbColRes) {
+template<typename T> void outMatrixDims(T **matrixRes, int *nbRowRes, int *nbColRes) {
   int size = 0;
-  out_matrix_size(matrixRes, &size);
+  outMatrixSize(matrixRes, &size);
   *nbRowRes = 3;
   *nbColRes = 2;
 }
 
-template<typename T> void inout_matrix_dims(T *matrix, int nbRow, int nbCol,
+template<typename T> void inoutMatrixDims(T *matrix, int nbRow, int nbCol,
   T **matrixRes, int *nbRowRes, int *nbColRes) {
   *nbRowRes = nbRow;
   *nbColRes = nbCol;
   int sizeRes = 0;
-  inout_matrix_size(matrix, nbRow * nbCol, matrixRes, &sizeRes);
+  inoutMatrixSize(matrix, nbRow * nbCol, matrixRes, &sizeRes);
 }
-
 
 %}
 
 %define %instantiate_matrix_template_functions(NAME, TYPE...)
-%template(in_ ## NAME ## _matrix_dims) in_matrix_dims<TYPE>;
-%template(out_ ## NAME ## _matrix_dims) out_matrix_dims<TYPE>;
-%template(inout_ ## NAME ## _matrix_dims) inout_matrix_dims<TYPE>;
-%template(in_ ## NAME ## _matrix_size) in_matrix_size<TYPE>;
-%template(out_ ## NAME ## _matrix_size) out_matrix_size<TYPE>;
-%template(inout_ ## NAME ## _matrix_size) inout_matrix_size<TYPE>;
+%template(in ## NAME ## MatrixDims) inMatrixDims<TYPE>;
+%template(out ## NAME ## MatrixDims) outMatrixDims<TYPE>;
+%template(inout ## NAME ## MatrixDims) inoutMatrixDims<TYPE>;
+%template(in ## NAME ## MatrixSize) inMatrixSize<TYPE>;
+%template(out ## NAME ## MatrixSize) outMatrixSize<TYPE>;
+%template(inout ## NAME ## MatrixSize) inoutMatrixSize<TYPE>;
 %enddef
 
-%instantiate_matrix_template_functions(int, int);
-%instantiate_matrix_template_functions(double, double);
-%instantiate_matrix_template_functions(charptr, char *);
-%instantiate_matrix_template_functions(bool, bool);
+%instantiate_matrix_template_functions(Int, int);
+%instantiate_matrix_template_functions(Double, double);
+%instantiate_matrix_template_functions(CharPtr, char *);
+%instantiate_matrix_template_functions(Bool, bool);
 
 
 

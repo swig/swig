@@ -14,7 +14,7 @@ checkException('Test_throw_domain_error(t)', 20009, 'ValueError: oops');
 
 checkException('Test_throw_exception(t)', 20010, 'SystemError: std::exception');
 
-checkException('Test_throw_invalid_argument(t)', 20009, 'ValueError: oops');
+checkException('Test_throw_invalid_argum(t)', 20009, 'ValueError: oops');
 
 checkException('Test_throw_length_error(t)', 20004, 'IndexError: oops');
 
@@ -22,7 +22,7 @@ checkException('Test_throw_logic_error(t)', 20003, 'RuntimeError: oops');
 
 checkException('Test_throw_out_of_range(t)', 20004, 'IndexError: oops');
 
-checkException('Test_throw_overflow_error(t)', 20007, 'OverflowError: oops');
+checkException('Test_throw_overflow_erro(t)', 20007, 'OverflowError: oops');
 
 checkException('Test_throw_range_error(t)', 20007, 'OverflowError: oops');
 

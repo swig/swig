@@ -29,18 +29,15 @@ Foo_set(3.1415926);
 // See if the change took effect
 printf("Foo = %f\n", Foo_get());
 
-// Check error message if violate contract
-try
-    g = gcd(-42, 105);
-    error("g = gcd(-42, 105) must provoke a RunTimeError");
-catch
-
+// Check error messages when violating contract
+ierr = execstr('gcd(-42, 105)', 'errcatch');
+if ierr <> 20003 then
+  error("gcd(-42, 105) must provoke a RunTimeError")
 end
 
-try
-    fact(-4);
-    error("fact(-4) must provoke a RunTimeError");
-catch
+ierr = execstr('fact(-4)', 'errcatch');
+if ierr <> 20003 then
+  error("fact(-4) must provoke a RunTimeError")
 end
 
 exit

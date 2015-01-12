@@ -33,10 +33,5 @@ for i = 1:4
 end;
 disp(half(v));
 
-// now halve a wrapped std::vector<double> in place
-
-halve_in_place(v);
-disp(v);
-
 exit
 
