@@ -1284,7 +1284,8 @@ public:
 	      case T_SCHAR:
 	      case T_SHORT:
 	      case T_INT:
-	      case T_LONG: {
+	      case T_LONG:
+	      case T_LONGLONG: {
 		char *p;
 		errno = 0;
 		long n = strtol(Char(value), &p, 0);
@@ -1298,7 +1299,8 @@ public:
 	      case T_UCHAR:
 	      case T_USHORT:
 	      case T_UINT:
-	      case T_ULONG: {
+	      case T_ULONG:
+	      case T_ULONGLONG: {
 		char *p;
 		errno = 0;
 		unsigned int n = strtoul(Char(value), &p, 0);
@@ -1310,7 +1312,8 @@ public:
 		break;
 	      }
 	      case T_FLOAT:
-	      case T_DOUBLE:{
+	      case T_DOUBLE:
+	      case T_LONGDOUBLE: {
 		char *p;
 		errno = 0;
 		/* FIXME: strtod is locale dependent... */
@@ -1329,13 +1332,6 @@ public:
 		}
 		break;
 	      }
-	      case T_REFERENCE:
-	      case T_RVALUE_REFERENCE:
-	      case T_USER:
-	      case T_ARRAY:
-		Clear(value);
-		Append(value, "?");
-		break;
 	      case T_STRING:
 		if (Len(value) < 2) {
 		  // How can a string (including "" be less than 2 characters?)
@@ -1384,6 +1380,11 @@ public:
 		}
 		break;
 	      }
+	      default:
+		/* Safe default */
+		Clear(value);
+		Append(value, "?");
+		break;
 	    }
 
 	    if (!arg_values[argno]) {
