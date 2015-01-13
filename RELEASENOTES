@@ -4,6 +4,10 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-3.0.4 summary:
+- Python regression fix when wrapping C++ default arguments.
+- Improved error messages.
+
 SWIG-3.0.3 summary:
 - Add support for C++11 strongly typed enumerations.
 - Numerous bug fixes and minor enhancements for C#, D, Go, Java,
