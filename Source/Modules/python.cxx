@@ -1923,9 +1923,11 @@ public:
 	  // to be "0o" in Python 3 only (and as long as we still support Python
 	  // 2.5, this can't be done unconditionally).
 	  if (py3) {
-	    String *res = NewString("0o");
-	    Append(res, NewStringWithSize(s + 1, end - s - 1));
-	    return res;
+	    if (end - s > 1) {
+	      String *res = NewString("0o");
+	      Append(res, NewStringWithSize(s + 1, end - s - 1));
+	      return res;
+	    }
 	  }
 	}
       }

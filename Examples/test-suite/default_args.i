@@ -27,6 +27,12 @@
   void seek3(long offset = 0L) {}
   void seek4(unsigned long offset = 0UL) {}
   void seek5(unsigned long offset = 0U) {}
+  void seek6(unsigned long offset = 02U) {}
+  void seek7(unsigned long offset = 00U) {}
+  void seek8(unsigned long offset = 1U) {}
+  void seek9(long offset = 1L) {}
+  void seekA(long long offset = 1LL) {}
+  void seekB(unsigned long long offset = 1ULL) {}
 
   // Anonymous arguments
   int anonymous(int = 7771);
