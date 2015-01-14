@@ -51,7 +51,7 @@
 %typemap(out) enum SWIGTYPE %{ $result = (int)$1; %}
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
-%typemap(directorin) enum SWIGTYPE "$input = $1;"
+%typemap(directorin) enum SWIGTYPE "$input = (int)$1;"
 %typemap(csdirectorin) enum SWIGTYPE "($csclassname)$iminput"
 %typemap(csdirectorout) enum SWIGTYPE "(int)$cscall"
 
