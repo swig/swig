@@ -1008,11 +1008,8 @@ public:
 
     gatewayHeaderV6 = NewString("");
     Printf(gatewayHeaderV6, "#include \"c_gateway_prototype.h\"\n");
-    Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
-    Printf(gatewayHeaderV6, "extern \"C\" {\n");
     Printf(gatewayHeaderV6, "#include \"addfunction.h\"\n");
-    Printf(gatewayHeaderV6, "}\n");
-    Printf(gatewayHeaderV6, "#endif\n");
+    Printf(gatewayHeaderV6, "\n");
     Printf(gatewayHeaderV6, "#define MODULE_NAME L\"%s\"\n", gatewayLibraryName);
     Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
     Printf(gatewayHeaderV6, "extern \"C\"\n");
