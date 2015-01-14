@@ -1,4 +1,4 @@
-var rename_scope = require("./rename_scope");
+var rename_scope = require("rename_scope");
 
 var a = new rename_scope.Natural_UP();
 var b = new rename_scope.Natural_BP();

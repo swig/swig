@@ -26,4 +26,42 @@ namespace ns {
 #endif
 	};
 }
+		class Outer1 {
+			struct Nested1;
+		public:
+			struct Nested2;
+#ifdef __clang__
+		struct Nested2 {
+			int data;
+		};
+#endif
+			template <class T> class AbstractClass;
+			class Real;
+		};
+#ifndef __clang__
+		struct Outer1::Nested2 {
+			int data;
+		};
+#endif
+		
+		class Klass {
+		public:
+			template <class T> class AbstractClass;
+			class Real;
+		};
+
+		template <class T> class Klass::AbstractClass {
+		public:
+			virtual void Method() = 0;
+			virtual ~AbstractClass() {}
+		};
+%} 
+
+%template(abstract_int) Klass::AbstractClass <int>;
+
+%inline %{
+		class Klass::Real : public AbstractClass <int> {
+		public:
+			virtual void Method() {}
+		};
 %}

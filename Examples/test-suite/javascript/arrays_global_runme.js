@@ -1,4 +1,4 @@
-var arrays_global = require("./arrays_global");
+var arrays_global = require("arrays_global");
 
 arrays_global.array_i = arrays_global.array_const_i;
 

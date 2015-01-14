@@ -19,3 +19,19 @@
 struct ForExtension {
 };
 %}
+
+%inline %{
+namespace Space {
+  template <class T> class ExtendTemplate {};
+}
+%}
+
+%extend Space::ExtendTemplate
+{
+ void extending() {
+   $parentclassname tmp;
+   (void)tmp;
+  }
+}
+
+%template(ExtendTemplateInt) Space::ExtendTemplate<int>;

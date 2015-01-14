@@ -5,11 +5,11 @@ TARGET     = example
 INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
 
 build:
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile INTERFACE='$(INTERFACE)' go_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INTERFACE='$(INTERFACE)' go_clean

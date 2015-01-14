@@ -93,10 +93,12 @@
 
 %typemap(directorout) SWIGTYPE ($&1_ltype tmp)
 {
-	if(SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
-          SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	/* If exit was via exception, PHP NULL is returned so skip the conversion. */
+	if (!EG(exception)) {
+	  if(SWIG_ConvertPtr($input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL)
+	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	  $result = *tmp;
 	}
-	$result = *tmp;
 }
 
 %typemap(in) SWIGTYPE *,

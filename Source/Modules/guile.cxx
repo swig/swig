@@ -1350,7 +1350,7 @@ public:
       Printv(f_header, tm, "\n", NIL);
     } else {
       // Create variable and assign it a value
-      Printf(f_header, "static %s = %s;\n", SwigType_str(type, var_name), rvalue);
+      Printf(f_header, "static %s = (%s)(%s);\n", SwigType_str(type, var_name), SwigType_str(type, 0), rvalue);
     }
     {
       /* Hack alert: will cleanup later -- Dave */

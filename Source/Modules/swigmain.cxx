@@ -180,11 +180,6 @@ int main(int margc, char **margv) {
       } else if (strcmp(argv[i], "-nolang") == 0) {
 	dl = new Language;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-dnone") == 0) ||
-		 (strcmp(argv[i], "-dhtml") == 0) ||
-		 (strcmp(argv[i], "-dlatex") == 0) || (strcmp(argv[i], "-dascii") == 0) || (strcmp(argv[i], "-stat") == 0)) {
-	Printf(stderr, "swig: Warning. %s option deprecated.\n", argv[i]);
-	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0)) {
 	if (strcmp(argv[i], "--help") == 0)
 	  strcpy(argv[i], "-help");

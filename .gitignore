@@ -67,6 +67,7 @@ CCache/config.h
 CCache/config.log
 CCache/config.status
 Examples/Makefile
+Examples/d/example.mk
 Examples/guile/Makefile
 Examples/test-suite/*/Makefile
 Examples/xml/Makefile
@@ -85,10 +86,12 @@ swig.spec
 .dirstamp
 CCache/ccache-swig
 CCache/ccache-swig.1
+CCache/web/ccache-man.html
 Lib/swigwarn.swg
 Source/CParse/parser.c
 Source/CParse/parser.h
 Source/eswig
+Source/TAGS
 swig
 Tools/javascript/javascript
 
@@ -123,6 +126,18 @@ Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 *_wrap.c
 *_wrap.cxx
+*-gypcopy.cxx
+
+# C# generated files
+*_runme.exe.mdb
+*_runme.exe
+
+# Javascript generated files
+*.gyp
+
+# Octave generated files
+swigexample*.oct
+Examples/test-suite/octave/*.oct
 
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
@@ -130,9 +145,12 @@ Examples/test-suite/uffi/*/
 */__pycache__/
 /__pycache__/
 
-# C# generated files
-*_runme.exe.mdb
-*_runme.exe
+# Go generated files
+*.[5689]
+*_gc.c
 
 # Scratch directories
 Examples/scratch
+
+# Out of source tree build directories
+*build*/

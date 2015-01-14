@@ -176,10 +176,14 @@
 
 #else
   %extend {
-    %pythoncode {def __iter__(self): return self.key_iterator()}    
-    %pythoncode {def iterkeys(self): return self.key_iterator()}
-    %pythoncode {def itervalues(self): return self.value_iterator()}
-    %pythoncode {def iteritems(self): return self.iterator()}
+    %pythoncode {def __iter__(self):
+    return self.key_iterator()}    
+    %pythoncode {def iterkeys(self):
+    return self.key_iterator()}
+    %pythoncode {def itervalues(self):
+    return self.value_iterator()}
+    %pythoncode {def iteritems(self):
+    return self.iterator()}
   }
 #endif
 

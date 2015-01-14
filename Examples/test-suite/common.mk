@@ -69,7 +69,13 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/
+INTERFACEDIR = ../
+SRCDIR     = $(srcdir)/
+SCRIPTDIR  = $(srcdir)
+
+# Regenerate Makefile if Makefile.in or config.status have changed.
+Makefile: $(srcdir)/Makefile.in ../../../config.status
+	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
 
 #
 # Please keep test cases in alphabetical order.
@@ -80,6 +86,7 @@ INTERFACEDIR = $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
+	director_nested_class \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
@@ -136,6 +143,7 @@ CPP_TEST_CASES += \
 	class_scope_weird \
 	compactdefaultargs \
 	const_const_2 \
+	constant_directive \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -166,6 +174,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
+	director_property \
 	director_binary_string \
 	director_classes \
 	director_classic \
@@ -204,6 +213,7 @@ CPP_TEST_CASES += \
 	enum_template \
 	enum_thorough \
 	enum_var \
+	equality \
 	evil_diamond \
 	evil_diamond_ns \
 	evil_diamond_prop \
@@ -241,6 +251,7 @@ CPP_TEST_CASES += \
 	insert_directive \
 	keyword_rename \
 	kind \
+	kwargs_feature \
 	langobj \
 	li_attribute \
 	li_attribute_template \
@@ -288,6 +299,7 @@ CPP_TEST_CASES += \
 	nested_directors \
 	nested_comment \
 	nested_scope \
+	nested_template_base \
 	nested_workaround \
 	newobject1 \
 	null_pointer \
@@ -301,6 +313,7 @@ CPP_TEST_CASES += \
 	overload_extend \
 	overload_method \
 	overload_numeric \
+	overload_polymorphic \
 	overload_rename \
 	overload_return_type \
 	overload_simple \
@@ -371,6 +384,7 @@ CPP_TEST_CASES += \
 	template_classes \
 	template_const_ref \
 	template_construct \
+	template_templated_constructors \
 	template_default \
 	template_default2 \
 	template_default_arg \
@@ -408,7 +422,6 @@ CPP_TEST_CASES += \
 	template_partial_arg \
 	template_partial_specialization \
 	template_partial_specialization_typedef \
-	template_qualifier \
 	template_qualifier \
 	template_ref_type \
 	template_rename \
@@ -468,6 +481,7 @@ CPP_TEST_CASES += \
 	typemap_various \
 	typename \
 	types_directive \
+	unicode_strings \
 	union_scope \
 	using1 \
 	using2 \
@@ -518,6 +532,7 @@ CPP11_TEST_CASES = \
 	cpp11_rvalue_reference3 \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
+	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
@@ -530,7 +545,6 @@ CPP11_TEST_CASES = \
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
 #	cpp11_hash_tables \           # not fully implemented yet
-#	cpp11_strongly_typed_enumerations \ # SWIG not quite getting this right yet in all langs
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
@@ -602,6 +616,7 @@ C_TEST_CASES += \
 	memberin_extend_c \
 	name \
 	nested \
+	nested_extend_c \
 	nested_structs \
 	newobject2 \
 	overload_extend \
@@ -682,14 +697,14 @@ partialcheck:
 	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
 
 swig_and_compile_cpp =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
@@ -697,7 +712,7 @@ swig_and_compile_c =  \
 
 swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
@@ -705,11 +720,11 @@ swig_and_compile_multi_cpp = \
 	done
 
 swig_and_compile_external =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	TARGET="$*_wrap_hdr.h" \
 	$(LANGUAGE)$(VARIANT)_externalhdr; \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS) $*_external.cxx" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
@@ -718,7 +733,7 @@ swig_and_compile_external =  \
 swig_and_compile_runtime = \
 
 setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \

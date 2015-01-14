@@ -296,7 +296,7 @@ This is one giant macro to define the typemaps & the helpers
 for array handling
 */
 %define SWIG_TYPEMAP_NUM_ARR(NAME,TYPE)
-%{SWIG_DECLARE_TYPEMAP_ARR_FN(NAME,TYPE);%}
+%{SWIG_DECLARE_TYPEMAP_ARR_FN(NAME,TYPE)%}
 
 // fixed size array's
 %typemap(in) TYPE INPUT[ANY]

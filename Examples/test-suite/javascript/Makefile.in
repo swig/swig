@@ -4,10 +4,15 @@
 
 LANGUAGE     = javascript
 NODEGYP = @NODEGYP@
+NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
+OBJEXT = @OBJEXT@
+SO = @SO@
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+
 SWIG  = $(top_builddir)/preinst_swig
 
 ifneq (, $(ENGINE))
@@ -16,22 +21,22 @@ else
 	JSENGINE=node
 endif
 
+ifneq (, $(V8_VERSION))
+    JSV8_VERSION=$(V8_VERSION)
+else
+    JSV8_VERSION=0x031110
+endif
+
 include $(srcdir)/../common.mk
 
+SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
+
 _setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
-
-ifneq (jsc,$(ENGINE))
-
-  # This test can not be run with v8 as it uses v8 API incompatible output typemaps
-  typemap_variables.cpptest:
-	  echo "skipping $(LANGUAGE) ($(JSENGINE)) testcase typemap_variables" ;
-
-endif
 
 ifeq (node,$(JSENGINE))
 
@@ -47,20 +52,27 @@ ifeq (node,$(JSENGINE))
   constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
+	setup_node = \
+		test -d $* || mkdir $*; \
+		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$srcdir|$(srcdir)|g' \
+			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp; \
+		sed -e 's|$$testcase|$*|g;' \
+			$(srcdir)/node_template/index.js.in > $*/index.js
+
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
-		sh ./setup_test.sh $* $(GYP_CFLAGS); \
-		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx ../$*.i; \
+		$(setup_node); \
+		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i; \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	swig_and_compile_cpp = \
-		sh ./setup_test.sh $* $(GYP_CFLAGS); \
-		$(SWIG) -c++ -javascript $(SWIGOPT) ../$*.i; \
+		$(setup_node); \
+		$(SWIG) -c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i; \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			node $(srcdir)/$*$(SCRIPTSUFFIX); \
+			env NODE_PATH=$$PWD:$(srcdir) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
 
@@ -83,7 +95,7 @@ else
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			$(top_srcdir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
+		  $(RUNTOOL) $(top_builddir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
   %.ctest:
@@ -105,10 +117,15 @@ endif
 
 
 %.clean:
-	rm -rf $*
+	@rm -rf $*
+	@rm -f $*_wrap.* $*$(SO) $*.$(OBJEXT)
 
 clean:
-	rm -f *_wrap.cxx
-	rm -f *_wrap.c
-	rm -f *.so
-	rm -f *.o
+	for ext in _wrap.cxx _wrap.$(OBJEXT) $(SO); do \
+		rm -f clientdata_prop_a$${ext} clientdata_prop_b$${ext}; \
+		rm -f imports_a$${ext} imports_b$${ext}; \
+		rm -f import_stl_a$${ext} import_stl_b$${ext}; \
+		rm -f mod_a$${ext} mod_b$${ext}; \
+		rm -f multi_import_a$${ext} multi_import_b$${ext}; \
+		rm -f packageoption_a$${ext} packageoption_b$${ext} packageoption_c$${ext}; \
+	done

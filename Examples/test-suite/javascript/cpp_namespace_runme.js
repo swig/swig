@@ -1,4 +1,4 @@
-var cpp_namespace = require("./cpp_namespace");
+var cpp_namespace = require("cpp_namespace");
 
 var n = cpp_namespace.fact(4);
 if (n != 24){

@@ -1,1 +1,1 @@
-pp_unterm_string.i:EOF: Error: Unterminated string constant starting at line 4
+pp_unterm_string.i:4: Error: Unterminated string constant

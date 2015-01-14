@@ -185,7 +185,6 @@ These methods "may be called" if needed.
 #define %clearpythonappend    %feature("pythonappend","")
 
 
-
 /* ------------------------------------------------------------------------- */
 /* 
    %extend_smart_pointer extend the smart pointer support.

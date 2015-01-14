@@ -44,10 +44,10 @@ if BarInt_sbar(b=2) != 3:
 if templatedfunction(b=2) != 3:
   raise RuntimeError
 
-if foo(a=1,b=2) != 3:
+if foo_fn(a=1,b=2) != 3:
   raise RuntimeError
 
-if foo(b=2) != 3:
+if foo_fn(b=2) != 3:
   raise RuntimeError
 
 

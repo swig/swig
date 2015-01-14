@@ -11,7 +11,7 @@
 %inline %{
 
 void vector_print(Vector *v) {
-  printf("Vector %p = (%g, %g, %g)\n", v, v->x, v->y, v->z);
+  printf("Vector %p = (%g, %g, %g)\n", (void *)v, v->x, v->y, v->z);
 }
 %}
 

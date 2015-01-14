@@ -1,4 +1,4 @@
-var varargs = require("./varargs");
+var varargs = require("varargs");
 
 if (varargs.test("Hello") != "Hello") {
   throw new Error("Failed");

@@ -1,4 +1,4 @@
-var example = require("./example");
+var example = require("example");
 
 // First create some objects using the pointer library.
 console.log("Testing the pointer library");

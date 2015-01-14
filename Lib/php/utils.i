@@ -92,6 +92,7 @@
 %fragment("t_output_helper","header") %{
 static void
 t_output_helper(zval **target, zval *o TSRMLS_DC) {
+  zval *tmp;
   if ( (*target)->type == IS_ARRAY ) {
     /* it's already an array, just append */
     add_next_index_zval( *target, o );
@@ -102,7 +103,6 @@ t_output_helper(zval **target, zval *o TSRMLS_DC) {
     FREE_ZVAL(o);
     return;
   }
-  zval *tmp;
   ALLOC_INIT_ZVAL(tmp);
   *tmp = **target;
   zval_copy_ctor(tmp);

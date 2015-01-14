@@ -100,7 +100,7 @@ skip-errors	= test -n ""
 ACTION = check
 NOSKIP =
 
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
+chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
 chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
@@ -243,16 +243,18 @@ check-%-examples :
 
 # individual example
 %.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
 	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
+	@cd Examples && $(MAKE) Makefile
 	@if $(skip-gcj); then					\
-          echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
-        else							\
+	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
+	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
@@ -401,7 +403,7 @@ clean-ccache:
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
 
-distclean-helper: distclean-test-suite distclean-examples distclean-dead
+distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
 distclean: distclean-source distclean-ccache distclean-helper
 
@@ -418,9 +420,18 @@ distclean-examples:
 	@echo distcleaning Examples
 	@$(MAKE) $(FLAGS) clean-examples
 	@cd Examples && $(MAKE) $(FLAGS) distclean
+	@if test "x$(srcdir)" != "x."; then \
+		for mkfile in `cd $(srcdir) && find Examples/ -type f -name Makefile`; do \
+			rm -f "$$mkfile"; \
+		done; \
+	fi
 
 distclean-ccache:
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) distclean)
+
+distclean-tools:
+	@echo distcleaning Tools
+	@cd Tools/javascript && $(MAKE) $(FLAGS) distclean
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
@@ -438,11 +449,21 @@ maintainer-clean:
 	@echo maintainer-cleaning CCache
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) maintainer-clean)
 	@echo maintainer-cleaning docs
-	@cd $(DOCS) && $(MAKE) $(FLAGS) maintainer-clean
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) $(FLAGS) maintainer-clean
 	@echo maintainer-cleaning Lib files
 	@rm -f $(srcdir)/Lib/swigwarn.swg
 	@echo distcleaning
 	@$(MAKE) $(FLAGS) distclean-helper
+
+check-maintainer-clean: maintainer-clean
+	@if test "x$(srcdir)" = "x."; then \
+		echo "skipping maintainer-clean check (in-source-tree build)"; \
+		exit 0; \
+	fi; \
+	for file in `find . -type f`; do \
+		echo "file missed by maintainer-clean: $$file"; \
+	done; \
+	test "x$$file" = x && echo "all files cleaned by maintainer-clean"
 
 #####################################################################
 # Update the Lib/swigwarn.swg file
@@ -481,13 +502,13 @@ lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml
 lib-modules = std
 
 
-install-lib: 
+install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-            $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\

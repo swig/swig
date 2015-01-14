@@ -869,7 +869,7 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
     String *parentclassname = 0;
     if (parentclass)
       parentclassname = Getattr(parentclass, "name");
-    Replaceall(code, "$parentclassname", parentclassname ? parentclassname : "");
+    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, "") : "");
   }
 }
 
@@ -1614,7 +1614,14 @@ int Swig_VargetToFunction(Node *n, int flags) {
     Delete(mangled);
     Delete(sname);
   } else {
-    String *nname = SwigType_namestr(name);
+    String *nname = 0;
+    if (Equal(nodeType(n), "constant")) {
+      String *rawval = Getattr(n, "rawval");
+      String *value = rawval ? rawval : Getattr(n, "value");
+      nname = NewStringf("(%s)", value);
+    } else {
+      nname = SwigType_namestr(name);
+    }
     call = Swig_wrapped_var_assign(type, nname, varcref);
     cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);

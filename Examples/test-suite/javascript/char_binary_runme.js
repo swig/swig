@@ -1,4 +1,4 @@
-var char_binary = require("./char_binary");
+var char_binary = require("char_binary");
 
 var t = new char_binary.Test();
 if (t.strlen('hile') != 4) {

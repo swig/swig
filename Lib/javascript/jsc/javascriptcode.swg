@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor", "templates")
 %{
-JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
     if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -28,7 +28,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
-JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
+static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
@@ -44,7 +44,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
-JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
+static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     JSObjectRef thisObject = NULL;
@@ -70,7 +70,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_ctor", "templates")
 %{
-JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
     $jscode
@@ -105,11 +105,16 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtor", "templates")
 %{
-void $jswrapper(JSObjectRef thisObject)
+static void $jswrapper(JSObjectRef thisObject)
 {
   SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
-  if(t && t->swigCMemOwn) free (($jstype)t->swigCObject);
-  if(t) free(t);
+  if(t) {
+    if (t->swigCMemOwn) {
+      free (($jstype)t->swigCObject);
+    }
+    JSObjectSetPrivate(thisObject, NULL);
+    free(t);
+  }
 }
 %}
 
@@ -121,14 +126,18 @@ void $jswrapper(JSObjectRef thisObject)
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtoroverride", "templates")
 %{
-void $jswrapper(JSObjectRef thisObject)
+static void $jswrapper(JSObjectRef thisObject)
 {
   SwigPrivData* t = (SwigPrivData*) JSObjectGetPrivate(thisObject);
-  if(t && t->swigCMemOwn) {
-    $jstype arg1 = ($jstype)t->swigCObject;
-    ${destructor_action}
+  if(t) {
+    if (t->swigCMemOwn) {
+      $jstype arg1 = ($jstype)t->swigCObject;
+      ${destructor_action}
+    }
+    /* remove the private data to make sure that it isn't accessed elsewhere */
+    JSObjectSetPrivate(thisObject, NULL);
+    free(t);
   }
-  if(t) free(t);
 }
 %}
 
@@ -140,7 +149,7 @@ void $jswrapper(JSObjectRef thisObject)
  * ----------------------------------------------------------------------------- */
 %fragment ("js_getter", "templates")
 %{
-JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
+static JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
     $jslocals
     JSValueRef jsresult;
@@ -150,7 +159,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef 
 
     goto fail;
     fail:
-    return NULL;
+    return JSValueMakeUndefined(context);
 }
 %}
 
@@ -162,7 +171,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef 
  * ----------------------------------------------------------------------------- */
 %fragment ("js_setter", "templates")
 %{
-bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
+static bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef value, JSValueRef* exception)
 {
     $jslocals
     $jscode
@@ -183,7 +192,7 @@ bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef proper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function", "templates")
 %{
-JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   $jslocals
   JSValueRef jsresult;
@@ -195,7 +204,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 
   goto fail;
   fail:
-  return NULL;
+  return JSValueMakeUndefined(context);
 }
 %}
 
@@ -208,7 +217,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatcher", "templates")
 %{
-JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   $jslocals
   JSValueRef jsresult;
@@ -220,7 +229,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 
   goto fail;
   fail:
-  return NULL;
+  return JSValueMakeUndefined(context);
 }
 %}
 
@@ -232,7 +241,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
-int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* p_result)
+static int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* p_result)
 {
   $jslocals
   JSValueRef jsresult;
@@ -291,11 +300,11 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_class_declaration", "templates")
 %{
-JSClassDefinition $jsmangledname_classDefinition;
+static JSClassDefinition $jsmangledname_classDefinition;
 
-JSClassDefinition $jsmangledname_objectDefinition;
+static JSClassDefinition $jsmangledname_objectDefinition;
 
-JSClassRef $jsmangledname_classRef;
+static JSClassRef $jsmangledname_classRef;
 %}
 
 /* -----------------------------------------------------------------------------
@@ -308,22 +317,22 @@ JSClassRef $jsmangledname_classRef;
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_class_tables", "templates")
 %{
-JSStaticValue $jsmangledname_staticValues[] = {
+static JSStaticValue $jsmangledname_staticValues[] = {
   $jsstaticclassvariables
   { 0, 0, 0, 0 }
 };
 
-JSStaticFunction $jsmangledname_staticFunctions[] = {
+static JSStaticFunction $jsmangledname_staticFunctions[] = {
   $jsstaticclassfunctions
   { 0, 0, 0 }
 };
 
-JSStaticValue $jsmangledname_values[] = {
+static JSStaticValue $jsmangledname_values[] = {
   $jsclassvariables
   { 0, 0, 0, 0 }
 };
 
-JSStaticFunction $jsmangledname_functions[] = {
+static JSStaticFunction $jsmangledname_functions[] = {
   $jsclassfunctions
   { 0, 0, 0 }
 };
@@ -341,11 +350,11 @@ JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_staticFunctions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_staticValues;
   $jsmangledname_classDefinition.callAsConstructor = $jsctor;
-  $jsmangledname_classDefinition.finalize = $jsdtor;
+  $jsmangledname_objectDefinition.finalize = $jsdtor;
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
   $jsclass_inheritance
-  JSClassRef $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
+  $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
   SWIGTYPE_$jsmangledtype->clientdata = $jsmangledname_classRef;
 %}
 
@@ -382,17 +391,17 @@ JSStaticFunction $jsmangledname_functions[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_nspace_declaration", "templates")
 %{
-JSStaticValue $jsnspace_values[] = {
+static JSStaticValue $jsnspace_values[] = {
   $jsglobalvariables
   { 0, 0, 0, 0 }
 };
 
-JSStaticFunction $jsnspace_functions[] = {
+static JSStaticFunction $jsnspace_functions[] = {
   $jsglobalfunctions
   { 0, 0, 0 }
 };
 
-JSClassDefinition $jsnspace_classDefinition;
+static JSClassDefinition $jsnspace_classDefinition;
 %}
 
 /* -----------------------------------------------------------------------------

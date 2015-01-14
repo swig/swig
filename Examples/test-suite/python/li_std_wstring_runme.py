@@ -60,13 +60,14 @@ if a + " world" != "hello world":
   raise RuntimeError("bad string mapping")
 
 # This is expected to fail if -builtin is used
-if "hello" + b != "hello world":
-  raise RuntimeError("bad string mapping")
+# Reverse operators not supported in builtin types
+if not li_std_wstring.is_python_builtin():
+  if "hello" + b != "hello world":
+    raise RuntimeError("bad string mapping")
 
-# This is expected to fail if -builtin is used
-c = "hello" + b
-if c.find_last_of("l") != 9:
-  raise RuntimeError("bad string mapping")
+  c = "hello" + b
+  if c.find_last_of("l") != 9:
+    raise RuntimeError("bad string mapping")
   
 s = "hello world"
 

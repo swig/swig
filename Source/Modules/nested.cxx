@@ -362,7 +362,15 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  Delete(bases);
 	}
 	Setattr(classhash, name, c);
+
+	// Merge the extension into the symbol table
+	if (Node *am = Getattr(Swig_extend_hash(), name)) {
+	  Swig_extend_merge(c, am);
+	  Swig_extend_append_previous(c, am);
+	  Delattr(Swig_extend_hash(), name);
+	}
 	Swig_symbol_popscope();
+
 	// process declarations following this type (assign correct new type)
 	SwigType *ty = Copy(name);
 	Node *decl = nextSibling(c);
@@ -376,16 +384,6 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  decl = nextSibling(decl);
 	}
 	Delete(ty);
-	// Check for extensions
-/*	// TODO: we can save extensions hash like class hash and move check_extensions() after nesting processing
-	if (extendhash) {
-	  if (Node *am = Getattr(extendhash, name)) {
-	    // Merge the extension into the symbol table
-	    merge_extensions(c, am);
-	    append_previous_extension(c, am);
-	    Delattr(extendhash, clsname);
-	  }
-	}*/
 	Swig_symbol_setscope(Swig_symbol_global_scope());
 	add_symbols_c(c);
 
@@ -396,7 +394,12 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	Delete(ins);
 	Delattr(c, "nested:outer");
       } else {
-	// global unnamed struct - ignore it
+	// global unnamed struct - ignore it and it's instances
+	SetFlag(c, "feature:ignore");
+	while (next && Getattr(next, "nested:unnamedtype") == c) {
+	  SetFlag(next, "feature:ignore");
+	  next = nextSibling(next);
+	}
 	c = next;
 	continue;
       }

@@ -1,4 +1,4 @@
-var dynamic_cast = require("./dynamic_cast");
+var dynamic_cast = require("dynamic_cast");
 
 var f = new dynamic_cast.Foo();
 var b = new dynamic_cast.Bar();

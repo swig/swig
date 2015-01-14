@@ -14,7 +14,7 @@
                    signed char,
                    bool,
                    enum SWIGTYPE
-  "SWIG_LONG_CONSTANT($symname, $value);";
+  "SWIG_LONG_CONSTANT($symname, ($1_type)$value);";
 
 %typemap(consttab) float,
                    double
@@ -34,12 +34,12 @@
                    SWIGTYPE &&,
                    SWIGTYPE [] {
   zval *z_var;
+  zend_constant c;
+  size_t len = sizeof("$symname") - 1;
   MAKE_STD_ZVAL(z_var);
   SWIG_SetPointerZval(z_var, (void*)$value, $1_descriptor, 0);
-  zend_constant c;
   c.value = *z_var;
   zval_copy_ctor(&c.value);
-  size_t len = sizeof("$symname") - 1;
   c.name = zend_strndup("$symname", len);
   c.name_len = len+1;
   c.flags = CONST_CS | CONST_PERSISTENT;
