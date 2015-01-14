@@ -48,14 +48,16 @@
 <li><a href="#Scilab_typemaps_matrices">Matrices</a>
 <li><a href="#Scilab_typemaps_stl">STL</a>
 </ul>
-<li><a href="#Scilab_module">Module</a>
+<li><a href="#Scilab_module_initialization">Module_initialization</a>
+<li><a href="#Scilab_building_modes">Building modes</a>
 <ul>
-<li><a href="#Scilab_module_structure">Structure</a>
-<li><a href="#Scilab_module_interface_file">Interface file</a>
-<li><a href="#Scilab_module_building">Building</a>
-<li><a href="#Scilab_module_builder_mode">Builder mode</a>
-<li><a href="#Scilab_module_loader">Loader script</a>
-<li><a href="#Scilab_module_initialization">Initialization</a>
+<li><a href="#Scilab_building_modes_nobuilder_mode">No-builder mode</a>
+<li><a href="#Scilab_building_modes_builder_mode">Builder mode</a>
+</ul>
+<li><a href="#Scilab_generated_scripts">Generated scripts</a>
+<ul>
+<li><a href="#Scilab_generated_scripts_builder_script">Builder script</a>
+<li><a href="#Scilab_generated_scripts_loader_script">Loader script</a>
 </ul>
 <li><a href="#Scilab_other_resources">Other resources</a>
 </ul>
@@ -101,7 +103,7 @@ In this example we bind from C a function and a global variable into Scilab. The
 <div class="code"><pre>
 %module example
 
-%inline {
+%inline %{
 double Foo = 3.0;
 
 int fact(int n) {
@@ -119,8 +121,7 @@ int fact(int n) {
 </pre></div>
 
 <p>
-Note: there are other approaches to write an interface file, this one was used only for simplicity.
-See <a href="#Scilab_module">Module</a> to see other ways to write an interface file.
+Note: a code in an <tt>%inline</tt> section is both parsed and wrapped by SWIG, and inserted as is in the wrapper source file.
 </p>
 
 
@@ -128,18 +129,6 @@ See <a href="#Scilab_module">Module</a> to see other ways to write an interface 
 
 <p>
 The module is generated using the <tt>swig</tt> executable and its <tt>-scilab</tt> option.
-</p>
-
-<p>
-SWIG for Scilab can work in two modes: the <tt>builder</tt> and the <tt>nobuilder</tt> mode (mode used by default).
-</p>
-<ul>
-<li>In the <tt>builder</tt> mode, SWIG generates a Scilab script, the builder script, which is used to build the module</li>
-<li>In the <tt>nobuilder</tt> mode, the generated sources have to be compiled manually, with standard tools</li>
-</ul>
-
-<p>
-In this section, we consider only using the <tt>nobuilder</tt>  mode. See the <a href="#Scilab_running_swig_options">Module</a> section to have details on the other mode.
 </p>
 
 <div class="shell"><pre>
@@ -150,8 +139,8 @@ $ swig -scilab example.i
 This command generates two files:
 </p>
 <ul>
-<li>a C source file <tt>example_wrap.c</tt>: the generated C source file contains the wrapping code (and in this example, also the implementation of <tt>gcd</tt>).</li>
-<li>a loader file <tt>loader.sce</tt>: the Scilab script used to load the module into Scilab.
+<li><tt>example_wrap.c</tt>: a C source file containing the wrapping code and also here the wrapped code (the <tt>fact()</tt> and <tt>Foo</tt> definitions)</li>
+<li><tt>loader.sce</tt>: a Scilab script used to load the module into Scilab
 </ul>
 
 <p>
@@ -168,6 +157,12 @@ it may be because the SWIG library is not found. Check the <tt>SWIG_LIB</tt> env
 </p>
 
 <p>
+Note: SWIG for Scilab can work in two modes related to the way the module is build, see the <a href="#Scilab_building_modes">Building modes</a> section for details.
+This example uses the <tt>builder</tt> mode.
+</p>
+
+
+<p>
 The <tt>swig</tt> executable has several other command line options you can use. See <a href="#Scilab_running_swig_options">Scilab command line options</a> for further details.
 </p>
 
@@ -175,33 +170,29 @@ The <tt>swig</tt> executable has several other command line options you can use.
 <H3><a name="Scilab_running_swig_building_module"></a>37.2.2 Building the module</H3>
 
 <p>
-To be loaded in Scilab, the wrapper has to be build into a dynamic module.
+To be loaded in Scilab, the wrapper has to be build into a dynamic module (or shared library).
 </p>
 
 <p>
-We suppose the path to the Scilab include directory is here <tt>/usr/local/include</tt> (that's the case in a Debian environment).
-</p>
-
-<p>
-The commands to build the wrapper with <tt>gcc</tt> are:
+The commands to compile and link the wrapper (with <tt>gcc</tt>) into the shared library <tt>libexample.so</tt> are:
 </p>
 
 <div class="shell"><pre>
-$ gcc -fPIC -c -I/usr/local/include example_wrap.c
+$ gcc -fPIC -c -I/usr/local/include/scilab example_wrap.c
 $ gcc -shared example_wrap.o -o libexample.so
 </pre></div>
 
 <p>
-The shared library <tt>libexample.so</tt> should be produced in the current folder.
+Note: we supposed in this example the path to the Scilab include directory is <tt>/usr/local/include/scilab</tt> (which is the case in a Debian environment), this sould be changed for another environment.
 </p>
 
 <H3><a name="Scilab_running_swig_loading_module"></a>37.2.3 Loading the module</H3>
 
 <p>
-Loading the module by running the loader script in Scilab:
+Loading a module is done by running the loader script in Scilab:
 </p>
 
-<div class="shell"><pre>
+<div class="targetlang"><pre>
 --&gt; exec loader.sce
 </pre></div>
 
@@ -209,13 +200,13 @@ Loading the module by running the loader script in Scilab:
 Scilab should output the following messages:
 </p>
 
-<div class="shell"><pre>
+<div class="targetlang"><pre>
 Shared archive loaded.
 Link done.
 </pre></div>
 
 <p>
-Which means that Scilab has sucessfully loaded the shared library. Its functions and other symbols are now available in Scilab.
+Which means that Scilab has sucessfully loaded the shared library. The module functions and other symbols are now available in Scilab.
 </p>
 
 <H3><a name="Scilab_running_swig_using_module"></a>37.2.4 Using the module</H3>
@@ -1077,7 +1068,7 @@ struct triplet {
 Then in Scilab:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 --&gt;t = new_IntTriplet(3, 4, 1);
 
@@ -1659,7 +1650,7 @@ namespace std {
 
 <p>
 Additionally, the module initialization function has to be executed first in Scilab, so that all the types are known to Scilab.
-See the <a href="#Scilab_module_initialization">initialization</a> paragraph for more details.
+See the <a href="#Scilab_module_initialization">Module initialization</a> section for more details.
 </p>
 
 
@@ -1798,66 +1789,66 @@ ans  =
 </pre></div>
 <p>
 
-<H2><a name="Scilab_module"></a>37.5 Module</H2>
+<H2><a name="Scilab_module_initialization"></a>37.5 Module initialization</H2>
 
 <p>
-In this part we describe how a module can be structured, how to build it and give some details about the generated scripts.
+The wrapped module contains an initialization function to:
 </p>
-
-<H3><a name="Scilab_module_structure"></a>37.5.1 Structure</H3>
-
-<p>
-Usually, one module is created to bind one library. Each library to be wrapped comes with the following files:
-</p>
-
 <ul>
-<li>header files (<tt>.h</tt>, <tt>.hpp</tt>,...) of the module, or of a third party library.</tt></li>
-<li>source files (<tt>.c</tt>, <tt>.cpp</tt>,...).</tt></li>
-<li>some third party libraries (<tt>.so</tt>) to link with.</tt></li>
+<li>initialize the SWIG runtime, which is necessary when working with the STL</li>
+<li>initialize in Scilab the module constants and enumerations declared with <tt>%scilabconst()</tt></li>
 </ul>
 
-
-<H3><a name="Scilab_module_interface_file"></a>37.5.2 Interface file</H3>
-
 <p>
-Each module needs one interface file. Multi modules in an interface file are not yet supported.
+This initialization function should be executed at the start of a script, before the wrapped library has to be used.
 </p>
 
 <p>
-The module interface file begins by declaring the module name, followed by the wrapping declarations.
-It is often easier to include the whole header of a library being wrapped. Then the interface file typically looks like this:
+The function has the name of the module suffixed by <tt>_Init</tt>.
+For example, to initialize the module <tt>example</tt>:
 </p>
 
-<div class="code"><pre>
-%module module_name
-
-%{
-#include "myheader.h"
-...
-%}
-
-#include "myheader.h"
-...
+<div class="targetlang"><pre>
+--&gt; example_Init();
 </pre></div>
 
-<H3><a name="Scilab_module_building"></a>37.5.3 Building</H3>
+<H2><a name="Scilab_building_modes"></a>37.6 Building modes</H2>
 
 <p>
-The mechanism to load an external module in Scilab is called <i>Dynamic Link</i> and works with dynamic modules (or shared libraries i.e. <tt>so</tt> files).
+The mechanism to load an external module in Scilab is called <i>Dynamic Link</i> and works with dynamic modules (or shared libraries, <tt>.so</tt> files).
 </p>
 
 <p>
 To produce a dynamic module, when generating the wrapper, there are two possibilities, or build modes:
 </p>
 <ul>
-<li>the <tt>nobuilder</tt> mode. This is the standard mode in SWIG. The sources have to be manually compiled and linked.
-It is the best option to use when the module build has to be integrated into a larger build process.
-<li>the <tt>builder</tt> mode. In this mode, Scilab is responsible of the building. SWIG produces a builder script, which is executed in Scilab to build the module.
-An advantage of this mode is that it hides all the complexity of the build and platform issues.
-Also it allows the module to conform to a Scilab external module convention which is that an external module should be simply built by calling a builder script.
+<li>the <tt>nobuilder</tt> mode, this is the default mode in SWIG. The user is responsible of the build.
+<li>the <tt>builder</tt> mode. In this mode, Scilab is responsible of building.
 </ul>
 
-<H3><a name="Scilab_module_builder_mode"></a>37.5.4 Builder mode</H3>
+<H3><a name="Scilab_building_modes_nobuilder_mode"></a>37.6.1 No-builder mode</H3>
+
+<p>
+In this mode, used by default, SWIG generates the wrapper sources, which have to be manually compiled and linked.
+A loader script <tt>loader.sce</tt> is also produced, this one is executed further in Scilab to load the module.
+</p>
+
+<p>
+This mode is the best option to use when you have to integrate the module build into a larger build process.
+</p>
+
+
+<H3><a name="Scilab_building_modes_builder_mode"></a>37.6.2 Builder mode</H3>
+
+<p>
+In this mode, in addition to the wrapper sources, SWIG produces a builder Scilab script (<tt>builder.sce</tt>), which is executed in Scilab to build the module.
+In a few words, the Scilab <tt>ilib_build()</tt> command is used, which produces the shared library file, and the loader script <tt>loader.sce</tt> (and also a cleaner script <tt>cleaner.sce</tt>).
+</p>
+
+<p>
+An advantage of this mode is that it hides all the complexity of the build and other platform issues.
+Also it allows the module to conform to a Scilab external module convention which is that an external module should be simply built by calling a builder script.
+</p>
 
 <p>
 The builder mode is activated with the <tt>-builder</tt> SWIG option.
@@ -1865,29 +1856,21 @@ In this mode, the following SWIG options may be used to setup the build:
 </p>
 
 <ul>
-<li><tt><b>buildersources</b></tt>: to add sources to be compiled and linked with (several files must be separated by a comma).</li>
-<li><tt><b>buildercflags</b></tt>: to add compiler flags to the builder flags (to add include paths for example).</li>
-<li><tt><b>builderldflags</b></tt>: to add linker flags to the builder flags (to add library dependencies for example).</li>
+<li><tt><b>buildersources</b></tt>: to add sources to the build (several files must be separated by a comma)</li>
+<li><tt><b>buildercflags</b></tt>: to add flags to the builder compiler flags, for example to set library dependencies include paths</li>
+<li><tt><b>builderldflags</b></tt>: to add flags to the linker flags, for example to set library dependency names and paths</li>
 </ul>
 
 <p>
-The SWIG command may have the following syntax:
-</p>
-
-<div class="shell"><pre>
-swig -scilab -builder -buildercflags "-I[inc_path]..." -builderldflags "-L[lib_path] -l[lib_name]..." -buildersources [source1],... [module_name].i
-</pre></div>
-
-<p>
-For example, to add to the build:
+Let's give an example how to build a module <tt>example</tt>, composed of two sources, and using a library dependency:
 <ul>
-<li>the sources <tt>baa1.c</tt> and <tt>baa2.c</tt> (stored in in the current directory)</li>
-<li>the library <tt>foo</tt> in <tt>/opt/foo</tt> (headers stored in <tt>/opt/foo/include</tt>, and shared library in <tt>/opt/foo/lib</tt>)</li>
+<li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in in the current directory)</li>
+<li>the library is <tt>libfoo</tt> in <tt>/opt/foo</tt> (headers stored in <tt>/opt/foo/include</tt>, and shared library in <tt>/opt/foo/lib</tt>)</li>
 </ul>
 </p>
 
 <p>
-the command is:
+The command is:
 </p>
 
 <div class="shell"><pre>
@@ -1895,21 +1878,27 @@ $ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/op
 </pre></div>
 </p>
 
-<H4><a name="Scilab_builder_script"></a>Builder script</H4>
+<H2><a name="Scilab_generated_scripts"></a>37.7 Generated scripts</H2>
 
 <p>
-<tt>builder.sce</tt> is the name of the builder script generated by SWIG. It contains code like this:
+In this part we give some details about the generated Scilab scripts.
+</p>
+
+<H3><a name="Scilab_generated_scripts_builder_script"></a>37.7.1 Builder script</H3>
+
+<p>
+<tt>builder.sce</tt> is the name of the builder script generated by SWIG in <tt>builder</tt> mode. It contains code like this:
 </p>
 <div class="code"><pre>
 ilib_name = "examplelib";
 files = ["example_wrap.c"];
 libs = [];
-table = ["gcd","_wrap_gcd";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
+table = ["fact","_wrap_fact";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
 ilib_build(ilib_name,table,files,libs);
 </pre></div>
 
 <p>
-<tt>ilib_build(lib_name,table,files,libs)</tt> is used to create shared libraries and to generate a loader file which can be used to dynamically load the shared library into Scilab.
+<tt>ilib_build(lib_name,table,files,libs)</tt> is used to create shared libraries, and to generate a loader file used to dynamically load the shared library into Scilab.
 </p>
 
 <ul>
@@ -1919,7 +1908,7 @@ ilib_build(ilib_name,table,files,libs);
 <li><tt><b>table</b></tt>: two column string matrix containing a table of pairs of 'scilab function name', 'C function name'.</li>
 </ul>
 
-<H3><a name="Scilab_module_loader"></a>37.5.5 Loader script</H3>
+<H3><a name="Scilab_generated_scripts_loader_script"></a>37.7.2 Loader script</H3>
 
 <p>
 The loader script is used to load in Scilab all the module functions. When loaded, these functions can be used as other Scilab functions.
@@ -1935,7 +1924,7 @@ The loader script <tt>loader.sce</tt> contains code similar to:
 // ------------------------------------------------------
 
 libexamplelib_path = get_file_path('loader.sce');
-list_functions = [             'gcd';
+list_functions = [             'fact';
             'Foo_set';
             'Foo_get';
 ];
@@ -1956,30 +1945,8 @@ clear get_file_path;
 <li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function.</li>
 </ul>
 
-<H3><a name="Scilab_module_initialization"></a>37.5.6 Initialization</H3>
 
-<p>
-The wrapped module contains an initialization function to:
-</p>
-<ul>
-<li>initialize the SWIG runtime, which is necessary when working with the STL.</li>
-<li>initialize the constants of the module, needed for the <tt>%scilabconst()</tt> feature.</li>
-</ul>
-
-<p>
-This initialization function should be executed at the start of a script, before the wrapped library has to be used.
-</p>
-
-<p>
-The function has the name of the module suffixed by <tt>_Init</tt>.
-For example, to initialize the module <tt>example</tt>:
-</p>
-
-<div class="targetlang"><pre>
---&gt; example_Init();
-</pre></div>
-
-<H2><a name="Scilab_other_resources"></a>37.6 Other resources</H2>
+<H2><a name="Scilab_other_resources"></a>37.8 Other resources</H2>
 
 <ul>
 <li>Example use cases can be found in the <tt>Examples/scilab</tt> directory.</li>
