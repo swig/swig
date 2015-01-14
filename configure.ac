@@ -1508,7 +1508,7 @@ if test -n "$RUBY"; then
         # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
-		RUBYDIR=`($RUBY -rmkmf -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+		RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
         else
                 RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
         fi
