@@ -3,6 +3,41 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.4 (14 Jan 2015)
+===========================
+
+2015-01-12: olly
+	    [PHP] Fix segfault in director upcall check when using PHP built with
+	    ZTS enabled.  Fixes #155, reported by Pierre Labastie.
+
+2015-01-12: vadz
+            [Python] Fix #294 #296 - Regression introduced in SWIG-3.0.3 when
+            wrapping functions with default arguments. Invalid or missing default
+            arguments were sometimes being generated into the python layer.
+
+2015-01-08: olly
+	    Allow C++11 "explicit constexpr".  Fixes github issue #284 reported
+	    by Pawel Tomulik.  Also handle "constexpr explicit" and "constexpr
+	    static".
+
+2015-01-08: olly
+	    When reporting an error for a construct which hasn't been
+	    terminated when the end of the file is reached, report it at the
+	    start line rather than "EOF" as then tools like editors and IDEs
+	    will take you to a generally more useful place for fixing the
+	    problem.
+
+2015-01-08: olly
+	    Improve error messages for a few cases which previously gave the
+	    one of the cryptic catch-all errors "Syntax error in input".
+
+2015-01-08: olly
+	    Provide -cppext as a general command line option for setting the
+	    extension used for generated C++ files (previously it was specific
+	    to the PHP backend).  Deprecate the equivalent -suffix option
+	    provided by the Ocaml backend, but continue to support that for
+	    now.
+
 Version 3.0.3 (30 Dec 2014)
 ===========================
 
