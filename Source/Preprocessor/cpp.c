@@ -1771,7 +1771,7 @@ String *Preprocessor_parse(String *s) {
       } else if (Equal(id, "")) {
 	/* Null directive */
       } else {
-	Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s\n", id);
+	Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s (if this is a block of target language code, delimit it with %%{ and %%})\n", id);
       }
       for (i = 0; i < cpp_lines; i++)
 	Putc('\n', ns);
