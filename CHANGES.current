@@ -6,5 +6,8 @@ Version 3.0.5 (in progress)
 ===========================
 
 2015-01-15: wsfulton
+            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
+
+2015-01-15: wsfulton
             [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
             in directors
