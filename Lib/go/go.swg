@@ -379,7 +379,7 @@
 %{ $result = (intgo)$1; %}
 
 %typemap(directorin) enum SWIGTYPE
-%{ $input = ($1_ltype)$1; %}
+%{ $input = (intgo)$1; %}
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
