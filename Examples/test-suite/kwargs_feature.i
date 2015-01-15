@@ -79,9 +79,9 @@
     static const size_type hello = 3;
   };
   
-  int rfoo( const size_type& x = Hello::hello, const Hello& y = Hello() )
+  int rfoo( int n = 0, const size_type& x = Hello::hello, const Hello& y = Hello() )
   {
-    return x;
+    return n - x;
   }
 %}
 %{

@@ -1976,32 +1976,31 @@ public:
   bool is_representable_as_pyargs(Node *n) {
     bool is_representable = true;
 
-    if (Getattr(n, "sym:overloaded")) {
-      ParmList *plist = CopyParmList(Getattr(n, "parms"));
-      Parm *p;
-      Parm *pnext;
+    ParmList *plist = CopyParmList(Getattr(n, "parms"));
+    Parm *p;
+    Parm *pnext;
 
-      for (p = plist; p; p = pnext) {
-	pnext = NIL;
-	String *tm = Getattr(p, "tmap:in");
-	if (tm) {
-	  pnext = Getattr(p, "tmap:in:next");
-	  if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	    continue;
-	  }
+    for (p = plist; p; p = pnext) {
+      pnext = NIL;
+      String *tm = Getattr(p, "tmap:in");
+      if (tm) {
+	pnext = Getattr(p, "tmap:in:next");
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  continue;
 	}
-	if (!pnext) {
-	  pnext = nextSibling(p);
-	}
-	if (String *value = Getattr(p, "value")) {
-	  String *type = Getattr(p, "type");
-	  if (!convertValue(value, type)) {
-	    is_representable = false;
-	    break;
-	  }
+      }
+      if (!pnext) {
+	pnext = nextSibling(p);
+      }
+      if (String *value = Getattr(p, "value")) {
+	String *type = Getattr(p, "type");
+	if (!convertValue(value, type)) {
+	  is_representable = false;
+	  break;
 	}
       }
     }
+
     return is_representable;
   }
 
