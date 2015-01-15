@@ -3294,7 +3294,32 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      Printf(f_init, "%s\n", tm);
+      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+        // Generate method which registers the new constant
+        Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
+        Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+	if (modernargs) {
+	  if (fastunpack) {
+	    Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  } else {
+	    Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  }
+	} else {
+	  Printf(f_wrappers, tab2 "if (!PyArg_ParseTuple(args,(char*)\"O:swigconstant\", &module)) return NULL;\n");
+	}
+        Printf(f_wrappers, tab2 "PyObject *d = PyModule_GetDict(module);\n");
+        Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
+        Printf(f_wrappers, tab2 "%s\n", tm);
+        Printf(f_wrappers, tab2 "return SWIG_Py_Void();\n");
+        Printf(f_wrappers, "}\n\n\n");
+
+        // Register the method in SwigMethods array
+	String *cname = NewStringf("%s_swigconstant", iname);
+	add_method(cname, cname, 0);
+	Delete(cname);
+      } else {
+        Printf(f_init, "%s\n", tm);
+      }
       Delete(tm);
       have_tm = 1;
     }
@@ -3309,9 +3334,13 @@ public:
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       if (!in_class) {
+	Printv(f_shadow, "\n",NIL);
+	Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
       } else {
 	if (!(Getattr(n, "feature:python:callback"))) {
+	  Printv(f_shadow_stubs, "\n",NIL);
+	  Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
 	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
 	}
       }
