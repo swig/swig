@@ -5035,10 +5035,10 @@ class Bar {
 </div>
 
 <p>
-If a nested class has to be used as template parameter then the template might
-has to be expanded before the top-level class containing the inner class gets
-declared.  An example can be found in the
-<a href="#SWIGPlus_template_nested_class_example"> Templates</a> section.
+If a nested class, within an outer class, has to be used as a template parameter within the outer class, then the template will
+have to be instantiated with <tt>%template</tt> before the beginning of the outer class.
+An example can be found in the
+<a href="#SWIGPlus_template_nested_class_example">Templates</a> section.
 </p>
 
 <p>
