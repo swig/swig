@@ -32,27 +32,27 @@ Makefile: $(srcdir)/Makefile.in ./config.status
 	$(SHELL) ./config.status
 
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
-docs: $(PACKAGE_NAME).1 web/ccache-man.html
+docs: $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/ccache-man.html
 
 $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-$(PACKAGE_NAME).1: ccache.yo
-	-yodl2man -o $(PACKAGE_NAME).1 $(srcdir)/ccache.yo
+$(srcdir)/$(PACKAGE_NAME).1: $(srcdir)/ccache.yo
+	-yodl2man -o $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/ccache.yo
 
-web/ccache-man.html: ccache.yo
-	yodl2html -o web/ccache-man.html ccache.yo
+$(srcdir)/web/ccache-man.html: $(srcdir)/ccache.yo
+	yodl2html -o $(srcdir)/web/ccache-man.html $(srcdir)/ccache.yo
 
-install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
+install: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
 	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
 	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 $(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
+	${INSTALLCMD} -m 644 $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
-uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
+uninstall: $(PACKAGE_NAME)$(EXEEXT) $(srcdir)/$(PACKAGE_NAME).1
 	rm -f $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
 	rm -f $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
@@ -69,7 +69,7 @@ distclean: clean
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
-	/bin/rm -f $(PACKAGE_NAME).1 web/ccache-man.html
+	/bin/rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/ccache-man.html
 
 
 # FIXME: To fix this, test.sh needs to be able to take ccache from the

@@ -45,14 +45,14 @@ void testModule(lua_State *L)
   swig_type_info *pTypeInfo=0,*pTypeInfo2=0;
   swig_module_info *pModule=0;
   pModule=SWIG_GetModule(L);
-  DEBUG2("  SWIG_GetModule() returns %p\n",pModule)
+  DEBUG2("  SWIG_GetModule() returns %p\n", (void *)pModule)
   if(pModule==0) return;
   pTypeInfo = SWIG_TypeQuery(L,"Foo *");
   DEBUG2("  Type (Foo*) is %s\n",pTypeInfo==0?"unknown":"known");
-  DEBUG3("    Module %p typeinfo(Foo*) %p\n",pModule,pTypeInfo);
+  DEBUG3("    Module %p typeinfo(Foo*) %p\n", (void *)pModule, (void *)pTypeInfo);
   pTypeInfo2 = SWIG_TypeQuery(L,"Bar *");
   DEBUG2("  Type (Bar*) is %s\n",pTypeInfo2==0?"unknown":"known");
-  DEBUG3("    Module %p typeinfo(Bar*) %p\n",pModule,pTypeInfo2);
+  DEBUG3("    Module %p typeinfo(Bar*) %p\n", (void *)pModule, (void *)pTypeInfo2);
 }
 
 int main(int argc,char* argv[])

@@ -53,7 +53,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
     } else {
       JSStringRef jsstring;
       if(size < 2) {
-        char c[size+1];
+        char c[2];
         int i;
         for(i=0;i<size;++i) {
           c[i] = carray[i];

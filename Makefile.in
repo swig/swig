@@ -403,7 +403,7 @@ clean-ccache:
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
 
-distclean-helper: distclean-test-suite distclean-examples distclean-dead
+distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
 distclean: distclean-source distclean-ccache distclean-helper
 
@@ -420,9 +420,18 @@ distclean-examples:
 	@echo distcleaning Examples
 	@$(MAKE) $(FLAGS) clean-examples
 	@cd Examples && $(MAKE) $(FLAGS) distclean
+	@if test "x$(srcdir)" != "x."; then \
+		for mkfile in `cd $(srcdir) && find Examples/ -type f -name Makefile`; do \
+			rm -f "$$mkfile"; \
+		done; \
+	fi
 
 distclean-ccache:
 	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) $(FLAGS) distclean)
+
+distclean-tools:
+	@echo distcleaning Tools
+	@cd Tools/javascript && $(MAKE) $(FLAGS) distclean
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
@@ -445,6 +454,16 @@ maintainer-clean:
 	@rm -f $(srcdir)/Lib/swigwarn.swg
 	@echo distcleaning
 	@$(MAKE) $(FLAGS) distclean-helper
+
+check-maintainer-clean: maintainer-clean
+	@if test "x$(srcdir)" = "x."; then \
+		echo "skipping maintainer-clean check (in-source-tree build)"; \
+		exit 0; \
+	fi; \
+	for file in `find . -type f`; do \
+		echo "file missed by maintainer-clean: $$file"; \
+	done; \
+	test "x$$file" = x && echo "all files cleaned by maintainer-clean"
 
 #####################################################################
 # Update the Lib/swigwarn.swg file

@@ -1,6 +1,6 @@
 %module exception_partial_info
 
-// This produced compileable code for Tcl, Python in 1.3.27, fails in 1.3.29
+// This produced compilable code for Tcl, Python in 1.3.27, fails in 1.3.29
 
 %{
 #if defined(_MSC_VER)

@@ -89,7 +89,11 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 	SWIG_InternalNewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
 %#if PY_VERSION_HEX >= 0x03000000
+%#if PY_VERSION_HEX >= 0x03010000
+      return PyUnicode_DecodeUTF8(carray, %numeric_cast(size,int), "surrogateescape");
+%#else
       return PyUnicode_FromStringAndSize(carray, %numeric_cast(size,int));
+%#endif
 %#else
       return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
 %#endif

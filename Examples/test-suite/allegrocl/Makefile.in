@@ -123,4 +123,4 @@ run_testcase = \
 	@rm -f $*.cl
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile allegrocl_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" allegrocl_clean

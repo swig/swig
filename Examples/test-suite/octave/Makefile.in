@@ -68,7 +68,7 @@ run_testcase = \
 	@rm -f $*.m;
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile octave_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" octave_clean
 
 cvsignore:
 	@echo '*wrap* *.mc *.so *.dll *.exp *.lib'

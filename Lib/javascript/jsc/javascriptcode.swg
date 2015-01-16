@@ -159,7 +159,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStr
 
     goto fail;
     fail:
-    return NULL;
+    return JSValueMakeUndefined(context);
 }
 %}
 
@@ -204,7 +204,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
 
   goto fail;
   fail:
-  return NULL;
+  return JSValueMakeUndefined(context);
 }
 %}
 
@@ -229,7 +229,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
 
   goto fail;
   fail:
-  return NULL;
+  return JSValueMakeUndefined(context);
 }
 %}
 
@@ -354,7 +354,7 @@ static JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
   $jsclass_inheritance
-  JSClassRef $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
+  $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
   SWIGTYPE_$jsmangledtype->clientdata = $jsmangledname_classRef;
 %}
 

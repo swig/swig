@@ -824,6 +824,9 @@ static int look(Scanner *s) {
 	state = 7;
       } else if (c == '=') {
 	return SWIG_TOKEN_MODEQUAL;
+      } else if (c == '}') {
+	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '%%}'\n");
+	exit(1);
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_PERCENT;

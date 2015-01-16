@@ -362,7 +362,15 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  Delete(bases);
 	}
 	Setattr(classhash, name, c);
+
+	// Merge the extension into the symbol table
+	if (Node *am = Getattr(Swig_extend_hash(), name)) {
+	  Swig_extend_merge(c, am);
+	  Swig_extend_append_previous(c, am);
+	  Delattr(Swig_extend_hash(), name);
+	}
 	Swig_symbol_popscope();
+
 	// process declarations following this type (assign correct new type)
 	SwigType *ty = Copy(name);
 	Node *decl = nextSibling(c);
@@ -376,12 +384,6 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	  decl = nextSibling(decl);
 	}
 	Delete(ty);
-	if (Node *am = Getattr(Swig_extend_hash(), name)) {
-	  // Merge the extension into the symbol table
-	  Swig_extend_merge(c, am);
-	  Swig_extend_append_previous(c, am);
-	  Delattr(Swig_extend_hash(), name);
-	}
 	Swig_symbol_setscope(Swig_symbol_global_scope());
 	add_symbols_c(c);
 

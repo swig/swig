@@ -1,7 +1,7 @@
 %module kwargs_feature
 
 %nocopyctor;
-%kwargs;
+%feature("kwargs");
 
 %rename(myDel) del;
 %inline 
@@ -35,9 +35,7 @@
 
     virtual ~Foo() {
     }
-    
   };
-
 %}
 
 
@@ -64,8 +62,7 @@
 
 // Functions
 %inline %{
-  int foo(int a = 1, int b = 0) {return a + b; }
-
+  int foo_fn(int a = 1, int b = 0) {return a + b; }
   
   template<typename T> T templatedfunction(T a = 1, T b = 0) { return a + b; }
 %}
@@ -73,10 +70,8 @@
 %template(templatedfunction) templatedfunction<int>;
 
 
-// Deafult args with references
-%inline
-%{
-
+// Default args with references
+%inline %{
   typedef int size_type;
   
   struct Hello 
@@ -84,13 +79,10 @@
     static const size_type hello = 3;
   };
   
-  
-  
-  int rfoo( const size_type& x = Hello::hello, const Hello& y = Hello() )
+  int rfoo( int n = 0, const size_type& x = Hello::hello, const Hello& y = Hello() )
   {
-    return x;
+    return n - x;
   }
-  
 %}
 %{
   const int Hello::hello;
@@ -104,9 +96,7 @@
 
   int foo_kw(int from = 1, int except = 2) {return from + except; }
 
-
   int foo_nu(int from = 1, int = 0) {return from; }
 
   int foo_mm(int min = 1, int max = 2) {return min + max; }
-
 %}

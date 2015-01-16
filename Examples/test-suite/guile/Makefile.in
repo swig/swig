@@ -62,4 +62,4 @@ run_testcase = \
 	@rm -f $*-guile
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile guile_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" guile_clean

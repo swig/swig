@@ -1,1 +1,1 @@
-pp_missing_rblock.i:EOF: Error: Unterminated %{ ... %} block starting on line 3
+pp_missing_rblock.i:3: Error: Unterminated %{ ... %} block

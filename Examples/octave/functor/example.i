@@ -1,6 +1,7 @@
 /* File : example.i */
 %module swigexample
 
+%feature("autodoc", 1);
 
 %inline %{
 // From B. Strousjoup, "The C++ Programming Language, Third Edition", p. 514

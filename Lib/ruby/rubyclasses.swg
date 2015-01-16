@@ -37,9 +37,6 @@
 %fragment("GC_VALUE_definition","header") {
 namespace swig {
   class SwigGCReferences {
-    // Hash of all GC_VALUE's currently in use
-    static SwigGCReferences s_references;
-
     VALUE _hash;
 
     SwigGCReferences() : _hash(Qnil) {
@@ -50,13 +47,18 @@ namespace swig {
     }
     static void EndProcHandler(VALUE) {
       // Ruby interpreter ending - _hash can no longer be accessed.
+      SwigGCReferences &s_references = instance();
       s_references._hash = Qnil;
     }
   public:
     static SwigGCReferences& instance() {
+      // Hash of all GC_VALUE's currently in use
+      static SwigGCReferences s_references;
+
       return s_references;
     }
     static void initialize() {
+      SwigGCReferences &s_references = instance();
       if (s_references._hash == Qnil) {
         rb_set_end_proc(&EndProcHandler, Qnil);
         s_references._hash = rb_hash_new();
@@ -81,13 +83,13 @@ namespace swig {
       if (BUILTIN_TYPE(obj) == T_NONE)
         return;
       if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(s_references._hash, obj);
+        VALUE val = rb_hash_aref(_hash, obj);
         unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
         --n;
         if (n)
-          rb_hash_aset(s_references._hash, obj, INT2NUM(n));
+          rb_hash_aset(_hash, obj, INT2NUM(n));
         else
-          rb_hash_delete(s_references._hash, obj);
+          rb_hash_delete(_hash, obj);
       }
     }
   };
@@ -301,8 +303,6 @@ namespace swig {
 
   ID  GC_VALUE::lshift_id = rb_intern("<<");
   ID  GC_VALUE::rshift_id = rb_intern(">>");
-
-  SwigGCReferences SwigGCReferences::s_references;
 
   typedef GC_VALUE LANGUAGE_OBJ;
 

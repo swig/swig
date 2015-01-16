@@ -116,6 +116,7 @@
 <li><a href="#Python_nn74">Function annotation</a>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
+<li><a href="#Python_nn77">Byte string output conversion</a>
 </ul>
 </ul>
 </div>
@@ -193,7 +194,7 @@ int fact(int n);
 </div>
 
 <p>
-The <tt> #define SWIG_FILE_WITH_INIT </tt> line inserts a macro that specifies that the
+The <tt>#define SWIG_FILE_WITH_INIT</tt> line inserts a macro that specifies that the
 resulting C file should be built as a python extension, inserting the module
 <tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
 </p>
@@ -394,7 +395,7 @@ of the module prefixed by an underscore</b>.  If the name of your module is "<tt
 name of the corresponding object file should be
 "<tt>_example.so</tt>" or "<tt>_examplemodule.so</tt>".
 The name of the module is specified using the <tt>%module</tt> directive or the 
-<tt> -module</tt> command line option.
+<tt>-module</tt> command line option.
 </p>
 
 <p>
@@ -782,8 +783,8 @@ Building a SWIG extension to Python under Windows is roughly similar to
 the process used with Unix. Using the distutils, it is essentially
 identical. If you have the same version of the MS compiler that Python
 was built with (the python2.4 and python2.5 distributed by python.org
-are built with Visual Studio 2003), the standard <tt> python setup.py
-build </tt> should just work.
+are built with Visual Studio 2003), the standard <tt>python setup.py
+build</tt> should just work.
 </p>
 
 <p>
@@ -3367,6 +3368,18 @@ print("Loading", "Whizz", "Bang", sep=' ... ')
 </pre>
 </div>
 
+<p>When using <tt>%pythoncode</tt> and <tt>%pythonbegin</tt> you generally
+want to make sure that the block is delimited by <tt>%{</tt> and <tt>%}</tt>.
+If you delimit it with <tt>{</tt> and <tt>}</tt> then any lines with a
+leading <tt>#</tt> will be handled by SWIG as preprocessor directives, when
+you probably meant them as Python comments.  Prior to SWIG 3.0.3, invalid
+preprocessor directives were silently ignored, so generally using the wrong
+delimiters resulted in such comments not appearing in the generated output
+(though a comment starting with a valid preprocessor directive could cause
+problems, for example: <tt># error handling</tt>).  SWIG 3.0.3 and later report
+an error for invalid preprocessor directives, so you may have to update
+existing interface files to delimit blocks of Python code correctly.</p>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
@@ -5926,6 +5939,92 @@ used to define an abstract base class for your own C++ class:
 <p>
 For details of abstract base class, please see
 <a href="http://www.python.org/dev/peps/pep-3119/">PEP 3119</a>.
+</p>
+
+<H3><a name="Python_nn77"></a>36.12.4 Byte string output conversion</H3>
+
+
+<p>
+By default, any byte string (<tt>char*</tt> or <tt>std::string</tt>) returned
+from C or C++ code is decoded to text as UTF-8. This decoding uses the
+<tt>surrogateescape</tt> error handler under Python 3.1 or higher -- this
+error handler decodes invalid byte sequences to high surrogate characters
+in the range U+DC80 to U+DCFF.
+
+As an example, consider the following SWIG interface, which exposes a byte
+string that cannot be completely decoded as UTF-8:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%include &lt;std_string.i&gt;
+
+%inline %{
+
+const char* non_utf8_c_str(void) {
+        return "h\xe9llo w\xc3\xb6rld";
+}
+
+%}
+</pre></div>
+
+<p>
+When this method is called from Python 3, the return value is the following
+text string:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; s = example.non_utf8_c_str()
+&gt;&gt;&gt; s
+'h\udce9llo w&#246;rld'
+</pre></div>
+
+<p>
+Since the C string contains bytes that cannot be decoded as UTF-8, those raw
+bytes are represented as high surrogate characters that can be used to obtain
+the original byte sequence:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; b = s.encode('utf-8', errors='surrogateescape')
+&gt;&gt;&gt; b
+b'h\xe9llo w\xc3\xb6rld'
+</pre></div>
+
+<p>
+One can then attempt a different encoding, if desired (or simply leave the
+byte string as a raw sequence of bytes for use in binary protocols):
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; b.decode('latin-1')
+'h&#233;llo w&#195;&#182;rld'
+</pre></div>
+
+<p>
+Note, however, that text strings containing surrogate characters are rejected
+with the default <tt>strict</tt> codec error handler. For example:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; with open('test', 'w') as f:
+...     print(s, file=f)
+...
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 2, in &lt;module&gt;
+UnicodeEncodeError: 'utf-8' codec can't encode character '\udce9' in position 1: surrogates not allowed
+</pre></div>
+
+<p>
+This requires the user to check most strings returned by SWIG bindings, but
+the alternative is for a non-UTF8 byte string to be completely inaccessible
+in Python 3 code.
+</p>
+
+<p>
+For more details about the <tt>surrogateescape</tt> error handler, please see
+<a href="http://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
 </p>
 
 </body>

@@ -1,1 +1,1 @@
-cpp_extra_brackets.i:5: Error: Syntax error in input(3).
+cpp_extra_brackets.i:5: Error: Unexpected ')'.

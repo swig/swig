@@ -57,11 +57,20 @@ swiggo_size_assert(double, 8)
 extern "C" {
 #endif
 extern void crosscall2(void (*fn)(void *, int), void *, int);
+extern char* _cgo_topofstack(void) __attribute__ ((weak));
 extern void _cgo_allocate(void *, int);
 extern void _cgo_panic(void *, int);
 #ifdef __cplusplus
 }
 #endif
+
+static char *_swig_topofstack() {
+  if (_cgo_topofstack) {
+    return _cgo_topofstack();
+  } else {
+    return 0;
+  }
+}
 
 static void *_swig_goallocate(size_t len) {
   struct {
@@ -89,11 +98,11 @@ static void _swig_gopanic(const char *p) {
 #include "runtime.h"
 #include "cgocall.h"
 
-#ifdef _64BIT
-#define SWIG_PARM_SIZE 8
-#else
-#define SWIG_PARM_SIZE 4
-#endif
+#pragma dataflag 16
+static void *cgocall = runtime·cgocall;
+#pragma dataflag 16
+void *·_cgo_runtime_cgocall = &cgocall;
+
 %}
 
 #else
@@ -194,6 +203,10 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 
 %go_import("unsafe", _ "runtime/cgo")
 
+%insert(go_header) %{
+var _cgo_runtime_cgocall func(unsafe.Pointer, uintptr)
+%}
+
 #else
 
 %go_import("syscall", "unsafe")
@@ -210,6 +223,16 @@ type _ syscall.Sockaddr
 
 type _ unsafe.Pointer
 
+%}
+
+/* Swig_always_false is used to conditionally assign parameters to
+   Swig_escape_val so that the compiler thinks that they escape.  We
+   only assign them if Swig_always_false is true, which it never is.
+   We export the variable so that the compiler doesn't realize that it
+   is never set. */
+%insert(go_header) %{
+var Swig_escape_always_false bool
+var Swig_escape_val interface{}
 %}
 
 /* Function pointers are translated by the code in go.cxx into

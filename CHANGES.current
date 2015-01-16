@@ -2,77 +2,12 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.1 (in progress)
+Version 3.0.5 (in progress)
 ===========================
 
-2014-05-18: vkalinin
-	    Bug #175 - Restore %extend to work for unnamed nested structures by using a C
-            symbol comprising the outer structure name and unnamed variable instance name.
+2015-01-15: wsfulton
+            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
 
-2014-05-15: kwwette
-	    Add #166 - 'make check' now works out of source. This required te examples to build
-            out of source. The main languages have been tested - C#, Go, Guile, Java, Javascript,
-            Lua, Octave, Perl, PHP, Python, Ruby and Tcl.
-
-2014-05-01: Oliver Buchtala
-	    Javascript support added, see Javascript chapter in the documentation.
-
-2014-05-01: olly
-	    [PHP] The generated __isset() method now returns true for read-only properties.
-
-2014-04-24: kwwette
-            [Go] Fix go ./configure parsing of gccgo --version, and
-            goruntime.swg typo in __GNUC_PATCHLEVEL__ (SF Bug #1298)
-
-2014-04-24: kwwette
-            Fix {python|perl5|ruby|tcl}/java examples
-
-            In Lib/gcj/cni.i, for compatibility with newer gcj versions:
-
-            - remove JvAllocObject() which gcj no longer defines, from gcj Changelog:
-              2004-04-16  Bryce McKinlay  <mckinlay@redhat.com>
-                * gcj/cni.h (JvAllocObject): Remove these obsolete,
-                undocumented CNI calls.
-
-            - change JvCreateJavaVM() argument from void* to JvVMInitArgs*, from gcj Changelog:
-              2005-02-23  Thomas Fitzsimmons  <fitzsim@redhat.com>
-              PR libgcj/16923
-              ...
-              (JvCreateJavaVM): Declare vm_args as JvVMInitArgs* rather than void*.
-
-            *** POTENTIAL INCOMPATIBILITY  ***
-
-2014-04-08: wsfulton
-            SF Bug #1366 - Remove duplicate declarations of strtoimax and strtoumax in inttypes.i
-
-2014-04-08: wsfulton
-            [Java C#] Enums which have been ignored via %ignore and are subsequently
-            used are handled slightly differently. Type wrapper classes are now generated
-            which are effectively a wrapper of an empty enum. Previously in Java uncompilable
-            code was generated and in C# an int was used.
-
-2014-04-04: wsfulton
-            Fix regression in 3.0.0 where legal code following an operator<< definition might
-            give a syntax error. SF Bug #1365.
-
-2014-04-03: olly
-	    [PHP] Fix wrapping director constructors with default parameters
-	    with a ZTS-enabled build of PHP.
-
-2014-04-02: olly
-	    [PHP] Pass the ZTS context we already have to avoid needing to
-	    call TSRMLS_FETCH, which is relatively expensive.
-
-2014-04-02: olly
-	    [PHP] Pass ZTS context through to t_output_helper() so it works
-	    with a ZTS-enabled build of PHP.  Reported by Pierre Labastie in
-	    github PR#155.
-
-2014-03-28: wsfulton
-            [Java C# D Go] Fixes for C enums used in an API and the definition of the enum
-            has not been parsed. For D, this fixes a segfault in SWIG. The other languages
-            now produce code that compiles, although the definition of the enum is needed
-            in order to use the enum properly from the target language.
-
-2014-03-23: v-for-vandal
-            [Lua] Fix for usage of snprintf in Lua runtime which Visual Studio does not have.
+2015-01-15: wsfulton
+            [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
+            in directors

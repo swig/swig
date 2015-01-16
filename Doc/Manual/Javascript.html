@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<H1><a name="Javascript_nn1"></a>26 SWIG and Javascript</H1>
+<H1><a name="Javascript"></a>26 SWIG and Javascript</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -15,7 +15,7 @@
 <ul>
 <li><a href="#Javascript_running_swig">Running SWIG</a>
 <li><a href="#Javascript_running_tests_examples">Running Tests and Examples</a>
-<li><a href="#Javascript_future_work">Future work</a>
+<li><a href="#Javascript_known_issues">Known Issues</a>
 </ul>
 <li><a href="#Javascript_integration">Integration</a>
 <ul>
@@ -41,6 +41,7 @@
 <li><a href="#Javascript_code_templates">Code Templates</a>
 <li><a href="#Javascript_emitter">Emitter</a>
 <li><a href="#Javascript_emitter_states">Emitter states</a>
+<li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
 </ul>
 </ul>
 </div>
@@ -56,7 +57,7 @@
 <p>Javascript is a prototype-based scripting language that is dynamic, weakly typed and has first-class functions. Its arguably the most popular language for web development.
 Javascript has gone beyond being a browser-based scripting language and with <a href="http://nodejs.org">node.js</a>, it is also used as a backend development language.</p>
 <p>Native Javascript extensions can be used for applications that embed a web-browser view or that embed a Javascript engine (such as <em>node.js</em>). Extending a general purpose web-browser is not possible as this would be a severe security issue.</p>
-<p>SWIG Javascript currently supports <strong>JavascriptCore</strong>, the Javascript engine used by <code>Safari/Webkit</code>, and <strong>v8</strong>, which is used by <code>Chromium</code> and <code>node.js</code>.</p>
+<p>SWIG Javascript currently supports <strong>JavascriptCore</strong>, the Javascript engine used by <code>Safari/Webkit</code>, and <a href="https://developers.google.com/v8"><strong>v8</strong></a>, which is used by <code>Chromium</code> and <code>node.js</code>.</p>
 <p><a href="http://www.webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.
 With <a href="https://github.com/rogerwang/node-webkit">node-webkit</a> there is a platform which uses Google's <code>Chromium</code> as Web-Browser widget and <code>node.js</code> for javascript extensions.
 </p>
@@ -86,6 +87,12 @@ $ swig -javascript -jsc example.i</pre>
 <div class="shell">
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
+</div>
+<p>The V8 code that SWIG generates should work with most versions from 3.11.10 up to 3.29.14 and later.</p>
+<p>Specify the V8 version when running SWIG (e.g. 3.25.30)</p>
+<div class="shell">
+<pre>
+$ swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i</pre>
 </div>
 <p>This creates a C/C++ source file <code>example_wrap.c</code> or <code>example_wrap.cxx</code>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.</p>
 <p>The name of the wrapper file is derived from the name of the input file. For example, if the input file is <code>example.i</code>, the name of the wrapper file is <code>example_wrap.c</code>. To change this, you can use the -o option. The wrapped module will export one function which must be called to register the module with the Javascript interpreter. For example, if your module is named <code>example</code> the corresponding initializer for JavascriptCore would be</p>
@@ -128,32 +135,28 @@ $ make check-javascript-examples ENGINE=jsc</pre>
 <pre>
 $ make check-javascript-test-suite ENGINE=jsc</pre>
 </div>
-<p>Tests should run without any problems, i.e., have been tried out, on the following platforms/interpreters:</p>
-<div class="code">
+<p>You can specify a specific <code>V8</code> version for running the examples and tests</p>
+<div class="shell">
 <pre>
-- Ubuntu Precise 12.04 64bit
-    - JavascriptCore (Webkit 1.8.3)
-    - Node.js (0.10.26)
-    - v8 (3.7.12)
-- Ubuntu Saucy 13.10 64bit
-    - JavascriptCore (Webkit 1.10.2)
-    - Node.js
-    - v8 (3.14.5)
-- Mac OSX Mountain Lion 10.8
-    - JavascriptCore (built-in)
-    - Node.js
-- Windows 7 64bit (VS 2010)
-    - Node.js</pre>
+$ make check-javascript-examples V8_VERSION=0x032530 ENGINE=v8</pre>
 </div>
 
-<H3><a name="Javascript_future_work"></a>26.2.3 Future work</H3>
+<H3><a name="Javascript_known_issues"></a>26.2.3 Known Issues</H3>
 
 
-<p>The Javascript module is not yet as mature as other modules and some things are still missing. As it makes use of SWIG's Unified Typemap Library (UTL), many typemaps are inherited. We could work on that if requested:</p>
+<p>At the moment, the Javascript generators pass all tests syntactically, i.e., the generated source code compiles. However, there are still remaining runtime issues.</p>
+
 <ul>
-<li><p>More typemaps: compared to other modules there are only a few typemaps implemented. For instance a lot of the <code>std_*.i</code> typemaps are missing, such as <code>std_iostream</code>, for instance.</p></li>
-<li><p>Director support: this would allow to extend a C++ abstract base class in Javascript. A pragmatic intermediate step for the most important usecase would be to support Javascript callbacks as arguments.</p></li>
+    <li><p>Default optional arguments do not work for all targeted interpreters</p></li>
+    <li><p>Multiple output arguments do not work for JSC</p></li>
+    <li><p>C89 incompatibily: the JSC generator might still generate C89 violating code</p></li>
+    <li><p><code>long long</code> is not supported</p></li>
+    <li><p><code>%native</code> is not supported</p></li>
+    <li><p>Javascript callbacks are not supported</p></li>
+    <li><p><code>instanceOf</code> does not work under JSC</p></li>
 </ul>
+
+<p>The primary development environment has been Linux (Ubuntu 12.04). Windows and OSX have been tested sporadically. Therefore, the generators might have more issues on those platforms. Please report back any problem you observe to help us improving this module quickly.</p>
 
 <H2><a name="Javascript_integration"></a>26.3 Integration</H2>
 
@@ -192,7 +195,7 @@ $ sudo npm install -g node-gyp</pre>
 <p>First create the wrapper using SWIG:</p>
 <div class="shell">
 <pre>
-$ swig -javascript -node -c++ example.cxx</pre>
+$ swig -javascript -node -c++ example.i</pre>
 </div>
 <p>Then run <code>node-gyp</code></p>
 <div class="shell">
@@ -232,13 +235,21 @@ $ sudo apt-get remove gyp</pre>
 <pre>
 #import "appDelegate.h"
 
-extern bool example_initialize(JSGlobalContextRef context);
+extern bool example_initialize(JSGlobalContextRef context, JSObjectRef* exports);
 
 
 @implementation ExampleAppDelegate
 
 @synthesize webView;
 
+- (void)addGlobalObject:(JSContextRef) context:(NSString *)objectName:(JSObjectRef) theObject {
+  JSObjectRef global = JSContextGetGlobalObject(context);
+  JSStringRef objectJSName = JSStringCreateWithCFString( (CFStringRef) objectName )
+  if ( objectJSName != NULL ) {
+    JSObjectSetProperty(context, global, objectJSName, theObject, kJSPropertyAttributeReadOnly, NULL);
+    JSStringRelease( objectJSName );
+  }
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 
@@ -249,7 +260,11 @@ extern bool example_initialize(JSGlobalContextRef context);
   WebFrame *webframe = [webView mainFrame];
   JSGlobalContextRef context = [webframe globalContext];
 
-  example_initialize(context);
+  JSObjectRef example;
+  example_initialize(context, &amp;example);
+  [self addGlobalObject:context:@"example":example]
+
+  JSObjectSetProperty(context, global, JSStringRef propertyName, example, JSPropertyAttributes attributes, NULL);
 
   [ [webView mainFrame] loadRequest:
     [NSURLRequest requestWithURL: [NSURL URLWithString:url] ]
@@ -282,7 +297,13 @@ int main(int argc, char* argv[])
     WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
     WebFrame *webframe = webkit_web_view_get_main_frame(webView);
     JSGlobalContextRef context = webkit_web_frame_get_global_context(webFrame);
-    example_initialize(context);
+    JSObjectRef global = JSContextGetGlobalObject(context);
+
+    JSObjectRef exampleModule;
+    example_initialize(context, &amp;exampleModule);
+    JSStringRef jsName = JSStringCreateWithUTF8CString("example");
+    JSObjectSetProperty(context, global, jsName, exampleModule, kJSPropertyAttributeReadOnly, NULL);
+    JSStringRelease(jsName);
 
     ...
 
@@ -323,7 +344,7 @@ A simple example would have the following structure:
 
 <p>
 The configuration file essentially conforms to <code>node.js</code> syntax.
-It has some extras to configure <code>node-webkit</code>. See the <a href="">Manifest</a> specification for more details.
+It has some extras to configure <code>node-webkit</code>. See the <a href="https://github.com/rogerwang/node-webkit/wiki/Manifest-format">Manifest</a> specification for more details.
 </p>
 
 <p>
@@ -332,8 +353,8 @@ It has some extras to configure <code>node-webkit</code>. See the <a href="">Man
 <div class="code">
 <pre>
 {
-  "name": "example"
-  "main": "app.html"
+  "name": "example",
+  "main": "app.html",
   "window": {
     "show": true,
     "width": 800,
@@ -436,7 +457,7 @@ var x = 42;
 var y = 105;
 var g = example.gcd(x,y);
 
-// Accessing the globak variable
+// Accessing the global variable
 var f = example.Foo;
 example.Foo = 3.1415926;</pre>
 </div>
@@ -457,7 +478,7 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;
   void    move(double dx, double dy);
   virtual double area(void) = 0;
@@ -469,7 +490,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area(void);
   virtual double perimeter(void);
 };
@@ -478,7 +499,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area(void);
   virtual double perimeter(void);
 };</pre>
@@ -755,7 +776,7 @@ class JSEmitter {
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -767,7 +788,7 @@ class JSEmitter {
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -779,7 +800,7 @@ class JSEmitter {
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
@@ -880,5 +901,87 @@ state.clazz(RESET);
 state.clazz(NAME, Getattr(n, "sym:name"));</pre>
 </div>
 <p>State information can be retrieved using <code>state.clazz(NAME)</code> or with <code>Getattr</code> on <code>state.clazz()</code> which actually returns a <code>Hash</code> instance.</p>
+
+
+<H3><a name="Javascript_jsc_exceptions"></a>26.5.5 Handling Exceptions in JavascriptCore</H3>
+
+
+<p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian Barnes on how these exception details can be extracted.</p>
+<div class="code">
+<pre>
+void script_exception_to_string(JSContextRef js_context,JSValueRef exception_value_ref,char* return_error_string, int return_error_string_max_length)
+{
+  JSObjectRef exception_object;
+  JSValueRef value_ref;
+  JSStringRef jsstring_property_name = NULL;
+  JSValueRef temporary_exception = NULL;
+  JSStringRef js_return_string = NULL;
+  size_t bytes_needed;
+  char* c_result_string = NULL;
+  exception_object = JSValueToObject(js_context, exception_value_ref, NULL);
+
+  /* source url */
+  strcpy(return_error_string,&quot;[&quot;);
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;sourceURL&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;:&quot;, return_error_string_max_length-1);
+
+  /* line number */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;line&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;]&quot;, return_error_string_max_length-1);
+
+  /* error message */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;message&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  if(NULL == value_ref)
+  {
+    strncat(return_error_string, &quot;Unknown Error&quot;, return_error_string_max_length-1);
+  }
+  else
+  {
+    js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+    bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+    c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+    JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+    JSStringRelease(js_return_string);
+    strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+    free(c_result_string);
+  }
+}</pre>
+</div>
+
+<p>It would be used in the following way:</p>
+<div class="code">
+<pre>
+if(js_exception)
+{
+  char return_error_string[256];
+  script_exception_to_string(js_context, js_exception, return_error_string, 256);
+  printf("Compile error is %s", return_error_string);
+}</pre>
+</div>
+
 </body>
 </html>

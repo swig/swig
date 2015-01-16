@@ -39,12 +39,15 @@ Square* createSquare(double w)
     return new Square(w);
 }
 
-ShapeOwner::ShapeOwner() {printf("  ShapeOwner(%p)\n",this);}
+ShapeOwner::ShapeOwner() {
+  printf("  ShapeOwner(%p)\n", (void *)this);
+}
+
 ShapeOwner::~ShapeOwner()
 {
-    printf("  ~ShapeOwner(%p)\n",this);
-    for(unsigned i=0;i<shapes.size();i++)
-        delete shapes[i];
+  printf("  ~ShapeOwner(%p)\n", (void *)this);
+  for(unsigned i=0;i<shapes.size();i++)
+    delete shapes[i];
 }
 
 void ShapeOwner::add(Shape* ptr) // this method takes ownership of the object

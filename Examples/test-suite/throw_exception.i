@@ -16,15 +16,15 @@
 
 %inline %{
 
-class Error {
+class CError {
 };
 
-void test_is_Error(Error *r) {}
+void test_is_Error(CError *r) {}
 
 namespace Namespace {
-  typedef Error ErrorTypedef;
-  typedef const Error& ErrorRef;
-  typedef const Error* ErrorPtr;
+  typedef CError ErrorTypedef;
+  typedef const CError& ErrorRef;
+  typedef const CError* ErrorPtr;
   typedef int IntArray[10];
   enum EnumTest { enum1, enum2 };
 }
@@ -36,26 +36,26 @@ public:
     void test_msg() throw(const char *) {
       throw "Dead";
     }
-    void test_cls() throw(Error) {
-      throw Error();
+    void test_cls() throw(CError) {
+      throw CError();
     }	
-    void test_cls_ptr() throw(Error *) {
-      static Error StaticError;
+    void test_cls_ptr() throw(CError *) {
+      static CError StaticError;
       throw &StaticError;
     }	
-    void test_cls_ref() throw(Error &) {
-      static Error StaticError;
+    void test_cls_ref() throw(CError &) {
+      static CError StaticError;
       throw StaticError;
     }	
     void test_cls_td() throw(Namespace::ErrorTypedef) {
-      throw Error();
+      throw CError();
     }	
     void test_cls_ptr_td() throw(Namespace::ErrorPtr) {
-      static Error StaticError;
+      static CError StaticError;
       throw &StaticError;
     }	
     void test_cls_ref_td() throw(Namespace::ErrorRef) {
-      static Error StaticError;
+      static CError StaticError;
       throw StaticError;
     }	
     void test_array() throw(Namespace::IntArray) {
@@ -68,10 +68,10 @@ public:
     void test_enum() throw(Namespace::EnumTest) {
       throw Namespace::enum2;
     }	
-    void test_multi(int x) throw(int, const char *, Error) {
+    void test_multi(int x) throw(int, const char *, CError) {
       if (x == 1) throw 37;
       if (x == 2) throw "Dead";
-      if (x == 3) throw Error();
+      if (x == 3) throw CError();
     }
 };
 
