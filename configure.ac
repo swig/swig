@@ -1144,12 +1144,22 @@ else
   fi
 fi
 
+case $host in
+*-*-cygwin*)
+        # TODO: Only use this flag if the compiler supports it, later versions of gcc no longer have it
+        GCC_MNO_CYGWIN=" -mno-cygwin"
+        ;;
+*)
+        GCC_MNO_CYGWIN=""
+        ;;
+esac
+
 # java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a Cygwin built executable
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        JAVADYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
-        JAVACFLAGS="-mno-cygwin -mthreads"
+        JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+        JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
     else
         JAVADYNAMICLINKING=""
         JAVACFLAGS=""
@@ -2032,8 +2042,8 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        CSHARPDYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
-        CSHARPCFLAGS="-mno-cygwin -mthreads"
+        CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+        CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
     else
         CSHARPDYNAMICLINKING=""
         CSHARPCFLAGS=""
