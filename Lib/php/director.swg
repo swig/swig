@@ -98,8 +98,7 @@ namespace Swig {
         TSRMLS_SET_CTX(swig_zts_ctx);
       }
 
-      bool swig_is_overridden_method(char *cname, char *lc_fname) {
-        TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);
+      static bool swig_is_overridden_method(char *cname, char *lc_fname TSRMLS_DC) {
         zend_class_entry **ce;
         zend_function *mptr;
 

@@ -34,7 +34,7 @@
   zval *z_var;
   MAKE_STD_ZVAL(z_var);
   z_var->type = IS_LONG;
-  z_var->value.lval = $1;
+  z_var->value.lval = (long)$1;
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void *)&z_var, sizeof(zval *), NULL);
 }
 

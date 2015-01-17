@@ -547,7 +547,7 @@ Below shows the expansions for the 1st of the overloaded <tt>something</tt> wrap
 The <tt>exception.i</tt> library file provides support for creating
 language independent exceptions in your interfaces.  To use it, simply
 put an "<tt>%include exception.i</tt>" in your interface file.  This
-creates a function<tt> SWIG_exception()</tt> that can be used to raise
+provides a function <tt>SWIG_exception()</tt> that can be used to raise
 common scripting language exceptions in a portable manner.  For example :</p>
 
 <div class="code"><pre>
@@ -1082,7 +1082,7 @@ For example:
 
 <div class="code">
 <pre>
-%feature("except") void hello(int i=0, double d=0.0) { ... }
+%feature("except") hello(int i=0, double d=0.0) { ... }
 void hello(int i=0, double d=0.0);
 </pre>
 </div>
@@ -1105,7 +1105,7 @@ If the default arguments are not specified in the feature:
 
 <div class="code">
 <pre>
-%feature("except") void hello(int i, double d) { ... }
+%feature("except") hello(int i, double d) { ... }
 void hello(int i=0, double d=0.0);
 </pre>
 </div>

@@ -11,7 +11,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
-	kwargs_feature \
 	li_cdata \
 	li_cstring \
 	li_factory \

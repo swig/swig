@@ -149,34 +149,22 @@ string &, std::string &
 %typemap(scoerceout) enum SWIGTYPE *const
   %{  $result = enumToInteger($result, "$R_class"); %}
 
-#%typemap(scoerceout) SWIGTYPE 
-#  %{ class($result) <- "$&R_class"; %}
+%typemap(scoerceout) SEXP %{ %}
 
-#%typemap(scoerceout) SWIGTYPE & 
-#  %{ class($result) <- "$R_class"; %}
-
-#%typemap(scoerceout) SWIGTYPE * 
-#  %{ class($result) <- "$R_class"; %}
-
-#%typemap(scoerceout) SWIGTYPE *const
-#  %{ class($result) <- "$R_class"; %}
-
- %typemap(scoerceout) SEXP %{ %}
-
- %typemap(scoerceout) SWIGTYPE 
- %{ $result <- new("$&R_class", ref=$result); %}
+%typemap(scoerceout) SWIGTYPE
+  %{ $result <- new("$&R_class", ref=$result); %}
  
- %typemap(scoerceout) SWIGTYPE & 
- %{ $result <- new("$R_class", ref=$result) ; %}
+%typemap(scoerceout) SWIGTYPE &
+  %{ $result <- new("$R_class", ref=$result) ; %}
  
- %typemap(scoerceout) SWIGTYPE && 
- %{ $result <- new("$R_class", ref=$result) ; %}
+%typemap(scoerceout) SWIGTYPE &&
+  %{ $result <- new("$R_class", ref=$result) ; %}
  
- %typemap(scoerceout) SWIGTYPE * 
- %{ $result <- new("$R_class", ref=$result) ; %}
+%typemap(scoerceout) SWIGTYPE *
+  %{ $result <- new("$R_class", ref=$result) ; %}
  
- %typemap(scoerceout) SWIGTYPE *const
- %{ $result <- new("$R_class", ref=$result) ; %}
+%typemap(scoerceout) SWIGTYPE *const
+  %{ $result <- new("$R_class", ref=$result) ; %}
 
 
 /* Override the SWIGTYPE * above. */

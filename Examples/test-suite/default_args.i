@@ -13,6 +13,27 @@
 %inline %{
   #include <string>
 
+  // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
+  void trickyvalue1(int first, int pos = -1) {}
+  void trickyvalue2(int first, unsigned rgb = 0xabcdef) {}
+  void trickyvalue3(int first, int mode = 0644) {}
+
+  void doublevalue1(int first, double num = 0.0e-1) {}
+  void doublevalue2(int first, double num = -0.0E2) {}
+
+  // Long long arguments are not handled at Python level currently but still work.
+  void seek(long long offset = 0LL) {}
+  void seek2(unsigned long long offset = 0ULL) {}
+  void seek3(long offset = 0L) {}
+  void seek4(unsigned long offset = 0UL) {}
+  void seek5(unsigned long offset = 0U) {}
+  void seek6(unsigned long offset = 02U) {}
+  void seek7(unsigned long offset = 00U) {}
+  void seek8(unsigned long offset = 1U) {}
+  void seek9(long offset = 1L) {}
+  void seekA(long long offset = 1LL) {}
+  void seekB(unsigned long long offset = 1ULL) {}
+
   // Anonymous arguments
   int anonymous(int = 7771);
   int anonymous(int x) { return x; }
@@ -27,6 +48,12 @@
       enum speed { FAST, SLOW };
       // Note: default values should be EnumClass::FAST and SWEET 
       bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
+  };
+
+  // using base class enum in a derived class
+  class DerivedEnumClass : public EnumClass {
+  public:
+    void accelerate(speed s = SLOW) { }
   };
 
   // casts
@@ -199,6 +226,7 @@ namespace Space {
 struct Klass {
   int val;
   Klass(int val = -1) : val(val) {}
+  static Klass inc(int n = 1, const Klass& k = Klass()) { return Klass(k.val + n); }
 };
 Klass constructorcall(const Klass& k = Klass()) { return k; }
 

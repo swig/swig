@@ -358,7 +358,7 @@ more aggressive from gcc-4.0 onwards and will result in code that fails with str
 <p>
 The name of the shared library output file is important. 
 If the name of your SWIG module is "<tt>example</tt>", the name of the corresponding shared library file should be "<tt>libexample.so</tt>" (or equivalent depending on your machine, see <a href="#Java_dynamic_linking_problems">Dynamic linking problems</a> for more information). 
-The name of the module is specified using the <tt>%module</tt> directive or<tt> -module</tt> command line option.</p>
+The name of the module is specified using the <tt>%module</tt> directive or <tt>-module</tt> command line option.</p>
 
 <H3><a name="Java_using_module"></a>25.2.5 Using your module</H3>
 
@@ -2441,7 +2441,7 @@ It also contains all the methods in the C++ class it is proxying plus getters an
 member variables. These functions call the native methods in the intermediary JNI class. 
 The advantage of having this extra layer is the type safety that the proxy class functions offer. 
 It adds static type checking which leads to fewer surprises at runtime. 
-For example, you can see that if you attempt to use the <tt> spam() </tt> 
+For example, you can see that if you attempt to use the <tt>spam()</tt>
 function it will only compile when the parameters passed are an <tt>int</tt> and a <tt>Foo</tt>. 
 From a user's point of view, it makes the class work as if it were a Java class:
 </p>
@@ -4173,8 +4173,8 @@ void *malloc(size_t nbytes);
 
 <p>
 If no declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
-The <tt> $action </tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
-The <tt> return $null; </tt> handles all native method return types, namely those that have a void return and those that do not. 
+The <tt>$action</tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
+The <tt>return $null;</tt> handles all native method return types, namely those that have a void return and those that do not.
 This is useful for typemaps that will be used in native method returning all return types. 
 See the section on
 <a href="#Java_special_variables">Java special variables</a> for further explanation.
@@ -5579,7 +5579,7 @@ This special variable is usually used for making calls to a function in the inte
 </p>
 
 <p>
-<b><tt>$null </tt></b><br>
+<b><tt>$null</tt></b><br>
 Used in input typemaps to return early from JNI functions that have either void or a non-void return type. Example:
 </p>
 

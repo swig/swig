@@ -342,11 +342,18 @@ public:
     Node *options = Getattr(mod, "options");
     module = Copy(Getattr(n,"name"));
 
+    String *underscore_module = Copy(module);
+    Replaceall(underscore_module,":","_");
+
+    if (verbose > 0) {
+      fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
+    }
+
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
-      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
-      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", underscore_module);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", underscore_module);
       if (dirprot_mode()) {
 	Printf(f_directors_h, "#include <map>\n");
 	Printf(f_directors_h, "#include <string>\n\n");
@@ -379,13 +386,6 @@ public:
 	fprintf(stdout, "top: No package found\n");
       }
     }
-    String *underscore_module = Copy(module);
-    Replaceall(underscore_module,":","_");
-
-    if (verbose > 0) {
-      fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
-    }
-
     /* If we're in blessed mode, change the package name to "packagec" */
 
     if (blessed) {
@@ -2178,12 +2178,12 @@ public:
 	SwigType_add_pointer(ptype);
 	String *mangle = SwigType_manglestr(ptype);
 
-	Wrapper_add_local(w, "self", "SV *self");
-	Printf(w->code, "self = SWIG_NewPointerObj(SWIG_as_voidptr(this), SWIGTYPE%s, SWIG_SHADOW);\n", mangle);
-	Printf(w->code, "sv_bless(self, gv_stashpv(swig_get_class(), 0));\n");
+	Wrapper_add_local(w, "swigself", "SV *swigself");
+	Printf(w->code, "swigself = SWIG_NewPointerObj(SWIG_as_voidptr(this), SWIGTYPE%s, SWIG_SHADOW);\n", mangle);
+	Printf(w->code, "sv_bless(swigself, gv_stashpv(swig_get_class(), 0));\n");
 	Delete(mangle);
 	Delete(ptype);
-	Append(pstack, "XPUSHs(self);\n");
+	Append(pstack, "XPUSHs(swigself);\n");
       }
 
       Parm *p;

@@ -874,6 +874,13 @@ namespace swig
       *(swig::getpos(self,i)) = x;
     }
 
+#if defined(SWIGPYTHON_BUILTIN)
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(difference_type i) throw (std::out_of_range) {
+      self->erase(swig::getpos(self,i));
+    }
+#endif
+
     void append(const value_type& x) {
       self->push_back(x);
     }
@@ -891,6 +898,13 @@ namespace swig
     void __setitem__(difference_type i, value_type x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
+
+#if defined(SWIGPYTHON_BUILTIN)
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(difference_type i) throw (std::out_of_range) {
+      self->erase(swig::getpos(self,i));
+    }
+#endif
 
     void append(value_type x) {
       self->push_back(x);

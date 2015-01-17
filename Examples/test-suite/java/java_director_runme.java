@@ -53,7 +53,7 @@ public class java_director_runme {
       };
       int actualCount = Quux.instances();
       if (actualCount != expectedCount)
-        throw new RuntimeException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        System.err.println("GC failed to run (java_director). Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
     }
 
     /* Test Quux1's director disconnect method rename */

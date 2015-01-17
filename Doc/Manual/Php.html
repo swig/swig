@@ -29,6 +29,7 @@
 <li><a href="#Php_nn2_6_2">Constructors and Destructors</a>
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
+<li><a href="#Php_nn2_6_5">Specifying Implemented Interfaces</a>
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
@@ -135,14 +136,15 @@ least work for Linux though):
 </p>
 
 <div class="code"><pre>
-	gcc `php-config --includes` -fpic -c example_wrap.c
-	gcc -shared example_wrap.o -o example.so
+	gcc `php-config --includes` -fpic -c example_wrap.c example.c
+	gcc -shared example_wrap.o example.o -o example.so
 </pre></div>
 
 <H3><a name="Php_nn1_3"></a>34.1.2 Using PHP Extensions</H3>
 
+
 <p>
-To test the extension from a PHP script, you first need to load tell PHP to
+To test the extension from a PHP script, you first need to tell PHP to
 load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
 <tt>php.ini</tt>:
 </p>
@@ -234,9 +236,9 @@ echo "E = " . E . "\n";
 <p>
 There's one peculiarity of how constants work in PHP which it is useful
 to note (this is not specific to SWIG though) - if you try to use an undeclared
-constant, PHP will issue a warning and then expand the constant to a string
-version of the constant's name.  The warning will often be missed though as
-if you're using PHP in a webserver, it will probably end up in error.log or
+constant, PHP will emit a notice and then expand the constant to a string
+version of the constant's name.  Unfortunately it is easy to miss the notice
+if you're using PHP in a webserver, as it will probably end up in error.log or
 similar.
 </p>
 
@@ -769,6 +771,24 @@ include("example.php");
 Ko::threats();
 </pre></div>
 
+
+<H4><a name="Php_nn2_6_5"></a>34.2.6.5 Specifying Implemented Interfaces</H4>
+
+
+<p>
+PHP supports the concept of abstract interfaces which a class can implement.
+Since SWIG 3.0.3, you can tell SWIG that a wrapped class (for example
+<code>MyIterator</code>) implements the <code>Iterator</code> interface like
+so:
+</p>
+
+<div class="code"><pre>
+%typemap("phpinterfaces") MyIterator "Iterator";
+</pre></div>
+
+<p>
+If there are multiple interfaces, just list them separated by commas.
+</p>
 
 <H3><a name="Php_nn2_7"></a>34.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 

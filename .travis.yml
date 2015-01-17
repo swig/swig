@@ -9,6 +9,8 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=csharp
     - compiler: gcc
+      env: SWIGLANG=d
+    - compiler: gcc
       env: SWIGLANG=go
     - compiler: gcc
       env: SWIGLANG=guile
@@ -23,7 +25,9 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=lua
     - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j4
+      env: SWIGLANG=octave SWIGJOBS=-j3 # 3.2
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
     - compiler: gcc
       env: SWIGLANG=perl5
     - compiler: gcc
@@ -43,11 +47,17 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python PY3=3 VER=3.4
     - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+    - compiler: gcc
       env: SWIGLANG=ruby
     - compiler: gcc
       env: SWIGLANG=tcl
   allow_failures:
-    # None
+    # Occasional gcc internal compiler error
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
 before_install:
   - date -u
   - uname -a
@@ -56,13 +66,15 @@ before_install:
   - time sudo apt-get -qq install libboost-dev
   - if test -z "$SWIGLANG"; then sudo apt-get -qq install yodl; fi
   - if test "$SWIGLANG" = "csharp"; then sudo apt-get -qq install mono-devel; fi
+  - if test "$SWIGLANG" = "d"; then wget http://downloads.dlang.org/releases/2014/dmd_2.066.0-0_amd64.deb; sudo dpkg -i dmd_2.066.0-0_amd64.deb; fi
   - if test "$SWIGLANG" = "go"; then go env | sed -e 's/^/export /' > goenvsetup && source goenvsetup && rm -f goenvsetup; fi # Until configure.ac is fixed
   - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "node"; then sudo apt-get install -qq rlwrap python-software-properties && echo 'yes' | sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get -qq update && sudo apt-get install -qq nodejs && sudo npm install -g node-gyp; fi
   - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "jsc"; then sudo apt-get install -qq libwebkitgtk-dev; fi
   - if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "v8"; then sudo apt-get install -qq libv8-dev; fi
   - if test "$SWIGLANG" = "guile"; then sudo apt-get -qq install guile-2.0-dev; fi
   - if test "$SWIGLANG" = "lua"; then sudo apt-get -qq install lua5.1 liblua5.1-dev; fi
-  - if test "$SWIGLANG" = "octave"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
+  - if test "$SWIGLANG" = "octave" -a -z "$VER"; then sudo apt-get -qq install octave3.2 octave3.2-headers; fi
+  - if test "$SWIGLANG" = "octave" -a "$VER"; then sudo add-apt-repository -y ppa:kwwette/octaves && sudo apt-get -qq update && sudo apt-get -qq install liboctave${VER}-dev; fi
   - if test "$SWIGLANG" = "php"; then sudo apt-get install php5-cli php5-dev; fi
   - if test "$SWIGLANG" = "python"; then git clone https://github.com/jcrocholl/pep8.git && pushd pep8 && git checkout tags/1.5.7 && python ./setup.py build && sudo python ./setup.py install && popd; fi
   - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
@@ -71,6 +83,7 @@ before_install:
   # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
   - declare -A CFLAGS_EXAMPLES && CFLAGS_EXAMPLES=(
         ["csharp"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
+             ["d"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
             ["go"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
          ["guile"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
           ["java"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
@@ -85,6 +98,7 @@ before_install:
     )
   - declare -A CXXFLAGS_EXAMPLES && CXXFLAGS_EXAMPLES=(
         ["csharp"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
+             ["d"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
             ["go"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
          ["guile"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
           ["java"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"

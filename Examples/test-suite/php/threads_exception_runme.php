@@ -4,9 +4,9 @@ require "tests.php";
 require "threads_exception.php";
 
 // Check functions
-check::functions(array(test_simple,test_message,test_hosed,test_unknown,test_multi));
+check::functions(array(test_simple,test_message,test_hosed,test_unknown,test_multi,is_python_builtin));
 // Check classes.
-check::classes(array(Exc,Test));
+check::classes(array(Exc,Test,threads_exception));
 // Chek globals.
 check::globals(array(exc_code,exc_msg));
 

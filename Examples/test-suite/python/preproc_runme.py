@@ -12,3 +12,5 @@ if preproc.defined != 1:
 if 2*preproc.one != preproc.two:
   raise RuntimeError
 
+if preproc.methodX(99) != 199:
+  raise RuntimeError

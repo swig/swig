@@ -147,7 +147,7 @@
 <H2><a name="Ruby_nn2"></a>38.1 Preliminaries</H2>
 
 
-<p> SWIG 1.3 is known to work with Ruby versions 1.6 and later.
+<p> SWIG 3.0 is known to work with Ruby versions 1.8 and later.
 Given the choice, you should use the latest stable version of Ruby. You
 should also determine if your system supports shared libraries and
 dynamic loading. SWIG will work with or without dynamic loading, but
@@ -191,7 +191,7 @@ header file. This file is usually contained in a directory such as </p>
 
 <div class="code shell diagram">
 <pre>/usr/lib/ruby/1.8/x86_64-linux-gnu/ruby.h
-/usr/local/lib/ruby/1.6/i686-linux/ruby.h
+/usr/include/ruby-2.1.0/ruby.h
 </pre>
 </div>
 
@@ -201,8 +201,14 @@ installed, you can run Ruby to find out. For example: </p>
 
 <div class="code shell">
 <pre>$ ruby -e 'puts $:.join("\n")'
-/usr/local/lib/ruby/site_ruby/1.6 /usr/local/lib/ruby/site_ruby/1.6/i686-linux
-/usr/local/lib/ruby/site_ruby /usr/local/lib/ruby/1.6 /usr/local/lib/ruby/1.6/i686-linux .
+/usr/local/lib/site_ruby/2.1.0
+/usr/local/lib/x86_64-linux-gnu/site_ruby
+/usr/local/lib/site_ruby
+/usr/lib/ruby/vendor_ruby/2.1.0
+/usr/lib/x86_64-linux-gnu/ruby/vendor_ruby/2.1.0
+/usr/lib/ruby/vendor_ruby
+/usr/lib/ruby/2.1.0
+/usr/lib/x86_64-linux-gnu/ruby/2.1.0
 </pre>
 </div>
 
@@ -260,7 +266,7 @@ operating system would look something like this: </p>
 <div class="code shell">
 <pre>$ swig -ruby example.i
 $ gcc -O2 -fPIC -c example.c
-$ gcc -O2 -fPIC -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux
+$ gcc -O2 -fPIC -c example_wrap.c -I/usr/include/ruby-2.1.0
 $ gcc -shared example.o example_wrap.o -o example.so
 </pre>
 </div>
@@ -334,7 +340,7 @@ using the C++ compiler. For example: </p>
 <pre>
 $ swig -c++ -ruby example.i
 $ g++ -fPIC -c example.cxx
-$ g++ -fPIC -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux
+$ g++ -fPIC -c example_wrap.cxx -I/usr/include/ruby-2.1.0
 $ g++ -shared example.o example_wrap.o -o example.so
 </pre>
 </div>
@@ -685,7 +691,7 @@ For example, this struct declaration: </p>
 </div>
 
 <p> gets wrapped as a <tt>Vector</tt> class, with
-Ruby instance methods <tt>x</tt>, <tt> x=</tt>,
+Ruby instance methods <tt>x</tt>, <tt>x=</tt>,
 <tt>y</tt> and <tt>y=</tt>. These methods can
 be used to access structure data from Ruby as follows: </p>
 
@@ -1313,7 +1319,7 @@ chapter.</p>
 
 <p>Some containers in the STL allow you to modify their default
 behavior by using so called functors or function objects.
-Functors are often just a very simple struct with<tt> operator()</tt>
+Functors are often just a very simple struct with <tt>operator()</tt>
 redefined or an actual C/C++ function. This allows you, for
 example, to always keep the sort order of a STL container to your
 liking.</p>
@@ -1327,7 +1333,7 @@ this includes <tt>std::set</tt>,
 <tt>std::multiset</tt>
 and <tt>std::multimap</tt>.</p>
 
-<p>The functors in swig are called<tt> swig::UnaryFunction</tt>
+<p>The functors in swig are called <tt>swig::UnaryFunction</tt>
 and <tt>swig::BinaryFunction</tt>.
 
 For C++ predicates (ie. functors that must return bool as a result) <tt>swig::UnaryPredicate</tt>
@@ -1380,8 +1386,8 @@ values they point at, while the non-const iterators can both read and
 modify the values.</p>
 
 <p>The Ruby STL wrappings support both type of iterators by using
-a proxy class in-between. This proxy class is <tt>swig::Iterator or
-swig::ConstIterator. </tt> Derived from them are template
+a proxy class in-between. This proxy class is <tt>swig::Iterator</tt> or
+<tt>swig::ConstIterator</tt>. Derived from them are template
 classes that need to be initialized with the actual iterator for the
 container you are wrapping and often times with the beginning and
 ending points of the iteration range.</p>
@@ -1450,7 +1456,7 @@ i
 </pre>
 </div>
 
-<p>If you'd rather have STL classes without any iterators, you should define<tt> -DSWIG_NO_EXPORT_ITERATOR_METHODS </tt>when running swig.</p>
+<p>If you'd rather have STL classes without any iterators, you should define <tt>-DSWIG_NO_EXPORT_ITERATOR_METHODS</tt> when running swig.</p>
 
 <H3><a name="Ruby_nn24"></a>38.3.16 C++ Smart Pointers</H3>
 
@@ -2823,7 +2829,7 @@ not support optional arguments, such as Java and C#, effectively ignore
 the value specified by this typemap as all arguments must be given.</p>
 
 <p> Once a default typemap has been applied to an argument, all
-arguments that follow must have default values. See the <a href="http://www.swig.org/Doc1.3/SWIGDocumentation.html#SWIG_default_args">
+arguments that follow must have default values. See the <a href="SWIG.html#SWIG_default_args">
 Default/optional arguments</a> section for further information on
 default argument wrapping.</p>
 
@@ -3017,7 +3023,7 @@ catch(char const *_e) {
 
 <p> Note that if your methods do not have an exception
 specification yet they do throw exceptions, SWIG cannot know how to
-deal with them. For a neat way to handle these, see the <a href="http://www.swig.org/Doc1.3/SWIGDocumentation.html#exception">Exception
+deal with them. For a neat way to handle these, see the <a href="Customization.html#Customization_exception">Exception
 handling with %exception</a> section.</p>
 
 <H4><a name="Ruby_directorin_typemap"></a>38.7.6.14 directorin typemap</H4>
@@ -4466,7 +4472,7 @@ and then type <tt>make</tt> to build the shared library: </p>
 <pre>$ <b>ruby extconf.rb</b>
 creating Makefile
 $ <b>make</b>
-g++ -fPIC -g -O2 -I. -I/usr/local/lib/ruby/1.7/i686-linux \
+g++ -fPIC -g -O2 -I. -I/usr/include/ruby-2.1.0 \
 -I. -c shape_wrap.cxx
 gcc -shared -L/usr/local/lib -o shape.so shape_wrap.o -L. \
 -lruby -lruby -lc</pre>
@@ -4997,7 +5003,7 @@ object from its underlying C++ object.</p>
 <p>In general, you will only need to use the <tt>SWIG_RubyInstanceFor</tt>,
 which is required for implementing mark functions as shown below.
 However, if you implement your own free functions (see below) you may
-also have to call the<tt> SWIG_RubyRemoveTracking</tt> and <tt>RubyUnlinkObjects</tt>
+also have to call the <tt>SWIG_RubyRemoveTracking</tt> and <tt>RubyUnlinkObjects</tt>
 methods.</p>
 
 <H3><a name="Ruby_nn61"></a>38.10.4 Mark Functions</H3>
@@ -5351,7 +5357,7 @@ used for callbacks, for example. </p>
 <p>To solve the problem, SWIG can now generate code with director
 functions containing the optional macros SWIG_INIT_STACK and
 SWIG_RELEASE_STACK. These macros will try to force Ruby to
-reinitiliaze the beginning of the stack the first time a
+reinitialize the beginning of the stack the first time a
 director
 function is called. This will lead Ruby to measure and not
 collect any VALUE objects defined from that point on. </p>

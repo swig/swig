@@ -17,6 +17,8 @@
 static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
 
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
@@ -871,16 +873,21 @@ public:
 #else
 	       tab4, "if (not static):\n",
 #endif
-	       tab4, tab4, "self.__dict__[name] = value\n",
+	       tab4, tab4, "object.__setattr__(self, name, value)\n",
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
 	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
 
 	Printv(f_shadow,
-	        "\n", "def _swig_getattr(self, class_type, name):\n",
+	       "\n", "def _swig_getattr_nondynamic(self, class_type, name, static=1):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
-	       tab4, "if method:\n", tab8, "return method(self)\n", tab4, "raise AttributeError(name)\n\n", NIL);
+	       tab4, "if method:\n", tab8, "return method(self)\n",
+	       tab4, "if (not static):\n",
+	       tab4, tab4, "return object.__getattr__(self, name)\n",
+	       tab4, "else:\n",
+	       tab4, tab4, "raise AttributeError(name)\n\n",
+	       "def _swig_getattr(self, class_type, name):\n", tab4, "return _swig_getattr_nondynamic(self, class_type, name, 0)\n\n", NIL);
 
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
@@ -1523,6 +1530,21 @@ public:
     return ds;
   }
 
+  virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool = false) const {
+    // For the keyword arguments, we want to preserve the names as much as possible,
+    // so we only minimally rename them in Swig_name_make(), e.g. replacing "keyword"
+    // with "_keyword" if they have any name at all.
+    if (check_kwargs(n)) {
+      String *name = Getattr(p, "name");
+      if (name)
+	return Swig_name_make(p, 0, name, 0, 0);
+    }
+
+    // For the other cases use the general function which replaces arguments whose
+    // names clash with keywords with (less useful) "argN".
+    return Language::makeParameterName(n, p, arg_num);
+  }
+
   /* -----------------------------------------------------------------------------
    * addMissingParameterNames()
    *  For functions that have not had nameless parameters set in the Language class.
@@ -1534,13 +1556,14 @@ public:
    *   The "lname" attribute in each parameter in plist will be contain a parameter name
    * ----------------------------------------------------------------------------- */
 
-  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+  void addMissingParameterNames(Node *n, ParmList *plist, int arg_offset) {
     Parm *p = plist;
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *pname = Swig_cparm_name(p, i);
-	Delete(pname);
+	String *name = makeParameterName(n, p, i);
+	Setattr(p, "lname", name);
+	Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -1563,14 +1586,18 @@ public:
     Parm *pnext;
 
 
-    int lines = 0;
-    int start_arg_num = is_wrapping_class() ? 1 : 0;
-    const int maxwidth = 80;
+    // Normally we start counting auto-generated argument names from 1, but we should do it from 2
+    // if the first argument is "self", i.e. if we're handling a non-static member function.
+    int arg_num = 1;
+    if (is_wrapping_class()) {
+      if (Cmp(Getattr(n, "storage"), "static") != 0)
+	arg_num++;
+    }
 
     if (calling)
       func_annotation = false;
 
-    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
+    addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
 
@@ -1579,7 +1606,7 @@ public:
       return doc;
     }
 
-    for (p = plist; p; p = pnext) {
+    for (p = plist; p; p = pnext, arg_num++) {
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
@@ -1602,25 +1629,22 @@ public:
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
-      name = name ? name : Getattr(p, "name");
-      name = name ? name : Getattr(p, "lname");
-      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+      String *made_name = 0;
+      if (!name) {
+	name = made_name = makeParameterName(n, p, arg_num);
+      }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
 
-      if (SwigType_isvarargs(type))
+      if (SwigType_isvarargs(type)) {
+	Delete(made_name);
 	break;
+      }
 
       if (Len(doc)) {
 	// add a comma to the previous one if any
 	Append(doc, ", ");
-
-	// Do we need to wrap a long line?
-	if ((Len(doc) - lines * maxwidth) > maxwidth) {
-	  Printf(doc, "\n%s", tab4);
-	  lines += 1;
-	}
       }
 
       // Do the param type too?
@@ -1642,17 +1666,11 @@ public:
       // Write default value
       if (value && !calling) {
 	String *new_value = convertValue(value, Getattr(p, "type"));
-	if (new_value) {
-	  value = new_value;
-	} else {
-	  Node *lookup = Swig_symbol_clookup(value, 0);
-	  if (lookup)
-	    value = Getattr(lookup, "sym:name");
-	}
-	Printf(doc, "=%s", value);
+	if (new_value)
+	  Printf(doc, "=%s", new_value);
       }
       Delete(type_str);
-      Delete(name);
+      Delete(made_name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
@@ -1799,57 +1817,191 @@ public:
   }
 
   /* ------------------------------------------------------------
+   *  convertDoubleValue()
+   *    Check if the given string looks like a decimal floating point constant
+   *    and return it if it does, otherwise return NIL.
+   * ------------------------------------------------------------ */
+  String *convertDoubleValue(String *v) {
+    const char *const s = Char(v);
+    char *end;
+
+    double value = strtod(s, &end);
+    (void) value;
+    if (errno != ERANGE && end != s) {
+      // An added complication: at least some versions of strtod() recognize
+      // hexadecimal floating point numbers which don't exist in Python, so
+      // detect them ourselves and refuse to convert them (this can't be done
+      // without loss of precision in general).
+      //
+      // Also don't accept neither "NAN" nor "INFINITY" (both of which
+      // conveniently contain "n").
+      if (strpbrk(s, "xXnN"))
+	return NIL;
+
+      // Disregard optional "f" suffix, it can be just dropped in Python as it
+      // uses doubles for everything anyhow.
+      for (char* p = end; *p != '\0'; ++p) {
+	switch (*p) {
+	  case 'f':
+	  case 'F':
+	    break;
+
+	  default:
+	    return NIL;
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
+    }
+
+    return NIL;
+  }
+
+  /* ------------------------------------------------------------
    * convertValue()
-   *    Check if string v can be a Python value literal,
-   *    (eg. number or string), or translate it to a Python literal.
+   *    Check if string v can be a Python value literal or a
+   *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-	/* number or string (or maybe NULL pointer) */
-	if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	  return NewString("None");
-	else
-	  return v;
+    const char *const s = Char(v);
+    char *end;
+
+    // Check if this is a number in any base.
+    long value = strtol(s, &end, 0);
+    (void) value;
+    if (end != s) {
+      if (errno == ERANGE) {
+	// There was an overflow, we could try representing the value as Python
+	// long integer literal, but for now don't bother with it.
+	return NIL;
       }
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("True");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("False");
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+
+      if (*end != '\0') {
+	// If there is a suffix after the number, we can safely ignore any
+	// combination of "l" and "u", but not anything else (again, stuff like
+	// "LL" could be handled, but we don't bother to do it currently).
+	bool seen_long = false;
+	for (char* p = end; *p != '\0'; ++p) {
+	  switch (*p) {
+	    case 'l':
+	    case 'L':
+	      // Bail out on "LL".
+	      if (seen_long)
+		return NIL;
+	      seen_long = true;
+	      break;
+
+	    case 'u':
+	    case 'U':
+	      break;
+
+	    default:
+	      // Except that our suffix could actually be the fractional part of
+	      // a floating point number, so we still have to check for this.
+	      return convertDoubleValue(v);
+	  }
+	}
+      }
+
+      // Deal with the values starting with 0 first as they can be octal or
+      // hexadecimal numbers or even pointers.
+      if (s[0] == '0') {
+	if (Len(v) == 1) {
+	  // This is just a lone 0, but it needs to be represented differently
+	  // in Python depending on whether it's a zero or a null pointer.
+	  if (SwigType_ispointer(t))
+	    return NewString("None");
+	  else
+	    return v;
+	} else if (s[1] == 'x' || s[1] == 'X') {
+	  // This must have been a hex number, we can use it directly in Python,
+	  // so nothing to do here.
+	} else {
+	  // This must have been an octal number, we have to change its prefix
+	  // to be "0o" in Python 3 only (and as long as we still support Python
+	  // 2.5, this can't be done unconditionally).
+	  if (py3) {
+	    if (end - s > 1) {
+	      String *res = NewString("0o");
+	      Append(res, NewStringWithSize(s + 1, end - s - 1));
+	      return res;
+	    }
+	  }
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
     }
-    return 0;
+
+    // Check if this is a floating point number (notice that it wasn't
+    // necessarily parsed as a long above, consider e.g. ".123").
+    if (String *res = convertDoubleValue(v)) {
+      return res;
+    }
+
+    if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+      return NewString("True");
+    if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+      return NewString("False");
+    if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+
+    // This could also be an enum type, default value of which could be
+    // representable in Python if it doesn't include any scope (which could,
+    // but currently is not, translated).
+    if (!Strchr(s, ':')) {
+      Node *lookup = Swig_symbol_clookup(v, 0);
+      if (lookup) {
+	if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	  return Getattr(lookup, "sym:name");
+      }
+    }
+
+    return NIL;
   }
+
   /* ------------------------------------------------------------
-   * is_primitive_defaultargs()
-   *    Check if all the default args have primitive type.
-   *    (So we can generate proper parameter list with default 
-   *    values..)
+   * is_representable_as_pyargs()
+   *    Check if the function parameters default argument values
+   *    can be represented in Python.
+   *
+   *    If this method returns false, the parameters will be translated
+   *    to a generic "*args" which allows us to deal with default values
+   *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
-  bool is_primitive_defaultargs(Node *n) {
+  bool is_representable_as_pyargs(Node *n) {
+    bool is_representable = true;
+
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
 
-    Swig_typemap_attach_parms("in", plist, 0);
     for (p = plist; p; p = pnext) {
+      pnext = NIL;
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
 	pnext = Getattr(p, "tmap:in:next");
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  continue;
 	}
-      } else {
+      }
+      if (!pnext) {
 	pnext = nextSibling(p);
       }
-      String *type = Getattr(p, "type");
-      String *value = Getattr(p, "value");
-      if (!convertValue(value, type))
-	return false;
+      if (String *value = Getattr(p, "value")) {
+	String *type = Getattr(p, "type");
+	if (!convertValue(value, type)) {
+	  is_representable = false;
+	  break;
+	}
+      }
     }
-    return true;
+
+    return is_representable;
   }
 
 
@@ -1892,7 +2044,7 @@ public:
       n = nn;
 
     /* For overloaded function, just use *args */
-    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_primitive_defaultargs(n)) {
+    if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_representable_as_pyargs(n)) {
       String *parms = NewString("");
       if (in_class)
 	Printf(parms, "self, ");
@@ -2052,7 +2204,7 @@ public:
    *    check if using kwargs is allowed for this Node
    * ------------------------------------------------------------ */
 
-  int check_kwargs(Node *n) {
+  int check_kwargs(Node *n) const {
     return (use_kw || GetFlag(n, "feature:kwargs"))
 	&& !GetFlag(n, "memberset") && !GetFlag(n, "memberget");
   }
@@ -2431,7 +2583,6 @@ public:
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *pn = Getattr(p, "name");
       String *ln = Getattr(p, "lname");
       bool parse_from_tuple = (i > 0 || !add_self);
       if (SwigType_type(pt) == T_VARARGS) {
@@ -2453,18 +2604,9 @@ public:
 
       /* Keyword argument handling */
       if (allow_kwargs && parse_from_tuple) {
-	if (Len(pn)) {
-	  String *tmp = 0;
-	  String *name = pn;
-	  if (!Getattr(p, "hidden")) {
-	    name = tmp = Swig_name_make(p, 0, pn, 0, 0); // rename parameter if a keyword
-	  }
-	  Printf(kwargs, "(char *) \"%s\",", name);
-	  if (tmp)
-	    Delete(tmp);
-	} else {
-	  Printf(kwargs, "(char *)\"arg%d\",", i + 1);
-	}
+	String *name = makeParameterName(n, p, i + 1);
+	Printf(kwargs, "(char *) \"%s\",", name);
+	Delete(name);
       }
 
       /* Look for an input typemap */
@@ -2595,7 +2737,6 @@ public:
 
     /* Insert cleanup code */
     for (p = l; p;) {
-      //      if (!checkAttribute(p,"tmap:in:numinputs","0") && !Getattr(p,"tmap:in:parse")) {
       if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
 	if (Getattr(p, "tmap:freearg:implicitconv")) {
 	  const char *convflag = "0";
@@ -3153,7 +3294,32 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      Printf(f_init, "%s\n", tm);
+      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+        // Generate method which registers the new constant
+        Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
+        Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+	if (modernargs) {
+	  if (fastunpack) {
+	    Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  } else {
+	    Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  }
+	} else {
+	  Printf(f_wrappers, tab2 "if (!PyArg_ParseTuple(args,(char*)\"O:swigconstant\", &module)) return NULL;\n");
+	}
+        Printf(f_wrappers, tab2 "PyObject *d = PyModule_GetDict(module);\n");
+        Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
+        Printf(f_wrappers, tab2 "%s\n", tm);
+        Printf(f_wrappers, tab2 "return SWIG_Py_Void();\n");
+        Printf(f_wrappers, "}\n\n\n");
+
+        // Register the method in SwigMethods array
+	String *cname = NewStringf("%s_swigconstant", iname);
+	add_method(cname, cname, 0);
+	Delete(cname);
+      } else {
+        Printf(f_init, "%s\n", tm);
+      }
       Delete(tm);
       have_tm = 1;
     }
@@ -3168,9 +3334,13 @@ public:
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       if (!in_class) {
+	Printv(f_shadow, "\n",NIL);
+	Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
       } else {
 	if (!(Getattr(n, "feature:python:callback"))) {
+	  Printv(f_shadow_stubs, "\n",NIL);
+	  Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
 	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
 	}
       }
@@ -3203,7 +3373,7 @@ public:
    * BEGIN C++ Director Class modifications
    * ------------------------------------------------------------------------- */
 
-  /* C++/Python polymorphism demo code, copyright (C) 2002 Mark Rose <mrose@stm.lbl.gov>
+  /* C++/Python polymorphism demo code
    *
    * TODO
    *
@@ -4325,7 +4495,9 @@ public:
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
 	}
-	Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", symname, ")\n", NIL);
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
 
 	if (!modern) {
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", symname, "\n", NIL);
@@ -4337,7 +4509,9 @@ public:
 		 NIL);
 	}
 	if (!classic) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 		 ")\n", NIL);
 	}
       }
@@ -4572,11 +4746,12 @@ public:
 	Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
       }
       if (!classic) {
-	if (!assignable) {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	} else {
-	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	}
+	if (!modern)
+	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	if (assignable)
+	  Printv(f_shadow, ", ", module, ".", setname, NIL);
+	Printv(f_shadow, ")\n", NIL);
       }
       Delete(mname);
       Delete(setname);
@@ -4645,11 +4820,12 @@ public:
 	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", getname, "\n", NIL);
 	}
 	if (!classic && !builtin) {
-	  if (!assignable) {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ")\n", NIL);
-	  } else {
-	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:\n", tab8, symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
-	  }
+	  if (!modern)
+	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = _swig_property(", module, ".", getname, NIL);
+	  if (assignable)
+	    Printv(f_shadow, ", ", module, ".", setname, NIL);
+	  Printv(f_shadow, ")\n", NIL);
 	}
 	String *getter = Getattr(n, "pybuiltin:getter");
 	String *setter = Getattr(n, "pybuiltin:setter");
@@ -4775,6 +4951,13 @@ public:
     return NewString("swigpyrun.h");
   }
 
+  /*----------------------------------------------------------------------
+   * kwargsSupport()
+   *--------------------------------------------------------------------*/
+
+  bool kwargsSupport() const {
+    return true;
+  }
 };
 
 /* ---------------------------------------------------------------
@@ -4811,6 +4994,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   int status = SWIG_OK;
   int idx;
   bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+
+  if (builtin) {
+    // Rename any wrapped parameters called 'self' as the generated code contains a variable with same name
+    Parm *p;
+    for (p = l; p; p = nextSibling(p)) {
+      String *arg = Getattr(p, "name");
+      if (arg && Cmp(arg, "self") == 0)
+	Delattr(p, "name");
+    }
+  }
 
   if (Cmp(storage, "virtual") == 0) {
     if (Cmp(value, "0") == 0) {

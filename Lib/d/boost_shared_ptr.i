@@ -152,7 +152,7 @@ public this(void* cObject, bool ownCObject) {
   swigCMemOwn = ownCObject;
 }
 
-public static void* swigGetCPtr($dclassname obj) {
+public static void* swigGetCPtr(typeof(this) obj) {
   return (obj is null) ? null : obj.swigCPtr;
 }
 %}
@@ -167,7 +167,7 @@ public this(void* cObject, bool ownCObject) {
   swigCMemOwn = ownCObject;
 }
 
-public static void* swigGetCPtr($dclassname obj) {
+public static void* swigGetCPtr(typeof(this) obj) {
   return (obj is null) ? null : obj.swigCPtr;
 }
 %}
