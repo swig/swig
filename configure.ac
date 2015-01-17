@@ -2061,85 +2061,85 @@ fi
 
 # check version: we need Lua 5.x
 if test "$LUABIN"; then
-   AC_MSG_CHECKING(Lua version)
-   # if version 5.x
-   LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
-   # if not version 5.0
-   LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
+  AC_MSG_CHECKING(Lua version)
+  # if version 5.x
+  LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
+  # if not version 5.0
+  LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
 
-   if test -z "$LUAV5"; then
-     AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
-     LUABIN=""
-   elif test -z "$LUAV51"; then
-     AC_MSG_RESULT(Lua 5.0.x)
-   else
-     AC_MSG_RESULT(Lua 5.1 or later)
-   fi
-fi
-
-if test "$LUABIN"; then
-   AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
-   # using Lua to check Lua
-   # lua 5.0 & 5.1 have different fn names
-   if test -z "$LUAV51"; then
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   else
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   fi
-
-   if test -z "$LUADYNAMICLOADLIB"; then
-     AC_MSG_RESULT(no)
-   else
-     AC_MSG_RESULT(yes)
-   fi
-fi
-
-# look for the header files & set LUAFLAGS accordingly
-# will clear LUABIN if not present
-if test -n "$LUAINCLUDE"; then
-  AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
-else
-  LUA_OK="1"
-  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
-  # if we didn't get it, going to have to look elsewhere (the hard way)
-  if test -z "$LUA_OK"; then
-    AC_MSG_CHECKING(for lua.h in other locations)
-    # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
-    # The ordering of the include directories to search should match
-    # the ordering of libraries to search in the library test below.
-    inc=/usr/include
-    dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
-    for i in $dirs; do
-      #echo "$i"
-      if test -r $i/lua.h; then
-        AC_MSG_RESULT($i/lua.h)
-	LUAFLAGS="$ISYSTEM$i"
-	break
-      fi
-    done
-    if test -z "$LUAFLAGS"; then
-      AC_MSG_RESULT(not found)
-      LUABIN="" # clear the bin
-    fi
+  if test -z "$LUAV5"; then
+    AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
+    LUABIN=""
+  elif test -z "$LUAV51"; then
+    AC_MSG_RESULT(Lua 5.0.x)
+  else
+    AC_MSG_RESULT(Lua 5.1 or later)
   fi
 fi
 
-# look for the library files & set LUALINK accordingly
-# will clear LUABIN if not present
-lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+if test "$LUABIN"; then
+  AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
+  # using Lua to check Lua
+  # lua 5.0 & 5.1 have different fn names
+  if test -z "$LUAV51"; then
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  else
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  fi
 
-if test -n "$LUALIB"; then
-  AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
-else
-  AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  if test -z "$LUADYNAMICLOADLIB"; then
+    AC_MSG_RESULT(no)
+  else
+    AC_MSG_RESULT(yes)
+  fi
+
+  # look for the header files & set LUAFLAGS accordingly
+  # will clear LUABIN if not present
+  if test -n "$LUAINCLUDE"; then
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+  else
+    LUA_OK="1"
+    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    # if we didn't get it, going to have to look elsewhere (the hard way)
+    if test -z "$LUA_OK"; then
+      AC_MSG_CHECKING(for lua.h in other locations)
+      # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+      # The ordering of the include directories to search should match
+      # the ordering of libraries to search in the library test below.
+      inc=/usr/include
+      dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      for i in $dirs; do
+        #echo "$i"
+        if test -r $i/lua.h; then
+          AC_MSG_RESULT($i/lua.h)
+          LUAFLAGS="$ISYSTEM$i"
+          break
+        fi
+      done
+      if test -z "$LUAFLAGS"; then
+        AC_MSG_RESULT(not found)
+        LUABIN="" # clear the bin
+      fi
+    fi
+  fi
+
+  # look for the library files & set LUALINK accordingly
+  # will clear LUABIN if not present
+  lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+
+  if test -n "$LUALIB"; then
+    AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
+  else
+    AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  fi
+
+  # adding lualib for lua 5.0
+  if test -z "$LUAV51"; then # extra for lua 5.0
+    LUALINK="$LUALINK -llualib"
+  fi
+
+  LIBS=$lua_save_LIBS	# restore LIBS
 fi
-
-# adding lualib for lua 5.0
-if test -z "$LUAV51"; then # extra for lua 5.0
-  LUALINK="$LUALINK -llualib"
-fi
-
-LIBS=$lua_save_LIBS	# restore LIBS
 
 fi # if not disabled
 
