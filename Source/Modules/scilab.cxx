@@ -20,12 +20,13 @@ static const char *usage = (char *) " \
 Scilab options (available with -scilab)\n \
      -builder                        - Generate a Scilab builder script\n \
      -buildercflags <cflags>         - Add <cflags> to the builder compiler flags\n \
+     -builderflagscript <file>       - Set the Scilab script <file> to use by builder to configure the build flags\n \
      -builderldflags <ldflags>       - Add <ldflags> to the builder linker flags\n \
      -buildersources <files>         - Add the (comma separated) files <files> to the builder sources\n \
-     -builderflagscript <file>       - Set the Scilab script <file> to use by builder to configure the build flags\n \
-     -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0: off, 2: most verbose)\n \
+     -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0: off, 2: high)\n \
+     -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n \
      -nobuilder                      - Do not generate the Scilab builder script (default)\n \
-     -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n\n";
+\n";
 
 
 class SCILAB:public Language {

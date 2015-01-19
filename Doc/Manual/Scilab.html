@@ -266,7 +266,7 @@ The following table lists the Scilab specific command line options in addition t
 
 <tr>
 <td><tt>-builderverbositylevel &lt;level&gt;</tt></td>
-<td>Set the build verbosity level to &lt;level&gt; (default 0)</td>
+<td>Set the build verbosity level to &lt;level&gt; (default 0: off, 2: high)</td>
 </tr>
 
 <tr>
@@ -1856,9 +1856,9 @@ In this mode, the following SWIG options may be used to setup the build:
 </p>
 
 <ul>
-<li><tt><b>buildersources</b></tt>: to add sources to the build (several files must be separated by a comma)</li>
-<li><tt><b>buildercflags</b></tt>: to add flags to the builder compiler flags, for example to set library dependencies include paths</li>
-<li><tt><b>builderldflags</b></tt>: to add flags to the linker flags, for example to set library dependency names and paths</li>
+<li><tt><b>-buildersources</b></tt>: to add sources to the build (several files must be separated by a comma)</li>
+<li><tt><b>-buildercflags</b></tt>: to add flags to the builder compiler flags, for example to set library dependencies include paths</li>
+<li><tt><b>-builderldflags</b></tt>: to add flags to the linker flags, for example to set library dependency names and paths</li>
 </ul>
 
 <p>
