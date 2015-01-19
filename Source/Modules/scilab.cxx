@@ -1014,7 +1014,7 @@ public:
     Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
     Printf(gatewayHeaderV6, "extern \"C\"\n");
     Printf(gatewayHeaderV6, "#endif\n");
-    Printf(gatewayHeaderV6, "int %s(wchar_t* _pwstFuncName) {\n", gatewayLibraryName);
+    Printf(gatewayHeaderV6, "int %s(wchar_t *pwstFuncName) {\n", gatewayLibraryName);
     Printf(gatewayHeaderV6, "\n");
   }
 
@@ -1031,7 +1031,7 @@ public:
       Printf(gatewayHeaderV5, ",\n");
     Printf(gatewayHeaderV5, " {(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}", wrapperFunctionName, scilabFunctionName);
 
-    Printf(gatewayHeaderV6, "if (wcscmp(_pwstFuncName, L\"%s\") == 0) { addCFunction((wchar_t *)L\"%s\", &%s, (wchar_t *)MODULE_NAME); }\n", scilabFunctionName, scilabFunctionName, wrapperFunctionName);
+    Printf(gatewayHeaderV6, "if (wcscmp(pwstFuncName, L\"%s\") == 0) { addCFunction((wchar_t *)L\"%s\", &%s, (wchar_t *)MODULE_NAME); }\n", scilabFunctionName, scilabFunctionName, wrapperFunctionName);
   }
 
   /* -----------------------------------------------------------------------
@@ -1049,9 +1049,9 @@ public:
     Printf(gatewayHeaderV5, "  Rhs = Max(0, Rhs);\n");
     Printf(gatewayHeaderV5, "  if (*(Tab[Fin-1].f) != NULL) {\n");
     Printf(gatewayHeaderV5, "    if(pvApiCtx == NULL) {\n");
-    Printf(gatewayHeaderV5, "      pvApiCtx = (StrCtx*)MALLOC(sizeof(StrCtx));\n");
+    Printf(gatewayHeaderV5, "      pvApiCtx = (StrCtx *)MALLOC(sizeof(StrCtx));\n");
     Printf(gatewayHeaderV5, "    }\n");
-    Printf(gatewayHeaderV5, "    pvApiCtx->pstName = (char*)Tab[Fin-1].name;\n");
+    Printf(gatewayHeaderV5, "    pvApiCtx->pstName = (char *)Tab[Fin-1].name;\n");
     Printf(gatewayHeaderV5, "    (*(Tab[Fin-1].f))(Tab[Fin-1].name,(GatefuncH)Tab[Fin-1].F);\n");
     Printf(gatewayHeaderV5, "  }\n");
     Printf(gatewayHeaderV5, "  return 0;\n");
