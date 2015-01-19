@@ -11,7 +11,7 @@ end
 a = new_Bar();
 
 Bar_x_set(a, 100);
-printf("a.x = %d (Sould be 100)\n", Bar_x_get(a));
+printf("a.x = %d (Should be 100)\n", Bar_x_get(a));
 
 delete_Bar(a);
 
