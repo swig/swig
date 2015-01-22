@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.5 (in progress)
 ===========================
 
+2015-01-22: wsfulton
+            [Octave] Merge patch #297 for SF bug #1277 - Octave shared_ptr support
+
 2015-01-15: wsfulton
             [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
 
