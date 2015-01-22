@@ -578,26 +578,40 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     swig_member_const_iterator swig_members_begin() { return members.begin(); }
     swig_member_const_iterator swig_members_end() { return members.end(); }
 
-    void *cast(swig_type_info *type, int *_own, int flags) {
+    int cast(void **vptr, swig_type_info *type, int *_own, int flags) {
+      int res = SWIG_ERROR;
       if (_own)
 	*_own = own;
       if (flags &SWIG_POINTER_DISOWN)
 	own = 0;
-      if (!type && types.size())
-	return types[0].second.ptr;
+      if (!type && types.size()) {
+	if(vptr)
+          *vptr = types[0].second.ptr;
+        return SWIG_OK;
+      }
       for (unsigned int j = 0; j < types.size(); ++j)
-	if (type == types[j].first)
-	  return types[j].second.ptr;
+	if (type == types[j].first) {
+	  if(vptr)
+            *vptr = types[j].second.ptr;
+          return SWIG_OK;
+        }
       for (unsigned int j = 0; j < types.size(); ++j) {
 	swig_cast_info *tc = SWIG_TypeCheck(types[j].first->name, type);
 	if (!tc)
 	  continue;
-	int newmemory = 0;
-	void *vptr = SWIG_TypeCast(tc, types[j].second.ptr, &newmemory);
-	assert(!newmemory);	// newmemory handling not yet implemented
-	return vptr;
+        if(vptr) {
+	  int newmemory = 0;
+	  *vptr = SWIG_TypeCast(tc, types[j].second.ptr, &newmemory);
+	    if (newmemory == SWIG_CAST_NEW_MEMORY) {
+              assert(_own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+              if (_own)
+                *_own = *_own | SWIG_CAST_NEW_MEMORY;
+            }
+        }
+        res = SWIG_OK;
+        break;
       }
-      return 0;
+      return res;
     }
 
     bool is_owned() const {
@@ -1327,12 +1341,7 @@ SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_t
     return SWIG_ERROR;
   octave_swig_ref *osr = static_cast < octave_swig_ref *>(ov.internal_rep());
   octave_swig_type *ost = osr->get_ptr();
-  void *vptr = ost->cast(type, own, flags);
-  if (!vptr)
-    return SWIG_ERROR;
-  if (ptr)
-    *ptr = vptr;
-  return SWIG_OK;
+  return ost->cast(ptr, type, own, flags);
 }
 
 SWIGRUNTIME octave_value SWIG_Octave_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
