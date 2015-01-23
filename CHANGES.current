@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.5 (in progress)
 ===========================
 
+2015-01-23: olly
+	    [PHP] When wrapping a returned resource as an object, check if all
+	    cases wrap it in the same class, and if so eliminate the pointless
+	    switch statement wrapper we previously generated.
+
 2015-01-22: wsfulton
             [Octave] Merge patch #297 for SF bug #1277 - Octave shared_ptr support
 

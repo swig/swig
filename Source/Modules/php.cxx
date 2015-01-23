@@ -1731,7 +1731,8 @@ public:
 	  }
 	} else {
 	  Printf(output, "\t\tif (!is_resource($r)) return $r;\n");
-	  Printf(output, "\t\tswitch (get_resource_type($r)) {\n");
+	  String *wrapobj = NULL;
+	  String *common = NULL;
 	  Iterator i = First(ret_types);
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
@@ -1751,22 +1752,43 @@ public:
 		continue;
 	      }
 	    }
-	    Printf(output, "\t\t");
-	    if (i.item) {
-	      Printf(output, "case '%s': ", mangled);
-	    } else {
-	      Printf(output, "default: ");
-	    }
 	    const char *classname = GetChar(class_node, "sym:name");
 	    if (!classname)
 	      classname = GetChar(class_node, "name");
+	    String * action = NewStringEmpty();
 	    if (classname)
-	      Printf(output, "return new %s%s($r);\n", prefix, classname);
+	      Printf(action, "return new %s%s($r);\n", prefix, classname);
             else
-	      Printf(output, "return $r;\n");
+	      Printf(action, "return $r;\n");
+	    if (!wrapobj) {
+		wrapobj = NewString("\t\tswitch (get_resource_type($r)) {\n");
+		common = action;
+	    } else {
+		if (common && Cmp(common, action) != 0) {
+		    Delete(common);
+		    common = NULL;
+		}
+	    }
+	    Printf(wrapobj, "\t\t");
+	    if (i.item) {
+	      Printf(wrapobj, "case '%s': ", mangled);
+	    } else {
+	      Printf(wrapobj, "default: ");
+	    }
+	    Printv(wrapobj, action, NIL);
+	    if (action != common) Delete(action);
 	    Delete(mangled);
 	  }
-	  Printf(output, "\t\t}\n");
+	  Printf(wrapobj, "\t\t}\n");
+	  if (common) {
+	      // All cases have the same action, so eliminate the switch
+	      // wrapper.
+	      Printf(output, "\t\t%s", common);
+	      Delete(common);
+	  } else {
+	      Printv(output, wrapobj, NIL);
+	  }
+	  Delete(wrapobj);
 	}
       } else {
 	if (non_void_return) {
