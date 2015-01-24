@@ -86,9 +86,9 @@ SWIG_InitializeModule(void *clientdata) {
       iter=iter->next;
     } while (iter!= module_head);
 
-    /* if the is found in the list, then all is done and we may leave */
+    /* if this module is already in the list, there's nothing more to do. */
     if (found) return;
-    /* otherwise we must add out module into the list */
+    /* otherwise we must add our module into the list */
     swig_module.next = module_head->next;
     module_head->next = &swig_module;
   }
