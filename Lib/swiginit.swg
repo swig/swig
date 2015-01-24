@@ -74,7 +74,6 @@ SWIG_InitializeModule(void *clientdata) {
     /* This is the first module loaded for this interpreter */
     /* so set the swig module into the interpreter */
     SWIG_SetModule(clientdata, &swig_module);
-    module_head = &swig_module;
   } else {
     /* the interpreter has loaded a SWIG module, but has it loaded this one? */
     found=0;
