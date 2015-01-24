@@ -55,7 +55,7 @@ SWIGRUNTIME void
 SWIG_InitializeModule(void *clientdata) {
   size_t i;
   swig_module_info *module_head, *iter;
-  int found, init;
+  int init;
 
   /* check to see if the circular list has been setup, if not, set it up */
   if (swig_module.next==0) {
@@ -76,18 +76,15 @@ SWIG_InitializeModule(void *clientdata) {
     SWIG_SetModule(clientdata, &swig_module);
   } else {
     /* the interpreter has loaded a SWIG module, but has it loaded this one? */
-    found=0;
     iter=module_head;
     do {
       if (iter==&swig_module) {
-        found=1;
-        break;
+        /* Our module is already in the list, so there's nothing more to do. */
+        return;
       }
       iter=iter->next;
     } while (iter!= module_head);
 
-    /* if this module is already in the list, there's nothing more to do. */
-    if (found) return;
     /* otherwise we must add our module into the list */
     swig_module.next = module_head->next;
     module_head->next = &swig_module;
