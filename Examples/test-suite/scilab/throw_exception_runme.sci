@@ -16,7 +16,7 @@ checkException('Foo_test_multi(foo, 1)', 'Exception (int) occured: 37');
 
 checkException('Foo_test_multi(foo, 2)', 'Exception (char const *) occured: Dead');
 
-checkException('Foo_test_cls(foo)', 'Exception (Error) occured.');
+checkException('Foo_test_cls(foo)', 'Exception (CError) occured.');
 
 delete_Foo(foo);
 
