@@ -157,7 +157,7 @@ it may be because the SWIG library is not found. Check the <tt>SWIG_LIB</tt> env
 </p>
 
 <p>
-Note: SWIG for Scilab can work in two modes related to the way the module is build, see the <a href="#Scilab_building_modes">Building modes</a> section for details.
+Note: SWIG for Scilab can work in two modes related to the way the module is built, see the <a href="#Scilab_building_modes">Building modes</a> section for details.
 This example uses the <tt>builder</tt> mode.
 </p>
 
@@ -170,7 +170,7 @@ The <tt>swig</tt> executable has several other command line options you can use.
 <H3><a name="Scilab_running_swig_building_module"></a>37.2.2 Building the module</H3>
 
 <p>
-To be loaded in Scilab, the wrapper has to be build into a dynamic module (or shared library).
+To be loaded in Scilab, the wrapper has to be built into a dynamic module (or shared library).
 </p>
 
 <p>
@@ -183,7 +183,7 @@ $ gcc -shared example_wrap.o -o libexample.so
 </pre></div>
 
 <p>
-Note: we supposed in this example the path to the Scilab include directory is <tt>/usr/local/include/scilab</tt> (which is the case in a Debian environment), this sould be changed for another environment.
+Note: we supposed in this example that the path to the Scilab include directory is <tt>/usr/local/include/scilab</tt> (which is the case in a Debian environment), this should be changed for another environment.
 </p>
 
 <H3><a name="Scilab_running_swig_loading_module"></a>37.2.3 Loading the module</H3>
@@ -206,7 +206,7 @@ Link done.
 </pre></div>
 
 <p>
-Which means that Scilab has sucessfully loaded the shared library. The module functions and other symbols are now available in Scilab.
+which means that Scilab has successfully loaded the shared library. The module functions and other symbols are now available in Scilab.
 </p>
 
 <H3><a name="Scilab_running_swig_using_module"></a>37.2.4 Using the module</H3>
@@ -217,23 +217,29 @@ In Scilab, the function <tt>fact()</tt> is simply called as following:
 
 <div class="targetlang"><pre>
 --&gt; fact(5)
-ans =  120
+ans  =
+
+    120.
 </pre></div>
 
 <p>For the <tt>Foo</tt> global variable, the accessors need to be used:
 
 <div class="targetlang"><pre>
 --&gt; Foo_get
-ans =  3
+ans  =
+
+    3.
 
 --&gt; Foo_set(4);
 
 --&gt; Foo_get
-ans =  4
+ans  =
+
+    4.
 </pre></div>
 
 <p>
-Note: in order to be concise, the remaining Scilab code examples assume the modules have been successfully built and loaded in Scilab.
+Note: for conciseness, we assume in the subsequent Scilab code examples that the modules have been beforehand built and loaded in Scilab.
 </p>
 
 <H3><a name="Scilab_running_swig_options"></a>37.2.5 Scilab command line options</H3>
@@ -336,7 +342,7 @@ creates a built-in function <tt>fact(n)</tt> in Scilab:
 
 <div class="targetlang"><pre>
 --&gt; fact(4)
-ans =
+ans  =
 
     24.
 </pre></div>
@@ -455,10 +461,14 @@ These functions are used as following:
 --&gt; Foo_set(4);
 
 --&gt; c
-c =  3
+c =
+
+    3.
 
 --&gt; Foo_get()
-ans =  4
+ans  =
+
+    4.
 </pre></div>
 
 <p>
@@ -492,17 +502,15 @@ It works the same:</p>
 
 --&gt; initArrays();
 --&gt; x_get()
- ans =
+ ans  =
 
-  1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
+    1.    1.    1.    1.    1.    1.    1.    1.    1.    1.
 
 --&gt; y_set([0:6] / 10);
 --&gt; y_get()
+ ans  =
 
---&gt;
- ans =
-
-  0.    0.1    0.2    0.3    0.4    0.5    0.6
+    0.    0.1    0.2    0.3    0.4    0.5    0.6
 </pre></div>
 
 
@@ -531,32 +539,47 @@ the following getter functions are generated:
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
 --&gt; ICONST_get();
- ans =
-      42
+ ans  =
+
+    42.
+
 --&gt; FCONST_get();
- ans =
-      2.1828
+ ans  =
+
+    2.1828
+
 --&gt; CCONST_get();
- ans =
-      x
+ ans  =
+
+    x
+
 --&gt; CCONST2_get();
- ans =
+ ans  =
 
 --&gt; SCONST_get();
- ans =
-      Hello World
+ ans  =
+
+    Hello World
+
 --&gt; SCONST2_get();
- ans =
-      "Hello World"
+ ans  =
+
+    "Hello World"
+
 --&gt; EXPR_get();
- ans =
-      48.5484
+ ans  =
+
+    48.5484
+
 --&gt; iconst_get();
- ans =
-       37
+ ans  =
+
+    37.
+
 --&gt; fconst_get();
- ans =
-       3.14
+ ans  =
+
+    3.14
 </pre></div>
 
 <p>
@@ -590,32 +613,47 @@ are mapped to Scilab variables, with the same name:
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
 --&gt; ICONST
- ans =
-      42
+ ans  =
+
+    42
+
 --&gt; FCONST
- ans =
-      2.1828
+ ans  =
+
+    2.1828
+
 --&gt; CCONST
- ans =
-      x
+ ans  =
+
+    x
+
 --&gt; CCONST2
- ans =
+ ans  =
 
 --&gt; SCONST
- ans =
-      Hello World
+ ans  =
+
+    Hello World
+
 --&gt; SCONST2
- ans =
-      "Hello World"
+ ans  =
+
+    "Hello World"
+
 --&gt; EXPR
- ans =
-      48.5484
+ ans  =
+
+    48.5484
+
 --&gt; iconst
- ans =
-      37
+ ans  =
+
+    37
+
 --&gt; fconst
- ans =
-      3.14
+ ans  =
+
+    3.14
 </pre></div>
 
 <H4><a name="Scilab_wrapping_enums"></a>Enumerations</H4>
@@ -638,13 +676,18 @@ a getter function will be generated for each value of the enumeration:
 --&gt; exec loader.sce;
 --&gt; RED_get()
  ans  =
-       0.
+
+    0.
+
 --&gt; BLUE_get()
  ans  =
-       1.
+
+    1.
+
 --&gt; GREEN_get()
  ans  =
-       2.
+
+    2.
 </pre></div>
 
 <p>
@@ -661,13 +704,19 @@ typedef enum { RED, BLUE, GREEN } color;
 --&gt; exec loader.sce;
 --&gt; RED
  ans  =
-       0.
+
+    0.
+
 --&gt; BLUE
  ans  =
-       1.
+
+    1.
+
 --&gt; GREEN
  ans  =
-       2.
+
+    2.
+
 </pre></div>
 </p>
 
@@ -753,7 +802,7 @@ But it is possible to have a null pointer by using the previous functions <tt>SW
 --&gt; SWIG_this(p) == 0
  ans  =
 
-  T
+    T
 </pre></div>
 
 
@@ -803,7 +852,7 @@ Usage example:
 --&gt; Foo_x_get(f)
 ans  =
 
-  100.
+    100.
 
 --&gt; Foo_arr_set(f, [0:3]);
 --&gt; Foo_arr_get(f)
@@ -847,7 +896,7 @@ typedef struct {
 --&gt; Bar_x_get(b2);
 ans  =
 
-  20.
+    20.
 </pre></div>
 </p>
 
@@ -894,7 +943,8 @@ can be used in Scilab like this:
 --&gt; p2 = Point_new(1, 2);
 --&gt; p1.distance(p2)
 ans  =
-     3.6056
+
+    3.6056
 
 --&gt; delete_Point(p1);
 --&gt; delete_Point(p2);
@@ -964,12 +1014,12 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
     2.
 
 --&gt; Circle_get_perimeter(c)
- ans =
+ ans  =
 
     18.84
 
 --&gt; Shape_get_perimeter(c)
- ans =
+ ans  =
 
     18.84
 </pre></div>
@@ -1070,17 +1120,17 @@ Then in Scilab:
 --&gt;IntTriplet_first_get(t)
  ans  =
 
-  3.
+    3.
 
 --&gt;IntTriplet_second_get(t)
  ans  =
 
-  4.
+    4.
 
 --&gt;IntTriplet_third_get(t)
  ans  =
 
-  1.
+    1.
 
 --&gt;delete_IntTriplet(t);
 </pre>
@@ -1260,7 +1310,7 @@ It can be used with the <tt>lasterror()</tt> function as following:
 --&gt;lasterror()
  ans  =
 
-SWIG/Scilab: Exception (char const *) occured: Bye world !
+    SWIG/Scilab: Exception (char const *) occured: Bye world !
 </pre></div>
 </p>
 
@@ -1344,7 +1394,7 @@ The following table provides the equivalent Scilab type for C/C++ primitive type
 <p>
 Notes:
 <ul>
-<li>In Scilab the <tt>double</tt> type is used far more than any integer type.
+<li>In Scilab the <tt>double</tt> type is far more used than any integer type.
 This is why integer values (<tt>int32</tt>, <tt>uint32</tt>, ...) are automatically converted to Scilab <tt>double</tt> values when marshalled from C into Scilab.
 Additionally on input to a C function, Scilab <tt>double</tt> values are converted into the related integer type.
 </li>
@@ -1773,12 +1823,12 @@ std::set&lt;PersonPtr&gt; findPersonsByAge(std::set&lt;PersonPtr&gt; persons, in
 --&gt; Person_name_get(l(1))
 ans  =
 
- Susan
+    Susan
 
 --&gt; Person_name_get(l(2))
  ans  =
 
- Joe
+    Joe
 
 --&gt; delete_PersonPtrSet(p);
 </pre></div>
