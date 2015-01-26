@@ -291,8 +291,8 @@ The following table lists the Scilab specific command line options in addition t
 These options can be displayed with:
 </p>
 
-<div class="code"><pre>
-swig -scilab -help
+<div class="shell"><pre>
+$ swig -scilab -help
 </pre></div>
 
 
@@ -388,12 +388,12 @@ In Scilab, parameters are passed by value. The output (and inout) parameters are
 </p>
 
 <div class="targetlang"><pre>
---&gt;sub(5, 3)
+--&gt; sub(5, 3)
  ans  =
 
     2.
 
---&gt;inc(4, 3)
+--&gt; inc(4, 3)
  ans  =
 
     7.
@@ -432,7 +432,7 @@ int divide(int n, int d, int q*, int *r) {
 
 <p>
 <div class="targetlang"><pre>
---&gt;[ret, q, r] = divide(20, 6)
+--&gt; [ret, q, r] = divide(20, 6)
  r  =
 
     2.
@@ -1115,24 +1115,24 @@ Then in Scilab:
 
 <div class="targetlang">
 <pre>
---&gt;t = new_IntTriplet(3, 4, 1);
+--&gt; t = new_IntTriplet(3, 4, 1);
 
---&gt;IntTriplet_first_get(t)
+--&gt; IntTriplet_first_get(t)
  ans  =
 
     3.
 
---&gt;IntTriplet_second_get(t)
+--&gt; IntTriplet_second_get(t)
  ans  =
 
     4.
 
---&gt;IntTriplet_third_get(t)
+--&gt; IntTriplet_third_get(t)
  ans  =
 
     1.
 
---&gt;delete_IntTriplet(t);
+--&gt; delete_IntTriplet(t);
 </pre>
 </div>
 
@@ -1180,11 +1180,11 @@ private:
 
 <p>
 <div class="targetlang"><pre>
---&gt;c1 = new_Complex(3, 7);
+--&gt; c1 = new_Complex(3, 7);
 
---&gt;c2 = Complex_plus(c, new_Complex(1,1));
+--&gt; c2 = Complex_plus(c, new_Complex(1,1));
 
---&gt;Complex_toDouble(c2)
+--&gt; Complex_toDouble(c2)
  ans  =
 
     4.
@@ -1231,14 +1231,14 @@ In Scilab, there is no need to the specify the <tt>Foo</tt> namespace:
 
 <div class="targetlang">
 <pre>
---&gt;fact(3)
+--&gt; fact(3)
  ans  =
 
    6.
 
---&gt;v = new_Vector();
---&gt;Vector_x_set(v, 3.4);
---&gt;Vector_y_get(v)
+--&gt; v = new_Vector();
+--&gt; Vector_x_set(v, 3.4);
+--&gt; Vector_y_get(v)
  ans  =
 
    0.
@@ -1302,12 +1302,12 @@ It can be used with the <tt>lasterror()</tt> function as following:
 
 <p>
 <div class="targetlang"><pre>
---&gt;execstr('throw_exception()', 'errcatch');
+--&gt; execstr('throw_exception()', 'errcatch');
  ans  =
 
     999.
 
---&gt;lasterror()
+--&gt; lasterror()
  ans  =
 
     SWIG/Scilab: Exception (char const *) occured: Bye world !
@@ -1338,7 +1338,7 @@ void throw_stl_invalid_arg(int i) throw(std::invalid_argument) {
 
 <p>
 <div class="targetlang"><pre>
---&gt;throw_int();
+--&gt; throw_int();
             !--error 999
 SWIG/Scilab: Exception (int) occured: 12
 
@@ -1462,7 +1462,7 @@ void printArray(int values[], int len) {
 --&gt; printArray([0 1 2 3], 4)
 [ 0  1  2  3 ]
 
--->printArray([0.2; -1.8; 2; 3.7], 4)
+--&gt; printArray([0.2; -1.8; 2; 3.7], 4)
 [ 0  -1  2  3 ]
 
 --&gt; printArray([0 1; 2 3], 4)
