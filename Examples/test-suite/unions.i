@@ -33,8 +33,6 @@ typedef union {
 
 /* This union checks the parser and will be used in a runtime test */
 
-#if not defined(SWIGSCILAB)
-
 %inline %{
 
 typedef struct {
@@ -44,23 +42,12 @@ typedef struct {
     SmallStruct small;
   } uni;
   int           number;
-} EmbeddedUnionTest;
-
-%}
-
+}
+#if !defined(SWIGSCILAB)
+EmbeddedUnionTest;
 #else
-
-%inline %{
-
-typedef struct {
-  union
-  {
-    BigStruct   big;
-    SmallStruct small;
-  } uni;
-  int           number;
-} EmbedUnionTst;
+EmbedUnionTst;
+#endif
 
 %}
 
-#endif

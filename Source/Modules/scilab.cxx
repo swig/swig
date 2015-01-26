@@ -195,6 +195,9 @@ public:
     /* Output module initialization code */
     Swig_banner(beginSection);
 
+    Printf(runtimeSection, "\n#define SWIGSCILAB\n");
+    Printf(runtimeSection, "\n");
+
     // Gateway header source merged with wrapper source in nobuilder mode
     if (!generateBuilder)
       startGatewayHeader(gatewayLibraryName);
