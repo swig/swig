@@ -999,13 +999,6 @@ public:
   void startGatewayHeader(String *gatewayLibraryName) {
     gatewayHeader = NewString("");
     Printf(gatewayHeader, "\n");
-    Printf(gatewayHeader, "#ifdef __cplusplus\n");
-    Printf(gatewayHeader, "extern \"C\" {\n");
-    Printf(gatewayHeader, "static int direct_gateway(char *fname, void F(void)) { F();\n");
-    Printf(gatewayHeader, "return 0; };\n");
-    Printf(gatewayHeader, "};\n");
-    Printf(gatewayHeader, "#endif\n");
-    Printf(gatewayHeader, "\n");
 
     gatewayHeaderV6 = NewString("");
     Printf(gatewayHeaderV6, "#include \"c_gateway_prototype.h\"\n");
