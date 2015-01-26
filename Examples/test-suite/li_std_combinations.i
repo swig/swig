@@ -11,7 +11,7 @@
 %template(VectorPairIntString) std::vector< std::pair<int, std::string> >;
 %template(VectorVectorString) std::vector< std::vector<std::string> >;
 
-#if not defined(SWIGSCILAB)
+#if !defined(SWIGSCILAB)
 %template(PairIntVectorString) std::pair< int, std::vector<std::string> >;
 %template(PairIntPairIntString) std::pair< int, std::pair<int, std::string> >;
 #else

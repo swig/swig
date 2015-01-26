@@ -344,7 +344,7 @@ template <class T1, class T2> struct Base {
 };
 %}
 
-#if not defined(SWIGSCILAB)
+#if !defined(SWIGSCILAB)
 %template(BaseIntDouble) Base<int, double>;
 #else
 %template(BaseIDbl) Base<int, double>;

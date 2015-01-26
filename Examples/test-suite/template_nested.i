@@ -115,7 +115,7 @@ namespace ns {
 }
 %}
 
-#if not defined(SWIGSCILAB)
+#if !defined(SWIGSCILAB)
 %extend ns::OuterClass {
   %template(T_OuterClassInner2Double) Inner2<double>;
 }

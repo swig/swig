@@ -32,7 +32,7 @@ struct OuterStructNamed {
 %}
 
 
-#if not defined(SWIGSCILAB)
+#if !defined(SWIGSCILAB)
 
 %inline %{
 
