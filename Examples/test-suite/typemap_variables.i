@@ -16,7 +16,7 @@
 // For Javascript V8 we can not use '0' for out typemaps
 #if defined(SWIG_JAVASCRIPT_V8)
 %header %{
-#define OUT_NULL_VALUE v8::Null()
+#define OUT_NULL_VALUE SWIGV8_NULL()
 %}
 #else
 %header %{

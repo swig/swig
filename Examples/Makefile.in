@@ -130,6 +130,7 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
+	rm -f d/example.mk
 	rm -f xml/Makefile
 
 ##################################################################
@@ -595,7 +596,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(JAVACFLAGS) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example
@@ -632,9 +633,6 @@ java_clean:
 ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
-JSSO =@JSSO@
-JSLDSHARED = @JSLDSHARED@
-JSCXXSHARED = @JSCXXSHARED@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
 
@@ -730,7 +728,7 @@ javascript_clean:
 	rm -rf build
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
+	rm -f *.@OBJEXT@ *@SO@
 	rm -f binding.gyp example-gypcopy.cxx
 	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
@@ -738,10 +736,10 @@ javascript_clean:
 #####                       ANDROID                         ######
 ##################################################################
 
-ANDROID = android
-ANDROID_NDK_BUILD = ndk-build
-ANDROID_ADB = adb
-ANT = ant
+ANDROID = @ANDROID@
+ANDROID_NDK_BUILD = @NDKBUILD@
+ANDROID_ADB = @ADB@
+ANT = @ANT@
 TARGETID = 1
 
 # ----------------------------------------------------------------
@@ -784,7 +782,7 @@ android_version:
 # -----------------------------------------------------------------
 
 android_clean:
-	test -n "$(SRCDIR)" && cd $(SRCDIR) ; ant -q -logfile /dev/null clean
+	test -n "$(SRCDIR)" && cd $(SRCDIR) ; $(ANT) -q -logfile /dev/null clean
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
 	rm -rf obj
@@ -1095,7 +1093,7 @@ ruby_version:
 # -----------------------------------------------------------------
 
 ruby_clean:
-	rm -f *_wrap* *~ .~* myruby@EXEEXT@ *.pm
+	rm -f *_wrap* *~ .~* myruby@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
@@ -1396,6 +1394,7 @@ csharp_run:
 # Version check below also works with MS csc.exe which does not understand --version
 csharp_version:
 	$(CSHARPCOMPILER) --version | head -n 1
+	if test -n "$(CSHARPCILINTERPRETER)" ; then "$(CSHARPCILINTERPRETER)" --version ; fi
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples
@@ -1924,7 +1923,7 @@ d_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 d_run:
-	$(RUNTOOL) $(D_RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

@@ -44,14 +44,14 @@ if BarInt_sbar(b=2) != 3:
 if templatedfunction(b=2) != 3:
   raise RuntimeError
 
-if foo(a=1,b=2) != 3:
+if foo_fn(a=1,b=2) != 3:
   raise RuntimeError
 
-if foo(b=2) != 3:
+if foo_fn(b=2) != 3:
   raise RuntimeError
 
 
-#Funtions with keywords
+#Functions with keywords
 
 if foo_kw(_from=2) != 4:
   raise RuntimeError
@@ -65,3 +65,17 @@ if foo_mm(min=2) != 4:
 if foo_mm(max=3) != 4:
   raise RuntimeError
   
+#Default args with references
+
+if rfoo(n=123) != 120:
+  raise RuntimeError
+
+if rfoo(x=10) != -10:
+  raise RuntimeError
+
+if rfoo(n=11, x=22) != -11:
+  raise RuntimeError
+
+if rfoo(x=11, n=22) != 11:
+  raise RuntimeError
+

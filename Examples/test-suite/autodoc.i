@@ -133,3 +133,11 @@ typedef int Integer;
 void banana(S *a, const struct tagS *b, int c, Integer d) {}
 %}
 
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+%}
+  

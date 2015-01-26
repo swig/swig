@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.2],[http://www.swig.org])
+AC_INIT([swig],[3.0.5],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -791,7 +791,7 @@ AC_SUBST(PY3INCLUDE)
 AC_SUBST(PY3LIB)
 AC_SUBST(PY3LINK)
 AC_SUBST(PYTHON3DYNAMICLINKING)
-
+AC_CHECK_PROGS(PEP8, pep8)
 
 #----------------------------------------------------------------
 # Look for Perl5
@@ -821,7 +821,7 @@ fi
 # perl -MExtUtils::Embed -e ccopts
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
-	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
+	PERL5DIR=`($PERL -MConfig -le 'print $Config{archlibexp}') 2>/dev/null`
 	if test -n "$PERL5DIR" ; then
 		dirs="$PERL5DIR $PERL5DIR/CORE"
 		PERL5EXT=none
@@ -939,25 +939,43 @@ fi
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for Octave preprocessor flags])
    OCTAVE_CPPFLAGS=
-   for n in CPPFLAGS INCFLAGS; do
-     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`unset CPPFLAGS; ${mkoctfile} -p $n`
+   for var in CPPFLAGS INCFLAGS ALL_CXXFLAGS; do
+      for flag in `env - ${mkoctfile} -p ${var}`; do
+         case ${flag} in
+            -D*|-I*) OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} ${flag}";;
+            *) ;;
+         esac
+      done
    done
    AC_MSG_RESULT([$OCTAVE_CPPFLAGS])
    AC_MSG_CHECKING([for Octave compiler flags])
    OCTAVE_CXXFLAGS=
-   for n in ALL_CXXFLAGS; do
-     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`unset CXXFLAGS; ${mkoctfile} -p $n`
+   for var in ALL_CXXFLAGS; do
+      for flag in `env - ${mkoctfile} -p ${var}`; do
+         case ${flag} in
+            -g*|-W*) OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} ${flag}";;
+            *) ;;
+         esac
+      done
    done
+   save_CXXFLAGS="${CXXFLAGS}"
+   CXXFLAGS="-Werror -O0"
+   AC_COMPILE_IFELSE([
+      AC_LANG_PROGRAM([AC_INCLUDES_DEFAULT],[])
+   ],[
+      OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"
+   ])
+   CXXFLAGS="${save_CXXFLAGS}"
    AC_MSG_RESULT([$OCTAVE_CXXFLAGS])
    AC_MSG_CHECKING([for Octave linker flags])
    OCTAVE_LDFLAGS=
-   for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p $n`
+   for var in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`env - ${mkoctfile} -p ${var}`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
    for octave_opt in --silent --norc --no-history --no-window-system; do
       AC_MSG_CHECKING([if Octave option '${octave_opt}' is supported])
-      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1{/unrecognized/p}'`
+      octave_out=`${OCTAVE} ${octave_opt} /dev/null 2>&1 | sed -n '1p' | sed -n '/unrecognized/p'`
       AS_IF([test "x${octave_out}" = x],[
          AC_MSG_RESULT([yes])
          OCTAVE="${OCTAVE} ${octave_opt}"
@@ -1192,27 +1210,14 @@ else
   #----------------------------------------------------------------
 
   case $host in
-  *-*-cygwin* | *-*-mingw*)
-    JSLIBRARYPREFIX=""
-    ;;
-  *)
-    JSLIBRARYPREFIX="lib"
-    ;;
-  esac
-
-  case $host in
   *-*-darwin*)
     JSSO=".dylib"
-    JSLDSHARED='$(CC) -dynamiclib'
-    JSCXXSHARED='$(CXX) -dynamiclib'
     # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
     JSINTERPRETERCXX='c++'
     JSINTERPRETERLINKFLAGS='-g -Wl,-search_paths_first -Wl,-headerpad_max_install_names'
     ;;
   *)
     JSSO=$SO
-    JSLDSHARED='$(LDSHARED)'
-    JSCXXSHARED='$(CXXSHARED)'
     JSINTERPRETERCXX='$(CXX)'
     JSINTERPRETERLINKFLAGS='-ldl'
     ;;
@@ -1273,39 +1278,21 @@ else
 
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jsclib =path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
-  AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
 
-  # look for the library when not provided
-  if test -z "$JSCORELIB"; then
-    case $host in
-    *-*-linux*)
-      if test -n "$PKGCONFIG"; then
-        dirs="/usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-        for i in $dirs ; do
-          if test -r $i/libjavascriptcoregtk-1.0.so; then
-            AC_MSG_RESULT($i)
-            JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
-            JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
-            break
-          fi
-        done
-      fi
-
-      if test -z "$JSCORELIB"; then
-        AC_MSG_RESULT(not found)
-        JSCENABLED=
-      else
-        JSCOREDYNAMICLINKING="$JSCORELIB"
-        JSCENABLED=1
-      fi
-      ;;
-    *-*-darwin*)
-      JSCOREDYNAMICLINKING="-framework JavaScriptCore"
+  if test -z "$JSCORELIB" -a -n "$PKGCONFIG"; then
+    AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
+    if pkg-config javascriptcoregtk-1.0; then
+      JSCORELIB=`$PKGCONFIG --libs javascriptcoregtk-1.0`
+      JSCOREVERSION=`$PKGCONFIG --modversion javascriptcoregtk-1.0`
+    fi
+    if test -z "$JSCORELIB"; then
+      AC_MSG_RESULT(not found)
+      JSCENABLED=
+    else
+      AC_MSG_RESULT([$JSCORELIB])
+      JSCOREDYNAMICLINKING="$JSCORELIB"
       JSCENABLED=1
-      ;;
-    *)
-      ;;
-    esac
+    fi
   fi
 
   #----------------------------------------------------------------
@@ -1314,7 +1301,7 @@ else
 
   # check for include files
   AC_MSG_CHECKING(for V8 Javascript v8.h)
-  AC_ARG_WITH(jsv8inc, [  --with-v8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
+  AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path    Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"])
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
@@ -1347,11 +1334,11 @@ else
 
   # check for V8 library
   AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-v8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
+  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path      Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
   v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
   for d in $v8libdirs ; do
-    if test -r $d/libv8.so; then
+    if test -r $d/libv8$JSSO; then
       JSV8LIBDIR=$d
       JSV8LIB="-L$d -lv8"
       break
@@ -1370,7 +1357,7 @@ else
   # linking options
   case $host in
   *-*-darwin*)
-    JSV8DYNAMICLINKING="" # TODO: add osx configuration
+    JSV8DYNAMICLINKING="$JSV8LIB"
     ;;
   *-*-linux*)
     JSV8DYNAMICLINKING="$JSV8LIB"
@@ -1381,11 +1368,6 @@ else
   esac
 
 fi
-
-AC_SUBST(JSLIBRARYPREFIX)
-AC_SUBST(JSSO)
-AC_SUBST(JSLDSHARED)
-AC_SUBST(JSCXXSHARED)
 
 AC_SUBST(JSINTERPRETERCXX)
 AC_SUBST(JSINTERPRETERLINKFLAGS)
@@ -1593,6 +1575,7 @@ AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
 AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=yes])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
+RUBYSO=$SO
 if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Ruby])
 RUBY=
@@ -1611,7 +1594,7 @@ if test -n "$RUBY"; then
         # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
-		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+		RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
         else
                 RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
         fi
@@ -1636,13 +1619,13 @@ if test -n "$RUBY"; then
 		# Find library and path for linking.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
-		rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
-		rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
+		rb_libdir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]') 2>/dev/null`
+		rb_bindir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]') 2>/dev/null`
 		dirs="$dirs $rb_libdir $rb_bindir"
 
-        rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
-            c = Config::CONFIG
+            c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
                 if c[["LIBRUBY"]] == c[["LIBRUBY_A"]]
                     link = c[["LIBRUBYARG_STATIC"]]
@@ -1688,11 +1671,11 @@ if test -n "$RUBY"; then
 
 	case $host in
 		*-*-mingw*) ;; # do nothing, the default windows libraries are already included
-		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`";;
+		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBS"]]') 2>/dev/null`";;
 	esac
 
-	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
-	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
+	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
+	RUBYSO=.`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
 fi
@@ -2164,85 +2147,85 @@ fi
 
 # check version: we need Lua 5.x
 if test "$LUABIN"; then
-   AC_MSG_CHECKING(Lua version)
-   # if version 5.x
-   LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
-   # if not version 5.0
-   LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
+  AC_MSG_CHECKING(Lua version)
+  # if version 5.x
+  LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
+  # if not version 5.0
+  LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
 
-   if test -z "$LUAV5"; then
-     AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
-     LUABIN=""
-   elif test -z "$LUAV51"; then
-     AC_MSG_RESULT(Lua 5.0.x)
-   else
-     AC_MSG_RESULT(Lua 5.1 or later)
-   fi
-fi
-
-if test "$LUABIN"; then
-   AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
-   # using Lua to check Lua
-   # lua 5.0 & 5.1 have different fn names
-   if test -z "$LUAV51"; then
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   else
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   fi
-
-   if test -z "$LUADYNAMICLOADLIB"; then
-     AC_MSG_RESULT(no)
-   else
-     AC_MSG_RESULT(yes)
-   fi
-fi
-
-# look for the header files & set LUAFLAGS accordingly
-# will clear LUABIN if not present
-if test -n "$LUAINCLUDE"; then
-  AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
-else
-  LUA_OK="1"
-  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
-  # if we didn't get it, going to have to look elsewhere (the hard way)
-  if test -z "$LUA_OK"; then
-    AC_MSG_CHECKING(for lua.h in other locations)
-    # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
-    # The ordering of the include directories to search should match
-    # the ordering of libraries to search in the library test below.
-    inc=/usr/include
-    dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
-    for i in $dirs; do
-      #echo "$i"
-      if test -r $i/lua.h; then
-        AC_MSG_RESULT($i/lua.h)
-	LUAFLAGS="$ISYSTEM$i"
-	break
-      fi
-    done
-    if test -z "$LUAFLAGS"; then
-      AC_MSG_RESULT(not found)
-      LUABIN="" # clear the bin
-    fi
+  if test -z "$LUAV5"; then
+    AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
+    LUABIN=""
+  elif test -z "$LUAV51"; then
+    AC_MSG_RESULT(Lua 5.0.x)
+  else
+    AC_MSG_RESULT(Lua 5.1 or later)
   fi
 fi
 
-# look for the library files & set LUALINK accordingly
-# will clear LUABIN if not present
-lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+if test "$LUABIN"; then
+  AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
+  # using Lua to check Lua
+  # lua 5.0 & 5.1 have different fn names
+  if test -z "$LUAV51"; then
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  else
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  fi
 
-if test -n "$LUALIB"; then
-  AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
-else
-  AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  if test -z "$LUADYNAMICLOADLIB"; then
+    AC_MSG_RESULT(no)
+  else
+    AC_MSG_RESULT(yes)
+  fi
+
+  # look for the header files & set LUAFLAGS accordingly
+  # will clear LUABIN if not present
+  if test -n "$LUAINCLUDE"; then
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+  else
+    LUA_OK="1"
+    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    # if we didn't get it, going to have to look elsewhere (the hard way)
+    if test -z "$LUA_OK"; then
+      AC_MSG_CHECKING(for lua.h in other locations)
+      # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+      # The ordering of the include directories to search should match
+      # the ordering of libraries to search in the library test below.
+      inc=/usr/include
+      dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      for i in $dirs; do
+        #echo "$i"
+        if test -r $i/lua.h; then
+          AC_MSG_RESULT($i/lua.h)
+          LUAFLAGS="$ISYSTEM$i"
+          break
+        fi
+      done
+      if test -z "$LUAFLAGS"; then
+        AC_MSG_RESULT(not found)
+        LUABIN="" # clear the bin
+      fi
+    fi
+  fi
+
+  # look for the library files & set LUALINK accordingly
+  # will clear LUABIN if not present
+  lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+
+  if test -n "$LUALIB"; then
+    AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
+  else
+    AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  fi
+
+  # adding lualib for lua 5.0
+  if test -z "$LUAV51"; then # extra for lua 5.0
+    LUALINK="$LUALINK -llualib"
+  fi
+
+  LIBS=$lua_save_LIBS	# restore LIBS
 fi
-
-# adding lualib for lua 5.0
-if test -z "$LUAV51"; then # extra for lua 5.0
-  LUALINK="$LUALINK -llualib"
-fi
-
-LIBS=$lua_save_LIBS	# restore LIBS
 
 fi # if not disabled
 
@@ -2381,17 +2364,24 @@ else
       GOVERSIONOPTION=version
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
       go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+      AC_MSG_CHECKING([whether go version is too old])
       case $go_version in
-      go1.0*) GOOPT="-intgosize 32" ;;
-      *) if test "$GOC" = "6c"; then
-           GOOPT="-intgosize 64"
-         else
-           GOOPT="-intgosize 32"
-	 fi
-	 ;;
+      go1.0* | go1 )
+	AC_MSG_RESULT([yes - minimum version is 1.1])
+	GO=
+	GOOPT="-intgosize 32"
+	;;
+      *)
+	AC_MSG_RESULT([no])
+	if test "$GOC" = "6c"; then
+          GOOPT="-intgosize 64"
+        else
+          GOOPT="-intgosize 32"
+	fi
+	;;
       esac
       case $go_version in
-      go1.0* | go1.1*)
+      go1.0* | go1 | go1.1*)
 	GOOPT="$GOOPT -use-shlib"
 	;;
       go1.2*)
@@ -2405,14 +2395,17 @@ else
       GOC=`echo $GO | sed -e 's/g/c/'`
       GOVERSIONOPTION=-V
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
-      go_min_version=7077
-      if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
-        AC_MSG_RESULT([yes - minimum version is $go_min_version])
-        GO=
-      else
-        AC_MSG_RESULT([no])
-      fi
+      AC_MSG_RESULT([yes - minimum version is 1.1])
+      GO=
+      dnl Old code retained for now in case we implement an option for it.
+      dnl go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
+      dnl go_min_version=7077
+      dnl if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
+      dnl   AC_MSG_RESULT([yes - minimum version is $go_min_version])
+      dnl   GO=
+      dnl else
+      dnl   AC_MSG_RESULT([no])
+      dnl fi
       GOOPT="-intgosize 32"
       GO12=false
       GO13=false
@@ -2743,6 +2736,7 @@ AC_CONFIG_FILES([
     Makefile
     swig.spec
     Examples/Makefile
+    Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
     Examples/test-suite/chicken/Makefile

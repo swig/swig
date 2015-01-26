@@ -1,6 +1,8 @@
 /* File : example.i */
 %module swigexample
 
+%feature("autodoc", 1);
+
 /* A few preprocessor macros */
 
 #define    ICONST      42

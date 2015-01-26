@@ -56,7 +56,7 @@ def test(b, f):
     raise RuntimeError
     
   # Test static method
-  b.stat()
+  b.statMethod()
 
   if f.access != CONST_ACCESS:
     raise RuntimeError

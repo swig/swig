@@ -21,7 +21,7 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 
 %init %{
 
-#ifdef __cplusplus
+#if defined(__cplusplus) && ! defined(XSPROTO)
 extern "C"
 #endif
 

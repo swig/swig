@@ -2,22 +2,20 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.2 (4 Jun 2014)
+Version 3.0.5 (in progress)
 ===========================
 
-2014-06-02: v-for-vandal
-            [Lua] Pull request #176:
-            If class has no __eq implemented, then default __eq is generated. 
-            Default __eq compares actual pointers stored inside Lua userdata.
+2015-01-23: olly
+	    [PHP] When wrapping a returned resource as an object, check if all
+	    cases wrap it in the same class, and if so eliminate the pointless
+	    switch statement wrapper we previously generated.
 
-2014-06-02: vkalinin
-            Fix #183 - %extend and unnamed nested structs
+2015-01-22: wsfulton
+            [Octave] Merge patch #297 for SF bug #1277 - Octave shared_ptr support
 
-2014-05-28: kwwette
-            Fix install failure when using an 'out of source' build using the shipped
-            tarball - regression introduced in swig-3.0.1.
+2015-01-15: wsfulton
+            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
 
-2014-05-24: kwwette
-            [Octave] Remove deprecated -global/-noglobal command-line arguments
-
-            *** POTENTIAL INCOMPATIBILITY  ***
+2015-01-15: wsfulton
+            [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
+            in directors

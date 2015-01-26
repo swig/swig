@@ -44,6 +44,9 @@
 %typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE []
        { SWIG_LUA_CONSTTAB_POINTER("$symname",$value, $1_descriptor) }
 
+%typemap(consttab) SWIGTYPE
+       { SWIG_LUA_CONSTTAB_POINTER("$symname",&$value, $&1_descriptor) }
+
 // member function pointers
 %typemap(consttab) SWIGTYPE (CLASS::*)
        { SWIG_LUA_CONSTTAB_BINARY("$symname", sizeof($type),&$value, $1_descriptor) }

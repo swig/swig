@@ -77,6 +77,9 @@ struct Outer {
   struct {
     Integer b;
   };
+#else
+  Integer a;
+  Integer b;
 #endif
 
   union {
@@ -192,6 +195,9 @@ struct Outer {
   public:
     Integer yy;
   };
+#else
+  Integer xx;
+  Integer yy;
 #endif
 
   ///////////////////////////////////////////

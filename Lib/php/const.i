@@ -14,7 +14,7 @@
                    signed char,
                    bool,
                    enum SWIGTYPE
-  "SWIG_LONG_CONSTANT($symname, $value);";
+  "SWIG_LONG_CONSTANT($symname, ($1_type)$value);";
 
 %typemap(consttab) float,
                    double

@@ -1407,24 +1407,11 @@ MODULA3():
       }
     }
 
-    if (Cmp(nodeType(n), "constant") == 0) {
-      // Wrapping a constant hack
-      Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-      // below based on Swig_VargetToFunction()
-      SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("%s = (%s)(%s);", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-    }
-
     Setattr(n, "wrap:name", wname);
 
     // Now write code to make the function call
     if (!native_function_flag) {
       String *actioncode = emit_action(n);
-
-      if (Cmp(nodeType(n), "constant") == 0) {
-        Swig_restore(n);
-      }
 
       /* Return value if necessary  */
       String *tm;
@@ -3619,35 +3606,6 @@ MODULA3():
       substitution_performed = true;
     }
     return substitution_performed;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * makeParameterName()
-   *
-   * Inputs: 
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   * Return:
-   *   arg - a unique parameter name
-   * ----------------------------------------------------------------------------- */
-
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    String *pn = Getattr(p, "name");
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-	count++;
-      plist = nextSibling(plist);
-    }
-    String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",
-						    arg_num) : Copy(Getattr(p,
-									    "name"));
-
-    return arg;
   }
 
   /* -----------------------------------------------------------------------------

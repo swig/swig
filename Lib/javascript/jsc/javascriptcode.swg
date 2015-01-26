@@ -354,7 +354,7 @@ static JSStaticFunction $jsmangledname_functions[] = {
   $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
   $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
   $jsclass_inheritance
-  JSClassRef $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
+  $jsmangledname_classRef = JSClassCreate(&$jsmangledname_objectDefinition);
   SWIGTYPE_$jsmangledtype->clientdata = $jsmangledname_classRef;
 %}
 

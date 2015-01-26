@@ -1184,15 +1184,17 @@ public:
 </div>
 
 <p>
-This produces uncompileable wrapper code because default values in C++ are
+This produces uncompilable wrapper code because default values in C++ are
 evaluated in the same scope as the member function whereas SWIG
 evaluates them in the scope of a wrapper function (meaning that the
 values have to be public). 
 </p>
 
 <p>
-This feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>
-and whenever keyword arguments (kwargs) are specified for either C or C++ code.
+The <tt>compactdefaultargs</tt> feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>.
+Some target languages will also automatically turn on this feature
+if the keyword arguments feature (kwargs) is specified for either C or C++ functions, and the target language supports kwargs,
+the <tt>compactdefaultargs</tt> feature is also automatically turned on.
 Keyword arguments are a language feature of some scripting languages, for example Ruby and Python.
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>
@@ -1203,7 +1205,7 @@ SWIG is unable to support kwargs when wrapping overloaded methods, so the defaul
 <p>
  SWIG wraps class members that are public following the C++
  conventions, i.e., by explicit public declaration or by the use of
- the <tt> using</tt> directive. In general, anything specified in a
+ the <tt>using</tt> directive. In general, anything specified in a
  private or protected section will be ignored, although the internal
  code generator sometimes looks at the contents of the private and
  protected sections so that it can properly generate code for default
@@ -2798,7 +2800,7 @@ public:
 </pre></div>
 
 <p>
-This code adds a<tt> __str__</tt> method to our class for producing a
+This code adds a <tt>__str__</tt> method to our class for producing a
 string representation of the object. In Python, such a method would
 allow us to print the value of an object using the <tt>print</tt>
 command.
@@ -2847,12 +2849,12 @@ struct Derived : Base {
 
 <p>
 The following special variables are expanded if used within a %extend block: 
-$name, $symname, $overname, $decl, $fulldecl, $parentname and $parentsymname.
+$name, $symname, $overname, $decl, $fulldecl, $parentclassname and $parentclasssymname.
 The <a href="Customization.html#Customization_exception_special_variables">Special variables</a> section provides more information each of these special variables.
 </p>
 
 <p>
-The<tt> %extend</tt> directive follows all of the same conventions
+The <tt>%extend</tt> directive follows all of the same conventions
 as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
 section for further details.
 </p>
@@ -3565,7 +3567,7 @@ It is also possible to separate these declarations from the template class.  For
 template&lt;class T&gt; class List {
     ...
     public:
-    List() { };
+    List() { }
     T get(int index);
     ...
 };
@@ -3612,17 +3614,51 @@ and the second will take two integer arguments.
 </p>
 
 <p>
-Needless to say, SWIG's template support provides plenty of
-opportunities to break the universe.  That said, an important final
-point is that <b>SWIG does not perform extensive error checking of
-templates!</b> Specifically, SWIG does not perform type checking nor
-does it check to see if the actual contents of the template
-declaration make any sense.  Since the C++ compiler will hopefully
-check this when it compiles the resulting wrapper file, there is no
-practical reason for SWIG to duplicate this functionality (besides,
-none of the SWIG developers are masochistic enough to want to
-implement this right now).
+Needless to say, SWIG's template support provides plenty of opportunities to
+break the universe.  That said, an important final point is that <b>SWIG does
+not perform extensive error checking of templates!</b>  Specifically, SWIG does
+not perform type checking nor does it check to see if the actual contents of the
+template declaration make any sense.  Since the C++ compiler checks this when it
+compiles the resulting wrapper file, there is no practical reason for SWIG to
+duplicate this functionality.
 </p>
+
+<a name="SWIGPlus_template_nested_class_example"></a>
+<p>
+As SWIG's template support does not perform type checking <tt>%template</tt>
+can be used as early as after a template declaration.  You can, and rarely have
+to, use <tt>%template</tt> before the template parameters have been declared.
+For example:
+</p>
+
+<div class="code">
+<pre>
+template &lt;class T&gt; class OuterTemplateClass {};
+
+// The nested class OuterClass::InnerClass inherits from the template class
+// OuterTemplateClass&lt;OuterClass::InnerStruct&gt; and thus the template needs
+// to be expanded with %template before the OuterClass declaration.
+%template(OuterTemplateClass_OuterClass__InnerStruct)
+    OuterTemplateClass&lt;OuterClass::InnerStruct&gt;
+
+
+// Don't forget to use %feature("flatnested") for OuterClass::InnerStruct and
+// OuterClass::InnerClass if the target language doesn't support nested classes.
+class OuterClass {
+    public:
+        // Forward declarations:
+        struct InnerStruct;
+        class InnerClass;
+};
+
+struct OuterClass::InnerStruct {};
+
+// Expanding the template at this point with %template is too late as the
+// OuterClass::InnerClass declaration is processed inside OuterClass.
+
+class OuterClass::InnerClass : public OuterTemplateClass&lt;InnerStruct&gt; {};
+</pre>
+</div>
 
 <p>
 <b>Compatibility Note</b>:  The first implementation of template support relied heavily on
@@ -4998,6 +5034,12 @@ class Bar {
 </pre>
 </div>
 
+<p>
+If a nested class, within an outer class, has to be used as a template parameter within the outer class, then the template will
+have to be instantiated with <tt>%template</tt> before the beginning of the outer class.
+An example can be found in the
+<a href="#SWIGPlus_template_nested_class_example">Templates</a> section.
+</p>
 
 <p>
 <b>Compatibility Note:</b>

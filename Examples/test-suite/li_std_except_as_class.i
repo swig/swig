@@ -23,3 +23,11 @@ void test_domain_error() throw(std::domain_error)
 %include <std_except.i>
 void test_domain_error() throw(std::domain_error) 
 { throw std::domain_error("std::domain_error"); }
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+%}

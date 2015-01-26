@@ -209,7 +209,7 @@ public:
 	   String *symname = Copy(Getattr(n, "sym:name"));
 	   if (symname && !GetFlag(n, "feature:flatnested")) {
 	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-	       Push(symname, ".");
+	       Push(symname, jnidescriptor ? "$" : ".");
 	       Push(symname, Getattr(outer_class, "sym:name"));
 	     }
 	   }
@@ -838,7 +838,7 @@ public:
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
+      if (!addSymbol(symname, n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1039,25 +1039,14 @@ public:
       }
     }
 
+    // Now write code to make the function call
     if (!native_function_flag) {
-      if (Cmp(nodeType(n), "constant") == 0) {
-        // Wrapping a constant hack
-        Swig_save("functionWrapper", n, "wrap:action", NIL);
 
-        // below based on Swig_VargetToFunction()
-        SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-        Setattr(n, "wrap:action", NewStringf("%s = (%s)(%s);", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-      }
-
-      // Now write code to make the function call
       Swig_director_emit_dynamic_cast(n, f);
       String *actioncode = emit_action(n);
 
       // Handle exception classes specified in the "except" feature's "throws" attribute
       addThrows(n, "feature:except", n);
-
-      if (Cmp(nodeType(n), "constant") == 0)
-        Swig_restore(n);
 
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
@@ -1194,15 +1183,13 @@ public:
     return ret;
   }
 
-  String *getCurrentScopeName(String *nspace)
-  {
+  String *getCurrentScopeName(String *nspace) {
     String *scope = 0;
     if (nspace || getCurrentClass()) {
       scope = NewString("");
       if (nspace)
 	Printf(scope, "%s", nspace);
-      if (Node* cls = getCurrentClass())
-      {
+      if (Node* cls = getCurrentClass()) {
 	if (Node *outer = Getattr(cls, "nested:outer")) {
 	  String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	  for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -1370,6 +1357,7 @@ public:
     int unnamedinstance = GetFlag(parent, "unnamedinstance");
     String *parent_name = Getattr(parent, "name");
     String *nspace = getNSpace();
+    String *newsymname = 0;
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1394,14 +1382,20 @@ public:
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
 
+      if ((enum_feature == SimpleEnum) && GetFlag(parent, "scopedenum")) {
+	newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+	symname = newsymname;
+      }
+
       // Add to language symbol table
       String *scope = 0;
       if (unnamedinstance || !parent_name || enum_feature == SimpleEnum) {
-	if (proxy_class_name) {
+	String *enumClassPrefix = getEnumClassPrefix();
+	if (enumClassPrefix) {
 	  scope = NewString("");
 	  if (nspace)
 	    Printf(scope, "%s.", nspace);
-	  Printf(scope, "%s", proxy_class_name);
+	  Printf(scope, "%s", enumClassPrefix);
 	} else {
 	  scope = Copy(constants_interface_name);
 	}
@@ -1412,7 +1406,7 @@ public:
 	else
 	  Printf(scope, ".%s", Getattr(parent, "sym:name"));
       }
-      if (!addSymbol(name, n, scope))
+      if (!addSymbol(symname, n, scope))
 	return SWIG_ERROR;
 
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
@@ -1466,6 +1460,7 @@ public:
       Delete(scope);
     }
 
+    Delete(newsymname);
     Delete(tmpValue);
     Swig_restore(n);
     return SWIG_OK;
@@ -2268,7 +2263,7 @@ public:
       Printf(imcall, "swigCPtr");
 
       String *this_type = Copy(getClassType());
-      String *name = NewString("self");
+      String *name = NewString("jself");
       String *qualifier = Getattr(n, "qualifier");
       if (qualifier)
 	SwigType_push(this_type, qualifier);
@@ -2959,6 +2954,16 @@ public:
 	// Use the C syntax to make a true Java constant and hope that it compiles as Java code
 	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
       } else {
+	String *newsymname = 0;
+	if (!getCurrentClass() || !proxy_flag) {
+	  String *enumClassPrefix = getEnumClassPrefix();
+	  if (enumClassPrefix) {
+	    // A global scoped enum
+	    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+	    symname = newsymname;
+	  }
+	}
+
 	// Get the enumvalue from a JNI call
 	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
 	  // Strange hack to change the name
@@ -2967,8 +2972,9 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, proxy_class_name, symname)));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
 	}
+	Delete(newsymname);
       }
     }
     return value;
@@ -3113,44 +3119,6 @@ public:
     Replaceall(tm, classnamespecialvariable, replacementname);
 
     Delete(replacementname);
-  }
-
-  /* -----------------------------------------------------------------------------
-   * makeParameterName()
-   *
-   * Inputs: 
-   *   n - Node
-   *   p - parameter node
-   *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping variables
-   * Return:
-   *   arg - a unique parameter name
-   * ----------------------------------------------------------------------------- */
-
-  String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) {
-
-    String *arg = 0;
-    String *pn = Getattr(p, "name");
-
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    int count = 0;
-    ParmList *plist = Getattr(n, "parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist, "name")) == 0))
-        count++;
-      plist = nextSibling(plist);
-    }
-    String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-    arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
-
-    if (setter && Cmp(arg, "self") != 0) {
-      // Note that for setters the parameter name is always set but sometimes includes C++ 
-      // scope resolution, so we need to strip off the scope resolution to make a valid name.
-      Delete(arg);
-      arg = NewString("value");	//Swig_scopename_last(pn);
-    }
-
-    return arg;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3670,7 +3638,6 @@ public:
    * --------------------------------------------------------------- */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
@@ -3704,14 +3671,7 @@ public:
     String *imcall_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-    String *qualified_classname = Copy(classname);
-    String *nspace = getNSpace();
-
-    if (nspace && package)
-      Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
-    else if(nspace)
-      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
-
+    String *qualified_classname = getProxyName(getClassName());
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3772,7 +3732,7 @@ public:
     /* Create the intermediate class wrapper */
     tm = Swig_typemap_lookup("jtype", n, "", 0);
     if (tm) {
-      Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, qualified_classname);
+      Printf(callback_def, "  public static %s %s(%s jself", tm, imclass_dmethod, qualified_classname);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
@@ -3834,7 +3794,6 @@ public:
     }
 
     Delete(adjustedreturntypeparm);
-    Delete(qualified_classname);
 
     Swig_director_parms_fixup(l);
 
@@ -3889,7 +3848,7 @@ public:
       Printf(w->code, "if (swigjobj && jenv->IsSameObject(swigjobj, NULL) == JNI_FALSE) {\n");
     }
 
-    /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
+    /* Start the Java field descriptor for the intermediate class's upcall (insert jself object) */
     Parm *tp = NewParmNode(c_classname, n);
     String *jdesc;
 
@@ -4100,7 +4059,7 @@ public:
 
     /* Emit the intermediate class's upcall to the actual class */
 
-    String *upcall = NewStringf("self.%s(%s)", symname, imcall_args);
+    String *upcall = NewStringf("jself.%s(%s)", symname, imcall_args);
 
     // Handle exception classes specified in the "except" feature's "throws" attribute
     addThrows(n, "feature:except", n);
@@ -4475,18 +4434,15 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorEnd(Node *n) {
-    String *classname = Getattr(n, "sym:name");
+    String *full_classname = Getattr(n, "name");
+    String *classname = getProxyName(full_classname, true);
     String *director_classname = directorClassName(n);
     String *internal_classname;
 
     Wrapper *w = NewWrapper();
 
-    if (Len(package_path) > 0 && Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
-    else if (Len(package_path) > 0)
+    if (Len(package_path) > 0)
       internal_classname = NewStringf("%s/%s", package_path, classname);
-    else if (Len(getNSpace()) > 0)
-      internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
 
@@ -4598,6 +4554,7 @@ public:
   /*----------------------------------------------------------------------
    * extraDirectorProtectedCPPMethodsRequired()
    *--------------------------------------------------------------------*/
+
   bool extraDirectorProtectedCPPMethodsRequired() const {
     return false;
   }
@@ -4622,6 +4579,10 @@ public:
     Setattr(n, "director:decl", declaration);
     Setattr(n, "director:ctor", class_ctor);
   }
+
+  /*----------------------------------------------------------------------
+   * nestedClassesSupport()
+   *--------------------------------------------------------------------*/
 
   NestedClassSupport nestedClassesSupport() const {
     return NCS_Full;

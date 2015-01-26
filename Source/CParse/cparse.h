@@ -27,6 +27,7 @@ extern "C" {
   extern int cparse_cplusplus;
   extern int cparse_cplusplusout;
   extern int cparse_start_line;
+  extern String *cparse_unknown_directive;
 
   extern void Swig_cparse_cplusplus(int);
   extern void Swig_cparse_cplusplusout(int);

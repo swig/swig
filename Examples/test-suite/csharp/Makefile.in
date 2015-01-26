@@ -28,6 +28,9 @@ CPP_TEST_CASES = \
 	intermediary_classname \
 	li_boost_intrusive_ptr
 
+CPP11_TEST_CASES = \
+	cpp11_strongly_typed_enumerations_simple \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here

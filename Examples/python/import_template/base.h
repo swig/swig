@@ -2,8 +2,8 @@
 
 template<class T> class Base {
  public:
-     Base() { };
-     virtual ~Base() { };
+     Base() { }
+     virtual ~Base() { }
      virtual void A() {
          printf("I'm Base::A\n");
      }

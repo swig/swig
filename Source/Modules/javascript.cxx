@@ -1231,18 +1231,27 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   // substract the extension "sym:overname",
   String *wrap_name = NewString(Getattr(n, "wrap:name"));
   String *overname = Getattr(n, "sym:overname");
+
+  Node *methodclass = Swig_methodclass(n);
+  String *class_name = Getattr(methodclass, "sym:name");
+
   int l1 = Len(wrap_name);
   int l2 = Len(overname);
   Delslice(wrap_name, l1 - l2, l1);
 
-  Setattr(n, "wrap:name", wrap_name);
-  state.function(WRAPPER_NAME, wrap_name);
+  String *new_string = NewStringf("%s_%s", class_name, wrap_name);
+  String *final_wrap_name = Swig_name_wrapper(new_string);
+     
+  Setattr(n, "wrap:name", final_wrap_name);
+  state.function(WRAPPER_NAME, final_wrap_name);
+
+
 
   t_function.replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code);
 
   // call this here, to replace all variables
-  t_function.replace("$jswrapper", wrap_name)
+  t_function.replace("$jswrapper", final_wrap_name)
       .replace("$jsname", state.function(NAME))
       .pretty_print(f_wrappers);
 
