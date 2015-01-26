@@ -41,10 +41,6 @@ const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
 /* spare space */
 #endif
 
-#ifdef SWIGSCILAB
-%rename(SillyMulMacroSt) SillyMultipleMacroStruct;
-#endif
-
 %{
 struct SillyStruct {
   int num;
@@ -82,7 +78,7 @@ struct NAME { \
   int num; \
 };
 #endif
-KLASS(SillyMultipleMacroStruct)
+KLASS(SillyMulMacroStruc)
 %}
 
 %inline %{
