@@ -25,7 +25,6 @@ Scilab options (available with -scilab)\n \
      -buildersources <files>         - Add the (comma separated) files <files> to the builder sources\n \
      -builderverbositylevel <level>  - Set the builder verbosity level to <level> (default 0: off, 2: high)\n \
      -gatewayxml <gateway_id>        - Generate gateway xml with the given <gateway_id>\n \
-     -nobuilder                      - Do not generate the Scilab builder script (default)\n \
 \n";
 
 
@@ -132,10 +131,6 @@ public:
 	  Swig_mark_arg(argIndex);
 	  buildFlagsScript = NewString(argv[argIndex + 1]);
 	  Swig_mark_arg(argIndex + 1);
-	} else if (strcmp(argv[argIndex], "-nobuilder") == 0) {
-	  Swig_mark_arg(argIndex);
-	  generateBuilder = false;
-	  createLoader = true;
 	} else if (strcmp(argv[argIndex], "-gatewayxml") == 0) {
 	  Swig_mark_arg(argIndex);
 	  createGatewayXML = true;
