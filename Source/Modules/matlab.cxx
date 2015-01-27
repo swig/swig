@@ -860,10 +860,11 @@ int MATLAB::globalfunctionHandler(Node *n) {
   checkValidSymName(n);
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
+  const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   if (min_num_returns==0) {
-    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,wname,varginstr);
   } else {
-    Printf(f_wrap_m,"  [varargout{1:max(1,nargout)}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,wname);
+    Printf(f_wrap_m,"  [varargout{1:max(1,nargout)}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,wname,varginstr);
   }
   Printf(f_wrap_m,"end\n");
 
@@ -1236,10 +1237,11 @@ int MATLAB::memberfunctionHandler(Node *n) {
   checkValidSymName(n);
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
+  const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   if (min_num_returns==0) {
-    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   } else {
-    Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',self,varargin{:});\n",mex_fcn,gw_ind,fullname);
+    Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',self,%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   }
   Printf(f_wrap_m,"    end\n");
 
@@ -1467,11 +1469,12 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   // Add function to .m wrapper
   checkValidSymName(n);
   Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+  const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   autodoc_to_m(static_methods, n);
   if (min_num_returns==0) {
-    Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
+    Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   } else {
-    Printf(static_methods,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
+    Printf(static_methods,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   }
   Printf(static_methods,"    end\n");
 
