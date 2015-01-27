@@ -1468,15 +1468,16 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
 
   // Add function to .m wrapper
   checkValidSymName(n);
-  Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
+  File *wrapper = GetFlag(n, "feature:nonstatic") ? f_wrap_m : static_methods;
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
-  autodoc_to_m(static_methods, n);
+  Printf(wrapper,"    function varargout = %s(varargin)\n",symname);
+  autodoc_to_m(wrapper, n);
   if (min_num_returns==0) {
-    Printf(static_methods,"      [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
+    Printf(wrapper,"      [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   } else {
-    Printf(static_methods,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
+    Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   }
-  Printf(static_methods,"    end\n");
+  Printf(wrapper,"    end\n");
 
   Delete(wname);
   Delete(fullname);
