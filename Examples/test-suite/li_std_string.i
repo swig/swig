@@ -83,12 +83,6 @@ void test_const_pointer_throw() throw(const std::string *) {
                             std::string *Structure::StaticMemberString2 };
 */
 
-
-%inline %{
-std::string GlobalString;
-std::string GlobalString2 = "global string 2";
-const std::string ConstGlobalString = "const global string";
-
 #ifdef SWIGSCILAB
 %rename(St) MemberString;
 %rename(Str) MemberString;
@@ -98,6 +92,11 @@ const std::string ConstGlobalString = "const global string";
 %rename(ConstStr) ConstMemberString;
 %rename(ConstStaticStr) ConstStaticMemberString;
 #endif
+
+%inline %{
+std::string GlobalString;
+std::string GlobalString2 = "global string 2";
+const std::string ConstGlobalString = "const global string";
 
 struct Structure {
   std::string MemberString;
