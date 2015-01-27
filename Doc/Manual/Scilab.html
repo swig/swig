@@ -8,7 +8,7 @@
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Scilab"></a>37 SWIG and Scilab</H1>
+<H1><a name="Scilab"></a>39 SWIG and Scilab</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -21,16 +21,28 @@
 <li><a href="#Scilab_running_swig_using_module">Using the module</a>
 <li><a href="#Scilab_running_swig_options">Scilab command line options</a>
 </ul>
-<li><a href="#Scilab_wrapping">A tour of basic C/C++ wrapping</a>
+<li><a href="#Scilab_wrapping">A basic tour of C/C++ wrapping</a>
 <ul>
 <li><a href="#Scilab_wrapping_overview">Overview</a>
 <li><a href="#Scilab_wrapping_identifiers">Identifiers</a>
 <li><a href="#Scilab_wrapping_functions">Functions</a>
+<ul>
+<li><a href="#Scilab_nn13">Argument passing</a>
+<li><a href="#Scilab_nn14">Multiple output arguments</a>
+</ul>
 <li><a href="#Scilab_wrapping_global_variables">Global variables</a>
 <li><a href="#Scilab_wrapping_constants_and_enums">Constants and enumerations</a>
+<ul>
+<li><a href="#Scilab_wrapping_constants">Constants</a>
+<li><a href="#Scilab_wrapping_enums">Enumerations</a>
+</ul>
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
+<ul>
+<li><a href="#Scilab_wrapping_pointers_pointer_adresses">Utility functions</a>
+<li><a href="#Scilab_wrapping_pointers_null_pointers">Null pointers</a>
+</ul>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
-<li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
+<li><a href="#Scilab_wrapping_cpp_classes">C++ Classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
@@ -42,13 +54,13 @@
 <li><a href="#Scilab_typemaps">Type mappings and libraries</a>
 <ul>
 <li><a href="#Scilab_typemaps_primitive_types">Default primitive type mappings</a>
-<li><a href="#Scilab_typemaps_non-primitive_types">Default type mapping for non-primitive types</a>
+<li><a href="#Scilab_typemaps_non-primitive_types">Default type mappings for non-primitive types</a>
 <li><a href="#Scilab_typemaps_arrays">Arrays</a>
 <li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
 <li><a href="#Scilab_typemaps_matrices">Matrices</a>
 <li><a href="#Scilab_typemaps_stl">STL</a>
 </ul>
-<li><a href="#Scilab_module_initialization">Module_initialization</a>
+<li><a href="#Scilab_module_initialization">Module initialization</a>
 <li><a href="#Scilab_building_modes">Building modes</a>
 <ul>
 <li><a href="#Scilab_building_modes_nobuilder_mode">No-builder mode</a>
@@ -60,7 +72,6 @@
 <li><a href="#Scilab_generated_scripts_loader_script">Loader script</a>
 </ul>
 <li><a href="#Scilab_other_resources">Other resources</a>
-</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -76,7 +87,8 @@ This chapter explains how to use SWIG for Scilab. After this introduction, you s
 </p>
 
 
-<H2><a name="Scilab_preliminaries"></a>37.1 Preliminaries</H2>
+<H2><a name="Scilab_preliminaries"></a>39.1 Preliminaries</H2>
+
 
 <p>
 SWIG for Scilab supports Linux. Other operating sytems haven't been tested.
@@ -92,7 +104,8 @@ SWIG for Scilab supports C language. C++ is partially supported. See <a href="#S
 </p>
 
 
-<H2><a name="Scilab_running_swig"></a>37.2 Running SWIG</H2>
+<H2><a name="Scilab_running_swig"></a>39.2 Running SWIG</H2>
+
 
 <p>
 Let's see how to use SWIG for Scilab on a small example.
@@ -125,7 +138,8 @@ Note: a code in an <tt>%inline</tt> section is both parsed and wrapped by SWIG, 
 </p>
 
 
-<H3><a name="Scilab_running_swig_generating_module"></a>37.2.1 Generating the module</H3>
+<H3><a name="Scilab_running_swig_generating_module"></a>39.2.1 Generating the module</H3>
+
 
 <p>
 The module is generated using the <tt>swig</tt> executable and its <tt>-scilab</tt> option.
@@ -145,7 +159,7 @@ This command generates two files:
 
 <p>
 Note: if the following error is returned:
-<p>
+</p>
 
 <div class="shell"><pre>
 :1: Error: Unable to find 'swig.swg'
@@ -167,7 +181,8 @@ The <tt>swig</tt> executable has several other command line options you can use.
 </p>
 
 
-<H3><a name="Scilab_running_swig_building_module"></a>37.2.2 Building the module</H3>
+<H3><a name="Scilab_running_swig_building_module"></a>39.2.2 Building the module</H3>
+
 
 <p>
 To be loaded in Scilab, the wrapper has to be built into a dynamic module (or shared library).
@@ -186,7 +201,8 @@ $ gcc -shared example_wrap.o -o libexample.so
 Note: we supposed in this example that the path to the Scilab include directory is <tt>/usr/local/include/scilab</tt> (which is the case in a Debian environment), this should be changed for another environment.
 </p>
 
-<H3><a name="Scilab_running_swig_loading_module"></a>37.2.3 Loading the module</H3>
+<H3><a name="Scilab_running_swig_loading_module"></a>39.2.3 Loading the module</H3>
+
 
 <p>
 Loading a module is done by running the loader script in Scilab:
@@ -209,7 +225,8 @@ Link done.
 which means that Scilab has successfully loaded the shared library. The module functions and other symbols are now available in Scilab.
 </p>
 
-<H3><a name="Scilab_running_swig_using_module"></a>37.2.4 Using the module</H3>
+<H3><a name="Scilab_running_swig_using_module"></a>39.2.4 Using the module</H3>
+
 
 <p>
 In Scilab, the function <tt>fact()</tt> is simply called as following:
@@ -242,7 +259,8 @@ ans  =
 Note: for conciseness, we assume in the subsequent Scilab code examples that the modules have been beforehand built and loaded in Scilab.
 </p>
 
-<H3><a name="Scilab_running_swig_options"></a>37.2.5 Scilab command line options</H3>
+<H3><a name="Scilab_running_swig_options"></a>39.2.5 Scilab command line options</H3>
+
 
 <p>
 The following table lists the Scilab specific command line options in addition to the generic SWIG options:
@@ -296,17 +314,20 @@ $ swig -scilab -help
 </pre></div>
 
 
-<H2><a name="Scilab_wrapping"></a>37.3 A basic tour of C/C++ wrapping</H2>
+<H2><a name="Scilab_wrapping"></a>39.3 A basic tour of C/C++ wrapping</H2>
 
-<H3><a name="Scilab_wrapping_overview"></a>37.3.1 Overview</H3>
+
+<H3><a name="Scilab_wrapping_overview"></a>39.3.1 Overview</H3>
+
 
 <p>
 SWIG for Scilab provides only a low-level C interface for Scilab (see <a href="Scripting.html">Scripting Languages</a> for the general approach to wrapping).
 This means that functions, structs, classes, variables, etc... are interfaced through C functions. These C functions are mapped as Scilab functions.
 There are a few exceptions, such as constants and enumerations, which can be wrapped directly as Scilab variables.
-<p>
+</p>
 
-<H3><a name="Scilab_wrapping_identifiers"></a>37.3.2 Identifiers</H3>
+<H3><a name="Scilab_wrapping_identifiers"></a>39.3.2 Identifiers</H3>
+
 
 <p>
 In Scilab 5.x, identifier names are composed of 24 characters maximum (this limitation should disappear from Scilab 6.0 onwards).
@@ -314,9 +335,9 @@ In Scilab 5.x, identifier names are composed of 24 characters maximum (this limi
 </p>
 <p>This happens especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
 In these cases, the <a href="SWIG.html#SWIG_rename_ignore">%rename directive</a> can be used to choose a different Scilab name.
-<p>
+</p>
 
-<H3><a name="Scilab_wrapping_functions"></a>37.3.3 Functions</H3>
+<H3><a name="Scilab_wrapping_functions"></a>39.3.3 Functions</H3>
 
 
 <p>
@@ -347,7 +368,8 @@ ans  =
     24.
 </pre></div>
 
-<H4>Argument passing</H4>
+<H4><a name="Scilab_nn13"></a>39.3.3.1 Argument passing</H4>
+
 
 <p>
 In the above example, the function parameter is a primitive type and is marshalled by value.
@@ -399,7 +421,8 @@ In Scilab, parameters are passed by value. The output (and inout) parameters are
     7.
 </pre></div>
 
-<H4>Multiple output arguments</H4>
+<H4><a name="Scilab_nn14"></a>39.3.3.2 Multiple output arguments</H4>
+
 
 <p>
 A C function can have several output parameters. They can all be returned as results of the wrapped function as Scilab supports multiple return values from a function
@@ -431,6 +454,8 @@ int divide(int n, int d, int q*, int *r) {
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; [ret, q, r] = divide(20, 6)
  r  =
@@ -443,10 +468,10 @@ int divide(int n, int d, int q*, int *r) {
 
     1.
 </pre></div>
-</p>
 
 
-<H3><a name="Scilab_wrapping_global_variables"></a>37.3.4 Global variables</H3>
+<H3><a name="Scilab_wrapping_global_variables"></a>39.3.4 Global variables</H3>
+
 
 <p>
 Global variables are manipulated through generated accessor functions.
@@ -514,9 +539,11 @@ It works the same:</p>
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_constants_and_enums"></a>37.3.5 Constants and enumerations</H3>
+<H3><a name="Scilab_wrapping_constants_and_enums"></a>39.3.5 Constants and enumerations</H3>
 
-<H4><a name="Scilab_wrapping_constants"></a>Constants</H4>
+
+<H4><a name="Scilab_wrapping_constants"></a>39.3.5.1 Constants</H4>
+
 
 <p>
 There is not any constant in Scilab. By default, C/C++ constants are wrapped as getter functions. For example, for the following constants:
@@ -656,7 +683,8 @@ are mapped to Scilab variables, with the same name:
     3.14
 </pre></div>
 
-<H4><a name="Scilab_wrapping_enums"></a>Enumerations</H4>
+<H4><a name="Scilab_wrapping_enums"></a>39.3.5.2 Enumerations</H4>
+
 
 <p>
 The wrapping of enums is the same as for constants.
@@ -700,6 +728,8 @@ typedef enum { RED, BLUE, GREEN } color;
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
 --&gt; RED
@@ -718,9 +748,9 @@ typedef enum { RED, BLUE, GREEN } color;
     2.
 
 </pre></div>
-</p>
 
-<H3><a name="Scilab_wrapping_pointers"></a>37.3.6 Pointers</H3>
+<H3><a name="Scilab_wrapping_pointers"></a>39.3.6 Pointers</H3>
+
 
 <p>
 C/C++ pointers are fully supported by SWIG. They are mapped to the Scilab pointer type ("pointer", type ID: 128).
@@ -761,7 +791,8 @@ These functions can be used in a natural way from Scilab:
 The user of a pointer is responsible for freeing it or, like in the example, closing any resources associated with it (just as is required in a C program).
 </p>
 
-<H4><a name="Scilab_wrapping_pointers_pointer_adresses"></a>Utility functions</H4>
+<H4><a name="Scilab_wrapping_pointers_pointer_adresses"></a>39.3.6.1 Utility functions</H4>
+
 
 <p>
 Most of time pointer manipulation is not needed in a scripting language such as Scilab.
@@ -770,11 +801,11 @@ However, in some cases it can be useful, such as for testing or debugging.
 
 <p>
 SWIG comes with two pointer utility functions:
+</p>
 <ul>
 <li><tt>SWIG_this()</tt>: returns the address value of a pointer</li>
 <li><tt>SWIG_ptr()</tt>: creates a pointer from an address value</li>
 </ul>
-</p>
 
 <p>Following illustrates their use on the last example:</p>
 
@@ -791,7 +822,8 @@ SWIG comes with two pointer utility functions:
 --&gt; fclose(f);
 </pre></div>
 
-<H4><a name="Scilab_wrapping_pointers_null_pointers"></a>Null pointers</H4>
+<H4><a name="Scilab_wrapping_pointers_null_pointers"></a>39.3.6.2 Null pointers</H4>
+
 
 <p>By default, Scilab does not provide a way to test or create null pointers.
 But it is possible to have a null pointer by using the previous functions <tt>SWIG_this()</tt> and <tt>SWIG_ptr()</tt>, like this:
@@ -806,7 +838,7 @@ But it is possible to have a null pointer by using the previous functions <tt>SW
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_structs"></a>37.3.7 Structures</H3>
+<H3><a name="Scilab_wrapping_structs"></a>39.3.7 Structures</H3>
 
 
 <p>
@@ -834,13 +866,13 @@ typedef struct {
 
 <p>
 Several functions are generated:
+</p>
 <ul>
 <li>a constructor function <tt>new_Foo()</tt> which returns a pointer to a newly created struct <tt>Foo</tt>.</li>
 <li>two member getter functions <tt>Foo_x_get()</tt>, <tt>Foo_arr_get()</tt>, to get the values of <tt>x</tt> and <tt>y</tt> for the struct pointer (provided as the first parameter to these functions)</li>
 <li>two member setter functions <tt>Foo_x_set()</tt>, <tt>Foo_arr_set()</tt>, to set the values of <tt>x</tt> and <tt>y</tt> for the struct pointer (provided as the first parameter to these functions).</li>
 <li>a destructor function <tt>delete_Foo()</tt> to release the struct pointer.</li>
 </ul>
-</p>
 
 <p>
 Usage example:
@@ -865,7 +897,7 @@ ans  =
 
 
 <p>
-Members of a structure that are also structures are also accepted and wrapped as a pointer:</p>
+Members of a structure that are also structures are also accepted and wrapped as a pointer:
 </p>
 
 <div class="code"><pre>
@@ -885,6 +917,8 @@ typedef struct {
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; b = new_Bar();
 --&gt; Bar_x_set(b, 20.);
@@ -898,10 +932,10 @@ ans  =
 
     20.
 </pre></div>
-</p>
 
 
-<H3><a name="Scilab_wrapping_cpp_classes"></a>37.3.8 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_cpp_classes"></a>39.3.8 C++ Classes</H3>
+
 
 <p>
 Classes do not exist in Scilab. The classes are wrapped the same way as structs.
@@ -922,7 +956,7 @@ class Point {
 public:
   int x, y;
   Point(int _x, int _y) : x(_x), y(_y) {}
-  double distance(const Point& rhs) {
+  double distance(const Point&amp; rhs) {
     return sqrt(pow(x-rhs.x, 2) + pow(y-rhs.y, 2));
   }
   void set(int _x, int _y) {
@@ -950,7 +984,8 @@ ans  =
 --&gt; delete_Point(p2);
 </pre></div>
 
-<H3><a name="Scilab_wrapping_cpp_inheritance"></a>37.3.9 C++ inheritance</H3>
+<H3><a name="Scilab_wrapping_cpp_inheritance"></a>39.3.9 C++ inheritance</H3>
+
 
 <p>
 Inheritance is supported. SWIG knows the inheritance relationship between classes.
@@ -1024,7 +1059,8 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
     18.84
 </pre></div>
 
-<H3><a name="Scilab_wrapping_pointers_references_values_arrays"></a>37.3.10 Pointers, references, values, and arrays</H3>
+<H3><a name="Scilab_wrapping_pointers_references_values_arrays"></a>39.3.10 Pointers, references, values, and arrays</H3>
+
 
 <p>
 In C++ objects can be passed by value, pointer, reference, or by an array:
@@ -1044,8 +1080,8 @@ public:
   int x;
 };
 
-void spam1(Foo *f)  { sciprint("%d\n", f->x); }   // Pass by pointer
-void spam2(Foo &f)  { sciprint("%d\n", f.x); }    // Pass by reference
+void spam1(Foo *f)  { sciprint("%d\n", f-&gt;x); }   // Pass by pointer
+void spam2(Foo &amp;f)  { sciprint("%d\n", f.x); }    // Pass by reference
 void spam3(Foo f)   { sciprint("%d\n", f.x); }    // Pass by value
 void spam4(Foo f[]) { sciprint("%d\n", f[0].x); } // Array of objects
 
@@ -1081,7 +1117,8 @@ All these functions will return a pointer to an instance of <tt>Foo</tt>.
 As the function <tt>spam7</tt> returns a value, new instance of <tt>Foo</tt> has to be allocated, and a pointer on this instance is returned.
 </p>
 
-<H3><a name="Scilab_wrapping_cpp_templates"></a>37.3.11 C++ templates</H3>
+<H3><a name="Scilab_wrapping_cpp_templates"></a>39.3.11 C++ templates</H3>
+
 
 <p>
 As in other languages, function and class templates are supported in SWIG Scilab.
@@ -1140,7 +1177,8 @@ Then in Scilab:
 More details on template support can be found in the <a href="SWIGPlus.html#SWIGPlus_nn30">templates</a> documentation.
 </p>
 
-<H3><a name="Scilab_wrapping_cpp_operators"></a>37.3.11 C++ operators</H3>
+<H3><a name="Scilab_wrapping_cpp_operators"></a>39.3.12 C++ operators</H3>
+
 
 <p>
 C++ operators are partially supported.
@@ -1164,7 +1202,7 @@ class Complex {
 public:
   Complex(double re, double im) : real(re), imag(im) {};
 
-  Complex operator+(const Complex& other) {
+  Complex operator+(const Complex&amp; other) {
     double result_real = real + other.real;
     double result_imaginary = imag + other.imag;
     return Complex(result_real, result_imaginary);
@@ -1179,6 +1217,8 @@ private:
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; c1 = new_Complex(3, 7);
 
@@ -1189,10 +1229,10 @@ private:
 
     4.
 </pre></div>
-</p>
 
 
-<H3><a name="Scilab_wrapping_cpp_namespaces"></a>34.3.12 C++ namespaces</H3>
+<H3><a name="Scilab_wrapping_cpp_namespaces"></a>39.3.13 C++ namespaces</H3>
+
 
 <p>
 SWIG is aware of C++ namespaces, but does not use it for wrappers.
@@ -1209,7 +1249,7 @@ For example with one namespace <tt>Foo</tt>:
 
 namespace foo {
   int fact(int n) {
-    if (n > 1)
+    if (n &gt; 1)
       return n * fact(n-1);
     else
       return 1;
@@ -1269,7 +1309,8 @@ Note: the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is
 </p>
 
 
-<H3><a name="Scilab_wrapping_cpp_exceptions"></a>37.3.13 C++ exceptions</H3>
+<H3><a name="Scilab_wrapping_cpp_exceptions"></a>39.3.14 C++ exceptions</H3>
+
 
 <p>
 Scilab does not natively support exceptions, but has errors.
@@ -1288,19 +1329,19 @@ void throw_exception() throw(char const *) {
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt;throw_exception()
   !--error 999
 SWIG/Scilab: Exception (char const *) occured: Bye world !
 </pre></div>
-</p>
 
 <p>
 Scilab has a <tt>try-catch</tt> mechanism (and a similar instruction <tt>execstr()</tt>) to handle exceptions.
 It can be used with the <tt>lasterror()</tt> function as following:
 </p>
 
-<p>
 <div class="targetlang"><pre>
 --&gt; execstr('throw_exception()', 'errcatch');
  ans  =
@@ -1312,7 +1353,6 @@ It can be used with the <tt>lasterror()</tt> function as following:
 
     SWIG/Scilab: Exception (char const *) occured: Bye world !
 </pre></div>
-</p>
 
 <p>
 If the function has a <tt>throw</tt> exception specification, SWIG can automatically map the exception type and set an appropriate Scilab error message.
@@ -1330,13 +1370,15 @@ void throw_int() throw(int) {
 }
 
 void throw_stl_invalid_arg(int i) throw(std::invalid_argument) {
-  if (i &lt 0)
+  if (i &amp;lt 0)
     throw std::invalid_argument("argument is negative.");
 }
 %}
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; throw_int();
             !--error 999
@@ -1346,29 +1388,31 @@ SWIG/Scilab: Exception (int) occured: 12
                           !--error 999
 SWIG/Scilab: ValueError: argument is negative.
 </pre></div>
-</p>
 
 <p>
 More complex or custom exception types require specific exception typemaps to be implemented in order to specifically handle a thrown type.
 See the <a href="SWIGPlus.html#SWIGPlus">SWIG C++ documentation</a> for more details.
-<p>
+</p>
 
-<H3><a name="Scilab_wrapping_cpp_stl"></a>37.3.14 C++ STL</H3>
+<H3><a name="Scilab_wrapping_cpp_stl"></a>39.3.15 C++ STL</H3>
+
 
 <p>
 The Standard Template Library (STL) is partially supported. See <a href="#Scilab_typemaps_stl">STL</a> for more details.
 </p>
 
-<H2><a name="Scilab_typemaps"></a>37.4 Type mappings and libraries</H2>
+<H2><a name="Scilab_typemaps"></a>39.4 Type mappings and libraries</H2>
 
-<H3><a name="Scilab_typemaps_primitive_types"></a>37.4.1 Default primitive type mappings</H3>
+
+<H3><a name="Scilab_typemaps_primitive_types"></a>39.4.1 Default primitive type mappings</H3>
+
 
 <p>
 The following table provides the equivalent Scilab type for C/C++ primitive types.
 </p>
 
 <div class="table">
-<table border="1" sumary="Scilab default primitive type mappings">
+<table border="1" summary="Scilab default primitive type mappings">
 <tr>
   <td><b>C/C++ type</b></td>
   <td><b>Scilab type</b></td>
@@ -1393,6 +1437,7 @@ The following table provides the equivalent Scilab type for C/C++ primitive type
 
 <p>
 Notes:
+</p>
 <ul>
 <li>In Scilab the <tt>double</tt> type is far more used than any integer type.
 This is why integer values (<tt>int32</tt>, <tt>uint32</tt>, ...) are automatically converted to Scilab <tt>double</tt> values when marshalled from C into Scilab.
@@ -1406,17 +1451,18 @@ In SWIG for Scilab 5.x, the <tt>long long</tt> type is not supported, since Scil
 The default behaviour is for SWIG to generate code that will give a runtime error if <tt>long long</tt> type arguments are used from Scilab.
 </li>
 </ul>
-</p>
 
 
-<H3><a name="Scilab_typemaps_non-primitive_types"></a>37.4.2 Default type mappings for non-primitive types</H3>
+<H3><a name="Scilab_typemaps_non-primitive_types"></a>39.4.2 Default type mappings for non-primitive types</H3>
+
 
 <p>
 The default mapped type for C/C++ non-primitive types is the Scilab pointer, for example for C structs, C++ classes, etc...
 </p>
 
 
-<H3><a name="Scilab_typemaps_arrays"></a>37.4.3 Arrays</H3>
+<H3><a name="Scilab_typemaps_arrays"></a>39.4.3 Arrays</H3>
+
 
 <p>
 Typemaps are available by default for arrays. Primitive type arrays are automatically converted to/from Scilab matrices.
@@ -1433,9 +1479,6 @@ The type mappings used for arrays is the same for primitive types, described <a 
 This means that, if needed, a Scilab <tt>double</tt> vector is converted in input into the related C integer array
 and this C integer array is automatically converted on output into a Scilab <tt>double</tt> vector.
 Note that unlike scalars, no control is done for arrays when a <tt>double</tt> is converted into an integer.
-</p>
-
-<p>
 </p>
 
 <p>
@@ -1458,6 +1501,8 @@ void printArray(int values[], int len) {
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; printArray([0 1 2 3], 4)
 [ 0  1  2  3 ]
@@ -1470,10 +1515,10 @@ void printArray(int values[], int len) {
 
 --&gt; printArray([0; 1; 2; 3], 4)
 [ 0  1  2  3 ]
-<pre></div>
-</p>
+</pre></div>
 
-<H3><a name="Scilab_typemaps_pointer-to-pointers"></a>37.4.4 Pointer-to-pointers</H3>
+<H3><a name="Scilab_typemaps_pointer-to-pointers"></a>39.4.4 Pointer-to-pointers</H3>
+
 
 <p>
 There are no specific typemaps for pointer-to-pointers, they are are mapped as pointers in Scilab.
@@ -1545,7 +1590,8 @@ void print_matrix(double **M, int nbRows, int nbCols) {
 </pre></div>
 
 
-<H3><a name="Scilab_typemaps_matrices"></a>37.4.5 Matrices</H3>
+<H3><a name="Scilab_typemaps_matrices"></a>39.4.5 Matrices</H3>
+
 
 <p>
 The <tt>matrix.i</tt> library provides a set of typemaps which can be useful when working with one-dimensional and two-dimensional matrices.
@@ -1562,32 +1608,33 @@ In order to use this library, just include it in the interface file:
 
 <p>
 Several typemaps are available for the common Scilab matrix types:
+</p>
 <ul>
 <li><tt>double</tt></li>
 <li><tt>int</tt></li>
 <li><tt>char *</tt></li>
 <li><tt>bool</tt></li>
 </ul>
-</p>
 
 <p>
 For example: for a matrix of <tt>int</tt>, we have the typemaps, for input:
+</p>
 <ul>
 <li><tt>(int *IN, int IN_ROWCOUNT, int IN_COLCOUNT)</tt></li>
 <li><tt>(int IN_ROWCOUNT, int IN_COLCOUNT, int *IN)</tt></li>
 <li><tt>(int *IN, int IN_SIZE)</tt></li>
 <li><tt>(int IN_SIZE, int *IN)</tt></li>
 </ul>
-</p>
+
 <p>
 and output:
+</p>
 <ul>
 <li><tt>(int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT)</tt></li>
 <li><tt>(int *OUT_ROWCOUNT, int *OUT_COLCOUNT, int **OUT)</tt></li>
 <li><tt>(int **OUT, int *OUT_SIZE)</tt></li>
 <li><tt>(int *OUT_SIZE, int **OUT)</tt></li>
 </ul>
-</p>
 
 <p>
 They marshall a Scilab matrix type into the appropriate 2 or 3 C parameters.
@@ -1619,6 +1666,8 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; absolute([-0 1 -2; 3 4 -5])
  ans  =
@@ -1626,38 +1675,39 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
     0.    1.    2.
     3.    4.    5.
 </pre></div>
-</p>
 
 <p>
 The remarks made earlier for arrays also apply here:
+</p>
 <ul>
 <li>The values of matrices in Scilab are column-major orderered,</li>
 <li>There is no control while converting <tt>double</tt> values to integers, <tt>double</tt> values are truncated without any checking or warning.</li>
 </ul>
-</p>
 
-<H3><a name="Scilab_typemaps_stl"></a>37.4.6 STL</H3>
+<H3><a name="Scilab_typemaps_stl"></a>39.4.6 STL</H3>
+
 
 <p>
 The STL library wraps some containers defined in the STL (Standard Template Library), so that they can be manipulated in Scilab.
 This library also provides the appropriate typemaps to use the containers in functions and variables.
-<p>
+</p>
 
 <p>
 The list of wrapped sequence containers are:
+</p>
 <ul>
 <li><tt>std::vector</tt></li>
 <li><tt>std::list</tt></li>
 <li><tt>std::deque</tt></li>
 </ul>
-</p>
+
 <p>
 And associative containers are:
+</p>
 <ul>
 <li><tt>std::set</tt></li>
 <li><tt>std::multiset</tt></li>
 </ul>
-<p>
 
 <p>
 Typemaps are available for the following container types:
@@ -1702,7 +1752,7 @@ See the <a href="#Scilab_module_initialization">Module initialization</a> sectio
 <p>
 Because in Scilab matrices exist for basic types only, a sequence container of pointers is mapped to a Scilab list.
 For other item types (double, int, string...) the sequence container is mapped to a Scilab matrix.
-<p>
+</p>
 
 <p>
 The first example below shows how to create a vector (of <tt>int</tt>) in Scilab, add some values to the vector and pass it as an argument of a function.
@@ -1732,6 +1782,8 @@ double average(std::vector&lt;int&gt; v) {
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; example_Init();
 
@@ -1753,7 +1805,6 @@ double average(std::vector&lt;int&gt; v) {
 
 --&gt; delete_IntVector();
 </pre></div>
-</p>
 
 
 <p>
@@ -1790,7 +1841,7 @@ namespace std {
 std::set&lt;PersonPtr&gt; findPersonsByAge(std::set&lt;PersonPtr&gt; persons, int minAge, int maxAge) {
   std::set&lt;PersonPtr&gt; foundPersons;
   for (std::set&lt;PersonPtr&gt;::iterator it = persons.begin(); it != persons.end(); it++) {
-    if (((*it)-&gt;age &gt;= minAge) && ((*it)-&gt;age &lt;= maxAge)) {
+    if (((*it)-&gt;age &gt;= minAge) &amp;&amp; ((*it)-&gt;age &lt;= maxAge)) {
       foundPersons.insert(*it);
     }
   }
@@ -1801,6 +1852,8 @@ std::set&lt;PersonPtr&gt; findPersonsByAge(std::set&lt;PersonPtr&gt; persons, in
 </pre></div>
 
 <p>
+</p>
+
 <div class="targetlang"><pre>
 --&gt; example_Init();
 
@@ -1832,9 +1885,9 @@ ans  =
 
 --&gt; delete_PersonPtrSet(p);
 </pre></div>
-<p>
 
-<H2><a name="Scilab_module_initialization"></a>37.5 Module initialization</H2>
+<H2><a name="Scilab_module_initialization"></a>39.5 Module initialization</H2>
+
 
 <p>
 The wrapped module contains an initialization function to:
@@ -1857,7 +1910,8 @@ For example, to initialize the module <tt>example</tt>:
 --&gt; example_Init();
 </pre></div>
 
-<H2><a name="Scilab_building_modes"></a>37.6 Building modes</H2>
+<H2><a name="Scilab_building_modes"></a>39.6 Building modes</H2>
+
 
 <p>
 The mechanism to load an external module in Scilab is called <i>Dynamic Link</i> and works with dynamic modules (or shared libraries, <tt>.so</tt> files).
@@ -1871,7 +1925,8 @@ To produce a dynamic module, when generating the wrapper, there are two possibil
 <li>the <tt>builder</tt> mode. In this mode, Scilab is responsible of building.
 </ul>
 
-<H3><a name="Scilab_building_modes_nobuilder_mode"></a>37.6.1 No-builder mode</H3>
+<H3><a name="Scilab_building_modes_nobuilder_mode"></a>39.6.1 No-builder mode</H3>
+
 
 <p>
 In this mode, used by default, SWIG generates the wrapper sources, which have to be manually compiled and linked.
@@ -1883,7 +1938,8 @@ This mode is the best option to use when you have to integrate the module build 
 </p>
 
 
-<H3><a name="Scilab_building_modes_builder_mode"></a>37.6.2 Builder mode</H3>
+<H3><a name="Scilab_building_modes_builder_mode"></a>39.6.2 Builder mode</H3>
+
 
 <p>
 In this mode, in addition to the wrapper sources, SWIG produces a builder Scilab script (<tt>builder.sce</tt>), which is executed in Scilab to build the module.
@@ -1908,11 +1964,11 @@ In this mode, the following SWIG options may be used to setup the build:
 
 <p>
 Let's give an example how to build a module <tt>example</tt>, composed of two sources, and using a library dependency:
+</p>
 <ul>
 <li>the sources are <tt>baa1.c</tt> and <tt>baa2.c</tt> (and are stored in in the current directory)</li>
 <li>the library is <tt>libfoo</tt> in <tt>/opt/foo</tt> (headers stored in <tt>/opt/foo/include</tt>, and shared library in <tt>/opt/foo/lib</tt>)</li>
 </ul>
-</p>
 
 <p>
 The command is:
@@ -1921,15 +1977,16 @@ The command is:
 <div class="shell"><pre>
 $ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx,baa2.cxx example.i
 </pre></div>
-</p>
 
-<H2><a name="Scilab_generated_scripts"></a>37.7 Generated scripts</H2>
+<H2><a name="Scilab_generated_scripts"></a>39.7 Generated scripts</H2>
+
 
 <p>
 In this part we give some details about the generated Scilab scripts.
 </p>
 
-<H3><a name="Scilab_generated_scripts_builder_script"></a>37.7.1 Builder script</H3>
+<H3><a name="Scilab_generated_scripts_builder_script"></a>39.7.1 Builder script</H3>
+
 
 <p>
 <tt>builder.sce</tt> is the name of the builder script generated by SWIG in <tt>builder</tt> mode. It contains code like this:
@@ -1953,7 +2010,8 @@ ilib_build(ilib_name,table,files,libs);
 <li><tt><b>table</b></tt>: two column string matrix containing a table of pairs of 'scilab function name', 'C function name'.</li>
 </ul>
 
-<H3><a name="Scilab_generated_scripts_loader_script"></a>37.7.2 Loader script</H3>
+<H3><a name="Scilab_generated_scripts_loader_script"></a>39.7.2 Loader script</H3>
+
 
 <p>
 The loader script is used to load in Scilab all the module functions. When loaded, these functions can be used as other Scilab functions.
@@ -1991,7 +2049,8 @@ clear get_file_path;
 </ul>
 
 
-<H2><a name="Scilab_other_resources"></a>37.8 Other resources</H2>
+<H2><a name="Scilab_other_resources"></a>39.8 Other resources</H2>
+
 
 <ul>
 <li>Example use cases can be found in the <tt>Examples/scilab</tt> directory.</li>
