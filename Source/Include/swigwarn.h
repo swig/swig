@@ -232,6 +232,10 @@
 
 /* please leave 700-719 free for D */
 
+#define WARN_SCILAB_TRUNCATED_NAME            720
+
+/* please leave 720-739 free for Scilab */
+
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802
 

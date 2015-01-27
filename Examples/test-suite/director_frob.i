@@ -1,6 +1,12 @@
 %module(directors="1") director_frob;
 #pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
 
+#ifdef SWIGSCILAB
+%rename(cb) coreCallbacks;
+%rename(On3dEngRedrawn) coreCallbacksOn3dEngineRedrawnData;
+%rename (_On3dEngRedrawn) coreCallbacks_On3dEngineRedrawnData;
+#endif
+
 %header %{
 #include <iostream>
 %}
@@ -17,7 +23,7 @@
     virtual ~Alpha() { };
     virtual const char* abs_method() = 0;
   };
-  
+
   struct Bravo : Alpha
   {
     const char* abs_method()
@@ -26,14 +32,14 @@
     }
   };
 
-  struct Charlie : Bravo 
+  struct Charlie : Bravo
   {
     const char* abs_method()
     {
       return "Charlie::abs_method()";
     }
   };
-  
+
   struct Delta : Charlie
   {
   };

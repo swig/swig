@@ -335,7 +335,7 @@ AC_MSG_CHECKING([whether to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
-if test x"$enable_cpp11_testing" = xyes; then 
+if test x"$enable_cpp11_testing" = xyes; then
   AC_LANG_PUSH([C++])
   CXXFLAGS_SAVED=$CXXFLAGS
   AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
@@ -353,7 +353,7 @@ if test x"$enable_cpp11_testing" = xyes; then
 fi
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
-# libc++ for tests and examples to run under mono. May affect 
+# libc++ for tests and examples to run under mono. May affect
 # other language targets as well - problem is an OSX incompatibility
 # between libraries depending on libstdc++ and libc++.
 CLANGXX=
@@ -990,6 +990,92 @@ AC_SUBST(OCTAVE_SO)
 AC_SUBST(OCTAVE_CPPFLAGS)
 AC_SUBST(OCTAVE_CXXFLAGS)
 AC_SUBST(OCTAVE_LDFLAGS)
+
+#----------------------------------------------------------------
+# Look for Scilab
+#----------------------------------------------------------------
+
+AC_ARG_WITH(scilab, AS_HELP_STRING([--without-scilab], [Disable Scilab])
+AS_HELP_STRING([--with-scilab=path], [Set location of Scilab executable]),[SCILABBIN="$withval"], [SCILABBIN=yes])
+AC_ARG_WITH(scilab-inc, [  --with-scilab-inc=path  Set location of Scilab include directory], [SCILABINCDIR="$withval"], [SCILABINCDIR=""])
+
+# First, check for "--without-scilab" or "--with-scilab=no".
+if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then
+  AC_MSG_NOTICE([Disabling Scilab])
+  SCILAB=
+else
+  # Check for Scilab executable
+  if test "x$SCILABBIN" = xyes; then
+    AC_CHECK_PROGS(SCILAB, scilab)
+  else
+    AC_MSG_CHECKING(for scilab)
+    if test -f "$SCILABBIN"; then
+      AC_MSG_RESULT($SCILABBIN)
+      SCILAB="$SCILABBIN"
+    else
+      AC_MSG_RESULT(not found)
+    fi
+  fi
+
+  if test -n "$SCILAB"; then
+    # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
+    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+
+    AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
+    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+
+    if test $SCILAB_VERSION -ge 533; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT(no)
+      SCILAB=
+    fi
+
+    if test -n "$SCILAB"; then
+      # Set Scilab startup options depending on version
+      AC_MSG_CHECKING(for Scilab startup options)
+      SCILABOPT="-nwni -nb"
+      if test $SCILAB_VERSION -ge 540; then
+        SCILABOPT+=" -noatomsautoload"
+      fi
+      AC_MSG_RESULT($SCILABOPT)
+
+      # Check for Scilab header files
+      AC_MSG_CHECKING(for Scilab header files)
+      if test "$SCILABINCDIR" != ""; then
+        dirs="$SCILABINCDIR"
+      elif test -n "$PKGCONFIG"; then
+        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
+      else
+        dirs=""
+      fi
+      for i in $dirs; do
+        if test -r $i/api_scilab.h; then
+          AC_MSG_RESULT($i)
+          SCILABINCLUDE="-I$i"
+          break;
+        fi
+        if test -r $i/scilab/api_scilab.h; then
+          AC_MSG_RESULT($i/scilab)
+          SCILABINCLUDE="-I$i/scilab"
+          break;
+        fi
+      done
+      if test "$SCILABINCLUDE" = "" ; then
+        AC_MSG_RESULT(not found)
+        SCILAB=
+      fi
+    fi
+  fi
+fi
+
+AC_SUBST(SCILAB)
+AC_SUBST(SCILABINCLUDE)
+AC_SUBST(SCILABOPT)
+
 
 #----------------------------------------------------------------
 # Look for java
@@ -2569,6 +2655,12 @@ SKIP_UFFI=
 #fi
 AC_SUBST(SKIP_UFFI)
 
+SKIP_SCILAB=
+if test -z "$SCILAB"; then
+    SKIP_SCILAB="1"
+fi
+AC_SUBST(SKIP_SCILAB)
+
 SKIP_GO=
 if test -z "$GO" ; then
     SKIP_GO="1"
@@ -2661,6 +2753,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
+    Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/allegrocl/Makefile
@@ -2734,6 +2827,7 @@ test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
 

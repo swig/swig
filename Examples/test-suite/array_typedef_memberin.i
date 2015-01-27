@@ -1,4 +1,9 @@
 %module array_typedef_memberin
+
+#if defined(SWIGSCILAB)
+%rename(ExDetail) ExampleDetail;
+#endif
+
 %inline %{ 
 typedef short Eight[8]; 
 typedef const short ConstEight[8]; 

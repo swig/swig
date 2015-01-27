@@ -3,6 +3,8 @@
 %module varargs_overload
 
 %inline %{
+#include <stdio.h>
+
 const char *vararg_over1(const char *fmt, ...) {
   return fmt;
 }
