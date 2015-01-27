@@ -29,12 +29,7 @@ typedef union {
   SmallStruct   ss;
 } UnionTest;
 
-%}
-
 /* This union checks the parser and will be used in a runtime test */
-
-%inline %{
-
 typedef struct {
   union
   {

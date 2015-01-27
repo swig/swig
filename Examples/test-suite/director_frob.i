@@ -13,7 +13,7 @@
 
 %feature("director");
 %feature("nodirector") Bravo::abs_method();   // ok
-%feature("director")   Charlie::abs_method(); // okl
+%feature("director")   Charlie::abs_method(); // ok
 %feature("nodirector") Delta::abs_method();   // ok
 
 %inline %{

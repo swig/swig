@@ -1,15 +1,9 @@
 %module li_stdint
 
-#if defined(SWIGSCILAB)
-%rename(StdI) StdInts;
-%rename(StdIf) StdIntFasts;
-%rename(StdIl) StdIntLeasts;
-#endif
-
 %include <stdint.i>
 
 %inline %{
-  struct StdInts {
+  struct StdI {
     int8_t   int8_member;
     int16_t  int16_member;
     int32_t  int32_member;
@@ -29,7 +23,7 @@
   uint32_t uint32_td(int32_t i) { return i; }
   uint64_t uint64_td(int64_t i) { return i; }
 
-  struct StdIntFasts {
+  struct StdIf {
     int_fast8_t   int_fast8_member;
     int_fast16_t  int_fast16_member;
     int_fast32_t  int_fast32_member;
@@ -49,7 +43,7 @@
   uint_fast32_t uint_fast32_td(int_fast32_t i) { return i; }
   uint_fast64_t uint_fast64_td(int_fast64_t i) { return i; }
 
-  struct StdIntLeasts {
+  struct StdIl {
     int_least8_t   int_least8_member;
     int_least16_t  int_least16_member;
     int_least32_t  int_least32_member;

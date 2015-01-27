@@ -12,12 +12,6 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) Namespace;
 #endif
 
-#ifdef SWIGSCILAB
-%inline %{
-#undef Error
-%}
-#endif
-
 // Tests SWIG's automatic exception mechanism
 
 %inline %{
