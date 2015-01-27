@@ -2,8 +2,8 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.5 (in progress)
-===========================
+Version 3.0.5
+=============
 
 2015-01-23: olly
 	    [PHP] When wrapping a returned resource as an object, check if all
@@ -19,3 +19,6 @@ Version 3.0.5 (in progress)
 2015-01-15: wsfulton
             [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
             in directors
+
+2015-01-27: smarchetto
+	    Support for the Scilab language has been added
