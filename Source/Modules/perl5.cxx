@@ -1996,8 +1996,8 @@ public:
       Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
       Printf(f_directors_h, "    }\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool val) const {\n");
-      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = val;\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool swig_val) const {\n");
+      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = swig_val;\n");
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
       Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");

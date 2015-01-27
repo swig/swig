@@ -56,7 +56,9 @@
   public:
     Ops() : num(0) {}
     virtual ~Ops() {}
+#if !defined(__SUNPRO_CC)
     virtual operator int() { return 0; }
+#endif
     virtual operator int **() const {
       return (int **) 0;
     }
