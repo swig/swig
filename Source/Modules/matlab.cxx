@@ -1235,16 +1235,18 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
   // Add function to .m wrapper
   checkValidSymName(n);
+  const char* nargoutstr = min_num_returns==0 ? "nargout" : "max(1,nargout)";
+  const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
-  const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
-  if (min_num_returns==0) {
-    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d,'%s',self,%s);\n",mex_fcn,gw_ind,fullname,varginstr);
-  } else {
-    Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,'%s',self,%s);\n",mex_fcn,gw_ind,fullname,varginstr);
+  if (GetFlag(n, "feature:convertself") && checkAttribute(n, "qualifier", "q(const).")) {
+    // explicit type conversion of self
+    Printf(f_wrap_m,"      if ~isa(self,'%s.%s')\n",pkg_name,class_name);
+    Printf(f_wrap_m,"        self = %s.%s(self);\n", pkg_name,class_name);
+    Printf(f_wrap_m,"      end\n");
   }
+  Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d,'%s',self,%s);\n",nargoutstr,mex_fcn,gw_ind,fullname,varginstr);
   Printf(f_wrap_m,"    end\n");
-
   Delete(wname);
   Delete(fullname);
   return flag;
