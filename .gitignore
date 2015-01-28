@@ -122,15 +122,28 @@ Examples/test-suite/pike/*/
 Examples/test-suite/python/*/
 Examples/test-suite/r/*/
 Examples/test-suite/ruby/*/
+Examples/test-suite/scilab/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 *_wrap.c
 *_wrap.cxx
 *-gypcopy.cxx
 
+# Scratch directories
+Examples/scratch
+
+# Out of source tree build directories
+*build*/
+
+########## Language specific files ##########
+
 # C# generated files
 *_runme.exe.mdb
 *_runme.exe
+
+# Go generated files
+*.[5689]
+*_gc.c
 
 # Javascript generated files
 *.gyp
@@ -145,12 +158,6 @@ Examples/test-suite/octave/*.oct
 */__pycache__/
 /__pycache__/
 
-# Go generated files
-*.[5689]
-*_gc.c
+# Scilab generated files
+loader.sce
 
-# Scratch directories
-Examples/scratch
-
-# Out of source tree build directories
-*build*/

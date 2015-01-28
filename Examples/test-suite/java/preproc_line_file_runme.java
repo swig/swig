@@ -63,7 +63,7 @@ public class preproc_line_file_runme {
     if (SillyMacroClass.LINE_NUM != 56)
       throw new RuntimeException("preproc failure");
 
-    if (SillyMultipleMacroStruct.LINE_NUM != 81)
+    if (SillyMulMacroStruc.LINE_NUM != 81)
       throw new RuntimeException("preproc failure");
 
     if (preproc_line_file.INLINE_LINE != 87)

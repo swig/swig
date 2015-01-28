@@ -7,13 +7,13 @@
 
  class Foo {
  private:
-   std::string a;
+   std::string a_;
  public:
    virtual ~Foo() {}
    virtual std::string ping() { return "Foo::ping()"; }
    virtual std::string pong() { return "Foo::pong();" + ping(); }
-   virtual std::string getA() { return this->a; }
-   virtual void setA(std::string a) { this->a = a; }
+   virtual std::string getA() { return this->a_; }
+   virtual void setA(std::string a) { this->a_ = a; }
 
    static Foo* get_self(Foo *slf) {return slf;}
    

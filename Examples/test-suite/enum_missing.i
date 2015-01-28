@@ -14,10 +14,10 @@ enum AVPixelFormat2 {
 %}
 
 %inline %{
-typedef struct AVCodecContext {
+typedef struct AVCodecCtx {
   enum AVPixelFormat pix_fmt;
   enum AVPixelFormat2 pix_fmt2;
-} AVCodecContext;
+} AVCodecCtx;
 
 enum AVPixelFormat global_fmt;
 enum AVPixelFormat2 global_fmt2;

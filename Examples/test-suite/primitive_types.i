@@ -1,6 +1,11 @@
 // Massive primitive datatype test.
 %module(directors="1") primitive_types
 
+#if defined(SWIGSCILAB)
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_val;
+%rename(TestDir) TestDirector;
+#endif
+
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
