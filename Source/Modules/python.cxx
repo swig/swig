@@ -3298,6 +3298,7 @@ public:
         // Generate method which registers the new constant
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+        Printf(f_wrappers, tab2 "PyObject *d;\n");
 	if (modernargs) {
 	  if (fastunpack) {
 	    Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
@@ -3307,7 +3308,7 @@ public:
 	} else {
 	  Printf(f_wrappers, tab2 "if (!PyArg_ParseTuple(args,(char*)\"O:swigconstant\", &module)) return NULL;\n");
 	}
-        Printf(f_wrappers, tab2 "PyObject *d = PyModule_GetDict(module);\n");
+        Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
         Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
         Printf(f_wrappers, tab2 "%s\n", tm);
         Printf(f_wrappers, tab2 "return SWIG_Py_Void();\n");
