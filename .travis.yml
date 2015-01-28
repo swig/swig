@@ -1,6 +1,6 @@
 language: cpp
 compiler:
-  - clang
+#  - clang
   - gcc
 env:
   - SWIGLANG=
@@ -83,41 +83,11 @@ before_install:
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
   - if test "$SWIGLANG" = "scilab"; then sudo apt-get -qq install scilab; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
-  # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
-  - declare -A CFLAGS_EXAMPLES && CFLAGS_EXAMPLES=(
-        ["csharp"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-             ["d"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-            ["go"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-         ["guile"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-          ["java"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-    ["javascript"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-           ["lua"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-        ["octave"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-         ["perl5"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-           ["php"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-        ["python"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-          ["ruby"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-           ["tcl"]="-Werror -std=gnu89 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-        ["scilab"]="-Werror -std=gnu89 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-    )
-  - declare -A CXXFLAGS_EXAMPLES && CXXFLAGS_EXAMPLES=(
-        ["csharp"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-             ["d"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-            ["go"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-         ["guile"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-          ["java"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-    ["javascript"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-           ["lua"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-        ["octave"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-         ["perl5"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-           ["php"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-        ["python"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-          ["ruby"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-           ["tcl"]="-Werror -std=c++98 -fdiagnostics-show-option -Wno-long-long -Wreturn-type"
-        ["scilab"]="-Werror -std=c++98 -fdiagnostics-show-option -pedantic -Wno-long-long -Wreturn-type"
-    )
   - $CC --version
   - $CXX --version
+  # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+  - export cflags=$(./testflags.py --language $SWIGLANG --cflags) && echo $cflags
+  - export cxxflags=$(./testflags.py --language $SWIGLANG --cxxflags) && echo $cxxflags
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
   - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure $CONFIGOPTS
@@ -130,10 +100,10 @@ script:
   - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
   - echo -en 'travis_fold:end:script.2\\r'
   - if test -n "$SWIGLANG"; then make -s check-$SWIGLANG-version; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-examples CFLAGS="${CFLAGS_EXAMPLES[$SWIGLANG]}" CXXFLAGS="${CXXFLAGS_EXAMPLES[$SWIGLANG]}"; fi
-  - if test -n "$SWIGLANG"; then make -k $SWIGJOBS check-$SWIGLANG-test-suite; fi
+  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
+  - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
   - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
-  - make check-maintainer-clean && ../../configure $CONFIGOPTS
+#  - make check-maintainer-clean && ../../configure $CONFIGOPTS
   - echo -en 'travis_fold:end:script.3\\r'
 branches:
   only:
