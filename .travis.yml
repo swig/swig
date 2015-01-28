@@ -138,3 +138,4 @@ script:
 branches:
   only:
     - master
+    - error-declaration-after-statement
