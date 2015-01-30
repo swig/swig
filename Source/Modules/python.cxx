@@ -873,7 +873,17 @@ public:
 #else
 	       tab4, "if (not static):\n",
 #endif
-	       tab4, tab4, "object.__setattr__(self, name, value)\n",
+	       NIL);
+	if (!classic) {
+	  if (!modern)
+	    Printv(f_shadow, tab4, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
+	  if (!modern)
+	    Printv(f_shadow, tab4, tab4, "else:\n", tab4, NIL);
+	}
+	if (classic || !modern)
+	  Printv(f_shadow, tab4, tab4, "self.__dict__[name] = value\n", NIL);
+	Printv(f_shadow,
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
 	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
