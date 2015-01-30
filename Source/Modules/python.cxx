@@ -42,6 +42,7 @@ static File *f_wrappers = 0;
 static File *f_directors = 0;
 static File *f_directors_h = 0;
 static File *f_init = 0;
+static File *f_director_error = 0;
 static File *f_shadow_py = 0;
 static String *f_shadow = 0;
 static String *f_shadow_begin = 0;
@@ -626,6 +627,7 @@ public:
     f_wrappers = NewString("");
     f_directors_h = NewString("");
     f_directors = NewString("");
+    f_director_error = NewString("");
     builtin_getset = NewHash();
     class_members = NewHash();
     builtin_methods = NewString("");
@@ -653,6 +655,7 @@ public:
     Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("director_error", f_director_error);
     Swig_register_filebyname("director", f_directors);
     Swig_register_filebyname("director_h", f_directors_h);
 
@@ -998,6 +1001,22 @@ public:
       Delete(f_shadow_py);
     }
 
+    if (directorsEnabled()) {
+      /* Write the ThrowDirectorException Implementation to the end of the
+       * header section. */
+      Append(f_header, "namespace Swig {\n");
+      Append(f_header, "  template <class ExceptionType>\n");
+      Append(f_header, "  void ThrowDirectorException(const ExceptionType &exception) {\n");
+      if (Len(f_director_error)) {
+        Replaceall(f_director_error, "$exception", "exception");
+        Append(f_header, f_director_error);
+      } else {
+        Append(f_header, "  throw exception;\n");
+      }
+      Append(f_header, "  }\n");
+      Append(f_header, "}\n");
+    }
+
     /* Close all of the files */
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
@@ -1021,6 +1040,7 @@ public:
     Delete(f_builtins);
     Delete(f_init);
     Delete(f_directors);
+    Delete(f_director_error);
     Delete(f_directors_h);
     Delete(f_runtime);
     Delete(f_begin);

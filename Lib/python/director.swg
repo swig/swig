@@ -171,6 +171,9 @@ namespace Swig {
     Type *_ptr;
   };
 
+  template <class ExceptionType>
+  void ThrowDirectorException(const ExceptionType &exception);
+
   /* base class for director exceptions */
   class DirectorException : public std::exception {
   protected:
@@ -201,7 +204,7 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      throw DirectorException(error, msg);
+      ThrowDirectorException(DirectorException(error, msg));
     }
 
     static void raise(const char *msg) {
@@ -261,11 +264,11 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      throw DirectorTypeMismatchException(error, msg);
+      ThrowDirectorException(DirectorTypeMismatchException(error, msg));
     }
 
     static void raise(const char *msg) {
-      throw DirectorTypeMismatchException(msg);
+      ThrowDirectorException(DirectorTypeMismatchException(msg));
     }
   };
 
@@ -277,7 +280,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      throw DirectorMethodException(msg);
+      ThrowDirectorException(DirectorMethodException(msg));
     }
   };
 

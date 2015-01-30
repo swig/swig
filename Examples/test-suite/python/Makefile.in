@@ -59,6 +59,7 @@ CPP_TEST_CASES += \
 	python_abstractbase \
 	python_append \
 	python_director \
+	python_director_error \
 	python_nondynamic \
 	python_overload_simple_cast \
 	python_richcompare \
