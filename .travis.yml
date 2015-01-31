@@ -51,6 +51,8 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
     - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-classic
+    - compiler: gcc
       env: SWIGLANG=ruby
     - compiler: gcc
       env: SWIGLANG=scilab
@@ -60,6 +62,9 @@ matrix:
     # Occasional gcc internal compiler error
     - compiler: gcc
       env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+    # Not quite working yet
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-classic
 before_install:
   - date -u
   - uname -a

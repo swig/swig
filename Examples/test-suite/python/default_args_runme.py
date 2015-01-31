@@ -1,5 +1,8 @@
 # Note that this test is also used by python_default_args_runme.py hence the use of __main__ and the run function
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
 def run(module_name):
   default_args = __import__(module_name)
   ec = default_args.EnumClass()
@@ -71,13 +74,15 @@ def run(module_name):
     error = 0
   if error:  raise RuntimeError("Foo::meth ignore is not working")
 
-  if default_args.Klass.inc(100, default_args.Klass(22)).val != 122:
+  Klass_inc = default_args.Klass.inc if is_new_style_class(default_args.Klass) else default_args.Klass_inc
+
+  if Klass_inc(100, default_args.Klass(22)).val != 122:
     raise RuntimeError("Klass::inc failed")
 
-  if default_args.Klass.inc(100).val != 99:
+  if Klass_inc(100).val != 99:
     raise RuntimeError("Klass::inc failed")
 
-  if default_args.Klass.inc().val != 0:
+  if Klass_inc().val != 0:
     raise RuntimeError("Klass::inc failed")
 
   default_args.trickyvalue1(10); default_args.trickyvalue1(10, 10)

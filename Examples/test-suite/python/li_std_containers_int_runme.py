@@ -7,6 +7,11 @@ def failed(a, b, msg):
   raise RuntimeError, msg + " " + str(list(a)) + " " + str(list(b))
 
 def compare_sequences(a, b):
+  print("Comparing {} and {}\n".format(a, b))
+  print(" len a: {}\n".format(a.__len__()))
+  print(" len b: {}\n".format(b.__len__()))
+  print(" len a: {}\n".format(type(a.__len__())))
+  print(" len b: {}\n".format(type(b.__len__())))
   if len(a) != len(b):
     failed(a, b, "different sizes")
   for i in range(len(a)):
