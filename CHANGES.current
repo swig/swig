@@ -12,7 +12,7 @@ Version 3.0.5 (in progress)
             Fixes patch #232.
 
 2015-01-27: smarchetto
-	    Support for the Scilab language has been added
+	    [Scilab] Support for the Scilab language has been added
 
 2015-01-23: olly
 	    [PHP] When wrapping a returned resource as an object, check if all
@@ -28,3 +28,7 @@ Version 3.0.5 (in progress)
 2015-01-15: wsfulton
             [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
             in directors
+
+2015-01-15: wsfulton
+            [Python] Second fix for #294 #296 - Regression introduced in SWIG-3.0.3 when
+            wrapping functions with default arguments, this time when using kwargs.
