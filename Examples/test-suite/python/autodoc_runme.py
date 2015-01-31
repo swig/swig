@@ -14,7 +14,7 @@ def is_new_style_class(cls):
 
 if not is_new_style_class(A):
   # Missing static methods make this hard to test... skip if -classic is used!
-  exit(0)
+  sys.exit(0)
 
 skip = True # skip builtin check - the autodoc is missing, but it probably should not be
 

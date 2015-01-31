@@ -11,8 +11,10 @@ k5 = Klass5()
 k6 = Klass6()
 k7 = Klass7()
 
-KlassMethods_static = KlassMethods if is_new_style_class(KlassMethods) else KlassMethods()
-
+if is_new_style_class(KlassMethods):
+  KlassMethods_static = KlassMethods
+else:
+  KlassMethods_static = KlassMethods()
 KlassMethods_static.methodA(k1, k2, k3, k4, k5, k6, k7)
 KlassMethods_static.methodB(k1, k2, k3, k4, k5, k6, k7)
 
@@ -38,10 +40,16 @@ k7 = getKlass7B()
 KlassMethods_static.methodA(k1, k2, k3, k4, k5, k6, k7)
 KlassMethods_static.methodB(k1, k2, k3, k4, k5, k6, k7)
 
-XYZMethods_static = XYZMethods if is_new_style_class(XYZMethods) else XYZMethods()
+if is_new_style_class(XYZMethods):
+  XYZMethods_static = XYZMethods
+else:
+  XYZMethods_static = XYZMethods()
 XYZMethods_static.methodA(XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
 XYZMethods_static.methodB(XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
 
-TheEnumMethods_static = TheEnumMethods if is_new_style_class(TheEnumMethods) else TheEnumMethods()
+if is_new_style_class(TheEnumMethods):
+  TheEnumMethods_static = TheEnumMethods
+else:
+  TheEnumMethods_static = TheEnumMethods()
 TheEnumMethods_static.methodA(theenum1, theenum2, theenum3)
 TheEnumMethods_static.methodA(theenum1, theenum2, theenum3)

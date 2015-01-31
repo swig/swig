@@ -74,7 +74,10 @@ def run(module_name):
     error = 0
   if error:  raise RuntimeError("Foo::meth ignore is not working")
 
-  Klass_inc = default_args.Klass.inc if is_new_style_class(default_args.Klass) else default_args.Klass_inc
+  if is_new_style_class(default_args.Klass):
+    Klass_inc = default_args.Klass.inc
+  else:
+    Klass_inc = default_args.Klass_inc
 
   if Klass_inc(100, default_args.Klass(22)).val != 122:
     raise RuntimeError("Klass::inc failed")

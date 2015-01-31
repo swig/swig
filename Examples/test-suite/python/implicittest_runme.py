@@ -42,7 +42,10 @@ check(2, A_int(1.0).get())
 check(3, A_int(B()).get())
 check(4, A_int("hello").get())
 
-A_int_static = A_int if is_new_style_class(A_int) else A_int(0)
+if is_new_style_class(A_int):
+  A_int_static = A_int
+else:
+  A_int_static = A_int(0)
 check(1, A_int_static.sget(1))
 check(2, A_int_static.sget(1.0))
 check(3, A_int_static.sget(B()))
