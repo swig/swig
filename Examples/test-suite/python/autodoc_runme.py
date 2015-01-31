@@ -56,8 +56,8 @@ check(A.func3.__doc__,
 "\n"
 "Parameters\n"
 "----------\n"
-"    arg2: short\n"
-"    hello: int tuple[2]\n"
+"arg2: short\n"
+"hello: int tuple[2]\n"
 "\n"
 ""
 )
