@@ -2,33 +2,6 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.5 (31 Jan 2015)
+Version 3.0.6 (in progress)
 ===========================
 
-2015-01-30: wsfulton
-            [Python] Fix Python -classic and property setting. Setting properties on classic classes
-            was broken in swig-3.0.3 by attempting to use __setattr__. This regression is fixed now
-            by using __dict__ again when using -classic.
-            Fixes patch #232.
-
-2015-01-27: smarchetto
-	    [Scilab] Support for the Scilab language has been added
-
-2015-01-23: olly
-	    [PHP] When wrapping a returned resource as an object, check if all
-	    cases wrap it in the same class, and if so eliminate the pointless
-	    switch statement wrapper we previously generated.
-
-2015-01-22: wsfulton
-            [Octave] Merge patch #297 for SF bug #1277 - Octave shared_ptr support
-
-2015-01-15: wsfulton
-            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
-
-2015-01-15: wsfulton
-            [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
-            in directors
-
-2015-01-15: wsfulton
-            [Python] Second fix for #294 #296 - Regression introduced in SWIG-3.0.3 when
-            wrapping functions with default arguments, this time when using kwargs.
