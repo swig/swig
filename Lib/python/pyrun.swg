@@ -381,6 +381,23 @@ typedef struct {
 #endif
 } SwigPyObject;
 
+
+#ifdef SWIGPYTHON_BUILTIN
+
+SWIGRUNTIME PyObject *
+SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
+{
+  SwigPyObject *sobj = (SwigPyObject *)v;
+
+  if (!sobj->dict)
+    sobj->dict = PyDict_New();
+
+  Py_INCREF(sobj->dict);
+  return sobj->dict;
+}
+
+#endif
+
 SWIGRUNTIME PyObject *
 SwigPyObject_long(SwigPyObject *v)
 {
