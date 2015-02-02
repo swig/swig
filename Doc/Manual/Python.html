@@ -2841,6 +2841,7 @@ the methods one() and two() (but not three()):
 class Foo {
 public:
     Foo(int foo);
+    virtual ~Foo();
     virtual void one();
     virtual void two();
 };
@@ -2861,11 +2862,12 @@ then at the python side you can define
 import mymodule
 
 class MyFoo(mymodule.Foo):
-  def __init__(self, foo):
-     mymodule.Foo(self, foo)  
+    def __init__(self, foo):
+        mymodule.Foo.__init__(self, foo)
+#       super().__init__(foo) # Alternative construction for Python3
 
-  def one(self):
-     print "one from python"
+    def one(self):
+        print "one from python"
 </pre>
 </div>
 
