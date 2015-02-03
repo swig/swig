@@ -225,8 +225,8 @@ This testcase tests operators for defines
 #define A7   13 & 14
 #define A8   15 | 16
 #define A9   17 ^ 18
-#define A10  19 && 20
-#define A11  21 || 21
+#define A10  1 && 0
+#define A11  1 || 0
 #define A12  ~22
 #define A13  !23
 
