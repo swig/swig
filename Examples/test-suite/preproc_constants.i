@@ -102,3 +102,10 @@ enum MyEnum {
 enum MyEnum {
   kValue = BIT(2)
 };
+
+%{
+#if defined(__clang__)
+//Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif
+%}
