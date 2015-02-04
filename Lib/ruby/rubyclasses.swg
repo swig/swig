@@ -384,7 +384,7 @@ namespace swig {
   
   template <> 
   struct traits_check<GC_VALUE, value_category> {
-    static bool check(GC_VALUE) {
+    static bool swig_check_obj(GC_VALUE) {
       return true;
     }
   };

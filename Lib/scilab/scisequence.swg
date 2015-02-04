@@ -46,7 +46,7 @@
 namespace swig {
   // Error returned for sequence containers of default item type
   template <typename T> struct traits_as_sequence {
-    static int check(SwigSciObject obj) {
+    static int swig_check_obj(SwigSciObject obj) {
       SWIG_Error(SWIG_TypeError, type_name<T>());
     }
     static int get(SwigSciObject obj, void **sequence) {
@@ -67,7 +67,7 @@ namespace swig {
 
   // Support sequence containers of pointers
   template <typename T> struct traits_as_sequence<T*> {
-    static int check(SwigSciObject obj) {
+    static int swig_check_obj(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(ptr)(obj);
     }
     static int get(SwigSciObject obj, void **sequence) {
@@ -99,7 +99,7 @@ namespace swig {
 
 namespace swig {
   template <> struct traits_as_sequence<CppType > {
-    static int check(SwigSciObject obj) {
+    static int swig_check_obj(SwigSciObject obj) {
       return SWIG_AsCheck_Sequence_dec(CppType)(obj);
     }
     static int get(SwigSciObject obj, void **sequence) {

@@ -54,7 +54,7 @@ namespace swig {
   
   template <> 
   struct traits_check<SwigPtr_PyObject, value_category> {
-    static bool check(SwigPtr_PyObject) {
+    static bool swig_check_obj(SwigPtr_PyObject) {
       return true;
     }
   };
@@ -87,7 +87,7 @@ namespace swig {
   
   template <> 
   struct traits_check<SwigVar_PyObject, value_category> {
-    static bool check(SwigVar_PyObject) {
+    static bool swig_check_obj(SwigVar_PyObject) {
       return true;
     }
   };
@@ -170,7 +170,7 @@ namespace swig {
 
   template <> 
   struct traits_check<PyObject *, value_category> {
-    static bool check(PyObject *) {
+    static bool swig_check_obj(PyObject *) {
       return true;
     }
   };
@@ -619,12 +619,12 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool swig_check_obj(bool set_err = true) const
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
 	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
-	if (!swig::check<value_type>(item)) {
+	if (!swig::swig_check_obj<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
 	    sprintf(msg, "in sequence element %d", i);
@@ -957,7 +957,7 @@ namespace swig {
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return swigpyseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return swigpyseq.swig_check_obj() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq) {

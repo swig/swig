@@ -378,7 +378,7 @@ namespace swig {
           }
       }
 
-      if (traits_as_sequence<value_type>::check(obj) == SWIG_OK)
+      if (traits_as_sequence<value_type>::swig_check_obj(obj) == SWIG_OK)
       {
         try
         {

@@ -46,7 +46,7 @@ namespace swig {
   
   template <> 
   struct traits_check<octave_value, value_category> {
-    static bool check(const octave_value&) {
+    static bool swig_check_obj(const octave_value&) {
       return true;
     }
   };
@@ -400,13 +400,13 @@ namespace swig
       return const_reference(_seq, n);
     }
 
-    bool check(bool set_err = true) const
+    bool swig_check_obj(bool set_err = true) const
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
 	//	swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, i);
 	octave_value item; // * todo
-	if (!swig::check<value_type>(item)) {
+	if (!swig::swig_check_obj<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
 	    sprintf(msg, "in sequence element %d", i);
@@ -575,7 +575,7 @@ namespace swig {
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return octseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return octseq.swig_check_obj() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq&&!error_state)
