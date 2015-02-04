@@ -11,6 +11,76 @@
 #include "cparse.h"
 #include <ctype.h>
 
+/* -----------------------------------------------------------------------------
+ * siphash: 64-bit SipHash-2-4 to generate unique id for each module
+ * ----------------------------------------------------------------------------- */
+typedef struct { /* assume unsigned long is at least 32-bit */
+  unsigned long hi;
+  unsigned long lo;
+} _uint64;
+static inline void _rotl(_uint64 *v, int bits) { /* bits must <=32 */
+  unsigned long tmp = v->hi;
+  if (bits == 32) {
+    v->hi = v->lo;
+    v->lo = tmp;
+  } else if (bits < 32) {
+    v->hi = (tmp << bits) | ((0xfffffffful & v->lo) >> (32-bits));
+    v->lo = (v->lo << bits) | ((0xfffffffful & tmp) >> (32-bits));
+  }
+}
+static inline void _xor(_uint64 *dst, _uint64 *src) {
+  dst->hi ^= src->hi; dst->lo ^= src->lo;
+}
+static inline void _add(_uint64 *dst, _uint64 *src) {
+  dst->lo += src->lo;
+  dst->hi += src->hi + ((dst->lo & 0xfffffffful) < (src->lo&0xfffffffful) ? 1:0);
+}
+#define SIPROUND                                        \
+  do {                                                  \
+    _add(&v0, &v1); _rotl(&v1, 13); _xor(&v1, &v0); _rotl(&v0, 32); \
+    _add(&v2, &v3); _rotl(&v3, 16); _xor(&v3, &v2); \
+    _add(&v0, &v3); _rotl(&v3, 21); _xor(&v3, &v0); \
+    _add(&v2, &v1); _rotl(&v1, 17); _xor(&v1, &v2); _rotl(&v2, 32); \
+  } while(0)
+static void siphash(_uint64 *out, const char *inc, unsigned long inlen) {
+  /* "somepseudorandomlygeneratedbytes" */
+  _uint64 v0 = {0x736f6d65UL, 0x70736575UL};
+  _uint64 v1 = {0x646f7261UL, 0x6e646f6dUL};
+  _uint64 v2 = {0x6c796765UL, 0x6e657261UL};
+  _uint64 v3 = {0x74656462UL, 0x79746573UL};
+  _uint64 b;
+  /* hard-coded k. */
+  _uint64 k0 = {0x07060504UL, 0x03020100UL};
+  _uint64 k1 = {0x0F0E0D0CUL, 0x0B0A0908UL};
+  int i;
+  const int cROUNDS = 2, dROUNDS = 4;
+  const unsigned char *in = (unsigned char *)inc;
+  const unsigned char *end = in + inlen - (inlen % 8);
+  int left = inlen & 7;
+  _xor(&v3, &k1); _xor(&v2, &k0); _xor(&v1, &k1); _xor(&v0, &k0);
+  for (; in != end; in += 8) {
+    b.hi = 0; b.lo = 0;
+    for (i = 0; i < 4; i++) b.lo |= ((unsigned long)in[i]) << (8*i);
+    for (i = 0; i < 4; i++) b.hi |= ((unsigned long)in[i+4]) << (8*i);
+    _xor(&v3, &b);
+    for (i = 0; i < cROUNDS; i++) SIPROUND;
+    _xor(&v0, &b);
+  }
+  b.hi = (inlen & 0xff)<<24; b.lo = 0;
+  for (; left; left--)
+    if (left > 4)
+      b.hi |= ((unsigned long)in[left-1]) << (8*left-8-32);
+    else
+      b.lo |= ((unsigned long)in[left-1]) << (8*left-8);
+  _xor(&v3, &b);
+  for(i=0; i<cROUNDS; i++) SIPROUND;
+  _xor(&v0, &b); v2.lo ^= 0xff;
+  for(i=0; i<dROUNDS; i++) SIPROUND;
+  out->lo = 0; out->hi = 0;
+  _xor(out, &v0); _xor(out, &v1); _xor(out, &v2); _xor(out, &v3);
+}
+#undef SIPROUND
+
 class GO:public Language {
   static const char *const usage;
 
@@ -37,6 +107,7 @@ class GO:public Language {
   File *f_c_begin;
   File *f_go_begin;
   File *f_gc_begin;
+  File *f_gc_go_begin;
 
   /* Output fragments */
   File *f_c_runtime;
@@ -52,6 +123,8 @@ class GO:public Language {
   File *f_gc_runtime;
   File *f_gc_header;
   File *f_gc_wrappers;
+  File *f_gc_go_inits;
+  File *f_gc_go_wrappers;
 
   // True if we imported a module.
   bool saw_import;
@@ -105,6 +178,7 @@ public:
      f_c_begin(NULL),
      f_go_begin(NULL),
      f_gc_begin(NULL),
+     f_gc_go_begin(NULL),
      f_c_runtime(NULL),
      f_c_header(NULL),
      f_c_wrappers(NULL),
@@ -118,6 +192,8 @@ public:
      f_gc_runtime(NULL),
      f_gc_header(NULL),
      f_gc_wrappers(NULL),
+     f_gc_go_inits(NULL),
+     f_gc_go_wrappers(NULL),
      saw_import(false),
      imported_package(NULL),
      interfaces(NULL),
@@ -328,10 +404,28 @@ private:
     Printf(go_filename, "%s%s.go", SWIG_output_directory(), module);
 
     String *gc_filename = NULL;
+    String *gc_go_filename = NULL;
     if (!gccgo_flag) {
       gc_filename = NewString("");
+      gc_go_filename = NewString("");
       Printf(gc_filename, "%s%s_gc.c", SWIG_output_directory(), module);
+      Printf(gc_go_filename, "%s%s_gc.go", SWIG_output_directory(), module);
     }
+
+    // Generate unique id based on hash of SWIG input
+
+    _uint64 hash = {0, 0};
+    String *unique_id = NewString("");
+    FILE *swig_input = Swig_open(swig_filename);
+    if (swig_input == NULL) {
+      FileErrorDisplay(swig_filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    String *swig_input_content = Swig_read_file(swig_input);
+    siphash(&hash, Char(swig_input_content), Len(swig_input_content));
+    Delete(swig_input_content);
+    fclose(swig_input);
+    Printf(unique_id, "%s_%08x%08x", package, hash.hi, hash.lo);
 
     // Open files.
 
@@ -365,6 +459,11 @@ private:
 	FileErrorDisplay(gc_filename);
 	SWIG_exit(EXIT_FAILURE);
       }
+      f_gc_go_begin = NewFile(gc_go_filename, "w", SWIG_output_files());
+      if (!f_gc_go_begin) {
+	FileErrorDisplay(gc_go_filename);
+	SWIG_exit(EXIT_FAILURE);
+      }
     }
 
     f_c_runtime = NewString("");
@@ -380,6 +479,8 @@ private:
       f_gc_runtime = NewString("");
       f_gc_header = NewString("");
       f_gc_wrappers = NewString("");
+      f_gc_go_inits = NewString("");
+      f_gc_go_wrappers = NewString("");
     }
 
     Swig_register_filebyname("begin", f_c_begin);
@@ -399,6 +500,8 @@ private:
       Swig_register_filebyname("gc_runtime", f_gc_runtime);
       Swig_register_filebyname("gc_header", f_gc_header);
       Swig_register_filebyname("gc_wrapper", f_gc_wrappers);
+      Swig_register_filebyname("gc_go_inits", f_gc_go_inits);
+      Swig_register_filebyname("gc_go_wrapper", f_gc_go_wrappers);
     }
 
     Swig_banner(f_c_begin);
@@ -431,11 +534,31 @@ private:
     Swig_banner(f_go_begin);
     Printf(f_go_begin, "\n// source: %s\n", swig_filename);
 
-    if (!gccgo_flag && soname) {
+    if (!gccgo_flag) {
       Swig_banner(f_gc_begin);
       Printf(f_gc_begin, "\n/* source: %s */\n\n", swig_filename);
       Printf(f_gc_begin, "\n/* This file should be compiled with 6c/8c.  */\n");
-      Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
+      // \xc2\xb7 is UTF-8 for U+00B7 which is Unicode 'Middle Dot'
+      Printf(f_gc_begin, "\nvoid \xc2\xb7swig_init_c(void) {}\n");
+      Swig_banner(f_gc_go_begin);
+      Printf(f_gc_go_begin, "\n/* source: %s */\n\n", swig_filename);
+      Printf(f_gc_go_begin, "\npackage %s\n", package);
+      Printf(f_gc_go_begin, "\nimport \"unsafe\"\n\n");
+      Printf(f_gc_go_begin, "\nimport _ \"runtime\"\n\n");
+      Printf(f_gc_go_begin, "\n//go:linkname _cgo_runtime_cgocallback runtime.cgocallback");
+      Printf(f_gc_go_begin, "\nfunc _cgo_runtime_cgocallback(unsafe.Pointer, unsafe.Pointer, uintptr)\n");
+      Printf(f_gc_go_begin, "\n//go:linkname __cgo_runtime_cgocall runtime.cgocall");
+      Printf(f_gc_go_begin, "\nfunc __cgo_runtime_cgocall(unsafe.Pointer, uintptr)\n\n");
+
+      Printf(f_gc_go_inits, "\n//go:linkname swig_init_go swig_init_go_%s", unique_id);
+      Printf(f_gc_go_inits, "\nfunc swig_init_go() {\n");
+
+      Printf(f_gc_go_inits, "\t_cgo_runtime_cgocall = __cgo_runtime_cgocall\n");
+
+      if (soname) {
+        Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
+        Printf(f_gc_go_begin, "//go:cgo_import_dynamic _ _ \"%s\"\n\n", soname);
+      }
     }
 
     // Output module initialization code.
@@ -447,7 +570,13 @@ private:
       Printf(f_go_runtime, "func SwigCgocallDone()\n");
       Printf(f_go_runtime, "func SwigCgocallBack()\n");
       Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
+    } else {
+      Printf(f_go_begin, "import \"sync\"\n");
+      Printf(f_go_runtime, "var _swig_once sync.Once\n\n");
+      Printf(f_go_runtime, "//go:linkname swig_init_c swig_init_go_%s\n", unique_id);
+      Printf(f_go_runtime, "func swig_init_c()\n\n");
     }
+    Delete(unique_id);
 
     // All the C++ wrappers should be extern "C".
 
@@ -514,6 +643,10 @@ private:
     // End the extern "C".
     Printv(f_c_wrappers, "#ifdef __cplusplus\n", "}\n", "#endif\n\n", NULL);
 
+    // End the swig_init function
+    if (!gccgo_flag)
+      Printv(f_gc_go_inits, "}\n", NULL);
+
     Dump(f_c_runtime, f_c_begin);
     Dump(f_c_wrappers, f_c_begin);
     Dump(f_c_init, f_c_begin);
@@ -525,6 +658,8 @@ private:
       Dump(f_gc_header, f_gc_begin);
       Dump(f_gc_runtime, f_gc_begin);
       Dump(f_gc_wrappers, f_gc_begin);
+      Dump(f_gc_go_wrappers, f_gc_go_begin);
+      Dump(f_gc_go_inits, f_gc_go_begin);
     }
 
     Delete(f_c_runtime);
@@ -539,12 +674,15 @@ private:
       Delete(f_gc_runtime);
       Delete(f_gc_header);
       Delete(f_gc_wrappers);
+      Delete(f_gc_go_inits);
+      Delete(f_gc_go_wrappers);
     }
 
     Delete(f_c_begin);
     Delete(f_go_begin);
     if (!gccgo_flag) {
       Delete(f_gc_begin);
+      Delete(f_gc_go_begin);
     }
 
     return SWIG_OK;
@@ -832,6 +970,10 @@ private:
       if (r != SWIG_OK) {
 	return r;
       }
+      r = gcgoFunctionWrapper(wname);
+      if (r != SWIG_OK) {
+	return r;
+      }
       r = gccFunctionWrapper(n, base, wname, parms, result);
       if (r != SWIG_OK) {
 	return r;
@@ -992,6 +1134,7 @@ private:
 
       if (!gccgo_flag) {
 	Printv(f_go_wrappers, " {\n", NULL);
+	Printv(f_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
 	if (arg) {
 	  Printv(f_go_wrappers, "\t_swig_p := uintptr(unsafe.Pointer(&base))\n", NULL);
 	} else {
@@ -1112,6 +1255,9 @@ private:
     // If this is a wrapper, we need to actually call the C function.
     if (needs_wrapper) {
       Printv(f_go_wrappers, " {\n", NULL);
+
+      if (!gccgo_flag)
+	Printv(f_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
 
       if (parm_count > required_count) {
 	Parm *p = parms;
@@ -1250,6 +1396,7 @@ private:
       // GCC-compiled wrapper.  If we're not using gccgo, we need to
       // call the GCC-compiled wrapper here.
       Printv(f_go_wrappers, " {\n", NULL);
+      Printv(f_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
       if (first == NULL) {
 	Printv(f_go_wrappers, "\tvar _swig_p uintptr\n", NULL);
       } else {
@@ -1330,6 +1477,24 @@ private:
     Wrapper_print(f, f_gc_wrappers);
 
     DelWrapper(f);
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * gcgoFunctionWrapper()
+   *
+   * This is used for 6g/8g, not for gccgo.  Write out the function
+   * redirector that will be compiled with 6g/8g (Go 1.5+).
+   * ---------------------------------------------------------------------- */
+
+  int gcgoFunctionWrapper(String *wname) {
+    Printv(f_gc_go_wrappers, "//go:cgo_import_dynamic ", wname, " ", wname, " \"\"\n", NULL);
+    Printv(f_gc_go_wrappers, "//go:cgo_import_static ", wname, "\n", NULL);
+    Printv(f_gc_go_wrappers, "//go:linkname _cgo_", wname, " ", wname, "\n", NULL);
+    Printv(f_gc_go_wrappers, "var _cgo_", wname, " byte\n\n", NULL);
+
+    Printv(f_gc_go_inits, "\t", wname, " = unsafe.Pointer(&_cgo_", wname, ")\n", NULL);
 
     return SWIG_OK;
   }
@@ -2833,6 +2998,7 @@ private:
 
       if (!gccgo_flag) {
 	Printv(f_go_wrappers, " {\n", NULL);
+	Printv(f_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
 	Printv(f_go_wrappers, "\t_swig_p := uintptr(unsafe.Pointer(&_swig_director))\n", NULL);
 	Printv(f_go_wrappers, "\t_cgo_runtime_cgocall(", wname, ", _swig_p)\n", NULL);
 	Printv(f_go_wrappers, "\treturn\n", NULL);
@@ -2909,6 +3075,10 @@ private:
 
       if (!gccgo_flag) {
 	int r = gcFunctionWrapper(wname);
+	if (r != SWIG_OK) {
+	  return r;
+	}
+	r = gcgoFunctionWrapper(wname);
 	if (r != SWIG_OK) {
 	  return r;
 	}
@@ -3075,6 +3245,16 @@ private:
 	Printv(f_gc_wrappers, "{\n", NULL);
 	Printv(f_gc_wrappers, "\truntime\xc2\xb7" "cgocallback(\xc2\xb7", go_name, ", a, n);\n", NULL);
 	Printv(f_gc_wrappers, "}\n\n", NULL);
+
+	Printv(f_gc_go_wrappers, "//go:linkname ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_go_wrappers, "//go:cgo_dynexport ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_go_wrappers, "//go:cgo_export_static ", wname, " ", wname, "\n", NULL);
+	Printv(f_gc_go_wrappers, "//go:nosplit\n", NULL);
+	Printv(f_gc_go_wrappers, "func ", wname, "(a unsafe.Pointer, n int32) {\n", NULL);
+	Printv(f_gc_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
+	Printv(f_gc_go_wrappers, "\tfn := ", go_name, "\n", NULL);
+	Printv(f_gc_go_wrappers, "\t_cgo_runtime_cgocallback(**(**unsafe.Pointer)(unsafe.Pointer(&fn)), a, uintptr(n))\n", NULL);
+	Printv(f_gc_go_wrappers, "}\n\n", NULL);
       } else {
 	Printv(f_c_directors, "  ", wname, "(go_val);\n", NULL);
       }
@@ -3339,6 +3519,7 @@ private:
 
 	if (!gccgo_flag) {
 	  Printv(f_go_wrappers, " {\n", NULL);
+	  Printv(f_go_wrappers, "\t_swig_once.Do(swig_init_c)\n", NULL);
 	  Printv(f_go_wrappers, "\t_swig_p := uintptr(unsafe.Pointer(&_swig_ptr))\n", NULL);
 	  Printv(f_go_wrappers, "\t_cgo_runtime_cgocall(", upcall_wname, ", _swig_p)\n", NULL);
 	  Printv(f_go_wrappers, "\treturn\n", NULL);
@@ -3578,6 +3759,10 @@ private:
 	  // Write the upcall wrapper function.  This is compiled by gc
 	  // and calls the C++ function.
 	  int r = gcFunctionWrapper(upcall_wname);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
+	  r = gcgoFunctionWrapper(upcall_wname);
 	  if (r != SWIG_OK) {
 	    return r;
 	  }
@@ -4020,6 +4205,15 @@ private:
 	  Printv(f_gc_wrappers, "{\n", NULL);
 	  Printv(f_gc_wrappers, "\truntime\xc2\xb7" "cgocallback(\xc2\xb7", callback_name, ", a, n);\n", NULL);
 	  Printv(f_gc_wrappers, "}\n\n", NULL);
+	  // The Go (1.5+) wrapper code which calls the Go function.
+	  Printv(f_gc_go_wrappers, "//go:linkname ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_go_wrappers, "//go:cgo_dynexport ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_go_wrappers, "//go:cgo_export_static ", callback_wname, " ", callback_wname, "\n", NULL);
+	  Printv(f_gc_go_wrappers, "//go:nosplit\n", NULL);
+	  Printv(f_gc_go_wrappers, "func ", callback_wname, "(a unsafe.Pointer, n int32) {\n", NULL);
+	  Printv(f_gc_go_wrappers, "\tfn := ", callback_name, "\n", NULL);
+	  Printv(f_gc_go_wrappers, "\t_cgo_runtime_cgocallback(**(**unsafe.Pointer)(unsafe.Pointer(&fn)), a, uintptr(n))\n", NULL);
+	  Printv(f_gc_go_wrappers, "}\n\n", NULL);
 	} else {
 	  if (SwigType_type(result) != T_VOID) {
 	    String *r = NewString(Swig_cresult_name());
@@ -5448,3 +5642,4 @@ Go Options (available with -go)\n\
      -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";
+

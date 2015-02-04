@@ -1756,15 +1756,17 @@ GOGCC = @GOGCC@
 GO1 = @GO1@
 GO12 = @GO12@
 GO13 = @GO13@
+GO15 = @GO15@
 GOC = @GOC@
 GOOPT = @GOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) ; then echo -pack ; fi`
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) || $(GO15) ; then echo -pack ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
+GOGOSRCS = $(INTERFACE:.i=_gc.go)
 
 GOLD = $(GOC:c=l)
 GOTOOL = `if $(GO1) ; then echo go tool; fi`
@@ -1782,17 +1784,26 @@ GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 
 go: $(SRCDIR_SRCS)
 	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	if $(GO12) || $(GO13) || $(GOGCC); then \
+	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
 	  $(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
 	else \
 	  $(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
 	  $(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
+	if $(GO15) ; then \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(GOGCOBJS) -I . $(GOSRCS) $(GOGOSRCS); \
+	else \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS); \
+	fi
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  if ! $(GO15) ; then \
+	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  fi; \
 	  rm -f $(GOPACKAGE); \
-	  if $(GO13); then \
+	  if $(GO15); then \
+	    cp $(GOGCOBJS) $(GOPACKAGE); \
+	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(OBJS) $(IOBJS); \
+	  elif $(GO13); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
 	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
 	  elif $(GO12); then \
@@ -1805,7 +1816,7 @@ go: $(SRCDIR_SRCS)
 	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	  if $(GOGCC) ; then \
 	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
-	  elif $(GO12) || $(GO13); then \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
@@ -1824,11 +1835,20 @@ go_cpp: $(SRCDIR_SRCS)
 	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
 	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
+	if $(GO15) ; then \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(GOGCOBJS) -I . $(GOSRCS) $(GOGOSRCS); \
+	else \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS); \
+	fi
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  if ! $(GO15) ; then \
+	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  fi; \
 	  rm -f $(GOPACKAGE); \
-	  if $(GO13); then \
+	  if $(GO15); then \
+	    cp $(GOGCOBJS) $(GOPACKAGE); \
+	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(OBJS) $(IOBJS); \
+	  elif $(GO13); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
 	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
 	  elif $(GO12); then \
@@ -1841,7 +1861,7 @@ go_cpp: $(SRCDIR_SRCS)
 	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	  if $(GOGCC) ; then \
 	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
-	  elif $(GO12) || $(GO13); then \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
