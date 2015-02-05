@@ -534,6 +534,7 @@ private:
 
       Printf(f_c_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_c_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
+      Printf(f_c_directors_h, "class Swig_memory;\n\n");
 
       Printf(f_c_directors, "\n// C++ director class methods.\n");
       String *filename = Swig_file_filename(c_filename_h);
@@ -3076,7 +3077,7 @@ private:
       p = nextParm(p);
     }
     Printv(f_c_directors, "),\n", NULL);
-    Printv(f_c_directors, "      go_val(swig_p)\n", NULL);
+    Printv(f_c_directors, "      go_val(swig_p), swig_mem(0)\n", NULL);
     Printv(f_c_directors, "{ }\n\n", NULL);
 
     if (Getattr(n, "sym:overloaded") && !Getattr(n, "sym:nextSibling")) {
@@ -3201,6 +3202,7 @@ private:
       } else {
 	Printv(f_c_directors, "  ", wname, "(go_val);\n", NULL);
       }
+      Printv(f_c_directors, "  delete swig_mem;\n", NULL);
     }
 
     Printv(f_c_directors, "}\n\n", NULL);
@@ -4266,6 +4268,7 @@ private:
 
     Printv(f_c_directors_h, " private:\n", NULL);
     Printv(f_c_directors_h, "  void *go_val;\n", NULL);
+    Printv(f_c_directors_h, "  Swig_memory *swig_mem;\n", NULL);
     Printv(f_c_directors_h, "};\n\n", NULL);
 
     class_name = NULL;
