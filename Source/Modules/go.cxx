@@ -1010,7 +1010,7 @@ private:
       receiver = NULL;
     }
 
-    String *goout = Swig_typemap_lookup("goout", n, "swig_r", NULL);
+    String *goout = goTypemapLookup("goout", n, "swig_r");
 
     bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
@@ -1028,10 +1028,10 @@ private:
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
       String *ty = Getattr(p, "type");
-      if (Getattr(p, "tmap:goargout")) {
+      if (goGetattr(p, "tmap:goargout")) {
 	has_goout = true;
 	needs_wrapper = true;
-      } else if (goTypeIsInterface(p, ty) || Getattr(p, "tmap:goin")) {
+      } else if (goTypeIsInterface(p, ty) || goGetattr(p, "tmap:goin")) {
 	needs_wrapper = true;
       }
 
@@ -1303,7 +1303,7 @@ private:
 	SwigType *pt = Getattr(p, "type");
 	String *ln = Getattr(p, "lname");
 
-	String *goin = Getattr(p, "tmap:goin");
+	String *goin = goGetattr(p, "tmap:goin");
 	if (goin == NULL) {
 	  Printv(call, ln, NULL);
 	  if ((i == 0 && is_destructor) || ((i > 0 || !receiver || base || is_constructor) && goTypeIsInterface(p, pt))) {
@@ -1353,7 +1353,7 @@ private:
 	  Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
 	  Replaceall(goout, "$input", "swig_r");
 	  Replaceall(goout, "$result", "swig_r_1");
-	  Printv(f_go_wrappers, goout, NULL);
+	  Printv(f_go_wrappers, goout, "\n", NULL);
 	  Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
 	}
       }
@@ -1860,7 +1860,7 @@ private:
     Parm *p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
-      String *tm = Getattr(p, "tmap:goargout");
+      String *tm = goGetattr(p, "tmap:goargout");
       if (!tm) {
 	p = nextSibling(p);
       } else {
@@ -3533,7 +3533,7 @@ private:
 	String *goout = NULL;
 	if (SwigType_type(result) != T_VOID) {
 	  Printv(f_go_wrappers, "\tvar swig_r ", goImType(n, result), "\n", NULL);
-	  goout = Swig_typemap_lookup("goout", n, "swig_r", NULL);
+	  goout = goTypemapLookup("goout", n, "swig_r");
 	  if (goout) {
 	    has_goout = true;
 	  }
@@ -3542,7 +3542,7 @@ private:
 	p = parms;
 	for (int i = 0; i < parm_count; ++i) {
 	  p = getParm(p);
-	  if (Getattr(p, "tmap:goargout")) {
+	  if (goGetattr(p, "tmap:goargout")) {
 	    has_goout = true;
 	  }
 	  p = nextParm(p);
@@ -3574,7 +3574,7 @@ private:
 
 	  // This is an ordinary call from Go to C++, so adjust using
 	  // the goin typemap.
-	  String *goin = Getattr(p, "tmap:goin");
+	  String *goin = goGetattr(p, "tmap:goin");
 	  if (goin == NULL) {
 	    Printv(call, ln, NULL);
 	    if (goTypeIsInterface(p, pt)) {
@@ -3617,7 +3617,7 @@ private:
 	    Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
 	    Replaceall(goout, "$input", "swig_r");
 	    Replaceall(goout, "$result", "swig_r_1");
-	    Printv(f_go_wrappers, goout, NULL);
+	    Printv(f_go_wrappers, goout, "\n", NULL);
 	    Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
 	  }
 	}
@@ -3756,7 +3756,7 @@ private:
 	String *goout = NULL;
 	if (SwigType_type(result) != T_VOID) {
 	  Printv(f_go_wrappers, "\tvar swig_r ", goImType(n, result), "\n", NULL);
-	  goout = Swig_typemap_lookup("goout", n, "swig_r", NULL);
+	  goout = goTypemapLookup("goout", n, "swig_r");
 	}
 
 	String *call = NewString("");
@@ -3786,7 +3786,7 @@ private:
 	    Printv(ln, ".Swigcptr()", NULL);
 	  }
 
-	  String *goin = Getattr(p, "tmap:goin");
+	  String *goin = goGetattr(p, "tmap:goin");
 	  if (goin == NULL) {
 	    Printv(call, ln, NULL);
 	    Setattr(p, "emit:goinput", ln);
@@ -3828,7 +3828,7 @@ private:
 	    Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
 	    Replaceall(goout, "$input", "swig_r");
 	    Replaceall(goout, "$result", "swig_r_1");
-	    Printv(f_go_wrappers, goout, NULL);
+	    Printv(f_go_wrappers, goout, "\n", NULL);
 	    Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
 	  }
 	}
@@ -3872,19 +3872,10 @@ private:
 	    Printv(f_go_wrappers, result_wrapper, NULL);
 	  }
 	  Printv(f_go_wrappers, "\n", NULL);
-	  goout = Swig_typemap_lookup("godirectorout", n, "swig_r", NULL);
+	  goout = goTypemapLookup("godirectorout", n, "swig_r");
 	}
 
 	String *call = NewString("");
-
-	if (gccgo_flag) {
-	  if (goout != NULL) {
-	    Printv(call, "\tfunc() {\n", NULL);
-	  }
-	  Printv(call, "\tSwigCgocallBack()\n", NULL);
-	  Printv(call, "\tdefer SwigCgocallBackDone()\n", NULL);
-	}
-
 	Printv(call, "\t", NULL);
 
 	if (SwigType_type(result) != T_VOID) {
@@ -3894,6 +3885,8 @@ private:
 	  }
 	}
 	Printv(call, "p.", go_with_over_name, "(", NULL);
+
+	String *goincode = NewString("");
 
 	p = parms;
 	for (int i = 0; i < parm_count; ++i) {
@@ -3923,18 +3916,18 @@ private:
 	    Printv(ln, ")", NULL);
 	  }
 
-	  String *goin = Getattr(p, "tmap:godirectorin");
+	  String *goin = goGetattr(p, "tmap:godirectorin");
 	  if (goin == NULL) {
 	    Printv(call, ln, NULL);
 	  } else {
 	    String *ivar = NewString("");
 	    Printf(ivar, "_swig_i_%d", i);
 	    String *itm = goType(p, pt);
-	    Printv(f_go_wrappers, "\tvar ", ivar, " ", itm, NULL);
+	    Printv(f_go_wrappers, "\tvar ", ivar, " ", itm, "\n", NULL);
 	    goin = Copy(goin);
 	    Replaceall(goin, "$input", ln);
 	    Replaceall(goin, "$result", ivar);
-	    Printv(f_go_wrappers, goin, NULL);
+	    Printv(goincode, goin, "\n", NULL);
 	    Delete(goin);
 	    Printv(call, ivar, NULL);
 	    Delete(ivar);
@@ -3952,12 +3945,21 @@ private:
 	}
 	Printv(call, "\n", NULL);
 
-	if (gccgo_flag && goout != NULL) {
-	  Printv(call, "\t}()\n", NULL);
+	if (gccgo_flag) {
+	  if (goout != NULL) {
+	    Printv(f_go_wrappers, "\tfunc() {\n", NULL);
+	  }
+	  Printv(f_go_wrappers, "\tSwigCgocallBack()\n", NULL);
+	  Printv(f_go_wrappers, "\tdefer SwigCgocallBackDone()\n", NULL);
 	}
 
+	Printv(f_go_wrappers, goincode, NULL);
 	Printv(f_go_wrappers, call, NULL);
 	Delete(call);
+
+	if (gccgo_flag && goout != NULL) {
+	  Printv(f_go_wrappers, "\t}()\n", NULL);
+	}
 
 	if (SwigType_type(result) != T_VOID) {
 	  if (goout == NULL) {
@@ -3967,7 +3969,7 @@ private:
 	    Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
 	    Replaceall(goout, "$input", "swig_r");
 	    Replaceall(goout, "$result", "swig_r_1");
-	    Printv(f_go_wrappers, goout, NULL);
+	    Printv(f_go_wrappers, goout, "\n", NULL);
 	    Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
 	  }
 	}
@@ -5547,6 +5549,32 @@ private:
   bool isFriend(Node *n) {
     String *storage = Getattr(n, "storage");
     return storage && Strcmp(storage, "friend") == 0;
+  }
+
+  /* ----------------------------------------------------------------------
+   * goGetattr
+   *
+   * Fetch an attribute from a node but return NULL if it is the empty string.
+   * ---------------------------------------------------------------------- */
+  Node *goGetattr(Node *n, const char *name) {
+    Node *ret = Getattr(n, name);
+    if (ret != NULL && Len(ret) == 0) {
+      ret = NULL;
+    }
+    return ret;
+  }
+
+  /* ----------------------------------------------------------------------
+   * goTypemapLookup
+   *
+   * Look up a typemap but return NULL if it is the empty string.
+   * ---------------------------------------------------------------------- */
+  String *goTypemapLookup(const char *name, Node *node, const char *lname) {
+    String *ret = Swig_typemap_lookup(name, node, lname, NULL);
+    if (ret != NULL && Len(ret) == 0) {
+      ret = NULL;
+    }
+    return ret;
   }
 
 };				/* class GO */

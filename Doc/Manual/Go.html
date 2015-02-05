@@ -795,7 +795,8 @@ gotype is best converted to C/C++ using Go code.
 <td>
 Go code to convert from gotype to imtype when calling a C/C++
 function.  SWIG will then internally convert imtype to a C/C++ type
-and pass it down.  If this is not defined no conversion is done.
+and pass it down.  If this is not defined, or is the empty string, no
+conversion is done.
 </td>
 </tr>
 
@@ -822,7 +823,8 @@ to the desired type.
 <td>goout</td>
 <td>
 Go code to convert a value returned from a C/C++ function from imtype
-to gotype.  If this is not defined no conversion is done.
+to gotype.  If this is not defined, or is the empty string, no
+conversion is done.
 </td>
 </tr>
 
@@ -843,7 +845,7 @@ be done.
 Go code to adjust an argument value when returning from a function.
 This is called after the real C/C++ function has run.  The value will
 be in imtype.  This is only useful for a pointer type of some sort.
-If this is not defined nothing will be done.
+If this is not defined, or is the empty string, nothing will be done.
 </td>
 </tr>
 
@@ -861,7 +863,8 @@ to the desired type.
 <td>godirectorin</td>
 <td>
 Go code to convert a value used to call a director method from imtype
-to gotype.  If this is not defined no conversion is done.
+to gotype.  If this is not defined, or is the empty string, no
+conversion is done.
 </td>
 </tr>
 
@@ -869,7 +872,8 @@ to gotype.  If this is not defined no conversion is done.
 <td>godirectorout</td>
 <td>
 Go code to convert a value returned from a director method from gotype
-to imtype.  If this is not defined no conversion is done.
+to imtype.  If this is not defined, or is the empty string, no
+conversion is done.
 </td>
 </tr>
 

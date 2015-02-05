@@ -5,3 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-02-05: ianlancetaylor
+            [Go] Ignore Go specific type maps (goin, goout, etc.) if they are empty.
+
+2015-02-05: ianlancetaylor
+            [Go] Generated Go code no longer calls _swig_goallocate or
+            _swig_makegostring, as they will no longer work as of Go 1.5.
