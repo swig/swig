@@ -1668,6 +1668,7 @@ public:
       Append(doc, name);
       if (pdoc) {
 	if (!pdocs)
+	  // numpydoc style: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 	  pdocs = NewString("\nParameters\n----------\n");
 	Printf(pdocs, "%s\n", pdoc);
       }
