@@ -5160,8 +5160,8 @@ def function_name(*args, **kwargs):
 
 <p>
 Level "2" results in the function prototype as per level "0". In addition, a line of
-documentation is generated for each parameter. Using the previous example, the generated
-code will be:
+documentation is generated for each parameter following <a href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc</a> style.
+Using the previous example, the generated code will be:
 </p>
 
 <div class="targetlang">
@@ -5170,11 +5170,12 @@ def function_name(*args, **kwargs):
     """
     function_name(x, y, foo=None, bar=None) -&gt; bool
 
-    Parameters:
-        x: int
-        y: int
-        foo: Foo *
-        bar: Bar *
+    Parameters
+    ----------
+    x: int
+    y: int
+    foo: Foo *
+    bar: Bar *
 
     """
     ...
@@ -5202,14 +5203,15 @@ resulting in
 <div class="targetlang">
 <pre>
 def function_name(*args, **kwargs):
-  """
+    """
     function_name(x, y, foo=None, bar=None) -&gt; bool
 
-    Parameters:
-        x (C++ type: int) -- Input x dimension
-        y: int
-        foo: Foo *
-        bar: Bar *
+    Parameters
+    ----------
+    x (C++ type: int) -- Input x dimension
+    y: int
+    foo: Foo *
+    bar: Bar *
 
     """
 </pre>
@@ -5228,13 +5230,14 @@ def function_name(*args, **kwargs):
     """
     function_name(int x, int y, Foo foo=None, Bar bar=None) -&gt; bool
 
-    Parameters:
-        x: int
-        y: int
-        foo: Foo *
-        bar: Bar *
-
+    Parameters
+    ----------
+    x: int
+    y: int
+    foo: Foo *
+    bar: Bar *
     """
+
     ...
 </pre>
 </div>
