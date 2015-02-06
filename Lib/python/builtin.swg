@@ -9,6 +9,7 @@ SWIGINTERN void					\
 wrapper##_closure(PyObject *a) {		\
     SwigPyObject *sobj;				\
     sobj = (SwigPyObject *)a;			\
+    Py_XDECREF(sobj->dict);	                \
     if (sobj->own) {				\
 	PyObject *o = wrapper(a, NULL);		\
 	Py_XDECREF(o);				\
