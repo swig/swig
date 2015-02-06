@@ -1,6 +1,13 @@
 %module enum_macro
 
 %inline %{
+
+#if defined(__GNUC__)
+/* comma at end of enumerator list [-Werror=pedantic] */
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+
 enum Greeks1
 {
 #define GREEK1 -1

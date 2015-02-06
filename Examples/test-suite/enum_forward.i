@@ -8,6 +8,11 @@ enum ForwardEnum2 { CCC, DDD };
 %}
 
 %inline %{
+#if defined(__GNUC__)
+/* ISO C forbids forward references to ‘enum’ types [-Werror=pedantic] */
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 #if !defined(__SUNPRO_C)
 enum ForwardEnum1;
 enum ForwardEnum2;
