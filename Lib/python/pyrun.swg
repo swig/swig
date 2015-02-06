@@ -1437,18 +1437,21 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
 	  newobj = (SwigPyObject *) newobj->next;
         newobj->next = next_self;
         newobj = (SwigPyObject *)next_self;
+#ifdef SWIGPYTHON_BUILTIN
+        newobj->dict = 0;
+#endif
       }
     } else {
       newobj = PyObject_New(SwigPyObject, clientdata->pytype);
+#ifdef SWIGPYTHON_BUILTIN
+      newobj->dict = 0;
+#endif
     }
     if (newobj) {
       newobj->ptr = ptr;
       newobj->ty = type;
       newobj->own = own;
       newobj->next = 0;
-#ifdef SWIGPYTHON_BUILTIN
-      newobj->dict = 0;
-#endif
       return (PyObject*) newobj;
     }
     return SWIG_Py_Void();
