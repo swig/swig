@@ -50,7 +50,7 @@
 
 %inline %{
 
-#if defined(__GNUC__)
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
 /* ISO C++ prohibits anonymous structs [-Werror=pedantic] */
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif

@@ -1,7 +1,7 @@
 %module li_std_auto_ptr
 
 %{
-#if defined(__GNUC__)
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations" // auto_ptr deprecation
 #endif
 %}
