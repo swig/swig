@@ -1096,7 +1096,7 @@ private:
       }
       Printv(f_go_wrappers, ")", NULL);
       if (is_constructor) {
-	Printv(f_go_wrappers, " (", argName(&arg), " ", class_receiver, ")", NULL);
+	Printv(f_go_wrappers, " (", argName(&arg), " uintptr)", NULL);
       } else {
 	if (SwigType_type(result) != T_VOID) {
 	  String *tm = goWrapperType(n, result, true);
@@ -1249,13 +1249,11 @@ private:
 
       String *call = NewString("");
 
-      bool need_return_var = SwigType_type(result) != T_VOID && ((gccgo_flag && is_constructor) || has_goout);
+      bool need_return_var = SwigType_type(result) != T_VOID && (is_constructor || has_goout);
       if (need_return_var) {
 	Printv(f_go_wrappers, "\tvar swig_r ", NULL);
 	if (is_constructor) {
-	  String *cl = exportedName(class_name);
-	  Printv(f_go_wrappers, cl, NULL);
-	  Delete(cl);
+	  Printv(f_go_wrappers, "uintptr", NULL);
 	} else {
 	  Printv(f_go_wrappers, goImType(n, result), NULL);
 	}
@@ -1346,7 +1344,9 @@ private:
       goargout(parms, parm_count);
 
       if (need_return_var) {
-	if (goout == NULL) {
+	if (is_constructor) {
+	  Printv(f_go_wrappers, "\treturn ", class_receiver, "{Cptr: swig_r}\n", NULL);
+	} else if (goout == NULL) {
 	  Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
 	} else {
 	  String *tm = goType(n, result);
@@ -2215,13 +2215,15 @@ private:
     int isnodir = GetFlag(n, "feature:nodirector");
     bool is_director = isdir && !isnodir;
 
-    Printv(f_go_wrappers, "type ", go_type_name, " uintptr\n\n", NULL);
+    Printv(f_go_wrappers, "type ", go_type_name, " struct {\n", NULL);
+    Printv(f_go_wrappers, "\tCptr uintptr\n", NULL);
+    Printv(f_go_wrappers, "}\n\n", NULL);
 
     // A method to return the pointer to the C++ class.  This is used
     // by generated code to convert between the interface and the C++
     // value.
     Printv(f_go_wrappers, "func (p ", go_type_name, ") Swigcptr() uintptr {\n", NULL);
-    Printv(f_go_wrappers, "\treturn (uintptr)(p)\n", NULL);
+    Printv(f_go_wrappers, "\treturn (uintptr)(p.Cptr)\n", NULL);
     Printv(f_go_wrappers, "}\n\n", NULL);
 
     // A method used as a marker for the class, to avoid invalid
@@ -2619,7 +2621,7 @@ private:
       Printv(interfaces, "\tSwigIs", go_base_name, "()\n", NULL);
 
       Printv(f_go_wrappers, "func (p ", go_type_name, ") SwigGet", go_base_name, "() ", go_base_type, " {\n", NULL);
-      Printv(f_go_wrappers, "\treturn ", go_base_type_name, "(p.Swigcptr())\n", NULL);
+      Printv(f_go_wrappers, "\treturn ", go_base_type_name, "{Cptr: p.Swigcptr()}\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
 
       Printv(interfaces, "\tSwigGet", go_base_name, "() ", go_base_type, "\n", NULL);
@@ -2977,7 +2979,7 @@ private:
 
       Printv(f_go_wrappers, ") ", cn, " {\n", NULL);
 
-      Printv(f_go_wrappers, "\tp := &", director_struct_name, "{0, v}\n", NULL);
+      Printv(f_go_wrappers, "\tp := &", director_struct_name, "{", go_type_name, "{Cptr: 0}, v}\n", NULL);
 
       if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
@@ -3209,7 +3211,7 @@ private:
 
     if (!is_ignored) {
       Printv(f_go_wrappers, "func ", go_name, "(p *", director_struct_name, ") {\n", NULL);
-      Printv(f_go_wrappers, "\tp.", class_receiver, " = 0\n", NULL);
+      Printv(f_go_wrappers, "\tp.", class_receiver, ".Cptr = 0\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
     }
 
@@ -3881,7 +3883,7 @@ private:
 	if (SwigType_type(result) != T_VOID) {
 	  Printv(call, "swig_r = ", NULL);
 	  if (result_is_interface) {
-	    Printv(call, result_wrapper, "(", NULL);
+	    Printv(call, result_wrapper, "{Cptr: ", NULL);
 	  }
 	}
 	Printv(call, "p.", go_with_over_name, "(", NULL);
@@ -3898,22 +3900,21 @@ private:
 
 	  String *ln = NewString("");
 
-	  // If the Go representation is an interface type class, then
-	  // we are receiving a uintptr, and must convert to the
-	  // interface.
+	  // If the Go representation is an interface type class, then we are
+	  // receiving a uintptr, and must convert it to the respective Go type.
 	  bool is_interface = goTypeIsInterface(p, pt);
 	  if (is_interface) {
 	    // Passing is_result as true to goWrapperType gives us the
 	    // name of the Go type we need to convert to an interface.
 	    String *wt = goWrapperType(p, pt, true);
-	    Printv(ln, wt, "(", NULL);
+	    Printv(ln, wt, "{Cptr: ", NULL);
 	    Delete(wt);
 	  }
 
 	  Printv(ln, Getattr(p, "lname"), NULL);
 
 	  if (is_interface) {
-	    Printv(ln, ")", NULL);
+	    Printv(ln, "}", NULL);
 	  }
 
 	  String *goin = goGetattr(p, "tmap:godirectorin");
@@ -3941,7 +3942,7 @@ private:
 	Printv(call, ")", NULL);
 
 	if (result_is_interface) {
-	  Printv(call, ".Swigcptr())", NULL);
+	  Printv(call, ".Swigcptr()}", NULL);
 	}
 	Printv(call, "\n", NULL);
 
@@ -5252,11 +5253,11 @@ private:
 	if (add_to_hash) {
 	  Setattr(undefined_types, ty, ty);
 	}
-	ret = NewString("Swigcptr");
+	ret = NewString("SwigClass");
 	Append(ret, ex);
       } else {
 	ret = NewString("");
-	Printv(ret, Getattr(cnmod, "name"), ".Swigcptr", ex, NULL);
+	Printv(ret, Getattr(cnmod, "name"), ".SwigClass", ex, NULL);
       }
     }
     Delete(ty);
