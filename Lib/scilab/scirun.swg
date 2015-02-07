@@ -249,7 +249,7 @@ SWIG_Scilab_Error(int code, const char *msg)
 
 #define SWIG_fail return SWIG_ERROR;
 
-SWIGRUNTIME int
+SWIGRUNTIME void
 SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
@@ -259,7 +259,7 @@ SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descript
   }
 }
 
-SWIGRUNTIME int
+SWIGRUNTIME void
 SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
   Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
 }

@@ -27,10 +27,8 @@
 
 // in (int *IN, int IN_SIZE)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int *IN, int IN_SIZE)
+%typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int *IN, int IN_SIZE) (int rowCount, int colCount)
 {
-    int rowCount;
-    int colCount;
     if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK) {
         $2 = rowCount * colCount;
     }
@@ -42,10 +40,8 @@
 
 // in (int IN_SIZE, int *IN)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int IN_SIZE, int *IN)
+%typemap(in, noblock=1, fragment="SWIG_SciDoubleOrInt32_AsIntArrayAndSize") (int IN_SIZE, int *IN) (int rowCount, int colCount)
 {
-    int rowCount;
-    int colCount;
     if (SWIG_SciDoubleOrInt32_AsIntArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK) {
         $1 = rowCount * colCount;
     }
