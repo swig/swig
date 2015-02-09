@@ -1,38 +1,38 @@
 #!/usr/bin/env python
-c_common = "-Werror -fdiagnostics-show-option -std=gnu89 -Wno-long-long -Wreturn-type -Wdeclaration-after-statement"
+c_common = "-fdiagnostics-show-option -std=gnu89 -Wno-long-long -Wreturn-type -Wdeclaration-after-statement"
 cflags = {
-        "csharp":c_common,
-             "d":c_common,
-            "go":c_common,
-         "guile":c_common,
-          "java":c_common,
-    "javascript":c_common,
-           "lua":c_common,
-        "octave":c_common,
-         "perl5":c_common,
-           "php":c_common,
-        "python":c_common,
-          "ruby":c_common,
-        "scilab":c_common,
-           "tcl":c_common,
+        "csharp":"-Werror " + c_common,
+             "d":"-Werror " + c_common,
+            "go":"-Werror " + c_common,
+         "guile":"-Werror " + c_common,
+          "java":"-Werror " + c_common,
+    "javascript":"-Werror " + c_common,
+           "lua":"-Werror " + c_common,
+        "octave":"-Werror " + c_common,
+         "perl5":"-Werror " + c_common,
+           "php":"-Werror " + c_common,
+        "python":"-Werror " + c_common,
+          "ruby":"-Werror " + c_common,
+        "scilab":"-Werror " + c_common,
+           "tcl":"-Werror " + c_common,
 }
 
-cxx_common = "-Werror -fdiagnostics-show-option -std=c++98 -Wno-long-long -Wreturn-type"
+cxx_common = "-fdiagnostics-show-option -std=c++98 -Wno-long-long -Wreturn-type"
 cxxflags = {
-        "csharp":cxx_common,
-             "d":cxx_common,
-            "go":cxx_common,
-         "guile":cxx_common,
-          "java":cxx_common,
-    "javascript":cxx_common,
-           "lua":cxx_common,
-        "octave":cxx_common,
-         "perl5":cxx_common,
-           "php":cxx_common,
-        "python":cxx_common,
-          "ruby":cxx_common,
-        "scilab":cxx_common,
-           "tcl":cxx_common,
+        "csharp":"-Werror " + cxx_common,
+             "d":"-Werror " + cxx_common,
+            "go":"-Werror " + cxx_common,
+         "guile":"-Werror " + cxx_common,
+          "java":"-Werror " + cxx_common,
+    "javascript":"-Werror " + cxx_common,
+           "lua":"-Werror " + cxx_common,
+        "octave":"-Werror " + cxx_common,
+         "perl5":"-Werror " + cxx_common,
+           "php":"-Werror " + cxx_common,
+        "python":"-Werror " + cxx_common,
+          "ruby":"-Werror " + cxx_common,
+        "scilab":             cxx_common,
+           "tcl":"-Werror " + cxx_common,
 }
 
 import argparse
