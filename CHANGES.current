@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-02-09: wsfulton
+            [Guile] Fix generated code for static const char member variables when
+            defined and declared inline.
+
 2015-02-05: ianlancetaylor
             [Go] Ignore Go specific type maps (goin, goout, etc.) if they are empty.
 
