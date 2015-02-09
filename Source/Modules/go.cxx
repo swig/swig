@@ -554,7 +554,7 @@ private:
 
     // Output module initialization code.
 
-    Printf(f_go_begin, "\npackage %s\n\n", package);
+    Printf(f_go_begin, "\npackage %s\n\n", getModuleName(package));
 
     if (gccgo_flag) {
       Printf(f_go_runtime, "func SwigCgocall()\n");
@@ -2058,7 +2058,7 @@ private:
 	Printv(f_go_wrappers, "type ", name, " int\n", NULL);
       } else {
 	String *nw = NewString("");
-	Printv(nw, imported_package, ".", name, NULL);
+	Printv(nw, getModuleName(imported_package), ".", name, NULL);
 	Setattr(n, "go:enumname", nw);
       }
     }
@@ -5096,7 +5096,7 @@ private:
 	  Setattr(undefined_types, t, t);
 	} else {
 	  String *nw = NewString("");
-	  Printv(nw, Getattr(cnmod, "name"), ".", ret, NULL);
+	  Printv(nw, getModuleName(Getattr(cnmod, "name")), ".", ret, NULL);
 	  Delete(ret);
 	  ret = nw;
 	}
@@ -5282,7 +5282,7 @@ private:
 	Append(ret, ex);
       } else {
 	ret = NewString("");
-	Printv(ret, Getattr(cnmod, "name"), ".Swigcptr", ex, NULL);
+	Printv(ret, getModuleName(Getattr(cnmod, "name")), ".Swigcptr", ex, NULL);
       }
     }
     Delete(ty);
@@ -5601,6 +5601,21 @@ private:
       ret = NULL;
     }
     return ret;
+  }
+
+  /* ----------------------------------------------------------------------
+   * getModuleName
+   *
+   * Return the name of a module. This is different from module path:
+   * "some/path/to/module" -> "module".
+   * ---------------------------------------------------------------------- */
+
+  String *getModuleName(String *module_path) {
+    char *suffix = strrchr(Char(module_path), '/');
+    if (suffix == NULL) {
+      return module_path;
+    }
+    return Str(suffix + 1);
   }
 
 };				/* class GO */

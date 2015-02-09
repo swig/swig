@@ -28,6 +28,9 @@ CPP_TEST_CASES = \
 	go_inout \
 	go_director_inout
 
+MULTI_CPP_TEST_CASES = \
+	go_subdir_import
+
 include $(srcdir)/../common.mk
 
 .SUFFIXES: .cpptest .ctest .multicpptest
@@ -51,6 +54,25 @@ include $(srcdir)/../common.mk
 multi_import.multicpptest:
 	$(setup)
 	for f in multi_import_b multi_import_a; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
+	  $(LANGUAGE)$(VARIANT)_cpp; \
+	done
+	$(run_multi_testcase)
+
+go_subdir_import.multicpptest:
+	$(setup)
+	mkdir -p testdir/go_subdir_import/
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	INTERFACEPATH="go_subdir_import_b.i" \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) -outdir ." NOLINK=true \
+	TARGET="$(TARGETPREFIX)go_subdir_import_b$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" \
+	INTERFACE="testdir/go_subdir_import/go_subdir_import_b.i" \
+	$(LANGUAGE)$(VARIANT)_cpp;
+	for f in testdir/go_subdir_import/go_subdir_import_c go_subdir_import_a ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
@@ -108,6 +130,7 @@ clean:
 	rm -f mod_a.go mod_b.go imports_a.go imports_b.go
 	rm -f clientdata_prop_a.go clientdata_prop_b.go
 	rm -f multi_import_a.go multi_import_b.go
+	rm -rf go_subdir_import_a.go testdir
 	rm -f packageoption_a.go packageoption_b.go packageoption_c.go
 	rm -f import_stl_a.go import_stl_b.go
 
