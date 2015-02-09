@@ -11,13 +11,19 @@ typedef struct SWIGCDATA {
 } SWIGCDATA;
 %}
 
+%fragment("cdata", "header") %{
+struct swigcdata {
+  intgo size;
+  void *data;
+};
+%}
+
 %typemap(gotype) SWIGCDATA "[]byte"
 
 %typemap(imtype) SWIGCDATA "uint64"
 
-%typemap(out) SWIGCDATA %{
-  struct swigcdata { intgo size; void* data; } *swig_out;
-  swig_out = (struct swigcdata*)malloc(sizeof(*swig_out));
+%typemap(out, fragment="cdata") SWIGCDATA(struct swigcdata *swig_out) %{
+  swig_out = (struct swigcdata *)malloc(sizeof(*swig_out));
   if (swig_out) {
     swig_out->size = $1.len;
     swig_out->data = malloc(swig_out->size);
@@ -25,7 +31,7 @@ typedef struct SWIGCDATA {
       memcpy(swig_out->data, $1.data, swig_out->size);
     }
   }
-  $result = (unsigned long long)swig_out;
+  $result = *(long long *)(void **)&swig_out;
 %}
 
 %typemap(goout) SWIGCDATA %{
