@@ -444,7 +444,7 @@ private:
     Delete(swig_input_content);
     fclose(swig_input);
     unique_id = NewString("");
-    Printf(unique_id, "_%s_%08x%08x", package, hash.hi, hash.lo);
+    Printf(unique_id, "_%s_%08x%08x", getModuleName(package), hash.hi, hash.lo);
 
     // Open files.
 

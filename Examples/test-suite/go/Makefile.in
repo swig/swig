@@ -67,7 +67,7 @@ go_subdir_import.multicpptest:
 	mkdir -p testdir/go_subdir_import/
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	INTERFACEPATH="go_subdir_import_b.i" \
+	INTERFACEPATH="$(SRCDIR)$(INTERFACEDIR)go_subdir_import_b.i" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) -outdir ." NOLINK=true \
 	TARGET="$(TARGETPREFIX)go_subdir_import_b$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" \
 	INTERFACE="testdir/go_subdir_import/go_subdir_import_b.i" \
