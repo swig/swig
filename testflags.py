@@ -24,7 +24,7 @@ cxxflags = {
             "go":"-Werror " + cxx_common,
          "guile":"-Werror " + cxx_common,
           "java":"-Werror " + cxx_common,
-    "javascript":"-Werror " + cxx_common,
+    "javascript":"-Werror " + cxx_common + " -Wno-error=unused-function", # Until overload_rename is fixed for node
            "lua":"-Werror " + cxx_common,
         "octave":"-Werror " + cxx_common,
          "perl5":"-Werror " + cxx_common,
