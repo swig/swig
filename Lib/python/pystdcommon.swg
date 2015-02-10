@@ -169,7 +169,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(PyObject *obj) {
+    static bool swig_check_obj(PyObject *obj) {
       int res = obj ? asval(obj, (Type *)(0)) : SWIG_ERROR;
       return SWIG_IsOK(res) ? true : false;
     }
@@ -177,15 +177,15 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(PyObject *obj) {
+    static bool swig_check_obj(PyObject *obj) {
       int res = obj ? asptr(obj, (Type **)(0)) : SWIG_ERROR;
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(PyObject *obj) {
-    return traits_check<Type, typename traits<Type>::category>::check(obj);
+  inline bool swig_check_obj(PyObject *obj) {
+    return traits_check<Type, typename traits<Type>::category>::swig_check_obj(obj);
   }
 }
 }
@@ -241,7 +241,7 @@ namespace swig {
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(PyObject *obj) {
+    static int swig_check_obj(PyObject *obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }
