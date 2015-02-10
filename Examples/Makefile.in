@@ -1818,7 +1818,10 @@ go: $(SRCDIR_SRCS)
 go_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	if $(GO12) || $(GO13) || $(GOGCC); then \
-	  ${foreach f,$(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(ICXXSRCS), \
+	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
+	  fi; \
+	  ${foreach f,$(ICXXSRCS), \
 	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o ${addsuffix .o,${basename $f}} $f $(INCLUDES); \
 	  } \
 	else \
