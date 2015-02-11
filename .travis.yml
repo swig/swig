@@ -1,6 +1,6 @@
 language: cpp
 compiler:
-#  - clang
+  - clang
   - gcc
 env:
   - SWIGLANG=
@@ -108,7 +108,7 @@ script:
   - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
   - if test -n "$SWIGLANG"; then make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"; fi
   - echo 'Cleaning...' && echo -en 'travis_fold:start:script.3\\r'
-#  - make check-maintainer-clean && ../../configure $CONFIGOPTS
+  - make check-maintainer-clean && ../../configure $CONFIGOPTS
   - echo -en 'travis_fold:end:script.3\\r'
 branches:
   only:
