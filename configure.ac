@@ -274,6 +274,8 @@ then
 		 then CCSHARED="-fpic"
 		 else CCSHARED="+z"
 		 fi;;
+	s390x*-*-*) CCSHARED="-fpic" ;;
+	s390*-*-*) CCSHARED="-fPIC" ;;
 	*-*-linux*) CCSHARED="-fpic";;
 	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
 	*-*-netbsd*) CCSHARED="-fPIC";;
