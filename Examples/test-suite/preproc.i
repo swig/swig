@@ -11,6 +11,13 @@
 #pragma SWIG nowarn=890                                      /* lots of Go name conflicts */
 #pragma SWIG nowarn=206                                      /* Unexpected tokens after #endif directive. */
 
+%{
+#if defined(__clang__)
+//Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif
+%}
+
 /* check __cplusplus case */
 %header
 %{
