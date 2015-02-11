@@ -18,17 +18,15 @@
 
 %typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int IN_ROWCOUNT, int IN_COLCOUNT, char **IN)
 {
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK {
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
 }
 
 // in (char **IN, int IN_SIZE)
 
-%typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (char **IN, int IN_SIZE)
+%typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (char **IN, int IN_SIZE) (int rowCount, int colCount)
 {
-  int rowCount;
-  int colCount;
   if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK) {
     $2 = rowCount * colCount;
   }
@@ -39,10 +37,8 @@
 
 // in (int IN_SIZE, char **IN)
 
-%typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int IN_SIZE, char **IN)
+%typemap(in, noblock=1, fragment="SWIG_SciString_AsCharPtrArrayAndSize") (int IN_SIZE, char **IN) (int rowCount, int colCount)
 {
-  int rowCount;
-  int colCount;
   if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK) {
     $1 = rowCount * colCount;
   }
