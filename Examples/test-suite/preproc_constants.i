@@ -1,5 +1,12 @@
 %module preproc_constants
 
+%{
+#if defined(__clang__)
+//Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif
+%}
+
 // Note: C types are slightly different to C++ types as (a && b) is int in C and bool in C++
 
 // Simple constants
@@ -102,3 +109,4 @@ enum MyEnum {
 enum MyEnum {
   kValue = BIT(2)
 };
+
