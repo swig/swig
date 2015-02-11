@@ -1371,10 +1371,10 @@ private:
     // The single function parameter is a pointer to the real argument
     // values.  Define the structure that it points to.
 
-    Printv(f->code, "\tstruct swigargs {\n", NULL);
+    String *swigargs = NewString("\tstruct swigargs {\n");
 
     if (parm_count > required_count) {
-      Printv(f->code, "\t\tintgo _swig_optargc;\n", NULL);
+      Printv(swigargs, "\t\tintgo _swig_optargc;\n", NULL);
     }
 
     Parm *p = parms;
@@ -1384,7 +1384,7 @@ private:
       String *ln = Getattr(p, "lname");
       SwigType *pt = Getattr(p, "type");
       String *ct = gcCTypeForGoValue(p, pt, ln);
-      Printv(f->code, "\t\t\t", ct, ";\n", NULL);
+      Printv(swigargs, "\t\t\t", ct, ";\n", NULL);
       Delete(ct);
 
       String *gn = NewStringf("_swig_go_%d", i);
@@ -1396,11 +1396,11 @@ private:
       p = nextParm(p);
     }
     if (SwigType_type(result) != T_VOID) {
-      Printv(f->code, "\t\tlong : 0;\n", NULL);
+      Printv(swigargs, "\t\tlong : 0;\n", NULL);
       String *ln = NewString(Swig_cresult_name());
       String *ct = gcCTypeForGoValue(n, result, ln);
       Delete(ln);
-      Printv(f->code, "\t\t", ct, ";\n", NULL);
+      Printv(swigargs, "\t\t", ct, ";\n", NULL);
       Delete(ct);
 
       ln = NewString("_swig_go_result");
@@ -1409,9 +1409,7 @@ private:
       Delete(ct);
       Delete(ln);
     }
-    Printv(f->code, "\t} *swig_a = (struct swigargs *) swig_v;\n", NULL);
-
-    Printv(f->code, "\n", NULL);
+    Printv(swigargs, "\t} *swig_a = (struct swigargs *) swig_v;\n", NULL);
 
     // Copy the input arguments out of the structure into the Go local
     // variables.
@@ -1459,12 +1457,15 @@ private:
 
     cleanupFunction(n, f, parms);
 
+    Printv(f->locals, swigargs, NULL);
+
     Printv(f->code, "}\n", NULL);
 
     Wrapper_print(f, f_c_wrappers);
 
     Swig_restore(n);
 
+    Delete(swigargs);
     DelWrapper(f);
     Delete(base_parm);
 
