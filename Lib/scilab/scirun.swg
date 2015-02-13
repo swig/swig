@@ -268,6 +268,7 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
  *  Pointer utility functions
  */
 
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -278,7 +279,7 @@ int SWIG_this(SWIG_GatewayParameters) {
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
       createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
-        (double) (unsigned long) ptrValue));
+        (double)(uintptr_t)ptrValue));
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The value is not a pointer.\n"), fname, 1);
@@ -298,7 +299,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
 		return SWIG_ERROR;
 	}
   if (getScalarDouble(pvApiCtx, piAddr, &dValue) == 0) {
-    if (dValue != (unsigned long)dValue) {
+    if (dValue != (uintptr_t)dValue) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_ValueError;
     }
@@ -308,7 +309,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     }
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (unsigned long) dValue, NULL, 0));
+      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0));
   }
   else {
     return SWIG_ERROR;
