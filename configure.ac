@@ -1114,7 +1114,7 @@ if test -z "$JAVAINCDIR" ; then
 
   # Add in default installation directory on Windows for Cygwin
   case $host in
-  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files/Java/jdk*/include d:/Program*Files/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
   *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
   *);;
   esac
