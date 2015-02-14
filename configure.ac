@@ -2656,6 +2656,7 @@ AC_SUBST(SKIP_ANDROID)
 # Miscellaneous
 #----------------------------------------------------------------
 
+ABS_SRCDIR=`(cd ${srcdir} && pwd)`
 
 # Root directory
 # Translate path for native Windows compilers for use with 'make check'
@@ -2688,6 +2689,14 @@ case $build in
         *) SWIG_LIB_WIN_UNIX="";;
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
+
+# For testing - Windows builds of SWIG do not need SWIG_LIB set
+AC_EGREP_CPP([yes],
+[#ifdef _WIN32
+  yes
+#endif
+], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
+AC_SUBST(SWIG_LIB_PREINST)
 
 AC_CONFIG_FILES([
     Makefile
