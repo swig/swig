@@ -1821,21 +1821,21 @@ go_cpp: $(SRCDIR_SRCS)
 	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
 	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
 	  fi; \
-	  ${foreach f,$(ICXXSRCS), \
-	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o ${addsuffix .o,${basename $f}} $f $(INCLUDES); \
-	  } \
+	  $(foreach f,$(ICXXSRCS), \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .o,$(basename $f)) $f $(INCLUDES); \
+	  ) \
 	else \
 	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
 	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	${foreach f,$(GOSRCS), \
-	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o ${addsuffix .$(GOOBJEXT),${basename $f}} $f \
-	}
+	$(foreach f,$(GOSRCS), \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
+	)
 	if ! $(GOGCC) ; then \
-	  ${foreach f,$(GOCSRCS), \
+	  $(foreach f,$(GOCSRCS), \
 	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} \
-	    -o ${addsuffix .$(GOOBJEXT),${basename $f}} $f; \
-	  } \
+	    -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f; \
+	  ) \
 	  rm -f $(GOPACKAGE); \
 	  if $(GO13); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
