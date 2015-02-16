@@ -6888,7 +6888,3 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return top;
 }
-
-
-
-struct S;
