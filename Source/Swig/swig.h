@@ -335,8 +335,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_offset_string(String *s, int number);
   extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
-  extern void Swig_warn(const char *filename, int line, const char *msg);
-  
+
   extern int Swig_value_wrapper_mode(int mode);
   extern int Swig_is_generated_overload(Node *n);
 
