@@ -117,7 +117,9 @@ static size_t determineIndent(const string& s)
 static void trimWhitespace(string& s)
 {
   const size_t lastNonSpace = s.find_last_not_of(' ');
-  if (lastNonSpace != string::npos)
+  if (lastNonSpace == string::npos)
+    s.clear();
+  else
     s.erase(lastNonSpace + 1);
 }
 

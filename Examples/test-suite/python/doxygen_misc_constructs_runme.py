@@ -45,7 +45,7 @@ may be specified."""
 )
 
 commentVerifier.check(doxygen_misc_constructs.getConnection.__doc__,
-    r""" 
+    r"""
 
 This function returns connection id."""
 )
