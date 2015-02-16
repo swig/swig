@@ -531,8 +531,6 @@ void PyDocConverter::handlePlainString(DoxygenEntity& tag,
                                        const std::string&)
 {
   translatedComment += tag.data;
-  if (tag.data.size() && tag.data[tag.data.size() - 1] != ' ')
-    translatedComment += "";
 }
 
 void PyDocConverter::handleTagVerbatim(DoxygenEntity& tag,
