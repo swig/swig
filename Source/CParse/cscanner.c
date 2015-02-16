@@ -40,6 +40,9 @@ int cparse_cplusplus = 0;
 /* Generate C++ compatible code when wrapping C code */
 int cparse_cplusplusout = 0;
 
+/* To allow better error reporting */
+String *cparse_unknown_directive = 0;
+
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
@@ -823,8 +826,11 @@ int yylex(void) {
       if (strcmp(yytext, "inline") == 0)
 	return (yylex());
 
-      /* SWIG directives */
     } else {
+      Delete(cparse_unknown_directive);
+      cparse_unknown_directive = NULL;
+
+      /* SWIG directives */
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
@@ -900,6 +906,9 @@ int yylex(void) {
       }
       if (strcmp(yytext, "%warn") == 0)
 	return (WARN);
+
+      /* Note down the apparently unknown directive for error reporting. */
+      cparse_unknown_directive = Swig_copy_string(yytext);
     }
     /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

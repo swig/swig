@@ -44,7 +44,6 @@
 
 static const char *usage = "\
 PHP Options (available with -php)\n\
-     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -215,15 +214,6 @@ public:
       if (strcmp(argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
 	  prefix = NewString(argv[i + 1]);
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i + 1);
-	  i++;
-	} else {
-	  Swig_arg_error();
-	}
-      } else if (strcmp(argv[i], "-cppext") == 0) {
-	if (argv[i + 1]) {
-	  SWIG_config_cppext(argv[i + 1]);
 	  Swig_mark_arg(i);
 	  Swig_mark_arg(i + 1);
 	  i++;
@@ -836,13 +826,6 @@ public:
       Delete(args);
       args = NULL;
     }
-    if (is_member_director(n)) {
-      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-      Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
-      Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
-	  prefix, Swig_class_name(Swig_methodclass(n)), name);
-    }
 
     // This generated code may be called:
     // 1) as an object method, or
@@ -929,6 +912,12 @@ public:
 	Printf(f->code, "\t}\n");
       }
       Delete(source);
+    }
+
+    if (is_member_director(n)) {
+      Wrapper_add_local(f, "upcall", "bool upcall = false");
+      Printf(f->code, "upcall = !Swig::Director::swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\" TSRMLS_CC);\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -1278,7 +1267,7 @@ public:
 		  break;
 		char *p;
 		errno = 0;
-		int n = strtol(Char(value), &p, 0);
+		long n = strtol(Char(value), &p, 0);
 	        Clear(value);
 		if (errno || *p) {
 		  Append(value, "?");
@@ -1293,10 +1282,11 @@ public:
 	      case T_SCHAR:
 	      case T_SHORT:
 	      case T_INT:
-	      case T_LONG: {
+	      case T_LONG:
+	      case T_LONGLONG: {
 		char *p;
 		errno = 0;
-		unsigned int n = strtol(Char(value), &p, 0);
+		long n = strtol(Char(value), &p, 0);
 		(void) n;
 		if (errno || *p) {
 		  Clear(value);
@@ -1307,7 +1297,8 @@ public:
 	      case T_UCHAR:
 	      case T_USHORT:
 	      case T_UINT:
-	      case T_ULONG: {
+	      case T_ULONG:
+	      case T_ULONGLONG: {
 		char *p;
 		errno = 0;
 		unsigned int n = strtoul(Char(value), &p, 0);
@@ -1319,7 +1310,8 @@ public:
 		break;
 	      }
 	      case T_FLOAT:
-	      case T_DOUBLE:{
+	      case T_DOUBLE:
+	      case T_LONGDOUBLE: {
 		char *p;
 		errno = 0;
 		/* FIXME: strtod is locale dependent... */
@@ -1338,13 +1330,6 @@ public:
 		}
 		break;
 	      }
-	      case T_REFERENCE:
-	      case T_RVALUE_REFERENCE:
-	      case T_USER:
-	      case T_ARRAY:
-		Clear(value);
-		Append(value, "?");
-		break;
 	      case T_STRING:
 		if (Len(value) < 2) {
 		  // How can a string (including "" be less than 2 characters?)
@@ -1393,6 +1378,11 @@ public:
 		}
 		break;
 	      }
+	      default:
+		/* Safe default */
+		Clear(value);
+		Append(value, "?");
+		break;
 	    }
 
 	    if (!arg_values[argno]) {
@@ -1741,7 +1731,8 @@ public:
 	  }
 	} else {
 	  Printf(output, "\t\tif (!is_resource($r)) return $r;\n");
-	  Printf(output, "\t\tswitch (get_resource_type($r)) {\n");
+	  String *wrapobj = NULL;
+	  String *common = NULL;
 	  Iterator i = First(ret_types);
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
@@ -1761,22 +1752,43 @@ public:
 		continue;
 	      }
 	    }
-	    Printf(output, "\t\t");
-	    if (i.item) {
-	      Printf(output, "case '%s': ", mangled);
-	    } else {
-	      Printf(output, "default: ");
-	    }
 	    const char *classname = GetChar(class_node, "sym:name");
 	    if (!classname)
 	      classname = GetChar(class_node, "name");
+	    String * action = NewStringEmpty();
 	    if (classname)
-	      Printf(output, "return new %s%s($r);\n", prefix, classname);
+	      Printf(action, "return new %s%s($r);\n", prefix, classname);
             else
-	      Printf(output, "return $r;\n");
+	      Printf(action, "return $r;\n");
+	    if (!wrapobj) {
+		wrapobj = NewString("\t\tswitch (get_resource_type($r)) {\n");
+		common = action;
+	    } else {
+		if (common && Cmp(common, action) != 0) {
+		    Delete(common);
+		    common = NULL;
+		}
+	    }
+	    Printf(wrapobj, "\t\t");
+	    if (i.item) {
+	      Printf(wrapobj, "case '%s': ", mangled);
+	    } else {
+	      Printf(wrapobj, "default: ");
+	    }
+	    Printv(wrapobj, action, NIL);
+	    if (action != common) Delete(action);
 	    Delete(mangled);
 	  }
-	  Printf(output, "\t\t}\n");
+	  Printf(wrapobj, "\t\t}\n");
+	  if (common) {
+	      // All cases have the same action, so eliminate the switch
+	      // wrapper.
+	      Printf(output, "\t\t%s", common);
+	      Delete(common);
+	  } else {
+	      Printv(output, wrapobj, NIL);
+	  }
+	  Delete(wrapobj);
 	}
       } else {
 	if (non_void_return) {

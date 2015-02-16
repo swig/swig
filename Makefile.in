@@ -82,6 +82,7 @@ skip-clisp	= test -n "@SKIP_CLISP@"
 skip-cffi	= test -n "@SKIP_CFFI@"
 skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
+skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
 skip-d		= test -n "@SKIP_D@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
@@ -128,6 +129,7 @@ check-aliveness:
 	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
@@ -159,6 +161,7 @@ check-versions:					\
 	check-uffi-version			\
 	check-cffi-version			\
 	check-r-version				\
+	check-scilab-version			\
 	check-go-version			\
 	check-d-version
 
@@ -198,6 +201,7 @@ check-examples:					\
 	check-uffi-examples			\
 	check-cffi-examples			\
 	check-r-examples			\
+	check-scilab-examples			\
 	check-go-examples			\
 	check-d-examples			\
 	check-javascript-examples
@@ -223,6 +227,7 @@ clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
+scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
@@ -280,6 +285,7 @@ check-test-suite:				\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
 	check-r-test-suite			\
+	check-scilab-test-suite			\
 	check-go-test-suite			\
 	check-d-test-suite			\
 	check-javascript-test-suite
@@ -333,6 +339,7 @@ all-test-suite:					\
 	all-cffi-test-suite			\
 	all-chicken-test-suite			\
 	all-r-test-suite			\
+	all-scilab-test-suite   		\
 	all-go-test-suite			\
 	all-d-test-suite			\
 	all-javascript-test-suite
@@ -362,6 +369,7 @@ broken-test-suite:				\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
 	broken-r-test-suite			\
+	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
 	broken-d-test-suite			\
 	broken-javascript-test-suite
@@ -497,7 +505,7 @@ install-main:
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
-	javascript/v8
+	javascript/v8 scilab
 
 lib-modules = std
 
@@ -562,7 +570,7 @@ dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
 srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
-	@echo "not implemented - use Tools/makedist.py instead."
+	@echo "not implemented - use Tools/mkdist.py instead."
 	false
 
 srcrpm:

@@ -76,11 +76,12 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
+  long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  long longVal = (long) JSValueToNumber(context, obj, NULL);
+  longVal = (long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -142,11 +143,12 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
+  long long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  long long longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
+  longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;

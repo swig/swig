@@ -1701,20 +1701,9 @@ public:
     String *null_attribute = 0;
     // Now write code to make the function call
     if (!native_function_flag) {
-      if (Cmp(nodeType(n), "constant") == 0) {
-	// Wrapping a constant hack
-	Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-	// below based on Swig_VargetToFunction()
-	SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-	Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-      }
 
       Swig_director_emit_dynamic_cast(n, f);
       String *actioncode = emit_action(n);
-
-      if (Cmp(nodeType(n), "constant") == 0)
-	Swig_restore(n);
 
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {

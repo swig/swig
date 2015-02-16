@@ -28,7 +28,10 @@ namespace Space {
 
 %extend Space::ExtendTemplate
 {
-   void extending() { $parentclassname tmp; }
+ void extending() {
+   $parentclassname tmp;
+   (void)tmp;
+  }
 }
 
 %template(ExtendTemplateInt) Space::ExtendTemplate<int>;

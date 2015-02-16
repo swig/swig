@@ -232,13 +232,17 @@
 
 /* please leave 700-719 free for D */
 
-#define WARN_DOXYGEN_UNKNOWN_COMMAND          720
-#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT   721
-#define WARN_DOXYGEN_COMMAND_EXPECTED         722
-#define WARN_DOXYGEN_UNTERMINATED_STRING      723
-#define WARN_DOXYGEN_COMMAND_ERROR            724
+#define WARN_SCILAB_TRUNCATED_NAME            720
 
-/* please leave 720-729 free for Doxygen */
+/* please leave 720-739 free for Scilab */
+
+#define WARN_DOXYGEN_UNKNOWN_COMMAND          740
+#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT   741
+#define WARN_DOXYGEN_COMMAND_EXPECTED         742
+#define WARN_DOXYGEN_UNTERMINATED_STRING      743
+#define WARN_DOXYGEN_COMMAND_ERROR            744
+
+/* please leave 740-749 free for Doxygen */
 
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802

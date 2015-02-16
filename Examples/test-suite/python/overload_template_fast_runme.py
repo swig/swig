@@ -1,4 +1,8 @@
 from overload_template_fast import *
+
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
 f = foo()
 
 a = maximum(3,4)
@@ -140,6 +144,9 @@ if (nsoverload() != 1050):
   raise RuntimeError, ("nsoverload(const char *)")
 
 
-A.foo(1)
+if is_new_style_class(A):
+  A.foo(1)
+else:
+  A_foo(1)
 b = B()
 b.foo(1)

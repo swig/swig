@@ -1875,15 +1875,15 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
 	  Delete(ntq);
 	  ntq = ty;
 	}
-	/* Printf(stderr,"value %s %s %s\n",value,ntr,ntq); */
 	cp = NewParmWithoutFileLineInfo(ntq, 0);
-        if (lp)
-          set_nextSibling(lp, cp);
-        else
-          expandedparms = CopyParm(cp);
+	if (lp) {
+	  set_nextSibling(lp, cp);
+	  Delete(cp);
+	} else {
+	  expandedparms = cp;
+	}
 	lp = cp;
 	tp = nextSibling(tp);
-	Delete(cp);
 	Delete(nt);
 	Delete(ntq);
       } else {

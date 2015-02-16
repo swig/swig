@@ -1161,7 +1161,7 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State *L,swig_lua_class *clss)
 
 #if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
 /* Merges two tables  */
-SWIGINTERN int SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int source)
+SWIGINTERN void SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int source)
 {
   /* iterating */
   lua_pushnil(L);
@@ -1177,7 +1177,7 @@ SWIGINTERN int SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int sour
 }
 
 /* Merges two tables with given name. original - index of target metatable, base - index of source metatable */
-SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int original, int base)
+SWIGINTERN void SWIG_Lua_merge_tables(lua_State *L, const char* name, int original, int base)
 {
   /* push original[name], then base[name] */
   lua_pushstring(L,name);
@@ -1192,7 +1192,7 @@ SWIGINTERN int SWIG_Lua_merge_tables(lua_State *L, const char* name, int origina
 }
 
 /* Function takes all symbols from base and adds it to derived class. It's just a helper. */
-SWIGINTERN int SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
+SWIGINTERN void SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
 {
   /* There is one parameter - original, i.e. 'derived' class metatable */
   assert(lua_istable(L,-1));
@@ -1206,7 +1206,7 @@ SWIGINTERN int SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls
 }
 
 /* Function squashes all symbols from 'clss' bases into itself */
-SWIGINTERN int  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
+SWIGINTERN void  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
 {
   int i;
   SWIG_Lua_get_class_metatable(L,clss->fqname);

@@ -7,6 +7,10 @@ This test case tests that various types of arrays are working.
 #include <stdlib.h>
 %}
 
+#if defined(SWIGSCILAB)
+%rename(ArrSt) ArrayStruct;
+#endif
+
 %inline %{
 #define ARRAY_LEN 2
 

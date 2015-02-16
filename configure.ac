@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.3],[http://www.swig.org])
+AC_INIT([swig],[3.0.6],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -274,6 +274,8 @@ then
 		 then CCSHARED="-fpic"
 		 else CCSHARED="+z"
 		 fi;;
+	s390x*-*-*) CCSHARED="-fpic" ;;
+	s390*-*-*) CCSHARED="-fPIC" ;;
 	*-*-linux*) CCSHARED="-fpic";;
 	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
 	*-*-netbsd*) CCSHARED="-fPIC";;
@@ -335,7 +337,7 @@ AC_MSG_CHECKING([whether to enable C++11 testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
-if test x"$enable_cpp11_testing" = xyes; then 
+if test x"$enable_cpp11_testing" = xyes; then
   AC_LANG_PUSH([C++])
   CXXFLAGS_SAVED=$CXXFLAGS
   AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
@@ -353,7 +355,7 @@ if test x"$enable_cpp11_testing" = xyes; then
 fi
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
-# libc++ for tests and examples to run under mono. May affect 
+# libc++ for tests and examples to run under mono. May affect
 # other language targets as well - problem is an OSX incompatibility
 # between libraries depending on libstdc++ and libc++.
 CLANGXX=
@@ -821,7 +823,7 @@ fi
 # perl -MExtUtils::Embed -e ccopts
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
-	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
+	PERL5DIR=`($PERL -MConfig -le 'print $Config{archlibexp}') 2>/dev/null`
 	if test -n "$PERL5DIR" ; then
 		dirs="$PERL5DIR $PERL5DIR/CORE"
 		PERL5EXT=none
@@ -992,6 +994,92 @@ AC_SUBST(OCTAVE_CXXFLAGS)
 AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
+# Look for Scilab
+#----------------------------------------------------------------
+
+AC_ARG_WITH(scilab, AS_HELP_STRING([--without-scilab], [Disable Scilab])
+AS_HELP_STRING([--with-scilab=path], [Set location of Scilab executable]),[SCILABBIN="$withval"], [SCILABBIN=yes])
+AC_ARG_WITH(scilab-inc, [  --with-scilab-inc=path  Set location of Scilab include directory], [SCILABINCDIR="$withval"], [SCILABINCDIR=""])
+
+# First, check for "--without-scilab" or "--with-scilab=no".
+if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then
+  AC_MSG_NOTICE([Disabling Scilab])
+  SCILAB=
+else
+  # Check for Scilab executable
+  if test "x$SCILABBIN" = xyes; then
+    AC_CHECK_PROGS(SCILAB, scilab)
+  else
+    AC_MSG_CHECKING(for scilab)
+    if test -f "$SCILABBIN"; then
+      AC_MSG_RESULT($SCILABBIN)
+      SCILAB="$SCILABBIN"
+    else
+      AC_MSG_RESULT(not found)
+    fi
+  fi
+
+  if test -n "$SCILAB"; then
+    # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
+    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+
+    AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
+    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+
+    if test $SCILAB_VERSION -ge 533; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT(no)
+      SCILAB=
+    fi
+
+    if test -n "$SCILAB"; then
+      # Set Scilab startup options depending on version
+      AC_MSG_CHECKING(for Scilab startup options)
+      SCILABOPT="-nwni -nb"
+      if test $SCILAB_VERSION -ge 540; then
+        SCILABOPT+=" -noatomsautoload"
+      fi
+      AC_MSG_RESULT($SCILABOPT)
+
+      # Check for Scilab header files
+      AC_MSG_CHECKING(for Scilab header files)
+      if test "$SCILABINCDIR" != ""; then
+        dirs="$SCILABINCDIR"
+      elif test -n "$PKGCONFIG"; then
+        dirs=`$PKGCONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
+      else
+        dirs=""
+      fi
+      for i in $dirs; do
+        if test -r $i/api_scilab.h; then
+          AC_MSG_RESULT($i)
+          SCILABINCLUDE="-I$i"
+          break;
+        fi
+        if test -r $i/scilab/api_scilab.h; then
+          AC_MSG_RESULT($i/scilab)
+          SCILABINCLUDE="-I$i/scilab"
+          break;
+        fi
+      done
+      if test "$SCILABINCLUDE" = "" ; then
+        AC_MSG_RESULT(not found)
+        SCILAB=
+      fi
+    fi
+  fi
+fi
+
+AC_SUBST(SCILAB)
+AC_SUBST(SCILABINCLUDE)
+AC_SUBST(SCILABOPT)
+
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
@@ -1124,27 +1212,14 @@ else
   #----------------------------------------------------------------
 
   case $host in
-  *-*-cygwin* | *-*-mingw*)
-    JSLIBRARYPREFIX=""
-    ;;
-  *)
-    JSLIBRARYPREFIX="lib"
-    ;;
-  esac
-
-  case $host in
   *-*-darwin*)
     JSSO=".dylib"
-    JSLDSHARED='$(CC) -dynamiclib'
-    JSCXXSHARED='$(CXX) -dynamiclib'
     # HACK: didn't manage to get dynamic module loading working with a g++ compiled interpreter
     JSINTERPRETERCXX='c++'
     JSINTERPRETERLINKFLAGS='-g -Wl,-search_paths_first -Wl,-headerpad_max_install_names'
     ;;
   *)
     JSSO=$SO
-    JSLDSHARED='$(LDSHARED)'
-    JSCXXSHARED='$(CXXSHARED)'
     JSINTERPRETERCXX='$(CXX)'
     JSINTERPRETERLINKFLAGS='-ldl'
     ;;
@@ -1295,11 +1370,6 @@ else
   esac
 
 fi
-
-AC_SUBST(JSLIBRARYPREFIX)
-AC_SUBST(JSSO)
-AC_SUBST(JSLDSHARED)
-AC_SUBST(JSCXXSHARED)
 
 AC_SUBST(JSINTERPRETERCXX)
 AC_SUBST(JSINTERPRETERLINKFLAGS)
@@ -1507,6 +1577,7 @@ AC_ARG_WITH(ruby, AS_HELP_STRING([--without-ruby], [Disable Ruby])
 AS_HELP_STRING([--with-ruby=path], [Set location of Ruby executable]),[ RUBYBIN="$withval"], [RUBYBIN=yes])
 
 # First, check for "--without-ruby" or "--with-ruby=no".
+RUBYSO=$SO
 if test x"${RUBYBIN}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Ruby])
 RUBY=
@@ -1525,7 +1596,7 @@ if test -n "$RUBY"; then
         # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
-		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+		RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
         else
                 RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
         fi
@@ -1550,13 +1621,13 @@ if test -n "$RUBY"; then
 		# Find library and path for linking.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
-		rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
-		rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
+		rb_libdir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]') 2>/dev/null`
+		rb_bindir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]') 2>/dev/null`
 		dirs="$dirs $rb_libdir $rb_bindir"
 
-        rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
-            c = Config::CONFIG
+            c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
                 if c[["LIBRUBY"]] == c[["LIBRUBY_A"]]
                     link = c[["LIBRUBYARG_STATIC"]]
@@ -1602,11 +1673,11 @@ if test -n "$RUBY"; then
 
 	case $host in
 		*-*-mingw*) ;; # do nothing, the default windows libraries are already included
-		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`";;
+		*) RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBS"]]') 2>/dev/null`";;
 	esac
 
-	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
-	RUBYSO=.`($RUBY -rrbconfig -e 'print Config::CONFIG[["DLEXT"]]') 2>/dev/null`
+	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
+	RUBYSO=.`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["DLEXT"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
 fi
@@ -2078,85 +2149,85 @@ fi
 
 # check version: we need Lua 5.x
 if test "$LUABIN"; then
-   AC_MSG_CHECKING(Lua version)
-   # if version 5.x
-   LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
-   # if not version 5.0
-   LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
+  AC_MSG_CHECKING(Lua version)
+  # if version 5.x
+  LUAV5=`$LUABIN -e 'if string.sub(_VERSION,5,5)=="5" then print "1" end'`
+  # if not version 5.0
+  LUAV51=`$LUABIN -e 'if string.sub(_VERSION,5,7)~="5.0" then print "1" end'`
 
-   if test -z "$LUAV5"; then
-     AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
-     LUABIN=""
-   elif test -z "$LUAV51"; then
-     AC_MSG_RESULT(Lua 5.0.x)
-   else
-     AC_MSG_RESULT(Lua 5.1 or later)
-   fi
-fi
-
-if test "$LUABIN"; then
-   AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
-   # using Lua to check Lua
-   # lua 5.0 & 5.1 have different fn names
-   if test -z "$LUAV51"; then
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   else
-     LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-   fi
-
-   if test -z "$LUADYNAMICLOADLIB"; then
-     AC_MSG_RESULT(no)
-   else
-     AC_MSG_RESULT(yes)
-   fi
-fi
-
-# look for the header files & set LUAFLAGS accordingly
-# will clear LUABIN if not present
-if test -n "$LUAINCLUDE"; then
-  AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
-else
-  LUA_OK="1"
-  AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
-  # if we didn't get it, going to have to look elsewhere (the hard way)
-  if test -z "$LUA_OK"; then
-    AC_MSG_CHECKING(for lua.h in other locations)
-    # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
-    # The ordering of the include directories to search should match
-    # the ordering of libraries to search in the library test below.
-    inc=/usr/include
-    dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
-    for i in $dirs; do
-      #echo "$i"
-      if test -r $i/lua.h; then
-        AC_MSG_RESULT($i/lua.h)
-	LUAFLAGS="$ISYSTEM$i"
-	break
-      fi
-    done
-    if test -z "$LUAFLAGS"; then
-      AC_MSG_RESULT(not found)
-      LUABIN="" # clear the bin
-    fi
+  if test -z "$LUAV5"; then
+    AC_MSG_WARN(Not Lua 5.x, SWIG does not support this version of Lua)
+    LUABIN=""
+  elif test -z "$LUAV51"; then
+    AC_MSG_RESULT(Lua 5.0.x)
+  else
+    AC_MSG_RESULT(Lua 5.1 or later)
   fi
 fi
 
-# look for the library files & set LUALINK accordingly
-# will clear LUABIN if not present
-lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+if test "$LUABIN"; then
+  AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
+  # using Lua to check Lua
+  # lua 5.0 & 5.1 have different fn names
+  if test -z "$LUAV51"; then
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  else
+    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
+  fi
 
-if test -n "$LUALIB"; then
-  AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
-else
-  AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  if test -z "$LUADYNAMICLOADLIB"; then
+    AC_MSG_RESULT(no)
+  else
+    AC_MSG_RESULT(yes)
+  fi
+
+  # look for the header files & set LUAFLAGS accordingly
+  # will clear LUABIN if not present
+  if test -n "$LUAINCLUDE"; then
+    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
+  else
+    LUA_OK="1"
+    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    # if we didn't get it, going to have to look elsewhere (the hard way)
+    if test -z "$LUA_OK"; then
+      AC_MSG_CHECKING(for lua.h in other locations)
+      # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+      # The ordering of the include directories to search should match
+      # the ordering of libraries to search in the library test below.
+      inc=/usr/include
+      dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      for i in $dirs; do
+        #echo "$i"
+        if test -r $i/lua.h; then
+          AC_MSG_RESULT($i/lua.h)
+          LUAFLAGS="$ISYSTEM$i"
+          break
+        fi
+      done
+      if test -z "$LUAFLAGS"; then
+        AC_MSG_RESULT(not found)
+        LUABIN="" # clear the bin
+      fi
+    fi
+  fi
+
+  # look for the library files & set LUALINK accordingly
+  # will clear LUABIN if not present
+  lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
+
+  if test -n "$LUALIB"; then
+    AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
+  else
+    AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+  fi
+
+  # adding lualib for lua 5.0
+  if test -z "$LUAV51"; then # extra for lua 5.0
+    LUALINK="$LUALINK -llualib"
+  fi
+
+  LIBS=$lua_save_LIBS	# restore LIBS
 fi
-
-# adding lualib for lua 5.0
-if test -z "$LUAV51"; then # extra for lua 5.0
-  LUALINK="$LUALINK -llualib"
-fi
-
-LIBS=$lua_save_LIBS	# restore LIBS
 
 fi # if not disabled
 
@@ -2586,6 +2657,12 @@ SKIP_UFFI=
 #fi
 AC_SUBST(SKIP_UFFI)
 
+SKIP_SCILAB=
+if test -z "$SCILAB"; then
+    SKIP_SCILAB="1"
+fi
+AC_SUBST(SKIP_SCILAB)
+
 SKIP_GO=
 if test -z "$GO" ; then
     SKIP_GO="1"
@@ -2678,6 +2755,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/pike/Makefile
     Examples/test-suite/python/Makefile
     Examples/test-suite/ruby/Makefile
+    Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/allegrocl/Makefile
@@ -2751,6 +2829,7 @@ test -n "$SKIP_PIKE"		|| langs="${langs}pike "
 test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
+test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 test -n "$SKIP_UFFI"		|| langs="${langs}uffi "
 

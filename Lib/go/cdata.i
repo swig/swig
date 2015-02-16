@@ -8,16 +8,47 @@
 typedef struct SWIGCDATA {
     char *data;
     intgo len;
-    intgo cap;
 } SWIGCDATA;
 %}
 
-%typemap(gotype) SWIGCDATA %{ []byte %}
-%typemap(out) SWIGCDATA %{
-  $result.data = (char*)_swig_goallocate($1.len);
-  memcpy($result.data, $1.data, $1.len);
-  $result.len = (intgo)$1.len;
-  $result.cap = $result.len;
+%fragment("cdata", "header") %{
+struct swigcdata {
+  intgo size;
+  void *data;
+};
+%}
+
+%typemap(gotype) SWIGCDATA "[]byte"
+
+%typemap(imtype) SWIGCDATA "uint64"
+
+%typemap(out, fragment="cdata") SWIGCDATA(struct swigcdata *swig_out) %{
+  swig_out = (struct swigcdata *)malloc(sizeof(*swig_out));
+  if (swig_out) {
+    swig_out->size = $1.len;
+    swig_out->data = malloc(swig_out->size);
+    if (swig_out->data) {
+      memcpy(swig_out->data, $1.data, swig_out->size);
+    }
+  }
+  $result = *(long long *)(void **)&swig_out;
+%}
+
+%typemap(goout) SWIGCDATA %{
+  {
+    type swigcdata struct { size int; data uintptr }
+    p := (*swigcdata)(unsafe.Pointer(uintptr($1)))
+    if p == nil || p.data == 0 {
+      $result = nil
+    } else {
+      b := make([]byte, p.size)
+      a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
+      copy(b, a)
+      Swig_free(p.data)
+      Swig_free(uintptr(unsafe.Pointer(p)))
+      $result = b
+    }
+  }
 %}
 
 /* -----------------------------------------------------------------------------

@@ -485,11 +485,10 @@ guile: $(SRCDIR_SRCS)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCDIR_SRCS)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-guile_cpp: $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-$(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCDIR_SRCS)
+guile_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $@
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
@@ -596,7 +595,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(JAVACFLAGS) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example
@@ -633,9 +632,6 @@ java_clean:
 ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
-JSSO =@JSSO@
-JSLDSHARED = @JSLDSHARED@
-JSCXXSHARED = @JSCXXSHARED@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
 
@@ -731,7 +727,7 @@ javascript_clean:
 	rm -rf build
 	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JSSO@ *.$(SO)
+	rm -f *.@OBJEXT@ *@SO@
 	rm -f binding.gyp example-gypcopy.cxx
 	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
@@ -1096,7 +1092,7 @@ ruby_version:
 # -----------------------------------------------------------------
 
 ruby_clean:
-	rm -f *_wrap* *~ .~* myruby@EXEEXT@ *.pm
+	rm -f *_wrap* *~ .~* myruby@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(RUBY_SO)
 
@@ -1668,7 +1664,6 @@ endif
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
 # ----------------------------------------------------------------
-
 r_cpp: $(SRCDIR_CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(SRCDIR_CXXSRCS),)
@@ -1699,6 +1694,57 @@ r_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
 	rm -f $(RRSRC) $(RUNME).Rout .RData
+
+##################################################################
+#####                 SCILAB                                ######
+##################################################################
+
+SCILAB = @SCILAB@
+SCILAB_INC= @SCILABINCLUDE@
+SCILAB_OPT = @SCILABOPT@
+SCILAB_LIBPREFIX = lib
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab:
+	$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab_cpp:
+	$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Running a Scilab example
+# -----------------------------------------------------------------
+
+scilab_run:
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Scilab version
+# -----------------------------------------------------------------
+
+scilab_version:
+	echo `$(SCILAB) -version | head -1`
+
+# -----------------------------------------------------------------
+# Cleaning the scilab examples
+# -----------------------------------------------------------------
+
+scilab_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.sce
 
 ##################################################################
 #####                        Go                             ######

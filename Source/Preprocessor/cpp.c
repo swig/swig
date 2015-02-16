@@ -1376,12 +1376,12 @@ String *Preprocessor_parse(String *s) {
       else if (c == '\"') {
 	start_line = Getline(s);
 	if (skip_tochar(s, '\"', chunk) < 0) {
-	  Swig_error(Getfile(s), -1, "Unterminated string constant starting at line %d\n", start_line);
+	  Swig_error(Getfile(s), start_line, "Unterminated string constant\n");
 	}
       } else if (c == '\'') {
 	start_line = Getline(s);
 	if (skip_tochar(s, '\'', chunk) < 0) {
-	  Swig_error(Getfile(s), -1, "Unterminated character constant starting at line %d\n", start_line);
+	  Swig_error(Getfile(s), start_line, "Unterminated character constant\n");
 	}
       } else if (c == '/')
 	state = 30;		/* Comment */
@@ -1768,8 +1768,10 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_level)) {
 	Swig_error(Getfile(s), Getline(id), "cpp debug: level = %d, startlevel = %d\n", level, start_level);
+      } else if (Equal(id, "")) {
+	/* Null directive */
       } else {
-	Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s\n", id);
+	Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s (if this is a block of target language code, delimit it with %%{ and %%})\n", id);
       }
       for (i = 0; i < cpp_lines; i++)
 	Putc('\n', ns);
@@ -2006,21 +2008,21 @@ String *Preprocessor_parse(String *s) {
     }
   }
   while (level > 0) {
-    Swig_error(Getfile(s), -1, "Missing #endif for conditional starting on line %d\n", cond_lines[level - 1]);
+    Swig_error(Getfile(s), cond_lines[level - 1], "Missing #endif for conditional starting here\n");
     level--;
   }
   if (state == 120) {
-    Swig_error(Getfile(s), -1, "Missing %%endoffile for file inclusion block starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Missing %%endoffile for file inclusion block starting here\n");
   }
   if (state == 150) {
     Seek(value, 0, SEEK_SET);
-    Swig_error(Getfile(s), -1, "Missing %%enddef for macro starting on line %d\n", Getline(value));
+    Swig_error(Getfile(s), Getline(value), "Missing %%enddef for macro starting here\n", Getline(value));
   }
   if ((state >= 105) && (state < 107)) {
-    Swig_error(Getfile(s), -1, "Unterminated %%{ ... %%} block starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Unterminated %%{ ... %%} block\n");
   }
   if ((state >= 30) && (state < 40)) {
-    Swig_error(Getfile(s), -1, "Unterminated comment starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Unterminated comment\n");
   }
 
   copy_location(s, chunk);

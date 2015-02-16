@@ -33,8 +33,10 @@
   typedef SomeType myarray[3];
   typedef const SomeType myconstarray[4];
   typedef volatile SomeType ** mycrazyarray[5];
-  typedef volatile SomeType (mycrazyfunc)(SomeType);
-  typedef volatile SomeType (*mycrazyfuncptr)(SomeType);
+  extern "C" {
+    typedef volatile SomeType (mycrazyfunc)(SomeType);
+    typedef volatile SomeType (*mycrazyfuncptr)(SomeType);
+  }
 %}
 
 CLEAR_SWIGTYPE_TYPEMAPS;

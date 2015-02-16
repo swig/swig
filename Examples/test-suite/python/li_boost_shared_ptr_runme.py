@@ -17,7 +17,7 @@ class li_boost_shared_ptr_runme:
       self.runtest()
 
     # Expect 1 instance - the one global variable (GlobalValue)
-    if (li_boost_shared_ptr.Klass.getTotal_count() != 1):
+    if (li_boost_shared_ptr.Klass_getTotal_count() != 1):
       raise RuntimeError("Klass.total_count=%s" % li_boost_shared_ptr.Klass.getTotal_count())
 
     wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count() 

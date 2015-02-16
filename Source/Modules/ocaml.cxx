@@ -19,7 +19,7 @@ static const char *usage = "\
 Ocaml Options (available with -ocaml)\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -suffix <name>  - Change .cxx to something else\n\
+     -suffix <name>  - Deprecated alias for general option -cppext\n\
      -where          - Emit library location\n\
 \n";
 
@@ -114,6 +114,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-suffix") == 0) {
 	  if (argv[i + 1]) {
+	    Printf(stderr, "swig: warning: -suffix option deprecated.  SWIG 3.0.4 and later provide a -cppext option which should be used instead.\n");
 	    SWIG_config_cppext(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);

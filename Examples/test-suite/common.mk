@@ -143,6 +143,7 @@ CPP_TEST_CASES += \
 	class_scope_weird \
 	compactdefaultargs \
 	const_const_2 \
+	constant_directive \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -298,6 +299,7 @@ CPP_TEST_CASES += \
 	nested_directors \
 	nested_comment \
 	nested_scope \
+	nested_template_base \
 	nested_workaround \
 	newobject1 \
 	null_pointer \
@@ -306,6 +308,7 @@ CPP_TEST_CASES += \
 	operator_pointer_ref \
 	operbool \
 	ordering \
+	overload_arrays \
 	overload_bool \
 	overload_copy \
 	overload_extend \
@@ -514,6 +517,7 @@ CPP11_TEST_CASES = \
 	cpp11_decltype \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
+	cpp11_director_enums \
 	cpp11_explicit_conversion_operators \
 	cpp11_final_override \
 	cpp11_function_objects \

@@ -1628,7 +1628,11 @@ declaration    : swig_directive { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
-		  Swig_error(cparse_file, cparse_line,"Syntax error in input(1).\n");
+		  if (cparse_unknown_directive) {
+		      Swig_error(cparse_file, cparse_line, "Unknown directive '%s'.\n", cparse_unknown_directive);
+		  } else {
+		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
+		  }
 		  exit(1);
                }
 /* Out of class constructor/destructor declarations */
@@ -3137,6 +3141,15 @@ c_decl_tail    : SEMI {
                | LBRACE { 
                    skip_balanced('{','}');
                    $$ = 0;
+               }
+               | error {
+		   $$ = 0;
+		   if (yychar == RPAREN) {
+		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
+		   } else {
+		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
+		   }
+		   exit(1);
                }
               ;
 
@@ -4849,7 +4862,10 @@ storage_class  : EXTERN { $$ = "extern"; }
                | FRIEND { $$ = "friend"; }
                | EXPLICIT { $$ = "explicit"; }
                | CONSTEXPR { $$ = "constexpr"; }
+               | EXPLICIT CONSTEXPR { $$ = "explicit constexpr"; }
+               | CONSTEXPR EXPLICIT { $$ = "explicit constexpr"; }
                | STATIC CONSTEXPR { $$ = "static constexpr"; }
+               | CONSTEXPR STATIC { $$ = "static constexpr"; }
                | THREAD_LOCAL { $$ = "thread_local"; }
                | THREAD_LOCAL STATIC { $$ = "static thread_local"; }
                | STATIC THREAD_LOCAL { $$ = "static thread_local"; }

@@ -1792,6 +1792,7 @@ int JSCEmitter::emitNamespaces() {
     namespace_definition.replace("$jsglobalvariables", variables)
 	.replace("$jsglobalfunctions", functions)
 	.replace("$jsnspace", name_mangled)
+	.replace("$jsmangledname", name_mangled)
 	.pretty_print(f_wrap_cpp);
 
     Template t_createNamespace(getTemplate("jsc_nspace_definition"));

@@ -17,6 +17,8 @@
 static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <sstream>
 #include "../DoxygenTranslator/src/PyDocConverter.h"
 
@@ -898,7 +900,17 @@ public:
 #else
 	       tab4, "if (not static):\n",
 #endif
-	       tab4, tab4, "object.__setattr__(self, name, value)\n",
+	       NIL);
+	if (!classic) {
+	  if (!modern)
+	    Printv(f_shadow, tab4, tab4, "if _newclass:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
+	  if (!modern)
+	    Printv(f_shadow, tab4, tab4, "else:\n", tab4, NIL);
+	}
+	if (classic || !modern)
+	  Printv(f_shadow, tab4, tab4, "self.__dict__[name] = value\n", NIL);
+	Printv(f_shadow,
 	       tab4, "else:\n",
 	       tab4, tab4, "raise AttributeError(\"You cannot add attributes to %s\" % self)\n\n",
 	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
@@ -1879,19 +1891,132 @@ public:
   }
 
   /* ------------------------------------------------------------
+   *  convertDoubleValue()
+   *    Check if the given string looks like a decimal floating point constant
+   *    and return it if it does, otherwise return NIL.
+   * ------------------------------------------------------------ */
+  String *convertDoubleValue(String *v) {
+    const char *const s = Char(v);
+    char *end;
+
+    double value = strtod(s, &end);
+    (void) value;
+    if (errno != ERANGE && end != s) {
+      // An added complication: at least some versions of strtod() recognize
+      // hexadecimal floating point numbers which don't exist in Python, so
+      // detect them ourselves and refuse to convert them (this can't be done
+      // without loss of precision in general).
+      //
+      // Also don't accept neither "NAN" nor "INFINITY" (both of which
+      // conveniently contain "n").
+      if (strpbrk(s, "xXnN"))
+	return NIL;
+
+      // Disregard optional "f" suffix, it can be just dropped in Python as it
+      // uses doubles for everything anyhow.
+      for (char* p = end; *p != '\0'; ++p) {
+	switch (*p) {
+	  case 'f':
+	  case 'F':
+	    break;
+
+	  default:
+	    return NIL;
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
+    }
+
+    return NIL;
+  }
+
+  /* ------------------------------------------------------------
    * convertValue()
    *    Check if string v can be a Python value literal or a
    *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *t) {
-    char fc = (Char(v))[0];
-    if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-      /* number or string (or maybe NULL pointer) */
-      if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-	return NewString("None");
-      else
-	return v;
+    const char *const s = Char(v);
+    char *end;
+
+    // Check if this is a number in any base.
+    long value = strtol(s, &end, 0);
+    (void) value;
+    if (end != s) {
+      if (errno == ERANGE) {
+	// There was an overflow, we could try representing the value as Python
+	// long integer literal, but for now don't bother with it.
+	return NIL;
+      }
+
+      if (*end != '\0') {
+	// If there is a suffix after the number, we can safely ignore any
+	// combination of "l" and "u", but not anything else (again, stuff like
+	// "LL" could be handled, but we don't bother to do it currently).
+	bool seen_long = false;
+	for (char* p = end; *p != '\0'; ++p) {
+	  switch (*p) {
+	    case 'l':
+	    case 'L':
+	      // Bail out on "LL".
+	      if (seen_long)
+		return NIL;
+	      seen_long = true;
+	      break;
+
+	    case 'u':
+	    case 'U':
+	      break;
+
+	    default:
+	      // Except that our suffix could actually be the fractional part of
+	      // a floating point number, so we still have to check for this.
+	      return convertDoubleValue(v);
+	  }
+	}
+      }
+
+      // Deal with the values starting with 0 first as they can be octal or
+      // hexadecimal numbers or even pointers.
+      if (s[0] == '0') {
+	if (Len(v) == 1) {
+	  // This is just a lone 0, but it needs to be represented differently
+	  // in Python depending on whether it's a zero or a null pointer.
+	  if (SwigType_ispointer(t))
+	    return NewString("None");
+	  else
+	    return v;
+	} else if (s[1] == 'x' || s[1] == 'X') {
+	  // This must have been a hex number, we can use it directly in Python,
+	  // so nothing to do here.
+	} else {
+	  // This must have been an octal number, we have to change its prefix
+	  // to be "0o" in Python 3 only (and as long as we still support Python
+	  // 2.5, this can't be done unconditionally).
+	  if (py3) {
+	    if (end - s > 1) {
+	      String *res = NewString("0o");
+	      Append(res, NewStringWithSize(s + 1, end - s - 1));
+	      return res;
+	    }
+	  }
+	}
+      }
+
+      // Avoid unnecessary string allocation in the common case when we don't
+      // need to remove any suffix.
+      return *end == '\0' ? v : NewStringWithSize(s, end - s);
     }
+
+    // Check if this is a floating point number (notice that it wasn't
+    // necessarily parsed as a long above, consider e.g. ".123").
+    if (String *res = convertDoubleValue(v)) {
+      return res;
+    }
+
     if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
       return NewString("True");
     if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
@@ -1899,12 +2024,15 @@ public:
     if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
       return SwigType_ispointer(t) ? NewString("None") : NewString("0");
 
-    // This could also be an enum type, default value of which is perfectly
-    // representable in Python.
-    Node *lookup = Swig_symbol_clookup(v, 0);
-    if (lookup) {
-      if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	return Getattr(lookup, "sym:name");
+    // This could also be an enum type, default value of which could be
+    // representable in Python if it doesn't include any scope (which could,
+    // but currently is not, translated).
+    if (!Strchr(s, ':')) {
+      Node *lookup = Swig_symbol_clookup(v, 0);
+      if (lookup) {
+	if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	  return Getattr(lookup, "sym:name");
+      }
     }
 
     return NIL;
@@ -1920,27 +2048,34 @@ public:
    *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
   bool is_representable_as_pyargs(Node *n) {
+    bool is_representable = true;
+
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
 
     for (p = plist; p; p = pnext) {
+      pnext = NIL;
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
 	pnext = Getattr(p, "tmap:in:next");
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  continue;
 	}
-      } else {
+      }
+      if (!pnext) {
 	pnext = nextSibling(p);
       }
       if (String *value = Getattr(p, "value")) {
 	String *type = Getattr(p, "type");
-	if (!convertValue(value, type))
-	  return false;
+	if (!convertValue(value, type)) {
+	  is_representable = false;
+	  break;
+	}
       }
     }
-    return true;
+
+    return is_representable;
   }
 
 
@@ -3233,7 +3368,33 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      Printf(f_init, "%s\n", tm);
+      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+        // Generate method which registers the new constant
+        Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
+        Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
+        Printf(f_wrappers, tab2 "PyObject *d;\n");
+	if (modernargs) {
+	  if (fastunpack) {
+	    Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  } else {
+	    Printf(f_wrappers, tab2 "if (!PyArg_UnpackTuple(args,(char*)\"swigconstant\", 1, 1,&module)) return NULL;\n");
+	  }
+	} else {
+	  Printf(f_wrappers, tab2 "if (!PyArg_ParseTuple(args,(char*)\"O:swigconstant\", &module)) return NULL;\n");
+	}
+        Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
+        Printf(f_wrappers, tab2 "if (!d) return NULL;\n");
+        Printf(f_wrappers, tab2 "%s\n", tm);
+        Printf(f_wrappers, tab2 "return SWIG_Py_Void();\n");
+        Printf(f_wrappers, "}\n\n\n");
+
+        // Register the method in SwigMethods array
+	String *cname = NewStringf("%s_swigconstant", iname);
+	add_method(cname, cname, 0);
+	Delete(cname);
+      } else {
+        Printf(f_init, "%s\n", tm);
+      }
       Delete(tm);
       have_tm = 1;
     }
@@ -3255,6 +3416,8 @@ public:
       }
 
       if (f_s) {
+	Printv(f_s, "\n",NIL);
+	Printv(f_s, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	Printv(f_s, iname, " = ", module, ".", iname, "\n", NIL);
 	if (have_docstring(n))
 	  Printv(f_s, docstring(n, AUTODOC_CONST), "\n", NIL);
@@ -3421,8 +3584,8 @@ public:
       Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
       Printf(f_directors_h, "    }\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool val) const {\n");
-      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = val;\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool swig_val) const {\n");
+      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = swig_val;\n");
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
       Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");

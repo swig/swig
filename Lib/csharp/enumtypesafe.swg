@@ -19,7 +19,7 @@
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $result = &temp; %}
-%typemap(directorin) const enum SWIGTYPE & "$input = $1;"
+%typemap(directorin) const enum SWIGTYPE & "$input = (int)$1;"
 %typemap(csdirectorin) const enum SWIGTYPE & "$*csclassname.swigToEnum($iminput)"
 %typemap(csdirectorout) const enum SWIGTYPE & "$cscall.swigValue"
 
@@ -52,7 +52,7 @@
 %typemap(out) enum SWIGTYPE %{ $result = (int)$1; %}
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
-%typemap(directorin) enum SWIGTYPE "$input = $1;"
+%typemap(directorin) enum SWIGTYPE "$input = (int)$1;"
 %typemap(csdirectorin) enum SWIGTYPE "$csclassname.swigToEnum($iminput)"
 %typemap(csdirectorout) enum SWIGTYPE "$cscall.swigValue"
 

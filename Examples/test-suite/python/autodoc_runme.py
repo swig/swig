@@ -2,6 +2,13 @@ from autodoc import *
 from commentVerifier import check
 import sys
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
+if not is_new_style_class(A):
+  # Missing static methods make this hard to test... skip if -classic is used!
+  sys.exit(0)
+
 check(A.__doc__, "Proxy of C++ A class")
 check(A.funk.__doc__, "just a string")
 check(A.func0.__doc__, "func0(self, arg2, hello) -> int")
