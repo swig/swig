@@ -35,7 +35,7 @@
  * \class someClass headerFile.h headerName
  * \code some test code \endcode
  */
-int func01(int a)
+void func01(int a)
 {
 }
 
@@ -64,7 +64,7 @@ int func01(int a)
  * \details This is very large
  * and detailed description of some thing
  */
-int func02(int a)
+void func02(int a)
 {
 }
 
@@ -96,7 +96,7 @@ int func02(int a)
  * \example someFile.txt
  * Some details on using the example
  */
-int func03(int a)
+void func03(int a)
 {
 }
 
@@ -131,7 +131,7 @@ int func03(int a)
  * This will only appear in hmtl
  * \endhtmlonly
  */
-int func04(int a)
+void func04(int a)
 {
 }
 
@@ -172,7 +172,7 @@ int func04(int a)
  * \invariant Some text
  * describing invariant.
  */
-int func05(int a)
+void func05(int a)
 {
 }
 
@@ -216,7 +216,7 @@ int func05(int a)
  *
  * \n \n \n
  */
-int func06(int a)
+void func06(int a)
 {
 }
 
@@ -259,7 +259,7 @@ int func06(int a)
  *
  * \property someVar
  */
-int func07(int a)
+void func07(int a)
 {
 }
 
@@ -303,7 +303,7 @@ int func07(int a)
  * 
  * \retval someValue Some description
  */
-int func08(int a)
+void func08(int a)
 {
 }
 
@@ -350,7 +350,7 @@ int func08(int a)
  * 
  * \throws RuntimeError
  */
-int func09(int a)
+void func09(int a)
 {
 }
 
@@ -392,7 +392,7 @@ int func09(int a)
  * 
  * And here goes simple text
  */
-int func10(int a, float b)
+void func10(int a, float b)
 {
 }
 

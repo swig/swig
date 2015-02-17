@@ -262,13 +262,13 @@ Remarks: Some remark text
 
 Another remarks section
 
-:rtype: int
+:rtype: void
 :return: Whatever
 
-:rtype: int
+:rtype: void
 :return: it
 
-:rtype: int
+:rtype: void
 :return: may return
 """)
 

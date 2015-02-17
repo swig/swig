@@ -44,7 +44,7 @@ public:
  * \sa superFunc()
  *
  */
-int function()
+void function()
 {
 }
 

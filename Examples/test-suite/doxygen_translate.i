@@ -123,6 +123,7 @@
  */
 int function(int a, float b)
 {
+    return 0;
 }
 
 /**
@@ -205,7 +206,7 @@ int function(int a, float b)
  * <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
  * \endhtmlonly
  */
-int htmlFunction(int a, float b)
+void htmlFunction(int a, float b)
 {
 }
 
@@ -222,7 +223,7 @@ int htmlFunction(int a, float b)
  *   Almost all combinations of above flags are supported by
  *   \c htmlTable... functions.
  */
-int htmlTableFunction(int byFlags)
+void htmlTableFunction(int byFlags)
 {
 }
 
@@ -252,7 +253,7 @@ int htmlTableFunction(int byFlags)
  * Not an &text; html entity - ignored by Doxygen.
  * Not an &text html entity - ampersand is replaced with entity.
  */
-int htmlEntitiesFunction(int a, float b)
+void htmlEntitiesFunction(int a, float b)
 {
 }
 

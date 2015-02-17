@@ -18,13 +18,14 @@
  */
 int function()
 {
+    return 0;
 }
 
 /**
  * A test of a very very very very very very very very very very very very very very very very
  * very very very very very long comment string.
  */
-int function2()
+void function2()
 {
 }
 
@@ -32,7 +33,7 @@ int function2()
  * A test for overloaded functions
  * This is function \b one
  */
-int function3(int a)
+void function3(int a)
 {
 }
 
@@ -40,7 +41,7 @@ int function3(int a)
  * A test for overloaded functions
  * This is function \b two
  */
-int function3(int a, int b)
+void function3(int a, int b)
 {
 }
 
@@ -59,12 +60,12 @@ int function3(int a, int b)
  * \endcode
  * \endif
  */
-int function4()
+void function4()
 {
 }
 
 
-int function5(int a)
+void function5(int a)
 {
 }
 /**< This is a post comment. */
@@ -73,7 +74,7 @@ int function5(int a)
  * Test for default args
  * @param a Some parameter, default is 42
  */
-int function6(int a=42)
+void function6(int a=42)
 {
 }
 
