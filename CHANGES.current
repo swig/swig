@@ -9,6 +9,9 @@ Version 3.0.6 (in progress)
             [Guile] Fix generated code for static const char member variables when
             defined and declared inline.
 
+2015-02-09: mishas
+            [Go] Fix %import of files in sub directories.
+
 2015-02-05: ianlancetaylor
             [Go] Ignore Go specific type maps (goin, goout, etc.) if they are empty.
 

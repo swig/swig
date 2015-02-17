@@ -1818,14 +1818,24 @@ go: $(SRCDIR_SRCS)
 go_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	if $(GO12) || $(GO13) || $(GOGCC); then \
-	  $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
+	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
+	  fi; \
+	  $(foreach f,$(ICXXSRCS), \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .o,$(basename $f)) $f $(INCLUDES); \
+	  ) \
 	else \
 	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
 	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
+	$(foreach f,$(GOSRCS), \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
+	)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  $(foreach f,$(GOCSRCS), \
+	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} \
+	    -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f; \
+	  ) \
 	  rm -f $(GOPACKAGE); \
 	  if $(GO13); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
