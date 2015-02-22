@@ -146,6 +146,7 @@ class GO:public Language {
   File *f_go_runtime;
   File *f_go_header;
   File *f_go_wrappers;
+  File *f_go_directors;
   File *f_gc_runtime;
   File *f_gc_header;
   File *f_gc_wrappers;
@@ -214,6 +215,7 @@ public:
      f_go_runtime(NULL),
      f_go_header(NULL),
      f_go_wrappers(NULL),
+     f_go_directors(NULL),
      f_gc_runtime(NULL),
      f_gc_header(NULL),
      f_gc_wrappers(NULL),
@@ -489,6 +491,7 @@ private:
     f_go_runtime = NewString("");
     f_go_header = NewString("");
     f_go_wrappers = NewString("");
+    f_go_directors = NewString("");
     if (!gccgo_flag) {
       f_gc_runtime = NewString("");
       f_gc_header = NewString("");
@@ -507,6 +510,7 @@ private:
     Swig_register_filebyname("go_runtime", f_go_runtime);
     Swig_register_filebyname("go_header", f_go_header);
     Swig_register_filebyname("go_wrapper", f_go_wrappers);
+    Swig_register_filebyname("go_director", f_go_directors);
     if (!gccgo_flag) {
       Swig_register_filebyname("gc_begin", f_gc_begin);
       Swig_register_filebyname("gc_runtime", f_gc_runtime);
@@ -635,6 +639,9 @@ private:
     Dump(f_go_header, f_go_begin);
     Dump(f_go_runtime, f_go_begin);
     Dump(f_go_wrappers, f_go_begin);
+    if (directorsEnabled()) {
+      Dump(f_go_directors, f_go_begin);
+    }
     if (!gccgo_flag) {
       Dump(f_gc_header, f_gc_begin);
       Dump(f_gc_runtime, f_gc_begin);
@@ -649,6 +656,7 @@ private:
     Delete(f_go_runtime);
     Delete(f_go_header);
     Delete(f_go_wrappers);
+    Delete(f_go_directors);
     if (!gccgo_flag) {
       Delete(f_gc_runtime);
       Delete(f_gc_header);
@@ -2914,8 +2922,7 @@ private:
       Append(func_with_over_name, overname);
     }
 
-    SwigType *first_type = NewString("void");
-    SwigType_add_pointer(first_type);
+    SwigType *first_type = NewString("int");
     Parm *first_parm = NewParm(first_type, "swig_p", n);
     set_nextSibling(first_parm, parms);
     Setattr(first_parm, "lname", "p");
@@ -2940,7 +2947,7 @@ private:
       if (overname) {
 	Printv(f_go_wrappers, overname, NULL);
       }
-      Printv(f_go_wrappers, "(_swig_director *", director_struct_name, NULL);
+      Printv(f_go_wrappers, "(_swig_director int", NULL);
 
       p = parms;
       for (int i = 0; i < parm_count; ++i) {
@@ -2989,7 +2996,7 @@ private:
       if (overname) {
 	Printv(f_go_wrappers, overname, NULL);
       }
-      Printv(f_go_wrappers, "(p", NULL);
+      Printv(f_go_wrappers, "(swigDirectorAdd(p)", NULL);
 
       p = parms;
       for (int i = 0; i < parm_count; ++i) {
@@ -3181,8 +3188,13 @@ private:
 
       Printv(f_c_directors, "  delete swig_mem;\n", NULL);
 
-      Printv(f_go_wrappers, "func ", go_name, "(p *", director_struct_name, ") {\n", NULL);
-      Printv(f_go_wrappers, "\tp.", class_receiver, " = 0\n", NULL);
+      Printv(f_go_wrappers, "func ", go_name, "(c int) {\n", NULL);
+      if (gccgo_flag) {
+	Printv(f_go_wrappers, "\tSwigCgocallBack()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallBackDone()\n", NULL);
+      }
+      Printv(f_go_wrappers, "\tswigDirectorLookup(c).(*", director_struct_name, ").", class_receiver, " = 0\n", NULL);
+      Printv(f_go_wrappers, "\tswigDirectorDelete(c)\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
     }
 
@@ -3211,13 +3223,13 @@ private:
     if (!gccgo_flag) {
       Printv(f_c_directors, "extern \"C\" void ", wname, "(void*, int);\n", NULL);
     } else {
-      Printv(f_c_directors, "extern \"C\" void ", wname, "(void*) __asm__(\"", go_prefix, ".", go_name, "\");\n", NULL);
+      Printv(f_c_directors, "extern \"C\" void ", wname, "(intgo) __asm__(\"", go_prefix, ".", go_name, "\");\n", NULL);
     }
 
     Printv(f_c_directors, director_sig, NULL);
 
     if (!gccgo_flag) {
-      Printv(f_c_directors, "  struct { void *p; } a;\n", NULL);
+      Printv(f_c_directors, "  struct { intgo p; } a;\n", NULL);
       Printv(f_c_directors, "  a.p = go_val;\n", NULL);
       Printv(f_c_directors, "  crosscall2(", wname, ", &a, (int) sizeof a);\n", NULL);
 
@@ -3852,7 +3864,7 @@ private:
       // The Go function which invokes the method.  This is called
       // from by the C++ method on the director class.
 
-      Printv(f_go_wrappers, "func ", callback_name, "(p *", director_struct_name, NULL);
+      Printv(f_go_wrappers, "func ", callback_name, "(swig_c int", NULL);
 
       p = parms;
       for (int i = 0; i < parm_count; ++i) {
@@ -3897,7 +3909,7 @@ private:
 	    Printv(call, result_wrapper, "(", NULL);
 	  }
 	}
-	Printv(call, "p.", go_with_over_name, "(", NULL);
+	Printv(call, "swig_p.", go_with_over_name, "(", NULL);
 
 	String *goincode = NewString("");
 
@@ -3966,6 +3978,7 @@ private:
 	  Printv(f_go_wrappers, "\tdefer SwigCgocallBackDone()\n", NULL);
 	}
 
+	Printv(f_go_wrappers, "\tswig_p := swigDirectorLookup(swig_c).(*", director_struct_name, ")\n", NULL);
 	Printv(f_go_wrappers, goincode, NULL);
 	Printv(f_go_wrappers, call, NULL);
 	Delete(call);
@@ -4074,7 +4087,7 @@ private:
       Printv(f_c_directors, "extern \"C\" ", NULL);
 
       String *fnname = NewString("");
-      Printv(fnname, callback_wname, "(void*", NULL);
+      Printv(fnname, callback_wname, "(int", NULL);
 
       Parm *p = parms;
       while (p) {
@@ -4105,7 +4118,7 @@ private:
 
     if (!gccgo_flag) {
       Printv(w->code, "  struct {\n", NULL);
-      Printv(w->code, "    void *go_val;\n", NULL);
+      Printv(w->code, "    intgo go_val;\n", NULL);
 
       Parm *p = parms;
       while (p) {
@@ -4295,7 +4308,7 @@ private:
     (void) n;
 
     Printv(f_c_directors_h, " private:\n", NULL);
-    Printv(f_c_directors_h, "  void *go_val;\n", NULL);
+    Printv(f_c_directors_h, "  intgo go_val;\n", NULL);
     Printv(f_c_directors_h, "  Swig_memory *swig_mem;\n", NULL);
     Printv(f_c_directors_h, "};\n\n", NULL);
 

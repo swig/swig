@@ -317,3 +317,58 @@ static void swig_acquire_pointer(Swig_memory** pmem, Type* ptr) {
   (*pmem)->swig_acquire_pointer(ptr);
 }
 %}
+
+/* For directors we need C++ to track a Go pointer.  Since we can't
+   pass a Go pointer into C++, we use a map to track the pointers on
+   the Go side.  */
+
+%go_import("sync")
+
+%insert(go_header) %{
+type _ sync.Mutex
+%}
+
+%insert(go_director) %{
+
+var swigDirectorTrack struct {
+	sync.Mutex
+	m map[int]interface{}
+	c int
+}
+
+func swigDirectorAdd(v interface{}) int {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	if swigDirectorTrack.m == nil {
+		swigDirectorTrack.m = make(map[int]interface{})
+	}
+	swigDirectorTrack.c++
+	ret := swigDirectorTrack.c
+	swigDirectorTrack.m[ret] = v
+	return ret
+}
+
+func swigDirectorLookup(c int) interface{} {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	ret := swigDirectorTrack.m[c]
+	if ret == nil {
+		panic("C++ director pointer not found (possible	use-after-free)")
+	}
+	return ret
+}
+
+func swigDirectorDelete(c int) {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	if swigDirectorTrack.m[c] == nil {
+		if c > swigDirectorTrack.c {
+			panic("C++ director pointer invalid (possible memory corruption")
+		} else {
+			panic("C++ director pointer not found (possible use-after-free)")
+		}
+	}
+	delete(swigDirectorTrack.m, c)
+}
+
+%}
