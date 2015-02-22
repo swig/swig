@@ -1760,7 +1760,7 @@ GOOPT = @GOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) ; then echo -pack ; fi`
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) && ! $(GOGCC); then echo -pack ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
@@ -1822,16 +1822,16 @@ go_cpp: $(SRCDIR_SRCS)
 	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
 	  fi; \
 	  $(foreach f,$(ICXXSRCS), \
-	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .o,$(basename $f)) $f $(INCLUDES); \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .@OBJEXT@,$(basename $f)) $f $(INCLUDES); \
 	  ) \
 	else \
 	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
 	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(foreach f,$(GOSRCS), \
-	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
-	)
 	if ! $(GOGCC) ; then \
+	  $(foreach f,$(GOSRCS), \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
+	  ); \
 	  $(foreach f,$(GOCSRCS), \
 	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} \
 	    -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f; \
@@ -1845,6 +1845,10 @@ go_cpp: $(SRCDIR_SRCS)
 	  else \
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	  fi; \
+	else \
+	  $(foreach f,$(GOSRCS), \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .@OBJEXT@,$(basename $f)) $f \
+	  ); \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
 	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
@@ -1862,7 +1866,7 @@ go_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 go_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

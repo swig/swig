@@ -79,6 +79,9 @@ go_subdir_import.multicpptest:
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
+	if $(GOGCC); then \
+	  cp testdir/go_subdir_import/*.@OBJEXT@ .; \
+	fi
 	$(run_multi_testcase)
 
 # Runs the testcase.

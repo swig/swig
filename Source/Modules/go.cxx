@@ -413,7 +413,7 @@ private:
       }
       if (!pkgpath_option) {
 	Append(go_prefix, ".");
-	Append(go_prefix, package);
+	Append(go_prefix, getModuleName(package));
       }
     }
 
