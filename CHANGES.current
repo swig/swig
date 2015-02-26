@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-02-26: olly
+	    Fix segmentation fault when top==NULL, introduced by nested class
+	    handling (reported in issue#346 by Paweł Tomulik).
+
 2015-02-09: wsfulton
             [Guile] Fix generated code for static const char member variables when
             defined and declared inline.
