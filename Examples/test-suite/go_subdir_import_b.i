@@ -4,7 +4,7 @@
 %inline %{
 class ObjB {
  public:
-  int getInt() const {
+  virtual int getInt() const {
     return 27;
   }
 };

@@ -20,12 +20,12 @@
 %{
 class ObjC {
  public:
-  int getInt() const;
+  virtual int getInt() const;
 };
 
 class ObjB {
  public:
-  int getInt() const;
+  virtual int getInt() const;
 };
 %}
 
