@@ -4783,8 +4783,8 @@ private:
 	}
       }
 
-      // The Go function which invokes the method.  This is called
-      // from by the C++ method on the director class.
+      // The Go function which invokes the method.  This is called by
+      // the C++ method on the director class.
 
       if (cgo_flag) {
 	Printv(f_go_wrappers, "//export ", callback_name, "\n", NULL);
@@ -6290,7 +6290,7 @@ private:
     *c_struct_type = false;
 
     bool is_interface;
-    String *go_type = goTypeWithInfo(n, type, false, &is_interface);
+    String *go_type = goTypeWithInfo(n, type, true, &is_interface);
     if (is_interface) {
       Delete(go_type);
       return NewString("uintptr_t");
@@ -6306,6 +6306,10 @@ private:
       Delete(go_type);
       return NewString("swig_voidp");
     }
+
+    // Check for some Go types that are really pointers under the covers.
+    bool is_hidden_pointer = Strncmp(go_type, "func(", 5) == 0 || Strncmp(go_type, "map[", 4) == 0 || Strncmp(go_type, "chan ", 5) == 0;
+
     Delete(go_type);
 
     String *ct = Getattr(n, "emit:cgotype");
@@ -6340,6 +6344,14 @@ private:
 	--count;
 	ct = NewString("swig_voidp");
 	add_typedef = false;
+	if (is_hidden_pointer) {
+	  // A Go type that is really a pointer, like func, map, chan,
+	  // is being represented in C by a pointer.  This is fine,
+	  // but we have to memcpy the type rather than simply
+	  // converting it.
+	  *c_struct_type = true;
+	  Setattr(n, "emit:cgotypestruct", type);
+	}
       }
 
       if (Strncmp(gct, "bool ", 5) == 0) {
