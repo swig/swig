@@ -1,9 +1,16 @@
 %module(directors="1") python_director_error
-%insert("director_error")
+
+%insert("begin")
 %{
-  exception_count++;
-  throw $exception;
+static int exception_count;
+
+#define SWIG_DIRECTOR_THROW(e) \
+  do { \
+    exception_count++; \
+    throw (e); \
+  } while(false)
 %}
+
 
 %exception {
   try { $action }
@@ -18,8 +25,6 @@ public:
   virtual void go() = 0;
   virtual ~Foo() {};
 };
-
-static int exception_count;
 
 int GetExceptionCount() {
   return exception_count;

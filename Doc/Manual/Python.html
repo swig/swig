@@ -3078,27 +3078,6 @@ Swig::DirectorMethodException is thrown, Python will register the
 exception as soon as the C wrapper function returns.
 </p>
 
-<p>
-If it gets into trouble running a method implemented in Python, Swig will use
-exceptions derived from Swig::DirectorException.  In some environments an
-alternate mechanism may be desired for handling these errors. This could be the
-case in environments that disallow C++ exceptions, for instance.  This
-customization can be performed by placing code into %insert("director_error").
-Any code placed in that section will be run when an error occurs, replacing the
-default code which simply throws an exception.  The string $exception can be
-used to refer to the exception object that would normally have been thrown.
-</p>
-
-<div class="code">
-<pre>
-%insert("director_error")
-%{
-    printf("Director error: %s\n", $exception.what());
-    exit(100);
-%}
-</pre>
-</div>
-
 <H3><a name="Python_nn37"></a>36.5.5 Overhead and code bloat</H3>
 
 

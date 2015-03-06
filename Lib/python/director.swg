@@ -39,6 +39,13 @@
 #endif
 #endif
 
+/*
+ Use -DSWIG_DIRECTOR_THROW to do something else than throw a C++ exception when
+ an error condition occurs.
+*/
+#ifndef SWIG_DIRECTOR_THROW
+#define SWIG_DIRECTOR_THROW(e) throw e
+#endif
 
 /*
   Use -DSWIG_DIRECTOR_STATIC if you prefer to avoid the use of the
@@ -171,9 +178,6 @@ namespace Swig {
     Type *_ptr;
   };
 
-  template <class ExceptionType>
-  void ThrowDirectorException(const ExceptionType &exception);
-
   /* base class for director exceptions */
   class DirectorException : public std::exception {
   protected:
@@ -204,7 +208,7 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      ThrowDirectorException(DirectorException(error, msg));
+      SWIG_DIRECTOR_THROW(DirectorException(error, msg));
     }
 
     static void raise(const char *msg) {
@@ -264,11 +268,11 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      ThrowDirectorException(DirectorTypeMismatchException(error, msg));
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(error, msg));
     }
 
     static void raise(const char *msg) {
-      ThrowDirectorException(DirectorTypeMismatchException(msg));
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(msg));
     }
   };
 
@@ -280,7 +284,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      ThrowDirectorException(DirectorMethodException(msg));
+      SWIG_DIRECTOR_THROW(DirectorMethodException(msg));
     }
   };
 
