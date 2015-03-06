@@ -41,7 +41,7 @@
 
 /*
  Use -DSWIG_DIRECTOR_THROW to do something else than throw a C++ exception when
- an error condition occurs.
+ a DirectorException occurs.
 */
 #ifndef SWIG_DIRECTOR_THROW
 #define SWIG_DIRECTOR_THROW(e) throw e
