@@ -5652,8 +5652,43 @@ private:
 	      ++num_braces;
 	    }
 
+	    Delete(tm);
+
+	    tm = goType(pj, Getattr(pj, "type"));
+
+	    // Now for a C++ class, tm is the interface type.  If this
+	    // is based on an undefined type, then require matching on
+	    // the underlying integer type.  This is because the
+	    // interface type we generate for an undefined type will
+	    // match the interface generated for any C++ class type.
+	    // It has to work that way so that we can handle a derived
+	    // type of an ignored type.  It's unlikely that anybody
+	    // will have a value of an undefined type, but we support
+	    // it because it worked in the past.
+	    SwigType *ty = SwigType_typedef_resolve_all(Getattr(pj, "type"));
+	    while (true) {
+	      if (SwigType_ispointer(ty)) {
+		SwigType_del_pointer(ty);
+	      } else if (SwigType_isarray(ty)) {
+		SwigType_del_array(ty);
+	      } else if (SwigType_isreference(ty)) {
+		SwigType_del_reference(ty);
+	      } else if (SwigType_isqualifier(ty)) {
+		SwigType_del_qualifier(ty);
+	      } else {
+		break;
+	      }
+	    }
+
+	    if (Getattr(undefined_types, ty) && !Getattr(defined_types, ty)) {
+	      Delete(tm);
+	      tm = goWrapperType(pj, Getattr(pj, "type"), true);
+	    }
+
+	    Delete(ty);
+
 	    fn = i + 1;
-	    Printf(f_go_wrappers, "\t\tif _, ok := a[%d].(%s); !ok {\n", j, goType(pj, Getattr(pj, "type")));
+	    Printf(f_go_wrappers, "\t\tif _, ok := a[%d].(%s); !ok {\n", j, tm);
 	    Printf(f_go_wrappers, "\t\t\tgoto check_%d\n", fn);
 	    Printv(f_go_wrappers, "\t\t}\n", NULL);
 	  }
