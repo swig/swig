@@ -1836,7 +1836,7 @@ go: $(SRCDIR_SRCS)
 	cp $(GOSRCS) $(GOPATHDIR)/
 	GOPATH=`pwd`/gopath; \
 	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `pwd`"; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I ../../.."; \
 	export CGO_CPPFLAGS; \
 	CGO_CFLAGS="$(CFLAGS)"; \
 	export CGO_CFLAGS; \
@@ -1931,7 +1931,7 @@ go_cpp: $(SRCDIR_SRCS)
 	cp $(GOSRCS) $(GOPATHDIR)/
 	GOPATH=`pwd`/gopath; \
 	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `pwd`"; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I ../../.."; \
 	export CGO_CPPFLAGS; \
 	CGO_CFLAGS="$(CFLAGS)"; \
 	export CGO_CFLAGS; \
