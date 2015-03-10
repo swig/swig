@@ -18,7 +18,7 @@ if python_director_error.GetExceptionCount() != 0:
 f = Derived()
 try:
   python_director_error.CallGo(f);
-  raise RuntimeError # Callee should have exited with an exception.
+  raise RuntimeError  # Callee should have exited with an exception.
 except MyException:
   pass
 
