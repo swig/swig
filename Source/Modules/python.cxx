@@ -801,7 +801,11 @@ public:
       Swig_register_filebyname("python", f_shadow);
 
       if (mod_docstring && Len(mod_docstring)) {
-	Printv(f_shadow, "\"\"\"\n", mod_docstring, "\n\"\"\"\n\n", NIL);
+        const char *triple_double = "\"\"\"";
+        // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
+        // reported by pep257: https://github.com/GreenSteam/pep257
+        const bool multi_line_ds = Strchr(mod_docstring, '\n');
+        Printv(f_shadow, triple_double, multi_line_ds?"\n":"", mod_docstring, multi_line_ds?"\n":"", triple_double, "\n\n", NIL);
 	Delete(mod_docstring);
 	mod_docstring = NULL;
       }
@@ -1666,8 +1670,9 @@ public:
       Append(doc, name);
       if (pdoc) {
 	if (!pdocs)
-	  pdocs = NewString("\nParameters:\n");
-	Printf(pdocs, "    %s\n", pdoc);
+	  // numpydoc style: https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
+	  pdocs = NewString("\nParameters\n----------\n");
+	Printf(pdocs, "%s\n", pdoc);
       }
       // Write the function annotation
       if (func_annotation)
@@ -1756,9 +1761,9 @@ public:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (!str || Len(str) == 0) {
 	      if (CPlusPlus) {
-		Printf(doc, "Proxy of C++ %s class", real_classname);
+		Printf(doc, "Proxy of C++ %s class.", real_classname);
 	      } else {
-		Printf(doc, "Proxy of C %s struct", real_classname);
+		Printf(doc, "Proxy of C %s struct.", real_classname);
 	      }
 	    }
 	  }
@@ -4132,7 +4137,7 @@ public:
 	if (have_docstring(n)) {
 	  String *str = docstring(n, AUTODOC_CLASS, tab4);
 	  if (str && Len(str))
-	    Printv(f_shadow, tab4, str, "\n", NIL);
+	    Printv(f_shadow, tab4, str, "\n\n", NIL);
 	}
 
 	if (!modern) {
