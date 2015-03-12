@@ -5611,9 +5611,9 @@ private:
 	    break;
 	  }
 
-	  // If all the wrappers have the same type in this position,
+	  // If all the overloads have the same type in this position,
 	  // we can omit the check.
-	  SwigType *tm = goWrapperType(pj, Getattr(pj, "type"), true);
+	  SwigType *tm = goOverloadType(pj, Getattr(pj, "type"));
 	  bool emitcheck = false;
 	  for (int k = 0; k < Len(coll) && !emitcheck; ++k) {
 	    Node *nk = Getitem(coll, k);
@@ -5635,7 +5635,7 @@ private:
 		break;
 	      }
 	      if (l == j) {
-		SwigType *tml = goWrapperType(pl, Getattr(pl, "type"), true);
+		SwigType *tml = goOverloadType(pl, Getattr(pl, "type"));
 		if (Cmp(tm, tml) != 0) {
 		  emitcheck = true;
 		}
@@ -5651,41 +5651,6 @@ private:
 	      Printf(f_go_wrappers, "\t\tif argc > %d {\n", j);
 	      ++num_braces;
 	    }
-
-	    Delete(tm);
-
-	    tm = goType(pj, Getattr(pj, "type"));
-
-	    // Now for a C++ class, tm is the interface type.  If this
-	    // is based on an undefined type, then require matching on
-	    // the underlying integer type.  This is because the
-	    // interface type we generate for an undefined type will
-	    // match the interface generated for any C++ class type.
-	    // It has to work that way so that we can handle a derived
-	    // type of an ignored type.  It's unlikely that anybody
-	    // will have a value of an undefined type, but we support
-	    // it because it worked in the past.
-	    SwigType *ty = SwigType_typedef_resolve_all(Getattr(pj, "type"));
-	    while (true) {
-	      if (SwigType_ispointer(ty)) {
-		SwigType_del_pointer(ty);
-	      } else if (SwigType_isarray(ty)) {
-		SwigType_del_array(ty);
-	      } else if (SwigType_isreference(ty)) {
-		SwigType_del_reference(ty);
-	      } else if (SwigType_isqualifier(ty)) {
-		SwigType_del_qualifier(ty);
-	      } else {
-		break;
-	      }
-	    }
-
-	    if (Getattr(undefined_types, ty) && !Getattr(defined_types, ty)) {
-	      Delete(tm);
-	      tm = goWrapperType(pj, Getattr(pj, "type"), true);
-	    }
-
-	    Delete(ty);
 
 	    fn = i + 1;
 	    Printf(f_go_wrappers, "\t\tif _, ok := a[%d].(%s); !ok {\n", j, tm);
@@ -6460,6 +6425,46 @@ private:
     }
 
     return ret;
+  }
+
+  /* ----------------------------------------------------------------------
+   * goOverloadType()
+   *
+   * Given a type, return the Go type to use when dispatching of
+   * overloaded functions.  This is normally just the usual Go type.
+   * However, for a C++ class, the usual Go type is an interface type.
+   * And if that interface type represents a C++ type that SWIG does
+   * not know about, then the interface type generated for any C++
+   * class will match that interface.  So for that case, we match on
+   * the underlying integer type.
+   *
+   * It has to work this way so that we can handle a derived type of a
+   * %ignore'd type.  It's unlikely that anybody will have a value of
+   * an undefined type, but we support it because it worked in the
+   * past.
+   * ---------------------------------------------------------------------- */
+
+  String *goOverloadType(Node *n, SwigType *type) {
+    SwigType *ty = SwigType_typedef_resolve_all(type);
+    while (true) {
+      if (SwigType_ispointer(ty)) {
+	SwigType_del_pointer(ty);
+      } else if (SwigType_isarray(ty)) {
+	SwigType_del_array(ty);
+      } else if (SwigType_isreference(ty)) {
+	SwigType_del_reference(ty);
+      } else if (SwigType_isqualifier(ty)) {
+	SwigType_del_qualifier(ty);
+      } else {
+	break;
+      }
+    }
+
+    if (Getattr(undefined_types, ty) && !Getattr(defined_types, ty)) {
+      return goWrapperType(n, type, true);
+    }
+
+    return goType(n, type);
   }
 
   /* ----------------------------------------------------------------------
