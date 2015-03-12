@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-03-12: olly
+	    -DSWIG_DIRECTOR_STATIC is now supported for all languages with
+	    director support, not only Python and PHP.
+
 2015-03-02: ianlancetaylor
 	    [Go] Add -cgo option, required for Go versions 1.5 and
 	    later.
