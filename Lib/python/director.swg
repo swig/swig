@@ -40,14 +40,6 @@
 #endif
 
 /*
- Use -DSWIG_DIRECTOR_THROW to do something else than throw a C++ exception when
- a DirectorException occurs.
-*/
-#ifndef SWIG_DIRECTOR_THROW
-#define SWIG_DIRECTOR_THROW(e) throw e
-#endif
-
-/*
   Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of the
   native C++ RTTI and dynamic_cast<>. But be aware that directors
   could stop working when using this option.
