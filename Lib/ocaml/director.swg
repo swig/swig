@@ -45,7 +45,7 @@ namespace Swig {
       }
 
       static void raise(const char *msg) {
-        throw DirectorPureVirtualException(msg);
+        SWIG_DIRECTOR_THROW(DirectorPureVirtualException(msg));
       }
   };
 

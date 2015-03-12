@@ -203,7 +203,7 @@ namespace Swig {
 #ifdef SWIG_DIRECTOR_UEH
     static void handler() {
       try {
-        throw;
+        SWIG_DIRECTOR_THROW();
       } catch (DirectorException& e) {
         std::cerr << "SWIG Director exception caught:" << std::endl
                   << e.what() << std::endl;
@@ -222,7 +222,7 @@ namespace Swig {
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
                 << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
-      throw;
+      SWIG_DIRECTOR_THROW();
     }
 
   public:
@@ -278,7 +278,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      throw DirectorPureVirtualException(msg);
+      SWIG_DIRECTOR_THROW(DirectorPureVirtualException(msg));
     }
   };
 

@@ -157,7 +157,7 @@ namespace Swig {
 #ifdef SWIG_DIRECTOR_UEH
     static void handler() {
       try {
-	throw;
+	SWIG_DIRECTOR_THROW();
       } catch (DirectorException& e) {
 	std::cerr << "SWIG Director exception caught:" << std::endl
 		  << e.what() << std::endl;
@@ -173,7 +173,7 @@ namespace Swig {
 		<< "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
 		<< std::endl
 		<< "Exception is being re-thrown, program will like abort/terminate." << std::endl;
-      throw;
+      SWIG_DIRECTOR_THROW();
     }
 
   public:
@@ -201,11 +201,11 @@ namespace Swig {
     }
 
     static void raise(VALUE error, const char *msg) {
-      throw DirectorTypeMismatchException(error, msg);
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(error, msg));
     }
 
     static void raise(const char *msg) {
-      throw DirectorTypeMismatchException(msg);
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(msg));
     }
   };
 
@@ -221,7 +221,7 @@ namespace Swig {
     }
 
     static void raise(VALUE error) {
-      throw DirectorMethodException(error);
+      SWIG_DIRECTOR_THROW(DirectorMethodException(error));
     }
   };
 
@@ -234,7 +234,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      throw DirectorPureVirtualException(msg);
+      SWIG_DIRECTOR_THROW(DirectorPureVirtualException(msg));
     }
   };
 
@@ -317,7 +317,7 @@ namespace Swig {
 
     template <typename Type>
     void swig_acquire_ownership(Type *vptr)  const {
-      if (vptr) {	
+      if (vptr) {
 	SWIG_GUARD(swig_mutex_own);
 	swig_owner[vptr] = new GCItem_T<Type>(vptr);
       }
