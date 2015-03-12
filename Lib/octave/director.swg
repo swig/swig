@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * director.swg
  *
- * This file contains support for director classes so that D proxy
+ * This file contains support for director classes so that Octave proxy
  * methods can be called from C++.
  * ----------------------------------------------------------------------------- */
 

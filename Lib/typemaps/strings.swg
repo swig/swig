@@ -300,7 +300,7 @@
 
 /* varout */
 
-%typemap(varout,noblock=1,fragment=#SWIG_CharBufLen)
+%typemap(varout,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char [ANY] {
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
   size_t size = SWIG_CharBufLen($1, $1_dim0);

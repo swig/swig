@@ -5,7 +5,7 @@ from refcount import *
 
 a = A3()
 b1 = B(a)
-b2 = B.create(a)
+b2 = B_create(a)
 
 
 
@@ -14,7 +14,7 @@ if a.ref_count() != 3:
 
 
 rca = b2.get_rca()
-b3 = B.create(rca)
+b3 = B_create(rca)
 
 if a.ref_count() != 5:
   raise RuntimeError("Count = %d" % a.ref_count())
@@ -39,7 +39,7 @@ b5 = global_create(a)
 if b5.ref_count() != 1:
   raise RuntimeError
 
-b6 = Factory.create(a)
+b6 = Factory_create(a)
 if b6.ref_count() != 1:
   raise RuntimeError
 

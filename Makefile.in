@@ -570,8 +570,9 @@ dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
 srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
-	@echo "not implemented - use Tools/makedist.py instead."
-	false
+	@echo "'make dist' not implemented - use Tools/mkdist.py instead - e.g.:"
+	@echo "Tools/mkdist.py @VERSION@ master"
+	@false
 
 srcrpm:
 	rm -fr $(srpm) $(srpm).src.rpm

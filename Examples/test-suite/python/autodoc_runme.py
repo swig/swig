@@ -9,6 +9,13 @@ def check(got, expected, expected_builtin = None, skip = False):
     if expect != got:
       raise RuntimeError("\n" + "Expected: [" + str(expect) + "]\n" + "Got     : [" + str(got) + "]")
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
+if not is_new_style_class(A):
+  # Missing static methods make this hard to test... skip if -classic is used!
+  sys.exit(0)
+
 skip = True # skip builtin check - the autodoc is missing, but it probably should not be
 
 check(A.__doc__, "Proxy of C++ A class", "::A")

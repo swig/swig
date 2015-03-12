@@ -4,6 +4,12 @@
  * Go runtime code for the various generated files.
  * ------------------------------------------------------------ */
 
+%inline %{
+static void Swig_free(void* p) {
+  free(p);
+}
+%}
+
 %insert(runtime) %{
 #include <stddef.h>
 #include <stdio.h>
@@ -13,21 +19,45 @@
 
 %}
 
+#if SWIGGO_CGO
+%insert(cgo_comment_typedefs) %{
+#include <stdint.h>
+%}
+#endif
+
 #if SWIGGO_INTGO_SIZE == 32
 %insert(runtime) %{
 typedef int intgo;
 typedef unsigned int uintgo;
 %}
+#if SWIGGO_CGO
+%insert(cgo_comment_typedefs) %{
+typedef int intgo;
+typedef unsigned int uintgo;
+%}
+#endif
 #elif SWIGGO_INTGO_SIZE == 64
 %insert(runtime) %{
 typedef long long intgo;
 typedef unsigned long long uintgo;
 %}
+#if SWIGGO_CGO
+%insert(cgo_comment_typedefs) %{
+typedef long long intgo;
+typedef unsigned long long uintgo;
+%}
+#endif
 #else
 %insert(runtime) %{
 typedef ptrdiff_t intgo;
 typedef size_t uintgo;
 %}
+#if SWIGGO_CGO
+%insert(cgo_comment_typedefs) %{
+typedef ptrdiff_t intgo;
+typedef size_t uintgo;
+%}
+#endif
 #endif
 
 %insert(runtime) %{
@@ -36,6 +66,17 @@ typedef struct { char *p; intgo n; } _gostring_;
 typedef struct { void* array; intgo len; intgo cap; } _goslice_;
 
 %}
+
+#ifdef SWIGGO_CGO
+
+%insert(cgo_comment_typedefs) %{
+
+typedef struct { char *p; intgo n; } _gostring_;
+typedef struct { void* array; intgo len; intgo cap; } _goslice_;
+
+%}
+
+#endif
 
 #ifndef SWIGGO_GCCGO
 /* Boilerplate for C/C++ code when using 6g/8g.  This code is compiled
@@ -92,6 +133,8 @@ static void _swig_gopanic(const char *p) {
 
 %}
 
+#if !SWIGGO_CGO
+
 /* Boilerplate for C code when using 6g/8g.  This code is compiled
    with 6c/8c.  */
 %insert(gc_header) %{
@@ -105,6 +148,8 @@ void *·_cgo_runtime_cgocall = &cgocall;
 
 %}
 
+#endif
+
 #else
 
 /* Boilerplate for C/C++ code when using gccgo.  */
@@ -116,6 +161,17 @@ extern "C" {
 #endif
 extern void *_cgo_allocate(size_t);
 extern void _cgo_panic(const char *);
+#ifdef __cplusplus
+}
+#endif
+
+#define _swig_goallocate _cgo_allocate
+#define _swig_gopanic _cgo_panic
+%}
+
+#if !SWIGGO_CGO
+
+%insert(runtime) %{
 
 /* Implementations of SwigCgocall and friends for different versions
    of gccgo.  The Go code will call these functions using C names with
@@ -123,6 +179,10 @@ extern void _cgo_panic(const char *);
    routine in libgo.  The routines to call vary depending on the gccgo
    version.  We assume that the version of gcc used to compile this
    file is the same as the version of gccgo.  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SWIG_GCC_VERSION \
   (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
@@ -178,10 +238,9 @@ void SwigCgocallBackDone() {
 }
 #endif
 
-#define _swig_goallocate _cgo_allocate
-#define _swig_gopanic _cgo_panic
-
 %}
+
+#endif
 
 #endif
 
@@ -203,9 +262,11 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 
 %go_import("unsafe", _ "runtime/cgo")
 
+#if !SWIGGO_CGO
 %insert(go_header) %{
 var _cgo_runtime_cgocall func(unsafe.Pointer, uintptr)
 %}
+#endif
 
 #else
 
@@ -225,6 +286,8 @@ type _ unsafe.Pointer
 
 %}
 
+#if !SWIGGO_CGO
+
 /* Swig_always_false is used to conditionally assign parameters to
    Swig_escape_val so that the compiler thinks that they escape.  We
    only assign them if Swig_always_false is true, which it never is.
@@ -235,10 +298,136 @@ var Swig_escape_always_false bool
 var Swig_escape_val interface{}
 %}
 
+#endif
+
 /* Function pointers are translated by the code in go.cxx into
    _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */
 
 %insert(go_header) %{
 type _swig_fnptr *byte
 type _swig_memberptr *byte
+%}
+
+/* Handle memory management for directors.  */
+
+%insert(director) %{
+#include <map>
+
+namespace {
+  struct GCItem {
+    virtual ~GCItem() {}
+  };
+
+  struct GCItem_var {
+    GCItem_var(GCItem *item = 0) : _item(item) {
+    }
+
+    GCItem_var& operator=(GCItem *item) {
+      GCItem *tmp = _item;
+      _item = item;
+      delete tmp;
+      return *this;
+    }
+
+    ~GCItem_var() {
+      delete _item;
+    }
+
+    GCItem* operator->() {
+      return _item;
+    }
+
+    private:
+      GCItem *_item;
+  };
+
+  template <typename Type>
+  struct GCItem_T : GCItem {
+    GCItem_T(Type *ptr) : _ptr(ptr) {
+    }
+
+    virtual ~GCItem_T() {
+      delete _ptr;
+    }
+
+  private:
+    Type *_ptr;
+  };
+}
+
+class Swig_memory {
+public:
+  template <typename Type>
+  void swig_acquire_pointer(Type* vptr) {
+    if (vptr) {
+      swig_owner[vptr] = new GCItem_T<Type>(vptr);
+    }
+  }
+private:
+  typedef std::map<void *, GCItem_var> swig_ownership_map;
+  swig_ownership_map swig_owner;
+};
+
+template <typename Type>
+static void swig_acquire_pointer(Swig_memory** pmem, Type* ptr) {
+  if (!pmem) {
+    *pmem = new Swig_memory;
+  }
+  (*pmem)->swig_acquire_pointer(ptr);
+}
+%}
+
+/* For directors we need C++ to track a Go pointer.  Since we can't
+   pass a Go pointer into C++, we use a map to track the pointers on
+   the Go side.  */
+
+%go_import("sync")
+
+%insert(go_header) %{
+type _ sync.Mutex
+%}
+
+%insert(go_director) %{
+
+var swigDirectorTrack struct {
+	sync.Mutex
+	m map[int]interface{}
+	c int
+}
+
+func swigDirectorAdd(v interface{}) int {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	if swigDirectorTrack.m == nil {
+		swigDirectorTrack.m = make(map[int]interface{})
+	}
+	swigDirectorTrack.c++
+	ret := swigDirectorTrack.c
+	swigDirectorTrack.m[ret] = v
+	return ret
+}
+
+func swigDirectorLookup(c int) interface{} {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	ret := swigDirectorTrack.m[c]
+	if ret == nil {
+		panic("C++ director pointer not found (possible	use-after-free)")
+	}
+	return ret
+}
+
+func swigDirectorDelete(c int) {
+	swigDirectorTrack.Lock()
+	defer swigDirectorTrack.Unlock()
+	if swigDirectorTrack.m[c] == nil {
+		if c > swigDirectorTrack.c {
+			panic("C++ director pointer invalid (possible memory corruption")
+		} else {
+			panic("C++ director pointer not found (possible use-after-free)")
+		}
+	}
+	delete(swigDirectorTrack.m, c)
+}
+
 %}

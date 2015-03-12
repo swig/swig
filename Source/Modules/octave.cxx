@@ -228,8 +228,10 @@ public:
     if (Len(docs))
       emit_doc_texinfo();
 
-    if (directorsEnabled())
+    if (directorsEnabled()) {
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
+    }
 
     Printf(f_init, "return true;\n}\n");
     Printf(s_global_tab, "{0,0,0,0,0}\n};\n");

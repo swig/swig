@@ -49,6 +49,12 @@
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer2::IgnoreMe;
 
 %inline %{
+
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* ISO C++ prohibits anonymous structs [-Werror=pedantic] */
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
 struct Outer {
   typedef int Integer;
   ///////////////////////////////////////////

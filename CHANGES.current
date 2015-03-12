@@ -2,23 +2,31 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.5 (in progress)
+Version 3.0.6 (in progress)
 ===========================
 
-2015-01-27: smarchetto
-	    Support for the Scilab language has been added
+2015-03-12: olly
+	    -DSWIG_DIRECTOR_STATIC is now supported for all languages with
+	    director support, not only Python and PHP.
 
-2015-01-23: olly
-	    [PHP] When wrapping a returned resource as an object, check if all
-	    cases wrap it in the same class, and if so eliminate the pointless
-	    switch statement wrapper we previously generated.
+2015-03-02: ianlancetaylor
+	    [Go] Add -cgo option, required for Go versions 1.5 and
+	    later.
 
-2015-01-22: wsfulton
-            [Octave] Merge patch #297 for SF bug #1277 - Octave shared_ptr support
+2015-02-26: olly
+	    Fix segmentation fault when top==NULL, introduced by nested class
+	    handling (reported in issue#346 by Paweł Tomulik).
 
-2015-01-15: wsfulton
-            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
+2015-02-09: wsfulton
+            [Guile] Fix generated code for static const char member variables when
+            defined and declared inline.
 
-2015-01-15: wsfulton
-            [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
-            in directors
+2015-02-09: mishas
+            [Go] Fix %import of files in sub directories.
+
+2015-02-05: ianlancetaylor
+            [Go] Ignore Go specific type maps (goin, goout, etc.) if they are empty.
+
+2015-02-05: ianlancetaylor
+            [Go] Generated Go code no longer calls _swig_goallocate or
+            _swig_makegostring, as they will no longer work as of Go 1.5.

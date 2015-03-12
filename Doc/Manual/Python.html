@@ -2169,15 +2169,15 @@ for Python 2.2):
 import _example
 
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
-     def __del__(self):
-         if self.thisown:
-               _example.delete_Foo(self.this)
-     def spam(self,arg1):
-         return _example.Foo_spam(self.this,arg1)
-     x = property(_example.Foo_x_get, _example.Foo_x_set)
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
+    def __del__(self):
+        if self.thisown:
+            _example.delete_Foo(self.this)
+    def spam(self,arg1):
+        return _example.Foo_spam(self.this,arg1)
+    x = property(_example.Foo_x_get, _example.Foo_x_set)
 </pre>
 </div>
 
@@ -2219,9 +2219,9 @@ like in a proxy class:
 <div class="targetlang">
 <pre>
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
 </pre>
 </div>
 
@@ -2313,11 +2313,11 @@ private:
 
 <div class="targetlang">
 <pre>
-class MyPyException (Exception) :
-    def __init__(self, msg, *args) :
+class MyPyException(Exception):
+    def __init__(self, msg, *args):
         Exception.__init__(self, *args)
         self.myexc = MyException(msg)
-    def what (self) :
+    def what(self):
         return self.myexc.what()
 </pre>
 </div>
@@ -2841,6 +2841,7 @@ the methods one() and two() (but not three()):
 class Foo {
 public:
     Foo(int foo);
+    virtual ~Foo();
     virtual void one();
     virtual void two();
 };
@@ -2861,11 +2862,12 @@ then at the python side you can define
 import mymodule
 
 class MyFoo(mymodule.Foo):
-  def __init__(self, foo):
-     mymodule.Foo(self, foo)  
+    def __init__(self, foo):
+        mymodule.Foo.__init__(self, foo)
+#       super().__init__(foo) # Alternative construction for Python3
 
-  def one(self):
-     print "one from python"
+    def one(self):
+        print "one from python"
 </pre>
 </div>
 

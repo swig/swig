@@ -5,10 +5,10 @@
 
 // INPUT typemaps
 %define %scilab_input_typemap(Type)
-%typemap(in, noblock=1, fragment=SWIG_AsVal_frag(Type)) Type *INPUT(Type temp), Type &INPUT(Type temp) {
-  int ecode$argnum = SWIG_AsVal_dec(Type)($input, &temp);
-  if (!SWIG_IsOK(ecode$argnum)) {
-    %argument_fail(ecode$argnum, "$type", $symname, $argnum);
+%typemap(in, noblock=1, fragment=SWIG_AsVal_frag(Type)) Type *INPUT(Type temp)(int ecode), Type &INPUT(Type temp)(int ecode) {
+  ecode = SWIG_AsVal_dec(Type)($input, &temp);
+  if (!SWIG_IsOK(ecode)) {
+    %argument_fail(ecode, "$type", $symname, $argnum);
   }
   $1 = &temp;
 }

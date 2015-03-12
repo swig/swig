@@ -1,5 +1,8 @@
 from smart_pointer_member import *
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
 f = Foo()
 f.y = 1
 
@@ -20,8 +23,9 @@ if b.x != f.x:
 if b.z != f.z:
   raise RuntimeError
 
-if Foo.z == Bar.z:
-  raise RuntimeError
+if is_new_style_class(Bar): # feature not supported in old style classes
+  if Foo.z == Bar.z:
+    raise RuntimeError
 
 
 
