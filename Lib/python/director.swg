@@ -41,16 +41,6 @@
 
 
 /*
-  Use -DSWIG_DIRECTOR_STATIC if you prefer to avoid the use of the
-  'Swig' namespace. This could be useful for multi-modules projects.
-*/
-#ifdef SWIG_DIRECTOR_STATIC
-/* Force anonymous (static) namespace */
-#define Swig
-#endif
-
-
-/*
   Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of the
   native C++ RTTI and dynamic_cast<>. But be aware that directors
   could stop working when using this option.
