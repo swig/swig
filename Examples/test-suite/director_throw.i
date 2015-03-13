@@ -1,4 +1,4 @@
-%module(directors="1") director_error
+%module(directors="1") director_throw
 
 %insert("begin")
 %{
