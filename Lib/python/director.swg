@@ -203,7 +203,7 @@ namespace Swig {
 #ifdef SWIG_DIRECTOR_UEH
     static void handler() {
       try {
-        SWIG_DIRECTOR_THROW();
+        SWIG_DIRECTOR_RETHROW;
       } catch (DirectorException& e) {
         std::cerr << "SWIG Director exception caught:" << std::endl
                   << e.what() << std::endl;
@@ -222,7 +222,7 @@ namespace Swig {
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
                 << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
-      SWIG_DIRECTOR_THROW();
+      SWIG_DIRECTOR_RETHROW;
     }
 
   public:
