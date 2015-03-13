@@ -1,4 +1,4 @@
-%module(directors="1") python_director_error
+%module(directors="1") director_error
 
 %insert("begin")
 %{
