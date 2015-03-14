@@ -2333,8 +2333,6 @@ else
     GO="$GOBIN"
   fi
 
-  AC_CHECK_PROGS(GCCGO, gccgo)
-
   GOGCC=false
   GCCGO=
   GO1=false
@@ -2345,61 +2343,67 @@ else
   GCCGOOPT=
   GOVERSIONOPTION=
 
-  GO1=true
-  GOVERSIONOPTION=version
-  GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
-  go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
-  AC_MSG_CHECKING([whether go version is too old])
-  case $go_version in
-  go1.0* | go1 )
-    AC_MSG_RESULT([yes - minimum version is 1.1])
-    GO=
-    GOOPT="-intgosize 32"
-    ;;
-  *)
-    AC_MSG_RESULT([no])
-    if test "$GOC" = "6c"; then
-      GOOPT="-intgosize 64"
-    else
+  if test -n "$GO" ; then
+    GO1=true
+    GOVERSIONOPTION=version
+    GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
+    go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+    AC_MSG_CHECKING([whether go version is too old])
+    case $go_version in
+    go1.0* | go1 )
+      AC_MSG_RESULT([yes - minimum version is 1.1])
+      GO=
       GOOPT="-intgosize 32"
-    fi
-    ;;
-  esac
-  case $go_version in
-  go1.0* | go1 | go1.1*)
-    GOOPT="$GOOPT -use-shlib"
-    ;;
-  go1.2*)
-    GO12=true
-    ;;
-  go1.3* | go1.4*)
-    GO13=true
-    ;;
-  *)
-    GO15=true
-    ;;
-  esac
-
-  if $GCCGO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
-    AC_MSG_CHECKING([whether gccgo version is too old])
-    go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
-    if test "x$go_version" = x; then
-      AC_MSG_RESULT([could not determine gccgo version])
-      GCCGO=
-    elif test "$go_version" -lt 470; then
-      AC_MSG_RESULT([yes - minimum version is 4.7.0])
-      GCCGO=
-    else
+      ;;
+    *)
       AC_MSG_RESULT([no])
-      if test "$go_version" -lt 480; then
-        GCCGOOPT="-intgosize 32"
+      if test "$GOC" = "6c"; then
+        GOOPT="-intgosize 64"
       else
-	AC_CHECK_SIZEOF([void *], [4])
-	if test "$ac_cv_sizeof_void_p" = "8"; then
-	  GCCGOOPT="-intgosize 64"
-	else
-	  GCCGOOPT="-intgosize 32"
-	fi
+        GOOPT="-intgosize 32"
+      fi
+      ;;
+    esac
+    case $go_version in
+    go1.0* | go1 | go1.1*)
+      GOOPT="$GOOPT -use-shlib"
+      ;;
+    go1.2*)
+      GO12=true
+      ;;
+    go1.3* | go1.4*)
+      GO13=true
+      ;;
+    *)
+      GO15=true
+      ;;
+    esac
+  fi
+
+  AC_CHECK_PROGS(GCCGO, gccgo)
+
+  if test -n "$GCCGO" ; then
+    if $GCCGO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+      AC_MSG_CHECKING([whether gccgo version is too old])
+      go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
+      if test "x$go_version" = x; then
+        AC_MSG_RESULT([could not determine gccgo version])
+        GCCGO=
+      elif test "$go_version" -lt 470; then
+        AC_MSG_RESULT([yes - minimum version is 4.7.0])
+        GCCGO=
+      else
+        AC_MSG_RESULT([no])
+        if test "$go_version" -lt 480; then
+          GCCGOOPT="-intgosize 32"
+        else
+          AC_CHECK_SIZEOF([void *], [4])
+          if test "$ac_cv_sizeof_void_p" = "8"; then
+            GCCGOOPT="-intgosize 64"
+          else
+            GCCGOOPT="-intgosize 32"
+          fi
+        fi
       fi
     fi
   fi
