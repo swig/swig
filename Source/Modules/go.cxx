@@ -6314,7 +6314,7 @@ private:
 
     String *ct = Getattr(n, "emit:cgotype");
     if (ct) {
-      *c_struct_type = (bool)Getattr(n, "emit:cgotypestruct");
+      *c_struct_type = Getattr(n, "emit:cgotypestruct") ? true : false;
       return Copy(ct);
     }
 
