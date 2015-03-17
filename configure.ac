@@ -1805,7 +1805,7 @@ else
 
 	AC_MSG_CHECKING(if Ocaml version is greater than 3.08.2)
 	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
-	AC_COMPARE_VERSION([$OCAMLVER],[3.08.2],[:],[:],[OCAMLLOC=_loc])
+	AX_COMPARE_VERSION([$OCAMLVER], [ge], [3.08.2], [OCAMLLOC=_loc])
 	AC_MSG_RESULT($OCAMLVER)
     fi
 fi # Disabling ocaml
