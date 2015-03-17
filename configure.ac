@@ -1803,7 +1803,7 @@ else
 		AC_MSG_RESULT(not found)
 	fi
 
-	AC_MSG_CHECKING(for Ocaml version 3.08.2 or higher)
+	AC_MSG_CHECKING(if Ocaml version is greater than 3.08.2)
 	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
 	AC_COMPARE_VERSION([$OCAMLVER],[3.08.2],[:],[:],[OCAMLLOC=_loc])
 	AC_MSG_RESULT($OCAMLVER)
