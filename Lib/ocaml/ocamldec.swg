@@ -165,5 +165,3 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #ifdef __cplusplus
 }
 #endif
-
-/* mzschemedec.swg ends here */
