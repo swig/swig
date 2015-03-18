@@ -1745,19 +1745,17 @@ AC_SUBST(PHPINC)
 # Look for ocaml
 #----------------------------------------------------------------
 
-AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml])
-AS_HELP_STRING([--with-ocaml=path], [Set location of ocaml executable]),[ OCAMLBIN="$withval"], [OCAMLBIN=yes])
+AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml]), [with_ocaml="$withval"], [with_ocaml=yes])
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path      Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
 AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
 AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
-if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then
+if test x"${with_ocaml}" = xno -o x"${with_alllang}" = xno ; then
     AC_MSG_NOTICE([Disabling OCaml])
-    OCAMLBIN=
+    OCAMLC=
 else
-
     AC_MSG_CHECKING(for Ocaml DL load generator)
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
@@ -1773,56 +1771,17 @@ else
 	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
     fi
 
-    AC_MSG_CHECKING(for Ocaml interpreter)
-	if test "x$OCAMLBIN" = xyes; then
-	AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
-    fi
-
     AC_MSG_CHECKING(for Ocaml toplevel creator)
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
     fi
-
-    OCAMLLOC=loc
-    if test "$OCAMLC" != ":" ; then
-	AC_MSG_CHECKING(for Ocaml header files)
-	dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
-	dir="`$OCAMLC -where 2>/dev/null`"
-	if test "$dir"; then
-		dirs="$dir/caml $dirs"
-	fi
-	for i in $dirs; do
-		if test -r $i/mlvalues.h; then
-			AC_MSG_RESULT($i)
-			OCAMLEXT="$i"
-			OCAMLINC="-I$OCAMLEXT"
-			break
-		fi
-	done
-	if test -z "$OCAMLINC"; then
-		AC_MSG_RESULT(not found)
-	fi
-
-	AC_MSG_CHECKING(if Ocaml version is greater than 3.08.2)
-	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
-	AX_COMPARE_VERSION([$OCAMLVER], [ge], [3.08.2], [OCAMLLOC=_loc])
-	AC_MSG_RESULT($OCAMLVER)
-    fi
 fi # Disabling ocaml
 
-export OCAMLLOC
-export OCAMLVER
-export OCAMLINC
-export OCAMLBIN
 export OCAMLC
 export OCAMLDLGEN
 export OCAMLFIND
 export OCAMLMKTOP
 
-AC_SUBST(OCAMLLOC)
-AC_SUBST(OCAMLVER)
-AC_SUBST(OCAMLINC)
-AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
@@ -2584,7 +2543,7 @@ AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
-if test -z "$OCAMLBIN" || test -z "$OCAMLINC" ; then
+if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
 fi
 AC_SUBST(SKIP_OCAML)
