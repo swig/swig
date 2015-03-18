@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = ocaml
-OCAMLC       = ocamlc
+OCAMLC       = @OCAMLC@
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 
