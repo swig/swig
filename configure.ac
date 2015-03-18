@@ -1777,11 +1777,6 @@ else
     fi
 fi # Disabling ocaml
 
-export OCAMLC
-export OCAMLDLGEN
-export OCAMLFIND
-export OCAMLMKTOP
-
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
