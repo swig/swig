@@ -6,9 +6,9 @@ class MyException(Exception):
 go_called_count = 0
 class Derived(director_throw.Foo):
     def go(self):
-      global go_called_count
-      go_called_count += 1
-      raise MyException
+        global go_called_count
+        go_called_count += 1
+        raise MyException
 
 if go_called_count != 0:
     raise RuntimeError, "go_called_count before"
