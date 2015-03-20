@@ -32,8 +32,8 @@ CPP_TEST_CASES += \
 	argcargvtest \
 	callback \
 	complextest \
-	director_throw \
 	director_stl \
+        director_throw \
 	director_wstring \
 	file_test \
 	iadd \

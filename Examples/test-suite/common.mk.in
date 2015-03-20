@@ -189,6 +189,7 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_no_stray_exceptions \
 	director_nspace \
 	director_nspace_director_name_collision \
 	director_nested \
@@ -654,6 +655,8 @@ MULTI_CPP_TEST_CASES += \
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
+director_no_stray_exceptions.cpptest: CXXFLAGS += @FNO_EXCEPTIONS@
+director_throw.cpptest: CXXFLAGS += @FNO_EXCEPTIONS@
 
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
@@ -702,6 +705,7 @@ swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+        CXXFLAGS="${CXXFLAGS}" \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 

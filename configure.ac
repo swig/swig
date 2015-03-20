@@ -2695,6 +2695,24 @@ AC_SUBST(SKIP_ANDROID)
 #----------------------------------------------------------------
 
 
+# Some tests require -fno-exceptions to make sure the generated code is as
+# desired.
+AC_MSG_CHECKING([if -fno-exceptions works])
+save_CXXFLAGS=$CXXFLAGS
+CXXFLAGS="-fno-exceptions $CXXFLAGS"
+FNO_EXCEPTIONS=
+AC_LANG_PUSH([C++])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([],[])],
+  [AC_MSG_RESULT([yes])
+  FNO_EXCEPTIONS=-fno-exceptions],
+  [AC_MSG_RESULT([no])]
+)
+AC_LANG_POP([C++])
+CXXFLAGS=$save_CXXFLAGS
+AC_SUBST([FNO_EXCEPTIONS])
+
+
 # Root directory
 # Translate path for native Windows compilers for use with 'make check'
 ROOT_DIR=`pwd`
@@ -2733,6 +2751,7 @@ AC_CONFIG_FILES([
     Examples/Makefile
     Examples/d/example.mk
     Examples/xml/Makefile
+    Examples/test-suite/common.mk
     Examples/test-suite/errors/Makefile
     Examples/test-suite/chicken/Makefile
     Examples/test-suite/csharp/Makefile
