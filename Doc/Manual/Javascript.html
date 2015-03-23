@@ -197,10 +197,10 @@ $ sudo npm install -g node-gyp</pre>
 <pre>
 $ swig -javascript -node -c++ example.i</pre>
 </div>
-<p>Then run <code>node-gyp</code></p>
+<p>Then run <code>node-gyp build</code> to actually create the module:</p>
 <div class="shell">
 <pre>
-$ node-gyp</pre>
+$ node-gyp build</pre>
 </div>
 <p>This will create a <code>build</code> folder containing the native module. To use the extension you need to 'require' it in your Javascript source file:</p>
 <div class="code">
@@ -410,7 +410,7 @@ open new windows, and many more things.
 };</pre>
 </div>
 
-<H2><a name="Javascript_nn14"></a>26.4 Examples</H2>
+<H2><a id="Javascript_examples" name="Javascript_nn14"></a>26.4 Examples</H2>
 
 
 <p>Some basic examples are shown here in more detail.</p>
