@@ -1750,6 +1750,7 @@ AC_ARG_WITH(ocamlc,[  --with-ocamlc=path      Set location of ocamlc executable]
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
 AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
 AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
+AC_ARG_WITH(camlp4,[  --with-camlp4=path  Set location of camlp4 executable],[ CAMLP4="$withval"], [CAMLP4=])
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
 if test x"${with_ocaml}" = xno -o x"${with_alllang}" = xno ; then
@@ -1775,12 +1776,18 @@ else
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
     fi
+
+    AC_MSG_CHECKING(for Ocaml Pre-Processor-Pretty-Printer)
+    if test -z "$CAMLP4"; then
+	AC_CHECK_PROGS(CAMLP4, camlp4, :)
+    fi
 fi # Disabling ocaml
 
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
+AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
 # Look for Pike

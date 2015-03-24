@@ -883,7 +883,7 @@ OCAMLFIND=@OCAMLFIND@
 OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
-OCAMLP4WHERE=`$(COMPILETOOL) camlp4 -where`
+OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
 OCAMLCORE=\
 	rm -rf swig.mli swig.ml swigp4.ml && \
 	$(SWIG) -ocaml -co swig.mli 2>/dev/null &&  \
