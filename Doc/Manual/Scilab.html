@@ -42,7 +42,7 @@
 <li><a href="#Scilab_wrapping_pointers_null_pointers">Null pointers</a>
 </ul>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
-<li><a href="#Scilab_wrapping_cpp_classes">C++ Classes</a>
+<li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
@@ -931,7 +931,7 @@ ans  =
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_cpp_classes"></a>39.3.8 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_cpp_classes"></a>39.3.8 C++ classes</H3>
 
 
 <p>
@@ -1365,7 +1365,7 @@ void throw_int() throw(int) {
 }
 
 void throw_stl_invalid_arg(int i) throw(std::invalid_argument) {
-  if (i &amp;lt 0)
+  if (i &lt; 0)
     throw std::invalid_argument("argument is negative.");
 }
 %}
