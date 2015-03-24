@@ -103,8 +103,7 @@ SWIG_SciString_AsCharPtr(void *pvApiCtx, int iVar, char *pcValue, int iLength, c
     strncpy(pcValue, pcTmpValue, iLength);
   }
 
-  free(pcTmpValue);
-
+  freeAllocatedSingleString(pcTmpValue);
   return SWIG_OK;
 }
 }
