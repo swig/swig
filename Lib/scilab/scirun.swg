@@ -148,7 +148,8 @@ SWIGRUNTIME int
 SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type_info *ty, char *fname) {
   swig_cast_info *tc;
   int *piAddrVar = NULL;
-  char *pstStrings = NULL;
+  char *pstString = NULL;
+  char *pstStringPtr = NULL;
   SciErr sciErr;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
@@ -157,27 +158,33 @@ SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type
     return SWIG_ERROR;
   }
 
-  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstStrings)) {
+  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstString)) {
     return SWIG_ERROR;
   }
 
   /* Pointer values must start with leading underscore */
-  if (*pstStrings != '_') {
+  if (*pstString != '_') {
+    freeAllocatedSingleString(pstString);
     return SWIG_ERROR;
   }
 
-  pstStrings++;
-  pstStrings = (char*)SWIG_UnpackData(pstStrings, ptr, sz);
+  pstStringPtr = pstString;
+  pstStringPtr++;
+  pstStringPtr = (char*)SWIG_UnpackData(pstStringPtr, ptr, sz);
 
   if (ty) {
-    if (!pstStrings) {
+    if (!pstStringPtr) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
-    tc = SWIG_TypeCheck(pstStrings, ty);
+    tc = SWIG_TypeCheck(pstStringPtr, ty);
     if (!tc) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
   }
+
+  freeAllocatedSingleString(pstString);
   return SWIG_OK;
 }
 
