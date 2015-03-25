@@ -73,7 +73,7 @@ extern int gcdmain(int argc, char *argv[]);
   }
   utf8str = PyUnicode_AsUTF8String($input);
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
-  $1 = strndup(cstr, (size_t)len);
+  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;
   Py_DECREF(utf8str);
 %#else
@@ -106,7 +106,7 @@ extern int count(char *bytes, int len, char c);
   Py_ssize_t len;
   PyObject *utf8str = PyUnicode_AsUTF8String($input);
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
-  $1 = strndup(cstr, (size_t)len);
+  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;
   Py_DECREF(utf8str);
 %#else
