@@ -620,9 +620,9 @@ public:
     }
 
     /* if the object is a director, and the method call originated from its
-     * underlying python object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * underlying ocaml object, resolve the call by going up the c++ 
+     * inheritance chain.  otherwise try to resolve the method in ocaml.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 
