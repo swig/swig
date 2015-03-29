@@ -2004,7 +2004,7 @@ public:
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
-      if (GetFlag(n, "feature:javadowncast")) {
+      if (GetFlag(n, "feature:csdowncast")) {
 	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
 	String *wname = Swig_name_wrapper(downcast_method);
 
