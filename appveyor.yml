@@ -1,0 +1,117 @@
+# Important to have C:\MinGW\bin at beginning of path as there is a version of bash in the default path
+# TODO: where is it - with Git?
+# This 32 bit version of MinGW doesn't seem to configured correctly, possibly because it is running on
+# 64 bit Windows - direct.h does not compile off64_t is not defined and struct stat is missing.
+
+os:
+- Unstable
+#- Visual Studio 2014 CTP4
+#- Visual Studio 2015 CTP
+#- Visual Studio 2015 Preview
+#- Windows Server 2012 R2
+#- MinGW
+
+platform:
+- x86
+- x64
+
+environment:
+  matrix:
+  - SWIGLANG: csharp
+  - SWIGLANG: java
+  - SWIGLANG: python
+    VER: 27
+  - SWIGLANG: python
+    VER: 34
+    PY3: 1
+
+#configuration:
+#- Release
+#
+install:
+- date /T & time /T
+- set
+#- dir C:\
+#- dir "C:\Program Files (x86)"
+#- dir "C:\Program Files"
+#- dir "C:\Python34"
+#- dir "C:\Python34\libs"
+#- set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%
+- set PATH=C:\cygwin\bin;%PATH%
+- set CYGWIN=nodosfilewarning
+# - dir C:\MinGW
+# - dir C:\MinGW\bin
+#- dir C:\MinGW\msys\1.0\bin
+- git clone -q --depth=1 --single-branch --branch cccl-1.0 git://github.com/swig/cccl.git C:\cccl-1.0
+- bash -c "cp C:/cccl-1.0/cccl /usr/bin"
+- ps: >-
+    If ($env:Platform -Match "x86") {
+      $env:PCRE_PLATFORM="Win32"
+      $env:JAVA_HOME="C:/Program Files (x86)/Java/jdk1.8.0"
+      $env:VCVARS_PLATFORM="x86"
+      $env:LANG_PLATFORM=""
+    } Else {
+      $env:PCRE_PLATFORM="x64"
+      $env:JAVA_HOME="C:/Program Files/Java/jdk1.8.0"
+      $env:VCVARS_PLATFORM="amd64"
+      $env:LANG_PLATFORM="-x64"
+    }
+- call "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" %VCVARS_PLATFORM%
+- nuget install pcre -Verbosity detailed -Version 8.33.0.1 -OutputDirectory C:\pcre
+- set PCRE_ROOT=C:/pcre/pcre.8.33.0.1/build/native
+#- cinst php
+#- set PATH=%PATH%;C:\tools\php
+- set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
+#- path
+- python -V
+- bash -c "which python"
+- bash -c "python -V"
+- bash -c "which cl.exe"
+- bash -c "cl.exe /? 2>&1 | head -n 2"
+- bash -c "which csc.exe"
+- bash -c "csc.exe /? | head -n 2"
+- bash -c "which cccl"
+- bash -c "cccl --version"
+- make --version
+#- gcc -v
+#- php.exe --version
+#- cygcheck -s
+#- set
+- uname -a
+
+build_script:
+#- echo C:\MinGW /mingw >> C:\MinGW\msys\1.0\etc\fstab
+#- echo. >> C:\MinGW\msys\1.0\etc\fstab
+#- type C:\MinGW\msys\1.0\etc\fstab
+#- bash -c "echo $PATH"
+#- bash -c "ls -la /; echo xx; ls -la /c; echo xxx; ls -la /mingw; true"
+#- bash -c "mount; echo xx; ls /mingw/share/automake-1.11; echo xxx"
+#- bash -c "set"
+#- bash -c "find C:/Libraries/boost -maxdepth 3 -type d || true"
+#- bash -c "find C:/Libraries/boost -maxdepth 3 -type f || true"
+- set CCCL_OPTIONS=--cccl-muffle /W3
+- set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
+  # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
+- bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=cccl CXX=cccl CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE_CFLAGS='-I%PCRE_ROOT%/include -DPCRE_STATIC' PCRE_LIBS='-L%PCRE_ROOT%/lib/v110/%PCRE_PLATFORM%/Release/static/utf8 -lpcre8' --with-java='%JAVA_HOME%/bin/java.exe' --with-javac='%JAVA_HOME%/bin/javac.exe' --with-javaincl='%JAVA_HOME%/include' --without-perl5 --without-go --with-boost=C:/Libraries/boost || cat config.log"
+#- bash -c "cat Source/Makefile || true"
+#- bash -c "cat Examples/Makefile || true"
+- bash -c "time make -s"
+#- bash -c "time make ccache || true"
+
+test_script:
+- set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
+# (Warning below is fixed in newer versions of Python (2.7.9)) '_hypot' : recursive on all control paths, function will cause runtime stack overflow
+- ps: >-
+    If ("$env:SWIGLANG$env:VER" -Match "python27") {
+      $env:CCCL_OPTIONS="$env:CCCL_OPTIONS /wd4717"
+    }
+- .\swig.exe -version
+- bash -c "file ./swig.exe"
+#- .\ccache-swig.exe -V
+#- make check-errors-test-suite
+- bash -c "time make -k check-%SWIGLANG%-version"
+#- bash -c "time make -k check-%SWIGLANG%-examples %CHECK_OPTIONS%"
+- bash -c "time make -k check-%SWIGLANG%-test-suite %CHECK_OPTIONS%"
+
+# Do not build on tags (GitHub only)
+skip_tags: true
