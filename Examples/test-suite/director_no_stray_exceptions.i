@@ -13,7 +13,7 @@ Note:
   allowed with -fno-exceptions.
  */
 
-%module(directors="1") director_throw
+%module(directors="1") director_no_stray_exceptions
 
 %insert("begin")
 %{
