@@ -1171,6 +1171,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -1794,8 +1795,8 @@ public:
 
     /* if the object is a director, and the method call originated from its
      * underlying Ruby object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * inheritance chain.  otherwise try to resolve the method in Ruby.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 

@@ -1221,7 +1221,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-top stage 3\n");
       Swig_print_tree(top);
     }
-    if (dump_module & STAGE3) {
+    if (top && (dump_module & STAGE3)) {
       Printf(stdout, "debug-module stage 3\n");
       Swig_print_tree(Getattr(top, "module"));
     }
@@ -1230,7 +1230,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "Generating wrappers...\n");
     }
 
-    if (dump_classes) {
+    if (top && dump_classes) {
       Hash *classes = Getattr(top, "classes");
       if (classes) {
 	Printf(stdout, "Classes\n");

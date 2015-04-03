@@ -473,6 +473,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime
+      Swig_insert_file("director_common.swg", s_header);
       Swig_insert_file("director.swg", s_header);
     }
 

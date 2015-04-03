@@ -1,5 +1,8 @@
 import director_abstract
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
 class MyFoo(director_abstract.Foo):
 	def __init__(self):
 		director_abstract.Foo.__init__(self)
@@ -32,12 +35,20 @@ me1 = MyExample1()
 if director_abstract.Example1_get_color(me1, 1,2,3) != 1:
 	raise RuntimeError
 
+if is_new_style_class(MyExample2):
+  MyExample2_static = MyExample2
+else:
+  MyExample2_static = MyExample2(0, 0)
 me2 = MyExample2(1,2)
-if MyExample2.get_color(me2, 1,2,3) != 2:
+if MyExample2_static.get_color(me2, 1,2,3) != 2:
 	raise RuntimeError
 
+if is_new_style_class(MyExample3):
+  MyExample3_static = MyExample3
+else:
+  MyExample3_static = MyExample3()
 me3 = MyExample3()
-if MyExample3.get_color(me3, 1,2,3) != 3:
+if MyExample3_static.get_color(me3, 1,2,3) != 3:
 	raise RuntimeError
 
 error = 1

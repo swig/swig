@@ -42,7 +42,7 @@
 <li><a href="#Scilab_wrapping_pointers_null_pointers">Null pointers</a>
 </ul>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
-<li><a href="#Scilab_wrapping_cpp_classes">C++ Classes</a>
+<li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
@@ -453,8 +453,7 @@ int divide(int n, int d, int q*, int *r) {
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; [ret, q, r] = divide(20, 6)
@@ -727,8 +726,7 @@ The <tt>%scilabconst()</tt> feature is also available for enumerations:
 typedef enum { RED, BLUE, GREEN } color;
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; exec loader.sce;
@@ -916,8 +914,7 @@ typedef struct {
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; b = new_Bar();
@@ -934,7 +931,7 @@ ans  =
 </pre></div>
 
 
-<H3><a name="Scilab_wrapping_cpp_classes"></a>39.3.8 C++ Classes</H3>
+<H3><a name="Scilab_wrapping_cpp_classes"></a>39.3.8 C++ classes</H3>
 
 
 <p>
@@ -1216,8 +1213,7 @@ private:
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; c1 = new_Complex(3, 7);
@@ -1328,8 +1324,7 @@ void throw_exception() throw(char const *) {
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt;throw_exception()
@@ -1370,14 +1365,13 @@ void throw_int() throw(int) {
 }
 
 void throw_stl_invalid_arg(int i) throw(std::invalid_argument) {
-  if (i &amp;lt 0)
+  if (i &lt; 0)
     throw std::invalid_argument("argument is negative.");
 }
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; throw_int();
@@ -1500,8 +1494,7 @@ void printArray(int values[], int len) {
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; printArray([0 1 2 3], 4)
@@ -1665,8 +1658,7 @@ void absolute(int *matrix, int matrixNbRow, int matrixNbCol,
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; absolute([-0 1 -2; 3 4 -5])
@@ -1781,8 +1773,7 @@ double average(std::vector&lt;int&gt; v) {
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; example_Init();
@@ -1851,8 +1842,7 @@ std::set&lt;PersonPtr&gt; findPersonsByAge(std::set&lt;PersonPtr&gt; persons, in
 %}
 </pre></div>
 
-<p>
-</p>
+<br/>
 
 <div class="targetlang"><pre>
 --&gt; example_Init();

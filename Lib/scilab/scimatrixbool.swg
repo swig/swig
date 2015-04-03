@@ -25,10 +25,8 @@
 
 // in (bool *IN, int IN_SIZE)
 
-%typemap(in, noblock=1, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *IN, int IN_SIZE)
+%typemap(in, noblock=1, fragment="SWIG_SciBoolean_AsBoolArrayAndSize") (bool *IN, int IN_SIZE) (int rowCount, int colCount)
 {
-    int rowCount;
-    int colCount;
     if (SWIG_SciBoolean_AsBoolArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK) {
         $2 = rowCount * colCount;
     }
@@ -39,10 +37,8 @@
 
 // in (int IN_SIZE, bool *IN)
 
-%typemap(in, noblock=1) (int IN_SIZE, bool *IN)
+%typemap(in, noblock=1) (int IN_SIZE, bool *IN) (int rowCount, int colCount)
 {
-    int rowCount;
-    int colCount;
     if (SWIG_SciBoolean_AsBoolArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK) {
         $1 = rowCount * colCount;
     }

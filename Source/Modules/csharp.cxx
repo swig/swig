@@ -418,6 +418,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
     // Generate the intermediary class
@@ -1641,7 +1642,7 @@ public:
             String *proxyclassname = Getattr(n, "classtypeobj");
             String *baseclassname = Getattr(base.item, "name");
             Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
             base = Next(base);
           }
         }
@@ -2003,7 +2004,7 @@ public:
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
-      if (GetFlag(n, "feature:javadowncast")) {
+      if (GetFlag(n, "feature:csdowncast")) {
 	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
 	String *wname = Swig_name_wrapper(downcast_method);
 

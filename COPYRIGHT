@@ -62,7 +62,7 @@ Past SWIG developers and major contributors include:
  John Lenz                                                (Guile, MzScheme updates, Chicken module, runtime system)
  Baozeng Ding  <sploving1@163.com>                        (Scilab)
  Ian Lance Taylor                                         (Go)
- Vadim Zeitlin                                            (PCRE)
+ Vadim Zeitlin                                            (PCRE, Python)
  Stefan Zager (szager@gmail.com)                          (Python)
  Vincent Couvert                                          (Scilab)
  Sylvestre Ledru                                          (Scilab)

@@ -470,6 +470,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -2254,7 +2255,7 @@ public:
 	    if (SwigType_isreference(ptype)) {
 	      Insert(ppname, 0, "&");
 	    }
-	    /* if necessary, cast away const since Python doesn't support it! */
+	    /* if necessary, cast away const since Perl doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", pname);
 	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);

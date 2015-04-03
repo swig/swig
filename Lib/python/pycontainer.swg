@@ -710,8 +710,8 @@ namespace swig
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "tp_iter", functype="getiterfunc") iterator;
 #else
-  %pythoncode {def __iter__(self):
-    return self.iterator()}
+  %pythoncode %{def __iter__(self):
+    return self.iterator()%}
 #endif
   }
 

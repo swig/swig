@@ -1,5 +1,8 @@
 from namespace_class import *
 
+def is_new_style_class(cls):
+  return hasattr(cls, "__class__")
+
 try:
   p = Private1()
   error = 1
@@ -18,7 +21,10 @@ except:
 if (error):
   raise RuntimeError, "Private2 is private"
 
-EulerT3D.toFrame(1,1,1)
+if is_new_style_class(EulerT3D):
+  EulerT3D.toFrame(1,1,1)
+else:
+  EulerT3D().toFrame(1,1,1)
 
 b = BooT_i()
 b = BooT_H()
@@ -33,6 +39,7 @@ f.moo(1)
 f = FooT_H()
 f.foo(Hi)
 
-f_type = str(type(f))
-if f_type.find("'namespace_class.FooT_H'") == -1:
-  raise RuntimeError("Incorrect type: " + f_type)
+if is_new_style_class(FooT_H):
+  f_type = str(type(f))
+  if f_type.find("'namespace_class.FooT_H'") == -1:
+    raise RuntimeError("Incorrect type: " + f_type)

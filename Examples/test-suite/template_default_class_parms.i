@@ -41,7 +41,7 @@ namespace Teuchos {
 namespace KokkosClassic {
   namespace DefaultNode {
     struct DefaultNodeType {};
-  };
+  }
 }
 
 namespace Tpetra {

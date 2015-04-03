@@ -675,7 +675,7 @@ public:
       }
     }
 
-    /* Create variables for member pointer constants, not suppported by typemaps (like Python wrapper does) */
+    /* Create variables for member pointer constants, not supported by typemaps (like Python wrapper does) */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(constantName);
       String *str = SwigType_str(type, wname);
