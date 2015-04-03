@@ -2718,7 +2718,7 @@ public:
 	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  }
 	}
-      } else {
+      } else if (tuple_arguments > 0) {
 	Printf(parse_args, "if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
 	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       }
