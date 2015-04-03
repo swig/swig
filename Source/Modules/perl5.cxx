@@ -846,7 +846,9 @@ public:
 
     /* Emit the function call */
     if (director_method) {
+      Append(f->code, "#ifdef SWIG_DIRECTOR_CATCH_EXCEPTIONS\n");
       Append(f->code, "try {\n");
+      Append(f->code, "#endif\n");
     }
 
     /* Now write code to make the function call */
@@ -855,10 +857,12 @@ public:
     String *actioncode = emit_action(n);
 
     if (director_method) {
+      Append(actioncode, "#ifdef SWIG_DIRECTOR_CATCH_EXCEPTIONS\n");
       Append(actioncode, "} catch (Swig::DirectorException& swig_err) {\n");
       Append(actioncode, "  sv_setsv(ERRSV, swig_err.getNative());\n");
       Append(actioncode, "  SWIG_fail;\n");
       Append(actioncode, "}\n");
+      Append(actioncode, "#endif\n");
     }
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {

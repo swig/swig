@@ -2825,7 +2825,9 @@ public:
 
     /* Emit the function call */
     if (director_method) {
+      Append(f->code, "#ifdef SWIG_DIRECTOR_CATCH_EXCEPTIONS\n");
       Append(f->code, "try {\n");
+      Append(f->code, "#endif\n");
     } else {
       if (allow_thread) {
 	String *preaction = NewString("");
@@ -2844,9 +2846,11 @@ public:
     String *actioncode = emit_action(n);
 
     if (director_method) {
+      Append(actioncode, "#ifdef SWIG_DIRECTOR_CATCH_EXCEPTIONS\n");
       Append(actioncode, "} catch (Swig::DirectorException&) {\n");
       Append(actioncode, "  SWIG_fail;\n");
       Append(actioncode, "}\n");
+      Append(actioncode, "#endif\n");
     }
 
     /* This part below still needs cleanup */
