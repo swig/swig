@@ -25,6 +25,7 @@ else
 endif
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -85,7 +86,7 @@ C_TEST_CASES += \
 #C_TEST_CASES += \
 #	complextest
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 SCRIPTDIR    = .

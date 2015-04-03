@@ -7,10 +7,11 @@ PIKE         = pike
 SCRIPTSUFFIX = _runme.pike
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 # none!

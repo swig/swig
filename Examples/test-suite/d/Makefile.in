@@ -5,6 +5,7 @@
 LANGUAGE     = d
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
@@ -24,7 +25,7 @@ CPP_TEST_CASES = \
 	d_nativepointers \
 	exception_partial_info
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 SRCDIR       = ../$(srcdir)/

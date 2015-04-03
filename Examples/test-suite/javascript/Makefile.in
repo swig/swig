@@ -10,6 +10,7 @@ OBJEXT = @OBJEXT@
 SO = @SO@
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -27,7 +28,7 @@ else
     JSV8_VERSION=0x031110
 endif
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 

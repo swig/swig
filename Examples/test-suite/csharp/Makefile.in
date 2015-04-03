@@ -10,6 +10,7 @@ CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
@@ -31,7 +32,7 @@ CPP_TEST_CASES = \
 CPP11_TEST_CASES = \
 	cpp11_strongly_typed_enumerations_simple \
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 SRCDIR       = ../$(srcdir)/

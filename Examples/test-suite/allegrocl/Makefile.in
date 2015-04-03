@@ -7,6 +7,7 @@ ALLEGROCL    = @ALLEGROCLBIN@
 SCRIPTSUFFIX = _runme.lisp
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -88,7 +89,7 @@ C_TEST_BROKEN_LONGLONG = \
 # std lib support hasn't been done yet.
 SKIP_CPP_STD_CASES = Yes
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 # SWIGOPT += -debug-module 4

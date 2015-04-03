@@ -17,6 +17,7 @@ LANGUAGE     = errors
 ERROR_EXT    = newerr
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -28,7 +29,7 @@ C_ERROR_TEST_CASES := $(filter-out $(CPP_ERROR_TEST_CASES), $(ALL_ERROR_TEST_CAS
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest)
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Portable dos2unix / todos for stripping CR
 TODOS        = tr -d '\r'
