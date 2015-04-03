@@ -656,7 +656,6 @@ MULTI_CPP_TEST_CASES += \
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
 director_no_stray_exceptions.cpptest: CXXFLAGS += @FNO_EXCEPTIONS@
-director_throw.cpptest: CXXFLAGS += @FNO_EXCEPTIONS@
 
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
