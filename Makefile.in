@@ -423,6 +423,7 @@ distclean-source:
 distclean-test-suite:
 	@echo distcleaning Examples/test-suite
 	@$(MAKE) $(FLAGS) check-test-suite ACTION=distclean NOSKIP=1
+	@rm -f Examples/test-suite/common.mk
 
 distclean-examples:
 	@echo distcleaning Examples
