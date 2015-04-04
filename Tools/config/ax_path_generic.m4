@@ -69,7 +69,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 11
+#serial 13
 
 AU_ALIAS([AC_PATH_GENERIC], [AX_PATH_GENERIC])
 AC_DEFUN([AX_PATH_GENERIC],[
@@ -89,7 +89,7 @@ AC_DEFUN([AX_PATH_GENERIC],[
   AC_ARG_VAR(UP[]_CFLAGS, [CFLAGS used for $1])
   AC_ARG_VAR(UP[]_LIBS,   [LIBS used for $1])
 
-  AS_IF([test x$UP[]_CFLAGS != x -o x$UP[]_LIBS != x],[
+  AS_IF([test x"$UP[]_CFLAGS" != x -o x"$UP[]_LIBS" != x],[
     dnl Don't run config script at all, use user-provided values instead.
     AC_SUBST(UP[]_CFLAGS)
     AC_SUBST(UP[]_LIBS)
