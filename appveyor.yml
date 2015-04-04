@@ -17,7 +17,6 @@ environment:
 
 install:
 - date /T & time /T
-- set
 - set PATH=C:\cygwin\bin;%PATH%
 - set CYGWIN=nodosfilewarning
 - git clone -q --depth=1 --single-branch --branch cccl-1.0 git://github.com/swig/cccl.git C:\cccl-1.0
