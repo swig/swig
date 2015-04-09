@@ -817,7 +817,13 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       //               Getattr(c, "type"));
       //       SWIG_exit(EXIT_FAILURE);
     } else {
-      SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
+      SwigType *childType_t = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
+
+      SwigType *childType;
+      if(SwigType_isarray(childType_t)){
+	childType = NewStringf("%s", Getattr(c, "type"));}
+      else{
+	childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));}
 
       Node *node = NewHash();
       Setattr(node, "type", childType);
@@ -828,12 +834,23 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       String *typespec = tm ? NewString(tm) : NewString("");
 
       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
-      if (slot_name && (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0))
-	slot_name = NewStringf("t_var");
+      int slot_name_gc = 0;
+      if (slot_name && (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0)){
+	slot_name_gc = 1;
+	slot_name = NewStringf("t_var");}
 
-      Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
+      if(SwigType_isarray(childType_t)){
+	Printf(f_cl, "\n\t(%s %s :count #.(cl:*", slot_name, typespec);
+	for(int i = 0; i < SwigType_array_ndim(childType_t); i++){
+	  Printf(f_cl, " %s", SwigType_array_getdim(childType_t, i));}
+	Printf(f_cl, "))");}
+      else{
+	Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);}
 
+      if(slot_name_gc){
+	Delete(slot_name);}
       Delete(node);
+      Delete(childType_t);
       Delete(childType);
       Delete(typespec);
     }
