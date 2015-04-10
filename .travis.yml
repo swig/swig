@@ -49,7 +49,17 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-builtin
     - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin -modern
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin -modernargs
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin -modern -modernargs
+    - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin -modernargs PY3=3
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-builtin -modern -modernargs PY3=3
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-classic
     - compiler: gcc
