@@ -7,67 +7,79 @@ env:
 matrix:
   include:
     - compiler: gcc
-      env: SWIGLANG=csharp
+      env: SWIGLANG="csharp"
     - compiler: gcc
-      env: SWIGLANG=d
+      env: SWIGLANG="d"
     - compiler: gcc
-      env: SWIGLANG=go
+      env: SWIGLANG="go"
     - compiler: gcc
-      env: SWIGLANG=guile
+      env: SWIGLANG="guile"
     - compiler: gcc
-      env: SWIGLANG=java
+      env: SWIGLANG="java"
     - compiler: gcc
-      env: SWIGLANG=javascript ENGINE=node
+      env: SWIGLANG="javascript" ENGINE="node"
     - compiler: gcc
-      env: SWIGLANG=javascript ENGINE=jsc
+      env: SWIGLANG="javascript" ENGINE="jsc"
     - compiler: gcc
-      env: SWIGLANG=javascript ENGINE=v8
+      env: SWIGLANG="javascript" ENGINE="v8"
     - compiler: gcc
-      env: SWIGLANG=lua
+      env: SWIGLANG="lua"
     - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j3 # 3.2
+      env: SWIGLANG="octave" SWIGJOBS="-j3" # 3.2
     - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+      env: SWIGLANG="octave" SWIGJOBS="-j3" VER="3.8"
     - compiler: gcc
-      env: SWIGLANG=perl5
+      env: SWIGLANG="perl5"
     - compiler: gcc
-      env: SWIGLANG=php
+      env: SWIGLANG="php"
     - compiler: gcc
-      env: SWIGLANG=python VER=2.4
+      env: SWIGLANG="python" VER="2.4"
     - compiler: gcc
-      env: SWIGLANG=python VER=2.5
+      env: SWIGLANG="python" VER="2.5"
     - compiler: gcc
-      env: SWIGLANG=python VER=2.6
+      env: SWIGLANG="python" VER="2.6"
     - compiler: gcc
-      env: SWIGLANG=python # 2.7
+      env: SWIGLANG="python" # 2.7
     - compiler: gcc
-      env: SWIGLANG=python PY3=3 # 3.2
+      env: SWIGLANG="python" PY3="3" # 3.2
     - compiler: gcc
-      env: SWIGLANG=python PY3=3 VER=3.3
+      env: SWIGLANG="python" PY3="3" VER="3.3"
     - compiler: gcc
-      env: SWIGLANG=python PY3=3 VER=3.4
+      env: SWIGLANG="python" PY3="3" VER="3.4"
     - compiler: gcc
-      env: SWIGLANG=python SWIG_FEATURES=-builtin
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin"
     - compiler: gcc
-      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modern"
     - compiler: gcc
-      env: SWIGLANG=python SWIG_FEATURES=-classic
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modernargs"
     - compiler: gcc
-      env: SWIGLANG=ruby
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modern -modernargs"
     - compiler: gcc
-      env: SWIGLANG=scilab
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin" PY3="3"
     - compiler: gcc
-      env: SWIGLANG=tcl
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modern" PY3="3"
+    - compiler: gcc
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modernargs" PY3="3"
+    - compiler: gcc
+      env: SWIGLANG="python" SWIG_FEATURES="-builtin -modern -modernargs" PY3="3"
+    - compiler: gcc
+      env: SWIGLANG="python" SWIG_FEATURES="-classic"
+    - compiler: gcc
+      env: SWIGLANG="ruby"
+    - compiler: gcc
+      env: SWIGLANG="scilab"
+    - compiler: gcc
+      env: SWIGLANG="tcl"
   allow_failures:
     # Occasional gcc internal compiler error
     - compiler: gcc
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+      env: SWIGLANG="octave" SWIGJOBS="-j3" VER="3.8"
     # Not quite working yet
     - compiler: gcc
-      env: SWIGLANG=python SWIG_FEATURES=-classic
+      env: SWIGLANG="python" SWIG_FEATURES="-classic"
     # Lots of failing tests currently
     - compiler: gcc
-      env: SWIGLANG=ocaml
+      env: SWIGLANG="ocaml"
 before_install:
   - date -u
   - uname -a
