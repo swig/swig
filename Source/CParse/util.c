@@ -13,6 +13,121 @@
 
 #include "swig.h"
 #include "cparse.h"
+#include <ctype.h>
+
+ /* Splits the arguments of a macro */
+List *SWIG_split_args(String *s) {
+  List *args = 0;
+  char *c, *start;
+  int level = 0;
+  int angle_level = 0;
+  int leading = 1;
+
+  args = NewList();
+  c = strchr(Char(s), '(');
+  assert(c);
+  c++;
+
+  start = c;
+  while (*c) {
+    if (*c == '\"') {
+      c++;
+      while (*c) {
+  if (*c == '\\') {
+    c++;
+  } else {
+    if (*c == '\"')
+      break;
+  }
+  c++;
+      }
+    }
+    if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
+      Append(args, NewStringWithSize(start, c - start));
+      start = c + 1;
+      leading = 1;
+      if (*c == ')')
+  break;
+      c++;
+      continue;
+    }
+    if (*c == '(')
+      level++;
+    if (*c == ')')
+      level--;
+    if (*c == '<')
+      angle_level++;
+    if (*c == '>')
+      angle_level--;
+    if (isspace((int) *c) && leading)
+      start++;
+    if (!isspace((int) *c))
+      leading = 0;
+    c++;
+  }
+  return args;
+}
+
+ /* -----------------------------------------------------------------------------
+ * Swig_cparse_replace_substitute()
+ *
+ * Replaces string $substitute() with the result of replacing all
+ * instances of the second argument in the first argument with the thrid argument.
+ * ----------------------------------------------------------------------------- */
+ void Swig_cparse_replace_substitute(String *s) {
+  List *parameterList = 0;
+  char *start = 0;
+
+  while ((start = strstr(Char(s), "$substitute("))) {
+    /* Gather the parameters */
+    char *end = 0, *c;
+    int level = 0;
+    String *dollar_substitute;
+    int syntax_error = 1;
+    c = start;
+    while (*c) {
+      if (*c == '(')
+        level++;
+      if (*c == ')') {
+        level--;
+        if (level == 0) {
+          end = c + 1;
+          break;
+        }
+      }
+      c++;
+    }
+
+    if (end) {
+      dollar_substitute = NewStringWithSize(start, (end - start));
+      syntax_error = 0;
+    } else {
+      dollar_substitute = NewStringWithSize(start, (c - start));
+    }
+
+    if (!syntax_error) {
+      parameterList = SWIG_split_args(dollar_substitute);
+    }
+
+    if (!syntax_error && Len(parameterList) == 3) {
+      String *content = NewString(Getitem(parameterList, 0));
+      String *pat = Getitem(parameterList, 1);
+      String *rep = Getitem(parameterList, 2);
+
+      Replace(content, pat, rep, DOH_REPLACE_ANY);
+      Replace(s, dollar_substitute, content, DOH_REPLACE_ANY);
+
+      Delete(content);
+    }
+    else {
+      Swig_error(Getfile(s), Getline(s), "Bad $substitute() macro.\n");
+      break;
+    }
+
+    Delete(dollar_substitute);
+    Delete(parameterList);
+  }
+ }
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_replace_descriptor()

@@ -56,6 +56,8 @@ extern "C" {
   extern int SWIG_cparse_template_reduce(int treduce);
 
 /* util.c */
+  extern List *SWIG_split_args(String *s);
+  extern void Swig_cparse_replace_substitute(String *s);
   extern void Swig_cparse_replace_descriptor(String *s);
   extern void cparse_normalize_void(Node *);
   extern Parm *Swig_cparse_parm(String *s);

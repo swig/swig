@@ -46,6 +46,7 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
 %newobject FFoo::Bar(bool) const ;
 %typemap(newfree) char* Bar(bool)  {
    /* hello */ delete[] result;
+   /* $substitute(HeLLo WorLd, L, l) */
 }
 
 %inline {

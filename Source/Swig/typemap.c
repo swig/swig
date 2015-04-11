@@ -1816,61 +1816,6 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
 
 }
 
-/* Splits the arguments of an embedded typemap */
-static List *split_embedded_typemap(String *s) {
-  List *args = 0;
-  char *c, *start;
-  int level = 0;
-  int angle_level = 0;
-  int leading = 1;
-
-  args = NewList();
-  c = strchr(Char(s), '(');
-  assert(c);
-  c++;
-
-  start = c;
-  while (*c) {
-    if (*c == '\"') {
-      c++;
-      while (*c) {
-	if (*c == '\\') {
-	  c++;
-	} else {
-	  if (*c == '\"')
-	    break;
-	}
-	c++;
-      }
-    }
-    if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
-      String *tmp = NewStringWithSize(start, c - start);
-      Append(args, tmp);
-      Delete(tmp);
-      start = c + 1;
-      leading = 1;
-      if (*c == ')')
-	break;
-      c++;
-      continue;
-    }
-    if (*c == '(')
-      level++;
-    if (*c == ')')
-      level--;
-    if (*c == '<')
-      angle_level++;
-    if (*c == '>')
-      angle_level--;
-    if (isspace((int) *c) && leading)
-      start++;
-    if (!isspace((int) *c))
-      leading = 0;
-    c++;
-  }
-  return args;
-}
-
 /* -----------------------------------------------------------------------------
  * replace_embedded_typemap()
  *
@@ -1928,7 +1873,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
       syntax_error = 1;
 
       /* Split apart each parameter in $typemap(...) */
-      l = split_embedded_typemap(dollar_typemap);
+      l = SWIG_split_args(dollar_typemap);
 
       if (Len(l) >= 2) {
 	ParmList *to_match_parms;

@@ -4463,8 +4463,11 @@ public:
 
       for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
+  String *descriptor = NewString(Getattr(udata, "fdesc"));
 
-	Printf(w->def, "{ \"%s\", \"%s\", NULL }", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+  Swig_cparse_replace_substitute(descriptor);
+	Printf(w->def, "{ \"%s\", \"%s\", NULL }", Getattr(udata, "method"), descriptor);
+  Delete(descriptor);
 	if (i != curr_class_dmethod - 1)
 	  Putc(',', w->def);
 	Putc('\n', w->def);

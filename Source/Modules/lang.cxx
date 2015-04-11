@@ -786,6 +786,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
     Setfile(code, Getfile(n));
     Setline(code, Getline(n));
     Swig_cparse_replace_descriptor(code);
+    Swig_cparse_replace_substitute(code);
   }
 
   while (items) {
@@ -924,6 +925,7 @@ int Language::cDeclaration(Node *n) {
       Setfile(code, Getfile(n));
       Setline(code, Getline(n));
       Swig_cparse_replace_descriptor(code);
+      Swig_cparse_replace_substitute(code);
     }
   }
 
