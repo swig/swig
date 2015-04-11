@@ -365,35 +365,36 @@ namespace Swig {
     const char *classname_;
     const char *msg_;
   };
-
-  // Helper method to determine if a Java throwable matches a particular Java class type
-  bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname) {
-    bool matches = false;
-
-    if (throwable && jenv && classname) {
-      // Exceptions need to be cleared for correct behavior.
-      // The caller of ExceptionMatches should restore pending exceptions if desired -
-      // the caller already has the throwable.
-      jenv->ExceptionClear();
-
-      jclass clz = jenv->FindClass(classname);
-      if (clz) {
-	jclass classclz = jenv->GetObjectClass(clz);
-	jmethodID isInstanceMethodID = jenv->GetMethodID(classclz, "isInstance", "(Ljava/lang/Object;)Z");
-	if (isInstanceMethodID) {
-	  matches = jenv->CallBooleanMethod(clz, isInstanceMethodID, throwable) != 0;
-	}
-      }
-
+  
+  namespace {
+	  // Helper method to determine if a Java throwable matches a particular Java class type
+	  bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname) {
+	    bool matches = false;
+	
+	    if (throwable && jenv && classname) {
+	      // Exceptions need to be cleared for correct behavior.
+	      // The caller of ExceptionMatches should restore pending exceptions if desired -
+	      // the caller already has the throwable.
+	      jenv->ExceptionClear();
+	
+	      jclass clz = jenv->FindClass(classname);
+	      if (clz) {
+		jclass classclz = jenv->GetObjectClass(clz);
+		jmethodID isInstanceMethodID = jenv->GetMethodID(classclz, "isInstance", "(Ljava/lang/Object;)Z");
+		if (isInstanceMethodID) {
+		  matches = jenv->CallBooleanMethod(clz, isInstanceMethodID, throwable) != 0;
+		}
+	      }
+	
 #if defined(DEBUG_DIRECTOR_EXCEPTION)
-      if (jenv->ExceptionCheck()) {
-        // Typically occurs when an invalid classname argument is passed resulting in a ClassNotFoundException
-        JavaExceptionMessage exc(jenv, jenv->ExceptionOccurred());
-        std::cout << "Error: ExceptionMatches: class '" << classname << "' : " << exc.message() << std::endl;
-      }
+	      if (jenv->ExceptionCheck()) {
+	        // Typically occurs when an invalid classname argument is passed resulting in a ClassNotFoundException
+	        JavaExceptionMessage exc(jenv, jenv->ExceptionOccurred());
+	        std::cout << "Error: ExceptionMatches: class '" << classname << "' : " << exc.message() << std::endl;
+	      }
 #endif
-    }
-    return matches;
+	    }
+	    return matches;
+	  }
   }
 }
-
