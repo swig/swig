@@ -6,6 +6,10 @@ Version 3.0.6 (in progress)
 ===========================
 
 2015-04-11: wsfulton
+            [Java] Fix #353 - Linker multiple definition of 'ExceptionMatches' when
+            using directors and multiple modules.
+
+2015-04-11: wsfulton
             Merge #320 - Make __dict__ accessible for Python builtin classes.
 
 2015-04-07: wsfulton
