@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-11: wsfulton
+            Merge #320 - Make __dict__ accessible for Python builtin classes.
+
 2015-04-07: wsfulton
             Fix #375 - parsing of extern "C" and typedef for example:
               extern "C" typedef void (*Hook2_t)(int, const char *);
