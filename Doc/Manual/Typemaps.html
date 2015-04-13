@@ -4429,7 +4429,7 @@ before arrays, and so forth.
 
 <p>
 Using the above table as a guide, each target language defines a collection of "typecheck" typemaps. 
-The follow excerpt from the Python module illustrates this:
+The following excerpt from the Python module illustrates this:
 </p>
 
 <div class="code">
@@ -4542,10 +4542,30 @@ Here is an example,
 
 <p>
 The bottom line:  If you are writing new typemaps and you are using overloaded methods, you will probably 
-have to write typecheck code or copy existing code.   Since this is a relatively new SWIG feature, there are
-few examples to work with.  However, you might look at some of the existing library files likes 'typemaps.i' for
-a guide.
+have to write new typecheck code or copy and modify existing typecheck code.
 </p>
+
+<p>
+If you write a typecheck typemap and omit the precedence level, for example commenting it out as shown below:
+</p>
+
+<div class="code">
+<pre>
+%typemap(typecheck /*,precedence=SWIG_TYPECHECK_INTEGER*/) int {
+   $1 = PyInt_Check($input) ? 1 : 0;
+}
+</pre>
+</div>
+
+<p>
+then the type is given a precedence higher than any other known precedence level and a <a href="Warnings.html#Warnings">warning</a> is issued:
+</p>
+
+<div class="shell">
+<pre>
+example.i:18: Warning 467: Overloaded method foo(int) not supported (no type checking rule for 'int').
+</pre>
+</div>
 
 <p>
 <b>Notes:</b>
