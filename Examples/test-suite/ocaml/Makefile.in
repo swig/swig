@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = ocaml
-OCAMLC       = ocamlc
+OCAMLC       = @OCAMLC@
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 
@@ -26,18 +26,11 @@ run_testcase = \
 	fi ;
 
 check_quant:
-	cat /dev/null > testing
-	cat /dev/null > success
-	cat /dev/null > results
+	: > testing
+	: > success
 	$(MAKE) check
-	echo "Failed:" >> results
-	for element in `cat testing` ; do \
-		if grep $$element success >/dev/null 2>/dev/null ; then \
-			: ; \
-		else \
-			echo $$element >> results ; \
-		fi ; \
-	done
+	echo "Failed:" > results
+	diff testing success | sed 's/^< //p;d' >> results
 	echo "Success:" >> results
 	cat success >> results
 

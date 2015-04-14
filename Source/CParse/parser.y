@@ -1414,7 +1414,7 @@ static void mark_nodes_as_extend(Node *n) {
 /* Misc */
 %type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification;
-%type <id>       storage_class;
+%type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
 %type <p>        parm valparm rawvalparms valparms valptail ;
@@ -4652,9 +4652,7 @@ anon_bitfield_type : primitive_type { $$ = $1;
 /* ====================================================================== 
  *                       PRIMITIVES
  * ====================================================================== */
-
-storage_class  : EXTERN { $$ = "extern"; }
-               | EXTERN string {
+extern_string :  EXTERN string {
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
                    } else if (strcmp($2,"C++") == 0) {
@@ -4664,16 +4662,12 @@ storage_class  : EXTERN { $$ = "extern"; }
 		     $$ = 0;
 		   }
                }
-               | EXTERN string THREAD_LOCAL {
-                   if (strcmp($2,"C") == 0) {
-		     $$ = "externc thread_local";
-                   } else if (strcmp($2,"C++") == 0) {
-		     $$ = "extern thread_local";
-		   } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
-		     $$ = 0;
-		   }
-               }
+	       ;
+
+storage_class  : EXTERN { $$ = "extern"; }
+	       | extern_string { $$ = $1; }
+	       | extern_string THREAD_LOCAL { $$ = "thread_local"; }
+	       | extern_string TYPEDEF { $$ = "typedef"; }
                | STATIC { $$ = "static"; }
                | TYPEDEF { $$ = "typedef"; }
                | VIRTUAL { $$ = "virtual"; }

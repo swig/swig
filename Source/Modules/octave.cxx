@@ -1387,7 +1387,7 @@ public:
                SwigType_namestr(name));
       }
     } else {
-      // attach typemaps to arguments (C/C++ -> Python)
+      // attach typemaps to arguments (C/C++ -> Octave)
       String *parse_args = NewString("");
 
       Swig_director_parms_fixup(l);

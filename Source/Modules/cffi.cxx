@@ -831,7 +831,12 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       if (slot_name && (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0))
 	slot_name = NewStringf("t_var");
 
-      Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
+      if (SwigType_isarray(childType) && SwigType_array_ndim(childType) == 1) {
+          String *dim = SwigType_array_getdim(childType, 0);
+          Printf(f_cl, "\n\t(%s %s :count %s)", slot_name, typespec, dim);
+          Delete(dim);
+      } else
+          Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
 
       Delete(node);
       Delete(childType);

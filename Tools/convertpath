@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Unix to Windows relative path conversion in a script.
+# Useful for avoiding backslash quoting difficulties in Makefiles.
+# Acts as a much dumbed down 'cygpath -w' tool.
+
+usage()
+{
+  cat <<EOF
+Usage: $0 [-w|-u|-h] [path]...
+
+Convert Windows and Unix paths (intended for simple relative paths only)
+
+  -w  Convert backslashes to forward slashes in the paths
+  -u  Convert forward slashes to backslashes in the paths
+EOF
+}
+
+option="$1"
+case "$option" in
+  -w) shift; echo $@ | sed -e 's,/,\\,g' ;;
+  -u) shift; echo $@ | sed -e 's,\\,/,g' ;;
+  -h) shift; usage; ;;
+  *) usage; exit 1 ;;
+esac
+
+exit 0

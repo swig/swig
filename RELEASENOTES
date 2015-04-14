@@ -358,7 +358,7 @@ SWIG-1.3.22 summary:
   exceptions into target language exceptions.
 - Improved enum support, mapping to built-in Java 1.5 enums and C#
   enums or the typesafe enum pattern for these two languages.
-- Python - much better STL suppport and support for std::wstring,
+- Python - much better STL support and support for std::wstring,
   wchar_t and FILE *.
 - Initial support for Modula3 and Allegro CL.
 - 64 bit TCL support.

@@ -1353,7 +1353,7 @@ private:
       Delete(ret_type);
     }
 
-    goargout(info->parms, parm_count);
+    goargout(info->parms);
 
     if (SwigType_type(info->result) != T_VOID) {
       String *goout = goTypemapLookup("goout", info->n, "swig_r");
@@ -1945,7 +1945,7 @@ private:
       Printv(f_go_wrappers, call, NULL);
       Delete(call);
 
-      goargout(parms, parm_count);
+      goargout(parms);
 
       if (need_return_var) {
 	if (goout == NULL) {
@@ -2487,18 +2487,17 @@ private:
    * property with the name to use to refer to that parameter.
    * ----------------------------------------------------------------------- */
 
-  void goargout(ParmList *parms, int parm_count) {
+  void goargout(ParmList *parms) {
     Parm *p = parms;
-    for (int i = 0; i < parm_count; ++i) {
-      p = getParm(p);
-      String *tm = goGetattr(p, "tmap:goargout");
+    while (p) {
+      String *tm = Getattr(p, "tmap:goargout");
       if (!tm) {
 	p = nextSibling(p);
       } else {
 	tm = Copy(tm);
 	Replaceall(tm, "$result", "swig_r");
 	Replaceall(tm, "$input", Getattr(p, "emit:goinput"));
-	Printv(f_go_wrappers, tm, NULL);
+	Printv(f_go_wrappers, tm, "\n", NULL);
 	Delete(tm);
 	p = Getattr(p, "tmap:goargout:next");
       }
@@ -4456,7 +4455,7 @@ private:
 	  Printv(f_go_wrappers, "\tswig_r = *(*", ret_type, ")(unsafe.Pointer(&swig_r_p))\n", NULL);
 	}
 
-	goargout(parms, parm_count);
+	goargout(parms);
 
 	if (SwigType_type(result) != T_VOID) {
 	  if (goout == NULL) {
@@ -4758,7 +4757,7 @@ private:
 	  Printv(f_go_wrappers, "\tswig_r = *(*", ret_type, ")(unsafe.Pointer(&swig_r_p))\n", NULL);
 	}
 
-	goargout(parms, parm_count);
+	goargout(parms);
 
 	if (SwigType_type(result) != T_VOID) {
 	  if (goout == NULL) {
@@ -6314,7 +6313,7 @@ private:
 
     String *ct = Getattr(n, "emit:cgotype");
     if (ct) {
-      *c_struct_type = (bool)Getattr(n, "emit:cgotypestruct");
+      *c_struct_type = Getattr(n, "emit:cgotypestruct") ? true : false;
       return Copy(ct);
     }
 
