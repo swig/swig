@@ -5,6 +5,17 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-14: wsfulton
+            Clearer warning message for badly constructed typecheck typemaps. For example, was:
+
+              example.i:3: Warning 467: Overloaded foo(int) not supported (no type checking
+              rule for 'int').
+
+            Now:
+
+              example.i:3: Warning 467: Overloaded foo(int) not supported (incomplete type checking
+              rule - no precedence level in typecheck typemap for 'int').
+
 2015-04-11: wsfulton
             [Java] Fix #353 - Linker multiple definition of 'ExceptionMatches' when
             using directors and multiple modules.
