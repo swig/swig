@@ -113,6 +113,8 @@ static char *_swig_topofstack() {
   }
 }
 
+/* This is here for backward compatibility, but it will not work
+   with Go 1.5 or later.  Do not use it in new code.  */
 static void *_swig_goallocate(size_t len) {
   struct {
     size_t len;
@@ -246,6 +248,8 @@ void SwigCgocallBackDone() {
 
 %insert(runtime) %{
 
+/* This is here for backward compatibility, but it will not work
+   with Go 1.5 or later.  Do not use it in new code.  */
 static _gostring_ _swig_makegostring(const char *p, size_t l) {
   _gostring_ ret;
   ret.p = (char*)_swig_goallocate(l + 1);
