@@ -612,25 +612,21 @@ namespace swig {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
 #endif
-%#if 1
-      SWIG_Error(SWIG_SystemError, "from for seq");
-      return 0;
-%#else
+
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
-	Cell c(size,1);
+	mxArray* c = mxCreateCellMatrix(size,1);
 	int i = 0;
 	for (const_iterator it = seq.begin();
 	     it != seq.end(); ++it, ++i) {
-	  c(i) = swig::from<value_type>(*it);
+	  mxSetCell(c, i, swig::from<value_type>(*it));
 	}
 	return c;
       } else {
 	SWIG_Error(SWIG_RuntimeError, "swig overflow error: sequence size not valid in matlab");
-	return 0; // KT TODO mxArray();
+	return 0;
       }
-      return 0; // KT TODO mxArray();
-%#endif
+      return 0;
     }
   };
 }
