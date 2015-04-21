@@ -51,6 +51,8 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
     - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-O
+    - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-classic
     - compiler: gcc
       env: SWIGLANG=ruby
@@ -65,6 +67,9 @@ matrix:
     # Not quite working yet
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-classic
+    # Not quite working yet
+    - compiler: gcc
+      env: SWIGLANG=python SWIG_FEATURES=-O
     # Lots of failing tests currently
     - compiler: gcc
       env: SWIGLANG=ocaml
