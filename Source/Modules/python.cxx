@@ -1828,6 +1828,20 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * isPointerType()
+   *   Return true if the given type is a pointer after resolving
+   *   it if it's a typedef. This should be typically used instead
+   *   of SwigType_ispointer(), unless the type is already resolved.
+   * ------------------------------------------------------------ */
+  static bool isPointerType(SwigType* t) {
+    SwigType* const full_type = SwigType_typedef_resolve_all(t);
+    bool const ispointer = SwigType_ispointer(full_type);
+    Delete(full_type);
+
+    return ispointer;
+  }
+
+  /* ------------------------------------------------------------
    *  convertDoubleValue()
    *    Check if the given string looks like a decimal floating point constant
    *    and return it if it does, otherwise return NIL.
@@ -1922,7 +1936,7 @@ public:
 	if (Len(v) == 1) {
 	  // This is just a lone 0, but it needs to be represented differently
 	  // in Python depending on whether it's a zero or a null pointer.
-	  if (SwigType_ispointer(t))
+	  if (isPointerType(t))
 	    return NewString("None");
 	  else
 	    return v;
@@ -1959,7 +1973,7 @@ public:
     if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
       return NewString("False");
     if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+      return isPointerType(t) ? NewString("None") : NewString("0");
 
     // This could also be an enum type, default value of which could be
     // representable in Python if it doesn't include any scope (which could,
