@@ -1985,9 +1985,9 @@ public:
    *    at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
   bool is_representable_as_pyargs(Node *n) {
-    bool is_representable = true;
-
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
+    Swig_typemap_attach_parms("default", plist, NULL);
+
     Parm *p;
     Parm *pnext;
 
@@ -2003,16 +2003,23 @@ public:
       if (!pnext) {
 	pnext = nextSibling(p);
       }
+
+      // "default" typemap can contain arbitrary C++ code, so while it could, in
+      // principle, be possible to examine it and check if it's just something
+      // simple of the form "$1 = expression" and then use convertValue() to
+      // check if expression can be used in Python, but for now we just
+      // pessimistically give up and prefer to handle this at C++ level only.
+      if (Getattr(p, "tmap:default"))
+	return false;
+
       if (String *value = Getattr(p, "value")) {
 	String *type = Getattr(p, "type");
-	if (!convertValue(value, type)) {
-	  is_representable = false;
-	  break;
-	}
+	if (!convertValue(value, type))
+	  return false;
       }
     }
 
-    return is_representable;
+    return true;
   }
 
 

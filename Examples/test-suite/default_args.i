@@ -114,6 +114,8 @@
 %rename(renamed2arg) Foo::renameme(int x) const;
 %rename(renamed1arg) Foo::renameme() const;
 
+%typemap(default) double* null_by_default "$1=0;";
+
 %inline %{
 
   // Define a class
@@ -139,6 +141,9 @@
       // test the method itself being renamed
       void oldname(int x = 1234) {}
       void renameme(int x = 1234, double d=123.4) const {}
+
+      int double_if_dbl_ptr_is_null(int n, double* null_by_default)
+        { return null_by_default ? n : 2*n; }
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
