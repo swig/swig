@@ -31,6 +31,17 @@ def run(module_name):
   f.newname()
   f.newname(1)
 
+  if f.double_if_void_ptr_is_null(2, None) != 4:
+    raise RuntimeError
+
+  if f.double_if_void_ptr_is_null(3) != 6:
+    raise RuntimeError
+
+  if f.double_if_handle_is_null(4, None) != 8:
+    raise RuntimeError
+
+  if f.double_if_handle_is_null(5) != 10:
+    raise RuntimeError
 
   try:
     f = default_args.Foo(1)

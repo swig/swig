@@ -115,6 +115,7 @@
 %rename(renamed1arg) Foo::renameme() const;
 
 %inline %{
+  typedef void* MyHandle;
 
   // Define a class
   class Foo {
@@ -139,6 +140,10 @@
       // test the method itself being renamed
       void oldname(int x = 1234) {}
       void renameme(int x = 1234, double d=123.4) const {}
+
+      // test default values for pointer arguments
+      int double_if_void_ptr_is_null(int n, void* p = NULL) { return p ? n : 2*n; }
+      int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
