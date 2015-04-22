@@ -43,6 +43,12 @@ def run(module_name):
   if f.double_if_handle_is_null(5) != 10:
     raise RuntimeError
 
+  if f.double_if_dbl_ptr_is_null(6, None) != 12:
+    raise RuntimeError
+
+  if f.double_if_dbl_ptr_is_null(7) != 14:
+    raise RuntimeError
+
   try:
     f = default_args.Foo(1)
     error = 1

@@ -6,6 +6,9 @@ Version 3.0.6 (in progress)
 ===========================
 
 2015-04-23: vadz
+            [Python] Make "default" typemap work again (#330, #377).
+
+2015-04-23: vadz
             [Python] Fix the use of default values for the pointer types (#365, #376).
 
 2015-04-23: wsfulton

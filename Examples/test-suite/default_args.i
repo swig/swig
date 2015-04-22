@@ -114,6 +114,8 @@
 %rename(renamed2arg) Foo::renameme(int x) const;
 %rename(renamed1arg) Foo::renameme() const;
 
+%typemap(default) double* null_by_default "$1=0;";
+
 %inline %{
   typedef void* MyHandle;
 
@@ -144,6 +146,8 @@
       // test default values for pointer arguments
       int double_if_void_ptr_is_null(int n, void* p = NULL) { return p ? n : 2*n; }
       int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
+      int double_if_dbl_ptr_is_null(int n, double* null_by_default)
+        { return null_by_default ? n : 2*n; }
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
