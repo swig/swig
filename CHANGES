@@ -100,6 +100,10 @@ Version 3.0.3 (30 Dec 2014)
             [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
             Instead, the parameters are named using the C++ parameter names.
 
+            "compactdefaultargs" feature can be enabled to restore the old behaviour.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2014-10-24: timotheecour
             [D] Patch #204 Use core.atomic.atomicOp to mutate shared variables
 
