@@ -2068,7 +2068,15 @@ public:
     if (nn)
       n = nn;
 
-    /* For overloaded function, just use *args */
+    /* We prefer to explicitly list all parameters of the C function in the
+       generated Python code as this makes the function more convenient to use,
+       however in some cases we must replace the real parameters list with just
+       the catch all "*args". This happens when:
+
+	1. The function is overloaded as Python doesn't support this.
+	2. We were explicitly asked to use the "compact" arguments form.
+	3. One of the default argument values can't be represented in Python.
+     */
     if (is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || !is_representable_as_pyargs(n)) {
       String *parms = NewString("");
       if (in_class)
