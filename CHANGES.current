@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-23: wsfulton
+            Fix 'make check-ccache' which is part of 'make check' when one of the CCACHE_
+            environment variables, for example CCACHE_DISABLE, is set.
+
 2015-04-14: wsfulton
             Clearer warning message for badly constructed typecheck typemaps. For example, was:
 
