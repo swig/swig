@@ -4,21 +4,21 @@ import example
 
 # Try to set the values of some global variables
 
-example.cvar.ivar   =  42
-example.cvar.svar   = -31000
-example.cvar.lvar   =  65537
-example.cvar.uivar  =  123456
-example.cvar.usvar  =  61000
-example.cvar.ulvar  =  654321
-example.cvar.scvar  =  -13
-example.cvar.ucvar  =  251
-example.cvar.cvar   =  "S"
-example.cvar.fvar   =  3.14159
-example.cvar.dvar   =  2.1828
-example.cvar.strvar =  "Hello World"
-example.cvar.iptrvar= example.new_int(37)
-example.cvar.ptptr  = example.new_Point(37,42)
-example.cvar.name   = "Bill"
+example.cvar.ivar = 42
+example.cvar.svar = -31000
+example.cvar.lvar = 65537
+example.cvar.uivar = 123456
+example.cvar.usvar = 61000
+example.cvar.ulvar = 654321
+example.cvar.scvar = -13
+example.cvar.ucvar = 251
+example.cvar.cvar = "S"
+example.cvar.fvar = 3.14159
+example.cvar.dvar = 2.1828
+example.cvar.strvar = "Hello World"
+example.cvar.iptrvar = example.new_int(37)
+example.cvar.ptptr = example.new_Point(37, 42)
+example.cvar.name = "Bill"
 
 # Now print out the values of the variables
 
@@ -46,16 +46,16 @@ print "\nVariables (values printed from C)"
 
 example.print_vars()
 
-print "\nNow I'm going to try and modify some read only variables";
+print "\nNow I'm going to try and modify some read only variables"
 
-print "     Tring to set 'path'";
+print "     Tring to set 'path'"
 try:
     example.cvar.path = "Whoa!"
     print "Hey, what's going on?!?! This shouldn't work"
 except:
     print "Good."
 
-print "     Trying to set 'status'";
+print "     Trying to set 'status'"
 try:
     example.cvar.status = 0
     print "Hey, what's going on?!?! This shouldn't work"
@@ -70,6 +70,3 @@ example.cvar.pt = example.cvar.ptptr
 print "The new value is"
 example.pt_print()
 print "You should see the value", example.Point_print(example.cvar.ptptr)
-
-
-
