@@ -1835,7 +1835,7 @@ public:
    * ------------------------------------------------------------ */
   static bool isPointerType(SwigType* t) {
     SwigType* const full_type = SwigType_typedef_resolve_all(t);
-    bool const ispointer = SwigType_ispointer(full_type);
+    bool ispointer = SwigType_ispointer(full_type) ? true : false;
     Delete(full_type);
 
     return ispointer;
