@@ -2,14 +2,15 @@
 
 # This file illustrates the cross language polymorphism using directors.
 
-import example 
+import example
 
 
 class PyCallback(example.Callback):
-	def __init__(self):
-		example.Callback.__init__(self)
-	def run(self):
-		print "PyCallback.run()"
+    def __init__(self):
+        example.Callback.__init__(self)
+
+    def run(self):
+        print "PyCallback.run()"
 
 # Create an Caller instance
 
@@ -25,7 +26,7 @@ callback = example.Callback()
 callback.thisown = 0
 caller.setCallback(callback)
 caller.call()
-caller.delCallback();
+caller.delCallback()
 
 print
 print "Adding and calling a Python callback"
@@ -53,4 +54,3 @@ caller.delCallback()
 
 print
 print "python exit"
-
