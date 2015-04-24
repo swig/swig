@@ -1,6 +1,6 @@
 # file: runme.py
 
-import example 
+import example
 
 print "ICONST  =", example.ICONST, "(should be 42)"
 print "FCONST  =", example.FCONST, "(should be 2.1828)"
@@ -21,7 +21,3 @@ try:
     print "FOO    = ", example.FOO, "(Arg! This shouldn't print anything)"
 except AttributeError:
     print "FOO isn't defined (good)"
-
-
-
-
