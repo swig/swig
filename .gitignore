@@ -187,6 +187,6 @@ Examples/python/import_template/spam.py
 # Scilab generated files
 loader.sce
 
-# Pearl Examples generated files
+# Perl5 Examples generated files
 Examples/test-suite/perl5/*.pm
 Examples/test-suite/perl5/*.h
