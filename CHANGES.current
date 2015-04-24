@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-24: wsfulton
+            [Python] Fix #256. Code generated with '-builtin -modernargs' segfaults for any
+            method taking zero arguments.
+
+            Also fixes: "SystemError: error return without exception set" during error checking
+            when using just -builtin and the incorrect number of arguments is passed to a class
+            method expecting zero arguments.
+
 2015-04-23: wsfulton
             [Java] Bug #386 - Memory leak fix in (char *STRING, size_t LENGTH) typemaps.
 
