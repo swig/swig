@@ -2,16 +2,18 @@
 
 # This file illustrates the cross language polymorphism using directors.
 
-import example 
+import example
 
 
 # CEO class, which overrides Employee::getPosition().
 
 class CEO(example.Manager):
-	def __init__(self, name):
-		example.Manager.__init__(self, name)
-	def getPosition(self):
-		return "CEO"
+
+    def __init__(self, name):
+        example.Manager.__init__(self, name)
+
+    def getPosition(self):
+        return "CEO"
 
 
 # Create an instance of our employee extension class, CEO. The calls to
@@ -78,4 +80,3 @@ print "----------------------"
 # All done.
 
 print "python exit"
-

@@ -6,38 +6,37 @@ import example
 
 t = example.Test()
 try:
-      t.unknown()
-except RuntimeError,e:
-      print "incomplete type", e.args[0]
+    t.unknown()
+except RuntimeError, e:
+    print "incomplete type", e.args[0]
 
 try:
-      t.simple()
-except RuntimeError,e:
-      print e.args[0]
+    t.simple()
+except RuntimeError, e:
+    print e.args[0]
 
 try:
-      t.message()
-except RuntimeError,e:
-      print e.args[0]
+    t.message()
+except RuntimeError, e:
+    print e.args[0]
 
 if not example.is_python_builtin():
-  try:
+    try:
         t.hosed()
-  except example.Exc,e:
+    except example.Exc, e:
         print e.code, e.msg
 else:
-  try:
+    try:
         t.hosed()
-  except BaseException,e:
-        # Throwing builtin classes as exceptions not supported (-builtin option)
+    except BaseException, e:
+        # Throwing builtin classes as exceptions not supported (-builtin
+        # option)
         print e
 
-for i in range(1,4):
-      try:
-            t.multi(i)
-      except RuntimeError,e:
-            print e.args[0]
-      except example.Exc,e:
-            print e.code, e.msg
-
-
+for i in range(1, 4):
+    try:
+        t.multi(i)
+    except RuntimeError, e:
+        print e.args[0]
+    except example.Exc, e:
+        print e.code, e.msg
