@@ -1,11 +1,12 @@
 import sys
 import time
 import imp
-from subprocess import *
+from subprocess import Popen, PIPE
 
-def run (proc) :
 
-    try :
+def run(proc):
+
+    try:
         mod = imp.find_module(sys.argv[1])
         mod = imp.load_module(sys.argv[1], *mod)
 
@@ -14,7 +15,7 @@ def run (proc) :
         t2 = time.clock()
         print "%s took %f seconds" % (mod.__name__, t2 - t1)
 
-    except IndexError :
+    except IndexError:
         proc = Popen([sys.executable, 'runme.py', 'Simple_baseline'], stdout=PIPE)
         (stdout, stderr) = proc.communicate()
         print stdout
