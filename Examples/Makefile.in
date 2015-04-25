@@ -372,7 +372,7 @@ endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run: $(PYSCRIPT)
+python_run: $(PYSCRIPT) python_check
 	export PYTHONPATH=".:$$PYTHONPATH"; \
 	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
@@ -384,6 +384,17 @@ endif
 $(RUNME)3.py: $(SRCDIR)$(RUNME).py
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
+
+# -----------------------------------------------------------------
+# Run Python pep8 if it exists
+# -----------------------------------------------------------------
+
+PEP8         = @PEP8@
+python_check: $(PYSCRIPT)
+	+if [ -n "$(PEP8)" ]; then \
+		$(PEP8) $(PYSCRIPT);\
+	fi
+
 
 # -----------------------------------------------------------------
 # Version display
