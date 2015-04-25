@@ -11,7 +11,7 @@ endif
 LANGUAGE     = python
 PYTHON       = $(PYBIN)
 PEP8         = @PEP8@
-PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
+PEP8_FLAGS   = --ignore=E402,E501,W602
 
 #*_runme.py for Python 2.x, *_runme3.py for Python 3.x
 PY2SCRIPTSUFFIX = _runme.py
