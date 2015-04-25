@@ -5,7 +5,7 @@ import sys
 def check(got, expected, expected_builtin=None, skip=False):
     if not skip:
         expect = expected
-        if is_python_builtin() and expected_builtin != None:
+        if is_python_builtin() and expected_builtin is not None:
             expect = expected_builtin
         if expect != got:
             raise RuntimeError(

@@ -138,16 +138,16 @@ class li_boost_shared_ptr_runme:
         # null tests
         k = None
 
-        if (li_boost_shared_ptr.smartpointertest(k) != None):
+        if (li_boost_shared_ptr.smartpointertest(k) is not None):
             raise RuntimeError("return was not null")
 
-        if (li_boost_shared_ptr.smartpointerpointertest(k) != None):
+        if (li_boost_shared_ptr.smartpointerpointertest(k) is not None):
             raise RuntimeError("return was not null")
 
-        if (li_boost_shared_ptr.smartpointerreftest(k) != None):
+        if (li_boost_shared_ptr.smartpointerreftest(k) is not None):
             raise RuntimeError("return was not null")
 
-        if (li_boost_shared_ptr.smartpointerpointerreftest(k) != None):
+        if (li_boost_shared_ptr.smartpointerpointerreftest(k) is not None):
             raise RuntimeError("return was not null")
 
         if (li_boost_shared_ptr.nullsmartpointerpointertest(None) != "null pointer"):
@@ -159,7 +159,7 @@ class li_boost_shared_ptr_runme:
         except ValueError:
             pass
 
-        if (li_boost_shared_ptr.pointertest(k) != None):
+        if (li_boost_shared_ptr.pointertest(k) is not None):
             raise RuntimeError("return was not null")
 
         try:
@@ -451,11 +451,11 @@ class li_boost_shared_ptr_runme:
 
         # shared_ptr by value
         k = m.SmartMemberValue
-        if (k != None):
+        if (k is not None):
             raise RuntimeError("expected null")
         m.SmartMemberValue = None
         k = m.SmartMemberValue
-        if (k != None):
+        if (k is not None):
             raise RuntimeError("expected null")
         self.verifyCount(0, k)
 
@@ -469,7 +469,7 @@ class li_boost_shared_ptr_runme:
         # ////////////////////////////////// Global variables /////////////////
         # smart pointer
         kglobal = li_boost_shared_ptr.cvar.GlobalSmartValue
-        if (kglobal != None):
+        if (kglobal is not None):
             raise RuntimeError("expected null")
 
         k = li_boost_shared_ptr.Klass("smart global value")
@@ -506,7 +506,7 @@ class li_boost_shared_ptr_runme:
 
         # plain pointer
         kglobal = li_boost_shared_ptr.cvar.GlobalPointer
-        if (kglobal != None):
+        if (kglobal is not None):
             raise RuntimeError("expected null")
 
         k = li_boost_shared_ptr.Klass("global pointer")

@@ -32,13 +32,13 @@ def container_insert_step(i, j, step, newval):
 
     # Python slice
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 ps[i] = newval
             else:
                 ps[i:j] = newval
         else:
-            if j == None:
+            if j is None:
                 ps[i::step] = newval
             else:
                 ps[i:j:step] = newval
@@ -50,13 +50,13 @@ def container_insert_step(i, j, step, newval):
 
     # std::vector<int>
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 iv[i] = newval
             else:
                 iv[i:j] = newval
         else:
-            if j == None:
+            if j is None:
                 iv[i::step] = newval
             else:
                 iv[i:j:step] = newval
@@ -68,13 +68,13 @@ def container_insert_step(i, j, step, newval):
 
     # std::list<int>
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 il[i] = newval
             else:
                 il[i:j] = newval
         else:
-            if j == None:
+            if j is None:
                 il[i::step] = newval
             else:
                 il[i:j:step] = newval
@@ -86,8 +86,8 @@ def container_insert_step(i, j, step, newval):
 
     # Python 2.6 contains bug fixes in extended slicing syntax:
     # http://docs.python.org/2/whatsnew/2.6.html
-    skip_check = ps_error != None and(
-        iv_error == il_error == None) and step > 0 and (sys.version_info[0:2] < (2, 6))
+    skip_check = ps_error is not None and(
+        iv_error == il_error is None) and step > 0 and (sys.version_info[0:2] < (2, 6))
     if not(skip_check):
         if not((type(ps_error) == type(iv_error)) and (type(ps_error) == type(il_error))):
             raise RuntimeError, "ValueError exception not consistently thrown: " + \
@@ -105,13 +105,13 @@ def container_delete_step(i, j, step):
 
     # Python slice
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 del ps[i]
             else:
                 del ps[i:j]
         else:
-            if j == None:
+            if j is None:
                 del ps[i::step]
             else:
                 del ps[i:j:step]
@@ -123,13 +123,13 @@ def container_delete_step(i, j, step):
 
     # std::vector<int>
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 del iv[i]
             else:
                 del iv[i:j]
         else:
-            if j == None:
+            if j is None:
                 del iv[i::step]
             else:
                 del iv[i:j:step]
@@ -141,13 +141,13 @@ def container_delete_step(i, j, step):
 
     # std::list<int>
     try:
-        if step == None:
-            if j == None:
+        if step is None:
+            if j is None:
                 del il[i]
             else:
                 del il[i:j]
         else:
-            if j == None:
+            if j is None:
                 del il[i::step]
             else:
                 del il[i:j:step]

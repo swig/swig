@@ -8,7 +8,7 @@ if var2.getX() != 2:
     raise RuntimeError
 
 m = cpp11_uniform_initialization.MoreInit()
-if m.charptr != None:
+if m.charptr is not None:
     raise RuntimeError, m.charptr
 m.charptr = "hello sir"
 if m.charptr != "hello sir":
