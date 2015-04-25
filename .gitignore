@@ -133,6 +133,9 @@ Examples/d/**/runme
 *.[5689]
 *_gc.c
 
+# Guile
+Examples/guile/*/my-guile
+
 # Java
 Examples/test-suite/java/*/
 Examples/java/*/*.java
