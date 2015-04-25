@@ -390,9 +390,10 @@ $(RUNME)3.py: $(SRCDIR)$(RUNME).py
 # -----------------------------------------------------------------
 
 PEP8         = @PEP8@
+PEP8_FLAGS   = --ignore=E402
 python_check: $(PYSCRIPT)
 	+if [ -n "$(PEP8)" ]; then \
-		$(PEP8) $(PYSCRIPT);\
+		$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT);\
 	fi
 
 
