@@ -1,4 +1,4 @@
 from template_type_namespace import *
 
-if type(foo()[0]) != type(""):
+if not isinstance(foo()[0], type("")):
     raise RuntimeError
