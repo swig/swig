@@ -5,4 +5,3 @@ if test1("hello") != "hello":
 
 if test2("hello") != "hello":
     raise RuntimeError
-

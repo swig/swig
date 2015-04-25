@@ -1,7 +1,7 @@
 import preproc_defined
 
 if preproc_defined.call_checking() != 1:
-  raise RuntimeError
+    raise RuntimeError
 
 d = preproc_defined.Defined()
 d.defined = 10
