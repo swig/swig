@@ -83,85 +83,125 @@ class PyTest (TestDirector):
     def ident(self, x):
         return x
 
-    def vval_bool(self, x): return self.ident(x)
+    def vval_bool(self, x):
+        return self.ident(x)
 
-    def vval_schar(self, x): return self.ident(x)
+    def vval_schar(self, x):
+        return self.ident(x)
 
-    def vval_uchar(self, x): return self.ident(x)
+    def vval_uchar(self, x):
+        return self.ident(x)
 
-    def vval_int(self, x): return self.ident(x)
+    def vval_int(self, x):
+        return self.ident(x)
 
-    def vval_uint(self, x): return self.ident(x)
+    def vval_uint(self, x):
+        return self.ident(x)
 
-    def vval_short(self, x): return self.ident(x)
+    def vval_short(self, x):
+        return self.ident(x)
 
-    def vval_ushort(self, x): return self.ident(x)
+    def vval_ushort(self, x):
+        return self.ident(x)
 
-    def vval_long(self, x): return self.ident(x)
+    def vval_long(self, x):
+        return self.ident(x)
 
-    def vval_ulong(self, x): return self.ident(x)
+    def vval_ulong(self, x):
+        return self.ident(x)
 
-    def vval_llong(self, x): return self.ident(x)
+    def vval_llong(self, x):
+        return self.ident(x)
 
-    def vval_ullong(self, x): return self.ident(x)
+    def vval_ullong(self, x):
+        return self.ident(x)
 
-    def vval_float(self, x): return self.ident(x)
+    def vval_float(self, x):
+        return self.ident(x)
 
-    def vval_double(self, x): return self.ident(x)
+    def vval_double(self, x):
+        return self.ident(x)
 
-    def vval_char(self, x): return self.ident(x)
+    def vval_char(self, x):
+        return self.ident(x)
 
-    def vval_pchar(self, x): return self.ident(x)
+    def vval_pchar(self, x):
+        return self.ident(x)
 
-    def vval_pcharc(self, x): return self.ident(x)
+    def vval_pcharc(self, x):
+        return self.ident(x)
 
-    def vval_pint(self, x): return self.ident(x)
+    def vval_pint(self, x):
+        return self.ident(x)
 
-    def vval_sizet(self, x): return self.ident(x)
+    def vval_sizet(self, x):
+        return self.ident(x)
 
-    def vval_hello(self, x): return self.ident(x)
+    def vval_hello(self, x):
+        return self.ident(x)
 
-    def vval_myint(self, x): return self.ident(x)
+    def vval_myint(self, x):
+        return self.ident(x)
 
-    def vref_bool(self, x): return self.ident(x)
+    def vref_bool(self, x):
+        return self.ident(x)
 
-    def vref_schar(self, x): return self.ident(x)
+    def vref_schar(self, x):
+        return self.ident(x)
 
-    def vref_uchar(self, x): return self.ident(x)
+    def vref_uchar(self, x):
+        return self.ident(x)
 
-    def vref_int(self, x): return self.ident(x)
+    def vref_int(self, x):
+        return self.ident(x)
 
-    def vref_uint(self, x): return self.ident(x)
+    def vref_uint(self, x):
+        return self.ident(x)
 
-    def vref_short(self, x): return self.ident(x)
+    def vref_short(self, x):
+        return self.ident(x)
 
-    def vref_ushort(self, x): return self.ident(x)
+    def vref_ushort(self, x):
+        return self.ident(x)
 
-    def vref_long(self, x): return self.ident(x)
+    def vref_long(self, x):
+        return self.ident(x)
 
-    def vref_ulong(self, x): return self.ident(x)
+    def vref_ulong(self, x):
+        return self.ident(x)
 
-    def vref_llong(self, x): return self.ident(x)
+    def vref_llong(self, x):
+        return self.ident(x)
 
-    def vref_ullong(self, x): return self.ident(x)
+    def vref_ullong(self, x):
+        return self.ident(x)
 
-    def vref_float(self, x): return self.ident(x)
+    def vref_float(self, x):
+        return self.ident(x)
 
-    def vref_double(self, x): return self.ident(x)
+    def vref_double(self, x):
+        return self.ident(x)
 
-    def vref_char(self, x): return self.ident(x)
+    def vref_char(self, x):
+        return self.ident(x)
 
-    def vref_pchar(self, x): return self.ident(x)
+    def vref_pchar(self, x):
+        return self.ident(x)
 
-    def vref_pcharc(self, x): return self.ident(x)
+    def vref_pcharc(self, x):
+        return self.ident(x)
 
-    def vref_pint(self, x): return self.ident(x)
+    def vref_pint(self, x):
+        return self.ident(x)
 
-    def vref_sizet(self, x): return self.ident(x)
+    def vref_sizet(self, x):
+        return self.ident(x)
 
-    def vref_hello(self, x): return self.ident(x)
+    def vref_hello(self, x):
+        return self.ident(x)
 
-    def vref_myint(self, x): return self.ident(x)
+    def vref_myint(self, x):
+        return self.ident(x)
 
     pass
 
