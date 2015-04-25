@@ -9,7 +9,7 @@ def check(a, b):
 def is_new_style_class(cls):
     return hasattr(cls, "__class__")
 
-#### Class ####
+# ### Class ####
 
 # No implicit conversion
 check(1, A(1).get())
@@ -37,7 +37,7 @@ try:
 except TypeError:
     pass
 
-#### Template Class ####
+# ### Template Class ####
 
 # No implicit conversion
 check(1, A_int(1).get())
@@ -60,7 +60,7 @@ try:
 except TypeError:
     pass
 
-#### Global variable assignment ####
+# ### Global variable assignment ####
 
 cvar.foo = Foo(1)
 check(cvar.foo.ii, 1)
@@ -78,7 +78,7 @@ try:
 except TypeError:
     pass
 
-#### Member variable assignment ####
+# ### Member variable assignment ####
 # Note: also needs naturalvar
 
 b = Bar()
@@ -97,7 +97,7 @@ try:
 except TypeError:
     pass
 
-#### Class testing None ####
+# ### Class testing None ####
 
 # No implicit conversion
 check(1, AA(1).get())
@@ -134,7 +134,7 @@ except TypeError:
     pass
 
 
-### overloading priority test ###
+# ### overloading priority test ####
 
 ccc = CCC(B())
 check(ccc.checkvalue, 10)
