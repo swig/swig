@@ -72,8 +72,8 @@ if (template_default_arg.ott("hi", 1, 1) != 20):
     raise RuntimeError, ("ott test 7 failed")
 
 # %template(ott) ott<const char *>
-if (template_default_arg.ottstring(
-    template_default_arg.Hello_int(), "hi") != 40):
+if (template_default_arg.ottstring(template_default_arg.Hello_int(),
+                                   "hi") != 40):
     raise RuntimeError, ("ott test 8 failed")
 
 if (template_default_arg.ottstring(template_default_arg.Hello_int()) != 40):
