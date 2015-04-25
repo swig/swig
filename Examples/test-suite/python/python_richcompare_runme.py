@@ -11,7 +11,7 @@ b2 = python_richcompare.SubClassB(2)
 b3 = python_richcompare.SubClassB(3)
 
 # Check == and != within a single type
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 if not (base1 == base1):
     raise RuntimeError("Object not == to itself")
@@ -35,7 +35,7 @@ if not (base1 != base2):
 
 
 # Check redefined operator== in SubClassA
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 if (a2 == base2):
     raise RuntimeError("Redefined operator== in SubClassA failed")
@@ -47,7 +47,7 @@ if not (a1 == a2):
     raise RuntimeError("Redefined operator== in SubClassA failed")
 
 # Check up-casting of subclasses
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 if (base2 != a2):
     raise RuntimeError(
@@ -66,7 +66,7 @@ if (b1 == a1):
         "Comparing equivalent instances of different subclasses, == returned True")
 
 # Check inequalities
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 if (a2 > b2):
     raise RuntimeError("operator> failed")
@@ -81,7 +81,7 @@ if not (a2 <= b2):
     raise RuntimeError("operator<= failed")
 
 # Check inequalities used for ordering
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
 x = sorted([a2, a3, a1])
 

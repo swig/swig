@@ -8,7 +8,7 @@ if (d.id != 1234):
 #  raise RuntimeError
 
 d.id = 4321
-#d.xyz = 8765
+# d.xyz = 8765
 
 if (d.id != 4321):
     raise RuntimeError

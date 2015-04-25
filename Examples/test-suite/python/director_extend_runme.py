@@ -1,7 +1,7 @@
 # Test case from bug #1506850
-#"When threading is enabled, the interpreter will infinitely wait on a mutex the second
-# time this type of extended method is called. Attached is an example
-# program that waits on the mutex to be unlocked."
+# "When threading is enabled, the interpreter will infinitely wait on a mutex
+# the second time this type of extended method is called. Attached is an
+# example program that waits on the mutex to be unlocked."
 
 from director_extend import *
 

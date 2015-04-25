@@ -10,8 +10,8 @@ if val != 1234:
 m2 = MultimapAInt()
 
 # TODO: typemaps and specializations not quite working as expected. T needs expanding, but at least the right typemap is being picked up.
-#dummy_pair = m2.make_dummy_pair()
-#val = m2.typemap_test(dummy_pair)
+# dummy_pair = m2.make_dummy_pair()
+# val = m2.typemap_test(dummy_pair)
 
 # print val
 # if val != 4321:

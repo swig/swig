@@ -23,7 +23,7 @@ if aa.d != aa.b:
 
 if aa.c != 3:
     raise RuntimeError
-#aa.c = 5
+# aa.c = 5
 # if aa.c != 3:
 #  raise RuntimeError
 
