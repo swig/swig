@@ -5,9 +5,9 @@ import os.path
 testname = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
 print "Testing " + testname + " - %module(package=...) + python 'import' in __init__.py"
 
-if sys.version_info < (3,0):
-  import py2.pkg2.bar
-  print "  Finished importing py2.pkg2.bar"
+if sys.version_info < (3, 0):
+    import py2.pkg2.bar
+    print "  Finished importing py2.pkg2.bar"
 else:
-  import py3.pkg2.bar
-  print "  Finished importing py3.pkg2.bar"
+    import py3.pkg2.bar
+    print "  Finished importing py3.pkg2.bar"
