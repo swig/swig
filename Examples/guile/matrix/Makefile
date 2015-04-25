@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SRCS       = matrix.c vector.c
-TARGET     = matrix
+TARGET     = my-guile
 INTERFACE  = example.i
 
 check: build
