@@ -2,11 +2,11 @@ from char_binary import *
 
 t = Test()
 if t.strlen('hile') != 4:
-  print t.strlen('hile')
-  raise RuntimeError, "bad multi-arg typemap"
+    print t.strlen('hile')
+    raise RuntimeError, "bad multi-arg typemap"
 
 if t.strlen('hil\0') != 4:
-  raise RuntimeError, "bad multi-arg typemap"
+    raise RuntimeError, "bad multi-arg typemap"
 
 #
 # creating a raw char*
@@ -20,17 +20,16 @@ pchar_setitem(pc, 4, 0)
 
 
 if t.strlen(pc) != 4:
-  raise RuntimeError, "bad multi-arg typemap"
+    raise RuntimeError, "bad multi-arg typemap"
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-  print cvar.var_pchar
-  raise RuntimeError, "bad pointer case"
+    print cvar.var_pchar
+    raise RuntimeError, "bad pointer case"
 
 cvar.var_namet = pc
-#if cvar.var_namet != "hola\0":
+# if cvar.var_namet != "hola\0":
 if cvar.var_namet != "hola":
-  raise RuntimeError, "bad pointer case"
+    raise RuntimeError, "bad pointer case"
 
 delete_pchar(pc)
-

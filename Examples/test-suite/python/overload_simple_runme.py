@@ -70,7 +70,7 @@ if s.type != "none":
 s = Spam(3)
 if s.type != "int":
     raise RuntimeError, "Spam(int)"
-    
+
 s = Spam(3.4)
 if s.type != "double":
     raise RuntimeError, "Spam(double)"
@@ -90,9 +90,6 @@ if s.type != "Bar *":
 s = Spam(v)
 if s.type != "void *":
     raise RuntimeError, "Spam(void *)"
-
-
-
 
 
 free_void(v)

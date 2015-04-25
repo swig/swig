@@ -28,4 +28,3 @@ if varargs_overload.vararg_over4(123) != "123":
 
 if varargs_overload.vararg_over4("Hello", 123) != "Hello":
     raise RuntimeError, "Failed"
-
