@@ -40,7 +40,7 @@ print "cstrvar   =", example.cvar.cstrvar
 print "iptrvar   =", example.cvar.iptrvar
 print "name      =", example.cvar.name
 print "ptptr     =", example.cvar.ptptr,\
-        example.Point_print(example.cvar.ptptr)
+      example.Point_print(example.cvar.ptptr)
 print "pt        =", example.cvar.pt, example.Point_print(example.cvar.pt)
 
 print "\nVariables (values printed from C)"

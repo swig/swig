@@ -18,7 +18,7 @@ print "    Foo_LUDICROUS =", example.Foo.LUDICROUS
 print "\nTesting use of enums with functions\n"
 
 example.enum_test(example.RED, example.Foo.IMPULSE)
-example.enum_test(example.BLUE,  example.Foo.WARP)
+example.enum_test(example.BLUE, example.Foo.WARP)
 example.enum_test(example.GREEN, example.Foo.LUDICROUS)
 example.enum_test(1234, 5678)
 
