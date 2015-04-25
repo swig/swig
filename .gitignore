@@ -127,6 +127,7 @@ Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
 *_wrap.c
 *_wrap.cxx
+*_wrap.h
 *-gypcopy.cxx
 
 # Scratch directories
@@ -152,13 +153,15 @@ Examples/scratch
 swigexample*.oct
 Examples/test-suite/octave/*.oct
 
+# Perl5 generated files
+Examples/test-suite/perl5/*.pm
+
 # Python generated files, based on:
 #   https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
 */__pycache__/
 /__pycache__/
 Examples/python/*/example.py
-Examples/python/*/example_wrap.h
 Examples/python/import/bar.py
 Examples/python/import/base.py
 Examples/python/import/foo.py
@@ -187,6 +190,3 @@ Examples/python/import_template/spam.py
 # Scilab generated files
 loader.sce
 
-# Perl5 Examples generated files
-Examples/test-suite/perl5/*.pm
-Examples/test-suite/perl5/*.h
