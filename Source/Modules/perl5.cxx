@@ -13,8 +13,6 @@
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(0);
-
 #include <ctype.h>
 
 static const char *usage = "\

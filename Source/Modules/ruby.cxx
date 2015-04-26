@@ -13,13 +13,11 @@
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(0);
-
-#define SWIG_PROTECTED_TARGET_METHODS 1
-
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>		/* for INT_MAX */
+
+#define SWIG_PROTECTED_TARGET_METHODS 1
 
 class RClass {
 private:
