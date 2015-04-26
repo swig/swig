@@ -2,5 +2,4 @@
 
 import example
 
-print "example.Foo.bar.__doc__  =", \
-      repr(example.Foo.bar.__doc__), "(Should be 'No comment')"
+print "example.Foo.bar.__doc__  =", repr(example.Foo.bar.__doc__), "(Should be 'No comment')"
