@@ -4,7 +4,7 @@ import _default_constructor
 # It uses the old static syntax (e.g., dc.new_A() rather than dc.A()),
 # which is not provided with the -builtin option.
 if _default_constructor.is_python_builtin():
-  exit(0)
+    exit(0)
 
 dc = _default_constructor
 
@@ -23,7 +23,7 @@ except:
 del_b = dc.delete_B
 
 try:
-    bb = dc.new_BB();
+    bb = dc.new_BB()
     print "Whoa. new_BB created."
 except:
     pass
@@ -42,7 +42,7 @@ cc = dc.new_CC()
 dc.delete_CC(cc)
 
 try:
-    d = dc.new_D();
+    d = dc.new_D()
     print "Whoa. new_D created"
 except:
     pass
@@ -113,5 +113,4 @@ dc.delete_GG(gg)
 
 
 import default_constructor
-hh = default_constructor.HH(1,1)
-
+hh = default_constructor.HH(1, 1)

@@ -1,9 +1,11 @@
 from cpp11_strongly_typed_enumerations import *
 
+
 def enumCheck(actual, expected):
-  if actual != expected:
-    raise RuntimeError("Enum value mismatch. Expected " + str(expected) + " Actual: " + str(actual))
-  return expected + 1
+    if actual != expected:
+        raise RuntimeError(
+            "Enum value mismatch. Expected " + str(expected) + " Actual: " + str(actual))
+    return expected + 1
 
 val = 0
 val = enumCheck(Enum1_Val1, val)
@@ -82,27 +84,27 @@ val = enumCheck(Class1.Enum14_Val5e, 1141)
 val = enumCheck(Class1.Enum14_Val6e, val)
 
 # Requires nested class support to work
-#val = 0
-#val = enumCheck(Class1.Struct1.Enum12_Val1, 3121)
-#val = enumCheck(Class1.Struct1.Enum12_Val2, 3122)
-#val = enumCheck(Class1.Struct1.Enum12_Val3, val)
-#val = enumCheck(Class1.Struct1.Enum12_Val4, val)
-#val = enumCheck(Class1.Struct1.Enum12_Val5f, 3121)
-#val = enumCheck(Class1.Struct1.Enum12_Val6f, val)
+# val = 0
+# val = enumCheck(Class1.Struct1.Enum12_Val1, 3121)
+# val = enumCheck(Class1.Struct1.Enum12_Val2, 3122)
+# val = enumCheck(Class1.Struct1.Enum12_Val3, val)
+# val = enumCheck(Class1.Struct1.Enum12_Val4, val)
+# val = enumCheck(Class1.Struct1.Enum12_Val5f, 3121)
+# val = enumCheck(Class1.Struct1.Enum12_Val6f, val)
 #
-#val = 0
-#val = enumCheck(Class1.Struct1.Val1, 3131)
-#val = enumCheck(Class1.Struct1.Val2, 3132)
-#val = enumCheck(Class1.Struct1.Val3, val)
-#val = enumCheck(Class1.Struct1.Val4, val)
+# val = 0
+# val = enumCheck(Class1.Struct1.Val1, 3131)
+# val = enumCheck(Class1.Struct1.Val2, 3132)
+# val = enumCheck(Class1.Struct1.Val3, val)
+# val = enumCheck(Class1.Struct1.Val4, val)
 #
-#val = 0
-#val = enumCheck(Class1.Struct1.Enum14_Val1, 3141)
-#val = enumCheck(Class1.Struct1.Enum14_Val2, 3142)
-#val = enumCheck(Class1.Struct1.Enum14_Val3, val)
-#val = enumCheck(Class1.Struct1.Enum14_Val4, val)
-#val = enumCheck(Class1.Struct1.Enum14_Val5g, 3141)
-#val = enumCheck(Class1.Struct1.Enum14_Val6g, val)
+# val = 0
+# val = enumCheck(Class1.Struct1.Enum14_Val1, 3141)
+# val = enumCheck(Class1.Struct1.Enum14_Val2, 3142)
+# val = enumCheck(Class1.Struct1.Enum14_Val3, val)
+# val = enumCheck(Class1.Struct1.Enum14_Val4, val)
+# val = enumCheck(Class1.Struct1.Enum14_Val5g, 3141)
+# val = enumCheck(Class1.Struct1.Enum14_Val6g, val)
 
 val = 0
 val = enumCheck(Class2.Enum12_Val1, 2121)
@@ -129,36 +131,35 @@ val = enumCheck(Class2.Enum14_Val5j, 2141)
 val = enumCheck(Class2.Enum14_Val6j, val)
 
 # Requires nested class support to work
-#val = 0
-#val = enumCheck(Class2.Struct1.Enum12_Val1, 4121)
-#val = enumCheck(Class2.Struct1.Enum12_Val2, 4122)
-#val = enumCheck(Class2.Struct1.Enum12_Val3, val)
-#val = enumCheck(Class2.Struct1.Enum12_Val4, val)
-#val = enumCheck(Class2.Struct1.Enum12_Val5k, 4121)
-#val = enumCheck(Class2.Struct1.Enum12_Val6k, val)
+# val = 0
+# val = enumCheck(Class2.Struct1.Enum12_Val1, 4121)
+# val = enumCheck(Class2.Struct1.Enum12_Val2, 4122)
+# val = enumCheck(Class2.Struct1.Enum12_Val3, val)
+# val = enumCheck(Class2.Struct1.Enum12_Val4, val)
+# val = enumCheck(Class2.Struct1.Enum12_Val5k, 4121)
+# val = enumCheck(Class2.Struct1.Enum12_Val6k, val)
 #
-#val = 0
-#val = enumCheck(Class2.Struct1.Val1, 4131)
-#val = enumCheck(Class2.Struct1.Val2, 4132)
-#val = enumCheck(Class2.Struct1.Val3, val)
-#val = enumCheck(Class2.Struct1.Val4, val)
-#val = enumCheck(Class2.Struct1.Val5l, 4131)
-#val = enumCheck(Class2.Struct1.Val6l, val)
+# val = 0
+# val = enumCheck(Class2.Struct1.Val1, 4131)
+# val = enumCheck(Class2.Struct1.Val2, 4132)
+# val = enumCheck(Class2.Struct1.Val3, val)
+# val = enumCheck(Class2.Struct1.Val4, val)
+# val = enumCheck(Class2.Struct1.Val5l, 4131)
+# val = enumCheck(Class2.Struct1.Val6l, val)
 #
-#val = 0
-#val = enumCheck(Class2.Struct1.Enum14_Val1, 4141)
-#val = enumCheck(Class2.Struct1.Enum14_Val2, 4142)
-#val = enumCheck(Class2.Struct1.Enum14_Val3, val)
-#val = enumCheck(Class2.Struct1.Enum14_Val4, val)
-#val = enumCheck(Class2.Struct1.Enum14_Val5m, 4141)
-#val = enumCheck(Class2.Struct1.Enum14_Val6m, val)
+# val = 0
+# val = enumCheck(Class2.Struct1.Enum14_Val1, 4141)
+# val = enumCheck(Class2.Struct1.Enum14_Val2, 4142)
+# val = enumCheck(Class2.Struct1.Enum14_Val3, val)
+# val = enumCheck(Class2.Struct1.Enum14_Val4, val)
+# val = enumCheck(Class2.Struct1.Enum14_Val5m, 4141)
+# val = enumCheck(Class2.Struct1.Enum14_Val6m, val)
 
 class1 = Class1()
 enumCheck(class1.class1Test1(Enum1_Val5a), 13)
 enumCheck(class1.class1Test2(Class1.Enum12_Val5c), 1121)
-#enumCheck(class1.class1Test3(Class1.Struct1.Enum12_Val5f), 3121)
+# enumCheck(class1.class1Test3(Class1.Struct1.Enum12_Val5f), 3121)
 
 enumCheck(globalTest1(Enum1_Val5a), 13)
 enumCheck(globalTest2(Class1.Enum12_Val5c), 1121)
-#enumCheck(globalTest3(Class1.Struct1.Enum12_Val5f), 3121)
-
+# enumCheck(globalTest3(Class1.Struct1.Enum12_Val5f), 3121)
