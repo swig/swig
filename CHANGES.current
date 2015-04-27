@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-27: vadz
+            [Python] Fix "default" typemap used after an argument with "numinputs=0" (#377).
+
 2015-04-24: wsfulton
             [Python] Fix #256. Code generated with '-builtin -modernargs' segfaults for any
             method taking zero arguments.

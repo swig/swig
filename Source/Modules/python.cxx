@@ -2003,16 +2003,15 @@ public:
     Parm *pnext;
 
     for (p = plist; p; p = pnext) {
-      pnext = NIL;
+      pnext = nextSibling(p);
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
-	pnext = Getattr(p, "tmap:in:next");
+	Parm *in_next = Getattr(p, "tmap:in:next");
+	if (in_next)
+	  pnext = in_next;
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  continue;
 	}
-      }
-      if (!pnext) {
-	pnext = nextSibling(p);
       }
 
       // "default" typemap can contain arbitrary C++ code, so while it could, in

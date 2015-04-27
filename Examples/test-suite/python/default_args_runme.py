@@ -110,6 +110,13 @@ def run(module_name):
   default_args.trickyvalue3(10); default_args.trickyvalue3(10, 10)
   default_args.seek(); default_args.seek(10)
 
+  if default_args.slightly_off_square(10) != 102:
+    raise RuntimeError
+
+  if default_args.slightly_off_square() != 291:
+    raise RuntimeError
+
+
 if __name__=="__main__":
   run('default_args')
 

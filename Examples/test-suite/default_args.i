@@ -278,3 +278,17 @@ struct ConstMethods {
     } Pointf;
   }
 %}
+
+// Default arguments after ignored ones.
+%typemap(in, numinputs=0) int square_error { $1 = 2; };
+%typemap(default, noblock=1) int def17 { $1 = 17; };
+
+// Enabling autodoc feature has a side effect of disabling the generation of
+// aliases for functions that can hide problems with default arguments at
+// Python level.
+%feature("autodoc","0") slightly_off_square;
+
+%inline %{
+  inline int slightly_off_square(int square_error, int def17) { return def17*def17 + square_error; }
+%}
+
