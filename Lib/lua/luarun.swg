@@ -810,6 +810,44 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
  * It returns an error code. Number of function return values is passed inside 'ret'.
  * first_arg is not used in this function because function always has 2 arguments.
  */
+SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, int SWIGUNUSED first_arg, int *ret)
+{
+/*  there should be 2 params passed in
+  (1) userdata (not the meta table)
+  (2) string name of the attribute
+*/
+  int bases_search_result;
+  int substack_start = lua_gettop(L)-2;
+  assert(first_arg == substack_start+1);
+  lua_checkstack(L,5);
+  assert(lua_isuserdata(L,-2));  /* just in case */
+  lua_getmetatable(L,-2);    /* get the meta table */
+  assert(lua_istable(L,-1));  /* just in case */
+  /* NEW: looks for the __getitem() fn
+  this is a user provided get fn */
+  SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
+  if (lua_iscfunction(L,-1))  /* if its there */
+  {  /* found it so call the fn & return its value */
+    lua_pushvalue(L,substack_start+1);  /* the userdata */
+    lua_pushvalue(L,substack_start+2);  /* the parameter */
+    lua_call(L,2,1);  /* 2 value in (userdata),1 out (result) */
+    lua_remove(L,-2); /* stack tidy, remove metatable */
+    if(ret) *ret = 1;
+    return SWIG_OK;
+  }
+  lua_pop(L,1);
+  /* Remove the metatable */
+  lua_pop(L,1);
+  /* Search in base classes */
+  bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get_item,ret);
+  return bases_search_result;  /* sorry not known */
+}
+
+
+/* The class.get method helper, performs the lookup of class attributes.
+ * It returns an error code. Number of function return values is passed inside 'ret'.
+ * first_arg is not used in this function because function always has 2 arguments.
+ */
 SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SWIGUNUSED first_arg, int *ret)
 {
 /*  there should be 2 params passed in
@@ -853,19 +891,6 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
     return SWIG_OK;
   }
   lua_pop(L,1);  /* remove whatever was there */
-  /* NEW: looks for the __getitem() fn
-  this is a user provided get fn */
-  SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
-  {  /* found it so call the fn & return its value */
-    lua_pushvalue(L,substack_start+1);  /* the userdata */
-    lua_pushvalue(L,substack_start+2);  /* the parameter */
-    lua_call(L,2,1);  /* 2 value in (userdata),1 out (result) */
-    lua_remove(L,-2); /* stack tidy, remove metatable */
-    if(ret) *ret = 1;
-    return SWIG_OK;
-  }
-  lua_pop(L,1);
   /* Remove the metatable */
   lua_pop(L,1);
   /* Search in base classes */
@@ -889,6 +914,10 @@ SWIGINTERN int  SWIG_Lua_class_get(lua_State *L)
   usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
   type = usr->type;
   result = SWIG_Lua_class_do_get(L,type,1,&ret);
+  if(result == SWIG_OK)
+    return ret;
+
+  result = SWIG_Lua_class_do_get_item(L,type,1,&ret);
   if(result == SWIG_OK)
     return ret;
 
