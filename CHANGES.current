@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-04-30: olly
+	    Ignore unknown preprocessor directives which are inside an inactive
+	    conditional (github issue #394, reported by Dan Wilcox).
+	    Regression introduced in 3.0.3.
+
 2015-04-27: vadz
             [Python] Fix "default" typemap used after an argument with "numinputs=0" (#377).
 
