@@ -8,6 +8,7 @@ WRAPSUFFIX   = .R
 RUNR         = R CMD BATCH --no-save --no-restore
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -20,7 +21,7 @@ CPP_TEST_CASES += \
 	r_overload_array \
 	r_sexp
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 # none!

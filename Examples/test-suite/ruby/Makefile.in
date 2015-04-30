@@ -7,6 +7,7 @@ RUBY         = @RUBY@
 SCRIPTSUFFIX = _runme.rb
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -33,7 +34,7 @@ C_TEST_CASES += \
 	li_cdata \
 	li_cstring
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -w801 -noautorename -features autodoc=4

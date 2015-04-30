@@ -7,6 +7,7 @@ LUA          = @LUABIN@
 SCRIPTSUFFIX = _runme.lua
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -20,7 +21,7 @@ C_TEST_CASES += \
 	lua_no_module_global \
 
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.

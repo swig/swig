@@ -133,7 +133,7 @@ namespace Swig {
     }
 
     static void raise(int code, const char *hdr, const char *msg TSRMLS_DC) {
-      throw DirectorException(code, hdr, msg TSRMLS_CC);
+      SWIG_DIRECTOR_THROW(DirectorException(code, hdr, msg TSRMLS_CC));
     }
   };
 
@@ -145,7 +145,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg TSRMLS_DC) {
-      throw DirectorPureVirtualException(msg TSRMLS_CC);
+      SWIG_DIRECTOR_THROW(DirectorPureVirtualException(msg TSRMLS_CC));
     }
   };
 
@@ -158,7 +158,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg TSRMLS_DC) {
-      throw DirectorMethodException(msg TSRMLS_CC);
+      SWIG_DIRECTOR_THROW(DirectorMethodException(msg TSRMLS_CC));
     }
   };
 }

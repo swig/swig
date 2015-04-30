@@ -6,6 +6,7 @@ LANGUAGE     = php
 SCRIPTSUFFIX = _runme.php
 
 srcdir       = @srcdir@
+builddir     = @builddir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
@@ -13,7 +14,7 @@ CPP_TEST_CASES += \
 	php_iterator \
 	php_namewarn_rename \
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 # Overridden variables here
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise

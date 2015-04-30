@@ -160,7 +160,7 @@ namespace Swig {
     }
 
     static void raise(SV *sv) {
-      throw DirectorMethodException(sv);
+      SWIG_DIRECTOR_THROW(DirectorMethodException(sv));
     }
   };
 
@@ -193,7 +193,7 @@ namespace Swig {
       std::string err = std::string(type);
       err += ": ";
       err += msg;
-      throw DirectorTypeMismatchException(err.c_str());
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(err.c_str()));
     }
   };
 
@@ -205,7 +205,7 @@ namespace Swig {
     }
 
     static void raise(const char *name) {
-      throw DirectorPureVirtualException(name);
+      SWIG_DIRECTOR_THROW(DirectorPureVirtualException(name));
     }
   };
 

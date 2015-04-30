@@ -39,7 +39,6 @@
 #endif
 #endif
 
-
 /*
   Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of the
   native C++ RTTI and dynamic_cast<>. But be aware that directors
@@ -191,7 +190,7 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      throw DirectorException(error, msg);
+      SWIG_DIRECTOR_THROW(DirectorException(error, msg));
     }
 
     static void raise(const char *msg) {
@@ -204,7 +203,7 @@ namespace Swig {
 #ifdef SWIG_DIRECTOR_UEH
     static void handler() {
       try {
-        throw;
+        SWIG_DIRECTOR_RETHROW;
       } catch (DirectorException& e) {
         std::cerr << "SWIG Director exception caught:" << std::endl
                   << e.what() << std::endl;
@@ -223,7 +222,7 @@ namespace Swig {
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
                 << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
-      throw;
+      SWIG_DIRECTOR_RETHROW;
     }
 
   public:
@@ -251,11 +250,11 @@ namespace Swig {
     }
 
     static void raise(PyObject *error, const char *msg) {
-      throw DirectorTypeMismatchException(error, msg);
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(error, msg));
     }
 
     static void raise(const char *msg) {
-      throw DirectorTypeMismatchException(msg);
+      SWIG_DIRECTOR_THROW(DirectorTypeMismatchException(msg));
     }
   };
 
@@ -267,7 +266,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      throw DirectorMethodException(msg);
+      SWIG_DIRECTOR_THROW(DirectorMethodException(msg));
     }
   };
 
@@ -279,7 +278,7 @@ namespace Swig {
     }
 
     static void raise(const char *msg) {
-      throw DirectorPureVirtualException(msg);
+      SWIG_DIRECTOR_THROW(DirectorPureVirtualException(msg));
     }
   };
 

@@ -23,6 +23,7 @@ GOOBJEXT = $(GOC:c=)
 SO = @SO@
 
 srcdir         = @srcdir@
+builddir     = @builddir@
 top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
@@ -34,7 +35,7 @@ CPP_TEST_CASES = \
 MULTI_CPP_TEST_CASES = \
 	go_subdir_import
 
-include $(srcdir)/../common.mk
+include $(builddir)/../common.mk
 
 INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 
