@@ -722,7 +722,7 @@ int yylex(void) {
 		Setfile(cs,cparse_file);
 		Scanner_push(scan,cs);
 		Delete(cs);
-		return COPERATOR;
+		return CONVERSIONOPERATOR;
 	      }
 	    }
 	    if (termtoken)
