@@ -4301,8 +4301,6 @@ public:
       }
     }
 
-    int n_methods = curr_class_dmethod - first_class_dmethod;
-
     /* insert jenv prefix argument */
     parms = CopyParmList(superparms);
 
@@ -4323,9 +4321,7 @@ public:
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
-	if (n_methods) {
-	  Printf(f_directors, "  memset(swig_override, 0, sizeof(swig_override));\n");
-	}
+	Printf(f_directors, "  memset(swig_override, 0, sizeof(swig_override));\n");
 	Printf(f_directors, "}\n\n");
 
 	Delete(classtype);
@@ -4359,12 +4355,8 @@ public:
     String *dirClassName = directorClassName(n);
     Wrapper *w = NewWrapper();
 
-    int n_methods = curr_class_dmethod - first_class_dmethod;
-
     Printf(w->def, "%s::%s(JNIEnv *jenv) : %s {", dirClassName, dirClassName, Getattr(n, "director:ctor"));
-    if (n_methods) {
-      Printf(w->code, "  memset(swig_override, 0, sizeof(swig_override));\n");
-    }
+    Printf(w->code, "  memset(swig_override, 0, sizeof(swig_override));\n");
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
@@ -4539,6 +4531,8 @@ public:
       Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
       Printf(f_directors_h, "      return false;\n");
       Printf(f_directors_h, "    }\n");
+      Printf(f_directors_h, "protected:\n");
+      Printf(f_directors_h, "    bool swig_override[1];  // Unused\n");
     }
 
     Printf(f_directors_h, "};\n\n");
