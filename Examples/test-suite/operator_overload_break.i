@@ -12,6 +12,10 @@
 %rename(PlusPlusPostfix) operator++(int);
 #endif
 
+%ignore operator new (size_t);
+%ignore operator delete (void *);
+%ignore operator delete[] (void *);
+
 %{
 #include <iostream>
 using namespace std;
@@ -58,6 +62,11 @@ public:
     void PrintK() {std::cerr << k << std::endl;}
 
     int k;
+    void *operator new
+         (size_t); // definition split over two lines was giving syntax error
+    void operator delete /* comment here did not work */ (void *);
+    void operator
+         delete[] (void *);
 };
 
 %}

@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-01: wsfulton
+            Fix handling of conversion operators where the operator is split over multiple
+            lines or has comments within the operator type. Fixes #401.
+
+            Also fix similar problem with normal operators which gave a syntax error if split over
+            multiple lines or had a comment within the operator declaration.
+
 2015-04-30: olly
 	    Ignore unknown preprocessor directives which are inside an inactive
 	    conditional (github issue #394, reported by Dan Wilcox).

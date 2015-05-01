@@ -610,7 +610,10 @@ int yylex(void) {
  
 	  */
 
-	  nexttok = Scanner_token(scan);
+	  do {
+	    nexttok = Scanner_token(scan);
+	  } while (nexttok == SWIG_TOKEN_ENDLINE || nexttok == SWIG_TOKEN_COMMENT);
+
 	  if (Scanner_isoperator(nexttok)) {
 	    /* One of the standard C/C++ symbolic operators */
 	    Append(s,Scanner_text(scan));
@@ -681,6 +684,8 @@ int yylex(void) {
 		  Append(s," ");
 		}
 		Append(s,Scanner_text(scan));
+	      } else if (nexttok == SWIG_TOKEN_ENDLINE) {
+	      } else if (nexttok == SWIG_TOKEN_COMMENT) {
 	      } else {
 		Append(s,Scanner_text(scan));
 		needspace = 0;
