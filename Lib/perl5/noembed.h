@@ -103,6 +103,9 @@
 #ifdef stat
   #undef stat
 #endif
+#ifdef seed
+  #undef seed
+#endif
 
 #ifdef bool
   /* Leave if macro is from C99 stdbool.h */
