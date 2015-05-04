@@ -12,7 +12,7 @@
 %rename(minus)          *::operator-;
 %rename(uminus)         *::operator-();
 %rename(uminus)         *::operator-() const;
-%rename(mult)           *::operator*;
+%rename(mtimes)           *::operator*;
 %rename(mrdivide)       *::operator/;
 %rename(mod)            *::operator%;
 // %rename(lshift)      *::operator<<;
