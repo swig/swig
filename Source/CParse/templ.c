@@ -97,6 +97,15 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
 	Append(cpatchlist, Getattr(n, "sym:name"));
       }
     }
+    if (checkAttribute(n, "storage", "friend")) {
+      String *symname = Getattr(n, "sym:name");
+      if (symname) {
+	String *stripped_name = SwigType_templateprefix(symname);
+	Setattr(n, "sym:name", stripped_name);
+	Delete(stripped_name);
+      }
+      Append(typelist, Getattr(n, "name"));
+    }
 
     add_parms(Getattr(n, "parms"), cpatchlist, typelist);
     add_parms(Getattr(n, "throws"), cpatchlist, typelist);

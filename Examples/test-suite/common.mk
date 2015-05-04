@@ -234,6 +234,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_template \
 	funcptr_cpp \
 	fvirtual \
 	global_namespace \

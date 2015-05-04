@@ -1003,6 +1003,10 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
       }
       return 0;
     }
+    if (Equal(ta, "template") && Equal(tb, "template")) {
+      if (Cmp(a_storage, "friend") == 0 || Cmp(b_storage, "friend") == 0)
+	return 1;
+    }
   }
   return 0;
 }

@@ -6453,8 +6453,8 @@ idcolon        : idtemplate idcolontail {
                | NONID DCOLON idtemplate {
 		 $$ = NewStringf("::%s",$3);
                }
-               | OPERATOR {
-                 $$ = NewString($1);
+               | OPERATOR template_decl {
+                 $$ = NewStringf("%s%s",$1,$2);
 	       }
                | NONID DCOLON OPERATOR {
                  $$ = NewStringf("::%s",$3);

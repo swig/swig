@@ -5,6 +5,27 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-04: wsfulton
+            Add support for friend templates, including operator overloading - fixes #196. Considering
+            the example below, previously the operator gave a syntax error and friendfunc incorrectly
+            warned with:
+
+             "Warning 503: Can't wrap 'friendfunc<(Type)>' unless renamed to a valid identifier."
+
+              template <class Type> class MyClass {
+                friend int friendfunc <Type>(double is, MyClass <Type> & x);
+                friend int operator<< <Type>(double un, const MyClass <Type> &x);
+              };
+
+            The following also previously incorrectly warned with:
+
+              "Warning 302: Identifier 'template_friend' redefined (ignored),"
+
+              template<typename T> T template_friend(T);
+              struct MyTemplate {
+                template<typename T> friend T template_friend(T);
+              };
+
 2015-05-01: wsfulton
             Fix handling of conversion operators where the operator is split over multiple
             lines or has comments within the operator type. Fixes #401.

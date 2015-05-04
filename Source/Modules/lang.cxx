@@ -940,7 +940,7 @@ int Language::cDeclaration(Node *n) {
   }
 
   if (!validIdentifier(symname)) {
-    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n", symname);
+    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
   }
 
