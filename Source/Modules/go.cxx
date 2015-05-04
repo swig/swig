@@ -2035,7 +2035,7 @@ private:
    * needs to explicitly escape.  This is true if the parameter has a
    * non-empty argout or freearg typemap, because in those cases the
    * Go argument might be or contain a pointer.  We need to ensure
-   * that that pointer does not oint into the stack, which means that
+   * that that pointer does not point into the stack, which means that
    * it needs to escape.
    * ---------------------------------------------------------------------- */
   bool paramNeedsEscape(Parm *p) {
@@ -2500,6 +2500,28 @@ private:
 	Printv(f_go_wrappers, tm, "\n", NULL);
 	Delete(tm);
 	p = Getattr(p, "tmap:goargout:next");
+      }
+    }
+
+    // When using cgo, if we need to memcpy a parameter to pass it to
+    // the C code, the compiler may think that the parameter is not
+    // live during the function call.  If the garbage collector runs
+    // while the C/C++ function is running, the parameter may be
+    // freed.  Force the compiler to see the parameter as live across
+    // the C/C++ function.
+    if (cgo_flag) {
+      int parm_count = emit_num_arguments(parms);
+      p = parms;
+      for (int i = 0; i < parm_count; ++i) {
+	p = getParm(p);
+	bool c_struct_type;
+	Delete(cgoTypeForGoValue(p, Getattr(p, "type"), &c_struct_type));
+	if (c_struct_type) {
+	  Printv(f_go_wrappers, "\tif Swig_escape_always_false {\n", NULL);
+	  Printv(f_go_wrappers, "\t\tSwig_escape_val = ", Getattr(p, "emit:goinput"), "\n", NULL);
+	  Printv(f_go_wrappers, "\t}\n", NULL);
+	}
+	p = nextParm(p);
       }
     }
   }
@@ -3537,6 +3559,8 @@ private:
     DelWrapper(dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
+    Swig_typemap_attach_parms("goin", parms, NULL);
+    Swig_typemap_attach_parms("goargout", parms, NULL);
     Swig_typemap_attach_parms("imtype", parms, NULL);
     int parm_count = emit_num_arguments(parms);
 
@@ -3688,6 +3712,8 @@ private:
       }
 
       Printv(f_go_wrappers, call, "\n", NULL);
+
+      goargout(parms);
 
       Printv(f_go_wrappers, "\treturn p\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
