@@ -20,17 +20,10 @@ try:
 except RuntimeError,e:
       print e.args[0]
 
-if not example.is_python_builtin():
-  try:
-        t.hosed()
-  except example.Exc,e:
-        print e.code, e.msg
-else:
-  try:
-        t.hosed()
-  except BaseException,e:
-        # Throwing builtin classes as exceptions not supported (-builtin option)
-        print e
+try:
+      t.hosed()
+except example.Exc,e:
+      print e.code, e.msg
 
 for i in range(1,4):
       try:

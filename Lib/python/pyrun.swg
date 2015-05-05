@@ -301,11 +301,19 @@ SWIG_Python_CheckImplicit(swig_type_info *ty)
 
 SWIGRUNTIMEINLINE PyObject *
 SWIG_Python_ExceptionType(swig_type_info *desc) {
+  PyObject *ptr;
   SwigPyClientData *data = desc ? (SwigPyClientData *) desc->clientdata : 0;
-  PyObject *klass = data ? data->klass : 0;
-  return (klass ? klass : PyExc_RuntimeError);
+
+#ifdef SWIGPYTHON_BUILTIN
+  ptr = data ? (PyObject *) data->pytype : 0;
+#else
+  ptr = data ? data->klass : 0;
+#endif
+  return (ptr ? ptr : PyExc_RuntimeError);
 }
 
+
+#ifndef SWIGPYTHON_BUILTIN
 
 SWIGRUNTIME SwigPyClientData * 
 SwigPyClientData_New(PyObject* obj)
@@ -360,6 +368,8 @@ SwigPyClientData_New(PyObject* obj)
     return data;
   }
 }
+
+#endif
 
 SWIGRUNTIME void 
 SwigPyClientData_Del(SwigPyClientData *data) {
