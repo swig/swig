@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-05: olly
+	    Suppress warning 325 "Nested class not currently supported (Foo
+	    ignored)" when Foo has already been explicitly ignored with "%ignore".
+
 2015-05-04: wsfulton
             Add support for friend templates, including operator overloading - fixes #196. Considering
             the example below, previously the operator gave a syntax error and friendfunc incorrectly
