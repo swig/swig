@@ -1,9 +1,11 @@
 from cpp11_strongly_typed_enumerations import *
 
+
 def enumCheck(actual, expected):
-  if actual != expected:
-    raise RuntimeError("Enum value mismatch. Expected " + str(expected) + " Actual: " + str(actual))
-  return expected + 1
+    if actual != expected:
+        raise RuntimeError(
+            "Enum value mismatch. Expected " + str(expected) + " Actual: " + str(actual))
+    return expected + 1
 
 val = 0
 val = enumCheck(Enum1_Val1, val)
@@ -161,4 +163,3 @@ enumCheck(class1.class1Test2(Class1.Enum12_Val5c), 1121)
 enumCheck(globalTest1(Enum1_Val5a), 13)
 enumCheck(globalTest2(Class1.Enum12_Val5c), 1121)
 #enumCheck(globalTest3(Class1.Struct1.Enum12_Val5f), 3121)
-

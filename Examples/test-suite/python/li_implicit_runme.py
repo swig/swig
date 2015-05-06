@@ -9,9 +9,8 @@ ad, get(ad)
 ab, get(ab)
 
 if get(ai) != get(1):
-  raise RuntimeError,"bad implicit type"
+    raise RuntimeError, "bad implicit type"
 if get(ad) != get(2.0):
-  raise RuntimeError,"bad implicit type"
+    raise RuntimeError, "bad implicit type"
 if get(ab) != get(b):
-  raise RuntimeError,"bad implicit type"
-
+    raise RuntimeError, "bad implicit type"

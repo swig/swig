@@ -6,5 +6,4 @@ two_tuple = ("two", 2)
 two = StringIntPair(two_tuple)
 
 if bounce(one) != one_tuple:
-  raise RuntimeError
-
+    raise RuntimeError
