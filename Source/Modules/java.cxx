@@ -435,6 +435,7 @@ public:
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
+      Printf(f_directors_h, "#include <bitset>\n");
 
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -4321,7 +4322,6 @@ public:
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
-	Printf(f_directors, "  memset(swig_override, 0, sizeof(swig_override));\n");
 	Printf(f_directors, "}\n\n");
 
 	Delete(classtype);
@@ -4356,7 +4356,6 @@ public:
     Wrapper *w = NewWrapper();
 
     Printf(w->def, "%s::%s(JNIEnv *jenv) : %s {", dirClassName, dirClassName, Getattr(n, "director:ctor"));
-    Printf(w->code, "  memset(swig_override, 0, sizeof(swig_override));\n");
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
@@ -4485,13 +4484,13 @@ public:
     int n_methods = curr_class_dmethod - first_class_dmethod;
 
     if (n_methods) {
-      /* Emit the swig_overrides() method and the swig_override array */
+      /* Emit the swig_overrides() method and the swig_override bitset */
       Printf(f_directors_h, "public:\n");
       Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
       Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "    bool swig_override[%d];\n", n_methods);
+      Printf(f_directors_h, "    std::bitset<%d> swig_override;\n", n_methods);
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
@@ -4531,8 +4530,6 @@ public:
       Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
       Printf(f_directors_h, "      return false;\n");
       Printf(f_directors_h, "    }\n");
-      Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "    bool swig_override[1];  // Unused\n");
     }
 
     Printf(f_directors_h, "};\n\n");
