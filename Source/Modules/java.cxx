@@ -435,7 +435,6 @@ public:
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
-      Printf(f_directors_h, "#include <bitset>\n");
 
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -4484,13 +4483,19 @@ public:
     int n_methods = curr_class_dmethod - first_class_dmethod;
 
     if (n_methods) {
-      /* Emit the swig_overrides() method and the swig_override bitset */
+      /* Emit the swig_overrides() method and the swig_override array */
       Printf(f_directors_h, "public:\n");
       Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
       Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "    std::bitset<%d> swig_override;\n", n_methods);
+      Printf(f_directors_h, "    struct ZeroedBoolArray {\n");
+      Printf(f_directors_h, "        bool array[%d];\n", n_methods);
+      Printf(f_directors_h, "        ZeroedBoolArray() { memset(array, sizeof(array), 0); }\n");
+      Printf(f_directors_h, "        bool& operator[](int n) { return array[n]; }\n");
+      Printf(f_directors_h, "        bool operator[](int n) const { return array[n]; }\n");
+      Printf(f_directors_h, "    };\n");
+      Printf(f_directors_h, "    ZeroedBoolArray swig_override;\n");
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
