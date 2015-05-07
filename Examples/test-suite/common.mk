@@ -199,6 +199,7 @@ CPP_TEST_CASES += \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \
+	director_ref \
 	director_smartptr \
 	director_thread \
 	director_unroll \
