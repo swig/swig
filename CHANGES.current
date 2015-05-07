@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-07: olly
+	    [Python] Deal with an integer as the default value of a bool
+	    parameter in the C++ prototype.  Fixes github #327, reported by
+	    Greg Allen.
+
 2015-05-07: LindleyF
 	    [Java] Allow feature("director") and feature("ref") to be used
 	    together.  Github PR#403.

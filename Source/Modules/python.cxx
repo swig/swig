@@ -1927,6 +1927,10 @@ public:
 	}
       }
 
+      // Allow integers as the default value for a bool parameter.
+      if (Cmp(t, "bool") == 0)
+	return NewString(value ? "True" : "False");
+
       // Deal with the values starting with 0 first as they can be octal or
       // hexadecimal numbers or even pointers.
       if (s[0] == '0') {
