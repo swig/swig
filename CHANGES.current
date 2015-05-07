@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-07: LindleyF
+	    [Java] Allow feature("director") and feature("ref") to be used
+	    together.  Github PR#403.
+
 2015-05-05: olly
 	    Suppress warning 325 "Nested class not currently supported (Foo
 	    ignored)" when Foo has already been explicitly ignored with "%ignore".
