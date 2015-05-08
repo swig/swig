@@ -436,34 +436,119 @@ for this by calling the Swigcptr() method.
 
 
 <p>
-Calling <tt>NewClassName</tt> for some C++ class <tt>ClassName</tt>
-will allocate memory using the C++ memory allocator.  This memory will
-not be automatically freed by Go's garbage collector as the object ownership is
-not tracked.  When you are done with the C++ object you must free it manually
-using <tt>DeleteClassName</tt>.
-</p>
-
-<p>
-A common technique is to store the C++ object into a Go object, and
-use the Go function <tt>runtime.SetFinalizer</tt> to free the C++ object when
-the Go object is freed. It is strongly recommended to read the
-<a href="https://golang.org/pkg/runtime/#SetFinalizer">runtime.SetFinalizer</a>
-documentation before using this technique to understand its limitations.
-For example, if the SWIG package is imported as "wrap":
+Calling <tt>NewClassName</tt> for a C++ class <tt>ClassName</tt> will allocate
+memory using the C++ memory allocator.  This memory will not be automatically
+freed by Go's garbage collector as the object ownership is not tracked.  When
+you are done with the C++ object you must free it using
+<tt>DeleteClassName</tt>.<br>
+<br>
+The most Go idiomatic way to manage the memory for some C++ class is to call
+<tt>NewClassName</tt> followed by a
+<tt><a href="https://golang.org/doc/effective_go.html#defer">defer</a></tt> of
+the <tt>DeleteClassName</tt> call.  Using <tt>defer</tt> ensures that the memory
+of the C++ object is freed as soon as the function containing the <tt>defer</tt>
+statement returns.  Furthemore <tt>defer</tt> works great for short-lived
+objects and fits nicely C++'s RAII idiom.  Example:
 </p>
 <div class="code">
 <pre>
+func UseClassName(...) ... {
+	o := NewClassName(...)
+	defer DeleteClassName(o)
+	// Use the ClassName object
+	return ...
+}
+</pre>
+</div>
+
+<p>
+With increasing complexity, especially complex C++ object hierarchies, the
+correct placement of <tt>defer</tt> statements becomes harder and harder as C++
+objects need to be freed in the correct order.  This problem can be eased by
+keeping a C++ object function local so that it is only available to the function
+that creates a C++ object and functions called by this function.  Example:
+</p>
+<div class="code">
+<pre>
+func WithClassName(constructor args, f func(ClassName, ...interface{}) error, data ...interface{}) error {
+	o := NewClassName(constructor args)
+	defer DeleteClassName(o)
+	return f(o, data...)
+}
+
+func UseClassName(o ClassName, data ...interface{}) (err error) {
+	// Use the ClassName object and additional data and return error.
+}
+
+func main() {
+	WithClassName(constructor args, UseClassName, additional data)
+}
+</pre>
+</div>
+
+<p>
+Using <tt>defer</tt> has limitations though, especially when it comes to
+long-lived C++ objects whichs lifetimes are hard to predict.  For such C++
+objects a common technique is to store the C++ object into a Go object, and to
+use the Go function <tt>runtime.SetFinalizer</tt> to add a finalizer which frees
+the C++ object when the Go object is freed.  It is strongly recommended  to read
+the <a href="https://golang.org/pkg/runtime/#SetFinalizer">runtime.SetFinalizer
+</a> documentation before using this technique to understand the
+<tt>runtime.SetFinalizer</tt> limitations.<br>
+<br>
+Common pitfalls with <tt>runtime.SetFinalizer</tt> are:
+<ul>
+<li>
+If a hierarchy of C++ objects will be automatically freed by Go finalizers then
+the Go objects that store the C++ objects need to replicate the hierarchy of the
+C++ objects to prevent that C++ objects are freed prematurely while other C++
+objects still rely on them.
+</li>
+<li>
+The usage of Go finalizers is problematic with C++'s RAII idiom as it isn't
+predictable when the finalizer will run and this might require a Close or Delete
+method to be added the Go object that stores a C++ object to mitigate.
+</li>
+<li>
+The Go finalizer function typically runs in a different OS thread which can be
+problematic with C++ code that uses thread-local storage.
+</li>
+</ul>
+</p>
+
+<p>
+<tt>runtime.SetFinalizer</tt> Example:
+</p>
+<div class="code">
+<pre>
+import (
+	"runtime"
+	"wrap" // SWIG generated wrapper code
+)
+
 type GoClassName struct {
-	w wrap.ClassName
+	wcn wrap.ClassName
 }
 
 func NewGoClassName() *GoClassName {
-	r := &amp;GoClassName{wrap.NewClassName()}
-	runtime.SetFinalizer(r,
-		func(r *GoClassName) {
-			wrap.DeleteClassName(r.w)
-		})
-	return r
+	o := &amp;GoClassName{wcn: wrap.NewClassName()}
+	runtime.SetFinalizer(o, deleteGoClassName)
+	return o
+}
+
+func deleteGoClassName(o *GoClassName) {
+	// Runs typically in a different OS thread!
+	wrap.DeleteClassName(o.wcn)
+	o.wcn = nil
+}
+
+func (o *GoClassName) Close() {
+	// If the C++ object has a Close method.
+	o.wcn.Close()
+
+	// If the GoClassName object is no longer in an usable state.
+	runtime.SetFinalizer(o, nil) // Remove finalizer.
+	deleteGoClassName() // Free the C++ object.
 }
 </pre>
 </div>
