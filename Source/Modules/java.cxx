@@ -4489,13 +4489,7 @@ public:
       Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "    struct ZeroedBoolArray {\n");
-      Printf(f_directors_h, "        bool array[%d];\n", n_methods);
-      Printf(f_directors_h, "        ZeroedBoolArray() { memset(array, sizeof(array), 0); }\n");
-      Printf(f_directors_h, "        bool& operator[](int n) { return array[n]; }\n");
-      Printf(f_directors_h, "        bool operator[](int n) const { return array[n]; }\n");
-      Printf(f_directors_h, "    };\n");
-      Printf(f_directors_h, "    ZeroedBoolArray swig_override;\n");
+      Printf(f_directors_h, "    Swig::BoolArray<%d> swig_override;\n", n_methods);
 
       /* Emit the code to look up the class's methods, initialize the override array */
 

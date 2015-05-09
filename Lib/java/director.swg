@@ -209,6 +209,20 @@ namespace Swig {
     }
   };
 
+  // Zero initialized bool array
+  template<size_t N> class BoolArray {
+    bool array_[N];
+  public:
+    BoolArray() {
+      memset(array_, sizeof(array_), 0);
+    }
+    bool& operator[](size_t n) {
+      return array_[n];
+    }
+    bool operator[](size_t n) const {
+      return array_[n];
+    }
+  };
 
   // Utility classes and functions for exception handling.
 
