@@ -233,7 +233,6 @@ namespace Swig {
       char *str = SvPV(pkg, len);
       swig_class = std::string(str, len);
       swig_self = newRV_inc((SV *)newHV());
-      swig_incref();
     }
 
     /* discard our reference at destruction */
