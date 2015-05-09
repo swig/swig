@@ -278,7 +278,7 @@ namespace Swig {
     mutable bool swig_disown_flag;
 
   public:
-    /* wrap a Ruby object, optionally taking ownership */
+    /* wrap a Ruby object. */
     Director(VALUE self) : swig_self(self), swig_disown_flag(false) {
     }
 
