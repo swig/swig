@@ -66,9 +66,6 @@ LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
 LIBPREFIX  =
 
-PEP8         = @PEP8@
-PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
-
 # RUNTOOL is for use with runtime tools, eg set it to valgrind
 RUNTOOL    =
 # COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
@@ -324,6 +321,9 @@ else
   SWIGPYTHON = $(SWIG) -python -py3
 endif
 
+PEP8         = @PEP8@
+PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
+
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
@@ -375,9 +375,11 @@ endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run: $(PYSCRIPT) python_check
-	export PYTHONPATH=".:$$PYTHONPATH"; \
-	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+python_run: $(PYSCRIPT)
+ifneq (,$(PEP8))
+	$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
+endif
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
 ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
@@ -387,16 +389,6 @@ endif
 $(RUNME)3.py: $(SRCDIR)$(RUNME).py
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
-
-# -----------------------------------------------------------------
-# Run Python pep8 if it exists
-# -----------------------------------------------------------------
-
-python_check: $(PYSCRIPT)
-	+if [ -n "$(PEP8)" ]; then \
-		$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT) || true;\
-	fi
-
 
 # -----------------------------------------------------------------
 # Version display
@@ -1742,7 +1734,7 @@ scilab_cpp:
 # -----------------------------------------------------------------
 
 scilab_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Scilab version
@@ -1764,6 +1756,10 @@ scilab_clean:
 ##################################################################
 #####                        Go                             ######
 ##################################################################
+
+# TODO: The Go make targets need simplifying to use configure time
+# configuration or to use Make's ifeq rather than using lots of
+# runtime shell code. The output will then be a lot less verbose.
 
 GO = @GO@
 GOGCC = @GOGCC@
