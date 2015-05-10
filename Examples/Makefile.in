@@ -66,6 +66,9 @@ LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
 LIBPREFIX  =
 
+PEP8         = @PEP8@
+PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
+
 # RUNTOOL is for use with runtime tools, eg set it to valgrind
 RUNTOOL    =
 # COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
@@ -372,7 +375,7 @@ endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run: $(PYSCRIPT)
+python_run: $(PYSCRIPT) python_check
 	export PYTHONPATH=".:$$PYTHONPATH"; \
 	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
@@ -384,6 +387,16 @@ endif
 $(RUNME)3.py: $(SRCDIR)$(RUNME).py
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
+
+# -----------------------------------------------------------------
+# Run Python pep8 if it exists
+# -----------------------------------------------------------------
+
+python_check: $(PYSCRIPT)
+	+if [ -n "$(PEP8)" ]; then \
+		$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT) || true;\
+	fi
+
 
 # -----------------------------------------------------------------
 # Version display
