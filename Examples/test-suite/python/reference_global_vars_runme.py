@@ -71,4 +71,3 @@ if value_double(cvar.var_double) != 10.5:
 cvar.var_TestClass = createref_TestClass(TestClass(20))
 if value_TestClass(cvar.var_TestClass).num != 20:
     raise RuntimeError
-

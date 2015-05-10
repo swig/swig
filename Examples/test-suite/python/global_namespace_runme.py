@@ -1,7 +1,8 @@
 from global_namespace import *
 
+
 def is_new_style_class(cls):
-  return hasattr(cls, "__class__")
+    return hasattr(cls, "__class__")
 
 k1 = Klass1()
 k2 = Klass2()
@@ -12,9 +13,9 @@ k6 = Klass6()
 k7 = Klass7()
 
 if is_new_style_class(KlassMethods):
-  KlassMethods_static = KlassMethods
+    KlassMethods_static = KlassMethods
 else:
-  KlassMethods_static = KlassMethods()
+    KlassMethods_static = KlassMethods()
 KlassMethods_static.methodA(k1, k2, k3, k4, k5, k6, k7)
 KlassMethods_static.methodB(k1, k2, k3, k4, k5, k6, k7)
 
@@ -41,15 +42,17 @@ KlassMethods_static.methodA(k1, k2, k3, k4, k5, k6, k7)
 KlassMethods_static.methodB(k1, k2, k3, k4, k5, k6, k7)
 
 if is_new_style_class(XYZMethods):
-  XYZMethods_static = XYZMethods
+    XYZMethods_static = XYZMethods
 else:
-  XYZMethods_static = XYZMethods()
-XYZMethods_static.methodA(XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
-XYZMethods_static.methodB(XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
+    XYZMethods_static = XYZMethods()
+XYZMethods_static.methodA(
+    XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
+XYZMethods_static.methodB(
+    XYZ1(), XYZ2(), XYZ3(), XYZ4(), XYZ5(), XYZ6(), XYZ7())
 
 if is_new_style_class(TheEnumMethods):
-  TheEnumMethods_static = TheEnumMethods
+    TheEnumMethods_static = TheEnumMethods
 else:
-  TheEnumMethods_static = TheEnumMethods()
+    TheEnumMethods_static = TheEnumMethods()
 TheEnumMethods_static.methodA(theenum1, theenum2, theenum3)
 TheEnumMethods_static.methodA(theenum1, theenum2, theenum3)

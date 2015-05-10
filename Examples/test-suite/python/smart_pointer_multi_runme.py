@@ -12,4 +12,3 @@ if s.getx() != 3:
 g.x = 4
 if g.getx() != 4:
     raise RuntimeError
-
