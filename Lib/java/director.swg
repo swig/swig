@@ -214,7 +214,7 @@ namespace Swig {
     bool array_[N];
   public:
     BoolArray() {
-      memset(array_, sizeof(array_), 0);
+      memset(array_, 0, sizeof(array_));
     }
     bool& operator[](size_t n) {
       return array_[n];
