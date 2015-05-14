@@ -371,6 +371,10 @@ static void add_symbols(Node *n) {
 	  if ((Cmp(Getattr(n,"storage"),"virtual") == 0) && (Cmp(Getattr(n,"value"),"0") == 0)) {
 	    only_csymbol = 0;
 	  }
+	  if (Cmp(nodeType(n),"destructor") == 0) {
+	    /* Needed for "unref" feature */
+	    only_csymbol = 0;
+	  }
 	}
       } else {
 	  Setattr(n,"access", "public");

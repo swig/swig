@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-14: wsfulton
+            Fix seg fault wrapping shared_ptr of classes with private constructors and destructors. 
+            This also fixes the "unref" feature when used on classes with private destructors.
+
 2015-05-10: wsfulton
             [Java] Fix multi-argument typemaps (char *STRING, size_t LENGTH)
             so that they can be applied to a wider range of types. Fixes #385.

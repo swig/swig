@@ -128,5 +128,36 @@ HiddenDestructor::~HiddenDestructor()
     delete impl_;
 }
 %}
+
 ////////////////////////////
+// As above but private instead of protected destructor
+////////////////////////////
+
+%shared_ptr(HiddenPrivateDestructor)
+
+%inline %{
+class HiddenPrivateDestructor {
+private:
+  HiddenPrivateDestructor() {}
+  virtual ~HiddenPrivateDestructor() {
+    DeleteCount++;
+  }
+
+  class Deleter {
+  public:
+    void operator()(HiddenPrivateDestructor *hidden) {
+      delete hidden;
+    }
+  };
+
+public:
+  static boost::shared_ptr<HiddenPrivateDestructor> create() {
+    boost::shared_ptr<HiddenPrivateDestructor> hidden( new HiddenPrivateDestructor(), HiddenPrivateDestructor::Deleter() );
+    return hidden;
+  }
+  static int DeleteCount;
+};
+
+int HiddenPrivateDestructor::DeleteCount = 0;
+%}
 
