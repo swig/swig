@@ -133,7 +133,12 @@ HiddenDestructor::~HiddenDestructor()
 // As above but private instead of protected destructor
 ////////////////////////////
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
 %shared_ptr(HiddenPrivateDestructor)
+
+#endif
+
 
 %inline %{
 class HiddenPrivateDestructor {
