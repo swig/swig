@@ -3891,36 +3891,37 @@ private:
     String *director_struct_name = NewString("_swig_Director");
     Append(director_struct_name, cn);
 
-    Printv(f_c_directors_h, "  virtual ~SwigDirector_", class_name, "()", NULL);
-
-    String *throws = buildThrow(n);
-    if (throws) {
-      Printv(f_c_directors_h, " ", throws, NULL);
-    }
-
-    Printv(f_c_directors_h, ";\n", NULL);
-
-    String *director_sig = NewString("");
-
-    Printv(director_sig, "SwigDirector_", class_name, "::~SwigDirector_", class_name, "()", NULL);
-
-    if (throws) {
-      Printv(director_sig, " ", throws, NULL);
-      Delete(throws);
-    }
-
-    Printv(director_sig, "\n", NULL);
-    Printv(director_sig, "{\n", NULL);
-
     if (!is_ignored) {
+      Printv(f_c_directors_h, "  virtual ~SwigDirector_", class_name, "()", NULL);
+
+      String *throws = buildThrow(n);
+      if (throws) {
+	Printv(f_c_directors_h, " ", throws, NULL);
+      }
+
+      Printv(f_c_directors_h, ";\n", NULL);
+
+      String *director_sig = NewString("");
+
+      Printv(director_sig, "SwigDirector_", class_name, "::~SwigDirector_", class_name, "()", NULL);
+
+      if (throws) {
+	Printv(director_sig, " ", throws, NULL);
+	Delete(throws);
+      }
+
+      Printv(director_sig, "\n", NULL);
+      Printv(director_sig, "{\n", NULL);
+
       makeDirectorDestructorWrapper(go_name, director_struct_name, director_sig);
 
       Printv(f_c_directors, "  delete swig_mem;\n", NULL);
+
+      Printv(f_c_directors, "}\n\n", NULL);
+
+      Delete(director_sig);
     }
 
-    Printv(f_c_directors, "}\n\n", NULL);
-
-    Delete(director_sig);
     Delete(go_name);
     Delete(cn);
     Delete(director_struct_name);
