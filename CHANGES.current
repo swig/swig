@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-19: olly
+	    [Python] Fix warning when compiling generated code with MSVC.
+	    (Fixes https://sourceforge.net/p/swig/patches/351/ reported by
+	    Mateusz Szymański).
+
 2015-05-14: wsfulton
             Fix seg fault wrapping shared_ptr of classes with private constructors and destructors. 
             This also fixes the "unref" feature when used on classes with private destructors.
