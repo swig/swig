@@ -20,3 +20,9 @@ if d.bool0() != False or type(d.bool0()) != type(False):
 
 if d.bool1() != True or type(d.bool1()) != type(True):
     raise RuntimeError
+
+if d.mybool0() != False or type(d.mybool0()) != type(False):
+    raise RuntimeError
+
+if d.mybool1() != True or type(d.mybool1()) != type(True):
+    raise RuntimeError

@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-05-07: wsfulton
+	    [Python] Deal with an integer as the default value of a typedef to bool
+	    parameter in the C++ prototype.  See #327. Regression from 3.0.0 onwards.
+
 2015-05-19: olly
 	    [Python] Fix warning when compiling generated code with MSVC.
 	    (Fixes https://sourceforge.net/p/swig/patches/351/ reported by

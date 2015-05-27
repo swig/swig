@@ -1825,20 +1825,6 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * isPointerType()
-   *   Return true if the given type is a pointer after resolving
-   *   it if it's a typedef. This should be typically used instead
-   *   of SwigType_ispointer(), unless the type is already resolved.
-   * ------------------------------------------------------------ */
-  static bool isPointerType(SwigType* t) {
-    SwigType* const full_type = SwigType_typedef_resolve_all(t);
-    bool ispointer = SwigType_ispointer(full_type) ? true : false;
-    Delete(full_type);
-
-    return ispointer;
-  }
-
-  /* ------------------------------------------------------------
    *  convertDoubleValue()
    *    Check if the given string looks like a decimal floating point constant
    *    and return it if it does, otherwise return NIL.
@@ -1886,11 +1872,12 @@ public:
    *    Check if string v can be a Python value literal or a
    *    constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *t) {
+  String *convertValue(String *v, SwigType *type) {
     const char *const s = Char(v);
     char *end;
     String *result = NIL;
     bool fail = false;
+    SwigType *resolved_type = 0;
 
     // Check if this is a number in any base.
     long value = strtol(s, &end, 0);
@@ -1932,7 +1919,8 @@ public:
 
 	if (!fail) {
 	  // Allow integers as the default value for a bool parameter.
-	  if (Cmp(t, "bool") == 0) {
+	  resolved_type = SwigType_typedef_resolve_all(type);
+	  if (Cmp(resolved_type, "bool") == 0) {
 	    result = NewString(value ? "True" : "False");
 	  } else {
 	    // Deal with the values starting with 0 first as they can be octal or
@@ -1941,7 +1929,7 @@ public:
 	      if (Len(v) == 1) {
 		// This is just a lone 0, but it needs to be represented differently
 		// in Python depending on whether it's a zero or a null pointer.
-		if (isPointerType(t))
+		if (SwigType_ispointer(resolved_type))
 		  result = NewString("None");
 		else
 		  result = v;
@@ -1979,8 +1967,11 @@ public:
 	  result = NewString("True");
 	else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	  result = NewString("False");
-	else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	  result = isPointerType(t) ? NewString("None") : NewString("0");
+	else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0) {
+	  if (!resolved_type)
+	    resolved_type = SwigType_typedef_resolve_all(type);
+	  result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+	}
 
 	// This could also be an enum type, default value of which could be
 	// representable in Python if it doesn't include any scope (which could,
@@ -1995,6 +1986,7 @@ public:
       }
     }
 
+    Delete(resolved_type);
     return result;
   }
 
