@@ -4147,6 +4147,105 @@ If you need to return binary data, you might use the
 also be used to extra binary data from arbitrary pointers.
 </p>
 
+
+<H3><a name="Python_default_args"></a>Default arguments</H3>
+
+<p>
+C++ default argument code generation is documented in the main
+<a href="SWIG.html#SWIGPlus_default_args">Default arguments</a> section.
+There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a>.
+By default, SWIG attempts to convert C++ default argument values
+into Python values and generates code into the Python layer containing these values.
+For example:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = 1, bool b = false);
+};
+</pre>
+</div>
+
+<p>
+From Python this can be called as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; CDA().fff()        # C++ layer receives a=1 and b=false
+&gt;&gt;&gt; CDA().fff(2)       # C++ layer receives a=2 and b=false
+&gt;&gt;&gt; CDA().fff(3, True) # C++ layer receives a=3 and b=true
+</pre>
+</div>
+
+<p>
+The default code generation in the Python layer is:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, a=1, b=False):
+        return _default_args.CDA_fff(self, a, b)
+</pre>
+</div>
+
+<p>
+Adding the feature:
+</p>
+  
+<div class="code">
+<pre>
+%feature("python:cdefaultargs") CDA::fff;
+struct CDA {
+  int fff(int a = 1, bool b = false);
+</pre>
+</div>
+
+<p>
+results in identical behaviour when called from Python, however, it results in different code generation:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, *args):
+        return _default_args.CDA_fff(self, *args)
+</pre>
+</div>
+
+<p>
+The default arguments are obtained in the C++ wrapper layer instead of the Python layer.
+Some code generation modes are quite different, eg <tt>-builtin</tt> and <tt>-fastproxy</tt>,
+and are unaffected by <tt>python:cdefaultargs</tt> as the default values are always obtained from the C++ layer.
+</p>
+
+<p>
+Note that not all default arguments can be converted into a Python equivalent.
+When SWIG does not convert them, it will generate code to obtain them from the C++ layer as if
+<tt>python:cdefaultargs</tt> was specified.
+This will happen if just one argument cannot be converted into a Python equivalent.
+This occurs typically when the argument is not fully numeric, such as <tt>int(1)</tt>:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = int(1), bool b = false);
+};
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> SWIG-3.0.6 introduced the <tt>python:cdefaultargs</tt> feature.
+Versions of SWIG prior to this varied in their ability to convert C++ default values into
+equivalent Python default argument values.
+</p>
+
 <H2><a name="Python_nn53"></a>36.8 Typemaps</H2>
 
 

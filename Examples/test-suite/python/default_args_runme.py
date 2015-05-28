@@ -128,6 +128,13 @@ def run(module_name):
     if default_args.slightly_off_square() != 291:
         raise RuntimeError
 
+    # It is difficult to test the python:cdefaultargs feature properly as -builtin
+    # and -fastproxy do not use the Python layer for default args
+    if default_args.CDA().cdefaultargs_test1() != 1:
+        raise RuntimeError
+
+    if default_args.CDA().cdefaultargs_test2() != 1:
+        raise RuntimeError
 
 if __name__ == "__main__":
     run('default_args')

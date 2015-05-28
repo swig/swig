@@ -5,7 +5,41 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
-2015-05-07: wsfulton
+2015-05-28: wsfulton
+	    [Python] Add new feature "python:cdefaultargs" to control default argument
+            code generation. By default, SWIG attempts to convert C/C++ default argument values
+            into Python values and generates code into the Python layer with these values.
+            Recent versions of SWIG are able to convert more of these values, however, the
+            new behaviour can be circumvented if desired via this new feature, such that
+            the default argument values are obtained from the C layer and not the Python layer.
+            For example:
+
+              struct CDA {
+                int fff(int a = 1, bool b = false);
+              };
+
+            The default code generation in the Python layer is:
+
+              class CDA(_object):
+                  ...
+                  def fff(self, a=1, b=False):
+                      return _default_args.CDA_fff(self, a, b)
+
+            Adding the feature:
+
+              %feature("python:cdefaultargs") CDA::fff;
+
+            Results in:
+
+              class CDA(_object):
+                  ...
+                  def fff(self, *args):
+                      return _default_args.CDA_fff(self, *args)
+
+            Some code generation modes, eg -builtin and -fastproxy, are unaffected by this as
+            the default values are always obtained from the C layer.
+
+2015-05-27: wsfulton
 	    [Python] Deal with an integer as the default value of a typedef to bool
 	    parameter in the C++ prototype.  See #327. Regression from 3.0.0 onwards.
 

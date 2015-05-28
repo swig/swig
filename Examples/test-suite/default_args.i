@@ -292,3 +292,12 @@ struct ConstMethods {
   inline int slightly_off_square(int square_error, int def17) { return def17*def17 + square_error; }
 %}
 
+// Python C default args
+%feature("python:cdefaultargs") CDA::cdefaultargs_test1;
+%inline %{
+struct CDA {
+  int cdefaultargs_test1(int a = 1) { return a; }
+  int cdefaultargs_test2(int a = 1) { return a; }
+};
+%}
+
