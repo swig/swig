@@ -3,15 +3,12 @@ SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    =
 
-all::	com
+check: build
 
-com::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' com
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' com
 
 clean::
-	$(MAKE) -f $(TOP)/Makefile com_clean
-
-check: all
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' com_clean
