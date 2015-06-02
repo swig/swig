@@ -357,11 +357,12 @@ class Allocate:public Dispatcher {
 	    bool both_have_private_access = is_private(n) && is_private(base);
 	    if (checkAttribute(base, "storage", "virtual")) {
 	      if ((both_have_public_access || both_have_protected_access)) {
-		if (!is_non_public_base(inclass, b))
+		if (!is_non_public_base(inclass, b)) {
 		  if (is_same_name) // Set 'override' only if the functions had the same name in the C++ code
 		    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
 		  else
 		    Setattr(n, "hides", base);
+		}
 	      } else if (!both_have_private_access) {
 		// Different access
 		if (this_wrapping_protected_members || base_wrapping_protected_members)

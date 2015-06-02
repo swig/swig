@@ -1000,7 +1000,7 @@ public:
     static_flag = false;
 
     if (Getattr(n, "default_constructor") ||
-        checkAttribute(n, "access", "public") && !Getattr(n, "parms")) {
+        (checkAttribute(n, "access", "public") && !Getattr(n, "parms"))) {
       default_ctor_wname = Copy(Getattr(n, "wrap:name"));
     }
 
@@ -1089,8 +1089,7 @@ public:
       /* Get the COM parameter type */
       if ((tm = Getattr(p, "tmap:comtype"))) {
         /* Check if we should set any special attributes */
-        String *tm_attr;
-        if (tm_attr = Getattr(p, "tmap:comptype:attribute")) {
+        if (String *tm_attr = Getattr(p, "tmap:comptype:attribute")) {
           Printf(param_type, "[ %s ] ", tm_attr);
         }
 
@@ -1919,8 +1918,7 @@ public:
 	/* Get the COM parameter type */
 	if ((tm = Getattr(p, "tmap:comtype"))) {
           /* Check if we should set any special attributes */
-          String *tm_attr;
-          if (tm_attr = Getattr(p, "tmap:comtype:attribute")) {
+          if (String *tm_attr = Getattr(p, "tmap:comtype:attribute")) {
             Printf(param_type, "[ %s ] ", tm_attr);
           }
 
