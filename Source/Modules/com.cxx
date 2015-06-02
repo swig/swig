@@ -44,6 +44,11 @@ unsigned int leftrot(unsigned int a, unsigned int pos) {
   return (a << pos) | ((a >> (32 - pos)) & ((1 << pos) - 1));
 }
 
+/* This helper function exists just to avoid warnings about int to char conversions. */
+inline unsigned char low_byte(int n) {
+  return static_cast<unsigned char>(n & 0xff);
+}
+
 /* Implementation of SHA1. Needs unsigned int with at least 32 bits */
 SHA1_hash SHA1(char *input_bytes, int input_len) {
   unsigned int h0 = 0x67452301;
@@ -143,13 +148,13 @@ SHA1_hash SHA1(char *input_bytes, int input_len) {
 
   delete prep;
 
-  SHA1_hash res = {
-      (h0 >> 24) & 0xff, (h0 >> 16) & 0xff, (h0 >> 8) & 0xff, h0 & 0xff,
-      (h1 >> 24) & 0xff, (h1 >> 16) & 0xff, (h1 >> 8) & 0xff, h1 & 0xff,
-      (h2 >> 24) & 0xff, (h2 >> 16) & 0xff, (h2 >> 8) & 0xff, h2 & 0xff,
-      (h3 >> 24) & 0xff, (h3 >> 16) & 0xff, (h3 >> 8) & 0xff, h3 & 0xff,
-      (h4 >> 24) & 0xff, (h4 >> 16) & 0xff, (h4 >> 8) & 0xff, h4 & 0xff,
-  };
+  SHA1_hash res = {{
+      low_byte(h0 >> 24), low_byte(h0 >> 16), low_byte(h0 >> 8), low_byte(h0),
+      low_byte(h1 >> 24), low_byte(h1 >> 16), low_byte(h1 >> 8), low_byte(h1),
+      low_byte(h2 >> 24), low_byte(h2 >> 16), low_byte(h2 >> 8), low_byte(h2),
+      low_byte(h3 >> 24), low_byte(h3 >> 16), low_byte(h3 >> 8), low_byte(h3),
+      low_byte(h4 >> 24), low_byte(h4 >> 16), low_byte(h4 >> 8), low_byte(h4),
+  }};
 
   return res;
 }
@@ -1264,18 +1269,20 @@ public:
           ((unsigned int) hash.octets[1] << 16) |
           ((unsigned int) hash.octets[2] << 8) |
           (unsigned int) hash.octets[3],
-      /* time_mid */ ((unsigned int) hash.octets[4] << 8) |
-          (unsigned int) hash.octets[5],
-      /* time_hi_and_version */ ((unsigned int) hash.octets[6] << 8) |
-          (unsigned int) hash.octets[7],
-      hash.octets[8],
-      hash.octets[9],
-      hash.octets[10],
-      hash.octets[11],
-      hash.octets[12],
-      hash.octets[13],
-      hash.octets[14],
-      hash.octets[15],
+      /* time_mid */ low_byte(((unsigned int) hash.octets[4] << 8) |
+          (unsigned int) hash.octets[5]),
+      /* time_hi_and_version */ low_byte(((unsigned int) hash.octets[6] << 8) |
+          (unsigned int) hash.octets[7]),
+      {
+	hash.octets[8],
+	hash.octets[9],
+	hash.octets[10],
+	hash.octets[11],
+	hash.octets[12],
+	hash.octets[13],
+	hash.octets[14],
+	hash.octets[15],
+      }
     };
 
     /* Set version to 5 */
