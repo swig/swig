@@ -369,7 +369,6 @@ public:
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
-    String *outfile_h = Getattr(n, "outfile_h");
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
