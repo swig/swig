@@ -176,8 +176,6 @@ static Hash *global_scope = 0;	/* Global scope */
 
 static int use_inherit = 1;
 
-static int case_insensitive_target = 0;	/* Is the target language case insensitive? */
-
 /* common attribute keys, to avoid calling find_key all the times */
 
 
@@ -2063,13 +2061,4 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab) {
     break;
   }
   return value;
-}
-
-int Swig_symbol_set_case_insensitive_target(int value) {
-  case_insensitive_target = value;
-  return value;
-}
-
-extern int Swig_symbol_get_case_insensitive_target(void) {
-  return case_insensitive_target;
 }
