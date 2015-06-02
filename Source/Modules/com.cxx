@@ -161,7 +161,6 @@ SHA1_hash SHA1(char *input_bytes, unsigned int input_len) {
 
 class COM:public Language {
   static const char *usage;
-  const String *empty_string;
 
   Hash *swig_types_hash;
   List *filenames_list;
@@ -241,7 +240,7 @@ public:
    * COM()
    * ----------------------------------------------------------------------------- */
 
-  COM():empty_string(NewString("")),
+  COM():
       proxy_flag(true),
       dllexports_flag(true),
       deffile_flag(true),
@@ -2049,33 +2048,6 @@ public:
     Printv(f_proxy, proxy_interface_def, NIL);
 
     delete proxy_iid;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * typemapLookup()
-   * ----------------------------------------------------------------------------- */
-
-  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
-    String *tm = NULL;
-    const String *code = NULL;
-
-/*
-    This code doesn't compile with the latest SWIG any more as Swig_typemap_search() doesn't exist now,
-    but it doesn't matter anyhow as it is removed by the later commits, so just comment it out in this one.
-
-    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
-      code = Getattr(tm, "code");
-      if (typemap_attributes)
-	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
-    }
-
-    if (!code) {
-      code = empty_string;
-      if (warning != WARN_NONE)
-	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
-    }
-*/
-    return code ? code : empty_string;
   }
 
   /* -----------------------------------------------------------------------------
