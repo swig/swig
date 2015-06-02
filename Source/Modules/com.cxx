@@ -50,7 +50,7 @@ inline unsigned char low_byte(int n) {
 }
 
 /* Implementation of SHA1. Needs unsigned int with at least 32 bits */
-SHA1_hash SHA1(char *input_bytes, int input_len) {
+SHA1_hash SHA1(char *input_bytes, unsigned int input_len) {
   unsigned int h0 = 0x67452301;
   unsigned int h1 = 0xEFCDAB89;
   unsigned int h2 = 0x98BADCFE;
