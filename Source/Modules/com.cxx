@@ -636,7 +636,6 @@ public:
     String *outarg = NewString("");
     bool is_void_return;
     int num_arguments = 0;
-    int num_required = 0;
 
     /* FIXME */
     String *overloaded_name = Copy(symname);
@@ -683,7 +682,7 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
+    emit_num_required(l);
     int gencomma = 0;
 
     /* There are no global or static member functions in COM - thus they need fake 'this' arguments */
@@ -742,7 +741,6 @@ public:
       gencomma = 1;
     }
 
-    String *null_attribute = 0;
     // Now write code to make the function call
     if (Cmp(nodeType(n), "constant") == 0) {
       // Wrapping a constant hack
@@ -778,7 +776,6 @@ public:
       substituteClassname(t, tm);
 
       Printf(f->code, "%s", tm);
-      null_attribute = Getattr(n, "tmap:out:null");
       if (Len(tm))
         Printf(f->code, "\n");
     } else {
@@ -859,9 +856,6 @@ public:
      * Not for enums and constants.
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      // Capitalize the first letter in the variable in the getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
-
       String *getter_setter_name = NewString("");
 
       Printf(getter_setter_name, "%s", variable_name);
@@ -928,12 +922,8 @@ public:
     Language::memberfunctionHandler(n);
 
     if (proxy_flag) {
-      // FIXME: String *overloaded_name = getOverloadedName(n);
-      String *overloaded_name = Getattr(n, "sym:name");
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       proxyClassFunctionHandler(n);
-      Delete(overloaded_name);
     }
     return SWIG_OK;
   }
@@ -961,8 +951,6 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-
-    bool static_const_member_flag = (Getattr(n, "value") == 0);
 
     generate_property_declaration_flag = true;
     variable_name = Getattr(n, "sym:name");
@@ -1074,7 +1062,7 @@ public:
 
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
-    int num_required = emit_num_required(l);
+    emit_num_required(l);
 
     int gencomma = 0;
 
@@ -1137,12 +1125,8 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitProxyClassDefAndCPPCasts(Node *n) {
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
-    String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
-    String *typemap_lookup_type = Getattr(n, "classtypeobj");
-    bool feature_director = Swig_directorclass(n) ? true : false;
 
     Node *attributes = NewHash();
 
@@ -1157,8 +1141,6 @@ public:
       if (base.item) {
         c_baseclassname = Getattr(base.item, "name");
         baseclass = Copy(getProxyName(c_baseclassname));
-        if (baseclass)
-          c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
         base = Next(base);
         /* Warn about multiple inheritance for additional base class(es) */
         while (base.item) {
@@ -1176,7 +1158,6 @@ public:
     }
 
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
-    bool derived = baseclass && getProxyName(c_baseclassname);
 
     if (!Getattr(n, "abstract") && default_ctor_wname != NULL) {
       Printv(proxy_class_def, "  [\n    aggregatable,\n    uuid(", NIL);
@@ -1761,12 +1742,8 @@ public:
     Language::staticmemberfunctionHandler(n);
 
     if (proxy_flag) {
-      // FIXME: String *overloaded_name = getOverloadedName(n);
-      String *overloaded_name = Getattr(n, "sym:name");
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       proxyClassFunctionHandler(n);
-      Delete(overloaded_name);
     }
     static_flag = false;
     member_func_flag = false;
@@ -2012,7 +1989,7 @@ public:
    * emitTypeWrapperClass()
    * ----------------------------------------------------------------------------- */
 
-  void emitTypeWrapperClass(String *classname, SwigType *type) {
+  void emitTypeWrapperClass(String *classname, SwigType * /* type */) {
     Clear(proxy_interface_forward_def);
     Clear(proxy_interface_def);
 
