@@ -91,7 +91,7 @@ class Allocate:public Dispatcher {
 	  // Loop through all the %extend methods
 	  Node *extend = firstChild(base);
 	  while (extend) {
-	    if (function_is_virtual_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
+	    if (function_is_virtual_seek(n, extend, this_decl, name, this_type, resolved_decl)) {
 	      Delete(resolved_decl);
 	      return 1;
 	    }
@@ -101,7 +101,7 @@ class Allocate:public Dispatcher {
 	  // Loop through all the using declaration methods
 	  Node *usingdecl = firstChild(base);
 	  while (usingdecl) {
-	    if (function_is_virtual_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
+	    if (function_is_virtual_seek(n, usingdecl, this_decl, name, this_type, resolved_decl)) {
 	      Delete(resolved_decl);
 	      return 1;
 	    }
@@ -109,7 +109,7 @@ class Allocate:public Dispatcher {
 	  }
 	} else {
 	  // normal methods
-	  if (function_is_virtual_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
+	  if (function_is_virtual_seek(n, base, this_decl, name, this_type, resolved_decl)) {
 	    Delete(resolved_decl);
 	    return 1;
 	  }
@@ -128,7 +128,7 @@ class Allocate:public Dispatcher {
   }
 
   /* Helper function for function_is_virtual */
-  int function_is_virtual_seek(Node *n, Node *b, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
+  int function_is_virtual_seek(Node *n, Node *base, String *this_decl, String *name, String *this_type, String *resolved_decl) {
 
     String *base_decl = Getattr(base, "decl");
     SwigType *base_type = Getattr(base, "type");
