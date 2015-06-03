@@ -1,6 +1,11 @@
 %module inherit_same_name3
 
+// In Java static methods with the same name as the base class methods are
+// forbidden, so renaming C::xyz2 would result in compilation methods in the
+// generated code (it would have been better if it resulted in SWIG errors...).
+#ifndef SWIGJAVA
 %rename (xyz) C::xyz2;
+#endif
 %rename (xyz) H::xyz2;
 %ignore I::xyz(int);
 
