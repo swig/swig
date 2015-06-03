@@ -1361,7 +1361,7 @@ public:
    * pythoncode()     - Output python code into the shadow file
    * ------------------------------------------------------------ */
 
-  String *pythoncode(String *code, const_String_or_char_ptr indent) {
+  String *pythoncode(String *code, const_String_or_char_ptr indent, String * file, int line) {
     String *out = NewString("");
     String *temp;
     char *t;
@@ -1379,38 +1379,91 @@ public:
     /* Split the input text into lines */
     List *clist = SplitLines(temp);
     Delete(temp);
-    int initial = 0;
-    String *s = 0;
-    Iterator si;
-    /* Get the initial indentation */
 
-    for (si = First(clist); si.item; si = Next(si)) {
-      s = si.item;
-      if (Len(s)) {
-	char *c = Char(s);
-	while (*c) {
-	  if (!isspace(*c))
-	    break;
-	  initial++;
-	  c++;
-	}
-	if (*c && !isspace(*c)) {
-	  break;
-	} else {
-	  initial = 0;
-	}
+    // Line number within the pythoncode.
+    int py_line = 0;
+
+    String * initial = 0;
+    Iterator si;
+
+    /* Get the initial indentation.  Skip lines which only contain whitespace
+     * and/or a comment, as the indentation of those doesn't matter:
+     *
+     *     A logical line that contains only spaces, tabs, formfeeds and
+     *     possibly a comment, is ignored (i.e., no NEWLINE token is
+     *     generated).
+     *
+     * see:
+     * https://docs.python.org/2/reference/lexical_analysis.html#blank-lines
+     * https://docs.python.org/3/reference/lexical_analysis.html#blank-lines
+     */
+    for (si = First(clist); si.item; si = Next(si), ++py_line) {
+      const char *c = Char(si.item);
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+	// Scan forward until we find a non-space (which may be a nul byte).
       }
+      char ch = c[i];
+      if (ch && ch != '#') {
+	// Found a line with actual content.
+	initial = NewStringWithSize(c, i);
+	break;
+      }
+      if (ch) {
+	Printv(out, indent, c, NIL);
+      }
+      Putc('\n', out);
     }
-    while (si.item) {
-      s = si.item;
-      if (Len(s) > initial) {
-	char *c = Char(s);
-	c += initial;
+
+    // Process remaining lines.
+    for ( ; si.item; si = Next(si), ++py_line) {
+      const char *c = Char(si.item);
+      // If no prefixed line was found, the above loop should have completed.
+      assert(initial);
+
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+	// Scan forward until we find a non-space (which may be a nul byte).
+      }
+      char ch = c[i];
+      if (!ch) {
+	// Line is just whitespace - emit an empty line.
+	Putc('\n', out);
+	continue;
+      }
+
+      if (ch == '#') {
+	// Comment - the indentation doesn't matter to python, but try to
+	// adjust the whitespace for the benefit of human readers (though SWIG
+	// currently seems to always remove any whitespace before a '#' before
+	// we get here, in which case we'll just leave the comment at the start
+	// of the line).
+	if (i >= Len(initial)) {
+	  Printv(out, indent, NIL);
+	}
+
+	Printv(out, c + i, "\n", NIL);
+	continue;
+      }
+
+      if (i < Len(initial)) {
+	// There's non-whitespace in the initial prefix of this line.
+	Swig_error(file, line, "Line indented less than expected (line %d of pythoncode)\n", py_line);
 	Printv(out, indent, c, "\n", NIL);
       } else {
-	Printv(out, "\n", NIL);
+	if (memcmp(c, Char(initial), Len(initial)) == 0) {
+	  // Prefix matches initial, so just remove it.
+	  Printv(out, indent, c + Len(initial), "\n", NIL);
+	  continue;
+	}
+	Swig_warning(WARN_PYTHON_INDENT_MISMATCH,
+		     file, line, "Whitespace prefix doesn't match (line %d of pythoncode)\n", py_line);
+	// To avoid gratuitously breaking interface files which worked with
+	// SWIG <= 3.0.5, we remove a prefix of the same number of bytes for
+	// lines which start with different whitespace to the line we got
+	// 'initial' from.
+	Printv(out, indent, c + Len(initial), "\n", NIL);
       }
-      si = Next(si);
     }
     Delete(clist);
     return out;
@@ -1498,20 +1551,22 @@ public:
     //
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
       doc = NewString("");
-      Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), "\n", pythoncode(str, indent), indent, triple_double, NIL);
+      Printv(doc, triple_double, "\n",
+	     pythoncode(autodoc, indent, Getfile(n), Getline(n)), "\n",
+	     pythoncode(str, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
       if (Strchr(str, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(str, indent), indent, triple_double, NIL);
+	Printv(doc, triple_double, "\n", pythoncode(str, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
       if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), indent, triple_double, NIL);
+	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
       }
     } else
       doc = NewString("");
@@ -2224,10 +2279,10 @@ public:
     if (have_docstring(n))
       Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
     if (have_pythonprepend(n))
-      Printv(f_dest, pythoncode(pythonprepend(n), tab4), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
     if (have_pythonappend(n)) {
       Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, pythoncode(pythonappend(n), tab4), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
       Printv(f_dest, tab4 "return val\n", NIL);
     } else {
       Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
@@ -4431,7 +4486,7 @@ public:
 	  have_repr = 1;
 	}
 	if (Getattr(n, "feature:shadow")) {
-	  String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4);
+	  String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	  String *pyaction = NewStringf("%s.%s", module, fullname);
 	  Replaceall(pycode, "$action", pyaction);
 	  Delete(pyaction);
@@ -4453,12 +4508,12 @@ public:
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
-	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	    }
 	    if (have_pythonappend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, tab8, "val = ", funcCall(fullname, callParms), "\n", NIL);
-	      Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	      Printv(f_shadow, tab8, "return val\n\n", NIL);
 	    } else {
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n\n", NIL);
@@ -4538,10 +4593,10 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	if (have_pythonappend(n)) {
 	  Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
-	  Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	  Printv(f_shadow, tab8, "return val\n\n", NIL);
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
@@ -4626,7 +4681,7 @@ public:
 	if (!have_constructor && handled_as_init) {
 	  if (!builtin) {
 	    if (Getattr(n, "feature:shadow")) {
-	      String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4);
+	      String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	      String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
 	      Replaceall(pycode, "$action", pyaction);
 	      Delete(pyaction);
@@ -4655,7 +4710,7 @@ public:
 	      if (have_docstring(n))
 		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
-		Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
+		Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
 	      if (fastinit) {
 		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
@@ -4665,7 +4720,7 @@ public:
 		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except:\n", tab8, tab4, "self.this = this\n", NIL);
 	      }
 	      if (have_pythonappend(n))
-		Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n\n", NIL);
+		Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n\n", NIL);
 	      Delete(pass_self);
 	    }
 	    have_constructor = 1;
@@ -4674,7 +4729,7 @@ public:
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
 	     function for it. */
 	  if (Getattr(n, "feature:shadow")) {
-	    String *pycode = pythoncode(Getattr(n, "feature:shadow"), "");
+	    String *pycode = pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n));
 	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
 	    Replaceall(pycode, "$action", pyaction);
 	    Delete(pyaction);
@@ -4688,7 +4743,7 @@ public:
 	    if (have_docstring(n))
 	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
 	    if (have_pythonprepend(n))
-	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4), "\n", NIL);
+	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
 	    String *subfunc = NULL;
 	    /*
 	       if (builtin)
@@ -4701,7 +4756,7 @@ public:
 	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
 #endif
 	    if (have_pythonappend(n))
-	      Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4), "\n", NIL);
+	      Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
 	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
 	    Delete(subfunc);
 	  }
@@ -4738,7 +4793,7 @@ public:
 
     if (shadow) {
       if (Getattr(n, "feature:shadow")) {
-	String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4);
+	String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	String *pyaction = NewStringf("%s.%s", module, Swig_name_destroy(NSPACE_TODO, symname));
 	Replaceall(pycode, "$action", pyaction);
 	Delete(pyaction);
@@ -4756,7 +4811,7 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 #ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
 	Printv(f_shadow, tab8, tab4, "if self.thisown:", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
@@ -4764,7 +4819,7 @@ public:
 #else
 #endif
 	if (have_pythonappend(n))
-	  Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	Printv(f_shadow, tab8, "pass\n", NIL);
 	Printv(f_shadow, "\n", NIL);
       }
@@ -4944,12 +4999,12 @@ public:
 
     if (!ImportMode && (Cmp(section, "python") == 0 || Cmp(section, "shadow") == 0)) {
       if (shadow) {
-	String *pycode = pythoncode(code, shadow_indent);
+	String *pycode = pythoncode(code, shadow_indent, Getfile(n), Getline(n));
 	Printv(f_shadow, pycode, NIL);
 	Delete(pycode);
       }
     } else if (!ImportMode && (Cmp(section, "pythonbegin") == 0)) {
-      String *pycode = pythoncode(code, "");
+      String *pycode = pythoncode(code, "", Getfile(n), Getline(n));
       Printv(f_shadow_begin, pycode, NIL);
       Delete(pycode);
     } else {

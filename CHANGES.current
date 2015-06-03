@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-06-29: olly
+	    [Python] Improve handling of whitespace in %pythoncode.
+
+	    Previously SWIG looked at the indentation of the first line and
+	    removed that many characters from each subsequent line, regardless
+	    of what those characters were.  This was made worse because SWIG's
+	    preprocessor removes any whitespace before a '#'.  Fixes github
+	    issue #379, reported by Joe Orton.
+
 2015-06-12: wsfulton
 	    [R] Fix #430 - call to SWIG_createNewRef in copyToC was incorrectly named.
 
