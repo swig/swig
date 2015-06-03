@@ -651,8 +651,6 @@ public:
         Delete(filen);
         filen = NULL;
 
-		Printf(stdout, "create single file");
-
         emitBanner(f_single);
 	  }
       return f_single;
