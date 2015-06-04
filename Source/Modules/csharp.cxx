@@ -34,7 +34,7 @@ class CSHARP:public Language {
   File *f_init;
   File *f_directors;
   File *f_directors_h;
-  File *f_single;
+  File *f_single_out;
   List *filenames_list;
 
   bool proxy_flag;		// Flag for generating proxy classes
@@ -79,7 +79,7 @@ class CSHARP:public Language {
   String *director_method_types;	// Director method types
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
-  String *cs_out;
+  String *output_file;		// File name for single file mode. If set all generated code will be written to this file
 
   // Director method stuff:
   List *dmethods_seq;
@@ -110,7 +110,7 @@ public:
       f_init(NULL),
       f_directors(NULL),
       f_directors_h(NULL),
-      f_single(NULL),
+      f_single_out(NULL),
       filenames_list(NULL),
       proxy_flag(true),
       native_function_flag(false),
@@ -153,7 +153,7 @@ public:
       director_method_types(NULL),
       director_connect_parms(NULL),
       destructor_call(NULL),
-      cs_out(NULL),
+      output_file(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -248,10 +248,10 @@ public:
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
 	  Swig_mark_arg(i);
 	  old_variable_names = true;
-    } else if (strcmp(argv[i], "-csout") == 0) {
+    } else if (strcmp(argv[i], "-outfile") == 0) {
       if (argv[i + 1]) {
-        cs_out = NewString("");
-        Printf(cs_out, argv[i + 1]);
+        output_file = NewString("");
+        Printf(output_file, argv[i + 1]);
         Swig_mark_arg(i);
         Swig_mark_arg(i + 1);
         i++;
@@ -437,7 +437,7 @@ public:
     }
     // Generate the intermediary class
     {
-      File *f_im = getFile(SWIG_output_directory(), imclass_name);
+      File *f_im = getOutputFile(SWIG_output_directory(), imclass_name);
 
       addOpenNamespace(0, f_im);
 
@@ -465,13 +465,14 @@ public:
       Printf(f_im, "}\n");
       addCloseNamespace(0, f_im);
 
-      if(f_im != f_single)
-        Delete(f_im);
+      if(f_im != f_single_out)
+	Delete(f_im);
+      f_im = NULL;
     }
 
     // Generate the C# module class
     {
-      File *f_module = getFile(SWIG_output_directory(), module_class_name);
+      File *f_module = getOutputFile(SWIG_output_directory(), module_class_name);
 
       addOpenNamespace(0, f_module);
 
@@ -507,8 +508,9 @@ public:
       Printf(f_module, "}\n");
       addCloseNamespace(0, f_module);
 
-      if(f_module != f_single)
-        Delete(f_module);
+      if(f_module != f_single_out)
+	Delete(f_module);
+      f_module = NULL;
     }
 
     if (upcasts_code)
@@ -607,9 +609,10 @@ public:
       f_directors_h = NULL;
     }
 
-    if(f_single) {
-      Dump(f_single, f_begin);
-      Delete(f_single);
+    if(f_single_out) {
+      Dump(f_single_out, f_begin);
+      Delete(f_single_out);
+      f_single_out = NULL;
     }
 
     Dump(f_wrappers, f_begin);
@@ -635,32 +638,40 @@ public:
   }
   
   /* -----------------------------------------------------------------------------
-   * getFile()
+   * getOutputFile()
+   *
+   * Prepares a File object by creating the file in the file system and
+   * writing the banner for auto-generated files to it (emitBanner).
+   * If '-outfile' is provided (single file mode) the supplied parameters will
+   * be ignored and the returned file will always be:
+   *  <outdir>/<outfile>
+   * Otherwise the file will be:
+   *  <dir>/<name>.cs
    * ----------------------------------------------------------------------------- */
 
-  File* getFile(const String* dir, String* name) {
-    if(cs_out) {
-      if(!f_single) {
-        String* filen = NewStringf("%s", cs_out);
-        f_single = NewFile(filen, "w", SWIG_output_files());
-        if(!f_single) {
-          FileErrorDisplay(filen);
-          SWIG_exit(EXIT_FAILURE);
-		}
-        Append(filenames_list, Copy(filen));
-        Delete(filen);
-        filen = NULL;
+  File *getOutputFile(const String* dir, String* name) {
+    if(output_file) {
+      if(!f_single_out) {
+	String *filen = NewStringf("%s%s", SWIG_output_directory(), output_file);
+	f_single_out = NewFile(filen, "w", SWIG_output_files());
+	if(!f_single_out) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, Copy(filen));
+	Delete(filen);
+	filen = NULL;
 
-        emitBanner(f_single);
-	  }
-      return f_single;
+	emitBanner(f_single_out);
+      }
+      return f_single_out;
     } else {
-      String* filen = NewStringf("%s%s.cs", dir, name);
-      File* f = NewFile(filen, "w", SWIG_output_files());
+      String *filen = NewStringf("%s%s.cs", dir, name);
+      File *f = NewFile(filen, "w", SWIG_output_files());
       if(!f) {
-        FileErrorDisplay(f);
-        SWIG_exit(EXIT_FAILURE);
-	  }
+	FileErrorDisplay(f);
+	SWIG_exit(EXIT_FAILURE);
+      }
       Append(filenames_list, Copy(filen));
       Delete(filen);
       filen = NULL;
@@ -1233,7 +1244,7 @@ public:
 	} else {
 	  // Global enums are defined in their own file
 	  String *output_directory = outputDirectory(nspace);
-	  File *f_enum = getFile(output_directory, symname);
+	  File *f_enum = getOutputFile(output_directory, symname);
 
 	  addOpenNamespace(nspace, f_enum);
 
@@ -1241,8 +1252,9 @@ public:
 		 "\n", enum_code, "\n", NIL);
 
 	  addCloseNamespace(nspace, f_enum);
-      if(f_enum != f_single)
-        Delete(f_enum);
+	  if(f_enum != f_single_out)
+	    Delete(f_enum);
+	  f_enum = NULL;
 	  Delete(output_directory);
 	}
       } else {
@@ -1945,7 +1957,7 @@ public:
       // Each outer proxy class goes into a separate file
       if (!has_outerclass) {
 	String *output_directory = outputDirectory(nspace);
-	f_proxy = getFile(output_directory, proxy_class_name);
+	f_proxy = getOutputFile(output_directory, proxy_class_name);
 
 	addOpenNamespace(nspace, f_proxy);
       }
@@ -2005,8 +2017,8 @@ public:
       if (!has_outerclass) {
 	Printf(f_proxy, "}\n");
 	addCloseNamespace(nspace, f_proxy);
-    if(f_proxy != f_single)
-      Delete(f_proxy);
+	if(f_proxy != f_single_out)
+	  Delete(f_proxy);
 	f_proxy = NULL;
       } else {
 	for (int i = 0; i < nesting_depth; ++i)
@@ -3231,7 +3243,7 @@ public:
     Setline(n, line_number);
 
     String *swigtype = NewString("");
-    File *f_swigtype = getFile(SWIG_output_directory(), classname);
+    File *f_swigtype = getOutputFile(SWIG_output_directory(), classname);
 
     addOpenNamespace(0, f_swigtype);
 
@@ -3266,8 +3278,9 @@ public:
     Printv(f_swigtype, swigtype, NIL);
 
     addCloseNamespace(0, f_swigtype);
-    if(f_swigtype != f_single)
+    if(f_swigtype != f_single_out)
       Delete(f_swigtype);
+    f_swigtype = NULL;
     Delete(swigtype);
     Delete(n);
   }
@@ -4284,10 +4297,10 @@ extern "C" Language *swig_csharp(void) {
 
 const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
-     -dllimport <dl> - Override DllImport attribute name to <dl>\n\
-     -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
-     -noproxy        - Generate the low-level functional interface instead\n\
-                       of proxy classes\n\
-     -oldvarnames    - Old intermediary method names for variable wrappers\n\
-	 -csout <path>   - Write all C# to a single file located at <path>\n\
+     -dllimport <dl>     - Override DllImport attribute name to <dl>\n\
+     -namespace <nm>     - Generate wrappers into C# namespace <nm>\n\
+     -noproxy            - Generate the low-level functional interface instead\n\
+                           of proxy classes\n\
+     -oldvarnames        - Old intermediary method names for variable wrappers\n\
+     -outfile <filename> - Write all C# to a single file <filename> located in the output directory\n\
 \n";
