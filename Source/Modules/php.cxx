@@ -1722,7 +1722,7 @@ public:
 	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
-	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
+	      Printf(output, "\t\t\t$c->" SWIG_PTR " = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
 	    Printf(output, "\t\t}\n\t\treturn $r;\n");
