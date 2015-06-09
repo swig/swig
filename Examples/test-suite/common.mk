@@ -543,6 +543,7 @@ CPP11_TEST_CASES = \
 	cpp11_template_explicit \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
+	cpp11_type_aliasing \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
