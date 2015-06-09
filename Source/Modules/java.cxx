@@ -440,6 +440,9 @@ public:
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
+#if defined(__cplusplus) && __cplusplus >= 201103L
+      Printf(f_directors, "#include <atomic>\n");
+#endif
       if (outfile_h) {
 	String *filename = Swig_file_filename(outfile_h);
 	Printf(f_directors, "#include \"%s\"\n\n", filename);
@@ -4451,7 +4454,11 @@ public:
     // .'s to delimit namespaces, so we need to replace those with /'s
     Replace(internal_classname, NSPACE_SEPARATOR, "/", DOH_REPLACE_ANY);
 
+#if defined(__cplusplus) && __cplusplus >= 201103L
+    Wrapper_add_localv(w, "baseclass", "static std::atomic<jclass> baseclass", "= {0}", NIL);
+#else
     Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
+#endif
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
 
     if (first_class_dmethod != curr_class_dmethod) {
