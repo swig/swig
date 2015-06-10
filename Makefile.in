@@ -409,7 +409,7 @@ clean-ccache:
 # DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log preinst-swig
 
 distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
