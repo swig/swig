@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-06-11: sghirate
+	    [C#] Patch #427 adds in new command line option -outfile to combine all the
+            generated C# code into a single file.
+
 2015-05-28: wsfulton
 	    [Python] Add new feature "python:cdefaultargs" to control default argument
             code generation. By default, SWIG attempts to convert C/C++ default argument values
