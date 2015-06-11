@@ -636,7 +636,7 @@ public:
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
   }
-  
+
   /* -----------------------------------------------------------------------------
    * getOutputFile()
    *
@@ -3375,7 +3375,7 @@ public:
   /* -----------------------------------------------------------------------------
    * outputDirectory()
    *
-   * Return the directory to use for generating Java classes/enums and create the
+   * Return the directory to use for generating C# classes/enums and create the
    * subdirectory (does not create if language specific outdir does not exist).
    * ----------------------------------------------------------------------------- */
 
@@ -3515,7 +3515,7 @@ public:
    * classDirectorMethod()
    *
    * Emit a virtual director method to pass a method call on to the 
-   * underlying Java object.
+   * underlying C# object.
    *
    * --------------------------------------------------------------- */
 
@@ -3676,7 +3676,7 @@ public:
     if (!ignored_method)
       Printf(w->code, "} else {\n");
 
-    /* Go through argument list, convert from native to Java */
+    /* Go through argument list, convert from native to C# */
     for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
