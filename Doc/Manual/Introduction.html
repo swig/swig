@@ -457,6 +457,12 @@ be used on any platform.  Again, this is an important part of staying out
 of the programmer's way----the last thing any developer wants to do is
 to spend their time debugging the output of a tool that relies on 
 non-portable or unreliable programming features.
+Dependencies are often a source of incompatibilities and problems and so
+additional third party libraries are not used in the generated code.
+SWIG will also generally avoid generating code that introduces a dependency
+on the C++ Standard Template Library (STL).
+SWIG will generate code that depends on the C libraries though.
+</p>
 
 </body>
 </html>
