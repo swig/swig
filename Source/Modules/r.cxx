@@ -2181,6 +2181,16 @@ int R::functionWrapper(Node *n) {
   return SWIG_OK;
 }
 
+/* ----------------------------------------------------------------------
+ * R::constantWrapper()
+ * ---------------------------------------------------------------------- */
+
+int R::constantWrapper(Node *n) {
+  (void) n;
+  // TODO
+  return SWIG_OK;
+}
+
 /*****************************************************
  Add the specified routine name to the collection of 
  generated routines that are called from R functions.
