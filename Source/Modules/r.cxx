@@ -281,6 +281,7 @@ public:
   
   void dispatchFunction(Node *n);
   int functionWrapper(Node *n);
+  int constantWrapper(Node *n);
   int variableWrapper(Node *n);
 
   int classDeclaration(Node *n);
