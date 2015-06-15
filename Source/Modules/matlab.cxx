@@ -43,8 +43,11 @@ public:
   virtual int staticmemberfunctionHandler(Node *n);
   virtual int memberconstantHandler(Node *n);
   virtual int staticmembervariableHandler(Node *n);
+  virtual int insertDirective(Node *n);
+
 protected:
   File* f_wrap_m;
+  File* f_setup_m;
   File *f_gateway;
   File *f_constants;
   File *f_begin;
@@ -62,6 +65,7 @@ protected:
   String* get_field;
   String* set_field;
   String* static_methods;
+  String* setup_name;
 
   bool have_constructor;
   bool have_destructor;
@@ -84,6 +88,8 @@ protected:
   int toConstant(String *constname, String *constdef);
   void finalizeConstant();
   void createSwigRef();
+  void createSetupScript();
+  void finalizeSetupScript();
   void autodoc_to_m(File* f, Node *n);
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
@@ -105,6 +111,7 @@ extern "C" Language *swig_matlab(void) {
 
 MATLAB::MATLAB() : 
   f_wrap_m(0),
+  f_setup_m(0),
   f_gateway(0),
   f_constants(0),
   f_begin(0),
@@ -122,6 +129,7 @@ MATLAB::MATLAB() :
   get_field(0),
   set_field(0),
   static_methods(0),
+  setup_name(0),
   have_constructor(false),
   have_destructor(false),
   num_gateway(0),
@@ -237,6 +245,9 @@ int MATLAB::top(Node *n) {
     pkg_name = Copy(module);
   }
 
+  // Create setup script file in matlab code
+  createSetupScript();
+
   // Create subdirectory
   String* pkg_directory_name = NewString("+");
   Append(pkg_directory_name, pkg_name);
@@ -337,6 +348,9 @@ int MATLAB::top(Node *n) {
     
   // Finalize Mex-file gate way
   finalizeGateway();
+
+  // Finalize setup script
+  finalizeSetupScript();
 
   //  if (directorsEnabled())
   //    Swig_insert_file("director.swg", f_runtime);
@@ -862,6 +876,7 @@ int MATLAB::globalfunctionHandler(Node *n) {
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
+  Printf(f_wrap_m,"%s;\n",setup_name);
   if (min_num_returns==0) {
     Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,wname,varginstr);
   } else {
@@ -914,13 +929,15 @@ int MATLAB::variableWrapper(Node *n) {
   int gw_ind_get = toGateway(getname,getwname);
   checkValidSymName(n);
   if (GetFlag(n, "feature:immutable")) {
-    Printf(f_wrap_m,"function v = %s()\n",symname);  
+    Printf(f_wrap_m,"function v = %s()\n",symname);
+    Printf(f_wrap_m,"  %s;\n",setup_name);
     Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(f_wrap_m,"end\n");
   } else {
     int gw_ind_set = toGateway(setname,setwname);
     Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
     Printf(f_wrap_m,"  narginchk(0,1)\n");
+    Printf(f_wrap_m,"  %s;\n",setup_name);
     Printf(f_wrap_m,"  if nargin==0\n");
     Printf(f_wrap_m,"    nargoutchk(0,1)\n");
     Printf(f_wrap_m,"    varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
@@ -994,6 +1011,7 @@ int MATLAB::constantWrapper(Node *n) {
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
+    Printf(f_wrap_m,"    %s;\n",setup_name);
     Printf(f_wrap_m,"    vInitialized = %s(0,'swigConstant',%d,'%s');\n",mex_fcn,con_id,symname);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"  v = vInitialized;\n");
@@ -1389,6 +1407,7 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname) {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
       Printf(f_wrap_m,"        %%self.swigCPtr = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
       Printf(f_wrap_m,"        %%self.swigOwn = true;\n");
+      Printf(f_wrap_m,"        %s;\n",setup_name);
       Printf(f_wrap_m,"        tmp = %s(%d,'%s',varargin{:}); %% FIXME\n",mex_fcn,gw_ind,fullname);
       Printf(f_wrap_m,"        self.swigCPtr = tmp.swigCPtr;\n");
       Printf(f_wrap_m,"        self.swigOwn = tmp.swigOwn;\n");
@@ -1484,6 +1503,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(wrapper,"    function varargout = %s(varargin)\n",symname);
   autodoc_to_m(wrapper, n);
+  Printf(wrapper,"      %s;", setup_name);
   if (min_num_returns==0) {
     Printf(wrapper,"      [varargout{1:nargout}] = %s(%d,'%s',%s);\n",mex_fcn,gw_ind,fullname,varginstr);
   } else {
@@ -1513,6 +1533,7 @@ int MATLAB::memberconstantHandler(Node *n) {
   Printf(static_methods,"    function v = %s()\n",symname);  
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
+  Printf(static_methods,"        %s;", setup_name);
   Printf(static_methods,"        vInitialized = %s(0,'swigConstant','%s');\n",mex_fcn,fullname);
   Printf(static_methods,"      end\n");
   Printf(static_methods,"      v = vInitialized;\n");
@@ -1523,6 +1544,18 @@ int MATLAB::memberconstantHandler(Node *n) {
 
   return Language::memberconstantHandler(n);
 }
+
+int MATLAB::insertDirective(Node *n) {
+    String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
+
+    if (Cmp(section, "matlabsetup") == 0) {
+      Printv(f_setup_m, code, NIL);
+    } else {
+      Language::insertDirective(n);
+    }
+    return SWIG_OK;
+  }
 
 int MATLAB::staticmembervariableHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
@@ -1552,12 +1585,14 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   int gw_ind_get = toGateway(getname,getwname);
   if (GetFlag(n, "feature:immutable")) {
     Printf(static_methods,"function v = %s()\n",symname);  
+    Printf(static_methods,"  %s;\n",setup_name);
     Printf(static_methods,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(static_methods,"end\n");
   } else {
     int gw_ind_set = toGateway(setname,setwname);
     Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
     Printf(static_methods,"      narginchk(0,1)\n");
+    Printf(static_methods,"      %s;\n",setup_name);
     Printf(static_methods,"      if nargin==0\n");
     Printf(static_methods,"        nargoutchk(0,1)\n");
     Printf(static_methods,"        varargout{1} = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
@@ -1673,6 +1708,42 @@ void MATLAB::createSwigRef() {
   Delete(f_wrap_m);
   Delete(mfile);
   f_wrap_m = 0;
+}
+
+void MATLAB::createSetupScript() {
+  setup_name = NewString("");
+  Append(setup_name, pkg_name);
+  Append(setup_name, "setup");
+
+  // Create file
+  String* mfile = NewString(SWIG_output_directory());
+  Append(mfile, setup_name);
+  Append(mfile, ".m");
+  
+  f_setup_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_setup_m) {
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Output SwigRef abstract base class
+  Printf(f_setup_m,"%% This is the setup script for %s.\n", pkg_name);
+  Printf(f_setup_m,"global swig_%s_setup_ran;\n", pkg_name);
+
+  Printf(f_setup_m,"if isempty(swig_%s_setup_ran)\n", pkg_name);
+  Printf(f_setup_m,"  swig_%s_setup_ran = 1;\n", pkg_name);
+  Printf(f_setup_m,"else\n");
+  Printf(f_setup_m,"  return\n");
+  Printf(f_setup_m,"end\n");
+
+  Delete(mfile);
+}
+
+void MATLAB::finalizeSetupScript() {
+  Delete(f_setup_m);
+  f_setup_m = 0;
+  Delete(setup_name);
+  setup_name = 0;
 }
 
 const char* MATLAB::get_implicitconv_flag(Node *n) {
