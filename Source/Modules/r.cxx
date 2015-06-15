@@ -281,6 +281,7 @@ public:
   
   void dispatchFunction(Node *n);
   int functionWrapper(Node *n);
+  int constantWrapper(Node *n);
   int variableWrapper(Node *n);
 
   int classDeclaration(Node *n);
@@ -2178,6 +2179,16 @@ int R::functionWrapper(Node *n) {
 
   Delete(sargs);
   Delete(sfname);
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * R::constantWrapper()
+ * ---------------------------------------------------------------------- */
+
+int R::constantWrapper(Node *n) {
+  (void) n;
+  // TODO
   return SWIG_OK;
 }
 

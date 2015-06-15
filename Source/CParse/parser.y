@@ -2850,10 +2850,10 @@ c_declaration   : c_decl {
 		  Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line, "Lambda expressions and closures are not fully supported yet.\n");
 		  SWIG_WARN_NODE_END($$);
 		}
-                | USING idcolon EQUAL {
-		  skip_decl();
+                | USING idcolon EQUAL idcolon {
 		  $$ = new_node("using");
 		  Setattr($$,"name",$2);
+		  Setattr($$,"uname",$4);
 		  add_symbols($$);
 		  SWIG_WARN_NODE_BEGIN($$);
 		  Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line, "The 'using' keyword in type aliasing is not fully supported yet.\n");

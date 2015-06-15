@@ -131,8 +131,8 @@ static const char *usage3 = (const char *) "\
 static const char *usage4 = (const char *) "\
      -O              - Enable the optimization options: \n\
                         -fastdispatch -fvirtual \n\
-     -o <outfile>    - Set name of the output file to <outfile>\n\
-     -oh <headfile>  - Set name of the output header file to <headfile>\n\
+     -o <outfile>    - Set name of C/C++ output file to <outfile>\n\
+     -oh <headfile>  - Set name of C++ output header file for directors to <headfile>\n\
      -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
      -pcreversion    - Display PCRE version information\n\

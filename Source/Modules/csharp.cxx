@@ -248,16 +248,16 @@ public:
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
 	  Swig_mark_arg(i);
 	  old_variable_names = true;
-    } else if (strcmp(argv[i], "-outfile") == 0) {
-      if (argv[i + 1]) {
-        output_file = NewString("");
-        Printf(output_file, argv[i + 1]);
-        Swig_mark_arg(i);
-        Swig_mark_arg(i + 1);
-        i++;
-      } else {
-        Swig_arg_error();
-      }
+	} else if (strcmp(argv[i], "-outfile") == 0) {
+	  if (argv[i + 1]) {
+	    output_file = NewString("");
+	    Printf(output_file, argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
 	}
@@ -465,7 +465,7 @@ public:
       Printf(f_im, "}\n");
       addCloseNamespace(0, f_im);
 
-      if(f_im != f_single_out)
+      if (f_im != f_single_out)
 	Delete(f_im);
       f_im = NULL;
     }
@@ -508,7 +508,7 @@ public:
       Printf(f_module, "}\n");
       addCloseNamespace(0, f_module);
 
-      if(f_module != f_single_out)
+      if (f_module != f_single_out)
 	Delete(f_module);
       f_module = NULL;
     }
@@ -609,7 +609,7 @@ public:
       f_directors_h = NULL;
     }
 
-    if(f_single_out) {
+    if (f_single_out) {
       Dump(f_single_out, f_begin);
       Delete(f_single_out);
       f_single_out = NULL;
@@ -636,7 +636,7 @@ public:
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
   }
-  
+
   /* -----------------------------------------------------------------------------
    * getOutputFile()
    *
@@ -649,12 +649,12 @@ public:
    *  <dir>/<name>.cs
    * ----------------------------------------------------------------------------- */
 
-  File *getOutputFile(const String* dir, String* name) {
-    if(output_file) {
-      if(!f_single_out) {
+  File *getOutputFile(const String *dir, const String *name) {
+    if (output_file) {
+      if (!f_single_out) {
 	String *filen = NewStringf("%s%s", SWIG_output_directory(), output_file);
 	f_single_out = NewFile(filen, "w", SWIG_output_files());
-	if(!f_single_out) {
+	if (!f_single_out) {
 	  FileErrorDisplay(filen);
 	  SWIG_exit(EXIT_FAILURE);
 	}
@@ -668,7 +668,7 @@ public:
     } else {
       String *filen = NewStringf("%s%s.cs", dir, name);
       File *f = NewFile(filen, "w", SWIG_output_files());
-      if(!f) {
+      if (!f) {
 	FileErrorDisplay(f);
 	SWIG_exit(EXIT_FAILURE);
       }
@@ -1132,7 +1132,7 @@ public:
       scope = NewString("");
       if (nspace)
 	Printf(scope, "%s", nspace);
-      if (Node* cls = getCurrentClass()) {
+      if (Node *cls = getCurrentClass()) {
 	if (Node *outer = Getattr(cls, "nested:outer")) {
 	  String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	  for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -1252,7 +1252,7 @@ public:
 		 "\n", enum_code, "\n", NIL);
 
 	  addCloseNamespace(nspace, f_enum);
-	  if(f_enum != f_single_out)
+	  if (f_enum != f_single_out)
 	    Delete(f_enum);
 	  f_enum = NULL;
 	  Delete(output_directory);
@@ -1954,7 +1954,6 @@ public:
 	}
       }
 
-      // Each outer proxy class goes into a separate file
       if (!has_outerclass) {
 	String *output_directory = outputDirectory(nspace);
 	f_proxy = getOutputFile(output_directory, proxy_class_name);
@@ -2017,7 +2016,7 @@ public:
       if (!has_outerclass) {
 	Printf(f_proxy, "}\n");
 	addCloseNamespace(nspace, f_proxy);
-	if(f_proxy != f_single_out)
+	if (f_proxy != f_single_out)
 	  Delete(f_proxy);
 	f_proxy = NULL;
       } else {
@@ -3278,7 +3277,7 @@ public:
     Printv(f_swigtype, swigtype, NIL);
 
     addCloseNamespace(0, f_swigtype);
-    if(f_swigtype != f_single_out)
+    if (f_swigtype != f_single_out)
       Delete(f_swigtype);
     f_swigtype = NULL;
     Delete(swigtype);
@@ -3376,7 +3375,7 @@ public:
   /* -----------------------------------------------------------------------------
    * outputDirectory()
    *
-   * Return the directory to use for generating Java classes/enums and create the
+   * Return the directory to use for generating C# classes/enums and create the
    * subdirectory (does not create if language specific outdir does not exist).
    * ----------------------------------------------------------------------------- */
 
@@ -3516,7 +3515,7 @@ public:
    * classDirectorMethod()
    *
    * Emit a virtual director method to pass a method call on to the 
-   * underlying Java object.
+   * underlying C# object.
    *
    * --------------------------------------------------------------- */
 
@@ -3677,7 +3676,7 @@ public:
     if (!ignored_method)
       Printf(w->code, "} else {\n");
 
-    /* Go through argument list, convert from native to Java */
+    /* Go through argument list, convert from native to C# */
     for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
@@ -4297,10 +4296,10 @@ extern "C" Language *swig_csharp(void) {
 
 const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
-     -dllimport <dl>     - Override DllImport attribute name to <dl>\n\
-     -namespace <nm>     - Generate wrappers into C# namespace <nm>\n\
-     -noproxy            - Generate the low-level functional interface instead\n\
-                           of proxy classes\n\
-     -oldvarnames        - Old intermediary method names for variable wrappers\n\
-     -outfile <filename> - Write all C# to a single file <filename> located in the output directory\n\
+     -dllimport <dl> - Override DllImport attribute name to <dl>\n\
+     -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
+     -noproxy        - Generate the low-level functional interface instead\n\
+                       of proxy classes\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -outfile <file> - Write all C# into a single <file> located in the output directory\n\
 \n";

@@ -55,12 +55,17 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-classic
     - compiler: gcc
+      env: SWIGLANG=r
+    - compiler: gcc
       env: SWIGLANG=ruby
     - compiler: gcc
       env: SWIGLANG=scilab
     - compiler: gcc
       env: SWIGLANG=tcl
   allow_failures:
+    # Lots of failing tests currently
+    - compiler: gcc
+      env: SWIGLANG=ocaml
     # Occasional gcc internal compiler error
     - compiler: gcc
       env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
@@ -70,9 +75,9 @@ matrix:
     # Not quite working yet
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-O
-    # Lots of failing tests currently
+    # Runtime errors in Travis environment
     - compiler: gcc
-      env: SWIGLANG=ocaml
+      env: SWIGLANG=r
 before_install:
   - date -u
   - uname -a
@@ -96,6 +101,7 @@ before_install:
   - if test "$SWIGLANG" = "python"; then git clone https://github.com/jcrocholl/pep8.git && pushd pep8 && git checkout tags/1.5.7 && python ./setup.py build && sudo python ./setup.py install && popd; fi
   - if test "$SWIGLANG" = "python" -a "$PY3" -a -z "$VER"; then sudo apt-get install -qq python3-dev; fi
   - if test "$SWIGLANG" = "python" -a "$VER"; then sudo add-apt-repository -y ppa:fkrull/deadsnakes && sudo apt-get -qq update && sudo apt-get -qq install python${VER}-dev && export CONFIGOPTS="--with-python${PY3}=python${VER}"; fi
+  - if test "$SWIGLANG" = "r"; then sudo apt-get -qq install r-base; fi
   - if test "$SWIGLANG" = "scilab"; then sudo apt-get -qq install scilab; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
   - $CC --version
