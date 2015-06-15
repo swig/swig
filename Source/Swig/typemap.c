@@ -1397,6 +1397,20 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     String *value = Copy(Getattr(kw, "value"));
     String *kwtype = Getattr(kw, "type");
     char *ckwname = Char(Getattr(kw, "name"));
+    {
+      /* Expand variables and typemaps in kwargs. */
+      SwigType *ptype = Getattr(node, "type");
+      String *pname = Getattr(node, "name");
+      String *lname = Getattr(node, "lname");
+      SwigType *mtype = Getattr(node, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : ptype;
+      ParmList *parm_sublist;
+      typemap_replace_vars(value, NULL, matchtype, ptype, pname, lname, 0);
+      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      Delete(parm_sublist);
+    }
     if (kwtype) {
       String *mangle = Swig_string_mangle(kwtype);
       Append(value, mangle);
@@ -1569,6 +1583,20 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");
+    {
+      /* Expand variables and typemaps in kwargs. */
+      SwigType *ptype = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      SwigType *mtype = Getattr(p, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : ptype;
+      ParmList *parm_sublist;
+      typemap_replace_vars(value, NULL, matchtype, ptype, pname, lname, 0);
+      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      Delete(parm_sublist);
+    }
     if (type) {
       Hash *v = NewHash();
       Setattr(v, "type", type);
