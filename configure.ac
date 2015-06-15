@@ -2790,6 +2790,17 @@ AC_SUBST(SKIP_ANDROID)
 
 ABS_SRCDIR=`(cd ${srcdir} && pwd)`
 
+dnl Under Cygwin, we may need native absolute path as it is used by SWIG, which
+dnl may be a native, and not a Cygwin, program (this is the case when it's
+dnl built using MinGW or cccl compiler in Cygwin environment). However it may,
+dnl although this is probably more rare, also be built as a Cygwin program.
+dnl Using "mixed" path like we do here allows the path to work in both cases.
+case $host in
+*-*-cygwin* )
+    ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR`
+    ;;
+esac
+
 # Root directory
 ROOT_DIR=`pwd`
 case $host in
@@ -2827,12 +2838,20 @@ case $build in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-# For testing - Windows builds of SWIG do not need SWIG_LIB set
-AC_EGREP_CPP([yes],
-[#ifdef _WIN32
-  yes
-#endif
-], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
+dnl For testing purposes, don't set SWIG_LIB_PREINST when building SWIG in the
+dnl source directory under Windows because it is supposed to work without
+dnl SWIG_LIB being set at all in this particular case.
+if test "${srcdir}" = "."; then
+    AC_EGREP_CPP([yes],
+    [#ifdef _WIN32
+     yes
+    #endif
+    ], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
+else
+    dnl When not building in source directory, we must always set SWIG_LIB,
+    dnl even under Windows, as things couldn't work without it.
+    SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
+fi
 AC_SUBST(SWIG_LIB_PREINST)
 
 AC_CONFIG_FILES([
