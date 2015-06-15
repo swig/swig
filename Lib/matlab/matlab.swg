@@ -6,3 +6,6 @@
 %include <matlabopers.swg>
 
 %define %docstring %feature("docstring") %enddef
+
+%define %matlabsetup %insert("matlabsetup") %enddef
+
