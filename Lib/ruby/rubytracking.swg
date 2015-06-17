@@ -52,7 +52,12 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   /* No, it hasn't.  Create one ourselves */ 
   if ( swig_ruby_trackings == Qnil )
     {
-      swig_ruby_trackings = rb_hash_new();
+      /* Create array of two hashes. One is for pointers which can be converted
+         to Ruby's Fixnum, while the other is used for nonconvertable pointers.
+         This is needed, since C pointers are 32/64 bit values, while Ruby's
+         Fixnum can store only 31/63 bit values.
+      */
+      swig_ruby_trackings = rb_ary_new_from_args(2, rb_hash_new(), rb_hash_new());
       rb_ivar_set( _mSWIG, trackings_id, swig_ruby_trackings );
     }
 
@@ -100,22 +105,24 @@ SWIGRUNTIME void SWIG_RubyAddTracking(void* ptr, VALUE object) {
      convert it to a Ruby number object.*/
 
   /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
+  long fixable = FIXABLE((long) ptr);
+  VALUE key = LONG2FIX(ptr);
 
   /* Get a reference to the Ruby object as a Ruby number */
   VALUE value = SWIG_RubyObjectToReference(object);
 
   /* Store the mapping to the global hash table. */
-  rb_hash_aset(swig_ruby_trackings, key, value);
+  rb_hash_aset(rb_ary_entry(swig_ruby_trackings, fixable), key, value);
 }
 
 /* Get the Ruby object that owns the specified C/C++ struct */
 SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
   /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
+  long fixable = FIXABLE((long) ptr);
+  VALUE key = LONG2FIX(ptr);
 
   /* Now lookup the value stored in the global hash table */
-  VALUE value = rb_hash_aref(swig_ruby_trackings, key);
+  VALUE value = rb_hash_aref(rb_ary_entry(swig_ruby_trackings, fixable), key);
 	
   if (value == Qnil) {
     /* No object exists - return nil. */
@@ -133,11 +140,12 @@ SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
    a new object. */
 SWIGRUNTIME void SWIG_RubyRemoveTracking(void* ptr) {
   /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
+  long fixable = FIXABLE((long) ptr);
+  VALUE key = LONG2FIX(ptr);
 
   /* Delete the object from the hash table by calling Ruby's
      do this we need to call the Hash.delete method.*/
-  rb_funcall(swig_ruby_trackings, swig_ruby_hash_delete, 1, key);
+  rb_funcall(rb_ary_entry(swig_ruby_trackings, fixable), swig_ruby_hash_delete, 1, key);
 }
 
 /* This is a helper method that unlinks a Ruby object from its
