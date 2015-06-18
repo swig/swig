@@ -2850,9 +2850,10 @@ c_declaration   : c_decl {
 		  Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line, "Lambda expressions and closures are not fully supported yet.\n");
 		  SWIG_WARN_NODE_END($$);
 		}
-                | USING idcolon EQUAL idcolon {
+                | USING idcolon EQUAL type typemap_parameter_declarator SEMI {
 		  $$ = new_node("using");
 		  Setattr($$,"name",$2);
+		  SwigType_push($4,$5.type);
 		  Setattr($$,"uname",$4);
 		  add_symbols($$);
 		  SWIG_WARN_NODE_BEGIN($$);
@@ -2861,15 +2862,17 @@ c_declaration   : c_decl {
 
 		  $$ = 0; /* TODO - ignored for now */
 		}
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL identifier {
-		  skip_decl();
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type typemap_parameter_declarator SEMI {
 		  $$ = new_node("using");
-		  Setattr($$,"uname",$8);
 		  Setattr($$,"name",$6);
+		  SwigType_push($8,$9.type);
+		  Setattr($$,"uname",$8);
 		  add_symbols($$);
 		  SWIG_WARN_NODE_BEGIN($$);
 		  Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line, "The 'using' keyword in template aliasing is not fully supported yet.\n");
 		  SWIG_WARN_NODE_END($$);
+
+		  $$ = 0; /* TODO - ignored for now */
 		}
                 ;
 

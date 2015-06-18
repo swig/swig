@@ -2,8 +2,12 @@
 %module cpp11_template_typedefs
 
 %warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) TypedefName;
+%warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) TypedefNamePtr;
 %warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) MyIntKeyClass;
 %warnfilter(SWIGWARN_CPP11_ALIAS_DECLARATION) PF;
+
+// This warning should go away when type aliasing is supported
+#pragma SWIG nowarn=SWIGWARN_PARSE_USING_UNDEF // Nothing known about 'p.SomeType< char *,T2,4 >'.
 
 %inline %{
 template< typename T1, typename T2, int >
@@ -16,6 +20,8 @@ class SomeType {
 // template aliasing
 template< typename T2 >
 using TypedefName = SomeType<char*, T2, 5>;
+template< typename T2 >
+using TypedefNamePtr = SomeType<char*, T2, 4>*;
 
 // type aliasing
 typedef void (*PFD)(double);            // Old style
@@ -28,5 +34,8 @@ class MyCPP11Class {
 };
 template<typename VAL> using MyIntKeyClass = MyCPP11Class<int,VAL>;
 MyIntKeyClass<char> intchar;
+
+TypedefName<int> alias1(TypedefName<int> a) { return a; }
+TypedefNamePtr<int> alias1(TypedefNamePtr<int> a = nullptr) { return a; }
 %}
 
