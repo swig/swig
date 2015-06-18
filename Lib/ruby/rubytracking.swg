@@ -57,7 +57,7 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
          This is needed, since C pointers are 32/64 bit values, while Ruby's
          Fixnum can store only 31/63 bit values.
       */
-      swig_ruby_trackings = rb_ary_new_from_args(2, rb_hash_new(), rb_hash_new());
+      swig_ruby_trackings = rb_ary_new3(2, rb_hash_new(), rb_hash_new());
       rb_ivar_set( _mSWIG, trackings_id, swig_ruby_trackings );
     }
 
