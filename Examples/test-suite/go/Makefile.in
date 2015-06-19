@@ -13,12 +13,12 @@ GO15		= @GO15@
 GOC		= @GOC@
 SCRIPTSUFFIX	= _runme.go
 
-GOCOMPILEARG = `if $(GO1) ; then echo tool $(GOC:c=g) ; fi`
-GOLD = $(GOC:c=l)
+GOCOMPILEARG = `if $(GO15); then echo tool compile; elif $(GO1); then echo tool $(GOC:c=g); fi`
+GOLD = `if $(GO15); then echo link; else echo $(GOC:c=l); fi`
 GOTOOL = `if $(GO1) ; then echo go tool; fi`
 GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
-GOOBJEXT = $(GOC:c=)
+GOOBJEXT = `if $(GO15); then echo o; else echo $(GOC:c=); fi`
 
 SO = @SO@
 

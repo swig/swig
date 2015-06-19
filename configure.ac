@@ -2426,8 +2426,15 @@ else
   if test -n "$GO" ; then
     GO1=true
     GOVERSIONOPTION=version
-    GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
     go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+    case "$go_version" in
+    go1 | go1.[[01234]]*)
+      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
+      ;;
+    *)
+      GOC=compile
+      ;;
+    esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
     go1.0* | go1 )
@@ -2437,11 +2444,14 @@ else
       ;;
     *)
       AC_MSG_RESULT([no])
-      if test "$GOC" = "6c"; then
+      case "$(go env GOARCH)" in
+      amd64 | arm64 | ppc64*)
         GOOPT="-intgosize 64"
-      else
+	;;
+      *)
         GOOPT="-intgosize 32"
-      fi
+	;;
+      esac
       ;;
     esac
     case $go_version in
