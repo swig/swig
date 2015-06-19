@@ -1438,7 +1438,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <str>      pragma_arg;
 %type <loc>      includetype;
 %type <type>     pointer primitive_type;
-%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator typemap_parameter_declarator;
+%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
@@ -2466,7 +2466,7 @@ tm_tail        : COMMA typemap_parm tm_tail {
                | empty { $$ = 0;}
                ;
 
-typemap_parm   : type typemap_parameter_declarator {
+typemap_parm   : type plain_declarator {
                   Parm *parm;
 		  SwigType_push($1,$2.type);
 		  $$ = new_node("typemapitem");
@@ -2850,7 +2850,7 @@ c_declaration   : c_decl {
 		  Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line, "Lambda expressions and closures are not fully supported yet.\n");
 		  SWIG_WARN_NODE_END($$);
 		}
-                | USING idcolon EQUAL type typemap_parameter_declarator SEMI {
+                | USING idcolon EQUAL type plain_declarator SEMI {
 		  $$ = new_node("using");
 		  Setattr($$,"name",$2);
 		  SwigType_push($4,$5.type);
@@ -2862,7 +2862,7 @@ c_declaration   : c_decl {
 
 		  $$ = 0; /* TODO - ignored for now */
 		}
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type typemap_parameter_declarator SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
 		  $$ = new_node("using");
 		  Setattr($$,"name",$6);
 		  SwigType_push($8,$9.type);
@@ -4883,7 +4883,7 @@ parameter_declarator : declarator def_args {
             }
             ;
 
-typemap_parameter_declarator : declarator {
+plain_declarator : declarator {
                  $$ = $1;
 		 if (SwigType_isfunction($1.type)) {
 		   Delete(SwigType_pop_function($1.type));
