@@ -3160,13 +3160,24 @@ private:
     Setattr(var, "type", var_type);
 
     SwigType *vt = Copy(var_type);
-    if (SwigType_isclass(vt)) {
-      SwigType_add_pointer(vt);
-    }
 
     int flags = Extend | SmartPointer | use_naturalvar_mode(var);
     if (isNonVirtualProtectedAccess(var)) {
       flags |= CWRAP_ALL_PROTECTED_ACCESS;
+    }
+
+    // Copied from Swig_wrapped_member_var_type.
+    if (SwigType_isclass(vt)) {
+      if (flags & CWRAP_NATURAL_VAR) {
+	if (CPlusPlus) {
+	  if (!SwigType_isconst(vt)) {
+	    SwigType_add_qualifier(vt, "const");
+	  }
+	  SwigType_add_reference(vt);
+	}
+      } else {
+	SwigType_add_pointer(vt);
+      }
     }
 
     String *mname = Swig_name_member(getNSpace(), Getattr(var_class, "sym:name"), var_name);
