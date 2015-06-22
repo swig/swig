@@ -1277,7 +1277,8 @@ void MATLAB::initGateway() {
   Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name_d);\n");
   Printf(f_gateway,"    is_loaded=true;\n");
   Printf(f_gateway,"    mxArray *err;\n");
-  Printf(f_gateway,"    mexEvalString(\"%s\");",setup_name);
+  Printf(f_gateway,"    mexEvalString(\"%s\");\n",setup_name);
+  Printf(f_gateway,"    mexAtExit(SWIG_Matlab_ExitFcn);\n");
   Printf(f_gateway,"  }\n");
 
   // The first argument is always the ID
@@ -1403,13 +1404,10 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname) {
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
-      Printf(f_wrap_m,"        %%self.swigCPtr = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
-      Printf(f_wrap_m,"        %%self.swigOwn = true;\n");
+      Printf(f_wrap_m,"        %%self.swigInd = %s(%d,'%s',varargin{:});\n",mex_fcn,gw_ind,fullname);
       Printf(f_wrap_m,"        tmp = %s(%d,'%s',varargin{:}); %% FIXME\n",mex_fcn,gw_ind,fullname);
-      Printf(f_wrap_m,"        self.swigCPtr = tmp.swigCPtr;\n");
-      Printf(f_wrap_m,"        self.swigOwn = tmp.swigOwn;\n");
-      Printf(f_wrap_m,"        self.swigType = tmp.swigType;\n");
-      Printf(f_wrap_m,"        tmp.swigOwn = false;\n");
+      Printf(f_wrap_m,"        self.swigInd = tmp.swigInd;\n");
+      Printf(f_wrap_m,"        tmp.swigInd = uint64(0);\n");
     }
     Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
@@ -1454,13 +1452,13 @@ int MATLAB::destructorHandler(Node *n) {
   // Add to function switch
   String *wname = Swig_name_wrapper(fullname);
   int gw_ind = toGateway(fullname,wname);
-  Printf(f_wrap_m,"      if self.swigOwn\n");
+  Printf(f_wrap_m,"      if self.swigInd\n");
   Printf(f_wrap_m,"        %s(%d,'%s',self);\n",mex_fcn,gw_ind,fullname);
   // Prevent that the object gets deleted another time.
   // This is important for MATLAB as for class hierarchies, it calls delete for 
   // each class in the hierarchy. This isn't the case for C++ which only calls the
   // destructor of the "leaf-class", which should take care of deleting everything.
-  Printf(f_wrap_m,"        self.swigOwn=false;\n");
+  Printf(f_wrap_m,"        self.swigInd=uint64(0);\n");
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
 
@@ -1644,14 +1642,12 @@ void MATLAB::createSwigRef() {
 
   // Output SwigRef abstract base class
   Printf(f_wrap_m,"classdef SwigRef < handle\n");
-  Printf(f_wrap_m,"  properties %% (GetAccess = protected, SetAccess = protected) %% FIXME: mxGetProperty not working with protected access \n");
-  Printf(f_wrap_m,"    swigCPtr\n");
-  Printf(f_wrap_m,"    swigType\n");
-  Printf(f_wrap_m,"    swigOwn\n");
+  Printf(f_wrap_m,"  properties \n");
+  Printf(f_wrap_m,"    swigInd\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
   Printf(f_wrap_m,"    function disp(self)\n");
-  Printf(f_wrap_m,"      disp(sprintf('<Swig Object of type %%s, ptr=%%d, own=%%d>',self.swigType,self.swigCPtr,self.swigOwn))\n");
+  Printf(f_wrap_m,"      disp(sprintf('<Swig object, ind=%%d>',self.swigInd))\n");
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function varargout = subsref(self,S)\n");
   Printf(f_wrap_m,"      if numel(S)==1\n");
