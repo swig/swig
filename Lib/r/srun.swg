@@ -16,43 +16,43 @@
 
 ######################################################################
 
-if(length(getClassDef("RSWIGStruct")) == 0) 
+if(length(getClassDef("RSWIGStruct")) == 0)
   setClass("RSWIGStruct", representation("VIRTUAL"))
 
 
 
-if(length(getClassDef("ExternalReference")) == 0) 
+if(length(getClassDef("ExternalReference")) == 0)
 # Should be virtual but this means it loses its slots currently
 #representation("VIRTUAL")
   setClass("ExternalReference", representation( ref = "externalptr"))
 
 
 
-if(length(getClassDef("NativeRoutinePointer")) == 0) 
-  setClass("NativeRoutinePointer", 
+if(length(getClassDef("NativeRoutinePointer")) == 0)
+  setClass("NativeRoutinePointer",
               representation(parameterTypes = "character",
                              returnType = "character",
-                             "VIRTUAL"), 
+                             "VIRTUAL"),
               contains = "ExternalReference")
 
-if(length(getClassDef("CRoutinePointer")) == 0) 
+if(length(getClassDef("CRoutinePointer")) == 0)
   setClass("CRoutinePointer", contains = "NativeRoutinePointer")
 
 
-if(length(getClassDef("EnumerationValue")) == 0) 
+if(length(getClassDef("EnumerationValue")) == 0)
   setClass("EnumerationValue", contains = "integer")
 
 
-if(!isGeneric("copyToR")) 
+if(!isGeneric("copyToR"))
  setGeneric("copyToR",
-            function(value, obj = new(gsub("Ref$", "", class(value)))) 
+            function(value, obj = new(gsub("Ref$", "", class(value))))
                standardGeneric("copyToR"
            ))
 
 setGeneric("delete", function(obj) standardGeneric("delete"))
 
 
-SWIG_createNewRef = 
+SWIG_createNewRef =
 function(className, ..., append = TRUE)
 {
   f = get(paste("new", className, sep = "_"), mode = "function")
@@ -60,20 +60,20 @@ function(className, ..., append = TRUE)
   f(...)
 }
 
-if(!isGeneric("copyToC")) 
- setGeneric("copyToC", 
+if(!isGeneric("copyToC"))
+ setGeneric("copyToC",
              function(value, obj = RSWIG_createNewRef(class(value)))
               standardGeneric("copyToC"
             ))
 
 
-# 
+#
 defineEnumeration =
 function(name, .values, where = topenv(parent.frame()), suffix = "Value")
 {
    # Mirror the class definitions via the E analogous to .__C__
   defName = paste(".__E__", name, sep = "")
-  assign(defName,  .values,  envir = where)
+  delayedAssign(defName,  .values,  assign.env = where)
 
   if(nchar(suffix))
     name = paste(name, suffix, sep = "")
@@ -87,7 +87,7 @@ enumToInteger <- function(name,type)
    ans <- as.integer(get(paste(".__E__", type, sep = ""))[name])
    if (is.na(ans)) {warning("enum not found ", name, " ", type)}
    ans
-   } 
+   }
 }
 
 enumFromInteger =
@@ -98,7 +98,7 @@ function(i,type)
 }
 
 coerceIfNotSubclass =
-function(obj, type) 
+function(obj, type)
 {
     if(!is(obj, type)) {as(obj, type)} else obj
 }
@@ -112,7 +112,7 @@ setMethod("length", "SWIGArray", function(x) x@dims[1])
 defineEnumeration("SCopyReferences",
                    .values = c( "FALSE" = 0, "TRUE" = 1, "DEEP" = 2))
 
-assert = 
+assert =
 function(condition, message = "")
 {
   if(!condition)

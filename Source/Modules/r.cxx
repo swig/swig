@@ -280,7 +280,6 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
 }
 
-#if 0
 static double getNumber(String *value) {
   double d = DEFAULT_NUMBER;
   if(Char(value)) {
@@ -289,7 +288,7 @@ static double getNumber(String *value) {
   }
   return(d);
 }
-#endif
+
 
 class R : public Language {
 public:
@@ -1202,21 +1201,22 @@ int R::enumDeclaration(Node *n) {
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
 
+  if (cplus_mode != PUBLIC) {
+    return (SWIG_NOWRAP);
+  }
+
   /* Using name if tdname is empty. */
 
   if(Len(tdname) == 0)
     tdname = name;
-
 
   if(!tdname || Strcmp(tdname, "") == 0) {
     Language::enumDeclaration(n);
     return SWIG_OK;
   }
 
-
   String *mangled_tdname = SwigType_manglestr(tdname);
   String *scode = NewString("");
-
 
   // Need to create some C code to return the enum values.
   // Presumably a C function for each element of the enum..
@@ -1225,9 +1225,17 @@ int R::enumDeclaration(Node *n) {
   // it yet.
   // Need to fetch the namespace part of the enum in tdname, so
   // that we can address the correct enum. Perhaps there is already an
-  // attribute that has this info, but I can't see it. That leaves
-  // searching for ::. Obviously need to work if there is no nesting.
-
+  // attribute that has this info, but I can't find it. That leaves
+  // searching for ::. Obviously needs to work if there is no nesting.
+  //
+  // One issue is that swig is generating defineEnumeration calls for
+  // enums in the private part of classes. This usually isn't a
+  // problem, but the model in which some C code returns the
+  // underlying value won't compile because it is accessing a private
+  // type.
+  //
+  // It will be best to turn off binding to private parts of
+  // classes.
 
   String *cppcode = NewString("");
   // this is the namespace that will get used inside the functions
@@ -1242,7 +1250,6 @@ int R::enumDeclaration(Node *n) {
   String *cfunctname=NewStringf("R_swigenum_%s_%s", mangled_tdname, ename);
   String *rfunctname=NewStringf("R_swigenum_%s_%s_get", mangled_tdname, ename);
   Printf(fname, "%s(void){", cfunctname);
-
   Printf(cppcode, "SWIGEXPORT SEXP \n%s\n", fname);
   Printf(cppcode, "int result;\n");
   Printf(cppcode, "SEXP r_ans = R_NilValue;\n");
@@ -1265,7 +1272,6 @@ int R::enumDeclaration(Node *n) {
 
   Printf(eW->code, "%s", cppcode);
   Delete(cppcode);
-  Wrapper_print(eW, f_wrapper);
 
   Delete(namespaceprefix);
 
@@ -1273,29 +1279,42 @@ int R::enumDeclaration(Node *n) {
          ",\n",  tab8, tab8, tab4, ".values = c(\n", NIL);
 
   Node *c;
-//  int value = -1; // First number is zero
+  int value = -1; // First number is zero
+  bool NeedEnumFunc=false;
   for (c = firstChild(n); c; c = nextSibling(c)) {
     //      const char *tag = Char(nodeType(c));
     //      if (Strcmp(tag,"cdecl") == 0) {
     name = Getattr(c, "name");
     // This needs to match the version earlier - could have stored it.
     String *rfunctname=NewStringf("R_swigenum_%s_%s_get()", mangled_tdname, name);
-//    String *val = Getattr(c, "enumvalue");
+    String *val = Getattr(c, "enumvalue");
+    String *numstring=NewString("");
 
+    if(val && Char(val)) {
+      double inval = getNumber(val);
+      if(inval == DEFAULT_NUMBER) {
+        // This should indicate there is some fancy text there
+      // so we want to call the special R functions
+      NeedEnumFunc = true;
+      Printf(numstring, "%s", rfunctname);
+      }
+      else {
+        value = (int)inval;
+        Printf(numstring, "%d", value);
 
-//    if(val && Char(val)) {
-//      int inval = (int) getNumber(val);
-//      if(inval == DEFAULT_NUMBER)
-//        value++;
-//      else
-//        value = inval;
-//    } else
-//      value++;
-
-    Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, rfunctname,
+      }
+    } else {
+      value++;
+      Printf(numstring, "%d", value);
+    }
+    Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, numstring,
            nextSibling(c) ? ", " : "");
     Delete(rfunctname);
-    //      }
+    Delete(numstring);
+  }
+
+  if (NeedEnumFunc) {
+  Wrapper_print(eW, f_wrapper);
   }
 
   Printv(scode, "))", NIL);
@@ -1303,7 +1322,6 @@ int R::enumDeclaration(Node *n) {
 
   Delete(scode);
   Delete(mangled_tdname);
-
   return SWIG_OK;
 }
 
