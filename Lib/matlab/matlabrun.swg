@@ -289,7 +289,6 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
       } else {
         /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
         mexErrMsgIdAndTxt("SWIG:ConvertPointerObj","SWIG error in converting pointer for type %s. Bad typemap?",type->name);
-        mexPrintf("Here7\n");
         return SWIG_ERROR;
       }
     }
