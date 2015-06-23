@@ -346,14 +346,18 @@ public:
     emit_attach_parmmaps(functionParamsList, wrapper);
     Setattr(node, "wrap:parms", functionParamsList);
 
-    /* Check arguments */
+    /* Check input/output arguments count */
     int maxInputArguments = emit_num_arguments(functionParamsList);
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
     int maxOutputArguments = 0;
 
-    /* Insert calls to CheckInputArgument and CheckOutputArgument */
-    Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
+    if (!emit_isvarargs(functionParamsList)) {
+      Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
+    }
+    else {
+      Printf(wrapper->code, "SWIG_CheckInputArgumentAtLeast(pvApiCtx, $mininputarguments-1);\n");
+    }
     Printf(wrapper->code, "SWIG_CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
 
     /* Set context */
