@@ -306,3 +306,30 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 
 /* HACK HACK */
 #define SWIG_Matlab_SetConstant(dummy1,dummy2,pm) (pm)
+
+#ifdef __cplusplus
+#include <streambuf>
+#include <ostream>
+namespace swig {
+  // Stream buffer to allow redirecting output to MATLAB
+  class SWIG_Matlab_streambuf : public std::streambuf {
+  public:
+    SWIG_Matlab_streambuf() {}
+  protected:
+    virtual int_type overflow(int_type ch) {
+      if(ch != traits_type::eof()) {
+        mexPrintf("%c", static_cast<char>(ch));
+      }
+      return ch;
+    }
+    virtual std::streamsize xsputn(const char* s, std::streamsize num) {
+      // Pass straight to mexPrintf without buffering
+      mexPrintf("%.*s", static_cast<int>(num), s);
+      return num;
+    }
+  };
+
+  // Instantiation
+  static SWIG_Matlab_streambuf SWIG_Matlab_buf;
+} // namespace swig
+#endif /* cplusplus */
