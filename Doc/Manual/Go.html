@@ -29,6 +29,17 @@
 </ul>
 <li><a href="#Go_templates">Go Templates</a>
 <li><a href="#Go_director_classes">Go Director Classes</a>
+<ul>
+<li><a href="#Go_director_example_cpp_code">Example C++ code</a>
+<li><a href="#Go_director_enable">Enable director feature</a>
+<li><a href="#Go_director_ctor_dtor">Constructor and destructor</a>
+<li><a href="#Go_director_overriding">Override virtual methods</a>
+<li><a href="#Go_director_base_methods">Call base methods</a>
+<li><a href="#Go_director_subclass">Subclass via embedding</a>
+<li><a href="#Go_director_finalizer">Memory management with runtime.SetFinalizer</a>
+<li><a href="#Go_director_foobargo_class">Complete FooBarGo example class</a>
+
+</ul>
 <li><a href="#Go_primitive_type_mappings">Default Go primitive type mappings</a>
 <li><a href="#Go_output_arguments">Output arguments</a>
 <li><a href="#Go_adding_additional_code">Adding additional go code</a>
@@ -574,48 +585,546 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
+
 <H3><a name="Go_director_classes"></a>23.4.7 Go Director Classes</H3>
 
 
 <p>
-SWIG's director feature permits a Go type to act as the subclass of a
-C++ class with virtual methods.  This is complicated by the fact that
-C++ and Go define inheritance differently.  In Go, structs can inherit
-methods via anonymous field embedding.  However, when a method is
-called for an embedded struct, if that method calls any other methods,
-they are called for the embedded struct, not for the original type.
-Therefore, SWIG must use Go interfaces to represent C++ inheritance.
+SWIG's director feature permits a Go type to act as the subclass of a C++ class.
+This is complicated by the fact that C++ and Go define inheritance differently.
+SWIG normally represents the C++ class inheritance automatically in Go via
+interfaces but with a Go type representing a subclass of a C++ class quite some
+manual work is necessary.
+<p>
+
+<p>
+This subchapter gives a step by step guide how to properly sublass a C++ class
+with a Go type.  In general it is strongly recommended to follow this guide
+completely to avoid common pitfalls with directors in Go.
+</p>
+
+
+<H4><a name="Go_director_example_cpp_code"></a>23.4.7.1 Example C++ code</H4>
+
+<p>
+The step by step guide is based on two example C++ classes.  FooBarAbs is an
+abstract C++ class and the FooBarCpp class inherits from it.  This guide
+explains how to implement a FooBarGo class similar to the FooBarCpp class.
 </p>
 
 <p>
-In order to use the director feature in Go, you must define a type in
-your Go code.  You must then add methods for the type.  Define a
-method in Go for each C++ virtual function that you want to override.
-You must then create a value of your new type, and pass a pointer to
-it to the function <tt>NewDirectorClassName</tt>,
-where <tt>ClassName</tt> is the name of the C++ class.  That will
-return a value of type <tt>ClassName</tt>.
-</p>
-
-<p>
-For example:
+<tt>FooBarAbs</tt> abstract C++ class:
 </p>
 
 <div class="code">
 <pre>
-type GoClass struct { }
-func (p *GoClass) VirtualFunction() { }
-func MakeClass() ClassName {
-	return NewDirectorClassName(&amp;GoClass{})
+class FooBarAbs
+{
+public:
+	FooBarAbs() {};
+	virtual ~FooBarAbs() {};
+
+	std::string FooBar() {
+		return this->Foo() + ", " + this->Bar();
+	};
+
+protected:
+	virtual std::string Foo() {
+		return "Foo";
+	};
+
+	virtual std::string Bar() = 0;
+};
+</pre>
+</div>
+
+<p>
+<tt>FooBarCpp</tt> C++ class:
+</p>
+
+<div class="code">
+<pre>
+class FooBarCpp : public FooBarAbs
+{
+protected:
+	virtual std::string Foo() {
+		return "C++ " + FooBarAbs::Foo();
+	}
+
+	virtual std::string Bar() {
+		return "C++ Bar";
+	}
+};
+</pre>
+</div>
+
+<p>
+Returned string by the <tt>FooBarCpp::FooBar</tt> method is:
+</p>
+
+<div class="code">
+<pre>
+C++ Foo, C++ Bar
+</pre>
+</div>
+
+
+<p>
+The complete example, including the <tt>FooBarGoo</tt> class implementation, can
+be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
+</p>
+
+
+<H4><a name="Go_director_enable"></a>23.4.7.2 Enable director feature</H4>
+
+
+<p>
+The director feature is disabled by default. To use directors you must make two
+changes to the interface file. First, add the "directors" option to the %module
+directive, like this:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") modulename
+</pre>
+</div>
+
+<p>
+Second, you must use the %feature("director") directive to tell SWIG which
+classes should get directors.  In the example the FooBarAbs class needs the
+director feature enabled so that the FooBarGo class can inherit from it, like
+this:
+</p>
+
+<div class="code">
+<pre>
+%feature("director") FooBarAbs;
+</pre>
+</div>
+
+<p>
+For a more detailed documentation of the director feature and how to enable or
+disable it for specific classes and virtual methods see SWIG's Java
+documentation on directors.
+</p>
+
+
+<H4><a name="Go_director_ctor_dtor"></a>23.4.7.3 Constructor and destructor</H4>
+
+
+<p>
+SWIG creates an additional set of constructor and destructor functions once the
+director feature has been enabled for a C++ class.  <tt>NewDirectorClassName
+</tt> allows to override virtual methods on the new object instance and <tt>
+DeleteDirectorClassName</tt> needs to be used to free a director object instance
+created with <tt>NewDirectorClassName</tt>.  More on overriding virtual methods
+follows later in this guide under <a href="#Go_director_overriding">
+overriding virtual methods</a>.
+</p>
+
+<p>
+The default constructor and destructor functions <tt>NewClassName</tt> and
+<tt>DeleteClassName</tt> can still be used as before so that existing code
+doesn't break just because the director feature has been enabled for a C++
+class.  The behavior is undefined if the default and director constructor and
+destructor functions get mixed and so great care needs to be taken that only one
+of the constructor and destructor function pairs is used for any object
+instance.  Both constructor functions, the default and the director one, return
+the same interface type.  This makes it potentially hard to know which
+destructor function, the default or the director one, needs to be called to
+delete an object instance.
+</p>
+
+<p>
+In <b>theory</b> the <tt>DirectorInterface</tt> method could be used to
+determine if an object instance was created via <tt>NewDirectorClassName</tt>:
+</p>
+
+<div class="code">
+<pre>
+if o.DirectorInterface() != nil {
+	DeleteDirectorClassName(o)
+} else {
+	DeleteClassName(o)
 }
 </pre>
 </div>
 
 <p>
-Any call in C++ code to the virtual function will wind up calling the
-method defined in Go.  The Go code may of course call other methods on
-itself, and those methods may be defined either in Go or in C++.
+In <b>practice</b> it is strongly recommended to embed a director object
+instance in a Go struct so that a director object instance will be represented
+as a distinct Go type that subclasses a C++ class.  For this Go type custom
+constructor and destructor functions take care of the director constructor and
+destructor function calls and the resulting Go class will appear to the user as
+any other SWIG wrapped C++ class.  More on properly subclassing a C++ class
+follows later in this guide under <a href="#Go_director_subclass">subclass via
+embedding</a>.
 </p>
+
+
+<H4><a name="Go_director_overriding"></a>23.4.7.4 Override virtual methods</H4>
+
+
+<p>
+In order to override virtual methods on a C++ class with Go methods the
+<tt>NewDirectorClassName</tt> constructor functions receives a
+<tt>DirectorInterface</tt> argument.  The methods in the <tt>
+DirectorInterface</tt> are a subset of the public and protected virtual methods
+of the C++ class.  If the <tt>DirectorInterface</tt> contains a method with a
+matching signature to a virtual method of the C++ class then the virtual C++
+method will be overwritten with the Go method.  As Go doesn't support protected
+methods all overriden protected virtual C++ methods will be public in Go.
+</p>
+
+<p>
+As an example see part of the <tt>FooBarGo</tt> class:
+</p>
+
+<div class="code">
+<pre>
+type overwritenMethodsOnFooBarAbs struct {
+	fb FooBarAbs
+}
+
+func (om *overwritenMethodsOnFooBarAbs) Foo() string {
+	...
+}
+
+func (om *overwritenMethodsOnFooBarAbs) Bar() string {
+	...
+}
+
+func NewFooBarGo() FooBarGo {
+	om := &amp;overwritenMethodsOnFooBarAbs{}
+	fb := NewDirectorFooBarAbs(om)
+	om.fb = fb
+	...
+}
+</pre>
+</div>
+
+<p>
+The complete example, including the <tt>FooBarGoo</tt> class implementation, can
+be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.  In
+this part of the example the virtual methods <tt>FooBarAbs::Foo</tt> and
+<tt>FooBarAbs::Bar</tt> have been overwritten with Go methods similarly to how
+the <tt>FooBarAbs</tt> virtual methods are overwritten by the <tt>FooBarCpp</tt>
+class.
+</p>
+
+<p>
+The <tt>DirectorInterface</tt> in the example is implemented by the
+<tt>overwritenMethodsOnFooBarAbs</tt> Go struct type.  A pointer to a
+<tt>overwritenMethodsOnFooBarAbs</tt> struct instance will be given to the
+<tt>NewDirectorFooBarAbs</tt> constructor function.  The constructor return
+value implements the <tt>FooBarAbs</tt> interface.
+<tt>overwritenMethodsOnFooBarAbs</tt> could in theory be any Go type but in
+practice a struct is used as it typically contains at least a value of the
+C++ class interface so that the overwritten methods can use the rest of the
+C++ class.  If the <tt>FooBarGo</tt> class would receive additional constructor
+arguments then these would also typically be stored in the <tt>
+overwritenMethodsOnFooBarAbs</tt> struct so that they can be used by the
+Go methods.
+</p>
+
+
+<H4><a name="Go_director_base_methods"></a>23.4.7.5 Call base methods</H4>
+
+
+<p>
+Often a virtual method will be overwritten to extend the original behavior of
+the method in the base class.  This is also the case for the <tt>FooBarCpp::Foo
+</tt> method of the example code:
+</p>
+
+<div class="code">
+<pre>
+virtual std::string Foo() {
+	return "C++ " + FooBarAbs::Foo();
+}
+</pre>
+</div>
+
+<p>
+To use base methods the <tt>DirectorClassNameMethodName</tt> wrapper functions
+are automatically generated by SWIG for public and protected virtual methods.
+The <tt>FooBarGo.Foo</tt> implementation in the example looks like this:
+</p>
+
+<div class="code">
+<pre>
+func (om *overwritenMethodsOnFooBarAbs) Foo() string {
+	return "Go " + DirectorFooBarAbsFoo(om.fb)
+}
+</pre>
+</div>
+
+<p>
+The complete example, including the <tt>FooBarGoo</tt> class implementation, can
+be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
+</p>
+
+
+<H4><a name="Go_director_subclass"></a>23.4.7.6 Subclass via embedding</H4>
+
+
+<p>
+<a href="#Go_director_ctor_dtor">As previously mentioned in this guide</a> the
+default and director constructor functions return the same interface type.  To
+properly subclass a C++ class with a Go type the director object instance
+returned by the <tt>NewDirectorClassName</tt> constructor function should be
+embedded into a Go struct so that it represents a distinct but compatible type
+in Go's type system.  This Go struct should be private and the constructor and
+destructor functions should instead work with a public interface type so that
+the Go class that subclasses a C++ class can be used as a compatible drop in.
+</p>
+
+<p>
+The subclassing part of the <tt>FooBarGo</tt> class for an example looks like
+this:
+</p>
+
+<div class="code">
+<pre>
+type FooBarGo interface {
+	FooBarAbs
+	deleteFooBarAbs()
+	IsFooBarGo()
+}
+
+type fooBarGo struct {
+	FooBarAbs
+}
+
+func (fbgs *fooBarGo) deleteFooBarAbs() {
+	DeleteDirectorFooBarAbs(fbgs.FooBarAbs)
+}
+
+func (fbgs *fooBarGo) IsFooBarGo() {}
+
+func NewFooBarGo() FooBarGo {
+	om := &amp;overwritenMethodsOnFooBarAbs{}
+	fb := NewDirectorFooBarAbs(om)
+	om.fb = fb
+
+	return &amp;fooBarGo{FooBarAbs: fb}
+}
+
+func DeleteFooBarGo(fbg FooBarGo) {
+	fbg.deleteFooBarAbs()
+}
+</pre>
+</div>
+
+
+<p>
+The complete example, including the <tt>FooBarGoo</tt> class implementation, can
+be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.  In
+this part of the example the private <tt>fooBarGo</tt> struct embeds <tt>
+FooBarAbs</tt> which lets the <tt>fooBarGo</tt> Go type "inherit" all the
+methods of the <tt>FooBarAbs</tt> C++ class by means of embedding.  The public
+<tt>FooBarGo</tt> interface type includes the <tt>FooBarAbs</tt> interface and
+hence <tt>FooBarGo</tt> can be used as a drop in replacement for
+<tt>FooBarAbs</tt> while the reverse isn't possible and would raise a compile
+time error.  Furthemore the constructor and destructor functions <tt>
+NewFooBarGo</tt> and <tt>DeleteFooBarGo</tt> take care of all the director
+specifics and to the user the class appears as any other SWIG wrapped C++
+class.
+</p>
+
+
+<H4><a name="Go_director_finalizer"></a>23.4.7.7 Memory management with runtime.SetFinalizer</H4>
+
+
+<p>
+In general all guidelines for <a href="#Go_class_memory">C++ class memory
+management</a> apply as well to director classes.  One often overlooked
+limitation with <tt>runtime.SetFinalizer</tt> is that a finalizer doesn't run
+in case of a cycle and director classes typically have a cycle.  The cycle
+in the <tt>FooBarGo</tt> class is here:
+</p>
+
+<div class="code">
+<pre>
+type overwritenMethodsOnFooBarAbs struct {
+	fb FooBarAbs
+}
+
+func NewFooBarGo() FooBarGo {
+	om := &amp;overwritenMethodsOnFooBarAbs{}
+	fb := NewDirectorFooBarAbs(om) // fb.v = om
+	om.fb = fb // Backlink causes cycle as fb.v = om!
+	...
+}
+</pre>
+</div>
+
+<p>
+In order to be able to use <tt>runtime.SetFinalizer</tt> nevertheless the
+finalizer needs to be set on something that isn't in a cycle and that references
+the director object instance.  In the <tt>FooBarGo</tt> class example the <tt>
+FooBarAbs</tt> director instance can be automatically deleted by setting the
+finalizer on <tt>fooBarGo</tt>:
+</p>
+
+<div class="code">
+<pre>
+type fooBarGo struct {
+	FooBarAbs
+}
+
+type overwritenMethodsOnFooBarAbs struct {
+	fb FooBarAbs
+}
+
+func NewFooBarGo() FooBarGo {
+	om := &amp;overwritenMethodsOnFooBarAbs{}
+	fb := NewDirectorFooBarAbs(om)
+	om.fb = fb // Backlink causes cycle as fb.v = om!
+
+	fbgs := &amp;fooBarGo{FooBarAbs: fb}
+	runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbs)
+	return fbgs
+}
+</pre>
+</div>
+
+<p>
+Furthermore if <tt>runtime.SetFinalizer</tt> is in use either the <tt>
+DeleteClassName</tt> destructor function needs to be removed or the <tt>
+fooBarGo</tt> struct needs additional data to prevent double deletion.  Please
+read the <a href="#Go_class_memory">C++ class memory management</a> subchapter
+before using <tt>runtime.SetFinalizer</tt> to know all of its gotchas.
+</p>
+
+
+<H4><a name="Go_director_foobargo_class"></a>23.4.7.8 Complete FooBarGo example class</H4>
+
+
+<p>
+The complete and annotated <tt>FooBarGo</tt> class looks like this:
+</p>
+
+<div class="code">
+<pre>
+// FooBarGo is a superset of FooBarAbs and hence FooBarGo can be used as a drop
+// in replacement for FooBarAbs but the reverse causes a compile time error.
+type FooBarGo interface {
+	FooBarAbs
+	deleteFooBarAbs()
+	IsFooBarGo()
+}
+
+// Via embedding fooBarGo "inherits" all methods of FooBarAbs.
+type fooBarGo struct {
+	FooBarAbs
+}
+
+func (fbgs *fooBarGo) deleteFooBarAbs() {
+	DeleteDirectorFooBarAbs(fbgs.FooBarAbs)
+}
+
+// The IsFooBarGo method ensures that FooBarGo is a superset of FooBarAbs.
+// This is also how the class hierarchy gets represented by the SWIG generated
+// wrapper code.  For an instance FooBarCpp has the IsFooBarAbs and IsFooBarCpp
+// methods.
+func (fbgs *fooBarGo) IsFooBarGo() {}
+
+// Go type that defines the DirectorInterface. It contains the Foo and Bar
+// methods that overwrite the respective virtual C++ methods on FooBarAbs.
+type overwritenMethodsOnFooBarAbs struct {
+	// Backlink to FooBarAbs so that the rest of the class can be used by the
+	// overridden methods.
+	fb FooBarAbs
+
+	// If additional constructor arguments have been given they are typically
+	// stored here so that the overriden methods can use them.
+}
+
+func (om *overwritenMethodsOnFooBarAbs) Foo() string {
+	// DirectorFooBarAbsFoo calls the base method FooBarAbs::Foo.
+	return "Go " + DirectorFooBarAbsFoo(om.fb)
+}
+
+func (om *overwritenMethodsOnFooBarAbs) Bar() string {
+	return "Go Bar"
+}
+
+func NewFooBarGo() FooBarGo {
+	// Instantiate FooBarAbs with selected methods overridden.  The methods that
+	// will be overwritten are defined on overwritenMethodsOnFooBarAbs and have
+	// a compatible signature to the respective virtual C++ methods.
+	// Furthermore additional constructor arguments will be typically stored in
+	// the overwritenMethodsOnFooBarAbs struct.
+	om := &amp;overwritenMethodsOnFooBarAbs{}
+	fb := NewDirectorFooBarAbs(om)
+	om.fb = fb // Backlink causes cycle as fb.v = om!
+
+	fbgs := &amp;fooBarGo{FooBarAbs: fb}
+	// The memory of the FooBarAbs director object instance can be automatically
+	// freed once the FooBarGo instance is garbage collected by uncommenting the
+	// following line.  Please make sure to understand the runtime.SetFinalizer
+	// specific gotchas before doing this.  Furthemore DeleteFooBarGo should be
+	// deleted if a finalizer is in use or the fooBarGo struct needs additional
+	// data to prevent double deletion.
+	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbs)
+	return fbgs
+}
+
+// Recommended to be removed if runtime.SetFinalizer is in use.
+func DeleteFooBarGo(fbg FooBarGo) {
+	fbg.deleteFooBarAbs()
+}
+</pre>
+</div>
+
+<p>
+Returned string by the <tt>FooBarGo.FooBar</tt> method is:
+</p>
+
+<div class="code">
+<pre>
+Go Foo, Go Bar
+</pre>
+</div>
+
+<p>
+For comparison the <tt>FooBarCpp</tt> class looks like this:
+</p>
+
+<div class="code">
+<pre>
+class FooBarCpp : public FooBarAbs
+{
+protected:
+	virtual std::string Foo() {
+		return "C++ " + FooBarAbs::Foo();
+	}
+
+	virtual std::string Bar() {
+		return "C++ Bar";
+	}
+};
+</pre>
+</div>
+
+<p>
+For comparison the returned string by the <tt>FooBarCpp::FooBar</tt> method is:
+</p>
+
+<div class="code">
+<pre>
+C++ Foo, C++ Bar
+</pre>
+</div>
+
+<p>
+The complete source of this example can be found under
+<a href="https://github.com/swig/swig/tree/master/Examples/go/director">
+SWIG/Examples/go/director/</a>.
+</p>
+
 
 <H3><a name="Go_primitive_type_mappings"></a>23.4.8 Default Go primitive type mappings</H3>
 
