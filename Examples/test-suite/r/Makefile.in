@@ -44,6 +44,12 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_multi_cpp)
 	$(run_multitestcase)
 
+## copy the unittest.R, if it doesn't exist
+setup = \
+	if [ ! -f ./$(SCRIPTPREFIX)/unittest.R ]; then \
+	  cp $(SCRIPTDIR)/unittest.R ./$(SCRIPTPREFIX); \
+	fi
+
 # Runs the testcase.
 #
 # Run the runme if it exists.  If not just load the R wrapper to
