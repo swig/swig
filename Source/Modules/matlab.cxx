@@ -896,22 +896,13 @@ int MATLAB::variableWrapper(Node *n) {
 #endif
   
   // Skip if inside class
-  if (class_name)
-    return Language::variableWrapper(n);
+  if (class_name) return Language::variableWrapper(n);
 
-  if (Language::variableWrapper(n) != SWIG_OK)
-    return SWIG_ERROR;
+  if (Language::variableWrapper(n)!=SWIG_OK) return SWIG_ERROR;
 
   // Name of variable
   String *symname = Getattr(n, "sym:name");
-
-  // Name getter function
-  String *getname = Swig_name_get(NSPACE_TODO, symname);
-  String *getwname = Swig_name_wrapper(getname);
-
-  // Name setter function
-  String *setname = Swig_name_set(NSPACE_TODO, symname);
-  String *setwname = Swig_name_wrapper(setname);
+  checkValidSymName(n);
 
   // Create MATLAB proxy
   String* mfile = NewString("");
@@ -924,15 +915,24 @@ int MATLAB::variableWrapper(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  // Add getter/setter function
+  // Add getter function
+  String *getname = Swig_name_get(NSPACE_TODO, symname);
+  String *getwname = Swig_name_wrapper(getname);
   int gw_ind_get = toGateway(getname,getwname);
-  checkValidSymName(n);
+
+  // Add getter/setter function
   if (GetFlag(n, "feature:immutable")) {
+    // Only getter
     Printf(f_wrap_m,"function v = %s()\n",symname);
     Printf(f_wrap_m,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
     Printf(f_wrap_m,"end\n");
   } else {
+    // Add setter function
+    String *setname = Swig_name_set(NSPACE_TODO, symname);
+    String *setwname = Swig_name_wrapper(setname);
     int gw_ind_set = toGateway(setname,setwname);
+
+    // Getter and setter
     Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
     Printf(f_wrap_m,"  narginchk(0,1)\n");
     Printf(f_wrap_m,"  if nargin==0\n");
@@ -943,13 +943,15 @@ int MATLAB::variableWrapper(Node *n) {
     Printf(f_wrap_m,"    %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"end\n");
+
+    // Tidy up
+    Delete(setname);
+    Delete(setwname);
   }
 
   // Tidy up
   Delete(getname);
   Delete(getwname);
-  Delete(setname);
-  Delete(setwname);
   Delete(mfile);
   Delete(f_wrap_m);
   f_wrap_m = 0;
@@ -1161,42 +1163,6 @@ int MATLAB::classHandler(Node *n) {
     have_constructor = true;
   }
 
-  // Add subscripted reference
-  Printf(f_wrap_m,"    function [v,ok] = swig_fieldsref(self,i)\n");
-  Printf(f_wrap_m,"      v = [];\n");
-  Printf(f_wrap_m,"      ok = false;\n");
-  Printf(f_wrap_m,"      switch i\n");
-  Printf(f_wrap_m,"%s",get_field);
-  Printf(f_wrap_m,"      end\n");
-
-  // Fallback to base class (does not work with multiple overloading)
-  for (Iterator b = First(baselist); b.item; b = Next(b)) {
-      String *bname = Getattr(b.item, "sym:name");
-      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      [v,ok] = swig_fieldsref@%s.%s(self,i);\n",pkg_name,bname);
-      Printf(f_wrap_m,"      if ok\n");
-      Printf(f_wrap_m,"        return\n");
-      Printf(f_wrap_m,"      end\n");
-  }
-  Printf(f_wrap_m,"    end\n");
-
-  // Add subscripted assignment
-  Printf(f_wrap_m,"    function [self,ok] = swig_fieldasgn(self,i,v)\n");
-  Printf(f_wrap_m,"      switch i\n");
-  Printf(f_wrap_m,"%s",set_field);
-  Printf(f_wrap_m,"      end\n");
-
-  // Fallback to base class (does not work with multiple overloading)
-  for (Iterator b = First(baselist); b.item; b = Next(b)) {
-      String *bname = Getattr(b.item, "sym:name");
-      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
-      Printf(f_wrap_m,"      [self,ok] = swig_fieldasgn@%s.%s(self,i,v);\n",pkg_name,bname);
-      Printf(f_wrap_m,"      if ok\n");
-      Printf(f_wrap_m,"        return\n");
-      Printf(f_wrap_m,"      end\n");
-  }
-  Printf(f_wrap_m,"    end\n");
-
   // End of non-static methods
   Printf(f_wrap_m,"  end\n");
 
@@ -1360,39 +1326,46 @@ int MATLAB::membervariableHandler(Node *n) {
 #endif
   
   // Name of variable
+  checkValidSymName(n);
   String *symname = Getattr(n, "sym:name");
 
-  // Name getter function
+  // Add getter function
   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
   String *getwname = Swig_name_wrapper(getname);
-
-  // Add getter function
   int gw_ind_get = toGateway(getname,getwname);
-  Printf(get_field,"        case '%s'\n",symname);
-  Printf(get_field,"          v = %s(%d,'%s',self);\n",mex_fcn,gw_ind_get,getname);
-  Printf(get_field,"          ok = true;\n");
-  Printf(get_field,"          return\n");
-
-  // Tidy up
-  Delete(getname);
-  Delete(getwname);
-
-  if (!GetFlag(n,"feature:immutable")) {
-    // Name setter function
+  
+  if (GetFlag(n,"feature:immutable")) {
+    // Only getter function
+    Printf(f_wrap_m,"    function v = %s(self)\n", symname);  
+    Printf(f_wrap_m,"      v = %s(%d, '%s', self);\n", mex_fcn, gw_ind_get, getname);
+    Printf(f_wrap_m,"    end\n");
+  } else {
+    // Add setter function
     String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
     String *setwname = Swig_name_wrapper(setname);
-
-    // Add setter function
     int gw_ind_set = toGateway(setname,setwname);
-    Printf(set_field,"        case '%s'\n",symname);
-    Printf(set_field,"          %s(%d,'%s',self,v);\n",mex_fcn,gw_ind_set,setname);
-    Printf(set_field,"          ok = true;\n");
-    Printf(set_field,"          return\n");
+
+    // Getter and setter function
+    Printf(f_wrap_m,"    function varargout = %s(self, varargin)\n", symname);  
+    Printf(f_wrap_m,"      narginchk(1, 2)\n");
+    Printf(f_wrap_m,"      if nargin==1\n");
+    Printf(f_wrap_m,"        nargoutchk(0, 1)\n");
+    Printf(f_wrap_m,"        varargout{1} = %s(%d, '%s', self);\n", mex_fcn, gw_ind_get, getname);
+    Printf(f_wrap_m,"      else\n");
+    Printf(f_wrap_m,"        nargoutchk(0, 0)\n");
+    Printf(f_wrap_m,"        %s(%d, '%s', self, varargin{1});\n", mex_fcn, gw_ind_set, setname);
+    Printf(f_wrap_m,"      end\n");
+    Printf(f_wrap_m,"    end\n");
 
     // Tidy up
     Delete(setname);
     Delete(setwname);
   }
+
+  // Tidy up
+  Delete(getname);
+  Delete(getwname);
+
   return Language::membervariableHandler(n);
 }
 
@@ -1558,30 +1531,31 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   // call Language implementation first, as this sets wrappedasconstant
   if (Language::staticmembervariableHandler(n) != SWIG_OK)
     return SWIG_ERROR;
-  
+
+  // Quick return if already wrapped
+  if (GetFlag(n, "wrappedasconstant"))return SWIG_OK;
+
   // Name of variable
+  checkValidSymName(n);
   String *symname = Getattr(n, "sym:name");
 
-  if (GetFlag(n, "wrappedasconstant"))
-      return SWIG_OK;
-
-  // Name getter function
+  // Add getter function
   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
   String *getwname = Swig_name_wrapper(getname);
-
-  // Name setter function
-  String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
-  String *setwname = Swig_name_wrapper(setname);
-
-  // Add to function switch
-  checkValidSymName(n);
   int gw_ind_get = toGateway(getname,getwname);
+
   if (GetFlag(n, "feature:immutable")) {
-    Printf(static_methods,"function v = %s()\n",symname);  
-    Printf(static_methods,"  v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
-    Printf(static_methods,"end\n");
+    // Only getter
+    Printf(static_methods,"    function v = %s()\n",symname);  
+    Printf(static_methods,"      v = %s(%d,'%s');\n",mex_fcn,gw_ind_get,getname);
+    Printf(static_methods,"    end\n");
   } else {
+    // Add setter function
+    String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+    String *setwname = Swig_name_wrapper(setname);
     int gw_ind_set = toGateway(setname,setwname);
+
+    // Getter and setter
     Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
     Printf(static_methods,"      narginchk(0,1)\n");
     Printf(static_methods,"      if nargin==0\n");
@@ -1592,13 +1566,15 @@ int MATLAB::staticmembervariableHandler(Node *n) {
     Printf(static_methods,"        %s(%d,'%s',varargin{1});\n",mex_fcn,gw_ind_set,setname);
     Printf(static_methods,"      end\n");
     Printf(static_methods,"    end\n");
+
+    // Tidy up
+    Delete(setname);
+    Delete(setwname);
   }
 
   // Tidy up
   Delete(getname);
   Delete(getwname);
-  Delete(setname);
-  Delete(setwname);
 
   return SWIG_OK;
 }
@@ -1649,46 +1625,33 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"    function disp(self)\n");
   Printf(f_wrap_m,"      disp(sprintf('<Swig object, ind=%%d>',self.swigInd))\n");
   Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function varargout = subsref(self,S)\n");
-  Printf(f_wrap_m,"      if numel(S)==1\n");
-  Printf(f_wrap_m,"        if S.type=='.'\n");
-  Printf(f_wrap_m,"          [varargout{1},ok] = swig_fieldsref(self,S.subs);\n");
-  Printf(f_wrap_m,"          if ok\n");
-  Printf(f_wrap_m,"            return\n");
-  Printf(f_wrap_m,"          end\n");
-  Printf(f_wrap_m,"        elseif S.type=='()'\n");
-  Printf(f_wrap_m,"          varargout{1} = getitem(self,S.subs{:});\n");
-  Printf(f_wrap_m,"          return;\n");
-  Printf(f_wrap_m,"        else\n");  
-  Printf(f_wrap_m,"          varargout{1} = getitemcurl(self,S.subs{:});\n");
-  Printf(f_wrap_m,"          return;\n");
-  Printf(f_wrap_m,"        end\n");  
+  Printf(f_wrap_m,"    function varargout = subsref(self,s)\n");
+  Printf(f_wrap_m,"      if numel(s)==1\n");
+  Printf(f_wrap_m,"        switch s.type\n");
+  Printf(f_wrap_m,"          case '.'\n");
+  Printf(f_wrap_m,"            [varargout{1}] = builtin('subsref',self,substruct('.',s.subs,'()',{}));\n");
+  Printf(f_wrap_m,"          case '()'\n");
+  Printf(f_wrap_m,"            [varargout{1:nargout}] = builtin('subsref',self,substruct('.','paren','()',s.subs));\n");
+  Printf(f_wrap_m,"          case '{}'\n");
+  Printf(f_wrap_m,"            [varargout{1:nargout}] = builtin('subsref',self,substruct('.','brace','()',s.subs));\n");
+  Printf(f_wrap_m,"        end\n");
+  Printf(f_wrap_m,"      else\n");
+  Printf(f_wrap_m,"        [varargout{1:nargout}] = builtin('subsref',self,s);\n");
   Printf(f_wrap_m,"      end\n");
-  Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('subsref',self,S);\n");
   Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function [v,ok] = swig_fieldsref(self,subs)\n");
-  Printf(f_wrap_m,"      v = [];\n");
-  Printf(f_wrap_m,"      ok = false;\n");
-  Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function self = subsasgn(self,S,v)\n");
-  Printf(f_wrap_m,"      if numel(S)==1\n");
-  Printf(f_wrap_m,"        if S.type=='.'\n");
-  Printf(f_wrap_m,"          [self,ok] = swig_fieldasgn(self,S.subs,v);\n");
-  Printf(f_wrap_m,"          if ok\n");
-  Printf(f_wrap_m,"            return\n");
-  Printf(f_wrap_m,"          end\n");
-  Printf(f_wrap_m,"        elseif S.type=='()'\n");
-  Printf(f_wrap_m,"          setitem(self,v,S.subs{:});\n");
-  Printf(f_wrap_m,"          return;\n");
-  Printf(f_wrap_m,"        else\n");
-  Printf(f_wrap_m,"          setitemcurl(self,v,S.subs{:});\n");
-  Printf(f_wrap_m,"          return;\n");
-  Printf(f_wrap_m,"        end\n");  
+  Printf(f_wrap_m,"    function self = subsasgn(self,s,v)\n");
+  Printf(f_wrap_m,"      if numel(s)==1\n");
+  Printf(f_wrap_m,"        switch s.type\n");
+  Printf(f_wrap_m,"          case '.'\n");
+  Printf(f_wrap_m,"            builtin('subsref',self,substruct('.',s.subs,'()',{v}));\n");
+  Printf(f_wrap_m,"          case '()'\n");
+  Printf(f_wrap_m,"            builtin('subsref',self,substruct('.','setparen','()',{v, s.subs{:}}));\n");
+  Printf(f_wrap_m,"          case '{}'\n");
+  Printf(f_wrap_m,"            builtin('subsref',self,substruct('.','setbrace','()',{v, s.subs{:}}));\n");
+  Printf(f_wrap_m,"        end\n");
+  Printf(f_wrap_m,"      else\n");
+  Printf(f_wrap_m,"        self = builtin('subsasgn',self,s,v);\n");
   Printf(f_wrap_m,"      end\n");
-  Printf(f_wrap_m,"      self = builtin('subsasgn',self,S,v);\n");
-  Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function [self,ok] = swig_fieldasgn(self,i,v)\n");
-  Printf(f_wrap_m,"      ok = false;\n");
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");

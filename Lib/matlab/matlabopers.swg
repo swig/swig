@@ -31,8 +31,8 @@
 // non-standard matlab
 %rename(TODOincr)       *::operator++;
 %rename(TODOdecr)       *::operator--;
-%rename(TODOparen)      *::operator();
-%rename(TODObrace)      *::operator[];
+%rename(paren)          *::operator();
+%rename(brace)          *::operator[];
 
 // Ignored inplace operators
 %ignoreoperator(PLUSEQ)     operator+=;
