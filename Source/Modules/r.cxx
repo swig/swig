@@ -1254,7 +1254,7 @@ int R::enumDeclaration(Node *n) {
   Printf(cppcode, "int result;\n");
   Printf(cppcode, "SEXP r_ans = R_NilValue;\n");
   Printf(cppcode, "result = (int)%s%s;\n", namespaceprefix,ename);
-  Printf(cppcode, "r_ans = SWIG_From_int(static_cast<int>(result));\n");
+  Printf(cppcode, "r_ans = Rf_ScalarInteger(result);\n");
   Printf(cppcode, "return(r_ans);\n}\n");
 
   // Now emit the r binding functions
