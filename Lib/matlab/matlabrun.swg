@@ -309,7 +309,7 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *point
 
 #ifdef __cplusplus
 #include <streambuf>
-#include <ostream>
+#include <iostream>
 namespace swig {
   // Stream buffer to allow redirecting output to MATLAB
   class SWIG_Matlab_streambuf : public std::streambuf {
