@@ -1217,6 +1217,7 @@ int R::enumDeclaration(Node *n) {
 
   String *mangled_tdname = SwigType_manglestr(tdname);
   String *scode = NewString("");
+  String *possiblescode = NewString("");
 
   // Need to create some C code to return the enum values.
   // Presumably a C function for each element of the enum..
@@ -1258,10 +1259,10 @@ int R::enumDeclaration(Node *n) {
   Printf(cppcode, "return(r_ans);\n}\n");
 
   // Now emit the r binding functions
-  Printf(scode, "`%s` = function(.copy=FALSE) {\n", rfunctname);
-  Printf(scode, ".Call(\'%s\', as.logical(.copy), PACKAGE=\'%s\')\n}\n\n", cfunctname, Rpackage);
-  Printf(scode, "attr(`%s`, \'returnType\')=\'integer\'\n", rfunctname);
-  Printf(scode, "class(`%s`) = c(\"SWIGfunction\", class(\'%s\'))\n\n", rfunctname, rfunctname);
+  Printf(possiblescode, "`%s` = function(.copy=FALSE) {\n", rfunctname);
+  Printf(possiblescode, ".Call(\'%s\', as.logical(.copy), PACKAGE=\'%s\')\n}\n\n", cfunctname, Rpackage);
+  Printf(possiblescode, "attr(`%s`, \'returnType\')=\'integer\'\n", rfunctname);
+  Printf(possiblescode, "class(`%s`) = c(\"SWIGfunction\", class(\'%s\'))\n\n", rfunctname, rfunctname);
   Delete(ename);
   Delete(fname);
   Delete(cfunctname);
@@ -1313,14 +1314,16 @@ int R::enumDeclaration(Node *n) {
     Delete(numstring);
   }
 
+  Printv(scode, "))", NIL);
+
   if (NeedEnumFunc) {
   Wrapper_print(eW, f_wrapper);
+  Printf(sfile, "%s\n", possiblescode);
   }
-
-  Printv(scode, "))", NIL);
   Printf(sfile, "%s\n", scode);
 
   Delete(scode);
+  Delete(possiblescode);
   Delete(mangled_tdname);
   return SWIG_OK;
 }
