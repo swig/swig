@@ -77,6 +77,7 @@ protected:
   String *op_prefix;
   String *pkg_name;
   String *pkg_name_fullpath;
+  bool redirectoutput;
 
   // Helper functions
   static void nameUnnamedParams(ParmList *parms, bool all);
@@ -158,6 +159,7 @@ void MATLAB::main(int argc, char *argv[]) {
   Printf(stderr,"Entering main\n");
 #endif
   int cppcast = 1;
+  redirectoutput=false;
 
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
@@ -187,6 +189,9 @@ void MATLAB::main(int argc, char *argv[]) {
         } else {
           Swig_arg_error();
         }
+      } else if (strcmp(argv[i], "-redirectoutput") == 0) {
+	  redirectoutput = true;
+	  Swig_mark_arg(i);
       }
     }
   }
@@ -1258,7 +1263,7 @@ void MATLAB::initGateway() {
   Printf(f_gateway,"    mexErrMsgTxt(\"Second input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
 
   // Redirect std::cout and std::cerr to SWIG_Matlab_cout
-  if (CPlusPlus) {
+  if (CPlusPlus && redirectoutput) {
     Printf(f_gateway, "  std::streambuf *cout_backup = std::cout.rdbuf(&swig::SWIG_Matlab_buf);\n");
     Printf(f_gateway, "  std::streambuf *cerr_backup = std::cerr.rdbuf(&swig::SWIG_Matlab_buf);\n");
   }
@@ -1286,7 +1291,7 @@ void MATLAB::finalizeGateway() {
   Printf(f_gateway,"  }\n");
 
   // Restore std::cout and std::cerr
-  if (CPlusPlus) {
+  if (CPlusPlus && redirectoutput) {
     Printf(f_gateway, "  std::cout.rdbuf(cout_backup);\n");
     Printf(f_gateway, "  std::cerr.rdbuf(cerr_backup);\n");
   }
