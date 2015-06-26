@@ -246,6 +246,7 @@ CPP_TEST_CASES += \
 	ignore_parameter \
 	import_nomodule \
 	inherit \
+	inherit_member \
 	inherit_missing \
 	inherit_same_name \
 	inherit_target_language \

@@ -2714,7 +2714,7 @@ public:
       Printv(f->locals, "  char *  kwnames[] = ", kwargs, ";\n", NIL);
     }
 
-    if (builtin && in_class && tuple_arguments == 0) {
+    if (builtin && !funpack && in_class && tuple_arguments == 0) {
       Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_exception_fail(SWIG_TypeError, \"%s takes no arguments\");\n", iname);
     } else if (use_parse || allow_kwargs || !modernargs) {
       Printf(parse_args, ":%s\"", iname);
@@ -4658,7 +4658,7 @@ public:
 		Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
 	      if (fastinit) {
-		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self,", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
+		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
 	      } else {
 		Printv(f_shadow,
 		       tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
