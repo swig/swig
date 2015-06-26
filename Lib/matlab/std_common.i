@@ -46,7 +46,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(mxArray obj, value_type *val) { 
+    static int asval(mxArray* obj, value_type *val) { 
       return SWIG_AsVal(int)(obj, (int *)val);
     }
   };
