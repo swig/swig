@@ -18,6 +18,6 @@ build:
 
 clean:
 	if [ -n '$(SRCDIR)' ]; then \
-		rm director.go; \
+		rm director.go || true; \
 	fi
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INTERFACE='$(INTERFACE)' go_clean
