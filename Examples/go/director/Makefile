@@ -17,4 +17,7 @@ build:
 	SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_cpp
 
 clean:
+	if [ -n '$(SRCDIR)' ]; then \
+		rm director.go; \
+	fi
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INTERFACE='$(INTERFACE)' go_clean
