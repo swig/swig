@@ -10,6 +10,9 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_run
 
 build:
+	if [ -n '$(SRCDIR)' ]; then \
+		cp $(SRCDIR)/director.go .; \
+	fi
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' GOSRCS='$(GOSRCS)' \
 	SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' go_cpp
 
