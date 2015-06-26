@@ -67,6 +67,9 @@ protected:
   String* static_methods;
   String* setup_name;
 
+  // Current constant
+  int con_id;
+  
   // List of function names
   List *l_fnames;
 
@@ -1095,7 +1098,7 @@ int MATLAB::constantWrapper(Node *n) {
     Delete(str);
     value = wname;
   }
-  int con_id;
+  con_id = -1;
   if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
     Replaceall(tm, "$source", value);
     Replaceall(tm, "$target", name);
@@ -1124,7 +1127,7 @@ int MATLAB::constantWrapper(Node *n) {
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
-    Printf(f_wrap_m,"    vInitialized = %s(0,'swigConstant',%d,'%s');\n",mex_fcn,con_id,symname);
+    Printf(f_wrap_m,"    vInitialized = %s(0,'swigConstant',%d);\n",mex_fcn,con_id);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"  v = vInitialized;\n");
     Printf(f_wrap_m,"end\n");
@@ -1448,15 +1451,7 @@ void MATLAB::initConstant() {
   Printf(f_constants,"  }\n");
   Printf(f_constants,"  int con_id = (int)mxGetScalar(*argv++);\n");
 
-  // The second argument is always the function name
-  Printf(f_constants,"  char cmd[%d];\n",CMD_MAXLENGTH);
-  Printf(f_constants,"  if (--argc < 0 || mxGetString(*argv++, cmd, sizeof(cmd))) {\n");
-  Printf(f_constants,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\", \"Second input should be a command string less than %d characters long.\");\n",CMD_MAXLENGTH);
-  Printf(f_constants,"    return 1;\n");
-  Printf(f_constants,"  }\n");
-
   // Begin the switch:
-  Printf(f_constants,"  int name_ok=0, exists=1;\n");
   Printf(f_constants,"  switch (con_id) {\n");
 
   // List of all constants
@@ -1472,19 +1467,13 @@ int MATLAB::toConstant(String *constname, String *constdef) {
   Append(l_cnames, Copy(constname));
 
   // Add to gateway
-  Printf(f_constants,"  case %d: if ((name_ok=!strcmp(\"%s\",cmd))) *resv = %s; break;\n",num_constant,constname,constdef);
+  Printf(f_constants,"  case %d: *resv = %s; break;\n",num_constant,constdef);
   return num_constant++;
 }
 
 void MATLAB::finalizeConstant() {
-  Printf(f_constants,"  default: exists=0;\n");
-  Printf(f_constants,"  }\n");
-  Printf(f_constants,"  if (!exists) {\n");
-  Printf(f_constants,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No constant %%s.\",cmd);\n");
-  Printf(f_constants,"    return 1;\n");  
-  Printf(f_constants,"  }\n");
-  Printf(f_constants,"  if (!name_ok) {\n");
-  Printf(f_constants,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"Mismatching name (%%s) for constant %%d.\",cmd,con_id);\n");
+  Printf(f_constants,"  default:\n");
+  Printf(f_constants,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No such constant.\");\n");
   Printf(f_constants,"    return 1;\n");  
   Printf(f_constants,"  }\n");
   Printf(f_constants,"  return 0;\n");
@@ -1660,18 +1649,22 @@ int MATLAB::memberconstantHandler(Node *n) {
   Printf(stderr,"Entering memberconstantHandler\n");
 #endif
 
+  // Emit C wrappers
+  int flag = Language::memberconstantHandler(n);
+  if (flag!=SWIG_OK) return flag;
+
   // Name of variable
   String *symname = Getattr(n, "sym:name");
 
   // Get name of wrapper
   String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-    
+  
   // Add getter function
   checkValidSymName(n);
-  Printf(static_methods,"    function v = %s()\n",symname);  
+  Printf(static_methods,"    function v = %s()\n", symname);  
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
-  Printf(static_methods,"        vInitialized = %s(0,'swigConstant','%s');\n",mex_fcn,fullname);
+  Printf(static_methods,"        vInitialized = %s(0, 'swigConstant', %d);\n",mex_fcn, con_id);
   Printf(static_methods,"      end\n");
   Printf(static_methods,"      v = vInitialized;\n");
   Printf(static_methods,"    end\n");
@@ -1679,7 +1672,7 @@ int MATLAB::memberconstantHandler(Node *n) {
   // Tidy up
   Delete(fullname);
 
-  return Language::memberconstantHandler(n);
+  return flag;
 }
 
 int MATLAB::insertDirective(Node *n) {
