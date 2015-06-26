@@ -5,7 +5,7 @@
   namespace swig {
     template <class T >
     struct traits_asptr<std::list<T> >  {
-      static int asptr(const mxArray* obj, std::list<T> **lis) {
+      static int asptr(mxArray* obj, std::list<T> **lis) {
 	return traits_asptr_stdseq<std::list<T> >::asptr(obj, lis);
       }
     };

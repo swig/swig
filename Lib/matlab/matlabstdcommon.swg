@@ -165,7 +165,7 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(const mxArray* obj) {
+    static bool check(mxArray* obj) {
       int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
@@ -173,14 +173,14 @@ namespace swig {
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(const mxArray* obj) {
+    static bool check(mxArray* obj) {
       int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(const mxArray* obj) {
+  inline bool check(mxArray* obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -191,7 +191,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(const mxArray* obj, value_type *val) {
+    static int asval(mxArray* obj, value_type *val) {
       if (Check(obj)) {
 	if (val) *val = As(obj);
 	return SWIG_OK;
@@ -208,7 +208,7 @@ namespace swig {
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(const mxArray* obj) {
+    static int check(mxArray* obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }

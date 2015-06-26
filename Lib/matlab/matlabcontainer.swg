@@ -46,14 +46,14 @@ namespace swig {
   
   template <> 
   struct traits_check<mxArray*, value_category> {
-    static bool check(const mxArray*) {
+    static bool check(mxArray*) {
       return true;
     }
   };
   
   template <>  struct traits_asval<mxArray* > {   
     typedef mxArray* value_type;
-    static int asval(const mxArray* obj, value_type *val) {
+    static int asval(mxArray* obj, value_type *val) {
       if (val) *val = obj;
       return SWIG_OK;
     }
@@ -72,7 +72,7 @@ KT do we need this?
   struct less <mxArray*>: public binary_function<mxArray*, mxArray*, bool>
   {
     bool
-    operator()(const mxArray* v, const mxArray* w) const
+    operator()(mxArray* v, mxArray* w) const
     { 
       mxArray* res = do_binary_op(mxArray*::op_le,v,w);
       return res.is_true();
@@ -563,38 +563,20 @@ namespace swig {
     typedef Seq sequence;
     typedef T value_type;
 
-    static int asptr(const mxArray* obj, sequence **seq) {
-%#if 1
-    // TODO
-    SWIG_Error(SWIG_SystemError, "asptr for seq");
-    return SWIG_ERROR;
-%#else
-      if (!obj.is_defined() || Swig::swig_value_deref(obj)) {
+    static int asptr(mxArray* obj, sequence **seq) {
+      if (obj && mxGetClassID(obj)==mxCELL_CLASS && mxGetM(obj)==1) {
+        // TODO
+        SWIG_Error(SWIG_SystemError, "Not implemented");
+        return SWIG_ERROR;
+      } else {
 	sequence *p;
 	if (SWIG_ConvertPtr(obj,(void**)&p,
 			    swig::type_info<sequence>(),0) == SWIG_OK) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
-      } else if (mxGetClassID(obj)==mxCELL_CLASS) {
-	try {
-	  MatlabSequence_Cont<value_type> matlabseq(obj);
-	  if (seq) {
-	    sequence *pseq = new sequence();
-	    assign(matlabseq, pseq);
-	    *seq = pseq;
-	    return SWIG_NEWOBJ;
-	  } else {
-	    return matlabseq.check() ? SWIG_OK : SWIG_ERROR;
-	  }
-	} catch (std::exception& e) {
-	  if (seq&&!error_state)
-	    SWIG_Error(SWIG_TypeError,e.what());
-	  return SWIG_ERROR;
-	}
       }
       return SWIG_ERROR;
-%#endif
     }
   };
 
