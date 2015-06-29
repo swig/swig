@@ -3382,6 +3382,18 @@ problems, for example: <tt># error handling</tt>).  SWIG 3.0.3 and later report
 an error for invalid preprocessor directives, so you may have to update
 existing interface files to delimit blocks of Python code correctly.</p>
 
+<p>As an alternative to providing a block containing Python code, you can
+include python code from a file.  The code is inserted exactly as in the
+file, so this avoids any issues with the SWIG preprocessor.  It's a good
+approach if you have a non-trivial chunk of Python code to insert.  To
+use this feature you specify a filename in double quotes, for example:</p>
+
+<div class="code">
+<pre>
+%pythoncode "somecode.py"
+</pre>
+</div>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
