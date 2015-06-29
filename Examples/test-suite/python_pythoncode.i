@@ -5,17 +5,19 @@
 
 struct TYPE {
 %pythoncode %{
-   def one():
+    def one():
+        a = 1
 # Comment XXXX
-      return 1
+        return a
 %}
 };
 
 %define %bar
 %pythoncode %{
-   def one():
-      # Comment XXXX
-      return 1
+    def one():
+        a = 1
+        #
+        return a
 %}
 %enddef
 
