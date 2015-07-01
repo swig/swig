@@ -138,6 +138,7 @@ CPP_TEST_CASES += \
 	casts \
 	char_binary \
 	char_strings \
+	chartest \
 	class_forward \
 	class_ignore \
 	class_scope_weird \
