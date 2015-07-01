@@ -95,7 +95,7 @@ include $(srcdir)/../common.mk
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX).m ]; then \
 	 RUNSCRIPT="\
 	  try; \
 	    $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
