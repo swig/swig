@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-07-02: ngladitz
+	    [Lua] Push characters as unformatted 1-character strings to avoid
+	    unprintable characters such as (char)127 being converted to
+	    "<\127>" with Lua 5.3 and later.  (github PR #452)
+
 2015-06-29: olly
 	    [Python] Improve handling of whitespace in %pythoncode.
 
