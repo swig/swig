@@ -185,7 +185,7 @@ use %include <std_except.i> instead
 
 // char is changed to a string
 %typemap(throws) char
-%{lua_pushfstring(L,"%c",$1);SWIG_fail;%}
+%{lua_pushlstring(L,&$1,1);SWIG_fail;%}
 
 /*
 Throwing object is a serious problem:
