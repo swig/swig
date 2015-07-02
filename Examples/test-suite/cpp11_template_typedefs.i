@@ -5,6 +5,8 @@
 %warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) TypedefNamePtr;
 %warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) MyIntKeyClass;
 %warnfilter(SWIGWARN_CPP11_ALIAS_DECLARATION) PF;
+%warnfilter(SWIGWARN_CPP11_ALIAS_DECLARATION) BucketAllocator1;
+%warnfilter(SWIGWARN_CPP11_ALIAS_DECLARATION) BucketAllocator2;
 
 // This warning should go away when type aliasing is supported
 #pragma SWIG nowarn=SWIGWARN_PARSE_USING_UNDEF // Nothing known about 'p.SomeType< char *,T2,4 >'.
@@ -39,3 +41,16 @@ TypedefName<int> alias1(TypedefName<int> a) { return a; }
 TypedefNamePtr<int> alias1(TypedefNamePtr<int> a = nullptr) { return a; }
 %}
 
+%inline %{
+typedef double Val;
+template<typename T> struct ListBucket {
+};
+namespace Alloc {
+  template<typename T> struct rebind {
+    typedef int other;
+  };
+}
+
+using BucketAllocator1 = typename Alloc::template rebind<ListBucket<Val>>::other;
+using BucketAllocator2 = typename Alloc::template rebind<::template ListBucket<double>>::other;
+%}

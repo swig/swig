@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.6 (in progress)
 ===========================
 
+2015-07-02: wsfulton
+	    Fix syntax error when the template keyword is used in types, eg:
+
+              std::template vector<int> v;
+
 2015-07-02: ngladitz
 	    [Lua] Push characters as unformatted 1-character strings to avoid
 	    unprintable characters such as (char)127 being converted to

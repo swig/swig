@@ -412,6 +412,7 @@ CPP_TEST_CASES += \
 	template_inherit \
 	template_inherit_abstract \
 	template_int_const \
+	template_keyword_in_type \
 	template_methods \
 	template_namespace_forward_declaration \
 	template_using_directive_and_declaration_forward \

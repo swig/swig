@@ -1430,7 +1430,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    expr exprnum exprcompound valexpr;
 %type <id>       ename ;
-%type <id>       template_decl;
+%type <id>       less_valparms_greater;
 %type <str>      type_qualifier ;
 %type <id>       type_qualifier_raw;
 %type <id>       idstring idstringopt;
@@ -1441,7 +1441,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
-%type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
+%type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <id>       string stringnum wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
@@ -3073,7 +3073,9 @@ initializer   : def_args {
 cpp_alternate_rettype : primitive_type { $$ = $1; }
               | TYPE_BOOL { $$ = $1; }
               | TYPE_VOID { $$ = $1; }
+/*
               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+*/
               | TYPE_RAW { $$ = $1; }
               | idcolon { $$ = $1; }
               | decltype { $$ = $1; }
@@ -4646,7 +4648,9 @@ anon_bitfield_type : primitive_type { $$ = $1;
                 }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
+/*
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+*/
                | TYPE_RAW { $$ = $1; }
 
                | idcolon {
@@ -5593,7 +5597,9 @@ type_right     : primitive_type { $$ = $1;
                }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
+/*
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+*/
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
 
@@ -6419,14 +6425,13 @@ mem_initializer : idcolon LPAREN {
 		}
                 ;
 
-template_decl : LESSTHAN valparms GREATERTHAN { 
+less_valparms_greater : LESSTHAN valparms GREATERTHAN {
                      String *s = NewStringEmpty();
                      SwigType_add_template(s,$2);
                      $$ = Char(s);
 		     scanner_last_id(1);
-                 }
-               | empty { $$ = (char*)"";  }
-               ;
+                }
+		;
 
 /* Identifiers including the C++11 identifiers with special meaning */
 identifier     : ID { $$ = $1; }
@@ -6448,29 +6453,32 @@ idcolon        : idtemplate idcolontail {
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
       	          Delete($2);
                }
-               | NONID DCOLON idtemplate idcolontail { 
+               | NONID DCOLON idtemplatetemplate idcolontail {
 		 $$ = NewStringf("::%s%s",$3,$4);
                  Delete($4);
                }
                | idtemplate {
 		 $$ = NewString($1);
    	       }
-               | NONID DCOLON idtemplate {
+               | NONID DCOLON idtemplatetemplate {
 		 $$ = NewStringf("::%s",$3);
                }
-               | OPERATOR template_decl {
-                 $$ = NewStringf("%s%s",$1,$2);
+               | OPERATOR {
+                 $$ = NewStringf("%s", $1);
+	       }
+               | OPERATOR less_valparms_greater {
+                 $$ = NewStringf("%s%s", $1, $2);
 	       }
                | NONID DCOLON OPERATOR {
                  $$ = NewStringf("::%s",$3);
                }
                ;
 
-idcolontail    : DCOLON idtemplate idcolontail {
+idcolontail    : DCOLON idtemplatetemplate idcolontail {
                    $$ = NewStringf("::%s%s",$2,$3);
 		   Delete($3);
                }
-               | DCOLON idtemplate {
+               | DCOLON idtemplatetemplate {
                    $$ = NewStringf("::%s",$2);
                }
                | DCOLON OPERATOR {
@@ -6486,12 +6494,20 @@ idcolontail    : DCOLON idtemplate idcolontail {
                ;
 
 
-idtemplate    : identifier template_decl {
-                  $$ = NewStringf("%s%s",$1,$2);
-		  /*		  if (Len($2)) {
-		    scanner_last_id(1);
-		    } */
-              }
+idtemplate    : identifier {
+		$$ = NewStringf("%s", $1);
+	      }
+	      | identifier less_valparms_greater {
+		$$ = NewStringf("%s%s", $1, $2);
+	      }
+              ;
+
+idtemplatetemplate : idtemplate {
+		$$ = $1;
+	      }
+	      | TEMPLATE identifier less_valparms_greater {
+		$$ = NewStringf("%s%s", $2, $3);
+	      }
               ;
 
 /* Identifier, but no templates */
