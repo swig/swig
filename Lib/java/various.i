@@ -65,7 +65,7 @@
 %typemap(out) char **STRING_ARRAY {
   if ($1) {
     int i;
-    int len=0;
+    jsize len=0;
     jstring temp_string;
     const jclass clazz = JCALL1(FindClass, jenv, "java/lang/String");
 
