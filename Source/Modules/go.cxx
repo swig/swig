@@ -2629,7 +2629,7 @@ private:
       // exponentiation.  Treat anything else as too complicated to
       // handle as a Go constant.
       char *p = Char(value);
-      int len = strlen(p);
+      int len = (int)strlen(p);
       bool need_copy = false;
       while (len > 0) {
 	char c = p[len - 1];

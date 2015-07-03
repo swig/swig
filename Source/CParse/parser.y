@@ -744,7 +744,7 @@ static String *remove_block(Node *kw, const String *inputcode) {
    String *name = Getattr(kw,"name");
    if (name && (Cmp(name,"noblock") == 0)) {
      char *cstr = Char(inputcode);
-     size_t len = Len(inputcode);
+     int len = Len(inputcode);
      if (len && cstr[0] == '{') {
        --len; ++cstr; 
        if (len && cstr[len - 1] == '}') { --len; }
