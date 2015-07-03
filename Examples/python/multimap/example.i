@@ -20,7 +20,7 @@ extern int    gcd(int x, int y);
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
   }
-  $1 = PyList_Size($input);
+  $1 = (int)PyList_Size($input);
   if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
   }
@@ -82,7 +82,7 @@ extern int gcdmain(int argc, char *argv[]);
     return NULL;
   }
   $1 = PyString_AsString($input);
-  $2 = PyString_Size($input);
+  $2 = (int)PyString_Size($input);
 %#endif
 }
 
@@ -110,7 +110,7 @@ extern int count(char *bytes, int len, char c);
   $2 = (int)len;
   Py_DECREF(utf8str);
 %#else
-  $2 = PyString_Size($input);
+  $2 = (int)PyString_Size($input);
   $1 = (char *) malloc($2+1);
   memmove($1,PyString_AsString($input),$2);
 %#endif

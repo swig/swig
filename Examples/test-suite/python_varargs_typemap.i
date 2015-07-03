@@ -6,7 +6,7 @@
 
 %typemap(in) (...)(char *vargs[10]) {
   int i;
-  int argc;
+  Py_ssize_t argc;
   for (i = 0; i < 10; i++) vargs[i] = 0;
   argc = PyTuple_Size(varargs);
   if (argc > 10) {
