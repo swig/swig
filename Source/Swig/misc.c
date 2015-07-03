@@ -1273,7 +1273,7 @@ String *replace_captures(int num_captures, const char *input, String *subst, int
       copy_with_maybe_case_conversion(result, p, (int)strlen(p), &convertCase, convertNextOnly);
       break;
     }
-    copy_with_maybe_case_conversion(result, p, q - p, &convertCase, convertNextOnly);
+    copy_with_maybe_case_conversion(result, p, (int)(q - p), &convertCase, convertNextOnly);
     p = q + 1;
 
     /* Handle substitution */
