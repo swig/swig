@@ -32,7 +32,7 @@ namespace Alloc {
   };
 }
 
-void other1(typename Alloc::template rebind<ListBucket<Val> >::other) {}
-void other2(typename Alloc::template rebind< ::template ListBucket<Val> >::other) {}
-void other3(Alloc::template rebind<int>) {}
+template<typename X> void other1(typename Alloc::template rebind<ListBucket<Val> >::other) {}
+template<typename X> void other2(typename Alloc::template rebind< ::template ListBucket<Val> >::other) {}
+template<typename X> void other3(Alloc::template rebind<int>) {}
 %}
