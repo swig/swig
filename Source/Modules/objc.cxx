@@ -272,6 +272,8 @@ void OBJECTIVEC::main(int argc, char *argv[]) {
     
     // Set language-specific configuration file
     SWIG_config_file("objc.swg");
+
+    SWIG_config_cppext("mm");
     
     // Set typemap language (historical)
     SWIG_typemap_lang("objc");
@@ -310,32 +312,39 @@ int OBJECTIVEC::top(Node *n) {
     }
 
     /* Initialize I/O */
-    
+    String *outfile = Getattr(n, "outfile");
+    String *outfile_h = Getattr(n, "outfile_h");
+
+    if (!outfile) {
+        Printf(stderr, "Unable to determine outfile\n");
+        SWIG_exit(EXIT_FAILURE);
+    }
+
     // Create the _wrap files
-    String *wrapfile_h = NewStringf("%s_wrap.h", module);
+    String *wrapfile_h = NewString(outfile_h);
     f_wrap_h = NewFile(wrapfile_h, "w", SWIG_output_files());
     if (!f_wrap_h) {
         FileErrorDisplay(wrapfile_h);
         SWIG_exit(EXIT_FAILURE);
     }
-    String *wrapfile_mm = NewStringf("%s_wrap.mm", module);
+    String *wrapfile_mm = NewString(outfile);
     f_wrap_mm = NewFile(wrapfile_mm, "w", SWIG_output_files());
     if (!f_wrap_mm) {
         FileErrorDisplay(wrapfile_mm);
         SWIG_exit(EXIT_FAILURE);
     }
-    //Delete(wrapfile_h);
+    Delete(wrapfile_h);
     Delete(wrapfile_mm);
     
     // Create the _proxy files if proxy flag is true
     if (proxy_flag) {
-        String *proxyfile_h = NewStringf("%s_proxy.h", module);
+        String *proxyfile_h = NewStringf("%s%s_proxy.h", SWIG_output_directory(), module);
         f_proxy_h = NewFile(proxyfile_h, "w", SWIG_output_files());
         if (!f_proxy_h) {
             FileErrorDisplay(proxyfile_h);
             SWIG_exit(EXIT_FAILURE);
         }
-        String *proxyfile_mm = NewStringf("%s_proxy.mm", module);
+        String *proxyfile_mm = NewStringf("%s%s_proxy.mm", SWIG_output_directory(), module);
         f_proxy_mm = NewFile(proxyfile_mm, "w", SWIG_output_files());
         if (!f_proxy_mm) {
             FileErrorDisplay(proxyfile_mm);
