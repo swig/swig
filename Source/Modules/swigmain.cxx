@@ -39,6 +39,7 @@ extern "C" {
   Language *swig_perl5(void);
   Language *swig_php(void);
   Language *swig_python(void);
+  Language *swig_objectivec(void);
   Language *swig_r(void);
   Language *swig_ruby(void);
   Language *swig_scilab(void);
@@ -56,6 +57,7 @@ static TargetLanguageModule modules[] = {
   {"-clisp", NULL, "CLISP", Disabled},
   {"-cffi", NULL, "CFFI", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
+  {"-objc", swig_objectivec, "Objective C"},
   {"-d", swig_d, "D", Supported},
   {"-go", swig_go, "Go", Supported},
   {"-guile", swig_guile, "Guile", Supported},
