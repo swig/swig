@@ -101,11 +101,11 @@
 %{   void* cPtr = $imcall;
 	$typemap(objctype,TYPE) ret = nil;
 	if(cPtr) {
-		ret = [[$typemap(objctype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
+		ret = [[$typemap(objcbasetype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
 	}
 	return ret; %}
 %typemap(objcdirectorin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
-	"[[$typemap(objctype,TYPE) alloc] initWithCptr:$iminput swigOwnCObject:YES]"
+	"[[$typemap(objcbasetype,TYPE) alloc] initWithCptr:$iminput swigOwnCObject:YES]"
 %typemap(objcdirectorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >
 	"[($objccall) getCptr]"
 
@@ -113,11 +113,11 @@
 %{   void* cPtr = $imcall;
 	$typemap(objctype,TYPE) ret = nil;
 	if(cPtr) {
-		ret = [[$typemap(objctype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
+		ret = [[$typemap(objcbasetype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
 	}
 	return ret; %}
 %typemap(objcdirectorin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
-	"[[$typemap(objctype,TYPE) alloc] initWithCptr:$iminput swigOwnCObject:YES]"
+	"[[$typemap(objcbasetype,TYPE) alloc] initWithCptr:$iminput swigOwnCObject:YES]"
 %typemap(objcdirectorout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
 	"[($objccall) getCptr]"
 
@@ -125,14 +125,14 @@
 %{   void* cPtr = $imcall;
 	$typemap(objctype,TYPE) ret = nil;
 	if(cPtr) {
-		ret = [[$typemap(objctype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
+		ret = [[$typemap(objcbasetype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
 	}
 	return ret; %}
 %typemap(objcout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
 %{   void* cPtr = $imcall;
 	$typemap(objctype,TYPE) ret = nil;
 	if(cPtr) {
-		ret = [[$typemap(objctype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
+		ret = [[$typemap(objcbasetype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
 	}
 	return ret; %}
 
@@ -141,7 +141,7 @@
 %{   void* cPtr = $imcall;
 	$typemap(objctype,TYPE) ret = nil;
 	if(cPtr) {
-		ret = [[$typemap(objctype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
+		ret = [[$typemap(objcbasetype,TYPE) alloc] initWithCptr:cPtr swigOwnCObject:YES];
 	}
 	return ret; %}
 // These will not work, swigOwnCObject:NO will cause a memory leak, swigOwnCObject:YES will
