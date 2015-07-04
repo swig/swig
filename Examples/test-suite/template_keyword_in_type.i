@@ -14,12 +14,12 @@
 
 #if defined(SWIG) || defined(__clang__)
   // gcc doesn't parse this (tested with gcc-4.8)
-  void testXXX1(::template XXX<int>::template YYY<int>::type xx) {}
+  template<typename X> void testXXX1(::template XXX<int>::template YYY<int>::type xx) {}
 #else
-  void testXXX1(::         XXX<int>::template YYY<int>::type xx) {}
+  template<typename X> void testXXX1(::         XXX<int>::template YYY<int>::type xx) {}
 #endif
-  void testXXX2(XXX<int>::YYY<int>::type xx) {}
-  typedef ::XXX<int>::template YYY<int>::type templatetyped;
+  template<typename X> void testXXX2(XXX<int>::YYY<int>::type xx) {}
+  template<typename X> void testXXX3(::XXX<int>::template YYY<int>::type) {}
 %}
 
 %inline %{
