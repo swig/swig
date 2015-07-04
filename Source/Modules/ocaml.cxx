@@ -990,7 +990,7 @@ public:
       find_marker += strlen("(*Stream:");
 
       if (next) {
-	int num_chars = next - find_marker;
+	int num_chars = (int)(next - find_marker);
 	String *stream_name = NewString(find_marker);
 	Delslice(stream_name, num_chars, Len(stream_name));
 	File *fout = Swig_filebyname(stream_name);
@@ -1001,7 +1001,7 @@ public:
 	  if (!following)
 	    following = next + strlen(next);
 	  String *chunk = NewString(next);
-	  Delslice(chunk, following - next, Len(chunk));
+	  Delslice(chunk, (int)(following - next), Len(chunk));
 	  Printv(fout, chunk, NIL);
 	}
       }

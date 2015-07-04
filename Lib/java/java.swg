@@ -1341,12 +1341,12 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
 }
 %typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
-  jbyteArray jb = (jenv)->NewByteArray($2);
-  (jenv)->SetByteArrayRegion(jb, 0, $2, (jbyte *)$1);
+  jbyteArray jb = (jenv)->NewByteArray((jsize)$2);
+  (jenv)->SetByteArrayRegion(jb, 0, (jsize)$2, (jbyte *)$1);
   $input = jb;
 }
 %typemap(directorargout) (char *STRING, size_t LENGTH)
-%{(jenv)->GetByteArrayRegion($input, 0, $2, (jbyte *)$1);
+%{(jenv)->GetByteArrayRegion($input, 0, (jsize)$2, (jbyte *)$1);
 (jenv)->DeleteLocalRef($input);%}
 %typemap(javadirectorin, descriptor="[B") (char *STRING, size_t LENGTH) "$jniinput"
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }

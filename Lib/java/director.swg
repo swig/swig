@@ -369,7 +369,7 @@ namespace Swig {
     static char *copystr(const char *srcmsg) {
       char *target = 0;
       if (srcmsg) {
-	int msglen = strlen(srcmsg) + 1;
+	size_t msglen = strlen(srcmsg) + 1;
 	target = new char[msglen];
 	strncpy(target, srcmsg, msglen);
       }

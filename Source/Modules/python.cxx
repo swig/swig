@@ -1184,7 +1184,7 @@ public:
 	    const char *py3_end1 = Strchr(rpkg, '.');
 	    if (!py3_end1)
 	      py3_end1 = (Char(rpkg)) + Len(rpkg);
-	    py3_rlen1 = py3_end1 - (Char(rpkg));
+	    py3_rlen1 = (int)(py3_end1 - Char(rpkg));
 	  } else {
 	    rpkg = NewString("");
 	  }
@@ -1916,7 +1916,7 @@ public:
 
       // Avoid unnecessary string allocation in the common case when we don't
       // need to remove any suffix.
-      return *end == '\0' ? v : NewStringWithSize(s, end - s);
+      return *end == '\0' ? v : NewStringWithSize(s, (int)(end - s));
     }
 
     return NIL;
@@ -1998,7 +1998,7 @@ public:
 		if (py3) {
 		  if (end - s > 1) {
 		    result = NewString("0o");
-		    Append(result, NewStringWithSize(s + 1, end - s - 1));
+		    Append(result, NewStringWithSize(s + 1, (int)(end - s - 1)));
 		  }
 		}
 	      }
@@ -2007,7 +2007,7 @@ public:
 	    // Avoid unnecessary string allocation in the common case when we don't
 	    // need to remove any suffix.
 	    if (!result)
-	      result = *end == '\0' ? v : NewStringWithSize(s, end - s);
+	      result = *end == '\0' ? v : NewStringWithSize(s, (int)(end - s));
 	  }
 	}
       }

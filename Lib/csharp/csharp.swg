@@ -203,7 +203,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) int                "$input = $1;"
 %typemap(directorin) unsigned int       "$input = $1;"
 %typemap(directorin) long               "$input = $1;"
-%typemap(directorin) unsigned long      "$input = $1;"
+%typemap(directorin) unsigned long      "$input = (unsigned long)$1;"
 %typemap(directorin) long long          "$input = $1;"
 %typemap(directorin) unsigned long long "$input = $1;"
 %typemap(directorin) float              "$input = $1;"
