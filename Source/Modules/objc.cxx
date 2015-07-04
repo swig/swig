@@ -142,6 +142,8 @@ public:
     
     virtual void main(int argc, char *argv[]);
     virtual int top(Node *n);
+
+    String *getOverloadedName(Node *n);
     
     /* Function handlers */
     virtual int functionHandler(Node *n);
@@ -277,6 +279,9 @@ void OBJECTIVEC::main(int argc, char *argv[]) {
     
     // Set typemap language (historical)
     SWIG_typemap_lang("objc");
+
+    // ObjC allows overloading
+    allow_overloading();
 }
 
 /* ---------------------------------------------------------------------
@@ -528,6 +533,23 @@ int OBJECTIVEC::top(Node *n) {
     }
     
     return SWIG_OK;
+}
+
+/* -----------------------------------------------------------------------------
+* getOverloadedName()
+* ----------------------------------------------------------------------------- */
+
+String *OBJECTIVEC::getOverloadedName(Node *n) {
+
+    /* The intermediary class methods need to be mangled when overloaded to give
+     * a unique name. */
+    String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
+
+    if (Getattr(n, "sym:overloaded")) {
+        Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
+    }
+
+    return overloaded_name;
 }
 
 /* ---------------------------------------------------------------------
@@ -1016,6 +1038,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
     String *crettype = SwigType_str(type, 0);
     String *imrettype = NewString("");
     String *tm;
+    String *overloaded_name = getOverloadedName(n);
     bool is_void_return = (Cmp(crettype, "void") == 0);
     bool is_constructor = (Cmp(nodeType(n), "constructor") == 0);
     bool is_destructor = (Cmp(nodeType(n), "destructor") == 0);
@@ -1026,7 +1049,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
             return SWIG_ERROR;
     }
     // Create the function's wrappered name
-    String *wname = Swig_name_wrapper(symname);
+    String *wname = Swig_name_wrapper(overloaded_name);
     
     // Create the wrapper function object
     Wrapper *wrapper = NewWrapper();
@@ -1126,6 +1149,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
         emitProxyClassFunction(n);
     }
     // Tidy up
+    Delete(overloaded_name);
     Delete(imrettype);
     Delete(wname);
     DelWrapper(wrapper);
@@ -2210,14 +2234,13 @@ int OBJECTIVEC::doxygenComment(Node *n){
  * --------------------------------------------------------------- */
 
 int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *empty_str = NewString("");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     SwigType *returntype = Getattr(n, "returntype");
-    String *overloaded_name = NewStringf("%s", symname, NIL);
+    String *overloaded_name = getOverloadedName(n);
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
@@ -2309,7 +2332,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
             }
         }
 
-        Parm *retpm = NewParm(returntype, empty_str, n);
+        Parm *retpm = NewParm(returntype, empty_string, n);
 
         if ((c_ret_type = Swig_typemap_lookup("imtype", retpm, "", 0))) {
             if (!is_void && !ignored_method) {
@@ -2537,7 +2560,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
     /* Emit the intermediate class's upcall to the actual class */
 
     if (!is_void) {
-        Parm *tp = NewParm(returntype, empty_str, n);
+        Parm *tp = NewParm(returntype, empty_string, n);
 
         Delete(tp);
     }
@@ -2551,7 +2574,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
 
         String *upcall = NewStringf("[swigjobj %s%s]", methid, jupcall_args);
         if (!is_void) {
-            Parm *tp = NewParm(returntype, empty_str, n);
+            Parm *tp = NewParm(returntype, empty_string, n);
 
             if ((tm = Swig_typemap_lookup("objcdirectorout", tp, "", 0))) {
                 substituteClassname(returntype, tm);
@@ -2653,6 +2676,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
     Delete(jniret_desc);
     Delete(declaration);
     Delete(callback_def);
+    Delete(overloaded_name);
     DelWrapper(w);
 
     return status;
