@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 38;
+use Test::More tests => 34;
 BEGIN { use_ok('li_carrays') }
 require_ok('li_carrays');
 
