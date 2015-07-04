@@ -1477,7 +1477,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
         Replaceall(tm, "$owner", "true");
     else
         Replaceall(tm, "$owner", "false");
-    substituteClassname(type, tm);
+    substituteClassname(tm, type);
     Printf(function_defn, " %s\n}\n", tm ? ((const String *) tm) : empty_string);
     
     // Write documentation
@@ -1933,6 +1933,15 @@ bool OBJECTIVEC::substituteClassname(String *tm, SwigType *pt) {
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
     
+    if (Strstr(tm, "$objcclassname_stripped")) {
+        SwigType *type = Copy(strippedtype);
+        while (SwigType_ispointer(type) || SwigType_isreference(type)) {
+            Delete(SwigType_pop(type));
+        }
+        substituteClassnameVariable(tm, "$objcclassname_stripped", strippedtype);
+        substitution_performed = true;
+        Delete(type);
+    }
     if (Strstr(tm, "$objcclassname")) {
         SwigType *type = Copy(strippedtype);
         substituteClassnameVariable(tm, "$objcclassname", type);
@@ -2259,7 +2268,6 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
     String *qualified_name = NewStringf("%s::%s", dirclassname, name);
     String *jnidesc = NewString("");
     String *classdesc = NewString("");
-    String *jniret_desc = NewString("");
     String *classret_desc = NewString("");
     SwigType *c_ret_type = NULL;
     String *jupcall_args = NewString("");
@@ -2485,7 +2493,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
                     String *din = Copy(Getattr(p, "tmap:objcdirectorin"));
 
                     if (din) {
-                        substituteClassname(pt, din);
+                        substituteClassname(din, pt);
                         Replaceall(din, "$iminput", arg);
 
                         /* Get the ObjC parameter type */
@@ -2577,7 +2585,7 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
             Parm *tp = NewParm(returntype, empty_string, n);
 
             if ((tm = Swig_typemap_lookup("objcdirectorout", tp, "", 0))) {
-                substituteClassname(returntype, tm);
+                substituteClassname(tm, returntype);
                 Replaceall(tm, "$objccall", upcall);
                 Printf(w->code, "jresult = %s;", tm);
             }
@@ -2673,7 +2681,6 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
     Delete(qualified_return);
     Delete(jnidesc);
     Delete(c_ret_type);
-    Delete(jniret_desc);
     Delete(declaration);
     Delete(callback_def);
     Delete(overloaded_name);
