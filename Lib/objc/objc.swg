@@ -188,6 +188,12 @@
   $1 = *argp; 
 %}
 
+%typemap(directorout) SWIGTYPE ($&1_type argp)
+%{
+  argp = *($&1_ltype*)&$input; 
+  $result = *argp;
+%}
+
 // C/C++ Pointers, primary and object, are treated as pointers in ObjectiveC++
 %typemap(in) SWIGTYPE *
 %{ $1 = ($1_ltype)$input; %}
@@ -348,6 +354,14 @@
 }
 #endif
 
+%typemap(directorin) SWIGTYPE 
+%{
+  $input = 0;
+  *(($&1_ltype*)&$input) = &$1;
+%}
+%typemap(objcdirectorin) SWIGTYPE "[[$objcclassname_stripped alloc] initWithCptr:$iminput swigOwnCObject:NO]"
+%typemap(objcdirectorout) SWIGTYPE "[($objccall) getCptr]"
+
 // Pointer objects are returned as void* in the ObjectiveC++ layer
 %typemap(out) SWIGTYPE *, SWIGTYPE & 
 %{ $result = (void*)$1; %}
@@ -409,6 +423,7 @@
 
 // Objects will always be treated as pointers in ObjectiveC
 %typemap(objctype) SWIGTYPE                             "$objcclassname*"
+%typemap(objcbasetype) SWIGTYPE                         "$objcclassname_stripped"
 
 // C/C++ Pointers to primitive types are treated as is
 // C/C++ prinitve pointers are treated as is in ObjectiveC++
@@ -429,6 +444,7 @@
 
 // C/C++ Pointers are treated as  as pointers in ObjectiveC
 %typemap(objctype) SWIGTYPE *                           "$objcclassname*" 
+%typemap(objcbasetype) SWIGTYPE *                       "$objcclassname_stripped"
 
 // Arrays to non-primitive types
 %typemap(objctype) SWIGTYPE []                          "$objcclassname*"
@@ -439,6 +455,7 @@
 // References to non-primitive types
 %typemap(objctype) SWIGTYPE &                           "$objcclassname*"
 %typemap(objctype) SWIGTYPE *const&                     "$objcclassname*"
+%typemap(objcbasetype) SWIGTYPE &                       "$objcclassname_stripped"
 
 // Function pointers
 %typemap(objctype) SWIGTYPE ((*)(ANY))                  "$objcclassname*"
