@@ -4,6 +4,11 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-3.0.6 summary:
+- Stability and regression fixes.
+- Fixed parsing of C++ corner cases.
+- Language improvements and bug fixes for C#, Go, Java, Lua, Python, R.
+
 SWIG-3.0.5 summary:
 - Added support for Scilab.
 - Important Python regression fix when wrapping C++ default arguments.

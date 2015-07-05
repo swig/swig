@@ -2,8 +2,8 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.6 (in progress)
-===========================
+Version 3.0.6 (5 Jul 2015)
+==========================
 
 2015-07-02: wsfulton
 	    Fix syntax error when the template keyword is used in types, eg:
