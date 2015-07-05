@@ -6,11 +6,11 @@
 
 %inline %{
 
-struct parent {
+struct parent_class {
   std::string pvar;
 };
 
- struct child : public parent {
+ struct child : public parent_class {
   std::string cvar;
 };
 
