@@ -495,8 +495,10 @@ the C++ object when the Go object is freed.  It is strongly recommended  to read
 the <a href="https://golang.org/pkg/runtime/#SetFinalizer">runtime.SetFinalizer
 </a> documentation before using this technique to understand the
 <tt>runtime.SetFinalizer</tt> limitations.<br>
-<br>
+</p>
+<p>
 Common pitfalls with <tt>runtime.SetFinalizer</tt> are:
+</p>
 <ul>
 <li>
 If a hierarchy of C++ objects will be automatically freed by Go finalizers then
@@ -514,7 +516,6 @@ The Go finalizer function typically runs in a different OS thread which can be
 problematic with C++ code that uses thread-local storage.
 </li>
 </ul>
-</p>
 
 <p>
 <tt>runtime.SetFinalizer</tt> Example:
