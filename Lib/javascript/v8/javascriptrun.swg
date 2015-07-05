@@ -101,7 +101,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIG_fail                 goto fail
 #define SWIGV8_OVERLOAD false
 
-static void SWIG_V8_Raise(const char *msg) {
+SWIGINTERN void SWIG_V8_Raise(const char *msg) {
   SWIGV8_THROW_EXCEPTION(v8::Exception::Error(SWIGV8_STRING_NEW(msg)));
 }
 
@@ -126,7 +126,7 @@ public:
   }
 };
 // this is used in usually
-static V8ErrorHandler SWIGV8_ErrorHandler;
+SWIGRUNTIME V8ErrorHandler SWIGV8_ErrorHandler;
 
 // instances of this are used in overloaded functions
 class OverloadErrorHandler: public V8ErrorHandler {
@@ -198,9 +198,9 @@ public:
 #endif
 };
 
-static v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
+SWIGRUNTIME v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
-static int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
@@ -234,22 +234,22 @@ static int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr,
 
 
 #if (SWIG_V8_VERSION < 0x031710)
-static void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Value > object, void *parameter) {
+SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
 #elif (SWIG_V8_VERSION < 0x031900)
-static void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Value > object, void *parameter) {
+SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
 #elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
-static void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy) {
+SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(v8::Isolate *, v8::Persistent< v8::Object > *object, SWIGV8_Proxy *proxy) {
 #else
-static void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
+SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
   SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
 
   delete proxy;
 }
 
-static int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr) {
+SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr) {
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
@@ -273,7 +273,7 @@ static int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr) {
   return SWIG_OK;
 }
 
-static void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, swig_type_info *info, int flags) {
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
@@ -330,7 +330,7 @@ static void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, swig_ty
 
 }
 
-static int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
   
   /* special case: JavaScript null => C NULL pointer */
@@ -345,7 +345,7 @@ static int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_typ
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
-static v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE_ESC();
   
   v8::Handle<v8::FunctionTemplate> class_templ;
@@ -393,7 +393,7 @@ static v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *in
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_V8_GetInstancePtr(obj, ptr)
 
-static SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
+SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   v8::Handle<v8::Value> jsresult;
@@ -423,7 +423,7 @@ fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 
-static SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
+SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   v8::Handle<v8::Value> jsresult;
@@ -512,15 +512,15 @@ int SWIGV8_ConvertPacked(v8::Handle<v8::Value> valRef, void *ptr, size_t sz, swi
 }
 
 #if (SWIG_V8_VERSION < 0x031710)
-static void _wrap_SwigV8PackedData_delete(v8::Persistent< v8::Value > object, void *parameter) {
+SWIGRUNTIME void _wrap_SwigV8PackedData_delete(v8::Persistent< v8::Value > object, void *parameter) {
   SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
 #elif (SWIG_V8_VERSION < 0x031900)
-static void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent<v8::Value> object, void *parameter) {
+SWIGRUNTIME void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent<v8::Value> object, void *parameter) {
   SwigV8PackedData *cdata = static_cast<SwigV8PackedData *>(parameter);
 #elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
-static void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent<v8::Object> *object, SwigV8PackedData *cdata) {
+SWIGRUNTIME void _wrap_SwigV8PackedData_delete(v8::Isolate *isolate, v8::Persistent<v8::Object> *object, SwigV8PackedData *cdata) {
 #else
-static void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackData<v8::Object, SwigV8PackedData> &data) {
+SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackData<v8::Object, SwigV8PackedData> &data) {
   v8::Local<v8::Object> object = data.GetValue();
   SwigV8PackedData *cdata = data.GetParameter();
 #endif
