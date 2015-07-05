@@ -33,6 +33,10 @@ namespace Alloc {
 }
 
 template<typename X> void other1(typename Alloc::template rebind<ListBucket<Val> >::other) {}
+#if !defined(__SUNPRO_CC)
 template<typename X> void other2(typename Alloc::template rebind< ::template ListBucket<Val> >::other) {}
+#else
+template<typename X> void other2(typename Alloc::template rebind< ::         ListBucket<Val> >::other) {}
+#endif
 template<typename X> void other3(Alloc::template rebind<int>) {}
 %}
