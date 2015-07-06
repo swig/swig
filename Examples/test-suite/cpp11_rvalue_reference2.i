@@ -32,6 +32,7 @@ struct Thingy {
   void compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef) {}
   void privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue) {}
   operator int &&() {}
+  Thingy(const Thingy& rhs) : val(rhs.val), lvalref(rhs.lvalref), rvalref(copy_int(rhs.rvalref)) {}
   Thingy& operator=(const Thingy& rhs) {
     val = rhs.val;
     lvalref = rhs.lvalref;
@@ -39,6 +40,7 @@ struct Thingy {
   }
 private:
   static const bool PrivateTrue;
+  int copy_int(int& i) { return i; }
   Thingy();
 };
 const bool Thingy::PrivateTrue = true;
