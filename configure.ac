@@ -1891,7 +1891,7 @@ else
 
     AC_MSG_CHECKING(for Ocaml compiler)
 	if test -z "$OCAMLC"; then
-	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
+	AC_CHECK_PROGS(OCAMLC, ocamlc, )
     fi
 
     AC_MSG_CHECKING(for Ocaml toplevel creator)
