@@ -57,7 +57,7 @@
 %typemap(out) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
 %{ $result = *$1 ? new $*1_ltype(*$1) : 0; %}
 %typemap(directorin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &
-%{ *($&1_ltype)&$input = new $1_ltype(*$1); %}
+%{ *($&1_ltype)&$input = new $*1_ltype($1); %}
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * ($*1_ltype tempnull)

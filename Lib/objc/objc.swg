@@ -121,6 +121,9 @@
 
 // No "in" for void
 %typemap(in) void ""
+%typemap(objcdirectorin) void "$iminput"
+%typemap(objcdirectorout) void "$objccall"
+%typemap(directorin) void ""
 
 // References: are treated as pointers in the wrapper layer (ObjectiveC++)
 %typemap(in)	const char &,  			char &,
@@ -356,8 +359,7 @@
 
 %typemap(directorin) SWIGTYPE 
 %{
-  $input = 0;
-  *(($&1_ltype*)&$input) = &$1;
+  $input = &$1;
 %}
 %typemap(objcdirectorin) SWIGTYPE "[[$objcclassname_stripped alloc] initWithCptr:$iminput swigOwnCObject:NO]"
 %typemap(objcdirectorout) SWIGTYPE "[($objccall) getCptr]"
@@ -367,6 +369,12 @@
 %{ $result = (void*)$1; %}
 
 %typemap(out) SWIGTYPE [] %{ $result = $1; %}
+
+%typemap(directorin) SWIGTYPE *
+%{ $input = (void *) $1; %}
+
+%typemap(directorin) SWIGTYPE &
+%{ $input = ($1_ltype) &$1; %}
 
 // Pointer to a class member 
 %typemap(out) SWIGTYPE (CLASS::*) 
