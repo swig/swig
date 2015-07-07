@@ -5,3 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-07: wsfulton
+	    SWIG no longer generates a wrapper for a class' constructor if that class has
+            any base class with a private destructor. This is because your compiler should
+            not allow a class to be instantiated if a base has a private destructor. Some
+            compilers do, so if you need the old behaviour, use the "notabstract" feature, eg:
+
+              %feature("notabstract") Derived;
+              class Base {
+                ~Base() {}
+              };
+              struct Derived : Base {};
+

@@ -83,15 +83,6 @@ end_try_catch
 
 dc.F_destroy(f);
 
-ff = dc.new_FFF();
-try
-    del_ff = dc.delete_FFF;
-    error("Whoa. delete_FFF created")
-catch
-end_try_catch
-
-dc.F_destroy(ff);
-
 g = dc.new_G();
 
 try

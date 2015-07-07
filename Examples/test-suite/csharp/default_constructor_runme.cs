@@ -12,13 +12,5 @@ public class runme
             throw new Exception("Protected destructor exception should have been thrown");
         } catch (MethodAccessException) {
         }
-
-        // calling private destructor test
-        try {
-            using (FFF f = new FFF()) {
-            }
-            throw new Exception("Private destructor exception should have been thrown");
-        } catch (MethodAccessException) {
-        }
     }
 }

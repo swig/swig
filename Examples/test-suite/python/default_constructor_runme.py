@@ -89,15 +89,6 @@ except AttributeError:
 
 dc.F_destroy(f)
 
-ff = dc.new_FFF()
-try:
-    del_ff = dc.delete_FFF
-    print "Whoa. delete_FFF created"
-except AttributeError:
-    pass
-
-dc.F_destroy(ff)
-
 g = dc.new_G()
 
 try:
