@@ -340,6 +340,7 @@ PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
   AC_LANG_PUSH([C++])
   CXXFLAGS_SAVED=$CXXFLAGS
+  CXXFLAGS=
   AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
   CXXFLAGS=$CXXFLAGS_SAVED
   AC_LANG_POP([C++])
