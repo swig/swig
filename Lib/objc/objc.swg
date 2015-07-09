@@ -48,13 +48,12 @@
 %typemap(imtype) bool               					"BOOL"
 %typemap(imtype) const bool &, bool &, const bool *, bool *             "BOOL *"
 
-//C strings:
+// C strings:
 %typemap(imtype) char *, const char *, char[ANY], char[]              "NSString *"
 %typemap(imtype) char *&                                "NSString *"
 
-
 // Objects will always be treated as pointers in ObjectiveC++
-%typemap(imtype) SWIGTYPE                               "void*" 
+%typemap(imtype) SWIGTYPE                               "void *"
 
 // C/C++ prinitve pointers are treated as is in ObjectiveC++
 // References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
@@ -70,22 +69,23 @@
 %typemap(imtype) const unsigned long long *,unsigned long long *    "unsigned long long  *"
 %typemap(imtype) const float *, 			float *                 "float *"
 %typemap(imtype) const double *,  			double *                "double *"
+%typemap(imtype) const void *,                          void *                  "void *"
 
 // C/C++ object Pointers, are treated as void* in ObjectiveC++
-%typemap(imtype) SWIGTYPE *                             "void*"
+%typemap(imtype) SWIGTYPE *                             "void *"
 
 // Arrays for non-primitive types
-%typemap(imtype) SWIGTYPE []                            "void*"
+%typemap(imtype) SWIGTYPE []                            "void *"
 
 // Pointer to a class member will be void*
-%typemap(imtype) SWIGTYPE (CLASS::*)                    "void*"  
+%typemap(imtype) SWIGTYPE (CLASS::*)                    "void *"  
 
 // References to non-primitive types
-%typemap(imtype) SWIGTYPE &                             "void*"
-%typemap(imtype) SWIGTYPE *const&                       "void*"
+%typemap(imtype) SWIGTYPE &                             "void *"
+%typemap(imtype) SWIGTYPE *const&                       "void *"
 
 // Function pointers
-%typemap(imtype) SWIGTYPE ((*)(ANY))                    "void*"
+%typemap(imtype) SWIGTYPE ((*)(ANY))                    "void *"
 
 /* 
  * IN TYPEMAPS: Used for "in" arguments type conversions: ObjectiveC++ to C++.
@@ -346,14 +346,14 @@
 #ifdef __cplusplus
 %{
   temp = new $1_ltype((const $1_ltype &)$1); 
-  $result = (void*)temp;
+  $result = (void *)temp;
 %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
   temp = $1ptr;
-  $result = (void*)temp;
+  $result = (void *)temp;
 }
 #endif
 
@@ -366,7 +366,7 @@
 
 // Pointer objects are returned as void* in the ObjectiveC++ layer
 %typemap(out) SWIGTYPE *, SWIGTYPE & 
-%{ $result = (void*)$1; %}
+%{ $result = (void *)$1; %}
 
 %typemap(out) SWIGTYPE [] %{ $result = $1; %}
 
@@ -385,10 +385,10 @@
 
 // Function pointers
 %typemap(out) SWIGTYPE ((*)(ANY))
-%{ $result = (void*)$1; %}
+%{ $result = (void *)$1; %}
 
 %typemap(out) SWIGTYPE *&
-%{ $result = (void*)*$1; %} 
+%{ $result = (void *)*$1; %} 
 
 /* 
  * OBJCTYPE TYPEMAPS: Represents the ObjectiveC(proxy) type corresponding to each ObjectiveC++ type in the intermediate(wrapper) layer. 
@@ -426,7 +426,7 @@
 %typemap(objctype) const float &, 			float &                 "float *"
 %typemap(objctype) const double &,  			double &                "double *"
 
-//C strings:
+// C strings:
 %typemap(objctype) char *, const char *, char *&, char[ANY], char[]    "NSString *"
 
 // Objects will always be treated as pointers in ObjectiveC
@@ -449,6 +449,7 @@
 %typemap(objctype) const unsigned long long *,unsigned long long *    "unsigned long long  *"
 %typemap(objctype) const float *, 			float *                 "float *"
 %typemap(objctype) const double *,  			double *                "double *"
+%typemap(objctype) const void *,                        void *                  "void *"
 
 // C/C++ Pointers are treated as  as pointers in ObjectiveC
 %typemap(objctype) SWIGTYPE *                           "$objcclassname*" 
@@ -524,7 +525,8 @@
 	     	 const long long *, 		long long *,
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,
-	      	 const double *,  			double *
+	      	 const double *,  			double *,
+	      	 const void *,                          void *
 "$objcinput"
 
 //C strings:
@@ -595,7 +597,8 @@
 	     	 const long long *, 		long long *,
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,
-	      	 const double *,  			double *
+	      	 const double *,  			double *,
+	      	 const void *,                          void *
 %{   return $imcall; %}
 
 // C strings: 
