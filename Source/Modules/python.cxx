@@ -1808,10 +1808,17 @@ public:
 	    // Only do the autodoc if there isn't a docstring for the class
 	    String *str = Getattr(n, "feature:docstring");
 	    if (!str || Len(str) == 0) {
-	      if (CPlusPlus) {
-		Printf(doc, "Proxy of C++ %s class", real_classname);
+	      if (builtin) {
+		String *name = Getattr(n, "name");
+		String *rname = add_explicit_scope(SwigType_namestr(name));
+		Printf(doc, "%s", rname);
+		Delete(rname);
 	      } else {
-		Printf(doc, "Proxy of C %s struct", real_classname);
+		if (CPlusPlus) {
+		  Printf(doc, "Proxy of C++ %s class", real_classname);
+		} else {
+		  Printf(doc, "Proxy of C %s struct", real_classname);
+		}
 	      }
 	    }
 	  }
@@ -3882,7 +3889,7 @@ public:
       else
 	quoted_symname = NewStringf("\"%s\"", symname);
     }
-    String *quoted_rname = NewStringf("\"%s\"", rname);
+    String *quoted_tp_doc_str = NewStringf("\"%s\"", getSlot(n, "feature:python:tp_doc"));
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit";
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     String *py3_tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
@@ -3925,7 +3932,7 @@ public:
     Printv(f, "#else\n", NIL);
     printSlot(f, tp_flags, "tp_flags");
     Printv(f, "#endif\n", NIL);
-    printSlot(f, quoted_rname, "tp_doc");
+    printSlot(f, quoted_tp_doc_str, "tp_doc");
     printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
     printSlot(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
     printSlot(f, richcompare_func, "feature:python:tp_richcompare", "richcmpfunc");
@@ -4108,7 +4115,7 @@ public:
     Delete(tp_flags);
     Delete(py3_tp_flags);
     Delete(quoted_symname);
-    Delete(quoted_rname);
+    Delete(quoted_tp_doc_str);
     Delete(clientdata_klass);
     Delete(richcompare_func);
     Delete(getset_name);
@@ -4208,6 +4215,11 @@ public:
 	  String *str = cdocstring(n, AUTODOC_CLASS);
 	  Setattr(n, "feature:python:tp_doc", str);
 	  Delete(str);
+	} else {
+	  String *name = Getattr(n, "name");
+	  String *rname = add_explicit_scope(SwigType_namestr(name));
+	  Setattr(n, "feature:python:tp_doc", rname);
+	  Delete(rname);
 	}
       } else {
 	Printv(f_shadow, "class ", class_name, NIL);
