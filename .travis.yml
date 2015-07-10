@@ -115,8 +115,8 @@ before_install:
   - if test "$SWIGLANG" = "r"; then sudo apt-get -qq install r-base; fi
   - if test "$SWIGLANG" = "scilab"; then sudo apt-get -qq install scilab; fi
   - if test "$SWIGLANG" = "tcl"; then sudo apt-get -qq install tcl8.4-dev; fi
-  - if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++11 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra"); fi
-  - if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++14 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra"); fi
+  - if test -n "$CPP11"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++11 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++11; fi
+  - if test -n "$CPP14"; then CONFIGOPTS+=(--enable-cpp11-testing --without-maximum-compile-warnings "CXXFLAGS=-std=c++14 -Wall -Wextra" "CFLAGS=-std=c11 -Wall -Wextra") && export CSTD=c11 && export CPPSTD=c++14; fi
   - $CC --version
   - $CXX --version
   # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
