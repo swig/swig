@@ -981,7 +981,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return octave_value();
     }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+#endif
       if (is_string()) {
 	os << string_value();
 	return;
@@ -1126,7 +1130,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual octave_value convert_to_str_internal(bool pad, bool force, char type) const
       { return ptr->convert_to_str_internal(pad, force, type); }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const
+#endif
       { return ptr->print(os, pr_as_read_syntax); }
 
   private:
@@ -1169,7 +1177,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+#endif
       indent(os);
       os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
