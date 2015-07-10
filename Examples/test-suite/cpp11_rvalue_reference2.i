@@ -31,12 +31,13 @@ struct Thingy {
   // test both primitive and user defined rvalue reference default arguments and compactdefaultargs
   void compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef) {}
   void privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue) {}
-  operator int &&() {}
+  operator int &&() { return std::move(0); }
   Thingy(const Thingy& rhs) : val(rhs.val), lvalref(rhs.lvalref), rvalref(copy_int(rhs.rvalref)) {}
   Thingy& operator=(const Thingy& rhs) {
     val = rhs.val;
     lvalref = rhs.lvalref;
     rvalref = rhs.rvalref;
+    return *this;
   }
 private:
   static const bool PrivateTrue;
