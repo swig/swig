@@ -3428,7 +3428,7 @@ public:
       Printf(f_runtime, "namespace Swig {\n");
       Printf(f_runtime, "  namespace {\n");
       Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
-      Printf(f_runtime, "    jmethodID director_methids[%d];\n", n_methods);
+      Printf(f_runtime, "    jmethodID director_method_ids[%d];\n", n_methods);
       Printf(f_runtime, "  }\n");
       Printf(f_runtime, "}\n");
 
@@ -3445,8 +3445,8 @@ public:
       Printf(w->code, "Swig::jclass_%s = (jclass) jenv->NewGlobalRef(jcls);\n", imclass_name);
       Printf(w->code, "if (!Swig::jclass_%s) return;\n", imclass_name);
       Printf(w->code, "for (i = 0; i < (int) (sizeof(methods)/sizeof(methods[0])); ++i) {\n");
-      Printf(w->code, "  Swig::director_methids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
-      Printf(w->code, "  if (!Swig::director_methids[i]) return;\n");
+      Printf(w->code, "  Swig::director_method_ids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
+      Printf(w->code, "  if (!Swig::director_method_ids[i]) return;\n");
       Printf(w->code, "}\n");
 
       Printf(w->code, "}\n");
@@ -4100,7 +4100,7 @@ public:
       if (!is_void)
 	Printf(w->code, "jresult = (%s) ", c_ret_type);
 
-      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
+      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_method_ids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
       // Generate code to handle any Java exception thrown by director delegation
       directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
