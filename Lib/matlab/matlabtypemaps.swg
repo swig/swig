@@ -22,6 +22,11 @@
 #define SWIG_Matlab_Raise(OBJ, TYPE, DESC) mexErrMsgIdAndTxt("SWIG::RuntimeError", "C++ side threw an exception of type " TYPE)
 #define SWIG_Raise(obj, type, desc)     SWIG_Matlab_Raise(obj, type, desc)
 
+/* directors are supported in Matlab */
+#ifndef SWIG_DIRECTOR_TYPEMAPS
+#define SWIG_DIRECTOR_TYPEMAPS
+#endif
+
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
 
