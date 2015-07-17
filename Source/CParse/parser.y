@@ -51,7 +51,7 @@ static String  *Classprefix = 0;
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static Node    *currentOuterClass = 0; /* for nested classes */
-static char    *last_cpptype = 0;
+static const char *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
@@ -703,14 +703,14 @@ static String *make_class_name(String *name) {
 
 /* Use typedef name as class name */
 
-static void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscope, String *scpname) {
+static void add_typedef_name(Node *n, Node *declnode, String *oldName, Symtab *cscope, String *scpname) {
   String *class_rename = 0;
-  SwigType *decltype = Getattr(decl, "decl");
-  if (!decltype || !Len(decltype)) {
+  SwigType *decl = Getattr(declnode, "decl");
+  if (!decl || !Len(decl)) {
     String *cname;
     String *tdscopename;
     String *class_scope = Swig_symbol_qualifiedscopename(cscope);
-    String *name = Getattr(decl, "name");
+    String *name = Getattr(declnode, "name");
     cname = Copy(name);
     Setattr(n, "tdname", cname);
     tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
@@ -721,7 +721,7 @@ static void add_typedef_name(Node *n, Node *decl, String *oldName, Symtab *cscop
     if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
       Setattr(classes_typedefs, tdscopename, n);
     }
-    Setattr(n, "decl", decltype);
+    Setattr(n, "decl", decl);
     Delete(class_scope);
     Delete(cname);
     Delete(tdscopename);
@@ -1299,7 +1299,7 @@ static void mark_nodes_as_extend(Node *n) {
 %}
 
 %union {
-  char  *id;
+  const char  *id;
   List  *bases;
   struct Define {
     String *val;
@@ -6551,17 +6551,19 @@ idcolontailnt   : DCOLON identifier idcolontailnt {
 
 /* Concatenated strings */
 string         : string STRING { 
-                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy($$,$1);
-                   strcat($$,$2);
+                   char *s = (char *) malloc(strlen($1)+strlen($2)+1);
+                   strcpy(s,$1);
+                   strcat(s,$2);
+                   $$ = s;
                }
                | STRING { $$ = $1;}
                ; 
 /* Concatenated wide strings: L"str1" L"str2" */
 wstring         : wstring WSTRING {
-                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy($$,$1);
-                   strcat($$,$2);
+                   char *s = (char *) malloc(strlen($1)+strlen($2)+1);
+                   strcpy(s,$1);
+                   strcat(s,$2);
+                   $$ = s;
                }
 /* Concatenated wide string and normal string literal: L"str1" "str2" */
 /*not all the compilers support this concatenation mode, so perhaps better to postpone it*/
