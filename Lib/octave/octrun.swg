@@ -868,6 +868,17 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if defined (HAVE_HDF5)
+# if SWIG_OCTAVE_PREREQ(4,0,0)
+    virtual bool
+      save_hdf5 (octave_hdf5_id loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (octave_hdf5_id loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+# else
     virtual bool
       save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
       return true;
@@ -877,6 +888,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
       return true;
     }
+# endif
 #endif
 
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const {
@@ -969,7 +981,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return octave_value();
     }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+#endif
       if (is_string()) {
 	os << string_value();
 	return;
@@ -1089,6 +1105,15 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       { return ptr->load_binary(is, swap, fmt); }
 
 #if defined (HAVE_HDF5)
+# if SWIG_OCTAVE_PREREQ(4,0,0)
+    virtual bool
+      save_hdf5 (octave_hdf5_id loc_id, const char *name, bool save_as_floats)
+      { return ptr->save_hdf5(loc_id, name, save_as_floats); }
+
+    virtual bool
+      load_hdf5 (octave_hdf5_id loc_id, const char *name, bool have_h5giterate_bug)
+      { return ptr->load_hdf5(loc_id, name, have_h5giterate_bug); }
+# else
     virtual bool
       save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats)
       { return ptr->save_hdf5(loc_id, name, save_as_floats); }
@@ -1096,6 +1121,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual bool
       load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug)
       { return ptr->load_hdf5(loc_id, name, have_h5giterate_bug); }
+# endif
 #endif
 
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const
@@ -1104,14 +1130,22 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual octave_value convert_to_str_internal(bool pad, bool force, char type) const
       { return ptr->convert_to_str_internal(pad, force, type); }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const
+#endif
       { return ptr->print(os, pr_as_read_syntax); }
 
   private:
+#if !SWIG_OCTAVE_PREREQ(4,0,0)
     DECLARE_OCTAVE_ALLOCATOR;
+#endif
     DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA;
   };
+#if !SWIG_OCTAVE_PREREQ(4,0,0)
   DEFINE_OCTAVE_ALLOCATOR(octave_swig_ref);
+#endif
   DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_ref, "swig_ref", "swig_ref");
 
   class octave_swig_packed:public octave_base_value {
@@ -1143,7 +1177,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
+#if SWIG_OCTAVE_PREREQ(4,0,0)
+    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+#else
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+#endif
       indent(os);
       os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
@@ -1167,6 +1205,17 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if defined (HAVE_HDF5)
+# if SWIG_OCTAVE_PREREQ(4,0,0)
+    virtual bool
+      save_hdf5 (octave_hdf5_id loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (octave_hdf5_id loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+# else
     virtual bool
       save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
       return true;
@@ -1176,13 +1225,18 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
       return true;
     }
+# endif
 #endif
 
   private:
+#if !SWIG_OCTAVE_PREREQ(4,0,0)
     DECLARE_OCTAVE_ALLOCATOR;
+#endif
     DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA;
   };
+#if !SWIG_OCTAVE_PREREQ(4,0,0)
   DEFINE_OCTAVE_ALLOCATOR(octave_swig_packed);
+#endif
   DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_swig_packed, "swig_packed", "swig_packed");
 
   SWIGRUNTIME octave_value_list octave_set_immutable(const octave_value_list &args, int nargout) {

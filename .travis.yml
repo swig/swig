@@ -32,6 +32,8 @@ matrix:
     - compiler: gcc
       env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
     - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j3 VER=4.0
+    - compiler: gcc
       env: SWIGLANG=perl5
     - compiler: gcc
       env: SWIGLANG=php
