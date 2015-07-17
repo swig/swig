@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-18: m7thon
+	    [Python] Docstrings provided via %feature("docstring") are now quoted and added to
+            the tp_doc slot when using python builtin classes (-builtin). When no docstring is
+            provided, the tp_doc slot is set to the fully qualified C/C++ class name.
+            Github issues #445 and #461.
+
 2015-07-07: wsfulton
 	    SWIG no longer generates a wrapper for a class' constructor if that class has
             any base class with a private destructor. This is because your compiler should
