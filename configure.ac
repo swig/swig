@@ -1030,7 +1030,7 @@ fi
 
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile="`dirname ${OCTAVE}`/mkoctfile"
+   mkoctfile="$(dirname $OCTAVE)/$(basename $OCTAVE | sed -e 's/octave/mkoctfile/')"
    AS_IF([test -x "${mkoctfile}"],[
       AC_MSG_RESULT([${mkoctfile}])
    ],[
