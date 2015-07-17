@@ -336,7 +336,7 @@ static void brackets_reset(Scanner *s) {
  * Usually called when '(' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_push(Scanner *s) {
-  int *newInt = malloc(sizeof(int));
+  int *newInt = (int *)malloc(sizeof(int));
   *newInt = 0;
   Push(s->brackets, NewVoid(newInt, free));
 }
