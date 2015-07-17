@@ -1442,7 +1442,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
-%type <id>       string stringnum wstring;
+%type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
 %type <intvalue> rename_namewarn;
@@ -1741,7 +1741,7 @@ echo_directive : ECHO HBLOCK {
 	       }
                | ECHO string {
 		 char temp[64];
-		 String *s = NewString($2);
+		 String *s = $2;
 		 Replace(s,"$file",cparse_file, DOH_REPLACE_ANY);
 		 sprintf(temp,"%d", cparse_line);
 		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
@@ -1846,7 +1846,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
 include_directive: includetype options string BEGINFILE {
                      $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
-		     scanner_set_location(NewString($3),1);
+		     scanner_set_location($3,1);
                      if ($2) { 
 		       String *maininput = Getattr($2, "maininput");
 		       if (maininput)
@@ -2101,7 +2101,7 @@ pragma_directive : PRAGMA pragma_lang identifier EQUAL pragma_arg {
 	      }
               ;
 
-pragma_arg    : string { $$ = NewString($1); }
+pragma_arg    : string { $$ = $1; }
               | HBLOCK { $$ = $1; }
               ;
 
@@ -2253,7 +2253,7 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
-                    String *val = Len($5) ? NewString($5) : 0;
+                    String *val = Len($5) ? $5 : 0;
                     new_feature($3, val, 0, $7.id, $7.type, $7.parms, $8.qualifier);
                     $$ = 0;
                     scanner_clear_rename();
@@ -2265,7 +2265,7 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
-                    String *val = Len($5) ? NewString($5) : 0;
+                    String *val = Len($5) ? $5 : 0;
                     new_feature($3, val, $6, $8.id, $8.type, $8.parms, $9.qualifier);
                     $$ = 0;
                     scanner_clear_rename();
@@ -2279,7 +2279,7 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
-                    String *val = Len($5) ? NewString($5) : 0;
+                    String *val = Len($5) ? $5 : 0;
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
                     scanner_clear_rename();
@@ -2291,7 +2291,7 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
-                    String *val = Len($5) ? NewString($5) : 0;
+                    String *val = Len($5) ? $5 : 0;
                     new_feature($3, val, $6, 0, 0, 0, 0);
                     $$ = 0;
                     scanner_clear_rename();
@@ -2668,7 +2668,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 			       String *symname = Swig_name_make(templnode,0,$3,0,0);
 			    */
-			    String *symname = $3;
+			    String *symname = NewString($3);
                             Swig_cparse_template_expand(templnode,symname,temparms,tscope);
                             Setattr(templnode,"sym:name",symname);
                           } else {
@@ -4662,9 +4662,9 @@ anon_bitfield_type : primitive_type { $$ = $1;
  *                       PRIMITIVES
  * ====================================================================== */
 extern_string :  EXTERN string {
-                   if (strcmp($2,"C") == 0) {
+                   if (Strcmp($2,"C") == 0) {
 		     $$ = "externc";
-                   } else if (strcmp($2,"C++") == 0) {
+                   } else if (Strcmp($2,"C++") == 0) {
 		     $$ = "extern";
 		   } else {
 		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
@@ -5782,17 +5782,6 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
                 | default_delete {
 		  $$ = $1;
 		}
-/*
-                | string {
-                   $$.val = NewString($1);
-		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
-                   $$.type = T_STRING;
-		   $$.bitfield = 0;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-		}
-*/
                 ;
 
 default_delete : deleted_definition {
@@ -5915,7 +5904,7 @@ expr           : valexpr { $$ = $1; }
 
 valexpr        : exprnum { $$ = $1; }
                | string {
-		    $$.val = NewString($1);
+		    $$.val = $1;
                     $$.type = T_STRING;
                }
                | SIZEOF LPAREN type parameter_declarator RPAREN {
@@ -5930,7 +5919,7 @@ valexpr        : exprnum { $$ = $1; }
                }
                | exprcompound { $$ = $1; }
 	       | wstring {
-		    $$.val = NewString($1);
+		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
                     $$.type = T_WSTRING;
 	       }
@@ -6440,8 +6429,8 @@ identifier     : ID { $$ = $1; }
 	       ;
 
 idstring       : identifier { $$ = $1; }
-               | default_delete { $$ = $1.val; }
-               | string { $$ = $1; }
+               | default_delete { $$ = Char($1.val); }
+               | string { $$ = Char($1); }
                ;
 
 idstringopt    : idstring { $$ = $1; }
@@ -6551,32 +6540,24 @@ idcolontailnt   : DCOLON identifier idcolontailnt {
 
 /* Concatenated strings */
 string         : string STRING { 
-                   char *s = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy(s,$1);
-                   strcat(s,$2);
-                   $$ = s;
+                   $$ = NewStringf("%s%s", $1, $2);
                }
-               | STRING { $$ = $1;}
+               | STRING { $$ = NewString($1);}
                ; 
 /* Concatenated wide strings: L"str1" L"str2" */
 wstring         : wstring WSTRING {
-                   char *s = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy(s,$1);
-                   strcat(s,$2);
-                   $$ = s;
+                   $$ = NewStringf("%s%s", $1, $2);
                }
 /* Concatenated wide string and normal string literal: L"str1" "str2" */
 /*not all the compilers support this concatenation mode, so perhaps better to postpone it*/
                /*| wstring STRING { here $2 comes unescaped, we have to escape it back first via NewStringf("%(escape)s)"
-                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy($$,$1);
-                   strcat($$,$2);
+                   $$ = NewStringf("%s%s", $1, $2);
 	       }*/
-               | WSTRING { $$ = $1;}
+               | WSTRING { $$ = NewString($1);}
                ;
 
 stringbrace    : string {
-		 $$ = NewString($1);
+		 $$ = $1;
                }
                | LBRACE {
                   skip_balanced('{','}');
