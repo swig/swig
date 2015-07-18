@@ -12,7 +12,7 @@
 %callback("%s") A::bar;
 %callback("%s") A::foom;
 #endif
-%callback("%s_Cb_Ptr") foo_T;  // this works in Python too
+%callback("%(uppercase)s_Cb_Ptr") foo_T;  // this works in Python too
 
 %inline %{
 
