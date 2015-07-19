@@ -1472,7 +1472,6 @@ static void mark_nodes_as_extend(Node *n) {
 %token PARSETYPE PARSEPARM PARSEPARMS
 %token <str> DOXYGENSTRING 
 %token <str> DOXYGENPOSTSTRING 
-%token <str> C_COMMENT_STRING 
 
 %left  CAST
 %left  QUESTIONMARK
