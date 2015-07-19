@@ -100,9 +100,6 @@ int runLambdaInline() {
 
 %{
 // TODO
-struct LambdaStruct {
-  static constexpr auto lambda_struct1 = [=]() { return thing; };
-};
 int(*lambda101notauto)(int, int) = [] (int a, int b) { return a + b; };
 int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
 void lambda_init(int = ([=]{ return 0; })());

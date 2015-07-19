@@ -66,11 +66,13 @@ static void SWIG_Scilab_SetApiContext(void *apiCtx) {
 
 #if SWIG_SCILAB_VERSION >= 540
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
+#define SWIG_CheckInputArgumentAtLeast(pvApiCtx, minInputArgument) CheckInputArgumentAtLeast(pvApiCtx, minInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
 #define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) AssignOutputVariable(pvApiCtx, outputArgumentPos) = argumentPos
 #else
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
+#define SWIG_CheckInputArgumentAtLeast(pvApiCtx, minInputArgument) CheckRhs(minInputArgument, 256)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) Rhs
 #define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) LhsVar(outputArgumentPos) = argumentPos
@@ -148,7 +150,8 @@ SWIGRUNTIME int
 SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type_info *ty, char *fname) {
   swig_cast_info *tc;
   int *piAddrVar = NULL;
-  char *pstStrings = NULL;
+  char *pstString = NULL;
+  char *pstStringPtr = NULL;
   SciErr sciErr;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
@@ -157,27 +160,33 @@ SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type
     return SWIG_ERROR;
   }
 
-  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstStrings)) {
+  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstString)) {
     return SWIG_ERROR;
   }
 
   /* Pointer values must start with leading underscore */
-  if (*pstStrings != '_') {
+  if (*pstString != '_') {
+    freeAllocatedSingleString(pstString);
     return SWIG_ERROR;
   }
 
-  pstStrings++;
-  pstStrings = (char*)SWIG_UnpackData(pstStrings, ptr, sz);
+  pstStringPtr = pstString;
+  pstStringPtr++;
+  pstStringPtr = (char*)SWIG_UnpackData(pstStringPtr, ptr, sz);
 
   if (ty) {
-    if (!pstStrings) {
+    if (!pstStringPtr) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
-    tc = SWIG_TypeCheck(pstStrings, ty);
+    tc = SWIG_TypeCheck(pstStringPtr, ty);
     if (!tc) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
   }
+
+  freeAllocatedSingleString(pstString);
   return SWIG_OK;
 }
 

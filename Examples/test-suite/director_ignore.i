@@ -10,6 +10,7 @@
 %ignore OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0);
 %ignore DIgnoreConstructor(bool b);
 %ignore DIgnoreOnlyConstructor(bool b);
+%ignore DIgnoreDestructor::~DIgnoreDestructor;
 %ignore Pointers;
 %ignore References;
 %ignore PublicMethod1;
@@ -101,6 +102,13 @@ class DIgnoreOnlyConstructor
     DIgnoreOnlyConstructor(bool b) {}
 };
 
+class DIgnoreDestructor
+{
+ public:
+  DIgnoreDestructor() {}
+  virtual ~DIgnoreDestructor() {}
+};
+
 %{
 class DIgnoreConstructor
 {
@@ -118,5 +126,12 @@ class DIgnoreOnlyConstructor
   private: // Hide constructor
     DIgnoreOnlyConstructor(bool b) {}
 };
-%}
 
+class DIgnoreDestructor
+{
+ public:
+  DIgnoreDestructor() {}
+  virtual ~DIgnoreDestructor() {}
+};
+
+%}

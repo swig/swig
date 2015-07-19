@@ -2,7 +2,6 @@ TOP        = ../..
 SWIG       = $(realpath $(TOP)/../preinst-swig)
 SWIGOPT    =
 LIBS       =
-PY3        =
 
 import_packages_subdirs = \
 	same_modnames1 \

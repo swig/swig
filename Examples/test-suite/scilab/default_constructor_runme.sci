@@ -84,15 +84,6 @@ end
 
 F_destroy(f);
 
-ff = new_FFF();
-try
-  del_ff = delete_FFF;
-  swigtesterror("delete_FFF created")
-catch
-end
-
-F_destroy(ff);
-
 g = new_G();
 
 try

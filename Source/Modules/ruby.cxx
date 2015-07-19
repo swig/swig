@@ -13,13 +13,11 @@
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(0);
-
-#define SWIG_PROTECTED_TARGET_METHODS 1
-
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>		/* for INT_MAX */
+
+#define SWIG_PROTECTED_TARGET_METHODS 1
 
 class RClass {
 private:
@@ -1171,6 +1169,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -1794,8 +1793,8 @@ public:
 
     /* if the object is a director, and the method call originated from its
      * underlying Ruby object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * inheritance chain.  otherwise try to resolve the method in Ruby.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 

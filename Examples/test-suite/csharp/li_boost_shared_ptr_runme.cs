@@ -46,7 +46,7 @@ public class runme
       }
       int actualCount = Klass.getTotal_count();
       if (actualCount != expectedCount)
-        throw new ApplicationException("Expected count: " + expectedCount + " Actual count: " + actualCount);
+        Console.Error.WriteLine("Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
     }
 
     int wrapper_count = li_boost_shared_ptr.shared_ptr_wrapper_count(); 

@@ -50,4 +50,3 @@ if invoke_blah_uint(e) != "Foo":
 
 if invoke_blah_uint(f) != "Bar":
     raise ValueError
-

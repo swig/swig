@@ -25,7 +25,7 @@ if i.next() != "c":
 b = s.begin()
 e = s.end()
 sum = ""
-while (b != e):    
+while (b != e):
     sum = sum + b.next()
 if sum != "abc":
     raise RuntimeError
@@ -33,12 +33,11 @@ if sum != "abc":
 b = s.rbegin()
 e = s.rend()
 sum = ""
-while (b != e):    
-    sum = sum  + b.next()
+while (b != e):
+    sum = sum + b.next()
 
 if sum != "cba":
     raise RuntimeError
-
 
 
 si = set_int()
@@ -56,8 +55,6 @@ if i.next() != 3:
     raise RuntimeError
 
 
-
-
 i = s.begin()
 i.next()
 s.erase(i)
@@ -65,7 +62,7 @@ s.erase(i)
 b = s.begin()
 e = s.end()
 sum = ""
-while (b != e):    
+while (b != e):
     sum = sum + b.next()
 if sum != "ac":
     raise RuntimeError
@@ -75,22 +72,21 @@ b = s.begin()
 e = s.end()
 if e - b != 2:
     raise RuntimeError
-    
+
 m = b + 1
 if m.value() != "c":
     raise RuntimeError
 
 
-
 s = pyset()
-s.insert((1,2))
+s.insert((1, 2))
 s.insert(1)
 s.insert("hello")
 
 
 sum = ()
 for i in s:
-    sum = sum  + (i,)
+    sum = sum + (i,)
 
-if (len(sum) != 3 or (not 1 in sum) or (not 'hello' in sum) or (not (1, 2) in sum)) :
+if (len(sum) != 3 or (not 1 in sum) or (not 'hello' in sum) or (not (1, 2) in sum)):
     raise RuntimeError

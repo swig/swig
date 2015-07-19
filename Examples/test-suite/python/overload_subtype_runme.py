@@ -8,4 +8,3 @@ if spam(f) != 1:
 
 if spam(b) != 2:
     raise RuntimeError, "bar"
-

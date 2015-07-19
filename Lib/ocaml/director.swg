@@ -72,7 +72,7 @@ namespace Swig {
       mutable bool swig_disown_flag;
 
     public:
-      /* wrap a ocaml object, optionally taking ownership */
+      /* wrap a ocaml object. */
       Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
         register_global_root(&swig_self);
       }

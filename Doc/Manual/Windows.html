@@ -293,9 +293,9 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
   Start the MSYS command prompt and execute:
 <div class="shell"><pre>
 cd /
-tar -jxf msys-automake-1.8.2.tar.bz2 
+tar -jxf msys-automake-1.8.2.tar.bz2
 tar -jxf msys-autoconf-2.59.tar.bz2
-tar -zxf bison-2.0-MSYS.tar.gz   
+tar -zxf bison-2.0-MSYS.tar.gz
 </pre></div>
   </li>
 
@@ -388,6 +388,53 @@ Include it like you would any other interface file, for example:
 __declspec(dllexport) ULONG __stdcall foo(DWORD, __int32);
 </pre></div>
 
+<p>Note that if you follow Microsoft's recommendation of wrapping the
+<tt>__declspec</tt> calls in a preprocessor definition, you will need to
+make sure that the definition is included by SWIG as well, by either defining it
+manually or via a header. For example, if you have specified the
+preprocessor definition in a header named <tt>export_lib.h</tt> and include
+other headers which depend on it, you should use the <tt>%include</tt> directive
+to include the definition explicitly. For example, if you had a header file,
+<tt>bar.h</tt>, which depended on <tt>export_lib.h</tt>, your SWIG definition
+file might look like:</p>
+
+<div class="code"><pre>
+// bar.i
+%module bar
+%include &lt;windows.i&gt;
+%include "export_lib.h"
+%include "bar.h"
+</pre></div>
+
+<p>
+where export_lib.h may contain:
+</p>
+
+<div class="code"><pre>
+// export_lib.h
+#define BAR_API __declspec(dllexport)
+</pre></div>
+
+<p>
+and bar.h may look like:
+</p>
+
+<div class="code"><pre>
+// bar.h
+#include "export_lib.h"
+BAR_API void bar_function(int, double);
+</pre></div>
+
+<p>
+Using the preprocessor to remove BAR_API is a popular simpler solution:
+</p>
+
+<div class="code"><pre>
+// bar.i
+%module bar
+#define BAR_API
+%include "bar.h"
+</pre></div>
 
 </body>
 </html>

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.6],[http://www.swig.org])
+AC_INIT([swig],[3.0.7],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -340,6 +340,7 @@ PLATCXXFLAGS="$PLATCFLAGS"
 if test x"$enable_cpp11_testing" = xyes; then
   AC_LANG_PUSH([C++])
   CXXFLAGS_SAVED=$CXXFLAGS
+  CXXFLAGS=
   AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
   CXXFLAGS=$CXXFLAGS_SAVED
   AC_LANG_POP([C++])
@@ -601,6 +602,7 @@ AC_SUBST(TCLCXXSHARED)
 
 PYINCLUDE=
 PYLIB=
+PYLINK=
 PYPACKAGE=
 
 AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
@@ -617,64 +619,106 @@ else
     PYTHON="$PYBIN"
   fi
 
+  PYVER=0
   if test -n "$PYTHON"; then
+    AC_MSG_CHECKING([for $PYTHON major version number])
+    PYVER=`($PYTHON -c "import sys; sys.stdout.write(sys.version[[0]])") 2>/dev/null`
+    AC_MSG_RESULT($PYVER)
+    if test -z "$PYVER"; then
+      PYVER=0
+    fi
+  fi
+
+  if test $PYVER -le 2; then
     AC_MSG_CHECKING(for Python prefix)
-    PYPREFIX=`($PYTHON -c "import sys; print sys.prefix") 2>/dev/null`
+    PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
     AC_MSG_CHECKING(for Python exec-prefix)
-    PYEPREFIX=`($PYTHON -c "import sys; print sys.exec_prefix") 2>/dev/null`
+    PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
+    AC_MSG_CHECKING(for Python os.name)
+    PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)")`
+    AC_MSG_RESULT($PYOSNAME)
 
+    if test x"$PYOSNAME" = x"nt"; then
+      # Windows installations are quite different to posix installations
+      PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+      PYTHON_SO=.pyd
 
-    # Note: I could not think of a standard way to get the version string from different versions.
-    # This trick pulls it out of the file location for a standard library file.
-
-    AC_MSG_CHECKING(for Python version)
-
-    # Need to do this hack since autoconf replaces __file__ with the name of the configure file
-    filehack="file__"
-    PYVERSION=`($PYTHON -c "import string,operator,os.path; print operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1)")`
-    AC_MSG_RESULT($PYVERSION)
-
-    # Find the directory for libraries this is necessary to deal with
-    # platforms that can have apps built for multiple archs: e.g. x86_64
-    AC_MSG_CHECKING(for Python lib dir)
-    PYLIBDIR=`($PYTHON -c "import sys; print sys.lib") 2>/dev/null`
-    if test -z "$PYLIBDIR"; then
-      # Fedora patch Python to add sys.lib, for other distros we assume "lib".
-      PYLIBDIR="lib"
-    fi
-    AC_MSG_RESULT($PYLIBDIR)
-
-    # Set the include directory
-
-    AC_MSG_CHECKING(for Python header files)
-    if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
-      PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
-    fi
-    if test -z "$PYINCLUDE"; then
-      if test -r $PYPREFIX/include/Py/Python.h; then
-        PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
+      AC_MSG_CHECKING(for Python header files)
+      if test -r $PYPREFIX/include/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include"
       fi
-    fi
-    AC_MSG_RESULT($PYINCLUDE)
+      AC_MSG_RESULT($PYINCLUDE)
 
-    # Set the library directory blindly.   This probably won't work with older versions
-    AC_MSG_CHECKING(for Python library)
-    dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
-    for i in $dirs; do
-      if test -d $PYEPREFIX/$PYLIBDIR/$i; then
-        PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
-        break
+      AC_MSG_CHECKING(for Python library directory)
+      if test -d $PYPREFIX/libs; then
+        PYLIB=$PYPREFIX/libs
+        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        if test -r "$PYLINKFILE"; then
+          PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
+        else
+          PYLIB=
+        fi
       fi
-    done
+    else
+      # Note: I could not think of a standard way to get the version string from different versions.
+      # This trick pulls it out of the file location for a standard library file.
+
+      AC_MSG_CHECKING(for Python version)
+
+      # Need to do this hack since autoconf replaces __file__ with the name of the configure file
+      filehack="file__"
+      PYVERSION=`($PYTHON -c "import sys,string,operator,os.path; sys.stdout.write(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      AC_MSG_RESULT($PYVERSION)
+
+      # Find the directory for libraries this is necessary to deal with
+      # platforms that can have apps built for multiple archs: e.g. x86_64
+      AC_MSG_CHECKING(for Python lib dir)
+      PYLIBDIR=`($PYTHON -c "import sys; sys.stdout.write(sys.lib)") 2>/dev/null`
+      if test -z "$PYLIBDIR"; then
+        # Fedora patch Python to add sys.lib, for other distros we assume "lib".
+        PYLIBDIR="lib"
+      fi
+      AC_MSG_RESULT($PYLIBDIR)
+
+      # Set the include directory
+
+      AC_MSG_CHECKING(for Python header files)
+      if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
+      fi
+      if test -z "$PYINCLUDE"; then
+        if test -r $PYPREFIX/include/Py/Python.h; then
+          PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
+        fi
+      fi
+      AC_MSG_RESULT($PYINCLUDE)
+
+      # Set the library directory blindly.   This probably won't work with older versions
+      AC_MSG_CHECKING(for Python library directory)
+      dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
+      for i in $dirs; do
+        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+          PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
+          break
+        fi
+      done
+
+      PYLINK="-l$PYVERSION"
+    fi
+
     if test -z "$PYLIB"; then
       AC_MSG_RESULT(Not found)
     else
       AC_MSG_RESULT($PYLIB)
     fi
-
-    PYLINK="-l$PYVERSION"
+    AC_MSG_CHECKING(for Python library)
+    if test -z "$PYLINK"; then
+      AC_MSG_RESULT(Not found)
+    else
+      AC_MSG_RESULT($PYLINK)
+    fi
   fi
 
   # Cygwin (Windows) needs the library for dynamic linking
@@ -697,11 +741,9 @@ AC_SUBST(PYTHONDYNAMICLINKING)
 # Look for Python 3.x
 #----------------------------------------------------------------
 
-# mostly copy & pasted from "Look for Python" section,
-# did some trim, fix and rename
-
 PY3INCLUDE=
 PY3LIB=
+PY3LINK=
 PY3PACKAGE=
 
 AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x support])
@@ -712,7 +754,7 @@ if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then
   AC_MSG_NOTICE([Disabling Python 3.x support])
 else
   if test "x$PY3BIN" = xyes; then
-    for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
+    for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 3.1 3.0 ""; do
       AC_CHECK_PROGS(PYTHON3, [python$py_ver])
       if test -n "$PYTHON3"; then
         AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -726,63 +768,121 @@ else
     AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
   fi
 
-
-  if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
-    AC_MSG_CHECKING([for Python 3.x prefix])
-    PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
-    AC_MSG_RESULT($PY3PREFIX)
-    AC_MSG_CHECKING(for Python 3.x exec-prefix)
-    PY3EPREFIX=`($PY3CONFIG --exec-prefix) 2>/dev/null`
-    AC_MSG_RESULT($PY3EPREFIX)
-
-    # Note: I could not think of a standard way to get the version string from different versions.
-    # This trick pulls it out of the file location for a standard library file.
-
-    AC_MSG_CHECKING([for Python 3.x version])
-
-    # Need to do this hack since autoconf replaces __file__ with the name of the configure file
-    filehack="file__"
-    PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
-    AC_MSG_RESULT($PY3VERSION)
-
-    # Find the directory for libraries this is necessary to deal with
-    # platforms that can have apps built for multiple archs: e.g. x86_64
-    AC_MSG_CHECKING([for Python 3.x lib dir])
-    PY3LIBDIR=`($PYTHON3 -c "import sys; print(sys.lib)") 2>/dev/null`
-    if test -z "$PY3LIBDIR"; then
-      # some dists don't have sys.lib  so the best we can do is assume lib
-      PY3LIBDIR="lib"
+  PYVER=0
+  if test -n "$PYTHON3"; then
+    AC_MSG_CHECKING([for $PYTHON3 major version number])
+    PYVER=`($PYTHON3 -c "import sys; sys.stdout.write(sys.version[[0]])") 2>/dev/null`
+    AC_MSG_RESULT($PYVER)
+    if test -z "$PYVER"; then
+      PYVER=0
     fi
-    AC_MSG_RESULT($PY3LIBDIR)
+  fi
 
-    # Set the include directory
+  if test $PYVER -ge 3; then
+    AC_MSG_CHECKING(for Python 3.x os.name)
+    PY3OSNAME=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.name)")`
+    AC_MSG_RESULT($PY3OSNAME)
 
-    AC_MSG_CHECKING([for Python 3.x header files])
-    PY3INCLUDE=`($PY3CONFIG --includes) 2>/dev/null`
-    AC_MSG_RESULT($PY3INCLUDE)
+    if test x"$PY3OSNAME" = x"nt"; then
+      # Windows installations are quite different to posix installations
+      # There is no python-config to use
+      AC_MSG_CHECKING(for Python 3.x prefix)
+      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+      AC_MSG_RESULT($PY3PREFIX)
+      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+      PYTHON_SO=.pyd
 
-    # Set the library directory blindly.   This probably won't work with older versions
-    AC_MSG_CHECKING([for Python 3.x library])
-    dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
-    for i in $dirs; do
-      if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
-        PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
-        break
+      AC_MSG_CHECKING(for Python 3.x header files)
+      if test -r $PY3PREFIX/include/Python.h; then
+        PY3INCLUDE="-I$PY3PREFIX/include"
       fi
-    done
-    if test -z "$PY3LIB"; then
-      AC_MSG_RESULT([Not found])
-    else
-      AC_MSG_RESULT($PY3LIB)
-    fi
+      AC_MSG_RESULT($PY3INCLUDE)
 
-    PY3LINK="-l$PY3VERSION"
+      AC_MSG_CHECKING(for Python 3.x library directory)
+      if test -d $PY3PREFIX/libs; then
+        PY3LIB=$PY3PREFIX/libs
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        if test -r "$PY3LINKFILE"; then
+          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+        else
+          PY3LIB=
+        fi
+      fi
+      if test -z "$PY3LIB"; then
+        AC_MSG_RESULT([Not found])
+      else
+        AC_MSG_RESULT($PY3LIB)
+      fi
+      AC_MSG_CHECKING([for Python 3.x library])
+      if test -z "$PY3LINK"; then
+        AC_MSG_RESULT(Not found)
+      else
+        AC_MSG_RESULT($PY3LINK)
+      fi
+    elif test -n "$PY3CONFIG"; then
+      AC_MSG_CHECKING([for Python 3.x prefix])
+      PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
+      AC_MSG_RESULT($PY3PREFIX)
+      AC_MSG_CHECKING(for Python 3.x exec-prefix)
+      PY3EPREFIX=`($PY3CONFIG --exec-prefix) 2>/dev/null`
+      AC_MSG_RESULT($PY3EPREFIX)
+
+      # Note: I could not think of a standard way to get the version string from different versions.
+      # This trick pulls it out of the file location for a standard library file.
+
+      AC_MSG_CHECKING([for Python 3.x version])
+
+      # Need to do this hack since autoconf replaces __file__ with the name of the configure file
+      filehack="file__"
+      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))")`
+      AC_MSG_RESULT($PY3VERSION)
+
+      # Find the directory for libraries this is necessary to deal with
+      # platforms that can have apps built for multiple archs: e.g. x86_64
+      AC_MSG_CHECKING([for Python 3.x lib dir])
+      PY3LIBDIR=`($PYTHON3 -c "import sys; print(sys.lib)") 2>/dev/null`
+      if test -z "$PY3LIBDIR"; then
+        # some dists don't have sys.lib  so the best we can do is assume lib
+        PY3LIBDIR="lib"
+      fi
+      AC_MSG_RESULT($PY3LIBDIR)
+
+      # Set the include directory
+
+      AC_MSG_CHECKING([for Python 3.x header files])
+      PY3INCLUDE=`($PY3CONFIG --includes) 2>/dev/null`
+      AC_MSG_RESULT($PY3INCLUDE)
+
+      # Set the library directory blindly.   This probably won't work with older versions
+      AC_MSG_CHECKING([for Python 3.x library directory])
+      dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
+      for i in $dirs; do
+        if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
+          PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
+          break
+        fi
+      done
+      if test -z "$PY3LIB"; then
+        AC_MSG_RESULT([Not found])
+      else
+        AC_MSG_RESULT($PY3LIB)
+      fi
+
+      PY3LINK="-l$PY3VERSION"
+
+      AC_MSG_CHECKING([for Python 3.x library])
+      if test -z "$PY3LINK"; then
+        AC_MSG_RESULT(Not found)
+      else
+        AC_MSG_RESULT($PY3LINK)
+      fi
+    fi
   fi
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
@@ -930,7 +1030,7 @@ fi
 
 if test -n "$OCTAVE"; then
    AC_MSG_CHECKING([for mkoctfile])
-   mkoctfile="`dirname ${OCTAVE}`/mkoctfile"
+   mkoctfile="$(dirname $OCTAVE)/$(basename $OCTAVE | sed -e 's/octave/mkoctfile/')"
    AS_IF([test -x "${mkoctfile}"],[
       AC_MSG_RESULT([${mkoctfile}])
    ],[
@@ -1108,48 +1208,62 @@ fi
 AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
+JAVAINC=""
 if test -z "$JAVAINCDIR" ; then
   JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
 
   # Add in default installation directory on Windows for Cygwin
   case $host in
-  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files/Java/jdk*/include d:/Program*Files/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
   *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
   *);;
   esac
-fi
 
-JAVAINC=""
-for d in $JAVAINCDIR ; do
-  if test -r "$d/jni.h" ; then
-    AC_MSG_RESULT($d)
-    JAVAINCDIR=$d
-    JAVAINC=-I\"$d\"
-    break
+  for d in $JAVAINCDIR ; do
+    if test -r "$d/jni.h" ; then
+      JAVAINCDIR=$d
+      JAVAINC=-I\"$d\"
+      break
+    fi
+  done
+else
+  if test -r "$JAVAINCDIR/jni.h" ; then
+    JAVAINC=-I\"$JAVAINCDIR\"
   fi
-done
+fi
 
 if test "$JAVAINC" = "" ; then
   AC_MSG_RESULT(not found)
 else
+  AC_MSG_RESULT($JAVAINC)
   # now look for <arch>/jni_md.h
   AC_MSG_CHECKING(for java include file jni_md.h)
   JAVAMDDIR=`find "$JAVAINCDIR" -follow -name jni_md.h -print`
   if test "$JAVAMDDIR" = "" ; then
     AC_MSG_RESULT(not found)
   else
-    JAVAMDDIR=`dirname "$JAVAMDDIR" | tail -1`
-    JAVAINC="${JAVAINC} -I\"$JAVAMDDIR\""
+    JAVAMDDIR=-I\"`dirname "$JAVAMDDIR" | tail -1`\"
     AC_MSG_RESULT($JAVAMDDIR)
+    JAVAINC="${JAVAINC} ${JAVAMDDIR}"
   fi
 fi
+
+case $host in
+*-*-cygwin*)
+        # TODO: Only use this flag if the compiler supports it, later versions of gcc no longer have it
+        GCC_MNO_CYGWIN=" -mno-cygwin"
+        ;;
+*)
+        GCC_MNO_CYGWIN=""
+        ;;
+esac
 
 # java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a Cygwin built executable
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        JAVADYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
-        JAVACFLAGS="-mno-cygwin -mthreads"
+        JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+        JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
     else
         JAVADYNAMICLINKING=""
         JAVACFLAGS=""
@@ -1184,6 +1298,15 @@ case $host in
     ;;
 esac
 fi
+
+# Quote for spaces in path to executables
+if test -n "$JAVA"; then
+  JAVA=\"$JAVA\"
+fi
+if test -n "$JAVAC"; then
+  JAVAC=\"$JAVAC\"
+fi
+
 
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
@@ -1745,19 +1868,18 @@ AC_SUBST(PHPINC)
 # Look for ocaml
 #----------------------------------------------------------------
 
-AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml])
-AS_HELP_STRING([--with-ocaml=path], [Set location of ocaml executable]),[ OCAMLBIN="$withval"], [OCAMLBIN=yes])
+AC_ARG_WITH(ocaml, AS_HELP_STRING([--without-ocaml], [Disable OCaml]), [with_ocaml="$withval"], [with_ocaml=yes])
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path      Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
 AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
 AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
+AC_ARG_WITH(camlp4,[  --with-camlp4=path  Set location of camlp4 executable],[ CAMLP4="$withval"], [CAMLP4=])
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
-if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then
+if test x"${with_ocaml}" = xno -o x"${with_alllang}" = xno ; then
     AC_MSG_NOTICE([Disabling OCaml])
-    OCAMLBIN=
+    OCAMLC=
 else
-
     AC_MSG_CHECKING(for Ocaml DL load generator)
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
@@ -1773,60 +1895,22 @@ else
 	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
     fi
 
-    AC_MSG_CHECKING(for Ocaml interpreter)
-	if test "x$OCAMLBIN" = xyes; then
-	AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
-    fi
-
     AC_MSG_CHECKING(for Ocaml toplevel creator)
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
     fi
 
-    OCAMLLOC=loc
-    if test "$OCAMLC" != ":" ; then
-	AC_MSG_CHECKING(for Ocaml header files)
-	dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
-	dir="`$OCAMLC -where 2>/dev/null`"
-	if test "$dir"; then
-		dirs="$dir/caml $dirs"
-	fi
-	for i in $dirs; do
-		if test -r $i/mlvalues.h; then
-			AC_MSG_RESULT($i)
-			OCAMLEXT="$i"
-			OCAMLINC="-I$OCAMLEXT"
-			break
-		fi
-	done
-	if test -z "$OCAMLINC"; then
-		AC_MSG_RESULT(not found)
-	fi
-
-	AC_MSG_CHECKING(for Ocaml version 3.08.2 or higher)
-	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
-	AC_COMPARE_VERSION([$OCAMLVER],[3.08.2],[:],[:],[OCAMLLOC=_loc])
-	AC_MSG_RESULT($OCAMLVER)
+    AC_MSG_CHECKING(for Ocaml Pre-Processor-Pretty-Printer)
+    if test -z "$CAMLP4"; then
+	AC_CHECK_PROGS(CAMLP4, camlp4, :)
     fi
 fi # Disabling ocaml
 
-export OCAMLLOC
-export OCAMLVER
-export OCAMLINC
-export OCAMLBIN
-export OCAMLC
-export OCAMLDLGEN
-export OCAMLFIND
-export OCAMLMKTOP
-
-AC_SUBST(OCAMLLOC)
-AC_SUBST(OCAMLVER)
-AC_SUBST(OCAMLINC)
-AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLDLGEN)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLMKTOP)
+AC_SUBST(CAMLP4)
 
 #----------------------------------------------------------------
 # Look for Pike
@@ -2032,8 +2116,7 @@ else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
 fi
 
-CSHARPPATHSEPARATOR="/"
-CSHARPCYGPATH_W=echo
+CSHARPCONVERTPATH="Tools/convertpath -u"
 if test -z "$CSHARPBIN" ; then
   CSHARPCILINTERPRETER=""
   CSHARPCILINTERPRETER_FLAGS=""
@@ -2060,8 +2143,7 @@ if test -z "$CSHARPBIN" ; then
         CSHARPCILINTERPRETER_FLAGS="--debug"
     else
       if test "csc" = "$CSHARPCOMPILER"; then
-          CSHARPPATHSEPARATOR="\\\\"
-          CSHARPCYGPATH_W='cygpath -w'
+          CSHARPCONVERTPATH="Tools/convertpath -w"
       fi
     fi
   fi
@@ -2073,8 +2155,8 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        CSHARPDYNAMICLINKING=" -mno-cygwin -mthreads -Wl,--add-stdcall-alias"
-        CSHARPCFLAGS="-mno-cygwin -mthreads"
+        CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+        CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
     else
         CSHARPDYNAMICLINKING=""
         CSHARPCFLAGS=""
@@ -2104,11 +2186,10 @@ fi
 
 AC_SUBST(CSHARPCILINTERPRETER_FLAGS)
 AC_SUBST(CSHARPCILINTERPRETER)
-AC_SUBST(CSHARPPATHSEPARATOR)
-AC_SUBST(CSHARPCYGPATH_W)
+AC_SUBST(CSHARPCONVERTPATH)
 AC_SUBST(CSHARPCOMPILER)
 AC_SUBST(CSHARPDYNAMICLINKING)
-AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
+AC_SUBST(CSHARPLIBRARYPREFIX)
 AC_SUBST(CSHARPCFLAGS)
 AC_SUBST(CSHARPSO)
 
@@ -2319,109 +2400,116 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GO1=false
   GO12=false
   GO13=false
+  GO15=false
   GOGCC=false
+  GCCGO=
   GOOPT=
+  GCCGOOPT=
   GOVERSIONOPTION=
 else
 
   if test "x$GOBIN" = xyes; then
-    AC_CHECK_PROGS(GO, go 6g 8g gccgo)
+    AC_CHECK_PROGS(GO, go)
   else
     GO="$GOBIN"
   fi
 
   GOGCC=false
+  GCCGO=
   GO1=false
   GO12=false
   GO13=false
+  GO15=false
   GOOPT=
+  GCCGOOPT=
   GOVERSIONOPTION=
+
   if test -n "$GO" ; then
-    if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
-      GOGCC=true
-      GOVERSIONOPTION=--version
+    GO1=true
+    GOVERSIONOPTION=version
+    go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+    case "$go_version" in
+    go1 | go1.[[01234]]*)
+      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
+      ;;
+    *)
+      GOC=compile
+      ;;
+    esac
+    AC_MSG_CHECKING([whether go version is too old])
+    case $go_version in
+    go1.0* | go1 )
+      AC_MSG_RESULT([yes - minimum version is 1.1])
+      GO=
+      GOOPT="-intgosize 32"
+      ;;
+    *)
+      AC_MSG_RESULT([no])
+      case "$(go env GOARCH)" in
+      amd64 | arm64 | ppc64*)
+        GOOPT="-intgosize 64"
+	;;
+      *)
+        GOOPT="-intgosize 32"
+	;;
+      esac
+      ;;
+    esac
+    case $go_version in
+    go1.0* | go1 | go1.1*)
+      GOOPT="$GOOPT -use-shlib"
+      ;;
+    go1.2*)
+      GO12=true
+      ;;
+    go1.3* | go1.4*)
+      GO13=true
+      ;;
+    *)
+      GO15=true
+      ;;
+    esac
+  fi
+
+  AC_CHECK_PROGS(GCCGO, gccgo)
+
+  if test -n "$GCCGO" ; then
+    if $GCCGO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       AC_MSG_CHECKING([whether gccgo version is too old])
       go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
       if test "x$go_version" = x; then
-        AC_MSG_RESULT([could not determine gccgo version - disabling Go])
-        GO=
+        AC_MSG_RESULT([could not determine gccgo version])
+        GCCGO=
       elif test "$go_version" -lt 470; then
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
-        GO=
+        GCCGO=
       else
-	AC_MSG_RESULT([no])
+        AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
-          GOOPT="-intgosize 32"
-	else
-	  AC_CHECK_SIZEOF([void *], [4])
-	  if test "$ac_cv_sizeof_void_p" = "8"; then
-	    GOOPT="-intgosize 64"
-	  else
-	    GOOPT="-intgosize 32"
-	  fi
+          GCCGOOPT="-intgosize 32"
+        else
+          AC_CHECK_SIZEOF([void *], [4])
+          if test "$ac_cv_sizeof_void_p" = "8"; then
+            GCCGOOPT="-intgosize 64"
+          else
+            GCCGOOPT="-intgosize 32"
+          fi
         fi
       fi
-    elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
-      GO1=true
-      GOVERSIONOPTION=version
-      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
-      go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
-      AC_MSG_CHECKING([whether go version is too old])
-      case $go_version in
-      go1.0* | go1 )
-	AC_MSG_RESULT([yes - minimum version is 1.1])
-	GO=
-	GOOPT="-intgosize 32"
-	;;
-      *)
-	AC_MSG_RESULT([no])
-	if test "$GOC" = "6c"; then
-          GOOPT="-intgosize 64"
-        else
-          GOOPT="-intgosize 32"
-	fi
-	;;
-      esac
-      case $go_version in
-      go1.0* | go1 | go1.1*)
-	GOOPT="$GOOPT -use-shlib"
-	;;
-      go1.2*)
-        GO12=true
-	;;
-      *)
-	GO13=true
-	;;
-      esac
-    else
-      GOC=`echo $GO | sed -e 's/g/c/'`
-      GOVERSIONOPTION=-V
-      AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      AC_MSG_RESULT([yes - minimum version is 1.1])
-      GO=
-      dnl Old code retained for now in case we implement an option for it.
-      dnl go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
-      dnl go_min_version=7077
-      dnl if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
-      dnl   AC_MSG_RESULT([yes - minimum version is $go_min_version])
-      dnl   GO=
-      dnl else
-      dnl   AC_MSG_RESULT([no])
-      dnl fi
-      GOOPT="-intgosize 32"
-      GO12=false
-      GO13=false
     fi
   fi
 fi
 
 AC_SUBST(GOGCC)
+AC_SUBST(GCCGO)
 AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
 AC_SUBST(GO12)
 AC_SUBST(GO13)
+AC_SUBST(GO15)
 AC_SUBST(GOOPT)
+AC_SUBST(GCCGOOPT)
 AC_SUBST(GOVERSIONOPTION)
 
 #----------------------------------------------------------------
@@ -2534,14 +2622,14 @@ AC_SUBST(SKIP_OCTAVE)
 
 
 SKIP_PYTHON=
-if (test -z "$PYINCLUDE") &&
-   (test -z "$PY3INCLUDE") ; then
+if (test -z "$PYINCLUDE" || test -z "$PYLINK") &&
+   (test -z "$PY3INCLUDE" || test -z "$PY3LINK") ; then
     SKIP_PYTHON="1"
 fi
 AC_SUBST(SKIP_PYTHON)
 
 SKIP_PYTHON3=
-if test -z "$PY3INCLUDE" ; then
+if test -z "$PY3INCLUDE" || test -z "$PY3LINK" ; then
     SKIP_PYTHON3="1"
 fi
 AC_SUBST(SKIP_PYTHON3)
@@ -2587,7 +2675,7 @@ AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
-if test -z "$OCAMLBIN" || test -z "$OCAMLINC" ; then
+if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
 fi
 AC_SUBST(SKIP_OCAML)
@@ -2701,15 +2789,21 @@ AC_SUBST(SKIP_ANDROID)
 # Miscellaneous
 #----------------------------------------------------------------
 
+ABS_SRCDIR=`(cd ${srcdir} && pwd)`
 
 # Root directory
-# Translate path for native Windows compilers for use with 'make check'
 ROOT_DIR=`pwd`
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin*)
+  # Translate path for native Windows compilers for use with 'make check'
   if (cygpath --mixed $ROOT_DIR) >/dev/null 2>/dev/null; then
     ROOT_DIR=`cygpath --mixed $ROOT_DIR`
   fi
+  ;;
+esac
+
+case $host in
+*-*-cygwin* | *-*-mingw*)
   # Extra files generated by some Windows compilers
   EXTRA_CLEAN="*.stackdump *.exp *.lib *.pdb *.ilk"
   ;;
@@ -2733,6 +2827,14 @@ case $build in
         *) SWIG_LIB_WIN_UNIX="";;
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
+
+# For testing - Windows builds of SWIG do not need SWIG_LIB set
+AC_EGREP_CPP([yes],
+[#ifdef _WIN32
+  yes
+#endif
+], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
+AC_SUBST(SWIG_LIB_PREINST)
 
 AC_CONFIG_FILES([
     Makefile

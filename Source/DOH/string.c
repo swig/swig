@@ -687,7 +687,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     return 0;
 
   base = str->str;
-  tokenlen = strlen(token);
+  tokenlen = (int)strlen(token);
   s = (*match) (base, base, token, tokenlen);
 
   if (!s)
@@ -724,7 +724,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   }
 
   first = s;
-  replen = strlen(rep);
+  replen = (int)strlen(rep);
 
   delta = (replen - tokenlen);
 

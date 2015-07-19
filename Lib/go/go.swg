@@ -533,7 +533,7 @@
 %typemap(directorin) enum SWIGTYPE & (intgo e)
 %{
   e = (intgo)$1;
-  $input = &e;
+  $input = ($1_ltype)&e;
 %}
 
 %typemap(godirectorin) enum SWIGTYPE & ""

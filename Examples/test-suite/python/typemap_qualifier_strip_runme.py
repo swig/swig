@@ -51,4 +51,3 @@ if typemap_qualifier_strip.testD3(val) != 111:
 
 if typemap_qualifier_strip.testD4(val) != 111:
     raise RuntimeError
-

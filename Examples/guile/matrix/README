@@ -6,7 +6,7 @@ type the following :
 
 Alternatively, use the command-line:
 
-	./matrix -e do-test -s runme.scm
+	./my-guile -e do-test -s runme.scm
 
 Or, if your operating system is spiffy enough:
 

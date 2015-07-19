@@ -1,6 +1,6 @@
 %module xxx
 
-#ifdef FOO
+#ifndef FOO
 long long i;
 /* Check we get an error for an unknown directive (this should be #elif).
  * Unknown directives were silently ignored by SWIG < 3.0.3. */

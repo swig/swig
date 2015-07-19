@@ -8,22 +8,22 @@ r.MF_extend_function_after()
 GF_global_function()
 
 if r.MV_member_variable != 123:
-  raise RuntimeError("variable wrong")
-r.MV_member_variable = 1234;
+    raise RuntimeError("variable wrong")
+r.MV_member_variable = 1234
 if r.MV_member_variable != 1234:
-  raise RuntimeError("variable wrong")
+    raise RuntimeError("variable wrong")
 
 if cvar.RenamePredicates_MV_static_member_variable != 456:
-  raise RuntimeError("variable wrong")
-cvar.RenamePredicates_MV_static_member_variable = 4567;
+    raise RuntimeError("variable wrong")
+cvar.RenamePredicates_MV_static_member_variable = 4567
 if cvar.RenamePredicates_MV_static_member_variable != 4567:
-  raise RuntimeError("variable wrong")
+    raise RuntimeError("variable wrong")
 
 if cvar.GV_global_variable != 789:
-  raise RuntimeError("variable wrong")
-cvar.GV_global_variable = 7890;
+    raise RuntimeError("variable wrong")
+cvar.GV_global_variable = 7890
 if cvar.GV_global_variable != 7890:
-  raise RuntimeError("variable wrong")
+    raise RuntimeError("variable wrong")
 
 UC_UPPERCASE()
 LC_lowercase()

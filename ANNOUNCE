@@ -1,8 +1,8 @@
-*** ANNOUNCE: SWIG 3.0.6 (in progress) ***
+*** ANNOUNCE: SWIG 3.0.7 (in progress) ***
 
 http://www.swig.org
 
-We're pleased to announce SWIG-3.0.6, the latest SWIG release.
+We're pleased to announce SWIG-3.0.7, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -22,11 +22,11 @@ Availability
 ============
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-3.0.6.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-3.0.7.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-3.0.6.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-3.0.7.zip
 
 Please report problems with this release to the swig-devel mailing list,
 details at http://www.swig.org/mail.html.

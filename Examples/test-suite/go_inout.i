@@ -56,14 +56,14 @@ type In json.Marshaler
 
 %typemap(imtype) RetStruct "string"
 
-%typemap(out) RetStruct
+%typemap(out,fragment="AllocateString") RetStruct
 %{
-  $result = _swig_makegostring($1.str.data(), $1.str.length());
+  $result = Swig_AllocateString($1.str.data(), $1.str.length());
 %}
 
-%typemap(goout) RetStruct
+%typemap(goout,fragment="CopyString") RetStruct
 %{
-	if err := json.Unmarshal([]byte($1), &$result); err != nil {
+	if err := json.Unmarshal([]byte(swigCopyString($1)), &$result); err != nil {
 		panic(err)
 	}
 %}
@@ -146,7 +146,7 @@ static void putuint64(std::string *s, size_t off, uint64_t v) {
 %}
 
 // Pack the vector into a string.
-%typemap(argout) MyArray*
+%typemap(argout,fragment="AllocateString") MyArray*
 %{
   {
     size_t tot = 8;
@@ -164,15 +164,15 @@ static void putuint64(std::string *s, size_t off, uint64_t v) {
       str.replace(off, p->size(), *p);
       off += p->size();
     }
-    *$input = _swig_makegostring(str.data(), str.size());
+    *$input = Swig_AllocateString(str.data(), str.size());
   }
 %}
 
 // Unpack the string into a []string.
-%typemap(goargout) MyArray*
+%typemap(goargout,fragment="CopyString") MyArray*
 %{
 	{
-		str := *$input
+		str := swigCopyString(*$input)
 		bin := binary.LittleEndian
 		size := bin.Uint64([]byte(str[:8]))
 		str = str[8:]

@@ -3,6 +3,208 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.6 (5 Jul 2015)
+==========================
+
+2015-07-02: wsfulton
+	    Fix syntax error when the template keyword is used in types, eg:
+
+              std::template vector<int> v;
+
+2015-07-02: ngladitz
+	    [Lua] Push characters as unformatted 1-character strings to avoid
+	    unprintable characters such as (char)127 being converted to
+	    "<\127>" with Lua 5.3 and later.  (github PR #452)
+
+2015-06-29: olly
+	    [Python] Improve handling of whitespace in %pythoncode.
+
+	    Previously SWIG looked at the indentation of the first line and
+	    removed that many characters from each subsequent line, regardless
+	    of what those characters were.  This was made worse because SWIG's
+	    preprocessor removes any whitespace before a '#'.  Fixes github
+	    issue #379, reported by Joe Orton.
+
+2015-06-12: wsfulton
+	    [R] Fix #430 - call to SWIG_createNewRef in copyToC was incorrectly named.
+
+2015-06-11: sghirate
+	    [C#] Patch #427 adds in new command line option -outfile to combine all the
+            generated C# code into a single file.
+
+2015-06-09: wsfulton
+	    Fix seg fault processing C++11 type aliasing. Issue #424.
+
+2015-05-28: wsfulton
+	    [Python] Add new feature "python:cdefaultargs" to control default argument
+            code generation. By default, SWIG attempts to convert C/C++ default argument values
+            into Python values and generates code into the Python layer with these values.
+            Recent versions of SWIG are able to convert more of these values, however, the
+            new behaviour can be circumvented if desired via this new feature, such that
+            the default argument values are obtained from the C layer and not the Python layer.
+            For example:
+
+              struct CDA {
+                int fff(int a = 1, bool b = false);
+              };
+
+            The default code generation in the Python layer is:
+
+              class CDA(_object):
+                  ...
+                  def fff(self, a=1, b=False):
+                      return _default_args.CDA_fff(self, a, b)
+
+            Adding the feature:
+
+              %feature("python:cdefaultargs") CDA::fff;
+
+            Results in:
+
+              class CDA(_object):
+                  ...
+                  def fff(self, *args):
+                      return _default_args.CDA_fff(self, *args)
+
+            Some code generation modes, eg -builtin and -fastproxy, are unaffected by this as
+            the default values are always obtained from the C layer.
+
+2015-05-27: wsfulton
+	    [Python] Deal with an integer as the default value of a typedef to bool
+	    parameter in the C++ prototype.  See #327. Regression from 3.0.0 onwards.
+
+2015-05-19: olly
+	    [Python] Fix warning when compiling generated code with MSVC.
+	    (Fixes https://sourceforge.net/p/swig/patches/351/ reported by
+	    Mateusz Szyma¿ski).
+
+2015-05-14: wsfulton
+            Fix seg fault wrapping shared_ptr of classes with private constructors and destructors. 
+            This also fixes the "unref" feature when used on classes with private destructors.
+
+2015-05-10: wsfulton
+            [Java] Fix multi-argument typemaps (char *STRING, size_t LENGTH)
+            so that they can be applied to a wider range of types. Fixes #385.
+
+2015-05-07: olly
+	    [Python] Deal with an integer as the default value of a bool
+	    parameter in the C++ prototype.  Fixes github #327, reported by
+	    Greg Allen.
+
+2015-05-07: LindleyF
+	    [Java] Allow feature("director") and feature("ref") to be used
+	    together.  Github PR#403.
+
+2015-05-05: olly
+	    Suppress warning 325 "Nested class not currently supported (Foo
+	    ignored)" when Foo has already been explicitly ignored with "%ignore".
+
+2015-05-04: wsfulton
+            Add support for friend templates, including operator overloading - fixes #196. Considering
+            the example below, previously the operator gave a syntax error and friendfunc incorrectly
+            warned with:
+
+             "Warning 503: Can't wrap 'friendfunc<(Type)>' unless renamed to a valid identifier."
+
+              template <class Type> class MyClass {
+                friend int friendfunc <Type>(double is, MyClass <Type> & x);
+                friend int operator<< <Type>(double un, const MyClass <Type> &x);
+              };
+
+            The following also previously incorrectly warned with:
+
+              "Warning 302: Identifier 'template_friend' redefined (ignored),"
+
+              template<typename T> T template_friend(T);
+              struct MyTemplate {
+                template<typename T> friend T template_friend(T);
+              };
+
+2015-05-01: wsfulton
+            Fix handling of conversion operators where the operator is split over multiple
+            lines or has comments within the operator type. Fixes #401.
+
+            Also fix similar problem with normal operators which gave a syntax error if split over
+            multiple lines or had a comment within the operator declaration.
+
+2015-04-30: olly
+	    Ignore unknown preprocessor directives which are inside an inactive
+	    conditional (github issue #394, reported by Dan Wilcox).
+	    Regression introduced in 3.0.3.
+
+2015-04-27: vadz
+            [Python] Fix "default" typemap used after an argument with "numinputs=0" (#377).
+
+2015-04-24: wsfulton
+            [Python] Fix #256. Code generated with '-builtin -modernargs' segfaults for any
+            method taking zero arguments.
+
+            Also fixes: "SystemError: error return without exception set" during error checking
+            when using just -builtin and the incorrect number of arguments is passed to a class
+            method expecting zero arguments.
+
+2015-04-23: wsfulton
+            [Java] Bug #386 - Memory leak fix in (char *STRING, size_t LENGTH) typemaps.
+
+2015-04-23: vadz
+            [Python] Make "default" typemap work again (#330, #377).
+
+2015-04-23: vadz
+            [Python] Fix the use of default values for the pointer types (#365, #376).
+
+2015-04-23: wsfulton
+            Fix 'make check-ccache' which is part of 'make check' when one of the CCACHE_
+            environment variables, for example CCACHE_DISABLE, is set.
+
+2015-04-14: wsfulton
+            Clearer warning message for badly constructed typecheck typemaps. For example, was:
+
+              example.i:3: Warning 467: Overloaded foo(int) not supported (no type checking
+              rule for 'int').
+
+            Now:
+
+              example.i:3: Warning 467: Overloaded foo(int) not supported (incomplete type checking
+              rule - no precedence level in typecheck typemap for 'int').
+
+2015-04-11: wsfulton
+            [Java] Fix #353 - Linker multiple definition of 'ExceptionMatches' when
+            using directors and multiple modules.
+
+2015-04-11: wsfulton
+            Merge #320 - Make __dict__ accessible for Python builtin classes.
+
+2015-04-07: wsfulton
+            Fix #375 - parsing of extern "C" and typedef for example:
+              extern "C" typedef void (*Hook2_t)(int, const char *);
+              extern "C" typedef int Integer;
+
+2015-03-12: olly
+	    -DSWIG_DIRECTOR_STATIC is now supported for all languages with
+	    director support, not only Python and PHP.
+
+2015-03-02: ianlancetaylor
+	    [Go] Add -cgo option, required for Go versions 1.5 and
+	    later.
+
+2015-02-26: olly
+	    Fix segmentation fault when top==NULL, introduced by nested class
+	    handling (reported in issue#346 by Pawe¿ Tomulik).
+
+2015-02-09: wsfulton
+            [Guile] Fix generated code for static const char member variables when
+            defined and declared inline.
+
+2015-02-09: mishas
+            [Go] Fix %import of files in sub directories.
+
+2015-02-05: ianlancetaylor
+            [Go] Ignore Go specific type maps (goin, goout, etc.) if they are empty.
+
+2015-02-05: ianlancetaylor
+            [Go] Generated Go code no longer calls _swig_goallocate or
+            _swig_makegostring, as they will no longer work as of Go 1.5.
+
 Version 3.0.5 (31 Jan 2015)
 ===========================
 
@@ -99,6 +301,10 @@ Version 3.0.3 (30 Dec 2014)
 2014-10-28: vadz
             [Python] Patch #201 The generated .py file no longer uses *args for all Python parameters.
             Instead, the parameters are named using the C++ parameter names.
+
+            "compactdefaultargs" feature can be enabled to restore the old behaviour.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2014-10-24: timotheecour
             [D] Patch #204 Use core.atomic.atomicOp to mutate shared variables
@@ -10707,7 +10913,7 @@ Version 1.3.23 (November 11, 2004)
 
 	      now if you have
 	      
-	      %pythonnondynamic(1) A;
+	      %pythonnondynamic A;
 	      
 	      struct A {
 	       int a;
@@ -10725,11 +10931,11 @@ Version 1.3.23 (November 11, 2004)
 	    
 	    Since this is a feature, you can use
 
-	      %pythonnondynamic(1);
+	      %pythonnondynamic;
 
             or 
 
-	      %pythondynamic(0); [ Note: %pythondynamic since deprecated ]
+	      %pythondynamic; [ Note: %pythondynamic since deprecated ]
    
 	    to force all the wrapped classes to be "nondynamic" ones.
 

@@ -264,8 +264,8 @@ x
 setAs('ExternalReference', 'character',
 function(from) {if (!is.null(from$"__str__")) from$"__str__"()})
 
-setMethod('print', 'ExternalReference',
-function(x) {print(as(x, "character"))})
+suppressWarnings(setMethod('print', 'ExternalReference',
+function(x) {print(as(x, "character"))}))
 %}
 
 

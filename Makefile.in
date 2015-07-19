@@ -409,7 +409,7 @@ clean-ccache:
 # DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log preinst-swig
 
 distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
@@ -570,8 +570,9 @@ dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
 srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
-	@echo "not implemented - use Tools/mkdist.py instead."
-	false
+	@echo "'make dist' not implemented - use Tools/mkdist.py instead - e.g.:"
+	@echo "Tools/mkdist.py @VERSION@ master"
+	@false
 
 srcrpm:
 	rm -fr $(srpm) $(srpm).src.rpm

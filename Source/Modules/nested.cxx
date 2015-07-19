@@ -340,6 +340,8 @@ static void insertNodeAfter(Node *n, Node *c) {
 }
 
 void Swig_nested_name_unnamed_c_structs(Node *n) {
+  if (!n)
+    return;
   if (!classhash)
     classhash = Getattr(n, "classes");
   Node *c = firstChild(n);
@@ -427,6 +429,8 @@ static void remove_outer_class_reference(Node *n) {
 }
 
 void Swig_nested_process_classes(Node *n) {
+  if (!n)
+    return;
   Node *c = firstChild(n);
   while (c) {
     Node *next = nextSibling(c);

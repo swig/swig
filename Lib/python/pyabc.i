@@ -1,7 +1,7 @@
 %define %pythonabc(Type, Abc)
   %feature("python:abc", #Abc) Type;
 %enddef
-%pythoncode {import collections};
+%pythoncode %{import collections%}
 %pythonabc(std::vector, collections.MutableSequence);
 %pythonabc(std::list, collections.MutableSequence);
 %pythonabc(std::map, collections.MutableMapping);

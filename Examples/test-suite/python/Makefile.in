@@ -61,6 +61,7 @@ CPP_TEST_CASES += \
 	python_director \
 	python_nondynamic \
 	python_overload_simple_cast \
+	python_pythoncode \
 	python_richcompare \
 	simutry \
 	std_containers \
@@ -125,17 +126,14 @@ py_runme  = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 py2_runme = $(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
 py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
 
-check_pep8 = \
-	if [ -n "$(PEP8)" ]; then \
-	  $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py;\
-	fi
+ifneq (,$(PEP8))
+check_pep8 = $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py
 
 check_pep8_multi_cpp = \
-	if [ -n "$(PEP8)" ]; then \
-	  for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(PEP8) $(PEP8_FLAGS) $$f.py; \
-	  done \
-	fi
+	done
+endif
 
 run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(py_runme)
 

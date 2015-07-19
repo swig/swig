@@ -227,13 +227,12 @@ namespace Swig {
     }
 
   public:
-    /* wrap a Perl object, optionally taking ownership */
+    /* wrap a Perl object. */
     Director(SV *pkg) : swig_disown_flag(false) {
       STRLEN len;
       char *str = SvPV(pkg, len);
       swig_class = std::string(str, len);
       swig_self = newRV_inc((SV *)newHV());
-      swig_incref();
     }
 
     /* discard our reference at destruction */

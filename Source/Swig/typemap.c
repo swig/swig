@@ -1844,7 +1844,7 @@ static List *split_embedded_typemap(String *s) {
       }
     }
     if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
-      String *tmp = NewStringWithSize(start, c - start);
+      String *tmp = NewStringWithSize(start, (int)(c - start));
       Append(args, tmp);
       Delete(tmp);
       start = c + 1;
@@ -1915,10 +1915,10 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
       c++;
     }
     if (end) {
-      dollar_typemap = NewStringWithSize(start, (end - start));
+      dollar_typemap = NewStringWithSize(start, (int)((end - start)));
       syntax_error = 0;
     } else {
-      dollar_typemap = NewStringWithSize(start, (c - start));
+      dollar_typemap = NewStringWithSize(start, (int)((c - start)));
     }
 
     if (!syntax_error) {
@@ -1963,7 +1963,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    char *eq = strchr(Char(parm), '=');
 	    char *c = Char(parm);
 	    if (eq && (eq - c > 0)) {
-	      String *name = NewStringWithSize(c, eq - c);
+	      String *name = NewStringWithSize(c, (int)(eq - c));
 	      String *value = NewString(eq + 1);
 	      Insert(name, 0, "$");
 	      Setattr(vars, name, value);
