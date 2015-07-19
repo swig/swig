@@ -80,6 +80,9 @@ matrix:
     # Occasional gcc internal compiler error
     - compiler: gcc
       env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+    # Occasional gcc internal compiler error
+    - compiler: gcc
+      env: SWIGLANG=octave SWIGJOBS=-j3 VER=4.0
     # Not quite working yet
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-classic
