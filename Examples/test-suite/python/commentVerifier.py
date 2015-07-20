@@ -1,4 +1,4 @@
-def check(got, expected):
+def check(got, expected, expected_builtin=None):
   if got is None:  # Absence of comment is equivalent to empty comment.
       got = ''
 
