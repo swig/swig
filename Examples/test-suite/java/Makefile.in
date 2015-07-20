@@ -96,7 +96,7 @@ setup = \
 # Doxygen test cases need to be compiled together with the CommentsParser class
 # which depends on com.sun.javadoc package which is located in this JAR.
 JAVA_CLASSPATH := .
-$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := $(JAVA_HOME)/lib/tools.jar:.
+$(DOXYGEN_TEST_CASES:=.cpptest): JAVA_CLASSPATH := "$(JAVA_HOME)/lib/tools.jar":.
 $(DOXYGEN_TEST_CASES:=.cpptest): DOXYGEN_COMMENT_PARSER := $(srcdir)/CommentParser.java
 
 # Compiles java files then runs the testcase. A testcase is only run if
