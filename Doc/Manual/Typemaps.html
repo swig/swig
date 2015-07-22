@@ -48,6 +48,8 @@
 <li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
 <li><a href="#Typemaps_special_macro_typemap">$typemap(method, typepattern)</a>
 </ul>
+<li><a href="#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
+<li><a href="#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
 </ul>
 <li><a href="#Typemaps_nn25">Common typemap methods</a>
 <ul>
@@ -2424,6 +2426,76 @@ The result is the following expansion
 %}
 </pre>
 </div>
+
+
+<H3><a name="Typemaps_special_variable_attributes"></a>11.4.5 Special variables and typemap attributes</H3>
+
+
+<p>
+As of SWIG-3.0.7 typemap attributes will also expand special variables and special variable macros.
+</p>
+
+<p>
+Example usage showing the expansion in the 'out' attribute (C# specific) as well as the main typemap body:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="$*1_ltype") unsigned int&amp; "$*1_ltype"
+</pre>
+</div>
+
+<p>
+is equivalent to the following as <tt>$*1_ltype</tt> expands to <tt>unsigned int</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="unsigned int") unsigned int&amp; "unsigned int"
+</pre>
+</div>
+
+<H3><a name="Typemaps_special_variables_and_macros"></a>11.4.6 Special variables combined with special variable macros</H3>
+
+
+<p>
+Special variables can also be used within special variable macros.
+The special variables are expanded before they are used in the special variable macros.
+</p>
+
+<p>
+Consider the following C# typemaps:
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype) unsigned int "uint"
+%typemap(cstype, out="$typemap(cstype, $*1_ltype)") unsigned int&amp; "$typemap(cstype, $*1_ltype)"
+</pre>
+</div>
+
+<p>
+Special variables are expanded first and hence the above is equivalent to:
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype) unsigned int "uint"
+%typemap(cstype, out="$typemap(cstype, unsigned int)") unsigned int&amp; "$typemap(cstype, unsigned int)"
+</pre>
+</div>
+
+<p>
+which then expands to:
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype) unsigned int "uint"
+%typemap(cstype, out="uint") unsigned int& "uint"
+</pre>
+</div>
+
 
 <H2><a name="Typemaps_nn25"></a>11.5 Common typemap methods</H2>
 

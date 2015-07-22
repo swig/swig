@@ -5,6 +5,41 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-22: wsfulton
+            Support for special variable expansion in typemap attributes. Example usage expansion
+            in the 'out' attribute (C# specific):
+
+              %typemap(ctype, out="$*1_ltype") unsigned int& "$*1_ltype"
+
+            is equivalent to the following as $*1_ltype expands to 'unsigned int':
+
+              %typemap(ctype, out="unsigned int") unsigned int& "unsigned int"
+
+            Special variables can be used within special variable macros too. Example usage expansion:
+
+              %typemap(cstype) unsigned int "uint"
+              %typemap(cstype, out="$typemap(cstype, $*1_ltype)") unsigned int& "$typemap(cstype, $*1_ltype)"
+
+            Special variables are expanded first and hence the above is equivalent to:
+
+              %typemap(cstype, out="$typemap(cstype, unsigned int)") unsigned int& "$typemap(cstype, unsigned int)"
+
+            which then expands to:
+
+              %typemap(cstype, out="uint") unsigned int& "uint"
+
+2015-07-22: lindleyf
+	    Apply patch #439 - support for $typemap() (aka embedded typemaps or special variable
+            macros) in typemap attributes. A simple example where $typemap() is expanded in the
+            'out' attribute (C# specific):
+
+              %typemap(cstype) unsigned int "uint"
+              %typemap(cstype, out="$typemap(cstype, unsigned int)") unsigned int& "$typemap(cstype, unsigned int)"
+
+            is equivalent to:
+
+              %typemap(cstype, out="uint") unsigned int& "uint"
+
 2015-07-18: m7thon
 	    [Python] Docstrings provided via %feature("docstring") are now quoted and added to
             the tp_doc slot when using python builtin classes (-builtin). When no docstring is
