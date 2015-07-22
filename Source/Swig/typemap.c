@@ -1397,6 +1397,22 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     String *value = Copy(Getattr(kw, "value"));
     String *kwtype = Getattr(kw, "type");
     char *ckwname = Char(Getattr(kw, "name"));
+    {
+      /* Expand special variables in typemap attributes. */
+      SwigType *ptype = Getattr(node, "type");
+      String *pname = Getattr(node, "name");
+      String *lname = Getattr(node, "lname");
+      SwigType *mtype = Getattr(node, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : ptype;
+      ParmList *parm_sublist;
+      typemap_replace_vars(value, NULL, matchtype, ptype, pname, lname, 1);
+
+      /* Expand special variable macros (embedded typemaps) in typemap attributes. */
+      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      Delete(parm_sublist);
+    }
     if (kwtype) {
       String *mangle = Swig_string_mangle(kwtype);
       Append(value, mangle);
@@ -1558,17 +1574,44 @@ String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *node, co
  * If this hash (tm) contains a linked list of parameters under its "kwargs"
  * attribute, add keys for each of those named keyword arguments to this
  * parameter for later use.
- * For example, attach the typemap attributes to p:
+ * For example, attach the typemap attributes to firstp (first parameter in parameter list):
  * %typemap(in, foo="xyz") ...
- * A new attribute called "tmap:in:foo" with value "xyz" is attached to p.
+ * A new attribute called "tmap:in:foo" with value "xyz" is attached to firstp.
+ * Also expands special variables and special variable macros in the typemap attributes.
  * ----------------------------------------------------------------------------- */
 
-static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method, Parm *p) {
+static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method, Parm *firstp, int nmatch) {
   String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");
+    int i;
+    Parm *p = firstp;
+    /* Expand special variables */
+    for (i = 0; i < nmatch; i++) {
+      SwigType *type = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      SwigType *mtype = Getattr(p, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : type;
+      typemap_replace_vars(value, NULL, matchtype, type, pname, lname, i + 1);
+      p = nextSibling(p);
+    }
+
+    /* Expand special variable macros (embedded typemaps).
+     * Special variable are expanded first above as they might be used in the special variable macros.
+     * For example: $typemap(imtype, $2_type). */
+    p = firstp;
+    for (i = 0; i < nmatch; i++) {
+      SwigType *type = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      ParmList *parm_sublist = NewParmWithoutFileLineInfo(type, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      p = nextSibling(p);
+    }
     if (type) {
       Hash *v = NewHash();
       Setattr(v, "type", type);
@@ -1578,13 +1621,13 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
     }
     Clear(temp);
     Printf(temp, "%s:%s", tmap_method, Getattr(kw, "name"));
-    Setattr(p, typemap_method_name(temp), value);
+    Setattr(firstp, typemap_method_name(temp), value);
     Delete(value);
     kw = nextSibling(kw);
   }
   Clear(temp);
   Printf(temp, "%s:match_type", tmap_method);
-  Setattr(p, typemap_method_name(temp), Getattr(tm, "type"));
+  Setattr(firstp, typemap_method_name(temp), Getattr(tm, "type"));
   Delete(temp);
 }
 
@@ -1779,7 +1822,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
     Setattr(firstp, typemap_method_name(temp), p);
 
     /* Attach kwargs */
-    typemap_attach_kwargs(tm, tmap_method, firstp);
+    typemap_attach_kwargs(tm, tmap_method, firstp, nmatch);
 
     /* Replace the argument number */
     sprintf(temp, "%d", argnum);
