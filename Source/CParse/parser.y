@@ -4390,8 +4390,8 @@ cpp_members  : cpp_member cpp_members {
 	       appendChild($$,$4);
 	       set_nextSibling($$,$7);
 	     }
-         | include_directive { $$ = $1; }
-         | empty { $$ = 0;}
+             | include_directive { $$ = $1; }
+             | empty { $$ = 0;}
 	     | error {
 	       int start_line = cparse_line;
 	       skip_decl();
@@ -4806,10 +4806,10 @@ parms          : rawparms {
                  Parm *p;
 		 $$ = $1;
 		 p = $1;
-		 while (p) {
+                 while (p) {
 		   Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
 		   p = nextSibling(p);
-		 }
+                 }
                }
     	       ;
 
@@ -4823,7 +4823,7 @@ rawparms          : parm ptail {
 ptail          : COMMA parm ptail {
                  set_nextSibling($2,$3);
 		 $$ = $2;
-               }
+                }
 	       | COMMA doxygen_post_comment parm ptail {
 		 set_comment(previousNode, $2);
                  set_nextSibling($3,$4);
