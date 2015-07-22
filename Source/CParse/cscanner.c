@@ -53,6 +53,52 @@ static int rename_active = 0;
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
 
+int isStructuralDoxygen(String *s){
+	static const char* const structuralTags[] = {
+	  "addtogroup",
+	  "callgraph",
+	  "callergraph",
+	  "category",
+	  "def",
+	  "defgroup",
+	  "dir",
+	  "example",
+	  "file",
+	  "headerfile",
+	  "internal",
+	  "mainpage",
+	  "name",
+	  "nosubgrouping",
+	  "overload",
+	  "package",
+	  "page",
+	  "protocol",
+	  "relates",
+	  "relatesalso",
+	  "showinitializer",
+	  "weakgroup",
+	};
+
+	unsigned n;
+	char *slashPointer = Strchr(s, '\\');
+	char *atPointer = Strchr(s,'@');
+	if (slashPointer == NULL && atPointer == NULL) return 0;
+	else if( slashPointer == NULL) slashPointer = atPointer;
+
+	slashPointer++; /* skip backslash or at sign */
+
+	for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+	  const size_t len = strlen(structuralTags[n]);
+	  if (strncmp(slashPointer, structuralTags[n], len) == 0) {
+	    /* Take care to avoid false positives with prefixes of other tags. */
+	    if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
+	      return 1;
+	  }
+	}
+
+	return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
  * ----------------------------------------------------------------------------- */
@@ -376,21 +422,25 @@ static int yylook(void) {
 	  Scanner_locator(scan, cmt);
 	}
 	if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
-	  if (strncmp(loc, "/**<", 4) == 0 || strncmp(loc, "///<", 4) == 0||strncmp(loc, "/*!<", 4) == 0||strncmp(loc, "//!<", 4) == 0) {
-	    /* printf("Doxygen Post Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
-	    yylval.str =  NewString(loc);
-	    Setline(yylval.str, Scanner_start_line(scan));
-	    Setfile(yylval.str, Scanner_file(scan));
-	    return DOXYGENPOSTSTRING;
-	  }
-	  if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
-	    /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
-	    /* ignore comments like / * * * and / * * /,  which are also ignored by Doxygen */
-	    if (loc[3] != '*'  &&  loc[3] != '/') {
-	      yylval.str =  NewString(loc);
+	  /* Check for all possible Doxygen comment start markers while ignoring
+	     comments starting with a row of asterisks or slashes just as
+	     Doxygen itself does. */
+	  if (Len(cmt) > 3 && loc[0] == '/' &&
+	      ((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
+	       (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*') || loc[2] == '!')))) {
+	    int is_post_comment = loc[3] == '<';
+
+	    if (is_post_comment || !isStructuralDoxygen(loc)) {
+	      int begin = is_post_comment ? 4 : 3;
+	      int end = Len(cmt);
+	      if (loc[end - 1] == '/' && loc[end - 2] == '*') {
+		end -= 2;
+	      }
+
+	      yylval.str =  NewStringWithSize(loc + begin, end - begin);
 	      Setline(yylval.str, Scanner_start_line(scan));
 	      Setfile(yylval.str, Scanner_file(scan));
-	      return DOXYGENSTRING;
+	      return is_post_comment ? DOXYGENPOSTSTRING : DOXYGENSTRING;
 	    }
 	  }
 	}
@@ -930,7 +980,7 @@ int yylex(void) {
   case POUND:
     return yylex();
   case SWIG_TOKEN_COMMENT:
-	  return yylex();
+    return yylex();
   default:
     return (l);
   }

@@ -61,57 +61,11 @@ static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
 int		kwargs_supported = 0;
 /* -----------------------------------------------------------------------------
- *                            Doxygen Comment Globals and Assist Functions
+ *                            Doxygen Comment Globals
  * ----------------------------------------------------------------------------- */
 static String *currentDeclComment = NULL; /* Comment of C/C++ declaration. */
 static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
 static Node *currentNode = NULL; /* Pointer to the current node (for post comments) */
-
-int isStructuralDoxygen(String *s){
-	static const char* const structuralTags[] = {
-	  "addtogroup",
-	  "callgraph",
-	  "callergraph",
-	  "category",
-	  "def",
-	  "defgroup",
-	  "dir",
-	  "example",
-	  "file",
-	  "headerfile",
-	  "internal",
-	  "mainpage",
-	  "name",
-	  "nosubgrouping",
-	  "overload",
-	  "package",
-	  "page",
-	  "protocol",
-	  "relates",
-	  "relatesalso",
-	  "showinitializer",
-	  "weakgroup",
-	};
-
-	unsigned n;
-	char *slashPointer = Strchr(s, '\\');
-	char *atPointer = Strchr(s,'@');
-	if (slashPointer == NULL && atPointer == NULL) return 0;
-	else if( slashPointer == NULL) slashPointer = atPointer;
-
-	slashPointer++; /* skip backslash or at sign */
-
-	for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
-	  const size_t len = strlen(structuralTags[n]);
-	  if (strncmp(slashPointer, structuralTags[n], len) == 0) {
-	    /* Take care to avoid false positives with prefixes of other tags. */
-	    if (slashPointer[len] == '\0' || isspace(slashPointer[len]))
-	      return 1;
-	  }
-	}
-
-	return 0;
-}
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -1470,8 +1424,14 @@ static void mark_nodes_as_extend(Node *n) {
 %token <str> OPERATOR
 %token <str> CONVERSIONOPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
-%token <str> DOXYGENSTRING 
-%token <str> DOXYGENPOSTSTRING 
+
+/* Make Doxygen comment left associative to avoid shift/reduce conflicts for
+   several of them in a row, it doesn't really matter in which order we
+   concatenate them but this order must be defined. */
+%token <str> DOXYGENSTRING
+%left DOXYGENSTRING
+%token <str> DOXYGENPOSTSTRING
+%left DOXYGENPOSTSTRING
 
 %left  CAST
 %left  QUESTIONMARK
@@ -1546,9 +1506,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <node>     fname stringtype;
 %type <node>     featattr;
 %type <str>	 doxygen_comment;
-%type <str>	 doxygen_comment_item;
 %type <str>	 doxygen_post_comment;
-%type <str>	 doxygen_post_comment_item;
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <node>     optional_constant_directive;
@@ -3474,55 +3432,21 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
    A Doxygen Comment (a string in Doxygen Format)
    ------------------------------------------------------------ */
 
-doxygen_comment_item : DOXYGENSTRING {
-		  DohReplace($1, "/**", "", 0);
-		  DohReplace($1, "/*!", "", 0);
-		  DohReplace($1, "///", "", 0);
-		  DohReplace($1, "//!", "", 0);
-		  DohReplace($1, "*/", "", 0);
-
-		  /* Throw out all structural comments */
-		  if (isStructuralDoxygen($1)) {
-		    Delete($1);
-		    $1 = 0;
-		  }
-		  $$ = $1;
-		}
-		| doxygen_comment_item doxygen_comment_item {
-		  if ($1) {
-		    if ($2)
-		      Append($1, $2);
-		  }
-		  else {
-		    $1 = $2;
-		  }
-		  $$ = $1;
-		}
-		;
-
-doxygen_comment : doxygen_comment_item {
+doxygen_comment : DOXYGENSTRING {
                   $$ = $1;
 		}
-		;
-
-
-doxygen_post_comment_item : DOXYGENPOSTSTRING {
-		  DohReplace($1, "///<", "", 0);
-		  DohReplace($1, "/**<", "", 0);
-		  DohReplace($1, "/*!<", "", 0);
-		  DohReplace($1, "//!<", "", 0);
-		  DohReplace($1, "*/", "", 0);
-		  
-		  $$ = $1;
-		}
-		| doxygen_post_comment_item doxygen_post_comment_item {
+		| DOXYGENSTRING doxygen_comment {
 		  Append($1, $2);
 		  $$ = $1;
 		}
 		;
 
-doxygen_post_comment : doxygen_post_comment_item {
+doxygen_post_comment : DOXYGENPOSTSTRING {
                   $$ = $1;
+		}
+		| DOXYGENPOSTSTRING doxygen_post_comment {
+		  Append($1, $2);
+		  $$ = $1;
 		}
 		;
 
