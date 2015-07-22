@@ -56,8 +56,8 @@ endif
 COMPILETOOL=
 SWIGTOOL   =
 
-SWIG       = $(SWIGTOOL) $(top_builddir)/preinst-swig
-SWIG_LIB   = $(top_srcdir)/Lib
+SWIG       = $(SWIGTOOL) $(top_builddir)/swig
+export SWIG_LIB   = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
 CXXSRCS    = 
