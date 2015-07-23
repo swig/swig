@@ -2582,19 +2582,32 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
 
         String *upcall = NewStringf("[swigjobj %s%s]", methid, jupcall_args);
         if (!is_void) {
+            String *objcresult = NewString("objc_result");
+
+            String *objcrettype = NewString("");
+            if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+                substituteClassname(tm, type);
+                Printf(objcrettype, "%s", tm);
+            }
+
+            /* Note: it is important to keep objcresult alive until the end of scope, thus we need assignment here */
+            Printf(w->code, "%s %s = %s;\n", objcrettype, objcresult, upcall);
+
             Parm *tp = NewParm(returntype, empty_string, n);
 
             if ((tm = Swig_typemap_lookup("objcdirectorout", tp, "", 0))) {
                 substituteClassname(tm, returntype);
-                Replaceall(tm, "$objccall", upcall);
-                Printf(w->code, "jresult = %s;", tm);
+                Replaceall(tm, "$objccall", objcresult);
+                Printf(w->code, "jresult = %s;\n", tm);
             }
 
             Delete(tm);
             Delete(tp);
+            Delete(objcrettype);
+            Delete(objcresult);
         }
         else {
-            Printf(w->code, "%s;", upcall);
+            Printf(w->code, "%s;\n", upcall);
         }
         Delete(upcall);
 
