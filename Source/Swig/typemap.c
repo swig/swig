@@ -1318,6 +1318,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   char *cmethod = Char(tmap_method);
   int optimal_attribute = 0;
   int optimal_substitution = 0;
+  int delete_optimal_attribute = 0;
   int num_substitutions = 0;
   SwigType *matchtype = 0;
 
@@ -1372,7 +1373,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     Delete(typestr);
   }
 
-
   Delete(qpname);
   qpname = 0;
   Delete(noscope_pname);
@@ -1391,39 +1391,16 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   s = Copy(s);			/* Make a local copy of the typemap code */
 
-  /* Attach kwargs - ie the typemap attributes */
-  kw = Getattr(tm, "kwargs");
-  while (kw) {
-    String *value = Copy(Getattr(kw, "value"));
-    String *kwtype = Getattr(kw, "type");
-    char *ckwname = Char(Getattr(kw, "name"));
-    {
-      /* Expand special variables in typemap attributes. */
-      SwigType *ptype = Getattr(node, "type");
-      String *pname = Getattr(node, "name");
-      String *lname = Getattr(node, "lname");
-      SwigType *mtype = Getattr(node, "tmap:match");
-      SwigType *matchtype = mtype ? mtype : ptype;
-      ParmList *parm_sublist;
-      typemap_replace_vars(value, NULL, matchtype, ptype, pname, lname, 1);
-
-      /* Expand special variable macros (embedded typemaps) in typemap attributes. */
-      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
-      Setattr(parm_sublist, "lname", lname);
-      replace_embedded_typemap(value, parm_sublist, NULL, tm);
-      Delete(parm_sublist);
+  /* Look in the "out" typemap for the "optimal" attribute */
+  if (Cmp(cmethod, "out") == 0) {
+    kw = Getattr(tm, "kwargs");
+    while (kw) {
+      if (Cmp(Getattr(kw, "name"), "optimal") == 0) {
+	optimal_attribute = GetFlag(kw, "value");
+	break;
+      }
+      kw = nextSibling(kw);
     }
-    if (kwtype) {
-      String *mangle = Swig_string_mangle(kwtype);
-      Append(value, mangle);
-      Delete(mangle);
-    }
-    sprintf(temp, "%s:%s", cmethod, ckwname);
-    Setattr(node, typemap_method_name(temp), value);
-    if (Cmp(temp, "out:optimal") == 0)
-      optimal_attribute = (Cmp(value, "0") != 0) ? 1 : 0;
-    Delete(value);
-    kw = nextSibling(kw);
   }
   
   if (optimal_attribute) {
@@ -1454,14 +1431,15 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
         }
       }
       if (!optimal_substitution) {
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
-        Delattr(node, "tmap:out:optimal");
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
+	delete_optimal_attribute = 1;
       }
     } else {
       assert(!f);
     }
   }
+
   if (actioncode) {
     assert(f);
     Append(f->code, actioncode);
@@ -1501,6 +1479,41 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     replace_embedded_typemap(s, parm_sublist, f, tm);
     Delete(parm_sublist);
   }
+
+  /* Attach kwargs - ie the typemap attributes */
+  kw = Getattr(tm, "kwargs");
+  while (kw) {
+    String *value = Copy(Getattr(kw, "value"));
+    String *kwtype = Getattr(kw, "type");
+    char *ckwname = Char(Getattr(kw, "name"));
+    {
+      /* Expand special variables in typemap attributes. */
+      SwigType *ptype = Getattr(node, "type");
+      String *pname = Getattr(node, "name");
+      SwigType *mtype = Getattr(node, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : ptype;
+      ParmList *parm_sublist;
+      typemap_replace_vars(value, NULL, matchtype, ptype, pname, (char *)lname, 1);
+
+      /* Expand special variable macros (embedded typemaps) in typemap attributes. */
+      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      Delete(parm_sublist);
+    }
+    if (kwtype) {
+      String *mangle = Swig_string_mangle(kwtype);
+      Append(value, mangle);
+      Delete(mangle);
+    }
+    sprintf(temp, "%s:%s", cmethod, ckwname);
+    Setattr(node, typemap_method_name(temp), value);
+    Delete(value);
+    kw = nextSibling(kw);
+  }
+
+  if (delete_optimal_attribute)
+    Delattr(node, "tmap:out:optimal");
 
   Replace(s, "$name", pname, DOH_REPLACE_ANY);
 
