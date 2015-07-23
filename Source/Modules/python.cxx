@@ -2385,7 +2385,12 @@ public:
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
 
     Wrapper_add_local(f, "argc", "int argc");
-    Printf(tmp, "PyObject *argv[%d]", maxargs + 1);
+    String *zeros = NewString("0");
+    for (int i = 0; i < maxargs; ++ i) {
+      Append(zeros, ", 0");
+    }
+    Printf(tmp, "PyObject *argv[%d] = {%s}", maxargs + 1, zeros);
+    Delete(zeros);
     Wrapper_add_local(f, "argv", tmp);
 
     if (!fastunpack) {
