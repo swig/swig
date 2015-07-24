@@ -466,7 +466,7 @@ static void add_symbols(Node *n) {
     if (only_csymbol || GetFlag(n,"feature:ignore") || strncmp(Char(symname),"$ignore",7) == 0) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
-      if (strncmp(Char(symname),"$ignore",7) == 0) {
+      if (!only_csymbol & !GetFlag(n, "feature:ignore")) {
         char *c = Char(symname) + 7;
 	SetFlag(n, "feature:ignore");
 	if (strlen(c)) {
