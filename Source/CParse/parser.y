@@ -466,15 +466,15 @@ static void add_symbols(Node *n) {
     if (only_csymbol || GetFlag(n,"feature:ignore") || strncmp(Char(symname),"$ignore",7) == 0) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
-      if (!only_csymbol & !GetFlag(n, "feature:ignore")) {
+      if (!only_csymbol && !GetFlag(n, "feature:ignore")) {
         char *c = Char(symname) + 7;
-	SetFlag(n, "feature:ignore");
 	if (strlen(c)) {
 	  SWIG_WARN_NODE_BEGIN(n);
 	  Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
 	  SWIG_WARN_NODE_END(n);
 	}
       }
+      SetFlag(n, "feature:ignore");
     } else {
       Node *c;
       if ((wrn) && (Len(wrn))) {
