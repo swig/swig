@@ -467,6 +467,7 @@ static void add_symbols(Node *n) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
       if (!only_csymbol && !GetFlag(n, "feature:ignore")) {
+	/* Verify that explicit ignore is correct */
         char *c = Char(symname) + 7;
 	if (strlen(c)) {
 	  SWIG_WARN_NODE_BEGIN(n);
@@ -474,7 +475,10 @@ static void add_symbols(Node *n) {
 	  SWIG_WARN_NODE_END(n);
 	}
       }
-      SetFlag(n, "feature:ignore");
+      if (!GetFlag(n, "feature:ignore") && Strcmp(symname,"$ignore") == 0) {
+	/* Add feature:ignore only if the symbol was explicitely ignored, to enable e.g. making symbol visible later with "using" */
+	SetFlag(n, "feature:ignore");
+      }
     } else {
       Node *c;
       if ((wrn) && (Len(wrn))) {
