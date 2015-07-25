@@ -1463,7 +1463,7 @@ static void mark_nodes_as_extend(Node *n) {
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
-%type <node>     cpp_members cpp_member;
+%type <node>     cpp_members cpp_member cpp_member_no_dox;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_temp_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
@@ -1475,7 +1475,7 @@ static void mark_nodes_as_extend(Node *n) {
 %type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
-%type <p>        parm valparm rawvalparms valparms valptail ;
+%type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype access_specifier;
@@ -4407,7 +4407,7 @@ cpp_members  : cpp_member cpp_members {
 
 /* A class member.  May be data or a function. Static or virtual as well */
 
-cpp_member   : c_declaration { $$ = $1; }
+cpp_member_no_dox : c_declaration { $$ = $1; }
              | cpp_constructor_decl { 
                  $$ = $1; 
 		 if (extendmode && current_class) {
@@ -4442,11 +4442,15 @@ cpp_member   : c_declaration { $$ = $1; }
              | fragment_directive {$$ = $1; }
              | types_directive {$$ = $1; }
              | SEMI { $$ = 0; }
-             | doxygen_comment cpp_member {
+
+cpp_member   : cpp_member_no_dox {
+		$$ = $1;
+	     }
+             | doxygen_comment cpp_member_no_dox {
 	         $$ = $2;
 		 set_comment($2, $1);
 	     }
-             | cpp_member doxygen_post_comment {
+             | cpp_member_no_dox doxygen_post_comment {
 	         $$ = $1;
 		 set_comment($1, $2);
 	     }
@@ -4832,7 +4836,7 @@ ptail          : COMMA parm ptail {
                ;
 
 
-parm           : rawtype parameter_declarator {
+parm_no_dox	: rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParmWithoutFileLineInfo($1,$2.id);
 		   previousNode = currentNode;
@@ -4862,11 +4866,16 @@ parm           : rawtype parameter_declarator {
 		  Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		}
-		| doxygen_comment parm {
+		;
+
+parm		: parm_no_dox {
+		  $$ = $1;
+		}
+		| doxygen_comment parm_no_dox {
 		  $$ = $2;
 		  set_comment($2, $1);
 		}
-		| parm doxygen_post_comment {
+		| parm_no_dox doxygen_post_comment {
 		  $$ = $1;
 		  set_comment($1, $2);
 		}
