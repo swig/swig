@@ -1459,7 +1459,7 @@ static void mark_nodes_as_extend(Node *n) {
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
-%type <node>     enumlist edecl;
+%type <node>     enumlist enumlist_tail enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
@@ -1509,7 +1509,6 @@ static void mark_nodes_as_extend(Node *n) {
 %type <str>	 doxygen_post_comment;
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
-%type <node>     optional_constant_directive;
 %type <str>      virt_specifier_seq;
 
 %%
@@ -5946,28 +5945,69 @@ ename          :  identifier { $$ = $1; }
 	       |  empty { $$ = (char *) 0;}
 	       ;
 
-optional_constant_directive : constant_directive { $$ = $1; }
-		           | empty { $$ = 0; }
-		           ;
+optional_ignored_define
+		: constant_directive
+		| empty
+		;
+
+optional_ignored_define_after_comma
+		: empty
+		| COMMA
+		| COMMA constant_directive
+		;
 
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
-enumlist       :  enumlist COMMA optional_constant_directive edecl optional_constant_directive {
-		 Node *leftSibling = Getattr($1,"_last");
-		 set_nextSibling(leftSibling,$4);
-		 Setattr($1,"_last",$4);
-		 $$ = $1;
-	       }
-	       | enumlist COMMA optional_constant_directive {
-		 $$ = $1;
-	       }
-	       | optional_constant_directive edecl optional_constant_directive {
-		 Setattr($2,"_last",$2);
-		 $$ = $2;
-	       }
-	       | optional_constant_directive {
-		 $$ = 0;
-	       }
-	       ;
+enumlist	: enumlist_item optional_ignored_define_after_comma {
+		  Setattr($1,"_last",$1);
+		  $$ = $1;
+		}
+		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
+		  set_nextSibling($1, $2);
+		  Setattr($1,"_last",Getattr($2,"_last"));
+		  $$ = $1;
+		}
+		| optional_ignored_define {
+		  $$ = 0;
+		}
+		;
+
+enumlist_tail	: COMMA enumlist_item {
+		  Setattr($2,"_last",$2);
+		  $$ = $2;
+		}
+		| enumlist_tail COMMA enumlist_item {
+		  set_nextSibling(Getattr($1,"_last"), $3);
+		  Setattr($1,"_last",$3);
+		  $$ = $1;
+		}
+		;
+
+enumlist_item	: optional_ignored_define edecl_with_dox optional_ignored_define {
+		  $$ = $2;
+		}
+		;
+
+edecl_with_dox	: edecl {
+		  $$ = $1;
+		}
+		| doxygen_comment edecl {
+		  $$ = $2;
+		  set_comment($2, $1);
+		}
+		| edecl doxygen_post_comment {
+		  $$ = $1;
+		  set_comment($1, $2);
+		}
+		| doxygen_post_comment edecl {
+		  $$ = $2;
+		  set_comment(previousNode, $1);
+		}
+		| doxygen_post_comment edecl doxygen_post_comment {
+		  $$ = $2;
+		  set_comment(previousNode, $1);
+		  set_comment($2, $3);
+		}
+		;
 
 edecl          :  identifier {
 		   SwigType *type = NewSwigType(T_INT);
@@ -5987,19 +6027,6 @@ edecl          :  identifier {
 		   Setattr($$,"value",$1);
 		   Delete(type);
                  }
-		 | doxygen_comment edecl {
-		   $$ = $2;
-		   set_comment($2, $1);
-		 }
-		 | doxygen_post_comment edecl {
-		   $$ = $2;
-		   set_comment(previousNode, $1);
-		 }
-		 | edecl doxygen_post_comment {
-		   $$ = $1;
-		   set_comment($1, $2);
-		 }
-                 | empty { $$ = 0; previousNode = currentNode; currentNode = 0; }
                  ;
 
 etype            : expr {
