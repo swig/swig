@@ -13,11 +13,9 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
-/*
-Removed until we know more about the min versions of Bison and Yacc required for this
-to work, see Byacc man page: http://invisible-island.net/byacc/manpage/yacc.html
+/* There are 6 known shift-reduce conflicts in this file, fail compilation if any
+   more are introduced. */
 %expect 6
-*/
 
 %{
 #define yylex yylex
