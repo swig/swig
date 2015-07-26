@@ -1278,7 +1278,7 @@ public:
       if (doxygen && doxygenTranslator->hasDocumentation(n)){
         String *doxygen_comments=doxygenTranslator->getDocumentation(n);
         if(comment_creation_chatter) {
-          Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+          Printf(enum_code, "/* This was generated from enumDeclaration() */");
         }
         Printv(enum_code, Char(doxygen_comments), NIL);
         Delete(doxygen_comments);
@@ -1376,15 +1376,6 @@ public:
 
 	  Printv(f_enum, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), // Import statements
 		 "\n\n", NIL);
-	  
-	  //translate and write javadoc comment if flagged
-	  if (doxygen && doxygenTranslator->hasDocumentation(n)){
-	    String *doxygen_comments=doxygenTranslator->getDocumentation(n);
-	    if(comment_creation_chatter)
-	      Printf(f_enum, "/* This was generated from enumDeclaration() */");
-	    Printv(f_enum, Char(doxygen_comments), NIL);
-	    Delete(doxygen_comments);
-	  }
 	  
 	  Printv(f_enum, enum_code, "\n", NIL);
 
