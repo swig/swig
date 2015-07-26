@@ -1425,13 +1425,8 @@ static void mark_nodes_as_extend(Node *n) {
 %token <str> CONVERSIONOPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
 
-/* Make Doxygen comment left associative to avoid shift/reduce conflicts for
-   several of them in a row, it doesn't really matter in which order we
-   concatenate them but this order must be defined. */
 %token <str> DOXYGENSTRING
-%left DOXYGENSTRING
 %token <str> DOXYGENPOSTSTRING
-%left DOXYGENPOSTSTRING
 
 %left  CAST
 %left  QUESTIONMARK
@@ -1505,8 +1500,6 @@ static void mark_nodes_as_extend(Node *n) {
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
-%type <str>	 doxygen_comment;
-%type <str>	 doxygen_post_comment;
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq;
@@ -1562,11 +1555,11 @@ interface      : interface declaration {
                    appendChild($1,$2);
                    $$ = $1;
                }
-               | interface doxygen_comment {
+               | interface DOXYGENSTRING {
                    currentDeclComment = $2; 
                    $$ = $1;
                }
-               | interface doxygen_post_comment {
+               | interface DOXYGENPOSTSTRING {
                    Node *node = lastChild($1);
                    if (node) {
                        set_comment(node, $2);
@@ -3427,28 +3420,6 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                 }
                 ;
 
-/* ------------------------------------------------------------
-   A Doxygen Comment (a string in Doxygen Format)
-   ------------------------------------------------------------ */
-
-doxygen_comment : DOXYGENSTRING {
-                  $$ = $1;
-		}
-		| DOXYGENSTRING doxygen_comment {
-		  Append($1, $2);
-		  $$ = $1;
-		}
-		;
-
-doxygen_post_comment : DOXYGENPOSTSTRING {
-                  $$ = $1;
-		}
-		| DOXYGENPOSTSTRING doxygen_post_comment {
-		  Append($1, $2);
-		  $$ = $1;
-		}
-		;
-
 /* ======================================================================
  *                       C++ Support
  * ====================================================================== */
@@ -4446,11 +4417,11 @@ cpp_member_no_dox : c_declaration { $$ = $1; }
 cpp_member   : cpp_member_no_dox {
 		$$ = $1;
 	     }
-             | doxygen_comment cpp_member_no_dox {
+             | DOXYGENSTRING cpp_member_no_dox {
 	         $$ = $2;
 		 set_comment($2, $1);
 	     }
-             | cpp_member_no_dox doxygen_post_comment {
+             | cpp_member_no_dox DOXYGENPOSTSTRING {
 	         $$ = $1;
 		 set_comment($1, $2);
 	     }
@@ -4827,7 +4798,7 @@ ptail          : COMMA parm ptail {
                  set_nextSibling($2,$3);
 		 $$ = $2;
                 }
-	       | COMMA doxygen_post_comment parm ptail {
+	       | COMMA DOXYGENPOSTSTRING parm ptail {
 		 set_comment(previousNode, $2);
                  set_nextSibling($3,$4);
 		 $$ = $3;
@@ -4871,11 +4842,11 @@ parm_no_dox	: rawtype parameter_declarator {
 parm		: parm_no_dox {
 		  $$ = $1;
 		}
-		| doxygen_comment parm_no_dox {
+		| DOXYGENSTRING parm_no_dox {
 		  $$ = $2;
 		  set_comment($2, $1);
 		}
-		| parm_no_dox doxygen_post_comment {
+		| parm_no_dox DOXYGENPOSTSTRING {
 		  $$ = $1;
 		  set_comment($1, $2);
 		}
@@ -5999,19 +5970,19 @@ enumlist_item	: optional_ignored_define edecl_with_dox optional_ignored_define {
 edecl_with_dox	: edecl {
 		  $$ = $1;
 		}
-		| doxygen_comment edecl {
+		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
 		}
-		| edecl doxygen_post_comment {
+		| edecl DOXYGENPOSTSTRING {
 		  $$ = $1;
 		  set_comment($1, $2);
 		}
-		| doxygen_post_comment edecl {
+		| DOXYGENPOSTSTRING edecl {
 		  $$ = $2;
 		  set_comment(previousNode, $1);
 		}
-		| doxygen_post_comment edecl doxygen_post_comment {
+		| DOXYGENPOSTSTRING edecl DOXYGENPOSTSTRING {
 		  $$ = $2;
 		  set_comment(previousNode, $1);
 		  set_comment($2, $3);

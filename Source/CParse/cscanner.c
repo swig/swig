@@ -416,33 +416,72 @@ static int yylook(void) {
       
     case SWIG_TOKEN_COMMENT:
       {
-	String *cmt = Scanner_text(scan);
-	char *loc = Char(cmt);
-	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
-	  Scanner_locator(scan, cmt);
-	}
-	if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
-	  /* Check for all possible Doxygen comment start markers while ignoring
-	     comments starting with a row of asterisks or slashes just as
-	     Doxygen itself does. */
-	  if (Len(cmt) > 3 && loc[0] == '/' &&
-	      ((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
-	       (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*') || loc[2] == '!')))) {
-	    int is_post_comment = loc[3] == '<';
+	typedef enum {
+	  DOX_COMMENT_PRE = -1,
+	  DOX_COMMENT_NONE,
+	  DOX_COMMENT_POST
+	} comment_kind_t;
+	comment_kind_t existing_comment = DOX_COMMENT_NONE;
 
-	    if (is_post_comment || !isStructuralDoxygen(loc)) {
-	      int begin = is_post_comment ? 4 : 3;
-	      int end = Len(cmt);
-	      if (loc[end - 1] == '/' && loc[end - 2] == '*') {
-		end -= 2;
+	/* Concatenate or skip all consecutive comments at once. */
+	do {
+	  String *cmt = Scanner_text(scan);
+	  char *loc = Char(cmt);
+	  if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
+	    Scanner_locator(scan, cmt);
+	  }
+	  if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
+	    /* Check for all possible Doxygen comment start markers while ignoring
+	       comments starting with a row of asterisks or slashes just as
+	       Doxygen itself does. */
+	    if (Len(cmt) > 3 && loc[0] == '/' &&
+		((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
+		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*') || loc[2] == '!')))) {
+	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST
+							  : DOX_COMMENT_PRE;
+
+	      if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
+		/* We can't concatenate together Doxygen pre- and post-comments. */
+		break;
 	      }
 
-	      yylval.str =  NewStringWithSize(loc + begin, end - begin);
-	      Setline(yylval.str, Scanner_start_line(scan));
-	      Setfile(yylval.str, Scanner_file(scan));
-	      return is_post_comment ? DOXYGENPOSTSTRING : DOXYGENSTRING;
+	      if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+		String *str;
+
+		int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
+		int end = Len(cmt);
+		if (loc[end - 1] == '/' && loc[end - 2] == '*') {
+		  end -= 2;
+		}
+
+		str = NewStringWithSize(loc + begin, end - begin);
+
+		if (existing_comment == DOX_COMMENT_NONE) {
+		  yylval.str = str;
+		  Setline(yylval.str, Scanner_start_line(scan));
+		  Setfile(yylval.str, Scanner_file(scan));
+		} else {
+		  Append(yylval.str, str);
+		}
+
+		existing_comment = this_comment;
+	      }
 	    }
 	  }
+	  do {
+	    tok = Scanner_token(scan);
+	  } while (tok == SWIG_TOKEN_ENDLINE);
+	} while (tok == SWIG_TOKEN_COMMENT);
+
+	Scanner_pushtoken(scan, tok, Scanner_text(scan));
+
+	switch (existing_comment) {
+	  case DOX_COMMENT_PRE:
+	    return DOXYGENSTRING;
+	  case DOX_COMMENT_NONE:
+	    break;
+	  case DOX_COMMENT_POST:
+	    return DOXYGENPOSTSTRING;
 	}
       }
       break;
