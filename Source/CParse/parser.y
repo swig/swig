@@ -467,16 +467,18 @@ static void add_symbols(Node *n) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
       if (!only_csymbol && !GetFlag(n, "feature:ignore")) {
-	/* Verify that explicit ignore is correct */
+	/* Print the warning attached to $ignore name, if any */
         char *c = Char(symname) + 7;
 	if (strlen(c)) {
 	  SWIG_WARN_NODE_BEGIN(n);
 	  Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
 	  SWIG_WARN_NODE_END(n);
 	}
+	/* If the symbol was ignored via "rename" and is visible, set also feature:ignore*/
+	SetFlag(n, "feature:ignore");
       }
       if (!GetFlag(n, "feature:ignore") && Strcmp(symname,"$ignore") == 0) {
-	/* Add feature:ignore only if the symbol was explicitely ignored, to enable e.g. making symbol visible later with "using" */
+	/* Add feature:ignore if the symbol was explicitely ignored, regardless of visibility */
 	SetFlag(n, "feature:ignore");
       }
     } else {
