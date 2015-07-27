@@ -5,6 +5,17 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-28: wsfulton
+            [Python] Fix #475. Improve docstring indentation handling.
+            
+            SWIG-3.0.5 and earlier sometimes truncated text provided in the docstring feature.
+            This occurred when the indentation (whitespace) in the docstring was less in the
+            second or later lines when compared to the first line.
+            SWIG-3.0.6 gave a 'Line indented less than expected' error instead of truncating
+            the docstring text.
+            Now the indentation for the 'docstring' feature is smarter and is appropriately
+            adjusted so that no truncation occurs.
+
 2015-07-22: wsfulton
             Support for special variable expansion in typemap attributes. Example usage expansion
             in the 'out' attribute (C# specific):

@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include <limits.h>
 #include "cparse.h"
 #include <ctype.h>
 #include <errno.h>
@@ -1356,12 +1357,15 @@ public:
     return str;
   }
 
-
   /* ------------------------------------------------------------
-   * pythoncode()     - Output python code into the shadow file
+   * indent_pythoncode()
+   *
+   * Format (indent) Python code.
+   * Remove leading whitespace from 'code' and re-indent using
+   * the indentation string in 'indent'.
    * ------------------------------------------------------------ */
 
-  String *pythoncode(String *code, const_String_or_char_ptr indent, String * file, int line) {
+  String *indent_pythoncode(const String *code, const_String_or_char_ptr indent, String *file, int line) {
     String *out = NewString("");
     String *temp;
     char *t;
@@ -1383,7 +1387,7 @@ public:
     // Line number within the pythoncode.
     int py_line = 0;
 
-    String * initial = 0;
+    String *initial = 0;
     Iterator si;
 
     /* Get the initial indentation.  Skip lines which only contain whitespace
@@ -1401,7 +1405,7 @@ public:
       const char *c = Char(si.item);
       int i;
       for (i = 0; isspace((unsigned char)c[i]); i++) {
-	// Scan forward until we find a non-space (which may be a nul byte).
+	// Scan forward until we find a non-space (which may be a null byte).
       }
       char ch = c[i];
       if (ch && ch != '#') {
@@ -1423,7 +1427,7 @@ public:
 
       int i;
       for (i = 0; isspace((unsigned char)c[i]); i++) {
-	// Scan forward until we find a non-space (which may be a nul byte).
+	// Scan forward until we find a non-space (which may be a null byte).
       }
       char ch = c[i];
       if (!ch) {
@@ -1469,6 +1473,72 @@ public:
     return out;
   }
 
+  /* ------------------------------------------------------------
+   * indent_docstring()
+   *
+   * Format (indent) a Python docstring.
+   * Remove leading whitespace from 'code' and re-indent using
+   * the indentation string in 'indent'.
+   * ------------------------------------------------------------ */
+
+  String *indent_docstring(const String *code, const_String_or_char_ptr indent) {
+    String *out = NewString("");
+    String *temp;
+    char *t;
+    if (!indent)
+      indent = "";
+
+    temp = NewString(code);
+
+    t = Char(temp);
+    if (*t == '{') {
+      Delitem(temp, 0);
+      Delitem(temp, DOH_END);
+    }
+
+    /* Split the input text into lines */
+    List *clist = SplitLines(temp);
+    Delete(temp);
+
+    Iterator si;
+
+    int truncate_characters_count = INT_MAX;
+    for (si = First(clist); si.item; si = Next(si)) {
+      const char *c = Char(si.item);
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+	// Scan forward until we find a non-space (which may be a null byte).
+      }
+      char ch = c[i];
+      if (ch) {
+	// Found a line which isn't just whitespace
+	if (i < truncate_characters_count)
+	  truncate_characters_count = i;
+      }
+    }
+
+    if (truncate_characters_count == INT_MAX)
+      truncate_characters_count = 0;
+
+    for (si = First(clist); si.item; si = Next(si)) {
+      const char *c = Char(si.item);
+
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+	// Scan forward until we find a non-space (which may be a null byte).
+      }
+      char ch = c[i];
+      if (!ch) {
+	// Line is just whitespace - emit an empty line.
+	Putc('\n', out);
+	continue;
+      }
+
+      Printv(out, indent, c + truncate_characters_count, "\n", NIL);
+    }
+    Delete(clist);
+    return out;
+  }
 
   /* ------------------------------------------------------------
    * autodoc level declarations
@@ -1552,21 +1622,21 @@ public:
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
       doc = NewString("");
       Printv(doc, triple_double, "\n",
-	     pythoncode(autodoc, indent, Getfile(n), Getline(n)), "\n",
-	     pythoncode(str, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
+	     indent_docstring(autodoc, indent), "\n",
+	     indent_docstring(str, indent), indent, triple_double, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
       if (Strchr(str, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(str, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
+	Printv(doc, triple_double, "\n", indent_docstring(str, indent), indent, triple_double, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
       if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent, Getfile(n), Getline(n)), indent, triple_double, NIL);
+	Printv(doc, triple_double, "\n", indent_docstring(autodoc, indent), indent, triple_double, NIL);
       }
     } else
       doc = NewString("");
@@ -2286,10 +2356,10 @@ public:
     if (have_docstring(n))
       Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
     if (have_pythonprepend(n))
-      Printv(f_dest, pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
+      Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
     if (have_pythonappend(n)) {
       Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
+      Printv(f_dest, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
       Printv(f_dest, tab4 "return val\n", NIL);
     } else {
       Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
@@ -4498,7 +4568,7 @@ public:
 	  have_repr = 1;
 	}
 	if (Getattr(n, "feature:shadow")) {
-	  String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
+	  String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	  String *pyaction = NewStringf("%s.%s", module, fullname);
 	  Replaceall(pycode, "$action", pyaction);
 	  Delete(pyaction);
@@ -4520,12 +4590,12 @@ public:
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
-	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	      Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	    }
 	    if (have_pythonappend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, tab8, "val = ", funcCall(fullname, callParms), "\n", NIL);
-	      Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	      Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	      Printv(f_shadow, tab8, "return val\n\n", NIL);
 	    } else {
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n\n", NIL);
@@ -4605,10 +4675,10 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	  Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	if (have_pythonappend(n)) {
 	  Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
-	  Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	  Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	  Printv(f_shadow, tab8, "return val\n\n", NIL);
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
@@ -4693,7 +4763,7 @@ public:
 	if (!have_constructor && handled_as_init) {
 	  if (!builtin) {
 	    if (Getattr(n, "feature:shadow")) {
-	      String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
+	      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	      String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
 	      Replaceall(pycode, "$action", pyaction);
 	      Delete(pyaction);
@@ -4722,7 +4792,7 @@ public:
 	      if (have_docstring(n))
 		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
-		Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
 	      if (fastinit) {
 		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
@@ -4732,7 +4802,7 @@ public:
 		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except:\n", tab8, tab4, "self.this = this\n", NIL);
 	      }
 	      if (have_pythonappend(n))
-		Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n\n", NIL);
+		Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n\n", NIL);
 	      Delete(pass_self);
 	    }
 	    have_constructor = 1;
@@ -4741,7 +4811,7 @@ public:
 	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
 	     function for it. */
 	  if (Getattr(n, "feature:shadow")) {
-	    String *pycode = pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n));
+	    String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n));
 	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
 	    Replaceall(pycode, "$action", pyaction);
 	    Delete(pyaction);
@@ -4755,7 +4825,7 @@ public:
 	    if (have_docstring(n))
 	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
 	    if (have_pythonprepend(n))
-	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
+	      Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
 	    String *subfunc = NULL;
 	    /*
 	       if (builtin)
@@ -4768,7 +4838,7 @@ public:
 	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
 #endif
 	    if (have_pythonappend(n))
-	      Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
+	      Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n)), "\n", NIL);
 	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
 	    Delete(subfunc);
 	  }
@@ -4805,7 +4875,7 @@ public:
 
     if (shadow) {
       if (Getattr(n, "feature:shadow")) {
-	String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
+	String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n));
 	String *pyaction = NewStringf("%s.%s", module, Swig_name_destroy(NSPACE_TODO, symname));
 	Replaceall(pycode, "$action", pyaction);
 	Delete(pyaction);
@@ -4823,7 +4893,7 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	  Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 #ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
 	Printv(f_shadow, tab8, tab4, "if self.thisown:", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
@@ -4831,7 +4901,7 @@ public:
 #else
 #endif
 	if (have_pythonappend(n))
-	  Printv(f_shadow, pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
+	  Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n)), "\n", NIL);
 	Printv(f_shadow, tab8, "pass\n", NIL);
 	Printv(f_shadow, "\n", NIL);
       }
@@ -5011,12 +5081,12 @@ public:
 
     if (!ImportMode && (Cmp(section, "python") == 0 || Cmp(section, "shadow") == 0)) {
       if (shadow) {
-	String *pycode = pythoncode(code, shadow_indent, Getfile(n), Getline(n));
+	String *pycode = indent_pythoncode(code, shadow_indent, Getfile(n), Getline(n));
 	Printv(f_shadow, pycode, NIL);
 	Delete(pycode);
       }
     } else if (!ImportMode && (Cmp(section, "pythonbegin") == 0)) {
-      String *pycode = pythoncode(code, "", Getfile(n), Getline(n));
+      String *pycode = indent_pythoncode(code, "", Getfile(n), Getline(n));
       Printv(f_shadow_begin, pycode, NIL);
       Delete(pycode);
     } else {
