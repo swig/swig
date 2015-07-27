@@ -2039,6 +2039,9 @@ int MATLAB::classHandler(Node *n) {
   // End of class def
   Printf(f_wrap_m,"\n");
 
+  // Emit documentation
+  autodoc_to_m(f_wrap_m, n);
+
   // Declare class methods
   Printf(f_wrap_m,"  methods\n");
 
