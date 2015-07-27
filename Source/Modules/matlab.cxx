@@ -2613,9 +2613,20 @@ void MATLAB::dispatchFunction(Node *n) {
   String *dispatch = Swig_overload_dispatch(n, "return %s(resc,resv,argc,argv);", &maxargs);
   String *tmp = NewString("");
 
+  Node *sibl = n;
+  while (Getattr(sibl, "sym:previousSibling"))
+	sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+  String *protoTypes = NewString("");
+  do {
+	  String *fulldecl = Swig_name_decl(sibl);
+	  Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+	  Delete(fulldecl);
+  } while ((sibl = Getattr(sibl, "sym:nextSibling")));
+
   Printf(f->def, "int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
-  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload\");\n", iname);
+  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload function '%s'.\"\n", iname);
+  Printf(f->code, "   \"  Possible C/C++ prototypes are:\\n\"%s);\n",protoTypes);
   Printf(f->code, "return 1;\n");
   Printv(f->code, "}\n", NIL);
 
