@@ -1200,12 +1200,22 @@ case $host in
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
     fi
+    dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
+    JAVA_CLASSPATH_SEP=";"
+    ;;
+  *-*-mingw*)
+    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
     dnl Under OS X JAVA_HOME is not set by default, try to set it to the default value.
     if test -z "$JAVA_HOME"; then
       JAVA_HOME=`/usr/libexec/java_home`
     fi
+    JAVA_CLASSPATH_SEP=":"
+    ;;
+  *)
+    dnl Assume generic Unix.
+    JAVA_CLASSPATH_SEP=":"
     ;;
 esac
 
@@ -1344,6 +1354,7 @@ fi
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
+AC_SUBST(JAVA_CLASSPATH_SEP)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
