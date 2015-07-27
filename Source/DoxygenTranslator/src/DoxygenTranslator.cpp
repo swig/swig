@@ -25,7 +25,7 @@ DoxygenTranslator::~DoxygenTranslator() {
 
 
 bool DoxygenTranslator::hasDocumentation(Node *node) {
-  return getDoxygenComment(node);
+  return getDoxygenComment(node) != NULL;
 }
 
 
