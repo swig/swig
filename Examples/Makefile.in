@@ -616,6 +616,7 @@ java_run:
 java_version:
 	$(JAVA) -version
 	$(JAVAC) -version || echo "Unknown javac version"
+	echo "JAVA_HOME=\"$(JAVA_HOME)\""
 
 # -----------------------------------------------------------------
 # Cleaning the java examples
