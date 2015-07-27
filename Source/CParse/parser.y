@@ -5944,6 +5944,7 @@ enumlist	: enumlist_item optional_ignored_define_after_comma {
 		| enumlist_item enumlist_tail optional_ignored_define_after_comma {
 		  set_nextSibling($1, $2);
 		  Setattr($1,"_last",Getattr($2,"_last"));
+		  Setattr($2,"_last",NULL);
 		  $$ = $1;
 		}
 		| optional_ignored_define {
