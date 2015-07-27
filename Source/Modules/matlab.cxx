@@ -2711,7 +2711,7 @@ void MATLAB::dispatchFunction(Node *n) {
 
   Printf(f->def, "int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
-  Printf(f->code, "mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload function '%s'.\"\n", iname);
+  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload function '%s'.\"\n", iname);
   Printf(f->code, "   \"  Possible C/C++ prototypes are:\\n\"%s);\n",protoTypes);
   Printf(f->code, "return 1;\n");
   Printv(f->code, "}\n", NIL);
