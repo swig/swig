@@ -1193,14 +1193,42 @@ AC_MSG_NOTICE([Disabling Java])
 JAVA=
 else
 
+dnl Platform-specific Java detection logic.
+case $host in
+  *-*-cygwin*)
+    dnl Ensure that JAVA_HOME is in the form we can use, it's typically set to Windows path by the installer.
+    if test -n "$JAVA_HOME"; then
+      JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
+    fi
+    ;;
+  *-*-darwin*)
+    dnl Under OS X JAVA_HOME is not set by default, try to set it to the default value.
+    if test -z "$JAVA_HOME"; then
+      JAVA_HOME=`/usr/libexec/java_home`
+    fi
+    ;;
+esac
+
 if test "x$JAVABIN" = xyes; then
-  AC_CHECK_PROGS(JAVA, java kaffe guavac)
+  if test -x "$JAVA_HOME/bin/java"; then
+    AC_MSG_CHECKING(for java)
+    JAVA="$JAVA_HOME/bin/java"
+    AC_MSG_RESULT($JAVA)
+  else
+    AC_CHECK_PROGS(JAVA, java kaffe guavac)
+  fi
 else
   JAVA="$JAVABIN"
 fi
 
 if test -z "$JAVACBIN"; then
-  AC_CHECK_PROGS(JAVAC, javac)
+  if test -x "$JAVA_HOME/bin/javac"; then
+    AC_MSG_CHECKING(for javac)
+    JAVAC="$JAVA_HOME/bin/javac"
+    AC_MSG_RESULT($JAVAC)
+  else
+    AC_CHECK_PROGS(JAVAC, javac)
+  fi
 else
   JAVAC="$JAVACBIN"
 fi
@@ -1210,22 +1238,27 @@ AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include di
 
 JAVAINC=""
 if test -z "$JAVAINCDIR" ; then
-  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
+  if test -r "$JAVA_HOME/include/jni.h"; then
+    JAVAINCDIR="$JAVA_HOME/include"
+    JAVAINC=-I\"$JAVAINCDIR\"
+  else
+    JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
 
-  # Add in default installation directory on Windows for Cygwin
-  case $host in
-  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
-  *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
-  *);;
-  esac
+    # Add in default installation directory on Windows for Cygwin
+    case $host in
+    *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+    *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
+    *);;
+    esac
 
-  for d in $JAVAINCDIR ; do
-    if test -r "$d/jni.h" ; then
-      JAVAINCDIR=$d
-      JAVAINC=-I\"$d\"
-      break
-    fi
-  done
+    for d in $JAVAINCDIR ; do
+      if test -r "$d/jni.h" ; then
+	JAVAINCDIR=$d
+	JAVAINC=-I\"$d\"
+	break
+      fi
+    done
+  fi
 else
   if test -r "$JAVAINCDIR/jni.h" ; then
     JAVAINC=-I\"$JAVAINCDIR\"
