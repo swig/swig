@@ -1300,7 +1300,7 @@ public:
 
   /* ------------------------------------------------------------
    * import_name_string()
-   *  ------------------------------------------------------------ */
+   * ------------------------------------------------------------ */
 
   static String *import_name_string(const String *mainpkg, const String *mainmod, const String *pkg, const String *mod, const String *sym) {
     if (!relativeimport) {
@@ -1346,9 +1346,10 @@ public:
 
   /* ------------------------------------------------------------
    * funcCall()
-   *    Emit shadow code to call a function in the extension
-   *    module. Using proper argument and calling style for
-   *    given node n.
+   *
+   * Emit shadow code to call a function in the extension
+   * module. Using proper argument and calling style for
+   * given node n.
    * ------------------------------------------------------------ */
   String *funcCall(String *name, String *parms) {
     String *str = NewString("");
@@ -1574,8 +1575,9 @@ public:
 
   /* ------------------------------------------------------------
    * have_docstring()
-   *    Check if there is a docstring directive and it has text,
-   *    or there is an autodoc flag set
+   *
+   * Check if there is a docstring directive and it has text,
+   * or there is an autodoc flag set
    * ------------------------------------------------------------ */
 
   bool have_docstring(Node *n) {
@@ -1585,9 +1587,10 @@ public:
 
   /* ------------------------------------------------------------
    * docstring()
-   *    Get the docstring text, stripping off {} if neccessary,
-   *    and enclose in triple double quotes.  If autodoc is also
-   *    set then it will build a combined docstring.
+   *
+   * Get the docstring text, stripping off {} if neccessary,
+   * and enclose in triple double quotes.  If autodoc is also
+   * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
 
   String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool use_triple = true) {
@@ -1650,8 +1653,9 @@ public:
 
   /* ------------------------------------------------------------
    * cdocstring()
-   *    Get the docstring text as it would appear in C-language
-   *	source code.
+   *
+   * Get the docstring text as it would appear in C-language
+   * source code.
    * ------------------------------------------------------------ */
 
   String *cdocstring(Node *n, autodoc_t ad_type)
@@ -1680,7 +1684,8 @@ public:
 
   /* -----------------------------------------------------------------------------
    * addMissingParameterNames()
-   *  For functions that have not had nameless parameters set in the Language class.
+   *
+   * For functions that have not had nameless parameters set in the Language class.
    *
    * Inputs: 
    *   plist - entire parameter list
@@ -1705,8 +1710,9 @@ public:
 
   /* ------------------------------------------------------------
    * make_autodocParmList()
-   *   Generate the documentation for the function parameters
-   *   Parameters:
+   *
+   * Generate the documentation for the function parameters
+   * Parameters:
    *    func_annotation: Function annotation support
    * ------------------------------------------------------------ */
 
@@ -1813,12 +1819,13 @@ public:
 
   /* ------------------------------------------------------------
    * make_autodoc()
-   *    Build a docstring for the node, using parameter and other
-   *    info in the parse tree.  If the value of the autodoc
-   *    attribute is "0" then do not include parameter types, if
-   *    it is "1" (the default) then do.  If it has some other
-   *    value then assume it is supplied by the extension writer
-   *    and use it directly.
+   *
+   * Build a docstring for the node, using parameter and other
+   * info in the parse tree.  If the value of the autodoc
+   * attribute is "0" then do not include parameter types, if
+   * it is "1" (the default) then do.  If it has some other
+   * value then assume it is supplied by the extension writer
+   * and use it directly.
    * ------------------------------------------------------------ */
 
   String *make_autodoc(Node *n, autodoc_t ad_type) {
@@ -1957,9 +1964,10 @@ public:
   }
 
   /* ------------------------------------------------------------
-   *  convertDoubleValue()
-   *    Check if the given string looks like a decimal floating point constant
-   *    and return it if it does, otherwise return NIL.
+   * convertDoubleValue()
+   *
+   * Check if the given string looks like a decimal floating point constant
+   * and return it if it does, otherwise return NIL.
    * ------------------------------------------------------------ */
   String *convertDoubleValue(String *v) {
     const char *const s = Char(v);
@@ -2001,8 +2009,9 @@ public:
 
   /* ------------------------------------------------------------
    * convertValue()
-   *    Check if string v can be a Python value literal or a
-   *    constant. Return NIL if it isn't.
+   *
+   * Check if string v can be a Python value literal or a
+   * constant. Return NIL if it isn't.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *type) {
     const char *const s = Char(v);
@@ -2124,12 +2133,13 @@ public:
 
   /* ------------------------------------------------------------
    * is_representable_as_pyargs()
-   *    Check if the function parameters default argument values
-   *    can be represented in Python.
    *
-   *    If this method returns false, the parameters will be translated
-   *    to a generic "*args" which allows us to deal with default values
-   *    at C++ code level where they can always be handled.
+   * Check if the function parameters default argument values
+   * can be represented in Python.
+   *
+   * If this method returns false, the parameters will be translated
+   * to a generic "*args" which allows us to deal with default values
+   * at C++ code level where they can always be handled.
    * ------------------------------------------------------------ */
   bool is_representable_as_pyargs(Node *n) {
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
@@ -2171,9 +2181,10 @@ public:
 
   /* ------------------------------------------------------------
    * is_real_overloaded()
-   *   Check if the function is overloaded, but not just have some
-   *   siblings generated due to the original function have 
-   *   default arguments.
+   *
+   * Check if the function is overloaded, but not just have some
+   * siblings generated due to the original function have 
+   * default arguments.
    * ------------------------------------------------------------ */
   bool is_real_overloaded(Node *n) {
     Node *h = Getattr(n, "sym:overloaded");
@@ -2197,8 +2208,9 @@ public:
 
   /* ------------------------------------------------------------
    * make_pyParmList()
-   *    Generate parameter list for Python functions or methods,
-   *    reuse make_autodocParmList() to do so.
+   *
+   * Generate parameter list for Python functions or methods,
+   * reuse make_autodocParmList() to do so.
    * ------------------------------------------------------------ */
   String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw) {
     /* Get the original function for a defaultargs copy, 
@@ -2244,7 +2256,8 @@ public:
 
   /* ------------------------------------------------------------
    * have_pythonprepend()
-   *    Check if there is a %pythonprepend directive and it has text
+   *
+   * Check if there is a %pythonprepend directive and it has text
    * ------------------------------------------------------------ */
 
   bool have_pythonprepend(Node *n) {
@@ -2254,7 +2267,8 @@ public:
 
   /* ------------------------------------------------------------
    * pythonprepend()
-   *    Get the %pythonprepend code, stripping off {} if neccessary
+   *
+   * Get the %pythonprepend code, stripping off {} if neccessary
    * ------------------------------------------------------------ */
 
   String *pythonprepend(Node *n) {
@@ -2269,7 +2283,8 @@ public:
 
   /* ------------------------------------------------------------
    * have_pythonappend()
-   *    Check if there is a %pythonappend directive and it has text
+   *
+   * Check if there is a %pythonappend directive and it has text
    * ------------------------------------------------------------ */
 
   bool have_pythonappend(Node *n) {
@@ -2281,7 +2296,8 @@ public:
 
   /* ------------------------------------------------------------
    * pythonappend()
-   *    Get the %pythonappend code, stripping off {} if neccessary
+   *
+   * Get the %pythonappend code, stripping off {} if neccessary
    * ------------------------------------------------------------ */
 
   String *pythonappend(Node *n) {
@@ -2299,7 +2315,8 @@ public:
 
   /* ------------------------------------------------------------
    * have_addtofunc()
-   *    Check if there is a %addtofunc directive and it has text
+   *
+   * Check if there is a %addtofunc directive and it has text
    * ------------------------------------------------------------ */
 
   bool have_addtofunc(Node *n) {
@@ -2309,8 +2326,9 @@ public:
 
   /* ------------------------------------------------------------
    * returnTypeAnnotation()
-   *    Helper function for constructing the function annotation
-   *    of the returning type, return a empty string for Python 2.x
+   *
+   * Helper function for constructing the function annotation
+   * of the returning type, return a empty string for Python 2.x
    * ------------------------------------------------------------ */
   String *returnTypeAnnotation(Node *n) {
     String *ret = 0;
@@ -2343,9 +2361,10 @@ public:
 
   /* ------------------------------------------------------------
    * emitFunctionShadowHelper()
-   *    Refactoring some common code out of functionWrapper and
-   *    dispatchFunction that writes the proxy code for non-member
-   *    functions.
+   *
+   * Refactoring some common code out of functionWrapper and
+   * dispatchFunction that writes the proxy code for non-member
+   * functions.
    * ------------------------------------------------------------ */
 
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
@@ -2374,7 +2393,8 @@ public:
 
   /* ------------------------------------------------------------
    * check_kwargs()
-   *    check if using kwargs is allowed for this Node
+   *
+   * check if using kwargs is allowed for this Node
    * ------------------------------------------------------------ */
 
   int check_kwargs(Node *n) const {
