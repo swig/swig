@@ -118,8 +118,8 @@ protected:
   const char* get_implicitconv_flag(Node *n);
   void dispatchFunction(Node *n);
   static String* matlab_escape(String *_s);
-  void wrapConstructor(int gw_ind, String *symname, String *fullname);
-  void wrapConstructorDirector(int gw_ind, String *symname, String *fullname);
+  void wrapConstructor(int gw_ind, String *symname, String *fullname, Node* n);
+  void wrapConstructorDirector(int gw_ind, String *symname, String *fullname, Node* n);
   int getRangeNumReturns(Node *n, int &max_num_returns, int &min_num_returns);
   void checkValidSymName(Node *node);
 };
@@ -628,6 +628,62 @@ void MATLAB::process_autodoc(Node *n) {
   }
 }
 
+
+/* ------------------------------------------------------------
+ * have_matlabprepend()
+ *    Check if there is a %matlabprepend directive and it has text
+ * ------------------------------------------------------------ */
+
+bool have_matlabprepend(Node *n) {
+  String *str = Getattr(n, "feature:matlabprepend");
+  return (str && Len(str) > 0);
+}
+
+/* ------------------------------------------------------------
+ * matlabprepend()
+ *    Get the %matlabprepend code, stripping off {} if neccessary
+ * ------------------------------------------------------------ */
+
+String *matlabprepend(Node *n) {
+  String *str = Getattr(n, "feature:matlabprepend");
+  char *t = Char(str);
+  if (*t == '{') {
+    Delitem(str, 0);
+    Delitem(str, DOH_END);
+  }
+  return str;
+}
+
+/* ------------------------------------------------------------
+ * have_matlabappend()
+ *    Check if there is a %matlabappend directive and it has text
+ * ------------------------------------------------------------ */
+
+bool have_matlabappend(Node *n) {
+  String *str = Getattr(n, "feature:matlabappend");
+  if (!str)
+    str = Getattr(n, "feature:addtofunc");
+  return (str && Len(str) > 0);
+}
+
+/* ------------------------------------------------------------
+ * matlabappend()
+ *    Get the %matlabappend code, stripping off {} if neccessary
+ * ------------------------------------------------------------ */
+
+String *matlabappend(Node *n) {
+  String *str = Getattr(n, "feature:matlabappend");
+  if (!str)
+    str = Getattr(n, "feature:addtofunc");
+
+  char *t = Char(str);
+  if (*t == '{') {
+    Delitem(str, 0);
+    Delitem(str, DOH_END);
+  }
+  return str;
+}
+
 // virtual int importDirective(Node *n) {
 //   String *modname = Getattr(n, "module");
 //   if (modname)
@@ -1113,11 +1169,16 @@ int MATLAB::globalfunctionHandler(Node *n) {
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
+  if (have_matlabprepend(n))
+    Printf(f_wrap_m, "%s\n",matlabprepend(n));
   if (min_num_returns==0) {
     Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
   } else {
     Printf(f_wrap_m,"  [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
   }
+
+  if (have_matlabappend(n))
+    Printf(f_wrap_m, "%s\n",matlabappend(n));
   Printf(f_wrap_m,"end\n");
 
   Delete(wname);
@@ -1987,7 +2048,7 @@ int MATLAB::classHandler(Node *n) {
   // Add constructor, if none added
   if (!have_constructor) {
     checkValidSymName(n);
-    wrapConstructor(-1,class_name,0);
+    wrapConstructor(-1,class_name,0,n);
     have_constructor = true;
   }
 
@@ -2049,6 +2110,8 @@ int MATLAB::memberfunctionHandler(Node *n) {
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
+  if (have_matlabprepend(n))
+    Printf(f_wrap_m, "%s\n",matlabprepend(n));
   if (GetFlag(n, "feature:convertself") && checkAttribute(n, "qualifier", "q(const).")) {
     // explicit type conversion of self
     Printf(f_wrap_m,"      if ~isa(self,'%s.%s')\n",pkg_name,class_name);
@@ -2056,6 +2119,8 @@ int MATLAB::memberfunctionHandler(Node *n) {
     Printf(f_wrap_m,"      end\n");
   }
   Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_fcn, gw_ind, varginstr);
+  if (have_matlabappend(n))
+    Printf(f_wrap_m, "%s\n",matlabappend(n));
   Printf(f_wrap_m,"    end\n");
   Delete(wname);
   Delete(fullname);
@@ -2223,7 +2288,7 @@ int MATLAB::membervariableHandler(Node *n) {
   return Language::membervariableHandler(n);
 }
 
-void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname) {
+void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname, Node *n) {
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin~=1 || ~ischar(varargin{1}) || ~strcmp(varargin{1},'_swigCreate')\n");
@@ -2232,15 +2297,19 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname) {
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
       Printf(f_wrap_m,"        %%self.swigInd = %s(%d, varargin{:});\n", mex_fcn, gw_ind);
+      if (have_matlabprepend(n))
+        Printf(f_wrap_m, "%s\n",matlabprepend(n));
       Printf(f_wrap_m,"        tmp = %s(%d, varargin{:}); %% FIXME\n", mex_fcn, gw_ind);
       Printf(f_wrap_m,"        self.swigInd = tmp.swigInd;\n");
       Printf(f_wrap_m,"        tmp.swigInd = uint64(0);\n");
+      if (have_matlabappend(n))
+        Printf(f_wrap_m, "%s\n",matlabappend(n));
     }
     Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
 }
 
-void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullname) {
+void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullname, Node *n) {
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin~=1 || ~ischar(varargin{1}) || ~strcmp(varargin{1},'_swigCreate')\n");
@@ -2249,6 +2318,8 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
       Printf(f_wrap_m,"        %%self.swigInd = %s(%d, varargin{:});\n", mex_fcn, gw_ind);
+      if (have_matlabprepend(n))
+        Printf(f_wrap_m, "%s\n",matlabprepend(n));
       Printf(f_wrap_m,"        if strcmp(class(self),'director_basic.%s')\n", symname);
       Printf(f_wrap_m,"          tmp = %s(%d, 0, varargin{:}); %% FIXME\n", mex_fcn, gw_ind);
       Printf(f_wrap_m,"        else\n");
@@ -2256,7 +2327,8 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
       Printf(f_wrap_m,"        end\n");
       Printf(f_wrap_m,"        self.swigInd = tmp.swigInd;\n");
       Printf(f_wrap_m,"        tmp.swigInd = uint64(0);\n");
-      Printf(f_wrap_m,"        self\n");
+      if (have_matlabappend(n))
+        Printf(f_wrap_m, "%s\n",matlabappend(n));
     }
     Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
@@ -2283,9 +2355,9 @@ int MATLAB::constructorHandler(Node *n) {
     // Add to .m file
     checkValidSymName(n);
     if (use_director) {
-      wrapConstructorDirector(gw_ind,symname,fullname);
+      wrapConstructorDirector(gw_ind,symname,fullname, n);
     } else {
-      wrapConstructor(gw_ind,symname,fullname);
+      wrapConstructor(gw_ind,symname,fullname, n);
     }
 
     Delete(wname);
@@ -2372,13 +2444,16 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(wrapper,"    function varargout = %s(varargin)\n",symname);
   autodoc_to_m(wrapper, n);
+  if (have_matlabprepend(n))
+    Printf(wrapper, "%s\n", Char(matlabprepend(n)));
   if (min_num_returns==0) {
     Printf(wrapper,"      [varargout{1:nargout}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
   } else {
     Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
   }
+  if (have_matlabappend(n))
+    Printf(wrapper, "%s\n", Char(matlabappend(n)));
   Printf(wrapper,"    end\n");
-
   Delete(wname);
   Delete(fullname);
 
@@ -2452,7 +2527,11 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   if (GetFlag(n, "feature:immutable")) {
     // Only getter
     Printf(static_methods,"    function v = %s()\n",symname);  
+    if (have_matlabprepend(n))
+      Printf(static_methods, "%s\n", Char(matlabprepend(n)));
     Printf(static_methods,"      v = %s(%d);\n",mex_fcn, gw_ind_get);
+    if (have_matlabappend(n))
+      Printv(static_methods, "%s\n", Char(matlabappend(n)));
     Printf(static_methods,"    end\n");
   } else {
     // Add setter function
@@ -2463,6 +2542,8 @@ int MATLAB::staticmembervariableHandler(Node *n) {
     // Getter and setter
     Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
     Printf(static_methods,"      narginchk(0,1)\n");
+    if (have_matlabprepend(n))
+      Printf(static_methods, "%s\n", Char(matlabprepend(n)));
     Printf(static_methods,"      if nargin==0\n");
     Printf(static_methods,"        nargoutchk(0,1)\n");
     Printf(static_methods,"        varargout{1} = %s(%d);\n",mex_fcn,gw_ind_get);
@@ -2470,6 +2551,8 @@ int MATLAB::staticmembervariableHandler(Node *n) {
     Printf(static_methods,"        nargoutchk(0,0)\n");
     Printf(static_methods,"        %s(%d, varargin{1});\n",mex_fcn,gw_ind_set);
     Printf(static_methods,"      end\n");
+    if (have_matlabappend(n))
+      Printf(static_methods, "%s\n", Char(matlabappend(n)));
     Printf(static_methods,"    end\n");
 
     // Tidy up
@@ -2625,7 +2708,7 @@ void MATLAB::dispatchFunction(Node *n) {
 
   Printf(f->def, "int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", wname);
   Printv(f->code, dispatch, "\n", NIL);
-  Printf(f->code, "mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload function '%s'.\"\n", iname);
+  Printf(f->code, "mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"No matching function for overload function '%s'.\"\n", iname);
   Printf(f->code, "   \"  Possible C/C++ prototypes are:\\n\"%s);\n",protoTypes);
   Printf(f->code, "return 1;\n");
   Printv(f->code, "}\n", NIL);
@@ -2704,6 +2787,7 @@ void MATLAB::checkValidSymName(Node *node) {
            symname, kind, symname, symname);
   }
 }
+
 
 
 
