@@ -304,41 +304,52 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   }
 
   swig_cast_info *tc;
+  bool same_type = false;
   while (p) {
-    /* Get data */
-    if (ptr) *ptr = p->ptr;
-    if (own) *own = p->own;
+    /* Loop over types */
     swig_type_info *p_type = p->type;
-    
-    /* Set ownership marker to false? */
-    if(flags & SWIG_POINTER_DISOWN){
-      SWIG_Matlab_DeletePointer(ind);
-    }
 
     /* No type cast needed */
-    if (p_type==type || !type) return SWIG_OK;
-
+    if (p_type==type || !type) {
+      same_type = true;
+      break;
+    }
 
     /* Check if type conversion is possible */
     tc = SWIG_TypeCheckStruct(p_type, type);
     if (tc) break;
+
+    /* Check next type */
     p = p->next;
   }
 
-  if (!tc) return SWIG_ERROR;
+  /* Conversion not possible */
+  if (!same_type && !tc) return SWIG_ERROR;
 
-  /* Do type-cast (but only if non-zero pointer, otherwise it's trivial) */
-  if (ptr) {
-    int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, *ptr, &newmemory);
-    if (newmemory == SWIG_CAST_NEW_MEMORY) {
-      if (own) {
-        *own = *own | SWIG_CAST_NEW_MEMORY;
-      } else {
-        /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-        mexErrMsgIdAndTxt("SWIG:ConvertPointerObj","SWIG error in converting pointer for type %s. Bad typemap?",type->name);
-        return SWIG_ERROR;
-      }
+  /* Get data */
+  if (ptr) *ptr = p->ptr;
+  if (own) *own = p->own;
+    
+  /* Set ownership marker to false? */
+  if(flags & SWIG_POINTER_DISOWN){
+    SWIG_Matlab_DeletePointer(ind);
+  }
+
+  /* No type cast needed */
+  if (same_type || !ptr) {
+    return SWIG_OK;
+  }
+
+  /* Do type-cast */
+  int newmemory = 0;
+  *ptr = SWIG_TypeCast(tc, *ptr, &newmemory);
+  if (newmemory == SWIG_CAST_NEW_MEMORY) {
+    if (own) {
+      *own = *own | SWIG_CAST_NEW_MEMORY;
+    } else {
+      /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+      mexErrMsgIdAndTxt("SWIG:ConvertPointerObj","SWIG error in converting pointer for type %s. Bad typemap?",type->name);
+      return SWIG_ERROR;
     }
   }
   return SWIG_OK;
