@@ -5,6 +5,30 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-29: wsfulton
+            [Python] Improve indentation warning and error messages for code in the following directives:
+
+              %pythonprepend
+              %pythonappend
+              %pythoncode
+              %pythonbegin
+              %feature("shadow")
+
+            Old error example:
+              Error: Line indented less than expected (line 3 of pythoncode)
+
+            New error example:
+              Error: Line indented less than expected (line 3 of %pythoncode or %insert("python") block)
+              as no line should be indented less than the indentation in line 1
+
+            Old warning example:
+              Warning 740: Whitespace prefix doesn't match (line 2 of %pythoncode or %insert("python") block)
+
+            New warning example:
+              Warning 740: Whitespace indentation is inconsistent compared to earlier lines (line 3 of
+              %pythoncode or %insert("python") block)
+
+            
 2015-07-28: wsfulton
             [Python] Fix #475. Improve docstring indentation handling.
             
