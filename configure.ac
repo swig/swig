@@ -1882,27 +1882,27 @@ if test x"${with_ocaml}" = xno -o x"${with_alllang}" = xno ; then
 else
     AC_MSG_CHECKING(for Ocaml DL load generator)
     if test -z "$OCAMLDLGEN"; then
-	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
+	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen)
     fi
 
     AC_MSG_CHECKING(for Ocaml package tool)
 	if test -z "$OCAMLFIND"; then
-	AC_CHECK_PROGS(OCAMLFIND, ocamlfind, :)
+	AC_CHECK_PROGS(OCAMLFIND, ocamlfind)
     fi
 
     AC_MSG_CHECKING(for Ocaml compiler)
 	if test -z "$OCAMLC"; then
-	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
+	AC_CHECK_PROGS(OCAMLC, ocamlc)
     fi
 
     AC_MSG_CHECKING(for Ocaml toplevel creator)
     if test -z "$OCAMLMKTOP"; then
-	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
+	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop)
     fi
 
     AC_MSG_CHECKING(for Ocaml Pre-Processor-Pretty-Printer)
     if test -z "$CAMLP4"; then
-	AC_CHECK_PROGS(CAMLP4, camlp4, :)
+	AC_CHECK_PROGS(CAMLP4, camlp4)
     fi
 fi # Disabling ocaml
 
