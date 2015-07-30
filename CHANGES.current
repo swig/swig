@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-30: wsfulton
+            Fix #440 - Initialise all newly created arrays when using %array_functions and %array_class
+            in the carrays.i library - bug is only relevant when using C++.
+
 2015-07-29: wsfulton
             [Python] Improve indentation warning and error messages for code in the following directives:
 
