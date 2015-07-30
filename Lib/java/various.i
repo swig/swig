@@ -29,7 +29,7 @@
 #ifdef __cplusplus
     $1 = new char*[size+1];
 #else
-    $1 = (char **)calloc(size+1, sizeof(char *));
+    $1 = (char **)malloc((size+1) * sizeof(char *));
 #endif
     for (i = 0; i<size; i++) {
       jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
@@ -37,7 +37,7 @@
 #ifdef __cplusplus
       $1[i] = new char [strlen(c_string)+1];
 #else
-      $1[i] = (char *)calloc(strlen(c_string)+1, sizeof(const char *));
+      $1[i] = (char *)malloc((strlen(c_string)+1) * sizeof(const char *));
 #endif
       strcpy($1[i], c_string);
       JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
