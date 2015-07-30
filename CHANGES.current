@@ -5,6 +5,41 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-07-29: wsfulton
+            [Python] Improve indentation warning and error messages for code in the following directives:
+
+              %pythonprepend
+              %pythonappend
+              %pythoncode
+              %pythonbegin
+              %feature("shadow")
+
+            Old error example:
+              Error: Line indented less than expected (line 3 of pythoncode)
+
+            New error example:
+              Error: Line indented less than expected (line 3 of %pythoncode or %insert("python") block)
+              as no line should be indented less than the indentation in line 1
+
+            Old warning example:
+              Warning 740: Whitespace prefix doesn't match (line 2 of %pythoncode or %insert("python") block)
+
+            New warning example:
+              Warning 740: Whitespace indentation is inconsistent compared to earlier lines (line 3 of
+              %pythoncode or %insert("python") block)
+
+            
+2015-07-28: wsfulton
+            [Python] Fix #475. Improve docstring indentation handling.
+            
+            SWIG-3.0.5 and earlier sometimes truncated text provided in the docstring feature.
+            This occurred when the indentation (whitespace) in the docstring was less in the
+            second or later lines when compared to the first line.
+            SWIG-3.0.6 gave a 'Line indented less than expected' error instead of truncating
+            the docstring text.
+            Now the indentation for the 'docstring' feature is smarter and is appropriately
+            adjusted so that no truncation occurs.
+
 2015-07-22: wsfulton
             Support for special variable expansion in typemap attributes. Example usage expansion
             in the 'out' attribute (C# specific):
