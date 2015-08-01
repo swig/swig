@@ -5,6 +5,21 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.7 (in progress)
 ===========================
 
+2015-08-02: wsfulton
+            [Java] Fix potential security exploit in generated Java classes.
+            The swigCPtr and swigCMemOwn member variables in the generated Java
+            classes are now declared 'transient' by default. Further details of the exploit
+            in Android is being published in an academic paper as part of USENIX WOOT '15:
+            https://www.usenix.org/conference/woot15/workshop-program/presentation/peles.
+
+            In the unlikely event that you are relying on these members being serializable,
+            then you will need to override the default javabody and javabody_derived typemaps
+            to generate the old generated code. The relevant typemaps are in the Lib directory
+            in the java.swg, boost_shared_ptr.i and boost_intrusive_ptr.i files. Copy the
+            relevant default typemaps into your interface file and remove the 'transient' keyword.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2015-07-30: wsfulton
             Fix #440 - Initialise all newly created arrays when using %array_functions and %array_class
             in the carrays.i library - bug is only relevant when using C++.
