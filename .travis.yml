@@ -129,6 +129,7 @@ before_install:
   - if test -n "$SWIGLANG"; then export cxxflags=$(Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD) && echo $cxxflags; fi
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
+  - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$SWIGLANG$PY3); fi
   - echo "${CONFIGOPTS[@]}"
   - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
   - echo -en 'travis_fold:end:script.1\\r'
