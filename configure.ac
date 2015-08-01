@@ -2821,10 +2821,10 @@ AC_SUBST(swig_lib)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
 case $build in
-        # Windows does not understand unix directories. Convert into a windows directory with drive letter.
-        *-*-mingw*) SWIG_LIB_WIN_UNIX=`cmd //c echo $SWIG_LIB | sed -e "s/[ ]*$//"`;; # This echo converts unix to mixed paths. Then zap unexpected trailing space.
-        *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;
-        *) SWIG_LIB_WIN_UNIX="";;
+  # Windows does not understand unix directories. Convert into a windows directory with drive letter.
+  *-*-mingw*) SWIG_LIB_WIN_UNIX=`${srcdir}/Tools/convertpath -m $SWIG_LIB`;;
+  *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;
+  *) SWIG_LIB_WIN_UNIX="";;
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
