@@ -1174,7 +1174,18 @@ int MATLAB::globalfunctionHandler(Node *n) {
   if (min_num_returns==0) {
     Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
   } else {
-    Printf(f_wrap_m,"  [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+    if (GetFlag(n, "feature:optionalunpack")) {
+      Printf(f_wrap_m,"      out = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+      Printf(f_wrap_m,"      if nargout>1\n");
+      Printf(f_wrap_m,"        for i=1:length(out)\n");
+      Printf(f_wrap_m,"          varargout{i} = out(i);\n");
+      Printf(f_wrap_m,"        end\n");
+      Printf(f_wrap_m,"      else\n");
+      Printf(f_wrap_m,"        varargout{1}=out;\n");
+      Printf(f_wrap_m,"      end\n");
+    } else {
+      Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+    }
   }
 
   if (have_matlabappend(n))
@@ -2121,7 +2132,18 @@ int MATLAB::memberfunctionHandler(Node *n) {
     Printf(f_wrap_m,"        self = %s.%s(self);\n", pkg_name,class_name);
     Printf(f_wrap_m,"      end\n");
   }
-  Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_fcn, gw_ind, varginstr);
+  if (GetFlag(n, "feature:optionalunpack")) {
+    Printf(f_wrap_m,"      out = %s(%d, self, %s);\n", mex_fcn, gw_ind, varginstr);
+    Printf(f_wrap_m,"      if nargout>1\n");
+    Printf(f_wrap_m,"        for i=1:length(out)\n");
+    Printf(f_wrap_m,"          varargout{i} = out(i);\n");
+    Printf(f_wrap_m,"        end\n");
+    Printf(f_wrap_m,"      else\n");
+    Printf(f_wrap_m,"        varargout{1}=out;\n");
+    Printf(f_wrap_m,"      end\n");
+  } else {
+    Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_fcn, gw_ind, varginstr);
+  }
   if (have_matlabappend(n))
     Printf(f_wrap_m, "%s\n",matlabappend(n));
   Printf(f_wrap_m,"    end\n");
@@ -2452,7 +2474,18 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   if (min_num_returns==0) {
     Printf(wrapper,"      [varargout{1:nargout}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
   } else {
-    Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+    if (GetFlag(n, "feature:optionalunpack")) {
+      Printf(wrapper,"      out = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+      Printf(wrapper,"      if nargout>1\n");
+      Printf(wrapper,"        for i=1:length(out)\n");
+      Printf(wrapper,"          varargout{i} = out(i);\n");
+      Printf(wrapper,"        end\n");
+      Printf(wrapper,"      else\n");
+      Printf(wrapper,"        varargout{1}=out;\n");
+      Printf(wrapper,"      end\n");
+    } else {
+      Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+    }
   }
   if (have_matlabappend(n))
     Printf(wrapper, "%s\n", Char(matlabappend(n)));
