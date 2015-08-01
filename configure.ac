@@ -629,7 +629,7 @@ else
     fi
   fi
 
-  if test $PYVER -le 2; then
+  if test $PYVER -eq 1 -o $PYVER -eq 2; then
     AC_MSG_CHECKING(for Python prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
