@@ -2796,9 +2796,8 @@ dnl built using MinGW or cccl compiler in Cygwin environment). However it may,
 dnl although this is probably more rare, also be built as a Cygwin program.
 dnl Using "mixed" path like we do here allows the path to work in both cases.
 case $host in
-*-*-cygwin* )
-    ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR`
-    ;;
+  *-*-mingw* ) ABS_SRCDIR=`${srcdir}/Tools/convertpath -m $ABS_SRCDIR` ;;
+  *-*-cygwin* ) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
 esac
 
 # Root directory
