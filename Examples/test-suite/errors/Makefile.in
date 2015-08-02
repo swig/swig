@@ -32,7 +32,7 @@ include $(srcdir)/../common.mk
 
 # Portable dos2unix / todos for stripping CR
 TODOS        = tr -d '\r'
-#TODOS        = sed -e 's/\r$$//' # On OSX behaves as if written 's/r$$//'
+#TODOS        = sed -e 's/\r$$//' # On Mac OS X behaves as if written 's/r$$//'
 
 # strip source directory from output, so that diffs compare
 STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'

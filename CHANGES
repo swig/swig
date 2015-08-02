@@ -1726,7 +1726,7 @@ Version 2.0.6 (30 April 2012)
             [Lua] Fix uninitialised variable in SWIGTYPE **OUTPUT typemaps as reported by Jim Anderson.
 
 2012-04-28: wsfulton
-            [Python] Fix compilation errors when wrapping STL containers on Mac OSX and possibly other systems.
+            [Python] Fix compilation errors when wrapping STL containers on Mac OS X and possibly other systems.
 
 2012-04-28: wsfulton
             [Java] Patch 3521811 from Leo Davis - char **STRING_ARRAY typemaps fixed to handle
@@ -2421,7 +2421,7 @@ Version 2.0.2 (20 February 2011)
             Update chapter name to MzScheme/Racket accounting for the rename of MzScheme to Racket.
 
 2011-02-05: wsfulton
-            [C#] SF #3085906 - Possible fix running test-suite on Mac OSX.
+            [C#] SF #3085906 - Possible fix running test-suite on Mac OS X.
 
 2011-02-05: wsfulton
             SF #3173367 Better information during configure about Boost prerequisite for running
@@ -4074,7 +4074,7 @@ Version 1.3.37 (13 January 2009)
             in Allegro CL
 
 2008-07-19: wsfulton
-            Fix building of Tcl examples/test-suite on Mac OSX reported by Gideon Simpson.
+            Fix building of Tcl examples/test-suite on Mac OS X reported by Gideon Simpson.
 
 2008-07-17: wsfulton
             Fix SF #2019156 Configuring with --without-octave or --without-alllang
@@ -12895,7 +12895,7 @@ Version 1.3.20 (December 17, 2003)
             Suggested by Kerim Borchaev.
 
 11/11/2003: beazley
-            Configuration changes to make SWIG work on Mac OSX 10.3.x (Panther).
+            Configuration changes to make SWIG work on Mac OS X 10.3.x (Panther).
             Tested with Python, Tcl, Perl, and Ruby---all of which seem to work.
 
 11/08/2003: cheetah (William Fulton)

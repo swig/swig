@@ -357,7 +357,7 @@ fi
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
-# other language targets as well - problem is an OSX incompatibility
+# other language targets as well - problem is a Mac OS X incompatibility
 # between libraries depending on libstdc++ and libc++.
 CLANGXX=
 $CXX -v 2>&1 | grep -i clang >/dev/null && CLANGXX=yes
@@ -1460,7 +1460,7 @@ else
   if test -z "$JSCOREINCDIR"; then
     JSCOREINCDIR="/usr/include/ /usr/local/include/"
 
-    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
     case $host in
     *-*-linux*)
       JSCOREINCDIR="/usr/include/webkit-1.0/ /usr/include/webkitgtk-1.0/ /usr/local/include/webkit-1.0/JavaScriptCore/ $JSCOREINCDIR"
@@ -1515,7 +1515,7 @@ else
 
   # if not include dir is specified we try to find
   if test -z "$JSV8INCDIR"; then
-    # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
     case $host in
     *-*-linux*)
       JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
