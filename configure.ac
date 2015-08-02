@@ -1217,9 +1217,9 @@ case $host in
     fi
     dnl The JAVA_HOME doesn't contain the JDK headers though, but they seem to
     dnl always be in the same location, according to Apple JNI documentation.
-    JAVA_HOME_INCDIR="/System/Library/Frameworks/JavaVM.framework/Headers"
-    if ! test -r "$JAVA_HOME_INCDIR/jni.h"; then
-      JAVA_HOME_INCDIR=
+    JAVA_OSX_STD_INCDIR="/System/Library/Frameworks/JavaVM.framework/Headers"
+    if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
+      JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
     fi
     ;;
 esac
@@ -1292,7 +1292,7 @@ if test -z "$JAVAINCDIR" ; then
     # Add in default installation directory on Windows for Cygwin
     case $host in
     *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
-    *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
+    *-*-darwin*) JAVAINCDIR="$JAVA_OSX_STD_INCDIR $JAVAINCDIR";;
     *);;
     esac
 
