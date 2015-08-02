@@ -20,6 +20,10 @@ Version 3.0.7 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
 
+2015-08-01: vadz
+            Make configure --without-alllang option more useful: it can now be overridden by the following
+            --with-xxx options, allowing to easily enable just one or two languages.
+
 2015-07-30: wsfulton
             Fix #440 - Initialise all newly created arrays when using %array_functions and %array_class
             in the carrays.i library - bug is only relevant when using C++.
