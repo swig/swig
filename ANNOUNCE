@@ -1,4 +1,4 @@
-*** ANNOUNCE: SWIG 3.0.7 (in progress) ***
+*** ANNOUNCE: SWIG 3.0.7 (3 Aug 2015) ***
 
 http://www.swig.org
 
@@ -17,6 +17,16 @@ the form of XML and Lisp s-expressions.  Major applications of SWIG
 include generation of scripting language extension modules, rapid
 prototyping, testing, and user interface development for large
 C/C++ systems.
+
+Release Notes
+=============
+Detailed release notes are available with the release and are also
+published on the SWIG web site at http://swig.org/release.html.
+
+SWIG-3.0.7 summary:
+- Add support for Octave-4.0.0.
+- Remove potential Android security exploit in generated Java classes.
+- Minor new features and bug fixes.
 
 Availability
 ============

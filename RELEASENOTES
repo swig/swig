@@ -4,6 +4,14 @@ and CHANGES files.
 
 Release Notes
 =============
+Detailed release notes are available with the release and are also
+published on the SWIG web site at http://swig.org/release.html.
+
+SWIG-3.0.7 summary:
+- Add support for Octave-4.0.0.
+- Remove potential Android security exploit in generated Java classes.
+- Minor new features and bug fixes.
+
 SWIG-3.0.6 summary:
 - Stability and regression fixes.
 - Fixed parsing of C++ corner cases.

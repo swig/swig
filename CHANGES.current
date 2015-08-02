@@ -2,8 +2,8 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.7 (in progress)
-===========================
+Version 3.0.7 (3 Aug 2015)
+==========================
 
 2015-08-02: wsfulton
             [Java] Fix potential security exploit in generated Java classes.
