@@ -1193,14 +1193,87 @@ AC_MSG_NOTICE([Disabling Java])
 JAVA=
 else
 
+dnl Detect everything we need for Java: java for running Java tests, javac for
+dnl compiling them and C headers for compiling C code.
+dnl
+dnl If JAVA_HOME is defined and contains everything needed, as it's supposed to,
+dnl just use it. Otherwise try to locate the necessary files in the path.
+case $host in
+  *-*-cygwin*)
+    dnl Ensure that JAVA_HOME is in the form we can use, it's typically set to Windows path by the installer.
+    if test -n "$JAVA_HOME"; then
+      JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
+    fi
+    ;;
+  *-*-mingw*)
+    if test -n "$JAVA_HOME"; then
+      JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
+    fi
+    ;;
+  *-*-darwin*)
+    dnl Under OS X JAVA_HOME is not set by default, try to use the system default JRE.
+    if test -z "$JAVA_HOME" -a -x /usr/libexec/java_home; then
+      JAVA_HOME=`/usr/libexec/java_home`
+    fi
+    dnl The JAVA_HOME doesn't contain the JDK headers though, but they seem to
+    dnl always be in the same location, according to Apple JNI documentation.
+    JAVA_OSX_STD_INCDIR="/System/Library/Frameworks/JavaVM.framework/Headers"
+    if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
+      JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
+    fi
+    ;;
+esac
+
+if test -n "$JAVA_HOME"; then
+  AC_MSG_CHECKING(for JDK)
+
+  dnl Don't complain about missing executables/headers if they had been
+  dnl explicitly overridden from the command line, but otherwise verify that we
+  dnl have everything we need.
+  java_home_ok=1
+  if test -z "$JAVABIN" -a ! -x "$JAVA_HOME/bin/java"; then
+    AC_MSG_WARN([No java executable under JAVA_HOME.])
+    java_home_ok=0
+  fi
+  if test -z "$JAVACBIN" -a ! -x "$JAVA_HOME/bin/javac"; then
+    AC_MSG_WARN([No javac executable under JAVA_HOME.])
+    java_home_ok=0
+  fi
+
+  dnl By default the headers are under JAVA_HOME/include, but OS X is special
+  dnl and defines JAVA_HOME_INCDIR differently above.
+  if test -z "$JAVA_HOME_INCDIR"; then
+    JAVA_HOME_INCDIR="$JAVA_HOME/include"
+  fi
+  if test -z "$JAVAINCDIR" -a ! -r "$JAVA_HOME_INCDIR/jni.h"; then
+    AC_MSG_WARN([No java headers under JAVA_HOME (does it point to a JDK and not just JRE?).])
+    java_home_ok=0
+  fi
+  if test "$java_home_ok" = 1; then
+    AC_MSG_RESULT([found (in $JAVA_HOME)])
+  else
+    AC_MSG_RESULT(no)
+    AC_MSG_WARN([JAVA_HOME ($JAVA_HOME) is defined but doesn't point to a complete JDK installation, ignoring it.])
+    JAVA_HOME=
+  fi
+fi
+
 if test "x$JAVABIN" = xyes; then
-  AC_CHECK_PROGS(JAVA, java kaffe guavac)
+  if test -n "$JAVA_HOME"; then
+    JAVA="$JAVA_HOME/bin/java"
+  else
+    AC_CHECK_PROGS(JAVA, java kaffe guavac)
+  fi
 else
   JAVA="$JAVABIN"
 fi
 
 if test -z "$JAVACBIN"; then
-  AC_CHECK_PROGS(JAVAC, javac)
+  if test -n "$JAVA_HOME"; then
+    JAVAC="$JAVA_HOME/bin/javac"
+  else
+    AC_CHECK_PROGS(JAVAC, javac)
+  fi
 else
   JAVAC="$JAVACBIN"
 fi
@@ -1210,22 +1283,27 @@ AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include di
 
 JAVAINC=""
 if test -z "$JAVAINCDIR" ; then
-  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
+  if test -n "$JAVA_HOME"; then
+    JAVAINCDIR="$JAVA_HOME_INCDIR"
+    JAVAINC=-I\"$JAVAINCDIR\"
+  else
+    JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/java/j2sdk*/include /usr/java/jdk*/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/lib/java/include /usr/lib/jvm/java*/include /usr/lib64/jvm/java*/include /usr/include/kaffe /usr/local/include/kaffe /usr/include"
 
-  # Add in default installation directory on Windows for Cygwin
-  case $host in
-  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
-  *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
-  *);;
-  esac
+    # Add in default installation directory on Windows for Cygwin
+    case $host in
+    *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files*/Java/jdk*/include d:/Program*Files*/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+    *-*-darwin*) JAVAINCDIR="$JAVA_OSX_STD_INCDIR $JAVAINCDIR";;
+    *);;
+    esac
 
-  for d in $JAVAINCDIR ; do
-    if test -r "$d/jni.h" ; then
-      JAVAINCDIR=$d
-      JAVAINC=-I\"$d\"
-      break
-    fi
-  done
+    for d in $JAVAINCDIR ; do
+      if test -r "$d/jni.h" ; then
+	JAVAINCDIR=$d
+	JAVAINC=-I\"$d\"
+	break
+      fi
+    done
+  fi
 else
   if test -r "$JAVAINCDIR/jni.h" ; then
     JAVAINC=-I\"$JAVAINCDIR\"
