@@ -1224,9 +1224,8 @@ case $host in
     ;;
 esac
 
+AC_MSG_CHECKING(for java JDK)
 if test -n "$JAVA_HOME"; then
-  AC_MSG_CHECKING(for JDK)
-
   dnl Don't complain about missing executables/headers if they had been
   dnl explicitly overridden from the command line, but otherwise verify that we
   dnl have everything we need.
@@ -1253,9 +1252,11 @@ if test -n "$JAVA_HOME"; then
     AC_MSG_RESULT([found (in $JAVA_HOME)])
   else
     AC_MSG_RESULT(no)
-    AC_MSG_WARN([JAVA_HOME ($JAVA_HOME) is defined but doesn't point to a complete JDK installation, ignoring it.])
+    AC_MSG_WARN([JAVA_HOME ($JAVA_HOME) is defined but does not point to a complete JDK installation, ignoring it.])
     JAVA_HOME=
   fi
+else
+  AC_MSG_RESULT([no (JAVA_HOME is not defined)])
 fi
 
 if test "x$JAVABIN" = xyes; then
