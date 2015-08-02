@@ -126,7 +126,7 @@ int bounceNumber3(int num3) {
 %{
   // split double value a.b into two numbers, a and b*100
   $1 = (int)$input;
-  $2 = ($input - $1 + 0.005) * 100;
+  $2 = (char)(($input - $1 + 0.005) * 100);
 %}
 %typemap(csin,
          pre="    $1_type $csinput_$1_type = 50;\n" // $1_type should expand to int
