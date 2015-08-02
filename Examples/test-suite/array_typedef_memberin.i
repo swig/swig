@@ -1,14 +1,14 @@
 %module array_typedef_memberin
 
-#if defined(_MSC_VER)
-  #pragma warning(disable: 4351) // new behavior: elements of array 'xyz' will be default initialized
-#endif
-
 #if defined(SWIGSCILAB)
 %rename(ExDetail) ExampleDetail;
 #endif
 
 %inline %{ 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4351) // new behavior: elements of array 'xyz' will be default initialized
+#endif
+
 typedef short Eight[8]; 
 typedef const short ConstEight[8]; 
 namespace ArrayExample 
