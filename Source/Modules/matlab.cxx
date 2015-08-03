@@ -2021,17 +2021,19 @@ int MATLAB::classHandler(Node *n) {
       }
 #endif
       String *bname = Getattr(b.item, "sym:name");
-      if (!bname || GetFlag(b.item,"feature:ignore")) continue;
+      Node *bpkgNode = Getattr(b.item, "module");
+      String *bpkg = Getattr(bpkgNode, "name");
+      if (!bname || !bpkg || GetFlag(b.item,"feature:ignore")) continue;
       base_count++;
         
       // Separate multiple base classes with &
       if (base_count>1) Printf(f_wrap_m," & ");
       
       // Add to list of bases
-      Printf(f_wrap_m,"%s.%s",pkg_name,bname);
+      Printf(f_wrap_m,"%s.%s",bpkg,bname);
 
       // Add to initialization
-      Printf(base_init,"      self@%s.%s('_swigCreate');\n",pkg_name,bname);
+      Printf(base_init,"      self@%s.%s('_swigCreate');\n",bpkg,bname);
     }
   }
 
