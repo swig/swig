@@ -8,13 +8,16 @@
 */
 
 /* the common from conversor */
-%define %swig_fromcplx_conv(Type, OctConstructor, Real, Imag)
+%define %swig_fromcplx_conv(Type, Real, Imag)
      %fragment(SWIG_From_frag(Type),"header")
 {
-  SWIGINTERNINLINE octave_value
+  SWIGINTERNINLINE mxArray*
     SWIG_From(Type)(const Type& c)
     {
-      return octave_value(OctConstructor(Real(c), Imag(c)));
+      mxArray* ret = mxCreateDoubleMatrix(1,1,mxCOMPLEX);
+      *mxGetPr(ret) = Real(c);
+      *mxGetPi(ret) = Imag(c);
+      return ret;
     }
 }
 %enddef
@@ -25,12 +28,11 @@
 	       fragment=SWIG_AsVal_frag(double))
 {
   SWIGINTERN int
-    SWIG_AsVal(Type) (const octave_value& ov, Type* val)
+    SWIG_AsVal(Type) (mxArray* ov, Type* val)
     {
-      if (ov.is_complex_scalar()) {
+      if (mxIsComplex(ov)) {
 	if (val) {
-	  Complex c(ov.complex_value());
-	  *val=Constructor(c.real(),c.imag());
+	  *val=Constructor(*mxGetPr(ov),*mxGetPi(ov));
 	}
 	return SWIG_OK;
       } else {
@@ -45,7 +47,7 @@
       return SWIG_TypeError;
     }
 }
-%swig_fromcplx_conv(Type, Complex, Real, Imag);
+%swig_fromcplx_conv(Type, Real, Imag);
 %enddef
 
 // the float case
@@ -53,13 +55,12 @@
      %fragment(SWIG_AsVal_frag(Type),"header",
 	       fragment=SWIG_AsVal_frag(float)) {
   SWIGINTERN int
-    SWIG_AsVal(Type) (const octave_value& ov, Type* val)
+    SWIG_AsVal(Type) (mxArray* ov, Type* val)
     {
-      if (ov.is_complex_scalar()) {
+      if (mxIsComplex(ov)) {
 	if (val) {
-	  Complex c(ov.complex_value());
-	  double re = c.real();
-	  double im = c.imag();
+	  double re = *mxGetPr(ov);
+	  double im = *mxGetPi(ov);
 	  if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
 	    if (val)
 	      *val = Constructor(%numeric_cast(re, float),
@@ -81,7 +82,7 @@
     }
 }
 
-%swig_fromcplx_conv(Type, FloatComplex, Real, Imag);
+%swig_fromcplx_conv(Type, Real, Imag);
 %enddef
 
 #define %swig_cplxflt_convn(Type, Constructor, Real, Imag) \
