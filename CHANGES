@@ -3,6 +3,123 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.7 (3 Aug 2015)
+==========================
+
+2015-08-02: wsfulton
+            [Java] Fix potential security exploit in generated Java classes.
+            The swigCPtr and swigCMemOwn member variables in the generated Java
+            classes are now declared 'transient' by default. Further details of the exploit
+            in Android is being published in an academic paper as part of USENIX WOOT '15:
+            https://www.usenix.org/conference/woot15/workshop-program/presentation/peles.
+
+            In the unlikely event that you are relying on these members being serializable,
+            then you will need to override the default javabody and javabody_derived typemaps
+            to generate the old generated code. The relevant typemaps are in the Lib directory
+            in the java.swg, boost_shared_ptr.i and boost_intrusive_ptr.i files. Copy the
+            relevant default typemaps into your interface file and remove the 'transient' keyword.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2015-08-01: vadz
+            Make configure --without-alllang option more useful: it can now be overridden by the following
+            --with-xxx options, allowing to easily enable just one or two languages.
+
+2015-07-30: wsfulton
+            Fix #440 - Initialise all newly created arrays when using %array_functions and %array_class
+            in the carrays.i library - bug is only relevant when using C++.
+
+2015-07-29: wsfulton
+            [Python] Improve indentation warning and error messages for code in the following directives:
+
+              %pythonprepend
+              %pythonappend
+              %pythoncode
+              %pythonbegin
+              %feature("shadow")
+
+            Old error example:
+              Error: Line indented less than expected (line 3 of pythoncode)
+
+            New error example:
+              Error: Line indented less than expected (line 3 of %pythoncode or %insert("python") block)
+              as no line should be indented less than the indentation in line 1
+
+            Old warning example:
+              Warning 740: Whitespace prefix doesn't match (line 2 of %pythoncode or %insert("python") block)
+
+            New warning example:
+              Warning 740: Whitespace indentation is inconsistent compared to earlier lines (line 3 of
+              %pythoncode or %insert("python") block)
+
+            
+2015-07-28: wsfulton
+            [Python] Fix #475. Improve docstring indentation handling.
+            
+            SWIG-3.0.5 and earlier sometimes truncated text provided in the docstring feature.
+            This occurred when the indentation (whitespace) in the docstring was less in the
+            second or later lines when compared to the first line.
+            SWIG-3.0.6 gave a 'Line indented less than expected' error instead of truncating
+            the docstring text.
+            Now the indentation for the 'docstring' feature is smarter and is appropriately
+            adjusted so that no truncation occurs.
+
+2015-07-22: wsfulton
+            Support for special variable expansion in typemap attributes. Example usage expansion
+            in the 'out' attribute (C# specific):
+
+              %typemap(ctype, out="$*1_ltype") unsigned int& "$*1_ltype"
+
+            is equivalent to the following as $*1_ltype expands to 'unsigned int':
+
+              %typemap(ctype, out="unsigned int") unsigned int& "unsigned int"
+
+            Special variables can be used within special variable macros too. Example usage expansion:
+
+              %typemap(cstype) unsigned int "uint"
+              %typemap(cstype, out="$typemap(cstype, $*1_ltype)") unsigned int& "$typemap(cstype, $*1_ltype)"
+
+            Special variables are expanded first and hence the above is equivalent to:
+
+              %typemap(cstype, out="$typemap(cstype, unsigned int)") unsigned int& "$typemap(cstype, unsigned int)"
+
+            which then expands to:
+
+              %typemap(cstype, out="uint") unsigned int& "uint"
+
+2015-07-22: lindleyf
+	    Apply patch #439 - support for $typemap() (aka embedded typemaps or special variable
+            macros) in typemap attributes. A simple example where $typemap() is expanded in the
+            'out' attribute (C# specific):
+
+              %typemap(cstype) unsigned int "uint"
+              %typemap(cstype, out="$typemap(cstype, unsigned int)") unsigned int& "$typemap(cstype, unsigned int)"
+
+            is equivalent to:
+
+              %typemap(cstype, out="uint") unsigned int& "uint"
+
+2015-07-18: m7thon
+	    [Python] Docstrings provided via %feature("docstring") are now quoted and added to
+            the tp_doc slot when using python builtin classes (-builtin). When no docstring is
+            provided, the tp_doc slot is set to the fully qualified C/C++ class name.
+            Github issues #445 and #461.
+
+2015-07-17: kwwette
+            [octave] Support Octave version 4.0.0 (thanks to patches from Orion Poplawski).
+
+2015-07-07: wsfulton
+	    SWIG no longer generates a wrapper for a class' constructor if that class has
+            any base class with a private destructor. This is because your compiler should
+            not allow a class to be instantiated if a base has a private destructor. Some
+            compilers do, so if you need the old behaviour, use the "notabstract" feature, eg:
+
+              %feature("notabstract") Derived;
+              class Base {
+                ~Base() {}
+              };
+              struct Derived : Base {};
+
 Version 3.0.6 (5 Jul 2015)
 ==========================
 
