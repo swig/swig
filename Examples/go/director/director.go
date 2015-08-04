@@ -25,7 +25,7 @@ func (fbgs *fooBarGo) IsFooBarGo() {}
 
 // Go type that defines the DirectorInterface. It contains the Foo and Bar
 // methods that overwrite the respective virtual C++ methods on FooBarAbs.
-type overwritenMethodsOnFooBarAbs struct {
+type overwrittenMethodsOnFooBarAbs struct {
 	// Backlink to FooBarAbs so that the rest of the class can be used by the
 	// overridden methods.
 	fb FooBarAbs
@@ -34,22 +34,22 @@ type overwritenMethodsOnFooBarAbs struct {
 	// stored here so that the overriden methods can use them.
 }
 
-func (om *overwritenMethodsOnFooBarAbs) Foo() string {
+func (om *overwrittenMethodsOnFooBarAbs) Foo() string {
 	// DirectorFooBarAbsFoo calls the base method FooBarAbs::Foo.
 	return "Go " + DirectorFooBarAbsFoo(om.fb)
 }
 
-func (om *overwritenMethodsOnFooBarAbs) Bar() string {
+func (om *overwrittenMethodsOnFooBarAbs) Bar() string {
 	return "Go Bar"
 }
 
 func NewFooBarGo() FooBarGo {
 	// Instantiate FooBarAbs with selected methods overridden.  The methods that
-	// will be overwritten are defined on overwritenMethodsOnFooBarAbs and have
+	// will be overwritten are defined on overwrittenMethodsOnFooBarAbs and have
 	// a compatible signature to the respective virtual C++ methods.
 	// Furthermore additional constructor arguments will be typically stored in
-	// the overwritenMethodsOnFooBarAbs struct.
-	om := &overwritenMethodsOnFooBarAbs{}
+	// the overwrittenMethodsOnFooBarAbs struct.
+	om := &overwrittenMethodsOnFooBarAbs{}
 	fb := NewDirectorFooBarAbs(om)
 	om.fb = fb // Backlink causes cycle as fb.v = om!
 
