@@ -4,3 +4,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 3.0.8 (in progress)
 ===========================
+
+2015-08-05: vadz
+            [Java] Make (char* STRING, size_t LENGTH) typemaps usable for
+            strings of other types, e.g. "unsigned char*".

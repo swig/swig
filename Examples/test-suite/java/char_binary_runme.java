@@ -20,5 +20,11 @@ public class char_binary_runme {
 
     if (t.strlen(hil0) != 4)
       throw new RuntimeException("bad multi-arg typemap");
+
+    if (t.ustrlen(hile) != 4)
+      throw new RuntimeException("bad multi-arg typemap");
+
+    if (t.ustrlen(hil0) != 4)
+      throw new RuntimeException("bad multi-arg typemap");
   }
 }
