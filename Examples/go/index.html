@@ -21,8 +21,7 @@ certain C declarations are turned into constants.
 <li><a href="pointer/index.html">pointer</a>. Simple pointer handling.
 <li><a href="funcptr/index.html">funcptr</a>. Pointers to functions.
 <li><a href="template/index.html">template</a>. C++ templates.
-<li><a href="callback/index.html">callback</a>. C++ callbacks using directors.
-<li><a href="extend/index.html">extend</a>. Polymorphism using directors.
+<li><a href="director/index.html">director</a>. Example how to utilize the director feature.
 </ul>
 
 <h2>Compilation Issues</h2>
@@ -46,7 +45,7 @@ the <tt>6g</tt> or <tt>8g</tt> compiler, the steps look like this
 <pre>
 % swig -go interface.i
 % gcc -fpic -c interface_wrap.c
-% gcc -shared interface_wrap.o $(OBJS) -o interfacemodule.so 
+% gcc -shared interface_wrap.o $(OBJS) -o interfacemodule.so
 % 6g interface.go
 % 6c interface_gc.c
 % gopack grc interface.a interface.6 interface_gc.6
@@ -83,7 +82,7 @@ All of the examples were last tested with the following configuration
 <li>gcc-4.2.4
 </ul>
 
-Your mileage may vary.  If you experience a problem, please let us know by 
+Your mileage may vary.  If you experience a problem, please let us know by
 contacting us on the <a href="http://www.swig.org/mail.html">mailing lists</a>.
 </body>
 </html>
