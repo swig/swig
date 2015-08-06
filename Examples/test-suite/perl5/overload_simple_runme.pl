@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 use overload_simple;
-use vars qw/$DOWARN/;
 use strict;
-use Test::More tests => 75;
+use warnings;
+use Test::More tests => 97;
 
 pass("loaded");
 
@@ -14,10 +14,6 @@ my $v = overload_simple::malloc_void(32);
 isa_ok($v, "_p_void");
 
 
-#
-# Silence warnings about bad types
-#
-BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
 #
 #these tests should 'fail'
 #
@@ -32,11 +28,6 @@ ok($@, "fint(double) - int");
 
 eval { overload_simple::fdouble("1.5/2.0") };
 ok($@, "fint(double) - double");
-
-#
-#enable the warnings again
-#
-$DOWARN =1;
 
 #
 # 'simple' dispatch (no overload) of int and double arguments
@@ -196,3 +187,40 @@ is(overload_simple::int_object(1), 1, "int_object(1)");
 is(overload_simple::int_object(0), 0, "int_object(0)");
 is(overload_simple::int_object(undef), 999, "int_object(Spam*)");
 is(overload_simple::int_object($s), 999, "int_object(Spam*)");
+
+# some of this section is duplication of above tests, but I want to see
+# parity with the coverage in wrapmacro_runme.pl.
+
+sub check {
+  my($args, $want) = @_;
+  my($s, $rslt) = defined $want ?  ($want, "bar:$want") : ('*boom*', undef);
+  is(eval("overload_simple::Spam::bar($args)"), $rslt, "bar($args) => $s");
+}
+
+# normal use patterns
+check("11", 'int');
+check("11.0", 'double');
+check("'11'", 'char *');
+check("'11.0'", 'char *');
+check("-13", 'int');
+check("-13.0", 'double');
+check("'-13'", 'char *');
+check("'-13.0'", 'char *');
+
+check("' '", 'char *');
+check("' 11 '", 'char *');
+# TypeError explosions
+check("\\*STDIN", undef);
+check("[]", undef);
+check("{}", undef);
+check("sub {}", undef);
+
+# regression cases
+check("''", 'char *');
+check("' 11'", 'char *');
+check("' 11.0'", 'char *');
+check("' -11.0'", 'char *');
+check("\"11\x{0}\"", 'char *');
+check("\"\x{0}\"", 'char *');
+check("\"\x{9}11\x{0}this is not eleven.\"", 'char *');
+check("\"\x{9}11.0\x{0}this is also not eleven.\"", 'char *');

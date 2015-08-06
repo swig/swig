@@ -16,16 +16,11 @@ SWIG_From_dec(bool)(bool value)
 SWIGINTERN int
 SWIG_AsVal_dec(bool)(SV *obj, bool* val)
 {
-  if (obj == &PL_sv_yes) {
-    if (val) *val = true;
-    return SWIG_OK;
-  } else if (obj == &PL_sv_no) { 
-    if (val) *val = false;
-    return SWIG_OK;
-  } else {
-    if (val) *val = SvTRUE(obj) ? true : false;
-    return SWIG_AddCast(SWIG_OK);    
-  }
+  if (val)
+    *val = SvTRUE(obj);
+  if (obj != &PL_sv_yes && obj != &PL_sv_no)
+    return SWIG_AddCast(SWIG_OK);
+  return SWIG_OK;
 }
 }
 
@@ -36,62 +31,28 @@ SWIG_AsVal_dec(bool)(SV *obj, bool* val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(long)(long value)
 {
-  SV *sv;
-  if (value >= IV_MIN && value <= IV_MAX)
-    sv = newSViv(value);
-  else
-    sv = newSVpvf("%ld", value);
-  return sv_2mortal(sv);
+  if (IVSIZE < sizeof(value) && (value < IV_MIN || value > IV_MAX))
+    return sv_2mortal(newSVpvf("%ld", value));
+  return sv_2mortal(newSViv(value));
 }
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
-	  fragment="SWIG_CanCastAsInteger") {
+	  fragment="<limits.h>",
+	  fragment=SWIG_AsVal_frag(long long)) {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(SV *obj, long* val)
 {
-  if (SvUOK(obj)) {
-    UV v = SvUV(obj);
-    if (v <= LONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
-    }
-    return SWIG_OverflowError;
-  } else if (SvIOK(obj)) {
-    IV v = SvIV(obj);
-    if (v >= LONG_MIN && v <= LONG_MAX) {
-      if(val) *val = v;
-      return SWIG_OK;
-    }
-    return SWIG_OverflowError;
-  } else {
-    int dispatch = 0;
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      long v;
-      errno = 0;
-      v = strtol(nptr, &endptr,0);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
-    if (!dispatch) {
-      double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, LONG_MAX)) {
-	if (val) *val = (long)(d);
-	return res;
-      }
-    }
+  long long v;
+  int res = SWIG_AsVal(long long)(obj, &v);
+
+  if (SWIG_IsOK(res)) {
+    if (sizeof(v) > sizeof(*val) && (v < LONG_MIN || v > LONG_MAX))
+      return SWIG_OverflowError;
+    if (val)
+      *val = (long)v;
   }
-  return SWIG_TypeError;
+  return res;
 }
 }
 
@@ -101,62 +62,28 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
-  SV *sv;
-  if (value <= UV_MAX)
-    sv = newSVuv(value);
-  else
-    sv = newSVpvf("%lu", value);
-  return sv_2mortal(sv);
+  if (UVSIZE < sizeof(value) && value > UV_MAX)
+    return sv_2mortal(newSVpvf("%lu", value));
+  return sv_2mortal(newSVuv(value));
 }
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
-	  fragment="SWIG_CanCastAsInteger") {
+	  fragment="<limits.h>",
+	  fragment=SWIG_AsVal_frag(unsigned long long)) {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val) 
 {
-  if (SvUOK(obj)) {
-    UV v = SvUV(obj);
-    if (v <= ULONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
-    }
-    return SWIG_OverflowError;
-  } else if (SvIOK(obj)) {
-    IV v = SvIV(obj);
-    if (v >= 0 && v <= ULONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
-    }
-    return SWIG_OverflowError;
-  } else {
-    int dispatch = 0;
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      unsigned long v;
-      errno = 0;
-      v = strtoul(nptr, &endptr,0);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
-    if (!dispatch) {
-      double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
-	if (val) *val = (unsigned long)(d);
-	return res;
-      }
-    }
+  unsigned long long v;
+  int res = SWIG_AsVal(unsigned long long)(obj, &v);
+
+  if (SWIG_IsOK(res)) {
+    if (sizeof(v) > sizeof(*val) && v > ULONG_MAX)
+      return SWIG_OverflowError;
+    if (val)
+      *val = (unsigned long)v;
   }
-  return SWIG_TypeError;
+  return res;
 }
 }
 
@@ -164,25 +91,20 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
 
 %fragment(SWIG_From_frag(long long),"header",
 	  fragment=SWIG_From_frag(long),
-	  fragment="<limits.h>",
 	  fragment="<stdio.h>") {
 SWIGINTERNINLINE SV *
 SWIG_From_dec(long long)(long long value)
 {
-  SV *sv;
-  if (value >= IV_MIN && value <= IV_MAX)
-    sv = newSViv((IV)(value));
-  else {
-    //sv = newSVpvf("%lld", value); doesn't work in non 64bit Perl
-    char temp[256];
-    sprintf(temp, "%lld", value);
-    sv = newSVpv(temp, 0);
-  }
-  return sv_2mortal(sv);
+  char temp[256];
+
+  if (IVSIZE < sizeof(value) && (value < IV_MIN || value > IV_MAX))
+    return sv_2mortal(newSVpvn(temp, snprintf(temp, sizeof(temp), "%lld", value)));
+  return sv_2mortal(newSViv(value));
 }
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment="<ctype.h>",
 	  fragment="<limits.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
@@ -190,50 +112,61 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 {
-  if (SvUOK(obj)) {
-    UV v = SvUV(obj);
-    if (v < LLONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
+  int res = SWIG_OK;
+  long long v;
+  int try_nv = 0;
+
+  if (SvIOK(obj)) {
+    if (SvIsUV(obj)) {
+      UV uv = SvUVX(obj);
+      if (UVSIZE >= sizeof(v) && uv > LLONG_MAX)
+        return SWIG_OverflowError;
+      v = (long long)uv;
+    } else {
+      IV iv = SvIVX(obj);
+      if (IVSIZE > sizeof(v) && (iv < LLONG_MIN || iv > LLONG_MAX))
+        return SWIG_OverflowError;
+      v = (long long)iv;
     }
-    return SWIG_OverflowError;
-  } else if (SvIOK(obj)) {
-    IV v = SvIV(obj);
-    if (v >= LLONG_MIN && v <= LLONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
-    }
-    return SWIG_OverflowError;
+  } else if(SvPOK(obj)) {
+    STRLEN len = SvCUR(obj);
+    char *endp, *str = SvPVX(obj);
+    int err, oerr;
+
+    /* strtoll has some edge cases we should avoid */
+    if (len <= 0 || isspace(*str))
+      return SWIG_TypeError;
+
+    oerr = errno;
+    errno = 0;
+    v = strtoll(str, &endp, 0);
+    err = errno;
+    errno = oerr;
+
+    if (errno == ERANGE)
+      return SWIG_OverflowError;
+    if (endp != str + len)
+      try_nv = 1;
+    else
+      res = SWIG_AddCast(res);
+  } else if(SvNOK(obj)) {
+    try_nv = 1;
   } else {
-    int dispatch = 0;
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      long long v;
-      errno = 0;
-      v = strtoll(nptr, &endptr,0);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
-    if (!dispatch) {
+    return SWIG_TypeError;
+  }
+  if(try_nv) {
       const double mant_max = 1LL << DBL_MANT_DIG;
       const double mant_min = -mant_max;
       double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
-	if (val) *val = (long long)(d);
-	return res;
-      }
-    }
+
+      res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
+      if (!SWIG_IsOK(res) || !SWIG_CanCastAsInteger(&d, mant_min, mant_max))
+        return SWIG_TypeError;
+      v = (long long)d;
   }
-  return SWIG_TypeError; 
+  if (val)
+    *val = v;
+  return res;
 }
 }
 
@@ -241,71 +174,80 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
 	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>",
 	  fragment="<stdio.h>") {
 SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
-  SV *sv;
-  if (value <= UV_MAX)
-    sv = newSVuv((UV)(value));
-  else {
-    //sv = newSVpvf("%llu", value); doesn't work in non 64bit Perl
-    char temp[256];
-    sprintf(temp, "%llu", value);
-    sv = newSVpv(temp, 0);
-  }
-  return sv_2mortal(sv);
+  char temp[256];
+
+  if (UVSIZE < sizeof(value) && value > UV_MAX)
+    return sv_2mortal(newSVpvn(temp, snprintf(temp, sizeof(temp), "%llu", value)));
+  return sv_2mortal(newSVuv(value));
 }
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
+	  fragment="<ctype.h>",
 	  fragment="<limits.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 {
-  if (SvUOK(obj)) {
-    if (val) *val = SvUV(obj);
-    return SWIG_OK;
-  } else  if (SvIOK(obj)) {
-    IV v = SvIV(obj);
-    if (v >= 0 && v <= ULLONG_MAX) {
-      if (val) *val = v;
-      return SWIG_OK;
+  int res = SWIG_OK;
+  unsigned long long v;
+  int try_nv = 0;
+
+  if (SvIOK(obj)) {
+    if (SvIsUV(obj)) {
+      UV uv = SvUVX(obj);
+      if (UVSIZE > sizeof(v) && uv > ULLONG_MAX)
+        return SWIG_OverflowError;
+      v = (unsigned long long)uv;
     } else {
+      IV iv = SvIVX(obj);
+      if (iv < 0 || (IVSIZE > sizeof(v) && iv > ULLONG_MAX))
+        return SWIG_OverflowError;
+      v = (unsigned long long)iv;
+    }
+  } else if(SvPOK(obj)) {
+    STRLEN len = SvCUR(obj);
+    char *endp, *str = SvPVX(obj);
+    int err, oerr;
+
+    /* strtoull has some edge cases we should avoid */
+    if (len <= 0 || isspace(*str) || *str == '-')
+      return SWIG_TypeError;
+
+    oerr = errno;
+    errno = 0;
+    v = strtoull(str, &endp, 0);
+    err = errno;
+    errno = oerr;
+
+    if (errno == ERANGE)
       return SWIG_OverflowError;
-    }
+    if (endp != str + len)
+      try_nv = 1;
+    else
+      res = SWIG_AddCast(res);
+  } else if(SvNOK(obj)) {
+    try_nv = 1;
   } else {
-    int dispatch = 0;
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      unsigned long long v;
-      errno = 0;
-      v = strtoull(nptr, &endptr,0);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
-    if (!dispatch) {
-      const double mant_max = 1LL << DBL_MANT_DIG;
-      double d;
-      int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
-	if (val) *val = (unsigned long long)(d);
-	return res;
-      }
-    }
+    return SWIG_TypeError;
   }
-  return SWIG_TypeError;
+  if(try_nv) {
+    const double mant_max = 1LL << DBL_MANT_DIG;
+    double d;
+
+    res = SWIG_AddCast(SWIG_AsVal(double)(obj, &d));
+    if (!SWIG_IsOK(res) || !SWIG_CanCastAsInteger(&d, 0, mant_max))
+      return SWIG_TypeError;
+    v = (unsigned long long)d;
+  }
+  if (val)
+    *val = v;
+  return res;
 }
 }
 
@@ -319,34 +261,43 @@ SWIG_From_dec(double)(double value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(double),"header") {
+%fragment(SWIG_AsVal_frag(double),"header",
+	  fragment="<ctype.h>",
+	  fragment="<stdlib.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(double)(SV *obj, double *val)
 {
+
+  int res = SWIG_OK;
+  double v;
+
   if (SvNIOK(obj)) {
-    if (val) *val = SvNV(obj);
-    return SWIG_OK;
-  } else if (SvIOK(obj)) {
-    if (val) *val = (double) SvIV(obj);
-    return SWIG_AddCast(SWIG_OK);
+    v = (double)SvNV(obj);
+  } else if (SvPOK(obj)) {
+    STRLEN len = SvCUR(obj);
+    char *endp, *str = SvPVX(obj);
+    int err, oerr;
+
+    /* strtod has some edge cases we should avoid */
+    if (len <= 0 || isspace(*str))
+      return SWIG_TypeError;
+
+    oerr = errno;
+    errno = 0;
+    v = strtod(str, &endp);
+    err = errno;
+    errno = oerr;
+
+    if (errno == ERANGE)
+      return SWIG_OverflowError;
+    if (endp != str + len)
+      return SWIG_TypeError;
+    res = SWIG_AddCast(res);
   } else {
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      double v;
-      errno = 0;
-      v = strtod(nptr, &endptr);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
+    return SWIG_TypeError;
   }
-  return SWIG_TypeError;
+  if (val)
+    *val = v;
+  return res;
 }
 }
