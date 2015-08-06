@@ -4,3 +4,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 3.0.8 (in progress)
 ===========================
+
+2015-08-05: lyze
+            [CFFI] Extend the "export" feature in the CFFI module to support
+            exporting to a specified package.

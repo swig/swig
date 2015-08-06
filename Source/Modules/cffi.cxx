@@ -860,8 +860,11 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
 }
 
 void CFFI::emit_export(Node *n, String *name) {
-  if (GetInt(n, "feature:export"))
-    Printf(f_cl, "\n(cl:export '%s)\n", name);
+  if (GetInt(n, "feature:export")) {
+    String* package = Getattr(n, "feature:export:package");
+    Printf(f_cl, "\n(cl:export '%s%s%s)\n", name, package ? " " : "",
+                                                  package ? package : "");
+  }
 }
 
 void CFFI::emit_inline(Node *n, String *name) {
