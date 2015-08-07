@@ -10,6 +10,7 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
+	callback \
 	php_iterator \
 	php_namewarn_rename \
 

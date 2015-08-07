@@ -941,6 +941,8 @@ Allocate():
 	Setattr(inclass, "allocate:default_destructor", "1");
       } else if (cplus_mode == PROTECTED) {
 	Setattr(inclass, "allocate:default_base_destructor", "1");
+      } else if (cplus_mode == PRIVATE) {
+	Setattr(inclass, "allocate:private_destructor", "1");
       }
     } else {
       Setattr(inclass, "allocate:has_destructor", "1");

@@ -1,9 +1,8 @@
 # see top-level Makefile.in
-callback
 class
 constants
+director
 enum
-extend
 funcptr
 multimap
 pointer

@@ -190,7 +190,7 @@ class PHP : public Language {
 	p = strchr(p, '"');
 	if (p) {
 	  ++p;
-	  Insert(action, p - Char(action), " TSRMLS_CC");
+	  Insert(action, (int)(p - Char(action)), " TSRMLS_CC");
 	}
       }
     }
@@ -473,6 +473,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime
+      Swig_insert_file("director_common.swg", s_header);
       Swig_insert_file("director.swg", s_header);
     }
 
@@ -1721,7 +1722,7 @@ public:
 	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
-	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
+	      Printf(output, "\t\t\t$c->" SWIG_PTR " = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
 	    Printf(output, "\t\t}\n\t\treturn $r;\n");
@@ -2423,7 +2424,7 @@ done:
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
 	const char * p = Char(target);
 	const char * comma = strchr(p, ',');
-	size_t ins = comma ? comma - p : Len(target) - 1;
+	int ins = comma ? (int)(comma - p) : Len(target) - 1;
 	Insert(target, ins, " TSRMLS_DC");
 
 	call = Swig_csuperclass_call(0, basetype, superparms);
@@ -2442,7 +2443,7 @@ done:
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
 	const char * p = Char(target);
 	const char * comma = strchr(p, ',');
-	size_t ins = comma ? comma - p : Len(target) - 1;
+	int ins = comma ? (int)(comma - p) : Len(target) - 1;
 	Insert(target, ins, " TSRMLS_DC");
 
 	Printf(f_directors_h, "    %s;\n", target);

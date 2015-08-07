@@ -1148,8 +1148,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private long swigCPtr;
-  protected boolean swigCMemOwn;
+  private transient long swigCPtr;
+  protected transient boolean swigCMemOwn;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
@@ -1163,7 +1163,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private long swigCPtr;
+  private transient long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn);
@@ -1179,9 +1179,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %define SWIG_JAVABODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
 %typemap(javabody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
-  private long swigCPtr;
+  private transient long swigCPtr;
 
-  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean futureUse) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCPtr = cPtr;
   }
 
@@ -1197,7 +1197,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(javabody) TYPE (CLASS::*) %{
   private String swigCMemberPtr;
 
-  PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, boolean futureUse) {
+  PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCMemberPtr = cMemberPtr;
   }
 
@@ -1341,12 +1341,14 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
 }
 %typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
-  jbyteArray jb = (jenv)->NewByteArray($2);
-  (jenv)->SetByteArrayRegion(jb, 0, $2, (jbyte *)$1);
+  jbyteArray jb = (jenv)->NewByteArray((jsize)$2);
+  (jenv)->SetByteArrayRegion(jb, 0, (jsize)$2, (jbyte *)$1);
   $input = jb;
 }
 %typemap(directorargout) (char *STRING, size_t LENGTH)
-%{(jenv)->GetByteArrayRegion($input, 0, $2, (jbyte *)$1); %}
+%{(jenv)->GetByteArrayRegion($input, 0, (jsize)$2, (jbyte *)$1);
+(jenv)->DeleteLocalRef($input);%}
+%typemap(javadirectorin, descriptor="[B") (char *STRING, size_t LENGTH) "$jniinput"
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* java keywords */

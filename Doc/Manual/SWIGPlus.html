@@ -2101,13 +2101,13 @@ Therefore, earlier methods will shadow methods that appear later.
 </p>
 
 <p>
-When wrapping an overloaded function, there is a chance that you will get an error message like this:
+When wrapping an overloaded function, there is a chance that you will get a warning message like this:
 </p>
 
 <div class="shell">
 <pre>
-example.i:3: Warning 467: Overloaded foo(int) not supported (no type checking
-rule for 'int').
+example.i:3: Warning 467: Overloaded foo(int) not supported (incomplete type checking rule - 
+no precedence level in typecheck typemap for 'int').
 </pre>
 </div>
 
@@ -2116,7 +2116,8 @@ This error means that the target language module supports overloading,
 but for some reason there is no type-checking rule that can be used to
 generate a working dispatch function.  The resulting behavior is then
 undefined.  You should report this as a bug to the
-<a href="http://www.swig.org/bugs.html">SWIG bug tracking database</a>.
+<a href="http://www.swig.org/bugs.html">SWIG bug tracking database</a>
+if this is due to one of the typemaps supplied with SWIG.
 </p>
 
 <p>

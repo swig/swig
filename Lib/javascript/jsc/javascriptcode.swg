@@ -402,6 +402,7 @@ static JSStaticFunction $jsnspace_functions[] = {
 };
 
 static JSClassDefinition $jsnspace_classDefinition;
+static JSObjectRef $jsmangledname_object;
 %}
 
 /* -----------------------------------------------------------------------------
@@ -412,7 +413,7 @@ static JSClassDefinition $jsnspace_classDefinition;
 %{
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_functions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_values;
-  JSObjectRef $jsmangledname_object = JSObjectMake(context, JSClassCreate(&$jsmangledname_classDefinition), NULL);
+  $jsmangledname_object = JSObjectMake(context, JSClassCreate(&$jsmangledname_classDefinition), NULL);
 %}
 
 /* -----------------------------------------------------------------------------

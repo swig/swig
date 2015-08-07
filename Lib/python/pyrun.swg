@@ -381,6 +381,23 @@ typedef struct {
 #endif
 } SwigPyObject;
 
+
+#ifdef SWIGPYTHON_BUILTIN
+
+SWIGRUNTIME PyObject *
+SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
+{
+  SwigPyObject *sobj = (SwigPyObject *)v;
+
+  if (!sobj->dict)
+    sobj->dict = PyDict_New();
+
+  Py_INCREF(sobj->dict);
+  return sobj->dict;
+}
+
+#endif
+
 SWIGRUNTIME PyObject *
 SwigPyObject_long(SwigPyObject *v)
 {
@@ -651,7 +668,7 @@ swigobject_methods[] = {
 static PyMethodDef
 swigobject_methods[] = {
   {(char *)"disown",  (PyCFunction)SwigPyObject_disown,  METH_VARARGS,  (char *)"releases ownership of the pointer"},
-  {(char *)"acquire", (PyCFunction)SwigPyObject_acquire, METH_VARARGS,  (char *)"aquires ownership of the pointer"},
+  {(char *)"acquire", (PyCFunction)SwigPyObject_acquire, METH_VARARGS,  (char *)"acquires ownership of the pointer"},
   {(char *)"own",     (PyCFunction)SwigPyObject_own,     METH_VARARGS,  (char *)"returns/sets ownership of the pointer"},
   {(char *)"append",  (PyCFunction)SwigPyObject_append,  METH_VARARGS,  (char *)"appends another 'this' object"},
   {(char *)"next",    (PyCFunction)SwigPyObject_next,    METH_VARARGS,  (char *)"returns the next 'this' object"},
@@ -1420,18 +1437,21 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
 	  newobj = (SwigPyObject *) newobj->next;
         newobj->next = next_self;
         newobj = (SwigPyObject *)next_self;
+#ifdef SWIGPYTHON_BUILTIN
+        newobj->dict = 0;
+#endif
       }
     } else {
       newobj = PyObject_New(SwigPyObject, clientdata->pytype);
+#ifdef SWIGPYTHON_BUILTIN
+      newobj->dict = 0;
+#endif
     }
     if (newobj) {
       newobj->ptr = ptr;
       newobj->ty = type;
       newobj->own = own;
       newobj->next = 0;
-#ifdef SWIGPYTHON_BUILTIN
-      newobj->dict = 0;
-#endif
       return (PyObject*) newobj;
     }
     return SWIG_Py_Void();

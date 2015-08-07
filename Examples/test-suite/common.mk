@@ -138,6 +138,7 @@ CPP_TEST_CASES += \
 	casts \
 	char_binary \
 	char_strings \
+	chartest \
 	class_forward \
 	class_ignore \
 	class_scope_weird \
@@ -156,6 +157,7 @@ CPP_TEST_CASES += \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
+	conversion_operators \
 	cplusplus_throw \
 	cpp_basic \
 	cpp_enum \
@@ -198,6 +200,7 @@ CPP_TEST_CASES += \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \
+	director_ref \
 	director_smartptr \
 	director_thread \
 	director_unroll \
@@ -233,6 +236,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_template \
 	funcptr_cpp \
 	fvirtual \
 	global_namespace \
@@ -243,6 +247,7 @@ CPP_TEST_CASES += \
 	ignore_parameter \
 	import_nomodule \
 	inherit \
+	inherit_member \
 	inherit_missing \
 	inherit_same_name \
 	inherit_target_language \
@@ -369,6 +374,7 @@ CPP_TEST_CASES += \
 	smart_pointer_templatevariables \
 	smart_pointer_typedef \
 	special_variables \
+	special_variable_attributes \
 	special_variable_macros \
 	static_array_member \
 	static_const_member \
@@ -407,6 +413,7 @@ CPP_TEST_CASES += \
 	template_inherit \
 	template_inherit_abstract \
 	template_int_const \
+	template_keyword_in_type \
 	template_methods \
 	template_namespace_forward_declaration \
 	template_using_directive_and_declaration_forward \
@@ -540,6 +547,7 @@ CPP11_TEST_CASES = \
 	cpp11_template_explicit \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
+	cpp11_type_aliasing \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \

@@ -275,7 +275,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
   size_t i;
   for (i = 0; methods[i].ml_name; ++i) {
     const char *c = methods[i].ml_doc;
-    if (c && (c = strstr(c, "swig_ptr: "))) {
+    if (!c) continue;
+    c = strstr(c, "swig_ptr: ");
+    if (c) {
       int j;
       swig_const_info *ci = 0;
       const char *name = c + 10;

@@ -95,7 +95,7 @@ typedef struct {
     } bar;
 } FOO;
 
-struct {
+static struct {
    int i;
 } THING;
 %}

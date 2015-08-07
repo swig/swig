@@ -119,6 +119,23 @@ Without it, inheritance of wrapped objects may fail.
 These two files can be loaded in any order
 </p>
 
+<p>
+  If you are compiling code yourself (not using R itself), there are a few things to watch out for:
+</p>
+
+<ul>
+<li>The output shared library name (to the left of the file extension) MUST match the module name, or alternatively, you can also set the -package NAME command line argument.  See swig -r -help for more information
+<li>If you do not set the output file name appropriately, you might see errors like 
+<div class="shell">
+<pre>
+> fact(4)
+Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
+  "R_swig_fact" not available for .Call() for package "example"
+</pre>
+</div>
+<li>Make sure the architecture of the shared library(x64 for instance), matches the architecture of the R program you want to load your shared library into
+</ul>
+
 <H2><a name="R_nn4"></a>37.3 Precompiling large R files</H2>
 
 

@@ -52,7 +52,7 @@ static int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **ca
 #ifdef __cplusplus
 %{  *carr = new CTYPE[sz]; %}
 #else
-%{  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE)); %}
+%{  *carr = (CTYPE*) malloc(sz * sizeof(CTYPE)); %}
 #endif
 %{  if (!*carr) {
     SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
@@ -259,7 +259,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 #ifdef __cplusplus
   $1 = new $*1_ltype[sz];
 #else
-  $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
+  $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
 #endif
   if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
@@ -289,7 +289,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 #ifdef __cplusplus
   $1 = new $*1_ltype[sz];
 #else
-  $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
+  $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
 #endif
   if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");

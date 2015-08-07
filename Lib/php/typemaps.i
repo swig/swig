@@ -299,7 +299,7 @@ INT_TYPEMAP(unsigned long long);
   force=0;
   if (arg1==NULL) {
 #ifdef __cplusplus
-    ptr=new $*1_ltype;
+    ptr=new $*1_ltype();
 #else
     ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
 #endif

@@ -402,6 +402,29 @@ swigtests() {
 rm -rf $TESTDIR
 mkdir $TESTDIR
 cd $TESTDIR || exit 1
+
+unset CCACHE_DIR
+unset CCACHE_TEMPDIR
+unset CCACHE_LOGFILE
+unset CCACHE_VERBOSE
+unset CCACHE_PATH
+unset CCACHE_CC
+unset CCACHE_PREFIX
+unset CCACHE_DISABLE
+unset CCACHE_READONLY
+unset CCACHE_CPP2
+unset CCACHE_NOCOMPRESS
+unset CCACHE_NOSTATS
+unset CCACHE_NLEVELS
+unset CCACHE_HARDLINK
+unset CCACHE_RECACHE
+unset CCACHE_UMASK
+unset CCACHE_HASHDIR
+unset CCACHE_UNIFY
+unset CCACHE_EXTENSION
+unset CCACHE_STRIPC
+unset CCACHE_SWIG
+
 CCACHE_DIR="ccache dir" # with space in directory name (like Windows default)
 mkdir "$CCACHE_DIR"
 export CCACHE_DIR

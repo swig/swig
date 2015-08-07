@@ -74,6 +74,7 @@
 <li><a href="#Python_nn47">Simple pointers</a>
 <li><a href="#Python_nn48">Unbounded C Arrays</a>
 <li><a href="#Python_nn49">String handling</a>
+<li><a href="#Python_default_args">Default arguments</a>
 </ul>
 <li><a href="#Python_nn53">Typemaps</a>
 <ul>
@@ -2169,15 +2170,15 @@ for Python 2.2):
 import _example
 
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
-     def __del__(self):
-         if self.thisown:
-               _example.delete_Foo(self.this)
-     def spam(self,arg1):
-         return _example.Foo_spam(self.this,arg1)
-     x = property(_example.Foo_x_get, _example.Foo_x_set)
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
+    def __del__(self):
+        if self.thisown:
+            _example.delete_Foo(self.this)
+    def spam(self,arg1):
+        return _example.Foo_spam(self.this,arg1)
+    x = property(_example.Foo_x_get, _example.Foo_x_set)
 </pre>
 </div>
 
@@ -2219,9 +2220,9 @@ like in a proxy class:
 <div class="targetlang">
 <pre>
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
 </pre>
 </div>
 
@@ -2313,11 +2314,11 @@ private:
 
 <div class="targetlang">
 <pre>
-class MyPyException (Exception) :
-    def __init__(self, msg, *args) :
+class MyPyException(Exception):
+    def __init__(self, msg, *args):
         Exception.__init__(self, *args)
         self.myexc = MyException(msg)
-    def what (self) :
+    def what(self):
         return self.myexc.what()
 </pre>
 </div>
@@ -2841,6 +2842,7 @@ the methods one() and two() (but not three()):
 class Foo {
 public:
     Foo(int foo);
+    virtual ~Foo();
     virtual void one();
     virtual void two();
 };
@@ -2861,11 +2863,12 @@ then at the python side you can define
 import mymodule
 
 class MyFoo(mymodule.Foo):
-  def __init__(self, foo):
-     mymodule.Foo(self, foo)  
+    def __init__(self, foo):
+        mymodule.Foo.__init__(self, foo)
+#       super().__init__(foo) # Alternative construction for Python3
 
-  def one(self):
-     print "one from python"
+    def one(self):
+        print "one from python"
 </pre>
 </div>
 
@@ -3380,6 +3383,18 @@ problems, for example: <tt># error handling</tt>).  SWIG 3.0.3 and later report
 an error for invalid preprocessor directives, so you may have to update
 existing interface files to delimit blocks of Python code correctly.</p>
 
+<p>As an alternative to providing a block containing Python code, you can
+include python code from a file.  The code is inserted exactly as in the
+file, so this avoids any issues with the SWIG preprocessor.  It's a good
+approach if you have a non-trivial chunk of Python code to insert.  To
+use this feature you specify a filename in double quotes, for example:</p>
+
+<div class="code">
+<pre>
+%pythoncode "somecode.py"
+</pre>
+</div>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
@@ -3402,7 +3417,7 @@ def bar(*args):
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
@@ -3439,7 +3454,7 @@ proxy, just before the return statement.
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
@@ -3468,7 +3483,7 @@ SWIG version 1.3.28 you can use the directive forms
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
@@ -3498,7 +3513,7 @@ class Foo {
 public:
     int bar(int x);
     int bar();
-}
+};
 </pre>
 </div>
 
@@ -4143,6 +4158,106 @@ Now in Python:
 If you need to return binary data, you might use the
 <tt>cstring.i</tt> library file.  The <tt>cdata.i</tt> library can
 also be used to extra binary data from arbitrary pointers.
+</p>
+
+
+<H3><a name="Python_default_args"></a>36.7.5 Default arguments</H3>
+
+
+<p>
+C++ default argument code generation is documented in the main
+<a href="SWIG.html#SWIGPlus_default_args">Default arguments</a> section.
+There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a>.
+By default, SWIG attempts to convert C++ default argument values
+into Python values and generates code into the Python layer containing these values.
+For example:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = 1, bool b = false);
+};
+</pre>
+</div>
+
+<p>
+From Python this can be called as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; CDA().fff()        # C++ layer receives a=1 and b=false
+&gt;&gt;&gt; CDA().fff(2)       # C++ layer receives a=2 and b=false
+&gt;&gt;&gt; CDA().fff(3, True) # C++ layer receives a=3 and b=true
+</pre>
+</div>
+
+<p>
+The default code generation in the Python layer is:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, a=1, b=False):
+        return _default_args.CDA_fff(self, a, b)
+</pre>
+</div>
+
+<p>
+Adding the feature:
+</p>
+  
+<div class="code">
+<pre>
+%feature("python:cdefaultargs") CDA::fff;
+struct CDA {
+  int fff(int a = 1, bool b = false);
+</pre>
+</div>
+
+<p>
+results in identical behaviour when called from Python, however, it results in different code generation:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, *args):
+        return _default_args.CDA_fff(self, *args)
+</pre>
+</div>
+
+<p>
+The default arguments are obtained in the C++ wrapper layer instead of the Python layer.
+Some code generation modes are quite different, eg <tt>-builtin</tt> and <tt>-fastproxy</tt>,
+and are unaffected by <tt>python:cdefaultargs</tt> as the default values are always obtained from the C++ layer.
+</p>
+
+<p>
+Note that not all default arguments can be converted into a Python equivalent.
+When SWIG does not convert them, it will generate code to obtain them from the C++ layer as if
+<tt>python:cdefaultargs</tt> was specified.
+This will happen if just one argument cannot be converted into a Python equivalent.
+This occurs typically when the argument is not fully numeric, such as <tt>int(1)</tt>:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = int(1), bool b = false);
+};
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> SWIG-3.0.6 introduced the <tt>python:cdefaultargs</tt> feature.
+Versions of SWIG prior to this varied in their ability to convert C++ default values into
+equivalent Python default argument values.
 </p>
 
 <H2><a name="Python_nn53"></a>36.8 Typemaps</H2>

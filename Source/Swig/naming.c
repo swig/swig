@@ -578,7 +578,7 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   bprefix = NewStringf("%s::", base);
   dprefix = NewStringf("%s::", derived);
   cbprefix = Char(bprefix);
-  plen = strlen(cbprefix);
+  plen = (int)strlen(cbprefix);
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
@@ -1003,6 +1003,10 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
       }
       return 0;
     }
+    if (Equal(ta, "template") && Equal(tb, "template")) {
+      if (Cmp(a_storage, "friend") == 0 || Cmp(b_storage, "friend") == 0)
+	return 1;
+    }
   }
   return 0;
 }
@@ -1070,7 +1074,7 @@ static List *Swig_make_attrlist(const char *ckey) {
     String *nattr;
     const char *rattr = strchr(++cattr, '$');
     while (rattr) {
-      nattr = NewStringWithSize(cattr, rattr - cattr);
+      nattr = NewStringWithSize(cattr, (int)(rattr - cattr));
       Append(list, nattr);
       Delete(nattr);
       cattr = rattr + 1;

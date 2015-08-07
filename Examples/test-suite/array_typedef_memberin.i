@@ -5,6 +5,10 @@
 #endif
 
 %inline %{ 
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4351) // new behavior: elements of array 'xyz' will be default initialized
+#endif
+
 typedef short Eight[8]; 
 typedef const short ConstEight[8]; 
 namespace ArrayExample 
@@ -13,13 +17,8 @@ namespace ArrayExample
     { 
     public: 
         Eight node_list; 
-#ifndef _MSC_VER
         const Eight node_list2; 
         ConstEight node_list3; 
-#else
-        Eight node_list2; 
-        Eight node_list3; 
-#endif
 
         void fn1(Eight a) {}
         void fn2(const Eight a) {}
@@ -32,6 +31,8 @@ namespace ArrayExample
         void fn7(Eight*& a) {}
         void fn8(ConstEight*& a) {}
         void fn9(const ConstEight*& a) {}
+
+        ExampleDetail() : node_list(), node_list2(), node_list3() {}
     };
 } 
 

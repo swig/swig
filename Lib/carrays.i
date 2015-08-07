@@ -81,7 +81,7 @@ typedef struct {
 
 #ifdef __cplusplus
 NAME(int nelements) {
-  return new TYPE[nelements];
+  return new TYPE[nelements]();
 }
 ~NAME() {
   delete [] self;

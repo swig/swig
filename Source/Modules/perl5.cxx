@@ -13,8 +13,6 @@
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(0);
-
 #include <ctype.h>
 
 static const char *usage = "\
@@ -470,6 +468,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -1046,21 +1045,9 @@ public:
 
     String *tt = Getattr(n, "tmap:varout:type");
     if (tt) {
-      String *tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(t));
-      if (Replaceall(tt, "$1_descriptor", tm)) {
-	SwigType_remember(t);
-      }
-      Delete(tm);
-      SwigType *st = Copy(t);
-      SwigType_add_pointer(st);
-      tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(st));
-      if (Replaceall(tt, "$&1_descriptor", tm)) {
-	SwigType_remember(st);
-      }
-      Delete(tm);
-      Delete(st);
+      tt = NewStringf("&%s", tt);
     } else {
-      tt = (String *) "0";
+      tt = NewString("0");
     }
     /* Now add symbol to the PERL interpreter */
     if (GetFlag(n, "feature:immutable")) {
@@ -1088,6 +1075,7 @@ public:
     if (export_all)
       Printf(exported, "$%s ", iname);
 
+    Delete(tt);
     DelWrapper(setf);
     DelWrapper(getf);
     Delete(getname);
@@ -2254,7 +2242,7 @@ public:
 	    if (SwigType_isreference(ptype)) {
 	      Insert(ppname, 0, "&");
 	    }
-	    /* if necessary, cast away const since Python doesn't support it! */
+	    /* if necessary, cast away const since Perl doesn't support it! */
 	    if (SwigType_isconst(nptype)) {
 	      nonconst = NewStringf("nc_tmp_%s", pname);
 	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);

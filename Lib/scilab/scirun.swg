@@ -66,11 +66,13 @@ static void SWIG_Scilab_SetApiContext(void *apiCtx) {
 
 #if SWIG_SCILAB_VERSION >= 540
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument)
+#define SWIG_CheckInputArgumentAtLeast(pvApiCtx, minInputArgument) CheckInputArgumentAtLeast(pvApiCtx, minInputArgument)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) nbInputArgument(pvApiCtx)
 #define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) AssignOutputVariable(pvApiCtx, outputArgumentPos) = argumentPos
 #else
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
+#define SWIG_CheckInputArgumentAtLeast(pvApiCtx, minInputArgument) CheckRhs(minInputArgument, 256)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
 #define SWIG_NbInputArgument(pvApiCtx) Rhs
 #define SWIG_AssignOutputArgument(pvApiCtx, outputArgumentPos, argumentPos) LhsVar(outputArgumentPos) = argumentPos
@@ -148,7 +150,8 @@ SWIGRUNTIME int
 SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type_info *ty, char *fname) {
   swig_cast_info *tc;
   int *piAddrVar = NULL;
-  char *pstStrings = NULL;
+  char *pstString = NULL;
+  char *pstStringPtr = NULL;
   SciErr sciErr;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
@@ -157,27 +160,33 @@ SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type
     return SWIG_ERROR;
   }
 
-  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstStrings)) {
+  if (getAllocatedSingleString(pvApiCtx, piAddrVar, &pstString)) {
     return SWIG_ERROR;
   }
 
   /* Pointer values must start with leading underscore */
-  if (*pstStrings != '_') {
+  if (*pstString != '_') {
+    freeAllocatedSingleString(pstString);
     return SWIG_ERROR;
   }
 
-  pstStrings++;
-  pstStrings = (char*)SWIG_UnpackData(pstStrings, ptr, sz);
+  pstStringPtr = pstString;
+  pstStringPtr++;
+  pstStringPtr = (char*)SWIG_UnpackData(pstStringPtr, ptr, sz);
 
   if (ty) {
-    if (!pstStrings) {
+    if (!pstStringPtr) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
-    tc = SWIG_TypeCheck(pstStrings, ty);
+    tc = SWIG_TypeCheck(pstStringPtr, ty);
     if (!tc) {
+      freeAllocatedSingleString(pstString);
       return SWIG_ERROR;
     }
   }
+
+  freeAllocatedSingleString(pstString);
   return SWIG_OK;
 }
 
@@ -249,7 +258,7 @@ SWIG_Scilab_Error(int code, const char *msg)
 
 #define SWIG_fail return SWIG_ERROR;
 
-SWIGRUNTIME int
+SWIGRUNTIME void
 SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
   if (type) {
     if (obj)
@@ -259,7 +268,7 @@ SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descript
   }
 }
 
-SWIGRUNTIME int
+SWIGRUNTIME void
 SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
   Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
 }
@@ -268,6 +277,7 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
  *  Pointer utility functions
  */
 
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -278,7 +288,7 @@ int SWIG_this(SWIG_GatewayParameters) {
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
       createScalarDouble(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + 1,
-        (double) (unsigned long) ptrValue));
+        (double)(uintptr_t)ptrValue));
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The value is not a pointer.\n"), fname, 1);
@@ -298,7 +308,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
 		return SWIG_ERROR;
 	}
   if (getScalarDouble(pvApiCtx, piAddr, &dValue) == 0) {
-    if (dValue != (unsigned long)dValue) {
+    if (dValue != (uintptr_t)dValue) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Incorrect value for input argument #%d: The double value cannot be converted to a pointer.\n"), fname, 1);
       return SWIG_ValueError;
     }
@@ -308,7 +318,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     }
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (unsigned long) dValue, NULL, 0));
+      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0));
   }
   else {
     return SWIG_ERROR;

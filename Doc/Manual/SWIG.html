@@ -146,7 +146,8 @@ can be obtained by typing <tt>swig -help</tt> or <tt>swig
 -I<em>dir</em>                 Add a directory to the file include path
 -l<em>file</em>                Include a SWIG library file.
 -module <em>name</em>          Set the name of the SWIG module
--o <em>outfile</em>            Name of output file
+-o <em>outfile</em>            Set name of C/C++ output file to &lt;outfile&gt;
+-oh <em>headfile</em>          Set name of C++ output header file for directors to &lt;headfile&gt;
 -outcurrentdir        Set default output dir to current dir instead of input file's path
 -outdir <em>dir</em>           Set language specific files output directory
 -pcreversion          Display PCRE version information
@@ -212,7 +213,7 @@ additional files depending on the target language. By default, an input file
 with the name <tt>file.i</tt> is transformed into a file
 <tt>file_wrap.c</tt> or <tt>file_wrap.cxx</tt> (depending on whether
 or not the <tt>-c++</tt> option has been used).  The name of the
-output file can be changed using the <tt>-o</tt> option.  In certain
+output C/C++ file can be changed using the <tt>-o</tt> option.  In certain
 cases, file suffixes are used by the compiler to determine the source
 language (C, C++, etc.). Therefore, you have to use the
 <tt>-o</tt> option to change the suffix of the SWIG-generated wrapper

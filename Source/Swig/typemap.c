@@ -1318,6 +1318,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   char *cmethod = Char(tmap_method);
   int optimal_attribute = 0;
   int optimal_substitution = 0;
+  int delete_optimal_attribute = 0;
   int num_substitutions = 0;
   SwigType *matchtype = 0;
 
@@ -1372,7 +1373,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     Delete(typestr);
   }
 
-
   Delete(qpname);
   qpname = 0;
   Delete(noscope_pname);
@@ -1391,23 +1391,16 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   s = Copy(s);			/* Make a local copy of the typemap code */
 
-  /* Attach kwargs - ie the typemap attributes */
-  kw = Getattr(tm, "kwargs");
-  while (kw) {
-    String *value = Copy(Getattr(kw, "value"));
-    String *kwtype = Getattr(kw, "type");
-    char *ckwname = Char(Getattr(kw, "name"));
-    if (kwtype) {
-      String *mangle = Swig_string_mangle(kwtype);
-      Append(value, mangle);
-      Delete(mangle);
+  /* Look in the "out" typemap for the "optimal" attribute */
+  if (Cmp(cmethod, "out") == 0) {
+    kw = Getattr(tm, "kwargs");
+    while (kw) {
+      if (Cmp(Getattr(kw, "name"), "optimal") == 0) {
+	optimal_attribute = GetFlag(kw, "value");
+	break;
+      }
+      kw = nextSibling(kw);
     }
-    sprintf(temp, "%s:%s", cmethod, ckwname);
-    Setattr(node, typemap_method_name(temp), value);
-    if (Cmp(temp, "out:optimal") == 0)
-      optimal_attribute = (Cmp(value, "0") != 0) ? 1 : 0;
-    Delete(value);
-    kw = nextSibling(kw);
   }
   
   if (optimal_attribute) {
@@ -1438,14 +1431,15 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
         }
       }
       if (!optimal_substitution) {
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
-        Delattr(node, "tmap:out:optimal");
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
+	delete_optimal_attribute = 1;
       }
     } else {
       assert(!f);
     }
   }
+
   if (actioncode) {
     assert(f);
     Append(f->code, actioncode);
@@ -1485,6 +1479,41 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     replace_embedded_typemap(s, parm_sublist, f, tm);
     Delete(parm_sublist);
   }
+
+  /* Attach kwargs - ie the typemap attributes */
+  kw = Getattr(tm, "kwargs");
+  while (kw) {
+    String *value = Copy(Getattr(kw, "value"));
+    String *kwtype = Getattr(kw, "type");
+    char *ckwname = Char(Getattr(kw, "name"));
+    {
+      /* Expand special variables in typemap attributes. */
+      SwigType *ptype = Getattr(node, "type");
+      String *pname = Getattr(node, "name");
+      SwigType *mtype = Getattr(node, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : ptype;
+      ParmList *parm_sublist;
+      typemap_replace_vars(value, NULL, matchtype, ptype, pname, (char *)lname, 1);
+
+      /* Expand special variable macros (embedded typemaps) in typemap attributes. */
+      parm_sublist = NewParmWithoutFileLineInfo(ptype, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      Delete(parm_sublist);
+    }
+    if (kwtype) {
+      String *mangle = Swig_string_mangle(kwtype);
+      Append(value, mangle);
+      Delete(mangle);
+    }
+    sprintf(temp, "%s:%s", cmethod, ckwname);
+    Setattr(node, typemap_method_name(temp), value);
+    Delete(value);
+    kw = nextSibling(kw);
+  }
+
+  if (delete_optimal_attribute)
+    Delattr(node, "tmap:out:optimal");
 
   Replace(s, "$name", pname, DOH_REPLACE_ANY);
 
@@ -1558,17 +1587,44 @@ String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *node, co
  * If this hash (tm) contains a linked list of parameters under its "kwargs"
  * attribute, add keys for each of those named keyword arguments to this
  * parameter for later use.
- * For example, attach the typemap attributes to p:
+ * For example, attach the typemap attributes to firstp (first parameter in parameter list):
  * %typemap(in, foo="xyz") ...
- * A new attribute called "tmap:in:foo" with value "xyz" is attached to p.
+ * A new attribute called "tmap:in:foo" with value "xyz" is attached to firstp.
+ * Also expands special variables and special variable macros in the typemap attributes.
  * ----------------------------------------------------------------------------- */
 
-static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method, Parm *p) {
+static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method, Parm *firstp, int nmatch) {
   String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");
+    int i;
+    Parm *p = firstp;
+    /* Expand special variables */
+    for (i = 0; i < nmatch; i++) {
+      SwigType *type = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      SwigType *mtype = Getattr(p, "tmap:match");
+      SwigType *matchtype = mtype ? mtype : type;
+      typemap_replace_vars(value, NULL, matchtype, type, pname, lname, i + 1);
+      p = nextSibling(p);
+    }
+
+    /* Expand special variable macros (embedded typemaps).
+     * Special variable are expanded first above as they might be used in the special variable macros.
+     * For example: $typemap(imtype, $2_type). */
+    p = firstp;
+    for (i = 0; i < nmatch; i++) {
+      SwigType *type = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      ParmList *parm_sublist = NewParmWithoutFileLineInfo(type, pname);
+      Setattr(parm_sublist, "lname", lname);
+      replace_embedded_typemap(value, parm_sublist, NULL, tm);
+      p = nextSibling(p);
+    }
     if (type) {
       Hash *v = NewHash();
       Setattr(v, "type", type);
@@ -1578,13 +1634,13 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
     }
     Clear(temp);
     Printf(temp, "%s:%s", tmap_method, Getattr(kw, "name"));
-    Setattr(p, typemap_method_name(temp), value);
+    Setattr(firstp, typemap_method_name(temp), value);
     Delete(value);
     kw = nextSibling(kw);
   }
   Clear(temp);
   Printf(temp, "%s:match_type", tmap_method);
-  Setattr(p, typemap_method_name(temp), Getattr(tm, "type"));
+  Setattr(firstp, typemap_method_name(temp), Getattr(tm, "type"));
   Delete(temp);
 }
 
@@ -1779,7 +1835,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
     Setattr(firstp, typemap_method_name(temp), p);
 
     /* Attach kwargs */
-    typemap_attach_kwargs(tm, tmap_method, firstp);
+    typemap_attach_kwargs(tm, tmap_method, firstp, nmatch);
 
     /* Replace the argument number */
     sprintf(temp, "%d", argnum);
@@ -1844,7 +1900,7 @@ static List *split_embedded_typemap(String *s) {
       }
     }
     if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
-      String *tmp = NewStringWithSize(start, c - start);
+      String *tmp = NewStringWithSize(start, (int)(c - start));
       Append(args, tmp);
       Delete(tmp);
       start = c + 1;
@@ -1915,10 +1971,10 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
       c++;
     }
     if (end) {
-      dollar_typemap = NewStringWithSize(start, (end - start));
+      dollar_typemap = NewStringWithSize(start, (int)((end - start)));
       syntax_error = 0;
     } else {
-      dollar_typemap = NewStringWithSize(start, (c - start));
+      dollar_typemap = NewStringWithSize(start, (int)((c - start)));
     }
 
     if (!syntax_error) {
@@ -1963,7 +2019,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    char *eq = strchr(Char(parm), '=');
 	    char *c = Char(parm);
 	    if (eq && (eq - c > 0)) {
-	      String *name = NewStringWithSize(c, eq - c);
+	      String *name = NewStringWithSize(c, (int)(eq - c));
 	      String *value = NewString(eq + 1);
 	      Insert(name, 0, "$");
 	      Setattr(vars, name, value);

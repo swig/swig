@@ -11,7 +11,7 @@ p = constover.test_pconst("test")
 if p != "test_pconst":
     print "test_pconst failed!"
     error = 1
-    
+
 f = constover.Foo()
 p = f.test("test")
 if p != "test":
@@ -32,7 +32,5 @@ p = f.test_pconstm("test")
 if p != "test_pconstmethod":
     print "member-test_pconstm failed!"
     error = 1
-    
+
 sys.exit(error)
-
-

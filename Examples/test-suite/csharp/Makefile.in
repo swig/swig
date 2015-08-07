@@ -6,8 +6,7 @@ LANGUAGE     = csharp
 SCRIPTSUFFIX = _runme.cs
 CSHARPCILINTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
-CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
-CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
+CSHARPCONVERTPATH     = @top_srcdir@/@CSHARPCONVERTPATH@
 
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
@@ -74,18 +73,18 @@ setup = \
 # Compiles C# files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.cs appended after the testcase name.
 # Note C# uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
-# DYLD_FALLBACK_LIBRARY_PATH is cleared for MacOSX.
+# DYLD_FALLBACK_LIBRARY_PATH is cleared for Mac OS X.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
-	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
+	  CSHARPSRCS='`$(CSHARPCONVERTPATH) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCONVERTPATH) "{}" \+`' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$*_runme.exe; \
 	else \
 	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
-	  CSHARPSRCS='`find . -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile; \
+	  CSHARPSRCS='`find . -name "*.cs" -exec ../$(CSHARPCONVERTPATH) "{}" \+`' csharp_compile; \
 	fi
 
 # Clean: remove testcase directories

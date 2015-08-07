@@ -28,7 +28,7 @@ typedef enum {
   SWIG_DIllegalArgumentException,
   SWIG_DIllegalElementException,
   SWIG_DIOException,
-  SWIG_DNoSuchElementException,
+  SWIG_DNoSuchElementException
 } SWIG_DExceptionCodes;
 
 typedef void (* SWIG_DExceptionCallback_t)(const char *);

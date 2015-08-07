@@ -250,7 +250,9 @@ the functions <tt>SWIG_TypeQuery</tt>, <tt>SWIG_NewPointerObj</tt>, and others s
 to be called.  Calling these functions from a typemap is supported, since the typemap code
 is embedded into the <tt>_wrap.c</tt> file, which has those declarations available.  If you need
 to call the SWIG run-time functions from another C file, there is one header you need
-to include.  To generate the header that needs to be included, run the following command:
+to include.  To generate the header that needs to be included, SWIG can be run in a different
+mode via <tt>-external-runtime</tt> to generate the run-time instead of the normal mode of
+processing an input interface file. For example:
 
 <div class="shell"><pre>
 $ swig -python -external-runtime &lt;filename&gt;

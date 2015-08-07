@@ -209,6 +209,20 @@ namespace Swig {
     }
   };
 
+  // Zero initialized bool array
+  template<size_t N> class BoolArray {
+    bool array_[N];
+  public:
+    BoolArray() {
+      memset(array_, 0, sizeof(array_));
+    }
+    bool& operator[](size_t n) {
+      return array_[n];
+    }
+    bool operator[](size_t n) const {
+      return array_[n];
+    }
+  };
 
   // Utility classes and functions for exception handling.
 
@@ -355,7 +369,7 @@ namespace Swig {
     static char *copystr(const char *srcmsg) {
       char *target = 0;
       if (srcmsg) {
-	int msglen = strlen(srcmsg) + 1;
+	size_t msglen = strlen(srcmsg) + 1;
 	target = new char[msglen];
 	strncpy(target, srcmsg, msglen);
       }
@@ -367,7 +381,7 @@ namespace Swig {
   };
 
   // Helper method to determine if a Java throwable matches a particular Java class type
-  bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname) {
+  SWIGINTERN bool ExceptionMatches(JNIEnv *jenv, jthrowable throwable, const char *classname) {
     bool matches = false;
 
     if (throwable && jenv && classname) {

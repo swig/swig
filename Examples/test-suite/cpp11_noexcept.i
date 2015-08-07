@@ -13,7 +13,7 @@ struct NoExceptClass {
   NoExceptClass() noexcept {}
   NoExceptClass(const NoExceptClass&) noexcept {}
   NoExceptClass(NoExceptClass&&) noexcept {}
-  NoExceptClass& operator=(const NoExceptClass&) noexcept {}
+  NoExceptClass& operator=(const NoExceptClass&) noexcept { return *this; }
   ~NoExceptClass() noexcept {}
 
   void noex0() noexcept {}

@@ -2,7 +2,6 @@ TOP        = ../../..
 SWIG       = $(realpath $(TOP)/../preinst-swig)
 SWIGOPT    =
 LIBS       =
-PY3        =
 
 ifeq (,$(PY3))
   PKG1DIR  = "py2"
