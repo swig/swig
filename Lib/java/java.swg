@@ -1330,8 +1330,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(freearg) (char *STRING, size_t LENGTH) ""
 %typemap(in)      (char *STRING, size_t LENGTH) {
   if ($input) {
-    $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
-    $2 = (size_t) JCALL1(GetArrayLength, jenv, $input);
+    $1 = ($1_ltype) JCALL2(GetByteArrayElements, jenv, $input, 0);
+    $2 = ($2_type) JCALL1(GetArrayLength, jenv, $input);
   } else {
     $1 = 0;
     $2 = 0;

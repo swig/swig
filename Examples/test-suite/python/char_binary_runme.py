@@ -4,8 +4,13 @@ t = Test()
 if t.strlen('hile') != 4:
     print t.strlen('hile')
     raise RuntimeError, "bad multi-arg typemap"
+if t.ustrlen('hile') != 4:
+    print t.ustrlen('hile')
+    raise RuntimeError, "bad multi-arg typemap"
 
 if t.strlen('hil\0') != 4:
+    raise RuntimeError, "bad multi-arg typemap"
+if t.ustrlen('hil\0') != 4:
     raise RuntimeError, "bad multi-arg typemap"
 
 #
@@ -20,6 +25,8 @@ pchar_setitem(pc, 4, 0)
 
 
 if t.strlen(pc) != 4:
+    raise RuntimeError, "bad multi-arg typemap"
+if t.ustrlen(pc) != 4:
     raise RuntimeError, "bad multi-arg typemap"
 
 cvar.var_pchar = pc
