@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-08-07: xantares
+            [Python] pep257 & numpydoc conforming docstrings:
+            - Mono-line module docsstring
+            - Rewrite autodoc parameters section in numpydoc style:
+              https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
+            - One line summary should end with "."
+            - Adds a blank line after class docstring
+
 2015-08-05: vadz
             [Java] Make (char* STRING, size_t LENGTH) typemaps usable for
             strings of other types, e.g. "unsigned char*".
