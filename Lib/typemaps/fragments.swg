@@ -153,6 +153,10 @@
 #include <stddef.h>
 %}
 
+%fragment("<ctype.h>", "header") %{
+#include <ctype.h>
+%}
+
 %fragment("<string>", "header") %{
 #include <string>
 %}
