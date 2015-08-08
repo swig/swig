@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-08-07: talby
+            [Perl] tidy -Wtautological-constant-out-of-range-compare warnings when building generated code under clang
+
 2015-08-07: xantares
             [Python] pep257 & numpydoc conforming docstrings:
             - Mono-line module docsstring
