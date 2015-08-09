@@ -6,11 +6,11 @@
 #include <string>
 
 
-class FooBarAbs
+class FooBarAbstract
 {
 public:
-	FooBarAbs() {};
-	virtual ~FooBarAbs() {};
+	FooBarAbstract() {};
+	virtual ~FooBarAbstract() {};
 
 	std::string FooBar() {
 		return this->Foo() + ", " + this->Bar();
@@ -25,11 +25,11 @@ protected:
 };
 
 
-class FooBarCpp : public FooBarAbs
+class FooBarCpp : public FooBarAbstract
 {
 protected:
 	virtual std::string Foo() {
-		return "C++ " + FooBarAbs::Foo();
+		return "C++ " + FooBarAbstract::Foo();
 	}
 
 	virtual std::string Bar() {
