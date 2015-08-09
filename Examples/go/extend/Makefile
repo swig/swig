@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    =
-GOSRCS     = director.go
+CXXSRCS    = extend.cxx
+GOSRCS     = ceo.go
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =

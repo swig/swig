@@ -606,22 +606,22 @@ completely to avoid common pitfalls with directors in Go.
 <H4><a name="Go_director_example_cpp_code"></a>23.4.7.1 Example C++ code</H4>
 
 <p>
-The step by step guide is based on two example C++ classes.  FooBarAbs is an
-abstract C++ class and the FooBarCpp class inherits from it.  This guide
+The step by step guide is based on two example C++ classes.  FooBarAbstract is
+an abstract C++ class and the FooBarCpp class inherits from it.  This guide
 explains how to implement a FooBarGo class similar to the FooBarCpp class.
 </p>
 
 <p>
-<tt>FooBarAbs</tt> abstract C++ class:
+<tt>FooBarAbstract</tt> abstract C++ class:
 </p>
 
 <div class="code">
 <pre>
-class FooBarAbs
+class FooBarAbstract
 {
 public:
-	FooBarAbs() {};
-	virtual ~FooBarAbs() {};
+	FooBarAbstract() {};
+	virtual ~FooBarAbstract() {};
 
 	std::string FooBar() {
 		return this->Foo() + ", " + this->Bar();
@@ -643,11 +643,11 @@ protected:
 
 <div class="code">
 <pre>
-class FooBarCpp : public FooBarAbs
+class FooBarCpp : public FooBarAbstract
 {
 protected:
 	virtual std::string Foo() {
-		return "C++ " + FooBarAbs::Foo();
+		return "C++ " + FooBarAbstract::Foo();
 	}
 
 	virtual std::string Bar() {
@@ -691,14 +691,14 @@ directive, like this:
 
 <p>
 Second, you must use the %feature("director") directive to tell SWIG which
-classes should get directors.  In the example the FooBarAbs class needs the
+classes should get directors.  In the example the FooBarAbstract class needs the
 director feature enabled so that the FooBarGo class can inherit from it, like
 this:
 </p>
 
 <div class="code">
 <pre>
-%feature("director") FooBarAbs;
+%feature("director") FooBarAbstract;
 </pre>
 </div>
 
@@ -782,21 +782,21 @@ As an example see part of the <tt>FooBarGo</tt> class:
 
 <div class="code">
 <pre>
-type overwrittenMethodsOnFooBarAbs struct {
-	fb FooBarAbs
+type overwrittenMethodsOnFooBarAbstract struct {
+	fb FooBarAbstract
 }
 
-func (om *overwrittenMethodsOnFooBarAbs) Foo() string {
+func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
 	...
 }
 
-func (om *overwrittenMethodsOnFooBarAbs) Bar() string {
+func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
 	...
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbs{}
-	fb := NewDirectorFooBarAbs(om)
+	om := &amp;overwrittenMethodsOnFooBarAbstract{}
+	fb := NewDirectorFooBarAbstract(om)
 	om.fb = fb
 	...
 }
@@ -806,25 +806,25 @@ func NewFooBarGo() FooBarGo {
 <p>
 The complete example, including the <tt>FooBarGoo</tt> class implementation, can
 be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.  In
-this part of the example the virtual methods <tt>FooBarAbs::Foo</tt> and
-<tt>FooBarAbs::Bar</tt> have been overwritten with Go methods similarly to how
-the <tt>FooBarAbs</tt> virtual methods are overwritten by the <tt>FooBarCpp</tt>
-class.
+this part of the example the virtual methods <tt>FooBarAbstract::Foo</tt> and
+<tt>FooBarAbstract::Bar</tt> have been overwritten with Go methods similarly to
+how the <tt>FooBarAbstract</tt> virtual methods are overwritten by the
+<tt>FooBarCpp</tt> class.
 </p>
 
 <p>
 The <tt>DirectorInterface</tt> in the example is implemented by the
-<tt>overwrittenMethodsOnFooBarAbs</tt> Go struct type.  A pointer to a
-<tt>overwrittenMethodsOnFooBarAbs</tt> struct instance will be given to the
-<tt>NewDirectorFooBarAbs</tt> constructor function.  The constructor return
-value implements the <tt>FooBarAbs</tt> interface.
-<tt>overwrittenMethodsOnFooBarAbs</tt> could in theory be any Go type but in
-practice a struct is used as it typically contains at least a value of the
+<tt>overwrittenMethodsOnFooBarAbstract</tt> Go struct type.  A pointer to a
+<tt>overwrittenMethodsOnFooBarAbstract</tt> struct instance will be given to the
+<tt>NewDirectorFooBarAbstract</tt> constructor function.  The constructor return
+value implements the <tt>FooBarAbstract</tt> interface.
+<tt>overwrittenMethodsOnFooBarAbstract</tt> could in theory be any Go type but
+in practice a struct is used as it typically contains at least a value of the
 C++ class interface so that the overwritten methods can use the rest of the
 C++ class.  If the <tt>FooBarGo</tt> class would receive additional constructor
 arguments then these would also typically be stored in the
-<tt>overwrittenMethodsOnFooBarAbs</tt> struct so that they can be used by the
-Go methods.
+<tt>overwrittenMethodsOnFooBarAbstract</tt> struct so that they can be used by
+the Go methods.
 </p>
 
 
@@ -840,7 +840,7 @@ the method in the base class.  This is also the case for the
 <div class="code">
 <pre>
 virtual std::string Foo() {
-	return "C++ " + FooBarAbs::Foo();
+	return "C++ " + FooBarAbstract::Foo();
 }
 </pre>
 </div>
@@ -853,8 +853,8 @@ The <tt>FooBarGo.Foo</tt> implementation in the example looks like this:
 
 <div class="code">
 <pre>
-func (om *overwrittenMethodsOnFooBarAbs) Foo() string {
-	return "Go " + DirectorFooBarAbsFoo(om.fb)
+func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
+	return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 </pre>
 </div>
@@ -887,31 +887,31 @@ this:
 <div class="code">
 <pre>
 type FooBarGo interface {
-	FooBarAbs
-	deleteFooBarAbs()
+	FooBarAbstract
+	deleteFooBarAbstract()
 	IsFooBarGo()
 }
 
 type fooBarGo struct {
-	FooBarAbs
+	FooBarAbstract
 }
 
-func (fbgs *fooBarGo) deleteFooBarAbs() {
-	DeleteDirectorFooBarAbs(fbgs.FooBarAbs)
+func (fbgs *fooBarGo) deleteFooBarAbstract() {
+	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
 func (fbgs *fooBarGo) IsFooBarGo() {}
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbs{}
-	fb := NewDirectorFooBarAbs(om)
+	om := &amp;overwrittenMethodsOnFooBarAbstract{}
+	fb := NewDirectorFooBarAbstract(om)
 	om.fb = fb
 
-	return &amp;fooBarGo{FooBarAbs: fb}
+	return &amp;fooBarGo{FooBarAbstract: fb}
 }
 
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbs()
+	fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -921,12 +921,12 @@ func DeleteFooBarGo(fbg FooBarGo) {
 The complete example, including the <tt>FooBarGoo</tt> class implementation, can
 be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.  In
 this part of the example the private <tt>fooBarGo</tt> struct embeds <tt>
-FooBarAbs</tt> which lets the <tt>fooBarGo</tt> Go type "inherit" all the
-methods of the <tt>FooBarAbs</tt> C++ class by means of embedding.  The public
-<tt>FooBarGo</tt> interface type includes the <tt>FooBarAbs</tt> interface and
-hence <tt>FooBarGo</tt> can be used as a drop in replacement for
-<tt>FooBarAbs</tt> while the reverse isn't possible and would raise a compile
-time error.  Furthemore the constructor and destructor functions <tt>
+FooBarAbstract</tt> which lets the <tt>fooBarGo</tt> Go type "inherit" all the
+methods of the <tt>FooBarAbstract</tt> C++ class by means of embedding.  The
+public <tt>FooBarGo</tt> interface type includes the <tt>FooBarAbstract</tt>
+interface and hence <tt>FooBarGo</tt> can be used as a drop in replacement for
+<tt>FooBarAbstract</tt> while the reverse isn't possible and would raise a
+compile time error.  Furthemore the constructor and destructor functions <tt>
 NewFooBarGo</tt> and <tt>DeleteFooBarGo</tt> take care of all the director
 specifics and to the user the class appears as any other SWIG wrapped C++
 class.
@@ -946,13 +946,13 @@ in the <tt>FooBarGo</tt> class is here:
 
 <div class="code">
 <pre>
-type overwrittenMethodsOnFooBarAbs struct {
-	fb FooBarAbs
+type overwrittenMethodsOnFooBarAbstract struct {
+	fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbs{}
-	fb := NewDirectorFooBarAbs(om) // fb.v = om
+	om := &amp;overwrittenMethodsOnFooBarAbstract{}
+	fb := NewDirectorFooBarAbstract(om) // fb.v = om
 	om.fb = fb // Backlink causes cycle as fb.v = om!
 	...
 }
@@ -963,27 +963,27 @@ func NewFooBarGo() FooBarGo {
 In order to be able to use <tt>runtime.SetFinalizer</tt> nevertheless the
 finalizer needs to be set on something that isn't in a cycle and that references
 the director object instance.  In the <tt>FooBarGo</tt> class example the <tt>
-FooBarAbs</tt> director instance can be automatically deleted by setting the
-finalizer on <tt>fooBarGo</tt>:
+FooBarAbstract</tt> director instance can be automatically deleted by setting
+the finalizer on <tt>fooBarGo</tt>:
 </p>
 
 <div class="code">
 <pre>
 type fooBarGo struct {
-	FooBarAbs
+	FooBarAbstract
 }
 
-type overwrittenMethodsOnFooBarAbs struct {
-	fb FooBarAbs
+type overwrittenMethodsOnFooBarAbstract struct {
+	fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbs{}
-	fb := NewDirectorFooBarAbs(om)
+	om := &amp;overwrittenMethodsOnFooBarAbstract{}
+	fb := NewDirectorFooBarAbstract(om)
 	om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbs: fb}
-	runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbs)
+	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+	runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
 	return fbgs
 }
 </pre>
@@ -1007,73 +1007,75 @@ The complete and annotated <tt>FooBarGo</tt> class looks like this:
 
 <div class="code">
 <pre>
-// FooBarGo is a superset of FooBarAbs and hence FooBarGo can be used as a drop
-// in replacement for FooBarAbs but the reverse causes a compile time error.
+// FooBarGo is a superset of FooBarAbstract and hence FooBarGo can be used as a
+// drop in replacement for FooBarAbstract but the reverse causes a compile time
+// error.
 type FooBarGo interface {
-	FooBarAbs
-	deleteFooBarAbs()
+	FooBarAbstract
+	deleteFooBarAbstract()
 	IsFooBarGo()
 }
 
-// Via embedding fooBarGo "inherits" all methods of FooBarAbs.
+// Via embedding fooBarGo "inherits" all methods of FooBarAbstract.
 type fooBarGo struct {
-	FooBarAbs
+	FooBarAbstract
 }
 
-func (fbgs *fooBarGo) deleteFooBarAbs() {
-	DeleteDirectorFooBarAbs(fbgs.FooBarAbs)
+func (fbgs *fooBarGo) deleteFooBarAbstract() {
+	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
-// The IsFooBarGo method ensures that FooBarGo is a superset of FooBarAbs.
+// The IsFooBarGo method ensures that FooBarGo is a superset of FooBarAbstract.
 // This is also how the class hierarchy gets represented by the SWIG generated
-// wrapper code.  For an instance FooBarCpp has the IsFooBarAbs and IsFooBarCpp
-// methods.
+// wrapper code.  For an instance FooBarCpp has the IsFooBarAbstract and
+// IsFooBarCpp methods.
 func (fbgs *fooBarGo) IsFooBarGo() {}
 
 // Go type that defines the DirectorInterface. It contains the Foo and Bar
-// methods that overwrite the respective virtual C++ methods on FooBarAbs.
-type overwrittenMethodsOnFooBarAbs struct {
-	// Backlink to FooBarAbs so that the rest of the class can be used by the
-	// overridden methods.
-	fb FooBarAbs
+// methods that overwrite the respective virtual C++ methods on FooBarAbstract.
+type overwrittenMethodsOnFooBarAbstract struct {
+	// Backlink to FooBarAbstract so that the rest of the class can be used by
+	// the overridden methods.
+	fb FooBarAbstract
 
 	// If additional constructor arguments have been given they are typically
 	// stored here so that the overriden methods can use them.
 }
 
-func (om *overwrittenMethodsOnFooBarAbs) Foo() string {
-	// DirectorFooBarAbsFoo calls the base method FooBarAbs::Foo.
-	return "Go " + DirectorFooBarAbsFoo(om.fb)
+func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
+	// DirectorFooBarAbstractFoo calls the base method FooBarAbstract::Foo.
+	return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 
-func (om *overwrittenMethodsOnFooBarAbs) Bar() string {
+func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
 	return "Go Bar"
 }
 
 func NewFooBarGo() FooBarGo {
-	// Instantiate FooBarAbs with selected methods overridden.  The methods that
-	// will be overwritten are defined on overwrittenMethodsOnFooBarAbs and have
-	// a compatible signature to the respective virtual C++ methods.
-	// Furthermore additional constructor arguments will be typically stored in
-	// the overwrittenMethodsOnFooBarAbs struct.
-	om := &amp;overwrittenMethodsOnFooBarAbs{}
-	fb := NewDirectorFooBarAbs(om)
+	// Instantiate FooBarAbstract with selected methods overridden.  The methods
+	// that will be overwritten are defined on
+	// overwrittenMethodsOnFooBarAbstract and have a compatible signature to the
+	// respective virtual C++ methods. Furthermore additional constructor
+	// arguments will be typically stored in the
+	// overwrittenMethodsOnFooBarAbstract struct.
+	om := &amp;overwrittenMethodsOnFooBarAbstract{}
+	fb := NewDirectorFooBarAbstract(om)
 	om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbs: fb}
-	// The memory of the FooBarAbs director object instance can be automatically
-	// freed once the FooBarGo instance is garbage collected by uncommenting the
-	// following line.  Please make sure to understand the runtime.SetFinalizer
-	// specific gotchas before doing this.  Furthemore DeleteFooBarGo should be
-	// deleted if a finalizer is in use or the fooBarGo struct needs additional
-	// data to prevent double deletion.
-	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbs)
+	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+	// The memory of the FooBarAbstract director object instance can be
+	// automatically freed once the FooBarGo instance is garbage collected by
+	// uncommenting the following line.  Please make sure to understand the
+	// runtime.SetFinalizer specific gotchas before doing this.  Furthemore
+	// DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
+	// struct needs additional data to prevent double deletion.
+	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
 	return fbgs
 }
 
 // Recommended to be removed if runtime.SetFinalizer is in use.
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbs()
+	fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -1094,11 +1096,11 @@ For comparison the <tt>FooBarCpp</tt> class looks like this:
 
 <div class="code">
 <pre>
-class FooBarCpp : public FooBarAbs
+class FooBarCpp : public FooBarAbstract
 {
 protected:
 	virtual std::string Foo() {
-		return "C++ " + FooBarAbs::Foo();
+		return "C++ " + FooBarAbstract::Foo();
 	}
 
 	virtual std::string Bar() {

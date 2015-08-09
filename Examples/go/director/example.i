@@ -7,5 +7,5 @@
 #include "director.h"
 %}
 
-%feature("director") FooBarAbs;
+%feature("director") FooBarAbstract;
 %include "director.h"

@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    =
-GOSRCS     = director.go
+CXXSRCS    = callback.cxx
+GOSRCS     = gocallback.go
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
