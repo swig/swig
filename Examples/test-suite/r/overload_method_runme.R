@@ -1,4 +1,6 @@
-source("unittest.R")
+clargs <- commandArgs(trailing=TRUE)
+source(file.path(clargs[1], "unittest.R"))
+
 dyn.load(paste("overload_method", .Platform$dynlib.ext, sep=""))
 source("overload_method.R")
 cacheMetaData(1)
