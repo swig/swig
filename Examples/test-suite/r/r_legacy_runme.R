@@ -1,6 +1,4 @@
-clargs <- commandArgs(trailing=TRUE)
-source(file.path(clargs[1], "unittest.R"))
-
+source("unittest.R")
 dyn.load(paste("r_legacy", .Platform$dynlib.ext, sep=""))
 source("r_legacy.R")
 cacheMetaData(1)
