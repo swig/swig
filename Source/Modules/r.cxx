@@ -65,6 +65,21 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   */
 }
 
+static String *getNamespacePrefix(const String *enumRef) {
+  // for use from enumDeclaration.
+  // returns the namespace part of a string
+  // Do we have any "::"?
+  String *name = NewString(enumRef);
+
+  while (Strstr(name, "::")) {
+    name = NewStringf("%s", Strchr(name, ':') + 2);
+  }
+  String *result = NewStringWithSize(enumRef, Len(enumRef) - Len(name));
+
+  Delete(name);
+  return (result);
+}
+
 /*********************
  Tries to get the name of the R class corresponding  to the given type
   e.g. struct A * is ARef,  struct A**  is  ARefRef.
@@ -1184,7 +1199,10 @@ int R::enumDeclaration(Node *n) {
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
   
-  /* Using name if tdname is empty. */
+  if (cplus_mode != PUBLIC) {
+    return (SWIG_NOWRAP);
+  }
+   /* Using name if tdname is empty. */
   
   if(Len(tdname) == 0)
     tdname = name;
@@ -1197,35 +1215,109 @@ int R::enumDeclaration(Node *n) {
   
   String *mangled_tdname = SwigType_manglestr(tdname);
   String *scode = NewString("");
-  
+  String *possiblescode = NewString("");
+
+  // Need to create some C code to return the enum values.
+  // Presumably a C function for each element of the enum..
+  // There is probably some sneaky way to use the
+  // standard methods of variable/constant access, but I can't see
+  // it yet.
+  // Need to fetch the namespace part of the enum in tdname, so
+  // that we can address the correct enum. Perhaps there is already an
+  // attribute that has this info, but I can't find it. That leaves
+  // searching for ::. Obviously needs to work if there is no nesting.
+  //
+  // One issue is that swig is generating defineEnumeration calls for
+  // enums in the private part of classes. This usually isn't a
+  // problem, but the model in which some C code returns the
+  // underlying value won't compile because it is accessing a private
+  // type.
+  //
+  // It will be best to turn off binding to private parts of
+  // classes.
+
+  String *cppcode = NewString("");
+  // this is the namespace that will get used inside the functions
+  // returning enumerations.
+  String *namespaceprefix = getNamespacePrefix(tdname);
+  Wrapper *eW = NewWrapper();
+  Node *kk;
+  for (kk = firstChild(n); kk; kk = nextSibling(kk)) {
+    String *ename = Getattr(kk, "name");
+    String *fname = NewString("");
+    String *cfunctname = NewStringf("R_swigenum_%s_%s", mangled_tdname, ename);
+    String *rfunctname = NewStringf("R_swigenum_%s_%s_get", mangled_tdname, ename);
+    Printf(fname, "%s(void){", cfunctname);
+    Printf(cppcode, "SWIGEXPORT SEXP \n%s\n", fname);
+    Printf(cppcode, "int result;\n");
+    Printf(cppcode, "SEXP r_ans = R_NilValue;\n");
+    Printf(cppcode, "result = (int)%s%s;\n", namespaceprefix, ename);
+    Printf(cppcode, "r_ans = Rf_ScalarInteger(result);\n");
+    Printf(cppcode, "return(r_ans);\n}\n");
+
+    // Now emit the r binding functions
+    Printf(possiblescode, "`%s` = function(.copy=FALSE) {\n", rfunctname);
+    Printf(possiblescode, ".Call(\'%s\', as.logical(.copy), PACKAGE=\'%s\')\n}\n\n", cfunctname, Rpackage);
+    Printf(possiblescode, "attr(`%s`, \'returnType\')=\'integer\'\n", rfunctname);
+    Printf(possiblescode, "class(`%s`) = c(\"SWIGfunction\", class(\'%s\'))\n\n", rfunctname, rfunctname);
+    Delete(ename);
+    Delete(fname);
+    Delete(cfunctname);
+    Delete(rfunctname);
+  }
+
+  Printv(cppcode, "", NIL);
+  Printf(eW->code, "%s", cppcode);
+
+  Delete(cppcode);
+  Delete(namespaceprefix);
+
   Printv(scode, "defineEnumeration('", mangled_tdname, "'", 
 	 ",\n",  tab8, tab8, tab4, ".values = c(\n", NIL);
   
   Node *c;
   int value = -1; // First number is zero
+  bool needenumfunc = false;    // Track whether we need runtime C
+                                // calls to deduce correct enum values
   for (c = firstChild(n); c; c = nextSibling(c)) {
     //      const char *tag = Char(nodeType(c));
     //      if (Strcmp(tag,"cdecl") == 0) {        
     name = Getattr(c, "name");
+    // This needs to match the version earlier - could have stored it.
+    String *rfunctname = NewStringf("R_swigenum_%s_%s_get()", mangled_tdname, name);
     String *val = Getattr(c, "enumvalue");
+    String *numstring = NewString("");
     if(val && Char(val)) {
-      int inval = (int) getNumber(val);
-      if(inval == DEFAULT_NUMBER) 
-	value++;
-      else 
-	value = inval;
-    } else
+      double inval = getNumber(val);
+      if(inval == DEFAULT_NUMBER) {
+        // This should indicate there is some fancy text there
+        // so we want to call the special R functions
+        needenumfunc = true;
+        Printf(numstring, "%s", rfunctname);
+      } else {
+        value = (int) inval;
+        Printf(numstring, "%d", value);
+      }
+    } else {
       value++;
+      Printf(numstring, "%d", value);
+    }
     
-    Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
+    Printf(scode, "%s%s%s'%s' = %s%s\n", tab8, tab8, tab8, name, numstring,
 	   nextSibling(c) ? ", " : "");
-    //      }
+    Delete(rfunctname);
+    Delete(numstring);
   }
   
   Printv(scode, "))", NIL);
+  if (needenumfunc) {
+    Wrapper_print(eW, f_wrapper);
+    Printf(sfile, "%s\n", possiblescode);
+  }
   Printf(sfile, "%s\n", scode);
   
   Delete(scode);
+  Delete(possiblescode);
   Delete(mangled_tdname);
   
   return SWIG_OK;
