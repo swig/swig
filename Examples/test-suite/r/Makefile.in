@@ -31,18 +31,30 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
+	$(setupunittest)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
+	$(setupunittest)
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
+	$(setupunittest)
 	+$(swig_and_compile_multi_cpp)
 	$(run_multitestcase)
+
+## copy the unittest.R, if it doesn't exist - tests don't run
+## properly for out of source build otherwise - runme scripts
+## attempt to source unittest.R but fail because it isn't
+## in the current directory
+setupunittest = \
+	if [ ! -f ./$(SCRIPTPREFIX)/unittest.R ]; then \
+	  cp $(SCRIPTDIR)/unittest.R ./$(SCRIPTPREFIX); \
+	fi
 
 # Runs the testcase.
 #
