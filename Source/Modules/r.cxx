@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -36,7 +36,7 @@ static String *getRTypeName(SwigType *t, int *outCount = NULL) {
     Replace(b, "struct ", "", DOH_REPLACE_FIRST);
 
   /* Printf(stdout, "<getRTypeName> %s,base = %s\n", t, b);
-     for(i = 0; i < Len(els); i++) 
+     for(i = 0; i < Len(els); i++)
      Printf(stdout, "%d) %s, ", i, Getitem(els,i));
      Printf(stdout, "\n"); */
 
@@ -88,33 +88,33 @@ static String *getRClassName(String *retType, int /*addRef */  = 1, int upRef = 
   if(!l || n == 0) {
 #ifdef R_SWIG_VERBOSE
     if (debugMode)
-      Printf(stdout, "SwigType_split return an empty list for %s\n", 
+      Printf(stdout, "SwigType_split return an empty list for %s\n",
 	     retType);
 #endif
     return(tmp);
   }
-  
-  
+
+
   String *el = Getitem(l, n-1);
   char *ptr = Char(el);
   if(strncmp(ptr, "struct ", 7) == 0)
     ptr += 7;
-  
+
   Printf(tmp, "%s", ptr);
-  
+
   if(addRef) {
     for(int i = 0; i < n; i++) {
-      if(Strcmp(Getitem(l, i), "p.") == 0 || 
+      if(Strcmp(Getitem(l, i), "p.") == 0 ||
 	 Strncmp(Getitem(l, i), "a(", 2) == 0)
 	Printf(tmp, "Ref");
     }
   }
-  
+
 #else
   char *retName = Char(SwigType_manglestr(retType));
   if(!retName)
     return(tmp);
-  
+
   if(addRef) {
     while(retName && strlen(retName) > 1 && strncmp(retName, "_p", 2) == 0)  {
       retName += 2;
@@ -125,7 +125,7 @@ static String *getRClassName(String *retType, int /*addRef */  = 1, int upRef = 
     retName ++;
   Insert(tmp, 0, retName);
 #endif
-  
+
   return tmp;
 */
 }
@@ -299,7 +299,7 @@ public:
      processing_class_member_function = 0;
      return status;
   }
-  /* Grab the name of the current class being processed so that we can 
+  /* Grab the name of the current class being processed so that we can
      deal with members of that class. */ int classHandler(Node *n) {
     if (!ClassMemberTable)
       ClassMemberTable = NewHash();
@@ -363,7 +363,7 @@ protected:
 
 
   void addSMethodInfo(String *name, String *argType, int nargs);
-  // Simple initialization such as constant strings that can be reused. 
+  // Simple initialization such as constant strings that can be reused.
   void init();
 
 
@@ -390,8 +390,8 @@ protected:
   String *s_init_routine;
   String *s_namespace;
 
-  // State variables that carry information across calls to functionWrapper() 
-  // from  member accessors and class declarations. 
+  // State variables that carry information across calls to functionWrapper()
+  // from  member accessors and class declarations.
   String *opaqueClassDeclaration;
   int processing_variable;
   int processing_member_access_function;
@@ -409,8 +409,8 @@ protected:
   Hash *SClassDefs;
   Hash *SMethodInfo;
 
-  // Information about routines that are generated and to be registered with 
-  // R for dynamic lookup. 
+  // Information about routines that are generated and to be registered with
+  // R for dynamic lookup.
   Hash *registrationTable;
   Hash *functionPointerProxyTable;
 
@@ -419,8 +419,8 @@ protected:
   List *namespaceClasses;	// Probably can do this from ClassMemberTable.
 
 
-  // Store a copy of the command line. 
-  // Need only keep a string that has it formatted. 
+  // Store a copy of the command line.
+  // Need only keep a string that has it formatted.
   char **Argv;
   int Argc;
   bool inCPlusMode;
@@ -648,7 +648,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
 
   if (!isVoidType) {
-    /* Need to deal with the return type of the function pointer, not the function pointer itself. 
+    /* Need to deal with the return type of the function pointer, not the function pointer itself.
        So build a new node that has the relevant pieces.
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
@@ -679,14 +679,14 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Replaceall(f->code, "SWIG_exception_fail", "SWIG_exception_noreturn");
 
   /* To coerce correctly in S, we really want to have an extra/intermediate
-     function that handles the scoerceout. 
+     function that handles the scoerceout.
      We need to check if any of the argument types have an entry in
      that map. If none do, the ignore and call the function straight.
      Otherwise, generate the a marshalling function.
      Need to be able to find it in S. Or use an entirely generic one
      that evaluates the expressions.
      Handle errors in the evaluation of the function by restoring
-     the stack, if there is one in use for this function (i.e. no 
+     the stack, if there is one in use for this function (i.e. no
      userData).
    */
 
@@ -733,7 +733,7 @@ int R::cDeclaration(Node *n) {
 
 /**
    Method from Language that is called to start the entire
-   processing off, i.e. the generation of the code. 
+   processing off, i.e. the generation of the code.
    It is called after the input has been read and parsed.
    Here we open the output streams and generate the code.
 ***/
@@ -885,7 +885,7 @@ int R::DumpCode(Node *n) {
 
 
 /*
-  We may need to do more.... so this is left as a 
+  We may need to do more.... so this is left as a
   stub for the moment.
 */
 int R::OutputClassAccessInfo(Hash *tb, File *out) {
@@ -897,7 +897,7 @@ int R::OutputClassAccessInfo(Hash *tb, File *out) {
 /************************************************************************
   Currently this just writes the information collected about the
   different methods of the C++ classes that have been processed
-  to the console. 
+  to the console.
   This will be used later to define S4 generics and methods.
 **************************************************************************/
 int R::OutputClassMethodsTable(File *) {
@@ -929,16 +929,16 @@ int R::OutputClassMethodsTable(File *) {
 
 
 /*
-  Iterate over the <class name>_set and <>_get 
+  Iterate over the <class name>_set and <>_get
   elements and generate the $ and $<- functions
   that provide constrained access to the member
   fields in these elements.
 
   tb - a hash table that is built up in functionWrapper
   as we process each membervalueHandler.
-  The entries are indexed by <class name>_set and 
+  The entries are indexed by <class name>_set and
   <class_name>_get. Each entry is a List *.
-   
+
   out - the stram where the code is to be written. This is the S
   code stream as we generate only S code here..
 */
@@ -961,7 +961,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     ptr = &ptr[Len(key) - 3];
     int isSet = strcmp(ptr, "set") == 0;
 
-    //        OutputArrayMethod(className, el, out);        
+    //        OutputArrayMethod(className, el, out);
     OutputMemberReferenceMethod(className, isSet, el, out);
 
     if (outputNamespaceInfo)
@@ -975,13 +975,13 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
 }
 
 /*******************************************************************
- Write the methods for $ or $<- for accessing a member field in an 
+ Write the methods for $ or $<- for accessing a member field in an
  struct or union (or class).
  className - the name of the struct or union (e.g. Bar for struct Bar)
- isSet - a logical value indicating whether the method is for 
+ isSet - a logical value indicating whether the method is for
            modifying ($<-) or accessing ($) the member field.
  el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class. 
+      The first element is the name of the class.
       The other pairs are  member name and the name of the R function to access it.
  out - the stream where we write the code.
 ********************************************************************/
@@ -1057,9 +1057,9 @@ int R::OutputMemberReferenceMethod(String *className, int isSet, List *el, File 
      "idx = pmatch(name, names(accessorFuns))\n",
      tab8,
      "if(is.na(idx)) {\n",
-     tab8, tab4, 
+     tab8, tab4,
      "stop(\"No ", (isSet ? "modifiable" : "accessible"), " field named \", name, \" in ", className,
-     ": fields are \", paste(names(accessorFuns), sep = \", \")", 
+     ": fields are \", paste(names(accessorFuns), sep = \", \")",
      ")", "\n}\n", NIL); */
   Printv(f->code, ";", tab8, "idx = pmatch(name, names(accessorFuns));\n", tab8, "if(is.na(idx)) \n", tab8, tab4, NIL);
   Printf(f->code, "return(callNextMethod(x, name%s));\n", isSet ? ", value" : "");
@@ -1099,11 +1099,11 @@ int R::OutputMemberReferenceMethod(String *className, int isSet, List *el, File 
 }
 
 /*******************************************************************
- Write the methods for [ or [<- for accessing a member field in an 
+ Write the methods for [ or [<- for accessing a member field in an
  struct or union (or class).
  className - the name of the struct or union (e.g. Bar for struct Bar)
  el - a list of length  2 * # accessible member elements  + 1.
-      The first element is the name of the class. 
+      The first element is the name of the class.
       The other pairs are  member name and the name of the R function to access it.
  out - the stream where we write the code.
 ********************************************************************/
@@ -1163,7 +1163,7 @@ int R::enumDeclaration(Node *n) {
   int value = -1;		// First number is zero
   for (c = firstChild(n); c; c = nextSibling(c)) {
     //      const char *tag = Char(nodeType(c));
-    //      if (Strcmp(tag,"cdecl") == 0) {        
+    //      if (Strcmp(tag,"cdecl") == 0) {
     name = Getattr(c, "name");
     String *val = Getattr(c, "enumvalue");
     if (val && Char(val)) {
@@ -1664,7 +1664,7 @@ int R::functionWrapper(Node *n) {
       return SWIG_OK;
 
 
-    /* Add the name of this member to a list for this class_name. 
+    /* Add the name of this member to a list for this class_name.
        We will dump all these at the end. */
 
     int n = Len(iname);
@@ -1699,8 +1699,8 @@ int R::functionWrapper(Node *n) {
   Wrapper *sfun = NewWrapper();
 
   int isVoidReturnType = (Strcmp(type, "void") == 0);
-  // Need to use the unresolved return type since 
-  // typedef resolution removes the const which causes a 
+  // Need to use the unresolved return type since
+  // typedef resolution removes the const which causes a
   // mismatch with the function action
   emit_return_variable(n, unresolved_return_type, f);
 
@@ -1934,7 +1934,7 @@ int R::functionWrapper(Node *n) {
   /* Deal with the explicit return value. */
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
     SwigType *retType = Getattr(n, "type");
-    //Printf(stdout, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");     
+    //Printf(stdout, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");
     /*      if(SwigType_isarray(retType)) {
        defineArrayAccessors(retType);
        } */
@@ -2060,8 +2060,8 @@ int R::functionWrapper(Node *n) {
 
 
 
-  /* If we are dealing with a method in an C++ class, then 
-     add the name of the R function and its definition. 
+  /* If we are dealing with a method in an C++ class, then
+     add the name of the R function and its definition.
      XXX need to figure out how to store the Wrapper if possible in the hash/list.
      Would like to be able to do this so that we can potentially insert
    */
@@ -2094,13 +2094,13 @@ int R::constantWrapper(Node *n) {
 }
 
 /*****************************************************
- Add the specified routine name to the collection of 
+ Add the specified routine name to the collection of
  generated routines that are called from R functions.
- This is used to register the routines with R for 
+ This is used to register the routines with R for
  resolving symbols.
 
  rname - the name of the routine
- nargs - the number of arguments it expects. 
+ nargs - the number of arguments it expects.
 ******************************************************/
 int R::addRegistrationRoutine(String *rname, int nargs) {
   if (!registrationTable)
@@ -2157,9 +2157,9 @@ int R::outputRegistrationRoutines(File *out) {
 /****************************************************************************
   Process a struct, union or class declaration in the source code,
   or an anonymous typedef struct
- 
+
 *****************************************************************************/
-//XXX What do we need to do here - 
+//XXX What do we need to do here -
 // Define an S4 class to refer to this.
 
 void R::registerClass(Node *n) {
@@ -2224,7 +2224,7 @@ int R::classDeclaration(Node *n) {
   opaqueClassDeclaration = NULL;
 
 
-  // OutputArrayMethod(name, class_member_functions, sfile);        
+  // OutputArrayMethod(name, class_member_functions, sfile);
   if (class_member_functions)
     OutputMemberReferenceMethod(name, 0, class_member_functions, sfile);
   if (class_member_set_functions)
@@ -2282,7 +2282,7 @@ int R::classDeclaration(Node *n) {
       if (!firstItem) {
 	Printf(def, ",\n");
       }
-      //            else 
+      //            else
       //XXX How can we tell if this is already done.
       //              SwigType_push(elType, elDecl);
 
@@ -2408,9 +2408,9 @@ int R::generateCopyRoutines(Node *n) {
 
 
 /*****
-      Called when there is a typedef to be invoked. 
+      Called when there is a typedef to be invoked.
 
-      XXX Needs to be enhanced or split to handle the case where we have a 
+      XXX Needs to be enhanced or split to handle the case where we have a
       typedef within a classDeclaration emission because the struct/union/etc.
       is anonymous.
 ******/
@@ -2439,7 +2439,7 @@ int R::typedefHandler(Node *n) {
 /*********************
   Called when processing a field in a "class", i.e. struct, union or
   actual class.  We set a state variable so that we can correctly
-  interpret the resulting functionWrapper() call and understand that 
+  interpret the resulting functionWrapper() call and understand that
   it is for a field element.
 **********************/
 int R::membervariableHandler(Node *n) {
@@ -2476,7 +2476,7 @@ String *R::runtimeCode() {
 
 
 /**
-   Called when SWIG wants to initialize this 
+   Called when SWIG wants to initialize this
    We initialize anythin we want here.
    Most importantly, tell SWIG where to find the files (e.g. r.swg) for this module.
    Use Swig_mark_arg() to tell SWIG that it is understood and not to throw an error.
@@ -2498,7 +2498,7 @@ void R::main(int argc, char *argv[]) {
   this->Argc = argc;
   this->Argv = argv;
 
-  allow_overloading();		// can we support this?    
+  allow_overloading();		// can we support this?
 
   for (int i = 0; i < argc; i++) {
     if (strcmp(argv[i], "-package") == 0) {
@@ -2586,7 +2586,7 @@ int R::outputCommandLineArguments(File *out) {
 
 
 
-/* How SWIG instantiates an object from this module. 
+/* How SWIG instantiates an object from this module.
    See swigmain.cxx */
 extern "C" Language *swig_r(void) {
   return new R();
