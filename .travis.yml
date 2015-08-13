@@ -89,9 +89,6 @@ matrix:
     # Not quite working yet
     - compiler: gcc
       env: SWIGLANG=python SWIG_FEATURES=-O
-    # Runtime errors in Travis environment
-    - compiler: gcc
-      env: SWIGLANG=r
 before_install:
   - date -u
   - uname -a
