@@ -1,16 +1,16 @@
-TOP         = ../..
-SWIG        = $(TOP)/../preinst-swig
-INTERFACE   = example.i
-SRCS        = example.c
-CXXSRCS     =
-TARGET      = multimap
-INCLUDE     =
-SWIGOPT     =
-VARIANT     =
+TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+INTERFACE  = example.i
+SRCS       = example.c
+CXXSRCS    =
+TARGET     = multimap
+INCLUDE    =
+SWIGOPT    =
+VARIANT    =
 
 # uncomment the following two lines to build a static exe
 #CHICKEN_MAIN = runme.scm
-#VARIANT      = _static
+#VARIANT    = _static
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' chicken_run

@@ -1,12 +1,12 @@
-TOP         = ../..
-SWIG        = $(TOP)/../preinst-swig
-INTERFACE   = example.i
-SRCS        =
-CXXSRCS     =
-TARGET      = constants
-INCLUDE     =
-SWIGOPT     =
-VARIANT     =
+TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+INTERFACE  = example.i
+SRCS       =
+CXXSRCS    =
+TARGET     = constants
+INCLUDE    =
+SWIGOPT    =
+VARIANT    =
 
 # uncomment the following two lines to build a static exe
 #CHICKEN_MAIN = runme.scm
