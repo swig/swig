@@ -2939,6 +2939,19 @@ else
 fi
 AC_SUBST(SWIG_LIB_PREINST)
 
+dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
+dnl directory under Windows because it is supposed to work without SWIG_LIB
+dnl being set. Otherwise it always needs to be set.
+SWIG_LIB_SET="env SWIG_LIB=\$(SWIG_LIB_DIR)"
+if test "${srcdir}" = "."; then
+    AC_EGREP_CPP([yes],
+    [#ifdef _WIN32
+     yes
+    #endif
+    ], [SWIG_LIB_SET="env SWIG_LIB="], [])
+fi
+AC_SUBST(SWIG_LIB_SET)
+
 AC_CONFIG_FILES([
     Makefile
     swig.spec
@@ -3000,6 +3013,7 @@ AC_CONFIG_COMMANDS([Examples],[
       cat <<EOF >${mkfile}
 # DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
 # and run (cd ${reldir} && ./config.status) to regenerate
+TOP_BUILDDIR_TO_TOP_SRCDIR = ${srcdir}/
 SRCDIR = ${relsrcdir}${dir}/
 
 EOF

@@ -56,8 +56,8 @@ endif
 COMPILETOOL=
 SWIGTOOL   =
 
-SWIG       = $(SWIGTOOL) $(top_builddir)/preinst-swig
-SWIG_LIB   = $(top_srcdir)/Lib
+SWIGEXE   = $(top_builddir)/swig
+SWIG_LIB_DIR = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
 CXXSRCS    = 
@@ -708,14 +708,14 @@ partialcheck:
 
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CSRCS="$(CSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
@@ -723,7 +723,7 @@ swig_and_compile_c =  \
 swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
@@ -731,11 +731,11 @@ swig_and_compile_multi_cpp = \
 
 swig_and_compile_external =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	TARGET="$*_wrap_hdr.h" \
 	$(LANGUAGE)$(VARIANT)_externalhdr; \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS) $*_external.cxx" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
