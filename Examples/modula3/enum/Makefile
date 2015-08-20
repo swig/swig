@@ -12,7 +12,7 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' modula3_run
 
 build:
-	$(SWIG) -modula3 $(SWIGOPT) -module Example -generateconst $(CONSTNUMERIC) $(TARGET).h
+	$(SWIGEXE) -modula3 $(SWIGOPT) -module Example -generateconst $(CONSTNUMERIC) $(TARGET).h
 	$(CXX) -Wall $(CONSTNUMERIC).c -o $(CONSTNUMERIC)
 	$(CONSTNUMERIC) >$(CONSTNUMERIC).i
 

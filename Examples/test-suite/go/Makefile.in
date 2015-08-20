@@ -47,7 +47,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	$(run_testcase_cpp)
 	if ! $(GO15); then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp_nocgo; \
@@ -60,7 +60,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	$(run_testcase)
 	if ! $(GO15); then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CSRCS="$(CSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	  $(LANGUAGE)$(VARIANT)_nocgo; \
@@ -80,8 +80,8 @@ multi_import.multicpptest:
 	$(setup)
 	for f in multi_import_b multi_import_a; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+	  LIBS='$(LIBS)' INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
@@ -92,16 +92,16 @@ go_subdir_import.multicpptest:
 	mkdir -p testdir/go_subdir_import/
 	mkdir -p gopath/src/testdir/go_subdir_import/
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	INTERFACEPATH="$(SRCDIR)$(INTERFACEDIR)go_subdir_import_b.i" \
+	SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+	LIBS='$(LIBS)' INTERFACEPATH="$(SRCDIR)$(INTERFACEDIR)go_subdir_import_b.i" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) -outdir ." NOLINK=true \
 	TARGET="$(TARGETPREFIX)go_subdir_import_b$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" \
 	INTERFACE="testdir/go_subdir_import/go_subdir_import_b.i" \
 	$(LANGUAGE)$(VARIANT)_cpp;
 	for f in testdir/go_subdir_import/go_subdir_import_c go_subdir_import_a ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+	  LIBS='$(LIBS)' INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done

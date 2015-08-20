@@ -13,7 +13,8 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-SWIG  = $(top_builddir)/preinst_swig
+SWIGEXE   = $(top_builddir)/swig
+SWIG_LIB_DIR = $(top_srcdir)/Lib
 
 ifneq (, $(ENGINE))
 	JSENGINE=$(ENGINE)
@@ -53,21 +54,25 @@ ifeq (node,$(JSENGINE))
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	setup_node = \
-		test -d $* || mkdir $*; \
+		test -d $* || mkdir $* && \
 		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$srcdir|$(srcdir)|g' \
-			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp; \
+			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js
 
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
-		$(setup_node); \
-		$(SWIG) -javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i; \
+		$(setup_node) && \
+		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
+		SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	swig_and_compile_cpp = \
-		$(setup_node); \
-		$(SWIG) -c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i; \
+		$(setup_node) && \
+		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
+		SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	run_testcase = \

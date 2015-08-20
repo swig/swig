@@ -4,6 +4,11 @@ srcdir		= @srcdir@
 top_srcdir	= @top_srcdir@
 top_builddir	= @top_builddir@
 
+SWIGEXE         = $(top_builddir)/swig
+SWIG_LIB_DIR    = $(top_srcdir)/Lib
+SWIG_LIB_SET    = @SWIG_LIB_SET@
+SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+
 cleanup		= tail +2 \
 		  | sed -e 's/ident="ID[0-9A-F]*"//g' \
 			-e 's,name="/[^"]*/\([^/]*\.swg\)",name="\1",g'
@@ -25,7 +30,7 @@ check:
 	for f in $(all-dot-i-files) ; do				\
 	  base=`basename $$f .i` ;					\
 	  xml=$$base.xml ;						\
-	  SWIG_LIB=$(top_srcdir)/Lib $(top_builddir)/swig -xml $$xml ${srcdir}/$$f ;	\
+	  $(SWIGINVOKE) -xml $$xml ${srcdir}/$$f ;	\
 	  cat $$xml | $(cleanup) | diff -c ${srcdir}/$$base.expected-xml - ;	\
 	done
 
@@ -38,7 +43,7 @@ distclean: clean
 # from here on, non-developers beware!
 
 %.expected-xml : %.i
-	SWIG_LIB=$(top_srcdir)/Lib $(top_builddir)/swig -xml tmp-file $^
+	$(SWIGINVOKE) -xml tmp-file $^
 	cat tmp-file | $(cleanup) > $@
 	rm -f tmp-file
 

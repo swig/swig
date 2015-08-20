@@ -13,7 +13,7 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' mzscheme_run
 
 build:
-	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIGEXE) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) --compiler $(GPP) ++ccf "-I." --cc example_wrap.cxx
 	$(MZC) --linker $(GPP) --ld $(TARGET).so example_wrap.o
 

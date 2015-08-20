@@ -723,8 +723,8 @@ swig_and_compile_c =  \
 swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+	  LIBS='$(LIBS)' INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
