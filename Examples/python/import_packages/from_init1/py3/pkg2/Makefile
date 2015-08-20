@@ -1,5 +1,5 @@
 TOP        = ../../../../..
-SWIG       = $(realpath $(TOP)/../preinst-swig)
+SWIG       = $(TOP)/../preinst-swig
 SWIGOPT    =
 LIBS       =
 

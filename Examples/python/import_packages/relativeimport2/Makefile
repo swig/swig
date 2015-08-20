@@ -1,6 +1,4 @@
 TOP        = ../../..
-SWIG       = $(realpath $(TOP)/../preinst-swig)
-SWIGOPT    =
 LIBS       =
 
 ifeq (,$(PY3))
@@ -13,10 +11,10 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_run
 
 build:
-	cd $(PKG1DIR) && $(MAKE) SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' build
+	cd $(PKG1DIR) && $(MAKE) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' build
 
 static:
-	cd $(PKG1DIR) && $(MAKE) SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' static
+	cd $(PKG1DIR) && $(MAKE) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_clean
