@@ -101,10 +101,6 @@ skip-errors	= test -n ""
 ACTION = check
 NOSKIP =
 
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
-chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
-chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
-
 check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
@@ -250,7 +246,7 @@ check-%-examples :
 %.actionexample:
 	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
@@ -259,7 +255,7 @@ java.actionexample:
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken

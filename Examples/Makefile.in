@@ -1453,6 +1453,12 @@ lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
 
+lua_externalhdr:
+	$(SWIG) -lua -external-runtime $(TARGET)
+
+lua_swig_cpp:
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+
 # -----------------------------------------------------------------
 # Build statically linked Lua interpreter
 # -----------------------------------------------------------------
