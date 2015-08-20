@@ -2912,7 +2912,8 @@ AC_SUBST(ac_aux_dir)
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
   [swig_lib="$withval"], [swig_lib="${datadir}/swig/${PACKAGE_VERSION}"])
-AC_SUBST(swig_lib)
+SWIG_LIB_INSTALL=${swig_lib}
+AC_SUBST(SWIG_LIB_INSTALL)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
 case $build in

@@ -21,7 +21,7 @@ FLAGS       = -k -s
 #####################################################################
 
 SHELL       = /bin/sh
-SWIG_LIB    = @swig_lib@
+SWIG_LIB_INSTALL = @SWIG_LIB_INSTALL@
 BIN_DIR     = @bindir@
 ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
@@ -508,16 +508,16 @@ lib-modules = std
 
 install-lib:
 	@echo "Installing the SWIG library"
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB_INSTALL)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
-	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    echo "Installing $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i";	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\
 	    echo "Installing language specific files for $$lang"; \
-	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
+	    dst=$(DESTDIR)$(SWIG_LIB_INSTALL)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
 	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null || echo ''`"; \
 	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null || echo ''`"; \
@@ -552,7 +552,7 @@ uninstall-main:
 
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
-	rm -rf $(DESTDIR)$(SWIG_LIB)/
+	rm -rf $(DESTDIR)$(SWIG_LIB_INSTALL)/
 
 uninstall-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) uninstall)
