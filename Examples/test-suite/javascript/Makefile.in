@@ -63,15 +63,15 @@ ifeq (node,$(JSENGINE))
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
 		$(setup_node) && \
-		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
-		SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
+		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 
 	swig_and_compile_cpp = \
 		$(setup_node) && \
-		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" \
-		SWIG_LIB_DIR="$(SWIG_LIB_DIR)" SWIGEXE="$(SWIGEXE)" \
+		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
+		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
 		$(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
 

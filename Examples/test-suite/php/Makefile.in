@@ -60,9 +60,9 @@ missingtests: missingcpptests missingctests
 # found, runs testcase.php, except for multicpptests.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL="$(RUNTOOL)" php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
 	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL="$(RUNTOOL)" php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL='$(RUNTOOL)' php_run; \
 	fi
 
 # Clean: remove the generated .php file
@@ -70,7 +70,7 @@ run_testcase = \
 	@rm -f $*.php php_$*.h
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" php_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' php_clean
 	rm -f clientdata_prop_a.php clientdata_prop_b.php php_clientdata_prop_a.h php_clientdata_prop_b.h
 	rm -f import_stl_a.php import_stl_b.php php_import_stl_a.h php_import_stl_b.h
 	rm -f imports_a.php imports_b.php php_imports_a.h php_imports_b.h
