@@ -2162,7 +2162,6 @@ void MATLAB::initGateway() {
   Printf(f_gateway,"  if (!is_loaded) {\n");
   Printf(f_gateway,"    SWIG_Matlab_LoadModule(SWIG_name_d);\n");
   Printf(f_gateway,"    is_loaded=true;\n");
-  Printf(f_gateway,"    mxArray *err;\n");
   Printf(f_gateway,"    mexEvalString(\"%s\");\n",setup_name);
   Printf(f_gateway,"    mexAtExit(SWIG_Matlab_ExitFcn);\n");
   Printf(f_gateway,"  }\n");
