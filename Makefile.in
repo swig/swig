@@ -21,7 +21,7 @@ FLAGS       = -k -s
 #####################################################################
 
 SHELL       = /bin/sh
-SWIG_LIB    = @swig_lib@
+SWIG_LIB_INSTALL = @SWIG_LIB_INSTALL@
 BIN_DIR     = @bindir@
 ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
@@ -100,10 +100,6 @@ skip-errors	= test -n ""
 
 ACTION = check
 NOSKIP =
-
-chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/$(srcdir)/Lib
-chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
-chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
 check-aliveness:
 	test -x ./$(TARGET)
@@ -250,7 +246,7 @@ check-%-examples :
 %.actionexample:
 	@cd Examples && $(MAKE) Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
@@ -259,7 +255,7 @@ java.actionexample:
 	  echo "skipping Examples/$(LANGUAGE)/java $(ACTION) (gcj test)";	\
 	else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
-	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE)) \
+	  (cd Examples/$(LANGUAGE)/java && $(MAKE) $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)) \
 	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
@@ -512,16 +508,16 @@ lib-modules = std
 
 install-lib:
 	@echo "Installing the SWIG library"
-	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB_INSTALL)
 	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
 	    i=`basename $$file` ;				\
-	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
-	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
+	    echo "Installing $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i";	\
+	    $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB_INSTALL)/$$i;	\
 	    done;
 	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\
 	    echo "Installing language specific files for $$lang"; \
-	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
+	    dst=$(DESTDIR)$(SWIG_LIB_INSTALL)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
 	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null || echo ''`"; \
 	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null || echo ''`"; \
@@ -556,7 +552,7 @@ uninstall-main:
 
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
-	rm -rf $(DESTDIR)$(SWIG_LIB)/
+	rm -rf $(DESTDIR)$(SWIG_LIB_INSTALL)/
 
 uninstall-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) uninstall)

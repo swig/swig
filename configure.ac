@@ -2912,7 +2912,8 @@ AC_SUBST(ac_aux_dir)
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
   [swig_lib="$withval"], [swig_lib="${datadir}/swig/${PACKAGE_VERSION}"])
-AC_SUBST(swig_lib)
+SWIG_LIB_INSTALL=${swig_lib}
+AC_SUBST(SWIG_LIB_INSTALL)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
 case $build in
@@ -2923,21 +2924,21 @@ case $build in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-dnl For testing purposes, don't set SWIG_LIB_PREINST when building SWIG in the
-dnl source directory under Windows because it is supposed to work without
-dnl SWIG_LIB being set at all in this particular case.
+SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
+AC_SUBST(SWIG_LIB_PREINST)
+
+dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
+dnl directory under Windows because it is supposed to work without SWIG_LIB
+dnl being set. Otherwise it always needs to be set.
+SWIG_LIB_SET="env SWIG_LIB=\$(SWIG_LIB_DIR)"
 if test "${srcdir}" = "."; then
     AC_EGREP_CPP([yes],
     [#ifdef _WIN32
      yes
     #endif
-    ], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
-else
-    dnl When not building in source directory, we must always set SWIG_LIB,
-    dnl even under Windows, as things couldn't work without it.
-    SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
+    ], [SWIG_LIB_SET="env SWIG_LIB="], [])
 fi
-AC_SUBST(SWIG_LIB_PREINST)
+AC_SUBST(SWIG_LIB_SET)
 
 AC_CONFIG_FILES([
     Makefile
@@ -3000,6 +3001,7 @@ AC_CONFIG_COMMANDS([Examples],[
       cat <<EOF >${mkfile}
 # DO NOT EDIT: instead edit ${relsrcdir}${mkfile}
 # and run (cd ${reldir} && ./config.status) to regenerate
+TOP_BUILDDIR_TO_TOP_SRCDIR = ${srcdir}/
 SRCDIR = ${relsrcdir}${dir}/
 
 EOF

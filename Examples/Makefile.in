@@ -58,7 +58,13 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
-SWIG       = swig
+
+# SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
+SWIG_LIB_DIR = ./Lib
+SWIGEXE    = swig
+SWIG_LIB_SET = @SWIG_LIB_SET@
+SWIGTOOL   =
+SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
@@ -132,6 +138,13 @@ distclean:
 	rm -f Makefile
 	rm -f d/example.mk
 	rm -f xml/Makefile
+
+##################################################################
+# Very generic invocation of swig
+##################################################################
+
+swiginvoke:
+	$(SWIG) $(SWIGOPT)
 
 ##################################################################
 #####                       Tcl/Tk                          ######
@@ -1446,6 +1459,12 @@ lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
 	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+lua_externalhdr:
+	$(SWIG) -lua -external-runtime $(TARGET)
+
+lua_swig_cpp:
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 
 # -----------------------------------------------------------------
 # Build statically linked Lua interpreter

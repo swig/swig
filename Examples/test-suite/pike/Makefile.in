@@ -46,4 +46,4 @@ run_testcase = \
 	@rm -f $*.pike;
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" pike_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' pike_clean

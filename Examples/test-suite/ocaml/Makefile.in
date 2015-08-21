@@ -74,4 +74,4 @@ include $(srcdir)/../common.mk
 	@rm -f $*.ml $*.mli;
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" ocaml_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ocaml_clean

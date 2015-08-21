@@ -1,12 +1,13 @@
-TOP         = ../..
-SWIG        = $(TOP)/../preinst-swig
-INTERFACE   = example.i
-SRCS        =
-CXXSRCS     =
-TARGET      = constants
-INCLUDE     =
-SWIGOPT     =
-VARIANT     =
+TOP        = ../..
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
+INTERFACE  = example.i
+SRCS       =
+CXXSRCS    =
+TARGET     = constants
+INCLUDE    =
+SWIGOPT    =
+VARIANT    =
 
 # uncomment the following two lines to build a static exe
 #CHICKEN_MAIN = runme.scm
@@ -20,8 +21,9 @@ build: $(TARGET)
 $(TARGET): $(INTERFACE) $(SRCS)
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
 	SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' CHICKEN_MAIN='$(CHICKEN_MAIN)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' \
-	SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' CHICKENOPTS='$(CHICKENOPTS)' chicken$(VARIANT)
+	INTERFACE='$(INTERFACE)' CHICKENOPTS='$(CHICKENOPTS)' chicken$(VARIANT)
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' chicken_clean
