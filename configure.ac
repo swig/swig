@@ -2924,20 +2924,7 @@ case $build in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-dnl For testing purposes, don't set SWIG_LIB_PREINST when building SWIG in the
-dnl source directory under Windows because it is supposed to work without
-dnl SWIG_LIB being set at all in this particular case.
-if test "${srcdir}" = "."; then
-    AC_EGREP_CPP([yes],
-    [#ifdef _WIN32
-     yes
-    #endif
-    ], [SWIG_LIB_PREINST=], [SWIG_LIB_PREINST=$ABS_SRCDIR/Lib])
-else
-    dnl When not building in source directory, we must always set SWIG_LIB,
-    dnl even under Windows, as things couldn't work without it.
-    SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
-fi
+SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
 AC_SUBST(SWIG_LIB_PREINST)
 
 dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
