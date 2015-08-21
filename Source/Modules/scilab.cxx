@@ -885,7 +885,7 @@ public:
     Printf(builderCode, "libs = [];\n");
 
     // Flags from command line arguments
-    Printf(builderCode, "cflags = [];\n");
+    Printf(builderCode, "cflags = \"\";\n");
     for (int i = 0; i < Len(cflags); i++) {
       String *cflag = Getitem(cflags, i);
       Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
