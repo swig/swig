@@ -426,57 +426,41 @@
 /* Strings.  */
 
 %typemap(gotype)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
-"string"
+	char *, char *&, char[ANY], char[] "string"
 
 /* Needed to avoid confusion with the way the go module handles
    references.  */
-%typemap(gotype) char&, unsigned char& "*byte"
-%typemap(gotype) signed char& "*int8"
+%typemap(gotype) char& "*byte"
 
 %typemap(in)
-	char *, char[ANY], char[],
-	signed char *, signed char[ANY], signed char[],
-	unsigned char *, unsigned char[ANY], unsigned char[]
+	char *, char[ANY], char[]
 %{ $1 = ($1_ltype)$input.p; %}
 
-%typemap(in) char *&, signed char *&, unsigned char *&
+%typemap(in) char *&
 %{ $1 = ($1_ltype)$input.p; %}
 
 %typemap(out,fragment="AllocateString")
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{ $result = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0); %}
 
 %typemap(goout,fragment="CopyString")
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{ $result = swigCopyString($1) %}
 
 %typemap(directorin,fragment="AllocateString")
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{
   $input = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0);
 %}
 
 %typemap(godirectorin,fragment="CopyString")
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{
   $result = swigCopyString($input)
 %}
 
 %typemap(directorout)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{ $result = ($1_ltype)$input.p; %}
 
 /* String & length */
