@@ -2179,7 +2179,7 @@ void MATLAB::initGateway() {
   }
 
   // Begin the switch:
-  Printf(f_gateway,"  int id_exists=1, flag;\n");
+  Printf(f_gateway,"  int id_exists=1, flag=0;\n");
   Printf(f_gateway,"  switch (fcn_id) {\n");
 
   // List of function names
