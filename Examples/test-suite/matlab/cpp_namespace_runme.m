@@ -6,7 +6,7 @@ if (n ~= 24)
     error('Bad return value!')
 end
 
-if (cpp_namespace.cvar.Foo ~= 42)
+if (cpp_namespace.Foo ~= 42)
     error('Bad variable value!')
 end
 

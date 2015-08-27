@@ -1,5 +1,5 @@
 import template_typedef_cplx2.*
-template_typedef_import
+import template_typedef_import.*
 
 %
 % this is OK

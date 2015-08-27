@@ -4,7 +4,7 @@ voidtest.globalfunc();
 f = voidtest.Foo();
 f.memberfunc();
 
-voidtest.Foo_staticmemberfunc();
+voidtest.Foo.staticmemberfunc();
 
 try
   a = f.memberfunc();
