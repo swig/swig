@@ -169,7 +169,7 @@ MATLAB::MATLAB() :
   Printv(director_prot_ctor_code,
          "if ( argc==1 ) { /* subclassed */\n",
          "  $director_new \n",
-         "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+         "} else {\n", "   mexErrMsgIdAndTxt(\"SWIG:RuntimeError\",\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
 
   enable_cplus_runtime_mode();
   allow_overloading();
