@@ -67,10 +67,9 @@ code.  SWIG fills this gap.
 </p>
 
 <p>
-There are (at least) two different Go compilers.  The first is the Go compiler
-of the <a href="https://golang.org/doc/install">Go distribution</a>.
-Since Go 1.5 the Go compiler is part of the <a href="https://golang.org/cmd/go/">
-go tool</a>. Go 1.4 and earlier use the gc tool which is called by the go tool.
+There are (at least) two different Go compilers.  The first is the gc compiler
+of the <a href="https://golang.org/doc/install">Go distribution</a>, normally
+invoked via the <a href="https://golang.org/cmd/go/">go tool</a>.
 The second Go compiler is the <a href="https://golang.org/doc/install/gccgo">
 gccgo compiler</a>, which is a frontend to the GCC compiler suite.
 The interface to C/C++ code is completely different for the two Go compilers.
@@ -120,8 +119,8 @@ temporary WORK directory.
 <p>
 To manually generate and compile C/C++ wrapper code for Go, use the <tt>-go</tt>
 option with SWIG.  By default SWIG will generate code for the Go compiler of the
-Go distribution.  To generate code for gccgo, you should also use the <tt>-gccgo
-</tt> option.
+Go distribution.  To generate code for gccgo, you should also use the
+<tt>-gccgo</tt> option.
 </p>
 
 <p>
