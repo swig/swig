@@ -1,14 +1,7 @@
 import director_string.*
 
 
-function out=get_first(self)
-  out = strcat(self.A.get_first(),' world~');
-end
-function process_text(self,string)
-  self.A.process_text(string);
-  self.smem = 'hello';
-end
-B=@(string) subclass(A(string),'get_first',@get_first,'process_text',@process_text);
+B=@(string) subclass(A(string),'get_first',@director_string_helper_get_first,'process_text',@director_string_helper_process_text);
 
 
 b = B('hello');
