@@ -2671,7 +2671,7 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"          case '.'\n");
   Printf(f_wrap_m,"            builtin('subsref',self,substruct('.',s.subs,'()',{v}));\n");
   Printf(f_wrap_m,"          case '()'\n");
-  Printf(f_wrap_m,"            builtin('subsref',self,substruct('.','setparen','()',{v, s.subs{:}}));\n");
+  Printf(f_wrap_m,"            builtin('subsref',self,substruct('.','paren_asgn','()',{v, s.subs{:}}));\n");
   Printf(f_wrap_m,"          case '{}'\n");
   Printf(f_wrap_m,"            builtin('subsref',self,substruct('.','setbrace','()',{v, s.subs{:}}));\n");
   Printf(f_wrap_m,"        end\n");
