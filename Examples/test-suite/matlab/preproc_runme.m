@@ -1,18 +1,18 @@
 import preproc.*
 
-if (preproc.cvar.end ~= 1)
-  error
+if (preproc.endif ~= 1)
+  error('failed')
 end
 
-if (preproc.cvar.define ~= 1)
-  error
+if (preproc.define ~= 1)
+  error('failed')
 end
 
-if (preproc.cvar.defined ~= 1)
-  error
+if (preproc.defined ~= 1)
+  error('failed')
 end
 
 if (2*preproc.one ~= preproc.two)
-  error
+  error('failed')
 end
 

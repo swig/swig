@@ -1,3 +1,3 @@
 import template_static.*
 
-Foo_bar_double(1);
+Foo.bar_double(1);

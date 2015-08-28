@@ -77,7 +77,7 @@ typedef struct SwigPtr {
   void *ptr;
   swig_type_info *type;
   int own;
-  SwigPtr* next;
+  struct SwigPtr* next;
 } SwigPtr;
 static SwigPtr *swigPtr=0;
 static size_t swigPtrSize=0, swigPtrNumAlloc=0;
