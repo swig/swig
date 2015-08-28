@@ -661,6 +661,8 @@ MULTI_CPP_TEST_CASES += \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
+wdate_time.ctest: SWIGOPT += -Wdate-time
+
 preproc_include.ctest: SWIGOPT += -includeall
 
 

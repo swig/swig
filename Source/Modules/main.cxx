@@ -145,6 +145,7 @@ static const char *usage4 = (const char *) "\
      -Wallkw         - Enable keyword warnings for all the supported languages\n\
      -Werror         - Treat warnings as errors\n\
      -Wextra         - Adds the following additional warnings: " EXTRA_WARNINGS "\n\
+     -Wdate-time     - Ignored for the time being since __DATE__ and __TIME__ are not replaced\n\
      -w<list>        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html\n\
      -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing\n\
 \n\
@@ -764,6 +765,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-Werror") == 0) {
 	werror = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-Wdate-time") == 0) {
+        /* no effect for SWIG, see https://gcc.gnu.org/onlinedocs/gcc-4.9.3/gcc/Warning-Options.html#Warning-Options */
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-Wextra") == 0) {
 	Swig_mark_arg(i);
