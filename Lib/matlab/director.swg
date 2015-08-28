@@ -251,7 +251,7 @@ namespace Swig {
     }
 
   public:
-    mxArray* getswigdirectorstorage() {
+    mxArray* getswigdirectorstorage() const {
       mxArray* ret = mexGetVariable("global",storagename);
       if (!ret) {
         ret = mxCreateStructMatrix(1,1,0,0);
@@ -285,7 +285,7 @@ namespace Swig {
     }
 
     /* return a pointer to the wrapped python object */
-    mxArray *swig_get_self() {
+    mxArray *swig_get_self() const {
       mxArray* swigdirectorstorage = getswigdirectorstorage();
       mxArray *swig_self = mxGetField(swigdirectorstorage,0,swig_name.c_str());
       return swig_self;
