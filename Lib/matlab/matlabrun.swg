@@ -204,32 +204,32 @@ void SWIG_Matlab_ExitFcn(void) {
 
 /* Runtime API implementation */
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  mxArray* pm_command = mxCreateString("_swigCreate");
-  mxArray* pm;
-  const char * matlab_classname;
+  /* Proxy class instance */
+  mxArray* pm = 0;
+
+  /* Create a proxy class of the desired type */
   if (type->clientdata) {
-    matlab_classname = (const char *)type->clientdata;
-  } else {
-    /* TODO do we really want this? it's a fall-back for non-package types (e.g pointer-to-float)
-       However, it will fail anyway because the mexCallMATLABWithTrap call will fail 
-       (as there'd be no package.float matlab-type)
-    */
-    matlab_classname = type->name+3;    /* FIXME: Hack to dereference pointer */
-    mexWarnMsgIdAndTxt("SWIG:NewPointerObj","NewPointerObj problem. clientdata NULL. guessed %s", matlab_classname);
+    mxArray* pm_command = mxCreateString("_swigCreate");
+    const char* matlab_classname = (const char *)type->clientdata;
+    mxArray* ex = mexCallMATLABWithTrap(1, &pm, 1, &pm_command, matlab_classname);
+    if (ex) {
+      pm = 0;
+      mexWarnMsgIdAndTxt("SWIG:NewPointerObj",
+                         "NewPointerObj problem. creating SwigRef as opposed to %s", matlab_classname);
+      mxDestroyArray(ex);
+    }
+    mxDestroyArray(pm_command);
   }
 
-  mxArray* ex = mexCallMATLABWithTrap(1, &pm, 1, &pm_command, matlab_classname);
-
-  /* Hack hack */
-  if(ex){
-    /* the above failed, so let's just create a SwigRef */
-    mxDestroyArray(ex);
-    mexWarnMsgIdAndTxt("SWIG:NewPointerObj","NewPointerObj problem. creating SwigRef as opposed to %s", matlab_classname);
-    ex = mexCallMATLABWithTrap(1, &pm, 0, 0,"SwigRef");
+  /* Fall-back to SwigRef */
+  if (!pm) {
+    mxArray* ex = mexCallMATLABWithTrap(1, &pm, 0, 0, "SwigRef");
+    if(ex) {
+      pm = 0;
+      mexErrMsgIdAndTxt("SWIG:NewPointerObj",
+                        "mexCallMATLABWithTrap failed for %s",type->name);
+    }
   }
-
-  if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mexCallMATLABWithTrap failed for %s",type->name);
-  mxDestroyArray(pm_command);
 
   /* Ownership? */
   int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
