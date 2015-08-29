@@ -852,6 +852,10 @@ int MATLAB::functionWrapper(Node *n) {
   int varargs = emit_isvarargs(l);
   char source[64];
 
+  if (destructor) {
+    Append(f->code, "int is_owned;\n");
+  }
+
   Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) " 
          "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
   if (constructor && num_arguments == 1 && num_required == 1) {
@@ -863,6 +867,11 @@ int MATLAB::functionWrapper(Node *n) {
         Delete(desc);
       }
     }
+  }
+
+  // Check if owned here, before possibly disowning in the typemaps
+  if (destructor) {
+    Append(f->code, "is_owned = SWIG_Matlab_isOwned(argv[0]);\n");
   }
 
   for (j = 0, p = l; j < num_arguments; ++j) {
@@ -1028,7 +1037,7 @@ int MATLAB::functionWrapper(Node *n) {
     Swig_director_emit_dynamic_cast(n, f);
 
     if (destructor) {
-      Append(f->code, "if (SWIG_Matlab_isOwned(argv[0])) {\n");
+      Append(f->code, "if (is_owned) {\n");
     }
     String *actioncode = emit_action(n);
     if (destructor) {
