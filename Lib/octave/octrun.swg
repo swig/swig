@@ -982,10 +982,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if SWIG_OCTAVE_PREREQ(4,0,0)
-    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
 #else
-    void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+    void print(std::ostream &os, bool pr_as_read_syntax = false) const
 #endif
+    {
       if (is_string()) {
 	os << string_value();
 	return;
@@ -1178,10 +1179,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
 #if SWIG_OCTAVE_PREREQ(4,0,0)
-    void print(std::ostream &os, bool pr_as_read_syntax = false) {
+    void print(std::ostream &os, bool pr_as_read_syntax = false)
 #else
-    void print(std::ostream &os, bool pr_as_read_syntax = false) const {
+    void print(std::ostream &os, bool pr_as_read_syntax = false) const
 #endif
+    {
       indent(os);
       os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
