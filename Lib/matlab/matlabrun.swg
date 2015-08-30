@@ -79,104 +79,50 @@ typedef struct SwigPtr {
   int own;
   struct SwigPtr* next;
 } SwigPtr;
-static SwigPtr *swigPtr=0;
-static size_t swigPtrSize=0, swigPtrNumAlloc=0;
 static char const * storagename = "swig" SWIG_name_d "directorstorage";
-
-/* Linked list of unused elements in swigPtr */
-typedef struct SwigUnused {
-  size_t ind;
-  struct SwigUnused *next;
-} SwigUnused;
-static SwigUnused *swigUnused=0;
 
 /* Add new pointer object to the memory allocator
    Returns the location of the new element by reference and a return flag by value.
  */
-int SWIG_Matlab_NewPointer(size_t* ind_ptr, void *ptr, swig_type_info *type, int own) {
+int SWIG_Matlab_NewPointer(SwigPtr** swig_ptr, void *ptr, swig_type_info *type, int own) {
   /* Check input arguments */
-  if (!ind_ptr || !type) return 1;
-  size_t ind;
+  if (!swig_ptr || !type) return 1;
 
-  /* If first time encountered, allocate memory (first element null pointer) */
-  if (swigPtrNumAlloc==0) {
-    swigPtr=(SwigPtr *)malloc(sizeof(SwigPtr));
-    if (!swigPtr) return 1;
-    swigPtrNumAlloc=swigPtrSize=1;
-  }
-
-  if (swigUnused) {
-    /* Get a freed object from the stack  */
-    ind = swigUnused->ind;
-    /* Pop the element from the stack */
-    SwigUnused *next = swigUnused->next;
-    free(swigUnused);
-    swigUnused = next;
-  } else {
-    /* Add element at the end */
-    if (swigPtrSize==swigPtrNumAlloc) {
-      /* Increase size of swigPtr */
-      SwigPtr *new_mem = (SwigPtr *)realloc(swigPtr, (2*swigPtrNumAlloc)*sizeof(SwigPtr));
-      if (!new_mem) return 1;
-      swigPtr=new_mem;
-      swigPtrNumAlloc *= 2;
-    }
-    ind = swigPtrSize++;
-  }
+  /* Allocate memory */
+  SwigPtr *obj=(SwigPtr *)malloc(sizeof(SwigPtr));
+  if (!obj) return 1;
 
   /* Increase lock count */
   mexLock();
 
   /* Initialize object */
-  SwigPtr *obj = swigPtr + ind;
   obj->ptr = ptr;
   obj->type = type;
   obj->own = own;
   obj->next = 0;
   
   /* Return memory reference and successful return */
-  *ind_ptr = ind;
+  *swig_ptr = obj;
   return 0;
-}
-
-/* Get a pointer object
-   Returns a SwigPtr* with the object if successful, otherwise 0
- */
-SwigPtr* SWIG_Matlab_GetPointer(size_t ind) {
-  if (ind==0 || ind>=swigPtrSize) {
-    return 0;
-  } else {
-    return swigPtr+ind;
-  }
 }
 
 /* Free pointer object
    Returns a void* with the object to be freed (if any)
  */
-void* SWIG_Matlab_DeletePointer(size_t ind) {
+void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
   /* Quick return if null pointer? */
-  if (ind==0) return 0;
-
-  /* Get pointer */
-  SwigPtr* p = SWIG_Matlab_GetPointer(ind);
-  if (!p) {
-    mexWarnMsgIdAndTxt("SWIG:DeletePointer", "No such element");
-    return 0;
-  }
+  if (p==0) return 0;
 
   /* Decrease lock count */
   mexUnlock();
 
-  /* Add to list of unused elements */
+  /* Clear and free */
   void* ret = p->own ? p->ptr : 0;
   p->ptr=0;
   p->type=0;
   p->own=0;
   p->next=0;
-  SwigUnused *next = swigUnused;
-  swigUnused = (SwigUnused *)malloc(sizeof(SwigUnused));
-  swigUnused->ind = ind;
-  swigUnused->next = next;
+  free(p);
   return ret;
 }
 
@@ -185,21 +131,7 @@ void* SWIG_Matlab_DeletePointer(size_t ind) {
 extern "C"
 #endif /* cplusplus */
 void SWIG_Matlab_ExitFcn(void) {
-
-  /* Free allocated memory for pointers */
-  if (swigPtr) {
-    free(swigPtr);
-    swigPtr=0;
-    swigPtrSize=swigPtrNumAlloc=0;
-  }
-
-  /* Free stack with indices of unused pointers */
-  while (swigUnused) {
-    SwigUnused *next = swigUnused->next;
-    free(swigUnused);
-    swigUnused = next;
-  }
-
+  /* Unused at the moment */
 }
 
 /* Runtime API implementation */
@@ -235,76 +167,70 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
 
   /* Allocate a pointer object */  
-  size_t ind;
-  if (SWIG_Matlab_NewPointer(&ind, ptr, type, own)) {
+  SwigPtr* swig_ptr;
+  if (SWIG_Matlab_NewPointer(&swig_ptr, ptr, type, own)) {
     mexErrMsgIdAndTxt("SWIG:NewPointerObj","Cannot allocate pointer");
   }
 
   /* Pass to class */
-  mxArray *pm_ind = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
-  *(uint64_T *)mxGetData(pm_ind) = (uint64_T)ind;
-  if(!pm_ind) mexErrMsgIdAndTxt("SWIG:NewPointerObj","mxCreateNumericMatrix failed");
-  mxSetProperty(pm, 0, "swigInd", pm_ind);
-  mxDestroyArray(pm_ind);
+  mxArray *pm_ptr = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+  *(uint64_T *)mxGetData(pm_ptr) = (uint64_T)swig_ptr;
+  if(!pm_ptr) mexErrMsgIdAndTxt("SWIG:NewPointerObj", "mxCreateNumericMatrix failed");
+  mxSetProperty(pm, 0, "swigPtr", pm_ptr);
+  mxDestroyArray(pm_ptr);
   
   return pm;
 }
 
 SWIGRUNTIME int SWIG_Matlab_isOwned(mxArray* pm) {
 /* Get index, represented as a uint64_T scalar */
-  mxArray *pm_ind = mxGetProperty(pm, 0, "swigInd");
-  if(!pm_ind || mxGetNumberOfElements(pm_ind) != 1 ||
-     mxGetClassID(pm_ind) != mxUINT64_CLASS || mxIsComplex(pm_ind)){
-    if(pm_ind) mxDestroyArray(pm_ind);
+  mxArray *pm_ptr = mxGetProperty(pm, 0, "swigPtr");
+  if(!pm_ptr || mxGetNumberOfElements(pm_ptr) != 1 ||
+     mxGetClassID(pm_ptr) != mxUINT64_CLASS || mxIsComplex(pm_ptr)) {
+    if(pm_ptr) mxDestroyArray(pm_ptr);
     return SWIG_ERROR;
   }
-  size_t ind = (size_t)(*(uint64_T*)mxGetData(pm_ind));
-  mxDestroyArray(pm_ind);
+  SwigPtr* p = (SwigPtr*)(*(uint64_T*)mxGetData(pm_ptr));
+  mxDestroyArray(pm_ptr);
 
-  /* Get pointer object */
-  SwigPtr* p = SWIG_Matlab_GetPointer(ind);
-
-  if (!p) {
-    return 0;
-  }
-  return p->own;
+  return p ? p->own : 0;
 }
 
 SWIGRUNTIME SwigPtr* SWIG_Matlab_getSwigPtr(mxArray* pm) {
 /* Get index, represented as a uint64_T scalar */
-  mxArray *pm_ind = mxGetProperty(pm, 0, "swigInd");
-  if(!pm_ind || mxGetNumberOfElements(pm_ind) != 1 ||
-     mxGetClassID(pm_ind) != mxUINT64_CLASS || mxIsComplex(pm_ind)){
-    if(pm_ind) mxDestroyArray(pm_ind);
+  mxArray *pm_ptr = mxGetProperty(pm, 0, "swigPtr");
+  if(!pm_ptr || mxGetNumberOfElements(pm_ptr) != 1 ||
+     mxGetClassID(pm_ptr) != mxUINT64_CLASS || mxIsComplex(pm_ptr)) {
+    if(pm_ptr) mxDestroyArray(pm_ptr);
     return 0;
   }
-  size_t ind = (size_t)(*(uint64_T*)mxGetData(pm_ind));
-  mxDestroyArray(pm_ind);
+  SwigPtr* p = (SwigPtr*)(*(uint64_T*)mxGetData(pm_ptr));
+  mxDestroyArray(pm_ptr);
 
   /* Get pointer object */
-  return SWIG_Matlab_GetPointer(ind);
+  return p;
 }
 
 SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_info *type, int flags, int *own) {
   /* Get index, represented as a uint64_T scalar */
-  mxArray *pm_ind = mxGetProperty(pm, 0, "swigInd");
-  if(!pm_ind || mxGetNumberOfElements(pm_ind) != 1 ||
-     mxGetClassID(pm_ind) != mxUINT64_CLASS || mxIsComplex(pm_ind)){
-    if(pm_ind) mxDestroyArray(pm_ind);
+  mxArray *pm_ptr = mxGetProperty(pm, 0, "swigPtr");
+  if(!pm_ptr || mxGetNumberOfElements(pm_ptr) != 1 ||
+     mxGetClassID(pm_ptr) != mxUINT64_CLASS || mxIsComplex(pm_ptr)){
+    if(pm_ptr) mxDestroyArray(pm_ptr);
     return SWIG_ERROR;
   }
-  size_t ind = (size_t)(*(uint64_T*)mxGetData(pm_ind));
-  mxDestroyArray(pm_ind);
+  SwigPtr* swig_ptr = (SwigPtr*)(*(uint64_T*)mxGetData(pm_ptr));
+  mxDestroyArray(pm_ptr);
 
   /* Get pointer object */
-  SwigPtr* p = SWIG_Matlab_GetPointer(ind);
-  if (!p) {
+  if (!swig_ptr) {
     mexWarnMsgIdAndTxt("SWIG:ConvertPtrAndOwn", "No such element");
     return 0;
   }
 
   swig_cast_info *tc;
   bool same_type = false;
+  SwigPtr* p=swig_ptr;
   while (p) {
     /* Loop over types */
     swig_type_info *p_type = p->type;
@@ -332,7 +258,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     
   /* Set ownership marker to false? */
   if(flags & SWIG_POINTER_DISOWN){
-    SWIG_Matlab_DeletePointer(ind);
+    SWIG_Matlab_DeletePointer(swig_ptr);
   }
 
   /* No type cast needed */
