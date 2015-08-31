@@ -3667,6 +3667,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       String *name = 0;
 	       Node *n;
 	       Classprefix = 0;
+	       (void)$<node>5;
 	       $$ = currentOuterClass;
 	       currentOuterClass = Getattr($$, "nested:outer");
 	       if (!currentOuterClass)
