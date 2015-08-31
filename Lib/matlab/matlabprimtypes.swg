@@ -255,7 +255,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
    mxArray* ret = mxCreateCharArray((mwSize)2,dims);
    if(!ret) mexErrMsgIdAndTxt("SWIG:FromCharPtrAndSize","mxCreateCharArray failed");
    mxChar *ret_data = (mxChar *)mxGetData(ret);
-   int i;
+   size_t i;
    for(i=0; i<size; ++i) ret_data[i] = carray[i];
    return ret;  
 }
