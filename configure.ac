@@ -1161,12 +1161,12 @@ else
         if test -r $i/api_scilab.h; then
           AC_MSG_RESULT($i)
           SCILABINCLUDE="-I$i"
-          break;
+          break
         fi
         if test -r $i/scilab/api_scilab.h; then
           AC_MSG_RESULT($i/scilab)
           SCILABINCLUDE="-I$i/scilab"
-          break;
+          break
         fi
       done
       if test "$SCILABINCLUDE" = "" ; then
@@ -2988,7 +2988,7 @@ AC_CONFIG_COMMANDS([Examples],[
     for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
       dir=`dirname ${mkfile}`
       d=${dir}
-      reldir="";
+      reldir=""
       while test "x$d" != "x." ; do
         d=`dirname $d`
         reldir="${reldir}../"
