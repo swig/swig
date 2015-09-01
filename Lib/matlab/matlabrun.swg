@@ -58,15 +58,15 @@ SWIGRUNTIME void SWIG_Error(int code, const char *msg) {
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIG_Matlab_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIG_Matlab_NewPackedObj(ptr, sz, type)
 
-#define SWIG_GetModule(clientdata) SWIG_Matlab_GetModule(clientdata)
-#define SWIG_SetModule(clientdata, pointer) SWIG_Matlab_SetModule(clientdata,pointer);
+#define SWIG_GetModule(clientdata)                      SWIG_Matlab_GetModule(clientdata)
+#define SWIG_SetModule(clientdata, pointer)             SWIG_Matlab_SetModule(pointer);
 #define SWIG_MODULE_CLIENTDATA_TYPE void*
 
 #define Matlab_Error_Occurred() 0
 #define SWIG_Matlab_AddErrorMsg(msg) {;}
 
 SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *clientdata);
-SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *pointer);
+SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer);
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
@@ -78,7 +78,6 @@ typedef struct SwigPtr {
   swig_type_info *type;
   int own;
   struct SwigPtr* next;
-  swig_module_info *module;
 } SwigPtr;
 static char const * storagename = "swig" SWIG_name_d "directorstorage";
 
@@ -93,15 +92,11 @@ int SWIG_Matlab_NewPointer(SwigPtr** swig_ptr, void *ptr, swig_type_info *type, 
   SwigPtr *obj=(SwigPtr *)malloc(sizeof(SwigPtr));
   if (!obj) return 1;
 
-  /* Increase lock count */
-  mexLock();
-
   /* Initialize object */
   obj->ptr = ptr;
   obj->type = type;
   obj->own = own;
   obj->next = 0;
-  obj->module = 0;
   
   /* Return memory reference and successful return */
   *swig_ptr = obj;
@@ -115,16 +110,12 @@ void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
   /* Quick return if null pointer? */
   if (p==0) return 0;
 
-  /* Decrease lock count */
-  mexUnlock();
-
   /* Clear and free */
   void* ret = p->own ? p->ptr : 0;
   p->ptr=0;
   p->type=0;
   p->own=0;
   p->next=0;
-  p->module = 0;
   free(p);
   return ret;
 }
@@ -284,12 +275,28 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   return SWIG_OK;
 }
 
-SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *clientdata) {
+SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   swig_module_info *pointer = 0;
+  mxArray *module = mexGetVariable("global", "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+  if (module){
+    pointer = (swig_module_info *)(*(uint64_T *)mxGetData(module));
+    mxDestroyArray(module);
+  }
   return pointer;
 }
 
-SWIGRUNTIME void SWIG_Matlab_SetModule(void *clientdata, swig_module_info *pointer) {
+SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer) {
+  mxArray *module = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+  if(!module) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
+  *(uint64_T *)mxGetData(module) = (uint64_T)pointer;
+  int status;
+  /* Put variable in MATLAB global workspace */
+  status=mexPutVariable("global", "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, module);
+  mxDestroyArray(module);
+  if (status==1){
+    mexErrMsgIdAndTxt("SWIG:SetModule",
+      "Could not put variable in global workspace.\n");
+  }
 }
 
 /* HACK HACK */
