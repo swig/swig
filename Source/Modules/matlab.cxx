@@ -44,6 +44,8 @@ public:
   virtual int staticmembervariableHandler(Node *n);
   virtual int insertDirective(Node *n);
   virtual int importDirective(Node *n);
+  virtual String *runtimeCode();
+  virtual String *defaultExternalRuntimeFilename();
   int classDirectorMethods(Node *n);
   int classDirectorMethod(Node *n, Node *parent, String *super);
   int classDirectorConstructor(Node *n);
@@ -2870,6 +2872,22 @@ void MATLAB::checkValidSymName(Node *node) {
            "  Symbols may not start with '_'.  Maybe try something like this: %%rename(u%s) %s;\n",
            symname, kind, symname, symname);
   }
+}
+
+String *MATLAB::runtimeCode() {
+  String *s = NewString("");
+  String *srun = Swig_include_sys("matlabrun.swg");
+  if (!srun) {
+    Printf(stderr, "*** Unable to open 'matlabrun.swg'\n");
+  } else {
+    Append(s, srun);
+    Delete(srun);
+  }
+  return s;
+}
+
+String *MATLAB::defaultExternalRuntimeFilename() {
+  return NewString("swigmatlabrun.h");
 }
 
 
