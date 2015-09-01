@@ -40,11 +40,6 @@ AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 dnl Checks for header files.
 AC_HEADER_STDC
 
-dnl Checks for types.
-AC_LANG_PUSH([C++])
-AC_CHECK_TYPES([bool])
-AC_LANG_POP([C++])
-
 dnl Look for popen
 AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
 if test x"${with_popen}" = xno ; then
