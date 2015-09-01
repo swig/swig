@@ -122,9 +122,6 @@ echo "Note : None of the following packages are required for users to compile an
 echo ""
 
 AC_PROG_YACC
-AC_PROG_RANLIB
-AC_CHECK_PROGS(AR, ar aal, ar)
-AC_SUBST(AR)
 AC_CHECK_PROGS(YODL2MAN, yodl2man)
 AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
