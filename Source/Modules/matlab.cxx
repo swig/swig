@@ -2205,9 +2205,6 @@ void MATLAB::initGateway() {
 
   // The first argument is always the ID unless loading the module.
   Printf(f_gateway,"  if (argc == 0) {\n");
-  Printf(f_gateway,"#ifdef SWIGRUNTIME_DEBUG\n");
-  Printf(f_gateway,"    mexPrintf(\"Called %%s without parameters\n\", SWIG_name_d);\n");
-  Printf(f_gateway,"#endif\n");
   Printf(f_gateway,"    return;\n");
   Printf(f_gateway,"  }\n");
   Printf(f_gateway,"  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");
