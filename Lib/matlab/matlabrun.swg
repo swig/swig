@@ -219,7 +219,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   /* Get pointer object */
   if (!swig_ptr) {
     mexWarnMsgIdAndTxt("SWIG:ConvertPtrAndOwn", "No such element");
-    return 0;
+    return SWIG_ERROR;
   }
 
   swig_cast_info *tc;
@@ -236,7 +236,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
     }
 
     /* Check if type conversion is possible */
-    tc = SWIG_TypeCheckStruct(p_type, type);
+    tc = SWIG_TypeCheck(p_type->name, type);
     if (tc) break;
 
     /* Check next type */
