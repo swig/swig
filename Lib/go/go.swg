@@ -430,7 +430,8 @@
 
 /* Needed to avoid confusion with the way the go module handles
    references.  */
-%typemap(gotype) char& "*byte"
+%typemap(gotype) char&, unsigned char& "*byte"
+%typemap(gotype) signed char& "*int8"
 
 %typemap(in)
 	char *, char[ANY], char[]
