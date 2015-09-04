@@ -2389,7 +2389,7 @@ public:
       Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
     }
 
-    if ((Getattr(n, "feature:python:callback") && !have_docstring(n)) || !have_addtofunc(n)) {
+    if (!have_addtofunc(n)) {
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
       Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     }
@@ -2432,18 +2432,12 @@ public:
 
     if (!n) {
       Append(methods, "NULL");
-    } else if (Getattr(n, "feature:callback")) {
-      if (have_docstring(n)) {
-	String *ds = cdocstring(n, AUTODOC_FUNC);
-	Printf(methods, "(char *)\"%s\\nswig_ptr: %s\"", ds, Getattr(n, "feature:callback:name"));
-	Delete(ds);
-      } else {
-	Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
-      }
     } else if (have_docstring(n)) {
       String *ds = cdocstring(n, AUTODOC_FUNC);
       Printf(methods, "(char *)\"%s\"", ds);
       Delete(ds);
+    } else if (Getattr(n, "feature:callback")) {
+      Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
     } else {
       Append(methods, "NULL");
     }
