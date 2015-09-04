@@ -33,9 +33,7 @@
 # can be used for memory checking of the runtime tests using:
 #   make RUNTOOL="valgrind --leak-check=full"
 # and valgrind can be used when invoking SWIG using:
-#   make SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
-#    Note: trace-children needed because of preinst-swig shell wrapper
-#    to the swig executable.
+#   make SWIGTOOL="valgrind --tool=memcheck"
 #
 # An individual test run can be debugged easily:
 #   make director_string.cpptest RUNTOOL="gdb --args"
