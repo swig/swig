@@ -114,6 +114,12 @@
   }
 %}
 
+%callback("%(uppercase)s_CALLBACK") func_cb;
+
+%inline {
+  int func_cb(int c, int d) { return c; }
+}
+
 // Bug 3310528
 %feature("autodoc","1") banana; // names + types
 %inline %{

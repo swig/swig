@@ -2389,7 +2389,7 @@ public:
       Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
     }
 
-    if (Getattr(n, "feature:python:callback") || !have_addtofunc(n)) {
+    if ((Getattr(n, "feature:python:callback") && !have_docstring(n)) || !have_addtofunc(n)) {
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
       Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     }

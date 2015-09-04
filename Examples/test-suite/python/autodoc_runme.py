@@ -355,4 +355,5 @@ check(funkdefaults.__doc__,
 check(func_input.__doc__, "func_input(int * INPUT) -> int")
 check(func_output.__doc__, "func_output() -> int")
 check(func_inout.__doc__, "func_inout(int * INOUT) -> int")
+check(func_cb.__doc__, "func_cb(int c, int d) -> int")
 check(banana.__doc__, "banana(S a, S b, int c, Integer d)")

@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-09-04: olly
+	    [Python] Fix docstrings for %callback functions.
+
 2015-08-07: talby
             [Perl] tidy -Wtautological-constant-out-of-range-compare warnings when building generated code under clang
 
