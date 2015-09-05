@@ -108,10 +108,12 @@ run_testcase = \
 	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MATLABPATH=$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH \
 	 $(RUNTOOL) $(MATLAB) -r "$$RUNSCRIPT"  $(RUNPIPE); \
 	 if [ $$? -ne 0 ] ; then \
-	   echo "\n$* failed" $(RUNPIPE) ; \
+	   echo "   $* failed" $(RUNPIPE) ; \
 	 else \
-	   echo "\n$* passed" $(RUNPIPE) ; \
+	   echo "   $* passed" $(RUNPIPE) ; \
 	 fi \
+	else \
+	   echo "   $* build passed (no runme test present)" $(RUNPIPE) ; \
 	fi
 
 # Clean: remove the generated .m file
