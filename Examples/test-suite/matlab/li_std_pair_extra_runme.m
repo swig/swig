@@ -59,11 +59,12 @@ assert(p.first==1);
 
 p = li_std_pair_extra.paircA1(1,a);
 assert(p.first==1);
-assert(swig_this(p.second)==swig_this(a));
+% no swig_this yet
+% assert(swig_this(p.second)==swig_this(a));
 
 p = li_std_pair_extra.paircA2(1,a);
 assert(p.first==1);
-assert(swig_this(p.second)==swig_this(a));
+%assert(swig_this(p.second)==swig_this(a));
 %pp = li_std_pair_extra.pairiiA(1,p); % conversion pb re const of pairA1/A2
 pp = li_std_pair_extra.pairiiA(1,{1,A()});
 

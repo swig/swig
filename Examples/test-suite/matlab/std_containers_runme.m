@@ -89,10 +89,11 @@ end
 mapc ={};
 c1 = std_containers.C();
 c2 = std_containers.C();
-mapc(1) = swig_this(c1);
-mapc(2) = c2;
+% no swig_this yet
+% mapc(1) = swig_this(c1);
+% mapc(2) = c2;
 
-std_containers.mapidentc(mapc);
+% std_containers.mapidentc(mapc);
 
 
 vi = std_containers.vector_i([2,2,3,4]);
