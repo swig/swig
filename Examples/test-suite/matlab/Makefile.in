@@ -3,7 +3,8 @@
 #######################################################################
 
 LANGUAGE     = matlab
-MATLAB        = @MATLAB@ -nodisplay -nosplash -nojvm
+MATLAB       = @MATLAB@
+MATLABOPTS   = -nodisplay -nosplash -nojvm
 SCRIPTSUFFIX = _runme
 
 srcdir       = @srcdir@
@@ -105,8 +106,8 @@ run_testcase = \
 	    exit(1); \
 	    end; \
 	  exit(0)" ; \
-	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH MATLABPATH=$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH \
-	 $(RUNTOOL) $(MATLAB) -r "$$RUNSCRIPT"  $(RUNPIPE); \
+	 env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" MATLABPATH="$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH" \
+	 $(RUNTOOL) "$(MATLAB)" $(MATLABOPTS) -r "$$RUNSCRIPT"  $(RUNPIPE); \
 	 if [ $$? -ne 0 ] ; then \
 	   echo "   $* failed" $(RUNPIPE) ; \
 	 else \

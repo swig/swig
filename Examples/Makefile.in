@@ -469,7 +469,8 @@ octave_clean:
 ##################################################################
 
 # Make sure these locate your Matlab installation
-MATLAB        = @MATLAB@ -nodisplay -nosplash -nojvm
+MATLAB        = @MATLAB@
+MATLABOPTS    = -nodisplay -nosplash -nojvm
 #MATLAB_CXX    = $(DEFS) @MATLAB_CPPFLAGS@ @MATLAB_CXXFLAGS@
 
 # Extra Matlab specific dynamic linking options
@@ -485,7 +486,7 @@ MATLAB_SCRIPT = $(SRCDIR)$(RUNME)
 
 matlab: $(SRCDIR_SRCS)
 	$(SWIG) -matlab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MATLAB_MEX) -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) \
+	$(COMPILETOOL) "$(MATLAB_MEX)" -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) \
 		$(INCLUDES) $(LIBS) -output $(TARGET)_wrap
 
 # -----------------------------------------------------------------
@@ -494,7 +495,7 @@ matlab: $(SRCDIR_SRCS)
 
 matlab_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -matlab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MATLAB_MEX) -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) $(SRCDIR_SRCS) \
+	$(COMPILETOOL) "$(MATLAB_MEX)" -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) $(SRCDIR_SRCS) \
 		$(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)_wrap
 
 # -----------------------------------------------------------------
@@ -502,14 +503,14 @@ matlab_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 matlab_run:
-	$(RUNTOOL) $(MATLAB) -r "try; $(MATLAB_SCRIPT); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)" $(RUNPIPE)
+	$(RUNTOOL) "$(MATLAB)" $(MATLABOPTS) -r "try; $(MATLAB_SCRIPT); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)" $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
 matlab_version:
-	$(MATLAB) -r "disp(version);exit" | tail -n 2
+	"$(MATLAB)" $(MATLABOPTS) -r "disp(version);exit" | tail -n 2
 
 # -----------------------------------------------------------------
 # Cleaning the Matlab examples
