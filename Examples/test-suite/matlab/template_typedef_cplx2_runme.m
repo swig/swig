@@ -6,7 +6,8 @@ import template_typedef_cplx2.*
 
 try
   d = make_Identity_double();
-  a = swig_this(d);
+  % no swig_this yet
+  % a = swig_this(d);
 catch
   d
   error('is not an instance')
@@ -15,12 +16,11 @@ end
 if (findstr('ArithUnaryFunction',swig_type(d)) ~= 1)
   d
   error('is not an ArithUnaryFunction')
-  error
 end
 
 try
   e = make_Multiplies_double_double_double_double(d, d);
-  a = swig_this(e);
+  % a = swig_this(e);
 catch
   e
   error('is not an instance')
@@ -38,7 +38,7 @@ end
 
 try
   c = make_Identity_complex();
-  a = swig_this(c);
+  %a = swig_this(c);
 catch
   c
   error('is not an instance')
@@ -51,7 +51,7 @@ end
 
 try
   f = make_Multiplies_complex_complex_complex_complex(c, c);
-  a = swig_this(f);
+  %a = swig_this(f);
 catch
   f
   error('is not an instance')
@@ -68,7 +68,7 @@ end
 
 try
   g = make_Multiplies_double_double_complex_complex(d, c);
-  a = swig_this(g);
+  %a = swig_this(g);
 catch
   g
   error('is not an instance')
@@ -83,7 +83,7 @@ end
 
 try
   h = make_Multiplies_complex_complex_double_double(c, d);
-  a = swig_this(h);
+  %a = swig_this(h);
 catch
   h
   error('is not an instance')

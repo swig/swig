@@ -12,6 +12,6 @@ catch
 end
 
 if (ok ~= 1)
-    error
+    error('test should have thrown an error')
 end
 
