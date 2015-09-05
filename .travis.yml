@@ -7,12 +7,10 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG= GCC5=1 CPP11=1
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG= GCC5=1 CPP14=1
+    - os: linux
+      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+    - os: linux
+      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP14=1
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -100,15 +98,12 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=tcl
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=csharp GCC5=1 CPP11=1
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=java GCC5=1 CPP11=1
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=python GCC5=1 CPP11=1
+    - os: linux
+      env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+    - os: linux
+      env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+    - os: linux
+      env: SWIGLANG=python SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
     - os: osx
       env: SWIGLANG= SWIG_CC=gcc-4.2 SWIG_CXX=g++-4.2
     - compiler: clang

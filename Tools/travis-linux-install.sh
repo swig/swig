@@ -2,12 +2,11 @@
 lsb_release -a
 sudo apt-get -qq update
 
-if [[ "$GCC5" ]]; then
+if [[ "$CC" == gcc-5 ]]; then
 	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	sudo add-apt-repository -y ppa:boost-latest/ppa
 	sudo apt-get -qq update
 	sudo apt-get install -qq g++-5 libboost1.55-dev
-    export CC=gcc-5 CXX=g++-5
 else
 	sudo apt-get -qq install libboost-dev
 fi
