@@ -94,6 +94,12 @@ skip-android    = test -n "@SKIP_ANDROID@"
 # Special errors test-case
 skip-errors	= test -n ""
 
+check-%-enabled:
+	@if $(skip-$*); then					\
+	  echo skipping $* version;				\
+	  exit 1;   \
+	fi
+
 #####################################################################
 # CHECK
 #####################################################################
