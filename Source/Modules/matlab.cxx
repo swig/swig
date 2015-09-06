@@ -2731,6 +2731,20 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('toDouble',self);\n");
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"  methods(Static)\n");
+  Printf(f_wrap_m,"    function varargout = SWIG_module_mem(varargin)\n");
+  Printf(f_wrap_m,"      persistent mem\n");
+  Printf(f_wrap_m,"      mlock\n");
+  Printf(f_wrap_m,"      narginchk(0,1)\n");
+  Printf(f_wrap_m,"      if nargin==0\n");
+  Printf(f_wrap_m,"        nargoutchk(0,1)\n");
+  Printf(f_wrap_m,"        varargout{1} = mem;\n");
+  Printf(f_wrap_m,"      else\n");
+  Printf(f_wrap_m,"        nargoutchk(0,0)\n");
+  Printf(f_wrap_m,"        mem = varargin{1});\n");
+  Printf(f_wrap_m,"      end\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
   // Tidy up
