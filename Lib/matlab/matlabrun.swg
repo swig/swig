@@ -130,19 +130,6 @@ void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
 #ifdef __cplusplus
 extern "C"
 #endif /* cplusplus */
-
-int SWIG_Matlab_ModuleLoad(int resc, mxArray *resv[], int argc, mxArray *argv[]) {
-  /* Increase lock count */
-  mexLock();
-  return 0;
-}
-
-int SWIG_Matlab_ModuleUnload(int resc, mxArray *resv[], int argc, mxArray *argv[]) {
-  /* Decrease lock count */
-  mexUnlock();
-  return 0;
-}
-
 void SWIG_Matlab_ExitFcn(void) {
   /* Unused at the moment */
 }
