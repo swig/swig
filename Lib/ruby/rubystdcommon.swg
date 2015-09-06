@@ -148,7 +148,7 @@ namespace swig {
 	  %type_error(swig::type_name<Type>());
 	}
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-        memset(static_cast<void *>(v_def),0,sizeof(Type));
+	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
     }

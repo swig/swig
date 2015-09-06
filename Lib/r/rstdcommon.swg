@@ -129,7 +129,7 @@ namespace swig {
 	static Type *v_def = (Type*) malloc(sizeof(Type));
 	if (throw_error)
           throw std::invalid_argument("bad type");
-        memset(static_cast<void *>(v_def),0,sizeof(Type));
+	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
     }
