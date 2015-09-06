@@ -2225,19 +2225,29 @@ void MATLAB::initGateway() {
   l_fnames = NewList();
 
   // Constants retrieval function has index 0
-  String* swigConstant=NewString("swigConstant");
-  toGateway(swigConstant, swigConstant);
-  Delete(swigConstant);
+  String* fname=NewString("swigConstant");
+  toGateway(fname, fname);
+  Delete(fname);
 
   // Function name retrieval function has index 1
-  String* swigFunctionName=NewString("swigFunctionName");
-  toGateway(swigFunctionName, swigFunctionName);
-  Delete(swigFunctionName);
+  fname=NewString("swigFunctionName");
+  toGateway(fname, fname);
+  Delete(fname);
 
   // Constant name retrieval function has index 2
-  String* swigConstantName=NewString("swigConstantName");
-  toGateway(swigConstantName, swigConstantName);
-  Delete(swigConstantName);
+  fname=NewString("swigConstantName");
+  toGateway(fname, fname);
+  Delete(fname);
+
+  // Module load has index 3
+  fname=NewString("SWIG_Matlab_ModuleLoad");
+  toGateway(fname, fname);
+  Delete(fname);
+
+  // Module unload has index 4
+  fname=NewString("SWIG_Matlab_ModuleUnload");
+  toGateway(fname, fname);
+  Delete(fname);
 }
 
 int MATLAB::toGateway(String *fullname, String *wname) {
