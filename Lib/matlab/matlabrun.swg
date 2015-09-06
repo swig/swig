@@ -126,27 +126,6 @@ void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
   return ret;
 }
 
-/* This should probably be moved somewhere else */
-#ifdef __cplusplus
-extern "C"
-#endif /* cplusplus */
-
-int SWIG_Matlab_ModuleLoad(int resc, mxArray *resv[], int argc, mxArray *argv[]) {
-  /* Increase lock count */
-  mexLock();
-  return 0;
-}
-
-int SWIG_Matlab_ModuleUnload(int resc, mxArray *resv[], int argc, mxArray *argv[]) {
-  /* Decrease lock count */
-  mexUnlock();
-  return 0;
-}
-
-void SWIG_Matlab_ExitFcn(void) {
-  /* Unused at the moment */
-}
-
 /* Runtime API implementation */
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   /* Proxy class instance */
