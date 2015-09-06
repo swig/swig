@@ -21,6 +21,7 @@ namespace swig {
   protected:
     MatlabSwigIterator(mxArray* seq) : _seq(seq)
     {
+      (void)_seq;
     }
       
   public:
