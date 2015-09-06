@@ -139,7 +139,7 @@ namespace swig {
 	  %type_error(swig::type_name<Type>());
 	}
 	if (throw_error) throw std::invalid_argument("bad type");
-	memset(v_def,0,sizeof(Type));
+        memset(static_cast<void *>(v_def),0,sizeof(Type));
 	return *v_def;
       }
     }
