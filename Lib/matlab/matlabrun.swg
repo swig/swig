@@ -92,6 +92,9 @@ int SWIG_Matlab_NewPointer(SwigPtr** swig_ptr, void *ptr, swig_type_info *type, 
   SwigPtr *obj=(SwigPtr *)malloc(sizeof(SwigPtr));
   if (!obj) return 1;
 
+  /* Increase lock count */
+  mexLock();
+
   /* Initialize object */
   obj->ptr = ptr;
   obj->type = type;
@@ -109,6 +112,9 @@ int SWIG_Matlab_NewPointer(SwigPtr** swig_ptr, void *ptr, swig_type_info *type, 
 void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
   /* Quick return if null pointer? */
   if (p==0) return 0;
+
+  /* Decrease lock count */
+  mexUnlock();
 
   /* Clear and free */
   void* ret = p->own ? p->ptr : 0;

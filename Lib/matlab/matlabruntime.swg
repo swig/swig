@@ -15,15 +15,10 @@
    in MATLAB::top() in matlab.cxx, see comments there why we do this.
 */
 %insert(initbeforefunc) %{
+static bool is_loaded = false;
 void SWIG_Matlab_LoadModule(const char* name) {
-    /* Initialize module if first load */
-    if (!mexIsLocked()) {
-      SWIG_InitializeModule(0);
-    } else if (!SWIG_GetModule(0)) {
-        /* Handle special case when mex is still loaded
-         * and global module variable deleted.*/
-        mexErrMsgIdAndTxt("SWIG:LoadFailure","Global type table deleted unexpectedly");
-    }
+  SWIG_InitializeModule(0);
+  SWIG_PropagateClientData();
   if(false){
     mexErrMsgIdAndTxt("SWIG:LoadFailure","Could not load module %s",name);
   }
