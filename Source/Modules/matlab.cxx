@@ -2718,18 +2718,6 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"        self = builtin('subsasgn',self,s,v);\n");
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function varargout = not(self,a)\n");
-  Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('logicalnot',self,a);\n");
-  Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function varargout = and(self,a,b)\n");
-  Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('logicaland',self,a,b);\n");
-  Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function varargout = or(self,a,b)\n");
-  Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('logicalor',self,a,b);\n");
-  Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function varargout = double(self)\n");
-  Printf(f_wrap_m,"      [varargout{1:nargout}] = builtin('toDouble',self);\n");
-  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 

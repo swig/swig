@@ -17,9 +17,9 @@
 %rename(mod)            *::operator%;
 // %rename(lshift)      *::operator<<;
 // %rename(rshift)      *::operator>>;
-%rename(logicaland)     *::operator&&;
-%rename(logicalor)      *::operator||;
-%rename(xor)            *::operator^;
+%rename("and")          *::operator&&;
+%rename("or")           *::operator||;
+%rename("xor")          *::operator^;
 //%rename(invert)       *::operator~;
 %rename(lt)             *::operator<;
 %rename(le)             *::operator<=;
@@ -27,7 +27,7 @@
 %rename(ge)             *::operator>=;
 %rename(eq)             *::operator==;
 %rename(ne)             *::operator!=;
-%rename(logicalnot)     *::operator!;
+%rename("not")          *::operator!;
 // non-standard matlab
 %rename(TODOincr)       *::operator++;
 %rename(TODOdecr)       *::operator--;
