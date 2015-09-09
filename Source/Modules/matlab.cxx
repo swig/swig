@@ -2196,12 +2196,14 @@ void MATLAB::initGateway() {
   Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {\n");
   
   // Load module if first call
-  Printf(f_gateway,"  SWIG_Matlab_LoadModule(SWIG_name_d);\n");
   Printf(f_gateway,"  if (!mexIsLocked()) {\n");
   Printf(f_gateway,"    mexLock();\n");
+  Printf(f_gateway,"    /* Loads all dependent modules */\n");
   Printf(f_gateway,"    mexEvalString(\"%s\");\n",setup_name);
   Printf(f_gateway,"    mexAtExit(SWIG_Matlab_ExitFcn);\n");
   Printf(f_gateway,"  }\n");
+  Printf(f_gateway,"  /* Called recursively once when loading*/\n");
+  Printf(f_gateway,"  SWIG_Matlab_LoadModule(SWIG_name_d);\n\n");
 
   // The first argument is always the ID unless loading the module.
   Printf(f_gateway,"  if (argc == 0) {\n");
@@ -2750,8 +2752,9 @@ void MATLAB::createSetupScript() {
 }
 
 void MATLAB::finalizeSetupScript() {
-  Printf(f_setup_m,"%s();\n", mex_fcn); // just loads module
   if(setup_imports) Printf(f_setup_m,"%s", setup_imports);
+  // just loads module (called recursively once when loading)
+  Printf(f_setup_m,"%s();\n", mex_fcn);
   Delete(f_setup_m);
   f_setup_m = 0;
   Delete(setup_name);
