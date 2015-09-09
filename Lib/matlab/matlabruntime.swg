@@ -22,7 +22,12 @@ void SWIG_Matlab_LoadModule(const char* name) {
     } else if (!SWIG_GetModule(0)) {
         /* Handle special case when mex is still loaded
          * and global module variable deleted.*/
-        mexErrMsgIdAndTxt("SWIG:LoadFailure","Global type table deleted unexpectedly");
+        if (saved_swig_module) {
+            /* Recreate variable using saved pointer*/
+            SWIG_Matlab_SetModule(saved_swig_module);
+        } else {
+          mexErrMsgIdAndTxt("SWIG:LoadFailure","Global type table deleted and can't be recovered");
+        }
     }
   if(false){
     mexErrMsgIdAndTxt("SWIG:LoadFailure","Could not load module %s",name);
