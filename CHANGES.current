@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-09-09: lyze
+            [CFFI] Extend the "export" feature in the CFFI module to support
+            exporting to a specified package.
+
 2015-09-04: olly
 	    [Python] Fix docstrings for %callback functions.
 

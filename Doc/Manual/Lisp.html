@@ -284,9 +284,11 @@ Let's edit the interface file such that the C type "div_t*" is changed
 %feature("export");
 
 %feature("inline") lispsort_double;
-
 %feature("intern_function", "my-lispify") lispsort_double;
+%feature("export", package="'some-other-package") lispsort_double;
+
 %rename func123 renamed_cool_func;
+
 %ignore "pointer_func";
 
 %include "test.h"
@@ -310,12 +312,13 @@ The feature <i>intern_function</i> ensures that all C names are
         lispsort_double;</i>, here we are using an additional feature
       which allows us to use our lispify function.
 </p>
-<p>The <i>export</i> feature allows us to export the symbols. The <i>inline</i>
-      feature declaims the declared function as inline. The <i>rename</i>
-      directive allows us to change the name(it is useful when
-      generating C wrapper code for handling overloaded
-      functions). The <i>ignore</i> directive ignores a certain
-      declaration. 
+<p>The <i>export</i> feature allows us to export the symbols. If
+      the <i>package</i> argument is given, then the symbol will be exported to
+      the specified Lisp package. The <i>inline</i> feature declaims the
+      declared function as inline. The <i>rename</i> directive allows us to
+      change the name(it is useful when generating C wrapper code for handling
+      overloaded functions). The <i>ignore</i> directive ignores a certain
+      declaration.
 </p>
 <p>There are several other things which are possible, to see some
       example of usage of SWIG look at the Lispbuilder and wxCL
@@ -381,7 +384,7 @@ The feature <i>intern_function</i> ensures that all C names are
   (n :int)
   (array :pointer))
 
-(cl:export '#.(my-lispify "lispsort_double" 'function))
+(cl:export '#.(my-lispify "lispsort_double" 'function) 'some-other-package)
 
 (cffi:defcenum #.(swig-lispify "color" 'enumname)
 	#.(swig-lispify "RED" 'enumvalue :keyword)
