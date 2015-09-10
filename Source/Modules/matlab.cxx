@@ -2120,10 +2120,12 @@ int MATLAB::classHandler(Node *n) {
   // Declare class methods
   Printf(f_wrap_m,"  methods\n");
 
-  // swig_this
-  Printf(f_wrap_m,"    function this = swig_this(self)\n");
-  Printf(f_wrap_m,"      this = %s(3, self);\n", mex_fcn); // swigThis has index 3
-  Printf(f_wrap_m,"    end\n");
+  // swig_this (not needed if defined in base class)
+  if (base_count!=1) { // If >1 bases, need to define to avoid ambiguity
+    Printf(f_wrap_m,"    function this = swig_this(self)\n");
+    Printf(f_wrap_m,"      this = %s(3, self);\n", mex_fcn); // swigThis has index 3
+    Printf(f_wrap_m,"    end\n");
+  }
 
   // Emit member functions
   Language::classHandler(n);
