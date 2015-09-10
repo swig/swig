@@ -277,31 +277,35 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
 }
 
 SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
-  swig_module_info *pointer = 0;
-  mxArray *module = mexGetVariable("global", "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-  if (module){
-    pointer = (swig_module_info *)(*(uint64_T *)mxGetData(module));
-    saved_swig_module = pointer;
-    mxDestroyArray(module);
+  if (!saved_swig_module) {
+    /* First call for this module, fetch pointer from MATLAB */
+    mxArray* mem = 0;
+    int flag = mexCallMATLAB(1, &mem, 0, 0, "SwigMem");
+    if (flag || !mem) mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Cannot call SwigMem");
+    /* On first call, mem is an empty matrix */
+    if (mxGetM(mem)!=0 || mxGetN(mem)!=0) {
+      if (mxGetNumberOfElements(mem) != 1 || mxGetClassID(mem) != mxUINT64_CLASS || mxIsComplex(mem)) {
+        mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Corrupted memory");
+      }
+      /* Cast memory as a pointer */
+      saved_swig_module = (swig_module_info*)(*(uint64_T*)mxGetData(mem));
+    }
+    mxDestroyArray(mem);
   }
-  return pointer;
+  return saved_swig_module;
 }
 
 SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer) {
-  mxArray *module = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
-  if(!module) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
-  *(uint64_T *)mxGetData(module) = (uint64_T)pointer;
-  int status;
+  mxArray *mem = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+  if(!mem) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
+  *(uint64_T *)mxGetData(mem) = (uint64_T)pointer;
   /* Put variable in MATLAB global workspace */
-  status=mexPutVariable("global", "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, module);
-  mxDestroyArray(module);
-  if (status==1){
-    mexErrMsgIdAndTxt("SWIG:SetModule",
-      "Could not put variable in global workspace.\n");
+  int flag = mexCallMATLAB(0, 0, 1, &mem, "SwigMem");
+  mxDestroyArray(mem);
+  if (flag) {
+    mexErrMsgIdAndTxt("SWIG:SetModule", "Could not put variable in global workspace.\n");
   }
-  if (!saved_swig_module) {
-    saved_swig_module = pointer;
-  }
+  saved_swig_module = pointer;
 }
 
 /* HACK HACK */

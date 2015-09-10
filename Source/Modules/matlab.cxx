@@ -112,6 +112,7 @@ protected:
   int toConstant(String *constname, String *constdef);
   void finalizeConstant();
   void createSwigRef();
+  void createSwigMem();
   void createSetupScript();
   void finalizeSetupScript();
   void autodoc_to_m(File* f, Node *n);
@@ -278,8 +279,11 @@ int MATLAB::top(Node *n) {
   /* Set comparison with none for ConstructorToFunction */
   setSubclassInstanceCheck(NewString("!mxIsNumeric($arg)"));
 
-  // Create swigRef abstract base class
+  // Create SwigRef abstract base class
   createSwigRef();
+
+  // Create SwigMem function
+  createSwigMem();
 
   String *module = Getattr(n, "name");
   String *outfile = Getattr(n, "outfile");
@@ -2721,19 +2725,36 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
-  Printf(f_wrap_m,"  methods(Static)\n");
-  Printf(f_wrap_m,"    function varargout = SWIG_module_mem(varargin)\n");
-  Printf(f_wrap_m,"      persistent mem\n");
-  Printf(f_wrap_m,"      mlock\n");
-  Printf(f_wrap_m,"      narginchk(0,1)\n");
-  Printf(f_wrap_m,"      if nargin==0\n");
-  Printf(f_wrap_m,"        nargoutchk(0,1)\n");
-  Printf(f_wrap_m,"        varargout{1} = mem;\n");
-  Printf(f_wrap_m,"      else\n");
-  Printf(f_wrap_m,"        nargoutchk(0,0)\n");
-  Printf(f_wrap_m,"        mem = varargin{1});\n");
-  Printf(f_wrap_m,"      end\n");
-  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Tidy up
+  Delete(f_wrap_m);
+  Delete(mfile);
+  f_wrap_m = 0;
+}
+
+void MATLAB::createSwigMem() {
+  // Create file
+  String* mfile = NewString(SWIG_output_directory());
+  Append(mfile, "SwigMem.m");
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m) {
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Output SwigMem function
+  Printf(f_wrap_m,"function varargout = SwigMem(varargin)\n");
+  Printf(f_wrap_m,"  persistent mem\n");
+  Printf(f_wrap_m,"  mlock\n");
+  Printf(f_wrap_m,"  narginchk(0,1)\n");
+  Printf(f_wrap_m,"  if nargin==0\n");
+  Printf(f_wrap_m,"    nargoutchk(0,1)\n");
+  Printf(f_wrap_m,"    varargout{1} = mem;\n");
+  Printf(f_wrap_m,"  else\n");
+  Printf(f_wrap_m,"    nargoutchk(0,0)\n");
+  Printf(f_wrap_m,"    mem = varargin{1};\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
@@ -2759,7 +2780,6 @@ void MATLAB::createSetupScript() {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  // Output SwigRef abstract base class
   Printf(f_setup_m,"%% This is the setup script for %s.\n", pkg_name);
 
   Delete(mfile);

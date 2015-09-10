@@ -139,8 +139,9 @@ Examples/test-suite/uffi/*/
 *.mex*
 # module directories
 [+]*/
-# matlab swig class
+# matlab common
 SwigRef.m
+SwigMem.m
 
 # Octave generated files
 swigexample*.oct
