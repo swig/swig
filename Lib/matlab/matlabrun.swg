@@ -283,12 +283,16 @@ SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *SWIGUNUSEDPARM(clientd
     int flag = mexCallMATLAB(1, &mem, 0, 0, "SwigMem");
     if (flag || !mem) mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Cannot call SwigMem");
     /* On first call, mem is an empty matrix */
-    if (mxGetM(mem)!=0 || mxGetN(mem)!=0) {
-      if (mxGetNumberOfElements(mem) != 1 || mxGetClassID(mem) != mxUINT64_CLASS || mxIsComplex(mem)) {
+    if (mxGetNumberOfElements(mem)!= 0) {
+      if (!mxIsStruct(mem)) {
         mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Corrupted memory");
       }
-      /* Cast memory as a pointer */
-      saved_swig_module = (swig_module_info*)(*(uint64_T*)mxGetData(mem));
+      mxArray *module = mxGetField(mem, 0,
+        "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+      if (module && mxGetNumberOfElements(module) == 1 && mxGetClassID(module) == mxUINT64_CLASS && !mxIsComplex(module)) {
+        /* Cast memory as a pointer */
+        saved_swig_module = (swig_module_info*)(*(uint64_T*)mxGetData(module));
+      }
     }
     mxDestroyArray(mem);
   }
@@ -296,14 +300,47 @@ SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *SWIGUNUSEDPARM(clientd
 }
 
 SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer) {
-  mxArray *mem = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
-  if(!mem) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
-  *(uint64_T *)mxGetData(mem) = (uint64_T)pointer;
-  /* Put variable in MATLAB global workspace */
-  int flag = mexCallMATLAB(0, 0, 1, &mem, "SwigMem");
+  mxArray* mem = 0;
+  const char *fields[1] = {"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME};
+  int flag = mexCallMATLAB(1, &mem, 0, 0, "SwigMem");
+  if (flag || !mem) mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Cannot call SwigMem");
+  /* Under normal circumstances, swigMem is an empty matrix */
+  /* but is not required to be for a valid call to SWIG_Matlab_SetModule() */
+  if (mxGetNumberOfElements(mem) == 0) {
+    mxDestroyArray(mem);
+    mem = mxCreateStructMatrix(1,1,1,fields);
+    if(!mem) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateStructMatrix failed");
+    mxArray *module = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+    if(!module) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
+    *(uint64_T *)mxGetData(module) = (uint64_T)pointer;
+    mxSetField(mem, 0, fields[0], module);
+  } else {
+    int nfields = 0;
+    int fieldNum = 0;
+    /* Add to existing mem if not the same */
+    if (!mxIsStruct(mem)) {
+      mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Corrupted memory");
+    }
+    nfields = mxGetNumberOfFields(mem);
+    /* Check if same type table */
+    for (int ii=0; ii<nfields; ++ii){
+      if(strcmp(mxGetFieldNameByNumber(mem, ii), fields[0]) == 0) {
+        mxDestroyArray(mem);
+        return;
+      }
+    }
+    fieldNum = mxAddField(mem, fields[0]);
+    if (fieldNum < 0) mexErrMsgIdAndTxt("SWIG_Matlab_GetModule", "Error adding field to SwigMem");
+    mxArray *module = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
+    if(!module) mexErrMsgIdAndTxt("SWIG:SetModule","mxCreateNumericMatrix failed");
+    *(uint64_T *)mxGetData(module) = (uint64_T)pointer;
+    mxSetFieldByNumber(mem, 0, fieldNum, module);
+  }
+  /* Set variable in SwigMem */
+  flag = mexCallMATLAB(0, 0, 1, &mem, "SwigMem");
   mxDestroyArray(mem);
   if (flag) {
-    mexErrMsgIdAndTxt("SWIG:SetModule", "Could not put variable in global workspace.\n");
+    mexErrMsgIdAndTxt("SWIG:SetModule", "Could not set variable in SwigMem.\n");
   }
   saved_swig_module = pointer;
 }
