@@ -17,10 +17,10 @@
 */
 %insert(initbeforefunc) %{
 void SWIG_Matlab_LoadModule(const char* name) {
+  /* Only call once */
   static int moduleIsLoaded = 0;
-  /* Initialize module if first load */
-  if (!moduleIsLoaded) {
-    moduleIsLoaded = 1;
-    SWIG_InitializeModule(0);
-  }
+  if (moduleIsLoaded) return;
+  moduleIsLoaded = 1;
+
+  SWIG_InitializeModule(0);
 %}
