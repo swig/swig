@@ -394,6 +394,10 @@ int MATLAB::top(Node *n) {
 
   Printf(f_runtime, "\n");
 
+  /* Load dependent modules */
+  Printf(f_init,"  mexEvalString(\"%s\");\n",setup_name);
+  Printf(f_init,"  SWIG_InitializeModule(0);\n\n");
+
   // Constant lookup
   initConstant();
 
@@ -2228,13 +2232,7 @@ void MATLAB::initGateway() {
   Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {\n");
   
   // Load module if first call
-  Printf(f_gateway,"  if (!mexIsLocked()) {\n");
-  Printf(f_gateway,"    mexLock();\n");
-  Printf(f_gateway,"    /* Loads all dependent modules */\n");
-  Printf(f_gateway,"    mexEvalString(\"%s\");\n",setup_name);
-  Printf(f_gateway,"    mexAtExit(SWIG_Matlab_ExitFcn);\n");
-  Printf(f_gateway,"  }\n");
-  Printf(f_gateway,"  /* Called recursively once when loading*/\n");
+  Printf(f_gateway,"  /* Initialize module if first call */\n");
   Printf(f_gateway,"  SWIG_Matlab_LoadModule(SWIG_name_d);\n\n");
 
   // The first argument is always the ID unless loading the module.

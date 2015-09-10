@@ -22,5 +22,11 @@ void SWIG_Matlab_LoadModule(const char* name) {
   if (moduleIsLoaded) return;
   moduleIsLoaded = 1;
 
-  SWIG_InitializeModule(0);
+  /* Prevent unloading this file until MATLAB exits */
+  mexLock();
+
+  /* Exit function (called when unloaded) */
+  mexAtExit(SWIG_Matlab_ExitFcn);
+
+  /* Load dependent modules and initialize */
 %}
