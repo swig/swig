@@ -80,6 +80,7 @@ typedef struct SwigPtr {
   struct SwigPtr* next;
 } SwigPtr;
 static char const * storagename = "swig" SWIG_name_d "directorstorage";
+static swig_module_info *saved_swig_module = 0;
 
 /* Add new pointer object to the memory allocator
    Returns the location of the new element by reference and a return flag by value.
@@ -280,6 +281,7 @@ SWIGRUNTIME swig_module_info *SWIG_Matlab_GetModule(void *SWIGUNUSEDPARM(clientd
   mxArray *module = mexGetVariable("global", "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   if (module){
     pointer = (swig_module_info *)(*(uint64_T *)mxGetData(module));
+    saved_swig_module = pointer;
     mxDestroyArray(module);
   }
   return pointer;
@@ -296,6 +298,9 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer) {
   if (status==1){
     mexErrMsgIdAndTxt("SWIG:SetModule",
       "Could not put variable in global workspace.\n");
+  }
+  if (!saved_swig_module) {
+    saved_swig_module = pointer;
   }
 }
 
