@@ -568,7 +568,28 @@ int MATLAB::top(Node *n) {
   Printf(f_begin,"  return 0;\n");
   Printf(f_begin,"}\n\n");
 
+  // Get memory
+  Printf(f_begin,"\n");
+  Printf(f_begin,"int swigThis(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
+  // Make sure only one input and max one output
+  Printf(f_begin,"  if (argc!=1 || resc!=1) {\n");
+  Printf(f_begin,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\", \"The function should have one input and one output.\");\n");
+  Printf(f_begin,"    return 1;\n");
+  Printf(f_begin,"  }\n");
+
+  // Get the SwigPtr object
+  Printf(f_begin,"  SwigPtr* swig_ptr = SWIG_Matlab_getSwigPtr(argv[0]);\n");
+  Printf(f_begin,"  if (!swig_ptr) {\n");
+  Printf(f_begin,"    mexWarnMsgIdAndTxt(\"SWIG:RuntimeError\", \"The argument should be a SWIG class.\");\n");
+  Printf(f_begin,"    return 1;\n");
+  Printf(f_begin,"  }\n");
+
+  // Convert to uint64 and return
+  Printf(f_begin,"  resv[0] = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);\n");
+  Printf(f_begin,"  *(uint64_T *)mxGetData(resv[0]) = (uint64_T)swig_ptr->ptr;\n");
+  Printf(f_begin,"  return 0;\n");
+  Printf(f_begin,"}\n\n");
 
   Dump(f_gateway, f_begin);
 
@@ -2099,6 +2120,11 @@ int MATLAB::classHandler(Node *n) {
   // Declare class methods
   Printf(f_wrap_m,"  methods\n");
 
+  // swig_this
+  Printf(f_wrap_m,"    function this = swig_this(self)\n");
+  Printf(f_wrap_m,"      this = %s(3, self);\n", mex_fcn); // swigThis has index 3
+  Printf(f_wrap_m,"    end\n");
+
   // Emit member functions
   Language::classHandler(n);
 
@@ -2231,19 +2257,24 @@ void MATLAB::initGateway() {
   l_fnames = NewList();
 
   // Constants retrieval function has index 0
-  String* swigConstant=NewString("swigConstant");
-  toGateway(swigConstant, swigConstant);
-  Delete(swigConstant);
+  String* fname=NewString("swigConstant");
+  toGateway(fname, fname);
+  Delete(fname);
 
   // Function name retrieval function has index 1
-  String* swigFunctionName=NewString("swigFunctionName");
-  toGateway(swigFunctionName, swigFunctionName);
-  Delete(swigFunctionName);
+  fname=NewString("swigFunctionName");
+  toGateway(fname, fname);
+  Delete(fname);
 
   // Constant name retrieval function has index 2
-  String* swigConstantName=NewString("swigConstantName");
-  toGateway(swigConstantName, swigConstantName);
-  Delete(swigConstantName);
+  fname=NewString("swigConstantName");
+  toGateway(fname, fname);
+  Delete(fname);
+
+  // Memory retrieval function has index 3
+  fname=NewString("swigThis");
+  toGateway(fname, fname);
+  Delete(fname);
 }
 
 int MATLAB::toGateway(String *fullname, String *wname) {
