@@ -99,6 +99,7 @@ protected:
   String *op_prefix;
   String *pkg_name;
   String *pkg_name_fullpath;
+  String *mex_infix;
   bool redirectoutput;
   int no_header_file;
 
@@ -164,6 +165,7 @@ MATLAB::MATLAB() :
   op_prefix(0),
   pkg_name(0),
   pkg_name_fullpath(0),
+  mex_infix(0),
   no_header_file(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
@@ -195,11 +197,10 @@ void MATLAB::main(int argc, char *argv[]) {
       if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
       } else if (strcmp(argv[i], "-opprefix") == 0) {
-        if (argv[i + 1]) {
+        if (i+1<argc && argv[i + 1]) {
           op_prefix = NewString(argv[i + 1]);
+          Swig_mark_arg(i++);
           Swig_mark_arg(i);
-          Swig_mark_arg(i + 1);
-          i++;
         } else {
           Swig_arg_error();
         }
@@ -213,13 +214,21 @@ void MATLAB::main(int argc, char *argv[]) {
 	no_header_file = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-pkgname") == 0) {
-        if (argv[i + 1]) {
+        if (i+1<argc && argv[i + 1]) {
           pkg_name = NewString(argv[i + 1]);
+          Swig_mark_arg(i++);
           Swig_mark_arg(i);
-          Swig_mark_arg(i + 1);
-          i++;
         } else {
           Swig_arg_error();
+        }
+      } else if (strcmp(argv[i], "-mexinfix") == 0) {
+        if (i+1<argc && argv[i + 1]) {
+          mex_infix = NewString(argv[i + 1]);
+          Swig_mark_arg(i++);
+          Swig_mark_arg(i);
+        } else {
+          mex_infix = NewString("");
+          Swig_mark_arg(i);
         }
       } else if (strcmp(argv[i], "-redirectoutput") == 0) {
 	  redirectoutput = true;
@@ -230,7 +239,10 @@ void MATLAB::main(int argc, char *argv[]) {
     
   if (!op_prefix)
     op_prefix = NewString("op_");
-    
+
+  if (!mex_infix)
+    mex_infix = NewString("_wrap");
+
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
   if (cppcast) {
@@ -315,9 +327,10 @@ int MATLAB::top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  /* The name of the compiled mex-wrapper has to follow the naming convension modulenameMATLAB_wrap */
+  /* The name of the compiled mex-wrapper has to follow the naming convension
+     {modulename}{mex_infix} where {mex_infix} is _wrap by default */
   mex_fcn=NewString(module);
-  Append(mex_fcn, "MATLAB_wrap");
+  Append(mex_fcn, mex_infix);
 
   f_gateway = NewString("");
   f_constants = NewString("");
@@ -598,6 +611,7 @@ int MATLAB::top(Node *n) {
   if (pkg_name) Delete(pkg_name);
   if (pkg_name_fullpath) Delete(pkg_name_fullpath);
   if (op_prefix) Delete(op_prefix);
+  if (mex_infix) Delete(mex_infix);
 
   return SWIG_OK;
 }
