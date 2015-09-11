@@ -76,7 +76,6 @@ protected:
   String* set_field;
   String* static_methods;
   String* setup_name;
-  String* setup_imports;
 
   // Current constant
   int con_id;
@@ -86,6 +85,9 @@ protected:
 
   // List of constant names
   List *l_cnames;
+
+  // List of dependent modules
+  List *l_modules;
 
   bool have_constructor;
   bool have_destructor;
@@ -157,7 +159,6 @@ MATLAB::MATLAB() :
   set_field(0),
   static_methods(0),
   setup_name(0),
-  setup_imports(0),
   have_constructor(false),
   have_destructor(false),
   num_gateway(0),
@@ -309,6 +310,9 @@ int MATLAB::top(Node *n) {
     pkg_name = Copy(module);
   }
 
+  // List of dependent modules
+  l_modules = NewList();
+
   // Create setup script file in matlab code
   createSetupScript();
 
@@ -384,10 +388,6 @@ int MATLAB::top(Node *n) {
 
   Printf(f_runtime, "\n");
 
-  /* Load dependent modules */
-  Printf(f_init,"  mexEvalString(\"%s\");\n",setup_name);
-  Printf(f_init,"  SWIG_InitializeModule(0);\n\n");
-
   // Constant lookup
   initConstant();
 
@@ -424,6 +424,25 @@ int MATLAB::top(Node *n) {
     
   // Finalize Mex-file gate way
   finalizeGateway();
+
+  // Load dependent modules
+  Iterator i = First(l_modules);
+  if (i.item) {
+    Printf(f_init, "mxArray *error, *id = mxCreateDoubleScalar(double(4));\n");
+    Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Setup failed\");\n");
+    for (; i.item; i = Next(i)) {
+      Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s%s\");\n", i.item, mex_infix);
+      Printf(f_init, "if (error) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Cannot initialize %s\");\n", i.item);
+    }
+    Printf(f_init, "mxDestroyArray(id);\n");
+  }
+  Delete(l_modules);
+
+  /* Load this module */
+  Printf(f_init,"SWIG_InitializeModule(0);\n\n");
+
+  /* Call setup script */
+  Printf(f_init,"mexEvalString(\"%s\");\n", setup_name);
 
   // Finalize setup script
   finalizeSetupScript();
@@ -466,7 +485,6 @@ int MATLAB::top(Node *n) {
 
   // Add cases and deallocate list
   int c=0;
-  Iterator i;
   for (i = First(l_cnames); i.item; i = Next(i)) {
     Printf(f_begin,"  case %d: return \"%s\";\n", c++, i.item);
     Delete(i.item);
@@ -728,23 +746,8 @@ int MATLAB::importDirective(Node *n) {
     String *modname = Getattr(n, "module");
 
     if (modname) {
-      // Find the module node for this imported module.  It should be the
-      // first child but search just in case.
-      Node *mod = firstChild(n);
-      while (mod && Strcmp(nodeType(mod), "module") != 0)
-        mod = nextSibling(mod);
-
-      Node *options = Getattr(mod, "options");
-      String *pkg = options ? Getattr(options, "package") : 0;
-      if (pkg == 0) pkg = modname;
-      if (Strcmp(pkg, pkg_name) != 0) {
-        if(!setup_imports) setup_imports = NewString("");
-        String *import_name = NewString("");
-        Append(import_name, pkg);
-        Append(import_name, "setup");
-        Printf(setup_imports, "%s\n", import_name);
-        Delete(import_name);
-      }
+      /* Add to list of modules */
+      Append(l_modules, modname);
     }
     return Language::importDirective(n);
 }
@@ -2820,17 +2823,10 @@ void MATLAB::createSetupScript() {
 }
 
 void MATLAB::finalizeSetupScript() {
-  if(setup_imports) Printf(f_setup_m,"%s", setup_imports);
-  // just loads module (called recursively once when loading)
-  Printf(f_setup_m,"%s(4);\n", mex_fcn);
   Delete(f_setup_m);
   f_setup_m = 0;
   Delete(setup_name);
   setup_name = 0;
-  if (setup_imports) {
-    Delete(setup_imports);
-    setup_imports = 0;
-  }
 }
 
 const char* MATLAB::get_implicitconv_flag(Node *n) {
