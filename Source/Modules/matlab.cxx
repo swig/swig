@@ -315,32 +315,9 @@ int MATLAB::top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  /* To get the name the mex function (when calling from Matlab), we remove the suffix and path */
-  mex_fcn=NewString(outfile);
-  /* Remove initial directory path */
-  {
-    char * first_char = Char(mex_fcn);
-    char * loc_of_filesep = Char(mex_fcn)+Len(mex_fcn);
-    while (loc_of_filesep >= first_char)
-      {
-	if ( *loc_of_filesep == SWIG_FILE_DELIMITER[0])
-	  break;
-	loc_of_filesep--;
-      }
-    if (loc_of_filesep >= first_char)
-      {
-	// Printf(stdout, "Stripped path 1 %s\n", loc_of_filesep);
-	String *filename = NewString(loc_of_filesep + 1);
-	mex_fcn = filename;
-	// Printf(stdout, "Stripped path 2 %s\n", mex_fcn);
-      }
-  }
-  {
-    char *suffix = Strchr(mex_fcn,'.');
-    char *suffix_end = Char(mex_fcn)+Len(mex_fcn);
-    while(suffix!=suffix_end) *suffix++ = ' '; // Replace suffix with whitespaces
-    Chop(mex_fcn); // Remove trailing whitespaces
-  }
+  /* The name of the compiled mex-wrapper has to follow the naming convension modulenameMATLAB_wrap */
+  mex_fcn=NewString(module);
+  Append(mex_fcn, "MATLAB_wrap");
 
   f_gateway = NewString("");
   f_constants = NewString("");

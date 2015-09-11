@@ -487,7 +487,7 @@ MATLAB_SCRIPT = $(SRCDIR)$(RUNME)
 matlab: $(SRCDIR_SRCS)
 	$(SWIG) -matlab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(COMPILETOOL) "$(MATLAB_MEX)" -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) \
-		$(INCLUDES) $(LIBS) -output $(TARGET)_wrap
+		$(INCLUDES) $(LIBS) -output $(TARGET)MATLAB_wrap
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -496,7 +496,7 @@ matlab: $(SRCDIR_SRCS)
 matlab_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -matlab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(COMPILETOOL) "$(MATLAB_MEX)" -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) $(SRCDIR_SRCS) \
-		$(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)_wrap
+		$(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MATLAB_wrap
 
 # -----------------------------------------------------------------
 # Running an Matlab example
