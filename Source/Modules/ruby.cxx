@@ -2718,7 +2718,9 @@ public:
     String *pname0 = Swig_cparm_name(0, 0);
 
     Printv(freefunc, "free_", klass->mname, NIL);
-    Printv(freebody, "SWIGINTERN void\n", freefunc, "(", klass->type, " *", pname0, ") {\n", tab4, NIL);
+    Printv(freebody, "SWIGINTERN void\n", freefunc, "(void *self) {\n", NIL);
+    Printv(freebody, tab4, klass->type, " *", pname0, " = (", klass->type, " *)self;\n", NIL);
+    Printv(freebody, tab4, NIL);
 
     /* Check to see if object tracking is activated for the class
        that owns this destructor. */
