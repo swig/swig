@@ -238,7 +238,7 @@ void MATLAB::main(int argc, char *argv[]) {
     op_prefix = NewString("op_");
 
   if (!mex_infix)
-    mex_infix = NewString("_wrap");
+    mex_infix = NewString("MEX");
 
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
