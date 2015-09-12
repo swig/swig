@@ -4941,7 +4941,8 @@ class-by-class basis if needed. To fix the example above:</p>
 <b>/* Tell SWIG that create_animal creates a new object */</b>
 <b>%newobject Zoo::create_animal;</b>
 
-<b>/* Tell SWIG to keep track of mappings between C/C++ structs/classes. */</b><b>%trackobjects;</b>
+<b>/* Tell SWIG to keep track of mappings between C/C++ structs/classes. */</b>
+<b>%trackobjects;</b>
 
 %include "example.h"</pre>
 </div>
@@ -5101,7 +5102,7 @@ static void mark_Zoo(void* ptr) {
 <p> Note the <tt>mark</tt> function is dependent on
 the <tt>SWIG_RUBY_InstanceFor</tt> method, and thus
 requires that <tt>%trackobjects</tt> is enabled. For more
-information, please refer to the track_object.i test case in the SWIG
+information, please refer to the ruby_track_objects.i test case in the SWIG
 test suite.</p>
 
 <p>When this code is compiled we now see:</p>
@@ -5168,21 +5169,23 @@ above. </p>
 
 <p>To show how to use the <tt>%freefunc</tt>
 directive, let's slightly change our example. Assume that the zoo
-object is responsible for freeing animal that it contains. This means
+object is responsible for freeing any animal that it contains. This means
 that the <tt>Zoo::add_animal</tt>
 function should be marked with a <tt>DISOWN</tt> typemap
 and the destructor should be updated as below:</p>
 
 <div class="code">
-<pre>Zoo::~Zoo() {
- IterType iter = this-&gt;animals.begin();
- IterType end = this-&gt;animals.end();
-
- for(iter; iter != end; ++iter) {
- Animal* animal = *iter;
- delete animal;
- }
-}</pre>
+<pre>
+Zoo::~Zoo() {
+  IterType iter = this-&gt;animals.begin();
+  IterType end = this-&gt;animals.end();
+ 
+  for(iter; iter != end; ++iter) {
+    Animal* animal = *iter;
+    delete animal;
+  }
+}
+</pre>
 </div>
 
 <p>When we use these objects in IRB we see:</p>
