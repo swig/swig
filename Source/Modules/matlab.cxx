@@ -70,7 +70,7 @@ protected:
   File *f_directors_h;
   File *f_runtime_h;
   String* class_name;
-  String* mex_fcn;
+  String* mex_name;
   String* base_init;
   String* get_field;
   String* set_field;
@@ -100,7 +100,6 @@ protected:
   String *op_prefix;
   String *pkg_name;
   String *pkg_name_fullpath;
-  String *mex_infix;
   bool redirectoutput;
   int no_header_file;
 
@@ -150,7 +149,7 @@ MATLAB::MATLAB() :
   f_directors(0),
   f_directors_h(0),
   class_name(0),
-  mex_fcn(0),
+  mex_name(0),
   base_init(0),
   get_field(0),
   set_field(0),
@@ -162,7 +161,6 @@ MATLAB::MATLAB() :
   op_prefix(0),
   pkg_name(0),
   pkg_name_fullpath(0),
-  mex_infix(0),
   no_header_file(0)
 {
 #ifdef MATLABPRINTFUNCTIONENTRY
@@ -218,14 +216,13 @@ void MATLAB::main(int argc, char *argv[]) {
         } else {
           Swig_arg_error();
         }
-      } else if (strcmp(argv[i], "-mexinfix") == 0) {
+      } else if (strcmp(argv[i], "-mexname") == 0) {
         if (i+1<argc && argv[i + 1]) {
-          mex_infix = NewString(argv[i + 1]);
+          mex_name = NewString(argv[i + 1]);
           Swig_mark_arg(i++);
           Swig_mark_arg(i);
         } else {
-          mex_infix = NewString("");
-          Swig_mark_arg(i);
+          Swig_arg_error();
         }
       } else if (strcmp(argv[i], "-redirectoutput") == 0) {
 	  redirectoutput = true;
@@ -234,11 +231,9 @@ void MATLAB::main(int argc, char *argv[]) {
     }
   }
     
-  if (!op_prefix)
+  if (!op_prefix) {
     op_prefix = NewString("op_");
-
-  if (!mex_infix)
-    mex_infix = NewString("MEX");
+  }
 
   SWIG_library_directory("matlab");
   Preprocessor_define("SWIGMATLAB 1", 0);
@@ -324,10 +319,12 @@ int MATLAB::top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  /* The name of the compiled mex-wrapper has to follow the naming convension
-     {modulename}{mex_infix} where {mex_infix} is _wrap by default */
-  mex_fcn=NewString(module);
-  Append(mex_fcn, mex_infix);
+  /* The name of the compiled mex-wrapper is modulenameMEX by default, but this
+   can be overridden by setting the mexname opion */
+  if (!mex_name) {
+    mex_name=NewString(module);
+    Append(mex_name, "MEX");
+  }
 
   f_gateway = NewString("");
   f_constants = NewString("");
@@ -425,8 +422,9 @@ int MATLAB::top(Node *n) {
     Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4));\n");
     Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Setup failed\");\n");
     for (; i.item; i = Next(i)) {
-      Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s%s\");\n", i.item, mex_infix);
+      Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s\");\n", i.item);
       Printf(f_init, "if (error) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Cannot initialize %s\");\n", i.item);
+      Delete(i.item);
     }
     Printf(f_init, "mxDestroyArray(id);\n");
   }
@@ -617,7 +615,7 @@ int MATLAB::top(Node *n) {
   if (pkg_name) Delete(pkg_name);
   if (pkg_name_fullpath) Delete(pkg_name_fullpath);
   if (op_prefix) Delete(op_prefix);
-  if (mex_infix) Delete(mex_infix);
+  if (mex_name) Delete(mex_name);
 
   return SWIG_OK;
 }
@@ -734,8 +732,13 @@ int MATLAB::importDirective(Node *n) {
     String *modname = Getattr(n, "module");
 
     if (modname) {
-      /* Add to list of modules */
-      Append(l_modules, modname);
+      // Construct name of intermediary layer
+      // TODO: If option mexname set for module, use instead
+      String *import_mexname = Copy(modname);
+      Append(import_mexname, "MEX");
+
+      /* Add to list of modules to be imported */
+      Append(l_modules, import_mexname);
     }
     return Language::importDirective(n);
 }
@@ -1230,10 +1233,10 @@ int MATLAB::globalfunctionHandler(Node *n) {
   if (have_matlabprepend(n))
     Printf(f_wrap_m, "%s\n",matlabprepend(n));
   if (min_num_returns==0) {
-    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
   } else {
     if (GetFlag(n, "feature:optionalunpack")) {
-      Printf(f_wrap_m,"      out = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+      Printf(f_wrap_m,"      out = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
       Printf(f_wrap_m,"      if nargout>1\n");
       Printf(f_wrap_m,"        for i=1:length(out)\n");
       Printf(f_wrap_m,"          varargout{i} = out(i);\n");
@@ -1242,7 +1245,7 @@ int MATLAB::globalfunctionHandler(Node *n) {
       Printf(f_wrap_m,"        varargout{1}=out;\n");
       Printf(f_wrap_m,"      end\n");
     } else {
-      Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_fcn,gw_ind,varginstr);
+      Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
     }
   }
 
@@ -1291,7 +1294,7 @@ int MATLAB::variableWrapper(Node *n) {
   if (GetFlag(n, "feature:immutable")) {
     // Only getter
     Printf(f_wrap_m,"function v = %s()\n",symname);
-    Printf(f_wrap_m,"  v = %s(%d);\n",mex_fcn,gw_ind_get);
+    Printf(f_wrap_m,"  v = %s(%d);\n",mex_name,gw_ind_get);
     Printf(f_wrap_m,"end\n");
   } else {
     // Add setter function
@@ -1304,10 +1307,10 @@ int MATLAB::variableWrapper(Node *n) {
     Printf(f_wrap_m,"  narginchk(0,1)\n");
     Printf(f_wrap_m,"  if nargin==0\n");
     Printf(f_wrap_m,"    nargoutchk(0,1)\n");
-    Printf(f_wrap_m,"    varargout{1} = %s(%d);\n",mex_fcn,gw_ind_get);
+    Printf(f_wrap_m,"    varargout{1} = %s(%d);\n",mex_name,gw_ind_get);
     Printf(f_wrap_m,"  else\n");
     Printf(f_wrap_m,"    nargoutchk(0,0)\n");
-    Printf(f_wrap_m,"    %s(%d,varargin{1});\n",mex_fcn,gw_ind_set);
+    Printf(f_wrap_m,"    %s(%d,varargin{1});\n",mex_name,gw_ind_set);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"end\n");
 
@@ -1377,7 +1380,7 @@ int MATLAB::constantWrapper(Node *n) {
     Printf(f_wrap_m,"function v = %s()\n",symname);  
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
-    Printf(f_wrap_m,"    vInitialized = %s(0, %d);\n",mex_fcn,con_id);
+    Printf(f_wrap_m,"    vInitialized = %s(0, %d);\n",mex_name,con_id);
     Printf(f_wrap_m,"  end\n");
     Printf(f_wrap_m,"  v = vInitialized;\n");
     Printf(f_wrap_m,"end\n");
@@ -2119,7 +2122,7 @@ int MATLAB::classHandler(Node *n) {
   // swig_this (not needed if defined in base class)
   if (base_count!=1) { // If >1 bases, need to define to avoid ambiguity
     Printf(f_wrap_m,"    function this = swig_this(self)\n");
-    Printf(f_wrap_m,"      this = %s(3, self);\n", mex_fcn); // swigThis has index 3
+    Printf(f_wrap_m,"      this = %s(3, self);\n", mex_name); // swigThis has index 3
     Printf(f_wrap_m,"    end\n");
   }
 
@@ -2200,7 +2203,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
     Printf(f_wrap_m,"      end\n");
   }
   if (GetFlag(n, "feature:optionalunpack")) {
-    Printf(f_wrap_m,"      out = %s(%d, self, %s);\n", mex_fcn, gw_ind, varginstr);
+    Printf(f_wrap_m,"      out = %s(%d, self, %s);\n", mex_name, gw_ind, varginstr);
     Printf(f_wrap_m,"      if nargout>1\n");
     Printf(f_wrap_m,"        for i=1:length(out)\n");
     Printf(f_wrap_m,"          varargout{i} = out(i);\n");
@@ -2209,7 +2212,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
     Printf(f_wrap_m,"        varargout{1}=out;\n");
     Printf(f_wrap_m,"      end\n");
   } else {
-    Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_fcn, gw_ind, varginstr);
+    Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_name, gw_ind, varginstr);
   }
   if (have_matlabappend(n))
     Printf(f_wrap_m, "%s\n",matlabappend(n));
@@ -2353,7 +2356,7 @@ int MATLAB::membervariableHandler(Node *n) {
   if (GetFlag(n,"feature:immutable")) {
     // Only getter function
     Printf(f_wrap_m,"    function v = %s(self)\n", symname);  
-    Printf(f_wrap_m,"      v = %s(%d, self);\n", mex_fcn, gw_ind_get);
+    Printf(f_wrap_m,"      v = %s(%d, self);\n", mex_name, gw_ind_get);
     Printf(f_wrap_m,"    end\n");
   } else {
     // Add setter function
@@ -2366,10 +2369,10 @@ int MATLAB::membervariableHandler(Node *n) {
     Printf(f_wrap_m,"      narginchk(1, 2)\n");
     Printf(f_wrap_m,"      if nargin==1\n");
     Printf(f_wrap_m,"        nargoutchk(0, 1)\n");
-    Printf(f_wrap_m,"        varargout{1} = %s(%d, self);\n", mex_fcn, gw_ind_get);
+    Printf(f_wrap_m,"        varargout{1} = %s(%d, self);\n", mex_name, gw_ind_get);
     Printf(f_wrap_m,"      else\n");
     Printf(f_wrap_m,"        nargoutchk(0, 0)\n");
-    Printf(f_wrap_m,"        %s(%d, self, varargin{1});\n", mex_fcn, gw_ind_set);
+    Printf(f_wrap_m,"        %s(%d, self, varargin{1});\n", mex_name, gw_ind_set);
     Printf(f_wrap_m,"      end\n");
     Printf(f_wrap_m,"    end\n");
 
@@ -2393,10 +2396,10 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname, Node
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
-      Printf(f_wrap_m,"        %%self.swigPtr = %s(%d, varargin{:});\n", mex_fcn, gw_ind);
+      Printf(f_wrap_m,"        %%self.swigPtr = %s(%d, varargin{:});\n", mex_name, gw_ind);
       if (have_matlabprepend(n))
         Printf(f_wrap_m, "%s\n",matlabprepend(n));
-      Printf(f_wrap_m,"        tmp = %s(%d, varargin{:}); %% FIXME\n", mex_fcn, gw_ind);
+      Printf(f_wrap_m,"        tmp = %s(%d, varargin{:}); %% FIXME\n", mex_name, gw_ind);
       Printf(f_wrap_m,"        self.swigPtr = tmp.swigPtr;\n");
       Printf(f_wrap_m,"        tmp.swigPtr = [];\n");
       if (have_matlabappend(n))
@@ -2414,13 +2417,13 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
       Printf(f_wrap_m,"        error('No matching constructor');\n");
     } else {
       Printf(f_wrap_m,"        %% How to get working on C side? Commented out, replaed by hack below\n");
-      Printf(f_wrap_m,"        %%self.swigPtr = %s(%d, varargin{:});\n", mex_fcn, gw_ind);
+      Printf(f_wrap_m,"        %%self.swigPtr = %s(%d, varargin{:});\n", mex_name, gw_ind);
       if (have_matlabprepend(n))
         Printf(f_wrap_m, "%s\n",matlabprepend(n));
       Printf(f_wrap_m,"        if strcmp(class(self),'director_basic.%s')\n", symname);
-      Printf(f_wrap_m,"          tmp = %s(%d, 0, varargin{:}); %% FIXME\n", mex_fcn, gw_ind);
+      Printf(f_wrap_m,"          tmp = %s(%d, 0, varargin{:}); %% FIXME\n", mex_name, gw_ind);
       Printf(f_wrap_m,"        else\n");
-      Printf(f_wrap_m,"          tmp = %s(%d, self, varargin{:}); %% FIXME\n", mex_fcn, gw_ind);
+      Printf(f_wrap_m,"          tmp = %s(%d, self, varargin{:}); %% FIXME\n", mex_name, gw_ind);
       Printf(f_wrap_m,"        end\n");
       Printf(f_wrap_m,"        self.swigPtr = tmp.swigPtr;\n");
       Printf(f_wrap_m,"        tmp.swigPtr = [];\n");
@@ -2496,7 +2499,7 @@ int MATLAB::destructorHandler(Node *n) {
   String *wname = Swig_name_wrapper(fullname);
   int gw_ind = toGateway(fullname,wname);
   Printf(f_wrap_m,"      if self.swigPtr\n");
-  Printf(f_wrap_m,"        %s(%d, self);\n", mex_fcn, gw_ind);
+  Printf(f_wrap_m,"        %s(%d, self);\n", mex_name, gw_ind);
   // Prevent that the object gets deleted another time.
   // This is important for MATLAB as for class hierarchies, it calls delete for 
   // each class in the hierarchy. This isn't the case for C++ which only calls the
@@ -2544,10 +2547,10 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   if (have_matlabprepend(n))
     Printf(wrapper, "%s\n", Char(matlabprepend(n)));
   if (min_num_returns==0) {
-    Printf(wrapper,"      [varargout{1:nargout}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+    Printf(wrapper,"      [varargout{1:nargout}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
   } else {
     if (GetFlag(n, "feature:optionalunpack")) {
-      Printf(wrapper,"      out = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+      Printf(wrapper,"      out = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
       Printf(wrapper,"      if nargout>1\n");
       Printf(wrapper,"        for i=1:length(out)\n");
       Printf(wrapper,"          varargout{i} = out(i);\n");
@@ -2556,7 +2559,7 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
       Printf(wrapper,"        varargout{1}=out;\n");
       Printf(wrapper,"      end\n");
     } else {
-      Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_fcn, gw_ind, varginstr);
+      Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
     }
   }
   if (have_matlabappend(n))
@@ -2588,7 +2591,7 @@ int MATLAB::memberconstantHandler(Node *n) {
   Printf(static_methods,"    function v = %s()\n", symname);  
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
-  Printf(static_methods,"        vInitialized = %s(0, %d);\n", mex_fcn, con_id);
+  Printf(static_methods,"        vInitialized = %s(0, %d);\n", mex_name, con_id);
   Printf(static_methods,"      end\n");
   Printf(static_methods,"      v = vInitialized;\n");
   Printf(static_methods,"    end\n");
@@ -2637,7 +2640,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
     Printf(static_methods,"    function v = %s()\n",symname);  
     if (have_matlabprepend(n))
       Printf(static_methods, "%s\n", Char(matlabprepend(n)));
-    Printf(static_methods,"      v = %s(%d);\n",mex_fcn, gw_ind_get);
+    Printf(static_methods,"      v = %s(%d);\n",mex_name, gw_ind_get);
     if (have_matlabappend(n))
       Printv(static_methods, "%s\n", Char(matlabappend(n)));
     Printf(static_methods,"    end\n");
@@ -2654,10 +2657,10 @@ int MATLAB::staticmembervariableHandler(Node *n) {
       Printf(static_methods, "%s\n", Char(matlabprepend(n)));
     Printf(static_methods,"      if nargin==0\n");
     Printf(static_methods,"        nargoutchk(0,1)\n");
-    Printf(static_methods,"        varargout{1} = %s(%d);\n",mex_fcn,gw_ind_get);
+    Printf(static_methods,"        varargout{1} = %s(%d);\n",mex_name,gw_ind_get);
     Printf(static_methods,"      else\n");
     Printf(static_methods,"        nargoutchk(0,0)\n");
-    Printf(static_methods,"        %s(%d, varargin{1});\n",mex_fcn,gw_ind_set);
+    Printf(static_methods,"        %s(%d, varargin{1});\n",mex_name,gw_ind_set);
     Printf(static_methods,"      end\n");
     if (have_matlabappend(n))
       Printf(static_methods, "%s\n", Char(matlabappend(n)));
