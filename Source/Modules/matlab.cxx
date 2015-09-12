@@ -416,10 +416,9 @@ int MATLAB::top(Node *n) {
   finalizeGateway();
 
   // Load dependent modules
-  Printf(f_init, "mxArray *error;\n");
   Iterator i = First(l_modules);
   if (i.item) {
-    Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4));\n");
+    Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4)), *error;\n");
     Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Setup failed\");\n");
     for (; i.item; i = Next(i)) {
       Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s\");\n", i.item);
@@ -2228,7 +2227,7 @@ void MATLAB::initGateway() {
   
   // Load module if first call
   Printf(f_gateway,"  /* Initialize module if first call */\n");
-  Printf(f_gateway,"  SWIG_Matlab_LoadModule(SWIG_name_d);\n\n");
+  Printf(f_gateway,"  SWIG_Matlab_LoadModule();\n\n");
 
   // The first argument is always the ID
   Printf(f_gateway,"  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1)\n");

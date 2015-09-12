@@ -16,7 +16,7 @@
    in MATLAB::top() in matlab.cxx, see comments there why we do this.
 */
 %insert(initbeforefunc) %{
-void SWIG_Matlab_LoadModule(const char* name) {
+void SWIG_Matlab_LoadModule() {
   /* Only call once */
   static int moduleIsLoaded = 0;
   if (moduleIsLoaded) return;
