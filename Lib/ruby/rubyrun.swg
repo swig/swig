@@ -14,7 +14,7 @@
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Ruby_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Ruby_NewPointerObj(ptr, type, flags)
 #define SWIG_AcquirePtr(ptr, own)                       SWIG_Ruby_AcquirePtr(ptr, own)
-#define swig_owntype                                    ruby_owntype
+#define swig_owntype                                    swig_ruby_owntype
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, ptr, sz, ty)            SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
@@ -238,22 +238,24 @@ SWIG_Ruby_MangleStr(VALUE obj)
 }
 
 /* Acquire a pointer value */
-typedef void (*ruby_owntype)(void*);
+typedef struct {
+  void (*datafree)(void *);
+  int own;
+} swig_ruby_owntype;
 
-SWIGRUNTIME ruby_owntype
-SWIG_Ruby_AcquirePtr(VALUE obj, ruby_owntype own) {
+SWIGRUNTIME swig_ruby_owntype
+SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
+  swig_ruby_owntype oldown = {0};
   if (obj) {
-    ruby_owntype oldown = RDATA(obj)->dfree;
-    RDATA(obj)->dfree = own;
-    return oldown;
-  } else {
-    return 0;
+    oldown.datafree = RDATA(obj)->dfree;
+    RDATA(obj)->dfree = own.datafree;
   }
+  return oldown;
 }
 
 /* Convert a pointer value */
 SWIGRUNTIME int
-SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags, ruby_owntype *own)
+SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags, swig_ruby_owntype *own)
 {
   char *c;
   swig_cast_info *tc;
@@ -270,7 +272,10 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     Data_Get_Struct(obj, void, vptr);
   }
   
-  if (own) *own = RDATA(obj)->dfree;
+  if (own) {
+    own->datafree = RDATA(obj)->dfree;
+    own->own = 0;
+  }
     
   /* Check to see if the input object is giving up ownership
      of the underlying C struct or C++ object.  If so then we
