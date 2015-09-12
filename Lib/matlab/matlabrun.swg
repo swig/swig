@@ -77,6 +77,7 @@ typedef struct SwigPtr {
   void *ptr;
   swig_type_info *type;
   int own;
+  void *self;
   struct SwigPtr* next;
 } SwigPtr;
 static char const * storagename = "swig" SWIG_name_d "directorstorage";
@@ -97,6 +98,7 @@ int SWIG_Matlab_NewPointer(SwigPtr** swig_ptr, void *ptr, swig_type_info *type, 
   obj->ptr = ptr;
   obj->type = type;
   obj->own = own;
+  obj->self = obj;
   obj->next = 0;
   
   /* Return memory reference and successful return */
@@ -116,6 +118,7 @@ void* SWIG_Matlab_DeletePointer(SwigPtr* p) {
   p->ptr=0;
   p->type=0;
   p->own=0;
+  p->self=0;
   p->next=0;
   free(p);
   return ret;
@@ -201,6 +204,9 @@ SWIGRUNTIME SwigPtr* SWIG_Matlab_getSwigPtr(mxArray* pm) {
   }
   SwigPtr* p = (SwigPtr*)(*(uint64_T*)mxGetData(pm_ptr));
   mxDestroyArray(pm_ptr);
+
+  /* Consistency check */
+  if (p->self != p) return 0;
 
   /* Get pointer object */
   return p;
