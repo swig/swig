@@ -75,7 +75,6 @@ protected:
   String* get_field;
   String* set_field;
   String* static_methods;
-  String* setup_name;
 
   // Current constant
   int con_id;
@@ -116,8 +115,6 @@ protected:
   void finalizeConstant();
   void createSwigRef();
   void createSwigMem();
-  void createSetupScript();
-  void finalizeSetupScript();
   void autodoc_to_m(File* f, Node *n);
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
@@ -158,7 +155,6 @@ MATLAB::MATLAB() :
   get_field(0),
   set_field(0),
   static_methods(0),
-  setup_name(0),
   have_constructor(false),
   have_destructor(false),
   num_gateway(0),
@@ -313,9 +309,6 @@ int MATLAB::top(Node *n) {
   // List of dependent modules
   l_modules = NewList();
 
-  // Create setup script file in matlab code
-  createSetupScript();
-
   // Create subdirectory
   String* pkg_directory_name = NewString("+");
   Append(pkg_directory_name, pkg_name);
@@ -426,9 +419,10 @@ int MATLAB::top(Node *n) {
   finalizeGateway();
 
   // Load dependent modules
+  Printf(f_init, "mxArray *error;\n");
   Iterator i = First(l_modules);
   if (i.item) {
-    Printf(f_init, "mxArray *error, *id = mxCreateDoubleScalar(double(4));\n");
+    Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4));\n");
     Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Setup failed\");\n");
     for (; i.item; i = Next(i)) {
       Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s%s\");\n", i.item, mex_infix);
@@ -441,15 +435,9 @@ int MATLAB::top(Node *n) {
   /* Load this module */
   Printf(f_init,"SWIG_InitializeModule(0);\n\n");
 
-  /* Call setup script */
-  Printf(f_init,"mexEvalString(\"%s\");\n", setup_name);
-
-  // Finalize setup script
-  finalizeSetupScript();
-
-  if (directorsEnabled())
+  if (directorsEnabled()) {
     Swig_insert_file("director.swg", f_runtime);
-
+  }
 
   /* Finish off our init function:
      we need to close the bracket of the initialisation function (LoadModule).
@@ -2799,34 +2787,6 @@ void MATLAB::createSwigMem() {
   Delete(f_wrap_m);
   Delete(mfile);
   f_wrap_m = 0;
-}
-
-void MATLAB::createSetupScript() {
-  setup_name = NewString("");
-  Append(setup_name, pkg_name);
-  Append(setup_name, "setup");
-
-  // Create file
-  String* mfile = NewString(SWIG_output_directory());
-  Append(mfile, setup_name);
-  Append(mfile, ".m");
-  
-  f_setup_m = NewFile(mfile, "w", SWIG_output_files());
-  if (!f_setup_m) {
-    FileErrorDisplay(mfile);
-    SWIG_exit(EXIT_FAILURE);
-  }
-
-  Printf(f_setup_m,"%% This is the setup script for %s.\n", pkg_name);
-
-  Delete(mfile);
-}
-
-void MATLAB::finalizeSetupScript() {
-  Delete(f_setup_m);
-  f_setup_m = 0;
-  Delete(setup_name);
-  setup_name = 0;
 }
 
 const char* MATLAB::get_implicitconv_flag(Node *n) {
