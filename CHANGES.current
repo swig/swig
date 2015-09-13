@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-09-13: kkaempf
+            [Ruby] Resolve tracking bug - issue #225.
+            The bug is that the tracking code uses a ruby hash and thus may
+            allocate objects (Bignum) while running the GC. This was tolerated in
+            1.8 but is invalid (raises an exception) in 1.9.
+            The patch uses a C hash (also used by ruby) instead.
+
 2015-09-09: lyze
             [CFFI] Extend the "export" feature in the CFFI module to support
             exporting to a specified package.

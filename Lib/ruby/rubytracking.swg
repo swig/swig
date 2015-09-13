@@ -27,7 +27,7 @@ extern "C" {
 */
 static st_table* swig_ruby_trackings = NULL;
 
-VALUE get_swig_trackings_count(ANYARGS) {
+static VALUE swig_ruby_trackings_count(ANYARGS) {
   return SWIG2NUM(swig_ruby_trackings->num_entries);
 }
 
@@ -45,7 +45,7 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
   */
   VALUE trackings_value = Qnil;
   /* change the variable name so that we can mix modules
-     compiled with older SWIG's */
+     compiled with older SWIG's - this used to be called "@__trackings__" */
   ID trackings_id = rb_intern( "@__safetrackings__" );
   VALUE verbose = rb_gv_get("VERBOSE");
   rb_gv_set("VERBOSE", Qfalse);
@@ -60,12 +60,11 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
     /* No, it hasn't.  Create one ourselves */
     swig_ruby_trackings = st_init_numtable();
     rb_ivar_set( _mSWIG, trackings_id, SWIG2NUM(swig_ruby_trackings) );
-  }
-  else {
+  } else {
     swig_ruby_trackings = (st_table*)NUM2SWIG(trackings_value);
   }
 
-  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT", get_swig_trackings_count, NULL);
+  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT", swig_ruby_trackings_count, NULL);
 }
 
 /* Add a Tracking from a C/C++ struct to a Ruby object */
@@ -81,8 +80,7 @@ SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
 
   if (st_lookup(swig_ruby_trackings, (st_data_t)ptr, &value)) {
     return value;
-  }
-  else {
+  } else {
     return Qnil;
   }
 }
@@ -114,13 +112,13 @@ SWIGRUNTIME void SWIG_RubyUnlinkObjects(void* ptr) {
    to the passed callback function. */
 
 /* Proxy method to abstract the internal trackings datatype */
-static int _ruby_internal_iterate_callback(void* ptr, VALUE obj, void(*meth)(void* ptr, VALUE obj)) {
+static int swig_ruby_internal_iterate_callback(void* ptr, VALUE obj, void(*meth)(void* ptr, VALUE obj)) {
   (*meth)(ptr, obj);
   return ST_CONTINUE;
 }
 
 SWIGRUNTIME void SWIG_RubyIterateTrackings( void(*meth)(void* ptr, VALUE obj) ) {
-  st_foreach(swig_ruby_trackings, (int (*)(ANYARGS))&_ruby_internal_iterate_callback, (st_data_t)meth);
+  st_foreach(swig_ruby_trackings, (int (*)(ANYARGS))&swig_ruby_internal_iterate_callback, (st_data_t)meth);
 }
 
 #ifdef __cplusplus
