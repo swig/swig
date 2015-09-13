@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+#if !defined(ST_DATA_T_DEFINED)
+/* Needs to be explicitly included for Ruby 1.8 and earlier */
+#include <st.h>
+#endif
+
 /* Ruby 1.8 actually assumes the first case. */
 #if SIZEOF_VOIDP == SIZEOF_LONG
 #  define SWIG2NUM(v) LONG2NUM((unsigned long)v)
