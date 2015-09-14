@@ -261,15 +261,6 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp_ref);
 }
 
-static double getNumber(String *value) {
-  double d = DEFAULT_NUMBER;
-  if (Char(value)) {
-    if (sscanf(Char(value), "%lf", &d) != 1)
-      return (DEFAULT_NUMBER);
-  }
-  return (d);
-}
-
 class R:public Language {
 public:
   R();
@@ -283,8 +274,9 @@ public:
   int variableWrapper(Node *n);
 
   int classDeclaration(Node *n);
-  int enumDeclaration(Node *n);
-
+  virtual int enumDeclaration(Node *n);
+  virtual int enumvalueDeclaration(Node *n);
+  String *enumValue(Node *n);
   int membervariableHandler(Node *n);
 
   int typedefHandler(Node *n);
@@ -361,7 +353,6 @@ protected:
     return SWIG_OK;
   }
 
-
   void addSMethodInfo(String *name, String *argType, int nargs);
   // Simple initialization such as constant strings that can be reused.
   void init();
@@ -371,13 +362,17 @@ protected:
 
   static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
 
+  String *getCurrentScopeName(String *nspace);
+  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0);
 protected:
   bool copyStruct;
   bool memoryProfile;
   bool aggressiveGc;
 
   // Strings into which we cumulate the generated code that is to be written
-  //vto the files.
+  // to the files.
+  String *enum_values;
+  String *enum_def_calls;
   String *sfile;
   String *f_init;
   String *s_classes;
@@ -442,6 +437,8 @@ R::R():
 copyStruct(false),
 memoryProfile(false),
 aggressiveGc(false),
+enum_values(0),
+enum_def_calls(0),
 sfile(0),
 f_init(0),
 s_classes(0),
@@ -716,6 +713,7 @@ void R::init() {
   s_classes = NewString("");
   s_init = NewString("");
   s_init_routine = NewString("");
+  enum_def_calls = NewString("");
 }
 
 
@@ -840,6 +838,8 @@ int R::DumpCode(Node *n) {
   Printf(scode, "%s\n\n", s_init);
   Printf(scode, "%s\n\n", s_classes);
   Printf(scode, "%s\n", sfile);
+  Printf(scode, "%s\n", enum_def_calls);
+
 
   Delete(scode);
   String *outfile = Getattr(n, "outfile");
@@ -1133,62 +1133,146 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
   return SWIG_OK;
 }
 
+/* from java.cxx */
+String *R::getCurrentScopeName(String *nspace) {
+  Printf(stdout, "gcsn: nspace %s\n", nspace);
+  String *scope = 0;
+  if (nspace || getCurrentClass()) {
+    scope = NewString("");
+    if (nspace)
+      Printf(scope, "%s", nspace);
+    if (Node* cls = getCurrentClass()) {
+      if (Node *outer = Getattr(cls, "nested:outer")) {
+        String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+        for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+          Push(outerClassesPrefix, ".");
+          Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+        }
+        Printv(scope, nspace ? "." : "", outerClassesPrefix, ".", "proxy_class_name", NIL);
+        Delete(outerClassesPrefix);
+      } else {
+        //Printv(scope, nspace ? "." : "", "proxy_class_name2", NIL);
+      }
+    }
+  }
+  return scope;
+}
 
 /************************************************************
  Called when a enumeration is to be processed.
  We want to call the R function defineEnumeration().
  tdname is the typedef of the enumeration, i.e. giving its name.
+
+ Design considerations - R doesn't have something resembling a 
+ special enumeration type. The original strategy was to create
+ a special "hidden" vector variable, which contains integer values
+ that can be indexed by name.
+
+ This special variable is created once. Thus, in the situation where
+ enumeration values are best figured out by providing a C call to
+ return them, the only overhead is when setting up the enumeration. 
+ There isn't any advantage in providing R code that initializes the
+ values without the C lookup - unlike Java, where some additional language
+ structures are possible if the enums can be mapped to real Java enums.
+
 *************************************************************/
 int R::enumDeclaration(Node *n) {
+  if (!ImportMode) {
+      if (getCurrentClass() && (cplus_mode != PUBLIC))
+	return SWIG_NOWRAP;
+
+      String *symname = Getattr(n, "sym:name");
+
+      // TODO - deal with anonymous enumerations
+      // Previous enum code for R didn't wrap them
+      if (!symname || Getattr(n, "unnamedinstance"))
+        return SWIG_NOWRAP;
+
+      Node *parent = parentNode(n);
+      // create mangled name for the enum
+      String * ename;
+      if (Getattr(parent, "sym:name"))
+        ename = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+      else 
+        ename=symname;
+      // set up a call to create the R enum structure. The list of
+      // individual elements will be built in enum_code
+      enum_values=0;
+      // Emit each enum item
+      Language::enumDeclaration(n);
+      
+      Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n",
+             ename, enum_values);
+      Delete(enum_values);
+      Delete(ename);
+      //Delete(symname);
+  }
+  return SWIG_OK;
+}
+/*************************************************************
+**************************************************************/
+
+int R::enumvalueDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC)) {
+    Printf(stdout , "evd: Not public\n");
+    return SWIG_NOWRAP;
+  }
+
+  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
   String *name = Getattr(n, "name");
-  String *tdname = Getattr(n, "tdname");
+  Node   *parent = parentNode(n);
+  String *parent_name = Getattr(parent, "name");
+  String *newsymname = 0;
+  String *tmpValue;
 
-  /* Using name if tdname is empty. */
-
-  if (Len(tdname) == 0)
-    tdname = name;
-
-
-  if (!tdname || Strcmp(tdname, "") == 0) {
-    Language::enumDeclaration(n);
-    return SWIG_OK;
+  // Strange hack from parent method
+  if (value)
+    tmpValue = NewString(value);
+  else
+    tmpValue = NewString(name);
+  // Note that this is used in enumValue() amongst other places
+  Setattr(n, "value", tmpValue);
+  
+  // Deal with enum values that are not int
+  int swigtype = SwigType_type(Getattr(n, "type"));
+  if (swigtype == T_BOOL) {
+    const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+    Setattr(n, "enumvalue", val);
+  } else if (swigtype == T_CHAR) {
+    String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+    Setattr(n, "enumvalue", val);
+    Delete(val);
   }
 
-  String *mangled_tdname = SwigType_manglestr(tdname);
-  String *scode = NewString("");
-
-  Printv(scode, "defineEnumeration('", mangled_tdname, "'", ",\n", tab8, tab8, tab4, ".values = c(\n", NIL);
-
-  Node *c;
-  int value = -1;		// First number is zero
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    //      const char *tag = Char(nodeType(c));
-    //      if (Strcmp(tag,"cdecl") == 0) {
-    name = Getattr(c, "name");
-    String *val = Getattr(c, "enumvalue");
-    if (val && Char(val)) {
-      int inval = (int) getNumber(val);
-      if (inval == DEFAULT_NUMBER)
-	value++;
-      else
-	value = inval;
-    } else
-      value++;
-
-    Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value, nextSibling(c) ? ", " : "");
-    //      }
+  if (GetFlag(parent, "scopedenum")) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+    symname = newsymname;
   }
 
-  Printv(scode, "))", NIL);
-  Printf(sfile, "%s\n", scode);
+  {
+    // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+    SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+    Setattr(n, "type", typemap_lookup_type);
+    
+    // Simple integer constants
+    // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+    // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
 
-  Delete(scode);
-  Delete(mangled_tdname);
+    String *value = enumValue(n);
+    if (enum_values) {
+      Printf(enum_values, ",\n\"%s\" = %s", name, value);
+    } else {
+      enum_values=NewString("");
+      Printf(enum_values, "\"%s\" = %s", name, value);
+    }
+
+    Delete(value);
+  }
 
   return SWIG_OK;
 }
-
-
 /*************************************************************
 **************************************************************/
 int R::variableWrapper(Node *n) {
@@ -1197,7 +1281,6 @@ int R::variableWrapper(Node *n) {
   processing_variable = 1;
   Language::variableWrapper(n);	// Force the emission of the _set and _get function wrappers.
   processing_variable = 0;
-
 
   SwigType *ty = Getattr(n, "type");
   int addCopyParam = addCopyParameter(ty);
@@ -2648,9 +2731,78 @@ String *R::processType(SwigType *t, Node *n, int *nargs) {
 
 
 
+  /* -----------------------------------------------------------------------------
+   * typemapLookup()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * tmap_method - typemap method name
+   * type - typemap type to lookup
+   * warning - warning number to issue if no typemaps found
+   * typemap_attributes - the typemap attributes are attached to this node and will 
+   *   also be used for temporary storage if non null
+   * return is never NULL, unlike Swig_typemap_lookup()
+   * ----------------------------------------------------------------------------- */
 
-
-
-
+const String *R::typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes) {
+  Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+  Setattr(node, "type", type);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+  if (!tm) {
+    tm = NewString("");
+    if (warning != WARN_NONE)
+      Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
+    }
+  if (!typemap_attributes)
+    Delete(node);
+  return tm;
+}
 
 /*************************************************************************************/
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in from R when 
+   * setting up an enum variable
+   * ------------------------------------------------------------------------ */
+
+String *R::enumValue(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  String *value = Getattr(n, "value");
+  String *newsymname = 0;
+
+  Node *parent = parentNode(n);
+  symname = Getattr(n, "sym:name");
+  
+  String *etype = Getattr(parent, "enumtype");
+  // we have to directly call the c wrapper function, as the
+  // R wrapper to the enum is designed to be used after the enum
+  // structures have been created on the R side. This means
+  // that we'll need to construct a .Call expression
+
+  // change the type for variableWrapper
+  Setattr(n, "type", etype);
+
+  if (!getCurrentClass()) {
+    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+
+    // Strange hack to change the name
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  } else {
+    String *enumClassPrefix = getEnumClassPrefix();
+    newsymname = Swig_name_member(0, enumClassPrefix, symname);
+    Setattr(n, "name", Getattr(n, "value"));
+    Setattr(n, "sym:name", newsymname);
+    variableWrapper(n);
+    value = Swig_name_get(NSPACE_TODO, newsymname);
+  }
+  value = Swig_name_wrapper(value);
+  Replace(value, "_wrap", "R_swig", DOH_REPLACE_FIRST);
+
+  String *valuecall=NewString("");
+  Printv(valuecall, ".Call('", value, "',FALSE, PACKAGE='", Rpackage, "')", NIL);
+  Delete(value);
+  return valuecall;
+}
