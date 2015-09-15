@@ -55,6 +55,10 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
+namespace bar {
+    int foo();
+}
+
 struct Outer {
   typedef int Integer;
   ///////////////////////////////////////////
@@ -129,9 +133,13 @@ struct Outer {
     Integer x;
   } InnerClass4Typedef;
 
+  int Outer::foo(){ return 1; } // should correctly ignore qualification here (#508)
+
   typedef struct {
     Integer x;
   } InnerStruct4Typedef;
+
+  friend int bar::foo(); // should parse correctly (#508)
 
   typedef union {
     Integer x;
