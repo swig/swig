@@ -59,13 +59,9 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  * 
  * ----------------------------------------------------------------------------- */
 
-#define MAX_SCOPE  32
+static Hash *typemaps;
 
-
-static Hash *typemaps[MAX_SCOPE];
-static int tm_scope = 0;
-
-static Hash *get_typemap(int tm_scope, const SwigType *type) {
+static Hash *get_typemap(const SwigType *type) {
   Hash *tm = 0;
   SwigType *dtype = 0;
   SwigType *hashtype;
@@ -79,7 +75,7 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
 
   /* remove unary scope operator (::) prefix indicating global scope for looking up in the hashmap */
   hashtype = SwigType_remove_global_scope_prefix(type);
-  tm = Getattr(typemaps[tm_scope], hashtype);
+  tm = Getattr(typemaps, hashtype);
 
   Delete(dtype);
   Delete(hashtype);
@@ -87,7 +83,7 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
   return tm;
 }
 
-static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
+static void set_typemap(const SwigType *type, Hash **tmhash) {
   SwigType *hashtype = 0;
   Hash *new_tm = 0;
   assert(*tmhash == 0);
@@ -96,7 +92,7 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
     String *ty = Swig_symbol_template_deftype(rty, 0);
     String *tyq = Swig_symbol_type_qualify(ty, 0);
     hashtype = SwigType_remove_global_scope_prefix(tyq);
-    *tmhash = Getattr(typemaps[tm_scope], hashtype);
+    *tmhash = Getattr(typemaps, hashtype);
     Delete(rty);
     Delete(tyq);
     Delete(ty);
@@ -111,7 +107,7 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
   }
 
   /* note that the unary scope operator (::) prefix indicating global scope has been removed from the type */
-  Setattr(typemaps[tm_scope], hashtype, *tmhash);
+  Setattr(typemaps, hashtype, *tmhash);
 
   Delete(hashtype);
   Delete(new_tm);
@@ -125,12 +121,7 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_typemap_init() {
-  int i;
-  for (i = 0; i < MAX_SCOPE; i++) {
-    typemaps[i] = 0;
-  }
-  typemaps[0] = NewHash();
-  tm_scope = 0;
+  typemaps = NewHash();
 }
 
 static String *typemap_method_name(const_String_or_char_ptr tmap_method) {
@@ -159,32 +150,6 @@ static String *typemap_method_name(const_String_or_char_ptr tmap_method) {
   Delete(s);
   return s;
 }
-
-#if 0
-/* -----------------------------------------------------------------------------
- * Swig_typemap_new_scope()
- * 
- * Create a new typemap scope
- * ----------------------------------------------------------------------------- */
-
-void Swig_typemap_new_scope() {
-  tm_scope++;
-  typemaps[tm_scope] = NewHash();
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_typemap_pop_scope()
- *
- * Pop the last typemap scope off
- * ----------------------------------------------------------------------------- */
-
-Hash *Swig_typemap_pop_scope() {
-  if (tm_scope > 0) {
-    return typemaps[tm_scope--];
-  }
-  return 0;
-}
-#endif
 
 /* ----------------------------------------------------------------------------- 
  * typemap_register()
@@ -216,9 +181,9 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   pname = Getattr(parms, "name");
 
   /* See if this type has been seen before */
-  tm = get_typemap(tm_scope, type);
+  tm = get_typemap(type);
   if (!tm) {
-    set_typemap(tm_scope, type, &tm);
+    set_typemap(type, &tm);
   }
   if (pname) {
     /* See if parameter has been seen before */
@@ -311,15 +276,12 @@ void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms
 /* -----------------------------------------------------------------------------
  * typemap_get()
  *
- * Retrieve typemap information from current scope.
+ * Retrieve typemap information.
  * ----------------------------------------------------------------------------- */
 
-static Hash *typemap_get(SwigType *type, const_String_or_char_ptr name, int scope) {
+static Hash *typemap_get(SwigType *type, const_String_or_char_ptr name) {
   Hash *tm, *tm1;
-  /* See if this type has been seen before */
-  if ((scope < 0) || (scope > tm_scope))
-    return 0;
-  tm = get_typemap(scope, type);
+  tm = get_typemap(type);
   if (!tm) {
     return 0;
   }
@@ -342,51 +304,48 @@ int Swig_typemap_copy(const_String_or_char_ptr tmap_method, ParmList *srcparms, 
   Parm *p;
   String *pname;
   SwigType *ptype;
-  int ts = tm_scope;
   String *tm_methods, *multi_tmap_method;
   if (ParmList_len(parms) != ParmList_len(srcparms))
     return -1;
 
   tm_method = typemap_method_name(tmap_method);
-  while (ts >= 0) {
-    p = srcparms;
-    tm_methods = NewString(tm_method);
-    while (p) {
-      ptype = Getattr(p, "type");
-      pname = Getattr(p, "name");
+  p = srcparms;
+  tm_methods = NewString(tm_method);
+  while (p) {
+    ptype = Getattr(p, "type");
+    pname = Getattr(p, "name");
 
-      /* Lookup the type */
-      tm = typemap_get(ptype, pname, ts);
-      if (!tm)
-	break;
+    /* Lookup the type */
+    tm = typemap_get(ptype, pname);
+    if (!tm)
+      break;
 
-      tm = Getattr(tm, tm_methods);
-      if (!tm)
-	break;
+    tm = Getattr(tm, tm_methods);
+    if (!tm)
+      break;
 
-      /* Got a match.  Look for next typemap */
-      multi_tmap_method = NewStringf("%s-%s+%s:", tm_methods, ptype, pname);
-      Delete(tm_methods);
-      tm_methods = multi_tmap_method;
-      p = nextSibling(p);
-    }
+    /* Got a match.  Look for next typemap */
+    multi_tmap_method = NewStringf("%s-%s+%s:", tm_methods, ptype, pname);
     Delete(tm_methods);
-
-    if (!p && tm) {
-      /* Got some kind of match */
-      String *parms_str = ParmList_str_multibrackets(parms);
-      String *srcparms_str = ParmList_str_multibrackets(srcparms);
-      String *source_directive = NewStringf("typemap(%s) %s = %s", tmap_method, parms_str, srcparms_str);
-
-      typemap_register(tmap_method, parms, Getattr(tm, "code"), Getattr(tm, "locals"), Getattr(tm, "kwargs"), source_directive);
-
-      Delete(source_directive);
-      Delete(srcparms_str);
-      Delete(parms_str);
-      return 0;
-    }
-    ts--;
+    tm_methods = multi_tmap_method;
+    p = nextSibling(p);
   }
+  Delete(tm_methods);
+
+  if (!p && tm) {
+    /* Got some kind of match */
+    String *parms_str = ParmList_str_multibrackets(parms);
+    String *srcparms_str = ParmList_str_multibrackets(srcparms);
+    String *source_directive = NewStringf("typemap(%s) %s = %s", tmap_method, parms_str, srcparms_str);
+
+    typemap_register(tmap_method, parms, Getattr(tm, "code"), Getattr(tm, "locals"), Getattr(tm, "kwargs"), source_directive);
+
+    Delete(source_directive);
+    Delete(srcparms_str);
+    Delete(parms_str);
+    return 0;
+  }
+
   /* Not found */
   return -1;
 
@@ -411,7 +370,7 @@ void Swig_typemap_clear(const_String_or_char_ptr tmap_method, ParmList *parms) {
   while (p) {
     type = Getattr(p, "type");
     name = Getattr(p, "name");
-    tm = typemap_get(type, name, tm_scope);
+    tm = typemap_get(type, name);
     if (!tm)
       return;
     p = nextSibling(p);
@@ -452,7 +411,6 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   String *ssig, *dsig;
   Parm *p, *np, *lastp, *dp, *lastdp = 0;
   int narg = 0;
-  int ts = tm_scope;
   SwigType *type = 0, *name;
   Hash *tm, *sm;
   int match = 0;
@@ -480,9 +438,9 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 
   /* make sure a typemap node exists for the last destination node */
   type = Getattr(lastdp, "type");
-  tm = get_typemap(tm_scope, type);
+  tm = get_typemap(type);
   if (!tm) {
-    set_typemap(tm_scope, type, &tm);
+    set_typemap(type, &tm);
   }
   name = Getattr(lastdp, "name");
   if (name) {
@@ -501,69 +459,65 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   type = Getattr(lastp, "type");
   name = Getattr(lastp, "name");
 
-  while (ts >= 0) {
+  /* See if there is a matching typemap in this scope */
+  sm = typemap_get(type, name);
 
-    /* See if there is a matching typemap in this scope */
-    sm = typemap_get(type, name, ts);
+  /* if there is not matching, look for a typemap in the
+     original typedef, if any, like in:
 
-    /* if there is not matching, look for a typemap in the
-       original typedef, if any, like in:
-
-       typedef unsigned long size_t;
-       ...
-       %apply(size_t) {my_size};  ==>  %apply(unsigned long) {my_size};
-     */
-    if (!sm) {
-      SwigType *ntype = SwigType_typedef_resolve(type);
-      if (ntype && (Cmp(ntype, type) != 0)) {
-	sm = typemap_get(ntype, name, ts);
-      }
-      Delete(ntype);
+     typedef unsigned long size_t;
+     ...
+     %apply(size_t) {my_size};  ==>  %apply(unsigned long) {my_size};
+   */
+  if (!sm) {
+    SwigType *ntype = SwigType_typedef_resolve(type);
+    if (ntype && (Cmp(ntype, type) != 0)) {
+      sm = typemap_get(ntype, name);
     }
+    Delete(ntype);
+  }
 
-    if (sm) {
-      /* Got a typemap.  Need to only merge attributes for methods that match our signature */
-      Iterator ki;
-      match = 1;
-      for (ki = First(sm); ki.key; ki = Next(ki)) {
-	/* Check for a signature match with the source signature */
-	if ((count_args(ki.key) == narg) && (Strstr(ki.key, ssig))) {
-	  String *oldm;
-	  /* A typemap we have to copy */
-	  String *nkey = Copy(ki.key);
-	  Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
+  if (sm) {
+    /* Got a typemap.  Need to only merge attributes for methods that match our signature */
+    Iterator ki;
+    match = 1;
+    for (ki = First(sm); ki.key; ki = Next(ki)) {
+      /* Check for a signature match with the source signature */
+      if ((count_args(ki.key) == narg) && (Strstr(ki.key, ssig))) {
+	String *oldm;
+	/* A typemap we have to copy */
+	String *nkey = Copy(ki.key);
+	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
 
-	  /* Make sure the typemap doesn't already exist in the target map */
+	/* Make sure the typemap doesn't already exist in the target map */
 
-	  oldm = Getattr(tm, nkey);
-	  if (!oldm || (!Getattr(tm, "code"))) {
-	    String *code;
-	    ParmList *locals;
-	    ParmList *kwargs;
-	    Hash *sm1 = ki.item;
+	oldm = Getattr(tm, nkey);
+	if (!oldm || (!Getattr(tm, "code"))) {
+	  String *code;
+	  ParmList *locals;
+	  ParmList *kwargs;
+	  Hash *sm1 = ki.item;
 
-	    code = Getattr(sm1, "code");
-	    locals = Getattr(sm1, "locals");
-	    kwargs = Getattr(sm1, "kwargs");
-	    if (code) {
-	      String *src_str = ParmList_str_multibrackets(src);
-	      String *dest_str = ParmList_str_multibrackets(dest);
-	      String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
+	  code = Getattr(sm1, "code");
+	  locals = Getattr(sm1, "locals");
+	  kwargs = Getattr(sm1, "kwargs");
+	  if (code) {
+	    String *src_str = ParmList_str_multibrackets(src);
+	    String *dest_str = ParmList_str_multibrackets(dest);
+	    String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
 
-	      Replace(nkey, dsig, "", DOH_REPLACE_ANY);
-	      Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-	      typemap_register(nkey, dest, code, locals, kwargs, source_directive);
+	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
+	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
+	    typemap_register(nkey, dest, code, locals, kwargs, source_directive);
 
-	      Delete(source_directive);
-	      Delete(dest_str);
-	      Delete(src_str);
-	    }
+	    Delete(source_directive);
+	    Delete(dest_str);
+	    Delete(src_str);
 	  }
-	  Delete(nkey);
 	}
+	Delete(nkey);
       }
     }
-    ts--;
   }
   Delete(ssig);
   Delete(dsig);
@@ -597,7 +551,7 @@ void Swig_typemap_clear_apply(Parm *parms) {
     }
     p = np;
   }
-  tm = get_typemap(tm_scope, Getattr(lastp, "type"));
+  tm = get_typemap(Getattr(lastp, "type"));
   if (!tm) {
     Delete(tsig);
     return;
@@ -711,7 +665,6 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *primitive = 0;
   SwigType *ctype = 0;
   SwigType *ctype_unstripped = 0;
-  int ts;
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
@@ -722,90 +675,86 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     cname = name;
   if ((qualifiedname) && Len(qualifiedname))
     cqualifiedname = qualifiedname;
-  ts = tm_scope;
 
   if (debug_display) {
     String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : cname);
     Swig_diagnostic(Getfile(node), Getline(node), "Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
   }
-  while (ts >= 0) {
-    ctype = Copy(type);
-    ctype_unstripped = Copy(ctype);
-    while (ctype) {
-      /* Try to get an exact type-match */
-      tm = get_typemap(ts, ctype);
-      result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
-      if (result && Getattr(result, "code"))
-	goto ret_result;
+  ctype = Copy(type);
+  ctype_unstripped = Copy(ctype);
+  while (ctype) {
+    /* Try to get an exact type-match */
+    tm = get_typemap(ctype);
+    result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
+    if (result && Getattr(result, "code"))
+      goto ret_result;
 
-      {
-	/* Look for the type reduced to just the template prefix - for templated types without the template parameter list being specified */
-	SwigType *template_prefix = SwigType_istemplate_only_templateprefix(ctype);
-	if (template_prefix) {
-	  tm = get_typemap(ts, template_prefix);
-	  result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
-	  Delete(template_prefix);
-	  if (result && Getattr(result, "code"))
-	    goto ret_result;
-	}
-      }
-
-      /* look for [ANY] arrays */
-      isarray = SwigType_isarray(ctype);
-      if (isarray) {
-	/* If working with arrays, strip away all of the dimensions and replace with "ANY".
-	   See if that generates a match */
-	SwigType *noarrays = strip_arrays(ctype);
-	tm = get_typemap(ts, noarrays);
-	result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
-	Delete(noarrays);
+    {
+      /* Look for the type reduced to just the template prefix - for templated types without the template parameter list being specified */
+      SwigType *template_prefix = SwigType_istemplate_only_templateprefix(ctype);
+      if (template_prefix) {
+	tm = get_typemap(template_prefix);
+	result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
+	Delete(template_prefix);
 	if (result && Getattr(result, "code"))
 	  goto ret_result;
       }
-
-      /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
-       * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
-       * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
-      {
-	SwigType *oldctype = ctype;
-	ctype = SwigType_strip_single_qualifier(oldctype);
-	if (!Equal(ctype, oldctype)) {
-	  Delete(oldctype);
-	  continue;
-	}
-	Delete(oldctype);
-      }
-
-      /* Once all qualifiers are stripped try resolve a typedef */
-      {
-	SwigType *oldctype = ctype;
-	ctype = SwigType_typedef_resolve(ctype_unstripped);
-	Delete(oldctype);
-	ctype_unstripped = Copy(ctype);
-      }
     }
 
-    /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
-
-    primitive = SwigType_default_create(type);
-    while (primitive) {
-      tm = get_typemap(ts, primitive);
-      result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
+    /* look for [ANY] arrays */
+    isarray = SwigType_isarray(ctype);
+    if (isarray) {
+      /* If working with arrays, strip away all of the dimensions and replace with "ANY".
+	 See if that generates a match */
+      SwigType *noarrays = strip_arrays(ctype);
+      tm = get_typemap(noarrays);
+      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      Delete(noarrays);
       if (result && Getattr(result, "code"))
 	goto ret_result;
+    }
 
-      {
-	SwigType *nprim = SwigType_default_deduce(primitive);
-	Delete(primitive);
-	primitive = nprim;
+    /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
+     * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
+     * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
+    {
+      SwigType *oldctype = ctype;
+      ctype = SwigType_strip_single_qualifier(oldctype);
+      if (!Equal(ctype, oldctype)) {
+	Delete(oldctype);
+	continue;
       }
+      Delete(oldctype);
     }
-    if (ctype != type) {
-      Delete(ctype);
-      ctype = 0;
+
+    /* Once all qualifiers are stripped try resolve a typedef */
+    {
+      SwigType *oldctype = ctype;
+      ctype = SwigType_typedef_resolve(ctype_unstripped);
+      Delete(oldctype);
+      ctype_unstripped = Copy(ctype);
     }
-    ts--;			/* Hmmm. Nothing found in this scope.  Guess we'll go try another scope */
+  }
+
+  /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
+
+  primitive = SwigType_default_create(type);
+  while (primitive) {
+    tm = get_typemap(primitive);
+    result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
+    if (result && Getattr(result, "code"))
+      goto ret_result;
+
+    {
+      SwigType *nprim = SwigType_default_deduce(primitive);
+      Delete(primitive);
+      primitive = nprim;
+    }
+  }
+  if (ctype != type) {
+    Delete(ctype);
+    ctype = 0;
   }
   result = backup;
 
@@ -2110,16 +2059,9 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  * ----------------------------------------------------------------------------- */
 
 void Swig_typemap_debug() {
-  int ts;
   int nesting_level = 2;
   Printf(stdout, "---[ typemaps ]--------------------------------------------------------------\n");
-
-  ts = tm_scope;
-  while (ts >= 0) {
-    Printf(stdout, "::: scope %d\n\n", ts);
-    Swig_print(typemaps[ts], nesting_level);
-    ts--;
-  }
+  Swig_print(typemaps, nesting_level);
   Printf(stdout, "-----------------------------------------------------------------------------\n");
 }
 

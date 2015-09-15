@@ -409,8 +409,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f);
   extern String *Swig_typemap_lookup_out(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);
-  extern void Swig_typemap_new_scope(void);
-  extern Hash *Swig_typemap_pop_scope(void);
 
   extern void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *parms, Wrapper *f);
 
