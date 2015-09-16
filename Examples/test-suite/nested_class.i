@@ -56,7 +56,7 @@
 #endif
 
 namespace bar {
-    int foo();
+    int foo() { return 0; }
 }
 
 struct Outer {
