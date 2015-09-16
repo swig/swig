@@ -133,7 +133,9 @@ struct Outer {
     Integer x;
   } InnerClass4Typedef;
 
+#ifdef _MSC_VER
   int Outer::foo(){ return 1; } // should correctly ignore qualification here (#508)
+#endif
 
   typedef struct {
     Integer x;
