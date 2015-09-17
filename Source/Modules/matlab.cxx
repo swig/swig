@@ -187,15 +187,16 @@ void MATLAB::main(int argc, char *argv[]) {
   int cppcast = 1;
   redirectoutput=false;
 
-  for (int i = 1; i < argc; i++) {
+  for (int i=1; i<argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
       } else if (strcmp(argv[i], "-opprefix") == 0) {
-        if (i+1<argc && argv[i + 1]) {
-          op_prefix = NewString(argv[i + 1]);
-          Swig_mark_arg(i++);
+        if (argv[i+1]) {
+          op_prefix = NewString(argv[i+1]);
           Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
         } else {
           Swig_arg_error();
         }
@@ -209,24 +210,26 @@ void MATLAB::main(int argc, char *argv[]) {
 	no_header_file = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-pkgname") == 0) {
-        if (i+1<argc && argv[i + 1]) {
-          pkg_name = NewString(argv[i + 1]);
-          Swig_mark_arg(i++);
+        if (argv[i+1]) {
+          pkg_name = NewString(argv[i+1]);
           Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
         } else {
           Swig_arg_error();
         }
       } else if (strcmp(argv[i], "-mexname") == 0) {
-        if (i+1<argc && argv[i + 1]) {
-          mex_name = NewString(argv[i + 1]);
-          Swig_mark_arg(i++);
+        if (argv[i+1]) {
+          mex_name = NewString(argv[i+1]);
           Swig_mark_arg(i);
+          Swig_mark_arg(i+1);
+          i++;
         } else {
           Swig_arg_error();
         }
       } else if (strcmp(argv[i], "-redirectoutput") == 0) {
-	  redirectoutput = true;
-	  Swig_mark_arg(i);
+        redirectoutput = true;
+        Swig_mark_arg(i);
       }
     }
   }
