@@ -1854,8 +1854,8 @@ public:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      SwigType *smart = Swig_cparse_smartptr(n);
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
       Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1863,29 +1863,22 @@ public:
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
-      if (smartptr) {
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  SwigType *smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  SwigType *bsmart = Copy(smart);
-	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-	  Replaceall(bsmart, rclassname, rbaseclass);
-	  Delete(rclassname);
-	  Delete(rbaseclass);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  Printv(upcasts_code,
-		 "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
-		 "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
-		 "}\n", "\n", NIL);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  Delete(bsmart);
-	} else {
-	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
-	}
+      if (smart) {
+	SwigType *bsmart = Copy(smart);
+	SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+	Replaceall(bsmart, rclassname, rbaseclass);
+	Delete(rclassname);
+	Delete(rbaseclass);
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
+	Printv(upcasts_code,
+	       "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
+	       "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
+	       "}\n", "\n", NIL);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+	Delete(bsmart);
       } else {
 	Printv(upcasts_code,
 	       "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
@@ -1894,6 +1887,7 @@ public:
       }
       Delete(wname);
       Delete(upcast_method);
+      Delete(smart);
     }
     Delete(baseclass);
   }
@@ -3469,7 +3463,7 @@ public:
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
-    if (Len(smartptr)) {
+    if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
