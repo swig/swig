@@ -516,7 +516,7 @@ namespace swig
     }
 
     // KT TODO need to get this in matlab conventions
-    void paren_asgn(difference_type i, value_type x) throw (std::out_of_range) {
+    void paren_asgn(value_type x, difference_type i) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 
