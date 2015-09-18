@@ -29,7 +29,7 @@
 
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGRUBY)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
