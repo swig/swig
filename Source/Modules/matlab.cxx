@@ -20,6 +20,7 @@ static const char *usage = (char *) "\
 Matlab Options (available with -matlab)\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
      -pkgname <str> - Prefix <str> for package name ' [default: '<module_name>']\n\
+     -mexname <str> - Specify mex function name <str> ' [default: '<module_name>MEX']\n\
 \n";
 
 class MATLAB : public Language {
@@ -278,6 +279,11 @@ int MATLAB::top(Node *n) {
         // Otherwise use module name as default (see below)
         if (!pkg_name && Getattr(options, "package")) {
             pkg_name = Getattr(options, "package");
+        }
+        // Set mex name via module option if not set via command-line
+        // Otherwise use module name as default (see below)
+        if (!mex_name && Getattr(options, "mexname")) {
+            mex_name = Getattr(options, "mexname");
         }
       }
     }
@@ -734,10 +740,19 @@ int MATLAB::importDirective(Node *n) {
     String *modname = Getattr(n, "module");
 
     if (modname) {
-      // Construct name of intermediary layer
-      // TODO: If option mexname set for module, use instead
-      String *import_mexname = Copy(modname);
-      Append(import_mexname, "MEX");
+      // Find the module node for this imported module.  It should be the
+      // first child but search just in case.
+      Node *mod = firstChild(n);
+      while (mod && Strcmp(nodeType(mod), "module") != 0)
+        mod = nextSibling(mod);
+
+      // If option mexname set for module, use instead
+      Node *options = Getattr(mod, "options");
+      String *import_mexname = options ? Getattr(options, "mexname") : 0;
+      if (import_mexname == 0) {
+          import_mexname = Copy(modname);
+          Append(import_mexname, "MEX");
+      }
 
       /* Add to list of modules to be imported */
       Append(l_modules, import_mexname);
