@@ -510,13 +510,13 @@ namespace swig
       return x;
     }
 
-    // KT TODO need to get this in matlab conventions
-    value_type paren(difference_type i) throw (std::out_of_range) {
+    // Cell access in Matlab conventions
+    value_type brace(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    // KT TODO need to get this in matlab conventions
-    void paren_asgn(value_type x, difference_type i) throw (std::out_of_range) {
+    // Cell assign in Matlab conventions
+    void setbrace(value_type x, difference_type i) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 
@@ -562,16 +562,28 @@ namespace swig {
   struct traits_asptr_stdseq {
     typedef Seq sequence;
     typedef T value_type;
+    typedef typename sequence::iterator iterator;
 
     static int asptr(mxArray* obj, sequence **seq) {
-      if (obj && mxGetClassID(obj)==mxCELL_CLASS && mxGetM(obj)==1) {
-        // TODO
-        SWIG_Error(SWIG_SystemError, "Not implemented");
-        return SWIG_ERROR;
+      if (obj && mxGetClassID(obj)==mxCELL_CLASS &&
+              mxGetNumberOfDimensions(obj)==2 &&
+              mxGetM(obj)==1 && mxGetN(obj)>0 ) {
+        // Convert to cell array.
+        if (seq) {
+          *seq = new sequence(mxGetN(obj));
+          if(*seq) {
+            int i = 0;
+            for (iterator it = (*seq)->begin();
+                 it != (*seq)->end(); ++it, ++i) {
+              *it = swig::as<value_type>(mxGetCell(obj, i));
+            }
+            return SWIG_NEWOBJ;
+          }
+        }
       } else {
 	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
+        if (SWIG_ConvertPtr(obj,(void**)&p,
+                            swig::type_info<sequence>(),0) == SWIG_OK) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
@@ -597,7 +609,7 @@ namespace swig {
 
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
-	mxArray* c = mxCreateCellMatrix(size,1);
+        mxArray* c = mxCreateCellMatrix(1,size);
 	int i = 0;
 	for (const_iterator it = seq.begin();
 	     it != seq.end(); ++it, ++i) {
