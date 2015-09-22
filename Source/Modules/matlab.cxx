@@ -316,7 +316,7 @@ int MATLAB::top(Node *n) {
   // Create subdirectory
   String* pkg_directory_name = NewString("+");
   Append(pkg_directory_name, pkg_name);
-  (void)Replace(pkg_directory_name,".","+/", DOH_REPLACE_ANY);
+  (void)Replace(pkg_directory_name,".","/+", DOH_REPLACE_ANY);
   pkg_name_fullpath = NewString("");
   Printf(pkg_name_fullpath, "%s%s", SWIG_output_directory(), pkg_directory_name);
   Swig_new_subdirectory((String*)SWIG_output_directory(), pkg_directory_name);
