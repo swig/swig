@@ -1830,7 +1830,7 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-          SwigType *smart = Swig_cparse_smartptr(n);
+          SwigType *smart = Swig_cparse_smartptr(pn);
 	  String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
 	  if (smart) {
 	    String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
@@ -1930,7 +1930,8 @@ public:
 
     /* Extra code needed for new and initialize methods */
     if (current == CONSTRUCTOR_ALLOCATE) {
-      SwigType *smart = Swig_cparse_smartptr(n);
+      Node *pn = Swig_methodclass(n);
+      SwigType *smart = Swig_cparse_smartptr(pn);
       if (smart)
 	SwigType_add_pointer(smart);
       String *classtype = smart ? smart : t;
