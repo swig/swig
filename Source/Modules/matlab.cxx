@@ -1126,6 +1126,9 @@ int MATLAB::functionWrapper(Node *n) {
 
   Wrapper_add_local(f, "_out", "mxArray * _out");
 
+  // First output
+  bool first_output = true;
+
   // Return the function value
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 
@@ -1154,7 +1157,14 @@ int MATLAB::functionWrapper(Node *n) {
       Printf(f->code, "thisPtr->next = thatPtr;\n");
       Printf(f->code, "}\n");
     }
-    Printf(f->code, "if (_out && --resc>=0) *resv++ = _out;\n");
+    if (first_output) {
+      // If first output, store even if resc==0 (ans output)
+      Printf(f->code, "if (_out) --resc, *resv++ = _out;\n");
+      first_output = false;
+    } else {
+      // For subsequent outputs, store if the corresponding output exists, otherwise discard
+      Printf(f->code, "if (_out && --resc>=0) *resv++ = _out;\n");
+    }
 
     Delete(tm);
   } else {
@@ -1227,10 +1237,6 @@ int MATLAB::globalfunctionHandler(Node *n) {
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");  
   if (overloaded && !last_overload) return flag;
 
-  // Get the range of the number of return values
-  int max_num_returns, min_num_returns;
-  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
-
   // Create MATLAB proxy
   String* mfile = NewString("");
   Printf(mfile, "%s/%s.m", pkg_name_fullpath, symname);
@@ -1251,25 +1257,22 @@ int MATLAB::globalfunctionHandler(Node *n) {
   Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
-  if (have_matlabprepend(n))
+  if (have_matlabprepend(n)) {
     Printf(f_wrap_m, "%s\n",matlabprepend(n));
-  if (min_num_returns==0) {
-    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
-  } else {
-    if (GetFlag(n, "feature:optionalunpack")) {
-      Printf(f_wrap_m,"      out = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
-      Printf(f_wrap_m,"      if nargout>1\n");
-      Printf(f_wrap_m,"        for i=1:length(out)\n");
-      Printf(f_wrap_m,"          varargout{i} = out(i);\n");
-      Printf(f_wrap_m,"        end\n");
-      Printf(f_wrap_m,"      else\n");
-      Printf(f_wrap_m,"        varargout{1}=out;\n");
-      Printf(f_wrap_m,"      end\n");
-    } else {
-      Printf(f_wrap_m,"      [varargout{1:max(1,nargout)}] = %s(%d,%s);\n",mex_name,gw_ind,varginstr);
-    }
   }
-
+  if (GetFlag(n, "feature:optionalunpack")) {
+    Printf(f_wrap_m,"  out = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
+    Printf(f_wrap_m,"  if nargout<=1\n");
+    Printf(f_wrap_m,"    varargout{1}=out;\n");
+    Printf(f_wrap_m,"  else\n");
+    Printf(f_wrap_m,"    nargoutchk(length(out),length(out))\n");
+    Printf(f_wrap_m,"    for i=1:nargout\n");
+    Printf(f_wrap_m,"      varargout{i} = out(i);\n");
+    Printf(f_wrap_m,"    end\n");
+    Printf(f_wrap_m,"  end\n");
+  } else {
+    Printf(f_wrap_m,"  [varargout{1:nargout}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
+  }
   if (have_matlabappend(n))
     Printf(f_wrap_m, "%s\n",matlabappend(n));
   Printf(f_wrap_m,"end\n");
@@ -2186,10 +2189,6 @@ int MATLAB::memberfunctionHandler(Node *n) {
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
   if (overloaded && !last_overload) return flag;
 
-  // Get the range of the number of return values
-  int max_num_returns, min_num_returns;
-  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
-
   // Add to function switch
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
@@ -2198,7 +2197,6 @@ int MATLAB::memberfunctionHandler(Node *n) {
 
   // Add function to .m wrapper
   checkValidSymName(n);
-  const char* nargoutstr = min_num_returns==0 ? "nargout" : "max(1,nargout)";
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(f_wrap_m,"    function varargout = %s(self,varargin)\n",symname);
   autodoc_to_m(f_wrap_m, n);
@@ -2212,15 +2210,16 @@ int MATLAB::memberfunctionHandler(Node *n) {
   }
   if (GetFlag(n, "feature:optionalunpack")) {
     Printf(f_wrap_m,"      out = %s(%d, self, %s);\n", mex_name, gw_ind, varginstr);
-    Printf(f_wrap_m,"      if nargout>1\n");
-    Printf(f_wrap_m,"        for i=1:length(out)\n");
+    Printf(f_wrap_m,"      if nargout<=1\n");
+    Printf(f_wrap_m,"        varargout{1}=out;\n");
+    Printf(f_wrap_m,"      else\n");
+    Printf(f_wrap_m,"        nargoutchk(length(out),length(out))\n");
+    Printf(f_wrap_m,"        for i=1:nargout\n");
     Printf(f_wrap_m,"          varargout{i} = out(i);\n");
     Printf(f_wrap_m,"        end\n");
-    Printf(f_wrap_m,"      else\n");
-    Printf(f_wrap_m,"        varargout{1}=out;\n");
     Printf(f_wrap_m,"      end\n");
   } else {
-    Printf(f_wrap_m,"      [varargout{1:%s}] = %s(%d, self, %s);\n",nargoutstr, mex_name, gw_ind, varginstr);
+    Printf(f_wrap_m,"      [varargout{1:nargout}] = %s(%d, self, %s);\n", mex_name, gw_ind, varginstr);
   }
   if (have_matlabappend(n))
     Printf(f_wrap_m, "%s\n",matlabappend(n));
@@ -2542,10 +2541,6 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
   if (overloaded && !last_overload) return flag;
 
-  // Get the range of the number of return values
-  int max_num_returns, min_num_returns;
-  if (getRangeNumReturns(n,max_num_returns, min_num_returns)!=SWIG_OK) return SWIG_ERROR;
-
   // Add to function switch
   String *symname = Getattr(n, "sym:name");
   String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
@@ -2558,26 +2553,25 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
   const char* varginstr = GetFlag(n, "feature:varargin") ? "varargin" : "varargin{:}";
   Printf(wrapper,"    function varargout = %s(varargin)\n",symname);
   autodoc_to_m(wrapper, n);
-  if (have_matlabprepend(n))
+  if (have_matlabprepend(n)) {
     Printf(wrapper, "%s\n", Char(matlabprepend(n)));
-  if (min_num_returns==0) {
-    Printf(wrapper,"      [varargout{1:nargout}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
-  } else {
-    if (GetFlag(n, "feature:optionalunpack")) {
-      Printf(wrapper,"      out = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
-      Printf(wrapper,"      if nargout>1\n");
-      Printf(wrapper,"        for i=1:length(out)\n");
-      Printf(wrapper,"          varargout{i} = out(i);\n");
-      Printf(wrapper,"        end\n");
-      Printf(wrapper,"      else\n");
-      Printf(wrapper,"        varargout{1}=out;\n");
-      Printf(wrapper,"      end\n");
-    } else {
-      Printf(wrapper,"      [varargout{1:max(1,nargout)}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
-    }
   }
-  if (have_matlabappend(n))
+  if (GetFlag(n, "feature:optionalunpack")) {
+    Printf(wrapper,"     out = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
+    Printf(wrapper,"     if nargout<=1\n");
+    Printf(wrapper,"       varargout{1}=out;\n");
+    Printf(wrapper,"     else\n");
+    Printf(wrapper,"       nargoutchk(length(out),length(out))\n");
+    Printf(wrapper,"       for i=1:nargout\n");
+    Printf(wrapper,"         varargout{i} = out(i);\n");
+    Printf(wrapper,"       end\n");
+    Printf(wrapper,"     end\n");
+  } else {
+    Printf(wrapper,"     [varargout{1:nargout}] = %s(%d, %s);\n", mex_name, gw_ind, varginstr);
+  }
+  if (have_matlabappend(n)) {
     Printf(wrapper, "%s\n", Char(matlabappend(n)));
+  }
   Printf(wrapper,"    end\n");
   Delete(wname);
   Delete(fullname);
