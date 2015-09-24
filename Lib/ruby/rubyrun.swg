@@ -263,7 +263,8 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
 
   /* Grab the pointer */
   if (NIL_P(obj)) {
-    *ptr = 0;
+    if (ptr)
+      *ptr = 0;
     return SWIG_OK;
   } else {
     if (TYPE(obj) != T_DATA) {
@@ -304,16 +305,6 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
 
   /* Do type-checking if type info was provided */
   if (ty) {
-    if (ty->clientdata) {
-      if (rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
-        if (vptr == 0) {
-          /* The object has already been deleted */
-          return SWIG_ObjectPreviouslyDeletedError;
-        }
-        *ptr = vptr;
-        return SWIG_OK;
-      }
-    }
     if ((c = SWIG_MangleStr(obj)) == NULL) {
       return SWIG_ERROR;
     }
@@ -321,12 +312,27 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     if (!tc) {
       return SWIG_ERROR;
     } else {
-      int newmemory = 0;
-      *ptr = SWIG_TypeCast(tc, vptr, &newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
+      if (vptr == 0) {
+        /* The object has already been deleted */
+        return SWIG_ObjectPreviouslyDeletedError;
+      }
+      if (ptr) {
+        if (tc->type == ty) {
+          *ptr = vptr;
+        } else {
+          int newmemory = 0;
+          *ptr = SWIG_TypeCast(tc, vptr, &newmemory);
+          if (newmemory == SWIG_CAST_NEW_MEMORY) {
+            assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+            if (own)
+              own->own = own->own | SWIG_CAST_NEW_MEMORY;
+          }
+        }
+      }
     }
   } else {
-    *ptr = vptr;
+    if (ptr)
+      *ptr = vptr;
   }
   
   return SWIG_OK;
