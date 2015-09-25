@@ -4161,15 +4161,11 @@ public:
     Printf(clientdata, "&%s_clientdata", templ);
     SwigType_remember_mangleddata(pmname, clientdata);
 
-    String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {
-      SwigType *spt = Swig_cparse_type(smartptr);
-      SwigType *smart = SwigType_typedef_resolve_all(spt);
+    SwigType *smart = Swig_cparse_smartptr(n);
+    if (smart) {
       SwigType_add_pointer(smart);
       String *smart_pmname = SwigType_manglestr(smart);
       SwigType_remember_mangleddata(smart_pmname, clientdata);
-      Delete(spt);
-      Delete(smart);
       Delete(smart_pmname);
     }
 
@@ -4195,6 +4191,7 @@ public:
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
+    Delete(smart);
     Delete(rname);
     Delete(pname);
     Delete(mname);
@@ -4392,18 +4389,8 @@ public:
     /* Complete the class */
     if (shadow) {
       /* Generate a class registration function */
-      String *smartptr = Getattr(n, "feature:smartptr");	// Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-      SwigType *smart = 0;
-      if (smartptr) {
-	SwigType *cpt = Swig_cparse_type(smartptr);
-	if (cpt) {
-	  smart = SwigType_typedef_resolve_all(cpt);
-	  Delete(cpt);
-	} else {
-	  // TODO: report line number of where the feature comes from
-	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, real_classname);
-	}
-      }
+      // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+      SwigType *smart = Swig_cparse_smartptr(n);
       SwigType *ct = Copy(smart ? smart : real_classname);
       SwigType_add_pointer(ct);
       SwigType *realct = Copy(real_classname);

@@ -256,11 +256,8 @@ class TypePass:private Dispatcher {
       SwigType_inherit(clsname, bname, cast, 0);
       String *smartptr = Getattr(first, "feature:smartptr");
       if (smartptr) {
-	SwigType *smart = 0;
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
+	SwigType *smart = Swig_cparse_smartptr(first);
+	if (smart) {
 	  /* Record a (fake) inheritance relationship between smart pointer
 	     and smart pointer to base class, so that smart pointer upcasts
 	     are automatically generated. */
@@ -282,10 +279,8 @@ class TypePass:private Dispatcher {
 	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 	  Delete(convcode);
 	  Delete(bsmart);
-	  Delete(smart);
-	} else {
-	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
 	}
+	Delete(smart);
       } else {
 	if (GetFlag(bclass, "feature:smartptr"))
 	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));

@@ -3329,45 +3329,33 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name,
-    String* c_class_name, String* c_base_name) {
+  void writeClassUpcast(Node *n, const String* d_class_name, String* c_class_name, String* c_base_name) {
 
-    String *smartptr = Getattr(n, "feature:smartptr");
-    String *upcast_name = Swig_name_member(getNSpace(), d_class_name,
-      (smartptr != 0 ? "SmartPtrUpcast" : "Upcast"));
-
+    SwigType *smart = Swig_cparse_smartptr(n);
+    String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
     writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
       upcast_wrapper_name);
 
-    if (smartptr) {
-      SwigType *spt = Swig_cparse_type(smartptr);
-      if (spt) {
-	SwigType *smart = SwigType_typedef_resolve_all(spt);
-	Delete(spt);
-	SwigType *bsmart = Copy(smart);
-	SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
-	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
-	Replaceall(bsmart, rclassname, rbaseclass);
-	Delete(rclassname);
-	Delete(rbaseclass);
-	String *smartnamestr = SwigType_namestr(smart);
-	String *bsmartnamestr = SwigType_namestr(bsmart);
-	Printv(upcasts_code,
-	  "SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
-	    "(", smartnamestr, " *objectRef) {\n",
-	  "    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
-	  "}\n",
-	  "\n", NIL);
-	Delete(bsmartnamestr);
-	Delete(smartnamestr);
-	Delete(bsmart);
-      } else {
-	Swig_error(Getfile(n), Getline(n),
-	  "Invalid type (%s) in 'smartptr' feature for class %s.\n",
-	  smartptr, c_class_name);
-      }
+    if (smart) {
+      SwigType *bsmart = Copy(smart);
+      SwigType *rclassname = SwigType_typedef_resolve_all(c_class_name);
+      SwigType *rbaseclass = SwigType_typedef_resolve_all(c_base_name);
+      Replaceall(bsmart, rclassname, rbaseclass);
+      Delete(rclassname);
+      Delete(rbaseclass);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
+      Printv(upcasts_code,
+	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
+	  "(", smartnamestr, " *objectRef) {\n",
+	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
+	"}\n",
+	"\n", NIL);
+      Delete(bsmartnamestr);
+      Delete(smartnamestr);
+      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
@@ -3382,6 +3370,7 @@ private:
 
     Delete(upcast_name);
     Delete(upcast_wrapper_name);
+    Delete(smart);
   }
 
   /* ---------------------------------------------------------------------------

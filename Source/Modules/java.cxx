@@ -1875,40 +1875,33 @@ public:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      SwigType *smart = Swig_cparse_smartptr(n);
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *jniname = makeValidJniName(upcast_method);
       String *wname = Swig_name_wrapper(jniname);
       Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
-      if (smartptr) {
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  SwigType *smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  SwigType *bsmart = Copy(smart);
-	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-	  Replaceall(bsmart, rclassname, rbaseclass);
-	  Delete(rclassname);
-	  Delete(rbaseclass);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  Printv(upcasts_code,
-		 "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-		 "    jlong baseptr = 0;\n"
-		 "    ", smartnamestr, " *argp1;\n"
-		 "    (void)jenv;\n"
-		 "    (void)jcls;\n"
-		 "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
-		 "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
-		 "    return baseptr;\n"
-		 "}\n", "\n", NIL);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  Delete(bsmart);
-	} else {
-	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
-	}
+      if (smart) {
+	SwigType *bsmart = Copy(smart);
+	SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+	Replaceall(bsmart, rclassname, rbaseclass);
+	Delete(rclassname);
+	Delete(rbaseclass);
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
+	Printv(upcasts_code,
+	       "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+	       "    jlong baseptr = 0;\n"
+	       "    ", smartnamestr, " *argp1;\n"
+	       "    (void)jenv;\n"
+	       "    (void)jcls;\n"
+	       "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
+	       "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
+	       "    return baseptr;\n"
+	       "}\n", "\n", NIL);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+	Delete(bsmart);
       } else {
 	Printv(upcasts_code,
 	       "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1922,6 +1915,7 @@ public:
       Delete(wname);
       Delete(jniname);
       Delete(upcast_method);
+      Delete(smart);
     }
     Delete(baseclass);
   }
@@ -3486,7 +3480,7 @@ public:
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
 	   "jboolean jweak_global) {\n", jnipackage, jni_imclass_name, swig_director_connect_jni);
 
-    if (Len(smartptr)) {
+    if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
       Printf(code_wrap->code, "  (void)jcls;\n");
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
