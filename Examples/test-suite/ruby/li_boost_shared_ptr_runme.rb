@@ -568,7 +568,6 @@ class Li_boost_shared_ptr_runme
         Li_boost_shared_ptr.GlobalPointer = nil
 
         # plain reference
-        kglobal
 
         k = Li_boost_shared_ptr::Klass.new("global reference")
         Li_boost_shared_ptr.GlobalReference = k

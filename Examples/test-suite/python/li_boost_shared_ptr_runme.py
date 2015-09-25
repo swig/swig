@@ -521,7 +521,6 @@ class li_boost_shared_ptr_runme:
         li_boost_shared_ptr.cvar.GlobalPointer = None
 
         # plain reference
-        kglobal
 
         k = li_boost_shared_ptr.Klass("global reference")
         li_boost_shared_ptr.cvar.GlobalReference = k
