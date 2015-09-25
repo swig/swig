@@ -1,5 +1,7 @@
 require 'li_boost_shared_ptr'
+require 'swig_gc'
 
+#debug = $VERBOSE
 debug = false
 
 # simple shared_ptr usage - created in C++
@@ -21,9 +23,18 @@ class Li_boost_shared_ptr_runme
         end
 
         # Expect 1 instance - the one global variable (GlobalValue)
-        if (Li_boost_shared_ptr::Klass.getTotal_count() != 1)
-#            raise RuntimeError, "Klass.total_count=#{Li_boost_shared_ptr::Klass.getTotal_count()}"
-            puts "Klass.total_count=#{Li_boost_shared_ptr::Klass.getTotal_count()}"
+        GC.track_class = Li_boost_shared_ptr::Klass
+        invokeGC("Final GC")
+
+# Actual count is 3 due to memory leaks calling rb_raise in the call to Li_boost_shared_ptr::valuetest(nil)
+# as setjmp/longjmp are used thereby failing to call destructors of Klass instances on the stack in _wrap_valuetest
+# This is a generic problem in Ruby wrappers, not shared_ptr specific
+#        expectedCount = 1
+        expectedCount = 3
+        actualCount = Li_boost_shared_ptr::Klass.getTotal_count()
+        if (actualCount != expectedCount)
+#            raise RuntimeError, "GC failed to run (li_boost_shared_ptr). Expected count: #{expectedCount} Actual count: #{actualCount}"
+            puts "GC failed to run (li_boost_shared_ptr). Expected count: #{expectedCount} Actual count: #{actualCount}"
         end
 
         wrapper_count = Li_boost_shared_ptr::shared_ptr_wrapper_count()
@@ -37,6 +48,13 @@ class Li_boost_shared_ptr_runme
         if (debug)
             puts "Finished"
         end
+    end
+
+    def invokeGC(debug_msg)
+        puts "invokeGC #{debug_msg} start" if $VERBOSE
+        GC.stats if $VERBOSE
+        GC.start
+        puts "invokeGC #{debug_msg} end" if $VERBOSE
     end
 
     def runtest
@@ -354,7 +372,10 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(3, kmember)
         self.verifyCount(3, k)
 
-        puts "del m"
+        GC.track_class = Li_boost_shared_ptr::MemberVariables
+        m = nil
+        invokeGC("m = nil (A)")
+
         self.verifyCount(2, kmember)
         self.verifyCount(2, k)
 
@@ -372,7 +393,9 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(2, kmember)
         self.verifyCount(2, k)
 
-        puts "del m"
+        m = nil
+        invokeGC("m = nil (B)")
+
         self.verifyCount(2, kmember)
         self.verifyCount(2, k)
 
@@ -398,7 +421,10 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(4, kmember)
         self.verifyCount(4, k)
 
-        puts "del m"
+        m = nil
+        invokeGC("m = nil (C)")
+
+
         self.verifyCount(3, kmemberVal)
         self.verifyCount(3, kmember)
         self.verifyCount(3, k)
@@ -417,7 +443,9 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
-        puts "del m"
+        m = nil
+        invokeGC("m = nil (D)")
+
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
@@ -435,7 +463,9 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
-        puts "del m"
+        m = nil
+        invokeGC("m = nil (E)")
+
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
@@ -453,7 +483,9 @@ class Li_boost_shared_ptr_runme
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
-        puts "del m"
+        m = nil
+        invokeGC("m = nil (F)")
+
         self.verifyCount(1, kmember)
         self.verifyCount(1, k)
 
