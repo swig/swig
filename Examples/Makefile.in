@@ -1096,7 +1096,7 @@ ruby_cpp_static: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 ruby_run:
-	$(RUNTOOL) $(RUBY) -I. $(RUBY_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
