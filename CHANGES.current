@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-09-26: wsfulton
+            [Ruby] Add shared_ptr support
+
 2015-09-13: kkaempf
             [Ruby] Resolve tracking bug - issue #225.
             The bug is that the tracking code uses a ruby hash and thus may
