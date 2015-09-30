@@ -1,6 +1,4 @@
 
-// This is the bool runtime testcase. It checks that the C++ bool type works.
-
 using System;
 using special_variable_attributesNamespace;
 
