@@ -2925,8 +2925,8 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
                    matches that of the declaration, then we will allow it. Otherwise, delete. */
                 String *p = Swig_scopename_prefix($3.id);
 		if (p) {
-		  if ((Namespaceprefix && Strcmp(p,Namespaceprefix) == 0) ||
-		      (inclass && Strcmp(p,Classprefix) == 0)) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
@@ -2981,8 +2981,8 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 	      if (Strstr($3.id,"::")) {
                 String *p = Swig_scopename_prefix($3.id);
 		if (p) {
-		  if ((Namespaceprefix && Strcmp(p,Namespaceprefix) == 0) ||
-		      (inclass && Strcmp(p,Classprefix) == 0)) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
@@ -3618,6 +3618,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		   Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -3654,7 +3655,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       cparse_start_line = cparse_line;
 	       currentOuterClass = $<node>$;
 	       inclass = 1;
-	       Classprefix = NewStringEmpty();
+	       Classprefix = 0;
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       /* save the structure declaration to make a typedef for it later*/
@@ -3765,6 +3766,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		 Delete($$);
 		 $$ = $6; /* pass member list to outer class/namespace (instead of self)*/
 	       }
+	       Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
               }
              ;
 
