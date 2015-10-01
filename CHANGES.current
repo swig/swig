@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-10-01: wsfulton
+            Fix %shared_ptr support for private and protected inheritance.
+            - Remove unnecessary Warning 520: Derived class 'Derived' of 'Base'
+              is not similarly marked as a smart pointer
+            - Do not generate code that attempts to cast up the inheritance chain in the
+              type system runtime in such cases as it doesn't compile and can't be used.
+            Remove unnecessary warning 520 for %shared_ptr when the base class is ignored.
+
 2015-09-26: wsfulton
             [Ruby] Add shared_ptr support
 
