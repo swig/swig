@@ -97,10 +97,10 @@ CSHARP_ARRAYS(unsigned int, uint)
 // FIXME - on Unix 64 bit, long is 8 bytes but is 4 bytes on Windows 64 bit.
 //         How can this be handled sensibly?
 //         See e.g. http://www.xml.com/ldd/chapter/book/ch10.html
-CSHARP_ARRAYS(long, int)
-CSHARP_ARRAYS(unsigned long, uint)
-CSHARP_ARRAYS(long long, long)
-CSHARP_ARRAYS(unsigned long long, ulong)
+//CSHARP_ARRAYS(long, int)
+//CSHARP_ARRAYS(unsigned long, uint)
+//CSHARP_ARRAYS(long long, long)
+//CSHARP_ARRAYS(unsigned long long, ulong)
 CSHARP_ARRAYS(float, float)
 CSHARP_ARRAYS(double, double)
 CSHARP_ARRAYS(bool, bool)
