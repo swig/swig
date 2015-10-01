@@ -13,6 +13,9 @@ Version 3.0.8 (in progress)
               type system runtime in such cases as it doesn't compile and can't be used.
             Remove unnecessary warning 520 for %shared_ptr when the base class is ignored.
 
+2015-10-01: vkalinin
+            Fix #508: Fix segfault parsing anonymous typedef nested classes.
+
 2015-09-26: wsfulton
             [Ruby] Add shared_ptr support
 
