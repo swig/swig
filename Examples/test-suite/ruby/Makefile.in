@@ -22,6 +22,7 @@ CPP_TEST_CASES = \
 	li_std_stack \
 	primitive_types \
 	ruby_keywords \
+	ruby_minherit_shared_ptr \
 	ruby_naming \
 	ruby_track_objects \
 	ruby_track_objects_directors \

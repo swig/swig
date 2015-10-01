@@ -2439,25 +2439,23 @@ public:
 	  SwigType *btype = NewString(basename);
 	  SwigType_add_pointer(btype);
 	  SwigType_remember(btype);
+	  SwigType *smart = Swig_cparse_smartptr(base.item);
+	  if (smart) {
+	    SwigType_add_pointer(smart);
+	    SwigType_remember(smart);
+	  }
+	  String *bmangle = SwigType_manglestr(smart ? smart : btype);
 	  if (multipleInheritance) {
-	    String *bmangle = SwigType_manglestr(btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->mImpl");
 	    Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
-	    Delete(bmangle);
 	  } else {
-	    SwigType *smart = Swig_cparse_smartptr(base.item);
-	    if (smart) {
-	      SwigType_add_pointer(smart);
-	      SwigType_remember(smart);
-	    }
-	    String *bmangle = SwigType_manglestr(smart ? smart : btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->klass");
 	    Replaceall(klass->init, "$super", bmangle);
-	    Delete(bmangle);
-	    Delete(smart);
 	  }
+	  Delete(bmangle);
+	  Delete(smart);
 	  Delete(btype);
 	}
 	base = Next(base);
