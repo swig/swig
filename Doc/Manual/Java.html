@@ -52,6 +52,10 @@
 <li><a href="#Java_namespaces">C++ namespaces</a>
 <li><a href="#Java_templates">C++ templates</a>
 <li><a href="#Java_smart_pointers">C++ Smart Pointers</a>
+<ul>
+<li><a href="#Java_smart_pointers_shared_ptr">The shared_ptr Smart Pointer</a>
+<li><a href="#Java_smart_pointers_generic">Generic Smart Pointers</a>
+</ul>
 </ul>
 <li><a href="#Java_further_details">Further details on the generated Java classes</a>
 <ul>
@@ -1996,6 +2000,20 @@ More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</
 </p>
 
 <H3><a name="Java_smart_pointers"></a>25.3.15 C++ Smart Pointers</H3>
+
+
+<H4><a name="Java_smart_pointers_shared_ptr"></a>25.3.15.1 The shared_ptr Smart Pointer</H4>
+
+
+<p>
+The C++11 standard provides <tt>std::shared_ptr</tt> which was derived from the Boost
+implementation, <tt>boost::shared_ptr</tt>.
+Both of these are available for Java in the SWIG library and usage is outlined
+in the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library section.
+</p>
+
+
+<H4><a name="Java_smart_pointers_generic"></a>25.3.15.2 Generic Smart Pointers</H4>
 
 
 <p>
