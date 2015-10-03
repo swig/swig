@@ -185,6 +185,7 @@ int HiddenPrivateDestructor::DeleteCount = 0;
 class Base {
 public:
   virtual int b() = 0;
+  virtual ~Base() {}
 };
 
 class DerivedProtected1 : protected Base {
@@ -208,6 +209,7 @@ public:
 class Base2 {
 public:
   virtual int b2() = 0;
+  virtual ~Base2() {}
 };
 class DerivedPublic : public Base2 {
 public:
