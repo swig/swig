@@ -785,6 +785,13 @@ private:
       return SWIG_OK;
     }
 
+    // Don't emit constructors for abstract director classes.  They
+    // will never succeed anyhow.
+    if (Swig_methodclass(n) && Swig_directorclass(n)
+	&& Strcmp(Char(Getattr(n, "wrap:action")), director_prot_ctor_code) == 0) {
+      return SWIG_OK;
+    }
+
     String *name = Getattr(n, "sym:name");
     String *nodetype = Getattr(n, "nodeType");
     bool is_static = is_static_member_function || isStatic(n);
@@ -848,8 +855,7 @@ private:
       Delete(c2);
       Delete(c1);
 
-      if (Swig_methodclass(n) && Swig_directorclass(n)
-	  && Strcmp(Char(Getattr(n, "wrap:action")), director_prot_ctor_code) != 0) {
+      if (Swig_methodclass(n) && Swig_directorclass(n)) {
 	// The core SWIG code skips the first parameter when
 	// generating the $nondirector_new string.  Recreate the
 	// action in this case.  But don't it if we are using the
