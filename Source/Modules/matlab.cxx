@@ -1411,18 +1411,6 @@ int MATLAB::constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
- /* ----------------------------------------------------------------------------
-   * BEGIN C++ Director Class modifications
-   * ------------------------------------------------------------------------- */
-
-  /* C++/Python polymorphism demo code
-   *
-   * TODO
-   *
-   * Move some boilerplate code generation to Swig_...() functions.
-   *
-   */
-
   /* ------------------------------------------------------------
    * classDirectorConstructor()
    * ------------------------------------------------------------ */
@@ -1565,7 +1553,7 @@ int MATLAB::constantWrapper(Node *n) {
  * classDirectorMethod()
  *
  * Emit a virtual director method to pass a method call on to the 
- * underlying Python object.
+ * underlying MATLAB object.
  *
  * ** Moved it here due to internal error on gcc-2.96 **
  * --------------------------------------------------------------- */
@@ -1676,7 +1664,7 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
 	     SwigType_namestr(name));
     }
   } else {
-    /* attach typemaps to arguments (C/C++ -> Python) */
+    /* attach typemaps to arguments (C/C++ -> MATLAB) */
     String *arglist = NewString("");
     String *parse_args = NewString("");
 
@@ -1768,7 +1756,7 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  if (SwigType_isreference(ptype)) {
 	    Insert(ppname, 0, "&");
 	  }
-	  /* if necessary, cast away const since Python doesn't support it! */
+	  /* if necessary, cast away const since MATLAB doesn't support it! */
 	  if (SwigType_isconst(nptype)) {
 	    nonconst = NewStringf("nc_tmp_%s", pname);
 	    String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(ptype, 0), ppname);
@@ -1817,13 +1805,10 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
       p = nextSibling(p);
     }
 
-    /* add the method name as a PyString */
-    String *pyname = Getattr(n, "sym:name");
-
     /* wrap complex arguments to PyObjects */
     Printv(w->code, wrap_args, NIL);
 
-    /* pass the method call on to the Python object */
+    /* pass the method call on to the MATLAB object */
     if (dirprot_mode() && !is_public(n)) {
       Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
     }
@@ -1834,16 +1819,18 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
     Append(w->code, "}\n");
     if (Len(parse_args) > 0) {
       if (use_parse) {
-	    } else {
+      } else {
         Printf(w->code, "mxArray* dispatch_in[%d] = {swig_get_self()%s};\n", Len(parse_args)+1, arglist);
-        Printf(w->code, "mxArray* dispatch_out[1];\n");
-        Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(1, dispatch_out, %d, dispatch_in, \"%s\");\n", Len(parse_args)+1, pyname);
+        Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
+        Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(%d, dispatch_out, %d, dispatch_in, \"%s\");\n",
+               outputs, Len(parse_args)+1, symname);
         Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
       }
     } else {
       Printf(w->code, "mxArray* dispatch_in[1] = {swig_get_self()};\n");
-      Printf(w->code, "mxArray* dispatch_out[1];\n");
-      Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(1, dispatch_out, 1, dispatch_in, \"%s\");\n", pyname);
+      Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
+      Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(%d, dispatch_out, 1, dispatch_in, \"%s\");\n",
+             outputs, symname);
       Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
     }
     // todo: destroy
@@ -1867,14 +1854,14 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printv(w->code, Str(tm), "\n", NIL);
     } else {
       Append(w->code, "  if (error) {\n");
-      Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling '%s.%s'\");\n", classname, pyname);
+      Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling '%s.%s'\");\n", classname, symname);
       Append(w->code, "  }\n");
     }
     Append(w->code, "}\n");
     Delete(tm);
 
     /*
-     * Python method may return a simple object, or a tuple.
+     * MATLAB method may return a simple object, or a tuple.
      * for in/out aruments, we have to extract the appropriate PyObjects from the tuple,
      * then marshal everything back to C/C++ (return value and output arguments).
      *
@@ -1888,7 +1875,7 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
     if (outputs > 1) {
       Wrapper_add_local(w, "output", "mxArray *output");
       Printf(w->code, "if (!PyTuple_Check(%s)) {\n", Swig_cresult_name());
-      Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Python method %s.%sfailed to return a tuple.\");\n", classname, pyname);
+      Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"MATLAB method %s.%sfailed to return a tuple.\");\n", classname, symname);
       Append(w->code, "}\n");
     }
 
