@@ -1,11 +1,12 @@
-SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
-  if (num_args > max_args && !varargs)
-    mexWarnMsgIdAndTxt("SWIG:RuntimeError","function %s takes at most %i arguments", func_name, max_args);
-  else if (num_args < min_args)
-    mexWarnMsgIdAndTxt("SWIG:RuntimeError","function %s requires at least %i arguments", func_name, min_args);
-  else
-    return true;
-  return false;
+/* Last error */
+static int SWIG_lasterror_code = 0;
+static char SWIG_lasterror_msg[1024];
+SWIGRUNTIME void SWIG_Error(int code, const char *format, ...) {
+  SWIG_lasterror_code = code;
+  va_list arg;
+  va_start(arg, format);
+  vsnprintf(SWIG_lasterror_msg, sizeof(SWIG_lasterror_msg), format, arg);
+  va_end(arg);
 }
 
 SWIGRUNTIME const char* SWIG_ErrorType(int code) {
@@ -36,8 +37,15 @@ SWIGRUNTIME const char* SWIG_ErrorType(int code) {
   return "SWIG:UnknownError";
 }
 
-SWIGRUNTIME void SWIG_Error(int code, const char *msg) {
-  mexWarnMsgIdAndTxt(SWIG_ErrorType(code),msg);
+SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
+  if (num_args > max_args && !varargs) {
+    SWIG_Error(SWIG_RuntimeError, "function %s takes at most %i arguments", func_name, max_args);
+  } else if (num_args < min_args) {
+    SWIG_Error(SWIG_RuntimeError, "function %s requires at least %i arguments", func_name, min_args);
+  } else {
+    return true;
+  }
+  return false;
 }
 
 #define SWIG_fail                                       goto fail
@@ -80,7 +88,6 @@ typedef struct SwigPtr {
   void *self;
   struct SwigPtr* next;
 } SwigPtr;
-static char const * storagename = "swig" SWIG_name_d "directorstorage";
 static swig_module_info *saved_swig_module = 0;
 
 /* Add new pointer object to the memory allocator
@@ -217,10 +224,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   mxDestroyArray(pm_ptr);
 
   /* Get pointer object */
-  if (!swig_ptr) {
-    mexWarnMsgIdAndTxt("SWIG:ConvertPtrAndOwn", "No such element");
-    return SWIG_ERROR;
-  }
+  if (!swig_ptr) return SWIG_ERROR;
 
   swig_cast_info *tc;
   bool same_type = false;

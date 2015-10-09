@@ -2,6 +2,7 @@
 #include <mex.h>
 #include <math.h> /* need this for floor() */
 #include <string.h> /* need this for strcmp() */
+#include <stdarg.h> /* need this for SWIG_Error below */
 %}
 
 %insert(runtime) "swigrun.swg";
