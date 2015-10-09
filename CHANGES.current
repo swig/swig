@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-10-10: wsfulton
+            [Python] #539 - Support Python 2.5 and -builtin.  PyAsyncMethods is a new
+            member in PyHeapTypeObject.
+
 2015-10-06: ianlancetaylor
 	    [Go] Don't emit a constructor function for a director
 	    class with an abstract method, since the function will

@@ -4052,6 +4052,15 @@ public:
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
+    // PyAsyncMethods as_async
+    Printv(f, "#if PY_VERSION_HEX >= 0x03050000\n", NIL);
+    Printf(f, "  {\n");
+    printSlot(f, getSlot(n, "feature:python:am_await"), "am_await", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:am_aiter"), "am_aiter", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:am_anext"), "am_anext", "unaryfunc");
+    Printf(f, "  },\n");
+    Printv(f, "#endif\n", NIL);
+
     // PyNumberMethods as_number
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
