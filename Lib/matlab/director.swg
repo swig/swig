@@ -81,13 +81,11 @@ namespace Swig {
     GCItem_var& operator=(GCItem *item) {
       GCItem *tmp = _item;
       _item = item;
-      mexPrintf("GCItem_var del %d\n", tmp);
       delete tmp;
       return *this;
     }
 
     ~GCItem_var() {
-      mexPrintf("~GCItem_var %d\n", _item);
       delete _item;
     }
 
@@ -120,7 +118,6 @@ namespace Swig {
     }
 
     virtual ~GCItem_T() {
-      mexPrintf("~GCItem_T %d\n", _ptr);
       delete _ptr;
     }
 
@@ -134,7 +131,6 @@ namespace Swig {
     }
 
     virtual ~GCArray_T() {
-      mexPrintf("~GCArray_T %d\n", _ptr);
       delete[] _ptr;
     }
 
@@ -231,67 +227,78 @@ namespace Swig {
   /* director base class */
   class Director {
   private:
-    /* pointer to the wrapped python object */
-    std::string swig_name;
+    /* reference counter */
+    mutable int swig_refcount;
 
     /* flag indicating whether the object is owned by matlab or c++ */
     mutable bool swig_disown_flag;
 
+    /* Name of field in MATLAB */
+    std::string fieldname() const {
+      std::stringstream ss;
+      ss << "x" << this;
+      return ss.str();
+    }
+
     /* decrement the reference count of the wrapped matlab object */
     void swig_decref() {
       if (swig_disown_flag) {
-        mxArray* swigdirectorstorage = getswigdirectorstorage();
-        int field_i = mxGetFieldNumber(swigdirectorstorage, swig_name.c_str());
-        mxArray* field = mxGetFieldByNumber(swigdirectorstorage, 0, field_i);
-        mxRemoveField(swigdirectorstorage, field_i);
-        mxDestroyArray(field);
-        setswigdirectorstorage(swigdirectorstorage);
-        mexPrintf("cleaned up");
+        //mexPrintf("decref to %d\n", swig_refcount-1);
+
+        if (--swig_refcount==0) {
+          // Delete MATLAB storage
+          std::string fname = fieldname();
+          mxArray* field = mxCreateString(fname.c_str());
+          mxArray* empty = mxCreateDoubleMatrix(0, 0, mxREAL);
+          mxArray* rhs[2] = {field, empty};
+          mxArray* error = mexCallMATLABWithTrap(0, 0, 2, rhs, "SwigStorage");
+          mxDestroyArray(field);
+          mxDestroyArray(empty);
+          if (error) {
+            mxDestroyArray(error);
+            mexErrMsgIdAndTxt("SWIG:Director:swig_decref", "Cannot call SwigStorage");
+          }
+        }
       }
     }
 
   public:
-    mxArray* getswigdirectorstorage() const {
-      mxArray* ret = mexGetVariable("global",storagename);
-      if (!ret) {
-        ret = mxCreateStructMatrix(1,1,0,0);
+    /* Constructor */
+    Director(mxArray *self) : swig_refcount(0), swig_disown_flag(false) {
+      // Save MATLAB in SwigStorage
+      std::string fname = fieldname();
+      mxArray* field = mxCreateString(fname.c_str());
+      mxArray* rhs[2] = {field, self};
+      mxArray* error = mexCallMATLABWithTrap(0, 0, 2, rhs, "SwigStorage");
+      mxDestroyArray(field);
+      if (error) {
+        mxDestroyArray(error);
+        mexErrMsgIdAndTxt("SWIG:Director:Director", "Cannot call SwigStorage");
       }
-      mexMakeArrayPersistent(ret);
-      return ret;
-    }
-
-    void setswigdirectorstorage(mxArray* m) {
-      mexPutVariable("global",storagename,m);
-    }
-    
-    /* wrap a matlab object, optionally taking ownership */
-    Director(mxArray *self) : swig_disown_flag(false) {
-
-      std::stringstream ss;
-      ss << this << std::endl;
-      swig_name = ss.str();
-
-      mxArray* swigdirectorstorage = getswigdirectorstorage();
-
-      mxAddField(swigdirectorstorage,swig_name.c_str());
-      mxSetField(swigdirectorstorage,0,swig_name.c_str(),self);
-
-      setswigdirectorstorage(swigdirectorstorage);
     }
 
     /* discard our reference at destruction */
     virtual ~Director() {
+      //mexPrintf("Calling destructor\n");
       swig_decref();
     }
 
-    /* return a pointer to the wrapped python object */
+    /* return a pointer to the wrapped object */
     mxArray *swig_get_self() const {
-      mxArray* swigdirectorstorage = getswigdirectorstorage();
-      mxArray *swig_self = mxGetField(swigdirectorstorage,0,swig_name.c_str());
+      // Save MATLAB in SwigStorage
+      std::string fname = fieldname();
+      mxArray* field = mxCreateString(fname.c_str());
+      mxArray* swig_self = 0;
+      mxArray* error = mexCallMATLABWithTrap(1, &swig_self, 1, &field, "SwigStorage");
+      mxDestroyArray(field);
+      if (error) {
+        mxDestroyArray(error);
+        mexErrMsgIdAndTxt("SWIG:Director:Director", "Cannot call SwigStorage");
+      }
       return swig_self;
     }
 
-    /* acquire ownership of the wrapped python object (the sense of "disown" is from python) */
+    /* acquire ownership of the wrapped object */
     void swig_disown() const {
       if (!swig_disown_flag) {
         swig_disown_flag=true;
@@ -299,10 +306,11 @@ namespace Swig {
       }
     }
 
-    /* increase the reference count of the wrapped python object */
+    /* increase the reference count of the wrapped object */
     void swig_incref() const {
       if (swig_disown_flag) {
-        //Py_INCREF(swig_self);
+        swig_refcount++;
+        //mexPrintf("incref to %d\n", swig_refcount);
       }
     }
 

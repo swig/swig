@@ -115,6 +115,7 @@ protected:
   void finalizeConstant();
   void createSwigRef();
   void createSwigMem();
+  void createSwigStorage();
   void autodoc_to_m(File* f, Node *n);
   void process_autodoc(Node *n);
   void make_autodocParmList(Node *n, String *decl_str, String *args_str);
@@ -292,10 +293,10 @@ int MATLAB::top(Node *n) {
   /* Set comparison with none for ConstructorToFunction */
   setSubclassInstanceCheck(NewString("!mxIsNumeric($arg)"));
 
-  // Create SwigRef abstract base class
+  // Create SwigRef base class
   createSwigRef();
 
-  // Create SwigMem function
+  // Create SwigMem helper function
   createSwigMem();
 
   String *module = Getattr(n, "name");
@@ -347,6 +348,9 @@ int MATLAB::top(Node *n) {
   f_directors = NewString("");
 
   if (directorsEnabled()) {
+    // Create SwigStorage helper function
+    createSwigStorage();
+
     if (!no_header_file) {
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
@@ -2802,6 +2806,44 @@ void MATLAB::createSwigMem() {
   Printf(f_wrap_m,"  else\n");
   Printf(f_wrap_m,"    nargoutchk(0,0)\n");
   Printf(f_wrap_m,"    mem = varargin{1};\n");
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Tidy up
+  Delete(f_wrap_m);
+  Delete(mfile);
+  f_wrap_m = 0;
+}
+
+void MATLAB::createSwigStorage() {
+  // Create file
+  String* mfile = NewString(SWIG_output_directory());
+  Append(mfile, "SwigStorage.m");
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m) {
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Output SwigMem function
+  Printf(f_wrap_m,"function varargout = SwigStorage(field, varargin)\n");
+  Printf(f_wrap_m,"  persistent dir_mem\n");
+  Printf(f_wrap_m,"  mlock\n");
+  Printf(f_wrap_m,"  narginchk(1,2)\n");
+  Printf(f_wrap_m,"  if isempty(dir_mem)\n");
+  Printf(f_wrap_m,"    dir_mem = struct;\n");
+  Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"  if nargin==1\n");
+  Printf(f_wrap_m,"    nargoutchk(0,1)\n");
+  Printf(f_wrap_m,"    varargout{1} = dir_mem.(field);\n");
+  Printf(f_wrap_m,"  else\n");
+  Printf(f_wrap_m,"    nargoutchk(0,0)\n");
+  Printf(f_wrap_m,"    if isempty(varargin{1})\n");
+  Printf(f_wrap_m,"      dir_mem = rmfield(dir_mem, field);\n");
+  Printf(f_wrap_m,"    else\n");
+  Printf(f_wrap_m,"      dir_mem.(field) = varargin{1};\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
