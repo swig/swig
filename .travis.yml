@@ -76,10 +76,16 @@ matrix:
       env: SWIGLANG=python PY3=3 VER=3.4
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python PY3=3 VER=3.5
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
