@@ -69,7 +69,7 @@ class TargetLangOrphanPerson(OrphanPerson):
 class TargetLangOrphanChild(OrphanChild):
 
     def __init__(self):
-        Child.__init__(self)
+        OrphanChild.__init__(self)
 
     def id(self):
         identifier = "TargetLangOrphanChild"
