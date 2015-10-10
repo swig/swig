@@ -6,7 +6,7 @@ Version 3.0.8 (in progress)
 ===========================
 
 2015-10-10: wsfulton
-            [Python] #539 - Support Python 2.5 and -builtin.  PyAsyncMethods is a new
+            [Python] #539 - Support Python 3.5 and -builtin.  PyAsyncMethods is a new
             member in PyHeapTypeObject.
 
 2015-10-06: ianlancetaylor
