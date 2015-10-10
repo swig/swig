@@ -142,6 +142,11 @@ static Node *copy_node(Node *n) {
       Setattr(nn, key, k.item);
       continue;
     }
+    /* defaultargs will be patched back in later */
+    if (strcmp(ckey,"defaultargs") == 0) {
+      Setattr(nn, "needs_defaultargs", "1");
+      continue;
+    }
     /* Looks okay.  Just copy the data using Copy */
     ci = Copy(k.item);
     Setattr(nn, key, ci);
@@ -649,6 +654,25 @@ static void add_symbols_copy(Node *n) {
       }
     }
     n = nextSibling(n);
+  }
+}
+
+static void update_defaultargs(Node *n) {
+  if (n) {
+    Node *firstdefaultargs = n;
+    update_defaultargs(firstChild(n));
+    n = nextSibling(n);
+    while (n) {
+      update_defaultargs(firstChild(n));
+      assert(!Getattr(n, "defaultargs"));
+      if (Getattr(n, "needs_defaultargs")) {
+	Setattr(n, "defaultargs", firstdefaultargs);
+	Delattr(n, "needs_defaultargs");
+      } else {
+	firstdefaultargs = n;
+      }
+      n = nextSibling(n);
+    }
   }
 }
 
@@ -2573,6 +2597,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  {
                     Node *nn = n;
                     Node *linklistend = 0;
+                    Node *linkliststart = 0;
                     while (nn) {
                       Node *templnode = 0;
                       if (Strcmp(nodeType(nn),"template") == 0) {
@@ -2654,7 +2679,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
 
                           templnode = copy_node(nn);
-			  update_nested_classes(templnode); /* update classes nested withing template */
+			  update_nested_classes(templnode); /* update classes nested within template */
                           /* We need to set the node name based on name used to instantiate */
                           Setattr(templnode,"name",tname);
 			  Delete(tname);
@@ -2771,6 +2796,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         }
 
                         /* all the overloaded templated functions are added into a linked list */
+                        if (!linkliststart)
+                          linkliststart = templnode;
                         if (nscope_inner) {
                           /* non-global namespace */
                           if (templnode) {
@@ -2791,6 +2818,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                       }
                       nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
                     }
+                    update_defaultargs(linkliststart);
 		  }
 	          Swig_symbol_setscope(tscope);
 		  Delete(Namespaceprefix);
