@@ -68,7 +68,7 @@ void Swig_print_node(Node *obj) {
   Node *cobj;
 
   print_indent(0);
-  Printf(stdout, "+++ %s ----------------------------------------\n", nodeType(obj));
+  Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
   ki = First(obj);
   while (ki.key) {
     String *k = ki.key;
