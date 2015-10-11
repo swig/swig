@@ -42,6 +42,19 @@ Version 3.0.8 (in progress)
 2015-09-04: olly
 	    [Python] Fix docstrings for %callback functions.
 
+2015-09-03: demi-rluddy
+            [Go] Removed golang stringing for signed/unsigned char
+
+            Changed default handling of signed char* and unsigned char* to be
+            opaque pointers rather than strings, similarly to how other
+            languages work.
+
+            Any existing code relying on treating signed char* or unsigned
+            char* as a string can restore the old behavior with typemaps.i by
+            using %apply to copy the [unchanged] char* behavior.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2015-08-07: talby
             [Perl] tidy -Wtautological-constant-out-of-range-compare warnings when building generated code under clang
 
