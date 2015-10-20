@@ -1949,7 +1949,8 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
       Node *m = Getattr(item, "methodNode");
       /* retrieve the director features */
       int mdir = GetFlag(m, "feature:director");
-      int mndir = GetFlag(m, "feature:nodirector");
+      int mndir = GetFlag(m, "feature:nodirector") ||
+                  GetFlag(m, "feature:ignore");
       /* 'nodirector' has precedence over 'director' */
       int dir = (mdir || mndir) ? (mdir && !mndir) : 1;
       /* check if the method was found only in a base class */
@@ -1958,7 +1959,8 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
 	Node *c = Copy(m);
 	Setattr(c, "parentNode", n);
 	int cdir = GetFlag(c, "feature:director");
-	int cndir = GetFlag(c, "feature:nodirector");
+	int cndir = GetFlag(c, "feature:nodirector") ||
+                    GetFlag(c, "feature:ignore");
 	dir = (cdir || cndir) ? (cdir && !cndir) : dir;
 	Delete(c);
       }
@@ -2095,7 +2097,8 @@ int Language::classDirectorMethods(Node *n) {
     Node *item = Getitem(vtable, i);
     String *method = Getattr(item, "methodNode");
     String *fqdname = Getattr(item, "fqdname");
-    if (GetFlag(method, "feature:nodirector"))
+    if (GetFlag(method, "feature:nodirector") ||
+        GetFlag(method, "feature:ignore"))
       continue;
 
     String *wrn = Getattr(method, "feature:warnfilter");
@@ -2455,7 +2458,8 @@ int Language::classDeclaration(Node *n) {
   if (!ImportMode) {
     if (directorsEnabled()) {
       int ndir = GetFlag(n, "feature:director");
-      int nndir = GetFlag(n, "feature:nodirector");
+      int nndir = GetFlag(n, "feature:nodirector") ||
+                  GetFlag(n, "feature:ignore");
       /* 'nodirector' has precedence over 'director' */
       dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     }
