@@ -6,8 +6,6 @@
 
 %feature("director");
 
-%ignore OverloadedMethod(int n, int xoffset = 0, int yoffset = 0);
-%ignore OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0);
 %ignore DIgnoreConstructor(bool b);
 %ignore DIgnoreOnlyConstructor(bool b);
 %ignore DIgnoreDestructor::~DIgnoreDestructor;
@@ -15,12 +13,8 @@
 %ignore References;
 %ignore PublicMethod1;
 %ignore PublicMethod2;
-%ignore PublicPureVirtualMethod1;
-%ignore PublicPureVirtualMethod2;
 %ignore ProtectedMethod1;
 %ignore ProtectedMethod2;
-%ignore ProtectedPureVirtualMethod1;
-%ignore ProtectedPureVirtualMethod2;
 
 %typemap(imtype,
   inattributes="[inattributes should not be used]",
