@@ -5,3 +5,8 @@ shared <- paste(nn, .Platform$dynlib.ext, sep="")
 rfile <- paste(nn, ".R", sep="")
 dyn.load(shared)
 source(rfile)
+
+Jan <- enumToInteger("M_Jan", "Month")
+May <- enumToInteger("M_May", "Month")
+Dec <- enumToInteger("M_Dec", "Month")
+unittest(c(Jan, May, Dec), c(0, 1, 2))
