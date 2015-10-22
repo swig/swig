@@ -17,7 +17,7 @@ medium <- enumToInteger("medium", "SpeedClass_speed")
 fast <- enumToInteger("fast", "SpeedClass_speed")
 lightning <- enumToInteger("lightning", "SpeedClass_speed")
 
-unittest(c(slow, medium, fast, lighting), c(10, 20, 30, 31))
+unittest(c(slow, medium, fast, lightning), c(10, 20, 30, 31))
 
 one <- enumToInteger("one", "RepeatSpace_repeat")
 initial <- enumToInteger("initial", "RepeatSpace_repeat")
