@@ -8,10 +8,9 @@ source(rfile)
 
 EV1 <- enumToInteger("EnumVal1", "PublicBase_AnEnum")
 EV2 <- enumToInteger("EnumVal2", "PublicBase_AnEnum")
-unittest(EV1, 0)
-unittest(EV2, 1)
+unittest(c(EV1, EV2), c(0, 1))
 
 EV1 <- enumToInteger("EnumVal1", "ProtectedBase_AnEnum")
 EV2 <- enumToInteger("EnumVal2", "ProtectedBase_AnEnum")
-unittest(EV1, 0)
-unittest(EV2, 1)
+unittest(c(EV1, EV2), c(0,1))
+
