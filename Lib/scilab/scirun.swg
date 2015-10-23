@@ -99,6 +99,16 @@ SWIG_Scilab_SetOutput(void *pvApiCtx, SwigSciObject output) {
 }
 
 
+/* Typed object wrappers, modelled after SwigPyObject */
+
+struct SwigSciWrapperObj {
+  void *ptr;
+  swig_type_info *ty;
+
+  SwigSciWrapperObj(void *ptr, swig_type_info *ty) : ptr(ptr), ty(ty) {}
+};
+
+
 /* Pointer conversion functions */
 
 SWIGINTERN int
@@ -106,6 +116,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
+  void *sobj;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -118,16 +129,30 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-
-  if (iType == sci_pointer) {
-    sciErr = getPointer(pvApiCtx, piAddrVar, pObjValue);
-    if (sciErr.iErr) {
-      printError(&sciErr, 0);
-      return SWIG_ERROR;
-    }
-  }
-  else {
+  if (iType != sci_pointer) {
     return SWIG_ERROR;
+  }
+
+  sciErr = getPointer(pvApiCtx, piAddrVar, &sobj);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if (sobj) {
+      SwigSciWrapperObj *wrapper = static_cast<SwigSciWrapperObj*>(sobj);
+      swig_cast_info *cast = SWIG_TypeCheck(wrapper->ty->name, descriptor);
+      if (!cast) {
+          return SWIG_ERROR;
+      }
+      int newmemory = 0;
+      *pObjValue = SWIG_TypeCast(cast, wrapper->ptr, &newmemory);
+      if (flags & SWIG_POINTER_DISOWN) {
+          delete wrapper;
+      }
+      // TODO What to do about newmemory?
+  } else {
+      *pObjValue = 0;
   }
 
   return SWIG_OK;
@@ -135,9 +160,13 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info
 
 SWIGRUNTIMEINLINE int
 SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *obj, swig_type_info *descriptor, int flags) {
+  SwigSciWrapperObj *sobj = new SwigSciWrapperObj(obj, descriptor);
   SciErr sciErr;
 
-  sciErr = createPointer(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, (void *)obj);
+  sciErr = createPointer(
+      pvApiCtx,
+      SWIG_NbInputArgument(pvApiCtx) + iVarOut,
+      static_cast<void *>(sobj));
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
