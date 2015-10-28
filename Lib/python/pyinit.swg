@@ -185,6 +185,9 @@ swig_varlink_type(void) {
 #if PY_VERSION_HEX >= 0x02060000
       0,                                  /* tp_version */
 #endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                  /* tp_finalize */
+#endif
 #ifdef COUNT_ALLOCS
       0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
