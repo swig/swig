@@ -6,8 +6,8 @@ rfile <- paste(nn, ".R", sep="")
 dyn.load(shared)
 source(rfile)
 
-UnaryField <- enumToInteger("UnaryField", "FieldDim")
-BinaryField <- enumToInteger("BinaryField", "FieldDim")
+UnaryField <- enumToInteger("UnaryField", "_FieldDim")
+BinaryField <- enumToInteger("BinaryField", "_FieldDim")
 
 unittest(c(UnaryField, BinaryField), c(0, 1))
 

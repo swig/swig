@@ -6,11 +6,11 @@ rfile <- paste(nn, ".R", sep="")
 dyn.load(shared)
 source(rfile)
 
-EV1 <- enumToInteger("EnumVal1", "PublicBase_AnEnum")
-EV2 <- enumToInteger("EnumVal2", "PublicBase_AnEnum")
+EV1 <- enumToInteger("EnumVal1", "_PublicBase_AnEnum")
+EV2 <- enumToInteger("EnumVal2", "_PublicBase_AnEnum")
 unittest(c(EV1, EV2), c(0, 1))
 
-EV1 <- enumToInteger("EnumVal1", "ProtectedBase_AnEnum")
-EV2 <- enumToInteger("EnumVal2", "ProtectedBase_AnEnum")
+EV1 <- enumToInteger("EnumVal1", "_ProtectedBase_AnEnum")
+EV2 <- enumToInteger("EnumVal2", "_ProtectedBase_AnEnum")
 unittest(c(EV1, EV2), c(0,1))
 
