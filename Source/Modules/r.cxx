@@ -1188,13 +1188,12 @@ int R::enumDeclaration(Node *n) {
       if (!symname || Getattr(n, "unnamedinstance"))
         return SWIG_NOWRAP;
 
-      Node *parent = parentNode(n);
       // create mangled name for the enum
       String * ename;
-      if (Getattr(parent, "sym:name"))
-        ename = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
-      else 
-        ename=symname;
+
+      String *name = Getattr(n, "name");
+      ename = getRClassName(name);
+      Delete(name);
       // set up a call to create the R enum structure. The list of
       // individual elements will be built in enum_code
       enum_values=0;
