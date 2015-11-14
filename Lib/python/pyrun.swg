@@ -569,6 +569,7 @@ SwigPyObject_append(PyObject* v, PyObject* next)
   next = tmp;
 #endif
   if (!SwigPyObject_Check(next)) {
+    PyErr_SetString(PyExc_TypeError, "Attempt to append a non SwigPyObject");
     return NULL;
   }
   sobj->next = next;
