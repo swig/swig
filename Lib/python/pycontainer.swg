@@ -252,6 +252,12 @@ namespace swig {
     return pos;
   }
 
+  template <class Sequence>
+  inline void
+  erase(Sequence* seq, const typename Sequence::iterator& position) {
+    seq->erase(position);
+  }
+
   template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j, Py_ssize_t step) {
@@ -552,6 +558,7 @@ namespace swig
     difference_type _index;
   };
 
+  // STL container wrapper around a Python sequence
   template <class T>
   struct SwigPySequence_Cont
   {
@@ -748,7 +755,6 @@ namespace swig
       return self->size();
     }
   }
-
 %enddef
 
 
@@ -756,7 +762,7 @@ namespace swig
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
-  
+
   %fragment("SwigPySequence_Base");
 
 #if defined(SWIGPYTHON_BUILTIN)
@@ -769,14 +775,6 @@ namespace swig
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {
-    value_type pop() throw (std::out_of_range) {
-      if (self->size() == 0)
-	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
-      return x;
-    }
-
     /* typemap for slice object support */
     %typemap(in) PySliceObject* {
       if (!PySlice_Check($input)) {
@@ -794,7 +792,11 @@ namespace swig
       return swig::getslice(self, i, j, 1);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v = Sequence()) throw (std::out_of_range, std::invalid_argument) {
+    void __setslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
+      swig::setslice(self, i, j, 1, Sequence());
+    }
+
+    void __setslice__(difference_type i, difference_type j, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
       swig::setslice(self, i, j, 1, v);
     }
 
@@ -803,10 +805,9 @@ namespace swig
     }
 #endif
 
-    void __delitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __delitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
-
 
     /* Overloaded methods for Python 3 compatibility 
      * (Also useful in Python 2.x)
@@ -858,12 +859,11 @@ namespace swig
       Sequence::difference_type jd = j;
       swig::delslice(self, id, jd, step);
     }
-     
-  }
 
+  }
 %enddef
 
-%define %swig_sequence_methods(Sequence...)
+%define %swig_sequence_methods_non_resizable(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const throw (std::out_of_range) {
@@ -876,19 +876,32 @@ namespace swig
 
 #if defined(SWIGPYTHON_BUILTIN)
     // This will be called through the mp_ass_subscript slot to delete an entry.
-    void __setitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __setitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
 #endif
+
+  }
+%enddef
+
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_non_resizable(%arg(Sequence))
+  %extend {
+    value_type pop() throw (std::out_of_range) {
+      if (self->size() == 0)
+	throw std::out_of_range("pop from empty container");
+      Sequence::value_type x = self->back();
+      self->pop_back();
+      return x;
+    }
 
     void append(const value_type& x) {
       self->push_back(x);
     }
- }
-
+  }
 %enddef
 
-%define %swig_sequence_methods_val(Sequence...)
+%define %swig_sequence_methods_non_resizable_val(Sequence...)
   %swig_sequence_methods_common(%arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i) throw (std::out_of_range) {
@@ -901,16 +914,28 @@ namespace swig
 
 #if defined(SWIGPYTHON_BUILTIN)
     // This will be called through the mp_ass_subscript slot to delete an entry.
-    void __setitem__(difference_type i) throw (std::out_of_range) {
-      self->erase(swig::getpos(self,i));
+    void __setitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
+      swig::erase(self, swig::getpos(self, i));
     }
 #endif
+  }
+%enddef
+
+%define %swig_sequence_methods_val(Sequence...)
+  %swig_sequence_methods_non_resizable_val(%arg(Sequence))
+  %extend {
+    value_type pop() throw (std::out_of_range) {
+      if (self->size() == 0)
+	throw std::out_of_range("pop from empty container");
+      Sequence::value_type x = self->back();
+      self->pop_back();
+      return x;
+    }
 
     void append(value_type x) {
       self->push_back(x);
     }
- }
-
+  }
 %enddef
 
 
