@@ -1,6 +1,6 @@
 %module cpp11_li_std_array
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGRUBY)
 
 %include <std_array.i>
 

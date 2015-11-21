@@ -91,6 +91,12 @@ namespace swig {
     return pos;
   }
 
+  template <class Sequence>
+  inline void
+  resize(Sequence *seq, typename Sequence::size_type n, typename Sequence::value_type x) {
+    seq->resize(n, x);
+  }
+
   template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) {
@@ -164,7 +170,6 @@ namespace swig
    * of an element of a Ruby Array of stuff.
    * It can be used by RubySequence_InputIterator to make it work with STL
    * algorithms.
-   * 
    */
   template <class T>
   struct RubySequence_Ref
@@ -210,7 +215,6 @@ namespace swig
    * RubySequence_Ref. 
    * It can be used by RubySequence_InputIterator to make it work with STL
    * algorithms.
-   * 
    */
   template <class T>
   struct RubySequence_ArrowProxy
@@ -225,7 +229,6 @@ namespace swig
   /**
    * Input Iterator.  This adapator class is a random access iterator that 
    * allows you to use STL algorithms with a Ruby class (a Ruby Array by default).
-   * 
    */
   template <class T, class Reference = RubySequence_Ref< T > >
   struct RubySequence_InputIterator
@@ -326,7 +329,6 @@ namespace swig
   /**
    * This adaptor class allows you to use a Ruby Array as if it was an STL
    * container, giving it begin(), end(), and iterators.
-   * 
    */
   template <class T>
   struct RubySequence_Cont
@@ -419,7 +421,6 @@ namespace swig
 
 /** 
  * Macros used to typemap an STL iterator -> SWIGIterator conversion.
- * 
  */
 %define %swig_sequence_iterator(Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
@@ -549,7 +550,6 @@ namespace swig
 
 /**
  * Macro used to define common Ruby printing methods for STL container
- * 
  */
 %define %swig_sequence_printing_methods(Sequence...)
 
@@ -609,9 +609,8 @@ namespace swig
 
 /**
  * Macro used to add common methods to all STL sequence-type containers 
- * 
  */
-%define %swig_sequence_methods_common(Sequence...)
+%define %swig_sequence_methods_non_resizable_common(Sequence...)
   %swig_container_methods(%arg(Sequence))
   %swig_sequence_iterator(%arg(Sequence))
   %swig_sequence_printing_methods(%arg(Sequence))
@@ -620,8 +619,7 @@ namespace swig
 
   %extend {
 
-
-  VALUE slice( difference_type i, difference_type j )
+  VALUE slice( difference_type i, difference_type j ) throw (std::invalid_argument)
     {
 	if ( j <= 0 ) return Qnil;
 	std::size_t len = $self->size();
@@ -657,12 +655,23 @@ namespace swig
 	return self;
       }
 
+    VALUE __delete2__(const value_type& i) {
+      VALUE r = Qnil;
+      return r;
+    }
+
+  }
+%enddef
+
+%define %swig_sequence_methods_resizable_common(Sequence...)
+  %extend {
+
     %newobject select;
     Sequence* select() {
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
-      Sequence* r = new Sequence;
+      Sequence* r = new Sequence();
       Sequence::const_iterator i = $self->begin();
       Sequence::const_iterator e = $self->end();
       for ( ; i != e; ++i )
@@ -687,21 +696,17 @@ namespace swig
 	}
       return r;
     }
-
-
-    VALUE __delete2__(const value_type& i) {
-      VALUE r = Qnil;
-      return r;
-    }
-
   }
 %enddef
 
+%define %swig_sequence_methods_common(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_resizable_common(%arg(Sequence))
+%enddef
 
 /**
  * Macro used to add functions for back insertion of values in
- * STL Sequence containers
- * 
+ * STL sequence containers
  */
 %define %swig_sequence_back_inserters( Sequence... )
   %extend {
@@ -724,7 +729,7 @@ namespace swig
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
-      Sequence* r = new Sequence;
+      Sequence* r = new Sequence();
       std::remove_copy_if( $self->begin(), $self->end(),              
 			   std::back_inserter(*r),
 			   swig::yield< Sequence::value_type >() );
@@ -748,15 +753,7 @@ namespace swig
   }
 %enddef
 
-/**
- * Macro used to add functions for Sequences
- * 
- */
-%define %swig_sequence_methods(Sequence...)
-  %swig_sequence_methods_common(%arg(Sequence));
-  %swig_sequence_methods_extra(%arg(Sequence));
-  %swig_sequence_back_inserters(%arg(Sequence));
-
+%define %swig_sequence_methods_non_resizable_accessors(Sequence...)
   %extend {
 
     VALUE at(difference_type i) const {
@@ -770,7 +767,7 @@ namespace swig
       return r;
     }
 
-    VALUE __getitem__(difference_type i, difference_type j) const {
+    VALUE __getitem__(difference_type i, difference_type j) const throw (std::invalid_argument) {
       if ( j <= 0 ) return Qnil;
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
@@ -797,7 +794,7 @@ namespace swig
       return r;
     }
 
-    VALUE __getitem__(VALUE i) const {
+    VALUE __getitem__(VALUE i) const throw (std::invalid_argument) {
       if ( rb_obj_is_kind_of( i, rb_cRange ) == Qfalse )
 	{
 	  rb_raise( rb_eTypeError, "not a valid index or range" );
@@ -828,27 +825,27 @@ namespace swig
       return swig::from< Sequence* >( swig::getslice(self, s, e+1) );
     }
 
-    VALUE __setitem__(difference_type i, const value_type& x)
+    VALUE __setitem__(difference_type i, const value_type& x) throw (std::invalid_argument)
       {
 	std::size_t len = $self->size();
 	if ( i < 0 ) i = len - i;
 	else if ( static_cast<std::size_t>(i) >= len )
-	  $self->resize( i+1, x );
+          swig::resize( $self, i+1, x );
 	else
 	  *(swig::getpos(self,i)) = x;
 
 	return swig::from< Sequence::value_type >( x );
       }
 
-    VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) 
-      throw (std::invalid_argument) {
+    VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) throw (std::invalid_argument)
+      {
 
       if ( j <= 0 ) return Qnil;
       std::size_t len = $self->size();
       if ( i < 0 ) i = len - i;
       j += i; 
       if ( static_cast<std::size_t>(j) >= len ) {
-	$self->resize( j+1, *(v.begin()) );
+        swig::resize( $self, j+1, *(v.begin()) );
 	j = len-1;
       }
 
@@ -857,8 +854,31 @@ namespace swig
       r = swig::from< const Sequence* >( &v );
       return r;
     }
-
  }
+%enddef
+
+/**
+ * Macro used to add functions for non resizable sequences
+ */
+%define %swig_sequence_methods_non_resizable(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_non_resizable_accessors(%arg(Sequence))
+%enddef
+
+
+/**
+ * Macro used to add functions for sequences
+ */
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_non_resizable_accessors(%arg(Sequence))
+  %swig_sequence_methods_extra(%arg(Sequence));
+  %swig_sequence_back_inserters(%arg(Sequence));
+%enddef
+
+%define %swig_sequence_methods_non_resizable_val(Sequence...)
+  %swig_sequence_methods_non_resizable(%arg(Sequence))
 %enddef
 
 %define %swig_sequence_methods_val(Sequence...)
@@ -869,10 +889,8 @@ namespace swig
 /**
  * Macro used to add functions for front insertion of
  * elements in STL sequence containers that support it.
- * 
  */
 %define %swig_sequence_front_inserters( Sequence... )
-
 %extend {
 
   VALUE shift()
@@ -952,7 +970,6 @@ namespace swig
 
       return $self;
     }
-
 }
 %enddef
 
