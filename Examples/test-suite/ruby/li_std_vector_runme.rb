@@ -68,6 +68,17 @@ iv = IntVector.new([0,1,2,3,4,5,6])
 iv.delete_if { |x| x == 0 || x == 3 || x == 6 }
 swig_assert_equal(iv.to_s, '1245', binding)
 
+iv[1,2] = [-2, -4]
+swig_assert_equal(iv.to_s, '1-2-45', binding)
+
+iv = IntVector.new([0,1,2,3])
+iv[0,1] = [-1, -2]
+swig_assert_equal(iv.to_s, '-1-2123', binding)
+
+iv = IntVector.new([1,2,3,4])
+iv[1,3] = [6,7,8,9]
+#__setitem__ needs fixing
+#swig_assert_equal(iv.to_s, '16789', binding)
 
 dv = DoubleVector.new(10)
 
