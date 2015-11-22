@@ -825,14 +825,12 @@ namespace swig
       return swig::from< Sequence* >( swig::getslice(self, s, e+1) );
     }
 
-    VALUE __setitem__(difference_type i, const value_type& x) throw (std::invalid_argument)
+    VALUE __setitem__(difference_type i, const value_type& x) throw (std::invalid_argument, std::out_of_range)
       {
-	std::size_t len = $self->size();
-	if ( i < 0 ) i = len - i;
-	else if ( static_cast<std::size_t>(i) >= len )
+	if ( i >= static_cast<Sequence::difference_type>( $self->size()) )
           swig::resize( $self, i+1, x );
-	else
-	  *(swig::getpos(self,i)) = x;
+        else
+          *(swig::getpos($self, i)) = x;
 
 	return swig::from< Sequence::value_type >( x );
       }
@@ -850,7 +848,7 @@ namespace swig
       }
 
       VALUE r = Qnil;
-      swig::setslice(self, i, j, v);
+      swig::setslice($self, i, j, v);
       r = swig::from< const Sequence* >( &v );
       return r;
     }

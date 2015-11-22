@@ -80,6 +80,21 @@ iv[1,3] = [6,7,8,9]
 #__setitem__ needs fixing
 #swig_assert_equal(iv.to_s, '16789', binding)
 
+iv = IntVector.new([1,2,3,4])
+
+iv[-1] = 9
+iv[-4] = 6
+swig_assert_equal(iv.to_s, '6239', binding)
+
+begin
+  iv[-5] = 99
+  raise "exception missed"
+rescue IndexError
+end
+
+iv[6] = 5
+swig_assert_equal(iv.to_s, '6239555', binding)
+
 dv = DoubleVector.new(10)
 
 swig_assert( "dv.respond_to? :each_with_index", binding )
