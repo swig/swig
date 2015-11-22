@@ -82,6 +82,11 @@ iv[1,3] = [6,7,8,9]
 
 iv = IntVector.new([1,2,3,4])
 
+swig_assert_equal(iv[0], 1, binding)
+swig_assert_equal(iv[3], 4, binding)
+swig_assert_equal(iv[4], nil, binding)
+swig_assert_equal(iv[-5], nil, binding)
+
 iv[-1] = 9
 iv[-4] = 6
 swig_assert_equal(iv.to_s, '6239', binding)

@@ -108,6 +108,13 @@ ai = ArrayInt6.new([9, 8, 7, 6, 5, 4])
 arrayInPtr(ai)
 compare_containers(ai, [90, 80, 70, 60, 50, 40])
 
+# indexing
+ai = ArrayInt6.new([9, 8, 7, 6, 5, 4])
+swig_assert_equal(ai[0], 9, binding)
+swig_assert_equal(ai[5], 4, binding)
+swig_assert_equal(ai[6], nil, binding)
+swig_assert_equal(ai[-7], nil, binding)
+
 # fill
 ai.fill(111)
 compare_containers(ai, [111, 111, 111, 111, 111, 111])
