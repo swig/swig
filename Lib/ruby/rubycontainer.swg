@@ -101,7 +101,7 @@ namespace swig {
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = (i == size && j == size) ? i : swig::check_index(i, size);
+    typename Sequence::size_type ii = swig::check_index(i, size, (i == size && j == size));
     typename Sequence::size_type jj = swig::slice_index(j, size);
 
     if (jj > ii) {
@@ -847,16 +847,20 @@ namespace swig
 	return swig::from< Sequence::value_type >( x );
       }
 
-    VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) throw (std::invalid_argument)
-      {
+    VALUE __setitem__(difference_type i, difference_type length, const Sequence& v) throw (std::invalid_argument) {
 
-      if ( j <= 0 ) return Qnil;
+      if ( length < 0 )
+        return Qnil;
       std::size_t len = $self->size();
-      if ( i < 0 ) i = len - i;
-      j += i; 
-      if ( static_cast<std::size_t>(j) >= len ) {
-        swig::resize( $self, j+1, *(v.begin()) );
-	j = len-1;
+      if ( i < 0 ) {
+        if ( i + static_cast<Sequence::difference_type>(len) < 0 )
+          return Qnil;
+        else
+          i = len + i;
+      }
+      Sequence::difference_type j = length + i;
+      if ( j > static_cast<Sequence::difference_type>(len) ) {
+        swig::resize( $self, j, *(v.begin()) );
       }
 
       VALUE r = Qnil;

@@ -109,7 +109,7 @@ end
 def compare_sequences(a, b)
     if a != nil && b != nil
       if a.size != b.size
-          failed(a, b, "different sizes")
+        failed(a, b, "different sizes")
       end
       for i in 0..a.size-1
         failed(a, b, "elements are different") if a[i] != b[i]
@@ -121,9 +121,26 @@ def compare_sequences(a, b)
     end
 end
 
+def compare_expanded_sequences(a, b)
+    # a can contain nil elements which indicate additional elements
+    # b won't contain nil for additional elements
+    if a != nil && b != nil
+      if a.size != b.size
+        failed(a, b, "different sizes")
+      end
+      for i in 0..a.size-1
+        failed(a, b, "elements are different") if a[i] != b[i] && a[i] != nil
+      end
+    else
+      unless a == nil && b == nil
+        failed(a, b, "only one of the sequences is nil")
+      end
+    end
+end
+
 def check_slice(i, length)
-  aa = [0,1,2,3]
-  iv = IntVector.new([0,1,2,3])
+  aa = [1,2,3,4]
+  iv = IntVector.new(aa)
 
   aa_slice = aa[i, length]
   iv_slice = iv[i, length]
@@ -135,8 +152,8 @@ def check_slice(i, length)
 end
 
 def check_range(i, j)
-  aa = [0,1,2,3]
-  iv = IntVector.new([0,1,2,3])
+  aa = [1,2,3,4]
+  iv = IntVector.new(aa)
 
   aa_range = aa[i..j]
   iv_range = iv[i..j]
@@ -145,6 +162,21 @@ def check_range(i, j)
   aa_range = aa[Range.new(i, j, true)]
   iv_range = iv[Range.new(i, j, true)]
   compare_sequences(aa_range, iv_range)
+end
+
+def set_slice(i, length, expect_nil_expanded_elements)
+  aa = [1,2,3,4]
+  iv = IntVector.new(aa)
+  aa_new = [8, 9]
+  iv_new = IntVector.new(aa_new)
+
+  aa[i, length] = aa_new
+  iv[i, length] = iv_new
+  if expect_nil_expanded_elements
+    compare_expanded_sequences(aa, iv)
+  else
+    compare_sequences(aa, iv)
+  end
 end
 
 for i in -5..5
@@ -156,6 +188,18 @@ end
 for i in -5..5
   for j in -5..5
     check_range(i, j)
+  end
+end
+
+for i in -4..4
+  for length in 0..4
+    set_slice(i, length, false)
+  end
+end
+
+for i in [5, 6]
+  for length in 0..5
+    set_slice(i, length, true)
   end
 end
 

@@ -72,13 +72,12 @@ ai = ArrayInt6.new()
 compare_containers([0, 0, 0, 0, 0, 0], ai)
 
 # Set slice
-#newvals = [10, 20, 30, 40, 50, 60]
-#ai[0..5] = newvals
-#compare_containers(ai, newvals)
+newvals = [10, 20, 30, 40, 50, 60]
+ai[0, 6] = newvals
+compare_containers(ai, newvals)
 
-#newvals = [10000, 20000, 30000, 40000, 50000, 60000]
-#ai[0..100] = newvals
-#compare_containers(ai, newvals[0..100])
+ai[-6, 6] = newvals
+compare_containers(ai, newvals)
 
 setslice_exception(ai, [1, 2, 3, 4, 5, 6, 7])
 setslice_exception(ai, [1, 2, 3, 4, 5])
