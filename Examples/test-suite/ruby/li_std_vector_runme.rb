@@ -39,12 +39,12 @@ iv.each_with_index { |e,i|
   "iv.slice(1,2).to_s" => "12", 
   "iv[0,-2]" => nil,
   "iv[0,3].to_s" => "012",
-  "iv[0,10].to_s" => "012",
+  "iv[0,10].to_s" => "0123",
   "iv[1..2].to_s" => '12',
   "iv[1..3].to_s" => '123',
   "iv[1..4].to_s" => '123',
   "iv[1..-2].to_s" => '12',
-  "iv[2..-3]" => nil,
+  "iv[2..-3].to_s" => '',
 }.each do |k,v|
   swig_assert( "#{k} == #{v.inspect}", binding )
 end
@@ -99,6 +99,66 @@ end
 
 iv[6] = 5
 swig_assert_equal(iv.to_s, '6239555', binding)
+
+def failed(a, b, msg)
+    a = 'nil' if a == nil
+    b = 'nil' if b == nil
+    raise RuntimeError, "#{msg}: #{a} ... #{b}"
+end
+
+def compare_sequences(a, b)
+    if a != nil && b != nil
+      if a.size != b.size
+          failed(a, b, "different sizes")
+      end
+      for i in 0..a.size-1
+        failed(a, b, "elements are different") if a[i] != b[i]
+      end
+    else
+      unless a == nil && b == nil
+        failed(a, b, "only one of the sequences is nil")
+      end
+    end
+end
+
+def check_slice(i, length)
+  aa = [0,1,2,3]
+  iv = IntVector.new([0,1,2,3])
+
+  aa_slice = aa[i, length]
+  iv_slice = iv[i, length]
+  compare_sequences(aa_slice, iv_slice)
+
+  aa_slice = aa.slice(i, length)
+  iv_slice = iv.slice(i, length)
+  compare_sequences(aa_slice, iv_slice)
+end
+
+def check_range(i, j)
+  aa = [0,1,2,3]
+  iv = IntVector.new([0,1,2,3])
+
+  aa_range = aa[i..j]
+  iv_range = iv[i..j]
+  compare_sequences(aa_range, iv_range)
+
+  aa_range = aa[Range.new(i, j, true)]
+  iv_range = iv[Range.new(i, j, true)]
+  compare_sequences(aa_range, iv_range)
+end
+
+for i in -5..5
+  for length in -5..5
+    check_slice(i, length)
+  end
+end
+
+for i in -5..5
+  for j in -5..5
+    check_range(i, j)
+  end
+end
+
 
 dv = DoubleVector.new(10)
 
