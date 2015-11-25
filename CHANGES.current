@@ -5,6 +5,44 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-11-25: wsfulton
+            [Ruby] STL ranges and slices fixes.
+
+            Ruby STL container setting slices fixes:
+
+            Setting an STL container wrapper slice better matches the way Ruby
+            arrays work. The behaviour is now the same as Ruby arrays. The only
+            exception is the default value used when expanding a container
+            cannot be nil as this is not a valid type/value for C++ container
+            elements.
+
+            Obtaining a Ruby STL container ranges and slices fixes:
+
+            Access via ranges and slices now behave identically to Ruby arrays.
+            The fixes are mostly for out of range indices and lengths.
+            - Zero length slice requests return an empty container instead of nil.
+            - Slices which request a length greater than the size of the container
+              no longer chop off the last element.
+            - Ranges which used to return nil now return an empty array when the
+              the start element is a valid index.
+
+            Ruby STL container negative indexing support improved.
+
+            Using negative indexes to set values works the same as Ruby arrays, eg
+
+            %template(IntVector) std::vector<int>;
+
+            iv = IntVector.new([1,2,3,4])
+            iv[-4] = 9 # => [1,2,3,9]
+            iv[-5] = 9 # => IndexError
+
+2015-11-21: wsfulton
+            [Ruby, Python] Add std::array container wrappers.
+
+            These work much like any of the other STL containers except Python/Ruby slicing
+            is somewhat limited because the array is a fixed size. Only slices of
+            the full size are supported.
+
 2015-10-10: wsfulton
             [Python] #539 - Support Python 3.5 and -builtin.  PyAsyncMethods is a new
             member in PyHeapTypeObject.
