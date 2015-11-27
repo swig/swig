@@ -64,6 +64,8 @@ ps = [0, 1, 2, 3, 4, 5]
 
 ai = ArrayInt6(ps)
 
+compare_containers(ps, ai)
+
 # slices
 compare_containers(ps[0:6], ai[0:6])
 compare_containers(ps[0:10], ai[0:10])
@@ -137,6 +139,7 @@ setslice_exception(ai, [])
 
 # Check return
 compare_containers(arrayOutVal(), [-2, -1, 0, 0, 1, 2])
+compare_containers(arrayOutConstRef(), [-2, -1, 0, 0, 1, 2])
 compare_containers(arrayOutRef(), [-2, -1, 0, 0, 1, 2])
 compare_containers(arrayOutPtr(), [-2, -1, 0, 0, 1, 2])
 

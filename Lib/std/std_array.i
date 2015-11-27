@@ -40,9 +40,6 @@
 //      for consistency, they expect and return a plain array pointer.
 // ------------------------------------------------------------------------
 
-%{
-#include <array>
-%}
 
 // exported classes
 

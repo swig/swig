@@ -2,6 +2,10 @@
 
 #if defined(SWIGPYTHON) || defined(SWIGRUBY)
 
+%{
+#include <array>
+%}
+
 %include <std_array.i>
 
 %template(ArrayInt6) std::array<int, 6>;
@@ -12,6 +16,11 @@ std::array<int, 6> arrayOutVal() {
 }
 
 std::array<int, 6> & arrayOutRef() {
+  static std::array<int, 6> a = { -2, -1, 0, 0, 1, 2 };
+  return a;
+}
+
+const std::array<int, 6> & arrayOutConstRef() {
   static std::array<int, 6> a = { -2, -1, 0, 0, 1, 2 };
   return a;
 }

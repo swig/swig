@@ -39,7 +39,7 @@
     template <class T, size_t N, class Difference>
     inline std::array<T, N>*
     getslice(const std::array<T, N>* self, Difference i, Difference j, Py_ssize_t step) {
-      using Sequence = std::array<T, N>;
+      typedef std::array<T, N> Sequence;
       typename Sequence::size_type size = self->size();
       Difference ii = 0;
       Difference jj = 0;
@@ -61,7 +61,7 @@
     template <class T, size_t N, class Difference, class InputSeq>
     inline void
     setslice(std::array<T, N>* self, Difference i, Difference j, Py_ssize_t step, const InputSeq& is = InputSeq()) {
-      using Sequence = std::array<T, N>;
+      typedef std::array<T, N> Sequence;
       typename Sequence::size_type size = self->size();
       Difference ii = 0;
       Difference jj = 0;

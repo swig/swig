@@ -89,6 +89,7 @@ setslice_exception(ai, [])
 
 # Check return
 compare_containers(arrayOutVal(), [-2, -1, 0, 0, 1, 2])
+compare_containers(arrayOutConstRef(), [-2, -1, 0, 0, 1, 2])
 compare_containers(arrayOutRef(), [-2, -1, 0, 0, 1, 2])
 compare_containers(arrayOutPtr(), [-2, -1, 0, 0, 1, 2])
 

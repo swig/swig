@@ -39,7 +39,7 @@
     template <class T, size_t N, class Difference>
     inline std::array<T, N>*
     getslice(const std::array<T, N>* self, Difference i, Difference j) {
-      using Sequence = std::array<T, N>;
+      typedef std::array<T, N> Sequence;
       typename Sequence::size_type size = self->size();
       typename Sequence::size_type ii = swig::check_index(i, size, (i == size && j == size));
       typename Sequence::size_type jj = swig::slice_index(j, size);
@@ -56,7 +56,7 @@
     template <class T, size_t N, class Difference, class InputSeq>
     inline void
     setslice(std::array<T, N>* self, Difference i, Difference j, const InputSeq& v) {
-      using Sequence = std::array<T, N>;
+      typedef std::array<T, N> Sequence;
       typename Sequence::size_type size = self->size();
       typename Sequence::size_type ii = swig::check_index(i, size, true);
       typename Sequence::size_type jj = swig::slice_index(j, size);
