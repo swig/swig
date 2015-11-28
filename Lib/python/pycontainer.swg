@@ -567,7 +567,7 @@ namespace swig
     typedef T value_type;
     typedef T* pointer;
     typedef int difference_type;
-    typedef int size_type;
+    typedef size_t size_type;
     typedef const pointer const_pointer;
     typedef SwigPySequence_InputIterator<T, reference> iterator;
     typedef SwigPySequence_InputIterator<T, const_reference> const_iterator;
