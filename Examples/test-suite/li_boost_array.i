@@ -8,10 +8,18 @@
 // and pointers to boost::array are the same.
 
 %{
+#if __cplusplus < 201103
 #include <boost/array.hpp>
 namespace std {
   using boost::array;
 }
+#else
+// Use C++11 array as this is unfortunately is sometimes included by <algorithm>
+#include <array>
+namespace boost {
+  using std::array;
+}
+#endif
 %}
 namespace boost {
   using std::array;
