@@ -31,7 +31,7 @@
 
     template <class T, size_t N>
     inline void
-    erase(std::array<T, N>* seq, const typename std::array<T, N>::iterator& position) {
+    erase(std::array<T, N>* SWIGUNUSEDPARM(seq), const typename std::array<T, N>::iterator& SWIGUNUSEDPARM(position)) {
       throw std::invalid_argument("std::array object does not support item deletion");
     }
 
@@ -78,7 +78,7 @@
 
     template <class T, size_t N, class Difference>
     inline void
-    delslice(std::array<T, N>* self, Difference i, Difference j, Py_ssize_t step) {
+    delslice(std::array<T, N>* SWIGUNUSEDPARM(self), Difference SWIGUNUSEDPARM(i), Difference SWIGUNUSEDPARM(j), Py_ssize_t SWIGUNUSEDPARM(step)) {
       throw std::invalid_argument("std::array object does not support item deletion");
     }
   }
