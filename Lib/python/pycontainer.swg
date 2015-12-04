@@ -421,7 +421,7 @@ namespace swig
   template <class T>
   struct SwigPySequence_Ref
   {
-    SwigPySequence_Ref(PyObject* seq, int index)
+    SwigPySequence_Ref(PyObject* seq, Py_ssize_t index)
       : _seq(seq), _index(index)
     {
     }
@@ -433,7 +433,7 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	sprintf(msg, "in sequence element %d ", _index);
+	sprintf(msg, "in sequence element %d ", (int)_index);
 	if (!PyErr_Occurred()) {
 	  ::%type_error(swig::type_name<T>());
 	}
@@ -451,7 +451,7 @@ namespace swig
 
   private:
     PyObject* _seq;
-    int _index;
+    Py_ssize_t _index;
   };
 
   template <class T>
@@ -472,13 +472,13 @@ namespace swig
     typedef Reference reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef int difference_type;
+    typedef Py_ssize_t difference_type;
 
     SwigPySequence_InputIterator()
     {
     }
 
-    SwigPySequence_InputIterator(PyObject* seq, int index)
+    SwigPySequence_InputIterator(PyObject* seq, Py_ssize_t index)
       : _seq(seq), _index(index)
     {
     }
@@ -566,7 +566,7 @@ namespace swig
     typedef const SwigPySequence_Ref<T> const_reference;
     typedef T value_type;
     typedef T* pointer;
-    typedef int difference_type;
+    typedef Py_ssize_t difference_type;
     typedef size_t size_type;
     typedef const pointer const_pointer;
     typedef SwigPySequence_InputIterator<T, reference> iterator;
@@ -628,13 +628,13 @@ namespace swig
 
     bool check(bool set_err = true) const
     {
-      int s = size();
-      for (int i = 0; i < s; ++i) {
+      Py_ssize_t s = size();
+      for (Py_ssize_t i = 0; i < s; ++i) {
 	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
-	    sprintf(msg, "in sequence element %d", i);
+	    sprintf(msg, "in sequence element %d", (int)i);
 	    SWIG_Error(SWIG_RuntimeError, msg);
 	  }
 	  return false;
@@ -1013,10 +1013,9 @@ namespace swig {
 %#endif
       size_type size = seq.size();
       if (size <= (size_type)INT_MAX) {
-	PyObject *obj = PyTuple_New((int)size);
-	int i = 0;
-	for (const_iterator it = seq.begin();
-	     it != seq.end(); ++it, ++i) {
+	PyObject *obj = PyTuple_New((Py_ssize_t)size);
+	Py_ssize_t i = 0;
+	for (const_iterator it = seq.begin(); it != seq.end(); ++it, ++i) {
 	  PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
 	}
 	return obj;

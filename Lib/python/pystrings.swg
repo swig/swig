@@ -90,12 +90,12 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
     } else {
 %#if PY_VERSION_HEX >= 0x03000000
 %#if PY_VERSION_HEX >= 0x03010000
-      return PyUnicode_DecodeUTF8(carray, %numeric_cast(size,int), "surrogateescape");
+      return PyUnicode_DecodeUTF8(carray, %numeric_cast(size, Py_ssize_t), "surrogateescape");
 %#else
-      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size,int));
+      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#endif
 %#else
-      return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
+      return PyString_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#endif
     }
   } else {

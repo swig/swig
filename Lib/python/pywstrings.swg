@@ -58,7 +58,7 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
       return pwchar_descriptor ? 
 	SWIG_InternalNewPointerObj(%const_cast(carray,wchar_t *), pwchar_descriptor, 0) : SWIG_Py_Void();
     } else {
-      return PyUnicode_FromWideChar(carray, %numeric_cast(size,int));
+      return PyUnicode_FromWideChar(carray, %numeric_cast(size, Py_ssize_t));
     }
   } else {
     return SWIG_Py_Void();
