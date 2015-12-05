@@ -15,7 +15,7 @@ environment:
     VER: 27
   - SWIGLANG: python
     VSVER: 12
-    VER: 34
+    VER: 35
     PY3: 1
 
 matrix:
