@@ -15,6 +15,12 @@ else
  SWIG=swig
 fi
 
+# fix: Remove ccache from $PATH if it exists
+#      as it will influence the unit tests
+PATH="`echo $PATH | \
+ awk -v RS=: -v ORS=: '/\/usr\/lib(64|)\/ccache(:|)/ {next} {print}' | \
+ sed 's/:*$//'`"
+
 CCACHE=../ccache-swig
 TESTDIR=test.$$
 
