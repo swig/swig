@@ -4050,6 +4050,9 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_version_tag"), "tp_version_tag", "int");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyAsyncMethods as_async
