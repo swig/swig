@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-12: wsfulton
+            Fix STL wrappers to not generate <: digraphs.
+            For example std::vector<::X::Y> was sometimes generated, now
+            corrected to std::vector< ::X::Y >.
+
 2015-11-25: wsfulton
             [Ruby] STL ranges and slices fixes.
 

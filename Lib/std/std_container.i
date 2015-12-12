@@ -133,10 +133,10 @@
 // Ignore member methods for Type with no default constructor
 //
 %define %std_nodefconst_type(Type...)
-%feature("ignore") std::vector<Type >::vector(size_type size);
-%feature("ignore") std::vector<Type >::resize(size_type size);
-%feature("ignore") std::deque<Type >::deque(size_type size);
-%feature("ignore") std::deque<Type >::resize(size_type size);
-%feature("ignore") std::list<Type >::list(size_type size);
-%feature("ignore") std::list<Type >::resize(size_type size);
+%feature("ignore") std::vector< Type >::vector(size_type size);
+%feature("ignore") std::vector< Type >::resize(size_type size);
+%feature("ignore") std::deque< Type >::deque(size_type size);
+%feature("ignore") std::deque< Type >::resize(size_type size);
+%feature("ignore") std::list< Type >::list(size_type size);
+%feature("ignore") std::list< Type >::resize(size_type size);
 %enddef

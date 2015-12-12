@@ -14,17 +14,17 @@
 	    fragment=SWIG_From_frag(Type),
 	    fragment="StdTraits") {
 namespace swig {
-  template <> struct traits<Type > {
+  template <> struct traits< Type > {
     typedef value_category category;
     static const char* type_name() { return  #Type; }
-  };  
-  template <>  struct traits_asval<Type > {   
+  };
+  template <>  struct traits_asval< Type > {
     typedef Type value_type;
-    static int asval(VALUE obj, value_type *val) { 
+    static int asval(VALUE obj, value_type *val) {
       return SWIG_AsVal(Type)(obj, val);
     }
   };
-  template <>  struct traits_from<Type > {
+  template <>  struct traits_from< Type > {
     typedef Type value_type;
     static VALUE from(const value_type& val) {
       return SWIG_From(Type)(val);
@@ -47,13 +47,13 @@ namespace swig {
 	    fragment=SWIG_From_frag(int),
 	    fragment="StdTraits") {
 namespace swig {
-  template <>  struct traits_asval<Type > {   
+  template <>  struct traits_asval< Type > {
     typedef Type value_type;
-    static int asval(VALUE obj, value_type *val) { 
+    static int asval(VALUE obj, value_type *val) {
       return SWIG_AsVal(int)(obj, (int *)val);
     }
   };
-  template <>  struct traits_from<Type > {
+  template <>  struct traits_from< Type > {
     typedef Type value_type;
     static VALUE from(const value_type& val) {
       return SWIG_From(int)((int)val);

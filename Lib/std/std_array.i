@@ -59,11 +59,11 @@ namespace std {
     %traits_swigtype(_Tp);
     %traits_enum(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::array<_Tp, _Nm >), "header",
+    %fragment(SWIG_Traits_frag(std::array< _Tp, _Nm >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdArrayTraits") {
       namespace swig {
-	template <>  struct traits<std::array<_Tp, _Nm > > {
+	template <>  struct traits<std::array< _Tp, _Nm > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::array<" #_Tp "," #_Nm " >";
@@ -72,11 +72,11 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_STDARRAY, std::array<_Tp, _Nm >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_STDARRAY, std::array< _Tp, _Nm >);
 
 #ifdef %swig_array_methods
     // Add swig/language extra methods
-    %swig_array_methods(std::array<_Tp, _Nm >);
+    %swig_array_methods(std::array< _Tp, _Nm >);
 #endif
 
     %std_array_methods(array);
