@@ -4164,9 +4164,15 @@ public:
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
-    // PyObject *ht_name, *ht_slots
+    // PyObject *ht_name, *ht_slots, *ht_qualname;
     printSlot(f, getSlot(n, "feature:python:ht_name"), "ht_name", "PyObject*");
     printSlot(f, getSlot(n, "feature:python:ht_slots"), "ht_slots", "PyObject*");
+    Printv(f, "#if PY_VERSION_HEX >= 0x03030000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:ht_qualname"), "ht_qualname", "PyObject*");
+
+    // struct _dictkeysobject *ht_cached_keys;
+    printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys", "struct _dictkeysobject*");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
 
     String *clientdata = NewString("");
