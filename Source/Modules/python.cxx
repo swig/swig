@@ -4053,6 +4053,15 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
+    printSlot(f, getSlot(), "tp_allocs", "Py_ssize_t");
+    printSlot(f, getSlot(), "tp_frees", "Py_ssize_t");
+    printSlot(f, getSlot(), "tp_maxalloc", "Py_ssize_t");
+    Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
+    printSlot(f, getSlot(), "tp_prev", "struct _typeobject*");
+    Printv(f, "#endif\n", NIL);
+    printSlot(f, getSlot(), "tp_next", "struct _typeobject*");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyAsyncMethods as_async
