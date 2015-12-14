@@ -433,10 +433,19 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                        /* tp_version */
+      0,                                        /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                        /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                                   /* tp_alloc -> tp_next */
+      0,                                        /* tp_allocs */
+      0,                                        /* tp_frees */
+      0,                                        /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                        /* tp_prev */
+#endif
+      0                                         /* tp_next */
 #endif
     };
     staticvar_type = tmp;

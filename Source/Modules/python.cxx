@@ -4050,6 +4050,18 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_version_tag"), "tp_version_tag", "int");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
+    printSlot(f, getSlot(), "tp_allocs", "Py_ssize_t");
+    printSlot(f, getSlot(), "tp_frees", "Py_ssize_t");
+    printSlot(f, getSlot(), "tp_maxalloc", "Py_ssize_t");
+    Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
+    printSlot(f, getSlot(), "tp_prev", "struct _typeobject*");
+    Printv(f, "#endif\n", NIL);
+    printSlot(f, getSlot(), "tp_next", "struct _typeobject*");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyAsyncMethods as_async
@@ -4161,9 +4173,15 @@ public:
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
-    // PyObject *ht_name, *ht_slots
+    // PyObject *ht_name, *ht_slots, *ht_qualname;
     printSlot(f, getSlot(n, "feature:python:ht_name"), "ht_name", "PyObject*");
     printSlot(f, getSlot(n, "feature:python:ht_slots"), "ht_slots", "PyObject*");
+    Printv(f, "#if PY_VERSION_HEX >= 0x03030000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:ht_qualname"), "ht_qualname", "PyObject*");
+
+    // struct _dictkeysobject *ht_cached_keys;
+    printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys", "struct _dictkeysobject*");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
 
     String *clientdata = NewString("");

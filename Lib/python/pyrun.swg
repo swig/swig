@@ -725,7 +725,9 @@ SwigPyObject_TypeOnce(void) {
     (unaryfunc)SwigPyObject_oct,  /*nb_oct*/
     (unaryfunc)SwigPyObject_hex,  /*nb_hex*/
 #endif
-#if PY_VERSION_HEX >= 0x03000000 /* 3.0 */
+#if PY_VERSION_HEX >= 0x03050000 /* 3.5 */
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_matrix_multiply */
+#elif PY_VERSION_HEX >= 0x03000000 /* 3.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index, nb_inplace_divide removed */
 #elif PY_VERSION_HEX >= 0x02050000 /* 2.5.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index */
@@ -805,10 +807,19 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                    /* tp_version */
+      0,                                    /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                    /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                               /* tp_alloc -> tp_next */
+      0,                                    /* tp_allocs */
+      0,                                    /* tp_frees */
+      0,                                    /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                    /* tp_prev */
+#endif
+      0                                     /* tp_next */
 #endif
     };
     swigpyobject_type = tmp;
@@ -984,10 +995,19 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                    /* tp_version */
+      0,                                    /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                    /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                               /* tp_alloc -> tp_next */
+      0,                                    /* tp_allocs */
+      0,                                    /* tp_frees */
+      0,                                    /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                    /* tp_prev */
+#endif
+      0                                     /* tp_next */
 #endif
     };
     swigpypacked_type = tmp;
