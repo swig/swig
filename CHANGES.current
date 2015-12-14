@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-14: ahnolds/wsfulton
+            [Python] Add in missing initializers for tp_finalize,
+            nb_matrix_multiply, nb_inplace_matrix_multiply, ht_qualname
+            ht_cached_keys and tp_prev.
+
 2015-12-12: wsfulton
             Fix STL wrappers to not generate <: digraphs.
             For example std::vector<::X::Y> was sometimes generated, now
