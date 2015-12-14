@@ -3,7 +3,7 @@
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement"
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers"
     cflags = {
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
@@ -15,7 +15,7 @@ def get_cflags(language, std, compiler):
         "octave":"-Werror " + c_common,
          "perl5":"-Werror " + c_common,
            "php":"-Werror " + c_common,
-        "python":"-Werror " + c_common + " -Wmissing-field-initializers",
+        "python":"-Werror " + c_common,
              "r":"-Werror " + c_common,
           "ruby":"-Werror " + c_common,
         "scilab":"-Werror " + c_common,
@@ -32,7 +32,7 @@ def get_cflags(language, std, compiler):
 def get_cxxflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type"
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     cxxflags = {
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
@@ -44,7 +44,7 @@ def get_cxxflags(language, std, compiler):
         "octave":"-Werror " + cxx_common,
          "perl5":"-Werror " + cxx_common,
            "php":"-Werror " + cxx_common,
-        "python":"-Werror " + cxx_common + " -Wmissing-field-initializers",
+        "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
           "ruby":"-Werror " + cxx_common,
         "scilab":             cxx_common,
