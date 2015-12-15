@@ -536,23 +536,32 @@ SwigPyObject_dealloc(PyObject *v)
     if (destroy) {
       /* destroy is always a VARARGS method */
       PyObject *res;
+
+      /* PyObject_CallFunction() has the potential to silently drop
+         the active active exception.  In cases of unnamed temporary
+         variable or where we just finished iterating over a generator
+         StopIteration will be active right now, and this needs to
+         remain true upon return from SwigPyObject_dealloc.  So save
+         and restore. */
+      
+      PyObject *val = NULL, *type = NULL, *tb = NULL;
+      PyErr_Fetch(&val, &type, &tb);
+
       if (data->delargs) {
         /* we need to create a temporary object to carry the destroy operation */
         PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
-        /* PyObject_CallFunction() has the potential to silently drop the active
-           active exception.  In cases where we just finished iterating over a
-           generator StopIteration will be active right now, and this needs to
-           remain true upon return from SwigPyObject_dealloc.  So save and restore. */
-        PyObject *val = NULL, *type = NULL, *tb = NULL;
-        PyErr_Fetch(&val, &type, &tb);
         res = SWIG_Python_CallFunctor(destroy, tmp);
-        PyErr_Restore(val, type, tb);
         Py_DECREF(tmp);
       } else {
         PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
         PyObject *mself = PyCFunction_GET_SELF(destroy);
         res = ((*meth)(mself, v));
       }
+      if (!res)
+        PyErr_WriteUnraisable(destroy);
+
+      PyErr_Restore(val, type, tb);
+
       Py_XDECREF(res);
     } 
 #if !defined(SWIG_PYTHON_SILENT_MEMLEAK)
