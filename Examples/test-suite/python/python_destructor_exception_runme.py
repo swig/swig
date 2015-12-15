@@ -13,7 +13,7 @@ def runtest():
         attributeErrorOccurred = True
     return attributeErrorOccurred
 
-def runtestcaller():
+def test1():
     stderr_saved = sys.stderr
     buffer = StringIO()
     attributeErrorOccurred = False
@@ -29,4 +29,36 @@ def runtestcaller():
     assert attributeErrorOccurred
     assert buffer.getvalue().count("I am the ClassWithThrowingDestructor dtor doing bad things") >= 1
 
-runtestcaller()
+class VectorHolder(object):
+    def __init__(self, v):
+        self.v = v
+    def gen(self):
+        for e in self.v:
+            yield e
+
+# See issue #559, #560, #573 - In Python 3.5, test2() call to the generator 'gen' was
+# resulting in the following (not for -builtin where there is no call to SWIG_Python_CallFunctor
+# as SwigPyObject_dealloc is not used):
+#
+# StopIteration
+#
+# During handling of the above exception, another exception occurred:
+# ...
+# SystemError: <built-in function delete_VectorInt> returned a result with an error set
+
+def addup():
+    sum = 0
+    for i in VectorHolder(python_destructor_exception.VectorInt([1, 2, 3])).gen():
+        sum = sum + i
+    return sum
+
+def test2():
+    sum = addup()
+
+    if sum != 6:
+        raise RuntimeError("Sum is incorrect")
+
+# These two tests are different are two different ways to recreate essentially the same problem
+# reported by Python 3.5 that an exception was already set when destroying a wrapped object
+test1()
+test2()

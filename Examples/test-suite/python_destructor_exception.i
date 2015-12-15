@@ -15,3 +15,5 @@ class ClassWithThrowingDestructor
 
 %}
 
+%include <std_vector.i>
+%template(VectorInt) std::vector<int>;
