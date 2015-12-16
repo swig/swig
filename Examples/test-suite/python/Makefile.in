@@ -58,6 +58,7 @@ CPP_TEST_CASES += \
 	primitive_types \
 	python_abstractbase \
 	python_append \
+	python_destructor_exception \
 	python_director \
 	python_docstring \
 	python_nondynamic \

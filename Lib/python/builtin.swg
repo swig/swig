@@ -9,9 +9,17 @@ SWIGINTERN void					\
 wrapper##_closure(PyObject *a) {		\
     SwigPyObject *sobj;				\
     sobj = (SwigPyObject *)a;			\
-    Py_XDECREF(sobj->dict);	                \
+    Py_XDECREF(sobj->dict);			\
     if (sobj->own) {				\
+	PyObject *val = 0, *type = 0, *tb = 0;	\
+	PyErr_Fetch(&val, &type, &tb);		\
 	PyObject *o = wrapper(a, NULL);		\
+	if (!o) {				\
+	    PyObject *deallocname = PyString_FromString(#wrapper); \
+	    PyErr_WriteUnraisable(deallocname);	\
+	    Py_DECREF(deallocname);		\
+	}					\
+	PyErr_Restore(val, type, tb);		\
 	Py_XDECREF(o);				\
     }						\
     if (PyType_IS_GC(a->ob_type)) {		\
@@ -64,7 +72,7 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
 
 #define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
-wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) {	\
+wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) { \
     return wrapper(callable_object, args);			\
 }
 
@@ -124,7 +132,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     return result;					\
 }
 
-#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
+#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *					\
 wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *arg, *result;				\
