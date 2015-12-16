@@ -11,9 +11,10 @@ wrapper##_closure(PyObject *a) {		\
     sobj = (SwigPyObject *)a;			\
     Py_XDECREF(sobj->dict);			\
     if (sobj->own) {				\
+	PyObject *o;				\
 	PyObject *val = 0, *type = 0, *tb = 0;	\
 	PyErr_Fetch(&val, &type, &tb);		\
-	PyObject *o = wrapper(a, NULL);		\
+	o = wrapper(a, NULL);			\
 	if (!o) {				\
 	    PyObject *deallocname = PyString_FromString(#wrapper); \
 	    PyErr_WriteUnraisable(deallocname);	\
