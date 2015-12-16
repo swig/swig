@@ -40,13 +40,13 @@ matrix:
       env: SWIGLANG=lua
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j3 # 3.2
+      env: SWIGLANG=octave SWIGJOBS=-j # 3.2
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+      env: SWIGLANG=octave SWIGJOBS=-j VER=3.8
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=4.0
+      env: SWIGLANG=octave SWIGJOBS=-j VER=4.0
     - compiler: gcc
       os: linux
       env: SWIGLANG=perl5
@@ -157,11 +157,11 @@ matrix:
     # Occasional gcc internal compiler error
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=3.8
+      env: SWIGLANG=octave SWIGJOBS=-j VER=3.8
     # Occasional gcc internal compiler error
     - compiler: gcc
       os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j3 VER=4.0
+      env: SWIGLANG=octave SWIGJOBS=-j VER=4.0
     # Not quite working yet
     - compiler: gcc
       os: linux
