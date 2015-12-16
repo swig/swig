@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-16: zturner/coleb
+            [Python] Fix Python3.5 interpreter assertions when objects are being
+            deleted due to an existing exception. Most notably in generators
+            which terminate using a StopIteration exception. Fixes #559 #560 #573.
+            If a further exception is raised during an object destruction,
+            PyErr_WriteUnraisable is used on this second exception and the
+            original exception bubbles through.
+
 2015-12-14: ahnolds/wsfulton
             [Python] Add in missing initializers for tp_finalize,
             nb_matrix_multiply, nb_inplace_matrix_multiply, ht_qualname
