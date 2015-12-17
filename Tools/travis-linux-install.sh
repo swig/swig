@@ -12,9 +12,7 @@ else
 fi
 
 case "$SWIGLANG" in
-	"")
-		sudo apt-get -qq install yodl
-		;;
+	"")     ;;
 	"csharp")
 		sudo apt-get -qq install mono-devel
 		;;

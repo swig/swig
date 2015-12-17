@@ -49,14 +49,11 @@ maintainer: libfiles
 # Documentation
 #####################################################################
 
-docs: docs-main docs-ccache
+docs: docs-main
 
 docs-main:
 	@echo making docs
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) all clean-baks
-
-docs-ccache:
-	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) docs)
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)

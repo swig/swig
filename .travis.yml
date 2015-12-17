@@ -201,8 +201,7 @@ script:
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-ccache; fi
   - if test -z "$SWIGLANG"; then make -s $SWIGJOBS check-errors-test-suite; fi
   - echo 'Installing...' && echo -en 'travis_fold:start:script.2\\r'
-  # make install doesn't work on os x due to missing yodl2man
-  - if test -z "$SWIGLANG" -a "$TRAVIS_OS_NAME" = "linux"; then sudo make -s install && swig -version && ccache-swig -V; fi
+  - if test -z "$SWIGLANG"; then sudo make -s install && swig -version && ccache-swig -V; fi
   - echo -en 'travis_fold:end:script.2\\r'
   # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
   - if test -n "$SWIGLANG"; then cflags=$($TRAVIS_BUILD_DIR/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) && echo $cflags; fi

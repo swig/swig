@@ -95,8 +95,6 @@ os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;")
 # Build documentation
 print "Building html documentation"
 os.system("cd "+dirname+"/Doc/Manual && make all clean-baks") == 0 or failed()
-print "Building man pages"
-os.system("cd "+dirname+"/CCache && yodl2man -o ccache-swig.1 ccache.yo") == 0 or failed()
 
 # Build the tar-ball
 os.system("tar -cf "+dirname+".tar "+dirname) == 0 or failed()

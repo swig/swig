@@ -19,9 +19,10 @@ HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Cont
 
 all: maketoc check generate
 
-maketoc: CCache.html
+maketoc:
 	python maketoc.py
 
+# Use this to regenerate CCache.html should this ever be needed
 CCache.html: ../../CCache/ccache.yo
 	yodl2html -o CCache.html ../../CCache/ccache.yo
 
@@ -53,7 +54,6 @@ swightml.book: chapters Sections.html
 maintainer-clean: clean-baks
 	rm -f swightml.book
 	rm -f swigpdf.book
-	rm -f CCache.html
 	rm -f SWIGDocumentation.html
 	rm -f SWIGDocumentation.pdf
 

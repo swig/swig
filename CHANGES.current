@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-17: wsfulton
+            Issues #286, #128
+            Remove ccache-swig.1 man page - please use the CCache.html docs instead.
+            The yodl2man and yodl2html tools are no longer used and so SWIG no
+            longer has a dependency on these packages which were required when
+            building from git.
+
 2015-12-16: zturner/coleb
             [Python] Fix Python3.5 interpreter assertions when objects are being
             deleted due to an existing exception. Most notably in generators
