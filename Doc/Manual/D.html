@@ -50,7 +50,7 @@
 
 <p>While these issues can be worked around relatively easy by hand-coding a thin wrapper layer around the C library in question, there is another issue where writing wrapper code per hand is not feasible: C++ libraries. D did not support interfacing to C++ in version 1 at all, and even if <tt>extern(C++)</tt> has been added to D2, the support is still very limited, and a custom wrapper layer is still required in many cases. </p>
 
-<p>To help addressing these issues, the SWIG C# module has been forked to support D. Is has evolved quite a lot since then, but there are still many similarities, so if you do not find what you are looking for on this page, it might be worth having a look at the chapter on <a href="CSharp.html">C#</a> (and also on <a href="Java.html">Java</a>, since the C# module was in turn forked from it).</p>
+<p>To help addressing these issues, the SWIG C# module has been forked to support D. Is has evolved quite a lot since then, but there are still many similarities, so if you do not find what you are looking for on this page, it might be worth having a look at the chapter on <a href="CSharp.html#CSharp">C#</a> (and also on <a href="Java.html#Java">Java</a>, since the C# module was in turn forked from it).</p>
 
 
 <H2><a name="D_command_line_invocation"></a>22.2 Command line invocation</H2>
@@ -64,7 +64,7 @@
     <p>By default, SWIG generates code for D1/Tango. Use the <tt>-d2</tt> flag to target D2/Phobos instead.</p>
   </dd>
 
-  <dt id="D_splitproxy"><tt>-splitproxy</tt></dt>
+  <dt><a name="D_splitproxy"></a><tt>-splitproxy</tt></dt>
   <dd>
     <p>By default, SWIG generates two D modules: the <em>proxy</em> module, named like the source module (either specified via the <tt>%module</tt> directive or via the <tt>module</tt> command line switch), which contains all the proxy classes, functions, enums, etc., and the <em>intermediary</em> module (named like the proxy module, but suffixed with <tt>_im</tt>), which contains all the <tt>extern(C)</tt> function declarations and other private parts only used internally by the proxy module.</p>
     <p>If the split proxy mode is enabled by passing this switch at the command line, all proxy classes and enums are emitted to their own D module instead. The main proxy module only contains free functions and constants in this case.</p>
@@ -125,7 +125,7 @@
 
 <p>Used for converting between the types for C/C++ and D when generating the code for the wrapper functions (on the C++ side).</p>
 
-<p>The code from the <tt>in</tt> typemap is used to convert arguments to the C wrapper function to the type used in the wrapped code (<tt>ctype</tt>->original C++ type), the <tt>out</tt> typemap is utilized to convert values from the wrapped code to wrapper function return types (original C++ type-><tt>ctype</tt>).</p>
+<p>The code from the <tt>in</tt> typemap is used to convert arguments to the C wrapper function to the type used in the wrapped code (<tt>ctype</tt>-&gt;original C++ type), the <tt>out</tt> typemap is utilized to convert values from the wrapped code to wrapper function return types (original C++ type-&gt;<tt>ctype</tt>).</p>
 
 <p>The <tt>directorin</tt> typemap is used to convert parameters to the type used in the D director callback function, its return value is processed by <tt>directorout</tt> (see below).</p>
 
@@ -135,11 +135,11 @@
 
 <p>Typemaps for code generation in D proxy and type wrapper classes.</p>
 
-<p id="D_din">The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the intermediary D module (the <a href="D.html#D_dinput"><tt>$dinput</tt></a> macro is replaced). To inject further parameter processing code before or after the call to the intermediary layer, the <tt>pre</tt>, <tt>post</tt> and <tt>terminator</tt> attributes can be used (please refer to the <a href="CSharp.html#CSharp_date_marshalling">C# date marshalling example</a> for more information on these).</p>
+<p><a name="D_din"></a>The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the intermediary D module (the <a href="D.html#D_dinput">$dinput</a> macro is replaced). To inject further parameter processing code before or after the call to the intermediary layer, the <tt>pre</tt>, <tt>post</tt> and <tt>terminator</tt> attributes can be used (please refer to the <a href="CSharp.html#CSharp_date_marshalling">C# date marshalling example</a> for more information on these).</p>
 
-<p id="D_dout">The <tt>dout</tt> typemap is used for converting function return values from the return type used in the intermediary D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_imcall"><tt>$imcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
+<p><a name="D_dout"></a>The <tt>dout</tt> typemap is used for converting function return values from the return type used in the intermediary D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_imcall"><tt>$imcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
 
-<p id="D_ddirectorinout">The code from the <tt>ddirectorin</tt> and <tt>ddirectorout</tt> typemaps is used for conversion in director callback functions. Arguments are converted to the type used in the proxy class method they are calling by using the code from <tt>ddirectorin</tt>, the proxy class method return value is converted to the type the C++ code expects via the <tt>ddirectorout</tt> typemap (the <a href="D.html#D_dpcall"><tt>$dcall</tt> and <tt>$winput</tt></a> macros are replaced).</p>
+<p><a name="D_ddirectorinout"></a>The code from the <tt>ddirectorin</tt> and <tt>ddirectorout</tt> typemaps is used for conversion in director callback functions. Arguments are converted to the type used in the proxy class method they are calling by using the code from <tt>ddirectorin</tt>, the proxy class method return value is converted to the type the C++ code expects via the <tt>ddirectorout</tt> typemap (the <a href="D.html#D_dpcall"><tt>$dcall</tt> and <tt>$winput</tt></a> macros are replaced).</p>
 
 <p>The full chain of type conversions when a director callback is invoked looks like this:</p>
 
@@ -172,7 +172,7 @@
 
 <p>Using <tt>dcode</tt> and <tt>dimports</tt>, you can specify additional D code which will be emitted into the class body respectively the imports section of the D module the class is written to.</p>
 
-<p id="D_class_code_typemaps"><tt>dconstructor</tt>, <tt>ddestructor</tt>, <tt>ddispose</tt> and <tt>ddispose_derived</tt> are used to generate the class constructor, destructor and <tt>dispose()</tt> method, respectively. The auxiliary code for handling the pointer to the C++ object is stored in <tt>dbody</tt> and <tt>dbody_derived</tt>. You can override them for specific types.</p>
+<p><a name="D_class_code_typemaps"></a><tt>dconstructor</tt>, <tt>ddestructor</tt>, <tt>ddispose</tt> and <tt>ddispose_derived</tt> are used to generate the class constructor, destructor and <tt>dispose()</tt> method, respectively. The auxiliary code for handling the pointer to the C++ object is stored in <tt>dbody</tt> and <tt>dbody_derived</tt>. You can override them for specific types.</p>
 
 
 <H3><a name="D_special_variables"></a>22.3.7 Special variable macros</H3>
@@ -197,7 +197,7 @@
   <dt><tt>$null</tt></dt>
   <dd><p>In code inserted into the generated C/C++ wrapper functions, this variable is replaced by either <tt>0</tt> or nothing at all, depending on whether the function has a return value or not. It can be used to bail out early e.g. in case of errors (<tt>return $null;</tt>).</p></dd>
 
-  <dt id="D_dinput"><tt>$dinput</tt> (C#: <tt>$csinput</tt>)</dt>
+  <dt><a name="D_dinput"></a><tt>$dinput</tt> (C#: <tt>$csinput</tt>)</dt>
   <dd>
     <p>This variable is used in <tt><a href="D.html#D_din">din</a></tt> typemaps and is replaced by the expression which is to be passed to C/C++.</p>
     <p>For example, this input</p>
@@ -214,7 +214,7 @@ void foo(SomeClass arg) {
   example_im.foo(SomeClass.getCPointer(arg));
 }</pre></div></dd>
 
-  <dt id="D_imcall"><tt>$imcall</tt> and <tt>$owner</tt> (C#: <tt>$imcall</tt>)</dt>
+  <dt><a name="D_imcall"></a><tt>$imcall</tt> and <tt>$owner</tt> (C#: <tt>$imcall</tt>)</dt>
   <dd>
     <p>These variables are used in <tt><a href="D.html#D_dout">dout</a></tt> typemaps. <tt>$imcall</tt> contains the call to the intermediary module which provides the value to be used, and <tt>$owner</tt> signals if the caller is responsible for managing the object lifetime (that is, if the called method is a constructor or has been marked via <tt>%newobject</tt>).</p>
     <p>Consider the following example:</p>
@@ -243,7 +243,7 @@ SomeClass bar() {
   </dd>
 
   <dt><tt>$dcall</tt> and <tt>$winput</tt> (C#: <tt>$cscall</tt>, <tt>$iminput</tt>)</dt>
-  <dd id="D_dpcall"><p>These variables are used in the director-specific typemaps <a href="D.html#D_ddirectorinout"><tt>ddirectorin</tt></a> and <a href="D.html#D_ddirectorinout"><tt>ddirectorout</tt></a>. They are more or less the reverse of the <tt>$imcall</tt> and <tt>$dinput</tt> macros: <tt>$dcall</tt> contains the invocation of the D proxy method of which the return value is to be passed back to C++, <tt>$winput</tt> contains the parameter value from C++.</p></dd>
+  <dd><a name="D_dpcall"></a><p>These variables are used in the director-specific typemaps <a href="D.html#D_ddirectorinout"><tt>ddirectorin</tt></a> and <a href="D.html#D_ddirectorinout"><tt>ddirectorout</tt></a>. They are more or less the reverse of the <tt>$imcall</tt> and <tt>$dinput</tt> macros: <tt>$dcall</tt> contains the invocation of the D proxy method of which the return value is to be passed back to C++, <tt>$winput</tt> contains the parameter value from C++.</p></dd>
 
   <dt><tt>$excode</tt></dt>
   <dd><p>This variable is used in <tt>dout</tt> and <tt>dconstructor</tt> typemaps and is filled with the contents of the <tt>excode</tt> typemap attribute if an exception could be thrown from the C++ side. See the <a href="CSharp.html#CSharp_exceptions">C# documentation</a> for details.</p></dd>
@@ -263,7 +263,7 @@ SomeClass bar() {
 </pre></div>
   </dd>
 
-  <dt id="D_importtype"><tt>$importtype(SomeDType)</tt></dt>
+  <dt><a name="D_importtype"></a><tt>$importtype(SomeDType)</tt></dt>
   <dd>
     <p>This macro is used in the <tt>dimports</tt> typemap if a dependency on another D type generated by SWIG is added by a custom typemap.</p>
     <p>Consider the following code snippet:</p>

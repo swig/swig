@@ -9,7 +9,7 @@
 # validation.
 #
 # Additional html validation can be done using the validate target.
-# Additional link checking can be done using the linkchecker target.
+# Additional link checking can be done using the linkchecker1 and linkchecker2 target.
 #
 
 # Note the # and " are escaped
@@ -33,6 +33,14 @@ check:
 	tidy -errors --gnu-emacs yes -quiet index.html
 	tidy -errors --gnu-emacs yes -quiet Sections.html
 	all=`sed '/^#/d' chapters | grep -v CCache.html`; for a in $$all; do tidy -errors --gnu-emacs yes -quiet $$a; done;
+
+# Check for links which don't work including those generated from the individual .html files into SWIGDocumentation.html
+linkchecker:
+	rm -rf linkchecker-tmp
+	mkdir linkchecker-tmp
+	cp SWIGDocumentation.html linkchecker-tmp
+	cp *.png linkchecker-tmp
+	(cd linkchecker-tmp && linkchecker -F text --no-warnings SWIGDocumentation.html)
 
 generate: swightml.book swigpdf.book
 	htmldoc --batch swightml.book || true
