@@ -34,14 +34,6 @@ check:
 	tidy -errors --gnu-emacs yes -quiet Sections.html
 	all=`sed '/^#/d' chapters | grep -v CCache.html`; for a in $$all; do tidy -errors --gnu-emacs yes -quiet $$a; done;
 
-# Check for links which don't work including those generated from the individual .html files into SWIGDocumentation.html
-linkchecker:
-	rm -rf linkchecker-tmp
-	mkdir linkchecker-tmp
-	cp SWIGDocumentation.html linkchecker-tmp
-	cp *.png linkchecker-tmp
-	(cd linkchecker-tmp && linkchecker -F text --no-warnings SWIGDocumentation.html)
-
 generate: swightml.book swigpdf.book
 	htmldoc --batch swightml.book || true
 	htmldoc --batch swigpdf.book || true
@@ -77,9 +69,18 @@ test:
 validate:
 	all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
 
-# Link checking using linkchecker
-linkchecker:
+# Link checking using linkchecker of the index.html only file (including anchors)
+linkchecker1:
 	@echo -----------------------------------------------------------------------
 	@echo Note linkchecker versions prior to 6.1 do not work properly wrt anchors
 	@echo -----------------------------------------------------------------------
-	linkchecker --config=./linkchecker.config index.html
+	linkchecker --config=./linkchecker.config --anchors index.html
+
+# Check for links which don't work including those generated from the individual .html files into SWIGDocumentation.html
+linkchecker2:
+	rm -rf linkchecker-tmp
+	mkdir linkchecker-tmp
+	cp SWIGDocumentation.html linkchecker-tmp
+	cp *.png linkchecker-tmp
+	(cd linkchecker-tmp && linkchecker --config=../linkchecker.config -F text --no-warnings SWIGDocumentation.html)
+
