@@ -639,7 +639,7 @@ public:
     Printv(f_begin, all_cs_entry, "\n\n", s_arginfo, "\n\n", s_entry,
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,NULL)\n"
 	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,NULL)\n"
-	"{NULL, NULL, NULL}\n};\n\n", NIL);
+	" ZEND_FE_END\n};\n\n", NIL);
     Printv(f_begin, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
