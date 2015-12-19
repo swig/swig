@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-19: wsfulton
+            [Python] Python 2 Unicode UTF-8 strings can be used as inputs to char * or
+            std::string types if the generated C/C++ code has SWIG_PYTHON_2_UNICODE defined.
+
 2015-12-17: wsfulton
             Issues #286, #128
             Remove ccache-swig.1 man page - please use the CCache.html docs instead.

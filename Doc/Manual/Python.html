@@ -122,6 +122,7 @@
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
 <li><a href="#Python_nn77">Byte string output conversion</a>
+<li><a href="#Python_2_unicode">Python 2 Unicode</a>
 </ul>
 </ul>
 </div>
@@ -6162,6 +6163,71 @@ in Python 3 code.
 For more details about the <tt>surrogateescape</tt> error handler, please see
 <a href="https://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
 </p>
+
+<H3><a name="Python_2_unicode"></a>36.12.5 Python 2 Unicode</H3>
+
+
+<p>
+A Python 3 string is a Unicode string so by default a Python 3 string that contains Unicode
+characters passed to C/C++ will be accepted and converted to a C/C++ string
+(<tt>char *</tt> or <tt>std::string</tt> types).
+A Python 2 string is not a unicode string by default and should a Unicode string be
+passed to C/C++ it will fail to convert to a C/C++ string
+(<tt>char *</tt> or <tt>std::string</tt> types).
+The Python 2 behavior can be made more like Python 3 by defining
+<tt>SWIG_PYTHON_2_UNICODE</tt> when compiling the generated C/C++ code.
+By default when the following is wrapped:
+</p>
+
+<div class="code"><pre>
+%module unicode_strings
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+An error will occur when using Unicode strings in Python 2:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from unicode_strings import *
+&gt;&gt;&gt; charstring("hi")
+'hi'
+&gt;&gt;&gt; charstring(u"hi")
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'char *'
+</pre></div>
+
+<p>
+When the <tt>SWIG_PYTHON_2_UNICODE</tt> macro is added to the generated code:
+</p>
+
+<div class="code"><pre>
+%module unicode_strings
+%begin %{
+#define SWIG_PYTHON_2_UNICODE
+%}
+
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+Unicode strings will be successfully accepted and converted from UTF-8,
+but note that they are returned as a normal Python 2 string:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from unicode_strings import *
+&gt;&gt;&gt; charstring("hi")
+'hi'
+&gt;&gt;&gt; charstring(u"hi")
+'hi'
+&gt;&gt;&gt;
+</pre></div>
 
 </body>
 </html>
