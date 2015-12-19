@@ -30,7 +30,7 @@ namespace Swig {
     }
 
     virtual swig_ruby_owntype get_own() const {
-      swig_ruby_owntype own = {0};
+      swig_ruby_owntype own = {0, 0};
       return own;
     }
   };
@@ -332,7 +332,7 @@ namespace Swig {
     }
 
     swig_ruby_owntype swig_release_ownership(void *vptr) const {
-      swig_ruby_owntype own = {0};
+      swig_ruby_owntype own = {0, 0};
       if (vptr) {
 	SWIG_GUARD(swig_mutex_own);
 	swig_ownership_map::iterator iter = swig_owner.find(vptr);

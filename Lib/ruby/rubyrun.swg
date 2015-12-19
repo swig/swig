@@ -245,7 +245,7 @@ typedef struct {
 
 SWIGRUNTIME swig_ruby_owntype
 SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
-  swig_ruby_owntype oldown = {0};
+  swig_ruby_owntype oldown = {0, 0};
   if (obj) {
     oldown.datafree = RDATA(obj)->dfree;
     RDATA(obj)->dfree = own.datafree;

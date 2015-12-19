@@ -234,7 +234,7 @@ public:
     }
 
     Printf(f_init, "return true;\n}\n");
-    Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
+    Printf(s_global_tab, "{0,0,0,0,0,0}\n};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -998,7 +998,7 @@ public:
       Delete(cnameshdw);
     }
 
-    Printf(s_members_tab, "{0,0,0,0}\n};\n");
+    Printf(s_members_tab, "{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers, s_members_tab, NIL);
 
     String *base_class_names = NewString("");

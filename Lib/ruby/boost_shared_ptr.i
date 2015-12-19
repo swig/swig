@@ -26,7 +26,7 @@
 
 // plain value
 %typemap(in) CONST TYPE (void *argp, int res = 0) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -45,7 +45,7 @@
 
 %typemap(varin) CONST TYPE {
   void *argp = 0;
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
@@ -65,7 +65,7 @@
 // plain pointer
 // Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
 %typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -87,7 +87,7 @@
 
 %typemap(varin) CONST TYPE * {
   void *argp = 0;
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
@@ -110,7 +110,7 @@
 
 // plain reference
 %typemap(in) CONST TYPE & (void  *argp = 0, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -131,7 +131,7 @@
 
 %typemap(varin) CONST TYPE & {
   void *argp = 0;
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
@@ -156,7 +156,7 @@
 // plain pointer by reference
 // Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
 %typemap(in) TYPE *CONST& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -184,7 +184,7 @@
 
 // shared_ptr by value
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > (void *argp, int res = 0) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -198,7 +198,7 @@
 }
 
 %typemap(varin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   void *argp = 0;
   int res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
@@ -214,7 +214,7 @@
 
 // shared_ptr by reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & (void *argp, int res = 0, $*1_ltype tempshared) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -241,7 +241,7 @@
 
 // shared_ptr by pointer
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * (void *argp, int res = 0, $*1_ltype tempshared) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -269,7 +269,7 @@
 
 // shared_ptr by pointer reference
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& (void *argp, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, $*1_ltype temp = 0) {
-  swig_ruby_owntype newmem = {0};
+  swig_ruby_owntype newmem = {0, 0};
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
