@@ -42,18 +42,17 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#else
 	if (*alloc == SWIG_NEWOBJ) 
 %#endif
-	  {
-	    *cptr = %new_copy_array(cstr, len + 1, char);
-	    *alloc = SWIG_NEWOBJ;
-	  }
-	else {
+	{
+	  *cptr = %new_copy_array(cstr, len + 1, char);
+	  *alloc = SWIG_NEWOBJ;
+	} else {
 	  *cptr = cstr;
 	  *alloc = SWIG_OLDOBJ;
 	}
       } else {
-        %#if PY_VERSION_HEX>=0x03000000
-        assert(0); /* Should never reach here in Python 3 */
-        %#endif
+	%#if PY_VERSION_HEX>=0x03000000
+	assert(0); /* Should never reach here in Python 3 */
+	%#endif
 	*cptr = SWIG_Python_str_AsChar(obj);
       }
     }
