@@ -968,7 +968,7 @@ public:
       Printf(f_wrappers, ",0");
     }
     Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases,",
-	   "swig_", mangled_classname, "_base_names, &swig_module };\n", NIL);
+	   "swig_", mangled_classname, "_base_names, &swig_module, SWIG_TCL_HASHTABLE_INIT };\n", NIL);
 
     if (!itcl) {
       Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_", mangled_classname,
