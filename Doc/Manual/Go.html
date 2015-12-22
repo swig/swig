@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Go"></a>23 SWIG and Go</H1>
+<H1><a name="Go">23 SWIG and Go</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -56,7 +56,7 @@ the Go programming language
 see <a href="http://golang.org/">golang.org</a>.
 </p>
 
-<H2><a name="Go_overview"></a>23.1 Overview</H2>
+<H2><a name="Go_overview">23.1 Overview</a></H2>
 
 
 <p>
@@ -85,7 +85,7 @@ type-safe as well.  In case of type issues the build will fail and hence SWIG's
 are not used.
 </p>
 
-<H2><a name="Go_examples"></a>23.2 Examples</H2>
+<H2><a name="Go_examples">23.2 Examples</a></H2>
 
 
 <p>
@@ -100,7 +100,7 @@ SWIG interface file extension for backwards compatibility with Go 1.
 </p>
 
 
-<H2><a name="Go_running_swig"></a>23.3 Running SWIG with Go</H2>
+<H2><a name="Go_running_swig">23.3 Running SWIG with Go</a></H2>
 
 
 <p>
@@ -180,7 +180,7 @@ sequence for this approach would look like this:
 </pre></div>
 
 
-<H3><a name="Go_commandline"></a>23.3.1 Go-specific Commandline Options</H3>
+<H3><a name="Go_commandline">23.3.1 Go-specific Commandline Options</a></H3>
 
 
 <p>
@@ -263,7 +263,7 @@ swig -go -help
 </table>
 
 
-<H3><a name="Go_outputs"></a>23.3.2 Generated Wrapper Files</H3>
+<H3><a name="Go_outputs">23.3.2 Generated Wrapper Files</a></H3>
 
 
 <p>There are two different approaches to generating wrapper files,
@@ -307,7 +307,7 @@ combined with the compiled MODULE.go using go tool pack.
 </ul>
 
 
-<H2><a name="Go_basic_tour"></a>23.4 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Go_basic_tour">23.4 A tour of basic C/C++ wrapping</a></H2>
 
 
 <p>
@@ -317,7 +317,7 @@ modifications have to occur.  This section briefly covers the
 essential aspects of this wrapping.
 </p>
 
-<H3><a name="Go_package"></a>23.4.1 Go Package Name</H3>
+<H3><a name="Go_package">23.4.1 Go Package Name</a></H3>
 
 
 <p>
@@ -327,7 +327,7 @@ directive.  You may override this by using SWIG's <tt>-package</tt>
 command line option.
 </p>
 
-<H3><a name="Go_names"></a>23.4.2 Go Names</H3>
+<H3><a name="Go_names">23.4.2 Go Names</a></H3>
 
 
 <p>
@@ -359,7 +359,7 @@ followed by that name, and the destructor will be
 named <tt>Delete</tt> followed by that name.
 </p>
 
-<H3><a name="Go_constants"></a>23.4.3 Go Constants</H3>
+<H3><a name="Go_constants">23.4.3 Go Constants</a></H3>
 
 
 <p>
@@ -367,7 +367,7 @@ C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
 directive become Go constants, declared with a <tt>const</tt>
 declaration.
 
-<H3><a name="Go_enumerations"></a>23.4.4 Go Enumerations</H3>
+<H3><a name="Go_enumerations">23.4.4 Go Enumerations</a></H3>
 
 
 <p>
@@ -377,7 +377,7 @@ usual).  The values of the enumeration will become variables in Go;
 code should avoid modifying those variables.
 </p>
 
-<H3><a name="Go_classes"></a>23.4.5 Go Classes</H3>
+<H3><a name="Go_classes">23.4.5 Go Classes</a></H3>
 
 
 <p>
@@ -455,7 +455,7 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_memory"></a>23.4.5.1 Go Class Memory Management</H4>
+<H4><a name="Go_class_memory">23.4.5.1 Go Class Memory Management</a></H4>
 
 
 <p>
@@ -577,7 +577,7 @@ func (o *GoClassName) Close() {
 </pre>
 </div>
 
-<H4><a name="Go_class_inheritance"></a>23.4.5.2 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance">23.4.5.2 Go Class Inheritance</a></H4>
 
 
 <p>
@@ -589,7 +589,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates"></a>23.4.6 Go Templates</H3>
+<H3><a name="Go_templates">23.4.6 Go Templates</a></H3>
 
 
 <p>
@@ -598,7 +598,7 @@ wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
 
-<H3><a name="Go_director_classes"></a>23.4.7 Go Director Classes</H3>
+<H3><a name="Go_director_classes">23.4.7 Go Director Classes</a></H3>
 
 
 <p>
@@ -616,7 +616,7 @@ completely to avoid common pitfalls with directors in Go.
 </p>
 
 
-<H4><a name="Go_director_example_cpp_code"></a>23.4.7.1 Example C++ code</H4>
+<H4><a name="Go_director_example_cpp_code">23.4.7.1 Example C++ code</a></H4>
 
 
 <p>
@@ -688,7 +688,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_enable"></a>23.4.7.2 Enable director feature</H4>
+<H4><a name="Go_director_enable">23.4.7.2 Enable director feature</a></H4>
 
 
 <p>
@@ -723,7 +723,7 @@ documentation on directors.
 </p>
 
 
-<H4><a name="Go_director_ctor_dtor"></a>23.4.7.3 Constructor and destructor</H4>
+<H4><a name="Go_director_ctor_dtor">23.4.7.3 Constructor and destructor</a></H4>
 
 
 <p>
@@ -776,7 +776,7 @@ embedding</a>.
 </p>
 
 
-<H4><a name="Go_director_overriding"></a>23.4.7.4 Override virtual methods</H4>
+<H4><a name="Go_director_overriding">23.4.7.4 Override virtual methods</a></H4>
 
 
 <p>
@@ -842,7 +842,7 @@ the Go methods.
 </p>
 
 
-<H4><a name="Go_director_base_methods"></a>23.4.7.5 Call base methods</H4>
+<H4><a name="Go_director_base_methods">23.4.7.5 Call base methods</a></H4>
 
 
 <p>
@@ -879,7 +879,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_subclass"></a>23.4.7.6 Subclass via embedding</H4>
+<H4><a name="Go_director_subclass">23.4.7.6 Subclass via embedding</a></H4>
 
 
 <p>
@@ -947,7 +947,7 @@ class.
 </p>
 
 
-<H4><a name="Go_director_finalizer"></a>23.4.7.7 Memory management with runtime.SetFinalizer</H4>
+<H4><a name="Go_director_finalizer">23.4.7.7 Memory management with runtime.SetFinalizer</a></H4>
 
 
 <p>
@@ -1012,7 +1012,7 @@ before using <tt>runtime.SetFinalizer</tt> to know all of its gotchas.
 </p>
 
 
-<H4><a name="Go_director_foobargo_class"></a>23.4.7.8 Complete FooBarGo example class</H4>
+<H4><a name="Go_director_foobargo_class">23.4.7.8 Complete FooBarGo example class</a></H4>
 
 
 <p>
@@ -1141,7 +1141,7 @@ SWIG/Examples/go/director/</a>.
 </p>
 
 
-<H3><a name="Go_primitive_type_mappings"></a>23.4.8 Default Go primitive type mappings</H3>
+<H3><a name="Go_primitive_type_mappings">23.4.8 Default Go primitive type mappings</a></H3>
 
 
 <p>
@@ -1248,7 +1248,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments"></a>23.4.9 Output arguments</H3>
+<H3><a name="Go_output_arguments">23.4.9 Output arguments</a></H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -1301,7 +1301,7 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code"></a>23.4.10 Adding additional go code</H3>
+<H3><a name="Go_adding_additional_code">23.4.10 Adding additional go code</a></H3>
 
 
 <p>Often the APIs generated by swig are not very natural in go, especially if
@@ -1396,7 +1396,7 @@ func bar() {
 </pre>
 </div>
 
-<H3><a name="Go_typemaps"></a>23.4.11 Go typemaps</H3>
+<H3><a name="Go_typemaps">23.4.11 Go typemaps</a></H3>
 
 
 <p>
