@@ -165,9 +165,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGTCL\n");
-    Printf(f_runtime, "\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGTCL\n#define SWIGTCL\n#endif\n\n");
 
     /* Set the module name, namespace, and prefix */
 

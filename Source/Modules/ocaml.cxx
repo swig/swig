@@ -269,8 +269,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCAML\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
     Printf(f_mlbody, "let module_name = \"%s\"\n", module);

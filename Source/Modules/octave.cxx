@@ -194,8 +194,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCTAVE\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCTAVE\n#define SWIGOCTAVE\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 

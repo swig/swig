@@ -325,8 +325,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGPERL\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGPERL\n#define SWIGPERL\n#endif\n\n");
+
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
