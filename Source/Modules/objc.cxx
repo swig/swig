@@ -35,8 +35,8 @@ private:
   bool member_constant_flag;	// flag: wrapping member constants
 
   /* Helper strings used in the code */
-  String *current_class_name;	// String representing name of the current class.
-  String *current_class_type;	// Current class when used as a type. This represents the complete name of the class including the scope prefix
+//  String *current_class_name;	// String representing name of the current class.
+//  String *current_class_type;	// Current class when used as a type. This represents the complete name of the class including the scope prefix
   String *variable_name;	// String representing the current variable name.
   String *proxyfuncname; // String representing the current memberfunction name.
 
@@ -97,8 +97,8 @@ public:
       static_member_func_flag(false),
       member_func_flag(false),
       member_constant_flag(false),
-      current_class_name(NULL),
-      current_class_type(NULL),
+//       current_class_name(NULL),
+//       current_class_type(NULL),
       variable_name(NULL),
       proxyfuncname(NULL),
       proxy_class_name(NULL),
@@ -352,8 +352,6 @@ int OBJECTIVEC::top(Node *n) {
   // Cleanup
   Delete(wrap_h_code);
   Delete(wrap_mm_code);
-  Close(f_wrap_h);
-  Close(f_wrap_mm);
   Delete(f_runtime);
   Delete(f_init);
   Delete(f_header);
@@ -377,8 +375,6 @@ int OBJECTIVEC::top(Node *n) {
     Delete(swigtypes_mm_code);
     Delete(proxy_h_code);
     Delete(proxy_mm_code);
-    Close(f_proxy_h);
-    Close(f_proxy_mm);
     Delete(f_proxy_h);
     Delete(f_proxy_mm);
   }
@@ -1134,7 +1130,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
 
   // Get some useful attributes of this function
   String *symname = Getattr(n, "sym:name");
-  String *name = Getattr(n, "name");
+//   String *name = Getattr(n, "name");
   SwigType *type = Getattr(n, "type");
   ParmList *parmlist = Getattr(n, "parms");
   String *crettype = SwigType_str(type, 0);
