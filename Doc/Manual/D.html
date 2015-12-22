@@ -22,13 +22,13 @@
 <li><a href="#D_code_injection_typemaps">Code injection typemaps</a>
 <li><a href="#D_special_variables">Special variable macros</a>
 </ul>
-<li><a href="#D_features"><tt>%feature</tt>s</a>
+<li><a href="#D_features">D and %feature</a>
 <li><a href="#D_pragmas">Pragmas</a>
 <li><a href="#D_exceptions">D Exceptions</a>
 <li><a href="#D_directors">D Directors</a>
 <li><a href="#D_other_features">Other features</a>
 <ul>
-<li><a href="#D_nspace">Extended namespace support (<tt>nspace</tt>)</a>
+<li><a href="#D_nspace">Extended namespace support (nspace)</a>
 <li><a href="#D_native_pointer_support">Native pointer support</a>
 <li><a href="#D_operator_overloading">Operator overloading</a>
 <li><a href="#D_test_suite">Running the test-suite</a>
@@ -295,7 +295,7 @@ $importtype(AnotherInterface)
 </dl>
 
 
-<H2><a name="D_features">22.4 <tt>%feature</tt>s</a></H2>
+<H2><a name="D_features">22.4 D and %feature</a></H2>
 
 
 <p>The D module defines a number of directives which modify the <a href="Customization.html#Customization_features">SWIG features</a> set globally or for a specific declaration:</p>
@@ -386,7 +386,7 @@ struct A {
 <H2><a name="D_other_features">22.8 Other features</a></H2>
 
 
-<H3><a name="D_nspace">22.8.1 Extended namespace support (<tt>nspace</tt>)</a></H3>
+<H3><a name="D_nspace">22.8.1 Extended namespace support (nspace)</a></H3>
 
 
 <p>By default, SWIG flattens all C++ namespaces into a single target language namespace, but as for Java and C#, the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is supported for D. If it is active, C++ namespaces are mapped to D packages/modules. Note, however, that like for the other languages, <em>free</em> variables and functions are not supported yet; currently, they are all allows written to the main proxy D module.</p>
