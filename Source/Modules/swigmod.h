@@ -18,12 +18,6 @@
 #include "preprocessor.h"
 #include "swigwarn.h"
 
-#if !defined(HAVE_BOOL)
-typedef int bool;
-#define true ((bool)1)
-#define false ((bool)0)
-#endif
-
 #define NOT_VIRTUAL     0
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
@@ -99,6 +93,7 @@ public:
   virtual int usingDeclaration(Node *n);
   virtual int namespaceDeclaration(Node *n);
   virtual int templateDeclaration(Node *n);
+  virtual int lambdaDeclaration(Node *n);
 
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
 
@@ -119,6 +114,8 @@ public:
   Language();
   virtual ~Language();
   virtual int emit_one(Node *n);
+
+  String *directorClassName(Node *n);
 
   /* Parse command line options */
 
@@ -212,8 +209,11 @@ public:
   virtual int validIdentifier(String *s);	/* valid identifier? */
   virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
   virtual void dumpSymbols();
-  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
-  virtual Node *classLookup(const SwigType *s);	/* Class lookup      */
+  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
+  virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
+  virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
+  virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
+  virtual Node *classLookup(const SwigType *s) const; /* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
@@ -285,14 +285,46 @@ protected:
   /* Return the current class prefix */
   String *getClassPrefix() const;
 
+  /* Return the current enum class prefix */
+  String *getEnumClassPrefix() const;
+
   /* Fully qualified type name to use */
   String *getClassType() const;
 
   /* Return true if the current method is part of a smart-pointer */
   int is_smart_pointer() const;
 
+  /* Return the name to use for the given parameter. */
+  virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter = false) const;
+
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
+
+public:
+  enum NestedClassSupport {
+    NCS_None, // Target language does not have an equivalent to nested classes
+    NCS_Full, // Target language does have an equivalent to nested classes and is fully implemented
+    NCS_Unknown // Target language may or may not have an equivalent to nested classes. If it does, it has not been implemented yet.
+  };
+  /* Does target language support nested classes? Default is NCS_Unknown. 
+    If NCS_Unknown is returned, then the nested classes will be ignored unless 
+    %feature "flatnested" is applied to them, in which case they will appear in global space.
+    If the target language does not support the notion of class
+    nesting, the language module should return NCS_None from this function, and 
+    the nested classes will be moved to the global scope (like implicit global %feature "flatnested").
+  */
+  virtual NestedClassSupport nestedClassesSupport() const;
+
+  /* Returns true if the target language supports key word arguments (kwargs) */
+  virtual bool kwargsSupport() const;
+
+protected:
+  /* Identifies if a protected members that are generated when the allprotected option is used.
+     This does not include protected virtual methods as they are turned on with the dirprot option. */
+  bool isNonVirtualProtectedAccess(Node *n) const;
+
+  /* Identify if a wrapped global or member variable n should use the naturalvar feature */
+  int use_naturalvar_mode(Node *n) const;
 
   /* Director subclass comparison test */
   String *none_comparison;
@@ -374,7 +406,6 @@ int is_protected(Node *n);
 int is_member_director(Node *parentnode, Node *member);
 int is_member_director(Node *member);
 int is_non_virtual_protected_access(Node *n); /* Check if the non-virtual protected members are required (for directors) */
-int use_naturalvar_mode(Node *n);
 
 void Wrapper_virtual_elimination_mode_set(int);
 void Wrapper_fast_dispatch_mode_set(int);
@@ -401,5 +432,19 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
+void Swig_nested_process_classes(Node *n);
+void Swig_nested_name_unnamed_c_structs(Node *n);
+
+template <class T> class save_value {
+  T _value;
+  T& _value_ptr;
+  save_value(const save_value&);
+  save_value& operator=(const save_value&);
+
+public:
+  save_value(T& value) : _value(value), _value_ptr(value) {}
+  save_value(T& value, T new_val) : _value(value), _value_ptr(value) { value = new_val; }
+  ~save_value() { _value_ptr = _value; }
+};
 
 #endif

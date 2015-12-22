@@ -42,18 +42,17 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#else
 	if (*alloc == SWIG_NEWOBJ) 
 %#endif
-	  {
-	    *cptr = %new_copy_array(cstr, len + 1, char);
-	    *alloc = SWIG_NEWOBJ;
-	  }
-	else {
+	{
+	  *cptr = %new_copy_array(cstr, len + 1, char);
+	  *alloc = SWIG_NEWOBJ;
+	} else {
 	  *cptr = cstr;
 	  *alloc = SWIG_OLDOBJ;
 	}
       } else {
-        %#if PY_VERSION_HEX>=0x03000000
-        assert(0); /* Should never reach here in Python 3 */
-        %#endif
+	%#if PY_VERSION_HEX>=0x03000000
+	assert(0); /* Should never reach here in Python 3 */
+	%#endif
 	*cptr = SWIG_Python_str_AsChar(obj);
       }
     }
@@ -63,6 +62,30 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 %#endif
     return SWIG_OK;
   } else {
+%#if defined(SWIG_PYTHON_2_UNICODE)
+%#if PY_VERSION_HEX<0x03000000
+    if (PyUnicode_Check(obj)) {
+      char *cstr; Py_ssize_t len;
+      if (!alloc && cptr) {
+        return SWIG_RuntimeError;
+      }
+      obj = PyUnicode_AsUTF8String(obj);
+      if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
+        if (cptr) {
+          if (alloc) *alloc = SWIG_NEWOBJ;
+          *cptr = %new_copy_array(cstr, len + 1, char);
+        }
+        if (psize) *psize = len + 1;
+
+        Py_XDECREF(obj);
+        return SWIG_OK;
+      } else {
+        Py_XDECREF(obj);
+      }
+    }
+%#endif
+%#endif
+
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
       void* vptr = 0;
@@ -89,9 +112,13 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 	SWIG_InternalNewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
 %#if PY_VERSION_HEX >= 0x03000000
-      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size,int));
+%#if PY_VERSION_HEX >= 0x03010000
+      return PyUnicode_DecodeUTF8(carray, %numeric_cast(size, Py_ssize_t), "surrogateescape");
 %#else
-      return PyString_FromStringAndSize(carray, %numeric_cast(size,int));
+      return PyUnicode_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
+%#endif
+%#else
+      return PyString_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#endif
     }
   } else {
@@ -99,5 +126,4 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
   }
 }
 }
-
 

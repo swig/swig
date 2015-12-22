@@ -344,7 +344,8 @@ namespace swig
   %feature("python:slot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
 #else
   %extend SwigPyIterator {
-  %pythoncode {def __iter__(self): return self}
+  %pythoncode %{def __iter__(self):
+    return self%}
   }
 #endif
 

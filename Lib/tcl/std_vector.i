@@ -28,11 +28,11 @@
 //      is returned
 // ------------------------------------------------------------------------
 
+%fragment("<string>");
+%fragment("<stdexcept>");
+%fragment("<algorithm>");
 %{
 #include <vector>
-#include <algorithm>
-#include <stdexcept>
-#include <string>
 
 Tcl_Obj* SwigString_FromString(const std::string &s) {
     return Tcl_NewStringObj(s.data(), (int)s.length());

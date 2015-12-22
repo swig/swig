@@ -185,7 +185,6 @@ The following C++ features are not currently supported:</p>
 
 <ul>
 <li>Overloaded versions of certain operators (new, delete, etc.)
-<li>Nested classes, see <a href="#SWIGPlus_nested_classes">Nested classes</a> for workarounds.
 </ul>
 
 <p>
@@ -217,7 +216,7 @@ to use the C++ compiler.  For example:
 <div class="shell">
 <pre>
 $ swig -c++ -tcl example.i
-$ c++ -c example_wrap.cxx 
+$ c++ -fPIC -c example_wrap.cxx 
 $ c++ example_wrap.o $(OBJS) -o example.so
 </pre>
 </div>
@@ -960,8 +959,9 @@ Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-on
 </p>
 
 <p>
+By default, SWIG uses the const reference typemaps for members that are primitive types.
 There are some subtle issues when wrapping data members that are
-themselves classes.  For instance, if you had another class like this,
+not primitive types, such as classes. For instance, if you had another class like this,
 </p>
 
 <div class="code">
@@ -974,7 +974,8 @@ public:
 </div>
 
 <p>
-then the low-level accessor to the <tt>items</tt> member actually uses pointers. For example:
+then the low-level accessor to the <tt>items</tt> member actually uses pointers.
+For example:
 </p>
 
 <div class="code">
@@ -999,31 +1000,7 @@ This can be somewhat unnatural for some types.
 For example, a user would expect the STL std::string class member variables to be wrapped as a string in the target language,
 rather than a pointer to this class.
 The const reference typemaps offer this type of marshalling, so there is a feature to tell SWIG to use the const reference typemaps rather than the pointer typemaps.
-It is the <tt>%naturalvar</tt> directive and is used as follows:
-</p>
-
-<div class="code">
-<pre>
-// All List variables will use const List&amp; typemaps
-%naturalvar List;
-
-// Only Foo::myList will use const List&amp; typemaps
-%naturalvar Foo::myList;
-struct Foo {
-  List myList;
-};
-
-// All variables will use const reference typemaps
-%naturalvar;
-</pre>
-</div>
-
-<p>
-The observant reader will notice that <tt>%naturalvar</tt> works like any other
-<a href="Customization.html#Customization_feature_flags">feature flag</a> directive,
-except it can also be attached to class types.
-The first of the example usages above show <tt>%naturalvar</tt> attaching to the <tt>List</tt> class.
-Effectively this feature changes the way accessors are generated to the following:
+It is the naturalvar feature and can be used to effectively change the way accessors are generated to the following:
 </p>
 
 <div class="code">
@@ -1038,15 +1015,45 @@ void Foo_items_set(Foo *self, const List &amp;value) {
 </div>
 
 <p>
-In fact it is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
+The <tt>%naturalvar</tt> directive is a macro for, and hence equivalent to, <tt>%feature("naturalvar")</tt>. It can be used as follows:
+</p>
+
+<div class="code">
+<pre>
+// All List variables will use const List&amp; typemaps
+%naturalvar List;
+
+// Only Foo::myList will use const List&amp; typemaps
+%naturalvar Foo::myList;
+struct Foo {
+  List myList;
+};
+
+// All non-primitive types will use const reference typemaps
+%naturalvar;
+</pre>
+</div>
+
+<p>
+The observant reader will notice that <tt>%naturalvar</tt> works like any other
+<a href="Customization.html#Customization_feature_flags">feature flag</a> directive but with some extra flexibility.
+The first of the example usages above shows <tt>%naturalvar</tt> attaching to the <tt>myList</tt>'s variable type, that is the <tt>List</tt> class.
+The second usage shows <tt>%naturalvar</tt> attaching to the variable name.
+Hence the naturalvar feature can be used on either the variable's name or type.
+Note that using the naturalvar feature on a variable's name overrides any naturalvar feature attached to the variable's type.
+</p>
+
+<p>
+It is generally a good idea to use this feature globally as the reference typemaps have extra NULL checking compared to the pointer typemaps.
 A pointer can be NULL, whereas a reference cannot, so the extra checking ensures that the target language user does not pass in a value that translates
 to a NULL pointer and thereby preventing any potential NULL pointer dereferences.
 The <tt>%naturalvar</tt> feature will apply to global variables in addition to member variables in some language modules, eg C# and Java.
 </p>
 
 <p>
-Other alternatives for turning this feature on globally are to use the <tt>swig -naturalvar</tt> commandline option 
-or the module mode option, <tt>%module(naturalvar=1)</tt>
+The naturalvar behavior can also be turned on as a global setting via the <tt>-naturalvar</tt> commandline option
+or the module mode option, <tt>%module(naturalvar=1)</tt>.
+However, any use of <tt>%feature("naturalvar")</tt> will override the global setting.
 </p>
 
 <p>
@@ -1177,15 +1184,17 @@ public:
 </div>
 
 <p>
-This produces uncompileable wrapper code because default values in C++ are
+This produces uncompilable wrapper code because default values in C++ are
 evaluated in the same scope as the member function whereas SWIG
 evaluates them in the scope of a wrapper function (meaning that the
 values have to be public). 
 </p>
 
 <p>
-This feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>
-and whenever keyword arguments (kwargs) are specified for either C or C++ code.
+The <tt>compactdefaultargs</tt> feature is automatically turned on when wrapping <a href="SWIG.html#SWIG_default_args">C code with default arguments</a>.
+Some target languages will also automatically turn on this feature
+if the keyword arguments feature (kwargs) is specified for either C or C++ functions, and the target language supports kwargs,
+the <tt>compactdefaultargs</tt> feature is also automatically turned on.
 Keyword arguments are a language feature of some scripting languages, for example Ruby and Python.
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>
@@ -1196,7 +1205,7 @@ SWIG is unable to support kwargs when wrapping overloaded methods, so the defaul
 <p>
  SWIG wraps class members that are public following the C++
  conventions, i.e., by explicit public declaration or by the use of
- the <tt> using</tt> directive. In general, anything specified in a
+ the <tt>using</tt> directive. In general, anything specified in a
  private or protected section will be ignored, although the internal
  code generator sometimes looks at the contents of the private and
  protected sections so that it can properly generate code for default
@@ -1522,7 +1531,7 @@ multiple inheritance.
 spirit, and target language capabilities, as possible. In most
 cases, this means that SWIG will parse the non-public inheritance
 declarations, but that will have no effect in the generated code,
-besides the implicit policies derived for constructor and
+besides the implicit policies derived for constructors and
 destructors. 
 </p>
 
@@ -2092,13 +2101,13 @@ Therefore, earlier methods will shadow methods that appear later.
 </p>
 
 <p>
-When wrapping an overloaded function, there is a chance that you will get an error message like this:
+When wrapping an overloaded function, there is a chance that you will get a warning message like this:
 </p>
 
 <div class="shell">
 <pre>
-example.i:3: Warning 467: Overloaded foo(int) not supported (no type checking
-rule for 'int').
+example.i:3: Warning 467: Overloaded foo(int) not supported (incomplete type checking rule - 
+no precedence level in typecheck typemap for 'int').
 </pre>
 </div>
 
@@ -2107,7 +2116,8 @@ This error means that the target language module supports overloading,
 but for some reason there is no type-checking rule that can be used to
 generate a working dispatch function.  The resulting behavior is then
 undefined.  You should report this as a bug to the
-<a href="http://www.swig.org/bugs.html">SWIG bug tracking database</a>.
+<a href="http://www.swig.org/bugs.html">SWIG bug tracking database</a>
+if this is due to one of the typemaps supplied with SWIG.
 </p>
 
 <p>
@@ -2791,7 +2801,7 @@ public:
 </pre></div>
 
 <p>
-This code adds a<tt> __str__</tt> method to our class for producing a
+This code adds a <tt>__str__</tt> method to our class for producing a
 string representation of the object. In Python, such a method would
 allow us to print the value of an object using the <tt>print</tt>
 command.
@@ -2839,7 +2849,13 @@ struct Derived : Base {
 </pre></div>
 
 <p>
-The<tt> %extend</tt> directive follows all of the same conventions
+The following special variables are expanded if used within a %extend block: 
+$name, $symname, $overname, $decl, $fulldecl, $parentclassname and $parentclasssymname.
+The <a href="Customization.html#Customization_exception_special_variables">Special variables</a> section provides more information each of these special variables.
+</p>
+
+<p>
+The <tt>%extend</tt> directive follows all of the same conventions
 as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
 section for further details.
 </p>
@@ -3121,8 +3137,8 @@ nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message 
 
 <div class="shell">
 <pre>
-example.h:42. Nothing known about class 'List&lt;int &gt;' (ignored). 
-example.h:42. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
+example.h:42: Warning 401. Nothing known about class 'List&lt;int &gt;'. Ignored. 
+example.h:42: Warning 401. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
 </pre>
 </div>
 
@@ -3163,7 +3179,7 @@ Don't worry--if you get the order wrong, SWIG should generate a warning message.
 Occasionally, you may need to tell SWIG about base classes that are defined by templates,
 but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
 instantiate templates for this purpose, you must do it manually.  To do this, simply
-use <tt>%template</tt> with no name.  For example:
+use the empty template instantiation, that is, <tt>%template</tt> with no name.  For example:
 </p>
 
 <div class="code">
@@ -3552,7 +3568,7 @@ It is also possible to separate these declarations from the template class.  For
 template&lt;class T&gt; class List {
     ...
     public:
-    List() { };
+    List() { }
     T get(int index);
     ...
 };
@@ -3599,17 +3615,51 @@ and the second will take two integer arguments.
 </p>
 
 <p>
-Needless to say, SWIG's template support provides plenty of
-opportunities to break the universe.  That said, an important final
-point is that <b>SWIG does not perform extensive error checking of
-templates!</b> Specifically, SWIG does not perform type checking nor
-does it check to see if the actual contents of the template
-declaration make any sense.  Since the C++ compiler will hopefully
-check this when it compiles the resulting wrapper file, there is no
-practical reason for SWIG to duplicate this functionality (besides,
-none of the SWIG developers are masochistic enough to want to
-implement this right now).
+Needless to say, SWIG's template support provides plenty of opportunities to
+break the universe.  That said, an important final point is that <b>SWIG does
+not perform extensive error checking of templates!</b>  Specifically, SWIG does
+not perform type checking nor does it check to see if the actual contents of the
+template declaration make any sense.  Since the C++ compiler checks this when it
+compiles the resulting wrapper file, there is no practical reason for SWIG to
+duplicate this functionality.
 </p>
+
+<a name="SWIGPlus_template_nested_class_example"></a>
+<p>
+As SWIG's template support does not perform type checking <tt>%template</tt>
+can be used as early as after a template declaration.  You can, and rarely have
+to, use <tt>%template</tt> before the template parameters have been declared.
+For example:
+</p>
+
+<div class="code">
+<pre>
+template &lt;class T&gt; class OuterTemplateClass {};
+
+// The nested class OuterClass::InnerClass inherits from the template class
+// OuterTemplateClass&lt;OuterClass::InnerStruct&gt; and thus the template needs
+// to be expanded with %template before the OuterClass declaration.
+%template(OuterTemplateClass_OuterClass__InnerStruct)
+    OuterTemplateClass&lt;OuterClass::InnerStruct&gt;
+
+
+// Don't forget to use %feature("flatnested") for OuterClass::InnerStruct and
+// OuterClass::InnerClass if the target language doesn't support nested classes.
+class OuterClass {
+    public:
+        // Forward declarations:
+        struct InnerStruct;
+        class InnerClass;
+};
+
+struct OuterClass::InnerStruct {};
+
+// Expanding the template at this point with %template is too late as the
+// OuterClass::InnerClass declaration is processed inside OuterClass.
+
+class OuterClass::InnerClass : public OuterTemplateClass&lt;InnerStruct&gt; {};
+</pre>
+</div>
 
 <p>
 <b>Compatibility Note</b>:  The first implementation of template support relied heavily on
@@ -4427,7 +4477,7 @@ around some other class.  For example:
 template&lt;class T&gt; class SmartPtr {
     T *pointee;
 public:
-    ...
+    SmartPtr(T *p) : pointee(p) { ... }
     T *operator-&gt;() {
         return pointee;
     }
@@ -4447,7 +4497,7 @@ typedef SmartPtr&lt;Foo_Impl&gt; Foo;
 
 // Create smart pointer Foo
 Foo make_Foo() {
-    return SmartPtr(new Foo_Impl());
+    return SmartPtr&lt;Foo_Impl&gt;(new Foo_Impl());
 }
 
 // Do something with smart pointer Foo
@@ -4455,6 +4505,9 @@ void do_something(Foo f) {
     printf("x = %d\n", f-&gt;x);
     f-&gt;bar();
 }
+
+// Call the wrapped smart pointer proxy class in the target language 'Foo'
+%template(Foo) SmartPtr&lt;Foo_Impl&gt;;
 </pre>
 </div>
 
@@ -4958,141 +5011,61 @@ public:
 
 
 <p>
-There is some support for nested structs and unions when wrapping C code, 
-see <a href="SWIG.html#SWIG_nested_structs">Nested structures</a> for further details.
-The added complexity of C++ compared to C means this approach does not work well for
-C++ code (when using the -c++ command line option).
-For C++, a nested class is treated much like an opaque pointer, so anything useful within the nested class, such as its
-methods and variables, are not accessible from the target language.
-True nested class support may be added to SWIG in the future, however, 
-until then some of the following workarounds can be applied to improve the situation.
+If the target language supports the nested classes concept (like Java), the nested C++ classes
+are wrapped as nested target language proxy classes. (In case of Java - "static" nested classes.)
+Only public nested classes are wrapped. Otherwise there is little difference between nested and
+normal classes.
 </p>
-
 <p>
-It might be possible to use partial class information as often you can accept that the nested class is not needed,
-especially if it is not actually used in any methods you need from the target language.
-Imagine you are wrapping the following <tt>Outer</tt> class which contains a nested class <tt>Inner</tt>.
-The easiest thing to do is turn a blind eye to the warning that SWIG generates, or simply suppress it:
+If the target language doesn't support nested classes directly, or the support is not implemented in the
+language module (like for python currently), then the visible nested classes are moved to the same name
+space as the containing class (nesting hierarchy is "flattened"). The same behaviour may be turned on for
+C# and Java by the %feature ("flatnested"); If there is a class with the same name in the outer namespace
+the inner class (or the global one) may be renamed or ignored:
 </p>
 
 <div class="code">
 <pre>
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::Inner;
-
-class Outer {
-public:
-  class Inner {
-    public:
-      ...
-  };
-  Inner getInner();
-  void useInner(const Inner&amp; inner);
-  ...
-};
-</pre>
-</div>
-
-<p>
-Note that if <tt>Inner</tt> can be used as an opaque type, the default wrapping approach suffices.
-For example, if the nested class does not need to be created from the target language, but can be obtained via a method
-call, such as the <tt>getInner()</tt> method above, the returned value can then be passed around, such as passed into the
-<tt>useInner()</tt> method.
-</p>
-
-<p>
-With some more effort the above situation can be improved somewhat and a nested class can be constructed and used
-from the target language much like any other non-nested class. Assuming we have the <tt>Outer</tt> class in a header file:
-</p>
-
-<div class="code">
-<pre>
-// File outer.h
-class Outer {
-public:
-  class Inner {
-    public:
-      int var;
-      Inner(int v = 0) : var(v) {}
-  };
-  Inner getInner();
-  void useInner(const Inner&amp; inner);
-};
-</pre>
-</div>
-
-<p>
-The following interface file works around the nested class limitations by redefining the nested class as a global class.
-A typedef for the compiler and the <tt>nestedworkaround</tt> 
-<a href="Customization.html#Customization_feature_flags">feature flag</a> is also required in 
-order for the generated wrappers to compile. This flag simply removes all the type information from SWIG, so SWIG treats
-the nested class as if it had not been parsed at all.
-</p>
-
-<div class="code">
-<pre>
-// File : example.i
-%module example
-
-// Redefine nested class in global scope in order for SWIG to generate
-// a proxy class. Only SWIG parses this definition.
-class Inner {
+%rename (Bar_Foo) Bar::Foo;
+class Foo {};
+class Bar {
   public:
-    int var;
-    Inner(int v = 0) : var(v) {}
+  class Foo {};
 };
-
-%nestedworkaround Outer::Inner;
-
-%{
-#include "outer.h"
-%}
-%include "outer.h"
-
-// We've fooled SWIG into thinking that Inner is a global class, so now we need
-// to trick the C++ compiler into understanding this apparent global type.
-%{
-typedef Outer::Inner Inner;
-%}
 </pre>
 </div>
 
 <p>
-The downside to this approach is a more complex interface file and having to maintain two definitions of <tt>Inner</tt>, 
-the real one and the one in the interface file that SWIG parses.
-However, the upside is that all the methods/variables in the nested class are available from the target language
-as a proxy class is generated instead of treating the nested class as an opaque type.
-The proxy class can be constructed from the target language and passed into any methods accepting the nested class.
-Also note that the original header file is parsed unmodified.
+If a nested class, within an outer class, has to be used as a template parameter within the outer class, then the template will
+have to be instantiated with <tt>%template</tt> before the beginning of the outer class.
+An example can be found in the
+<a href="#SWIGPlus_template_nested_class_example">Templates</a> section.
 </p>
 
 <p>
-Finally, conditional compilation can be used as a workaround to comment out nested class definitions in the actual headers,
-assuming you are able to modify them.
+<b>Compatibility Note:</b>
+Prior to SWIG-3.0.0, there was limited nested class support. Nested classes were treated as opaque pointers.
+However, there was a workaround for nested class support in these older versions requiring the user to replicate
+the nested class in the global scope, adding in a typedef for the nested class in the global scope and
+using the "nestedworkaround" feature on the nested class. This resulted in approximately the
+same behaviour as the "flatnested" feature. With proper nested class support now available in SWIG-3.0.0, this
+feature has been deprecated and no longer works requiring code changes. If you see the following warning:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
-// File outer.h
-class Outer {
-public:
-#ifndef SWIG
-  class Inner {
-    public:
-      ...
-  };
-#endif
-  ...
-};
+example.i:8: Warning 126: The nestedworkaround feature is deprecated
 </pre>
 </div>
 
 <p>
-This workaround used to be common when SWIG could not deal with nested classes particulary well.
-This should just be a last resort for unusual corner cases now as SWIG can parse nested classes and even handle nested template classes fairly well.
+consider using the "flatnested" feature discussed above which generates a non-nested proxy class, like the 
+"nestedworkaround" feature did. Alternatively, use the default nested class code generation, which may generate an
+equivalent to a nested proxy class in the target language, depending on the target language support.
 </p>
 
 <p>
-<b>Compatibility Note:</b> SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
+SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
 and the generated code resulting from parsing nested classes did not always compile.
 Nested class warnings could also not be suppressed using %warnfilter.
 </p>

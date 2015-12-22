@@ -1,8 +1,10 @@
+import _default_constructor
+
 # This test is expected to fail with -builtin option.
 # It uses the old static syntax (e.g., dc.new_A() rather than dc.A()),
 # which is not provided with the -builtin option.
-
-import _default_constructor
+if _default_constructor.is_python_builtin():
+    exit(0)
 
 dc = _default_constructor
 
@@ -21,7 +23,7 @@ except:
 del_b = dc.delete_B
 
 try:
-    bb = dc.new_BB();
+    bb = dc.new_BB()
     print "Whoa. new_BB created."
 except:
     pass
@@ -40,7 +42,7 @@ cc = dc.new_CC()
 dc.delete_CC(cc)
 
 try:
-    d = dc.new_D();
+    d = dc.new_D()
     print "Whoa. new_D created"
 except:
     pass
@@ -87,15 +89,6 @@ except AttributeError:
 
 dc.F_destroy(f)
 
-ff = dc.new_FFF()
-try:
-    del_ff = dc.delete_FFF
-    print "Whoa. delete_FFF created"
-except AttributeError:
-    pass
-
-dc.F_destroy(ff)
-
 g = dc.new_G()
 
 try:
@@ -111,5 +104,4 @@ dc.delete_GG(gg)
 
 
 import default_constructor
-hh = default_constructor.HH(1,1)
-
+hh = default_constructor.HH(1, 1)

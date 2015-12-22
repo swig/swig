@@ -38,6 +38,14 @@ wchar_t* test_cvalue(wchar_t* x) {
 }
   
 
+wchar_t* test_wchar_overload() {
+   return 0;
+}
+
+wchar_t* test_wchar_overload(wchar_t *x) {
+   return x;
+}
+
 std::wstring test_value(std::wstring x) {
    return x;
 }
@@ -82,6 +90,12 @@ void test_throw() throw(std::wstring){
 
 #if defined(_MSC_VER)
   #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
 #endif
 
 %}

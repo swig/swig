@@ -16,16 +16,16 @@ public class ignore_parameter_runme {
   {
       // Compilation will ensure the number of arguments and type are correct.
       // Then check the return value is the same as the value given to the ignored parameter.
-      if (!ignore_parameter.jaguar(200, 0.0).equals("hello")) { System.err.println("Runtime Error in jaguar()");}
-      if (ignore_parameter.lotus("fast", 0.0) != 101) { System.err.println("Runtime Error in lotus()");}
-      if (ignore_parameter.tvr("fast", 200) != 8.8) { System.err.println("Runtime Error in tvr()");}
-      if (ignore_parameter.ferrari() != 101) { System.err.println("Runtime Error in ferrari()");}
+      if (!ignore_parameter.jaguar(200, 0.0).equals("hello")) { throw new RuntimeException("Runtime Error in jaguar()");}
+      if (ignore_parameter.lotus("fast", 0.0) != 101) { throw new RuntimeException("Runtime Error in lotus()");}
+      if (ignore_parameter.tvr("fast", 200) != 8.8) { throw new RuntimeException("Runtime Error in tvr()");}
+      if (ignore_parameter.ferrari() != 101) { throw new RuntimeException("Runtime Error in ferrari()");}
 
       SportsCars sc = new SportsCars();
-      if (!sc.daimler(200, 0.0).equals("hello")) { System.err.println("Runtime Error in daimler()");}
-      if (sc.astonmartin("fast", 0.0) != 101) { System.err.println("Runtime Error in astonmartin()");}
-      if (sc.bugatti("fast", 200) != 8.8) { System.err.println("Runtime Error in bugatti()");}
-      if (sc.lamborghini() != 101) { System.err.println("Runtime Error in lamborghini()");}
+      if (!sc.daimler(200, 0.0).equals("hello")) { throw new RuntimeException("Runtime Error in daimler()");}
+      if (sc.astonmartin("fast", 0.0) != 101) { throw new RuntimeException("Runtime Error in astonmartin()");}
+      if (sc.bugatti("fast", 200) != 8.8) { throw new RuntimeException("Runtime Error in bugatti()");}
+      if (sc.lamborghini() != 101) { throw new RuntimeException("Runtime Error in lamborghini()");}
 
       // Check constructors are also generated correctly
       MiniCooper mc = new MiniCooper(200, 0.0);

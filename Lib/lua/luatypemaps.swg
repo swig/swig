@@ -13,7 +13,7 @@
    the fn call must be of the form
      int checkfn(lua_State *L, int index);
    and return 1/0 depending upon if this is the correct type
-   For the typemap(out), an additional SWIG_arg parmeter must be incremented
+   For the typemap(out), an additional SWIG_arg parameter must be incremented
    to reflect the number of values returned (normally SWIG_arg++; will do)
 */
 // numbers
@@ -33,7 +33,7 @@ $1 = ($type)lua_tonumber(L, $input);%}
              float,double
 %{  lua_pushnumber(L, (lua_Number) $1); SWIG_arg++;%}
 
-// we must also provide typemaps for privitives by const reference:
+// we must also provide typemaps for primitives by const reference:
 // given a function:
 //	int intbyref(const int& i);
 // SWIG assumes that this code will need a pointer to int to be passed in
@@ -68,7 +68,11 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 // and const refs
 %typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &($basetype temp)
 %{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const enum SWIGTYPE &&($basetype temp)
+%{ temp=($basetype)(int)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
+%{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
+%typemap(out) const enum SWIGTYPE &&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 
@@ -118,21 +122,21 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
-%{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, &$1, 1); SWIG_arg++;%}
 
 // by const ref
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char& (char temp)
 %{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
-%{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, $1, 1); SWIG_arg++;%}
 
 // pointers and references
 // under SWIG rules, it is ok, to have a pass in a lua nil,
 // it should be converted to a SWIG NULL.
 // This will only be allowed for pointers & arrays, not refs or by value
 // the checkfn lua_isuserdata will only work for userdata
-// the checkfn SWIG_isptrtype will work for both userdata and nil's
+// the checkfn SWIG_isptrtype will work for both userdata and nil
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
 %{
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
@@ -147,8 +151,17 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
   }
 %}
 
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&&
+%{
+  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
+    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+  }
+%}
+
 // out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
+%{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
+%typemap(out) SWIGTYPE*,SWIGTYPE&&
 %{SWIG_NewPointerObj(L,$1,$descriptor,$owner); SWIG_arg++; %}
 
 // dynamic casts
@@ -219,9 +232,9 @@ $1=($1_ltype)&temp;%}
 
 // member function pointer
 // a member fn ptr is not 4 bytes like a normal pointer, but 8 bytes (at least on mingw)
-// so the standard wrappering cannot be done
+// so the standard wrapping cannot be done
 // nor can you cast a member function pointer to a void* (obviously)
-// therefore a special wrappering functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
+// therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 #ifdef __cplusplus
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
@@ -241,7 +254,7 @@ $1=($1_ltype)&temp;%}
 
 /* void* is a special case
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
-but if its an output, then it should be wrappered like any other SWIG object (using default typemap)
+but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
@@ -269,7 +282,7 @@ void fn(int a, float b, lua_State* s) is wrappable as
  * ----------------------------------------------------------------------------- */
 /* These are needed for the overloaded functions
 These define the detection routines which will spot what
-parmeters match which function
+parameters match which function
 */
 
 // unfortunately lua only considers one type of number
@@ -284,7 +297,7 @@ parmeters match which function
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const signed char&, const unsigned char&,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,	const enum SWIGTYPE&,
+	 enum SWIGTYPE,	const enum SWIGTYPE&, const enum SWIGTYPE &&,
 	 float, double, const float &, const double&
 {
   $1 = lua_isnumber(L,$input);
@@ -323,6 +336,15 @@ parmeters match which function
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
+  void *ptr;
+  if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $1_descriptor, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $&1_descriptor, 0)) {
@@ -341,7 +363,7 @@ parmeters match which function
   }
 }
 
-// Also needed for object ptrs by const ref
+// Also needed for object pointers by const ref
 // eg const A* ref_pointer(A* const& a);
 // found in mixed_types.i
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
@@ -360,6 +382,7 @@ parmeters match which function
 
 // Array reference typemaps
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

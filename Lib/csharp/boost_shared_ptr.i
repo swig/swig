@@ -95,10 +95,10 @@
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "void *"
-%typemap (imtype, out="IntPtr") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
+%typemap (imtype, out="global::System.IntPtr") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "HandleRef"
+                                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "global::System.Runtime.InteropServices.HandleRef"
 %typemap (cstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
@@ -110,23 +110,23 @@
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(cstype, TYPE).getCPtr($csinput)"
 
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 
@@ -140,13 +140,13 @@
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) CONST TYPE * {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) TYPE *CONST& {
-    IntPtr cPtr = $imcall;
-    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+    global::System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 
@@ -157,78 +157,78 @@
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) CONST TYPE * %{
     get {
-      IntPtr cPtr = $imcall;
-      $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, true);$excode
+      global::System.IntPtr cPtr = $imcall;
+      $csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $csclassname(cPtr, true);$excode
       return ret;
     } %}
 
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
     get {
-      IntPtr cPtr = $imcall;
-      $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+      global::System.IntPtr cPtr = $imcall;
+      $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
       return ret;
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
     get {
-      IntPtr cPtr = $imcall;
-      $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
+      global::System.IntPtr cPtr = $imcall;
+      $typemap(cstype, TYPE) ret = (cPtr == global::System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
       return ret;
     } %}
 
 
 // Proxy classes (base classes, ie, not derived classes)
 %typemap(csbody) TYPE %{
-  private HandleRef swigCPtr;
+  private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   private bool swigCMemOwnBase;
 
-  PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool cMemoryOwn) {
+  PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
-    swigCPtr = new HandleRef(this, cPtr);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
-  CPTR_VISIBILITY static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
 // Derived proxy classes
 %typemap(csbody_derived) TYPE %{
-  private HandleRef swigCPtr;
+  private global::System.Runtime.InteropServices.HandleRef swigCPtr;
   private bool swigCMemOwnDerived;
 
-  PTRCTOR_VISIBILITY $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGSmartPtrUpcast(cPtr), true) {
+  PTRCTOR_VISIBILITY $csclassname(global::System.IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGSmartPtrUpcast(cPtr), true) {
     swigCMemOwnDerived = cMemoryOwn;
-    swigCPtr = new HandleRef(this, cPtr);
+    swigCPtr = new global::System.Runtime.InteropServices.HandleRef(this, cPtr);
   }
 
-  CPTR_VISIBILITY static HandleRef getCPtr($csclassname obj) {
-    return (obj == null) ? new HandleRef(null, IntPtr.Zero) : obj.swigCPtr;
+  CPTR_VISIBILITY static global::System.Runtime.InteropServices.HandleRef getCPtr($csclassname obj) {
+    return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.swigCPtr;
   }
 %}
 
 %typemap(csdestruct, methodname="Dispose", methodmodifiers="public") TYPE {
     lock(this) {
-      if (swigCPtr.Handle != IntPtr.Zero) {
+      if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnBase) {
           swigCMemOwnBase = false;
           $imcall;
         }
-        swigCPtr = new HandleRef(null, IntPtr.Zero);
+        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      GC.SuppressFinalize(this);
+      global::System.GC.SuppressFinalize(this);
     }
   }
 
 %typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") TYPE {
     lock(this) {
-      if (swigCPtr.Handle != IntPtr.Zero) {
+      if (swigCPtr.Handle != global::System.IntPtr.Zero) {
         if (swigCMemOwnDerived) {
           swigCMemOwnDerived = false;
           $imcall;
         }
-        swigCPtr = new HandleRef(null, IntPtr.Zero);
+        swigCPtr = new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero);
       }
-      GC.SuppressFinalize(this);
+      global::System.GC.SuppressFinalize(this);
       base.Dispose();
     }
   }

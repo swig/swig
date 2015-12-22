@@ -27,29 +27,41 @@ class string;
 %typemap(directorout) string
 %{ $result.assign($input.p, $input.n); %}
 
-%typemap(out) string
-%{ $result = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(out,fragment="AllocateString") string
+%{ $result = Swig_AllocateString($1.data(), $1.length()); %}
 
-%typemap(directorin) string
-%{ $input = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(goout,fragment="CopyString") string
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString") string
+%{ $input = Swig_AllocateString($1.data(), $1.length()); %}
+
+%typemap(godirectorin,fragment="CopyString") string
+%{ $result = swigCopyString($input) %}
 
 %typemap(in) const string &
 %{
-  std::string $1_str($input.p, $input.n);
+  $*1_ltype $1_str($input.p, $input.n);
   $1 = &$1_str;
 %}
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
 %{
-  static std::string $1_str;
+  static $*1_ltype $1_str;
   $1_str.assign($input.p, $input.n);
   $result = &$1_str;
 %}
 
-%typemap(out) const string &
-%{ $result = _swig_makegostring((*$1).data(), (*$1).length()); %}
+%typemap(out,fragment="AllocateString") const string &
+%{ $result = Swig_AllocateString((*$1).data(), (*$1).length()); %}
 
-%typemap(directorin) const string &
-%{ $input = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(goout,fragment="CopyString") const string &
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString") const string &
+%{ $input = Swig_AllocateString($1.data(), $1.length()); %}
+
+%typemap(godirectorin,fragment="CopyString") const string &
+%{ $result = swigCopyString($input) %}
 
 }

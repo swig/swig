@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Library"></a>8 SWIG library</H1>
+<H1><a name="Library"></a>9 SWIG library</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -31,6 +31,7 @@
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
+<li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -58,7 +59,7 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 </p>
 
-<H2><a name="Library_nn2"></a>8.1 The %include directive and library search path</H2>
+<H2><a name="Library_nn2"></a>9.1 The %include directive and library search path</H2>
 
 
 <p>
@@ -66,18 +67,19 @@ Library files are included using the <tt>%include</tt> directive.
 When searching for files, directories are searched in the following order:
 </p>
 
-<ul>
+<ol>
 <li>The current directory
 <li>Directories specified with the <tt>-I</tt> command line option
 <li>.<tt>/swig_lib</tt>
 <li>SWIG library install location as reported by <tt>swig -swiglib</tt>, for example <tt>/usr/local/share/swig/1.3.30</tt>
 <li>On Windows, a directory <tt>Lib</tt> relative to the location of <tt>swig.exe</tt> is also searched.
-</ul>
+</ol>
 
 <p>
-Within each directory, SWIG first looks for a subdirectory corresponding to a target language (e.g., <tt>python</tt>,
-<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows
-for language-specific implementations of library files.
+Within directories mentioned in points 3-5, SWIG first looks for a subdirectory
+corresponding to a target language (e.g., <tt>python</tt>, <tt>tcl</tt>, etc.).
+If found, SWIG will search the language specific directory first. This allows
+for language-specific implementations of library files. 
 </p>
 
 <p>
@@ -89,7 +91,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3"></a>8.2 C Arrays and Pointers</H2>
+<H2><a name="Library_nn3"></a>9.2 C Arrays and Pointers</H2>
 
 
 <p>
@@ -101,7 +103,7 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_nn4"></a>8.2.1 cpointer.i</H3>
+<H3><a name="Library_nn4"></a>9.2.1 cpointer.i</H3>
 
 
 <p>
@@ -317,7 +319,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_carrays"></a>8.2.2 carrays.i</H3>
+<H3><a name="Library_carrays"></a>9.2.2 carrays.i</H3>
 
 
 <p>
@@ -495,7 +497,7 @@ you should consider using a special array object rather than a bare pointer.
 used with types of <tt>char</tt> or <tt>char *</tt>.
 </p>
 
-<H3><a name="Library_nn6"></a>8.2.3 cmalloc.i</H3>
+<H3><a name="Library_nn6"></a>9.2.3 cmalloc.i</H3>
 
 
 <p>
@@ -656,7 +658,7 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7"></a>8.2.4 cdata.i</H3>
+<H3><a name="Library_nn7"></a>9.2.4 cdata.i</H3>
 
 
 <p>
@@ -758,7 +760,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8"></a>8.3 C String Handling</H2>
+<H2><a name="Library_nn8"></a>9.3 C String Handling</H2>
 
 
 <p>
@@ -778,7 +780,7 @@ morality.  The modules in this section provide basic functionality
 for manipulating raw C strings.
 </p>
 
-<H3><a name="Library_nn9"></a>8.3.1 Default string handling</H3>
+<H3><a name="Library_nn9"></a>9.3.1 Default string handling</H3>
 
 
 <p>
@@ -819,7 +821,7 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10"></a>8.3.2 Passing binary data</H3>
+<H3><a name="Library_nn10"></a>9.3.2 Passing binary data</H3>
 
 
 <p>
@@ -861,7 +863,7 @@ In the wrapper function, the passed string will be expanded to a pointer and len
 The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
-<H3><a name="Library_nn11"></a>8.3.3 Using %newobject to release memory</H3>
+<H3><a name="Library_nn11"></a>9.3.3 Using %newobject to release memory</H3>
 
 
 <p>
@@ -902,7 +904,7 @@ however, you may need to provide your own "newfree" typemap for other types.
 See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for more details.
 </p>
 
-<H3><a name="Library_nn12"></a>8.3.4 cstring.i</H3>
+<H3><a name="Library_nn12"></a>9.3.4 cstring.i</H3>
 
 
 <p>
@@ -1362,7 +1364,7 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library"></a>8.4 STL/C++ Library</H2>
+<H2><a name="Library_stl_cpp_library"></a>9.4 STL/C++ Library</H2>
 
 
 <p>
@@ -1382,6 +1384,7 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <td><b>SWIG Interface library file</b></td>
 </tr>
 
+<tr> <td>std::auto_ptr</td>           <td>memory</td>             <td>std_auto_ptr.i</td> </tr>
 <tr> <td>std::deque</td>           <td>deque</td>             <td>std_deque.i</td> </tr>
 <tr> <td>std::list</td>           <td>list</td>             <td>std_list.i</td> </tr>
 <tr> <td>std::map</td>           <td>map</td>             <td>std_map.i</td> </tr>
@@ -1389,7 +1392,8 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
-<tr> <td>std::shared_ptr</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
+<tr> <td>std::array</td>           <td>array (C++11)</td>             <td>std_array.i</td> </tr>
+<tr> <td>std::shared_ptr</td>           <td>shared_ptr (C++11)</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1399,7 +1403,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string"></a>8.4.1 std::string</H3>
+<H3><a name="Library_std_string"></a>9.4.1 std::string</H3>
 
 
 <p>
@@ -1483,7 +1487,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector"></a>8.4.2 std::vector</H3>
+<H3><a name="Library_std_vector"></a>9.4.2 std::vector</H3>
 
 
 <p>
@@ -1662,7 +1666,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions"></a>8.4.3 STL exceptions</H3>
+<H3><a name="Library_stl_exceptions"></a>9.4.3 STL exceptions</H3>
 
 
 <p>
@@ -1712,19 +1716,44 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr"></a>8.4.4 shared_ptr smart pointer</H3>
+<H3><a name="Library_std_shared_ptr"></a>9.4.4 shared_ptr smart pointer</H3>
 
 
 <p>
-Some target languages have support for handling the widely used <tt>boost::shared_ptr</tt> smart pointer.
-This smart pointer is also available as <tt>std::tr1::shared_ptr</tt> before it becomes fully standardized as <tt>std::shared_ptr</tt>. 
-The <tt>boost_shared_ptr.i</tt> library provides support for <tt>boost::shared_ptr</tt> and <tt>std_shared_ptr.i</tt> provides support for <tt>std::shared_ptr</tt>, but if the following macro is defined as shown, it can be used for <tt>std::tr1::shared_ptr</tt>:
+Some target languages have support for handling the shared_ptr reference counted smart pointer.
+This smart pointer is available in the standard C++11 library as <tt>std::shared_ptr</tt>.
+It was also in TR1 as <tt>std::tr1::shared_ptr</tt> before it was fully standardized.
+Support for the widely used <tt>boost::shared_ptr</tt> is also available.
+</p>
+
+<p>
+In order to use <tt>std::shared_ptr</tt>, the <tt>std_shared_ptr.i</tt> library file should be included:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_shared_ptr.i&gt;
+</pre>
+</div>
+
+<p>
+The pre-standard <tt>std::tr1::shared_ptr</tt> can be used by including the following macro before including the <tt>std_shared_ptr.i</tt> library file:
 </p>
 
 <div class="code">
 <pre>
 #define SWIG_SHARED_PTR_SUBNAMESPACE tr1
 %include &lt;std_shared_ptr.i&gt;
+</pre>
+</div>
+
+<p>
+In order to use <tt>boost::shared_ptr</tt>, the <tt>boost_shared_ptr.i</tt> library file should be included:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;boost_shared_ptr.i&gt;
 </pre>
 </div>
 
@@ -1871,10 +1900,66 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
+<p>
+<b>Note:</b> There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
+and the degress of success varies among the different target languages.
+Please help to improve this support by providing patches with improvements.
+</p>
 
 
-<H3><a name="Library_nn17"></a>8.5.1 exception.i</H3>
+<H3><a name="Library_std_auto_ptr"></a>9.4.5 auto_ptr smart pointer</H3>
+
+
+<p>
+While <tt>std::auto_ptr</tt> is deprecated in C++11, some existing code may
+still be using it, so SWIG provides limited support for this class:
+<tt>std_auto_ptr.i</tt> defines the typemaps which apply to the functions
+returning objects of this type. Any other use of <tt>std_auto_ptr.i</tt> is not
+directly supported.
+</p>
+
+<p>
+A typical example of use would be
+</p>
+<div class="code">
+<pre>
+%include &lt;std_auto_ptr.i&gt;
+
+%auto_ptr(Klass)
+%inline %{
+class Klass {
+public:
+  // Factory function creating objects of this class:
+  static std::auto_ptr&lt;Klass&gt; Create(int value) {
+    return std::auto_ptr&lt;Klass&gt;(new Klass(value));
+  }
+
+  int getValue() const { return m_value; }
+
+private:
+  DerivedIntValue(int value) : m_value(value) {}
+  int m_value;
+};
+%}
+</pre>
+</div>
+
+<p>
+The returned objects can be used naturally from the target language, e.g. from
+C#:
+</p>
+
+<div class="targetlang">
+<pre>
+Klass k = Klass.Create(17);
+int value = k.getValue();
+</pre>
+</div>
+
+<H2><a name="Library_nn16"></a>9.5 Utility Libraries</H2>
+
+
+<H3><a name="Library_nn17"></a>9.5.1 exception.i</H3>
 
 
 <p>

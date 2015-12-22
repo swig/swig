@@ -12,5 +12,5 @@ except:
     raise RuntimeError
 
 
-if Foo.BAZ.val != 2*Foo.BAR.val:
+if Foo.BAZ.val != 2 * Foo.BAR.val:
     raise RuntimeError

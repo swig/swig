@@ -79,8 +79,8 @@ If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe
 Using Microsoft Visual C++ is the most common approach to compiling and linking SWIG's output. 
 The Examples directory has a few Visual C++ project files (.dsp files). 
 These were produced by Visual C++ 6.
-Later versions of Visual Studio should also be able to open and convert these project files.
-The C# examples come with .NET 2003 solution (.sln) and project files instead of Visual C++ 6 project files.
+Newer versions of Visual Studio should be able to open and convert these project files.
+Each C# example comes with a Visual Studio 2005 solution and associated project files instead of Visual C++ 6 project files.
 The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
 Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</a>.
 
@@ -147,7 +147,7 @@ PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib<br>
 
 
 <p>
-<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains python.h<br>
+<b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains Python.h<br>
 <b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking<p>
 Example using Python 2.1.1:<br>
 <tt>
@@ -236,8 +236,8 @@ The short abbreviated instructions follow...
 </ul>
 
 <p>
-The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from SVN follow...
-Note that the instructions for obtaining SWIG from SVN are also online at <a href="http://www.swig.org/svn.html">SWIG SVN</a>.
+The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from Github follow...
+Note that the instructions for obtaining SWIG from Github are also online at <a href="http://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
 </p>
 
 <p>
@@ -293,22 +293,26 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
   Start the MSYS command prompt and execute:
 <div class="shell"><pre>
 cd /
-tar -jxf msys-automake-1.8.2.tar.bz2 
+tar -jxf msys-automake-1.8.2.tar.bz2
 tar -jxf msys-autoconf-2.59.tar.bz2
-tar -zxf bison-2.0-MSYS.tar.gz   
+tar -zxf bison-2.0-MSYS.tar.gz
 </pre></div>
   </li>
 
   <li>
-  To get the latest SWIG SVN (version from Subversion source control), type in the following:
+  The very latest development version of SWIG is available from <a href="https://github.com/swig/swig">SWIG on Github</a>
+  and can be downloaded as a zip file or if you have Git installed, via Git.
+  Either download the latest <a href="https://github.com/swig/swig/archive/master.zip">Zip file</a> snapshot and unzip and rename the top level folder to /usr/src/swig.
+
+  Otherwise if using Git, type in the following:
 <div class="shell"><pre>
 mkdir /usr/src
 cd /usr/src
-svn co https://swig.svn.sourceforge.net/svnroot/swig/trunk swig
+git clone https://github.com/swig/swig.git
 </pre></div>
 
   <b>Pitfall note:</b>
-If you want to check out SWIG to a different folder to the proposed
+If you want to place SWIG in a different folder to the proposed
 /usr/src/swig, do not use MSYS emulated windows drive letters, because
 the autotools will fail miserably on those.
   </li>
@@ -384,6 +388,53 @@ Include it like you would any other interface file, for example:
 __declspec(dllexport) ULONG __stdcall foo(DWORD, __int32);
 </pre></div>
 
+<p>Note that if you follow Microsoft's recommendation of wrapping the
+<tt>__declspec</tt> calls in a preprocessor definition, you will need to
+make sure that the definition is included by SWIG as well, by either defining it
+manually or via a header. For example, if you have specified the
+preprocessor definition in a header named <tt>export_lib.h</tt> and include
+other headers which depend on it, you should use the <tt>%include</tt> directive
+to include the definition explicitly. For example, if you had a header file,
+<tt>bar.h</tt>, which depended on <tt>export_lib.h</tt>, your SWIG definition
+file might look like:</p>
+
+<div class="code"><pre>
+// bar.i
+%module bar
+%include &lt;windows.i&gt;
+%include "export_lib.h"
+%include "bar.h"
+</pre></div>
+
+<p>
+where export_lib.h may contain:
+</p>
+
+<div class="code"><pre>
+// export_lib.h
+#define BAR_API __declspec(dllexport)
+</pre></div>
+
+<p>
+and bar.h may look like:
+</p>
+
+<div class="code"><pre>
+// bar.h
+#include "export_lib.h"
+BAR_API void bar_function(int, double);
+</pre></div>
+
+<p>
+Using the preprocessor to remove BAR_API is a popular simpler solution:
+</p>
+
+<div class="code"><pre>
+// bar.i
+%module bar
+#define BAR_API
+%include "bar.h"
+</pre></div>
 
 </body>
 </html>

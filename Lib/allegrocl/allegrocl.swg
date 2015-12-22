@@ -17,8 +17,7 @@
                enum SWIGTYPE    "(cl::setq ACL_ffresult $body)";
 %typemap(lout) void "$body";
 #ifdef __cplusplus
-%typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
-               SWIGTYPE &       
+%typemap(lout) SWIGTYPE[ANY], SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
 %{ (cl:let* ((address $body)
 	  (new-inst (cl:make-instance '$lclass :foreign-address address)))
      (cl:when (cl:and $owner (cl:not (cl:zerop address)))
@@ -27,7 +26,7 @@
 
 %typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
 #else
-%typemap(lout) SWIGTYPE[ANY], SWIGTYPE *, SWIGTYPE &, SWIGTYPE
+%typemap(lout) SWIGTYPE[ANY], SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE
 %{ (cl:let* ((address $body)
 	  (new-inst (cl:make-instance '$lclass :foreign-address address)))
      (cl:setq ACL_ffresult new-inst)) %}
@@ -67,6 +66,7 @@
 %typemap(ffitype) void ":void";
 %typemap(ffitype) enum SWIGTYPE ":int";
 %typemap(ffitype) SWIGTYPE & "(* :void)";
+%typemap(ffitype) SWIGTYPE && "(* :void)";
 
 /* const typemaps
 idea: marshall all primitive c types to their respective lisp types
@@ -102,7 +102,7 @@ and error if a setf operation is performed on the address of this object.
                 long, signed long, unsigned long,
                 float, double, long double, char *, void *, void,
                 enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
-                SWIGTYPE[ANY], SWIGTYPE &, const SWIGTYPE  "$1_ltype";
+                SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE &&, const SWIGTYPE  "$1_ltype";
 %typemap(ctype) SWIGTYPE                   "$&1_type";
 
 %typemap(in) bool                          "$1 = (bool)$input;";
@@ -112,7 +112,7 @@ and error if a setf operation is performed on the address of this object.
              long, signed long, unsigned long,
              float, double, long double, char *, void *, void,
              enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
-             SWIGTYPE[ANY], SWIGTYPE &     "$1 = $input;";
+             SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE && "$1 = $input;";
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
 
 /* We don't need to do any actual C-side typechecking, but need to
@@ -167,7 +167,7 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
                     int, signed int, unsigned int,
                     long, signed long, unsigned long,
                     enum SWIGTYPE { $1 = 1; };
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &,
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&,
 				   SWIGTYPE[], SWIGTYPE[ANY],
 				   SWIGTYPE { $1 = 1; };
 
@@ -192,7 +192,7 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
               long, signed long, unsigned long,
               float, double, long double, char *, void *,
               enum SWIGTYPE, SWIGTYPE *,
-              SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
+              SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE && "$result = $1;";
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE                     "$result = new $1_ltype($1);";
 #else
@@ -228,6 +228,7 @@ $body)"
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

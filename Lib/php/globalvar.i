@@ -34,7 +34,7 @@
   zval *z_var;
   MAKE_STD_ZVAL(z_var);
   z_var->type = IS_LONG;
-  z_var->value.lval = $1;
+  z_var->value.lval = (long)$1;
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void *)&z_var, sizeof(zval *), NULL);
 }
 
@@ -80,7 +80,7 @@
   sizeof(zval *), NULL);
 }
 
-%typemap(varinit) SWIGTYPE, SWIGTYPE &
+%typemap(varinit) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&
 {
   zval *z_var;
 
@@ -164,7 +164,7 @@
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   convert_to_string_ex(z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if ((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
+  if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
     if (s1)
       $1 = estrdup(s1);
     else
@@ -190,9 +190,9 @@
 
  zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
  s1 = Z_STRVAL_PP(z_var);
- if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
-  if(s1)
-    strncpy($1, s1, $1_dim0);
+ if ((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
+   if (s1)
+     strncpy($1, s1, $1_dim0);
  }
 }
 
@@ -210,13 +210,13 @@
 
 }
 
-%typemap(varin) SWIGTYPE *, SWIGTYPE &
+%typemap(varin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
 {
   zval **z_var;
   $1_ltype _temp;
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
-  if (SWIG_ConvertPtr(*z_var, (void **)&_temp, $1_descriptor, 0) < 0) { 
+  if (SWIG_ConvertPtr(*z_var, (void **)&_temp, $1_descriptor, 0) < 0) {
     SWIG_PHP_Error(E_ERROR,"Type error in value of $symname. Expected $&1_descriptor");
   }
 
@@ -288,12 +288,12 @@
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1) )) {
+  if((s1 == NULL) || ($1 == NULL) || strcmp(s1, $1)) {
     if(s1)
       efree(s1);
     if($1) {
       (*z_var)->value.str.val = estrdup($1);
-      (*z_var)->value.str.len = strlen($1) +1;
+      (*z_var)->value.str.len = strlen($1) + 1;
     } else {
       (*z_var)->value.str.val = 0;
       (*z_var)->value.str.len = 0;
@@ -314,7 +314,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
-  if($1) 
+  if($1)
     SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
 }
 
@@ -325,10 +325,10 @@
 deliberate error cos this code looks bogus to me
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   s1 = Z_STRVAL_PP(z_var);
-  if((s1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
+  if((s1 == NULL) || strcmp(s1, $1)) {
     if($1) {
       (*z_var)->value.str.val = estrdup($1);
-      (*z_var)->value.str.len = strlen($1)+1;
+      (*z_var)->value.str.len = strlen($1) + 1;
     } else {
       (*z_var)->value.str.val = 0;
       (*z_var)->value.str.len = 0;
@@ -336,7 +336,7 @@ deliberate error cos this code looks bogus to me
   }
 }
 
-%typemap(varout) SWIGTYPE *, SWIGTYPE &
+%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
 {
   zval **z_var;
 

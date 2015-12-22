@@ -5,6 +5,7 @@ class
 enum
 extend
 funcptr
+nested
 reference
 simple
 template

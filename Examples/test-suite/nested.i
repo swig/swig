@@ -1,10 +1,17 @@
-/* 
+/*
 This testcase tests that nested structs/unions work. Named structs/unions declared within
 a struct produced redefinition errors in SWIG 1.3.6 as reported by SF bug #447488.
 Also tests reported error when a #define placed in a deeply embedded struct/union.
 */
 
 %module nested
+
+
+#if defined(SWIGSCILAB)
+%rename(OutStNamed) OuterStructNamed;
+%rename(InStNamed) OuterStructNamed::InnerStructNamed;
+%rename(InUnNamed) OuterStructNamed::Inner_union_named;
+#endif
 
 %inline %{
 
@@ -22,6 +29,13 @@ struct OuterStructNamed {
   } inner_union_named;
 };
 
+%}
+
+
+#if !defined(SWIGSCILAB)
+
+%inline %{
+
 struct OuterStructUnnamed {
   struct {
     double xx;
@@ -31,7 +45,6 @@ struct OuterStructUnnamed {
     int zz;
   } inner_union_unnamed;
 };
-
 
 typedef struct OuterStruct {
   union {
@@ -52,3 +65,41 @@ typedef struct OuterStruct {
 } OuterStruct;
 
 %}
+
+#else
+
+%inline %{
+
+struct OutStUnnamed {
+  struct {
+    double xx;
+  } inSt;
+  union {
+    double yy;
+    int zz;
+  } inUn;
+};
+
+typedef struct OutSt {
+  union {
+
+    struct nst_st {
+      union in_un {
+#define BAD_STYLE 1
+        int red;
+        struct TestStruct green;
+      } InUn;
+
+      struct in_st {
+        int blue;
+      } InSt;
+    } NstdSt;
+
+  } EmbedUn;
+} OutSt;
+
+%}
+
+#endif
+
+

@@ -1,5 +1,12 @@
 %module extend_constructor_destructor
 
+%warnfilter(SWIGWARN_PARSE_EXTEND_NAME) Space::tagCStruct;
+%warnfilter(SWIGWARN_PARSE_EXTEND_NAME) tagEStruct;
+%warnfilter(SWIGWARN_LANG_EXTEND_CONSTRUCTOR) Space::tagCStruct::CStruct;
+%warnfilter(SWIGWARN_LANG_EXTEND_DESTRUCTOR) Space::tagCStruct::~CStruct;
+%warnfilter(SWIGWARN_LANG_EXTEND_CONSTRUCTOR) tagEStruct::EStruct;
+%warnfilter(SWIGWARN_LANG_EXTEND_DESTRUCTOR) tagEStruct::~EStruct;
+
 %inline %{
 int globalVar = 0;
 

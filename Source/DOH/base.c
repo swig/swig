@@ -12,8 +12,6 @@
  *     DOH objects.  A number of small utility functions are also included.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_base_c[] = "$Id$";
-
 #include "dohint.h"
 
 /* -----------------------------------------------------------------------------
@@ -148,7 +146,7 @@ int DohLen(const DOH *obj) {
     }
     return 0;
   } else {
-    return strlen((char *) obj);
+    return (int)strlen((char *) obj);
   }
 }
 
@@ -638,7 +636,7 @@ int DohRead(DOH *obj, void *buffer, int length) {
     return -1;
   }
   /* Hmmm.  Not a file.  Maybe it's a real FILE */
-  return fread(buffer, 1, length, (FILE *) b);
+  return (int)fread(buffer, 1, length, (FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
@@ -656,7 +654,7 @@ int DohWrite(DOH *obj, const void *buffer, int length) {
     return -1;
   }
   /* Hmmm.  Not a file.  Maybe it's a real FILE */
-  return fwrite(buffer, 1, length, (FILE *) b);
+  return (int)fwrite(buffer, 1, length, (FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
@@ -761,6 +759,7 @@ int DohUngetc(int ch, DOH *obj) {
  * DohClose()
  * ----------------------------------------------------------------------------- */
 
+/*
 int DohClose(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
@@ -773,6 +772,7 @@ int DohClose(DOH *obj) {
   }
   return fclose((FILE *) obj);
 }
+*/
 
 /* -----------------------------------------------------------------------------
  * DohIsString()
@@ -947,11 +947,12 @@ int DohGetmark(DOH *ho) {
 
 DOH *DohCall(DOH *func, DOH *args) {
   DOH *result;
-  DOH *(*builtin) (DOH *);
+  DohFuncPtr_t builtin;
 
-  builtin = (DOH *(*)(DOH *)) GetVoid(func, "builtin");
-  if (!builtin)
+  builtin.p = GetVoid(func, "builtin");
+
+  if (!builtin.p)
     return 0;
-  result = (*builtin) (args);
+  result = (*builtin.func) (args);
   return result;
 }

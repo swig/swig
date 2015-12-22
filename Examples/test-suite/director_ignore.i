@@ -10,6 +10,7 @@
 %ignore OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0);
 %ignore DIgnoreConstructor(bool b);
 %ignore DIgnoreOnlyConstructor(bool b);
+%ignore DIgnoreDestructor::~DIgnoreDestructor;
 %ignore Pointers;
 %ignore References;
 %ignore PublicMethod1;
@@ -20,6 +21,13 @@
 %ignore ProtectedMethod2;
 %ignore ProtectedPureVirtualMethod1;
 %ignore ProtectedPureVirtualMethod2;
+
+%typemap(imtype,
+  inattributes="[inattributes should not be used]",
+  outattributes="[outattributes should not be used]",
+  directorinattributes="[directorinattributes should not be used]",
+  directoroutattributes="[directoroutattributes should not be used]"
+ ) int& "imtype should not be used"
 
 %inline %{
 
@@ -61,21 +69,6 @@ class DAbstractIgnores
     virtual double OverloadedProtectedMethod() = 0;
 };
 
-class DIgnoreConstructor
-{
-  public:
-    virtual ~DIgnoreConstructor() {}
-    DIgnoreConstructor(std::string s, int i) {}
-    DIgnoreConstructor(bool b) {}
-};
-
-class DIgnoreOnlyConstructor
-{
-  public:
-    virtual ~DIgnoreOnlyConstructor() {}
-    DIgnoreOnlyConstructor(bool b) {}
-};
-
 template <typename T> class DTemplateAbstractIgnores
 {
   T t;
@@ -94,3 +87,51 @@ template <typename T> class DTemplateAbstractIgnores
 
 %template(DTemplateAbstractIgnoresInt) DTemplateAbstractIgnores<int>;
 
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+    DIgnoreOnlyConstructor(bool b) {}
+};
+
+class DIgnoreDestructor
+{
+ public:
+  DIgnoreDestructor() {}
+  virtual ~DIgnoreDestructor() {}
+};
+
+%{
+class DIgnoreConstructor
+{
+  public:
+    virtual ~DIgnoreConstructor() {}
+    DIgnoreConstructor(std::string s, int i) {}
+  private: // Hide constructor
+    DIgnoreConstructor(bool b) {}
+};
+
+class DIgnoreOnlyConstructor
+{
+  public:
+    virtual ~DIgnoreOnlyConstructor() {}
+  private: // Hide constructor
+    DIgnoreOnlyConstructor(bool b) {}
+};
+
+class DIgnoreDestructor
+{
+ public:
+  DIgnoreDestructor() {}
+  virtual ~DIgnoreDestructor() {}
+};
+
+%}

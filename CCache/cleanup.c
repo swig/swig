@@ -75,20 +75,39 @@ static void traverse_fn(const char *fname, struct stat *st)
 
 /* sort the files we've found and delete the oldest ones until we are
    below the thresholds */
-static void sort_and_clean(void)
+static void sort_and_clean(size_t minfiles)
 {
 	unsigned i;
+	size_t adjusted_minfiles = minfiles;
 
 	if (num_files > 1) {
 		/* sort in ascending data order */
 		qsort(files, num_files, sizeof(struct files *), 
 		      (COMPAR_FN_T)files_compare);
 	}
+	/* ensure newly cached files (minfiles) are kept - instead of matching
+	   the filenames of those newly cached, a faster and simpler approach
+	   assumes these are the most recent in the cache and if any other
+	   cached files have an identical time stamp, they will also be kept -
+	   this approach would not be needed if the cleanup was done at exit. */
+	if (minfiles != 0 && minfiles < num_files) {
+		unsigned minfiles_index = num_files - minfiles;
+		time_t minfiles_time = files[minfiles_index]->mtime;
+		for (i=1; i<=minfiles_index; i++) {
+			if (files[minfiles_index-i]->mtime == minfiles_time)
+				adjusted_minfiles++;
+			else
+				break;
+		}
+	}
 	
 	/* delete enough files to bring us below the threshold */
 	for (i=0;i<num_files; i++) {
 		if ((size_threshold==0 || total_size < size_threshold) &&
 		    (files_threshold==0 || (num_files-i) < files_threshold)) break;
+
+		if (adjusted_minfiles != 0 && num_files-i <= adjusted_minfiles)
+			break;
 
 		if (unlink(files[i]->fname) != 0 && errno != ENOENT) {
 			fprintf(stderr, "unlink %s - %s\n", 
@@ -103,7 +122,7 @@ static void sort_and_clean(void)
 }
 
 /* cleanup in one cache subdir */
-void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize)
+void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize, size_t minfiles)
 {
 	unsigned i;
 
@@ -117,7 +136,7 @@ void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize)
 	traverse(dir, traverse_fn);
 
 	/* clean the cache */
-	sort_and_clean();
+	sort_and_clean(minfiles);
 
 	stats_set_sizes(dir, total_files, total_size);
 
@@ -151,7 +170,8 @@ void cleanup_all(const char *dir)
 
 		cleanup_dir(dname, 
 			    counters[STATS_MAXFILES], 
-			    counters[STATS_MAXSIZE]);
+			    counters[STATS_MAXSIZE],
+			    0);
 		free(dname);
 		free(sfile);
 	}

@@ -1,5 +1,7 @@
 /* File : example.i */
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
 
 %inline %{
 extern int    gcd(int x, int y);

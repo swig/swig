@@ -12,8 +12,6 @@
  * encountered during preprocessing.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_expr_c[] = "$Id$";
-
 #include "swig.h"
 #include "preprocessor.h"
 
@@ -35,7 +33,7 @@ static exprval stack[256];	/* Parsing stack       */
 static int sp = 0;		/* Stack pointer       */
 static int prec[256];		/* Precedence rules    */
 static int expr_init = 0;	/* Initialization flag */
-static char *errmsg = 0;	/* Parsing error       */
+static const char *errmsg = 0;	/* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence() {
@@ -435,6 +433,6 @@ extra_rparen:
  * Return error message set by the evaluator (if any)
  * ----------------------------------------------------------------------------- */
 
-char *Preprocessor_expr_error() {
+const char *Preprocessor_expr_error() {
   return errmsg;
 }

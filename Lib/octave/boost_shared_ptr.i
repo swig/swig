@@ -29,7 +29,8 @@
   }
 }
 %typemap(out) CONST TYPE {
-  %set_output(SWIG_NewPointerObj(new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
 %typemap(varin) CONST TYPE {
@@ -40,14 +41,15 @@
     %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
-    %argument_nullref("$type", $symname, $argnum);
+    %variable_nullref("$type", "$name");
   } else {
     $1 = *(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get());
     if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
   }
 }
 %typemap(varout) CONST TYPE {
-  %set_varoutput(SWIG_NewPointerObj(new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
 // plain pointer
@@ -124,7 +126,9 @@
     %variable_fail(res, "$type", "$name");
   }
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared;
-  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
+  if (!argp) {
+    %variable_nullref("$type", "$name");
+  }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
     delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);

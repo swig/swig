@@ -11,6 +11,13 @@
 #pragma SWIG nowarn=890                                      /* lots of Go name conflicts */
 #pragma SWIG nowarn=206                                      /* Unexpected tokens after #endif directive. */
 
+%{
+#if defined(__clang__)
+//Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif
+%}
+
 /* check __cplusplus case */
 %header
 %{
@@ -225,8 +232,8 @@ This testcase tests operators for defines
 #define A7   13 & 14
 #define A8   15 | 16
 #define A9   17 ^ 18
-#define A10  19 && 20
-#define A11  21 || 21
+#define A10  1 && 0
+#define A11  1 || 0
 #define A12  ~22
 #define A13  !23
 
@@ -346,3 +353,20 @@ int method(struct TypeNameTraits tnt) {
   return tnt.val;
 }
 %}
+
+/* Null directive */
+# /* comment 1 */
+# // comment 2
+# /** comment 3 */
+# /* comment 4 */ /*comment 5*/
+# /** comment 6
+#
+# more comment 6 */
+# 
+#
+#	    
+int methodX(int x);
+%{
+int methodX(int x) { return x+100; }
+%}
+

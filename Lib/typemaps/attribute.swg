@@ -130,11 +130,14 @@
       };
     %} 
 
+  The %attributestring also works for class types that have %naturalvar turned
+  on and so is also useful for shared_ptr which has %naturalvar turned on in %shared_ptr.
+
 */
 
 //
 // Define SWIG_ATTRIBUTE_TEMPLATE if you want to use templates instead of macros for the C++ get and set wrapper methods
-// Does not always generate compileable code, use at your peril!
+// Does not always generate compilable code, use at your peril!
 //
 //#define SWIG_ATTRIBUTE_TEMPLATE
 
@@ -195,42 +198,42 @@
 
 %define %attribute(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
   #if #SetMethod != ""
-    %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, self_->GetMethod(), self_->SetMethod(val_))
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, SetMethod, self_->GetMethod(), self_->SetMethod(val_))
   #else
-    %attribute_readonly(Class, AttributeType, AttributeName, GetMethod, self_->GetMethod())
+    %attribute_readonly(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, self_->GetMethod())
   #endif
 %enddef
 
 %define %attribute2(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
   #if #SetMethod != ""
-    %attribute_custom(Class, AttributeType, AttributeName, GetMethod, SetMethod, &self_->GetMethod(), self_->SetMethod(*val_))
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, SetMethod, &self_->GetMethod(), self_->SetMethod(*val_))
   #else
-    %attribute_readonly(Class, AttributeType, AttributeName, GetMethod, &self_->GetMethod())
+    %attribute_readonly(%arg(Class), %arg(AttributeType), AttributeName, GetMethod, &self_->GetMethod())
   #endif
 %enddef
 
 %define %attributeref(Class, AttributeType, AttributeName, AccessorMethod...)
   #if #AccessorMethod != ""
-    %attribute_custom(Class, AttributeType, AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #else
-    %attribute_custom(Class, AttributeType, AttributeName, AttributeName, AttributeName, self_->AttributeName(), self_->AttributeName() = val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AttributeName, AttributeName, self_->AttributeName(), self_->AttributeName() = val_)
   #endif
 %enddef
 
 %define %attribute2ref(Class, AttributeType, AttributeName, AccessorMethod...)
   #if #AccessorMethod != ""
-    %attribute_custom(Class, AttributeType, AttributeName, AccessorMethod, AccessorMethod, &self_->AccessorMethod(), self_->AccessorMethod() = *val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, &self_->AccessorMethod(), self_->AccessorMethod() = *val_)
   #else
-    %attribute_custom(Class, AttributeType, AccessorName, AccessorName, AccessorName, &self_->AccessorName(), self_->AccessorName() = *val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AccessorName, AccessorName, AccessorName, &self_->AccessorName(), self_->AccessorName() = *val_)
   #endif
 %enddef
 
 // deprecated (same as %attributeref, but there is an argument order inconsistency)
 %define %attribute_ref(Class, AttributeType, AccessorMethod, AttributeName...)
   #if #AttributeName != ""
-    %attribute_custom(Class, AttributeType, AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #else
-    %attribute_custom(Class, AttributeType, AccessorMethod, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
+    %attribute_custom(%arg(Class), %arg(AttributeType), AccessorMethod, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #endif
 %enddef
 
@@ -275,7 +278,7 @@
   %ignore Class::GetMethod();
   %ignore Class::GetMethod() const;
   %newobject Class::AttributeName;
-  %typemap(newfree) const AttributeType &AttributeName "delete $1;// my newfree override"
+  %typemap(newfree) const AttributeType &AttributeName "delete $1;"
   %extend Class {
     AttributeType AttributeName;
   }

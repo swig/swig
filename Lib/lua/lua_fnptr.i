@@ -8,7 +8,7 @@
  *                          Basic function pointer support
  * ----------------------------------------------------------------------------- */
 /*
-The structure: SWIGLUA_FN provides a simple (local only) wrappering for a function.
+The structure: SWIGLUA_FN provides a simple (local only) wrapping for a function.
 
 For example if you wanted to have a C/C++ function take a lua function as a parameter.
 You could declare it as:
@@ -29,7 +29,7 @@ just push the parameters, call the function and return the result.
     return luaL_checknumber(fn.L,-1);
   }
 
-SWIG will automatically performs the wrappering of the arguments in and out.
+SWIG will automatically performs the wrapping of the arguments in and out.
 
 However: if you wish to store the function between calls, look to the SWIGLUA_REF below.
 
@@ -64,8 +64,8 @@ Then call it later, You could declare it as:
 note: it should be passed by value, not byref or as a pointer.
 
 The SWIGLUA_REF holds a pointer to the lua_State, and an integer reference to the object.
-Because it holds a permenet ref to an object, the SWIGLUA_REF must be handled with a bit more care.
-It should be initalised to {0,0}. The function swiglua_ref_set() should be used to set it.
+Because it holds a permanent ref to an object, the SWIGLUA_REF must be handled with a bit more care.
+It should be initialised to {0,0}. The function swiglua_ref_set() should be used to set it.
 swiglua_ref_clear() should be used to clear it when not in use, and swiglua_ref_get() to get the
 data back.
 
@@ -82,7 +82,7 @@ if you need that you must add it yourself.
     return luaL_checknumber(fn.L,-1);
   }
 
-SWIG will automatically performs the wrappering of the arguments in and out.
+SWIG will automatically performs the wrapping of the arguments in and out.
 
 However: if you wish to store the function between calls, look to the SWIGLUA_REF below.
 
@@ -103,7 +103,6 @@ void swiglua_ref_clear(SWIGLUA_REF* pref){
 }
 
 void swiglua_ref_set(SWIGLUA_REF* pref,lua_State* L,int idx){
-//	swiglua_ref_clear(pref); /* just in case */
 	pref->L=L;
 	lua_pushvalue(L,idx);                 /* copy obj to top */
 	pref->ref=luaL_ref(L,LUA_REGISTRYINDEX); /* remove obj from top & put into registry */

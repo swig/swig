@@ -1,6 +1,7 @@
 /* File : example.i */
-%module example
+%module swigexample
 
+%feature("autodoc", 1);
 
 %inline %{
 // From B. Strousjoup, "The C++ Programming Language, Third Edition", p. 514
@@ -23,7 +24,3 @@ public:
 // Instantiate a few versions
 %template(intSum) Sum<int>;
 %template(doubleSum) Sum<double>;
-
-
-
-

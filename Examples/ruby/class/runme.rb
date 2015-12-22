@@ -45,5 +45,9 @@ end
 # Notice how the Shape#area() and Shape#perimeter() functions really
 # invoke the appropriate virtual method on each object.
 
+# Remove references to the object and force a garbage collection run.
+c = s = o = nil
+GC.start()
+
 print "\n", Example::Shape.nshapes," shapes remain\n"
 print "Goodbye\n"

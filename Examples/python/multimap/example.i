@@ -20,7 +20,7 @@ extern int    gcd(int x, int y);
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
   }
-  $1 = PyList_Size($input);
+  $1 = (int)PyList_Size($input);
   if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
   }
@@ -38,15 +38,25 @@ extern int    gcd(int x, int y);
     }
 %#if PY_VERSION_HEX >= 0x03000000
     {
-    int l;
-    $2[i] = PyUnicode_AsStringAndSize(s, &l);
+      PyObject *utf8str = PyUnicode_AsUTF8String(s);
+      const char *cstr = PyBytes_AsString(utf8str);
+      $2[i] = strdup(cstr);
+      Py_DECREF(utf8str);
     }
 %#else
     $2[i] = PyString_AsString(s);
 %#endif
-
   }
   $2[i] = 0;
+}
+
+%typemap(freearg) (int argc, char *argv[]) {
+%#if PY_VERSION_HEX >= 0x03000000
+  int i;
+  for (i = 0; i < $1; i++) {
+    free($2[i]);
+  }
+%#endif
 }
 
 extern int gcdmain(int argc, char *argv[]);
@@ -54,18 +64,31 @@ extern int gcdmain(int argc, char *argv[]);
 %typemap(in) (char *bytes, int len) {
 
 %#if PY_VERSION_HEX >= 0x03000000
+  char *cstr;
+  Py_ssize_t len;
+  PyObject *utf8str;
   if (!PyUnicode_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
     return NULL;
   }
-  $1 = PyUnicode_AsStringAndSize($input, &$2);
+  utf8str = PyUnicode_AsUTF8String($input);
+  PyBytes_AsStringAndSize(utf8str, &cstr, &len);
+  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
+  $2 = (int)len;
+  Py_DECREF(utf8str);
 %#else
   if (!PyString_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
     return NULL;
   }
   $1 = PyString_AsString($input);
-  $2 = PyString_Size($input);
+  $2 = (int)PyString_Size($input);
+%#endif
+}
+
+%typemap(freearg) (char *bytes, int len) {
+%#if PY_VERSION_HEX >= 0x03000000
+  free($1);
 %#endif
 }
 
@@ -75,17 +98,21 @@ extern int count(char *bytes, int len, char c);
 /* This example shows how to wrap a function that mutates a string */
 
 /* Since str is modified, we make a copy of the Python object
-   so that we don't violate it's mutability */
+   so that we don't violate its mutability */
 
 %typemap(in) (char *str, int len) {
 %#if PY_VERSION_HEX >= 0x03000000
-   $2 = PyUnicode_GetSize($input);
-   $1 = (char *) malloc($2+1);
-   memmove($1,PyUnicode_AsString($input),$2);
+  char *cstr;
+  Py_ssize_t len;
+  PyObject *utf8str = PyUnicode_AsUTF8String($input);
+  PyBytes_AsStringAndSize(utf8str, &cstr, &len);
+  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
+  $2 = (int)len;
+  Py_DECREF(utf8str);
 %#else
-   $2 = PyString_Size($input);
-   $1 = (char *) malloc($2+1);
-   memmove($1,PyString_AsString($input),$2);
+  $2 = (int)PyString_Size($input);
+  $1 = (char *) malloc($2+1);
+  memmove($1,PyString_AsString($input),$2);
 %#endif
 }
 

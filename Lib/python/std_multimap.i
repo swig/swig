@@ -3,7 +3,7 @@
 */
 %include <std_map.i>
 
-%fragment("StdMultimapTraits","header",fragment="StdSequenceTraits")
+%fragment("StdMultimapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
     template <class SwigPySeq, class K, class T >
@@ -45,11 +45,10 @@
 	  return SWIG_InternalNewPointerObj(new multimap_type(multimap), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = multimap.size();
-	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
 	  if (pysize < 0) {
 	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	    PyErr_SetString(PyExc_OverflowError,
-			    "multimap size not valid in python");
+	    PyErr_SetString(PyExc_OverflowError, "multimap size not valid in python");
 	    SWIG_PYTHON_THREAD_END_BLOCK;
 	    return NULL;
 	  }

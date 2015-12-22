@@ -16,10 +16,9 @@
  * wrapper code and to generate cleaner wrapper files. 
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_fragment_c[] = "$Id$";
-
 #include "swig.h"
 #include "swigwarn.h"
+#include "cparse.h"
 
 static Hash *fragments = 0;
 static Hash *looking_fragments = 0;
@@ -62,6 +61,8 @@ void Swig_fragment_register(Node *fragment) {
       }
       Setfile(ccode, Getfile(fragment));
       Setline(ccode, Getline(fragment));
+      /* Replace $descriptor() macros */
+      Swig_cparse_replace_descriptor(ccode);
       Setattr(fragments, name, ccode);
       if (debug)
 	Printf(stdout, "registering fragment %s %s\n", name, section);
@@ -93,16 +94,16 @@ void Swig_fragment_emit(Node *n) {
   String *name = 0;
   String *type = 0;
 
+  name = Getattr(n, "value");
+  if (!name) {
+    name = n;
+  }
+
   if (!fragments) {
     Swig_warning(WARN_FRAGMENT_NOT_FOUND, Getfile(n), Getline(n), "Fragment '%s' not found.\n", name);
     return;
   }
 
-
-  name = Getattr(n, "value");
-  if (!name) {
-    name = n;
-  }
   type = Getattr(n, "type");
   if (type) {
     mangle = Swig_string_mangle(type);

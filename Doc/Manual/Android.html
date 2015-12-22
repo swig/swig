@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Android"></a>18 SWIG and Android</H1>
+<H1><a name="Android"></a>19 SWIG and Android</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -15,7 +15,9 @@
 <li><a href="#Android_examples_intro">Examples introduction</a>
 <li><a href="#Android_example_simple">Simple C example</a>
 <li><a href="#Android_example_class">C++ class example</a>
+<li><a href="#Android_examples_other">Other examples</a>
 </ul>
+<li><a href="#Android_stl">C++ STL</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -28,24 +30,24 @@ This chapter describes SWIG's support of Android.
 
 
 
-<H2><a name="Android_overview"></a>18.1 Overview</H2>
+<H2><a name="Android_overview"></a>19.1 Overview</H2>
 
 
 <p>
 The Android chapter is fairly short as support for Android is the same as for Java, where the Java Native Interface (JNI) is
 used to call from Android Java into C or C++ compiled code.
-Everything in the <a href="Java.html">Java chapter</a> applies to generating code for access from Android Java code.
+Everything in the <a href="Java.html#Java">Java chapter</a> applies to generating code for access from Android Java code.
 This chapter contains a few Android specific notes and examples.
 </p>
 
-<H2><a name="Android_examples"></a>18.2 Android examples</H2>
+<H2><a name="Android_examples"></a>19.2 Android examples</H2>
 
 
-<H3><a name="Android_examples_intro"></a>18.2.1 Examples introduction</H3>
+<H3><a name="Android_examples_intro"></a>19.2.1 Examples introduction</H3>
 
 
 <p>
-The examples require the the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
+The examples require the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/tools/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
 The Eclipse version is not required for these examples as just the command line tools are used (shown for Linux as the host, but Windows will be very similar, if not identical in most places).
 Add the SDK tools and NDK tools to your path and create a directory somewhere for your Android projects (adjust PATH as necessary to where you installed the tools):
 </p>
@@ -54,7 +56,7 @@ Add the SDK tools and NDK tools to your path and create a directory somewhere fo
 <pre>
 $ export PATH=$HOME/android/android-sdk-linux_x86/tools:$HOME/android/android-sdk-linux_x86/platform-tools:$HOME/android/android-ndk-r6b:$PATH
 $ mkdir AndroidApps 
-$ cd AnrdoidApps
+$ cd AndroidApps
 </pre>
 </div>
 
@@ -74,7 +76,7 @@ $ android list targets
 The following examples are shipped with SWIG under the Examples/android directory and include a Makefile to build and install each example.
 </p>
 
-<H3><a name="Android_example_simple"></a>18.2.2 Simple C example</H3>
+<H3><a name="Android_example_simple"></a>19.2.2 Simple C example</H3>
 
 
 <p>
@@ -396,7 +398,7 @@ Run the app again and this time you will see the output pictured below, showing 
 <center><img src="android-simple.png" alt="Android screenshot of SwigSimple example"></center>
 
 
-<H3><a name="Android_example_class"></a>18.2.3 C++ class example</H3>
+<H3><a name="Android_example_class"></a>19.2.3 C++ class example</H3>
 
 
 <p>
@@ -433,11 +435,11 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;   
   void    move(double dx, double dy);
-  virtual double area(void) = 0;
-  virtual double perimeter(void) = 0;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
   static  int nshapes;
 };
 
@@ -445,18 +447,18 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Circle(double r) : radius(r) { }
+  virtual double area();
+  virtual double perimeter();
 };
 
 class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
-  virtual double area(void);
-  virtual double perimeter(void);
+  Square(double w) : width(w) { }
+  virtual double area();
+  virtual double perimeter();
 };
 </pre>
 </div>
@@ -480,19 +482,19 @@ void Shape::move(double dx, double dy) {
 
 int Shape::nshapes = 0;
 
-double Circle::area(void) {
+double Circle::area() {
   return M_PI*radius*radius;
 }
 
-double Circle::perimeter(void) {
+double Circle::perimeter() {
   return 2*M_PI*radius;
 }
 
-double Square::area(void) {
+double Square::area() {
   return width*width;
 }
 
-double Square::perimeter(void) {
+double Square::perimeter() {
   return 4*width;
 }
 </pre>
@@ -743,6 +745,36 @@ Run the app to see the result of calling the C++ code from Java:
 </p>
 
 <center><img src="android-class.png" alt="Android screenshot of SwigClass example"></center>
+
+<H3><a name="Android_examples_other"></a>19.2.4 Other examples</H3>
+
+
+<p>
+The Examples/android directory contains further examples which can be run and installed in a similar manner to the previous two examples.
+</p>
+
+<p>
+Note that the 'extend' example is demonstrates the directors feature.
+Normally C++ exception handling and the STL is not available by default in the version of g++ shipped with Android, but this example turns these features on as described in the next section.
+</p>
+
+<H2><a name="Android_stl"></a>19.3 C++ STL</H2>
+
+
+<p>
+Should the C++ Standard Template Library (STL) be required, an <tt>Application.mk</tt> file needs to be created 
+in the same directory as the <tt>Android.mk</tt> directory containing information about the STL to use.
+See the NDK documentation in the $NDKROOT/docs folder especially CPLUSPLUS-SUPPORT.html.
+Below is an example of the <tt>Application.mk</tt> file to make the STLport static library available for use:
+</p>
+
+<div class="code">
+<pre>
+# File: Application.mk
+APP_STL := gnustl_static
+</pre>
+</div>
+
 
 </body>
 </html>

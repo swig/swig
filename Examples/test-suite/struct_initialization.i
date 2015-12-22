@@ -3,7 +3,7 @@
 
 %inline %{
 
-// Named types
+/* Named types */
 struct StructA {
    int x;
 } instanceA1;

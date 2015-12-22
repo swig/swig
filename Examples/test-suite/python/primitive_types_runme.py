@@ -28,81 +28,142 @@ cvar.var_paramc = sct_paramc
 
 v_check()
 
-def pyerror(name, val, cte):
-  print "bad val/cte", name, val, cte
-  raise RuntimeError
-  pass
 
-if cvar.var_bool != cct_bool: pyerror("bool", cvar.var_bool, cct_bool)
-if cvar.var_schar != cct_schar: pyerror("schar", cvar.var_schar, cct_schar)
-if cvar.var_uchar != cct_uchar: pyerror("uchar", cvar.var_uchar, cct_uchar)
-if cvar.var_int != cct_int: pyerror("int", cvar.var_int, cct_int)
-if cvar.var_uint != cct_uint: pyerror("uint", cvar.var_uint, cct_uint)
-if cvar.var_short != cct_short: pyerror("short", cvar.var_short, cct_short)
-if cvar.var_ushort != cct_ushort: pyerror("ushort", cvar.var_ushort, cct_ushort)
-if cvar.var_long != cct_long: pyerror("long", cvar.var_long, cct_long)
-if cvar.var_ulong != cct_ulong: pyerror("ulong", cvar.var_ulong, cct_ulong)
-if cvar.var_llong != cct_llong: pyerror("llong", cvar.var_llong, cct_llong)
-if cvar.var_ullong != cct_ullong: pyerror("ullong", cvar.var_ullong, cct_ullong)
-if cvar.var_char != cct_char: pyerror("char", cvar.var_char, cct_char)
-if cvar.var_pchar != cct_pchar: pyerror("pchar", cvar.var_pchar, cct_pchar)
-if cvar.var_pcharc != cct_pcharc: pyerror("pchar", cvar.var_pcharc, cct_pcharc)
-if cvar.var_pint != cct_pint: pyerror("pint", cvar.var_pint, cct_pint)
-if cvar.var_sizet != cct_sizet: pyerror("sizet", cvar.var_sizet, cct_sizet)
-if cvar.var_hello != cct_hello: pyerror("hello", cvar.var_hello, cct_hello)
-if cvar.var_myint != cct_myint: pyerror("myint", cvar.var_myint, cct_myint)
-if cvar.var_namet != def_namet: pyerror("name", cvar.var_namet, def_namet)
+def pyerror(name, val, cte):
+    print "bad val/cte", name, val, cte
+    raise RuntimeError
+    pass
+
+if cvar.var_bool != cct_bool:
+    pyerror("bool", cvar.var_bool, cct_bool)
+if cvar.var_schar != cct_schar:
+    pyerror("schar", cvar.var_schar, cct_schar)
+if cvar.var_uchar != cct_uchar:
+    pyerror("uchar", cvar.var_uchar, cct_uchar)
+if cvar.var_int != cct_int:
+    pyerror("int", cvar.var_int, cct_int)
+if cvar.var_uint != cct_uint:
+    pyerror("uint", cvar.var_uint, cct_uint)
+if cvar.var_short != cct_short:
+    pyerror("short", cvar.var_short, cct_short)
+if cvar.var_ushort != cct_ushort:
+    pyerror("ushort", cvar.var_ushort, cct_ushort)
+if cvar.var_long != cct_long:
+    pyerror("long", cvar.var_long, cct_long)
+if cvar.var_ulong != cct_ulong:
+    pyerror("ulong", cvar.var_ulong, cct_ulong)
+if cvar.var_llong != cct_llong:
+    pyerror("llong", cvar.var_llong, cct_llong)
+if cvar.var_ullong != cct_ullong:
+    pyerror("ullong", cvar.var_ullong, cct_ullong)
+if cvar.var_char != cct_char:
+    pyerror("char", cvar.var_char, cct_char)
+if cvar.var_pchar != cct_pchar:
+    pyerror("pchar", cvar.var_pchar, cct_pchar)
+if cvar.var_pcharc != cct_pcharc:
+    pyerror("pchar", cvar.var_pcharc, cct_pcharc)
+if cvar.var_pint != cct_pint:
+    pyerror("pint", cvar.var_pint, cct_pint)
+if cvar.var_sizet != cct_sizet:
+    pyerror("sizet", cvar.var_sizet, cct_sizet)
+if cvar.var_hello != cct_hello:
+    pyerror("hello", cvar.var_hello, cct_hello)
+if cvar.var_myint != cct_myint:
+    pyerror("myint", cvar.var_myint, cct_myint)
+if cvar.var_namet != def_namet:
+    pyerror("name", cvar.var_namet, def_namet)
+
 
 class PyTest (TestDirector):
-  def __init__(self):
-    TestDirector.__init__(self)
+
+    def __init__(self):
+        TestDirector.__init__(self)
+        pass
+
+    def ident(self, x):
+        return x
+
+    def vval_bool(self, x): return self.ident(x)
+
+    def vval_schar(self, x): return self.ident(x)
+
+    def vval_uchar(self, x): return self.ident(x)
+
+    def vval_int(self, x): return self.ident(x)
+
+    def vval_uint(self, x): return self.ident(x)
+
+    def vval_short(self, x): return self.ident(x)
+
+    def vval_ushort(self, x): return self.ident(x)
+
+    def vval_long(self, x): return self.ident(x)
+
+    def vval_ulong(self, x): return self.ident(x)
+
+    def vval_llong(self, x): return self.ident(x)
+
+    def vval_ullong(self, x): return self.ident(x)
+
+    def vval_float(self, x): return self.ident(x)
+
+    def vval_double(self, x): return self.ident(x)
+
+    def vval_char(self, x): return self.ident(x)
+
+    def vval_pchar(self, x): return self.ident(x)
+
+    def vval_pcharc(self, x): return self.ident(x)
+
+    def vval_pint(self, x): return self.ident(x)
+
+    def vval_sizet(self, x): return self.ident(x)
+
+    def vval_hello(self, x): return self.ident(x)
+
+    def vval_myint(self, x): return self.ident(x)
+
+    def vref_bool(self, x): return self.ident(x)
+
+    def vref_schar(self, x): return self.ident(x)
+
+    def vref_uchar(self, x): return self.ident(x)
+
+    def vref_int(self, x): return self.ident(x)
+
+    def vref_uint(self, x): return self.ident(x)
+
+    def vref_short(self, x): return self.ident(x)
+
+    def vref_ushort(self, x): return self.ident(x)
+
+    def vref_long(self, x): return self.ident(x)
+
+    def vref_ulong(self, x): return self.ident(x)
+
+    def vref_llong(self, x): return self.ident(x)
+
+    def vref_ullong(self, x): return self.ident(x)
+
+    def vref_float(self, x): return self.ident(x)
+
+    def vref_double(self, x): return self.ident(x)
+
+    def vref_char(self, x): return self.ident(x)
+
+    def vref_pchar(self, x): return self.ident(x)
+
+    def vref_pcharc(self, x): return self.ident(x)
+
+    def vref_pint(self, x): return self.ident(x)
+
+    def vref_sizet(self, x): return self.ident(x)
+
+    def vref_hello(self, x): return self.ident(x)
+
+    def vref_myint(self, x): return self.ident(x)
+
     pass
-  def ident(self, x):
-    return x
-  
-  def vval_bool(self, x): return self.ident(x)
-  def vval_schar(self, x): return self.ident(x)
-  def vval_uchar(self, x): return self.ident(x)
-  def vval_int(self, x): return self.ident(x)
-  def vval_uint(self, x): return self.ident(x)
-  def vval_short(self, x): return self.ident(x)
-  def vval_ushort(self, x): return self.ident(x)
-  def vval_long(self, x): return self.ident(x)
-  def vval_ulong(self, x): return self.ident(x)
-  def vval_llong(self, x): return self.ident(x)
-  def vval_ullong(self, x): return self.ident(x)
-  def vval_float(self, x): return self.ident(x)
-  def vval_double(self, x): return self.ident(x)
-  def vval_char(self, x): return self.ident(x)
-  def vval_pchar(self, x): return self.ident(x)
-  def vval_pcharc(self, x): return self.ident(x)
-  def vval_pint(self, x): return self.ident(x)
-  def vval_sizet(self, x): return self.ident(x)
-  def vval_hello(self, x): return self.ident(x)
-  def vval_myint(self, x): return self.ident(x)
-
-  def vref_bool(self, x): return self.ident(x)
-  def vref_schar(self, x): return self.ident(x)
-  def vref_uchar(self, x): return self.ident(x)
-  def vref_int(self, x): return self.ident(x)
-  def vref_uint(self, x): return self.ident(x)
-  def vref_short(self, x): return self.ident(x)
-  def vref_ushort(self, x): return self.ident(x)
-  def vref_long(self, x): return self.ident(x)
-  def vref_ulong(self, x): return self.ident(x)
-  def vref_llong(self, x): return self.ident(x)
-  def vref_ullong(self, x): return self.ident(x)
-  def vref_float(self, x): return self.ident(x)
-  def vref_double(self, x): return self.ident(x)
-  def vref_char(self, x): return self.ident(x)
-  def vref_pchar(self, x): return self.ident(x)
-  def vref_pcharc(self, x): return self.ident(x)
-  def vref_pint(self, x): return self.ident(x)
-  def vref_sizet(self, x): return self.ident(x)
-  def vref_hello(self, x): return self.ident(x)
-  def vref_myint(self, x): return self.ident(x)
-
-  pass
 
 
 t = Test()
@@ -111,7 +172,7 @@ p = PyTest()
 
 # internal call check
 if t.c_check() != p.c_check():
-  raise RuntimeError, "bad director"
+    raise RuntimeError, "bad director"
 
 p.var_bool = p.stc_bool
 p.var_schar = p.stc_schar
@@ -165,64 +226,64 @@ t.var_paramc = sct_paramc
 t.v_check()
 
 # this value contains a '0' char!
-if def_namet != 'ho\0la':
-  print "bad namet", def_namet
-  raise RuntimeError
+if def_namet != 'hola':
+    print "bad namet", def_namet
+    raise RuntimeError
 
 t.var_namet = def_namet
 if t.var_namet != def_namet:
-  print "bad namet", t.var_namet, def_namet
-  raise RuntimeError
+    print "bad namet", t.var_namet, def_namet
+    raise RuntimeError
 
-t.var_namet = 'holac'
+t.var_namet = 'hola'
 
-if t.var_namet != 'holac':
-  print "bad namet", t.var_namet
-  raise RuntimeError
+if t.var_namet != 'hola':
+    print "bad namet", t.var_namet
+    raise RuntimeError
 
 t.var_namet = 'hol'
 
 if t.var_namet != 'hol':
-#if t.var_namet != 'hol\0\0':
-  print "bad namet", t.var_namet
-  raise RuntimeError
+    # if t.var_namet != 'hol\0\0':
+    print "bad namet", t.var_namet
+    raise RuntimeError
 
 
 cvar.var_char = '\0'
 if cvar.var_char != '\0':
-  raise RuntimeError, "bad char '0' case"
-  
+    raise RuntimeError, "bad char '0' case"
+
 cvar.var_char = 0
 if cvar.var_char != '\0':
-  raise RuntimeError, "bad char '0' case"
+    raise RuntimeError, "bad char '0' case"
 
 cvar.var_namet = '\0'
-#if cvar.var_namet != '\0\0\0\0\0':
+# if cvar.var_namet != '\0\0\0\0\0':
 if cvar.var_namet != '':
-  print 'hola', '', cvar.var_namet
-  raise RuntimeError, "bad char '\0' case"
+    print 'hola', '', cvar.var_namet
+    raise RuntimeError, "bad char '\0' case"
 
 cvar.var_namet = ''
-#if cvar.var_namet != '\0\0\0\0\0':
+# if cvar.var_namet != '\0\0\0\0\0':
 if cvar.var_namet != '':
-  raise RuntimeError, "bad char empty case"
+    raise RuntimeError, "bad char empty case"
 
 cvar.var_pchar = None
 if cvar.var_pchar != None:
-  raise RuntimeError, "bad None case"
+    raise RuntimeError, "bad None case"
 
 cvar.var_pchar = ''
 if cvar.var_pchar != '':
-  print '%c' % (cvar.var_pchar[0],)
-  raise RuntimeError, "bad char empty case"
+    print '%c' % (cvar.var_pchar[0],)
+    raise RuntimeError, "bad char empty case"
 
 cvar.var_pcharc = None
 if cvar.var_pcharc != None:
-  raise RuntimeError, "bad None case"
+    raise RuntimeError, "bad None case"
 
 cvar.var_pcharc = ''
 if cvar.var_pcharc != '':
-  raise RuntimeError, "bad char empty case"
+    raise RuntimeError, "bad char empty case"
 
 
 #
@@ -238,13 +299,13 @@ pchar_setitem(pc, 4, 0)
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
-  print cvar.var_pchar
-  raise RuntimeError, "bad pointer case"
+    print cvar.var_pchar
+    raise RuntimeError, "bad pointer case"
 
 cvar.var_namet = pc
-#if cvar.var_namet != "hola\0":
+# if cvar.var_namet != "hola\0":
 if cvar.var_namet != "hola":
-  raise RuntimeError, "bad pointer case"
+    raise RuntimeError, "bad pointer case"
 
 delete_pchar(pc)
 
@@ -254,89 +315,124 @@ delete_pchar(pc)
 
 
 try:
-  error = 0
-  a = t.var_uchar
-  t.var_uchar = 10000
-  error = 1
-except OverflowError:
-  if a != t.var_uchar:
+    error = 0
+    a = t.var_uchar
+    t.var_uchar = 10000
     error = 1
-  pass
+except OverflowError:
+    if a != t.var_uchar:
+        error = 1
+    pass
 if error:
-  raise RuntimeError, "bad uchar typemap"
-
+    raise RuntimeError, "bad uchar typemap"
 
 
 try:
-  error = 0
-  a = t.var_char
-  t.var_char = '23'
-  error = 1
+    error = 0
+    a = t.var_char
+    t.var_char = '23'
+    error = 1
 except TypeError:
-  if a != t.var_char:
-    error = 1
-  pass 
+    if a != t.var_char:
+        error = 1
+    pass
 if error:
-  raise RuntimeError, "bad char typemap"
+    raise RuntimeError, "bad char typemap"
 
 try:
-  error = 0
-  a = t.var_uint
-  t.var_uint = -1
-  error = 1
-except OverflowError:
-  if a != t.var_uint:
+    error = 0
+    a = t.var_ushort
+    t.var_ushort = -1
     error = 1
-  pass 
+except OverflowError:
+    if a != t.var_ushort:
+        error = 1
+    pass
 if error:
-  raise RuntimeError, "bad uint typemap"
+    raise RuntimeError, "bad ushort typemap"
+
+try:
+    error = 0
+    a = t.var_uint
+    t.var_uint = -1
+    error = 1
+except OverflowError:
+    if a != t.var_uint:
+        error = 1
+    pass
+if error:
+    raise RuntimeError, "bad uint typemap"
+
+try:
+    error = 0
+    a = t.var_sizet
+    t.var_sizet = -1
+    error = 1
+except OverflowError:
+    if a != t.var_sizet:
+        error = 1
+    pass
+if error:
+    raise RuntimeError, "bad sizet typemap"
+
+try:
+    error = 0
+    a = t.var_ulong
+    t.var_ulong = -1
+    error = 1
+except OverflowError:
+    if a != t.var_ulong:
+        error = 1
+    pass
+if error:
+    raise RuntimeError, "bad ulong typemap"
 
 #
 #
 try:
-  error = 0
-  a = t.var_namet
-  t.var_namet = '123456'
-  error = 1
-except TypeError:
-  if a != t.var_namet:
+    error = 0
+    a = t.var_namet
+    t.var_namet = '123456'
     error = 1
-  pass 
+except TypeError:
+    if a != t.var_namet:
+        error = 1
+    pass
 if error:
-  raise RuntimeError, "bad namet typemap"
+    raise RuntimeError, "bad namet typemap"
 
 #
 #
 #
 t2 = p.vtest(t)
-if t.var_namet !=  t2.var_namet:
-  raise RuntimeError, "bad SWIGTYPE* typemap"
-  
+if t.var_namet != t2.var_namet:
+    raise RuntimeError, "bad SWIGTYPE* typemap"
+
 
 if cvar.fixsize != 'ho\0la\0\0\0':
-  raise RuntimeError, "bad FIXSIZE typemap"
+    raise RuntimeError, "bad FIXSIZE typemap"
 
 cvar.fixsize = 'ho'
 if cvar.fixsize != 'ho\0\0\0\0\0\0':
-  raise RuntimeError, "bad FIXSIZE typemap"
+    raise RuntimeError, "bad FIXSIZE typemap"
 
 
 f = Foo(3)
 f1 = fptr_val(f)
 f2 = fptr_ref(f)
 if f1._a != f2._a:
-  raise RuntimeError, "bad const ptr& typemap"
-  
+    raise RuntimeError, "bad const ptr& typemap"
 
-v = char_foo(1,3)
-if v !=3:
-  raise RuntimeError, "bad int typemap"
 
-s = char_foo(1,"hello")
-if s !="hello":
-  raise RuntimeError, "bad char* typemap"
-  
+v = char_foo(1, 3)
+if v != 3:
+    raise RuntimeError, "bad int typemap"
 
-v = SetPos(1,3)
-if v !=4:
-  raise RuntimeError, "bad int typemap"
+s = char_foo(1, "hello")
+if s != "hello":
+    raise RuntimeError, "bad char* typemap"
+
+
+v = SetPos(1, 3)
+if v != 4:
+    raise RuntimeError, "bad int typemap"

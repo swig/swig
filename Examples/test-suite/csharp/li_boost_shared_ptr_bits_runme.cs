@@ -16,5 +16,12 @@ public class runme
 
     HiddenDestructor hidden = HiddenDestructor.create();
     hidden.Dispose();
+
+    HiddenPrivateDestructor hiddenPrivate = HiddenPrivateDestructor.create();
+    if (HiddenPrivateDestructor.DeleteCount != 0)
+      throw new ApplicationException("Count should be zero");
+    hiddenPrivate.Dispose();
+    if (HiddenPrivateDestructor.DeleteCount != 1)
+      throw new ApplicationException("Count should be one");
   }
 }

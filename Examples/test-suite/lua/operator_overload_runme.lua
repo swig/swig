@@ -1,4 +1,4 @@
--- demo of lua swig capacilities (operator overloading)
+-- demo of lua swig capacities (operator overloading)
 require("import")	-- the import fn
 import("operator_overload")	-- import lib
 
@@ -33,7 +33,7 @@ assert(b>=c)
 assert(b>d)
 assert(b>=d)
 
--- lua does not support += operators: skiping
+-- lua does not support += operators: skipping
 
 -- test +
 f=Op(1)
@@ -50,7 +50,7 @@ assert(f/g==Op(1))
 
 --lua 5.0.2 defines that unary - is __unm(self,nil)
 --lua 5.1.2 defines that unary - is __unm(self,self)
---C++ expectes unary - as operator-()
+--C++ expects unary - as operator-()
 --however the latest version of SWIG strictly checks the number of args
 --and will complain if too many args are provided
 --therefore disabling these tests for now
@@ -77,6 +77,38 @@ assert(i(1,2)==6)
 -- plus add some code to check the __str__ fn
 assert(tostring(Op(1))=="Op(1)")
 assert(tostring(Op(-3))=="Op(-3)")
+
+
+-- check that operator overloads are correctly propagated down inheritance hierarchy
+
+a_d=OpDerived()
+b_d=OpDerived(5)
+c_d=OpDerived(5)
+d_d=OpDerived(2)
+-- test equality
+assert(a_d~=b_d)
+assert(b_d==c_d)
+assert(a_d~=d_d)
+
+-- test <
+assert(a_d<b_d)
+assert(a_d<=b_d)
+assert(b_d<=c_d)
+assert(b_d>=c_d)
+assert(b_d>d_d)
+assert(b_d>=d_d)
+--
+-- test + inheritance
+f_d=OpDerived(1)
+g_d=OpDerived(1)
+assert(f_d+g_d==Op(2))
+assert(f_d-g_d==Op(0))
+assert(f_d*g_d==Op(1))
+assert(f_d/g_d==Op(1))
+--
+-- plus add some code to check the __str__ fn inheritance
+assert(tostring(OpDerived(1))=="Op(1)")
+assert(tostring(OpDerived(-3))=="Op(-3)")
 
 --[[
 /* Sample test code in C++

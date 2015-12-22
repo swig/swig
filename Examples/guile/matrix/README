@@ -1,13 +1,13 @@
 Matrix example.  To run the example, execute the program 'matrix' and
 type the following :
 
-	(load "matrix.scm")
+	(load "runme.scm")
 	(do-test 0)
 
 Alternatively, use the command-line:
 
-	./matrix -e do-test -s matrix.scm
+	./my-guile -e do-test -s runme.scm
 
 Or, if your operating system is spiffy enough:
 
-	./matrix.scm
+	./runme.scm

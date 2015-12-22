@@ -254,7 +254,7 @@ extern int DohDelmeta(DOH *, const DOH *);
 
   /* Utility functions */
 
-extern void DohEncoding(char *name, DOH *(*fn) (DOH *s));
+extern void DohEncoding(const char *name, DOH *(*fn) (DOH *s));
 extern int DohPrintf(DOHFile * obj, const char *format, ...);
 extern int DohvPrintf(DOHFile * obj, const char *format, va_list ap);
 extern int DohPrintv(DOHFile * obj, ...);
@@ -307,7 +307,10 @@ extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
+/*
+ Deprecated, just use DohDelete
 extern int DohClose(DOH *file);
+*/
 extern int DohCopyto(DOHFile * input, DOHFile * output);
 
 
@@ -332,6 +335,12 @@ extern DOHVoid *DohNewVoid(void *ptr, void (*del) (void *));
 extern DOHList *DohSplit(DOHFile * input, char ch, int nsplits);
 extern DOHList *DohSplitLines(DOHFile * input);
 extern DOH *DohNone;
+
+/* Helper union for converting between function and object pointers. */
+typedef union DohFuncPtr {
+  void* p;
+  DOH *(*func)(DOH *);
+} DohFuncPtr_t;
 
 extern void DohMemoryDebug(void);
 

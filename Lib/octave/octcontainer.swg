@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 %{
+#include <climits>
 #include <iostream>
 %}
 
@@ -26,9 +27,7 @@
 
 // The Octave C++ Wrap
 
-%insert(header) %{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %include <std_except.i>
 

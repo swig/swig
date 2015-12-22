@@ -5,12 +5,12 @@
 LANGUAGE     = ruby
 RUBY         = @RUBY@
 SCRIPTSUFFIX = _runme.rb
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
-	kwargs_feature \
 	li_cdata \
 	li_cstring \
 	li_factory \
@@ -22,6 +22,7 @@ CPP_TEST_CASES = \
 	li_std_stack \
 	primitive_types \
 	ruby_keywords \
+	ruby_minherit_shared_ptr \
 	ruby_naming \
 	ruby_track_objects \
 	ruby_track_objects_directors \
@@ -42,7 +43,7 @@ SWIGOPT += -w801 -noautorename -features autodoc=4
 ruby_naming.cpptest: SWIGOPT += -autorename
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -52,7 +53,7 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
@@ -60,13 +61,13 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I$(srcdir):. $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean
 %.clean:
-	
+	@exit 0
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile ruby_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ruby_clean

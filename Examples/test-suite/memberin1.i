@@ -47,7 +47,7 @@ public:
 #ifdef SWIGRUBY
 %typemap(in) String {
   Check_Type($input, T_STRING);
-  $1 = String(STR2CSTR($input));
+  $1 = String(StringValuePtr($input));
 }
 #endif
 

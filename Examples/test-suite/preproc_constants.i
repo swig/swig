@@ -1,5 +1,12 @@
 %module preproc_constants
 
+%{
+#if defined(__clang__)
+//Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+#pragma clang diagnostic ignored "-Wconstant-logical-operand"
+#endif
+%}
+
 // Note: C types are slightly different to C++ types as (a && b) is int in C and bool in C++
 
 // Simple constants
@@ -39,6 +46,7 @@
 #define CONST_CHAR      'x'
 #define CONST_STRING1   "const string"
 #define CONST_STRING2   "const" " string"
+#define CONST_STRING3   "log-revprops"
 
 // Expressions - runtime tests check the type for any necessary type promotions of the expressions
 
@@ -84,6 +92,8 @@
 /// constant assignment in enum
 #if defined(SWIGCSHARP)
 %csconstvalue("1<<2") kValue;
+#elif defined(SWIGD)
+%dconstvalue("1<<2") kValue;
 #endif
 
 %{
@@ -99,3 +109,4 @@ enum MyEnum {
 enum MyEnum {
   kValue = BIT(2)
 };
+

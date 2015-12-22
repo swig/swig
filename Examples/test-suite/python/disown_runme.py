@@ -14,7 +14,7 @@ if (not a.thisown):
 
 a.thisown = tmp
 if (a.thisown != tmp):
-    raise RuntimeError    
+    raise RuntimeError
 
 
 b = B()

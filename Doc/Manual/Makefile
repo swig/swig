@@ -9,7 +9,7 @@
 # validation.
 #
 # Additional html validation can be done using the validate target.
-# Additional link checking can be done using the linkchecker target.
+# Additional link checking can be done using the linkchecker1 and linkchecker2 target.
 #
 
 # Note the # and " are escaped
@@ -19,9 +19,10 @@ HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Cont
 
 all: maketoc check generate
 
-maketoc: CCache.html
+maketoc:
 	python maketoc.py
 
+# Use this to regenerate CCache.html should this ever be needed
 CCache.html: ../../CCache/ccache.yo
 	yodl2html -o CCache.html ../../CCache/ccache.yo
 
@@ -53,7 +54,6 @@ swightml.book: chapters Sections.html
 maintainer-clean: clean-baks
 	rm -f swightml.book
 	rm -f swigpdf.book
-	rm -f CCache.html
 	rm -f SWIGDocumentation.html
 	rm -f SWIGDocumentation.pdf
 
@@ -69,10 +69,18 @@ test:
 validate:
 	all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
 
-# Link checking using linkchecker
-linkchecker:
+# Link checking using linkchecker of the index.html only file (including anchors)
+linkchecker1:
 	@echo -----------------------------------------------------------------------
 	@echo Note linkchecker versions prior to 6.1 do not work properly wrt anchors
 	@echo -----------------------------------------------------------------------
-	linkchecker --config=./linkchecker.config index.html
+	linkchecker --config=./linkchecker.config --anchors index.html
+
+# Check for links which don't work including those generated from the individual .html files into SWIGDocumentation.html
+linkchecker2:
+	rm -rf linkchecker-tmp
+	mkdir linkchecker-tmp
+	cp SWIGDocumentation.html linkchecker-tmp
+	cp *.png linkchecker-tmp
+	(cd linkchecker-tmp && linkchecker --config=../linkchecker.config -F text --no-warnings SWIGDocumentation.html)
 

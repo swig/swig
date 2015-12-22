@@ -1,11 +1,16 @@
-/* Test %apply for char *, signed char *, unsigned char * 
-   This won't work in all situations, so does not necessarily have to be implemented. See 
+/* Test %apply for char *, signed char *, unsigned char *
+   This won't work in all situations, so does not necessarily have to be implemented. See
    http://groups.google.com.ai/group/comp.lang.c++.moderated/browse_thread/thread/ad5873ce25d49324/0ae94552452366be?lnk=raot */
 %module(directors="1") apply_strings
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) DirectorTest;
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) DigitsGlobalB;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) DigitsGlobalC;
+
+#if defined(SWIGSCILAB)
+%rename(TNum) TNumber;
+%rename(DirTest) DirectorTest;
+#endif
 
 %apply char * {UCharPtr};
 %apply char * {SCharPtr};
@@ -53,12 +58,12 @@ typedef struct {
    TAscii DigitsMemberA[20];
    TAscii *DigitsMemberB;
 } TNumber;
- 
+
 TAscii DigitsGlobalA[20];
 TAscii DigitsGlobalB[] = {(unsigned char)'A', (unsigned char)'B', 0};
 TAscii *DigitsGlobalC;
 
-%} 
+%}
 
 // Director test
 %feature("director");

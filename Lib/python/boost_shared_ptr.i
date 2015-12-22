@@ -51,7 +51,7 @@
     %variable_fail(res, "$type", "$name");
   }
   if (!argp) {
-    %argument_nullref("$type", $symname, $argnum);
+    %variable_nullref("$type", "$name");
   } else {
     $1 = *(%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)->get());
     if (newmem & SWIG_CAST_NEW_MEMORY) delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
@@ -137,7 +137,9 @@
     %variable_fail(res, "$type", "$name");
   }
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared;
-  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
+  if (!argp) {
+    %variable_nullref("$type", "$name");
+  }
   if (newmem & SWIG_CAST_NEW_MEMORY) {
     tempshared = *%reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);
     delete %reinterpret_cast(argp, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *);

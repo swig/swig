@@ -61,7 +61,6 @@ char* test_b(name a, const namea b)  {
   return a;
 }
 
-#if 0
 int test_a(int a)  {
   return a;
 }
@@ -70,7 +69,6 @@ int test_b(int a)  {
   return a;
 }
  
-#endif
 %}
 
 

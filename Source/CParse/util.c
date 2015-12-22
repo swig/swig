@@ -11,8 +11,6 @@
  * Parsing utilities.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_util_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 
@@ -73,6 +71,28 @@ void Swig_cparse_replace_descriptor(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_cparse_smartptr()
+ *
+ * Parse the type in smartptr feature and convert into a SwigType.
+ * Error out if the parsing fails as this is like a parser syntax error.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_cparse_smartptr(Node *n) {
+    SwigType *smart = 0;
+    String *smartptr = Getattr(n, "feature:smartptr");
+    if (smartptr) {
+      SwigType *cpt = Swig_cparse_type(smartptr);
+      if (cpt) {
+	smart = SwigType_typedef_resolve_all(cpt);
+	Delete(cpt);
+      } else {
+	Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, SwigType_namestr(Getattr(n, "name")));
+      }
+    }
+    return smart;
+}
+
+/* -----------------------------------------------------------------------------
  * cparse_normalize_void()
  *
  * This function is used to replace arguments of the form (void) with empty
@@ -89,4 +109,18 @@ void cparse_normalize_void(Node *n) {
       Delattr(n, "parms");
     }
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * new_node()
+ *
+ * Create an empty parse node, setting file and line number information
+ * ----------------------------------------------------------------------------- */
+
+Node *new_node(const_String_or_char_ptr tag) {
+  Node *n = NewHash();
+  set_nodeType(n,tag);
+  Setfile(n,cparse_file);
+  Setline(n,cparse_line);
+  return n;
 }

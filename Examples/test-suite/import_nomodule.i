@@ -8,7 +8,7 @@
 
 %import "import_nomodule.h"
 
-#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGOBJECTIVEC)
+#if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGOBJECTIVEC) && !defined(SWIGPYTHON_BUILTIN)
 
 /**
  * The proxy class does not have Bar derived from Foo, yet an instance of Bar
@@ -40,3 +40,10 @@ class Bar : public Foo { };
 
 #endif
 
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+%}
