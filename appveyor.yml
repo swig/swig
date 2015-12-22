@@ -18,13 +18,6 @@ environment:
     VER: 35
     PY3: 1
 
-matrix:
-  allow_failures:
-    - platform: x64
-      SWIGLANG: python
-      VSVER: 12
-      VER: 27
-
 install:
 - date /T & time /T
 - set PATH=C:\cygwin\bin;%PATH%
