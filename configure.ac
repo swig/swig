@@ -1182,11 +1182,10 @@ if test x"${with_objc}" = xno -o x"${with_alllang}" = xno ; then
 AC_MSG_NOTICE([Disabling Objective-C])
 OBJC=
 else
-OBJC=1
 # set Objective-C compiler
 if test -z "$OBJCBIN" ; then
   AC_MSG_CHECKING(Objective-C compiler)
-  AC_PROG_OBJC()
+  AC_CHECK_PROGS(OBJC, objective-c)
 else
   OBJC="$OBJCBIN"
 fi
