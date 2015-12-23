@@ -1439,7 +1439,7 @@ OBJCSO = @OBJCSO@
 OBJCLDSHARED = @OBJCLDSHARED@
 OBJCCXXSHARED = @OBJCCXXSHARED@
 OBJCXXFLAGS = @OBJCCFLAGS@
-OBJCFLAGS = @OBJCCFLAGS@
+OBJCFLAGS =
  
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C)
@@ -1468,6 +1468,13 @@ objc_run: runme.m
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
 # -----------------------------------------------------------------
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+objc_version:
+	$(OBJC) -v
 
 objc_clean:
 	rm -f *_wrap* *_proxy* .~* runme
