@@ -1439,7 +1439,7 @@ OBJCSO = @OBJCSO@
 OBJCLDSHARED = @OBJCLDSHARED@
 OBJCCXXSHARED = @OBJCCXXSHARED@
 OBJCXXFLAGS = @OBJCCFLAGS@
-OBJCFLAGS = @OBJCFLAGS@
+OBJCFLAGS = @OBJCCFLAGS@
  
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C)

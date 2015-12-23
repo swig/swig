@@ -20,6 +20,7 @@ def get_cflags(language, std, compiler):
           "ruby":"-Werror " + c_common,
         "scilab":"-Werror " + c_common,
            "tcl":"-Werror " + c_common,
+          "objc":"-Werror " + c_common,
     }
     if compiler == 'clang':
         cflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
@@ -49,6 +50,7 @@ def get_cxxflags(language, std, compiler):
           "ruby":"-Werror " + cxx_common,
         "scilab":             cxx_common,
            "tcl":"-Werror " + cxx_common,
+          "objc":"-Werror " + cxx_common,
     }
     if compiler == 'clang':
         cxxflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile

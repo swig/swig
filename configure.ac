@@ -1178,23 +1178,16 @@ AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable Objective-C]), [with
 AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler],[OBJCBIN="$withval"], [OBJCBIN=])
 
 # First, check for "--without-objc" or "--with-objc=no".
-if test x"${with_objc}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Objective-C])
-OBJC=
+if test x"${OBJCBIN}" = xno; then 
+  AC_MSG_NOTICE([Disabling Objective-C])
 else
-# set Objective-C compiler
-if test -z "$OBJCBIN" ; then
-  AC_MSG_CHECKING(Objective-C compiler)
-  AC_CHECK_PROGS(OBJC, objective-c)
-else
-  OBJC="$OBJCBIN"
-fi
+
+OBJC=gcc
+OBJCCFLAGS=
 
 # check for include files
-AC_MSG_CHECKING(for include file Foundation/Foundation.h)
+AC_MSG_CHECKING(for include file Foundation.h)
 AC_ARG_WITH(objcincl, [  --with-objcincl=path    Set location of Objective-C include directory], [OBJCINCDIR="$withval"], [OBJCINCDIR=])
-
-OBJCCFLAGS=
 
 if test -z "$OBJCINCDIR"; then
   OBJCINCDIR="/usr/include/ /usr/local/include/"
@@ -1213,7 +1206,7 @@ if test -z "$OBJCINCDIR"; then
 fi
 
 for d in $OBJCINCDIR ; do
-  if test -r "$d/Foundation/Foundation.h" ; then
+  if test -r "$d/Foundation.h" ; then
     AC_MSG_RESULT($d)
     OBJCINCDIR=$d
     OBJCINC=-I\"$d\"
@@ -1232,9 +1225,9 @@ AC_ARG_WITH(objclib,[  --with-objclib =path      Set location of Objective-C lib
 AC_MSG_CHECKING(for Objective-C library)
 
 if test -z "$OBJCLIB"; then
-dirs="/usr/lib/ /usr/local/lib/ /usr/lib/GNUstep/Libraries/"
+dirs="/usr/lib /usr/local/lib /usr/lib/GNUstep/Libraries"
 for i in $dirs ; do
-	if test -r $i/libobjc.so.2; then
+	if test -r $i/libobjc.dylib; then
 	    AC_MSG_RESULT($i)
 	    OBJCLIB="-L$i -lobjc"
 	    break
