@@ -20,7 +20,4 @@ case "$SWIGLANG" in
 			brew list -v python3
 		fi
 		;;
-	"objc")
-		brew install devil --use-llvm
-		;;
 esac
