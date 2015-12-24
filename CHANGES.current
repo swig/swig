@@ -5,6 +5,25 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.8 (in progress)
 ===========================
 
+2015-12-23: ahnolds
+            [Python] Fixes for conversion of signed and unsigned integer types:
+
+            No longer check for PyInt objects in Python3. Because PyInt_Check
+            and friends are #defined to the corresponding PyLong methods, this
+            had caused errors in Python3 where values greater than what could be
+            stored in a long were incorrectly interpreted as the value -1 with
+            the Python error indicator set to OverflowError. This applies to
+            both the conversions PyLong->long and PyLong->double.
+
+            Conversion from PyLong to long, unsigned long, long long, and
+            unsigned long long now raise OverflowError instead of TypeError in
+            both Python2 and Python3 for PyLong values outside the range
+            expressible by the corresponding C type. This matches the existing
+            behavior for other integral types (signed and unsigned ints, shorts,
+            and chars), as well as the conversion for PyInt to all numeric
+            types. This also indirectly applies to the size_t and ptrdiff_t
+            types, which depend on the conversions for unsigned long and long.
+
 2015-12-19: wsfulton
             [Python] Python 2 Unicode UTF-8 strings can be used as inputs to char * or
             std::string types if the generated C/C++ code has SWIG_PYTHON_2_UNICODE defined.
