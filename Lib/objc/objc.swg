@@ -144,7 +144,7 @@
 %{ $1 = $input? true : false; %}
 
 %typemap(in) bool * (bool temp), const bool * (bool temp), const bool & (bool temp), bool & (bool temp) {
-  temp = (*input) ? true : false;
+  temp = (*$input) ? true : false;
   $1 = &temp;
 }
 
