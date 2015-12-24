@@ -1,14 +1,14 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    =
 OBJCSRCS   = runme.m
 OBJCFLAGS  = -fconstant-string-class=NSConstantString 
 
 all::
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' objc_cpp
+	$(MAKE) -f $(TOP)/Makefile SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' objc_cpp
 	
 clean::
 	$(MAKE) -f $(TOP)/Makefile objc_clean
