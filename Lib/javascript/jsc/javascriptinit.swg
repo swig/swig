@@ -1,14 +1,45 @@
 %insert(init) %{
 SWIGRUNTIME void
-SWIG_JSC_SetModule(swig_module_info *swig_module) {}
+SWIG_JSC_SetModule(void *clientdata, swig_module_info *swig_module) {
+    JSGlobalContextRef context = (JSGlobalContextRef)clientdata;
 
+    JSObjectRef globalObject = JSContextGetGlobalObject(context);
+    JSStringRef moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+
+    JSClassDefinition classDef  = kJSClassDefinitionEmpty;
+    JSClassRef classRef = JSClassCreate(&classDef);
+
+    JSObjectRef object = JSObjectMake(context, classRef, NULL);
+    JSObjectSetPrivate(object, (void*)swig_module);
+
+    JSObjectSetProperty(context, globalObject, moduleName, object, NULL, NULL);
+
+    JSClassRelease(classRef);
+    JSStringRelease(moduleName);
+}
 SWIGRUNTIME swig_module_info *
-SWIG_JSC_GetModule(void) {
-  return 0;
+SWIG_JSC_GetModule(void *clientdata) {
+    JSGlobalContextRef context = (JSGlobalContextRef)clientdata;
+
+    JSObjectRef globalObject = JSContextGetGlobalObject(context);
+    JSStringRef moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+
+    if(JSObjectHasProperty(context, globalObject, moduleName) == false){
+        JSStringRelease(moduleName);
+        return 0;
+    }
+
+    JSValueRef value = JSObjectGetProperty(context, globalObject, moduleName, NULL);
+
+    JSObjectRef object = JSValueToObject(context, value, NULL);
+    swig_module_info *swig_module = (swig_module_info*)JSObjectGetPrivate(object);
+
+    JSStringRelease(moduleName);
+    return swig_module;
 }
 
-#define SWIG_GetModule(clientdata)                SWIG_JSC_GetModule()
-#define SWIG_SetModule(clientdata, pointer)       SWIG_JSC_SetModule(pointer)
+#define SWIG_GetModule(clientdata)                SWIG_JSC_GetModule(clientdata)
+#define SWIG_SetModule(clientdata, pointer)       SWIG_JSC_SetModule(clientdata, pointer)
 %}
 
 %insert(init) "swiginit.swg"
@@ -26,7 +57,7 @@ extern "C" {
 #endif
 
 bool SWIGJSC_INIT (JSGlobalContextRef context, JSObjectRef *exports) {
-    SWIG_InitializeModule(0);
+    SWIG_InitializeModule((void*)context);
 %}
 
 /* -----------------------------------------------------------------------------
