@@ -220,9 +220,9 @@ script such as the following:</p>
 # File : Makefile.PL
 use ExtUtils::MakeMaker;
 WriteMakefile(
-	`NAME'    =&gt; `example',                  # Name of package
-	`LIBS'    =&gt; [`-lm'],                    # Name of custom libraries
-	`OBJECT'  =&gt; `example.o example_wrap.o'  # Object files
+        `NAME'    =&gt; `example',                  # Name of package
+        `LIBS'    =&gt; [`-lm'],                    # Name of custom libraries
+        `OBJECT'  =&gt; `example.o example_wrap.o'  # Object files
 );
 
 </pre></div>
@@ -301,7 +301,7 @@ for a dynamic module, but change the link line to something like this:
 
 <div class="code"><pre>
 $ gcc example.o example_wrap.o -L/usr/lib/perl/5.14/CORE \
-	-lperl -lsocket -lnsl -lm -o myperl
+        -lperl -lsocket -lnsl -lm -o myperl
 </pre></div>
 
 <p>
@@ -892,9 +892,9 @@ To check to see if a value is the NULL pointer, use the
 
 <div class="targetlang"><pre>
 if (defined($ptr)) {
-	print "Not a NULL pointer.";
+  print "Not a NULL pointer.";
 } else {
-	print "Is a NULL pointer.";
+  print "Is a NULL pointer.";
 }
 
 </pre></div>
@@ -917,9 +917,9 @@ dereference them as follows:
 
 <div class="targetlang"><pre>
 if ($$a == $$b) {
-	print "a and b point to the same thing in C";
+  print "a and b point to the same thing in C";
 } else {
-	print "a and b point to different objects.";
+  print "a and b point to different objects.";
 }
 
 </pre></div>
@@ -978,7 +978,7 @@ accessor functions as described in the "SWIG Basics" chapter.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 </pre></div>
 
@@ -1259,17 +1259,17 @@ The following C++ operators are currently supported by the Perl module:
     </p>
 
     <ul>
-<li>operator++	 </li>
-<li>operator--	 </li>
-<li>operator+	 </li>
-<li>operator-	 </li>
-<li>operator*	 </li>
-<li>operator/	 </li>
-<li>operator==	 </li>
-<li>operator!=	 </li>
-<li>operator%	 </li>
-<li>operator&gt;	 </li>
-<li>operator&lt;	 </li>
+<li>operator++</li>
+<li>operator--</li>
+<li>operator+</li>
+<li>operator-</li>
+<li>operator*</li>
+<li>operator/</li>
+<li>operator==</li>
+<li>operator!=</li>
+<li>operator%</li>
+<li>operator&gt;</li>
+<li>operator&lt;</li>
 <li>operator and </li>
 <li>operator or  </li>
     </ul>
@@ -1783,8 +1783,8 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-	$1 = (int) SvIV($input);
-	printf("Received an integer : %d\n", $1);
+  $1 = (int) SvIV($input);
+  printf("Received an integer : %d\n", $1);
 }
 ...
 %inline %{
@@ -1829,8 +1829,8 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="targetlang">
 <pre>
 %typemap(in) int n {
-	$1 = (int) SvIV($input);
-	printf("n = %d\n",$1);
+  $1 = (int) SvIV($input);
+  printf("n = %d\n",$1);
 }
 %inline %{
 typedef int Integer;
@@ -2143,47 +2143,47 @@ reference to be used as a char ** datatype.
 
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
-	AV *tempav;
-	I32 len;
-	int i;
-	SV  **tv;
-	if (!SvROK($input))
-	    croak("Argument $argnum is not a reference.");
-        if (SvTYPE(SvRV($input)) != SVt_PVAV)
-	    croak("Argument $argnum is not an array.");
-        tempav = (AV*)SvRV($input);
-	len = av_len(tempav);
-	$1 = (char **) malloc((len+2)*sizeof(char *));
-	for (i = 0; i &lt;= len; i++) {
-	    tv = av_fetch(tempav, i, 0);	
-	    $1[i] = (char *) SvPV(*tv,PL_na);
-        }
-	$1[i] = NULL;
+  AV *tempav;
+  I32 len;
+  int i;
+  SV  **tv;
+  if (!SvROK($input))
+    croak("Argument $argnum is not a reference.");
+  if (SvTYPE(SvRV($input)) != SVt_PVAV)
+    croak("Argument $argnum is not an array.");
+  tempav = (AV*)SvRV($input);
+  len = av_len(tempav);
+  $1 = (char **) malloc((len+2)*sizeof(char *));
+  for (i = 0; i &lt;= len; i++) {
+    tv = av_fetch(tempav, i, 0);
+    $1[i] = (char *) SvPV(*tv,PL_na);
+  }
+  $1[i] = NULL;
 };
 
 // This cleans up the char ** array after the function call
 %typemap(freearg) char ** {
-	free($1);
+  free($1);
 }
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {
-	AV *myav;
-	SV **svs;
-	int i = 0,len = 0;
-	/* Figure out how many elements we have */
-	while ($1[len])
-	   len++;
-	svs = (SV **) malloc(len*sizeof(SV *));
-	for (i = 0; i &lt; len ; i++) {
-	    svs[i] = sv_newmortal();
-	    sv_setpv((SV*)svs[i],$1[i]);
-	};
-	myav =	av_make(len,svs);
-	free(svs);
-        $result = newRV_noinc((SV*)myav);
-        sv_2mortal($result);
-        argvi++;
+  AV *myav;
+  SV **svs;
+  int i = 0,len = 0;
+  /* Figure out how many elements we have */
+  while ($1[len])
+     len++;
+  svs = (SV **) malloc(len*sizeof(SV *));
+  for (i = 0; i &lt; len ; i++) {
+      svs[i] = sv_newmortal();
+      sv_setpv((SV*)svs[i],$1[i]);
+  };
+  myav = av_make(len,svs);
+  free(svs);
+  $result = newRV_noinc((SV*)myav);
+  sv_2mortal($result);
+  argvi++;
 }
 
 // Now a few test functions
@@ -2240,12 +2240,12 @@ can be done using the <tt>EXTEND()</tt> macro as in:
 
 <div class="code"><pre>
 %typemap(argout) int *OUTPUT {
-	if (argvi &gt;= items) {            
-		EXTEND(sp,1);              /* Extend the stack by 1 object */
-	}
-	$result = sv_newmortal();
-	sv_setiv($target,(IV) *($1));
-	argvi++;
+  if (argvi &gt;= items) {
+    EXTEND(sp,1);              /* Extend the stack by 1 object */
+  }
+  $result = sv_newmortal();
+  sv_setiv($target,(IV) *($1));
+  argvi++;
 }
 </pre></div>
 
@@ -2264,24 +2264,24 @@ its arguments.  This example describes the implementation of the <tt>OUTPUT</tt>
 // an output value.  
 
 %typemap(argout) double *OUTPUT {
-	$result = sv_newmortal();
-	sv_setnv($result, *$input);
-	argvi++;                     /* Increment return count -- important! */
+  $result = sv_newmortal();
+  sv_setnv($result, *$input);
+  argvi++;                     /* Increment return count -- important! */
 }
 
 // We don't care what the input value is. Ignore, but set to a temporary variable
 
 %typemap(in,numinputs=0) double *OUTPUT(double junk) {
-	$1 = &amp;junk;
+  $1 = &amp;junk;
 }
 
 // Now a function to test it
 %{
 /* Returns the first two input arguments */
 int multout(double a, double b, double *out1, double *out2) {
-	*out1 = a;
-	*out2 = b;
-	return 0;
+  *out1 = a;
+  *out2 = b;
+  return 0;
 };
 %}
 
@@ -2377,7 +2377,7 @@ have a C function that modifies its arguments like this:
 
 <div class="code"><pre>
 void add(double a, double b, double *c) {
-	*c = a + b;
+  *c = a + b;
 }
 </pre></div>
 
@@ -2558,9 +2558,9 @@ Suppose you have the following SWIG interface file:
 <div class="code"><pre>
 %module example
 struct Vector {
-	Vector(double x, double y, double z);
-	~Vector();
-	double x,y,z;
+  Vector(double x, double y, double z);
+  ~Vector();
+  double x,y,z;
 };
 
 </pre></div>
@@ -2610,8 +2610,9 @@ sub DESTROY {
     my $self = tied(%{$_[0]});
     delete $ITERATORS{$self};
     if (exists $OWNER{$self}) {
-	 examplec::delete_Vector($self));
-	 delete $OWNER{$self};
+        examplec::delete_Vector($self));
+        delete $OWNER{$self};
+    }
 }
 
 sub FETCH {
@@ -2663,8 +2664,8 @@ $v-&gt;{x} = 7.5;
 
 # Assignment of all members
 %$v = ( x=&gt;3,
-	 y=&gt;9,
-	 z=&gt;-2);
+        y=&gt;9,
+        z=&gt;-2);
 
 # Reading members
 $x = $v-&gt;{x};
@@ -2685,7 +2686,7 @@ problem---suppose you had a function like this:
 
 <div class="code"><pre>
 Vector *Vector_get(Vector *v, int index) {
-	return &amp;v[i];
+  return &amp;v[i];
 }
 </pre></div>
 
@@ -2698,9 +2699,9 @@ Vector object:
 
 <div class="code"><pre>
 Vector *new_Vector(double x, double y, double z) {
-	Vector *v;
-	v = new Vector(x,y,z);        // Call C++ constructor
-	return v;
+  Vector *v;
+  v = new Vector(x,y,z);        // Call C++ constructor
+  return v;
 }
 </pre></div>
 
@@ -2770,10 +2771,10 @@ Suppose that we have a new object that looks like this:
 
 <div class="code"><pre>
 struct Particle {
-	Vector r;
-	Vector v;
-	Vector f;
-	int	type;
+  Vector r;
+  Vector v;
+  Vector f;
+  int type;
 }
 
 </pre></div>
@@ -2789,9 +2790,9 @@ look like this (along with some supporting code):
 package Particle;
 ...
 %BLESSEDMEMBERS = (
-	r =&gt; `Vector',
-	v =&gt; `Vector',
-	f =&gt; `Vector',
+        r =&gt; `Vector',
+        v =&gt; `Vector',
+        f =&gt; `Vector',
 );
 
 </pre></div>
@@ -2867,23 +2868,23 @@ interface file:
 
 class Shape {
 public:
-	virtual double area() = 0;
-	virtual double perimeter() = 0;
-	void    set_location(double x, double y);
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
+  void    set_location(double x, double y);
 };
 class Circle : public Shape {
 public:
-	Circle(double radius);
-	~Circle();
-	double area();
-	double perimeter();
+  Circle(double radius);
+  ~Circle();
+  double area();
+  double perimeter();
 };
 class Square : public Shape {
 public:
-	Square(double size);
-	~Square();
-	double area();
-	double perimeter();
+  Square(double size);
+  ~Square();
+  double area();
+  double perimeter();
 }
 
 </pre></div>

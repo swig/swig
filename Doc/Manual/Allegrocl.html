@@ -373,21 +373,21 @@ swig -allegrocl [ options ] filename
 
    -identifier-converter [name] - Binds the variable swig:*swig-identifier-convert* 
                                   in the generated .cl file to <tt>name</tt>.
-				  This function is used to generate symbols
-				  for the lisp side of the interface. 
+                                  This function is used to generate symbols
+                                  for the lisp side of the interface.
 
    -cwrap - [default] Generate a .cxx file containing C wrapper function when
             wrapping C code. The interface generated is similar to what is
-	    done for C++ code.
+            done for C++ code.
    -nocwrap - Explicitly turn off generation of .cxx wrappers for C code. Reasonable
               for modules with simple interfaces. Can not handle all legal enum
-	      and constant constructs, or take advantage of SWIG customization features.
+              and constant constructs, or take advantage of SWIG customization features.
 
    -isolate - With this command-line argument, all lisp helper functions are defined
               in a unique package named <tt>swig.&lt;module-name&gt;</tt> rather than
-	      <tt>swig</tt>. This prevents conflicts when the module is
-	      intended to be used with other swig generated interfaces that may, 
-	      for instance, make use of different identifier converters.
+              <tt>swig</tt>. This prevents conflicts when the module is
+              intended to be used with other swig generated interfaces that may,
+              for instance, make use of different identifier converters.
 </pre>
 </div>
 
@@ -472,7 +472,7 @@ interested in generating an interface to C++.
        | Foreign Code |  What we're generating an interface to.
        |______________|
                |
-	       |
+               |
         _______v______
        |              |  (foreign side)
        | Wrapper code |  extern "C" wrappers calling C++ 
@@ -484,18 +484,18 @@ interested in generating an interface to C++.
        |  FFI Layer   |  Low level lisp interface. ff:def-foreign-call,
        |______________|  ff:def-foreign-variable
                |
-	       +----------------------------
+               +----------------------------
         _______v______              _______v______
        |              |            |              | (lisp side)    
        |    Defuns    |            |  Defmethods  | wrapper for overloaded
        |______________|            |______________| functions or those with
         (lisp side)                        |        defaulted arguments
-	Wrapper for non-overloaded         |
-	functions and methods       _______v______
-	                           |              | (lisp side)
-				   |    Defuns    | dispatch function
-				   |______________| to overloads based
-				                    on arity
+        Wrapper for non-overloaded         |
+        functions and methods       _______v______
+                                   |              | (lisp side)
+                                   |    Defuns    | dispatch function
+                                   |______________| to overloads based
+                                                    on arity
   </pre>
   </div>
 
@@ -799,8 +799,8 @@ namespace car {
       </pre>
       </div>
       <p>
-	Users are cautioned to get to know their constants before use, or
-	not use the <tt>-nocwrap</tt> command-line option.
+      Users are cautioned to get to know their constants before use, or
+      not use the <tt>-nocwrap</tt> command-line option.
       </p>
 
 <H3><a name="Allegrocl_nn17">18.3.3 Variables</a></H3>
@@ -907,7 +907,7 @@ globalvar&gt; (globalvar.nnn::glob_float)
     <p>For example, the following header file
       <div class="code">enum.h:
       <pre>
-enum COL { RED, GREEN, BLUE };	
+enum COL { RED, GREEN, BLUE };
 enum FOO { FOO1 = 10, FOO2, FOO3 };
       </pre>
       </div>
@@ -1177,25 +1177,25 @@ namespace BAR {
 <H4><a name="Allegrocl_nn26">18.3.7.1 Generating wrapper code for templates</a></H4>
 
 
-	<p>
-	SWIG provides support for dealing with templates, but by
-	default, it will not generate any member variable or function
-	wrappers for templated classes. In order to create these
-	wrappers, you need to explicitly tell SWIG to instantiate
-	them. This is done via the 
-	<a href="SWIGPlus.html#SWIGPlus_nn30"><tt>%template</tt></a>
-	directive.
-	</p>
+<p>
+SWIG provides support for dealing with templates, but by
+default, it will not generate any member variable or function
+wrappers for templated classes. In order to create these
+wrappers, you need to explicitly tell SWIG to instantiate
+them. This is done via the
+<a href="SWIGPlus.html#SWIGPlus_nn30"><tt>%template</tt></a>
+directive.
+</p>
 
 <H4><a name="Allegrocl_nn27">18.3.7.2 Implicit Template instantiation</a></H4>
 
 
-	<p>
-	While no wrapper code is generated for accessing member
-	variables, or calling member functions, type code is generated
-	to include these templated classes in the foreign-type and CLOS
-	class schema.
-	</p>
+<p>
+While no wrapper code is generated for accessing member
+variables, or calling member functions, type code is generated
+to include these templated classes in the foreign-type and CLOS
+class schema.
+</p>
 
 <H3><a name="Allegrocl_nn28">18.3.8 Typedef, Templates, and Synonym Types</a></H3>
 
@@ -1243,7 +1243,7 @@ int zzz(A *inst = 0);  /* return inst-&gt;x + inst-&gt;y */
       definition, we generate a form that expands to:
     </p>
       <div class="targetlang">
-	<tt>(setf (find-class &lt;synonym&gt;) &lt;primary&gt;)</tt>
+        <tt>(setf (find-class &lt;synonym&gt;) &lt;primary&gt;)</tt>
       </div>
     <p>
       The result is that all references to synonym types in foreign
@@ -1285,17 +1285,17 @@ synonym&gt;
       criteria from a set of synonym types.
     </p>
       <ul>
-	<li>
-	  If a synonym type has a class definition, it is the primary type.
-	</li>
-	<li>
-	  If a synonym type is a class template and has been explicitly
-	  instantiated via <tt>%template</tt>, it is the primary type.
-	</li>
-	<li>
-	  For all other sets of synonymous types, the synonym which is
-	  parsed first becomes the primary type.
-	</li>
+        <li>
+        If a synonym type has a class definition, it is the primary type.
+        </li>
+        <li>
+        If a synonym type is a class template and has been explicitly
+        instantiated via <tt>%template</tt>, it is the primary type.
+        </li>
+        <li>
+        For all other sets of synonymous types, the synonym which is
+        parsed first becomes the primary type.
+        </li>
       </ul>
 
 <H3><a name="Allegrocl_nn30">18.3.9 Function overloading/Parameter defaulting</a></H3>
@@ -1472,68 +1472,68 @@ overload&gt;
     <pre>
 /* name conversion for overloaded operators. */
 #ifdef __cplusplus
-%rename(__add__)	     *::operator+;
-%rename(__pos__)	     *::operator+();
-%rename(__pos__)	     *::operator+() const;
+%rename(__add__)             *::operator+;
+%rename(__pos__)             *::operator+();
+%rename(__pos__)             *::operator+() const;
 
-%rename(__sub__)	     *::operator-;
-%rename(__neg__)	     *::operator-() const;
-%rename(__neg__)	     *::operator-();
+%rename(__sub__)             *::operator-;
+%rename(__neg__)             *::operator-() const;
+%rename(__neg__)             *::operator-();
 
-%rename(__mul__)	     *::operator*;
-%rename(__deref__)	     *::operator*();
-%rename(__deref__)	     *::operator*() const;
+%rename(__mul__)             *::operator*;
+%rename(__deref__)           *::operator*();
+%rename(__deref__)           *::operator*() const;
 
-%rename(__div__)	     *::operator/;
-%rename(__mod__)	     *::operator%;
-%rename(__logxor__)	     *::operator^;
-%rename(__logand__)	     *::operator&amp;;
-%rename(__logior__)	     *::operator|;
-%rename(__lognot__)	     *::operator~();
-%rename(__lognot__)	     *::operator~() const;
+%rename(__div__)             *::operator/;
+%rename(__mod__)             *::operator%;
+%rename(__logxor__)          *::operator^;
+%rename(__logand__)          *::operator&amp;;
+%rename(__logior__)          *::operator|;
+%rename(__lognot__)          *::operator~();
+%rename(__lognot__)          *::operator~() const;
 
-%rename(__not__)	     *::operator!();
-%rename(__not__)	     *::operator!() const;
+%rename(__not__)             *::operator!();
+%rename(__not__)             *::operator!() const;
 
-%rename(__assign__)	     *::operator=;
+%rename(__assign__)          *::operator=;
 
 %rename(__add_assign__)      *::operator+=;
-%rename(__sub_assign__)	     *::operator-=;
-%rename(__mul_assign__)	     *::operator*=;
-%rename(__div_assign__)	     *::operator/=;
-%rename(__mod_assign__)	     *::operator%=;
+%rename(__sub_assign__)      *::operator-=;
+%rename(__mul_assign__)      *::operator*=;
+%rename(__div_assign__)      *::operator/=;
+%rename(__mod_assign__)      *::operator%=;
 %rename(__logxor_assign__)   *::operator^=;
 %rename(__logand_assign__)   *::operator&amp;=;
 %rename(__logior_assign__)   *::operator|=;
 
-%rename(__lshift__)	     *::operator&lt;&lt;;
+%rename(__lshift__)          *::operator&lt;&lt;;
 %rename(__lshift_assign__)   *::operator&lt;&lt;=;
-%rename(__rshift__)	     *::operator&gt;&gt;;
+%rename(__rshift__)          *::operator&gt;&gt;;
 %rename(__rshift_assign__)   *::operator&gt;&gt;=;
 
-%rename(__eq__)		     *::operator==;
-%rename(__ne__)		     *::operator!=;
-%rename(__lt__)		     *::operator&lt;;
-%rename(__gt__)		     *::operator&gt;;
-%rename(__lte__)	     *::operator&lt;=;
-%rename(__gte__)	     *::operator&gt;=;
+%rename(__eq__)              *::operator==;
+%rename(__ne__)              *::operator!=;
+%rename(__lt__)              *::operator&lt;;
+%rename(__gt__)              *::operator&gt;;
+%rename(__lte__)             *::operator&lt;=;
+%rename(__gte__)             *::operator&gt;=;
 
-%rename(__and__)	     *::operator&amp;&amp;;
-%rename(__or__)		     *::operator||;
+%rename(__and__)             *::operator&amp;&amp;;
+%rename(__or__)              *::operator||;
 
-%rename(__preincr__)	     *::operator++();
-%rename(__postincr__)	     *::operator++(int);
-%rename(__predecr__)	     *::operator--();
-%rename(__postdecr__)	     *::operator--(int);
+%rename(__preincr__)         *::operator++();
+%rename(__postincr__)        *::operator++(int);
+%rename(__predecr__)         *::operator--();
+%rename(__postdecr__)        *::operator--(int);
 
-%rename(__comma__)	     *::operator,();
-%rename(__comma__)	     *::operator,() const;
+%rename(__comma__)           *::operator,();
+%rename(__comma__)           *::operator,() const;
 
 %rename(__member_ref__)      *::operator-&gt;;
 %rename(__member_func_ref__) *::operator-&gt;*;
 
-%rename(__funcall__)	     *::operator();
-%rename(__aref__)	     *::operator[];
+%rename(__funcall__)         *::operator();
+%rename(__aref__)            *::operator[];
     </pre>
     </div>
 
@@ -1821,28 +1821,28 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     <p>The LIN typemap accepts the following <tt>$variable</tt> references.
     </p>
       <ul>
-	<li><tt>$in</tt> - expands to the name of the parameter being
-	  applied to this typemap
-	</li>
-	<li><tt>$out</tt> - expands to the name of the local variable
-	  assigned to this typemap
-	</li>
-	<li><tt>$in_fftype</tt> - the foreign function type of the C type.</li>
-	<li><tt>$*in_fftype</tt> - the foreign function type of the C type
-	  with one pointer removed. If there is no pointer, then $*in_fftype
-	  is the same as $in_fftype.
-	</li>
-	<li><tt>$body</tt> - very important. Instructs SWIG where
-	  subsequent code generation steps should be inserted into the
-	  current typemap.  Leaving out a <tt>$body</tt> reference
-	  will result in lisp wrappers that do very little by way of
-	  calling into foreign code. Not recommended.
-	</li>
+        <li><tt>$in</tt> - expands to the name of the parameter being
+        applied to this typemap
+        </li>
+        <li><tt>$out</tt> - expands to the name of the local variable
+        assigned to this typemap
+        </li>
+        <li><tt>$in_fftype</tt> - the foreign function type of the C type.</li>
+        <li><tt>$*in_fftype</tt> - the foreign function type of the C type
+        with one pointer removed. If there is no pointer, then $*in_fftype
+        is the same as $in_fftype.
+        </li>
+        <li><tt>$body</tt> - very important. Instructs SWIG where
+        subsequent code generation steps should be inserted into the
+        current typemap.  Leaving out a <tt>$body</tt> reference
+        will result in lisp wrappers that do very little by way of
+        calling into foreign code. Not recommended.
+        </li>
       </ul>
       
     <div class="code">
     <pre>
-%typemap(lin)	SWIGTYPE 	"(cl:let (($out $in))\n  $body)";
+%typemap(lin) SWIGTYPE "(cl:let (($out $in))\n  $body)";
     </pre>
     </div>
 
@@ -1858,17 +1858,17 @@ return-val wrapper-name(parm0, parm1, ..., parmN)
     <p>The LOUT typemap uses the following $variable
     </p>
       <ul>
-	<li><tt>$lclass</tt> - Expands to the CLOS class that
-	  represents foreign-objects of the return type matching this
-	  typemap.
-	</li>
-	<li><tt>$body</tt> - Same as for the LIN map. Place this
-	  variable where you want the foreign-function call to occur.
-	</li>
-	<li><tt>$ldestructor</tt> - Expands to the symbol naming the destructor for this
-	  class ($lclass) of object. Allows you to insert finalization or automatic garbage
-	  collection into the wrapper code (see default mappings below).
-	</li>
+        <li><tt>$lclass</tt> - Expands to the CLOS class that
+        represents foreign-objects of the return type matching this
+        typemap.
+        </li>
+        <li><tt>$body</tt> - Same as for the LIN map. Place this
+        variable where you want the foreign-function call to occur.
+        </li>
+        <li><tt>$ldestructor</tt> - Expands to the symbol naming the destructor for this
+        class ($lclass) of object. Allows you to insert finalization or automatic garbage
+        collection into the wrapper code (see default mappings below).
+        </li>
       </ul>
 
     <div class="code">

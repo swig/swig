@@ -4190,10 +4190,10 @@ this:
 <pre>function_name(int x, int y, Foo foo=nil, Bar bar=nil) -&gt; bool
 
 Parameters:
-	x - int
-	y - int
-	foo - Foo
-	bar - Bar</pre>
+        x - int
+        y - int
+        foo - Foo
+        bar - Bar</pre>
 </div>
 
 <H4><a name="Ruby_nn70">38.8.2.5 %feature("autodoc", "docstring")</a></H4>
@@ -5251,8 +5251,7 @@ existing Ruby object to the destroyed C++ object and raise an exception.
 #include "example.h"
 %}
 
-/* Specify that ownership is transferred to the zoo
-	when calling add_animal */
+/* Specify that ownership is transferred to the zoo when calling add_animal */
 %apply SWIGTYPE *DISOWN { Animal* animal };
 
 /* Track objects */

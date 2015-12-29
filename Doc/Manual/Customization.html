@@ -116,16 +116,18 @@ static char error_message[256];
 static int error_status = 0;
 
 void throw_exception(char *msg) {
-	strncpy(error_message,msg,256);
-	error_status = 1;
+  strncpy(error_message,msg,256);
+  error_status = 1;
 }
 
 void clear_exception() {
-	error_status = 0;
+  error_status = 0;
 }
 char *check_exception() {
-	if (error_status) return error_message;
-	else return NULL;
+  if (error_status)
+    return error_message;
+  else
+    return NULL;
 }
 
 </pre></div>
@@ -137,13 +139,13 @@ To use these functions, functions simply call
 
 <div class="code"><pre>
 double inv(double x) {
-	if (x != 0) return 1.0/x;
-	else {
-		throw_exception("Division by zero");
-		return 0;
-	}
+  if (x != 0)
+    return 1.0/x;
+  else {
+    throw_exception("Division by zero");
+    return 0;
+  }
 }
-
 </pre></div>
 
 <p>
@@ -152,12 +154,12 @@ as the following (shown for Perl5) :</p>
 
 <div class="code"><pre>
 %exception {
-    char *err;
-    clear_exception();
-    $action
-    if ((err = check_exception())) {
-       croak(err);
-    }
+  char *err;
+  clear_exception();
+  $action
+  if ((err = check_exception())) {
+    croak(err);
+  }
 }
 </pre></div>
 
@@ -207,8 +209,10 @@ Now, within a C program, you can do the following :</p>
 
 <div class="code"><pre>
 double inv(double x) {
-	if (x) return 1.0/x;
-	else throw(DivisionByZero);
+  if (x)
+    return 1.0/x;
+  else
+    throw(DivisionByZero);
 }
 
 </pre></div>
@@ -222,17 +226,17 @@ Finally, to create a SWIG exception handler, write the following :</p>
 %}
 
 %exception {
-	try {
-		$action
-	} catch(RangeError) {
-		croak("Range Error");
-	} catch(DivisionByZero) {
-		croak("Division by zero");
-	} catch(OutOfMemory) {
-		croak("Out of memory");
-	} finally {
-		croak("Unknown exception");
-	}
+  try {
+    $action
+  } catch(RangeError) {
+    croak("Range Error");
+  } catch(DivisionByZero) {
+    croak("Division by zero");
+  } catch(OutOfMemory) {
+    croak("Out of memory");
+  } finally {
+    croak("Unknown exception");
+  }
 }
 </pre></div>
 
@@ -250,17 +254,17 @@ Handling C++ exceptions is also straightforward.  For example:
 
 <div class="code"><pre>
 %exception {
-	try {
-		$action
-	} catch(RangeError) {
-		croak("Range Error");
-	} catch(DivisionByZero) {
-		croak("Division by zero");
-	} catch(OutOfMemory) {
-		croak("Out of memory");
-	} catch(...) {
-		croak("Unknown exception");
-	}
+  try {
+    $action
+  } catch(RangeError) {
+    croak("Range Error");
+  } catch(DivisionByZero) {
+    croak("Division by zero");
+  } catch(OutOfMemory) {
+    croak("Out of memory");
+  } catch(...) {
+    croak("Unknown exception");
+  }
 }
 
 </pre></div>
@@ -320,7 +324,7 @@ critical pieces of code.  For example:
 
 <div class="code"><pre>
 %exception {
-	... your exception handler ...
+  ... your exception handler ...
 }
 /* Define critical operations that can throw exceptions here */
 

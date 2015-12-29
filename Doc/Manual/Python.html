@@ -466,9 +466,9 @@ $ swig -python example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
         -DHAVE_CONFIG_H -I/usr/local/include/python2.1 \
-	-I/usr/local/lib/python2.1/config \
-	-L/usr/local/lib/python2.1/config -lpython2.1 -lm -ldl \
-	-o mypython
+        -I/usr/local/lib/python2.1/config \
+        -L/usr/local/lib/python2.1/config -lpython2.1 -lm -ldl \
+        -o mypython
 
 </pre></div>
 <p>
@@ -1286,7 +1286,7 @@ a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 
 </pre></div>
@@ -4310,8 +4310,8 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-	$1 = (int) PyLong_AsLong($input);
-	printf("Received an integer : %d\n",$1);
+  $1 = (int) PyLong_AsLong($input);
+  printf("Received an integer : %d\n",$1);
 }
 %inline %{
 extern int fact(int n);
@@ -4348,11 +4348,11 @@ You can refine this by supplying an optional parameter name.  For example:
 %module example
 
 %typemap(in) int nonnegative {
-	$1 = (int) PyLong_AsLong($input);
-        if ($1 &lt; 0) {
-           PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
-           return NULL;
-        }
+  $1 = (int) PyLong_AsLong($input);
+  if ($1 &lt; 0) {
+    PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
+    return NULL;
+  }
 }
 %inline %{
 extern int fact(int nonnegative);
@@ -4374,8 +4374,8 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="code">
 <pre>
 %typemap(in) int n {
-	$1 = (int) PyLong_AsLong($input);
-	printf("n = %d\n",$1);
+  $1 = (int) PyLong_AsLong($input);
+  printf("n = %d\n",$1);
 }
 %inline %{
 typedef int Integer;
@@ -4685,11 +4685,11 @@ object to be used as a <tt>char **</tt> object.
     for (i = 0; i &lt; size; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$1[i] = PyString_AsString(PyList_GetItem($input,i));
+        $1[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($1);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($1);
+        return NULL;
       }
     }
     $1[i] = 0;
@@ -4784,11 +4784,11 @@ previous example:
     for (i = 0; i &lt; $1; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$2[i] = PyString_AsString(PyList_GetItem($input,i));
+        $2[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($2);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($2);
+        return NULL;
       }
     }
     $2[i] = 0;
@@ -4832,10 +4832,10 @@ arguments rather than in the return value of a function.  For example:
 <div class="code"><pre>
 /* Returns a status value and two values in out1 and out2 */
 int spam(double a, double b, double *out1, double *out2) {
-	... Do a bunch of stuff ...
-	*out1 = result1;
-	*out2 = result2;
-	return status;
+  ... Do a bunch of stuff ...
+  *out1 = result1;
+  *out2 = result2;
+  return status;
 }
 </pre></div>
 

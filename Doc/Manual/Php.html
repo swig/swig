@@ -136,8 +136,8 @@ least work for Linux though):
 </p>
 
 <div class="code"><pre>
-	gcc `php-config --includes` -fpic -c example_wrap.c example.c
-	gcc -shared example_wrap.o example.o -o example.so
+        gcc `php-config --includes` -fpic -c example_wrap.c example.c
+        gcc -shared example_wrap.o example.o -o example.so
 </pre></div>
 
 <H3><a name="Php_nn1_3">34.1.2 Using PHP Extensions</a></H3>
@@ -150,7 +150,7 @@ load it.  To do this, add a line like this to the <tt>[PHP]</tt> section of
 </p>
 
 <div class="code"><pre>
-	extension=/path/to/modulename.so
+        extension=/path/to/modulename.so
 </pre></div>
 
 <p>
@@ -165,7 +165,7 @@ PHP script which uses your extension:
 </p>
 
 <div class="code"><pre>
-	dl("/path/to/modulename.so");	// Load the module
+        dl("/path/to/modulename.so"); // Load the module
 </pre></div>
 
 <p>
@@ -180,7 +180,7 @@ call for you if the extension isn't already loaded:
 </p>
 
 <div class="code"><pre>
-	include("example.php");
+        include("example.php");
 </pre></div>
 
 <p>
@@ -249,7 +249,7 @@ For example,
 <div class="code"><pre>
 %module example
 
-#define EASY_TO_MISPELL	0
+#define EASY_TO_MISPELL 0
 </pre>
 </div>
 
@@ -262,9 +262,9 @@ accessed incorrectly in PHP,
 include("example.php");
 
 if(EASY_TO_MISPEL) {
-	....
+  ...
 } else {
-	....
+  ...
 }
 
 </pre>
@@ -303,7 +303,7 @@ is accessed as follows:
 <div class="code"><pre>
 include("example.php");
 print seki_get();
-seki_set( seki_get() * 2);	# The C variable is now 4.
+seki_set( seki_get() * 2); # The C variable is now 4.
 print seki_get();
 </pre></div>
 
@@ -348,7 +348,7 @@ Will be accessed in PHP like this :
 include("example.php");
 $a = foo(2);
 $b = bar(3.5, -1.5);
-$c = bar(3.5);		# Use default argument for 2nd parameter
+$c = bar(3.5);  # Use default argument for 2nd parameter
 
 </pre></div>
 
@@ -599,10 +599,10 @@ This interface file
 
 class Vector {
 public:
-	double x,y,z;
-	Vector();
-	~Vector();
-	double magnitude();
+  double x,y,z;
+  Vector();
+  ~Vector();
+  double magnitude();
 };
 
 struct Complex {
@@ -722,7 +722,7 @@ returns the current value of the class variable. For example
 %module example
 
 class Ko {
-	static int threats;
+  static int threats;
 };
 
 </pre></div>

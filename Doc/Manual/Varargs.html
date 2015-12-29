@@ -636,7 +636,7 @@ example. For example:
       PyObject *o = PyTuple_GetItem(varargs,i);
       if (!PyString_Check(o)) {
           PyErr_SetString(PyExc_ValueError,"Expected a string");
-	  free(argv);
+          free(argv);
           return NULL;
       }
       argv[i] = PyString_AsString(o);

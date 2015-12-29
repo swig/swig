@@ -102,8 +102,10 @@ Suppose you have an ordinary C function like this :</p>
 
 <div class="code"><pre>
 int fact(int n) {
-	if (n &lt;= 1) return 1;
-	else return n*fact(n-1);
+  if (n &lt;= 1)
+    return 1;
+  else
+    return n*fact(n-1);
 }
 </pre></div>
 
@@ -124,18 +126,17 @@ As an example, the Tcl wrapper function for the <tt>fact()</tt>
 function above example might look like the following : </p>
 
 <div class="code"><pre>
-int wrap_fact(ClientData clientData, Tcl_Interp *interp,
-		int argc, char *argv[]) {
-	int result;
-	int arg0;
-	if (argc != 2) {
-		interp-&gt;result = "wrong # args";
-		return TCL_ERROR;
-	}
-	arg0 = atoi(argv[1]);
-	result = fact(arg0);
-	sprintf(interp-&gt;result,"%d", result);
-	return TCL_OK;
+int wrap_fact(ClientData clientData, Tcl_Interp *interp, int argc, char *argv[]) {
+  int result;
+  int arg0;
+  if (argc != 2) {
+    interp-&gt;result = "wrong # args";
+    return TCL_ERROR;
+  }
+  arg0 = atoi(argv[1]);
+  result = fact(arg0);
+  sprintf(interp-&gt;result,"%d", result);
+  return TCL_OK;
 }
 
 </pre></div>
@@ -149,9 +150,9 @@ requires code like the following :</p>
 
 <div class="code"><pre>
 int Wrap_Init(Tcl_Interp *interp) {
-	Tcl_CreateCommand(interp, "fact", wrap_fact, (ClientData) NULL,
-				(Tcl_CmdDeleteProc *) NULL);
-	return TCL_OK;
+  Tcl_CreateCommand(interp, "fact", wrap_fact, (ClientData) NULL,
+                    (Tcl_CmdDeleteProc *) NULL);
+  return TCL_OK;
 }
 </pre></div>
 
@@ -244,9 +245,9 @@ representation of a structure.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	Vector();
-	~Vector();
-	double x,y,z;
+  Vector();
+  ~Vector();
+  double x,y,z;
 };
 
 </pre></div>
@@ -299,9 +300,9 @@ have the following C++ definition :</p>
 <div class="code"><pre>
 class Vector {
 public:
-	Vector();
-	~Vector();
-	double x,y,z;
+  Vector();
+  ~Vector();
+  double x,y,z;
 };
 </pre></div>
 

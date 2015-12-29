@@ -202,8 +202,8 @@ int main(int argc,char* argv[])
   return 0;
  }
  L=lua_open();
- luaopen_base(L);	// load basic libs (eg. print)
- luaopen_example(L);	// load the wrapped module
+ luaopen_base(L);       // load basic libs (eg. print)
+ luaopen_example(L);    // load the wrapped module
  if (luaL_loadfile(L,argv[1])==0) // load and run the file
   lua_pcall(L,0,0,0);
  else
@@ -1536,8 +1536,8 @@ function
 <div class="code"><pre>%module example
 
 %typemap(in) int {
-	$1 = (int) lua_tonumber(L,$input);
-	printf("Received an integer : %d\n",$1);
+  $1 = (int) lua_tonumber(L,$input);
+  printf("Received an integer : %d\n",$1);
 }
 %inline %{
 extern int fact(int n);

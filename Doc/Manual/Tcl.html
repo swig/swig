@@ -208,8 +208,8 @@ $ swig -tcl example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
         -DHAVE_CONFIG_H -I/usr/local/include/ \
-	-L/usr/local/lib -ltcl -lm -ldl \
-	-o mytclsh
+        -L/usr/local/lib -ltcl -lm -ldl \
+        -o mytclsh
 
 </pre></div>
 
@@ -626,11 +626,11 @@ CFLAGS    = /Z7 /Od /c /nologo
 TCL_INCLUDES  = -Id:\tcl8.0a2\generic -Id:\tcl8.0a2\win
 TCLLIB        = d:\tcl8.0a2\win\tcl80.lib
 
-tcl::
-	..\..\swig -tcl -o $(WRAPFILE) $(INTERFACE)
-	$(CC) $(CFLAGS) $(TCL_INCLUDES) $(SRCS) $(WRAPFILE)
-	set LIB=$(TOOLS)\lib
-	$(LINK) $(LOPT) -out:example.dll $(LIBS) $(TCLLIB) example.obj example_wrap.obj
+tcl:
+        ..\..\swig -tcl -o $(WRAPFILE) $(INTERFACE)
+        $(CC) $(CFLAGS) $(TCL_INCLUDES) $(SRCS) $(WRAPFILE)
+        set LIB=$(TOOLS)\lib
+        $(LINK) $(LOPT) -out:example.dll $(LIBS) $(TCLLIB) example.obj example_wrap.obj
 
 </pre></div>
 
@@ -981,7 +981,7 @@ This provides a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 
 </pre></div>
@@ -2466,8 +2466,9 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("Received an integer : %d\n",$1);
+    if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+      return TCL_ERROR;
+    printf("Received an integer : %d\n",$1);
 }
 %inline %{
 extern int fact(int n);
@@ -2504,8 +2505,9 @@ You can refine this by supplying an optional parameter name.  For example:
 %module example
 
 %typemap(in) int n {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("n = %d\n",$1);
+  if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("n = %d\n",$1);
 }
 %inline %{
 extern int fact(int n);
@@ -2527,8 +2529,9 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="code">
 <pre>
 %typemap(in) int n {
-        if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR) return TCL_ERROR;
-	printf("n = %d\n",$1);
+  if (Tcl_GetIntFromObj(interp,$input,&amp;$1) == TCL_ERROR)
+    return TCL_ERROR;
+  printf("n = %d\n",$1);
 }
 %inline %{
 typedef int Integer;
@@ -2976,10 +2979,10 @@ work)
 <div class="code">
 <pre>
 %typemap(in) int, short, long {
-   int temp;
-   if (Tcl_GetIntFromObj(interp, $input, &amp;temp) == TCL_ERROR)
-      return TCL_ERROR;
-   $1 = ($1_ltype) temp;
+  int temp;
+  if (Tcl_GetIntFromObj(interp, $input, &amp;temp) == TCL_ERROR)
+    return TCL_ERROR;
+  $1 = ($1_ltype) temp;
 }
 </pre>
 </div>
@@ -3154,8 +3157,8 @@ subdirectory which has the same name as the package. For example :
 
 <div class="code"><pre>
 ./example/
-	   pkgIndex.tcl           # The file created by pkg_mkIndex
-	   example.so             # The SWIG generated module
+           pkgIndex.tcl           # The file created by pkg_mkIndex
+           example.so             # The SWIG generated module
 </pre></div>
 
 <p>
@@ -3265,14 +3268,14 @@ Our script allows easy array access as follows :
 <div class="code"><pre>
 set a [Array double 100]                   ;# Create a double [100]
 for {set i 0} {$i &lt; 100} {incr i 1} {      ;# Clear the array
-	$a set $i 0.0
+        $a set $i 0.0
 }
 $a set 3 3.1455                            ;# Set an individual element
 set b [$a get 10]                          ;# Retrieve an element
 
 set ia [Array int 50]                      ;# Create an int[50]
 for {set i 0} {$i &lt; 50} {incr i 1} {       ;# Clear it
-	$ia set $i 0
+        $ia set $i 0
 }
 $ia set 3 7                                ;# Set an individual element
 set ib [$ia get 10]                        ;# Get an individual element

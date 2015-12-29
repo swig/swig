@@ -158,14 +158,16 @@ following C code:
 double  My_variable  = 3.0;
 
 /* Compute factorial of n */
-int  fact(int n) {
-	if (n &lt;= 1) return 1;
-	else return n*fact(n-1);
+int fact(int n) {
+  if (n &lt;= 1)
+    return 1;
+  else
+    return n*fact(n-1);
 }
 
 /* Compute n mod m */
 int my_mod(int n, int m) {
-	return(n % m);
+  return(n % m);
 }
 </pre></div>
 
@@ -222,8 +224,7 @@ unix &gt; <b>tclsh</b>
 7.5
 %
 </pre></div>
-	<p>
-
+<p>
 The <tt>swig</tt> command produced a new file called
 <tt>example_wrap.c</tt> that should be compiled along with the
 <tt>example.c</tt> file.  Most operating systems and scripting
@@ -245,8 +246,8 @@ any changes type the following (shown for Solaris):
 <div class="shell"><pre>
 unix &gt; <b>swig -perl5 example.i</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
-	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
-unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b>		# This is for Solaris
+        -I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
+unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b> # This is for Solaris
 unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
@@ -297,7 +298,7 @@ SWIG on the C header file and specifying a module name as follows
 <div class="shell"><pre>
 unix &gt; <b>swig -perl5 -module example example.h</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
-	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
+        -I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
 unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b>
 unix &gt; <b>perl5.003
 use example;

@@ -55,10 +55,10 @@
     </p>
 
       <ol>
-	<li>generates portable C code</li>
-	<li>includes a customizable interpreter</li>
-	<li>links to C libraries with a simple Foreign Function Interface</li>
-	<li>supports full tail-recursion and first-class continuations</li>
+        <li>generates portable C code</li>
+        <li>includes a customizable interpreter</li>
+        <li>links to C libraries with a simple Foreign Function Interface</li>
+        <li>supports full tail-recursion and first-class continuations</li>
       </ol>
 
     <p>
@@ -98,7 +98,7 @@
       </p>
 
       <div class="shell">
-	<pre>% swig -chicken example.i</pre>
+        <pre>% swig -chicken example.i</pre>
       </div>
 
       <p>
@@ -131,7 +131,7 @@
       </p>
 
       <div class="shell">
-	<pre>% swig -chicken -c++ example.i</pre>
+        <pre>% swig -chicken -c++ example.i</pre>
       </div>
 
       <p>
@@ -142,7 +142,7 @@
       </p>
 
       <div class="shell">
-	<pre>% chicken example.scm -output-file oexample.c</pre>
+        <pre>% chicken example.scm -output-file oexample.c</pre>
       </div>
 
       <p>
@@ -176,10 +176,10 @@
       <p>
       The name of the module must be declared one of two ways:
       <ul>
-	<li>Placing <tt>%module example</tt> in the SWIG interface
-	  file.</li>
-	<li>Using <tt>-module example</tt> on the SWIG command
-	  line.</li>
+        <li>Placing <tt>%module example</tt> in the SWIG interface
+        file.</li>
+        <li>Using <tt>-module example</tt> on the SWIG command
+        line.</li>
       </ul>
 
       <p>
@@ -189,7 +189,7 @@
 
     <p>
       CHICKEN will be able to access the module using the <code>(declare
-	(uses <i>modulename</i>))</code> CHICKEN Scheme form.
+        (uses <i>modulename</i>))</code> CHICKEN Scheme form.
     </p>
 
 <H3><a name="Chicken_nn8">21.2.3 Constants and Variables</a></H3>
@@ -200,10 +200,10 @@
       the interface file:
     </p>
       <ol>
-	<li><code>#define MYCONSTANT1 ...</code></li>
-	<li><code>%constant int MYCONSTANT2 = ...</code></li>
-	<li><code>const int MYCONSTANT3 = ...</code></li>
-	<li><code>enum { MYCONSTANT4  = ... };</code></li>
+        <li><code>#define MYCONSTANT1 ...</code></li>
+        <li><code>%constant int MYCONSTANT2 = ...</code></li>
+        <li><code>const int MYCONSTANT3 = ...</code></li>
+        <li><code>enum { MYCONSTANT4  = ... };</code></li>
       </ol>
 
     <p>
@@ -295,11 +295,11 @@
 
       <p>
       The author of TinyCLOS, Gregor Kiczales, describes TinyCLOS as:
-	"Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
-	metaobject protocol. The implementation is even simpler than
-	the simple CLOS found in `The Art of the Metaobject Protocol,'
-	weighing in at around 850 lines of code, including (some)
-	comments and documentation."
+      "Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
+      metaobject protocol. The implementation is even simpler than
+      the simple CLOS found in `The Art of the Metaobject Protocol,'
+      weighing in at around 850 lines of code, including (some)
+      comments and documentation."
       </p>
 
       <p>

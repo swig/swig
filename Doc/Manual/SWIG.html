@@ -1037,15 +1037,14 @@ expect :</p>
 <div class="targetlang"><pre>
 # Copy a file 
 def filecopy(source,target):
-	f1 = fopen(source,"r")
-	f2 = fopen(target,"w")
-	buffer = malloc(8192)
-	nbytes = fread(buffer,8192,1,f1)
-	while (nbytes &gt; 0):
-		fwrite(buffer,8192,1,f2)
-		nbytes = fread(buffer,8192,1,f1)
-	free(buffer)
-
+  f1 = fopen(source,"r")
+  f2 = fopen(target,"w")
+  buffer = malloc(8192)
+  nbytes = fread(buffer,8192,1,f1)
+  while (nbytes &gt; 0):
+    fwrite(buffer,8192,1,f2)
+          nbytes = fread(buffer,8192,1,f1)
+  free(buffer)
 </pre></div>
 
 <p>
@@ -1315,10 +1314,10 @@ gets mapped to an underlying pair of set/get functions like this :</p>
 
 <div class="code"><pre>
 Vector *unit_i_get() {
-	return &amp;unit_i;
+  return &amp;unit_i;
 }
 void unit_i_set(Vector *value) {
-	unit_i = *value;
+  unit_i = *value;
 }
 </pre></div>
 
@@ -1605,11 +1604,11 @@ directive as shown :</p>
 <div class="code"><pre>
 // File : interface.i
 
-int 	a; 			// Can read/write
+int a;       // Can read/write
 %immutable;
-int	b,c,d			// Read only variables
+int b,c,d;   // Read only variables
 %mutable;
-double	x,y			// read/write
+double x,y;  // read/write
 </pre></div>
 
 <p>
@@ -2129,8 +2128,8 @@ default arguments are optional in the target language. For example, this functio
 used in Tcl as follows :</p>
 
 <div class="targetlang"><pre>
-% plot -3.4 7.5 				# Use default value
-% plot -3.4 7.5 10				# set color to 10 instead
+% plot -3.4 7.5    # Use default value
+% plot -3.4 7.5 10 # set color to 10 instead
 
 </pre></div>
 
@@ -2320,7 +2319,7 @@ to an individual member. For example, the declaration :</p>
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 }
 
 </pre></div>
@@ -2330,22 +2329,22 @@ gets transformed into the following set of accessor functions :</p>
 
 <div class="code"><pre>
 double Vector_x_get(struct Vector *obj) {
-	return obj-&gt;x;
+  return obj-&gt;x;
 }
 double Vector_y_get(struct Vector *obj) { 
-	return obj-&gt;y;
+  return obj-&gt;y;
 }
 double Vector_z_get(struct Vector *obj) { 
-	return obj-&gt;z;
+  return obj-&gt;z;
 }
 void Vector_x_set(struct Vector *obj, double value) {
-	obj-&gt;x = value;
+  obj-&gt;x = value;
 }
 void Vector_y_set(struct Vector *obj, double value) {
-	obj-&gt;y = value;
+  obj-&gt;y = value;
 }
 void Vector_z_set(struct Vector *obj, double value) {
-	obj-&gt;z = value;
+  obj-&gt;z = value;
 }
 </pre></div>
 
@@ -2393,7 +2392,7 @@ programs :</p>
 
 <div class="code"><pre>
 typedef struct {
-	double x,y,z;
+  double x,y,z;
 } Vector;
 
 </pre></div>
@@ -2408,7 +2407,7 @@ that the use of <tt>typedef</tt> allows SWIG to drop the
 <div class="code">
 <pre>
 double Vector_x_get(Vector *obj) {
-	return obj-&gt;x;
+  return obj-&gt;x;
 }
 </pre>
 </div>
@@ -2418,7 +2417,7 @@ If two different names are used like this :</p>
 
 <div class="code"><pre>
 typedef struct vector_struct {
-	double x,y,z;
+  double x,y,z;
 } Vector;
 
 </pre></div>
@@ -2444,8 +2443,8 @@ will be released, and the new contents allocated. For example :</p>
 %module mymodule
 ...
 struct Foo {
-	char *name;
-	...
+  char *name;
+  ...
 }
 
 </pre></div>
@@ -2455,14 +2454,15 @@ This results in the following accessor functions :</p>
 
 <div class="code"><pre>
 char *Foo_name_get(Foo *obj) {
-	return Foo-&gt;name;
+  return Foo-&gt;name;
 }
 
 char *Foo_name_set(Foo *obj, char *c) {
-	if (obj-&gt;name) free(obj-&gt;name);
-	obj-&gt;name = (char *) malloc(strlen(c)+1);
-	strcpy(obj-&gt;name,c);
-	return obj-&gt;name;
+  if (obj-&gt;name)
+    free(obj-&gt;name);
+  obj-&gt;name = (char *) malloc(strlen(c)+1);
+  strcpy(obj-&gt;name,c);
+  return obj-&gt;name;
 }
 </pre></div>
 
@@ -2714,7 +2714,7 @@ the following declaration :</p>
 /* file : vector.h */
 ...
 typedef struct Vector {
-	double x,y,z;
+  double x,y,z;
 } Vector;
 
 </pre></div>
@@ -2732,23 +2732,23 @@ You can make a <tt>Vector</tt> look a lot like a class by writing a SWIG interfa
 
 %include "vector.h"          // Just grab original C header file
 %extend Vector {             // Attach these functions to struct Vector
-	Vector(double x, double y, double z) {
-		Vector *v;
-		v = (Vector *) malloc(sizeof(Vector));
-		v-&gt;x = x;
-		v-&gt;y = y;
-		v-&gt;z = z;
-		return v;
-	}
-	~Vector() {
-		free($self);
-	}
-	double magnitude() {
-		return sqrt($self-&gt;x*$self-&gt;x+$self-&gt;y*$self-&gt;y+$self-&gt;z*$self-&gt;z);
-	}
-	void print() {
-		printf("Vector [%g, %g, %g]\n", $self-&gt;x,$self-&gt;y,$self-&gt;z);
-	}
+  Vector(double x, double y, double z) {
+    Vector *v;
+    v = (Vector *) malloc(sizeof(Vector));
+    v-&gt;x = x;
+    v-&gt;y = y;
+    v-&gt;z = z;
+    return v;
+  }
+  ~Vector() {
+    free($self);
+  }
+  double magnitude() {
+    return sqrt($self-&gt;x*$self-&gt;x+$self-&gt;y*$self-&gt;y+$self-&gt;z*$self-&gt;z);
+  }
+  void print() {
+    printf("Vector [%g, %g, %g]\n", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+  }
 };
 
 </pre></div>
@@ -2787,12 +2787,12 @@ of the Vector structure. For example:</p>
 %}
 
 typedef struct Vector {
-	double x,y,z;
-	%extend {
-		Vector(double x, double y, double z) { ... }
-		~Vector() { ... }
-		...
-	}
+  double x,y,z;
+  %extend {
+    Vector(double x, double y, double z) { ... }
+    ~Vector() { ... }
+    ...
+  }
 } Vector;
 </pre></div>
 
@@ -2806,19 +2806,19 @@ example :</p>
 /* Vector methods */
 #include "vector.h"
 Vector *new_Vector(double x, double y, double z) {
-	Vector *v;
-	v = (Vector *) malloc(sizeof(Vector));
-	v-&gt;x = x;
-	v-&gt;y = y;
-	v-&gt;z = z;
-	return v;
+  Vector *v;
+  v = (Vector *) malloc(sizeof(Vector));
+  v-&gt;x = x;
+  v-&gt;y = y;
+  v-&gt;z = z;
+  return v;
 }
 void delete_Vector(Vector *v) {
-	free(v);
+  free(v);
 }
 
 double Vector_magnitude(Vector *v) {
-	return sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
+  return sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
 }
 
 // File : vector.i
@@ -2829,13 +2829,13 @@ double Vector_magnitude(Vector *v) {
 %}
 
 typedef struct Vector {
-	double x,y,z;
-	%extend {
-                Vector(int,int,int); // This calls new_Vector()
-               ~Vector();            // This calls delete_Vector()
-		double magnitude();  // This will call Vector_magnitude()
-		...
-	}
+  double x,y,z;
+  %extend {
+     Vector(int,int,int); // This calls new_Vector()
+     ~Vector();           // This calls delete_Vector()
+     double magnitude();  // This will call Vector_magnitude()
+     ...
+  }
 } Vector;
 </pre>
 </div>
@@ -2847,13 +2847,13 @@ For example:
 
 <div class="code"><pre>
 typedef struct Integer {
-	int value;
+  int value;
 } Int;
 %extend Integer { ...  } /* Correct name */
 %extend Int { ...  } /* Incorrect name */
 
 struct Float {
-	float value;
+  float value;
 };
 typedef struct Float FloatValue;
 %extend Float { ...  } /* Correct name */
@@ -2866,7 +2866,7 @@ There is one exception to this rule and that is when the struct is anonymously n
 
 <div class="code"><pre>
 typedef struct {
-	double value;
+  double value;
 } Double;
 %extend Double { ...  } /* Okay */
 </pre></div>
@@ -2975,13 +2975,13 @@ Occasionally, a C program will involve structures like this :</p>
 
 <div class="code"><pre>
 typedef struct Object {
-	int objtype;
-	union {
-		int 	ivalue;
-		double	dvalue;
-		char	*strvalue;
-		void	*ptrvalue;
-	} intRep;
+  int objtype;
+  union {
+    int ivalue;
+    double dvalue;
+    char *strvalue;
+    void *ptrvalue;
+  } intRep;
 } Object;
 
 </pre></div>
@@ -2993,15 +2993,15 @@ following:</p>
 
 <div class="code"><pre>
 typedef union {
-	int 		ivalue;
-	double		dvalue;
-	char		*strvalue;
-	void		*ptrvalue;
+  int ivalue;
+  double dvalue;
+  char *strvalue;
+  void *ptrvalue;
 } Object_intRep;
 
 typedef struct Object {
-	int objType;
-	Object_intRep intRep;
+  int objType;
+  Object_intRep intRep;
 } Object;
 
 </pre></div>
@@ -3013,16 +3013,16 @@ structures. In this case, functions like this would be created :</p>
 
 <div class="code"><pre>
 Object_intRep *Object_intRep_get(Object *o) {
-	return (Object_intRep *) &amp;o-&gt;intRep;
+  return (Object_intRep *) &amp;o-&gt;intRep;
 }
 int Object_intRep_ivalue_get(Object_intRep *o) {
-	return o-&gt;ivalue;
+  return o-&gt;ivalue;
 }
 int Object_intRep_ivalue_set(Object_intRep *o, int value) {
-	return (o-&gt;ivalue = value);
+  return (o-&gt;ivalue = value);
 }
 double Object_intRep_dvalue_get(Object_intRep *o) {
-	return o-&gt;dvalue;
+  return o-&gt;dvalue;
 }
 ... etc ...
 
@@ -3229,7 +3229,7 @@ program. For example :</p>
 %{
 /* Create a new vector */
 static Vector *new_Vector() {
-	return (Vector *) malloc(sizeof(Vector));
+  return (Vector *) malloc(sizeof(Vector));
 }
 
 %}
@@ -3249,7 +3249,7 @@ there is a special inlined form of code block that is used as follows
 %inline %{
 /* Create a new vector */
 Vector *new_Vector() {
-	return (Vector *) malloc(sizeof(Vector));
+  return (Vector *) malloc(sizeof(Vector));
 }
 %}
 
@@ -3275,7 +3275,7 @@ initialization on module loading, you could write this:
 
 <div class="code"><pre>
 %init %{
-	init_variables();
+  init_variables();
 %}
 </pre></div>
 

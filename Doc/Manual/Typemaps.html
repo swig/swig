@@ -3051,8 +3051,8 @@ For example, suppose you had a structure like this:
 
 <div class="code"><pre>
 struct SomeObject {
-	float  value[4];
-        ...
+  float  value[4];
+  ...
 };
 </pre></div>
 
@@ -3166,9 +3166,9 @@ checking the values of function arguments. For example:</p>
 %module math
 
 %typemap(check) double posdouble {
-	if ($1 &lt; 0) {
-		croak("Expecting a positive number");
-	}
+  if ($1 &lt; 0) {
+    croak("Expecting a positive number");
+  }
 }
 
 ...
@@ -4511,22 +4511,22 @@ The following excerpt from the Python module illustrates this:
 /* Note:  %typecheck(X) is a macro for %typemap(typecheck,precedence=X) */
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
-	 int, short, long,
- 	 unsigned int, unsigned short, unsigned long,
-	 signed char, unsigned char,
-	 long long, unsigned long long,
-	 const int &amp;, const short &amp;, const long &amp;,
- 	 const unsigned int &amp;, const unsigned short &amp;, const unsigned long &amp;,
-	 const long long &amp;, const unsigned long long &amp;,
-	 enum SWIGTYPE,
-         bool, const bool &amp; 
+  int, short, long,
+  unsigned int, unsigned short, unsigned long,
+  signed char, unsigned char,
+  long long, unsigned long long,
+  const int &amp;, const short &amp;, const long &amp;,
+  const unsigned int &amp;, const unsigned short &amp;, const unsigned long &amp;,
+  const long long &amp;, const unsigned long long &amp;,
+  enum SWIGTYPE,
+  bool, const bool &amp;
 {
   $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
-	float, double,
-	const float &amp;, const double &amp;
+  float, double,
+  const float &amp;, const double &amp;
 {
   $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }

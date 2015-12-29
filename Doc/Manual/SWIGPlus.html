@@ -530,10 +530,10 @@ functions such as the following :</p>
 
 <div class="code"><pre>
 List * new_List(void) {
-	return new List;
+  return new List;
 }
 void delete_List(List *l) {
-	delete l;
+  delete l;
 }
 
 </pre></div>
@@ -874,7 +874,7 @@ All member functions are roughly translated into accessor functions like this :<
 
 <div class="code"><pre>
 int List_search(List *obj, char *value) {
-	return obj-&gt;search(value);
+  return obj-&gt;search(value);
 }
 
 </pre></div>
@@ -912,11 +912,11 @@ structures. A pair of accessor functions are effectively created. For example
 
 <div class="code"><pre>
 int List_length_get(List *obj) {
-	return obj-&gt;length;
+  return obj-&gt;length;
 }
 int List_length_set(List *obj, int value) {
-	obj-&gt;length = value;
-	return value;
+  obj-&gt;length = value;
+  return value;
 }
 
 </pre></div>
@@ -933,7 +933,7 @@ class List {
 public:
 ...
 %immutable;
-	int length;
+  int length;
 %mutable;
 ...
 };
@@ -1231,7 +1231,7 @@ into constants with the classname as a prefix. For example :</p>
 <div class="code"><pre>
 class Swig {
 public:
-	enum {ALE, LAGER, PORTER, STOUT};
+  enum {ALE, LAGER, PORTER, STOUT};
 };
 
 </pre></div>
@@ -1321,7 +1321,7 @@ a declaration like this :</p>
 <div class="code"><pre>
 class Foo {
 public:
-	double bar(double &amp;a);
+  double bar(double &amp;a);
 }
 </pre></div>
 
@@ -1331,7 +1331,7 @@ has a low-level accessor
 
 <div class="code"><pre>
 double Foo_bar(Foo *obj, double *a) {
-	obj-&gt;bar(*a);
+  obj-&gt;bar(*a);
 }
 </pre></div>
 
@@ -1550,24 +1550,24 @@ the full C++ code has been omitted.</p>
 
 class Shape {
 public:
-        double x,y;
-	virtual double area() = 0;
-	virtual double perimeter() = 0;
-	void    set_location(double x, double y);
+  double x,y;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
+  void    set_location(double x, double y);
 };
 class Circle : public Shape {
 public:
-	Circle(double radius);
-	~Circle();
-	double area();
-	double perimeter();
+  Circle(double radius);
+  ~Circle();
+  double area();
+  double perimeter();
 };
 class Square : public Shape {
 public:
-	Square(double size);
-	~Square();
-	double area();
-	double perimeter();
+  Square(double size);
+  ~Square();
+  double area();
+  double perimeter();
 }
 </pre></div>
 
@@ -2615,7 +2615,7 @@ public:
   }
   Complex operator*(const Complex &amp;c) const {
     return Complex(rpart*c.rpart - ipart*c.ipart,
-		   rpart*c.ipart + c.rpart*ipart);
+                   rpart*c.ipart + c.rpart*ipart);
   }
   Complex operator-() const {
     return Complex(-rpart, -ipart);
@@ -2788,17 +2788,17 @@ example :
 
 class Vector {
 public:
-	double x,y,z;
-	Vector();
-	~Vector();
-	... bunch of C++ methods ...
-	%extend {
-		char *__str__() {
-			static char temp[256];
-			sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
-			return &amp;temp[0];
-		}
-	}
+  double x,y,z;
+  Vector();
+  ~Vector();
+  ... bunch of C++ methods ...
+  %extend {
+    char *__str__() {
+      static char temp[256];
+      sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+      return &amp;temp[0];
+    }
+  }
 };
 </pre></div>
 
@@ -4696,11 +4696,11 @@ public:
     return add_ref();
   }
 
-  int unref() const   {
+  int unref() const {
     if (ref_count() == 0 || del_ref() == 0 ) {
-	delete this;
-	return 0;
-      } 
+      delete this;
+      return 0;
+    }
     return ref_count();
   }
 };

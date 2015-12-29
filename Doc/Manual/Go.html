@@ -477,10 +477,10 @@ objects and fits nicely C++'s RAII idiom.  Example:
 <div class="code">
 <pre>
 func UseClassName(...) ... {
-	o := NewClassName(...)
-	defer DeleteClassName(o)
-	// Use the ClassName object
-	return ...
+  o := NewClassName(...)
+  defer DeleteClassName(o)
+  // Use the ClassName object
+  return ...
 }
 </pre>
 </div>
@@ -495,17 +495,17 @@ that creates a C++ object and functions called by this function.  Example:
 <div class="code">
 <pre>
 func WithClassName(constructor args, f func(ClassName, ...interface{}) error, data ...interface{}) error {
-	o := NewClassName(constructor args)
-	defer DeleteClassName(o)
-	return f(o, data...)
+  o := NewClassName(constructor args)
+  defer DeleteClassName(o)
+  return f(o, data...)
 }
 
 func UseClassName(o ClassName, data ...interface{}) (err error) {
-	// Use the ClassName object and additional data and return error.
+  // Use the ClassName object and additional data and return error.
 }
 
 func main() {
-	WithClassName(constructor args, UseClassName, additional data)
+  WithClassName(constructor args, UseClassName, additional data)
 }
 </pre>
 </div>
@@ -547,33 +547,33 @@ problematic with C++ code that uses thread-local storage.
 <div class="code">
 <pre>
 import (
-	"runtime"
-	"wrap" // SWIG generated wrapper code
+  "runtime"
+  "wrap" // SWIG generated wrapper code
 )
 
 type GoClassName struct {
-	wcn wrap.ClassName
+  wcn wrap.ClassName
 }
 
 func NewGoClassName() *GoClassName {
-	o := &amp;GoClassName{wcn: wrap.NewClassName()}
-	runtime.SetFinalizer(o, deleteGoClassName)
-	return o
+  o := &amp;GoClassName{wcn: wrap.NewClassName()}
+  runtime.SetFinalizer(o, deleteGoClassName)
+  return o
 }
 
 func deleteGoClassName(o *GoClassName) {
-	// Runs typically in a different OS thread!
-	wrap.DeleteClassName(o.wcn)
-	o.wcn = nil
+  // Runs typically in a different OS thread!
+  wrap.DeleteClassName(o.wcn)
+  o.wcn = nil
 }
 
 func (o *GoClassName) Close() {
-	// If the C++ object has a Close method.
-	o.wcn.Close()
+  // If the C++ object has a Close method.
+  o.wcn.Close()
 
-	// If the GoClassName object is no longer in an usable state.
-	runtime.SetFinalizer(o, nil) // Remove finalizer.
-	deleteGoClassName() // Free the C++ object.
+  // If the GoClassName object is no longer in an usable state.
+  runtime.SetFinalizer(o, nil) // Remove finalizer.
+  deleteGoClassName() // Free the C++ object.
 }
 </pre>
 </div>
@@ -635,19 +635,19 @@ explains how to implement a FooBarGo class similar to the FooBarCpp class.
 class FooBarAbstract
 {
 public:
-	FooBarAbstract() {};
-	virtual ~FooBarAbstract() {};
+  FooBarAbstract() {};
+  virtual ~FooBarAbstract() {};
 
-	std::string FooBar() {
-		return this->Foo() + ", " + this->Bar();
-	};
+  std::string FooBar() {
+          return this->Foo() + ", " + this->Bar();
+  };
 
 protected:
-	virtual std::string Foo() {
-		return "Foo";
-	};
+  virtual std::string Foo() {
+          return "Foo";
+  };
 
-	virtual std::string Bar() = 0;
+  virtual std::string Bar() = 0;
 };
 </pre>
 </div>
@@ -661,13 +661,13 @@ protected:
 class FooBarCpp : public FooBarAbstract
 {
 protected:
-	virtual std::string Foo() {
-		return "C++ " + FooBarAbstract::Foo();
-	}
+  virtual std::string Foo() {
+    return "C++ " + FooBarAbstract::Foo();
+  }
 
-	virtual std::string Bar() {
-		return "C++ Bar";
-	}
+  virtual std::string Bar() {
+    return "C++ Bar";
+  }
 };
 </pre>
 </div>
@@ -758,9 +758,9 @@ determine if an object instance was created via <tt>NewDirectorClassName</tt>:
 <div class="code">
 <pre>
 if o.DirectorInterface() != nil {
-	DeleteDirectorClassName(o)
+  DeleteDirectorClassName(o)
 } else {
-	DeleteClassName(o)
+  DeleteClassName(o)
 }
 </pre>
 </div>
@@ -798,22 +798,22 @@ As an example see part of the <tt>FooBarGo</tt> class:
 <div class="code">
 <pre>
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	...
+  ...
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
-	...
+  ...
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb
-	...
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb
+  ...
 }
 </pre>
 </div>
@@ -855,7 +855,7 @@ the method in the base class.  This is also the case for the
 <div class="code">
 <pre>
 virtual std::string Foo() {
-	return "C++ " + FooBarAbstract::Foo();
+  return "C++ " + FooBarAbstract::Foo();
 }
 </pre>
 </div>
@@ -869,7 +869,7 @@ The <tt>FooBarGo.Foo</tt> implementation in the example looks like this:
 <div class="code">
 <pre>
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	return "Go " + DirectorFooBarAbstractFoo(om.fb)
+  return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 </pre>
 </div>
@@ -902,31 +902,31 @@ this:
 <div class="code">
 <pre>
 type FooBarGo interface {
-	FooBarAbstract
-	deleteFooBarAbstract()
-	IsFooBarGo()
+  FooBarAbstract
+  deleteFooBarAbstract()
+  IsFooBarGo()
 }
 
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 func (fbgs *fooBarGo) deleteFooBarAbstract() {
-	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
+  DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
 func (fbgs *fooBarGo) IsFooBarGo() {}
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb
 
-	return &amp;fooBarGo{FooBarAbstract: fb}
+  return &amp;fooBarGo{FooBarAbstract: fb}
 }
 
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbstract()
+  fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -962,14 +962,14 @@ in the <tt>FooBarGo</tt> class is here:
 <div class="code">
 <pre>
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om) // fb.v = om
-	om.fb = fb // Backlink causes cycle as fb.v = om!
-	...
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om) // fb.v = om
+  om.fb = fb // Backlink causes cycle as fb.v = om!
+  ...
 }
 </pre>
 </div>
@@ -985,21 +985,21 @@ the finalizer on <tt>fooBarGo</tt>:
 <div class="code">
 <pre>
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb // Backlink causes cycle as fb.v = om!
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
-	runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
-	return fbgs
+  fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+  runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
+  return fbgs
 }
 </pre>
 </div>
@@ -1026,18 +1026,18 @@ The complete and annotated <tt>FooBarGo</tt> class looks like this:
 // drop in replacement for FooBarAbstract but the reverse causes a compile time
 // error.
 type FooBarGo interface {
-	FooBarAbstract
-	deleteFooBarAbstract()
-	IsFooBarGo()
+  FooBarAbstract
+  deleteFooBarAbstract()
+  IsFooBarGo()
 }
 
 // Via embedding fooBarGo "inherits" all methods of FooBarAbstract.
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 func (fbgs *fooBarGo) deleteFooBarAbstract() {
-	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
+  DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
 // The IsFooBarGo method ensures that FooBarGo is a superset of FooBarAbstract.
@@ -1049,48 +1049,48 @@ func (fbgs *fooBarGo) IsFooBarGo() {}
 // Go type that defines the DirectorInterface. It contains the Foo and Bar
 // methods that overwrite the respective virtual C++ methods on FooBarAbstract.
 type overwrittenMethodsOnFooBarAbstract struct {
-	// Backlink to FooBarAbstract so that the rest of the class can be used by
-	// the overridden methods.
-	fb FooBarAbstract
+  // Backlink to FooBarAbstract so that the rest of the class can be used by
+  // the overridden methods.
+  fb FooBarAbstract
 
-	// If additional constructor arguments have been given they are typically
-	// stored here so that the overriden methods can use them.
+  // If additional constructor arguments have been given they are typically
+  // stored here so that the overriden methods can use them.
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	// DirectorFooBarAbstractFoo calls the base method FooBarAbstract::Foo.
-	return "Go " + DirectorFooBarAbstractFoo(om.fb)
+  // DirectorFooBarAbstractFoo calls the base method FooBarAbstract::Foo.
+  return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
-	return "Go Bar"
+  return "Go Bar"
 }
 
 func NewFooBarGo() FooBarGo {
-	// Instantiate FooBarAbstract with selected methods overridden.  The methods
-	// that will be overwritten are defined on
-	// overwrittenMethodsOnFooBarAbstract and have a compatible signature to the
-	// respective virtual C++ methods. Furthermore additional constructor
-	// arguments will be typically stored in the
-	// overwrittenMethodsOnFooBarAbstract struct.
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb // Backlink causes cycle as fb.v = om!
+  // Instantiate FooBarAbstract with selected methods overridden.  The methods
+  // that will be overwritten are defined on
+  // overwrittenMethodsOnFooBarAbstract and have a compatible signature to the
+  // respective virtual C++ methods. Furthermore additional constructor
+  // arguments will be typically stored in the
+  // overwrittenMethodsOnFooBarAbstract struct.
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
-	// The memory of the FooBarAbstract director object instance can be
-	// automatically freed once the FooBarGo instance is garbage collected by
-	// uncommenting the following line.  Please make sure to understand the
-	// runtime.SetFinalizer specific gotchas before doing this.  Furthemore
-	// DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
-	// struct needs additional data to prevent double deletion.
-	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
-	return fbgs
+  fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+  // The memory of the FooBarAbstract director object instance can be
+  // automatically freed once the FooBarGo instance is garbage collected by
+  // uncommenting the following line.  Please make sure to understand the
+  // runtime.SetFinalizer specific gotchas before doing this.  Furthemore
+  // DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
+  // struct needs additional data to prevent double deletion.
+  // runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
+  return fbgs
 }
 
 // Recommended to be removed if runtime.SetFinalizer is in use.
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbstract()
+  fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -1114,13 +1114,13 @@ For comparison the <tt>FooBarCpp</tt> class looks like this:
 class FooBarCpp : public FooBarAbstract
 {
 protected:
-	virtual std::string Foo() {
-		return "C++ " + FooBarAbstract::Foo();
-	}
+  virtual std::string Foo() {
+    return "C++ " + FooBarAbstract::Foo();
+  }
 
-	virtual std::string Bar() {
-		return "C++ Bar";
-	}
+  virtual std::string Bar() {
+    return "C++ Bar";
+  }
 };
 </pre>
 </div>

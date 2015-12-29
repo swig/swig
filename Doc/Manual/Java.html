@@ -464,9 +464,9 @@ If you forget to compile and link in the SWIG wrapper file into your native libr
 <div class="code"><pre>
 $ java runme
 Exception in thread "main" java.lang.UnsatisfiedLinkError: exampleJNI.gcd(II)I
-	at exampleJNI.gcd(Native Method)
-	at example.gcd(example.java:12)
-	at runme.main(runme.java:18)
+        at exampleJNI.gcd(Native Method)
+        at example.gcd(example.java:12)
+        at runme.main(runme.java:18)
 </pre></div>
 
 <p>
@@ -630,11 +630,11 @@ CFLAGS        = /Z7 /Od /c /nologo
 JAVA_INCLUDE    = -ID:\jdk1.3\include -ID:\jdk1.3\include\win32
 
 java::
-	swig -java -o $(WRAPFILE) $(INTERFACE)
-	$(CC) $(CFLAGS) $(JAVA_INCLUDE) $(SRCS) $(WRAPFILE)
-	set LIB=$(TOOLS)\lib
-	$(LINK) $(LOPT) -out:example.dll $(LIBS) example.obj example_wrap.obj
-	javac *.java
+        swig -java -o $(WRAPFILE) $(INTERFACE)
+        $(CC) $(CFLAGS) $(JAVA_INCLUDE) $(SRCS) $(WRAPFILE)
+        set LIB=$(TOOLS)\lib
+        $(LINK) $(LOPT) -out:example.dll $(LIBS) example.obj example_wrap.obj
+        javac *.java
 </pre></div>
 
 <p>
@@ -1340,7 +1340,7 @@ member variables. For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 
 </pre></div>

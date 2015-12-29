@@ -308,19 +308,19 @@ A few functions exist which generate and return these:
 
 <ul>
     <li>caml_ptr_val receives a c_obj and returns a void *.  This
-	should be used for all pointer purposes.</li>
+    should be used for all pointer purposes.</li>
     <li>caml_long_val receives a c_obj and returns a long.  This
-	should be used for most integral purposes.</li>
+    should be used for most integral purposes.</li>
     <li>caml_val_ptr receives a void * and returns a c_obj.</li>
     <li>caml_val_bool receives a C int and returns a c_obj representing
-	its bool value.</li>
+    its bool value.</li>
     <li>caml_val_(u)?(char|short|int|long|float|double) receives an
-	appropriate C value and returns a c_obj representing it.</li>
+    appropriate C value and returns a c_obj representing it.</li>
     <li>caml_val_string receives a char * and returns a string value.</li>
     <li>caml_val_string_len receives a char * and a length and returns
-	a string value.</li>
+    a string value.</li>
     <li>caml_val_obj receives a void * and an object type and returns
-	a C_obj, which contains a closure giving method access.</li>
+    a C_obj, which contains a closure giving method access.</li>
 </ul>
 
 <p>
@@ -544,24 +544,24 @@ into this type of function convenient.
 #include &lt;stdio.h&gt;
 
 void printfloats( float *tab, int len ) {
-	int i;
+  int i;
 
-	for( i = 0; i &lt; len; i++ ) {
-		printf( "%f ", tab[i] );
-	}
+  for( i = 0; i &lt; len; i++ ) {
+    printf( "%f ", tab[i] );
+  }
 
-	printf( "\n" );
+  printf( "\n" );
 }
 %}
 
 %typemap(in) (float *tab, int len) {
-    int i;
-    /* $*1_type */
-    $2 = caml_array_len($input);
-    $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
-    for( i = 0; i &lt; $2; i++ ) {
-        $1[i] = caml_double_val(caml_array_nth($input,i));
-    }
+  int i;
+  /* $*1_type */
+  $2 = caml_array_len($input);
+  $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
+  for( i = 0; i &lt; $2; i++ ) {
+    $1[i] = caml_double_val(caml_array_nth($input,i));
+  }
 }
 
 void printfloats( float *tab, int len );
@@ -640,7 +640,7 @@ length.  Instead, use multiple returns, as in the argout_ref example.
 %include &lt;stl.i&gt;
 
 namespace std {
-        %template(StringVector) std::vector &lt; string &gt;;
+  %template(StringVector) std::vector &lt; string &gt;;
 };
 
 %include "example.h"
@@ -715,16 +715,16 @@ Here's a simple example using Trolltech's Qt Library:
 %}
 class QApplication {
 public:
-        QApplication( int argc, char **argv );
-        void setMainWidget( QWidget *widget );
-        void exec();
+  QApplication( int argc, char **argv );
+  void setMainWidget( QWidget *widget );
+  void exec();
 };
 
 class QPushButton {
 public:
-        QPushButton( char *str, QWidget *w );
-        void resize( int x, int y );
-        void show();
+  QPushButton( char *str, QWidget *w );
+  void resize( int x, int y );
+  void show();
 };
 </pre></td></tr></table>
 
@@ -848,9 +848,9 @@ let triangle_class pts ob meth args =
       "cover" -&gt;
         (match args with
              C_list [ x_arg ; y_arg ] -&gt;
-	     let xa = x_arg as float
-	     and ya = y_arg as float in
-	       (point_in_triangle pts xa ya) to bool
+             let xa = x_arg as float
+             and ya = y_arg as float in
+               (point_in_triangle pts xa ya) to bool
            | _ -&gt; raise (Failure "cover needs two double arguments."))
     | _ -&gt; (invoke ob) meth args ;;
 
