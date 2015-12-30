@@ -1182,7 +1182,7 @@ if test x"${OBJCBIN}" = xno; then
   AC_MSG_NOTICE([Disabling Objective-C])
 else
 
-OBJC=gcc
+OBJC=1
 OBJCCFLAGS=
 
 # check for include files
@@ -1278,7 +1278,7 @@ esac
 case $host in
 *-*-darwin*) 
     OBJCSO=".dylib"
-    OBJCLDSHARED='$(CC)'
+    OBJCLDSHARED='$(CXX)'
     OBJCCXXSHARED='$(CXX)'
     ;;
 *)

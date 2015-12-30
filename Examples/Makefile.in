@@ -1425,9 +1425,8 @@ csharp_clean:
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
 ##################################################################
-#####                      OBJC                           ######
+#####                        OBJC                           ######
 ##################################################################
-OBJC = @OBJC@
 OBJCXXSRCS = $(INTERFACE:.i=_wrap.mm) $(INTERFACE:.i=_proxy.mm)
 OBJCSRCS = $(INTERFACE:.i=.m)
 OBJCXXOBJS = $(OBJCXXSRCS:.mm=.@OBJEXT@)
@@ -1444,27 +1443,29 @@ OBJCFLAGS =
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C)
 # ----------------------------------------------------------------
-
-objc: $(SRCS)
-	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
-	$(OBJC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS)  $(OBJCXXFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)	
-	$(OBJCLDSHARED) $(CFLAGS) $(OBJCXXFLAGS) $(OBJS) $(OBJCXXOBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
+	
+objc: $(SRCDIR_SRCS)
+	$(SWIG) -objc $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCDIR_SRCS) $(OBJCXXSRCS) $(SRCDIR_INCLUDE) $(OBJCINCLUDES)
+	$(OBJCLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(OBJCXXOBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C++)
 # ----------------------------------------------------------------
 
-objc_cpp: $(SRCS)
-	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(OBJC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(OBJCXXFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)	
-	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCXXFLAGS) $(OBJS) $(OBJCXXOBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
+objc_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -objc -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(OBJCXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(OBJCXXSRCS) $(SRCDIR_INCLUDE) $(OBJCINCLUDES)
+	$(OBJCCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(OBJCXXOBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Compile and run Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
-objc_run: runme.m
-	$(COMPILETOOL) $(OBJC) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) runme.m $(OBJCLIBS) -L. -l$(TARGET) -o runme
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL)./runme
+
+objc_run:	
+	$(CXX) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) $(SRCDIR_INCLUDE) $(SRCDIR)/$(RUNME).m $(OBJCLIBS) -L. -l$(TARGET) -o $(RUNME)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL)./$(RUNME)
+	
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
 # -----------------------------------------------------------------
@@ -1477,7 +1478,7 @@ objc_version:
 	$(OBJC) -v
 
 objc_clean:
-	rm -f *_wrap* *_proxy* .~* runme
+	rm -f *_wrap* *_proxy* .~* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@OBJCSO@
 

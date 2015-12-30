@@ -1,181 +1,181 @@
 language: cpp
 matrix:
   include:
-#    - compiler: clang
-#      os: linux
-#      env: SWIGLANG=
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=
-#    - os: linux
-#      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
-#    - os: linux
-#      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP14=1
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=csharp
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=d
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=go
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=guile
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=java
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=javascript ENGINE=node
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=javascript ENGINE=jsc
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=javascript ENGINE=v8
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=lua
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=octave SWIGJOBS=-j2 # 3.2
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=perl5
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=php
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python VER=2.4
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python VER=2.5
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python VER=2.6
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python # 2.7
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python PY3=3 # 3.2
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python PY3=3 VER=3.3
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python PY3=3 VER=3.4
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python PY3=3 VER=3.5
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-builtin
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-O
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-classic
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=r
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=ruby
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=scilab
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=tcl
-#    - os: linux
-#      env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
-#    - os: linux
-#      env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
-#    - os: linux
-#      env: SWIGLANG=python SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
-#    - os: osx
-#      env: SWIGLANG= SWIG_CC=gcc-4.2 SWIG_CXX=g++-4.2
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=csharp
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=go
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=guile
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=java
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=lua
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=perl5
+   - compiler: clang
+     os: linux
+     env: SWIGLANG=
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=
+   - os: linux
+     env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+   - os: linux
+     env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP14=1
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=csharp
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=d
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=go
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=guile
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=java
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=javascript ENGINE=node
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=javascript ENGINE=jsc
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=javascript ENGINE=v8
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=lua
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=octave SWIGJOBS=-j2 # 3.2
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=perl5
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=php
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python VER=2.4
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python VER=2.5
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python VER=2.6
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python # 2.7
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python PY3=3 # 3.2
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python PY3=3 VER=3.3
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python PY3=3 VER=3.4
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python PY3=3 VER=3.5
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-builtin
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-O
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-classic
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=r
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=ruby
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=scilab
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=tcl
+   - os: linux
+     env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+   - os: linux
+     env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+   - os: linux
+     env: SWIGLANG=python SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+   - os: osx
+     env: SWIGLANG= SWIG_CC=gcc-4.2 SWIG_CXX=g++-4.2
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=csharp
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=go
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=guile
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=java
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=lua
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=perl5
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=php
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=python
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=python PY3=3
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=ruby
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=tcl
+
+ allow_failures:
+   # Lots of failing tests currently
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=ocaml
+   # Occasional gcc internal compiler error
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
+   # Occasional gcc internal compiler error
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
+   # Not quite working yet
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-classic
+   - compiler: gcc
+     os: linux
+     env: SWIGLANG=python SWIG_FEATURES=-O
+   - compiler: clang
+     os: osx
+     env: SWIGLANG=go
+   # Not quite working yet
    - compiler: gcc
      os: osx
      env: SWIGLANG=objc
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=php
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=python
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=python PY3=3
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=ruby
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=tcl
-#
-#  allow_failures:
-#    # Lots of failing tests currently
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=ocaml
-#    # Occasional gcc internal compiler error
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
-#    # Occasional gcc internal compiler error
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
-#    # Not quite working yet
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-classic
-#    # Not quite working yet
-#    - compiler: gcc
-#      os: linux
-#      env: SWIGLANG=python SWIG_FEATURES=-O
-#    - compiler: clang
-#      os: osx
-#      env: SWIGLANG=go
 before_install:
   - date -u
   - uname -a
