@@ -39,7 +39,7 @@ check:
 #  2) Tabs in <pre> elements should be expanded to 8 spaces by default, but
 #     are expanded to just one space and css tab-size is not working.
 #  3) <pre> <tt> <code> elements do not always select a fixed-width font - try installing the
-#     Courier font to fix.
+#     Courier font to fix - these have been added to style.css.
 generate: SWIGDocumentation.html
 	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' SWIGDocumentation.html SWIGDocumentation.pdf
 
