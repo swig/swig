@@ -95,6 +95,9 @@ static int extranative = 0;
 static int outputtuple = 0;
 static int nortti = 0;
 static int relativeimport = 0;
+static int enumclass = 0;
+static int scopedenum = 0;
+static int strongenum = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -117,6 +120,7 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
+     -enumclass      - Generate strongly typed, scoped enums for C++11 enum classes\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
@@ -159,6 +163,8 @@ static const char *usage3 = "\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
      -relativeimport - Use relative python imports \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
+     -scopedenum     - Generate scoped enums for non-anonymous C++ enum types\n\
+     -strongenum     - Generate strongly typed enums for non-anonymous C++ enum types\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
                          -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel \n\
@@ -524,6 +530,15 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-enumclass") == 0) {
+	  enumclass = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-strongenum") == 0) {
+	  strongenum = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-scopedenum") == 0) {
+	  scopedenum = 1;
 	  Swig_mark_arg(i);
 	}
 
@@ -5080,18 +5095,125 @@ public:
     return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------
+   * is_enum_class(n) - check whether a node "n" represents C++11 enum class
+   * ---------------------------------------------------------------------- */
+  bool is_enum_class(Node* n) {
+    String *enumkey = Getattr(n, "enumkey");
+    return (enumkey && Cmp(enumkey, "enum class") == 0);
+  }
+
+  /* -----------------------------------------------------------------------
+   * shall_emit_scoped_enum(n) - check whether we should emit scoped enum
+   *                             for node n
+   * ---------------------------------------------------------------------- */
+  bool shall_emit_scoped_enum(Node* n) {
+    String *symname = Getattr(n, "sym:name");
+    return (symname && (GetFlag(n,"feature:python:enum:scoped") || scopedenum))
+        || (is_enum_class(n) && enumclass);
+  }
+
+  /* -----------------------------------------------------------------------
+   * shall_emit_strong_enum(n) - check whether we shall emit strongly typed
+   *                             enum for node "n"
+   * ---------------------------------------------------------------------- */
+  bool shall_emit_strong_enum(Node* n) {
+    String *symname = Getattr(n, "sym:name");
+    return (symname && (GetFlag(n,"feature:python:enum:strong") || strongenum))
+        || (is_enum_class(n) && enumclass);
+  }
+
+  /* -----------------------------------------------------------------------
+   * is_strong_or_scoped_enumitem(n) - check whether n is an enumitem of a scoped or
+   * 				strong enum
+   * ---------------------------------------------------------------------- */
+  bool is_strong_or_scoped_enumitem(Node* n) {
+    String *parent = parentNode(n);
+    return (Cmp(nodeType(n),"enumitem") == 0) && (shall_emit_scoped_enum(parent) || shall_emit_strong_enum(parent));
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+    int result;
+
+    if (shall_emit_scoped_enum(n)) {
+      // scoped (either int or strong)
+      if (!ImportMode) {
+	if(!in_class) {
+	  if (shall_emit_strong_enum(n) && Getattr(n, "symtab")) {
+	    Setattr(n, "allocate:default_constructor", "1");
+	    Setattr(n, "allocate:default_destructor", "1");
+	  }
+	  Setattr(n,"python:proxy",Getattr(n,"sym:name"));
+	  result = classDeclaration(n);
+	} else {
+	  Swig_warning(WARN_LANG_NESTED_NAMED_ENUM, input_file, line_number, "Nested named enums not currently supported (%s ignored)\n", Getattr(n,"name"));
+	  result = SWIG_OK;
+	}
+      } else {
+        result = SWIG_OK;
+      }
+    } else if (shall_emit_strong_enum(n)) {
+      // strong but not scoped
+      if (!ImportMode) {
+	if (!in_class) {
+	  if (Getattr(n, "symtab")) {
+	    Setattr(n, "allocate:default_constructor", "1");
+	    Setattr(n, "allocate:default_destructor", "1");
+	    Setattr(n,"feature:emitonlychildren", "constructor destructor");
+	  } else {
+	    Setattr(n,"feature:emitonlychildren","");
+	  }
+	  result = classDeclaration(n);
+	  Delattr(n,"feature:emitonlychildren");
+	  if(result == SWIG_OK) {
+	    // emit enumerations to outer scope
+	    result = Language::enumDeclaration(n);
+	  }
+	} else {
+	  Swig_warning(WARN_LANG_NESTED_NAMED_ENUM, input_file, line_number, "Nested named enums not currently supported (%s ignored)\n", Getattr(n,"name"));
+	  result = SWIG_OK;
+	}
+      } else {
+        result = SWIG_OK;
+      }
+    } else {
+      // the old-way enum implementation
+      result = Language::enumDeclaration(n);
+    }
+    return result;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    int result;
+    Node* parent = parentNode(n);
+    if(shall_emit_strong_enum(parent)) {
+      Setattr(n,"type",Getattr(parent,"classtype"));
+    }
+    result = Language::enumvalueDeclaration(n);
+    return result;
+  }
+
   /* ------------------------------------------------------------
    * memberconstantHandler()
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    String *symname = Getattr(n, "sym:name");
+    String *enumvalue_symname = Getattr(n,"enumvalueDeclaration:sym:name");
+    String *symname = (is_strong_or_scoped_enumitem(n) && enumvalue_symname) ? enumvalue_symname : Getattr(n, "sym:name");
     if (builtin && in_class) {
       Swig_save("builtin_memberconstantHandler", n, "pybuiltin:symname", NIL);
       Setattr(n, "pybuiltin:symname", symname);
     }
     int oldshadow = shadow;
-    if (shadow)
+    if (shadow && !is_strong_or_scoped_enumitem(n))
       shadow = shadow | PYSHADOW_MEMBER;
     Language::memberconstantHandler(n);
     shadow = oldshadow;
@@ -5099,7 +5221,12 @@ public:
     if (builtin && in_class) {
       Swig_restore(n);
     } else if (shadow) {
-      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      if(is_strong_or_scoped_enumitem(n)) {
+ 	/* creation of nested enumitems postponed to the class stub */
+	Printv(f_shadow_stubs, class_name, ".", symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      } else {
+	Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      }
     }
     return SWIG_OK;
   }

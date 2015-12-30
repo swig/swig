@@ -1134,6 +1134,168 @@ other object.  Unfortunately, there is no easy way for SWIG to
 generate code that prevents this.  You will just have to be careful.
 </p>
 
+<p>
+By default, swig just emits enum's values as Python integer variables. For example, the
+following code
+</p>
+<div class="code">
+<pre>
+enum Beverage { ALE, LAGER, STOUT, PILSNER };
+</pre>
+</div>
+<p>will generate Python variables <tt>ALE</tt>, <tt>LAGER</tt>, <tt>STOUT</tt>
+and <tt>PILSNER</tt> in module's namespace:</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt;  dir()
+['ALE', 'LAGER', 'PILSNER', 'STOUT', 'SWIG_PyInstanceMethod_New', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__']
+</pre>
+</div>
+
+<p>and they all will be integers:</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt;  type(ALE)
+&lt;class 'int'&gt;
+</pre>
+</div>
+
+<p>This "degeneration" of enums to a single (int) type has its implications.
+For example, overloaded functions do not work with enums. Consider the
+following code, where <tt>print()</tt> is supposed to print enum names:</p>
+<div class="code">
+<pre>
+enum Beverage1 { ALE, LAGER };
+enum Beverage2 { STOUT, PILSNER };
+void print(Beverage1 x);
+void print(Beverage2 x);
+
+%{
+#include &lt;stdio.h&gt;
+enum Beverage1 { ALE, LAGER };
+enum Beverage2 { STOUT, PILSNER };
+void print(Beverage1 x) { if(x == ALE) { printf("ALE\n"); } else { printf("LAGER\n"); } }
+void print(Beverage2 x) { if(x == STOUT ) { printf("STOUT\n"); } else { printf("PILSNER\n"); } }
+%}
+</pre>
+</div>
+
+<p>A Python wrapper generated for the above code has rather unexpected
+behavior:</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; print(ALE)
+ALE
+&gt;&gt;&gt; print(STOUT)
+ALE
+</pre>
+</div>
+
+<p>Another issue with enums is scoping. All the enum symbols land by default in
+global namespace (or a namespace of embedding class). Name clashes may
+occur.</p>
+
+<p>Swig 3.0.5 and later supports strongly typed enums and enum scoping. These
+are experimental features. To enable them, you have to include
+<tt>enums.swg</tt> module and use <tt>"python:enum"</tt> feature before enums
+declarations, for example:</p>
+<div class="code">
+<pre>
+%include &lt;enums.swg&gt;
+%feature("python:enum",strong=1);
+// ...
+</pre>
+</div>
+
+<p>With strongly typed enum enabled (by the above directive
+<tt>%feature("python:enum",strong=1)</tt>) overloaded functions may be
+used</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; print(ALE)
+ALE
+&gt;&gt;&gt; print(STOUT)
+STOUT
+</pre>
+</div>
+
+<p>because now the generated enum values have distinguishable types</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; type(ALE)
+&lt;class 'Beverage1'&gt;
+&gt;&gt;&gt; type(STOUT)
+&lt;class 'Beverage2'&gt;
+&gt;&gt;&gt; ALE
+&lt;Swig Object of type 'Beverage1 *' at 0x7f8269f8b3e8&gt;
+&gt;&gt;&gt; STOUT
+&lt;Swig Object of type 'Beverage2 *' at 0x7f8267ff85e0&gt;
+</pre>
+</div>
+
+<p>The <tt>%feature("python:enum")</tt> may be used to enable either strongly
+typed enums, scoped enums or both</p>
+
+<div class="code">
+<pre>
+%include &lt;enums.swg&gt;
+%feature("python:enum",strong=1) Color1;
+%feature("python:enum",scoped=1) Color2;
+%feature("python:enum",scoped=1, strong=1) Color3;
+enum class Color1 : int { RED, GREEN, BLUE };
+enum class Color2 : int { CYAN, MAGENTA, YELLOW, BLACK };
+enum class Color3 : int { CYAN, MAGENTA, YELLOW, BLACK };
+int intval(Color1 x);
+int intval(Color3 x);
+%{
+enum class Color1 : int { RED, GREEN, BLUE };
+enum class Color2 : int { CYAN = 20, MAGENTA = 21, YELLOW = 22, BLACK = 23 };
+enum class Color3 : int { CYAN = 30, MAGENTA = 31, YELLOW = 32, BLACK = 33 };
+int intval(Color1 x) { return static_cast&lt;int&gt;(x); }
+int intval(Color3 x) { return static_cast&lt;int&gt;(x); }
+%}
+</pre>
+</div>
+
+<p>A Python wrapper for the above code works as follows</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; dir()
+['BLUE', 'Color1', 'Color2', 'Color3', 'GREEN', 'RED', 'SWIG_PyInstanceMethod_New', '__builtins__', '__doc__', '__loader__', '__name__', '__package__', '__spec__', 'intval']
+&gt;&gt;&gt; intval(BLUE)
+2;
+&gt;&gt;&gt; Color2.CYAN
+20
+&gt;&gt;&gt; intval(Color3.CYAN)
+30
+</pre>
+</div>
+
+<p>The <tt>strong</tt> and <tt>scoped</tt> features do not work with anonymous
+enums (which is quite obvious -- we need a named C++ type to generate Python
+class for enum type and/or scope). Anonymous enums are wrapped in the usual way
+(they emit int values to Python).</p>
+
+<p>Another limitation is, that currently there is no "standard" interface to
+access enum's value for strongly typed enums. If you need convert strongly
+typed enums to integers in Python, wrap your own (global) C++ function for this
+purpose (as the <tt>intval</tt> above). </p>
+
+<p>Nesting strong/scoped enums within classes does not work (not implemented).
+It is so, because C++ class nesting is not implemented for Python (and we
+internally use Python classes to implement strong/scoped enums).</p>
+
+<p>To enable strong/scoped enums globally (for all named enum types), use
+<tt>-strongenum</tt> and/or <tt>-scopedenum</tt> swig CLI options. You may also
+use <tt>-enumclass</tt> option to enable <tt>strong</tt> and <tt>scoped</tt>
+features for all <tt>enum class</tt>es.<p>
+
 <H3><a name="Python_nn18"></a>36.3.5 Pointers</H3>
 
 

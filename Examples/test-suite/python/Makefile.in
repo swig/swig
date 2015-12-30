@@ -61,6 +61,7 @@ CPP_TEST_CASES += \
 	python_destructor_exception \
 	python_director \
 	python_docstring \
+	python_enum_strong_scoped \
 	python_nondynamic \
 	python_overload_simple_cast \
 	python_pythoncode \
