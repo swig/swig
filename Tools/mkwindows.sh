@@ -44,6 +44,9 @@ else
       zip=zip
     fi
     extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+    echo "Checking that mingw gcc is installed/available"
+    i586-mingw32msvc-gcc --version || exit 1
+    i586-mingw32msvc-g++ --version || exit 1
   else 
     if test "$cygwin"; then
       echo "Building native Windows executable on Cygwin"
