@@ -12,7 +12,7 @@ SWIG_JSC_SetModule(void *clientdata, swig_module_info *swig_module) {
     JSObjectRef object = JSObjectMake(context, classRef, NULL);
     JSObjectSetPrivate(object, (void*)swig_module);
 
-    JSObjectSetProperty(context, globalObject, moduleName, object, NULL, NULL);
+    JSObjectSetProperty(context, globalObject, moduleName, object, kJSPropertyAttributeNone, NULL);
 
     JSClassRelease(classRef);
     JSStringRelease(moduleName);
