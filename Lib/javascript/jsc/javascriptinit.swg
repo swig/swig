@@ -24,7 +24,7 @@ SWIG_JSC_GetModule(void *clientdata) {
     JSObjectRef globalObject = JSContextGetGlobalObject(context);
     JSStringRef moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
 
-    if(JSObjectHasProperty(context, globalObject, moduleName) == false){
+    if(JSObjectHasProperty(context, globalObject, moduleName) == false) {
         JSStringRelease(moduleName);
         return 0;
     }
