@@ -180,20 +180,22 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
 /* long long */
 
 %fragment(SWIG_From_frag(long long),"header",
-	  fragment=SWIG_From_frag(long),
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE PyObject* 
 SWIG_From_dec(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
     PyLong_FromLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
 	  fragment=SWIG_AsVal_frag(long),
 	  fragment="SWIG_CanCastAsInteger",
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
@@ -230,25 +232,28 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 %#endif
   return res;
 }
+%#endif
 }
 
 /* unsigned long long */
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
-	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE PyObject* 
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
     PyLong_FromUnsignedLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long),
 	  fragment="SWIG_CanCastAsInteger",
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
@@ -284,6 +289,7 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 %#endif
   return res;
 }
+%#endif
 }
 
 /* double */
