@@ -1,15 +1,26 @@
 %insert(init) %{
 SWIGRUNTIME void
 SWIG_JSC_SetModule(void *clientdata, swig_module_info *swig_module) {
-    JSGlobalContextRef context = (JSGlobalContextRef)clientdata;
+    JSGlobalContextRef context;
+    JSObjectRef globalObject;
+    JSStringRef moduleName;
+    JSClassDefinition classDef;
+    JSClassRef classRef;
+    JSObjectRef object;
 
-    JSObjectRef globalObject = JSContextGetGlobalObject(context);
-    JSStringRef moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+    if(clientdata == 0){
+        return;
+    }
 
-    JSClassDefinition classDef  = kJSClassDefinitionEmpty;
-    JSClassRef classRef = JSClassCreate(&classDef);
+    context = (JSGlobalContextRef)clientdata;
 
-    JSObjectRef object = JSObjectMake(context, classRef, NULL);
+    globalObject = JSContextGetGlobalObject(context);
+    moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+
+    classDef  = kJSClassDefinitionEmpty;
+    classRef = JSClassCreate(&classDef);
+
+    object = JSObjectMake(context, classRef, NULL);
     JSObjectSetPrivate(object, (void*)swig_module);
 
     JSObjectSetProperty(context, globalObject, moduleName, object, kJSPropertyAttributeNone, NULL);
@@ -19,23 +30,31 @@ SWIG_JSC_SetModule(void *clientdata, swig_module_info *swig_module) {
 }
 SWIGRUNTIME swig_module_info *
 SWIG_JSC_GetModule(void *clientdata) {
-    JSGlobalContextRef context = (JSGlobalContextRef)clientdata;
+    JSGlobalContextRef context;
+    JSObjectRef globalObject;
+    JSStringRef moduleName;
+    JSValueRef value;
+    JSObjectRef object;
 
-    JSObjectRef globalObject = JSContextGetGlobalObject(context);
-    JSStringRef moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
+    if(clientdata == 0){
+        return 0;
+    }
+
+    context = (JSGlobalContextRef)clientdata;
+
+    globalObject = JSContextGetGlobalObject(context);
+    moduleName = JSStringCreateWithUTF8CString("swig_module_info_data");
 
     if(JSObjectHasProperty(context, globalObject, moduleName) == false) {
         JSStringRelease(moduleName);
         return 0;
     }
 
-    JSValueRef value = JSObjectGetProperty(context, globalObject, moduleName, NULL);
-
-    JSObjectRef object = JSValueToObject(context, value, NULL);
-    swig_module_info *swig_module = (swig_module_info*)JSObjectGetPrivate(object);
-
+    value = JSObjectGetProperty(context, globalObject, moduleName, NULL);
+    object = JSValueToObject(context, value, NULL);
     JSStringRelease(moduleName);
-    return swig_module;
+
+    return (swig_module_info*)JSObjectGetPrivate(object);
 }
 
 #define SWIG_GetModule(clientdata)                SWIG_JSC_GetModule(clientdata)
