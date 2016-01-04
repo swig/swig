@@ -485,7 +485,7 @@ public:
   	String *enumname;
 
   	Node *p = parentNode(n);
-  	if (p && !Strcmp(nodeType(p), "class")) {	// This is a nested enum, prefix the class name
+  	if (p && !Cmp(nodeType(p), "class")) {	// This is a nested enum, prefix the class name
     	String *parentname = Getattr(p, "sym:name");
     	enumname = NewStringf("%s_%s", parentname, symname);
   	}
@@ -540,7 +540,7 @@ public:
   	Node *pparent = parentNode(parent);
   	String *enumname;
   	
-  	if (pparent && !Strcmp(nodeType(pparent), "class")) {	// This is a nested enum, prefix the class name
+  	if (pparent && !Cmp(nodeType(pparent), "class")) {	// This is a nested enum, prefix the class name
     	String *classname = Getattr(pparent, "sym:name");
     	enumname = NewStringf("%s_%s", classname, symname);
   	}
@@ -1537,7 +1537,7 @@ void OBJECTIVEC::substituteClassnameVariable(String *tm, const char *classnameva
     Node *n = enumLookup(type);
     String *enum_name = Getattr(n, "sym:name");
     Node *p = parentNode(n);
-    if (p && !Strcmp(nodeType(p), "class")) {
+    if (p && !Cmp(nodeType(p), "class")) {
       // This is a nested enum.
       String *parent_name = Getattr(p, "sym:name");
       type_name = NewStringf("enum %s_%s", parent_name, enum_name);

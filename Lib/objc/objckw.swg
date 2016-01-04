@@ -24,6 +24,7 @@ OBJCKW(for);
 OBJCKW(goto);
 OBJCKW(id);
 OBJCKW(if);
+OBJCKW(init);
 OBJCKW(IMP);
 OBJCKW(instanceof);
 OBJCKW(inline);

@@ -1475,7 +1475,7 @@ objc_run:
 # -----------------------------------------------------------------
 
 objc_version:
-	$(OBJC) -v
+	$(CXX) -v
 
 objc_clean:
 	rm -f *_wrap* *_proxy* .~* $(RUNME)

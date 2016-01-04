@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = objc
-OBJC	     = @OBJC@
+CXX	     	 = @CXX@
 SCRIPTSUFFIX = _runme.m
 OBJCXXFLAGS  = @OBJCCFLAGS@
 OBJCFLAGS    = @OBJCCFLAGS@
@@ -16,7 +16,7 @@ top_builddir = @top_builddir@
 include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -26,17 +26,16 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
 
-
 # Compiles Objective-C files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
-	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  $(COMPILETOOL) $(OBJC) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(OBJCLIBS) -L. -l$* -o $*_runme && \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(COMPILETOOL) $(CXX) $(OBJCINCLUDES) -I. $(OBJCFLAGS) $(OBJCXXFLAGS) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $(OBJCLIBS) -L. -l$* -o $*_runme && \
        	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 

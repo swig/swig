@@ -231,7 +231,7 @@
             unsigned long long,
             float,
             double
-%{ $result = $1; %}
+%{ $result = *(typeof($result)*)&$1; %}
 
 %typemap(out) void ""
 
@@ -249,7 +249,7 @@
 	     	 const unsigned long long &,unsigned long long &,
 	      	 const float &, 			float &,
 	      	 const double &,  			double &
-%{ $result = $1; %}
+%{ $result = *(typeof($result)*)&$1; %}
 
 
 %typemap(out)const char *,  			char *,
@@ -265,7 +265,7 @@
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,
 	      	 const double *,  			double *
-%{ $result = $1; %}
+%{ $result = *(typeof($result)*)&$1; %}
 
 // Booleans:
 %typemap(out) bool
