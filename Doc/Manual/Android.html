@@ -1,11 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Android</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Android"></a>19 SWIG and Android</H1>
+<H1><a name="Android">19 SWIG and Android</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -30,7 +31,7 @@ This chapter describes SWIG's support of Android.
 
 
 
-<H2><a name="Android_overview"></a>19.1 Overview</H2>
+<H2><a name="Android_overview">19.1 Overview</a></H2>
 
 
 <p>
@@ -40,10 +41,10 @@ Everything in the <a href="Java.html#Java">Java chapter</a> applies to generatin
 This chapter contains a few Android specific notes and examples.
 </p>
 
-<H2><a name="Android_examples"></a>19.2 Android examples</H2>
+<H2><a name="Android_examples">19.2 Android examples</a></H2>
 
 
-<H3><a name="Android_examples_intro"></a>19.2.1 Examples introduction</H3>
+<H3><a name="Android_examples_intro">19.2.1 Examples introduction</a></H3>
 
 
 <p>
@@ -76,7 +77,7 @@ $ android list targets
 The following examples are shipped with SWIG under the Examples/android directory and include a Makefile to build and install each example.
 </p>
 
-<H3><a name="Android_example_simple"></a>19.2.2 Simple C example</H3>
+<H3><a name="Android_example_simple">19.2.2 Simple C example</a></H3>
 
 
 <p>
@@ -209,7 +210,7 @@ When complete your device should be listed in those attached, something like:
 <pre>
 $ adb devices
 List of devices attached 
-A32-6DBE0001-9FF80000-015D62C3-02018028	device
+A32-6DBE0001-9FF80000-015D62C3-02018028 device
 </pre>
 </div>
 
@@ -221,7 +222,7 @@ This means you are now ready to install the application...
 <pre>
 $ adb install bin/SwigSimple-debug.apk 
 95 KB/s (4834 bytes in 0.049s)
-	pkg: /data/local/tmp/SwigSimple-debug.apk
+        pkg: /data/local/tmp/SwigSimple-debug.apk
 Success
 </pre>
 </div>
@@ -398,7 +399,7 @@ Run the app again and this time you will see the output pictured below, showing 
 <center><img src="android-simple.png" alt="Android screenshot of SwigSimple example"></center>
 
 
-<H3><a name="Android_example_class"></a>19.2.3 C++ class example</H3>
+<H3><a name="Android_example_class">19.2.3 C++ class example</a></H3>
 
 
 <p>
@@ -746,7 +747,7 @@ Run the app to see the result of calling the C++ code from Java:
 
 <center><img src="android-class.png" alt="Android screenshot of SwigClass example"></center>
 
-<H3><a name="Android_examples_other"></a>19.2.4 Other examples</H3>
+<H3><a name="Android_examples_other">19.2.4 Other examples</a></H3>
 
 
 <p>
@@ -758,7 +759,7 @@ Note that the 'extend' example is demonstrates the directors feature.
 Normally C++ exception handling and the STL is not available by default in the version of g++ shipped with Android, but this example turns these features on as described in the next section.
 </p>
 
-<H2><a name="Android_stl"></a>19.3 C++ STL</H2>
+<H2><a name="Android_stl">19.3 C++ STL</a></H2>
 
 
 <p>

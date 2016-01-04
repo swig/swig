@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Customization Features</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Customization"></a>12 Customization Features</H1>
+<H1><a name="Customization">12 Customization Features</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -45,7 +46,7 @@ of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
 </p>
 
-<H2><a name="Customization_exception"></a>12.1 Exception handling with %exception</H2>
+<H2><a name="Customization_exception">12.1 Exception handling with %exception</a></H2>
 
 
 <p>
@@ -100,7 +101,7 @@ for exception handling.   That directive is deprecated--<tt>%exception</tt>
 provides the same functionality, but is substantially more flexible.
 </p>
 
-<H3><a name="Customization_nn3"></a>12.1.1 Handling exceptions in C code</H3>
+<H3><a name="Customization_nn3">12.1.1 Handling exceptions in C code</a></H3>
 
 
 <p>
@@ -115,16 +116,18 @@ static char error_message[256];
 static int error_status = 0;
 
 void throw_exception(char *msg) {
-	strncpy(error_message,msg,256);
-	error_status = 1;
+  strncpy(error_message,msg,256);
+  error_status = 1;
 }
 
 void clear_exception() {
-	error_status = 0;
+  error_status = 0;
 }
 char *check_exception() {
-	if (error_status) return error_message;
-	else return NULL;
+  if (error_status)
+    return error_message;
+  else
+    return NULL;
 }
 
 </pre></div>
@@ -136,13 +139,13 @@ To use these functions, functions simply call
 
 <div class="code"><pre>
 double inv(double x) {
-	if (x != 0) return 1.0/x;
-	else {
-		throw_exception("Division by zero");
-		return 0;
-	}
+  if (x != 0)
+    return 1.0/x;
+  else {
+    throw_exception("Division by zero");
+    return 0;
+  }
 }
-
 </pre></div>
 
 <p>
@@ -151,12 +154,12 @@ as the following (shown for Perl5) :</p>
 
 <div class="code"><pre>
 %exception {
-    char *err;
-    clear_exception();
-    $action
-    if ((err = check_exception())) {
-       croak(err);
-    }
+  char *err;
+  clear_exception();
+  $action
+  if ((err = check_exception())) {
+    croak(err);
+  }
 }
 </pre></div>
 
@@ -166,7 +169,7 @@ Each target language has its own approach to creating a runtime error/exception 
 and for Perl it is the <tt>croak</tt> method shown above.
 </p>
 
-<H3><a name="Customization_nn4"></a>12.1.2 Exception handling with longjmp()</H3>
+<H3><a name="Customization_nn4">12.1.2 Exception handling with longjmp()</a></H3>
 
 
 <p>
@@ -206,8 +209,10 @@ Now, within a C program, you can do the following :</p>
 
 <div class="code"><pre>
 double inv(double x) {
-	if (x) return 1.0/x;
-	else throw(DivisionByZero);
+  if (x)
+    return 1.0/x;
+  else
+    throw(DivisionByZero);
 }
 
 </pre></div>
@@ -221,17 +226,17 @@ Finally, to create a SWIG exception handler, write the following :</p>
 %}
 
 %exception {
-	try {
-		$action
-	} catch(RangeError) {
-		croak("Range Error");
-	} catch(DivisionByZero) {
-		croak("Division by zero");
-	} catch(OutOfMemory) {
-		croak("Out of memory");
-	} finally {
-		croak("Unknown exception");
-	}
+  try {
+    $action
+  } catch(RangeError) {
+    croak("Range Error");
+  } catch(DivisionByZero) {
+    croak("Division by zero");
+  } catch(OutOfMemory) {
+    croak("Out of memory");
+  } finally {
+    croak("Unknown exception");
+  }
 }
 </pre></div>
 
@@ -240,7 +245,7 @@ Note: This implementation is only intended to illustrate the general idea.  To m
 modify it to handle nested <tt>try</tt> declarations.
 </p>
 
-<H3><a name="Customization_nn5"></a>12.1.3 Handling C++ exceptions</H3>
+<H3><a name="Customization_nn5">12.1.3 Handling C++ exceptions</a></H3>
 
 
 <p>
@@ -249,17 +254,17 @@ Handling C++ exceptions is also straightforward.  For example:
 
 <div class="code"><pre>
 %exception {
-	try {
-		$action
-	} catch(RangeError) {
-		croak("Range Error");
-	} catch(DivisionByZero) {
-		croak("Division by zero");
-	} catch(OutOfMemory) {
-		croak("Out of memory");
-	} catch(...) {
-		croak("Unknown exception");
-	}
+  try {
+    $action
+  } catch(RangeError) {
+    croak("Range Error");
+  } catch(DivisionByZero) {
+    croak("Division by zero");
+  } catch(OutOfMemory) {
+    croak("Out of memory");
+  } catch(...) {
+    croak("Unknown exception");
+  }
 }
 
 </pre></div>
@@ -275,7 +280,7 @@ class OutOfMemory {};
 </pre>
 </div>
 
-<H3><a name="Customization_allowexcept"></a>12.1.4 Exception handlers for variables</H3>
+<H3><a name="Customization_allowexcept">12.1.4 Exception handlers for variables</a></H3>
 
 
 <p>
@@ -300,7 +305,7 @@ The <tt>%allowexception</tt> feature works like any other feature and so can be 
 </pre>
 </div>
 
-<H3><a name="Customization_nn6"></a>12.1.5 Defining different exception handlers</H3>
+<H3><a name="Customization_nn6">12.1.5 Defining different exception handlers</a></H3>
 
 
 <p>
@@ -319,7 +324,7 @@ critical pieces of code.  For example:
 
 <div class="code"><pre>
 %exception {
-	... your exception handler ...
+  ... your exception handler ...
 }
 /* Define critical operations that can throw exceptions here */
 
@@ -437,7 +442,7 @@ declarations.  However, it never really worked that well and the new
 %exception directive is much better.
 </p>
 
-<H3><a name="Customization_exception_special_variables"></a>12.1.6 Special variables for %exception</H3>
+<H3><a name="Customization_exception_special_variables">12.1.6 Special variables for %exception</a></H3>
 
 
 <p>
@@ -540,7 +545,7 @@ Below shows the expansions for the 1st of the overloaded <tt>something</tt> wrap
 </pre></div>
 
 
-<H3><a name="Customization_nn7"></a>12.1.7 Using The SWIG exception library</H3>
+<H3><a name="Customization_nn7">12.1.7 Using The SWIG exception library</a></H3>
 
 
 <p>
@@ -595,7 +600,7 @@ SWIG_NullReferenceError
 The <tt>SWIG_exception()</tt> function can also be used in typemaps.
 </p>
 
-<H2><a name="Customization_ownership"></a>12.2 Object ownership and %newobject</H2>
+<H2><a name="Customization_ownership">12.2 Object ownership and %newobject</a></H2>
 
 
 <p>
@@ -752,7 +757,7 @@ char *strdup(const char *s);
 The results might not be what you expect.
 </p>
 
-<H2><a name="Customization_features"></a>12.3 Features and the %feature directive</H2>
+<H2><a name="Customization_features">12.3 Features and the %feature directive</a></H2>
 
 
 <p>
@@ -834,7 +839,7 @@ The following are all equivalent:
 The syntax in the first variation will generate the <tt>{ }</tt> delimiters used whereas the other variations will not.
 </p>
 
-<H3><a name="Customization_feature_attributes"></a>12.3.1 Feature attributes</H3>
+<H3><a name="Customization_feature_attributes">12.3.1 Feature attributes</a></H3>
 
 
 <p>
@@ -875,7 +880,7 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 Further details can be obtained from the <a href="Java.html#Java_exception_handling">Java exception handling</a> section.
 </p>
 
-<H3><a name="Customization_feature_flags"></a>12.3.2 Feature flags</H3>
+<H3><a name="Customization_feature_flags">12.3.2 Feature flags</a></H3>
 
 
 <p>
@@ -973,7 +978,7 @@ in the <tt>swig.swg</tt> Library file. The following shows the alternative synta
 The concept of clearing features is discussed next.
 </p>
 
-<H3><a name="Customization_clearing_features"></a>12.3.3 Clearing features</H3>
+<H3><a name="Customization_clearing_features">12.3.3 Clearing features</a></H3>
 
 
 <p>
@@ -1066,7 +1071,7 @@ The three macros below show this for the "except" feature:
 </pre>
 </div>
 
-<H3><a name="Customization_features_default_args"></a>12.3.4 Features and default arguments</H3>
+<H3><a name="Customization_features_default_args">12.3.4 Features and default arguments</a></H3>
 
 
 <p>
@@ -1141,7 +1146,7 @@ specifying or not specifying default arguments in a feature is not applicable as
 in SWIG-1.3.23 when the approach to wrapping methods with default arguments was changed.
 </p>
 
-<H3><a name="Customization_features_example"></a>12.3.5 Feature example</H3>
+<H3><a name="Customization_features_example">12.3.5 Feature example</a></H3>
 
 
 <p>

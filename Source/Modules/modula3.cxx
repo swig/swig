@@ -958,9 +958,7 @@ MODULA3():
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGMODULA3\n");
-    Printf(f_runtime, "\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGMODULA3\n#define SWIGMODULA3\n#endif\n\n");
 
     Swig_name_register("wrapper", "Modula3_%f");
     if (old_variable_names) {

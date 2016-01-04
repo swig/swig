@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and C++</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="SWIGPlus"></a>6 SWIG and C++</H1>
+<H1><a name="SWIGPlus">6 SWIG and C++</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -75,7 +76,7 @@ how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
 wrapping and that material will be useful in understanding this chapter.
 </p>
 
-<H2><a name="SWIGPlus_nn2"></a>6.1 Comments on C++ Wrapping</H2>
+<H2><a name="SWIGPlus_nn2">6.1 Comments on C++ Wrapping</a></H2>
 
 
 <p>
@@ -117,7 +118,7 @@ crossing language boundaries and provides many opportunities to shoot
 yourself in the foot.  You will just have to be careful.
 </p>
 
-<H2><a name="SWIGPlus_nn3"></a>6.2 Approach</H2>
+<H2><a name="SWIGPlus_nn3">6.2 Approach</a></H2>
 
 
 <p>
@@ -158,7 +159,7 @@ proxy classes.  More detailed coverage can be found in the documentation
 for each target language.
 </p>
 
-<H2><a name="SWIGPlus_nn4"></a>6.3 Supported C++ features</H2>
+<H2><a name="SWIGPlus_nn4">6.3 Supported C++ features</a></H2>
 
 
 <p>
@@ -197,7 +198,7 @@ in future releases.  However, we make no promises.  Also, submitting a bug repor
 good way to get problems fixed (wink).
 </p>
 
-<H2><a name="SWIGPlus_nn5"></a>6.4 Command line options and compilation</H2>
+<H2><a name="SWIGPlus_nn5">6.4 Command line options and compilation</a></H2>
 
 
 <p>
@@ -231,7 +232,7 @@ details.  The SWIG Wiki also has further details.
 The <tt>-noproxy</tt> commandline option is recognised by many target languages and will generate just this
 interface as in earlier versions.
 
-<H2><a name="SWIGPlus_nn38"></a>6.5 Proxy classes</H2>
+<H2><a name="SWIGPlus_nn38">6.5 Proxy classes</a></H2>
 
 
 <p>
@@ -243,7 +244,7 @@ wrapped by a Python proxy class.  Or if you're building a Java module, each
 C++ class is wrapped by a Java proxy class.  
 </p>
 
-<H3><a name="SWIGPlus_nn39"></a>6.5.1 Construction of proxy classes</H3>
+<H3><a name="SWIGPlus_nn39">6.5.1 Construction of proxy classes</a></H3>
 
 
 <p>
@@ -325,7 +326,7 @@ Whenever possible, proxies try to take advantage of language features that are s
 might include operator overloading,  exception handling, and other features.
 </p>
 
-<H3><a name="SWIGPlus_nn40"></a>6.5.2 Resource management in proxies</H3>
+<H3><a name="SWIGPlus_nn40">6.5.2 Resource management in proxies</a></H3>
 
 
 <p>
@@ -479,7 +480,7 @@ every possible memory management problem.  However, proxies do provide a mechani
 can be used (if necessary) to address some of the more tricky memory management problems.
 </p>
 
-<H3><a name="SWIGPlus_nn41"></a>6.5.3 Language specific details</H3>
+<H3><a name="SWIGPlus_nn41">6.5.3 Language specific details</a></H3>
 
 
 <p>
@@ -487,7 +488,7 @@ Language specific details on proxy classes are contained in the chapters describ
 chapter has merely introduced the topic in a very general way.
 </p>
 
-<H2><a name="SWIGPlus_nn6"></a>6.6 Simple C++ wrapping</H2>
+<H2><a name="SWIGPlus_nn6">6.6 Simple C++ wrapping</a></H2>
 
 
 <p>
@@ -520,7 +521,7 @@ To generate wrappers for this class, SWIG first reduces the class to a collectio
 accessor functions which are then used by the proxy classes.
 </p>
 
-<H3><a name="SWIGPlus_nn7"></a>6.6.1 Constructors and destructors</H3>
+<H3><a name="SWIGPlus_nn7">6.6.1 Constructors and destructors</a></H3>
 
 
 <p>
@@ -529,15 +530,15 @@ functions such as the following :</p>
 
 <div class="code"><pre>
 List * new_List(void) {
-	return new List;
+  return new List;
 }
 void delete_List(List *l) {
-	delete l;
+  delete l;
 }
 
 </pre></div>
 
-<H3><a name="SWIGPlus_nn8"></a>6.6.2 Default constructors, copy constructors and implicit destructors</H3>
+<H3><a name="SWIGPlus_nn8">6.6.2 Default constructors, copy constructors and implicit destructors</a></H3>
 
 
 <p>
@@ -686,7 +687,7 @@ leaks, and so it is strongly recommended to not use them.
 </p>
 
 
-<H3><a name="SWIGPlus_nn9"></a>6.6.3 When constructor wrappers aren't created</H3>
+<H3><a name="SWIGPlus_nn9">6.6.3 When constructor wrappers aren't created</a></H3>
 
 
 <p>
@@ -763,7 +764,7 @@ public:
 More information about <tt>%feature</tt> can be found in the <a href="Customization.html#Customization">Customization features</a> chapter.
 </p>
 
-<H3><a name="SWIGPlus_nn10"></a>6.6.4 Copy constructors</H3>
+<H3><a name="SWIGPlus_nn10">6.6.4 Copy constructors</a></H3>
 
 
 <p>
@@ -865,7 +866,7 @@ constructor is set to <tt>new_CopyFoo()</tt>.   This is the same as in
 older versions.
 </p>
 
-<H3><a name="SWIGPlus_nn11"></a>6.6.5 Member functions</H3>
+<H3><a name="SWIGPlus_nn11">6.6.5 Member functions</a></H3>
 
 
 <p>
@@ -873,7 +874,7 @@ All member functions are roughly translated into accessor functions like this :<
 
 <div class="code"><pre>
 int List_search(List *obj, char *value) {
-	return obj-&gt;search(value);
+  return obj-&gt;search(value);
 }
 
 </pre></div>
@@ -891,7 +892,7 @@ wrapper functions.  However, the name and calling convention of the
 low-level procedural wrappers match the accessor function prototype described above.
 </p>
 
-<H3><a name="SWIGPlus_nn12"></a>6.6.6 Static members</H3>
+<H3><a name="SWIGPlus_nn12">6.6.6 Static members</a></H3>
 
 
 <p>
@@ -901,7 +902,7 @@ transformations. For example, the static member function
 in the generated wrapper code.
 </p>
 
-<H3><a name="SWIGPlus_member_data"></a>6.6.7 Member data</H3>
+<H3><a name="SWIGPlus_member_data">6.6.7 Member data</a></H3>
 
 
 <p>
@@ -911,11 +912,11 @@ structures. A pair of accessor functions are effectively created. For example
 
 <div class="code"><pre>
 int List_length_get(List *obj) {
-	return obj-&gt;length;
+  return obj-&gt;length;
 }
 int List_length_set(List *obj, int value) {
-	obj-&gt;length = value;
-	return value;
+  obj-&gt;length = value;
+  return value;
 }
 
 </pre></div>
@@ -932,7 +933,7 @@ class List {
 public:
 ...
 %immutable;
-	int length;
+  int length;
 %mutable;
 ...
 };
@@ -1093,7 +1094,7 @@ a few problems related to structure wrapping and some of SWIG's
 customization features.
 </p>
 
-<H2><a name="SWIGPlus_default_args"></a>6.7 Default arguments</H2>
+<H2><a name="SWIGPlus_default_args">6.7 Default arguments</a></H2>
 
 
 <p>
@@ -1199,7 +1200,7 @@ Keyword arguments are a language feature of some scripting languages, for exampl
 SWIG is unable to support kwargs when wrapping overloaded methods, so the default approach cannot be used.
 </p>
 
-<H2><a name="SWIGPlus_nn15"></a>6.8 Protection</H2>
+<H2><a name="SWIGPlus_nn15">6.8 Protection</a></H2>
 
 
 <p>
@@ -1219,7 +1220,7 @@ until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).
 </p>
 
-<H2><a name="SWIGPlus_nn16"></a>6.9 Enums and constants</H2>
+<H2><a name="SWIGPlus_nn16">6.9 Enums and constants</a></H2>
 
 
 <p>
@@ -1230,7 +1231,7 @@ into constants with the classname as a prefix. For example :</p>
 <div class="code"><pre>
 class Swig {
 public:
-	enum {ALE, LAGER, PORTER, STOUT};
+  enum {ALE, LAGER, PORTER, STOUT};
 };
 
 </pre></div>
@@ -1249,7 +1250,7 @@ Swig_STOUT = Swig::STOUT
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 </p>
 
-<H2><a name="SWIGPlus_nn17"></a>6.10 Friends</H2>
+<H2><a name="SWIGPlus_nn17">6.10 Friends</a></H2>
 
 
 <p>
@@ -1310,7 +1311,7 @@ namespace bar {
 and a wrapper for the method 'blah' will not be generated.
 </p>
 
-<H2><a name="SWIGPlus_nn18"></a>6.11 References and pointers</H2>
+<H2><a name="SWIGPlus_nn18">6.11 References and pointers</a></H2>
 
 
 <p>
@@ -1320,7 +1321,7 @@ a declaration like this :</p>
 <div class="code"><pre>
 class Foo {
 public:
-	double bar(double &amp;a);
+  double bar(double &amp;a);
 }
 </pre></div>
 
@@ -1330,7 +1331,7 @@ has a low-level accessor
 
 <div class="code"><pre>
 double Foo_bar(Foo *obj, double *a) {
-	obj-&gt;bar(*a);
+  obj-&gt;bar(*a);
 }
 </pre></div>
 
@@ -1410,7 +1411,7 @@ templates and the STL.  This was first added in SWIG-1.3.12.
 </p>
 
 
-<H2><a name="SWIGPlus_nn19"></a>6.12 Pass and return by value</H2>
+<H2><a name="SWIGPlus_nn19">6.12 Pass and return by value</a></H2>
 
 
 <p>
@@ -1514,7 +1515,7 @@ classes that don't define a default constructor.
 It is not used for C++ pointers or references.
 </p>
 
-<H2><a name="SWIGPlus_nn20"></a>6.13 Inheritance</H2>
+<H2><a name="SWIGPlus_nn20">6.13 Inheritance</a></H2>
 
 
 <p>
@@ -1549,24 +1550,24 @@ the full C++ code has been omitted.</p>
 
 class Shape {
 public:
-        double x,y;
-	virtual double area() = 0;
-	virtual double perimeter() = 0;
-	void    set_location(double x, double y);
+  double x,y;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
+  void    set_location(double x, double y);
 };
 class Circle : public Shape {
 public:
-	Circle(double radius);
-	~Circle();
-	double area();
-	double perimeter();
+  Circle(double radius);
+  ~Circle();
+  double area();
+  double perimeter();
 };
 class Square : public Shape {
 public:
-	Square(double size);
-	~Square();
-	double area();
-	double perimeter();
+  Square(double size);
+  ~Square();
+  double area();
+  double perimeter();
 }
 </pre></div>
 
@@ -1700,7 +1701,7 @@ functions for virtual members that are already defined in a base
 class.
 </p>
 
-<H2><a name="SWIGPlus_nn21"></a>6.14 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
+<H2><a name="SWIGPlus_nn21">6.14 A brief discussion of multiple inheritance, pointers,  and type checking</a></H2>
 
 
 <p>
@@ -1832,7 +1833,7 @@ int y = B_function((B *) pB);
 In practice, the pointer is held as an integral number in the target language proxy class.
 </p>
 
-<H2><a name="SWIGPlus_overloaded_methods"></a>6.15 Wrapping Overloaded Functions and Methods</H2>
+<H2><a name="SWIGPlus_overloaded_methods">6.15 Wrapping Overloaded Functions and Methods</a></H2>
 
 
 <p>
@@ -1895,7 +1896,7 @@ it might be used like this
 </pre>
 </div>
 
-<H3><a name="SWIGPlus_nn24"></a>6.15.1 Dispatch function generation</H3>
+<H3><a name="SWIGPlus_nn24">6.15.1 Dispatch function generation</a></H3>
 
 
 <p>
@@ -2020,7 +2021,7 @@ checked in the same order as they appear in this ranking.
 If you're still confused, don't worry about it---SWIG is probably doing the right thing.
 </p>
 
-<H3><a name="SWIGPlus_nn25"></a>6.15.2 Ambiguity in Overloading</H3>
+<H3><a name="SWIGPlus_nn25">6.15.2 Ambiguity in Overloading</a></H3>
 
 
 <p>
@@ -2138,7 +2139,7 @@ it means that the target language module has not yet implemented support for ove
 functions and methods.  The only way to fix the problem is to read the next section.
 </p>
 
-<H3><a name="SWIGPlus_ambiguity_resolution_renaming"></a>6.15.3 Ambiguity resolution and renaming</H3>
+<H3><a name="SWIGPlus_ambiguity_resolution_renaming">6.15.3 Ambiguity resolution and renaming</a></H3>
 
 
 <p>
@@ -2481,6 +2482,7 @@ above:
 <li><p>
 Currently no resolution is performed in order to match function parameters. This means function parameter types must match exactly.
 For example, namespace qualifiers and typedefs will not work. The following usage of typedefs demonstrates this:
+</p>
 
 <div class="code">
 <pre>
@@ -2567,7 +2569,7 @@ to wrapping methods with default arguments was introduced.
 
 </ul>
 
-<H3><a name="SWIGPlus_nn27"></a>6.15.4 Comments on overloading</H3>
+<H3><a name="SWIGPlus_nn27">6.15.4 Comments on overloading</a></H3>
 
 
 <p>
@@ -2584,7 +2586,7 @@ As a general rule, statically typed languages like Java are able to provide more
 than dynamically typed languages like Perl, Python, Ruby, and Tcl.
 </p>
 
-<H2><a name="SWIGPlus_nn28"></a>6.16 Wrapping overloaded operators</H2>
+<H2><a name="SWIGPlus_nn28">6.16 Wrapping overloaded operators</a></H2>
 
 
 <p>
@@ -2613,7 +2615,7 @@ public:
   }
   Complex operator*(const Complex &amp;c) const {
     return Complex(rpart*c.rpart - ipart*c.ipart,
-		   rpart*c.ipart + c.rpart*ipart);
+                   rpart*c.ipart + c.rpart*ipart);
   }
   Complex operator-() const {
     return Complex(-rpart, -ipart);
@@ -2768,7 +2770,7 @@ are ignored as well as conversion operators.
 </li>
 </ul>
 
-<H2><a name="SWIGPlus_class_extension"></a>6.17 Class extension</H2>
+<H2><a name="SWIGPlus_class_extension">6.17 Class extension</a></H2>
 
 
 <p>
@@ -2786,17 +2788,17 @@ example :
 
 class Vector {
 public:
-	double x,y,z;
-	Vector();
-	~Vector();
-	... bunch of C++ methods ...
-	%extend {
-		char *__str__() {
-			static char temp[256];
-			sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
-			return &amp;temp[0];
-		}
-	}
+  double x,y,z;
+  Vector();
+  ~Vector();
+  ... bunch of C++ methods ...
+  %extend {
+    char *__str__() {
+      static char temp[256];
+      sprintf(temp,"[ %g, %g, %g ]", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+      return &amp;temp[0];
+    }
+  }
 };
 </pre></div>
 
@@ -2867,7 +2869,7 @@ be used to extend a structure with more than just methods, a more suitable
 directive name has been chosen.
 </p>
 
-<H2><a name="SWIGPlus_nn30"></a>6.18 Templates</H2>
+<H2><a name="SWIGPlus_nn30">6.18 Templates</a></H2>
 
 
 <p>
@@ -3701,7 +3703,7 @@ as the class name.  For example:
 Similar changes apply to typemaps and other customization features.
 </p>
 
-<H2><a name="SWIGPlus_namespaces"></a>6.19 Namespaces</H2>
+<H2><a name="SWIGPlus_namespaces">6.19 Namespaces</a></H2>
 
 
 <p>
@@ -4150,7 +4152,7 @@ with any namespace awareness.   In the future, language modules may or may not p
 more advanced namespace support.
 </p>
 
-<H3><a name="SWIGPlus_nspace"></a>6.19.1 The nspace feature for namespaces</H3>
+<H3><a name="SWIGPlus_nspace">6.19.1 The nspace feature for namespaces</a></H3>
 
 
 <p>
@@ -4231,7 +4233,7 @@ namespace MyWorld {
 <b>Compatibility Note:</b> The nspace feature was first introduced in SWIG-2.0.0.
 </p>
 
-<H2><a name="SWIGPlus_renaming_templated_types_namespaces"></a>6.20 Renaming templated types in namespaces</H2>
+<H2><a name="SWIGPlus_renaming_templated_types_namespaces">6.20 Renaming templated types in namespaces</a></H2>
 
 
 <p>
@@ -4309,7 +4311,7 @@ namespace Space {
 </div>
 
 
-<H2><a name="SWIGPlus_exception_specifications"></a>6.21 Exception specifications</H2>
+<H2><a name="SWIGPlus_exception_specifications">6.21 Exception specifications</a></H2>
 
 
 <p>
@@ -4360,7 +4362,7 @@ Consult the "<a href="Customization.html#Customization_exception">Exception hand
 The next section details a way of simulating an exception specification or replacing an existing one.
 </p>
 
-<H2><a name="SWIGPlus_catches"></a>6.22 Exception handling with %catches</H2>
+<H2><a name="SWIGPlus_catches">6.22 Exception handling with %catches</a></H2>
 
 
 <p>
@@ -4410,7 +4412,7 @@ just a single catch handler for the base class, <tt>EBase</tt> will be generated
 </p>
 
 
-<H2><a name="SWIGPlus_nn33"></a>6.23 Pointers to Members</H2>
+<H2><a name="SWIGPlus_nn33">6.23 Pointers to Members</a></H2>
 
 
 <p>
@@ -4460,7 +4462,7 @@ when checking types.  However, no such support is currently provided
 for member pointers.
 </p>
 
-<H2><a name="SWIGPlus_smart_pointers"></a>6.24 Smart pointers and operator-&gt;()</H2>
+<H2><a name="SWIGPlus_smart_pointers">6.24 Smart pointers and operator-&gt;()</a></H2>
 
 
 <p>
@@ -4672,11 +4674,12 @@ p = f.__deref__()       # Raw pointer from operator-&gt;
 <b>Note:</b> Smart pointer support was first added in SWIG-1.3.14.
 </p>
 
-<H2><a name="SWIGPlus_ref_unref"></a>6.25 C++ reference counted objects - ref/unref feature</H2>
+<H2><a name="SWIGPlus_ref_unref">6.25 C++ reference counted objects - ref/unref feature</a></H2>
 
 
 <p>
 Another similar idiom in C++ is the use of reference counted objects. Consider for example:
+</p>
 
 <div class="code">
 <pre>
@@ -4693,11 +4696,11 @@ public:
     return add_ref();
   }
 
-  int unref() const   {
+  int unref() const {
     if (ref_count() == 0 || del_ref() == 0 ) {
-	delete this;
-	return 0;
-      } 
+      delete this;
+      return 0;
+    }
     return ref_count();
   }
 };
@@ -4844,7 +4847,7 @@ exit              # 'a' is released, SWIG unref 'a' called in the destructor wra
 
 
 
-<H2><a name="SWIGPlus_nn35"></a>6.26 Using declarations and inheritance</H2>
+<H2><a name="SWIGPlus_nn35">6.26 Using declarations and inheritance</a></H2>
 
 
 <p>
@@ -5007,7 +5010,7 @@ public:
 </div>
 </ul>
 
-<H2><a name="SWIGPlus_nested_classes"></a>6.27 Nested classes</H2>
+<H2><a name="SWIGPlus_nested_classes">6.27 Nested classes</a></H2>
 
 
 <p>
@@ -5071,7 +5074,7 @@ Nested class warnings could also not be suppressed using %warnfilter.
 </p>
 
 
-<H2><a name="SWIGPlus_const"></a>6.28 A brief rant about const-correctness</H2>
+<H2><a name="SWIGPlus_const">6.28 A brief rant about const-correctness</a></H2>
 
 
 <p>
@@ -5129,7 +5132,7 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
-<H2><a name="SWIGPlus_nn42"></a>6.29 Where to go for more information</H2>
+<H2><a name="SWIGPlus_nn42">6.29 Where to go for more information</a></H2>
 
 
 <p>

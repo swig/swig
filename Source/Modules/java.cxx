@@ -425,7 +425,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n#define SWIGJAVA\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGJAVA\n#define SWIGJAVA\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

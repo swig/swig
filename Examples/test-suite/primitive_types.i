@@ -365,6 +365,7 @@ macro(size_t,             pfx, sizet)
 %define ovr_decl(type, pfx, name)
   virtual int pfx##_##val(type x) { return 1; }
   virtual int pfx##_##ref(const type& x) { return 1; }
+  virtual const char* pfx##_##str(type x) { return "name"; }
 %enddef
 
 

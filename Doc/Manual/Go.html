@@ -1,11 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Go</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Go"></a>23 SWIG and Go</H1>
+<H1><a name="Go">23 SWIG and Go</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -56,7 +57,7 @@ the Go programming language
 see <a href="http://golang.org/">golang.org</a>.
 </p>
 
-<H2><a name="Go_overview"></a>23.1 Overview</H2>
+<H2><a name="Go_overview">23.1 Overview</a></H2>
 
 
 <p>
@@ -85,7 +86,7 @@ type-safe as well.  In case of type issues the build will fail and hence SWIG's
 are not used.
 </p>
 
-<H2><a name="Go_examples"></a>23.2 Examples</H2>
+<H2><a name="Go_examples">23.2 Examples</a></H2>
 
 
 <p>
@@ -100,7 +101,7 @@ SWIG interface file extension for backwards compatibility with Go 1.
 </p>
 
 
-<H2><a name="Go_running_swig"></a>23.3 Running SWIG with Go</H2>
+<H2><a name="Go_running_swig">23.3 Running SWIG with Go</a></H2>
 
 
 <p>
@@ -180,7 +181,7 @@ sequence for this approach would look like this:
 </pre></div>
 
 
-<H3><a name="Go_commandline"></a>23.3.1 Go-specific Commandline Options</H3>
+<H3><a name="Go_commandline">23.3.1 Go-specific Commandline Options</a></H3>
 
 
 <p>
@@ -263,7 +264,7 @@ swig -go -help
 </table>
 
 
-<H3><a name="Go_outputs"></a>23.3.2 Generated Wrapper Files</H3>
+<H3><a name="Go_outputs">23.3.2 Generated Wrapper Files</a></H3>
 
 
 <p>There are two different approaches to generating wrapper files,
@@ -307,7 +308,7 @@ combined with the compiled MODULE.go using go tool pack.
 </ul>
 
 
-<H2><a name="Go_basic_tour"></a>23.4 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Go_basic_tour">23.4 A tour of basic C/C++ wrapping</a></H2>
 
 
 <p>
@@ -317,7 +318,7 @@ modifications have to occur.  This section briefly covers the
 essential aspects of this wrapping.
 </p>
 
-<H3><a name="Go_package"></a>23.4.1 Go Package Name</H3>
+<H3><a name="Go_package">23.4.1 Go Package Name</a></H3>
 
 
 <p>
@@ -327,7 +328,7 @@ directive.  You may override this by using SWIG's <tt>-package</tt>
 command line option.
 </p>
 
-<H3><a name="Go_names"></a>23.4.2 Go Names</H3>
+<H3><a name="Go_names">23.4.2 Go Names</a></H3>
 
 
 <p>
@@ -359,7 +360,7 @@ followed by that name, and the destructor will be
 named <tt>Delete</tt> followed by that name.
 </p>
 
-<H3><a name="Go_constants"></a>23.4.3 Go Constants</H3>
+<H3><a name="Go_constants">23.4.3 Go Constants</a></H3>
 
 
 <p>
@@ -367,7 +368,7 @@ C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
 directive become Go constants, declared with a <tt>const</tt>
 declaration.
 
-<H3><a name="Go_enumerations"></a>23.4.4 Go Enumerations</H3>
+<H3><a name="Go_enumerations">23.4.4 Go Enumerations</a></H3>
 
 
 <p>
@@ -377,7 +378,7 @@ usual).  The values of the enumeration will become variables in Go;
 code should avoid modifying those variables.
 </p>
 
-<H3><a name="Go_classes"></a>23.4.5 Go Classes</H3>
+<H3><a name="Go_classes">23.4.5 Go Classes</a></H3>
 
 
 <p>
@@ -455,7 +456,7 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_memory"></a>23.4.5.1 Go Class Memory Management</H4>
+<H4><a name="Go_class_memory">23.4.5.1 Go Class Memory Management</a></H4>
 
 
 <p>
@@ -476,10 +477,10 @@ objects and fits nicely C++'s RAII idiom.  Example:
 <div class="code">
 <pre>
 func UseClassName(...) ... {
-	o := NewClassName(...)
-	defer DeleteClassName(o)
-	// Use the ClassName object
-	return ...
+  o := NewClassName(...)
+  defer DeleteClassName(o)
+  // Use the ClassName object
+  return ...
 }
 </pre>
 </div>
@@ -494,17 +495,17 @@ that creates a C++ object and functions called by this function.  Example:
 <div class="code">
 <pre>
 func WithClassName(constructor args, f func(ClassName, ...interface{}) error, data ...interface{}) error {
-	o := NewClassName(constructor args)
-	defer DeleteClassName(o)
-	return f(o, data...)
+  o := NewClassName(constructor args)
+  defer DeleteClassName(o)
+  return f(o, data...)
 }
 
 func UseClassName(o ClassName, data ...interface{}) (err error) {
-	// Use the ClassName object and additional data and return error.
+  // Use the ClassName object and additional data and return error.
 }
 
 func main() {
-	WithClassName(constructor args, UseClassName, additional data)
+  WithClassName(constructor args, UseClassName, additional data)
 }
 </pre>
 </div>
@@ -546,38 +547,38 @@ problematic with C++ code that uses thread-local storage.
 <div class="code">
 <pre>
 import (
-	"runtime"
-	"wrap" // SWIG generated wrapper code
+  "runtime"
+  "wrap" // SWIG generated wrapper code
 )
 
 type GoClassName struct {
-	wcn wrap.ClassName
+  wcn wrap.ClassName
 }
 
 func NewGoClassName() *GoClassName {
-	o := &amp;GoClassName{wcn: wrap.NewClassName()}
-	runtime.SetFinalizer(o, deleteGoClassName)
-	return o
+  o := &amp;GoClassName{wcn: wrap.NewClassName()}
+  runtime.SetFinalizer(o, deleteGoClassName)
+  return o
 }
 
 func deleteGoClassName(o *GoClassName) {
-	// Runs typically in a different OS thread!
-	wrap.DeleteClassName(o.wcn)
-	o.wcn = nil
+  // Runs typically in a different OS thread!
+  wrap.DeleteClassName(o.wcn)
+  o.wcn = nil
 }
 
 func (o *GoClassName) Close() {
-	// If the C++ object has a Close method.
-	o.wcn.Close()
+  // If the C++ object has a Close method.
+  o.wcn.Close()
 
-	// If the GoClassName object is no longer in an usable state.
-	runtime.SetFinalizer(o, nil) // Remove finalizer.
-	deleteGoClassName() // Free the C++ object.
+  // If the GoClassName object is no longer in an usable state.
+  runtime.SetFinalizer(o, nil) // Remove finalizer.
+  deleteGoClassName() // Free the C++ object.
 }
 </pre>
 </div>
 
-<H4><a name="Go_class_inheritance"></a>23.4.5.2 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance">23.4.5.2 Go Class Inheritance</a></H4>
 
 
 <p>
@@ -589,7 +590,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates"></a>23.4.6 Go Templates</H3>
+<H3><a name="Go_templates">23.4.6 Go Templates</a></H3>
 
 
 <p>
@@ -598,7 +599,7 @@ wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
 
-<H3><a name="Go_director_classes"></a>23.4.7 Go Director Classes</H3>
+<H3><a name="Go_director_classes">23.4.7 Go Director Classes</a></H3>
 
 
 <p>
@@ -616,7 +617,7 @@ completely to avoid common pitfalls with directors in Go.
 </p>
 
 
-<H4><a name="Go_director_example_cpp_code"></a>23.4.7.1 Example C++ code</H4>
+<H4><a name="Go_director_example_cpp_code">23.4.7.1 Example C++ code</a></H4>
 
 
 <p>
@@ -634,19 +635,19 @@ explains how to implement a FooBarGo class similar to the FooBarCpp class.
 class FooBarAbstract
 {
 public:
-	FooBarAbstract() {};
-	virtual ~FooBarAbstract() {};
+  FooBarAbstract() {};
+  virtual ~FooBarAbstract() {};
 
-	std::string FooBar() {
-		return this->Foo() + ", " + this->Bar();
-	};
+  std::string FooBar() {
+          return this->Foo() + ", " + this->Bar();
+  };
 
 protected:
-	virtual std::string Foo() {
-		return "Foo";
-	};
+  virtual std::string Foo() {
+          return "Foo";
+  };
 
-	virtual std::string Bar() = 0;
+  virtual std::string Bar() = 0;
 };
 </pre>
 </div>
@@ -660,13 +661,13 @@ protected:
 class FooBarCpp : public FooBarAbstract
 {
 protected:
-	virtual std::string Foo() {
-		return "C++ " + FooBarAbstract::Foo();
-	}
+  virtual std::string Foo() {
+    return "C++ " + FooBarAbstract::Foo();
+  }
 
-	virtual std::string Bar() {
-		return "C++ Bar";
-	}
+  virtual std::string Bar() {
+    return "C++ Bar";
+  }
 };
 </pre>
 </div>
@@ -688,7 +689,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_enable"></a>23.4.7.2 Enable director feature</H4>
+<H4><a name="Go_director_enable">23.4.7.2 Enable director feature</a></H4>
 
 
 <p>
@@ -723,7 +724,7 @@ documentation on directors.
 </p>
 
 
-<H4><a name="Go_director_ctor_dtor"></a>23.4.7.3 Constructor and destructor</H4>
+<H4><a name="Go_director_ctor_dtor">23.4.7.3 Constructor and destructor</a></H4>
 
 
 <p>
@@ -757,9 +758,9 @@ determine if an object instance was created via <tt>NewDirectorClassName</tt>:
 <div class="code">
 <pre>
 if o.DirectorInterface() != nil {
-	DeleteDirectorClassName(o)
+  DeleteDirectorClassName(o)
 } else {
-	DeleteClassName(o)
+  DeleteClassName(o)
 }
 </pre>
 </div>
@@ -776,7 +777,7 @@ embedding</a>.
 </p>
 
 
-<H4><a name="Go_director_overriding"></a>23.4.7.4 Override virtual methods</H4>
+<H4><a name="Go_director_overriding">23.4.7.4 Override virtual methods</a></H4>
 
 
 <p>
@@ -797,22 +798,22 @@ As an example see part of the <tt>FooBarGo</tt> class:
 <div class="code">
 <pre>
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	...
+  ...
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
-	...
+  ...
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb
-	...
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb
+  ...
 }
 </pre>
 </div>
@@ -842,7 +843,7 @@ the Go methods.
 </p>
 
 
-<H4><a name="Go_director_base_methods"></a>23.4.7.5 Call base methods</H4>
+<H4><a name="Go_director_base_methods">23.4.7.5 Call base methods</a></H4>
 
 
 <p>
@@ -854,7 +855,7 @@ the method in the base class.  This is also the case for the
 <div class="code">
 <pre>
 virtual std::string Foo() {
-	return "C++ " + FooBarAbstract::Foo();
+  return "C++ " + FooBarAbstract::Foo();
 }
 </pre>
 </div>
@@ -868,7 +869,7 @@ The <tt>FooBarGo.Foo</tt> implementation in the example looks like this:
 <div class="code">
 <pre>
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	return "Go " + DirectorFooBarAbstractFoo(om.fb)
+  return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 </pre>
 </div>
@@ -879,7 +880,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_subclass"></a>23.4.7.6 Subclass via embedding</H4>
+<H4><a name="Go_director_subclass">23.4.7.6 Subclass via embedding</a></H4>
 
 
 <p>
@@ -901,31 +902,31 @@ this:
 <div class="code">
 <pre>
 type FooBarGo interface {
-	FooBarAbstract
-	deleteFooBarAbstract()
-	IsFooBarGo()
+  FooBarAbstract
+  deleteFooBarAbstract()
+  IsFooBarGo()
 }
 
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 func (fbgs *fooBarGo) deleteFooBarAbstract() {
-	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
+  DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
 func (fbgs *fooBarGo) IsFooBarGo() {}
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb
 
-	return &amp;fooBarGo{FooBarAbstract: fb}
+  return &amp;fooBarGo{FooBarAbstract: fb}
 }
 
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbstract()
+  fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -947,7 +948,7 @@ class.
 </p>
 
 
-<H4><a name="Go_director_finalizer"></a>23.4.7.7 Memory management with runtime.SetFinalizer</H4>
+<H4><a name="Go_director_finalizer">23.4.7.7 Memory management with runtime.SetFinalizer</a></H4>
 
 
 <p>
@@ -961,14 +962,14 @@ in the <tt>FooBarGo</tt> class is here:
 <div class="code">
 <pre>
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om) // fb.v = om
-	om.fb = fb // Backlink causes cycle as fb.v = om!
-	...
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om) // fb.v = om
+  om.fb = fb // Backlink causes cycle as fb.v = om!
+  ...
 }
 </pre>
 </div>
@@ -984,21 +985,21 @@ the finalizer on <tt>fooBarGo</tt>:
 <div class="code">
 <pre>
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 type overwrittenMethodsOnFooBarAbstract struct {
-	fb FooBarAbstract
+  fb FooBarAbstract
 }
 
 func NewFooBarGo() FooBarGo {
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb // Backlink causes cycle as fb.v = om!
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
-	runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
-	return fbgs
+  fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+  runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
+  return fbgs
 }
 </pre>
 </div>
@@ -1012,7 +1013,7 @@ before using <tt>runtime.SetFinalizer</tt> to know all of its gotchas.
 </p>
 
 
-<H4><a name="Go_director_foobargo_class"></a>23.4.7.8 Complete FooBarGo example class</H4>
+<H4><a name="Go_director_foobargo_class">23.4.7.8 Complete FooBarGo example class</a></H4>
 
 
 <p>
@@ -1025,18 +1026,18 @@ The complete and annotated <tt>FooBarGo</tt> class looks like this:
 // drop in replacement for FooBarAbstract but the reverse causes a compile time
 // error.
 type FooBarGo interface {
-	FooBarAbstract
-	deleteFooBarAbstract()
-	IsFooBarGo()
+  FooBarAbstract
+  deleteFooBarAbstract()
+  IsFooBarGo()
 }
 
 // Via embedding fooBarGo "inherits" all methods of FooBarAbstract.
 type fooBarGo struct {
-	FooBarAbstract
+  FooBarAbstract
 }
 
 func (fbgs *fooBarGo) deleteFooBarAbstract() {
-	DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
+  DeleteDirectorFooBarAbstract(fbgs.FooBarAbstract)
 }
 
 // The IsFooBarGo method ensures that FooBarGo is a superset of FooBarAbstract.
@@ -1048,48 +1049,48 @@ func (fbgs *fooBarGo) IsFooBarGo() {}
 // Go type that defines the DirectorInterface. It contains the Foo and Bar
 // methods that overwrite the respective virtual C++ methods on FooBarAbstract.
 type overwrittenMethodsOnFooBarAbstract struct {
-	// Backlink to FooBarAbstract so that the rest of the class can be used by
-	// the overridden methods.
-	fb FooBarAbstract
+  // Backlink to FooBarAbstract so that the rest of the class can be used by
+  // the overridden methods.
+  fb FooBarAbstract
 
-	// If additional constructor arguments have been given they are typically
-	// stored here so that the overriden methods can use them.
+  // If additional constructor arguments have been given they are typically
+  // stored here so that the overriden methods can use them.
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Foo() string {
-	// DirectorFooBarAbstractFoo calls the base method FooBarAbstract::Foo.
-	return "Go " + DirectorFooBarAbstractFoo(om.fb)
+  // DirectorFooBarAbstractFoo calls the base method FooBarAbstract::Foo.
+  return "Go " + DirectorFooBarAbstractFoo(om.fb)
 }
 
 func (om *overwrittenMethodsOnFooBarAbstract) Bar() string {
-	return "Go Bar"
+  return "Go Bar"
 }
 
 func NewFooBarGo() FooBarGo {
-	// Instantiate FooBarAbstract with selected methods overridden.  The methods
-	// that will be overwritten are defined on
-	// overwrittenMethodsOnFooBarAbstract and have a compatible signature to the
-	// respective virtual C++ methods. Furthermore additional constructor
-	// arguments will be typically stored in the
-	// overwrittenMethodsOnFooBarAbstract struct.
-	om := &amp;overwrittenMethodsOnFooBarAbstract{}
-	fb := NewDirectorFooBarAbstract(om)
-	om.fb = fb // Backlink causes cycle as fb.v = om!
+  // Instantiate FooBarAbstract with selected methods overridden.  The methods
+  // that will be overwritten are defined on
+  // overwrittenMethodsOnFooBarAbstract and have a compatible signature to the
+  // respective virtual C++ methods. Furthermore additional constructor
+  // arguments will be typically stored in the
+  // overwrittenMethodsOnFooBarAbstract struct.
+  om := &amp;overwrittenMethodsOnFooBarAbstract{}
+  fb := NewDirectorFooBarAbstract(om)
+  om.fb = fb // Backlink causes cycle as fb.v = om!
 
-	fbgs := &amp;fooBarGo{FooBarAbstract: fb}
-	// The memory of the FooBarAbstract director object instance can be
-	// automatically freed once the FooBarGo instance is garbage collected by
-	// uncommenting the following line.  Please make sure to understand the
-	// runtime.SetFinalizer specific gotchas before doing this.  Furthemore
-	// DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
-	// struct needs additional data to prevent double deletion.
-	// runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
-	return fbgs
+  fbgs := &amp;fooBarGo{FooBarAbstract: fb}
+  // The memory of the FooBarAbstract director object instance can be
+  // automatically freed once the FooBarGo instance is garbage collected by
+  // uncommenting the following line.  Please make sure to understand the
+  // runtime.SetFinalizer specific gotchas before doing this.  Furthemore
+  // DeleteFooBarGo should be deleted if a finalizer is in use or the fooBarGo
+  // struct needs additional data to prevent double deletion.
+  // runtime.SetFinalizer(fbgs, FooBarGo.deleteFooBarAbstract)
+  return fbgs
 }
 
 // Recommended to be removed if runtime.SetFinalizer is in use.
 func DeleteFooBarGo(fbg FooBarGo) {
-	fbg.deleteFooBarAbstract()
+  fbg.deleteFooBarAbstract()
 }
 </pre>
 </div>
@@ -1113,13 +1114,13 @@ For comparison the <tt>FooBarCpp</tt> class looks like this:
 class FooBarCpp : public FooBarAbstract
 {
 protected:
-	virtual std::string Foo() {
-		return "C++ " + FooBarAbstract::Foo();
-	}
+  virtual std::string Foo() {
+    return "C++ " + FooBarAbstract::Foo();
+  }
 
-	virtual std::string Bar() {
-		return "C++ Bar";
-	}
+  virtual std::string Bar() {
+    return "C++ Bar";
+  }
 };
 </pre>
 </div>
@@ -1141,7 +1142,7 @@ SWIG/Examples/go/director/</a>.
 </p>
 
 
-<H3><a name="Go_primitive_type_mappings"></a>23.4.8 Default Go primitive type mappings</H3>
+<H3><a name="Go_primitive_type_mappings">23.4.8 Default Go primitive type mappings</a></H3>
 
 
 <p>
@@ -1248,7 +1249,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments"></a>23.4.9 Output arguments</H3>
+<H3><a name="Go_output_arguments">23.4.9 Output arguments</a></H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -1301,7 +1302,7 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code"></a>23.4.10 Adding additional go code</H3>
+<H3><a name="Go_adding_additional_code">23.4.10 Adding additional go code</a></H3>
 
 
 <p>Often the APIs generated by swig are not very natural in go, especially if
@@ -1396,7 +1397,7 @@ func bar() {
 </pre>
 </div>
 
-<H3><a name="Go_typemaps"></a>23.4.11 Go typemaps</H3>
+<H3><a name="Go_typemaps">23.4.11 Go typemaps</a></H3>
 
 
 <p>

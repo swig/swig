@@ -1635,9 +1635,7 @@ int ALLEGROCL::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIGALLEGROCL\n");
-  Printf(f_runtime, "\n");
+  Printf(f_runtime, "\n\n#ifndef SWIGALLEGROCL\n#define SWIGALLEGROCL\n#endif\n\n");
 
   Swig_banner_target_lang(f_cl, ";;");
 
