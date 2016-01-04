@@ -220,3 +220,4 @@ script:
 branches:
   only:
     - master
+    - gsoc2012-objc
