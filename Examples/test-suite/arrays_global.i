@@ -82,12 +82,12 @@ int test_b(int a)  {
   };
 
   enum {
-    Size = 32
+    Size_32 = 32
   };
   
-  const Material * chitMat[Size];
-  Material hitMat_val[Size];
-  Material *hitMat[Size];
+  const Material * chitMat[Size_32];
+  Material hitMat_val[Size_32];
+  Material *hitMat[Size_32];
 }
 
 #endif
