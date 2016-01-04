@@ -148,7 +148,10 @@ matrix:
     - compiler: clang
       os: osx
       env: SWIGLANG=tcl
-
+    - compiler: gcc
+      os: osx
+      env: SWIGLANG=objc
+      
   allow_failures:
     # Lots of failing tests currently
     - compiler: gcc
