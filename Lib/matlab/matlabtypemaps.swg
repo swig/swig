@@ -19,7 +19,7 @@
 #define SWIG_SetConstant(name, obj)     SWIG_Matlab_SetConstant(module_ns,name,obj) 
 
 // raise
-#define SWIG_Matlab_Raise(OBJ, TYPE, DESC) mexErrMsgIdAndTxt("SWIG::RuntimeError", "C++ side threw an exception of type " TYPE)
+#define SWIG_Matlab_Raise(OBJ, TYPE, DESC) mexErrMsgIdAndTxt("SWIG:RuntimeError", "C++ side threw an exception of type " TYPE)
 #define SWIG_Raise(obj, type, desc)     SWIG_Matlab_Raise(obj, type, desc)
 
 /* directors are supported in Matlab */
