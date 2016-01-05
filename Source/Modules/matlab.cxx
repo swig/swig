@@ -432,10 +432,10 @@ int MATLAB::top(Node *n) {
   Iterator i = First(l_modules);
   if (i.item) {
     Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4)), *error;\n");
-    Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Setup failed\");\n");
+    Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG:RuntimeError\", \"Setup failed\");\n");
     for (; i.item; i = Next(i)) {
       Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s\");\n", i.item);
-      Printf(f_init, "if (error) mexErrMsgIdAndTxt(\"SWIG::RuntimeError\", \"Cannot initialize %s\");\n", i.item);
+      Printf(f_init, "if (error) mexErrMsgIdAndTxt(\"SWIG:RuntimeError\", \"Cannot initialize %s\");\n", i.item);
       Delete(i.item);
     }
     Printf(f_init, "mxDestroyArray(id);\n");
