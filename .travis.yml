@@ -154,14 +154,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=ocaml
-    # Occasional gcc internal compiler error
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=3.8
-    # Occasional gcc internal compiler error
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=octave SWIGJOBS=-j2 VER=4.0
     # Not quite working yet
     - compiler: gcc
       os: linux
