@@ -368,6 +368,17 @@ macro(size_t,             pfx, sizet)
   virtual const char* pfx##_##str(type x) { return "name"; }
 %enddef
 
+/* checking size_t and ptrdiff_t typemaps */
+%include "stdint.i"
+%inline {
+  size_t    get_size_min()    { return 0; }
+  size_t    get_size_max()    { return SIZE_MAX; }
+  ptrdiff_t get_ptrdiff_min() { return PTRDIFF_MIN; }
+  ptrdiff_t get_ptrdiff_max() { return PTRDIFF_MAX; }
+
+  size_t    size_echo   (size_t val)    { return val; }
+  ptrdiff_t ptrdiff_echo(ptrdiff_t val) { return val; }
+}
 
 %inline {
   struct Foo
