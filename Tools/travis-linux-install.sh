@@ -91,4 +91,7 @@ case "$SWIGLANG" in
 	"tcl")
 		sudo apt-get -qq install tcl8.4-dev
 		;;
+	"objc")
+		sudo apt-get -qq install gnustep-devel gobjc++
+		;;
 esac
