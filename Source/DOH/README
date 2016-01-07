@@ -51,7 +51,7 @@ Sequence Operations
 -------------------
 Getitem(list,index)             Get an item
 Setitem(list,index,val)         Set an item
-Delitem(list,index,val)         Delete an item
+Delitem(list,index)             Delete an item
 Insert(list,index,val)          Insert an item
 Append(list,val)                Append to end
 Push(list,val)                  Insert at beginning
@@ -65,11 +65,11 @@ Putc(ch,obj)                    Put a character
 Ungetc(ch,obj)                  Put character back on input stream
 Seek(obj,offset,whence)         Seek
 Tell(obj)                       Return file pointer
-Close(obj)                      Close
+Delete(obj)                     Decrease the reference count, close file if zero
 
 String Operations
 -----------------
-Replace(obj, orig, rep, flags)  Replace occurences of orig with rep.
+Replace(obj, orig, rep, flags)  Replace occurrences of orig with rep.
 Chop(obj)                       Remove trailing whitespace
 
 flags is one of the following:

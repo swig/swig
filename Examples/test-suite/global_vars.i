@@ -28,4 +28,9 @@
   Hello h;
   Hello *hp;
   Hello &hr = h;
+
+  void init() {
+    b = "string b";
+    x = 1234;
+  }
 %}

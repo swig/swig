@@ -10,10 +10,9 @@ public:
   }
   double  x, y;
   void    move(double dx, double dy);
-  virtual double area(void) = 0;
-  virtual double perimeter(void) = 0;
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
   static  int nshapes;
-  static  int get_nshapes();
 };
 
 class Circle : public Shape {
@@ -21,10 +20,8 @@ private:
   double radius;
 public:
   Circle(double r) : radius(r) { }
-  ~Circle() { }
-  void set_radius( double r );
-  virtual double area(void);
-  virtual double perimeter(void);
+  virtual double area();
+  virtual double perimeter();
 };
 
 class Square : public Shape {
@@ -32,7 +29,6 @@ private:
   double width;
 public:
   Square(double w) : width(w) { }
-  ~Square() { }
-  virtual double area(void);
-  virtual double perimeter(void);
+  virtual double area();
+  virtual double perimeter();
 };

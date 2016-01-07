@@ -51,10 +51,10 @@ void print_vars() {
   printf("dvar      = %g\n", dvar);
   printf("cvar      = %c\n", cvar);
   printf("strvar    = %s\n", strvar ? strvar : "(null)");
-  printf("cstrvar   = %s\n", cstrvar ? cstrvar : "(null)");
-  printf("iptrvar   = %p\n", iptrvar);
+  printf("cstrvar   = %s\n", cstrvar);
+  printf("iptrvar   = %p\n", (void *)iptrvar);
   printf("name      = %c%c%c%c%c\n", name[0],name[1],name[2],name[3],name[4]);
-  printf("ptptr     = %p %s\n", ptptr, Point_print( ptptr ) );
+  printf("ptptr     = %p %s\n", (void *)ptptr, Point_print( ptptr ) );
   printf("pt        = (%d, %d)\n", pt.x, pt.y);
   printf("status    = %d\n", status);
 }

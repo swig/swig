@@ -195,9 +195,8 @@ namespace swig {
 //
 
 #ifdef SWIG_PYTHON_BACKWARD_COMP
+%fragment("<string>");
 %{
-#include <string>
-                                                                              
 PyObject* SwigInt_FromBool(bool b) {
     return PyInt_FromLong(b ? 1L : 0L);
 }
@@ -257,3 +256,5 @@ namespace swig {
 #define specialize_std_deque(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
 #define specialize_std_set(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
 #define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_unordered_set(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+#define specialize_std_unordered_multiset(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)

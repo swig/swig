@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Working with Modules</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Modules"></a>15 Working with Modules</H1>
+<H1><a name="Modules">16 Working with Modules</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -23,7 +24,7 @@
 
 
 
-<H2><a name="Modules_introduction"></a>15.1 Modules Introduction</H2>
+<H2><a name="Modules_introduction">16.1 Modules Introduction</a></H2>
 
 
 <p>
@@ -77,7 +78,7 @@ where you want to create a collection of modules.
 Each module in the collection is created via separate invocations of SWIG.
 </p>
 
-<H2><a name="Modules_nn1"></a>15.2 Basics</H2>
+<H2><a name="Modules_nn1">16.2 Basics</a></H2>
 
 
 <p>
@@ -130,7 +131,7 @@ public:
 
 <p>To create the wrapper properly, module <tt>derived_module</tt> needs to know about the
 <tt>base</tt> class and that its interface is covered in another module. The
-line <tt>%import "base_module.i"</tt> lets SWIG know exactly that. Oftentimes
+line <tt>%import "base_module.i"</tt> lets SWIG know exactly that. Often
 the <tt>.h</tt> file is passed to <tt>%import</tt> instead of the <tt>.i</tt>, 
 which unfortunately doesn't work for all language modules. For example, Python requires the
 name of module that the base class exists in so that the proxy classes can fully inherit the
@@ -176,7 +177,7 @@ in parallel from multiple threads as SWIG provides no locking - for more on that
 issue, read on.
 </p>
 
-<H2><a name="Modules_nn2"></a>15.3 The SWIG runtime code</H2>
+<H2><a name="Modules_nn2">16.3 The SWIG runtime code</a></H2>
 
 
 <p>
@@ -242,7 +243,7 @@ can peacefully coexist. So the type structures are separated by the
 is empty. Only modules compiled with the same pair will share type information.
 </p>
 
-<H2><a name="Modules_external_run_time"></a>15.4 External access to the runtime</H2>
+<H2><a name="Modules_external_run_time">16.4 External access to the runtime</a></H2>
 
 
 <p>As described in <a href="Typemaps.html#Typemaps_runtime_type_checker">The run-time type checker</a>,
@@ -250,7 +251,9 @@ the functions <tt>SWIG_TypeQuery</tt>, <tt>SWIG_NewPointerObj</tt>, and others s
 to be called.  Calling these functions from a typemap is supported, since the typemap code
 is embedded into the <tt>_wrap.c</tt> file, which has those declarations available.  If you need
 to call the SWIG run-time functions from another C file, there is one header you need
-to include.  To generate the header that needs to be included, run the following command:
+to include.  To generate the header that needs to be included, SWIG can be run in a different
+mode via <tt>-external-runtime</tt> to generate the run-time instead of the normal mode of
+processing an input interface file. For example:
 
 <div class="shell"><pre>
 $ swig -python -external-runtime &lt;filename&gt;
@@ -279,7 +282,7 @@ SWIG_TYPE_TABLE to be the same as the module whose types you are trying to
 access.
 </p>
 
-<H2><a name="Modules_nn4"></a>15.5 A word of caution about static libraries</H2>
+<H2><a name="Modules_nn4">16.5 A word of caution about static libraries</a></H2>
 
 
 <p>
@@ -290,7 +293,7 @@ into it. This is very often <b>NOT</b> what you want and it can lead to unexpect
 behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libraries.
 </p>
 
-<H2><a name="Modules_nn5"></a>15.6 References</H2>
+<H2><a name="Modules_nn5">16.6 References</a></H2>
 
 
 <p>
@@ -298,7 +301,7 @@ Due to the complexity of working with shared libraries and multiple modules, it 
 an outside reference.  John Levine's "Linkers and Loaders" is highly recommended.
 </p>
 
-<H2><a name="Modules_nn6"></a>15.7 Reducing the wrapper file size</H2>
+<H2><a name="Modules_nn6">16.7 Reducing the wrapper file size</a></H2>
 
 
 <p>

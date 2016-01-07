@@ -35,8 +35,6 @@ private:
   bool member_constant_flag;	// flag: wrapping member constants
 
   /* Helper strings used in the code */
-  String *current_class_name;	// String representing name of the current class.
-  String *current_class_type;	// Current class when used as a type. This represents the complete name of the class including the scope prefix
   String *variable_name;	// String representing the current variable name.
   String *proxyfuncname; // String representing the current memberfunction name.
 
@@ -97,8 +95,6 @@ public:
       static_member_func_flag(false),
       member_func_flag(false),
       member_constant_flag(false),
-      current_class_name(NULL),
-      current_class_type(NULL),
       variable_name(NULL),
       proxyfuncname(NULL),
       proxy_class_name(NULL),
@@ -109,39 +105,716 @@ public:
       proxy_class_enums_code(NULL),
       proxy_class_function_decls(NULL),
       proxy_class_function_defns(NULL),
-      proxy_global_function_decls(NULL), proxy_global_function_defns(NULL), destrcutor_call(NULL), unknown_types(NULL), empty_string(NewString("")) {
-  } virtual void main(int argc, char *argv[]);
-  virtual int top(Node *n);
+      proxy_global_function_decls(NULL), 
+      proxy_global_function_defns(NULL), 
+      destrcutor_call(NULL), 
+      unknown_types(NULL), 
+      empty_string(NewString("")) {
+  } 
+  
+  /* ------------------------------------------------------------
+   * main()
+   * ------------------------------------------------------------ */
+   
+  virtual void main(int argc, char *argv[]) {
+	  // Set language-specific subdirectory in SWIG library
+	  SWIG_library_directory("objc");
 
-  /* Function handlers */
-  virtual int functionHandler(Node *n);
-  virtual int globalfunctionHandler(Node *n);
-  virtual int memberfunctionHandler(Node *n);
-  virtual int staticmemberfunctionHandler(Node *n);
-  virtual int callbackfunctionHandler(Node *n);
+	  // Process command line options
+	  for (int i = 1; i < argc; i++) {
+		if (argv[i]) {
+		  if (strcmp(argv[i], "-noproxy") == 0) {
+		Swig_mark_arg(i);
+		proxy_flag = false;
+		  } else if (strcmp(argv[i], "-help") == 0) {
+		Printf(stdout, "%s\n", usage);
+		  }
+		}
+	  }
 
-  /* Variable handlers */
-  virtual int variableHandler(Node *n);
-  virtual int globalvariableHandler(Node *n);
-  virtual int membervariableHandler(Node *n);
-  virtual int staticmembervariableHandler(Node *n);
+	  // Set language-specific preprocessing symbol
+	  Preprocessor_define("SWIGOBJECTIVEC 1", 0);
 
-  /* C++ handlers */
-  virtual int memberconstantHandler(Node *n);
-  virtual int constructorHandler(Node *n);
-  virtual int copyconstructorHandler(Node *n);
-  virtual int destructorHandler(Node *n);
-  virtual int classHandler(Node *n);
+	  // Set language-specific configuration file 
+	  SWIG_config_file("objc.swg");
 
-  /* C/C++ Parsing */
-  virtual int enumDeclaration(Node *n);
-  virtual int enumvalueDeclaration(Node *n);
+	  // Set typemap language (historical) 
+	  SWIG_typemap_lang("objc");
+  }
+  
+  /* ---------------------------------------------------------------------
+   * top()
+   * --------------------------------------------------------------------- */
+   
+  virtual int top(Node *n) {
+	/* Get the module name */
+	String *module = Getattr(n, "name");
+
+	/* Initialize I/O */
+
+	// Create the _wrap files
+	String *wrapfile_h = NewStringf("%s_wrap.h", module);
+	f_wrap_h = NewFile(wrapfile_h, "w", SWIG_output_files());
+	if (!f_wrap_h) {
+		FileErrorDisplay(wrapfile_h);
+		SWIG_exit(EXIT_FAILURE);
+	}
+	Delete(wrapfile_h);
+
+	String *wrapfile_mm = NewStringf("%s_wrap.mm", module);
+	f_wrap_mm = NewFile(wrapfile_mm, "w", SWIG_output_files());
+	if (!f_wrap_mm) {
+		FileErrorDisplay(wrapfile_mm);
+		SWIG_exit(EXIT_FAILURE);
+	}
+	Delete(wrapfile_mm);
+
+	// Create the _proxy files if proxy flag is true
+	if (proxy_flag) {
+		String *proxyfile_h = NewStringf("%s_proxy.h", module);
+		f_proxy_h = NewFile(proxyfile_h, "w", SWIG_output_files());
+		if (!f_proxy_h) {
+	  		FileErrorDisplay(proxyfile_h);
+	  		SWIG_exit(EXIT_FAILURE);
+		}
+		Delete(proxyfile_h);
+		
+		String *proxyfile_mm = NewStringf("%s_proxy.mm", module);
+		f_proxy_mm = NewFile(proxyfile_mm, "w", SWIG_output_files());
+		if (!f_proxy_mm) {
+	  		FileErrorDisplay(proxyfile_mm);
+	  		SWIG_exit(EXIT_FAILURE);
+		}
+		Delete(proxyfile_mm);
+	}
+
+	f_runtime 	= NewString("");
+	f_init 		= NewString("");
+	f_header 	= NewString("");
+	f_wrappers 	= NewString("");
+
+	// Register file targets with the SWIG file handler
+	Swig_register_filebyname("begin", f_wrap_mm);
+	Swig_register_filebyname("header", f_header);
+	Swig_register_filebyname("wrapper", f_wrappers);
+	Swig_register_filebyname("runtime", f_runtime);
+	Swig_register_filebyname("init", f_init);
+
+	// Output module initialization code
+	Swig_banner(f_wrap_h);
+	Printf(f_wrap_h, "\n");
+	Printf(f_wrap_h, "#ifndef %(upper)s_WRAP_H\n", module);
+	Printf(f_wrap_h, "#define %(upper)s_WRAP_H\n\n", module);
+	Printf(f_wrap_h, "\n#ifdef __cplusplus\n");
+	Printf(f_wrap_h, "extern \"C\" {\n");
+	Printf(f_wrap_h, "#endif\n\n");
+
+	Swig_banner(f_wrap_mm);
+	Printf(f_header, "#include \"%s_wrap.h\"\n", module);
+
+	if (proxy_flag) {
+		Swig_banner(f_proxy_h);
+		Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
+
+		// ObjectiveC will understand the C code.
+		Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
+		Printf(f_proxy_h, "extern \"C\" {\n");
+		Printf(f_proxy_h, "#endif\n\n");
+
+		Swig_banner(f_proxy_mm);
+		Printf(f_proxy_mm, "#include \"%s_proxy.h\"\n", module);
+		Printf(f_proxy_mm, "#include \"%s_wrap.h\"\n\n", module);
+	}
+	// Create strings for holding the generated code. These will be dumped
+	// to the generated files at the end of the top function.
+	wrap_h_code = NewString("");
+	wrap_mm_code = NewString("");
+	if (proxy_flag) {
+		proxy_h_code 		= NewString("");
+		proxy_mm_code 		= NewString("");
+		swigtypes_h_code 	= NewString("");
+		swigtypes_mm_code 	= NewString("");
+
+		proxy_class_decl_code 		= NewString("");
+		proxy_class_defn_code 		= NewString("");
+		proxy_class_enums_code 		= NewString("");
+		proxy_class_function_decls 	= NewString("");
+		proxy_class_function_defns 	= NewString("");
+		proxy_global_function_decls = NewString("");
+		proxy_global_function_defns = NewString("");
+		proxy_class_imports 		= NewString("");
+
+		destrcutor_call = NewString("");
+		unknown_types 	= NewHash();
+	}
+
+	/* Emit code for children */
+	Language::top(n);
+
+	// Write to the wrap_h
+	Dump(wrap_h_code, f_wrap_h);
+	Printf(f_wrap_h, "\n#ifdef __cplusplus\n");
+	Printf(f_wrap_h, "}\n");
+	Printf(f_wrap_h, "#endif\n");
+	Printf(f_wrap_h, "\n#endif\n\n");
+
+	// Write to the wrap_mm
+	Dump(f_runtime, f_wrap_mm);
+	Dump(f_header, f_wrap_mm);
+	Printf(f_wrap_mm, "\n#ifdef __cplusplus\n");
+	Printf(f_wrap_mm, "extern \"C\" {\n");
+	Printf(f_wrap_mm, "#endif\n\n");
+	Dump(f_wrappers, f_wrap_mm);
+	Dump(wrap_mm_code, f_wrap_mm);
+	Wrapper_pretty_print(f_init, f_wrap_mm);
+	Printf(f_wrap_mm, "\n#ifdef __cplusplus\n");
+	Printf(f_wrap_mm, "}\n");
+	Printf(f_wrap_mm, "#endif\n");
+
+	// Write to the proxy.h, if required
+	if (proxy_flag) {
+
+		for (Iterator swig_type = First(unknown_types); swig_type.key; swig_type = Next(swig_type)) {
+	  		emitTypeWrapperClass(swig_type.key, swig_type.item);
+		}
+
+		Dump(swigtypes_h_code, f_proxy_h);
+		Dump(proxy_h_code, f_proxy_h);
+		Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
+		Printf(f_proxy_h, "}\n");
+		Printf(f_proxy_h, "#endif\n\n");
+	}
+	
+	// Write to proxy.mm, if required
+	if (proxy_flag) {
+		Dump(swigtypes_mm_code, f_proxy_mm);
+		Dump(proxy_mm_code, f_proxy_mm);
+	}
+	
+	// Cleanup
+	Delete(wrap_h_code);
+	Delete(wrap_mm_code);
+	Delete(f_runtime);
+	Delete(f_init);
+	Delete(f_header);
+	Delete(f_wrappers);
+	Delete(f_wrap_h);
+	Delete(f_wrap_mm);
+
+	if (proxy_flag) {
+		Delete(proxy_class_decl_code);
+		Delete(proxy_class_defn_code);
+		Delete(proxy_class_enums_code);
+		Delete(proxy_class_function_decls);
+		Delete(proxy_class_function_defns);
+		Delete(proxy_global_function_decls);
+		Delete(proxy_global_function_defns);
+		Delete(proxy_class_imports);
+		Delete(destrcutor_call);
+		Delete(unknown_types);
+
+		Delete(swigtypes_h_code);
+		Delete(swigtypes_mm_code);
+		Delete(proxy_h_code);
+		Delete(proxy_mm_code);
+		Delete(f_proxy_h);
+		Delete(f_proxy_mm);
+	}
+
+	return SWIG_OK;
+  }
+  
+/* ---------------------------------------------------------------------
+ * globalfunctionHandler()
+ * --------------------------------------------------------------------- */
+  virtual int globalfunctionHandler(Node *n) {
+  	global_func_flag = true;
+  	Language::globalfunctionHandler(n);
+  	global_func_flag = false;
+
+  	return SWIG_OK;
+  }
+
+/* ---------------------------------------------------------------------
+ * memberfunctionHandler()
+ * --------------------------------------------------------------------- */  
+  virtual int memberfunctionHandler(Node *n)  {
+  	String *symname = Getattr(n, "sym:name");
+  	proxyfuncname = symname;
+  	member_func_flag = true;
+  	int result = Language::memberfunctionHandler(n);
+  	member_func_flag = false;
+
+  	return result;
+  }
+  
+/* ---------------------------------------------------------------------
+ * staticmemberfunctionHandler()
+ * --------------------------------------------------------------------- */
+  virtual int staticmemberfunctionHandler(Node *n) {
+  	String *symname = Getattr(n, "sym:name");
+  	proxyfuncname = symname;
+  	static_member_func_flag = true;
+  	int result = Language::staticmemberfunctionHandler(n);
+  	static_member_func_flag = false;
+
+  	return result;
+  }
+  
+/* ---------------------------------------------------------------------
+ * globalvariableHandler()
+ * --------------------------------------------------------------------- */
+  virtual int globalvariableHandler(Node *n) {
+  	String *symname = Getattr(n, "sym:name");
+  	variable_name = symname;
+  	global_variable_flag = true;
+  	int result = Language::globalvariableHandler(n);
+  	global_variable_flag = false;
+  	
+  	return result;
+  }
+  
+/* ---------------------------------------------------------------------
+ * membervariableHandler()
+ * --------------------------------------------------------------------- */
+  virtual int membervariableHandler(Node *n) {
+  	String *symname = Getattr(n, "sym:name");
+  	variable_name = symname;
+  	member_variable_flag = true;
+  	int result = Language::membervariableHandler(n);
+  	member_variable_flag = false;
+  	
+  	return result;
+  }
+
+/* ---------------------------------------------------------------------
+ * staticmembervariableHandler()
+ * --------------------------------------------------------------------- */
+  virtual int staticmembervariableHandler(Node *n) {
+  	String *symname = Getattr(n, "sym:name");
+  	variable_name = symname;
+  	static_member_variable_flag = true;
+  	int result = Language::staticmembervariableHandler(n);
+  	static_member_variable_flag = false;
+  	
+  	return result;
+  }
+
+/* ---------------------------------------------------------------------
+ * memberconstantHandler() 
+ * --------------------------------------------------------------------- */
+  virtual int memberconstantHandler(Node *n) {
+  	String *symname = Getattr(n, "sym:name");
+  	variable_name = symname;
+  	member_constant_flag = true;
+  	int result = Language::memberconstantHandler(n);
+  	member_constant_flag = false;
+  	
+  	return result;
+  }
+  
+/* ---------------------------------------------------------------------
+ * destructorHandler()
+ * --------------------------------------------------------------------- */
+  virtual int destructorHandler(Node *n) {
+  	Language::destructorHandler(n);
+  	String *symname = Getattr(n, "sym:name");
+  	Printv(destrcutor_call, Swig_name_wrapper(Swig_name_destroy(getNSpace(), symname)), "((void*)swigCPtr)", NIL);
+  	return SWIG_OK;
+  }
+
+/* ---------------------------------------------------------------------
+ * classHandler()
+ * --------------------------------------------------------------------- */
+  virtual int classHandler(Node *n) {
+  	if (proxy_flag) {
+    	proxy_class_name = Copy(Getattr(n, "sym:name"));
+
+    	if (!addSymbol(proxy_class_name, n))
+      		return SWIG_ERROR;
+
+    	Clear(proxy_class_imports);
+    	Clear(proxy_class_function_decls);
+    	Clear(proxy_class_function_defns);
+    	Clear(proxy_global_function_decls);
+    	Clear(proxy_global_function_defns);
+    	Clear(proxy_class_enums_code);
+    	Clear(proxy_class_decl_code);
+    	Clear(proxy_class_defn_code);
+    	Clear(destrcutor_call);
+  	}
+
+  	Language::classHandler(n);
+
+  	if (proxy_flag) {
+    	// Write the code for proxy class
+    	emitProxyClass(n);
+
+    	// Apply the necessary substitutions        
+    	Replaceall(proxy_class_decl_code, "$objcclassname", proxy_class_name);
+    	Replaceall(proxy_class_defn_code, "$objcclassname", proxy_class_name);
+
+    	// And, dump everything to the proxy files
+    	Printv(proxy_h_code, proxy_class_decl_code, NIL);
+    	Printv(proxy_mm_code, proxy_class_defn_code, NIL);
+    	Printv(proxy_h_code,proxy_global_function_decls,NIL);
+    	Printv(proxy_mm_code,proxy_global_function_defns,NIL);
+    
+    	// Tidy up
+    	Delete(proxy_class_qname);
+    	proxy_class_qname = NULL;
+    	Delete(proxy_class_name);
+    	proxy_class_name = NULL;
+  	}
+
+  	return SWIG_OK;
+  }
+
+/* ----------------------------------------------------------------------
+ * enumDeclaration()
+ * ---------------------------------------------------------------------- */
+  virtual int enumDeclaration(Node *n) {
+  	if (ImportMode)
+    	return SWIG_OK;
+
+  	if (getCurrentClass() && (cplus_mode != PUBLIC))
+    	return SWIG_NOWRAP;
+
+  	String *typemap_lookup_type = Getattr(n, "name");
+  	String *symname = Getattr(n, "sym:name");
+  	String *enumname;
+
+  	Node *p = parentNode(n);
+  	if (p && !Cmp(nodeType(p), "class")) {	// This is a nested enum, prefix the class name
+    	String *parentname = Getattr(p, "sym:name");
+    	enumname = NewStringf("%s_%s", parentname, symname);
+  	}
+  	else {
+   	 	enumname = Copy(symname);
+  	}
+
+  	if (proxy_flag) {
+    	if (typemap_lookup_type) {
+     		// Copy-paste the C/C++ enum as an Objective-C enum
+      		Printv(proxy_h_code, "enum ", enumname, " {\n", NIL);
+    	} 
+    	else {
+      		// Handle anonymous enums.
+      		Printv(proxy_h_code, "\nenum {\n", NIL);
+    	}
+  	}
+  	// Emit each enum item
+  	Language::enumDeclaration(n);
+
+  	if (!GetFlag(n, "nonempty")) {
+    	// Do not wrap empty enums;
+    	return SWIG_NOWRAP;
+  	}
+
+  	if (proxy_flag) {
+    	if (typemap_lookup_type) {
+      	// Finish the enum declaration
+      	Printv(proxy_h_code, "\n};\n\n", NIL);
+    	}
+    	else {
+      	// Handle anonymous enums.
+      	Printv(proxy_h_code, "\n};\n\n", NIL);
+    	}
+  	}
+
+  	Delete(enumname);
+  	return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------------
+ * enumvalueDeclaration()
+ * --------------------------------------------------------------------------- */
+  virtual int enumvalueDeclaration(Node *n) {
+  	if (getCurrentClass() && (cplus_mode != PUBLIC))
+    	return SWIG_NOWRAP;
+
+  	Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  	String *symname = Getattr(n, "sym:name");
+  	String *value = Getattr(n, "enumvalue");
+  	Node *parent = parentNode(n);
+  	Node *pparent = parentNode(parent);
+  	String *enumname;
+  	
+  	if (pparent && !Cmp(nodeType(pparent), "class")) {	// This is a nested enum, prefix the class name
+    	String *classname = Getattr(pparent, "sym:name");
+    	enumname = NewStringf("%s_%s", classname, symname);
+  	}
+  	else {
+    	enumname = Copy(symname);
+  	}
+  	if (proxy_flag) {		// Emit the enum item
+    	if (!GetFlag(n, "firstenumitem"))
+      		Printf(proxy_h_code, ",\n");
+      		
+    	Printf(proxy_h_code, "  %s", enumname);
+    	if (value) {
+      		value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
+      		Printf(proxy_h_code, " = %s", value);
+    	}
+  	}
+  	// Keep track that the currently processed enum has at least one value
+	SetFlag(parent, "nonempty");
+
+  	Swig_restore(n);
+  	Delete(enumname);
+  	return SWIG_OK;
+  }
 
   /* Low-level code generation */
-  virtual int constantWrapper(Node *n);
-  virtual int variableWrapper(Node *n);
-  virtual int functionWrapper(Node *n);
-  virtual int nativeWrapper(Node *n);
+
+/* ---------------------------------------------------------------------
+ * constantWrapper()
+ * --------------------------------------------------------------------- */
+  virtual int constantWrapper(Node *n) {
+  	SwigType *type = Getattr(n, "type");
+  	String *symname = Getattr(n, "sym:name");
+  	String *value = Getattr(n, "value");
+  	String *typestring = SwigType_str(type, 0);
+  	String *tm;
+
+  	String *crettype = NewString("");
+  	String *constants_h_code = NewString("");
+  	String *constants_mm_code = NewString("");
+  	bool is_func_ptr = SwigType_isfunctionpointer(type);
+
+  	if (!addSymbol(symname, n))
+    	return SWIG_ERROR;
+
+  	// Get the corresponding ObjectiveC type or the intermediate type. "imtype" if no proxy and "objctype" if proxy_flag is true.
+  	if (!is_func_ptr) {
+    	if (proxy_flag) {
+      		if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+				substituteClassname(tm, type);
+				Printf(crettype, "%s", tm);
+      		}
+      		else
+				Swig_warning(WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF, input_file, line_number, "No objctype typemap defined for %s\n", typestring);
+    	}
+    	else {
+      		if ((tm = Swig_typemap_lookup("imtype", n, "", 0)))
+				Printf(crettype, "%s", tm);
+      		else
+				Swig_warning(WARN_OBJC_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", typestring);
+    	}
+  	}
+  	else {
+    	if (proxy_flag) {
+      		if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+				substituteClassname(tm, type);
+				Printf(crettype, "%s", tm);
+      		}
+      		else
+				Swig_warning(WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF, input_file, line_number, "No objctype typemap defined for %s\n", typestring);
+    	}
+    	else
+      		Printf(crettype, "%s", SwigType_str(type, symname));
+  	}
+
+  	if (is_func_ptr) {
+    	variableWrapper(n);
+    	Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
+    	//Printf(constants_mm_code, "%s %s = (%s)%s();\n", crettype, symname, typestring, Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
+    // Transform return type used in low level accessor to the type used in Objective-C constant definition
+    	String *imcall = NewStringf("%s()", Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
+    	if ((tm = Swig_typemap_lookup("objcvarout", n, "", 0))) {
+      		substituteClassname(tm, type);
+      		Replaceall(tm, "$objcvarname", symname);
+      		Replaceall(tm, "$imcall", imcall);
+    	}
+    	else
+      		Swig_warning(WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF, input_file, line_number, "No objcout typemap defined for %s\n", crettype);
+      		
+    	Printf(constants_mm_code, "%s\n", tm);
+    	Delete(imcall);
+  	}
+  	else if (Getattr(n, "wrappedasconstant")) {
+  		if (SwigType_type(type) == T_CHAR)
+    		Printf(constants_mm_code, "%s %s= \'%s\';\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
+		else if (SwigType_type(type) == T_STRING)
+   		 	Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
+  		else
+    		Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value")); 
+  	}
+  	else {
+  		if (SwigType_type(type) == T_STRING) {
+      		// http://stackoverflow.com/questions/538996/constants-in-objective-c/539191#539191
+      		Printf(constants_h_code, "extern %s const %s;\n", crettype, symname);
+      		Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, value);
+    	}
+    	else if (SwigType_type(type) == T_CHAR) {
+      		Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
+      		Printf(constants_mm_code, "%s %s= \'%s\';\n", crettype, symname, value);
+    	}
+    	else {
+      		Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
+      		Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, value);
+    	}
+  	}
+  
+  	// Dump to generated files
+  	if (proxy_flag) {		// write to the proxy files
+    	Printv(proxy_h_code, constants_h_code, NIL);
+    	Printv(proxy_mm_code, constants_mm_code, NIL);
+  	}
+  	else {			// write to the wrap files
+    	Printv(wrap_h_code, constants_h_code, NIL);
+    	Printv(wrap_mm_code, constants_mm_code, NIL);
+  	}
+
+  	// Cleanup
+  	Delete(crettype);
+  	Delete(constants_h_code);
+  	Delete(constants_mm_code);
+  	return SWIG_OK;
+  }
+  
+/* ---------------------------------------------------------------------
+ * variableWrapper()  
+ * --------------------------------------------------------------------- */
+  virtual int variableWrapper(Node *n) {
+  	return Language::variableWrapper(n);
+  }
+  
+/* ---------------------------------------------------------------------
+ * functionWrapper()
+ * --------------------------------------------------------------------- */
+  virtual int functionWrapper(Node *n) {
+      
+	// Get some useful attributes of this function
+	String *symname = Getattr(n, "sym:name");
+	SwigType *type = Getattr(n, "type");
+	ParmList *parmlist = Getattr(n, "parms");
+	String *crettype = SwigType_str(type, 0);
+	String *imrettype = NewString("");
+	String *tm;
+	bool is_void_return = (Cmp(crettype, "void") == 0);
+	bool is_constructor = (Cmp(nodeType(n), "constructor") == 0);
+	bool is_destructor = (Cmp(nodeType(n), "destructor") == 0);
+	bool is_constant = (Cmp(nodeType(n), "constant") == 0);
+
+	if (!Getattr(n, "sym:overloaded") && !addSymbol(Getattr(n, "sym:name"), n))
+		return SWIG_ERROR;
+	
+	// Create the function's wrappered name
+	String *wname = Swig_name_wrapper(symname);
+
+	// Create the wrapper function object
+	Wrapper *wrapper = NewWrapper();
+
+	// Retrieve the intermediate return type for this function
+	if ((tm = Swig_typemap_lookup("imtype", n, "", 0)))
+		Printf(imrettype, "%s", tm);
+	else
+		Swig_warning(WARN_OBJC_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", crettype);
+
+	// Deal with overloading
+
+	/* Write the wrapper function declaration and definition */
+
+	// Begin the first line of the function definition
+	Printv(wrapper->def, imrettype, " ", wname, "(", NIL);
+
+	// Make the param list with the intermediate parameter types 
+	makeParameterList(parmlist, wrapper);
+
+	// End the first line of the function definition
+	Printv(wrapper->def, ")", NIL);
+
+	// Write the function declaration to the wrap_h
+	Printv(wrap_h_code, wrapper->def, ";\n", NIL);
+
+	// Now write the function definition to the wrap_cpp
+	Printv(wrapper->def, " {", NIL);
+
+	// Emit all of the local variables for holding arguments
+	emit_parameter_variables(parmlist, wrapper);
+
+	// If any additional local variable needed, add them now
+	if (!is_void_return)
+		Wrapper_add_localv(wrapper, "imresult", imrettype, "imresult = 0", NIL);
+
+	// Attach the standard typemaps to the parameter list
+	emit_attach_parmmaps(parmlist, wrapper);
+	Setattr(n, "wrap:parms", parmlist);
+
+	// Now walk the function parameter list and generate code to get arguments.
+	marshalInputArgs(parmlist, wrapper);
+
+	// Emit the function call
+	if (is_constant) {		// Wrapping a constant hack.
+		Swig_save("functionWrapper", n, "wrap:action", NIL);
+
+		// below based on Swig_VargetToFunction()
+		SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
+		Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
+	}
+
+	Setattr(n, "wrap:name", wname);
+	String *actioncode = emit_action(n);
+
+	if (is_constant)
+		Swig_restore(n);
+
+	// Write typemaps(out) and return value if necessary.
+	marshalOutput(n, actioncode, wrapper);
+
+	// Close the function
+	if (!is_void_return)
+		Printv(wrapper->code, "return imresult;\n", NIL);
+		
+	Printv(wrapper->code, "}", NIL);
+
+	// Final substititions if applicable.
+
+	/* Contract macro modification */
+	Replaceall(wrapper->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
+	if (!is_void_return)
+		Replaceall(wrapper->code, "$null", "0");
+	else
+		Replaceall(wrapper->code, "$null", "");
+
+	// Dump the function out.
+	Wrapper_print(wrapper, wrap_mm_code);
+
+	/* Create the proxy functions if proxy_flag is true. */
+	if (proxy_flag && is_constructor) {	// Handle constructor
+		Setattr(n, "imfunctionname", wname);
+		emitProxyClassConstructor(n);
+	}
+	else if (proxy_flag && is_destructor) {	// Handle destructor
+	// TODO: Do it here instead in emitProxyClass function
+	}
+	
+	// globalFunctionHandler is called for static member functions as well hence setting global_func_flag to true. 
+	// To route the call to the appropriate proxy generator, we check for !static_member_func_flag here.
+	if (proxy_flag && (global_variable_flag || global_func_flag) && !static_member_func_flag) {	// Handle globals
+		Setattr(n, "imfunctionname", wname);
+		emitProxyGlobalFunctions(n);
+	}
+	else if (proxy_flag && (member_variable_flag || static_member_variable_flag || member_constant_flag || member_func_flag || static_member_func_flag)) {	// Handle members
+		Setattr(n, "imfunctionname", wname);
+		emitProxyClassFunction(n);
+	}
+	
+	// Tidy up
+	Delete(imrettype);
+	Delete(wname);
+	DelWrapper(wrapper);
+	return SWIG_OK;
+  }
+  
+/* ---------------------------------------------------------------------
+ * nativeWrapper()
+ * --------------------------------------------------------------------- */
+  virtual int nativeWrapper(Node *n) {
+  	return Language::nativeWrapper(n);
+  }
 
   /* Proxy class code generators */
   void emitProxyGlobalFunctions(Node *n);
@@ -156,816 +829,10 @@ public:
   Parm *skipIgnoredArgs(Parm *p);
   void marshalInputArgs(ParmList *parmlist, Wrapper *wrapper);
   void makeParameterList(ParmList *parmlist, Wrapper *wrapper);
-  String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) const;
   void marshalOutput(Node *n, String *actioncode, Wrapper *wrapper);
   String *createProxyName(SwigType *t);
   const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0);
 };
-
-/* ---------------------------------------------------------------------
- * main()
- *
- * Entry point for the Objective-C module.
- * --------------------------------------------------------------------- */
-
-void OBJECTIVEC::main(int argc, char *argv[]) {
-  // Set language-specific subdirectory in SWIG library
-  SWIG_library_directory("objc");
-
-  // Process command line options
-  for (int i = 1; i < argc; i++) {
-    if (argv[i]) {
-      if (strcmp(argv[i], "-noproxy") == 0) {
-	Swig_mark_arg(i);
-	proxy_flag = false;
-      } else if (strcmp(argv[i], "-help") == 0) {
-	Printf(stdout, "%s\n", usage);
-      }
-    }
-  }
-
-  // Set language-specific preprocessing symbol
-  Preprocessor_define("SWIGOBJECTIVEC 1", 0);
-
-  // Set language-specific configuration file 
-  SWIG_config_file("objc.swg");
-
-  // Set typemap language (historical) 
-  SWIG_typemap_lang("objc");
-}
-
-/* ---------------------------------------------------------------------
- * top()
- *
- * Function handler for processing top node of the parse tree 
- * Wrapper code generation starts from here.
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::top(Node *n) {
-  /* Get the module name */
-  String *module = Getattr(n, "name");
-
-  /* Initialize I/O */
-
-  // Create the _wrap files
-  String *wrapfile_h = NewStringf("%s_wrap.h", module);
-  f_wrap_h = NewFile(wrapfile_h, "w", SWIG_output_files());
-  if (!f_wrap_h) {
-    FileErrorDisplay(wrapfile_h);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  String *wrapfile_mm = NewStringf("%s_wrap.mm", module);
-  f_wrap_mm = NewFile(wrapfile_mm, "w", SWIG_output_files());
-  if (!f_wrap_mm) {
-    FileErrorDisplay(wrapfile_mm);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  Delete(wrapfile_h);
-  Delete(wrapfile_mm);
-
-  // Create the _proxy files if proxy flag is true
-  if (proxy_flag) {
-    String *proxyfile_h = NewStringf("%s_proxy.h", module);
-    f_proxy_h = NewFile(proxyfile_h, "w", SWIG_output_files());
-    if (!f_proxy_h) {
-      FileErrorDisplay(proxyfile_h);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    String *proxyfile_mm = NewStringf("%s_proxy.mm", module);
-    f_proxy_mm = NewFile(proxyfile_mm, "w", SWIG_output_files());
-    if (!f_proxy_mm) {
-      FileErrorDisplay(proxyfile_mm);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    Delete(proxyfile_h);
-    Delete(proxyfile_mm);
-  }
-
-  f_runtime = NewString("");
-  f_init = NewString("");
-  f_header = NewString("");
-  f_wrappers = NewString("");
-
-
-  // Register file targets with the SWIG file handler
-  Swig_register_filebyname("begin", f_wrap_mm);
-  Swig_register_filebyname("header", f_header);
-  Swig_register_filebyname("wrapper", f_wrappers);
-  Swig_register_filebyname("runtime", f_runtime);
-  Swig_register_filebyname("init", f_init);
-
-  // Output module initialization code
-  Swig_banner(f_wrap_h);
-  Printf(f_wrap_h, "\n");
-  Printf(f_wrap_h, "#ifndef %(upper)s_WRAP_H\n", module);
-  Printf(f_wrap_h, "#define %(upper)s_WRAP_H\n\n", module);
-  Printf(f_wrap_h, "\n#ifdef __cplusplus\n");
-  Printf(f_wrap_h, "extern \"C\" {\n");
-  Printf(f_wrap_h, "#endif\n\n");
-
-  Swig_banner(f_wrap_mm);
-  Printf(f_header, "#include \"%s_wrap.h\"\n", module);
-
-  if (proxy_flag) {
-    Swig_banner(f_proxy_h);
-    Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
-
-    // ObjectiveC will understand the C code.
-    Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
-    Printf(f_proxy_h, "extern \"C\" {\n");
-    Printf(f_proxy_h, "#endif\n\n");
-
-    Swig_banner(f_proxy_mm);
-    Printf(f_proxy_mm, "#include \"%s_proxy.h\"\n", module);
-    Printf(f_proxy_mm, "#include \"%s_wrap.h\"\n\n", module);
-  }
-  // Create strings for holding the generated code. These will be dumped
-  // to the generated files at the end of the top function.
-  wrap_h_code = NewString("");
-  wrap_mm_code = NewString("");
-  if (proxy_flag) {
-    proxy_h_code = NewString("");
-    proxy_mm_code = NewString("");
-    swigtypes_h_code = NewString("");
-    swigtypes_mm_code = NewString("");
-
-    proxy_class_decl_code = NewString("");
-    proxy_class_defn_code = NewString("");
-    proxy_class_enums_code = NewString("");
-    proxy_class_function_decls = NewString("");
-    proxy_class_function_defns = NewString("");
-    proxy_global_function_decls = NewString("");
-    proxy_global_function_defns = NewString("");
-    proxy_class_imports = NewString("");
-
-    destrcutor_call = NewString("");
-    unknown_types = NewHash();
-  }
-
-  /* Emit code for children */
-  Language::top(n);
-
-  // Write to the wrap_h
-  Dump(wrap_h_code, f_wrap_h);
-  Printf(f_wrap_h, "\n#ifdef __cplusplus\n");
-  Printf(f_wrap_h, "}\n");
-  Printf(f_wrap_h, "#endif\n");
-  Printf(f_wrap_h, "\n#endif\n\n");
-
-  // Write to the wrap_mm
-  Dump(f_runtime, f_wrap_mm);
-  Dump(f_header, f_wrap_mm);
-  Printf(f_wrap_mm, "\n#ifdef __cplusplus\n");
-  Printf(f_wrap_mm, "extern \"C\" {\n");
-  Printf(f_wrap_mm, "#endif\n\n");
-  Dump(f_wrappers, f_wrap_mm);
-  Dump(wrap_mm_code, f_wrap_mm);
-  Wrapper_pretty_print(f_init, f_wrap_mm);
-  Printf(f_wrap_mm, "\n#ifdef __cplusplus\n");
-  Printf(f_wrap_mm, "}\n");
-  Printf(f_wrap_mm, "#endif\n");
-
-  // Write to the proxy.h, if required
-  if (proxy_flag) {
-
-    for (Iterator swig_type = First(unknown_types); swig_type.key; swig_type = Next(swig_type)) {
-      emitTypeWrapperClass(swig_type.key, swig_type.item);
-    }
-
-    Dump(swigtypes_h_code, f_proxy_h);
-    Dump(proxy_h_code, f_proxy_h);
-    Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
-    Printf(f_proxy_h, "}\n");
-    Printf(f_proxy_h, "#endif\n\n");
-  }
-  // Write to proxy.mm, if required
-  if (proxy_flag) {
-//        Printf(f_proxy_mm, "\n#ifdef __cplusplus\n");
-//        Printf(f_proxy_mm, "extern \"C\" {\n");
-//        Printf(f_proxy_mm, "#endif\n\n");
-    Dump(swigtypes_mm_code, f_proxy_mm);
-    Dump(proxy_mm_code, f_proxy_mm);
-//        Printf(f_proxy_mm, "\n#ifdef __cplusplus\n");
-//        Printf(f_proxy_mm, "}\n");
-//        Printf(f_proxy_mm, "#endif\n");
-  }
-  // Cleanup
-  Delete(wrap_h_code);
-  Delete(wrap_mm_code);
-  Close(f_wrap_h);
-  Close(f_wrap_mm);
-  Delete(f_runtime);
-  Delete(f_init);
-  Delete(f_header);
-  Delete(f_wrappers);
-  Delete(f_wrap_h);
-  Delete(f_wrap_mm);
-
-  if (proxy_flag) {
-    Delete(proxy_class_decl_code);
-    Delete(proxy_class_defn_code);
-    Delete(proxy_class_enums_code);
-    Delete(proxy_class_function_decls);
-    Delete(proxy_class_function_defns);
-    Delete(proxy_global_function_decls);
-    Delete(proxy_global_function_defns);
-    Delete(proxy_class_imports);
-    Delete(destrcutor_call);
-    Delete(unknown_types);
-
-    Delete(swigtypes_h_code);
-    Delete(swigtypes_mm_code);
-    Delete(proxy_h_code);
-    Delete(proxy_mm_code);
-    Close(f_proxy_h);
-    Close(f_proxy_mm);
-    Delete(f_proxy_h);
-    Delete(f_proxy_mm);
-  }
-
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * functionHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::functionHandler(Node *n) {
-  Language::functionHandler(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * globalfunctionHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::globalfunctionHandler(Node *n) {
-  global_func_flag = true;
-  Language::globalfunctionHandler(n);
-  global_func_flag = false;
-
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * memberfunctionHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::memberfunctionHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  proxyfuncname = symname;
-  member_func_flag = true;
-  Language::memberfunctionHandler(n);
-  member_func_flag = false;
-
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * staticmemberfunctionHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::staticmemberfunctionHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  proxyfuncname = symname;
-  static_member_func_flag = true;
-  Language::staticmemberfunctionHandler(n);
-  static_member_func_flag = false;
-
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * callbackfunctionHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::callbackfunctionHandler(Node *n) {
-  Language::callbackfunctionHandler(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * variableHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::variableHandler(Node *n) {
-  Language::variableHandler(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * globalvariableHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::globalvariableHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  variable_name = symname;
-  global_variable_flag = true;
-
-  Language::globalvariableHandler(n);
-
-  global_variable_flag = false;
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * membervariableHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::membervariableHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  variable_name = symname;
-  member_variable_flag = true;
-
-  Language::membervariableHandler(n);
-
-  member_variable_flag = false;
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * staticmembervariableHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::staticmembervariableHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  variable_name = symname;
-  static_member_variable_flag = true;
-
-  Language::staticmembervariableHandler(n);
-
-  static_member_variable_flag = false;
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * memberconstantHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::memberconstantHandler(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  variable_name = symname;
-  member_constant_flag = true;
-
-  Language::memberconstantHandler(n);
-
-  member_constant_flag = false;
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * constructorHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::constructorHandler(Node *n) {
-  Language::constructorHandler(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * copyconstructorHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::copyconstructorHandler(Node *n) {
-  Language::copyconstructorHandler(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * destructorHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::destructorHandler(Node *n) {
-  Language::destructorHandler(n);
-  String *symname = Getattr(n, "sym:name");
-  Printv(destrcutor_call, Swig_name_wrapper(Swig_name_destroy(getNSpace(), symname)), "((void*)swigCPtr)", NIL);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * classHandler()
- *
- * Function handler for generating wrappers for functions 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::classHandler(Node *n) {
-  if (proxy_flag) {
-    proxy_class_name = Copy(Getattr(n, "sym:name"));
-
-    if (!addSymbol(proxy_class_name, n))
-      return SWIG_ERROR;
-
-    Clear(proxy_class_imports);
-    Clear(proxy_class_function_decls);
-    Clear(proxy_class_function_defns);
-    Clear(proxy_global_function_decls);
-    Clear(proxy_global_function_defns);
-    Clear(proxy_class_enums_code);
-    Clear(proxy_class_decl_code);
-    Clear(proxy_class_defn_code);
-    Clear(destrcutor_call);
-  }
-
-  Language::classHandler(n);
-
-  if (proxy_flag) {
-    // Write the code for proxy class
-    emitProxyClass(n);
-
-    // Apply the necessary substitutions        
-    Replaceall(proxy_class_decl_code, "$objcclassname", proxy_class_name);
-    Replaceall(proxy_class_defn_code, "$objcclassname", proxy_class_name);
-
-    // And, dump everything to the proxy files
-    Printv(proxy_h_code, proxy_class_decl_code, NIL);
-    Printv(proxy_mm_code, proxy_class_defn_code, NIL);
-    Printv(proxy_h_code,proxy_global_function_decls,NIL);
-    Printv(proxy_mm_code,proxy_global_function_defns,NIL);
-    // Tidy up
-    Delete(proxy_class_qname);
-    proxy_class_qname = NULL;
-    Delete(proxy_class_name);
-    proxy_class_name = NULL;
-  }
-
-  return SWIG_OK;
-}
-
-/* ----------------------------------------------------------------------
- * enumDeclaration()
- *
- * Wraps C/C++ enums as Objective C enums
- * ---------------------------------------------------------------------- */
-
-int OBJECTIVEC::enumDeclaration(Node *n) {
-  if (ImportMode)
-    return SWIG_OK;
-
-  if (getCurrentClass() && (cplus_mode != PUBLIC))
-    return SWIG_NOWRAP;
-
-  String *typemap_lookup_type = Getattr(n, "name");
-  String *symname = Getattr(n, "sym:name");
-  String *enumname;
-
-  Node *p = parentNode(n);
-  if (p && !Strcmp(nodeType(p), "class")) {	// This is a nested enum, prefix the class name
-    String *parentname = Getattr(p, "sym:name");
-    enumname = NewStringf("%s_%s", parentname, symname);
-  } else {
-    enumname = Copy(symname);
-  }
-
-  if (proxy_flag) {
-    if (typemap_lookup_type) {
-      // Copy-paste the C/C++ enum as an Objective-C enum
-      Printv(proxy_h_code, "enum ", enumname, " {\n", NIL);
-    } else {
-      // Handle anonymous enums.
-      Printv(proxy_h_code, "\nenum {\n", NIL);
-    }
-  }
-  // Emit each enum item
-  Language::enumDeclaration(n);
-
-  if (!GetFlag(n, "nonempty")) {
-    // Do not wrap empty enums;
-    return SWIG_NOWRAP;
-  }
-
-  if (proxy_flag) {
-    if (typemap_lookup_type) {
-      // Finish the enum declaration
-      Printv(proxy_h_code, "\n};\n\n", NIL);
-    } else {
-      // Handle anonymous enums.
-      Printv(proxy_h_code, "\n};\n\n", NIL);
-    }
-  }
-
-  Delete(enumname);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------------
- * enumvalueDeclaration()
- *
- * Genrerates the enum item for the Objective C enums
- * --------------------------------------------------------------------------- */
-int OBJECTIVEC::enumvalueDeclaration(Node *n) {
-  if (getCurrentClass() && (cplus_mode != PUBLIC))
-    return SWIG_NOWRAP;
-
-  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
-  String *symname = Getattr(n, "sym:name");
-  String *value = Getattr(n, "enumvalue");
-  Node *parent = parentNode(n);
-  Node *pparent = parentNode(parent);
-  String *enumname;
-  if (pparent && !Strcmp(nodeType(pparent), "class")) {	// This is a nested enum, prefix the class name
-    String *classname = Getattr(pparent, "sym:name");
-    enumname = NewStringf("%s_%s", classname, symname);
-  } else {
-    enumname = Copy(symname);
-  }
-  if (proxy_flag) {		// Emit the enum item
-    if (!GetFlag(n, "firstenumitem"))
-      Printf(proxy_h_code, ",\n");
-    Printf(proxy_h_code, "  %s", enumname);
-    if (value) {
-      value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
-      Printf(proxy_h_code, " = %s", value);
-    }
-  }
-  // Keep track that the currently processed enum has at least one value
-  SetFlag(parent, "nonempty");
-
-  Swig_restore(n);
-  Delete(enumname);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * constantWrapper()
- *
- * Low level code generator for constants 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::constantWrapper(Node *n) {
-  SwigType *type = Getattr(n, "type");
-  String *symname = Getattr(n, "sym:name");
-  String *value = Getattr(n, "value");
-  String *typestring = SwigType_str(type, 0);
-  String *tm;
-
-  String *crettype = NewString("");
-  String *constants_h_code = NewString("");
-  String *constants_mm_code = NewString("");
-  bool is_func_ptr = SwigType_isfunctionpointer(type);
-
-  if (!addSymbol(symname, n))
-    return SWIG_ERROR;
-
-  // Get the corresponding ObjectiveC type or the intermediate type. "imtype" if no proxy and "objctype" if proxy_flag is true.
-  if (!is_func_ptr) {
-    if (proxy_flag) {
-      if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
-	substituteClassname(tm, type);
-	Printf(crettype, "%s", tm);
-      } else {
-	Swig_warning(WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF, input_file, line_number, "No objctype typemap defined for %s\n", typestring);
-      }
-    } else {
-      if ((tm = Swig_typemap_lookup("imtype", n, "", 0))) {
-	Printf(crettype, "%s", tm);
-      } else {
-	Swig_warning(WARN_OBJC_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", typestring);
-      }
-    }
-  } else {
-    if (proxy_flag) {
-      if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
-	substituteClassname(tm, type);
-	Printf(crettype, "%s", tm);
-      } else {
-	Swig_warning(WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF, input_file, line_number, "No objctype typemap defined for %s\n", typestring);
-      }
-    } else {
-      Printf(crettype, "%s", SwigType_str(type, symname));
-    }
-  }
-
-  if (is_func_ptr) {
-    variableWrapper(n);
-    Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
-    //Printf(constants_mm_code, "%s %s = (%s)%s();\n", crettype, symname, typestring, Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
-    // Transform return type used in low level accessor to the type used in Objective-C constant definition
-    String *imcall = NewStringf("%s()", Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
-    if ((tm = Swig_typemap_lookup("objcvarout", n, "", 0))) {
-      substituteClassname(tm, type);
-      Replaceall(tm, "$objcvarname", symname);
-      Replaceall(tm, "$imcall", imcall);
-    } else {
-      Swig_warning(WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF, input_file, line_number, "No objcout typemap defined for %s\n", crettype);
-    }
-    Printf(constants_mm_code, "%s\n", tm);
-    Delete(imcall);
-  }else if (Getattr(n, "wrappedasconstant")) {
-  if (SwigType_type(type) == T_CHAR){
-    Printf(constants_mm_code, "%s %s= \'%s\';\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
-  } 
-	else if (SwigType_type(type) == T_STRING){
-    Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
-  } else {
-    Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
-  } 
-  } else {
-  if (SwigType_type(type) == T_STRING) {
-      // http://stackoverflow.com/questions/538996/constants-in-objective-c/539191#539191
-      Printf(constants_h_code, "extern %s const %s;\n", crettype, symname);
-      Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, value);
-    } else if (SwigType_type(type) == T_CHAR) {
-      Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
-      Printf(constants_mm_code, "%s %s= \'%s\';\n", crettype, symname, value);
-    } else {
-      Printf(constants_h_code, "extern %s %s;\n", crettype, symname);
-      Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, value);
-    }
-  }
-  
-  // Dump to generated files
-  if (proxy_flag) {		// write to the proxy files
-    Printv(proxy_h_code, constants_h_code, NIL);
-    Printv(proxy_mm_code, constants_mm_code, NIL);
-  } else {			// write to the wrap files
-    Printv(wrap_h_code, constants_h_code, NIL);
-    Printv(wrap_mm_code, constants_mm_code, NIL);
-  }
-
-  // Cleanup
-  Delete(crettype);
-  Delete(constants_h_code);
-  Delete(constants_mm_code);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * variableWrapper()
- *
- * Low level code generator for variables  
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::variableWrapper(Node *n) {
-  Language::variableWrapper(n);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * functionWrapper()
- *
- *
- * Generates the C wrapper code for a function and the corresponding
- * declaration in the wrap files
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::functionWrapper(Node *n) {
-  // Get some useful attributes of this function
-  String *symname = Getattr(n, "sym:name");
-  SwigType *type = Getattr(n, "type");
-  ParmList *parmlist = Getattr(n, "parms");
-  String *crettype = SwigType_str(type, 0);
-  String *imrettype = NewString("");
-  String *tm;
-  bool is_void_return = (Cmp(crettype, "void") == 0);
-  bool is_constructor = (Cmp(nodeType(n), "constructor") == 0);
-  bool is_destructor = (Cmp(nodeType(n), "destructor") == 0);
-  bool is_constant = (Cmp(nodeType(n), "constant") == 0);
-
-  if (!Getattr(n, "sym:overloaded")) {
-    if (!addSymbol(Getattr(n, "sym:name"), n))
-      return SWIG_ERROR;
-  }
-  // Create the function's wrappered name
-  String *wname = Swig_name_wrapper(symname);
-
-  // Create the wrapper function object
-  Wrapper *wrapper = NewWrapper();
-
-  // Retrieve the intermediate return type for this function
-  if ((tm = Swig_typemap_lookup("imtype", n, "", 0))) {
-    Printf(imrettype, "%s", tm);
-  } else {
-    Swig_warning(WARN_OBJC_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", crettype);
-  }
-
-  // Deal with overloading
-
-  /* Write the wrapper function declaration and definition */
-
-  // Begin the first line of the function definition
-  Printv(wrapper->def, imrettype, " ", wname, "(", NIL);
-
-  // Make the param list with the intermediate parameter types 
-  makeParameterList(parmlist, wrapper);
-
-  // End the first line of the function definition
-  Printv(wrapper->def, ")", NIL);
-
-  // Write the function declaration to the wrap_h
-  Printv(wrap_h_code, wrapper->def, ";\n", NIL);
-
-  // Now write the function definition to the wrap_cpp
-  Printv(wrapper->def, "\n{", NIL);
-
-  // Emit all of the local variables for holding arguments
-  emit_parameter_variables(parmlist, wrapper);
-
-  // If any additional local variable needed, add them now
-  if (!is_void_return)
-    Wrapper_add_localv(wrapper, "imresult", imrettype, "imresult = 0", NIL);
-
-  // Attach the standard typemaps to the parameter list
-  emit_attach_parmmaps(parmlist, wrapper);
-  Setattr(n, "wrap:parms", parmlist);
-
-  // Now walk the function parameter list and generate code to get arguments.
-  marshalInputArgs(parmlist, wrapper);
-
-  // Emit the function call
-  if (is_constant) {		// Wrapping a constant hack.
-    Swig_save("functionWrapper", n, "wrap:action", NIL);
-
-    // below based on Swig_VargetToFunction()
-    SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-    Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
-  }
-
-  Setattr(n, "wrap:name", wname);
-  String *actioncode = emit_action(n);
-
-  if (Cmp(nodeType(n), "constant") == 0)
-    Swig_restore(n);
-
-  // Write typemaps(out) and return value if necessary.
-  marshalOutput(n, actioncode, wrapper);
-
-  // Close the function
-  if (!is_void_return)
-    Printv(wrapper->code, "return imresult;\n", NIL);
-  Printv(wrapper->code, "}", NIL);
-
-  // Final substititions if applicable.
-
-  /* Contract macro modification */
-  Replaceall(wrapper->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
-
-  if (!is_void_return)
-    Replaceall(wrapper->code, "$null", "0");
-  else
-    Replaceall(wrapper->code, "$null", "");
-
-  // Dump the function out.
-  Wrapper_print(wrapper, wrap_mm_code);
-
-  /* Create the proxy functions if proxy_flag is true. */
-  if (proxy_flag && is_constructor) {	// Handle constructor
-    Setattr(n, "imfunctionname", wname);
-    emitProxyClassConstructor(n);
-  } else if (proxy_flag && is_destructor) {	// Handle destructor
-    // TODO: Do it here instead in emitProxyClass function
-  }
-  // globalFunctionHandler is called for static member functions as well hence setting global_func_flag to true. 
-  // To route the call to the appropriate proxy generator, we check for !static_member_func_flag here.
-  if (proxy_flag && (global_variable_flag || global_func_flag) && !static_member_func_flag) {	// Handle globals
-    Setattr(n, "imfunctionname", wname);
-    emitProxyGlobalFunctions(n);
-  } else if (proxy_flag && (member_variable_flag || static_member_variable_flag || member_constant_flag || member_func_flag || static_member_func_flag)) {	// Handle members
-    Setattr(n, "imfunctionname", wname);
-    emitProxyClassFunction(n);
-  }
-  // Tidy up
-  Delete(imrettype);
-  Delete(wname);
-  DelWrapper(wrapper);
-  return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * nativeWrapper()
- *
- * 
- * --------------------------------------------------------------------- */
-
-int OBJECTIVEC::nativeWrapper(Node *n) {
-  Language::nativeWrapper(n);
-  return SWIG_OK;
-}
 
 /* -----------------------------------------------------------------------------
  * emitProxyGlobalFunctions()
@@ -1093,7 +960,8 @@ void OBJECTIVEC::emitProxyGlobalFunctions(Node *n) {
   if ((tm = Swig_typemap_lookup("objcout", n, "", 0))) {
     substituteClassname(tm, type);
     Replaceall(tm, "$imcall", imcall);
-  } else {
+  }
+  else {
     Swig_warning(WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF, input_file, line_number, "No objcout typemap defined for %s\n", crettype);
   }
 
@@ -1101,13 +969,13 @@ void OBJECTIVEC::emitProxyGlobalFunctions(Node *n) {
 
   /* Write the function declaration to the proxy_h_code 
      and function definition to the proxy_mm_code */
-  if ((member_func_flag || member_constant_flag || Strcmp(storage, "friend") == 0 || Strcmp(storage, "typedef") == 0))
-  {
-  Printv(proxy_global_function_decls, function_decl, "\n", NIL);
-  Printv(proxy_global_function_defns, function_defn, "\n", NIL);
-  }else {
-  Printv(proxy_h_code, function_decl, "\n", NIL);
-  Printv(proxy_mm_code, function_defn, "\n", NIL);
+  if ((member_func_flag || member_constant_flag || Cmp(storage, "friend") == 0 || Cmp(storage, "typedef") == 0)) {
+    Printv(proxy_global_function_decls, function_decl, "\n", NIL);
+    Printv(proxy_global_function_defns, function_defn, "\n", NIL);
+  }
+  else {
+    Printv(proxy_h_code, function_decl, "\n", NIL);
+    Printv(proxy_mm_code, function_defn, "\n", NIL);
   }
   //Delete(paramstring);
   Delete(proxyfunctionname);
@@ -1134,7 +1002,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
 
   // Get some useful attributes of this function
   String *symname = Getattr(n, "sym:name");
-  String *name = Getattr(n, "name");
+//   String *name = Getattr(n, "name");
   SwigType *type = Getattr(n, "type");
   ParmList *parmlist = Getattr(n, "parms");
   String *crettype = SwigType_str(type, 0);
@@ -1669,7 +1537,7 @@ void OBJECTIVEC::substituteClassnameVariable(String *tm, const char *classnameva
     Node *n = enumLookup(type);
     String *enum_name = Getattr(n, "sym:name");
     Node *p = parentNode(n);
-    if (p && !Strcmp(nodeType(p), "class")) {
+    if (p && !Cmp(nodeType(p), "class")) {
       // This is a nested enum.
       String *parent_name = Getattr(p, "sym:name");
       type_name = NewStringf("enum %s_%s", parent_name, enum_name);
@@ -1803,47 +1671,6 @@ void OBJECTIVEC::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
   // Emits a variable declaration for a function return value
   emit_return_variable(n, type, wrapper);
 }
-
-
-/* ---------------------------------------------------------------------------
- * makeParameterName()
- *
- * Inputs:
- *   n - Node
- *   p - parameter node
- *   arg_num - parameter argument number
- *   setter  - set this flag when wrapping variables
- * Return:
- *   arg - a unique parameter name
- * --------------------------------------------------------------------------- */
-String *OBJECTIVEC::makeParameterName(Node *n, Parm *p, int argnumber, bool setter) const {
-  String *arg = 0;
-  String *pn = Getattr(p, "name");
-
-  // Use C parameter name unless it is a duplicate or an empty parameter name
-  int count = 0;
-  ParmList *plist = Getattr(n, "parms");
-  while (plist) {
-    if ((Cmp(pn, Getattr(plist, "name")) == 0))
-      count++;
-    plist = nextSibling(plist);
-  }
-  String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
-  arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", argnumber) : Copy(pn);
-
-  if (setter && Cmp(arg, "self") != 0) {
-    // In theory, we could use the normal parameter name for setter functions.
-    // Unfortunately, it is set to "Class::VariableName" for static public
-    // members by the parser, which is not legal ObjectiveC syntax. Thus, we just force
-    // it to "value".
-    Delete(arg);
-    arg = NewString("value");
-  }
-
-
-  return arg;
-}
-
 
 /* -----------------------------------------------------------------------------
  * createProxyName()

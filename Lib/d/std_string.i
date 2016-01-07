@@ -36,7 +36,7 @@ class string;
     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null string");
     return $null;
    }
-   std::string $1_str($input);
+   $*1_ltype $1_str($input);
    $1 = &$1_str; %}
 
 %typemap(out) string %{ $result = SWIG_d_string_callback($1.c_str()); %}
@@ -63,7 +63,7 @@ class string;
     return $null;
   }
   /* possible thread/reentrant code problem */
-  static std::string $1_str;
+  static $*1_ltype $1_str;
   $1_str = $input;
   $result = &$1_str; %}
 

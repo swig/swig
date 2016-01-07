@@ -41,12 +41,6 @@ extern "C" {
   /* Return the `imaxdiv_t' representation of the value of NUMER over DENOM. */
   extern imaxdiv_t imaxdiv (intmax_t numer, intmax_t denom);
   
-  /* Like `strtol' but convert to `intmax_t'.  */
-  extern intmax_t strtoimax (const char *nptr, char **endptr, int base);
-  
-  /* Like `strtoul' but convert to `uintmax_t'.  */
-  extern uintmax_t strtoumax (const char *nptr, char ** endptr, int base);
-
 #ifdef SWIG_WCHAR
   /* Like `wcstol' but convert to `intmax_t'.  */
   extern intmax_t wcstoimax (const wchar_t *nptr, wchar_t **endptr, int base);
@@ -84,7 +78,7 @@ extern "C" {
   extern  uintmax_t wcstoumax (const wchar_t *nptr, wchar_t **endptr, int base);
 #endif
 
-#endif	/* SWIGWORDSIZE32 */
+#endif /* SWIGWORDSIZE64 */
 
 #ifdef __cplusplus
 }

@@ -5,13 +5,13 @@
 %nocopyctor Bar<double>;
 
 %inline %{
-  
+
 struct Foo1 {
   int x;
 
   Foo1(int _x = 2) : x(_x)
   {
-  }  
+  }
 };
 
 struct Foo2 {
@@ -25,7 +25,7 @@ struct Foo3 {
 
 struct Foo4 {
   Foo4() { }
-  
+
 protected:
   Foo4(const Foo4& ) { }
 };
@@ -33,7 +33,7 @@ protected:
 
 struct Foo4a {
   Foo4a() { }
-  
+
 private:
   Foo4a(const Foo4a& ) { }
 };
@@ -53,7 +53,7 @@ struct Foo8 {
 };
 
 template <class T>
-class Bar 
+class Bar
 {
 public:
   int x;
@@ -73,7 +73,7 @@ public:
 
 %include "std_vector.i"
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGJAVASCRIPT) || defined(SWIGSCILAB)
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(size_type);
 %ignore std::vector<Space::Flow>::resize(size_type);
@@ -94,14 +94,16 @@ public:
 
 namespace Space {
 class Flow {
+int x;
 public:
-  Flow(int i) {}
+ Flow(int i) : x(i) {}
 };
 
 
 class FlowFlow {
+int x;
 public:
-  FlowFlow(int i) {}
+ FlowFlow(int i) : x(i) {}
 };
 
 }
@@ -124,7 +126,7 @@ public:
       template <class T>
       struct ModelUtils_T {};
 
-    }    
+    }
   }
 %}
 
@@ -142,13 +144,13 @@ namespace Space1 {
     class TotalReturnSwap {
     public:
       TotalReturnSwap() {}
-    };    
+    };
 
     template <class T>
     class TotalReturnSwap_T {
     public:
       TotalReturnSwap_T() {}
-    };    
+    };
 
   }
 }

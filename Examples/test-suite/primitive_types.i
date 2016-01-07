@@ -1,6 +1,11 @@
 // Massive primitive datatype test.
 %module(directors="1") primitive_types
 
+#if defined(SWIGSCILAB)
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_val;
+%rename(TestDir) TestDirector;
+#endif
+
 %{
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
@@ -48,7 +53,7 @@
              const double & ($basetype temp)
   %{ temp = ($basetype)$input;  $1 = &temp; %}
 
-  the other tipical change is to add the enum SWIGTYPE to the
+  the other typical change is to add the enum SWIGTYPE to the
   integer throws typemaps:
 
   %typemap(throws) int, 
@@ -185,7 +190,7 @@
   char* const def_pchar = (char *const)"hello";
   const char* const def_pcharc = "hija";
 
-  const namet def_namet = {'h','o',0, 'l','a'};
+  const namet def_namet = {'h','o','l','a', 0};
 
   extern namet gbl_namet;
 
@@ -322,9 +327,18 @@ macro(size_t,             pfx, sizet)
     if (a.str() != b.str()) {
       std::cout << "failing in pfx""_""name : "
 		<< a.str() << " : " << b.str() << std::endl;
-      //      return 0;
     }
   }
+%enddef
+/* check variables (arrays can't be compared so compare as strings) */
+%define var_array_check(type, pfx, name)
+    std::ostringstream a; std::ostringstream b;
+    a << pfx##_##name;
+    b << def_##name;
+    if (a.str() != b.str()) {
+      std::cout << "failing in pfx""_""name : "
+		<< a.str() << " : " << b.str() << std::endl;
+    }
 %enddef
 
 /* check a function call */
@@ -337,7 +351,6 @@ macro(size_t,             pfx, sizet)
     if (a.str() != b.str()) {
       std::cout << "failing in pfx""_""name : "
 		<< a.str() << " : " << b.str() << std::endl;
-      // return 0;
     }
   }
 %enddef
@@ -352,6 +365,7 @@ macro(size_t,             pfx, sizet)
 %define ovr_decl(type, pfx, name)
   virtual int pfx##_##val(type x) { return 1; }
   virtual int pfx##_##ref(const type& x) { return 1; }
+  virtual const char* pfx##_##str(type x) { return "name"; }
 %enddef
 
 
@@ -456,7 +470,7 @@ macro(size_t,             pfx, sizet)
    {
      %test_prim_types_stc(var_check, stc)
      %test_prim_types(var_check, var)
-     var_check(namet, var, namet);
+     var_array_check(namet, var, namet);
      return 1;
    }
 
@@ -540,7 +554,7 @@ macro(size_t,             pfx, sizet)
  {
    %test_prim_types(var_check, cct)
    %test_prim_types(var_check, var)
-   var_check(namet, var, namet);
+   var_array_check(namet, var, namet);
    return 1;
  }
 

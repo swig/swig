@@ -17,9 +17,10 @@
 #if defined(SWIG_GOOD_VECTOR)
 %inline %{
 class Flow {
-  Flow() {}
+double x;
+ Flow():x(0.0) {}
 public:
-  Flow(double d) {}
+ Flow(double d) : x(d) {}
 };
 %}
 
@@ -28,9 +29,10 @@ public:
 
 %inline %{
 class Flow {
+double x;
 public:
-  Flow() {}
-  Flow(double d) {}
+ Flow(): x(0.0) {}
+ Flow(double d) : x(d) {}
 };
 %}
 

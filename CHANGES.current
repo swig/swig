@@ -2,16 +2,6 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.6 (30 April 2012)
-=============================
-
-2012-04-25: wsfulton
-            [Lua] Fix uninitialised variable in SWIGTYPE **OUTPUT typemaps as reported by Jim Anderson.
-
-2012-04-28: wsfulton
-            [Python] Fix compilation errors when wrapping STL containers on Mac OSX and possibly other systems.
-
-2012-04-28: wsfulton
-            [Java] Patch 3521811 from Leo Davis - char **STRING_ARRAY typemaps fixed to handle
-            null pointers.
+Version 3.0.9 (in progress)
+===========================
 

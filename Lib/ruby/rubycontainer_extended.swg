@@ -124,7 +124,6 @@
 %swig_container_extend( %arg( Container ), std::complex );
 %swig_container_extend( %arg( Container ), std::string );
 %swig_container_extend( %arg( Container ), swig::GC_VALUE );
-%swig_container_extend( %arg( Container ), swig::GC_VALUE );
 
 %enddef
 

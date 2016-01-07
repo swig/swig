@@ -17,8 +17,6 @@
  * - Lines beginning with %# are stripped down to #... and passed through.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cpp_c[] = "$Id$";
-
 #include "swig.h"
 #include "preprocessor.h"
 #include <ctype.h>
@@ -583,7 +581,8 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
   c = Getc(s);
   if (c != '(') {
     /* Not a macro, bail out now! */
-    Seek(s, pos, SEEK_SET);
+    assert(pos != -1);
+    (void)Seek(s, pos, SEEK_SET);
     Delete(args);
     return 0;
   }
@@ -1213,13 +1212,10 @@ static DOH *Preprocessor_replace(DOH *s) {
       Replaceall(fn, "\\", "\\\\");
       Printf(ns, "\"%s\"", fn);
       Delete(fn);
-    } else if ((m = Getattr(symbols, id))) {
+    } else if (Getattr(symbols, id)) {
       DOH *e;
       /* Yes.  There is a macro here */
       /* See if the macro expects arguments */
-      /*      if (Getattr(m,"args")) {
-         Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
-         } */
       e = expand_macro(id, 0, s);
       if (e)
 	Append(ns, e);
@@ -1380,12 +1376,12 @@ String *Preprocessor_parse(String *s) {
       else if (c == '\"') {
 	start_line = Getline(s);
 	if (skip_tochar(s, '\"', chunk) < 0) {
-	  Swig_error(Getfile(s), -1, "Unterminated string constant starting at line %d\n", start_line);
+	  Swig_error(Getfile(s), start_line, "Unterminated string constant\n");
 	}
       } else if (c == '\'') {
 	start_line = Getline(s);
 	if (skip_tochar(s, '\'', chunk) < 0) {
-	  Swig_error(Getfile(s), -1, "Unterminated character constant starting at line %d\n", start_line);
+	  Swig_error(Getfile(s), start_line, "Unterminated character constant\n");
 	}
       } else if (c == '/')
 	state = 30;		/* Comment */
@@ -1639,7 +1635,7 @@ String *Preprocessor_parse(String *s) {
 	  if (Len(sval) > 0) {
 	    val = Preprocessor_expr(sval, &e);
 	    if (e) {
-	      char *msg = Preprocessor_expr_error();
+	      const char *msg = Preprocessor_expr_error();
 	      Seek(value, 0, SEEK_SET);
 	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 	      if (msg)
@@ -1673,7 +1669,7 @@ String *Preprocessor_parse(String *s) {
 	    if (Len(sval) > 0) {
 	      val = Preprocessor_expr(sval, &e);
 	      if (e) {
-		char *msg = Preprocessor_expr_error();
+		const char *msg = Preprocessor_expr_error();
 		Seek(value, 0, SEEK_SET);
 		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 		if (msg)
@@ -1708,7 +1704,7 @@ String *Preprocessor_parse(String *s) {
       } else if (Equal(id, kpp_include)) {
 	if (((include_all) || (import_all)) && (allow)) {
 	  String *s1, *s2, *fn;
-	  char *dirname;
+	  String *dirname;
 	  int sysfile = 0;
 	  if (include_all && import_all) {
 	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall.\n");
@@ -1727,10 +1723,13 @@ String *Preprocessor_parse(String *s) {
 
 	    /* See if the filename has a directory component */
 	    dirname = Swig_file_dirname(Swig_last_file());
-	    if (sysfile || !strlen(dirname))
+	    if (sysfile || !Len(dirname)) {
+	      Delete(dirname);
 	      dirname = 0;
+	    }
 	    if (dirname) {
-	      dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
+	      int len = Len(dirname);
+	      Delslice(dirname, len - 1, len); /* Kill trailing directory delimiter */
 	      Swig_push_directory(dirname);
 	    }
 	    s2 = Preprocessor_parse(s1);
@@ -1743,6 +1742,7 @@ String *Preprocessor_parse(String *s) {
 	      pop_imported();
 	    }
 	    Delete(s2);
+	    Delete(dirname);
 	    Delete(s1);
 	  }
 	  Delete(fn);
@@ -1768,6 +1768,13 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_level)) {
 	Swig_error(Getfile(s), Getline(id), "cpp debug: level = %d, startlevel = %d\n", level, start_level);
+      } else if (Equal(id, "")) {
+	/* Null directive */
+      } else {
+	/* Ignore unknown preprocessor directives which are inside an inactive
+	 * conditional (github issue #394). */
+	if (allow)
+	  Swig_error(Getfile(s), Getline(id), "Unknown SWIG preprocessor directive: %s (if this is a block of target language code, delimit it with %%{ and %%})\n", id);
       }
       for (i = 0; i < cpp_lines; i++)
 	Putc('\n', ns);
@@ -1860,7 +1867,7 @@ String *Preprocessor_parse(String *s) {
 	    fn = get_filename(s, &sysfile);
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
-	      char *dirname;
+	      String *dirname;
 	      copy_location(s, chunk);
 	      add_chunk(ns, chunk, allow);
 	      Printf(ns, "%sfile%s%s%s\"%s\" %%beginfile\n", decl, options_whitespace, opt, filename_whitespace, Swig_filename_escape(Swig_last_file()));
@@ -1868,10 +1875,13 @@ String *Preprocessor_parse(String *s) {
 		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
-	      if (sysfile || !strlen(dirname))
+	      if (sysfile || !Len(dirname)) {
+		Delete(dirname);
 		dirname = 0;
+	      }
 	      if (dirname) {
-		dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
+		int len = Len(dirname);
+		Delslice(dirname, len - 1, len); /* Kill trailing directory delimiter */
 		Swig_push_directory(dirname);
 	      }
 	      s2 = Preprocessor_parse(s1);
@@ -1884,6 +1894,7 @@ String *Preprocessor_parse(String *s) {
 	      addline(ns, s2, allow);
 	      Append(ns, "%endoffile");
 	      Delete(s2);
+	      Delete(dirname);
 	      Delete(s1);
 	    }
 	    Delete(fn);
@@ -2000,21 +2011,21 @@ String *Preprocessor_parse(String *s) {
     }
   }
   while (level > 0) {
-    Swig_error(Getfile(s), -1, "Missing #endif for conditional starting on line %d\n", cond_lines[level - 1]);
+    Swig_error(Getfile(s), cond_lines[level - 1], "Missing #endif for conditional starting here\n");
     level--;
   }
   if (state == 120) {
-    Swig_error(Getfile(s), -1, "Missing %%endoffile for file inclusion block starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Missing %%endoffile for file inclusion block starting here\n");
   }
   if (state == 150) {
     Seek(value, 0, SEEK_SET);
-    Swig_error(Getfile(s), -1, "Missing %%enddef for macro starting on line %d\n", Getline(value));
+    Swig_error(Getfile(s), Getline(value), "Missing %%enddef for macro starting here\n", Getline(value));
   }
   if ((state >= 105) && (state < 107)) {
-    Swig_error(Getfile(s), -1, "Unterminated %%{ ... %%} block starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Unterminated %%{ ... %%} block\n");
   }
   if ((state >= 30) && (state < 40)) {
-    Swig_error(Getfile(s), -1, "Unterminated comment starting on line %d\n", start_line);
+    Swig_error(Getfile(s), start_line, "Unterminated comment\n");
   }
 
   copy_location(s, chunk);

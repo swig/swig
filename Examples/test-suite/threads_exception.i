@@ -20,6 +20,7 @@ public:
   Exc(int c, const char *m) {
     code = c;
     strncpy(msg,m,255);
+    msg[255] = 0;
   }
   int code;
   char msg[256];
@@ -51,4 +52,10 @@ public:
      return 1;
   }
 };
+
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
 %}

@@ -1,14 +1,6 @@
 %module nested_workaround
-// Similar to "Nested classes" documentation example.
-
-class Inner {
-    int val;
-  public:
-    Inner(int v = 0) : val(v) {}
-    void setValue(int v) { val = v; }
-    int getValue() const { return val; }
-};
-%nestedworkaround Outer::Inner;
+// "flatnested" emulates deprecated feature "nested_workaround" for the languages not supporting nested classes
+%feature ("flatnested");
 
 %inline %{
 class Outer {
@@ -28,11 +20,3 @@ public:
   }
 };
 %}
-
-// We've fooled SWIG into thinking that Inner is a global class, so now we need
-// to trick the C++ compiler into understanding this apparent global type.
-%{
-typedef Outer::Inner Inner;
-%}
-
-

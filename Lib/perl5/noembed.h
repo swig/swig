@@ -64,9 +64,6 @@
 #ifdef eof
   #undef eof
 #endif
-#ifdef bool
-  #undef bool
-#endif
 #ifdef close
   #undef close
 #endif
@@ -106,3 +103,14 @@
 #ifdef stat
   #undef stat
 #endif
+#ifdef seed
+  #undef seed
+#endif
+
+#ifdef bool
+  /* Leave if macro is from C99 stdbool.h */
+  #ifndef __bool_true_false_are_defined
+    #undef bool
+  #endif
+#endif
+

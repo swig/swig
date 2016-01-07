@@ -13,6 +13,16 @@
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) AD; /* C#, D, Java, PHP multiple inheritance */
 
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) GGG; /* C#, D, Java, PHP multiple inheritance */
+
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) HHH; /* C#, D, Java, PHP multiple inheritance */
+
 %warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
 
 %delobject F::destroy;
@@ -104,12 +114,21 @@ public:
 void bar(F *) { }
 
 #if defined(_MSC_VER)
-  #pragma warning(disable: 4624) // : destructor could not be generated because a base class destructor is inaccessible
+  #pragma warning(disable: 4624) // destructor could not be generated because a base class destructor is inaccessible or deleted
 #endif
+
+// Single inheritance, base has private destructor
 class FFF : public F { 
 };
+
+// Multiple inheritance, one base has private destructor
+class GGG : public A, public F {
+};
+class HHH : public F, public A {
+};
+
 #if defined(_MSC_VER)
-  #pragma warning(default: 4624) // : destructor could not be generated because a base class destructor is inaccessible
+  #pragma warning(default: 4624) // destructor could not be generated because a base class destructor is inaccessible or deleted
 #endif
 
 /* A class with a protected destructor */
@@ -168,5 +187,11 @@ public:
   } 
 };
 
-
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+%}
   

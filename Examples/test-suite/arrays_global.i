@@ -61,7 +61,6 @@ char* test_b(name a, const namea b)  {
   return a;
 }
 
-#if 0
 int test_a(int a)  {
   return a;
 }
@@ -70,7 +69,6 @@ int test_b(int a)  {
   return a;
 }
  
-#endif
 %}
 
 
@@ -84,12 +82,12 @@ int test_b(int a)  {
   };
 
   enum {
-    Size = 32
+    Size_32 = 32
   };
   
-  const Material * chitMat[Size];
-  Material hitMat_val[Size];
-  Material *hitMat[Size];
+  const Material * chitMat[Size_32];
+  Material hitMat_val[Size_32];
+  Material *hitMat[Size_32];
 }
 
 #endif

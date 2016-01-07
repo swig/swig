@@ -11,9 +11,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <global.h>
-#include <module.h>
-#include <interpret.h>
+#include <pike/global.h>
+#include <pike/module.h>
+#include <pike/interpret.h>
 #ifdef __cplusplus
 }
 #endif
@@ -53,6 +53,7 @@ extern "C" {
 
 %typemap(in) SWIGTYPE *,
              SWIGTYPE &,
+             SWIGTYPE &&,
              SWIGTYPE []
 	"SWIG_ConvertPtr($input.u.object, (void **) &$1, $1_descriptor, 1);"
 	
@@ -79,7 +80,8 @@ extern "C" {
              const bool & (bool temp),
 	     const long long & ($*1_ltype temp),
 	     const unsigned long long & ($*1_ltype temp),
-             const enum SWIGTYPE & ($*1_ltype temp)
+             const enum SWIGTYPE & ($*1_ltype temp),
+             const enum SWIGTYPE && ($*1_ltype temp)
 {
   if ($input.type != T_INT)
     Pike_error("Bad argument: Expected an integer.\n");
@@ -113,7 +115,7 @@ extern "C" {
 %typemap(out, pikedesc="tStr") char *		"push_text($1);";
 
 /* Pointers, references, and arrays */
-%typemap(out, pikedesc="tObj") SWIGTYPE*, SWIGTYPE &, SWIGTYPE [] "push_object(SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner));";
+%typemap(out, pikedesc="tObj") SWIGTYPE*, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "push_object(SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner));";
 
 /* Void return value; don't push anything */
 %typemap(out, pikedesc="tVoid") void		"";
@@ -153,7 +155,8 @@ extern "C" {
               const char &, const signed char &, const unsigned char &,
               const bool &,
 	      const long long &, const unsigned long long &,
-              const enum SWIGTYPE & ($*1_ltype temp)
+              const enum SWIGTYPE & ($*1_ltype temp),
+              const enum SWIGTYPE && ($*1_ltype temp)
       "push_int(*($1));";
 
 %typemap(out, pikedesc="tFloat") const float &, const double &  "push_float(*($1));";
@@ -216,7 +219,7 @@ extern "C" {
 	 const int &, const short &, const long &,
  	 const unsigned int &, const unsigned short &, const unsigned long &,
 	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE, enum SWIGTYPE &,
+	 enum SWIGTYPE, enum SWIGTYPE &, SWIGTYPE &&,
          bool, const bool & 
 {
   $1 = ($input.type == T_INT) ? 1 : 0;
@@ -237,7 +240,7 @@ extern "C" {
   $1 = ($input.type == T_STRING) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr($input.u.object, (void **) &ptr, $1_descriptor, 0) == -1) {
     $1 = 0;
@@ -266,6 +269,7 @@ extern "C" {
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

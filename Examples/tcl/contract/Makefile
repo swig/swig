@@ -1,20 +1,24 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 SRCS       = example.c
 TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i
 SWIGOPT    =
 
-all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='$(DLTARGET)' INTERFACE='$(INTERFACE)' tcl
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' tcl_run
 
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tclsh
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(DLTARGET)' INTERFACE='$(INTERFACE)' tcl
 
-clean::
-	$(MAKE) -f $(TOP)/Makefile tcl_clean
+static:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tclsh
 
-check: all
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' tcl_clean

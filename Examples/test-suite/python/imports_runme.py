@@ -14,4 +14,4 @@ a1 = c.get_a(c)
 a2 = c.get_a_type(c)
 
 if a1.hello() != a2.hello():
-  raise RuntimeError
+    raise RuntimeError

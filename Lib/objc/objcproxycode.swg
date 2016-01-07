@@ -48,21 +48,20 @@
 %}
 
 // Proxy interface and implementation (for C++ class with no base class)
-%typemap(objcinterfacecode) SWIGTYPE %{
-{
+%typemap(objcinterfacecode) SWIGTYPE %{ {
 	void *swigCPtr;
 	BOOL swigCMemOwn;
 }
--(void*)getCptr;
--(id)initWithCptr: (void*)cptr swigOwnCObject: (BOOL)ownCObject;
+- (void *)getCptr;
+- (id)initWithCptr:(void *)cptr swigOwnCObject:(BOOL)ownCObject;
 %}
 
 %typemap(objcimplementationcode) SWIGTYPE %{
--(void*)getCptr {
+- (void *)getCptr {
 	return swigCPtr;
 }
 
--(id)initWithCptr: (void*)cptr swigOwnCObject: (BOOL)ownCObject {
+-(id)initWithCptr:(void *)cptr swigOwnCObject:(BOOL)ownCObject {
 	if((self = [super init])) {
 		swigCPtr = cptr;
         swigCMemOwn = ownCObject;
@@ -73,16 +72,16 @@
 
 // Proxy interface and implementation (for C++ class with a base class)
 %typemap(objcinterfacecode_derived) SWIGTYPE %{
--(void*)getCptr;
--(id)initWithCptr: (void*)cptr swigOwnCObject: (BOOL)ownCObject;
+- (void *)getCptr;
+- (id)initWithCptr:(void *)cptr swigOwnCObject:(BOOL)ownCObject;
 %}
 
 %typemap(objcimplementationcode_derived) SWIGTYPE %{
-- (void*)getCptr {
+- (void *)getCptr {
 	return swigCPtr;
 }
 
--(id)initWithCptr: (void*)cptr swigOwnCObject: (BOOL)ownCObject {
+- (id)initWithCptr:(void *)cptr swigOwnCObject:(BOOL)ownCObject {
 	if((self = [super init])) {
 		swigCPtr = cptr;
         swigCMemOwn = ownCObject;
@@ -95,28 +94,27 @@
  * Type wrapper classes.
  */
 
-%typemap(objctypeinterface) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-{
+%typemap(objctypeinterface) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{ {
 	void *swigCPtr;
 	BOOL swigCMemOwn;
 }
--(void*)getCptr;
--(id)initWithCptr: (void*) cptr;
+- (void *)getCptr;
+- (id)initWithCptr:(void *)cptr;
 %}
 
 %typemap(objctypeimplementation) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
--(void*)getCptr {
+- (void *)getCptr {
 	return swigCPtr;
 }
 
--(id)init {
+- (id)init {
 	if((self = [super init])) {
 		swigCPtr = 0;
 	}
 	return self;
 }
 
--(id)initWithCptr: (void*) cptr{
+- (id)initWithCptr:(void *) cptr{
 	if((self = [super init])) {
 		swigCPtr = cptr;
 	}

@@ -62,13 +62,12 @@ char * typemaps instead:
 %define INPUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *INPUT, TYPE &INPUT "GOTYPE"
 
-%typemap(in) TYPE *INPUT
+ %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
-%typemap(in) TYPE &INPUT
-%{ $1 = ($1_ltype)$input; %}
-
 %typemap(out) TYPE *INPUT, TYPE &INPUT ""
+
+%typemap(goout) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
@@ -160,7 +159,7 @@ char * typemaps instead:
 %define OUTPUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *OUTPUT, TYPE &OUTPUT %{[]GOTYPE%}
 
-%typemap(in) TYPE *OUTPUT($*1_ltype temp)
+%typemap(in) TYPE *OUTPUT($*1_ltype temp), TYPE &OUTPUT($*1_ltype temp)
 {
   if ($input.len == 0) {
     _swig_gopanic("array must contain at least 1 element");
@@ -168,27 +167,15 @@ char * typemaps instead:
   $1 = &temp;
 }
 
-%typemap(in) TYPE &OUTPUT($*1_ltype temp)
-{
-  if ($input->len == 0) {
-    _swig_gopanic("array must contain at least 1 element");
-  }
-  $1 = &temp;
-}
-
 %typemap(out) TYPE *OUTPUT, TYPE &OUTPUT ""
+
+%typemap(goout) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
-%typemap(argout) TYPE *OUTPUT
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT
 {
   TYPE* a = (TYPE *) $input.array;
-  a[0] = temp$argnum;
-}
-
-%typemap(argout) TYPE &OUTPUT 
-{
-  TYPE* a = (TYPE *) $input->array;
   a[0] = temp$argnum;
 }
 
@@ -276,21 +263,16 @@ char * typemaps instead:
 %define INOUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *INOUT, TYPE &INOUT %{[]GOTYPE%}
 
-%typemap(in) TYPE *INOUT {
+%typemap(in) TYPE *INOUT, TYPE &INOUT {
   if ($input.len == 0) {
     _swig_gopanic("array must contain at least 1 element");
   }
   $1 = ($1_ltype) $input.array;
 }
 
-%typemap(in) TYPE &INOUT {
-  if ($input->len == 0) {
-    _swig_gopanic("array must contain at least 1 element");
-  }
-  $1 = ($1_ltype) $input->array;
-}
-
 %typemap(out) TYPE *INOUT, TYPE &INOUT ""
+
+%typemap(goout) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 

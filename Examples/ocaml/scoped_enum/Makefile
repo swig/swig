@@ -1,33 +1,38 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
-SRCS       = 
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
 MLFILE     = example.ml
 PROGFILE   = example_prog.ml
-OBJS       = 
+OBJS       =
 
-all:: static 
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' ocaml_run
 
-dynamic::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+build: static
+
+dynamic:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MLFILE='$(MLFILE)' \
 	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
 	ocaml_dynamic_cpp
 
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+static:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MLFILE='$(MLFILE)' \
 	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
 	ocaml_static_cpp
 
-toplevel::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+toplevel:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' MLFILE='$(MLFILE)' \
 	PROGFILE='$(PROGFILE)' OBJS='$(OBJS)' \
 	ocaml_static_cpp_toplevel
 
-clean::
-	$(MAKE) -f $(TOP)/Makefile MLFILE='$(MLFILE)' ocaml_clean
-
-check: all
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' MLFILE='$(MLFILE)' ocaml_clean

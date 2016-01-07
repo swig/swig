@@ -1,15 +1,17 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 
-all::
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' r_run
+
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' r_cpp
 
-clean::
-	$(MAKE) -f $(TOP)/Makefile INTERFACE='$(INTERFACE)' r_clean
-
-check: all
-	R CMD BATCH runme.R
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INTERFACE='$(INTERFACE)' r_clean

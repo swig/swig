@@ -56,7 +56,7 @@
 
 namespace std {
 
-  template<class _Tp, class _Sequence = std::deque<_Tp> > 
+  template<class _Tp, class _Sequence = std::deque< _Tp > >
   class stack {
   public:
     typedef size_t size_type;
@@ -67,11 +67,11 @@ namespace std {
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::stack<_Tp, _Sequence >), "header",
+    %fragment(SWIG_Traits_frag(std::stack< _Tp, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdStackTraits") {
       namespace swig {
-	template <>  struct traits<std::stack<_Tp, _Sequence > > {
+	template <>  struct traits<std::stack< _Tp, _Sequence > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::stack<" #_Tp "," #_Sequence " >";
@@ -80,18 +80,18 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_STACK, std::stack<_Tp, _Sequence >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_STACK, std::stack< _Tp, _Sequence >);
   
 #ifdef %swig_stack_methods
     // Add swig/language extra methods
-    %swig_stack_methods(std::stack<_Tp, _Sequence >);
+    %swig_stack_methods(std::stack< _Tp, _Sequence >);
 #endif
 
     %std_stack_methods(stack);
   };
 
   template<class _Tp, class _Sequence > 
-  class stack<_Tp*, _Sequence > {
+  class stack< _Tp*, _Sequence > {
   public:
     typedef size_t size_type;
     typedef _Sequence::value_type value_type;
@@ -101,11 +101,11 @@ namespace std {
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::stack<_Tp*, _Sequence >), "header",
+    %fragment(SWIG_Traits_frag(std::stack< _Tp*, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdStackTraits") {
       namespace swig {
-	template <>  struct traits<std::stack<_Tp*, _Sequence > > {
+	template <>  struct traits<std::stack< _Tp*, _Sequence > > {
 	  typedef value_category category;
 	  static const char* type_name() {
 	    return "std::stack<" #_Tp "," #_Sequence " * >";
@@ -114,14 +114,14 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_STACK, std::stack<_Tp*, _Sequence >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_STACK, std::stack< _Tp*, _Sequence >);
 
 #ifdef %swig_stack_methods_val
     // Add swig/language extra methods
-    %swig_stack_methods_val(std::stack<_Tp*, _Sequence >);
+    %swig_stack_methods_val(std::stack< _Tp*, _Sequence >);
 #endif
 
-    %std_stack_methods_val(std::stack<_Tp*, _Sequence >);
+    %std_stack_methods_val(std::stack< _Tp*, _Sequence >);
   };
 
 }

@@ -1,26 +1,7 @@
-TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
-SRCS       = example.c
-TARGET     = example
-INTERFACE  = example.i
-OCTSCRIPTS = \
-	runme_args.m \
-	runme_gl_func.m \
-	runme_gl_func_base.m \
-	runme_nogl_func.m \
-	runme_nogl_func_base.m
+SRCS     = example.c
+TARGET   = swigexample
+SWIGOPT  = -module swigexample
+TARGET2  = swigexample2
+SWIGOPT2 = -module swigexample2 -globals .
 
-all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave
-
-static::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='myoctave' INTERFACE='$(INTERFACE)' octave_static
-
-clean::
-	$(MAKE) -f $(TOP)/Makefile octave_clean
-	rm -f $(TARGET).m
-
-check: all
-	$(MAKE) -f $(TOP)/Makefile OCTSCRIPT="$(OCTSCRIPTS)" octave_run
+include $(SRCDIR)../example.mk

@@ -1,29 +1,28 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 TARGET     = example
 INTERFACE  = example.i
-PACKAGEDIR = src/org/swig
+INTERFACEDIR = jni/
+PACKAGEDIR = $(SRCDIR)src/org/swig
 PACKAGENAME= org.swig.classexample
-SWIGOPT    = -package $(PACKAGENAME) -outdir $(PACKAGEDIR)/classexample 
+SWIGOPT    = -package $(PACKAGENAME) -outdir $(PACKAGEDIR)/classexample
 PROJECTNAME= SwigClass
 TARGETID  = 1
+#INSTALLOPTIONS = -s # To install on SD Card
 
-all::	android
+check: build
 
-android::
-	android update project --target $(TARGETID) --name $(PROJECTNAME) --path .
-	$(SWIG) -c++ -java $(SWIGOPT) -o jni/$(TARGET)_wrap.cpp jni/$(INTERFACE)
-	ndk-build
-	ant debug
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' INTERFACEDIR='$(INTERFACEDIR)' \
+	PROJECTNAME='$(PROJECTNAME)' TARGETID='$(TARGETID)' android_cpp
 
-install::
-	-adb uninstall $(PACKAGENAME)
-	adb install bin/$(PROJECTNAME)-debug.apk
+install:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' INSTALLOPTIONS='$(INSTALLOPTIONS)' PROJECTNAME='$(PROJECTNAME)' \
+	PACKAGEDIR='$(PACKAGEDIR)' PACKAGENAME='$(PACKAGENAME)' android_install
 
-clean::
-	ant clean
-	rm -f jni/$(TARGET)_wrap.cpp
-	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
-	
-
-check: all
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' PROJECTNAME='$(PROJECTNAME)' \
+	PACKAGEDIR='$(PACKAGEDIR)' INTERFACEDIR='$(INTERFACEDIR)' android_clean

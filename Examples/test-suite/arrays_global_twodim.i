@@ -49,12 +49,12 @@ int get_2d_array(int (*array)[ARRAY_LEN_Y], int x, int y){
   };
 
   enum {
-    Size = 32
+    Size_32 = 32
   };
   
-  const Material * chitMat[Size][Size];
-  Material hitMat_val[Size][Size];
-  Material *hitMat[Size][Size];
+  const Material * chitMat[Size_32][Size_32];
+  Material hitMat_val[Size_32][Size_32];
+  Material *hitMat[Size_32][Size_32];
 }
 
 #endif

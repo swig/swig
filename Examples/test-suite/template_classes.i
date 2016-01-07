@@ -18,6 +18,9 @@ class RectangleTest {
 public:
   Point<T>& getPoint() {return point;}
   void setPoint(Point<T>& value) {point = value;}
+
+  static int static_noargs() { return 0; }
+  static int static_onearg(int i) { return i; }
 private:
   Point<T> point;
 

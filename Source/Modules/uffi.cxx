@@ -13,11 +13,9 @@
 
 // TODO: remove remnants of lisptype
 
-char cvsroot_uffi_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 UFFI Options (available with -uffi)\n\
      -identifier-converter <type or funcname> - \n\
                        Specifies the type of conversion to do on C identifiers\n\
@@ -47,7 +45,7 @@ static struct {
   String **entries;
 } defined_foreign_types;
 
-static const char *identifier_converter = "identifier-convert-null";
+static String *identifier_converter = NewString("identifier-convert-null");
 
 static int any_varargs(ParmList *pl) {
   Parm *p;
@@ -221,14 +219,15 @@ void UFFI::main(int argc, char *argv[]) {
 
       /* check for built-ins */
       if (!strcmp(conv, "lispify")) {
-	identifier_converter = "identifier-convert-lispify";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-lispify");
       } else if (!strcmp(conv, "null")) {
-	identifier_converter = "identifier-convert-null";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-null");
       } else {
 	/* Must be user defined */
-	char *idconv = new char[strlen(conv) + 1];
-	strcpy(idconv, conv);
-	identifier_converter = idconv;
+	Delete(identifier_converter);
+	identifier_converter = NewString(conv);
       }
     }
 
@@ -266,9 +265,7 @@ int UFFI::top(Node *n) {
 
   Language::top(n);
 
-  Close(f_cl);
   Delete(f_cl);			// Delete the handle, not the file
-  Close(f_null);
   Delete(f_null);
 
   return SWIG_OK;

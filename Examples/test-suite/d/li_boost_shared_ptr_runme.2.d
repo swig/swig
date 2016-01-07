@@ -2,6 +2,7 @@ module li_boost_shared_ptr_runme;
 
 import core.memory;
 import core.thread;
+import core.time;
 import std.conv;
 import std.exception;
 import std.stdio;
@@ -31,15 +32,6 @@ void main() {
   if (TRACE)
     writeln("---> NEARLY FINISHED <---");
 
-  // Try to get the GC to collect everything not referenced anymore.
-  int countdown = 100;
-  while (--countdown) {
-    GC.collect();
-    if (Klass.getTotal_count() == 1)
-      break;
-    Thread.sleep(100);
-  }
-
   // A single remaining instance expected: the global variable (GlobalValue).
   if (Klass.getTotal_count() != 1)
     throw new Exception("Klass.total_count=" ~ to!string(Klass.getTotal_count()));
@@ -55,9 +47,15 @@ void main() {
 }
 
 void runTest() {
+  // We want to check whether all the C++ Klass instances have been properly
+  // destructed after the tests have run. However, as it is legal for the GC
+  // to leave an object around even if it is unreachable, use deterministic
+  // memory management here.
+  import std.typecons : scoped;
+
   // simple shared_ptr usage - created in C++
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     string val = k.getValue();
     verifyValue("me oh my", val);
     verifyCount(1, k);
@@ -73,7 +71,7 @@ void runTest() {
 
   // pass by shared_ptr
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = smartpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointertest", val);
@@ -83,7 +81,7 @@ void runTest() {
 
   // pass by shared_ptr pointer
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = smartpointerpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerpointertest", val);
@@ -93,7 +91,7 @@ void runTest() {
 
   // pass by shared_ptr reference
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = smartpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerreftest", val);
@@ -103,7 +101,7 @@ void runTest() {
 
   // pass by shared_ptr pointer reference
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = smartpointerpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerpointerreftest", val);
@@ -113,7 +111,7 @@ void runTest() {
 
   // const pass by shared_ptr
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = constsmartpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my", val);
@@ -123,7 +121,7 @@ void runTest() {
 
   // const pass by shared_ptr pointer
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = constsmartpointerpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my", val);
@@ -133,7 +131,7 @@ void runTest() {
 
   // const pass by shared_ptr reference
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = constsmartpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my", val);
@@ -143,7 +141,7 @@ void runTest() {
 
   // pass by value
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = valuetest(k);
     string val = kret.getValue();
     verifyValue("me oh my valuetest", val);
@@ -153,7 +151,7 @@ void runTest() {
 
   // pass by pointer
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = pointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my pointertest", val);
@@ -163,7 +161,7 @@ void runTest() {
 
   // pass by reference
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = reftest(k);
     string val = kret.getValue();
     verifyValue("me oh my reftest", val);
@@ -173,7 +171,7 @@ void runTest() {
 
   // pass by pointer reference
   {
-    auto k = new Klass("me oh my");
+    auto k = scoped!Klass("me oh my");
     auto kret = pointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my pointerreftest", val);
@@ -215,7 +213,7 @@ void runTest() {
   ////////////////////////////////// Derived classes ////////////////////////////////////////
   // derived pass by shared_ptr
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedsmartptrtest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedsmartptrtest-Derived", val);
@@ -224,7 +222,7 @@ void runTest() {
   }
   // derived pass by shared_ptr pointer
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedsmartptrpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedsmartptrpointertest-Derived", val);
@@ -233,7 +231,7 @@ void runTest() {
   }
   // derived pass by shared_ptr ref
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedsmartptrreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedsmartptrreftest-Derived", val);
@@ -242,7 +240,7 @@ void runTest() {
   }
   // derived pass by shared_ptr pointer ref
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedsmartptrpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedsmartptrpointerreftest-Derived", val);
@@ -251,7 +249,7 @@ void runTest() {
   }
   // derived pass by pointer
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedpointertest-Derived", val);
@@ -260,7 +258,7 @@ void runTest() {
   }
   // derived pass by ref
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = derivedreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my derivedreftest-Derived", val);
@@ -271,7 +269,7 @@ void runTest() {
   ////////////////////////////////// Derived and base class mixed ////////////////////////////////////////
   // pass by shared_ptr (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = smartpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointertest-Derived", val);
@@ -281,7 +279,7 @@ void runTest() {
 
   // pass by shared_ptr pointer (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = smartpointerpointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerpointertest-Derived", val);
@@ -291,7 +289,7 @@ void runTest() {
 
   // pass by shared_ptr reference (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = smartpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerreftest-Derived", val);
@@ -301,7 +299,7 @@ void runTest() {
 
   // pass by shared_ptr pointer reference (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = smartpointerpointerreftest(k);
     string val = kret.getValue();
     verifyValue("me oh my smartpointerpointerreftest-Derived", val);
@@ -311,7 +309,7 @@ void runTest() {
 
   // pass by value (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = valuetest(k);
     string val = kret.getValue();
     verifyValue("me oh my valuetest", val); // note slicing
@@ -321,7 +319,7 @@ void runTest() {
 
   // pass by pointer (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = pointertest(k);
     string val = kret.getValue();
     verifyValue("me oh my pointertest-Derived", val);
@@ -331,7 +329,7 @@ void runTest() {
 
   // pass by ref (mixed)
   {
-    auto k = new KlassDerived("me oh my");
+    auto k = scoped!KlassDerived("me oh my");
     auto kret = reftest(k);
     string val = kret.getValue();
     verifyValue("me oh my reftest-Derived", val);
@@ -341,7 +339,7 @@ void runTest() {
 
   // 3rd derived class
   {
-    auto k = new Klass3rdDerived("me oh my");
+    auto k = scoped!Klass3rdDerived("me oh my");
     string val = k.getValue();
     verifyValue("me oh my-3rdDerived", val);
     verifyCount(3, k); // 3 classes in inheritance chain == 3 swigCPtr values
@@ -353,128 +351,140 @@ void runTest() {
   ////////////////////////////////// Member variables ////////////////////////////////////////
   // smart pointer by value
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("smart member value");
-    m.SmartMemberValue = k;
-    string val = k.getValue();
-    verifyValue("smart member value", val);
-    verifyCount(2, k);
+    auto k = scoped!Klass("smart member value");
+    Klass kmember;
 
-    auto kmember = m.SmartMemberValue;
-    val = kmember.getValue();
-    verifyValue("smart member value", val);
-    verifyCount(3, kmember);
-    verifyCount(3, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.SmartMemberValue = k;
+      string val = k.getValue();
+      verifyValue("smart member value", val);
+      verifyCount(2, k);
 
-    delete m;
+      kmember = m.SmartMemberValue;
+      val = kmember.getValue();
+      verifyValue("smart member value", val);
+      verifyCount(3, kmember);
+      verifyCount(3, k);
+    }
 
     verifyCount(2, kmember);
     verifyCount(2, k);
   }
   // smart pointer by pointer
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("smart member pointer");
-    m.SmartMemberPointer = k;
-    string val = k.getValue();
-    verifyValue("smart member pointer", val);
-    verifyCount(1, k);
+    auto k = scoped!Klass("smart member pointer");
+    Klass kmember;
 
-    auto kmember = m.SmartMemberPointer;
-    val = kmember.getValue();
-    verifyValue("smart member pointer", val);
-    verifyCount(2, kmember);
-    verifyCount(2, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.SmartMemberPointer = k;
+      string val = k.getValue();
+      verifyValue("smart member pointer", val);
+      verifyCount(1, k);
 
-    delete m;
+      kmember = m.SmartMemberPointer;
+      val = kmember.getValue();
+      verifyValue("smart member pointer", val);
+      verifyCount(2, kmember);
+      verifyCount(2, k);
+    }
 
     verifyCount(2, kmember);
     verifyCount(2, k);
   }
   // smart pointer by reference
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("smart member reference");
-    m.SmartMemberReference = k;
-    string val = k.getValue();
-    verifyValue("smart member reference", val);
-    verifyCount(2, k);
+    auto k = scoped!Klass("smart member reference");
+    Klass kmember;
 
-    auto kmember = m.SmartMemberReference;
-    val = kmember.getValue();
-    verifyValue("smart member reference", val);
-    verifyCount(3, kmember);
-    verifyCount(3, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.SmartMemberReference = k;
+      string val = k.getValue();
+      verifyValue("smart member reference", val);
+      verifyCount(2, k);
 
-    // The C++ reference refers to SmartMemberValue...
-    auto kmemberVal = m.SmartMemberValue;
-    val = kmember.getValue();
-    verifyValue("smart member reference", val);
-    verifyCount(4, kmemberVal);
-    verifyCount(4, kmember);
-    verifyCount(4, k);
+      kmember = m.SmartMemberReference;
+      val = kmember.getValue();
+      verifyValue("smart member reference", val);
+      verifyCount(3, kmember);
+      verifyCount(3, k);
 
-    delete m;
+      // The C++ reference refers to SmartMemberValue...
+      auto kmemberVal = m.SmartMemberValue;
+      val = kmember.getValue();
+      verifyValue("smart member reference", val);
+      verifyCount(4, kmemberVal);
+      verifyCount(4, kmember);
+      verifyCount(4, k);
+    }
 
     verifyCount(3, kmember);
     verifyCount(3, k);
   }
   // plain by value
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("plain member value");
-    m.MemberValue = k;
-    string val = k.getValue();
-    verifyValue("plain member value", val);
-    verifyCount(1, k);
+    auto k = scoped!Klass("plain member value");
+    Klass kmember;
 
-    auto kmember = m.MemberValue;
-    val = kmember.getValue();
-    verifyValue("plain member value", val);
-    verifyCount(1, kmember);
-    verifyCount(1, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.MemberValue = k;
+      string val = k.getValue();
+      verifyValue("plain member value", val);
+      verifyCount(1, k);
 
-    delete m;
+      kmember = m.MemberValue;
+      val = kmember.getValue();
+      verifyValue("plain member value", val);
+      verifyCount(1, kmember);
+      verifyCount(1, k);
+    }
 
     verifyCount(1, kmember);
     verifyCount(1, k);
   }
   // plain by pointer
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("plain member pointer");
-    m.MemberPointer = k;
-    string val = k.getValue();
-    verifyValue("plain member pointer", val);
-    verifyCount(1, k);
+    auto k = scoped!Klass("plain member pointer");
+    Klass kmember;
 
-    auto kmember = m.MemberPointer;
-    val = kmember.getValue();
-    verifyValue("plain member pointer", val);
-    verifyCount(1, kmember);
-    verifyCount(1, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.MemberPointer = k;
+      string val = k.getValue();
+      verifyValue("plain member pointer", val);
+      verifyCount(1, k);
 
-    delete m;
+      kmember = m.MemberPointer;
+      val = kmember.getValue();
+      verifyValue("plain member pointer", val);
+      verifyCount(1, kmember);
+      verifyCount(1, k);
+    }
 
     verifyCount(1, kmember);
     verifyCount(1, k);
   }
   // plain by reference
   {
-    auto m = new MemberVariables();
-    auto k = new Klass("plain member reference");
-    m.MemberReference = k;
-    string val = k.getValue();
-    verifyValue("plain member reference", val);
-    verifyCount(1, k);
+    auto k = scoped!Klass("plain member reference");
+    Klass kmember;
 
-    auto kmember = m.MemberReference;
-    val = kmember.getValue();
-    verifyValue("plain member reference", val);
-    verifyCount(1, kmember);
-    verifyCount(1, k);
+    {
+      auto m = scoped!MemberVariables();
+      m.MemberReference = k;
+      string val = k.getValue();
+      verifyValue("plain member reference", val);
+      verifyCount(1, k);
 
-    delete m;
+      kmember = m.MemberReference;
+      val = kmember.getValue();
+      verifyValue("plain member reference", val);
+      verifyCount(1, kmember);
+      verifyCount(1, k);
+    }
 
     verifyCount(1, kmember);
     verifyCount(1, k);
@@ -482,7 +492,7 @@ void runTest() {
 
   // null member variables
   {
-    auto m = new MemberVariables();
+    auto m = scoped!MemberVariables();
 
     // shared_ptr by value
     auto k = m.SmartMemberValue;
@@ -504,7 +514,7 @@ void runTest() {
     auto kglobal = GlobalSmartValue;
     enforce(kglobal is null, "expected null");
 
-    auto k = new Klass("smart global value");
+    auto k = scoped!Klass("smart global value");
     GlobalSmartValue = k;
     verifyCount(2, k);
 
@@ -520,7 +530,7 @@ void runTest() {
   {
     Klass kglobal;
 
-    auto k = new Klass("global value");
+    auto k = scoped!Klass("global value");
     GlobalValue = k;
     verifyCount(1, k);
 
@@ -538,7 +548,7 @@ void runTest() {
     auto kglobal = GlobalPointer;
     enforce(kglobal is null, "expected null");
 
-    auto k = new Klass("global pointer");
+    auto k = scoped!Klass("global pointer");
     GlobalPointer = k;
     verifyCount(1, k);
 
@@ -553,7 +563,7 @@ void runTest() {
   {
     Klass kglobal;
 
-    auto k = new Klass("global reference");
+    auto k = scoped!Klass("global reference");
     GlobalReference = k;
     verifyCount(1, k);
 

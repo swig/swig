@@ -6,9 +6,11 @@ public class rename_pcre_encoder_runme {
   public static void main(String argv[])
   {
     SomeWidget w = new SomeWidget();
-    w.putBorderWidth(17);
-    if ( w.getBorderWidth() != 17 )
+    w.put_borderWidth(17);
+    if ( w.get_borderWidth() != 17 )
       throw new RuntimeException(String.format("Border with should be 17, not %d",
-                                               w.getBorderWidth()));
+                                               w.get_borderWidth()));
+    if ( rename_pcre_encoder.StartINSAneAndUNSAvoryTraNSAtlanticRaNSAck() != 42 )
+      throw new RuntimeException("Unexpected result of renamed function call");
   }
 }

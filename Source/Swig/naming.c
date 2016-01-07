@@ -20,8 +20,6 @@
  * %v - variable name is substituted
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_naming_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -580,7 +578,7 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   bprefix = NewStringf("%s::", base);
   dprefix = NewStringf("%s::", derived);
   cbprefix = Char(bprefix);
-  plen = strlen(cbprefix);
+  plen = (int)strlen(cbprefix);
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
@@ -776,7 +774,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
  * concatenating the feature name plus ':' plus the attribute name.
  * ----------------------------------------------------------------------------- */
 
-void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, String *value, Hash *featureattribs) {
+void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, const_String_or_char_ptr value, Hash *featureattribs) {
   Hash *n;
   Hash *fhash;
 
@@ -883,12 +881,15 @@ List *Swig_name_rename_list() {
 int Swig_need_name_warning(Node *n) {
   int need = 1;
   /* 
-     we don't use name warnings for:
+     We don't use name warnings for:
      - class forwards, no symbol is generated at the target language.
      - template declarations, only for real instances using %template(name).
-     - typedefs, they have no effect at the target language.
+     - typedefs, have no effect at the target language.
+     - using declarations and using directives, have no effect at the target language.
    */
   if (checkAttribute(n, "nodeType", "classforward")) {
+    need = 0;
+  } else if (checkAttribute(n, "nodeType", "using")) {
     need = 0;
   } else if (checkAttribute(n, "storage", "typedef")) {
     need = 0;
@@ -937,8 +938,7 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
 
     /* static functions */
-    if ((Cmp(a_storage, "static") == 0)
-	|| (Cmp(b_storage, "static") == 0)) {
+    if (Swig_storage_isstatic(a) || Swig_storage_isstatic(b)) {
       if (Cmp(a_storage, b_storage) != 0)
 	return 0;
     }
@@ -1002,6 +1002,10 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 	  return 1;
       }
       return 0;
+    }
+    if (Equal(ta, "template") && Equal(tb, "template")) {
+      if (Cmp(a_storage, "friend") == 0 || Cmp(b_storage, "friend") == 0)
+	return 1;
     }
   }
   return 0;
@@ -1070,7 +1074,7 @@ static List *Swig_make_attrlist(const char *ckey) {
     String *nattr;
     const char *rattr = strchr(++cattr, '$');
     while (rattr) {
-      nattr = NewStringWithSize(cattr, rattr - cattr);
+      nattr = NewStringWithSize(cattr, (int)(rattr - cattr));
       Append(list, nattr);
       Delete(nattr);
       cattr = rattr + 1;
@@ -1647,6 +1651,80 @@ void Swig_name_inherit(String *base, String *derived) {
   Swig_name_object_inherit(Swig_name_namewarn_hash(), base, derived);
   Swig_name_object_inherit(Swig_cparse_features(), base, derived);
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_inherit_base_symbols()
+ * ----------------------------------------------------------------------------- */
+
+void Swig_inherit_base_symbols(List *bases) {
+  if (bases) {
+    Iterator s;
+    for (s = First(bases); s.item; s = Next(s)) {
+      Symtab *st = Getattr(s.item, "symtab");
+      if (st) {
+	Setfile(st, Getfile(s.item));
+	Setline(st, Getline(s.item));
+	Swig_symbol_inherit(st);
+      }
+    }
+    Delete(bases);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_make_inherit_list()
+ * ----------------------------------------------------------------------------- */
+
+List *Swig_make_inherit_list(String *clsname, List *names, String *Namespaceprefix) {
+  int i, ilen;
+  String *derived;
+  List *bases = NewList();
+
+  if (Namespaceprefix)
+    derived = NewStringf("%s::%s", Namespaceprefix, clsname);
+  else
+    derived = NewString(clsname);
+
+  ilen = Len(names);
+  for (i = 0; i < ilen; i++) {
+    String *base;
+    String *n = Getitem(names, i);
+    /* Try to figure out where this symbol is */
+    Node *s = Swig_symbol_clookup(n, 0);
+    if (s) {
+      while (s && (Strcmp(nodeType(s), "class") != 0)) {
+	/* Not a class.  Could be a typedef though. */
+	String *storage = Getattr(s, "storage");
+	if (storage && (Strcmp(storage, "typedef") == 0)) {
+	  String *nn = Getattr(s, "type");
+	  s = Swig_symbol_clookup(nn, Getattr(s, "sym:symtab"));
+	} else {
+	  break;
+	}
+      }
+      if (s && ((Strcmp(nodeType(s), "class") == 0) || (Strcmp(nodeType(s), "template") == 0))) {
+	String *q = Swig_symbol_qualified(s);
+	Append(bases, s);
+	if (q) {
+	  base = NewStringf("%s::%s", q, Getattr(s, "name"));
+	  Delete(q);
+	} else {
+	  base = NewString(Getattr(s, "name"));
+	}
+      } else {
+	base = NewString(n);
+      }
+    } else {
+      base = NewString(n);
+    }
+    if (base) {
+      Swig_name_inherit(base, derived);
+      Delete(base);
+    }
+  }
+  return bases;
+}
+
 
 /* -----------------------------------------------------------------------------
  * void Swig_name_str()

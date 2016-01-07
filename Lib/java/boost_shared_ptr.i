@@ -145,11 +145,11 @@
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
-  private long swigCPtr;
-  private boolean swigCMemOwnBase;
+  private transient long swigCPtr;
+  private transient boolean swigCMemOwn;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwnBase = cMemoryOwn;
+    swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
@@ -160,7 +160,7 @@
 
 // Derived proxy classes
 %typemap(javabody_derived) TYPE %{
-  private long swigCPtr;
+  private transient long swigCPtr;
   private boolean swigCMemOwnDerived;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
@@ -176,8 +176,8 @@
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if (swigCPtr != 0) {
-      if (swigCMemOwnBase) {
-        swigCMemOwnBase = false;
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
         $jnicall;
       }
       swigCPtr = 0;

@@ -32,8 +32,8 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
-  double  x, y;   
+  }
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area() = 0;
   virtual double perimeter() = 0;
@@ -44,7 +44,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -53,7 +53,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -82,7 +82,7 @@ like this:
 Note: when creating a C++ extension, you must run SWIG with the <tt>-c++</tt> option like this:
 <blockquote>
 <pre>
-% swig -c++ -python example.i
+% swig -c++ -perl example.i
 </pre>
 </blockquote>
 
@@ -97,60 +97,45 @@ Click <a href="runme.pl">here</a> to see a script that calls the C++ functions f
 
 <blockquote>
 <pre>
-$c = example::new_Circle(10.0);
+$c = new example::Circle(10.0);
 </pre>
 </blockquote>
 
 <p>
-<li>To access member data, a pair of accessor functions are used.
-For example:
+<li>You can access member data like so:
 
 <blockquote>
 <pre>
-example::Shape_x_set($c,15);    # Set member data
-$x = example::Shape_x_get($c);   # Get member data
-</pre>
-</blockquote>
-
-Note: when accessing member data, the name of the class in which
-the data member is defined is used.  For example <tt>Shape_x_get()</tt>.
-
-<p>
-<li>To invoke a member function, you simply do this
-
-<blockquote>
-<pre>
-print "The area is ", example::Shape_area($c);
+$c-&gt;{x} = 15;    # Set member data
+$x = $c-&gt;{x};    # Get member data
 </pre>
 </blockquote>
 
 <p>
-<li>Type checking knows about the inheritance structure of C++. For example:
+<li>To invoke a member function, you simply do this:
 
 <blockquote>
 <pre>
-example::Shape_area($c);       # Works (c is a Shape)
-example::Circle_area($c);      # Works (c is a Circle)
-example::Square_area($c);      # Fails (c is definitely not a Square)
+print "The area is ", $c-&gt;area();
 </pre>
 </blockquote>
 
 <p>
-<li>To invoke a destructor, simply do this
+<li>To invoke a destructor, simply do this:
 
 <blockquote>
 <pre>
-example::delete_Shape($c);     # Deletes a shape
+$c-&gt;DESTROY();   # Deletes a shape
 </pre>
 </blockquote>
 
 <p>
-<li>Static member variables are wrapped as C global variables.  For example:
+<li>Static member variables are wrapped like so:
 
 <blockquote>
 <pre>
-$n = $example::Shape_nshapes;     # Get a static data member
-$example::Shapes_nshapes = 13;   # Set a static data member
+$n = $example::Shape::nshapes;    # Get a static data member
+$example::Shapes::nshapes = 13;   # Set a static data member
 </pre>
 </blockquote>
 
@@ -159,47 +144,11 @@ $example::Shapes_nshapes = 13;   # Set a static data member
 <h2>General Comments</h2>
 
 <ul>
-<li>This low-level interface is not the only way to handle C++ code.  Proxy classes
-provide a much higher-level interface.
-
-<p>
-<li>SWIG *does* know how to properly perform upcasting of objects in an inheritance
+<li>SWIG <b>does</b> know how to properly perform upcasting of objects in an inheritance
 hierarchy (including multiple inheritance).  Therefore it is perfectly safe to pass
 an object of a derived class to any function involving a base class.
 
-<p>
-<li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
-short and incomplete list:
-
-<p>
-<ul>
-<li>Overloaded methods and functions.  SWIG wrappers don't know how to resolve name
-conflicts so you must give an alternative name to any overloaded method name using the
-%name directive like this:
-
-<blockquote>
-<pre>
-void foo(int a);  
-%name(foo2) void foo(double a, double b);
-</pre>
-</blockquote>
-
-<p>
-<li>Overloaded operators.  Not supported at all. The only workaround for this is
-to write a helper function. For example:
-
-<blockquote>
-<pre>
-%inline %{
-    Vector *vector_add(Vector *a, Vector *b) {
-          ... whatever ...
-    }
-%}
-</pre>
-</blockquote>
-
-<p>
-<li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
+<li>C++ Namespaces - %nspace isn't yet supported for Perl.
 
 </ul>
 

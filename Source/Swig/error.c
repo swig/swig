@@ -12,8 +12,6 @@
  * error messages.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_error_c[] = "$Id$";
-
 #include "swig.h"
 #include <stdarg.h>
 #include <ctype.h>

@@ -19,7 +19,7 @@ Vector operator+(const Vector &a, const Vector &b) {
 
 char *Vector::print() {
   static char temp[512];
-  sprintf(temp,"Vector %x (%g,%g,%g)", (int)this, x,y,z);
+  sprintf(temp,"Vector %p (%g,%g,%g)", (void *)this, x,y,z);
   return temp;
 }
 

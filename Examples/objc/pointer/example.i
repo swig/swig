@@ -2,17 +2,9 @@
 %module example
 
 %{
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern void add(int *, int *, int *);
 extern void sub(int *, int *, int *);
 extern int divide(int, int, int *);
-
-#ifdef __cplusplus
-}
-#endif
 %}
 
 /* This example illustrates a couple of different techniques

@@ -21,6 +21,7 @@ namespace simuPOP
   template<class _POP1, class _POP2 = POP>
   class Operator
   {
+    int x;
   };
 }
 

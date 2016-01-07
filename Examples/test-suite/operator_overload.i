@@ -73,12 +73,6 @@ see bottom for a set of possible tests
 %rename(OrOperator) operator ||;
 #endif
 
-#ifdef SWIG_ALLEGRO_CL
-%{
-#include <stdio.h>
-%}
-#endif
-
 #ifdef SWIGD
 // Due to the way operator overloading is implemented in D1 and D2, the prefix
 // increment/decrement operators (D1) resp. the postfix ones (D2) are ignored. 
@@ -89,6 +83,7 @@ see bottom for a set of possible tests
 %rename(DoubleCast) operator double();
 
 %inline %{
+#include <stdio.h>
 
 #if defined(_MSC_VER)
   #include <iso646.h> /* for named logical operator, eg 'operator or' */
@@ -230,10 +225,10 @@ __rshift__,__lshift__ >>,<<
 
 __getitem__,__setitem__ for operator[]
 
-Operators overloaded without C++ equivilents
+Operators overloaded without C++ equivalents
 __pow__ for power operator
 __str__ converts object to a string (should return a const char*)
-__concat__ for contatenation (if language supports)
+__concat__ for concatenation (if language supports)
 
 */
 

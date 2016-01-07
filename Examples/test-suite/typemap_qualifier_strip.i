@@ -1,5 +1,9 @@
 %module typemap_qualifier_strip
 
+%typemap(freearg) int *ptr ""
+%typemap(freearg) int *const ptrConst ""
+%typemap(freearg) int const* constPtr ""
+
 %typemap(in) int *ptr {
   int temp = 1234;
   $1 = &temp;

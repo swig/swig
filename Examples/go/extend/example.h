@@ -14,7 +14,7 @@ public:
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
 	virtual std::string getName() { return name; }
 	virtual std::string getPosition() const { return "Employee"; }
-	virtual ~Employee() { printf("~Employee() @ %p\n", this); }
+	virtual ~Employee() { printf("~Employee() @ %p\n", (void *)this); }
 };
 
 
@@ -44,7 +44,7 @@ public:
 	const Employee *get_item(int i) {
 		return list[i];
 	}
-	~EmployeeList() { 
+	~EmployeeList() {
 		std::vector<Employee*>::iterator i;
 		std::cout << "~EmployeeList, deleting " << list.size() << " employees." << std::endl;
 		for (i=list.begin(); i!=list.end(); i++) {

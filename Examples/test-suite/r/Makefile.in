@@ -5,7 +5,8 @@
 LANGUAGE     = r
 SCRIPTSUFFIX = _runme.R
 WRAPSUFFIX   = .R
-RUNR         = R CMD BATCH --no-save --no-restore
+RUNR         = R CMD BATCH --no-save --no-restore '--args $(SCRIPTDIR)'
+
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -16,7 +17,8 @@ C_TEST_CASES += \
 
 CPP_TEST_CASES += \
 	r_double_delete \
-	r_overload_array
+	r_overload_array \
+	r_sexp
 
 include $(srcdir)/../common.mk
 
@@ -27,7 +29,7 @@ include $(srcdir)/../common.mk
 # none!
 
 # Rules for the different types of tests
-%.cpptest: 
+%.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
@@ -37,34 +39,35 @@ include $(srcdir)/../common.mk
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_multitestcase)
 
+
 # Runs the testcase.
-# 
-# Run the runme if it exists.  If not just load the R wrapper to 
+#
+# Run the runme if it exists.  If not just load the R wrapper to
 # check for syntactic correctness
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
 	fi
 
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
-               $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
+	       $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
 	else \
-	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
+	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
 	fi; \
 	done
 # Clean
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile r_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' r_clean
 
 %.clean:
 	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_wrap.o $*_runme.Rout $*.Rout
@@ -73,5 +76,3 @@ clean:
 	   rm -f $${f}.R $${f}.Rout ; \
 	done \
 	fi
-
-

@@ -21,9 +21,6 @@ func main() {
 	f := dc.NewF()
 	f.Destroy()
 
-	ff := dc.NewFFF()
-	ff.Destroy()
-
 	g := dc.NewG()
 
 	dc.GDestroy(g)

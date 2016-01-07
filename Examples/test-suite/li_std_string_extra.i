@@ -49,6 +49,12 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
    return x;
 }
 
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+
 %}
 
 %include "li_std_string.i"

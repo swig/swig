@@ -1,7 +1,7 @@
 // This tests shared_ptr is working okay. It also checks that there are no memory leaks in the
 // class that shared_ptr is pointing via a counting mechanism in the constructors and destructor of Klass.
 // In order to test that there are no leaks of the shared_ptr class itself (as it is created on the heap)
-// the runtime tests can be run for a long time to monitor memory leaks using memory monitor tools 
+// the runtime tests can be run for a long time to monitor memory leaks using memory monitor tools
 // like 'top'. There is a wrapper for shared_ptr in shared_ptr_wrapper.h which enables one to
 // count the instances of shared_ptr. Uncomment the SHARED_PTR_WRAPPER macro to turn this on.
 //
@@ -10,6 +10,16 @@
 %module li_boost_shared_ptr
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
+
+#if defined(SWIGSCILAB)
+%rename(MbrVar) MemberVariables;
+%rename(MbrVal) MemberVariables::MemberValue;
+%rename(MbrPtr) MemberVariables::MemberPointer;
+%rename(MbrRef) MemberVariables::MemberReference;
+%rename(SmartMbrVal) MemberVariables::SmartMemberValue;
+%rename(SmartMbrPtr) MemberVariables::SmartMemberPointer;
+%rename(SmartMbrRef) MemberVariables::SmartMemberReference;
+#endif
 
 %inline %{
 #include "boost/shared_ptr.hpp"
@@ -34,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -93,7 +103,7 @@ struct Klass {
   static int getTotal_count() { return total_count; }
 
 private:
-  // lock increment and decrement as a destructor could be called at the same time as a 
+  // lock increment and decrement as a destructor could be called at the same time as a
   // new object is being created - C# / Java, at least, have finalizers run in a separate thread
   static SwigExamples::CriticalSection critical_section;
   static void increment() { SwigExamples::Lock lock(critical_section); total_count++; if (debug_shared) cout << "      ++xxxxx Klass::increment tot: " << total_count << endl;}
@@ -104,15 +114,15 @@ private:
 };
 SwigExamples::CriticalSection Space::Klass::critical_section;
 
-struct IgnoredMultipleInheritBase { 
+struct IgnoredMultipleInheritBase {
   IgnoredMultipleInheritBase() : d(0.0), e(0.0) {}
-  virtual ~IgnoredMultipleInheritBase() {} 
-  double d; 
+  virtual ~IgnoredMultipleInheritBase() {}
+  double d;
   double e;
-  virtual void AVirtualMethod() {} 
+  virtual void AVirtualMethod() {}
 };
 
-// For most compilers, this use of multiple inheritance results in different derived and base class 
+// For most compilers, this use of multiple inheritance results in different derived and base class
 // pointer values ... for some more challenging tests :)
 struct KlassDerived : IgnoredMultipleInheritBase, Klass {
   KlassDerived() : Klass() {}
@@ -254,7 +264,7 @@ long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
 long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
-const SwigBoost::shared_ptr<Klass>& ref_1() { 
+const SwigBoost::shared_ptr<Klass>& ref_1() {
   static SwigBoost::shared_ptr<Klass> sptr;
   return sptr;
 }
@@ -334,7 +344,11 @@ template <class T1, class T2> struct Base {
 };
 %}
 
+#if !defined(SWIGSCILAB)
 %template(BaseIntDouble) Base<int, double>;
+#else
+%template(BaseIDbl) Base<int, double>;
+#endif
 
 %inline %{
 template <class T1, class T2> struct Pair : Base<T1, T2> {
@@ -356,9 +370,9 @@ SwigBoost::shared_ptr< Pair<int, double> > pair_id1(SwigBoost::shared_ptr< Pair<
 %inline %{
 namespace SwigBoost {
   const int NOT_COUNTING = -123456;
-  int shared_ptr_wrapper_count() { 
+  int shared_ptr_wrapper_count() {
   #ifdef SHARED_PTR_WRAPPER
-    return SwigBoost::SharedPtrWrapper::getTotalCount(); 
+    return SwigBoost::SharedPtrWrapper::getTotalCount();
   #else
     return NOT_COUNTING;
   #endif
