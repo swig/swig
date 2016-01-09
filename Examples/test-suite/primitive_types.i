@@ -369,6 +369,10 @@ macro(size_t,             pfx, sizet)
 %enddef
 
 /* checking size_t and ptrdiff_t typemaps */
+%begin %{
+// Must be defined before Python.h is included, since this may indirectly include stdint.h
+#define __STDC_LIMIT_MACROS
+%}
 %include "stdint.i"
 %inline {
   size_t    get_size_min()    { return 0; }
