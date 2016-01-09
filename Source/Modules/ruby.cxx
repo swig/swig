@@ -1744,6 +1744,9 @@ public:
       Printf(f->def, "#else\n");
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       Printf(f->def, "#endif\n");
+      Printf(f->def, "#if 0\n");
+      Printf(f->def, "} /* c-mode */\n");
+      Printf(f->def, "#endif\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
