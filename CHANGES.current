@@ -5,3 +5,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-10: ahnolds
+            Improved size_t and ptrdiff_t typemaps to support large values
+            on platforms where sizeof(size_t) > sizeof(unsigned long) and
+            sizeof(ptrdiff_t) > sizeof(long).
