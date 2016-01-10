@@ -1739,14 +1739,13 @@ public:
 
     /* Now write the wrapper function itself */
     if (current == CONSTRUCTOR_ALLOCATE) {
+      Printv(f->def, "SWIGINTERN VALUE\n", NIL);
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(VALUE self) {", NIL);
+      Printv(f->def, wname, "(VALUE self)\n", NIL);
       Printf(f->def, "#else\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, wname, "(int argc, VALUE *argv, VALUE self)\n", NIL);
       Printf(f->def, "#endif\n");
-      Printf(f->def, "#if 0\n");
-      Printf(f->def, "} /* c-mode */\n");
-      Printf(f->def, "#endif\n");
+      Printv(f->def, "{\n", NIL);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
