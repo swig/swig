@@ -6,6 +6,10 @@ Version 3.0.9 (in progress)
 ===========================
 
 2016-01-12: olly
+	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
+	    as the former on Debian.
+
+2016-01-12: olly
 	    [Javascript] For v8 >= 4.3.0, use V8_MAJOR_VERSION.
 	    Fixes https://github.com/swig/swig/issues/561.
 

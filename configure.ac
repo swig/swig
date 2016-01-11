@@ -1422,7 +1422,7 @@ else
   # Look for Node.js which is the default Javascript engine
   #----------------------------------------------------------------
 
-  AC_CHECK_PROGS(NODEJS, node)
+  AC_CHECK_PROGS(NODEJS, [nodejs node])
 
   if test -n "$NODEJS"; then
     # node-gyp is needed to run the test-suite/examples
