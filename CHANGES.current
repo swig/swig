@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-12: olly
+	    [Javascript] For v8 >= 4.3.0, use V8_MAJOR_VERSION.
+	    Fixes https://github.com/swig/swig/issues/561.
+
 2016-01-10: ahnolds
             Improved size_t and ptrdiff_t typemaps to support large values
             on platforms where sizeof(size_t) > sizeof(unsigned long) and

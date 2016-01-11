@@ -5,11 +5,22 @@
 
 // V8 Version Macro
 // ----------------
-// v8 does not (until now) provide a version macro - which is still discussed and may come soon.
-// Until then, we set a default version which can be overridden via command line using V8_VERSION:
-//   swig -javascript -v8 -DV8_VERSION=0x031110
+//
+// v8 added version macros V8_MAJOR_VERSION, V8_MINOR_VERSION, V8_BUILD_NUMBER
+// and V8_PATCH_LEVEL in version 4.3.0.  SWIG generated code uses these if
+// they are defined - to support earlier versions you can specify the V8 version
+// in use via the command line when you run SWIG:
+//
+//   swig -c++ -javascript -v8 -DV8_VERSION=0x032530 example.i
+//
 // Or code in the interface file using SWIG_V8_VERSION:
+//
 //   %begin %{#define SWIG_V8_VERSION 0x031110%}
+//
+// This is specified as a hex constant, but the constant is read as pairs of
+// decimal digits, so for V8 3.25.30 use constant 0x032530.  This scheme can't
+// represent components > 99, but this constant is only useful for V8 < 4.3.0,
+// and no V8 versions from that era had a component > 99.
 
 %define %swig_v8_define_version(version)
 %insert("runtime") %{

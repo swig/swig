@@ -1,7 +1,7 @@
 %insert(runtime) %{
 
 // Note: since 3.19 there are new CallBack types, since 03.21.9 the old ones have been removed
-#if (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
 typedef v8::InvocationCallback  SwigV8FunctionCallback;
 typedef v8::AccessorGetter      SwigV8AccessorGetterCallback;
 typedef v8::AccessorSetter      SwigV8AccessorSetterCallback;
