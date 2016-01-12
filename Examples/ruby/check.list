@@ -1,6 +1,7 @@
 # see top-level Makefile.in
 class
 constants
+doc
 enum
 #free_function
 funcptr
