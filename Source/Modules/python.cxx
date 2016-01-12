@@ -857,6 +857,11 @@ public:
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
       }
+
+      /* Need builtins to qualify names like Exception that might also be
+         defined in this module (try both Python 3 and Python 2 names) */
+      Printv(f_shadow, "try:\n", tab4, "import builtins as __builtin__\n", "except ImportError:\n", tab4, "import __builtin__\n", NULL);
+
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       {
@@ -903,7 +908,7 @@ public:
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
 	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
+	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
 	if (!classic) {
 	  /* Usage of types.ObjectType is deprecated.
@@ -933,7 +938,7 @@ public:
       if (directorsEnabled()) {
 	// Try loading weakref.proxy, which is only available in Python 2.1 and higher
 	Printv(f_shadow,
-	       "try:\n", tab4, "import weakref\n", tab4, "weakref_proxy = weakref.proxy\n", "except Exception:\n", tab4, "weakref_proxy = lambda x: x\n", "\n\n", NIL);
+	       "try:\n", tab4, "import weakref\n", tab4, "weakref_proxy = weakref.proxy\n", "except __builtin__.Exception:\n", tab4, "weakref_proxy = lambda x: x\n", "\n\n", NIL);
       }
     }
     // Include some information in the code
@@ -4489,11 +4494,11 @@ public:
 	if (!modern) {
 	  Printv(f_shadow_file,
 		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	} else {
 	  Printv(f_shadow_file,
 		 tab8, "try:\n", tab8, tab4, "self.this.append(this)\n",
-		 tab8, "except Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
+		 tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", tab8, "self.this.own(0)\n", tab8, "self.__class__ = ", class_name, "\n\n", NIL);
 	}
       }
 
@@ -4835,7 +4840,7 @@ public:
 	      } else {
 		Printv(f_shadow,
 		       tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
-		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except Exception:\n", tab8, tab4, "self.this = this\n", NIL);
+		       tab8, "try:\n", tab8, tab4, "self.this.append(this)\n", tab8, "except __builtin__.Exception:\n", tab8, tab4, "self.this = this\n", NIL);
 	      }
 	      if (have_pythonappend(n))
 		Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n\n", NIL);
@@ -4933,7 +4938,7 @@ public:
 #ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
 	Printv(f_shadow, tab8, tab4, "if self.thisown:", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
-	Printv(f_shadow, tab8, "except Exception: pass\n", NIL);
+	Printv(f_shadow, tab8, "except __builtin__.Exception: pass\n", NIL);
 #else
 #endif
 	if (have_pythonappend(n))
