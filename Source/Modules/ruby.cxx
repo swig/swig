@@ -1150,8 +1150,10 @@ public:
     Printf(f_header, "#define SWIG_init    Init_%s\n", feature);
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 
-    if (mod_docstring && Len(mod_docstring)) {
-      Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
+    if (mod_docstring) {
+      if (Len(mod_docstring)) {
+	Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
+      }
       Delete(mod_docstring);
       mod_docstring = NULL;
     }
