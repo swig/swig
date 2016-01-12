@@ -1591,7 +1591,7 @@ public:
   /* ------------------------------------------------------------
    * docstring()
    *
-   * Get the docstring text, stripping off {} if neccessary,
+   * Get the docstring text, stripping off {} if necessary,
    * and enclose in triple double quotes.  If autodoc is also
    * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
@@ -2272,7 +2272,7 @@ public:
   /* ------------------------------------------------------------
    * pythonprepend()
    *
-   * Get the %pythonprepend code, stripping off {} if neccessary
+   * Get the %pythonprepend code, stripping off {} if necessary
    * ------------------------------------------------------------ */
 
   String *pythonprepend(Node *n) {
@@ -2301,7 +2301,7 @@ public:
   /* ------------------------------------------------------------
    * pythonappend()
    *
-   * Get the %pythonappend code, stripping off {} if neccessary
+   * Get the %pythonappend code, stripping off {} if necessary
    * ------------------------------------------------------------ */
 
   String *pythonappend(Node *n) {

@@ -232,7 +232,7 @@ private:
 
   /* ------------------------------------------------------------
    * docstring()
-   *    Get the docstring text, stripping off {} if neccessary,
+   *    Get the docstring text, stripping off {} if necessary,
    *    and enclose in triple double quotes.  If autodoc is also
    *    set then it will build a combined docstring.
    * ------------------------------------------------------------ */

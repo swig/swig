@@ -7853,7 +7853,7 @@ Version 1.3.28 (February 12, 2006)
 
 12/10/2005: mmatus 
 	  [UTF]
-          - Fix unneccessary calls to SWIG_TypeQuery for 'char *'
+          - Fix unnecessary calls to SWIG_TypeQuery for 'char *'
 	    and 'wchar_t *', problem found by Clay Culver while
 	    profiling the PyOgre project.
 
@@ -23576,7 +23576,7 @@ Version 1.1b5 (March 12, 1997)
 2/23/97 : Modified Python module to be better behaved under Windows
 
             -  Module initialization function is now properly exported.
-               It should not be neccessary to explicitly export this function
+               It should not be necessary to explicitly export this function
                yourself.
 
             -  Bizarre compilation problems when compiling the SWIG wrapper
