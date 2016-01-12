@@ -797,12 +797,14 @@ public:
       Swig_register_filebyname("shadow", f_shadow);
       Swig_register_filebyname("python", f_shadow);
 
-      if (mod_docstring && Len(mod_docstring)) {
-        const char *triple_double = "\"\"\"";
-        // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
-        // reported by pep257: https://github.com/GreenSteam/pep257
-        bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-        Printv(f_shadow, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
+      if (mod_docstring) {
+	if (Len(mod_docstring)) {
+	  const char *triple_double = "\"\"\"";
+	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
+	  // reported by pep257: https://github.com/GreenSteam/pep257
+	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
+	  Printv(f_shadow, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
+	}
 	Delete(mod_docstring);
 	mod_docstring = NULL;
       }
