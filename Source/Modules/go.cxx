@@ -2112,6 +2112,7 @@ private:
     emit_attach_parmmaps(parms, f);
     int parm_count = emit_num_arguments(parms);
     int required_count = emit_num_required(parms);
+    bool needs_swigargs = false;
 
     emit_return_variable(n, result, f);
 
@@ -2125,6 +2126,7 @@ private:
     String *swigargs = NewString("\tstruct swigargs {\n");
 
     if (parm_count > required_count) {
+      needs_swigargs = true;
       Printv(swigargs, "\t\tintgo _swig_optargc;\n", NULL);
     }
 
@@ -2136,6 +2138,7 @@ private:
       SwigType *pt = Getattr(p, "type");
       String *ct = gcCTypeForGoValue(p, pt, ln);
       Printv(swigargs, "\t\t\t", ct, ";\n", NULL);
+      needs_swigargs = true;
       Delete(ct);
 
       String *gn = NewStringf("_swig_go_%d", i);
@@ -2152,6 +2155,7 @@ private:
       String *ct = gcCTypeForGoValue(n, result, ln);
       Delete(ln);
       Printv(swigargs, "\t\t", ct, ";\n", NULL);
+      needs_swigargs = true;
       Delete(ct);
 
       ln = NewString("_swig_go_result");
@@ -2208,7 +2212,10 @@ private:
 
     cleanupFunction(n, f, parms);
 
-    Printv(f->locals, swigargs, NULL);
+    if (needs_swigargs)
+    {
+      Printv(f->locals, swigargs, NULL);
+    }
 
     Printv(f->code, "}\n", NULL);
 
