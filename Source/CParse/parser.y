@@ -5971,11 +5971,7 @@ valexpr        : exprnum { $$ = $1; }
 	       }
                | WCHARCONST {
 		  $$.val = NewString($1);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("L\'%s\'", $$.val);
-		  } else {
-		    $$.rawval = NewString("L'\\0'");
-		  }
+		  $$.rawval = NewStringf("L\'%s\'", $$.val);
 		  $$.type = T_WCHAR;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
