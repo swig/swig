@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-23: ahnolds
+            [Go] Enable support for the Go test-suite on OSX:
+            * The linker on OSX requires that all symbols (even weak symbols)
+              are defined at link time. Because the function _cgo_topofstack is
+              only defined starting in Go version 1.4, we explicitly mark it as
+              undefined for older versions of Go on OSX.
+            * Avoid writing empty swigargs structs, since empty structs are not
+              allowed in extern "C" blocks.
+
 2016-01-12: olly
 	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
 	    as the former on Debian.
