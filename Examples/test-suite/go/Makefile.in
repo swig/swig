@@ -54,7 +54,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET='$(TARGETPREFIX)$*$(TARGETSUFFIX)' INTERFACEDIR='$(INTERFACEDIR)' INTERFACE='$*.i' \
-	  $(LANGUAGE)$(VARIANT)_cpp_nocgo; \
+	  $(LANGUAGE)$(VARIANT)_cpp_nocgo && \
 	  $(run_testcase_cpp); \
 	fi
 
@@ -67,7 +67,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET='$(TARGETPREFIX)$*$(TARGETSUFFIX)' INTERFACEDIR='$(INTERFACEDIR)' INTERFACE='$*.i' \
-	  $(LANGUAGE)$(VARIANT)_nocgo; \
+	  $(LANGUAGE)$(VARIANT)_nocgo && \
 	  $(run_testcase); \
 	fi
 
