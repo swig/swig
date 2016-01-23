@@ -378,6 +378,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	string_constants \
 	struct_initialization_cpp \
 	struct_value \
 	symbol_clash \

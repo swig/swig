@@ -600,17 +600,13 @@ int Language::constantDirective(Node *n) {
     if (!value) {
       value = Copy(name);
     } else {
-      /*      if (checkAttribute(n,"type","char")) {
-         value = NewString(value);
-         } else {
-         value = NewStringf("%(escape)s", value);
-         }
-       */
       Setattr(n, "rawvalue", value);
-      value = NewStringf("%(escape)s", value);
-      if (!Len(value))
-	Append(value, "\\0");
-      /*      Printf(stdout,"'%s' = '%s'\n", name, value); */
+      int swig_type = SwigType_type(Getattr(n, "type"));
+      if (swig_type == T_STRING || swig_type == T_WSTRING) {
+	value = NewStringf("%(escape)s", value);
+      } else {
+	value = NewStringf("%s", value);
+      }
     }
     Setattr(n, "value", value);
     this->constantWrapper(n);

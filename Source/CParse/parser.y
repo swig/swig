@@ -5962,11 +5962,7 @@ valexpr        : exprnum { $$ = $1; }
 	       }
                | CHARCONST {
 		  $$.val = NewString($1);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("'%(escape)s'", $$.val);
-		  } else {
-		    $$.rawval = NewString("'\\0'");
-		  }
+		  $$.rawval = NewStringf("'%s'", $$.val);
 		  $$.type = T_CHAR;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
