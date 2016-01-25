@@ -4710,7 +4710,7 @@ public:
     }
 
     if (shadow) {
-      if (!classic && !Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
+      if (!Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
@@ -4726,8 +4726,6 @@ public:
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
 	}
-	if (!modern)
-	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
 	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
 
 	if (!modern) {
