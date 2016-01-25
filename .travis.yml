@@ -160,10 +160,6 @@ matrix:
     # Not quite working yet
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-classic
-    # Not quite working yet
-    - compiler: gcc
-      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
     # Not quite working yet
     - compiler: gcc
