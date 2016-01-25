@@ -1002,7 +1002,7 @@ public:
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
-      if (!modern) {
+      if (!modern && !classic) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
       Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
