@@ -4745,6 +4745,11 @@ public:
 	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 		 ")\n", NIL);
 	}
+	if (classic || !modern) {
+	  if (!classic)
+	    Printv(f_shadow, tab4, "else:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+	}
       }
     }
     return SWIG_OK;
