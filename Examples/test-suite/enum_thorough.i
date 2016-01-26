@@ -585,7 +585,50 @@ enum {
 };
 int globalDifferentTypesTest(int n) { return n; }
 }
+%}
 
+#if defined(SWIGJAVA)
+%javaconst(0) enumcharC;
+%javaconst(0) globalenumcharC;
+#elif defined(SWIGCSHARP)
+%csconstvalue("1") globalenumchar1;
+%csconstvalue("'B'") globalenumcharB;
+%csconstvalue("1") enumchar1;
+%csconstvalue("'B'") enumcharB;
+#endif
+%inline %{
+enum {
+  globalenumchar0 = '\0',
+  globalenumchar1 = '\1',
+  globalenumchar2 = '\n',
+  globalenumcharA = 'A',
+  globalenumcharB = '\102', // B
+  globalenumcharC = '\x43', // C
+  globalenumcharD = 0x44, // D
+  globalenumcharE = 69  // E
+};
+enum EnumChar {
+  enumchar0 = '\0',
+  enumchar1 = '\1',
+  enumchar2 = '\n',
+  enumcharA = 'A',
+  enumcharB = '\102', // B
+  enumcharC = '\x43', // C
+  enumcharD = 0x44, // D
+  enumcharE = 69 // E
+};
+struct EnumCharStruct {
+  enum EnumChar {
+    enumchar0 = '\0',
+    enumchar1 = '\1',
+    enumchar2 = '\n',
+    enumcharA = 'A',
+    enumcharB = '\102', // B
+    enumcharC = '\x43', // C
+    enumcharD = 0x44, // D
+    enumcharE = 69 // E
+  };
+};
 %}
 
 #if defined(SWIGJAVA)
@@ -614,5 +657,4 @@ enum {
   global_typedefaultint_noconst
 };
 }
-
 %}
