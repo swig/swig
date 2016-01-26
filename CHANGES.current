@@ -5,6 +5,17 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-26: wsfulton
+	    [Java] Fix generated code parsing enum values using char escape sequences
+            when these values appear in the Java code (usually when using %javaconst)
+            such as:
+
+              enum X { x1 = '\n', x2 = '\1' };
+
+            Similarly for static const member char variables such as:
+
+              struct Y { static const char y = '\n'; }
+
 2016-01-12: olly
 	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
 	    as the former on Debian.
