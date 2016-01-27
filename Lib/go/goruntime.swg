@@ -60,6 +60,24 @@ typedef size_t uintgo;
 #endif
 #endif
 
+#ifndef SWIGGO_GCCGO
+// Set the host compiler struct attribute that will be
+// used to match gc's struct layout. For example, on 386 Windows,
+// gcc wants to 8-align int64s, but gc does not.
+// Use __gcc_struct__ to work around http://gcc.gnu.org/PR52991 on x86,
+// and https://golang.org/issue/5603.
+// See: https://github.com/golang/go/blob/fcbf04f9b93b4cd8addd05c2ed784118eb50a46c/src/cmd/cgo/out.go#L663
+%insert(runtime) %{
+# if !defined(__clang__) && (defined(__i386__) || defined(__x86_64__))
+#   define SWIGSTRUCTPACKED __attribute__((__packed__, __gcc_struct__))
+# else
+#   define SWIGSTRUCTPACKED __attribute__((__packed__))
+# endif
+%}
+#else
+# define SWIGSTRUCTPACKED
+#endif
+
 %insert(runtime) %{
 
 typedef struct { char *p; intgo n; } _gostring_;
@@ -116,7 +134,7 @@ static char *_swig_topofstack() {
 static void _swig_gopanic(const char *p) {
   struct {
     const char *p;
-  } a;
+  } SWIGSTRUCTPACKED a;
   a.p = p;
   crosscall2(_cgo_panic, &a, (int) sizeof a);
 }
@@ -133,7 +151,7 @@ static void *_swig_goallocate(size_t len) {
   struct {
     size_t len;
     void *ret;
-  } a;
+  } SWIGSTRUCTPACKED a;
   a.len = len;
   crosscall2(_cgo_allocate, &a, (int) sizeof a);
   return a.ret;
