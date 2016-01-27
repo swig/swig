@@ -97,10 +97,6 @@ PyString_FromFormat(const char *fmt, ...) {
 }
 #endif
 
-/* Add PyObject_Del for old Pythons */
-#if PY_VERSION_HEX < 0x01060000
-# define PyObject_Del(op) PyMem_DEL((op))
-#endif
 #ifndef PyObject_DEL
 # define PyObject_DEL PyObject_Del
 #endif
