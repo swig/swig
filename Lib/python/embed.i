@@ -65,7 +65,7 @@ static void swig_add_module(char *name, void (*initfunc)()) {
 	SWIG_Import_Inittab[swig_num_modules].initfunc = 0;
 }				
 
-/* Function to add all of Python's build in modules to our interpreter */
+/* Function to add all of Python's built-in modules to our interpreter */
 
 static void swig_add_builtin() {
 	int i = 0;
