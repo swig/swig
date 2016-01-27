@@ -462,14 +462,14 @@ you simply do something like this:
 </p>
 
 <div class="shell"><pre>
-$ swig -python example.i
+$ swig -python -lembed.i example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
-        -DHAVE_CONFIG_H -I/usr/local/include/python2.1 \
-        -I/usr/local/lib/python2.1/config \
-        -L/usr/local/lib/python2.1/config -lpython2.1 -lm -ldl \
+        -DHAVE_CONFIG_H -I/usr/include/python2.7 \
+        -I/usr/lib/python2.7/config-x86_64-linux-gnu \
+        -I/usr/lib/python2.7/config \
+        -L/usr/lib/python2.7/config -lpython2.7 -lm -ldl \
         -o mypython
-
 </pre></div>
 <p>
 You will need to supply the same libraries that were used to build Python the first
@@ -490,8 +490,8 @@ hassle in the opinion of this author).
 
 <p>
 <b>Compatibility note:</b> The <tt>embed.i</tt> library file is
-deprecated and has not been maintained for several years.  Even though it
-appears to "work" with Python 2.1, no future support is guaranteed.
+deprecated and has not been actively maintained for many years.  Even though it
+appears to "work" with Python 2.7, no future support is guaranteed.
 If using static linking, you might want to rely on a different approach
 (perhaps using distutils).
 </p>

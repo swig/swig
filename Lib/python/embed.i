@@ -1,8 +1,8 @@
 //
 // embed.i
 // SWIG file embedding the Python interpreter in something else.
-// This file is based on Python-1.5.  It will not work with
-// earlier versions.
+// This file is deprecated and no longer actively maintained, but it still
+// seems to work with Python 2.7.  Status with Python 3 is unknown.
 //
 // This file makes it possible to extend Python and all of its
 // built-in functions without having to hack its setup script.
@@ -24,13 +24,8 @@ present in your current Python executable (including any special
 purpose modules you have enabled such as Tkinter).   Thus, you
 may need to provide additional link libraries when compiling.
 
-This library file only works with Python 1.5.  A version 
-compatible with Python 1.4 is available as embed14.i and
-a Python1.3 version is available as embed13.i.    As far as
-I know, this module is C++ safe.
+As far as I know, this module is C++ safe.
 %}
-#else
-%echo "embed.i : Using Python 1.5"
 #endif
 
 %wrapper %{
