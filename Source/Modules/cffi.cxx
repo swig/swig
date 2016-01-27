@@ -1107,7 +1107,7 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return num;
   } else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    String* result = NewStringf("#\\%c", s[0]);
+    String* result = NewStringf("#\\%s", s);
     Delete(num);
     return result;
   } else if (SwigType_type(type) == T_STRING) {

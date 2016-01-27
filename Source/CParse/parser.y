@@ -5962,11 +5962,7 @@ valexpr        : exprnum { $$ = $1; }
 	       }
                | CHARCONST {
 		  $$.val = NewString($1);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("'%(escape)s'", $$.val);
-		  } else {
-		    $$.rawval = NewString("'\\0'");
-		  }
+		  $$.rawval = NewStringf("'%s'", $$.val);
 		  $$.type = T_CHAR;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
@@ -5975,11 +5971,7 @@ valexpr        : exprnum { $$ = $1; }
 	       }
                | WCHARCONST {
 		  $$.val = NewString($1);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("L\'%s\'", $$.val);
-		  } else {
-		    $$.rawval = NewString("L'\\0'");
-		  }
+		  $$.rawval = NewStringf("L\'%s\'", $$.val);
 		  $$.type = T_WCHAR;
 		  $$.bitfield = 0;
 		  $$.throws = 0;

@@ -1265,9 +1265,6 @@ static int look(Scanner *s) {
       if (c == '\'') {
 	Delitem(s->text, DOH_END);
 	return (SWIG_TOKEN_CHAR);
-      } else if (c == '\\') {
-	Delitem(s->text, DOH_END);
-	get_escape(s);
       }
       break;
 

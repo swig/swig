@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-23: wsfulton
+	    [C#, Java, PHP] Fix generated code parsing enum values using char escape sequences
+            when these values appear in the C#/Java/PHP code such as:
+
+              enum X { x1 = '\n', x2 = '\1' };
+
+            Except C# does not support the octal escape sequences, so %csconstvalue
+            is still required to fix.
+
 2016-01-12: olly
 	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
 	    as the former on Debian.
