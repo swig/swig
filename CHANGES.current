@@ -5,9 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-27: wsfulton
+	    [Java] Fix static const char member variables wrappers with %javaconst(1).
+            This fixes the case when an integer is used as the initializer, such as:
+
+              struct W { static const char w = 100; };
+
 2016-01-26: wsfulton
 	    [Java] Fix generated code parsing enum values using char escape sequences
-            when these values appear in the Java code (usually when using %javaconst)
+            when these values appear in the Java code (usually when using %javaconst(1))
             such as:
 
               enum X { x1 = '\n', x2 = '\1' };
