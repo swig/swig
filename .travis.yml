@@ -188,7 +188,7 @@ install:
   - $CXX --version
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
-  - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$SWIGLANG$PY3); fi
+  - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
   - echo "${CONFIGOPTS[@]}"
   - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
   - echo -en 'travis_fold:end:script.1\\r'

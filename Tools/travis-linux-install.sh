@@ -11,6 +11,8 @@ else
 	sudo apt-get -qq install libboost-dev
 fi
 
+WITHLANG=$SWIGLANG
+
 case "$SWIGLANG" in
 	"")     ;;
 	"csharp")
@@ -75,11 +77,12 @@ case "$SWIGLANG" in
 		if [[ "$PY3" ]]; then
 			sudo apt-get install -qq python3-dev
 		fi
+		WITHLANG=$SWIGLANG$PY3
 		if [[ "$VER" ]]; then
 			sudo add-apt-repository -y ppa:fkrull/deadsnakes
 			sudo apt-get -qq update
 			sudo apt-get -qq install python${VER}-dev
-			CONFIGOPTS+=("--with-python${PY3}=python${VER}");
+			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
 		fi
 		;;
 	"r")
@@ -87,11 +90,11 @@ case "$SWIGLANG" in
 		;;
 	"ruby")
 		if [[ "$VER" ]]; then
-			sudo apt-get install python-software-properties
+			sudo apt-get -qq install python-software-properties
 			sudo add-apt-repository -y ppa:brightbox/ruby-ng
 			sudo apt-get -qq update
 			sudo apt-get -qq install ruby2.3 ruby2.3-dev
-			CONFIGOPTS+=("--with-ruby=ruby${VER}");
+			WITHLANG=$SWIGLANG=$SWIGLANG$VER
 		fi
 		;;
 	"scilab")
