@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e # exit on failure
+
 sw_vers
 brew update
 brew list

@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e # exit on failure
+
 lsb_release -a
 sudo apt-get -qq update
 
