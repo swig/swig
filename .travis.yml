@@ -100,6 +100,9 @@ matrix:
       env: SWIGLANG=ruby
     - compiler: gcc
       os: linux
+      env: SWIGLANG=ruby VER=2.3
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=scilab
     - compiler: gcc
       os: linux
@@ -162,6 +165,10 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+    # Not quite working yet
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.3
 before_install:
   - date -u
   - uname -a

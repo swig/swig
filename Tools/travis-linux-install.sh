@@ -85,6 +85,15 @@ case "$SWIGLANG" in
 	"r")
 		sudo apt-get -qq install r-base
 		;;
+	"ruby")
+		if [[ "$VER" ]]; then
+			sudo apt-get install python-software-properties
+			sudo add-apt-repository -y ppa:brightbox/ruby-ng
+			sudo apt-get -qq update
+			sudo apt-get -qq install ruby2.3 ruby2.3-dev
+			CONFIGOPTS+=("--with-ruby=ruby${VER}");
+		fi
+		;;
 	"scilab")
 		sudo apt-get -qq install scilab
 		;;
