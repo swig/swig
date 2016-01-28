@@ -162,9 +162,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
-    - compiler: clang
-      os: osx
-      env: SWIGLANG=go
 before_install:
   - date -u
   - uname -a

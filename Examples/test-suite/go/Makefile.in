@@ -11,6 +11,8 @@ GO12		= @GO12@
 GO13		= @GO13@
 GO15		= @GO15@
 GOC		= @GOC@
+GOVERSIONOPTION	= @GOVERSIONOPTION@
+host		= @host@
 SCRIPTSUFFIX	= _runme.go
 
 GOCOMPILEARG = `if $(GO15); then echo tool compile; elif $(GO1); then echo tool $(GOC:c=g); fi`
@@ -19,6 +21,8 @@ GOTOOL = `if $(GO1) ; then echo go tool; fi`
 GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
 GOOBJEXT = `if $(GO15); then echo o; else echo $(GOC:c=); fi`
+
+OSXOLDGOLINKFLAGS	= `if [ -n "\`$(GO) $(GOVERSIONOPTION) | grep -E 'go1($|.0|.1|.2|.3)'\`" ] && [ -n "\`echo $(host) | grep darwin\`" ]; then echo "-Wl,-U,__cgo_topofstack"; fi`
 
 SO = @SO@
 
@@ -50,7 +54,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET='$(TARGETPREFIX)$*$(TARGETSUFFIX)' INTERFACEDIR='$(INTERFACEDIR)' INTERFACE='$*.i' \
-	  $(LANGUAGE)$(VARIANT)_cpp_nocgo; \
+	  $(LANGUAGE)$(VARIANT)_cpp_nocgo && \
 	  $(run_testcase_cpp); \
 	fi
 
@@ -63,7 +67,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	  INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
 	  TARGET='$(TARGETPREFIX)$*$(TARGETSUFFIX)' INTERFACEDIR='$(INTERFACEDIR)' INTERFACE='$*.i' \
-	  $(LANGUAGE)$(VARIANT)_nocgo; \
+	  $(LANGUAGE)$(VARIANT)_nocgo && \
 	  $(run_testcase); \
 	fi
 
@@ -121,7 +125,7 @@ run_testcase = \
 	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.a; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CC) -extldflags "$(CFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -136,7 +140,7 @@ run_testcase_cpp = \
 	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.a -lstdc++; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
@@ -152,7 +156,7 @@ run_multi_testcase = \
 	    $(COMPILETOOL) $(GCCGO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.a; done` -lstdc++; \
 	  elif $(GO12) || $(GO13) || $(GO15); then \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -linkmode external -extld $(CXX) -extldflags "$(CXXFLAGS) $(OSXOLDGOLINKFLAGS)" -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  else \
 	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
