@@ -6165,6 +6165,84 @@ For more details about the <tt>surrogateescape</tt> error handler, please see
 <a href="https://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
 </p>
 
+<p>
+In some cases, users may wish to instead handle all byte strings as bytes
+objects in Python 3. This can be accomplished by adding
+<tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> to the generated code:
+</p>
+
+<div class="code"><pre>
+%module char_to_bytes
+%begin %{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
+
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+This will modify the behavior so that only Python 3 bytes objects will be
+accepted and converted to a C/C++ string, and any string returned from C/C++
+will be converted to a bytes object in Python 3:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from char_to_bytes import *
+&gt;&gt;&gt; charstring(b"hi") # Byte string
+b'hi'
+&gt;&gt;&gt; charstring("hi")  # Unicode string
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'char *'
+</pre></div>
+
+<p>
+Note that in Python 2, defining <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> has no
+effect, since strings in Python 2 are equivalent to Python 3 bytes objects.
+However, there is a similar capability to force unicode-only handling for
+wide characters C/C++ strings (<tt>wchar_t *</tt> or <tt>std::wstring</tt>
+types) in Python 2. By default, in Python 2 both strings and unicode strings
+are converted to C/C++ wide strings, and returned wide strings are converted
+to a Python unicode string. To instead only convert unicode strings to wide
+strings, users can add <tt>SWIG_PYTHON_STRICT_UNICODE_WCHAR</tt> to the
+generated code:
+</p>
+
+<div class="code"><pre>
+%module wchar_to_unicode
+%begin %{
+#define SWIG_PYTHON_STRICT_UNICODE_WCHAR
+%}
+
+wchar_t *wcharstring(wchar_t *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+This ensures that only unicode strings are accepted by wcharstring in both
+Python 2 and Python 3:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from wchar_to_unicode import *
+&gt;&gt;&gt; wcharstring(u"hi") # Unicode string
+u'hi'
+&gt;&gt;&gt; wcharstring(b"hi") # Byte string
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'wchar_t *'
+</pre></div>
+
+<p>
+By defining both <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> and
+<tt>SWIG_PYTHON_STRICT_UNICODE_WCHAR</tt>, Python wrapper code can support
+overloads taking both std::string (as Python bytes) and std::wstring
+(as Python unicode).
+</p>
+
 <H3><a name="Python_2_unicode">36.12.5 Python 2 Unicode</a></H3>
 
 
@@ -6229,6 +6307,13 @@ but note that they are returned as a normal Python 2 string:
 'hi'
 &gt;&gt;&gt;
 </pre></div>
+
+<p>
+Note that defining both <tt>SWIG_PYTHON_2_UNICODE</tt> and
+<tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> at the same time is not allowed, since
+the first is allowing unicode conversion and the second is explicitly
+prohibiting it.
+</p>
 
 </body>
 </html>
