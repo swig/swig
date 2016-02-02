@@ -3123,28 +3123,23 @@ private:
       List *baselist = Getattr(n, "bases");
       if (baselist) {
 	Iterator base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-	if (base.item) {
-	  basenode = base.item;
-	  c_baseclassname = Getattr(base.item, "name");
-	  basename = createProxyName(c_baseclassname);
-	  if (basename)
-	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-	  base = Next(base);
-	  /* Warn about multiple inheritance for additional base class(es) */
-	  while (base.item) {
-	    if (GetFlag(base.item, "feature:ignore")) {
-	      base = Next(base);
-	      continue;
+	while (base.item) {
+	  if (!GetFlag(base.item, "feature:ignore")) {
+	    String *baseclassname = Getattr(base.item, "name");
+	    if (!c_baseclassname) {
+	      basenode = base.item;
+	      c_baseclassname = baseclassname;
+	      basename = createProxyName(c_baseclassname);
+	      if (basename)
+		c_baseclass = SwigType_namestr(baseclassname);
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
+	      String *proxyclassname = Getattr(n, "classtypeobj");
+	      Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		  "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", SwigType_namestr(baseclassname), SwigType_namestr(proxyclassname));
 	    }
-	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	      "Base %s of class %s ignored: multiple inheritance is not supported in D.\n", baseclassname, proxyclassname);
-	    base = Next(base);
 	  }
+	  base = Next(base);
 	}
       }
     }

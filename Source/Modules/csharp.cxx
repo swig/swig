@@ -1729,26 +1729,24 @@ public:
     if (!purebase_replace) {
       List *baselist = Getattr(n, "bases");
       if (baselist) {
-        Iterator base = First(baselist);
-	while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
-	  base = Next(base);
-        if (base.item) {
-          c_baseclassname = Getattr(base.item, "name");
-          baseclass = Copy(getProxyName(c_baseclassname));
-          if (baseclass)
-            c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-          base = Next(base);
-          /* Warn about multiple inheritance for additional base class(es) */
-          while (base.item) {
-	    if (!GetFlag(base.item, "feature:ignore") && !Getattr(base.item, "feature:interface")) {
+	Iterator base = First(baselist);
+	while (base.item) {
+	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
+	    String *baseclassname = Getattr(base.item, "name");
+	    if (!c_baseclassname) {
+	      c_baseclassname = baseclassname;
+	      baseclass = Copy(getProxyName(baseclassname));
+	      if (baseclass)
+		c_baseclass = SwigType_namestr(baseclassname);
+	    } else {
+	      /* Warn about multiple inheritance for additional base class(es) */
 	      String *proxyclassname = Getattr(n, "classtypeobj");
-	      String *baseclassname = Getattr(base.item, "name");
 	      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+		  "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
 	    }
-            base = Next(base);
-          }
-        }
+	  }
+	  base = Next(base);
+	}
       }
     }
     Hash *interface_bases = Getattr(n, "interface:bases");
