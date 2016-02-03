@@ -97,7 +97,7 @@ case "$SWIGLANG" in
 			sudo add-apt-repository -y ppa:brightbox/ruby-ng
 			sudo apt-get -qq update
 			sudo apt-get -qq install ruby2.3 ruby2.3-dev
-			sudo gem pristine --all
+#			sudo gem pristine --all # Results in: You don't have write permissions for the /var/lib/gems/2.3.0 directory
 			WITHLANG=$SWIGLANG=$SWIGLANG$VER
 		fi
 		;;
