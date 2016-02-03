@@ -8,7 +8,7 @@
 
 /*
   Warnings for Python keywords 
-  http://www.fnorb.org/docs/1.2/Fnorb-Guide/node62.html
+  https://docs.python.org/2/reference/lexical_analysis.html#keywords
 */
 
 PYTHONKW(and);
@@ -43,7 +43,7 @@ PYTHONKW(yield);
 
 /*
   built-in functions
-  http://www.zvon.org/other/python/doc21/lib/built-in-funcs.html
+  https://docs.python.org/2/library/functions.html
  */ 
 
 PYTHONBN(abs);
