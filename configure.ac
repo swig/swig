@@ -1788,6 +1788,7 @@ AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
         # Try Ruby1.9+ first
         RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
+        RUBYARCHHDRDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyarchhdrdir"]] || $rubyarchhdrdir') 2>/dev/null`
 	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
 		RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
         else
@@ -1800,6 +1801,8 @@ if test -n "$RUBY"; then
 			if test -r $i/ruby.h; then
 				if test x"$RUBYARCH" = x""; then
 					RUBYINCLUDE="-I$i"
+				elif test -n "$RUBYARCHHDRDIR"; then
+					RUBYINCLUDE="-I$i -I$RUBYARCHHDRDIR"
 				else
 					RUBYINCLUDE="-I$i -I$i/$RUBYARCH"
 				fi
@@ -1814,9 +1817,10 @@ if test -n "$RUBY"; then
 		# Find library and path for linking.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
+		rb_archlibdir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["archlibdir"]]') 2>/dev/null`
 		rb_libdir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["libdir"]]') 2>/dev/null`
 		rb_bindir=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["bindir"]]') 2>/dev/null`
-		dirs="$dirs $rb_libdir $rb_bindir"
+		dirs="$dirs $rb_archlibdir $rb_libdir $rb_bindir"
 
         rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '

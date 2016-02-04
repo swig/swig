@@ -100,6 +100,9 @@ matrix:
       env: SWIGLANG=ruby
     - compiler: gcc
       os: linux
+      env: SWIGLANG=ruby VER=2.3
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=scilab
     - compiler: gcc
       os: linux
@@ -162,6 +165,10 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+    # Not quite working yet
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=ruby VER=2.3
 before_install:
   - date -u
   - uname -a
@@ -181,7 +188,7 @@ install:
   - $CXX --version
 script:
   - echo 'Configuring...' && echo -en 'travis_fold:start:script.1\\r'
-  - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$SWIGLANG$PY3); fi
+  - if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
   - echo "${CONFIGOPTS[@]}"
   - ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
   - echo -en 'travis_fold:end:script.1\\r'
