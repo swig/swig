@@ -7,7 +7,8 @@
 %{
 	($jniinput == 0) ? null : (INTERFACE)new IMPL($jniinput,false)
 %}
-%typemap(javain) CTYPE*, const CTYPE& "$javainput." ## #INTERFACE ## "_getCPtr()"
+%typemap(javain) CTYPE * "($javainput == null) ? 0 : $javainput." ## #INTERFACE ## "_getCPtr()"
+%typemap(javain) const CTYPE & "$javainput." ## #INTERFACE ## "_getCPtr()"
 %typemap(javaout) CTYPE*, const CTYPE&
 { 
   long cPtr = $jnicall;
