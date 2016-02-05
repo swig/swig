@@ -1609,17 +1609,19 @@ public:
 	Append(interface_list, ", ");
       Append(interface_list, iname);
 
+      Printf(interface_upcasts, "\n");
       Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
       String* upcast_name = 0;
       if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
 	upcast_name = NewStringf("%s.%s", iname, cptr_func);
       else
 	upcast_name = NewStringf("%s.GetCPtr", iname);
-      Printf(interface_upcasts, "  HandleRef %s()", upcast_name);
+      Printf(interface_upcasts, "  HandleRef %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
       String *wname = Swig_name_wrapper(upcast_method);
-      Printf(interface_upcasts, "{ return new HandleRef((%s)this, %s.%s(swigCPtr.Handle)); }\n", iname, imclass_name, upcast_method );
+      Printf(interface_upcasts, "    return new HandleRef((%s)this, %s.%s(swigCPtr.Handle));\n", iname, imclass_name, upcast_method);
+      Printf(interface_upcasts, "  }\n");
       Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
       Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);

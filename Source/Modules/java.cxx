@@ -1740,12 +1740,14 @@ public:
 	upcast_name = NewStringf("%s", cptr_func);
       else
 	upcast_name = NewStringf("%s_getCPtr", iname);
-      Printf(interface_upcasts, "  public long %s()", upcast_name);
+      Printf(interface_upcasts, "\n");
+      Printf(interface_upcasts, "  public long %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
       String *jniname = makeValidJniName(upcast_method);
       String *wname = Swig_name_wrapper(jniname);
-      Printf(interface_upcasts, "{ return %s.%s(swigCPtr); }\n", imclass_name, upcast_method );
+      Printf(interface_upcasts, "    return %s.%s(swigCPtr);\n", imclass_name, upcast_method);
+      Printf(interface_upcasts, "  }\n");
       Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
       Printv(upcasts_code,

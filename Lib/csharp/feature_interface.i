@@ -1,18 +1,14 @@
 %define DECLARE_INTERFACE_(CTYPE, INTERFACE, IMPL)
 %feature("interface", name = "INTERFACE", cptr = "GetCPtr") CTYPE;
-%typemap(cstype) CTYPE*, const CTYPE& "INTERFACE"
-%typemap(csdirectorout) CTYPE*, const CTYPE& "$cscall.GetCPtr()"
-%typemap(csdirectorin) CTYPE*, const CTYPE&
-%{
-	(INTERFACE)new IMPL($iminput,false)
-%}
-%typemap(csin) CTYPE*, const CTYPE& "$csinput.GetCPtr()"
-%typemap(csout, excode=SWIGEXCODE) CTYPE*, const CTYPE&
-{ 
-     IMPL ret = new IMPL($imcall,true); 
-     $excode
-     return (INTERFACE)ret;
-}
+%typemap(cstype) CTYPE *, CTYPE & "INTERFACE"
+%typemap(csdirectorout) CTYPE *, CTYPE & "$cscall.GetCPtr()"
+%typemap(csdirectorin) CTYPE *, CTYPE & "(INTERFACE)new IMPL($iminput, false)"
+%typemap(csin) CTYPE * "$csinput == null ? new HandleRef(null, IntPtr.Zero) : $csinput.GetCPtr()"
+%typemap(csin) CTYPE & "$csinput.GetCPtr()"
+%typemap(csout, excode=SWIGEXCODE) CTYPE *, CTYPE & {
+    IMPL ret = new IMPL($imcall, true);$excode
+    return (INTERFACE)ret;
+  }
 %enddef
 
 %define DECLARE_INTERFACE_RENAME(CTYPE, INTERFACE, IMPL)
