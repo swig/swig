@@ -92,6 +92,7 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   int InputValueCBase2(CBase2 cb2) {
     return cb2.cbase2();
   }
+
   int InputPtrABase1(ABase1 *pab1) {
     return pab1->abase1();
   }
@@ -102,4 +103,13 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     return pcb2->cbase2();
   }
 
+  int InputRefABase1(ABase1 &rab1) {
+    return rab1.abase1();
+  }
+  int InputRefCBase1(CBase1 &rcb1) {
+    return rcb1.cbase1y();
+  }
+  int InputRefCBase2(CBase2 &rcb2) {
+    return rcb2.cbase2();
+  }
 %}
