@@ -130,5 +130,14 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputPtrDerived1(d1)!=3+4, "InputPtrDerived1() failed");
     check(multiple_inheritance_abstract.InputPtrDerived2(d2)!=6+5, "InputPtrDerived2() failed");
     check(multiple_inheritance_abstract.InputPtrDerived3(d3)!=7+8+9, "InputPtrDerived3() failed");
+
+    // Factory functions
+    check(multiple_inheritance_abstract.MakeDerived1_CBase1().cbase1y()!=3, "MakeDerived1_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeDerived1_CBase2().cbase2()!=4, "MakeDerived1_CBase2 failed");
+    check(multiple_inheritance_abstract.MakeDerived2_CBase1().cbase1y()!=6, "MakeDerived2_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeDerived2_ABase1().abase1()!=5, "MakeDerived2_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeDerived3_ABase1().abase1()!=9, "MakeDerived3_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeDerived3_CBase1().cbase1y()!=7, "MakeDerived3_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeDerived3_CBase2().cbase2()!=8, "MakeDerived3_CBase2 failed");
   }
 }

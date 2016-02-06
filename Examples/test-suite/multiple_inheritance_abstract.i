@@ -141,4 +141,27 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   int InputPtrDerived3(Derived3 *d) {
     return d->cbase1y() + d->cbase2() + d->abase1();
   }
+
+  // Factory functions for more return value testing
+  CBase1 *MakeDerived1_CBase1() {
+    return new Derived1();
+  }
+  CBase2 *MakeDerived1_CBase2() {
+    return new Derived1();
+  }
+  CBase1 *MakeDerived2_CBase1() {
+    return new Derived2();
+  }
+  ABase1 *MakeDerived2_ABase1() {
+    return new Derived2();
+  }
+  ABase1 *MakeDerived3_ABase1() {
+    return new Derived3();
+  }
+  CBase1 *MakeDerived3_CBase1() {
+    return new Derived3();
+  }
+  CBase2 *MakeDerived3_CBase2() {
+    return new Derived3();
+  }
 %}
