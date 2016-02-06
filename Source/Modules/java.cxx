@@ -1789,7 +1789,6 @@ public:
     Delete(attributes);
 
     // C++ inheritance
-    List* interface_classes = NewHash();
     if (!purebase_replace) {
       List *baselist = Getattr(n, "bases");
       if (baselist) {
@@ -1815,7 +1814,9 @@ public:
         }
       }
     }
-    if (Hash* interface_classes = Getattr(n, "feature:interface:bases"))
+
+    Hash* interface_classes = Getattr(n, "feature:interface:bases");
+    if (interface_classes)
       addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
@@ -2019,7 +2020,6 @@ public:
   virtual int classHandler(Node *n) {
     File *f_proxy = NULL;
     File *f_interface = NULL;
-    String *old_interface_class_code = interface_class_code;
     interface_class_code = 0;
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
