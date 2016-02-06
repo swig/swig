@@ -9,13 +9,13 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
 
 %inline %{
   struct CBase1 {
-    virtual void foo9() {
-      return ;
+    virtual void cbase1x() {
+      return;
     } 
-    virtual int foo1() {
+    virtual int cbase1y() {
       return 1;
     }
-    int foo3() {
+    int cbase1z() {
       return 10;
     }
     virtual ~CBase1() {
@@ -23,7 +23,7 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct CBase2 {
-    virtual int foo2() {
+    virtual int cbase2() {
       return 2;
     }
     virtual ~CBase2() {
@@ -31,19 +31,19 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct ABase1 {
-    virtual int  bar1() = 0;
+    virtual int abase1() = 0;
     virtual ~ABase1() {
     }
   };
 
   struct Derived1 : CBase2, CBase1 {
-    virtual int foo1() {
+    virtual int cbase1y() {
       return 3;
     }
-    virtual void foo9() {
+    virtual void cbase1x() {
       return;
     }
-    virtual int foo2() {
+    virtual int cbase2() {
       return 4;
     }
     virtual CBase2 *clone() {
@@ -52,14 +52,14 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct Derived2 : CBase1, ABase1 {
-    virtual int bar1() {
+    virtual int abase1() {
       return 5;
     }
-    virtual int foo1() {
-      return 6;
-    }
-    virtual void foo9() {
+    virtual void cbase1x() {
       return;
+    }
+    virtual int cbase1y() {
+      return 6;
     }
     virtual CBase1 *clone() {
       return new Derived2(*this);
@@ -67,36 +67,39 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct Derived3 : ABase1, CBase1, CBase2 {
-    virtual int foo1() {
+    virtual int cbase1y() {
       return 7;
     }
-    virtual int foo2() {
+    virtual int cbase2() {
       return 8;
     }
-    virtual int bar1() {
+    virtual int abase1() {
       return 9;
     }
-    virtual void foo9() {
+    virtual void cbase1x() {
     }
     virtual ABase1 *clone() {
       return new Derived3(*this);
     }
   };
 
-  ABase1 *foo4(Derived3 d) {
+  ABase1 *InputDerived3(Derived3 d) {
     return d.clone();
   }
-  int foo5(CBase1 cb1, CBase2 cb2) {
-    return cb1.foo1() + cb2.foo2();
+  int InputValueCBase1(CBase1 cb1) {
+    return cb1.cbase1y();
   }
-  int foo6(ABase1 *pab1) {
-    return  pab1->bar1();
+  int InputValueCBase2(CBase2 cb2) {
+    return cb2.cbase2();
   }
-  int foo7(CBase1 *pcb1) {
-    return pcb1->foo1();
+  int InputABase1(ABase1 *pab1) {
+    return pab1->abase1();
   }
-  int foo8(CBase2 *pcb2) {
-    return pcb2->foo2();
+  int InputCBase1(CBase1 *pcb1) {
+    return pcb1->cbase1y();
+  }
+  int InputCBase2(CBase2 *pcb2) {
+    return pcb2->cbase2();
   }
 
 %}
