@@ -37,11 +37,11 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct Derived1 : CBase2, CBase1 {
-    virtual int cbase1y() {
-      return 3;
-    }
     virtual void cbase1x() {
       return;
+    }
+    virtual int cbase1y() {
+      return 3;
     }
     virtual int cbase2() {
       return 4;
@@ -52,14 +52,14 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   };
 
   struct Derived2 : CBase1, ABase1 {
-    virtual int abase1() {
-      return 5;
-    }
     virtual void cbase1x() {
       return;
     }
     virtual int cbase1y() {
       return 6;
+    }
+    virtual int abase1() {
+      return 5;
     }
     virtual CBase1 *clone() {
       return new Derived2(*this);
@@ -83,13 +83,11 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     }
   };
 
-  ABase1 *InputDerived3(Derived3 d) {
-    return d.clone();
-  }
-  int InputValueCBase1(CBase1 cb1) {
+  // Base classes as input
+  int InputValCBase1(CBase1 cb1) {
     return cb1.cbase1y();
   }
-  int InputValueCBase2(CBase2 cb2) {
+  int InputValCBase2(CBase2 cb2) {
     return cb2.cbase2();
   }
 
@@ -111,5 +109,36 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
   }
   int InputRefCBase2(CBase2 &rcb2) {
     return rcb2.cbase2();
+  }
+
+  // Derived classes as input
+  int InputValDerived1(Derived1 d) {
+    return d.cbase1y() + d.cbase2();
+  }
+  int InputValDerived2(Derived2 d) {
+    return d.cbase1y() + d.abase1();
+  }
+  int InputValDerived3(Derived3 d) {
+    return d.cbase1y() + d.cbase2() + d.abase1();
+  }
+
+  int InputRefDerived1(Derived1 &d) {
+    return d.cbase1y() + d.cbase2();
+  }
+  int InputRefDerived2(Derived2 &d) {
+    return d.cbase1y() + d.abase1();
+  }
+  int InputRefDerived3(Derived3 &d) {
+    return d.cbase1y() + d.cbase2() + d.abase1();
+  }
+
+  int InputPtrDerived1(Derived1 *d) {
+    return d->cbase1y() + d->cbase2();
+  }
+  int InputPtrDerived2(Derived2 *d) {
+    return d->cbase1y() + d->abase1();
+  }
+  int InputPtrDerived3(Derived3 *d) {
+    return d->cbase1y() + d->cbase2() + d->abase1();
   }
 %}

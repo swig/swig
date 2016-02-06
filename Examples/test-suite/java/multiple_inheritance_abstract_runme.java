@@ -80,6 +80,16 @@ public class multiple_inheritance_abstract_runme {
     check(mhar.jabase1(d2)!=5, "jabase1() through Derived2 as parameter failed in multiple_inheritance_abstract");
     check(mhar.jabase1(d3)!=9, "jabase1() through Derived3 as parameter failed in multiple_inheritance_abstract");
 
+    //Value parameters
+    //Test CBase1 CBase2 as parameters (note slicing for Derived1, Derived2 and Derived3)
+    check(multiple_inheritance_abstract.InputValCBase1(d1)!=1, "InputValCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(d2)!=1, "InputValCBase1(), Derived2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(d3)!=1, "InputValCBase1(), Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase2(d3)!=2, "InputValCBase2(), Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase2(d1)!=2, "InputValCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(cb1)!=1, "InputValCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase2(cb2)!=2, "InputValCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+
     //Pointer parameters
     //Test ABase1 as a parameter
     check(multiple_inheritance_abstract.InputPtrABase1(d2)!=5, "InputPtrABase1() through Derived2 as a parameter failed in multiple_inheritance_abstract");
@@ -107,5 +117,18 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputRefCBase2(d1)!=4, "InputRefCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefCBase1(cb1)!=1, "InputRefCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefCBase2(cb2)!=2, "InputRefCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+
+    //Derived classes as parameters
+    check(multiple_inheritance_abstract.InputValDerived1(d1)!=3+4, "InputValDerived1() failed");
+    check(multiple_inheritance_abstract.InputValDerived2(d2)!=6+5, "InputValDerived2() failed");
+    check(multiple_inheritance_abstract.InputValDerived3(d3)!=7+8+9, "InputValDerived3() failed");
+
+    check(multiple_inheritance_abstract.InputRefDerived1(d1)!=3+4, "InputRefDerived1() failed");
+    check(multiple_inheritance_abstract.InputRefDerived2(d2)!=6+5, "InputRefDerived2() failed");
+    check(multiple_inheritance_abstract.InputRefDerived3(d3)!=7+8+9, "InputRefDerived3() failed");
+
+    check(multiple_inheritance_abstract.InputPtrDerived1(d1)!=3+4, "InputPtrDerived1() failed");
+    check(multiple_inheritance_abstract.InputPtrDerived2(d2)!=6+5, "InputPtrDerived2() failed");
+    check(multiple_inheritance_abstract.InputPtrDerived3(d3)!=7+8+9, "InputPtrDerived3() failed");
   }
 }
