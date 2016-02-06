@@ -415,11 +415,19 @@ public:
     }
 
     Printf(f_runtime, "\n");
+    if (namespce) {
+        String *wrapper_name = NewStringf("");
+        Printf(wrapper_name, "CSharp_%s_%%f", namespce);
+        Swig_name_register("wrapper", wrapper_name);
+        Delete(wrapper_name);
+    }
+    else {
+	    Swig_name_register("wrapper", "CSharp_%f");
+    }
 
-    Swig_name_register("wrapper", "CSharp_%f");
     if (old_variable_names) {
-      Swig_name_register("set", "set_%n%v");
-      Swig_name_register("get", "get_%n%v");
+        Swig_name_register("set", "set_%n%v");
+      	Swig_name_register("get", "get_%n%v");
     }
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
