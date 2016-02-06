@@ -65,6 +65,7 @@ CPP_TEST_CASES += \
 	python_overload_simple_cast \
 	python_pythoncode \
 	python_richcompare \
+	python_strict_unicode \
 	simutry \
 	std_containers \
 	swigobject \

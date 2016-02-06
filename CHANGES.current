@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-01-27: ahnolds
+            [Python] Added support for differentiating between Python Bytes
+            and Unicode objects using by defining SWIG_PYTHON_STRICT_BYTE_CHAR
+            and SWIG_PYTHON_STRICT_UNICODE_WCHAR.
+
 2016-01-27: steeve
             [Go] Ensure structs are properly packed between gc and GCC/clang.
 
