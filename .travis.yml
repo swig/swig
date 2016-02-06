@@ -100,9 +100,7 @@ matrix:
       env: SWIGLANG=ruby
     - compiler: gcc
       os: linux
-      env: SWIGLANG=ruby VER=2.3
-      sudo: required
-      dist: trusty
+      env: SWIGLANG=ruby VER=2.3.0
     - compiler: gcc
       os: linux
       env: SWIGLANG=scilab
