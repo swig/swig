@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-02-06: pjohangustavsson
+            [C#] Fix duplicate symbol problems when linking the source generated
+            from multiple SWIG modules into one shared library for the -namespace
+            option. The namespace is now mangled into the global PInvoke function
+            names.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2016-01-27: ahnolds
             [Python] Added support for differentiating between Python Bytes
             and Unicode objects using by defining SWIG_PYTHON_STRICT_BYTE_CHAR
