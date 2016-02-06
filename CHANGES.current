@@ -13,6 +13,18 @@ Version 3.0.9 (in progress)
 2016-01-27: steeve
             [Go] Ensure structs are properly packed between gc and GCC/clang.
 
+2016-01-25: ahnolds
+            [Python] Support the full Python test suite in -classic mode
+            * Convert long/unsigned long/long long/unsigned long long to PyInt
+              rather than PyLong when possible. Certain python functions like
+              len() require a PyInt when operating on old-style classes.
+            * Add support for static methods in classic mode, including support
+              for pythonappend, pythonprepend, and docstrings.
+            * Removing the use of __swig_getmethods__ for static member methods
+              since they will always be found by the standard argument lookup
+            * Fix a bug where the wrong type of exception was caught when
+              checking for new-style class support
+
 2016-01-23: ahnolds
             [Go] Enable support for the Go test-suite on OSX:
             * The linker on OSX requires that all symbols (even weak symbols)

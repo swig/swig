@@ -912,17 +912,12 @@ public:
 	       tab4, "try:\n", tab8, "strthis = \"proxy of \" + self.this.__repr__()\n",
 	       tab4, "except __builtin__.Exception:\n", tab8, "strthis = \"\"\n", tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
-	if (!classic) {
-	  /* Usage of types.ObjectType is deprecated.
-	   * But don't sure wether this would broken old Python?
-	   */
+	if (!classic && !modern) {
 	  Printv(f_shadow,
-//               "import types\n",
 		 "try:\n",
-//               "    _object = types.ObjectType\n",
-		 tab4, "_object = object\n", tab4, "_newclass = 1\n", "except AttributeError:\n", tab4, "class _object:\n", tab8, "pass\n", tab4, "_newclass = 0\n",
-//                 "del types\n", 
-		 "\n\n", NIL);
+		 tab4, "_object = object\n", tab4, "_newclass = 1\n",
+		 "except __builtin__.Exception:\n",
+		 tab4, "class _object:\n", tab8, "pass\n", tab4, "_newclass = 0\n\n", NIL);
 	}
       }
       if (modern) {
@@ -1007,7 +1002,7 @@ public:
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
-      if (!modern) {
+      if (!modern && !classic) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
       Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
@@ -4710,7 +4705,7 @@ public:
     }
 
     if (shadow) {
-      if (!classic && !Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
+      if (!Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
 	String *callParms = make_pyParmList(n, false, true, kw);
@@ -4726,24 +4721,18 @@ public:
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n\n", NIL);
 	}
-	if (!modern)
-	  Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
 	Printv(f_shadow, tab4, symname, " = staticmethod(", symname, ")\n", NIL);
-
-	if (!modern) {
-	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", symname, "\n", NIL);
-	}
-
       } else {
-	if (!modern) {
-	  Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n",
-		 NIL);
-	}
 	if (!classic) {
 	  if (!modern)
 	    Printv(f_shadow, tab4, "if _newclass:\n", tab4, NIL);
 	  Printv(f_shadow, tab4, symname, " = staticmethod(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname),
 		 ")\n", NIL);
+	}
+	if (classic || !modern) {
+	  if (!classic)
+	    Printv(f_shadow, tab4, "else:\n", tab4, NIL);
+	  Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
 	}
       }
     }

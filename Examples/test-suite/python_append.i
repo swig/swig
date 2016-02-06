@@ -12,6 +12,9 @@ def grabpath():
     return funcpath
 def grabstaticpath():
     return staticfuncpath
+def clearstaticpath():
+    global staticfuncpath
+    staticfuncpath = None
 %}
 
 %pythonappend Test::func %{

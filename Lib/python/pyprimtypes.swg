@@ -67,7 +67,7 @@ SWIGINTERNINLINE PyObject*
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
-  %define_as(SWIG_From_dec(long),           PyLong_FromLong)
+  %define_as(SWIG_From_dec(long),           PyInt_FromLong)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
@@ -123,7 +123,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
 }
 
@@ -186,7 +186,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
-    PyLong_FromLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromLongLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
 %#endif
 }
@@ -244,7 +244,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(%numeric_cast(value,long));
 }
 %#endif
 }

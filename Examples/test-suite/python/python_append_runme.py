@@ -20,3 +20,10 @@ if grabpath() != os.path.dirname(mypath):
 
 if grabstaticpath() != os.path.basename(mypath):
     raise RuntimeError("grabstaticpath failed")
+
+clearstaticpath()
+if grabstaticpath() != None:
+    raise RuntimeError("Resetting staticfuncpath failed")
+Test.static_func()
+if grabstaticpath() != os.path.basename(mypath):
+    raise RuntimeError("grabstaticpath failed")
