@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-02-07: kwwette
+            [Octave] recognise various unary functions
+            * Use __float__() for numeric conversions, e.g. when calling double()
+            * Map various unary functions, e.g. abs() to __abs__(), see full list
+              in section 32.3.10 of manual; only available in Octave 3.8.0 or later
+
+2016-02-07: kwwette
+            [Octave] export function swig_octave_prereq() for testing Octave version
+
 2016-02-06: pjohangustavsson
             [C#] Fix duplicate symbol problems when linking the source generated
             from multiple SWIG modules into one shared library for the -namespace
