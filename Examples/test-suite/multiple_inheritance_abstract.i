@@ -111,6 +111,16 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     return rcb2.cbase2();
   }
 
+  int InputCPtrRefABase1(ABase1 *const& pab1) {
+    return pab1->abase1();
+  }
+  int InputCPtrRefCBase1(CBase1 *const& pcb1) {
+    return pcb1->cbase1y();
+  }
+  int InputCPtrRefCBase2(CBase2 *const& pcb2) {
+    return pcb2->cbase2();
+  }
+
   // Derived classes as input
   int InputValDerived1(Derived1 d) {
     return d.cbase1y() + d.cbase2();
@@ -142,26 +152,84 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     return d->cbase1y() + d->cbase2() + d->abase1();
   }
 
-  // Factory functions for more return value testing
-  CBase1 *MakeDerived1_CBase1() {
+  int InputCPtrRefDerived1(Derived1 *const& d) {
+    return d->cbase1y() + d->cbase2();
+  }
+  int InputCPtrRefDerived2(Derived2 *const& d) {
+    return d->cbase1y() + d->abase1();
+  }
+  int InputCPtrRefDerived3(Derived3 *const& d) {
+    return d->cbase1y() + d->cbase2() + d->abase1();
+  }
+
+  // Return pointers
+  CBase1 *MakePtrDerived1_CBase1() {
     return new Derived1();
   }
-  CBase2 *MakeDerived1_CBase2() {
+  CBase2 *MakePtrDerived1_CBase2() {
     return new Derived1();
   }
-  CBase1 *MakeDerived2_CBase1() {
+  CBase1 *MakePtrDerived2_CBase1() {
     return new Derived2();
   }
-  ABase1 *MakeDerived2_ABase1() {
+  ABase1 *MakePtrDerived2_ABase1() {
     return new Derived2();
   }
-  ABase1 *MakeDerived3_ABase1() {
+  ABase1 *MakePtrDerived3_ABase1() {
     return new Derived3();
   }
-  CBase1 *MakeDerived3_CBase1() {
+  CBase1 *MakePtrDerived3_CBase1() {
     return new Derived3();
   }
-  CBase2 *MakeDerived3_CBase2() {
+  CBase2 *MakePtrDerived3_CBase2() {
     return new Derived3();
   }
+
+  // Return references
+  CBase1 &MakeRefDerived1_CBase1() {
+    static Derived1 d;
+    return d;
+  }
+  CBase2 &MakeRefDerived1_CBase2() {
+    static Derived1 d;
+    return d;
+  }
+  CBase1 &MakeRefDerived2_CBase1() {
+    static Derived2 d;
+    return d;
+  }
+  ABase1 &MakeRefDerived2_ABase1() {
+    static Derived2 d;
+    return d;
+  }
+  ABase1 &MakeRefDerived3_ABase1() {
+    static Derived3 d;
+    return d;
+  }
+  CBase1 &MakeRefDerived3_CBase1() {
+    static Derived3 d;
+    return d;
+  }
+  CBase2 &MakeRefDerived3_CBase2() {
+    static Derived3 d;
+    return d;
+  }
+
+  // Return by value (sliced objects)
+  CBase1 MakeValDerived1_CBase1() {
+    return Derived1();
+  }
+  CBase2 MakeValDerived1_CBase2() {
+    return Derived1();
+  }
+  CBase1 MakeValDerived2_CBase1() {
+    return Derived2();
+  }
+  CBase1 MakeValDerived3_CBase1() {
+    return Derived3();
+  }
+  CBase2 MakeValDerived3_CBase2() {
+    return Derived3();
+  }
+
 %}

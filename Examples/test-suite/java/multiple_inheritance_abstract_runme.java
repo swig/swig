@@ -118,6 +118,20 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputRefCBase1(cb1)!=1, "InputRefCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefCBase2(cb2)!=2, "InputRefCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
 
+    //Const reference pointer parameters
+    //Test ABase1 as a parameter
+    check(multiple_inheritance_abstract.InputCPtrRefABase1(d2)!=5, "InputCPtrRefABase1() through Derived2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefABase1(d3)!=9, "InputCPtrRefABase1() through Derived3 as a parameter failed in multiple_inheritance_abstract");
+
+    //Test CBase1 CBase2 as parameters
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(d1)!=3, "InputCPtrRefCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(d2)!=6, "InputCPtrRefCBase1(), Derived2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(d3)!=7, "InputCPtrRefCBase1(), Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase2(d3)!=8, "InputCPtrRefCBase2(), Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase2(d1)!=4, "InputCPtrRefCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(cb1)!=1, "InputCPtrRefCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase2(cb2)!=2, "InputCPtrRefCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+
     //Derived classes as parameters
     check(multiple_inheritance_abstract.InputValDerived1(d1)!=3+4, "InputValDerived1() failed");
     check(multiple_inheritance_abstract.InputValDerived2(d2)!=6+5, "InputValDerived2() failed");
@@ -131,13 +145,34 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputPtrDerived2(d2)!=6+5, "InputPtrDerived2() failed");
     check(multiple_inheritance_abstract.InputPtrDerived3(d3)!=7+8+9, "InputPtrDerived3() failed");
 
-    // Factory functions
-    check(multiple_inheritance_abstract.MakeDerived1_CBase1().cbase1y()!=3, "MakeDerived1_CBase1 failed");
-    check(multiple_inheritance_abstract.MakeDerived1_CBase2().cbase2()!=4, "MakeDerived1_CBase2 failed");
-    check(multiple_inheritance_abstract.MakeDerived2_CBase1().cbase1y()!=6, "MakeDerived2_CBase1 failed");
-    check(multiple_inheritance_abstract.MakeDerived2_ABase1().abase1()!=5, "MakeDerived2_ABase1 failed");
-    check(multiple_inheritance_abstract.MakeDerived3_ABase1().abase1()!=9, "MakeDerived3_ABase1 failed");
-    check(multiple_inheritance_abstract.MakeDerived3_CBase1().cbase1y()!=7, "MakeDerived3_CBase1 failed");
-    check(multiple_inheritance_abstract.MakeDerived3_CBase2().cbase2()!=8, "MakeDerived3_CBase2 failed");
+    check(multiple_inheritance_abstract.InputCPtrRefDerived1(d1)!=3+4, "InputCPtrRefDerived1() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefDerived2(d2)!=6+5, "InputCPtrRefDerived2() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefDerived3(d3)!=7+8+9, "InputCPtrRefDerived3() failed");
+
+    // Return pointers
+    check(multiple_inheritance_abstract.MakePtrDerived1_CBase1().cbase1y()!=3, "MakePtrDerived1_CBase1 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived1_CBase2().cbase2()!=4, "MakePtrDerived1_CBase2 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived2_CBase1().cbase1y()!=6, "MakePtrDerived2_CBase1 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived2_ABase1().abase1()!=5, "MakePtrDerived2_ABase1 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived3_ABase1().abase1()!=9, "MakePtrDerived3_ABase1 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived3_CBase1().cbase1y()!=7, "MakePtrDerived3_CBase1 failed");
+    check(multiple_inheritance_abstract.MakePtrDerived3_CBase2().cbase2()!=8, "MakePtrDerived3_CBase2 failed");
+
+    // Return references
+    check(multiple_inheritance_abstract.MakeRefDerived1_CBase1().cbase1y()!=3, "MakeRefDerived1_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived1_CBase2().cbase2()!=4, "MakeRefDerived1_CBase2 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived2_CBase1().cbase1y()!=6, "MakeRefDerived2_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived2_ABase1().abase1()!=5, "MakeRefDerived2_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived3_ABase1().abase1()!=9, "MakeRefDerived3_ABase1 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived3_CBase1().cbase1y()!=7, "MakeRefDerived3_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeRefDerived3_CBase2().cbase2()!=8, "MakeRefDerived3_CBase2 failed");
+
+    // Return by value (sliced objects)
+    check(multiple_inheritance_abstract.MakeValDerived1_CBase1().cbase1y()!=1, "MakeValDerived1_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeValDerived1_CBase2().cbase2()!=2, "MakeValDerived1_CBase2 failed");
+    check(multiple_inheritance_abstract.MakeValDerived2_CBase1().cbase1y()!=1, "MakeValDerived2_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeValDerived3_CBase1().cbase1y()!=1, "MakeValDerived3_CBase1 failed");
+    check(multiple_inheritance_abstract.MakeValDerived3_CBase2().cbase2()!=2, "MakeValDerived3_CBase2 failed");
+
   }
 }
