@@ -182,6 +182,23 @@ DEFUN_DLD( swig_this, args, nargout, swig_this_usage ) {
   return octave_value(octave_uint64((unsigned long long) ost->swig_this()));
 }
 
+static const char *const swig_octave_prereq_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_octave_prereq(@var{major}, @var{minor}, @var{patch})\n\
+Return true if the version of Octave is at least @var{major}.@var{minor}.@var{patch}.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_octave_prereq, args, nargout, swig_octave_prereq_usage ) {
+  if (args.length() != 3) {
+    error("swig_octave_prereq: must be called with 3 arguments");
+    return octave_value_list();
+  }
+  const int major = args(0).int_value();
+  const int minor = args(1).int_value();
+  const int patch = args(2).int_value();
+  const bool prereq = SWIG_OCTAVE_PREREQ(major, minor, patch);
+  return octave_value(prereq);
+}
+
 static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 @deftypefn {Loadable Module} {} " SWIG_name_d "\n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
@@ -235,6 +252,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
     octave_function *me = octave_call_stack::current();
 
+    if (!SWIG_Octave_InstallFunction(me, "subclass")) {
+      return octave_value_list();
+    }
     if (!SWIG_Octave_InstallFunction(me, "swig_type")) {
       return octave_value_list();
     }
@@ -244,7 +264,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     if (!SWIG_Octave_InstallFunction(me, "swig_this")) {
       return octave_value_list();
     }
-    if (!SWIG_Octave_InstallFunction(me, "subclass")) {
+    if (!SWIG_Octave_InstallFunction(me, "swig_octave_prereq")) {
       return octave_value_list();
     }
 
