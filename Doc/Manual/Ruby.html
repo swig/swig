@@ -1352,7 +1352,7 @@ are provided.</p>
 
 %include &lt;std_set.i&gt;
 
-%typemap(IntSet) std::set&lt; int, swig::BinaryPredicate &gt;;
+%template(IntSet) std::set&lt; int, swig::BinaryPredicate &gt;;
 </pre></div>
 
 <p>You can then use the set from Ruby with or without a proc
