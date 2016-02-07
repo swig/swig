@@ -816,6 +816,14 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return ret.string_value();
     }
 
+    virtual double scalar_value(bool frc_str_conv = false) const {
+      octave_value ret;
+      if (!dispatch_unary_op("__float__", ret)) {
+        error("__float__ method not defined");
+      }
+      return ret.scalar_value();
+    }
+
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const {
       return octave_map();
@@ -1069,6 +1077,9 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
+    virtual double scalar_value(bool frc_str_conv = false) const
+      { return ptr->scalar_value(frc_str_conv); }
+
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const
       { return ptr->map_value(); }
@@ -1126,7 +1137,17 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 #endif
       { return ptr->print(os, pr_as_read_syntax); }
 
+    virtual type_conv_info numeric_conversion_function(void) const {
+      return octave_base_value::type_conv_info (default_numeric_conversion_function,
+                                                octave_scalar::static_type_id ());
+    }
+
   private:
+    static octave_base_value *default_numeric_conversion_function (const octave_base_value& a) {
+      const octave_swig_ref& v = dynamic_cast<const octave_swig_ref&>(a);
+      return new octave_scalar(v.scalar_value());
+    }
+
 #if !SWIG_OCTAVE_PREREQ(4,0,0)
     DECLARE_OCTAVE_ALLOCATOR;
 #endif

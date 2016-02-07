@@ -26,4 +26,9 @@
    ComplexVal __paren__(int j) {
      return ComplexVal($self->re()*j,$self->im()*j);
    }
+
+   double __float__() {
+     return (double) $self->re();
+   }
+
 };

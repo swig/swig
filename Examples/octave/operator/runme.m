@@ -24,3 +24,7 @@ printf("a(3)= %s\n",disp(a(3)));
 
 # friend operator
 printf("2*a = %s\n",disp(2*a));
+
+# conversions
+printf("single(a) = %g\n", single(a));
+printf("double(a) = %g\n", double(a));

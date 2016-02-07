@@ -6,6 +6,7 @@
 #include <octave/dynamic-ld.h>
 #include <octave/oct-env.h>
 #include <octave/oct-map.h>
+#include <octave/ov-scalar.h>
 #include <octave/ov-fcn-handle.h>
 #include <octave/parse.h>
 #include <octave/toplev.h>
