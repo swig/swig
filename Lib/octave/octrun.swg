@@ -363,41 +363,44 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return octave_value_list();
     }
 
-    bool dispatch_unary_op(const std::string &symbol, octave_value &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_unary_op(const std::string &symbol, octave_value &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
-      octave_value_list argout(member_invoke(m, args, 1));
+      args.append(nc_this->as_value());
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() < 1)
 	return false;
       ret = argout(0);
       return true;
     }
 
-    bool dispatch_binary_op(const std::string &symbol, const octave_base_value &rhs, octave_value &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_binary_op(const std::string &symbol, const octave_base_value &rhs, octave_value &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
+      args.append(nc_this->as_value());
       args.append(make_value_hack(rhs));
-      octave_value_list argout(member_invoke(m, args, 1));
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() < 1)
 	return false;
       ret = argout(0);
       return true;
     }
 
-    bool dispatch_index_op(const std::string &symbol, const octave_value_list &rhs, octave_value_list &ret) {
-      member_value_pair *m = find_member(symbol, false);
+    bool dispatch_index_op(const std::string &symbol, const octave_value_list &rhs, octave_value_list &ret) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      member_value_pair *m = nc_this->find_member(symbol, false);
       if (!m || m->first->is_static() || m->first->is_global())
 	return false;
       octave_value_list args;
-      args.append(as_value());
+      args.append(nc_this->as_value());
       args.append(rhs);
-      octave_value_list argout(member_invoke(m, args, 1));
+      octave_value_list argout(nc_this->member_invoke(m, args, 1));
       if (argout.length() >= 1)
 	ret = argout(0);
       return true;
