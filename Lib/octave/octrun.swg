@@ -462,22 +462,9 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     dim_vector dims(void) const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      
-      // Find the __dims__ method of this object
-      member_value_pair *m = nc_this->find_member("__dims__", false);
-
-      if (!m) return dim_vector(1,1);
-      
-      // Call the __dims__ method of this object
-      octave_value_list inarg;
-      inarg.append(nc_this->as_value());
-      octave_value_list outarg = nc_this->member_invoke(m, inarg, 1);
-
-      // __dims__ should return (at least) one output argument
-      if (outarg.length() < 1) return dim_vector(1,1);
-      
-      octave_value & out = outarg(0);
+      octave_value out;
+      if (!dispatch_unary_op("__dims__", out))
+        return dim_vector(1,1);
 
       // Return value should be cell or matrix of integers
       if (out.is_cell()) {
@@ -817,18 +804,16 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     virtual std::string string_value(bool force = false) const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str__", false);
-      if (!m) {
-	error("__str__ method not defined");
-	return std::string();
+      octave_value ret;
+      if (!dispatch_unary_op("__str__", ret)) {
+        error("__str__ method not defined");
+        return std::string();
       }
-      octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
-      if (outarg.length() < 1 || !outarg(0).is_string()) {
+      if (!ret.is_string()) {
 	error("__str__ method did not return a string");
 	return std::string();
       }
-      return outarg(0).string_value();
+      return ret.string_value();
     }
 
 #if SWIG_OCTAVE_PREREQ(3,3,52)
