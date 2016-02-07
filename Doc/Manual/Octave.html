@@ -517,7 +517,7 @@ C++ operator overloading is supported, in a way similar to other modules.
 The <tt>swig_ref</tt> type supports all unary and binary operators between itself and all other types that exist in the system at module load time. When an operator is used (where one of the operands is a <tt>swig_ref</tt>), the runtime routes the call to either a member function of the given object, or to a global function whose named is derived from the types of the operands (either both or just the lhs or rhs).
 </p>
 <p>
-For example, if <tt>a</tt> and <tt>b</tt> are SWIG variables in Octave, <tt>a+b</tt> becomes <tt>a.__add(b)</tt>. The wrapper is then free to implement __add to do whatever it wants. A wrapper may define the <tt>__add</tt> function manually, %rename some other function to it, or %rename a C++ operator to it.
+For example, if <tt>a</tt> and <tt>b</tt> are SWIG variables in Octave, <tt>a+b</tt> becomes <tt>a.__add__(b)</tt>. The wrapper is then free to implement __add__ to do whatever it wants. A wrapper may define the <tt>__add__</tt> function manually, %rename some other function to it, or %rename a C++ operator to it.
 </p>
 <p>
 By default the C++ operators are renamed to their corresponding Octave operators. So without doing any work, the following interface
@@ -544,69 +544,69 @@ assert(c.value==5);
 Octave operators are mapped in the following way:
 </p>
 <div class="code"><pre>
-__brace      a{args}
-__brace_asgn a{args} = rhs
-__paren      a(args)
-__paren_asgn a(args) = rhs
-__str        generates string rep
-__not        !a
-__uplus      +a
-__uminus     -a
-__transpose  a.'
-__hermitian  a'
-__incr       a++
-__decr       a--
-__add        a + b
-__sub        a - b
-__mul        a * b
-__div        a / b
-__pow        a ^ b
-__ldiv       a \ b
-__lshift     a << b
-__rshift     a >> b
-__lt         a < b
-__le         a <= b
-__eq         a == b
-__ge         a >= b
-__gt         a > b
-__ne         a != b
-__el_mul     a .* b
-__el_div     a ./ b
-__el_pow     a .^ b
-__el_ldiv    a .\ b
-__el_and     a &amp; b
-__el_or      a | b
+__brace__      a{args}
+__brace_asgn__ a{args} = rhs
+__paren__      a(args)
+__paren_asgn__ a(args) = rhs
+__str__        generates string rep
+__not__        !a
+__uplus__      +a
+__uminus__     -a
+__transpose__  a.'
+__hermitian__  a'
+__incr__       a++
+__decr__       a--
+__add__        a + b
+__sub__        a - b
+__mul__        a * b
+__div__        a / b
+__pow__        a ^ b
+__ldiv__       a \ b
+__lshift__     a << b
+__rshift__     a >> b
+__lt__         a < b
+__le__         a <= b
+__eq__         a == b
+__ge__         a >= b
+__gt__         a > b
+__ne__         a != b
+__el_mul__     a .* b
+__el_div__     a ./ b
+__el_pow__     a .^ b
+__el_ldiv__    a .\ b
+__el_and__     a &amp; b
+__el_or__      a | b
 </pre></div>
 <p>
 On the C++ side, the default mappings are as follows:
 </p>
 <div class="code"><pre>
-%rename(__add)       *::operator+;
-%rename(__add)       *::operator+();
-%rename(__add)       *::operator+() const;
-%rename(__sub)       *::operator-;
-%rename(__uminus)    *::operator-();
-%rename(__uminus)    *::operator-() const;
-%rename(__mul)       *::operator*;
-%rename(__div)       *::operator/;
-%rename(__mod)       *::operator%;
-%rename(__lshift)    *::operator<<;
-%rename(__rshift)    *::operator>>;
-%rename(__el_and)    *::operator&amp;&amp;;
-%rename(__el_or)     *::operator||;
-%rename(__xor)       *::operator^;
-%rename(__invert)    *::operator~;
-%rename(__lt)        *::operator<;
-%rename(__le)        *::operator<=;
-%rename(__gt)        *::operator>;
-%rename(__ge)        *::operator>=;
-%rename(__eq)        *::operator==;
-%rename(__ne)        *::operator!=;
-%rename(__not)       *::operator!;
-%rename(__incr)      *::operator++;
-%rename(__decr)      *::operator--;
-%rename(__paren)     *::operator();
-%rename(__brace)     *::operator[];
+%rename(__add__)       *::operator+;
+%rename(__add__)       *::operator+();
+%rename(__add__)       *::operator+() const;
+%rename(__sub__)       *::operator-;
+%rename(__uminus__)    *::operator-();
+%rename(__uminus__)    *::operator-() const;
+%rename(__mul__)       *::operator*;
+%rename(__div__)       *::operator/;
+%rename(__mod__)       *::operator%;
+%rename(__lshift__)    *::operator<<;
+%rename(__rshift__)    *::operator>>;
+%rename(__el_and__)    *::operator&amp;&amp;;
+%rename(__el_or__)     *::operator||;
+%rename(__xor__)       *::operator^;
+%rename(__invert__)    *::operator~;
+%rename(__lt__)        *::operator<;
+%rename(__le__)        *::operator<=;
+%rename(__gt__)        *::operator>;
+%rename(__ge__)        *::operator>=;
+%rename(__eq__)        *::operator==;
+%rename(__ne__)        *::operator!=;
+%rename(__not__)       *::operator!;
+%rename(__incr__)      *::operator++;
+%rename(__decr__)      *::operator--;
+%rename(__paren__)     *::operator();
+%rename(__brace__)     *::operator[];
 </pre></div>
 
 <p>
@@ -620,11 +620,11 @@ Octave can also utilise friend (i.e. non-member) operators with a simple %rename
 The %extend directive works the same as in other modules.
 </p>
 <p>
-You can use it to define special behavior, like for example defining Octave operators not mapped to C++ operators, or defining certain Octave mechanisms such as how an object prints. For example, the <tt>octave_value::{is_string,string_value,print}</tt> functions are routed to a special method <tt>__str</tt> that can be defined inside an %extend.
+You can use it to define special behavior, like for example defining Octave operators not mapped to C++ operators, or defining certain Octave mechanisms such as how an object prints. For example, the <tt>octave_value::{is_string,string_value,print}</tt> functions are routed to a special method <tt>__str__</tt> that can be defined inside an %extend.
 </p>
 <div class="code"><pre>
 %extend A {
-string __str() {
+string __str__() {
   stringstream sout;
   sout&lt;&lt;$self->value;
   return sout.str();
@@ -640,7 +640,7 @@ octave:2&gt; a
 a = 4
 octave:3&gt; printf("%s\n",a);
 4
-octave:4&gt; a.__str()
+octave:4&gt; a.__str__()
 4
 </pre></div>
 <H3><a name="Octave_nn20">32.3.11 C++ templates</a></H3>
@@ -692,7 +692,7 @@ Similarly, class templates can be instantiated as in the following example,
       s+=_s;
       return *this;
     }
-    std::string __str() const {
+    std::string __str__() const {
       std::stringstream sout;
       sout&lt;&lt;s;
       return sout.str();
