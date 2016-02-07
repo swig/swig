@@ -824,6 +824,18 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return ret.scalar_value();
     }
 
+#if SWIG_OCTAVE_PREREQ(3,8,0)
+    virtual octave_value map(octave_base_value::unary_mapper_t umap) const {
+      const std::string opname = std::string("__") + octave_base_value::get_umap_name(umap) + std::string("__");
+      octave_value ret;
+      if (!dispatch_unary_op(opname, ret)) {
+        error((opname + std::string(" method not found")).c_str());
+        return octave_value();
+      }
+      return ret;
+    }
+#endif
+
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const {
       return octave_map();
@@ -1079,6 +1091,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     virtual double scalar_value(bool frc_str_conv = false) const
       { return ptr->scalar_value(frc_str_conv); }
+
+#if SWIG_OCTAVE_PREREQ(3,8,0)
+    virtual octave_value map(octave_base_value::unary_mapper_t umap) const
+      { return ptr->map(umap); }
+#endif
 
 #if SWIG_OCTAVE_PREREQ(3,3,52)
     virtual octave_map map_value() const

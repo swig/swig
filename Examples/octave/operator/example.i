@@ -31,4 +31,20 @@
      return (double) $self->re();
    }
 
+   double __real__() {
+     return $self->re();
+   }
+   double __imag__() {
+     return $self->im();
+   }
+   double __abs__() {
+     return sqrt($self->re()*$self->re() + $self->im()*$self->im());
+   }
+   ComplexVal __conj__() {
+     return ComplexVal($self->re(), -$self->im());
+   }
+   ComplexVal __exp__() {
+     return exp($self->re()) * ComplexVal(cos($self->im()), sin($self->im()));
+   }
+
 };
