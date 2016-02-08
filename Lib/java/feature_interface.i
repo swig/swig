@@ -1,9 +1,9 @@
 %define DECLARE_INTERFACE_(CTYPE, INTERFACE, IMPL)
-%feature("interface", name = "INTERFACE", cptr = #INTERFACE ## "_getCPtr") CTYPE;
+%feature("interface", name = "INTERFACE", cptr = #INTERFACE ## "_SWIGInterfaceUpcast") CTYPE;
 %typemap(jtype, nopgcpp="1") CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
 %typemap(jstype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "INTERFACE"
-%typemap(javain) CTYPE, CTYPE & "$javainput." ## #INTERFACE ## "_getCPtr()"
-%typemap(javain) CTYPE *, CTYPE *const&, CTYPE [] "($javainput == null) ? 0 : $javainput." ## #INTERFACE ## "_getCPtr()"
+%typemap(javain) CTYPE, CTYPE & "$javainput." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
+%typemap(javain) CTYPE *, CTYPE *const&, CTYPE [] "($javainput == null) ? 0 : $javainput." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
 %typemap(javaout) CTYPE {
     return (INTERFACE)new IMPL($jnicall, true);
   }
@@ -16,7 +16,7 @@
   }
 %typemap(javadirectorin) CTYPE, CTYPE & "(INTERFACE)new IMPL($jniinput, false)"
 %typemap(javadirectorin) CTYPE *, CTYPE *const&, CTYPE [] "($jniinput == 0) ? null : (INTERFACE)new IMPL($jniinput, false)"
-%typemap(javadirectorout) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "$javacall." ## #INTERFACE ## "_getCPtr()"
+%typemap(javadirectorout) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "$javacall." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
 SWIG_JAVABODY_PROXY(public, protected, CTYPE)
 %enddef
 

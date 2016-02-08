@@ -1739,7 +1739,7 @@ public:
       if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
 	upcast_name = NewStringf("%s", cptr_func);
       else
-	upcast_name = NewStringf("%s_getCPtr", iname);
+	upcast_name = NewStringf("%s_SWIGInterfaceUpcast", iname);
       Printf(interface_upcasts, "\n");
       Printf(interface_upcasts, "  public long %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
@@ -2010,7 +2010,7 @@ public:
     if (String* cptr_func = Getattr(n, "feature:interface:cptr"))
       Printf(f_interface, "  long %s();\n", cptr_func);
     else
-      Printf(f_interface, "  long %s_getCPtr();\n", iname);
+      Printf(f_interface, "  long %s_SWIGInterfaceUpcast();\n", iname);
   }
 
   /* ----------------------------------------------------------------------

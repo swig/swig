@@ -1615,7 +1615,7 @@ public:
       if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
 	upcast_name = NewStringf("%s.%s", iname, cptr_func);
       else
-	upcast_name = NewStringf("%s.GetCPtr", iname);
+	upcast_name = NewStringf("%s.SWIGInterfaceUpcast", iname);
       Printf(interface_upcasts, "  HandleRef %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
@@ -1931,7 +1931,7 @@ public:
     if (String* cptr_func = Getattr(n, "feature:interface:cptr"))
       Printf(f_interface, "  HandleRef %s();\n", cptr_func);
     else
-      Printf(f_interface, "  HandleRef GetCPtr();\n");
+      Printf(f_interface, "  HandleRef SWIGInterfaceUpcast();\n");
   }
 
   /* ----------------------------------------------------------------------
