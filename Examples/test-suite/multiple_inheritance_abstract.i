@@ -49,6 +49,8 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     virtual CBase2 *clone() {
       return new Derived1(*this);
     }
+    void derived1() {
+    }
   };
 
   struct Derived2 : CBase1, ABase1 {
@@ -63,6 +65,8 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     }
     virtual CBase1 *clone() {
       return new Derived2(*this);
+    }
+    void derived2() {
     }
   };
 
@@ -80,6 +84,8 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     }
     virtual ABase1 *clone() {
       return new Derived3(*this);
+    }
+    void derived3() {
     }
   };
 
