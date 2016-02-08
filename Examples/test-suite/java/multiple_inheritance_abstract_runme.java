@@ -44,6 +44,22 @@ public class multiple_inheritance_abstract_runme {
     check(d3.cbase2()!=8, "Derived3::cbase2() failed in multiple_inheritance_abstract");
     check(d3.abase1()!=9, "Derived3::abase1() failed in multiple_inheritance_abstract");
 
+    //Test Bottom1
+    Bottom1 b1=new Bottom1();
+    check(b1.cbase1y()!=103, "Bottom1::cbase1y() failed");
+    check(b1.cbase2()!=104, "Bottom1::cbase2() failed");
+
+    //Test Bottom2
+    Bottom2 b2=new Bottom2();
+    check(b2.cbase1y()!=206, "Bottom2::cbase1y() failed");
+    check(b2.abase1()!=205, "Bottom2::abase1() failed");
+
+    //Test Bottom3
+    Bottom3 b3=new Bottom3();
+    check(b3.cbase1y()!=307, "Bottom3::cbase1y() failed");
+    check(b3.cbase2()!=308, "Bottom3::cbase2() failed");
+    check(b3.abase1()!=309, "Bottom3::abase1() failed");
+
     //Test interfaces from c++ classes 
     CBase1 cb1=new SWIGTYPE_CBase1();
     CBase2 cb2=new SWIGTYPE_CBase2();
@@ -81,7 +97,7 @@ public class multiple_inheritance_abstract_runme {
     check(mhar.jabase1(d3)!=9, "jabase1() through Derived3 as parameter failed in multiple_inheritance_abstract");
 
     //Value parameters
-    //Test CBase1 CBase2 as parameters (note slicing for Derived1, Derived2 and Derived3)
+    //Test CBase1 CBase2 as parameters (note slicing for Derived and Bottom classes)
     check(multiple_inheritance_abstract.InputValCBase1(d1)!=1, "InputValCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputValCBase1(d2)!=1, "InputValCBase1(), Derived2 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputValCBase1(d3)!=1, "InputValCBase1(), Derived3 as a parameter failed in multiple_inheritance_abstract");
@@ -89,11 +105,18 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputValCBase2(d1)!=2, "InputValCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputValCBase1(cb1)!=1, "InputValCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputValCBase2(cb2)!=2, "InputValCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(b1)!=1, "InputValCBase1(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(b2)!=1, "InputValCBase1(), Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase1(b3)!=1, "InputValCBase1(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase2(b3)!=2, "InputValCBase2(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputValCBase2(b1)!=2, "InputValCBase2(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
 
     //Pointer parameters
     //Test ABase1 as a parameter
     check(multiple_inheritance_abstract.InputPtrABase1(d2)!=5, "InputPtrABase1() through Derived2 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputPtrABase1(d3)!=9, "InputPtrABase1() through Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrABase1(b2)!=205, "InputPtrABase1() through Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrABase1(b3)!=309, "InputPtrABase1() through Bottom3 as a parameter failed in multiple_inheritance_abstract");
 
     //Test CBase1 CBase2 as parameters
     check(multiple_inheritance_abstract.InputPtrCBase1(d1)!=3, "InputPtrCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
@@ -103,11 +126,18 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputPtrCBase2(d1)!=4, "InputPtrCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputPtrCBase1(cb1)!=1, "InputPtrCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputPtrCBase2(cb2)!=2, "InputPtrCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrCBase1(b1)!=103, "InputPtrCBase1(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrCBase1(b2)!=206, "InputPtrCBase1(), Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrCBase1(b3)!=307, "InputPtrCBase1(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrCBase2(b3)!=308, "InputPtrCBase2(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputPtrCBase2(b1)!=104, "InputPtrCBase2(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
 
     //Reference parameters
     //Test ABase1 as a parameter
     check(multiple_inheritance_abstract.InputRefABase1(d2)!=5, "InputRefABase1() through Derived2 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefABase1(d3)!=9, "InputRefABase1() through Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefABase1(b2)!=205, "InputRefABase1() through Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefABase1(b3)!=309, "InputRefABase1() through Bottom3 as a parameter failed in multiple_inheritance_abstract");
 
     //Test CBase1 CBase2 as parameters
     check(multiple_inheritance_abstract.InputRefCBase1(d1)!=3, "InputRefCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
@@ -117,11 +147,18 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputRefCBase2(d1)!=4, "InputRefCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefCBase1(cb1)!=1, "InputRefCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputRefCBase2(cb2)!=2, "InputRefCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefCBase1(b1)!=103, "InputRefCBase1(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefCBase1(b2)!=206, "InputRefCBase1(), Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefCBase1(b3)!=307, "InputRefCBase1(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefCBase2(b3)!=308, "InputRefCBase2(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputRefCBase2(b1)!=104, "InputRefCBase2(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
 
     //Const reference pointer parameters
     //Test ABase1 as a parameter
     check(multiple_inheritance_abstract.InputCPtrRefABase1(d2)!=5, "InputCPtrRefABase1() through Derived2 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputCPtrRefABase1(d3)!=9, "InputCPtrRefABase1() through Derived3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefABase1(b2)!=205, "InputCPtrRefABase1() through Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefABase1(b3)!=309, "InputCPtrRefABase1() through Bottom3 as a parameter failed in multiple_inheritance_abstract");
 
     //Test CBase1 CBase2 as parameters
     check(multiple_inheritance_abstract.InputCPtrRefCBase1(d1)!=3, "InputCPtrRefCBase1(), Derived1 as a parameter failed in multiple_inheritance_abstract");
@@ -131,6 +168,11 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputCPtrRefCBase2(d1)!=4, "InputCPtrRefCBase2(), Derived1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputCPtrRefCBase1(cb1)!=1, "InputCPtrRefCBase1(), CBase1 as a parameter failed in multiple_inheritance_abstract");
     check(multiple_inheritance_abstract.InputCPtrRefCBase2(cb2)!=2, "InputCPtrRefCBase2(), CBase2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(b1)!=103, "InputCPtrRefCBase1(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(b2)!=206, "InputCPtrRefCBase1(), Bottom2 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase1(b3)!=307, "InputCPtrRefCBase1(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase2(b3)!=308, "InputCPtrRefCBase2(), Bottom3 as a parameter failed in multiple_inheritance_abstract");
+    check(multiple_inheritance_abstract.InputCPtrRefCBase2(b1)!=104, "InputCPtrRefCBase2(), Bottom1 as a parameter failed in multiple_inheritance_abstract");
 
     //Derived classes as parameters
     check(multiple_inheritance_abstract.InputValDerived1(d1)!=3+4, "InputValDerived1() failed");
@@ -149,6 +191,39 @@ public class multiple_inheritance_abstract_runme {
     check(multiple_inheritance_abstract.InputCPtrRefDerived2(d2)!=6+5, "InputCPtrRefDerived2() failed");
     check(multiple_inheritance_abstract.InputCPtrRefDerived3(d3)!=7+8+9, "InputCPtrRefDerived3() failed");
 
+    //Bottom classes as Derived parameters
+    check(multiple_inheritance_abstract.InputValDerived1(b1)!=3+4, "InputValDerived1() failed");
+    check(multiple_inheritance_abstract.InputValDerived2(b2)!=6+5, "InputValDerived2() failed");
+    check(multiple_inheritance_abstract.InputValDerived3(b3)!=7+8+9, "InputValDerived3() failed");
+
+    check(multiple_inheritance_abstract.InputRefDerived1(b1)!=103+104, "InputRefDerived1() failed");
+    check(multiple_inheritance_abstract.InputRefDerived2(b2)!=206+205, "InputRefDerived2() failed");
+    check(multiple_inheritance_abstract.InputRefDerived3(b3)!=307+308+309, "InputRefDerived3() failed");
+
+    check(multiple_inheritance_abstract.InputPtrDerived1(b1)!=103+104, "InputPtrDerived1() failed");
+    check(multiple_inheritance_abstract.InputPtrDerived2(b2)!=206+205, "InputPtrDerived2() failed");
+    check(multiple_inheritance_abstract.InputPtrDerived3(b3)!=307+308+309, "InputPtrDerived3() failed");
+
+    check(multiple_inheritance_abstract.InputCPtrRefDerived1(b1)!=103+104, "InputCPtrRefDerived1() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefDerived2(b2)!=206+205, "InputCPtrRefDerived2() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefDerived3(b3)!=307+308+309, "InputCPtrRefDerived3() failed");
+
+    //Bottom classes as Bottom parameters
+    check(multiple_inheritance_abstract.InputValBottom1(b1)!=103+104, "InputValBottom1() failed");
+    check(multiple_inheritance_abstract.InputValBottom2(b2)!=206+205, "InputValBottom2() failed");
+    check(multiple_inheritance_abstract.InputValBottom3(b3)!=307+308+309, "InputValBottom3() failed");
+
+    check(multiple_inheritance_abstract.InputRefBottom1(b1)!=103+104, "InputRefBottom1() failed");
+    check(multiple_inheritance_abstract.InputRefBottom2(b2)!=206+205, "InputRefBottom2() failed");
+    check(multiple_inheritance_abstract.InputRefBottom3(b3)!=307+308+309, "InputRefBottom3() failed");
+
+    check(multiple_inheritance_abstract.InputPtrBottom1(b1)!=103+104, "InputPtrBottom1() failed");
+    check(multiple_inheritance_abstract.InputPtrBottom2(b2)!=206+205, "InputPtrBottom2() failed");
+    check(multiple_inheritance_abstract.InputPtrBottom3(b3)!=307+308+309, "InputPtrBottom3() failed");
+
+    check(multiple_inheritance_abstract.InputCPtrRefBottom1(b1)!=103+104, "InputCPtrRefBottom1() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefBottom2(b2)!=206+205, "InputCPtrRefBottom2() failed");
+    check(multiple_inheritance_abstract.InputCPtrRefBottom3(b3)!=307+308+309, "InputCPtrRefBottom3() failed");
     // Return pointers
     check(multiple_inheritance_abstract.MakePtrDerived1_CBase1().cbase1y()!=3, "MakePtrDerived1_CBase1 failed");
     check(multiple_inheritance_abstract.MakePtrDerived1_CBase2().cbase2()!=4, "MakePtrDerived1_CBase2 failed");

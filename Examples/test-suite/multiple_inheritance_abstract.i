@@ -83,6 +83,39 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     }
   };
 
+  struct Bottom1 : Derived1 {
+    virtual void cbase1x() {
+      return;
+    }
+    virtual int cbase1y() {
+      return 103;
+    }
+    virtual int cbase2() {
+      return 104;
+    }
+  };
+
+  struct Bottom2 : Derived2 {
+    virtual int cbase1y() {
+      return 206;
+    }
+    virtual int abase1() {
+      return 205;
+    }
+  };
+
+  struct Bottom3 : Derived3 {
+    virtual int cbase1y() {
+      return 307;
+    }
+    virtual int cbase2() {
+      return 308;
+    }
+    virtual int abase1() {
+      return 309;
+    }
+  };
+
   // Base classes as input
   int InputValCBase1(CBase1 cb1) {
     return cb1.cbase1y();
@@ -159,6 +192,47 @@ DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
     return d->cbase1y() + d->abase1();
   }
   int InputCPtrRefDerived3(Derived3 *const& d) {
+    return d->cbase1y() + d->cbase2() + d->abase1();
+  }
+
+  // Bottom classes as input
+  int InputValBottom1(Bottom1 d) {
+    return d.cbase1y() + d.cbase2();
+  }
+  int InputValBottom2(Bottom2 d) {
+    return d.cbase1y() + d.abase1();
+  }
+  int InputValBottom3(Bottom3 d) {
+    return d.cbase1y() + d.cbase2() + d.abase1();
+  }
+
+  int InputRefBottom1(Bottom1 &d) {
+    return d.cbase1y() + d.cbase2();
+  }
+  int InputRefBottom2(Bottom2 &d) {
+    return d.cbase1y() + d.abase1();
+  }
+  int InputRefBottom3(Bottom3 &d) {
+    return d.cbase1y() + d.cbase2() + d.abase1();
+  }
+
+  int InputPtrBottom1(Bottom1 *d) {
+    return d->cbase1y() + d->cbase2();
+  }
+  int InputPtrBottom2(Bottom2 *d) {
+    return d->cbase1y() + d->abase1();
+  }
+  int InputPtrBottom3(Bottom3 *d) {
+    return d->cbase1y() + d->cbase2() + d->abase1();
+  }
+
+  int InputCPtrRefBottom1(Bottom1 *const& d) {
+    return d->cbase1y() + d->cbase2();
+  }
+  int InputCPtrRefBottom2(Bottom2 *const& d) {
+    return d->cbase1y() + d->abase1();
+  }
+  int InputCPtrRefBottom3(Bottom3 *const& d) {
     return d->cbase1y() + d->cbase2() + d->abase1();
   }
 
