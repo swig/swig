@@ -1581,8 +1581,9 @@ public:
     }
     return Language::pragmaDirective(n);
   }
-  String* getQualifiedInterfaceName(Node* n) {
-    String* ret = Getattr(n, "interface:qname");
+
+  String *getQualifiedInterfaceName(Node *n) {
+    String *ret = Getattr(n, "interface:qname");
     if (!ret) {
       String *nspace = Getattr(n, "sym:nspace");
       String *iname = Getattr(n, "feature:interface:name");
@@ -1598,20 +1599,21 @@ public:
     }
     return ret;
   }
-  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Hash* base_list, String* c_classname) {
-    List* keys = Keys(base_list);
+
+  void addInterfaceNameAndUpcasts(String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+    List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
-      Node* base = Getattr(base_list, it.item);
-      String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
-      String* iname = getQualifiedInterfaceName(base);
+      Node *base = Getattr(base_list, it.item);
+      String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      String *iname = getQualifiedInterfaceName(base);
       if (Len(interface_list))
 	Append(interface_list, ", ");
       Append(interface_list, iname);
 
       Printf(interface_upcasts, "\n");
       Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
-      String* upcast_name = 0;
-      if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
+      String *upcast_name = 0;
+      if (String *cptr_func = Getattr(base, "feature:interface:cptr"))
 	upcast_name = NewStringf("%s.%s", iname, cptr_func);
       else
 	upcast_name = NewStringf("%s.SWIGInterfaceUpcast", iname);
@@ -1635,6 +1637,7 @@ public:
     }
     Delete(keys);
   }
+
   /* -----------------------------------------------------------------------------
    * emitProxyClassDefAndCPPCasts()
    * ----------------------------------------------------------------------------- */
@@ -1682,7 +1685,7 @@ public:
         }
       }
     }
-    Hash* interface_bases = Getattr(n, "interface:bases");
+    Hash *interface_bases = Getattr(n, "interface:bases");
     if (interface_bases)
       addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_bases, c_classname);
 
@@ -1904,16 +1907,15 @@ public:
     Delete(baseclass);
   }
 
-  void emitInterfaceDeclaration(Node* n, String* iname, File* f_interface)
-  {
+  void emitInterfaceDeclaration(Node *n, String *iname, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
     Printf(f_interface, "public interface %s", iname);
     if (List *baselist = Getattr(n, "bases")) {
-      String* bases = 0;
+      String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
-	String* base_iname = Getattr(base.item, "feature:interface:name");
+	String *base_iname = Getattr(base.item, "feature:interface:name");
 	if (!bases)
 	  bases = NewStringf(" : %s", base_iname);
 	else {
@@ -1928,7 +1930,7 @@ public:
     }
     Printf(f_interface, " {\n");
     Printf(f_interface, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
-    if (String* cptr_func = Getattr(n, "feature:interface:cptr"))
+    if (String *cptr_func = Getattr(n, "feature:interface:cptr"))
       Printf(f_interface, "  HandleRef %s();\n", cptr_func);
     else
       Printf(f_interface, "  HandleRef SWIGInterfaceUpcast();\n");
@@ -1993,7 +1995,7 @@ public:
       Swig_propagate_interface_methods(n);
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
-	String* iname = Getattr(n, "feature:interface:name");
+	String *iname = Getattr(n, "feature:interface:name");
 	if (!iname) {
 	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
