@@ -3608,7 +3608,7 @@ Hash *Language::getClassHash() const {
 //
 // Collect all not abstract methods from the bases marked as "interface"
 static void collect_interface_methods(Node* n, List* methods) {
-  if (Hash* bases = Getattr(n, "feature:interface:bases")){
+  if (Hash* bases = Getattr(n, "interface:bases")){
     List* keys = Keys(bases);
     for (Iterator base = First(keys); base.item; base = Next(base)) {
       Node* cls = Getattr(bases, base.item);
@@ -3616,12 +3616,12 @@ static void collect_interface_methods(Node* n, List* methods) {
 	continue;
       for (Node* child = firstChild(cls); child; child = nextSibling(child)) {
 	if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
-	  if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner"))
+	  if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
 	    continue; // skip methods propagated to bases
 	  Node* m = Copy(child);
 	  set_nextSibling(m, NIL);
 	  set_previousSibling(m, NIL);
-	  Setattr(m, "feature:interface:owner", cls);
+	  Setattr(m, "interface:owner", cls);
 	  Append(methods, m);
 	}
       }
@@ -3645,12 +3645,12 @@ static void collect_interface_bases(Hash* bases, Node* n) {
 }
 
 static void Swig_collect_interface_bases(Node* n) {
-  Hash* interface_classes = NewHash();
-  collect_interface_bases(interface_classes, n);
-  if (Len(interface_classes) == 0)
-    Delete(interface_classes);
+  Hash* interface_bases = NewHash();
+  collect_interface_bases(interface_bases, n);
+  if (Len(interface_bases) == 0)
+    Delete(interface_bases);
   else
-    Setattr(n, "feature:interface:bases", interface_classes);
+    Setattr(n, "interface:bases", interface_bases);
 }
 
 // Append all the interface methods not implemented in the current class, so that it would not be abstract
@@ -3669,7 +3669,7 @@ void Swig_propagate_interface_methods(Node *n)
     if (SwigType_isfunction(resolved_decl)) {
       String *name = Getattr(mi.item, "name");
       for (Node* child = firstChild(n); child; child = nextSibling(child)) {
-	if (Getattr(child, "feature:interface:owner"))
+	if (Getattr(child, "interface:owner"))
 	  break; // at the end of the list are newly appended methods
 	if (checkAttribute(child, "name", name)) {
 	  String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));

@@ -1704,9 +1704,8 @@ public:
     return Language::pragmaDirective(n);
   }
 
-  String* getQualifiedInterfaceName(Node* n)
-  {
-    String* ret = Getattr(n, "feature:interface:qname");
+  String* getQualifiedInterfaceName(Node* n) {
+    String* ret = Getattr(n, "interface:qname");
     if (!ret) {
       String *nspace = Getattr(n, "sym:nspace");
       String *symname = Getattr(n, "feature:interface:name");
@@ -1721,7 +1720,7 @@ public:
 	else
 	  ret = Copy(symname);
       }
-      Setattr(n, "feature:interface:qname", ret);
+      Setattr(n, "interface:qname", ret);
     }
     return ret;
   }
@@ -1815,9 +1814,9 @@ public:
       }
     }
 
-    Hash* interface_classes = Getattr(n, "feature:interface:bases");
-    if (interface_classes)
-      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
+    Hash* interface_bases = Getattr(n, "interface:bases");
+    if (interface_bases)
+      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_bases, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
@@ -2259,7 +2258,7 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
-      && !static_flag && Getattr(n, "feature:interface:owner") == 0;
+      && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
       return;
