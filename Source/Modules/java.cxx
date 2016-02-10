@@ -1726,6 +1726,7 @@ public:
   }
 
   void addInterfaceNameAndUpcasts(String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
+//    Printf(stdout, "addInterfaceNameAndUpcasts %s base_list", c_classname);
     List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
@@ -1764,6 +1765,7 @@ public:
       Delete(upcast_method);
       Delete(c_baseclass);
     }
+//    Printf(stdout, " => %s\n", interface_list);
     Delete(keys);
   }
 

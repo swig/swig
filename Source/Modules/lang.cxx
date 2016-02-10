@@ -3630,21 +3630,38 @@ static void collect_interface_methods(Node *n, List *methods) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * collect_interface_bases
+ * ----------------------------------------------------------------------------- */
+
 static void collect_interface_bases(Hash *bases, Node *n) {
   if (Getattr(n, "feature:interface")) {
     String *name = Getattr(n, "feature:interface:name");
-    if (Getattr(bases, name))
-      return;
-    Setattr(bases, name, n);
+    if (!Getattr(bases, name))
+      Setattr(bases, name, n);
   }
+
   if (List *baselist = Getattr(n, "bases")) {
-    for (Iterator base = First(baselist); base.item; base = Next(base))
-      if (!GetFlag(base.item, "feature:ignore"))
-	collect_interface_bases(bases, base.item);
+    for (Iterator base = First(baselist); base.item; base = Next(base)) {
+      if (!GetFlag(base.item, "feature:ignore")) {
+	if (Getattr(base.item, "feature:interface"))
+	  collect_interface_bases(bases, base.item);
+      }
+    }
   }
 }
 
-static void Swig_collect_interface_bases(Node *n) {
+/* -----------------------------------------------------------------------------
+ * collect_and_set_interface_bases()
+ *
+ * Create a hash containing all the classes up the inheritance hierarchy
+ * marked with feature:interface (including this class n).
+ * Stops going up the inheritance chain as soon as a class is found without
+ * feature:interface.
+ * The idea is to find all the base interfaces that a class must implement.
+ * ----------------------------------------------------------------------------- */
+
+static void collect_and_set_interface_bases(Node *n) {
   Hash *interface_bases = NewHash();
   collect_interface_bases(interface_bases, n);
   if (Len(interface_bases) == 0)
@@ -3655,7 +3672,7 @@ static void Swig_collect_interface_bases(Node *n) {
 
 // Append all the interface methods not implemented in the current class, so that it would not be abstract
 void Swig_propagate_interface_methods(Node *n) {
-  Swig_collect_interface_bases(n);
+  collect_and_set_interface_bases(n);
   List *methods = NewList();
   collect_interface_methods(n, methods);
   bool is_interface = Getattr(n, "feature:interface") != 0;

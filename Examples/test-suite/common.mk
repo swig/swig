@@ -258,6 +258,7 @@ CPP_TEST_CASES += \
 	mixed_types \
 	multiple_inheritance \
 	multiple_inheritance_abstract \
+	multiple_inheritance_interfaces \
 	name_cxx \
 	name_warnings \
 	namespace_class \
