@@ -3816,3 +3816,104 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+
+// 4 methods below are used in C# && Java module "feature:interface" implementation
+//
+// Collect all not abstract methods from the bases marked as "interface"
+static void collect_interface_methods(Node *n, List *methods) {
+  if (Hash *bases = Getattr(n, "interface:bases")){
+    List *keys = Keys(bases);
+    for (Iterator base = First(keys); base.item; base = Next(base)) {
+      Node *cls = Getattr(bases, base.item);
+      if (cls == n)
+	continue;
+      for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
+	if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
+	  if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
+	    continue; // skip methods propagated to bases
+	  Node *m = Copy(child);
+	  set_nextSibling(m, NIL);
+	  set_previousSibling(m, NIL);
+	  Setattr(m, "interface:owner", cls);
+	  Append(methods, m);
+	}
+      }
+    }
+    Delete(keys);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * collect_interface_bases
+ * ----------------------------------------------------------------------------- */
+
+static void collect_interface_bases(Hash *bases, Node *n) {
+  if (Getattr(n, "feature:interface")) {
+    String *name = Getattr(n, "feature:interface:name");
+    if (!Getattr(bases, name))
+      Setattr(bases, name, n);
+  }
+
+  if (List *baselist = Getattr(n, "bases")) {
+    for (Iterator base = First(baselist); base.item; base = Next(base)) {
+      if (!GetFlag(base.item, "feature:ignore")) {
+	if (Getattr(base.item, "feature:interface"))
+	  collect_interface_bases(bases, base.item);
+      }
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * collect_and_set_interface_bases()
+ *
+ * Create a hash containing all the classes up the inheritance hierarchy
+ * marked with feature:interface (including this class n).
+ * Stops going up the inheritance chain as soon as a class is found without
+ * feature:interface.
+ * The idea is to find all the base interfaces that a class must implement.
+ * ----------------------------------------------------------------------------- */
+
+static void collect_and_set_interface_bases(Node *n) {
+  Hash *interface_bases = NewHash();
+  collect_interface_bases(interface_bases, n);
+  if (Len(interface_bases) == 0)
+    Delete(interface_bases);
+  else
+    Setattr(n, "interface:bases", interface_bases);
+}
+
+// Append all the interface methods not implemented in the current class, so that it would not be abstract
+void Swig_propagate_interface_methods(Node *n) {
+  collect_and_set_interface_bases(n);
+  List *methods = NewList();
+  collect_interface_methods(n, methods);
+  bool is_interface = Getattr(n, "feature:interface") != 0;
+  for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
+    if (!is_interface && GetFlag(mi.item, "abstract"))
+      continue;
+    String *this_decl = Getattr(mi.item, "decl");
+    String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
+    bool overloaded = false;
+    if (SwigType_isfunction(resolved_decl)) {
+      String *name = Getattr(mi.item, "name");
+      for (Node *child = firstChild(n); child; child = nextSibling(child)) {
+	if (Getattr(child, "interface:owner"))
+	  break; // at the end of the list are newly appended methods
+	if (checkAttribute(child, "name", name)) {
+	  String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
+	  overloaded = Strcmp(decl, this_decl) == 0;
+	  Delete(decl);
+	  if (overloaded)
+	    break;
+	}
+      }
+    }
+    Delete(resolved_decl);
+    if (!overloaded)
+      appendChild(n, mi.item);
+    else
+      Delete(mi.item);
+  }
+  Delete(methods);
+}
