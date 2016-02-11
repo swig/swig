@@ -1682,14 +1682,14 @@ public:
 	upcast_name = NewStringf("%s.%s", iname, cptr_func);
       else
 	upcast_name = NewStringf("%s.SWIGInterfaceUpcast", iname);
-      Printf(interface_upcasts, "  HandleRef %s() {\n", upcast_name);
+      Printf(interface_upcasts, "  global::System.Runtime.InteropServices.HandleRef %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
       String *wname = Swig_name_wrapper(upcast_method);
-      Printf(interface_upcasts, "    return new HandleRef((%s)this, %s.%s(swigCPtr.Handle));\n", iname, imclass_name, upcast_method);
+      Printf(interface_upcasts, "    return new global::System.Runtime.InteropServices.HandleRef((%s)this, %s.%s(swigCPtr.Handle));\n", iname, imclass_name, upcast_method);
       Printf(interface_upcasts, "  }\n");
-      Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-      Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
+      Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+      Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method);
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
       Printv(upcasts_code,
 	"SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
@@ -1992,9 +1992,9 @@ public:
     Printf(f_interface, " {\n");
     Printf(f_interface, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
     if (String *cptr_func = Getattr(n, "feature:interface:cptr"))
-      Printf(f_interface, "  HandleRef %s();\n", cptr_func);
+      Printf(f_interface, "  global::System.Runtime.InteropServices.HandleRef %s();\n", cptr_func);
     else
-      Printf(f_interface, "  HandleRef SWIGInterfaceUpcast();\n");
+      Printf(f_interface, "  global::System.Runtime.InteropServices.HandleRef SWIGInterfaceUpcast();\n");
   }
 
   /* ----------------------------------------------------------------------
@@ -2178,7 +2178,8 @@ public:
       if (f_interface) {
 	Printv(f_interface, interface_class_code, "}\n", NIL);
 	addCloseNamespace(nspace, f_interface);
-	Delete(f_interface);
+	if (f_interface != f_single_out)
+	  Delete(f_interface);
       }
 
       emitDirectorExtraMethods(n);
