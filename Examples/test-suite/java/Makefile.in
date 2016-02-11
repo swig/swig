@@ -39,7 +39,6 @@ CPP_TEST_CASES = \
 	java_throws \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper \
-  multiple_inheritance_abstract
 #	li_boost_intrusive_ptr
 
 CPP11_TEST_CASES = \

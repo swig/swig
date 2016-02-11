@@ -2149,7 +2149,8 @@ public:
 	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
 	}
-	filen = NewStringf("%s%s.java", output_directory, iname);
+	String *output_directory = outputDirectory(nspace);
+	String *filen = NewStringf("%s%s.java", output_directory, iname);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
 	if (!f_interface) {
 	  FileErrorDisplay(filen);
@@ -2158,8 +2159,9 @@ public:
 	Append(filenames_list, filen); // file name ownership goes to the list
 	emitBanner(f_interface);
 	emitInterfaceDeclaration(n, iname, f_interface, nspace);
+	Delete(filen);
+	Delete(output_directory);
       }
-      Delete(output_directory);
     }
 
     Language::classHandler(n);

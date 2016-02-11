@@ -2060,19 +2060,16 @@ public:
 	f_proxy = getOutputFile(output_directory, proxy_class_name);
 
 	addOpenNamespace(nspace, f_proxy);
+        Delete(output_directory);
       }
       else
 	++nesting_depth;
 
-      // Start writing out the proxy class file
-      emitBanner(f_proxy);
-      addOpenNamespace(nspace, f_proxy);
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
+      destructor_call = NewString("");
+      proxy_class_constants_code = NewString("");
 
-      Clear(proxy_class_def);
-      Clear(proxy_class_code);
-
-      destructor_call = NewStringEmpty();
-      proxy_class_constants_code = NewStringEmpty();
       Swig_propagate_interface_methods(n);
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
@@ -2081,18 +2078,12 @@ public:
 	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
 	}
-	filen = NewStringf("%s%s.cs", output_directory, iname);
-	f_interface = NewFile(filen, "w", SWIG_output_files());
-	if (!f_interface) {
-	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
-	}
-	Append(filenames_list, filen); // file name ownership goes to the list
-	emitBanner(f_interface);
+	String *output_directory = outputDirectory(nspace);
+	f_interface = getOutputFile(output_directory, iname);
 	addOpenNamespace(nspace, f_interface);
 	emitInterfaceDeclaration(n, iname, f_interface);
+        Delete(output_directory);
       }
-      Delete(output_directory);
     }
 
     Language::classHandler(n);
@@ -2182,6 +2173,7 @@ public:
 	Delete(norm_name);
 	Delete(wname);
 	Delete(downcast_method);
+      }
 
       if (f_interface) {
 	Printv(f_interface, interface_class_code, "}\n", NIL);
