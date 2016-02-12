@@ -8,7 +8,11 @@ DECLARE_INTERFACE_RENAME(IC, C, IC)
 #endif
 
 %inline %{
-struct IA { virtual void ia() {} };
+struct IA {
+  virtual void ia() {};
+  virtual void ia(const char *s, bool b = true) {}
+  virtual void ia(int i) {}
+};
 struct IB { virtual void ib() {} };
 struct IC : IA, IB {};
 struct D : IC {};
