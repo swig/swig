@@ -58,6 +58,16 @@ public class multiple_inheritance_interfaces_runme {
     checkBaseAndInterfaces(L.class, false, "", new String[] {"IJ", "IK", "IL"});
     checkBaseAndInterfaces(M.class, false, "", new String[] {"IJ", "IK", "IL"});
 
+    checkBaseAndInterfaces(P.class, false, "", new String[] {});
+    checkBaseAndInterfaces(IQ.class, true, "", new String[] {});
+    checkBaseAndInterfaces(Q.class, false, "", new String[] {"IQ"});
+    checkBaseAndInterfaces(R.class, false, "P", new String[] {"IQ"});
+    checkBaseAndInterfaces(S.class, false, "P", new String[] {"IQ"});
+    checkBaseAndInterfaces(T.class, false, "", new String[] {"IQ"});
+    checkBaseAndInterfaces(U.class, false, "R", new String[] {});
+    checkBaseAndInterfaces(V.class, false, "S", new String[] {});
+    checkBaseAndInterfaces(W.class, false, "T", new String[] {});
+
     // overloaded methods check
     D d = new D();
     d.ia();
