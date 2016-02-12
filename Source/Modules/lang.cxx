@@ -3797,6 +3797,7 @@ String *Language::defaultExternalRuntimeFilename() {
 
 /* -----------------------------------------------------------------------------
  * Language::replaceSpecialVariables()
+ *
  * Language modules should implement this if special variables are to be handled
  * correctly in the $typemap(...) special variable macro.
  * method - typemap method name
@@ -3817,18 +3818,24 @@ Hash *Language::getClassHash() const {
   return classhash;
 }
 
-// 4 methods below are used in C# && Java module "feature:interface" implementation
-//
-// Collect all not abstract methods from the bases marked as "interface"
-static void collect_interface_methods(Node *n, List *methods) {
-  if (Hash *bases = Getattr(n, "interface:bases")){
+/* -----------------------------------------------------------------------------
+ * collect_interface_methods()
+ *
+ * Create a list of all the methods from the base classes of class n that are
+ * marked as an interface. The resulting list is thus the list of methods that
+ * need to be implemented in order for n to be non-abstract.
+ * ----------------------------------------------------------------------------- */
+
+static List *collect_interface_methods(Node *n) {
+  List *methods = NewList();
+  if (Hash *bases = Getattr(n, "interface:bases")) {
     List *keys = Keys(bases);
     for (Iterator base = First(keys); base.item; base = Next(base)) {
       Node *cls = Getattr(bases, base.item);
       if (cls == n)
 	continue;
       for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
-	if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
+	if (Cmp(nodeType(child), "cdecl") == 0) {
 	  if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
 	    continue; // skip methods propagated to bases
 	  Node *m = Copy(child);
@@ -3841,6 +3848,7 @@ static void collect_interface_methods(Node *n, List *methods) {
     }
     Delete(keys);
   }
+  return methods;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3865,7 +3873,7 @@ static void collect_interface_bases(Hash *bases, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * collect_and_set_interface_bases()
+ * collect_interface_base_classes()
  *
  * Create a hash containing all the classes up the inheritance hierarchy
  * marked with feature:interface (including this class n).
@@ -3874,7 +3882,7 @@ static void collect_interface_bases(Hash *bases, Node *n) {
  * The idea is to find all the base interfaces that a class must implement.
  * ----------------------------------------------------------------------------- */
 
-static void collect_and_set_interface_bases(Node *n) {
+static void collect_interface_base_classes(Node *n) {
   Hash *interface_bases = NewHash();
   collect_interface_bases(interface_bases, n);
   if (Len(interface_bases) == 0)
@@ -3883,11 +3891,18 @@ static void collect_and_set_interface_bases(Node *n) {
     Setattr(n, "interface:bases", interface_bases);
 }
 
-// Append all the interface methods not implemented in the current class, so that it would not be abstract
+/* -----------------------------------------------------------------------------
+ * Swig_propagate_interface_methods()
+ *
+ * Find all the base classes marked as an interface (with feature:interface) for
+ * class node n. For each of these, add all of its methods as methods of n so that
+ * n is not abstract. If class n is also marked as an interface, it will remain
+ * abstract and not have any methods added.
+ * ----------------------------------------------------------------------------- */
+
 void Swig_propagate_interface_methods(Node *n) {
-  collect_and_set_interface_bases(n);
-  List *methods = NewList();
-  collect_interface_methods(n, methods);
+  collect_interface_base_classes(n);
+  List *methods = collect_interface_methods(n);
   bool is_interface = Getattr(n, "feature:interface") != 0;
   for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
     if (!is_interface && GetFlag(mi.item, "abstract"))

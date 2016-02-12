@@ -1756,16 +1756,16 @@ public:
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
       String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
-      String *iname = Getattr(base, "feature:interface:name");
+      String *interface_name = Getattr(base, "feature:interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
-      Append(interface_list, iname);
+      Append(interface_list, interface_name);
 
       String *upcast_name = 0;
       if (String *cptr_func = Getattr(base, "feature:interface:cptr"))
 	upcast_name = NewStringf("%s", cptr_func);
       else
-	upcast_name = NewStringf("%s_SWIGInterfaceUpcast", iname);
+	upcast_name = NewStringf("%s_SWIGInterfaceUpcast", interface_name);
       Printf(interface_upcasts, "\n");
       Printf(interface_upcasts, "  public long %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
@@ -1998,7 +1998,7 @@ public:
     Delete(baseclass);
   }
 
-  void emitInterfaceDeclaration(Node *n, String *iname, File *f_interface, String *nspace) {
+  void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface, String *nspace) {
     if (package || nspace) {
       Printf(f_interface, "package ");
       if (package)
@@ -2009,7 +2009,7 @@ public:
     }
 
     Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", iname);
+    Printf(f_interface, "public interface %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -2032,7 +2032,7 @@ public:
     if (String *cptr_func = Getattr(n, "feature:interface:cptr"))
       Printf(f_interface, "  long %s();\n", cptr_func);
     else
-      Printf(f_interface, "  long %s_SWIGInterfaceUpcast();\n", iname);
+      Printf(f_interface, "  long %s_SWIGInterfaceUpcast();\n", interface_name);
   }
 
   int classDeclaration(Node *n) {
@@ -2147,13 +2147,13 @@ public:
 
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
-	String *iname = Getattr(n, "feature:interface:name");
-	if (!iname) {
+	String *interface_name = Getattr(n, "feature:interface:name");
+	if (!interface_name) {
 	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
 	}
 	String *output_directory = outputDirectory(nspace);
-	String *filen = NewStringf("%s%s.java", output_directory, iname);
+	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
 	if (!f_interface) {
 	  FileErrorDisplay(filen);
@@ -2161,7 +2161,7 @@ public:
 	}
 	Append(filenames_list, filen); // file name ownership goes to the list
 	emitBanner(f_interface);
-	emitInterfaceDeclaration(n, iname, f_interface, nspace);
+	emitInterfaceDeclaration(n, interface_name, f_interface, nspace);
 	Delete(filen);
 	Delete(output_directory);
       }

@@ -1651,14 +1651,14 @@ public:
     String *ret = Getattr(n, "interface:qname");
     if (!ret) {
       String *nspace = Getattr(n, "sym:nspace");
-      String *iname = Getattr(n, "feature:interface:name");
+      String *interface_name = Getattr(n, "feature:interface:name");
       if (nspace) {
 	if (namespce)
-	  ret = NewStringf("%s.%s.%s", namespce, nspace, iname);
+	  ret = NewStringf("%s.%s.%s", namespce, nspace, interface_name);
 	else
-	  ret = NewStringf("%s.%s", nspace, iname);
+	  ret = NewStringf("%s.%s", nspace, interface_name);
       } else {
-	ret = Copy(iname);
+	ret = Copy(interface_name);
       }
       Setattr(n, "interface:qname", ret);
     }
@@ -1670,23 +1670,23 @@ public:
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
       String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
-      String *iname = getQualifiedInterfaceName(base);
+      String *interface_name = getQualifiedInterfaceName(base);
       if (Len(interface_list))
 	Append(interface_list, ", ");
-      Append(interface_list, iname);
+      Append(interface_list, interface_name);
 
       Printf(interface_upcasts, "\n");
       Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
       String *upcast_name = 0;
       if (String *cptr_func = Getattr(base, "feature:interface:cptr"))
-	upcast_name = NewStringf("%s.%s", iname, cptr_func);
+	upcast_name = NewStringf("%s.%s", interface_name, cptr_func);
       else
-	upcast_name = NewStringf("%s.SWIGInterfaceUpcast", iname);
+	upcast_name = NewStringf("%s.SWIGInterfaceUpcast", interface_name);
       Printf(interface_upcasts, "  global::System.Runtime.InteropServices.HandleRef %s() {\n", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
       String *wname = Swig_name_wrapper(upcast_method);
-      Printf(interface_upcasts, "    return new global::System.Runtime.InteropServices.HandleRef((%s)this, %s.%s(swigCPtr.Handle));\n", iname, imclass_name, upcast_method);
+      Printf(interface_upcasts, "    return new global::System.Runtime.InteropServices.HandleRef((%s)this, %s.%s(swigCPtr.Handle));\n", interface_name, imclass_name, upcast_method);
       Printf(interface_upcasts, "  }\n");
       Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
       Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method);
@@ -1966,9 +1966,9 @@ public:
     Delete(baseclass);
   }
 
-  void emitInterfaceDeclaration(Node *n, String *iname, File *f_interface) {
+  void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
-    Printf(f_interface, "public interface %s", iname);
+    Printf(f_interface, "public interface %s", interface_name);
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -2070,15 +2070,15 @@ public:
 
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
-	String *iname = Getattr(n, "feature:interface:name");
-	if (!iname) {
+	String *interface_name = Getattr(n, "feature:interface:name");
+	if (!interface_name) {
 	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
 	}
 	String *output_directory = outputDirectory(nspace);
-	f_interface = getOutputFile(output_directory, iname);
+	f_interface = getOutputFile(output_directory, interface_name);
 	addOpenNamespace(nspace, f_interface);
-	emitInterfaceDeclaration(n, iname, f_interface);
+	emitInterfaceDeclaration(n, interface_name, f_interface);
         Delete(output_directory);
       }
     }
