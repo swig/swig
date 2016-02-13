@@ -17,10 +17,10 @@ def copyMods():
         os.mkdir(os.path.join(d, 'brave'))
 
     shutil.copy('robin.py', os.path.join('path1', 'brave'))
-    shutil.copy('_robin.so', os.path.join('path1', 'brave'))
+    os.system('cp _robin.* ' + os.path.join('path1', 'brave'))
 
     shutil.copy('robin.py', os.path.join('path2', 'brave'))
-    shutil.copy('_robin.so', os.path.join('path3', 'brave'))
+    os.system('cp _robin.* ' + os.path.join('path3', 'brave'))
 
     mkzip()
 
