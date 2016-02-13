@@ -2148,10 +2148,6 @@ public:
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
 	String *interface_name = Getattr(n, "feature:interface:name");
-	if (!interface_name) {
-	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
-	}
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
