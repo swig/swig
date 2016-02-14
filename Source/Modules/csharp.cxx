@@ -1995,6 +1995,30 @@ public:
       Printf(f_interface, "  global::System.Runtime.InteropServices.HandleRef SWIGInterfaceUpcast();\n");
   }
 
+  void calculateDirectBase(Node* n) {
+    Node* direct_base = 0;
+    // C++ inheritance
+    Node *attributes = NewHash();
+    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
+    const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE, attributes);
+    bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
+    bool purebase_notderived = GetFlag(attributes, "tmap:csbase:notderived") ? true : false;
+    Delete(attributes);
+    if (!purebase_replace) {
+      if (List *baselist = Getattr(n, "bases")) {
+	Iterator base = First(baselist);
+	while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
+	  base = Next(base);
+	direct_base = base.item;
+      }
+      if (!direct_base && purebase_notderived)
+	direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
+    } else {
+      direct_base = symbolLookup(const_cast<String*>(pure_baseclass));
+    }
+    Setattr(n, "direct_base", direct_base);
+  }
+
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
@@ -2081,6 +2105,7 @@ public:
 	emitInterfaceDeclaration(n, interface_name, f_interface);
         Delete(output_directory);
       }
+      calculateDirectBase(n);
     }
 
     Language::classHandler(n);
@@ -2342,9 +2367,16 @@ public:
       Printf(function_code, "  %s ", methodmods);
       if (!is_smart_pointer()) {
 	// Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
-	if (Node *base = Getattr(n, "override")) {
-	  if (!Getattr(parentNode(base), "feature:interface"))
-	    Printf(function_code, "override ");
+	if (Node *base_ovr = Getattr(n, "override")) {
+	  Node* base = parentNode(base_ovr);
+	  bool ovr = false;
+	  for (Node* direct_base = Getattr(parentNode(n), "direct_base"); direct_base; direct_base = Getattr(direct_base, "direct_base")) {
+	    if (direct_base == base) { // "override" only applies if the base was not discarded (e.g. in case of multiple inheritance or via "ignore")
+	      ovr = true;
+	      break;
+	    }
+	  }
+	  Printf(function_code, ovr ? "override " : "virtual ");
 	}
 	else if (checkAttribute(n, "storage", "virtual"))
 	  Printf(function_code, "virtual ");
