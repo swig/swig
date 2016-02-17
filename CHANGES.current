@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-02-17: olly
+	    [Python] Add missing keywords 'as' and 'with' to pythonkw.swg.
+
 2016-02-07: kwwette
             [Octave] recognise various unary functions
             * Use __float__() for numeric conversions, e.g. when calling double()

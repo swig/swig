@@ -12,6 +12,7 @@
 */
 
 PYTHONKW(and);
+PYTHONKW(as);
 PYTHONKW(assert);
 PYTHONKW(break);
 PYTHONKW(class);
@@ -39,6 +40,7 @@ PYTHONKW(raise);
 PYTHONKW(return);
 PYTHONKW(try);
 PYTHONKW(while);
+PYTHONKW(with);
 PYTHONKW(yield);
 
 /*
