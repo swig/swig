@@ -292,11 +292,7 @@ PYTHON_SO     = @PYTHON_SO@
 ifeq (,$(PY3))
   SWIGPYTHON = $(SWIG) -python
 else
-  ifeq (,$(PY3BUILTIN))
-    SWIGPYTHON = $(SWIG) -python -py3
-  else
-    SWIGPYTHON = $(SWIG) -python -py3 -builtin
-  endif
+  SWIGPYTHON = $(SWIG) -python -py3
 endif
 
 # ----------------------------------------------------------------
