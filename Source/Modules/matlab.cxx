@@ -2609,7 +2609,9 @@ int MATLAB::insertDirective(Node *n) {
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
 
-    if (Cmp(section, "matlabsetup") == 0) {
+    if (Cmp(section, "matlab") == 0) {
+      Printv(f_wrap_m, code, NIL);
+    } else if (Cmp(section, "matlabsetup") == 0) {
       Printv(f_setup_m, code, NIL);
     } else {
       Language::insertDirective(n);
