@@ -15,6 +15,7 @@
     class Base {
   public:
     virtual T bar() {return 1;}
+    virtual ~Base() {}
   };
 
   template <class T> 
@@ -79,6 +80,7 @@ template <class X, class T = int>
 class BaseDefault {
   public:
   virtual T bar2() {return 3;}
+  virtual ~BaseDefault() {}
 };
 
 template <class X, class T = int> 

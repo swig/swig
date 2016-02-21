@@ -10,7 +10,9 @@
 typedef std::string String;
 
 namespace Type {
-  template <class T> class TypedInterfaceObject {};
+  template <class T> class TypedInterfaceObject {
+    virtual ~TypedInterfaceObject() {}
+  };
 
   template <class T> class TypedCollectionInterfaceObject : public TypedInterfaceObject<T> {
   public:
@@ -27,6 +29,7 @@ namespace Type {
 
     /** Method add() appends an element to the collection */
     inline virtual void add(const T & elt) {}
+    virtual ~PersistentCollection() {}
   };
 }
 %}
