@@ -616,7 +616,7 @@ C_TEST_CASES += \
 	inctest \
 	infinity \
 	integers \
-	keyword_rename \
+	keyword_rename_c \
 	lextype \
 	li_carrays \
 	li_cdata \
