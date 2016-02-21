@@ -47,7 +47,6 @@ CCache/autom4te.cache/
 CCache/config.h.in
 CCache/configure
 Source/Include/swigconfig.h.in
-Source/Include/swigconfig.h.in~
 Source/Makefile.in
 Tools/config/compile
 Tools/config/config.guess
@@ -110,6 +109,10 @@ Examples/scratch
 
 # Out of source tree build directories
 *build*/
+
+# errors test-suite
+Examples/test-suite/errors/*.newerr
+Examples/test-suite/errors/*.py
 
 ########## Language specific files ##########
 
