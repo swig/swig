@@ -603,7 +603,7 @@ C_TEST_CASES += \
 	char_constant \
 	const_const \
 	constant_expr \
-	empty \
+	empty_c \
 	enums \
 	enum_forward \
 	enum_macro \
