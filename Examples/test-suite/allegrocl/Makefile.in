@@ -35,7 +35,7 @@ CPP_TEST_BROKEN_ACL = \
 	dynamic_cast \
 	extend_variable \
 # cdata.i support needed \
-	li_cdata \
+	li_cdata_cpp \
 # warning generated. otherwise all good. \
 	operator_overload \
 # std_common.i support \

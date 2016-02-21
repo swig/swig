@@ -13,14 +13,12 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	primitive_types \
-	li_cdata \
 	li_cstring \
 	li_cdata_carrays \
 	li_reference \
 	director_nestedmodule \
 
 C_TEST_CASES += \
-	li_cdata \
 	li_cstring \
 	li_cdata_carrays \
 
