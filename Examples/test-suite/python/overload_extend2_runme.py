@@ -1,6 +1,6 @@
-import overload_extendc
+import overload_extend2
 
-f = overload_extendc.Foo()
+f = overload_extend2.Foo()
 if f.test(3) != 1:
     raise RuntimeError
 if f.test("hello") != 2:

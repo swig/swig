@@ -1,9 +1,9 @@
 package main
 
-import "./overload_extendc"
+import "./overload_extend2"
 
 func main() {
-	f := overload_extendc.NewFoo()
+	f := overload_extend2.NewFoo()
 	if f.Test(3) != 1 {
 		panic(0)
 	}

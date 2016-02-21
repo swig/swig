@@ -632,7 +632,7 @@ C_TEST_CASES += \
 	nested_structs \
 	newobject2 \
 	overload_extend \
-	overload_extendc \
+	overload_extend2 \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \

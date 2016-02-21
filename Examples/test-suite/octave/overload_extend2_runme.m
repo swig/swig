@@ -1,6 +1,6 @@
-overload_extendc
+overload_extend2
 
-f = overload_extendc.Foo();
+f = overload_extend2.Foo();
 if (f.test(3) != 1)
     error
 endif
