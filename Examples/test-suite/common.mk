@@ -471,7 +471,7 @@ CPP_TEST_CASES += \
 	typedef_reference \
 	typedef_scope \
 	typedef_sizet \
-	typedef_struct \
+	typedef_struct_cpp \
 	typedef_typedef \
 	typemap_arrays \
 	typemap_array_qualifiers \
