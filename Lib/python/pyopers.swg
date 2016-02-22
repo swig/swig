@@ -103,7 +103,11 @@
 %pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
 %pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
 %pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
+#if defined(SWIGPYTHON_PY3)
+%pybinoperator(__truediv__,  *::operator/,		binaryfunc, nb_divide);
+#else
 %pybinoperator(__div__,      *::operator/,		binaryfunc, nb_divide);
+#endif
 %pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
 %pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
 %pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
@@ -192,7 +196,11 @@ __bool__ = __nonzero__
 %pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);
 %pyinplaceoper(__isub__   , *::operator -=,	binaryfunc, nb_inplace_subtract);
 %pyinplaceoper(__imul__   , *::operator *=,	binaryfunc, nb_inplace_multiply);
+#if defined(SWIGPYTHON_PY3)
+%pyinplaceoper(__itruediv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
+#else
 %pyinplaceoper(__idiv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
+#endif
 %pyinplaceoper(__imod__   , *::operator %=,	binaryfunc, nb_inplace_remainder);
 %pyinplaceoper(__iand__   , *::operator &=,	binaryfunc, nb_inplace_and);
 %pyinplaceoper(__ior__    , *::operator |=,	binaryfunc, nb_inplace_or);

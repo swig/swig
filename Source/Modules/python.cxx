@@ -517,6 +517,7 @@ public:
 	  fputs(usage3, stdout);
 	} else if (strcmp(argv[i], "-py3") == 0) {
 	  py3 = 1;
+	  Preprocessor_define("SWIGPYTHON_PY3", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
