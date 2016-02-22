@@ -3,7 +3,7 @@ from operator_overload import *
 # first check all the operators are implemented correctly from pure C++ code
 Op_sanity_check()
 
-pop = Op(6)/Op(3)  # breaks in Python3 with or without -builtin
+pop = Op(6)/Op(3)
 
 # test routine:
 a=Op()
@@ -40,7 +40,7 @@ if not b>=d:
 e=Op(3)
 e+=d
 if not e==b:
-  raise RuntimeError("e==b (%s==%s)" % (str(e), str(b)))
+  raise RuntimeError("e==b (%s==%s)" % (e.i, b.i))
 e-=c
 if not e==a:
   raise RuntimeError("e==a")
@@ -74,12 +74,6 @@ if not -a==a:
   raise RuntimeError("-a==a")
 if not -b==Op(-5):
   raise RuntimeError("-b==Op(-5)")
-
-# plus add some code to check the __str__ fn
-if not str(Op(1))=='Op(1)':
-  raise RuntimeError("str(Op(1))=='Op(1)'")
-if not str(Op(-3))=='Op(-3)':
-  raise RuntimeError("str(Op(-3))=='Op(-3)'")
 
 """
 /* Sample test code in C++

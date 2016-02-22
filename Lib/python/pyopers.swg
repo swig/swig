@@ -103,7 +103,7 @@
 %pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
 %pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
 %pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
-%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_div);
+%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_divide);
 %pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
 %pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
 %pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
@@ -116,8 +116,6 @@
 %pycompare(__ge__,           *::operator>=,		Py_GE);
 %pycompare(__eq__,           *::operator==,		Py_EQ);
 %pycompare(__ne__,           *::operator!=,		Py_NE);
-
-%feature("python:slot", "nb_truediv", functype="binaryfunc") *::operator/;
 
 /* Special cases */
 %rename(__invert__)     *::operator~;
