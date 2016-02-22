@@ -11,6 +11,7 @@ typedef std::string String;
 
 namespace Type {
   template <class T> class TypedInterfaceObject {
+  public:
     virtual ~TypedInterfaceObject() {}
   };
 
