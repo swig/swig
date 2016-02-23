@@ -114,11 +114,11 @@ public:
     return *this;
   }
   // +=,-=... are member fns
-  void operator+=(const Op& o){ i+=o.i;}
-  void operator-=(const Op& o){ i-=o.i;}
-  void operator*=(const Op& o){ i*=o.i;}
-  void operator/=(const Op& o){ i/=o.i;}
-  void operator%=(const Op& o){ i%=o.i;}
+  Op &operator+=(const Op& o){ i+=o.i; return *this; }
+  Op &operator-=(const Op& o){ i-=o.i; return *this; }
+  Op &operator*=(const Op& o){ i*=o.i; return *this; }
+  Op &operator/=(const Op& o){ i/=o.i; return *this; }
+  Op &operator%=(const Op& o){ i%=o.i; return *this; }
   // the +,-,*,... are friends
   // (just to make life harder)
   friend Op operator+(const Op& a,const Op& b){return Op(a.i+b.i);}
