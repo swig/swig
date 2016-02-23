@@ -1,5 +1,5 @@
 %define DECLARE_INTERFACE_(INTERFACE, IMPL, CTYPE...)
-%feature("interface", name = "INTERFACE", cptr = #INTERFACE ## "_SWIGInterfaceUpcast") CTYPE;
+%feature("interface", name="INTERFACE") CTYPE;
 %typemap(jtype, nopgcpp="1") CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
 %typemap(jstype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "INTERFACE"
 %typemap(javain) CTYPE, CTYPE & "$javainput." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
@@ -20,6 +20,11 @@
 %typemap(directorin, descriptor="L$packagepath/" ## #INTERFACE ## ";") CTYPE *, CTYPE &, CTYPE *const&, CTYPE [], CTYPE & 
 %{ $input = 0;
    *(($&1_ltype*)&$input) = &$1;
+%}
+%typemap(javainterfacecode, declaration="  long $interfacename_SWIGInterfaceUpcast();\n", cptrmethod="$interfacename_SWIGInterfaceUpcast") CTYPE %{
+  public long $interfacename_SWIGInterfaceUpcast() {
+    return $imclassname.$javaclazzname$interfacename_SWIGInterfaceUpcast(swigCPtr);
+  }
 %}
 SWIG_JAVABODY_PROXY(public, protected, CTYPE)
 %enddef

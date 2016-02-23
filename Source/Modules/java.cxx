@@ -1729,6 +1729,10 @@ public:
     return Language::pragmaDirective(n);
   }
 
+  /* -----------------------------------------------------------------------------
+   * getQualifiedInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
   String *getQualifiedInterfaceName(Node *n) {
     String *ret = Getattr(n, "interface:qname");
     if (!ret) {
@@ -1750,8 +1754,11 @@ public:
     return ret;
   }
 
+  /* -----------------------------------------------------------------------------
+   * addInterfaceNameAndUpcasts()
+   * ----------------------------------------------------------------------------- */
+
   void addInterfaceNameAndUpcasts(String *interface_list, String *interface_upcasts, Hash *base_list, String *c_classname) {
-//    Printf(stdout, "addInterfaceNameAndUpcasts %s base_list", c_classname);
     List *keys = Keys(base_list);
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
@@ -1761,21 +1768,26 @@ public:
 	Append(interface_list, ", ");
       Append(interface_list, interface_name);
 
-      String *upcast_name = 0;
-      if (String *cptr_func = Getattr(base, "feature:interface:cptr"))
-	upcast_name = NewStringf("%s", cptr_func);
-      else
-	upcast_name = NewStringf("%s_SWIGInterfaceUpcast", interface_name);
-      Printf(interface_upcasts, "\n");
-      Printf(interface_upcasts, "  public long %s() {\n", upcast_name);
-      Replaceall(upcast_name, ".", "_");
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
+      Node *attributes = NewHash();
+      String *interface_code = Copy(typemapLookup(base, "javainterfacecode", Getattr(base, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+      String *cptr_method_name = 0;
+      if (interface_code) {
+	Replaceall(interface_code, "$interfacename", interface_name);
+	Printv(interface_upcasts, interface_code, NIL);
+	cptr_method_name = Copy(Getattr(attributes, "tmap:javainterfacecode:cptrmethod"));
+      }
+      if (!cptr_method_name)
+	cptr_method_name = NewString("$interfacename_GetInterfaceCPtr");
+      Replaceall(cptr_method_name, "$interfacename", interface_name);
+      Replaceall(cptr_method_name, ".", "_");
+
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
       String *jniname = makeValidJniName(upcast_method);
       String *wname = Swig_name_wrapper(jniname);
-      Printf(interface_upcasts, "    return %s.%s(swigCPtr);\n", imclass_name, upcast_method);
-      Printf(interface_upcasts, "  }\n");
+
       Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
-      Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+      Replaceall(imclass_cppcasts_code, "$javaclassname", proxy_class_name);
+
       Printv(upcasts_code,
 	"SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	"    jlong baseptr = 0;\n"
@@ -1784,13 +1796,14 @@ public:
 	"    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
 	"    return baseptr;\n"
 	"}\n", "\n", NIL);
-      Delete(upcast_name);
+
+      Delete(interface_code);
+      Delete(cptr_method_name);
       Delete(wname);
       Delete(jniname);
       Delete(upcast_method);
       Delete(c_baseclass);
     }
-//    Printf(stdout, " => %s\n", interface_list);
     Delete(keys);
   }
 
@@ -1998,6 +2011,10 @@ public:
     Delete(baseclass);
   }
 
+  /* ----------------------------------------------------------------------
+   * emitInterfaceDeclaration()
+   * ---------------------------------------------------------------------- */
+
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface, String *nspace) {
     if (package || nspace) {
       Printf(f_interface, "package ");
@@ -2029,11 +2046,23 @@ public:
       }
     }
     Printf(f_interface, " {\n");
-    if (String *cptr_func = Getattr(n, "feature:interface:cptr"))
-      Printf(f_interface, "  long %s();\n", cptr_func);
-    else
-      Printf(f_interface, "  long %s_SWIGInterfaceUpcast();\n", interface_name);
+
+    Node *attributes = NewHash();
+    String *interface_code = Copy(typemapLookup(n, "javainterfacecode", Getattr(n, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+    if (interface_code) {
+      String *interface_declaration = Copy(Getattr(attributes, "tmap:javainterfacecode:declaration"));
+      if (interface_declaration) {
+	Replaceall(interface_declaration, "$interfacename", interface_name);
+	Printv(f_interface, interface_declaration, NIL);
+	Delete(interface_declaration);
+      }
+      Delete(interface_code);
+    }
   }
+
+  /* ----------------------------------------------------------------------
+  * classDeclaration()
+  * ---------------------------------------------------------------------- */
 
   int classDeclaration(Node *n) {
     if (proxy_flag)
@@ -2041,12 +2070,13 @@ public:
     return Language::classDeclaration(n);
   }
 
-    /* ----------------------------------------------------------------------
-   * classHandler()
-   * ---------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------
+  * classHandler()
+  * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
     File *f_proxy = NULL;
+    File *f_interface = NULL;
     String *old_proxy_class_name = proxy_class_name;
     String *old_full_proxy_class_name = full_proxy_class_name;
     String *old_full_imclass_name = full_imclass_name;
@@ -2056,7 +2086,7 @@ public:
     String *old_proxy_class_def = proxy_class_def;
     String *old_proxy_class_code = proxy_class_code;
     bool has_outerclass = Getattr(n, "nested:outer") && !GetFlag(n, "feature:flatnested");
-    File *f_interface = NULL;
+    String *old_interface_class_code = interface_class_code;
     interface_class_code = 0;
 
     if (proxy_flag) {
@@ -2146,8 +2176,9 @@ public:
       proxy_class_constants_code = NewString("");
 
       if (Getattr(n, "feature:interface")) {
-	interface_class_code = NewStringEmpty();
+        interface_class_code = NewString("");
 	String *interface_name = Getattr(n, "feature:interface:name");
+	// TODO check feature:interface:name is not missing
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
@@ -2157,7 +2188,7 @@ public:
 	}
 	Append(filenames_list, filen); // file name ownership goes to the list
 	emitBanner(f_interface);
-	emitInterfaceDeclaration(n, interface_name, f_interface, nspace);
+	emitInterfaceDeclaration(n, interface_name, interface_class_code, nspace);
 	Delete(filen);
 	Delete(output_directory);
       }
@@ -2166,7 +2197,6 @@ public:
     Language::classHandler(n);
 
     if (proxy_flag) {
-
       emitProxyClassDefAndCPPCasts(n);
 
       String *javaclazzname = Swig_name_member(getNSpace(), getClassPrefix(), ""); // mangled full proxy class name
@@ -2174,18 +2204,22 @@ public:
       Replaceall(proxy_class_def, "$javaclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
       Replaceall(proxy_class_constants_code, "$javaclassname", proxy_class_name);
+      Replaceall(interface_class_code, "$javaclassname", proxy_class_name);
 
       Replaceall(proxy_class_def, "$javaclazzname", javaclazzname);
       Replaceall(proxy_class_code, "$javaclazzname", javaclazzname);
       Replaceall(proxy_class_constants_code, "$javaclazzname", javaclazzname);
+      Replaceall(interface_class_code, "$javaclazzname", javaclazzname);
 
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+      Replaceall(interface_class_code, "$module", module_class_name);
 
       Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
+      Replaceall(interface_class_code, "$imclassname", full_imclass_name);
 
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
@@ -2253,10 +2287,13 @@ public:
       if (f_interface) {
 	Printv(f_interface, interface_class_code, "}\n", NIL);
 	Delete(f_interface);
+	f_interface = 0;
       }
 
       emitDirectorExtraMethods(n);
 
+      Delete(interface_class_code);
+      interface_class_code = old_interface_class_code;
       Delete(javaclazzname);
       Delete(proxy_class_name);
       proxy_class_name = old_proxy_class_name;
