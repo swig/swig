@@ -1744,14 +1744,25 @@ public:
 	else
 	  ret = NewStringf("%s.%s", nspace, symname);
       } else {
-	if (package)
-	  ret = NewStringf("%s.%s", package, symname);
-	else
-	  ret = Copy(symname);
+	ret = Copy(symname);
       }
       Setattr(n, "interface:qname", ret);
     }
     return ret;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getInterfaceName(SwigType *t) {
+    String *interface_name = NULL;
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n && Getattr(n, "feature:interface:name"))
+	interface_name = getQualifiedInterfaceName(n);
+    }
+    return interface_name;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3467,7 +3478,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *prematureGarbageCollectionPreventionParameter(SwigType *t, Parm *p) {
-    String *proxyClassName = 0;
+    String *pgcpp_java_type = 0;
     String *jtype = NewString(Getattr(p, "tmap:jtype"));
 
     // Strip C comments
@@ -3484,11 +3495,9 @@ public:
     if (Cmp(jtype, "long") == 0) {
       if (proxy_flag) {
 	if (!GetFlag(p, "tmap:jtype:nopgcpp") && !nopgcpp_flag) {
-          String *proxyname = getProxyName(t);
-          if (proxyname) {
-            // Found a struct/class parameter passed by value, reference, pointer, or pointer reference
-            proxyClassName = proxyname;
-          } else {
+	  String *interface_name = getInterfaceName(t);
+          pgcpp_java_type = interface_name ? interface_name : getProxyName(t);
+          if (!pgcpp_java_type) {
             // Look for proxy class parameters passed to C++ layer using non-default typemaps, ie not one of above types
             String *jstype = NewString(Getattr(p, "tmap:jstype"));
             if (jstype) {
@@ -3510,7 +3519,7 @@ public:
                   if (cls && !Getattr(cls, "feature:ignore")) {
                     String *symname = Getattr(cls, "sym:name");
                     if (symname && Strcmp(symname, jstype) == 0) {
-                      proxyClassName = symname;
+                      pgcpp_java_type = symname;
                     }
                   }
                 }
@@ -3522,7 +3531,7 @@ public:
       }
     }
     Delete(jtype);
-    return proxyClassName;
+    return pgcpp_java_type;
   }
 
   /* -----------------------------------------------------------------------------

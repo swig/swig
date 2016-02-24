@@ -1,6 +1,6 @@
 %define DECLARE_INTERFACE_(INTERFACE, IMPL, CTYPE...)
 %feature("interface", name="INTERFACE") CTYPE;
-%typemap(jtype, nopgcpp="1") CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
+%typemap(jtype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
 %typemap(jstype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "INTERFACE"
 %typemap(javain) CTYPE, CTYPE & "$javainput." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
 %typemap(javain) CTYPE *, CTYPE *const&, CTYPE [] "($javainput == null) ? 0 : $javainput." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
