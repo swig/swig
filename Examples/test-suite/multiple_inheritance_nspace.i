@@ -14,9 +14,6 @@ DECLARE_INTERFACE_RENAME(CBase2, SWIGTYPE_CBase2, Space::CBase2)
 #endif
 
 #if defined(SWIGJAVA)
-SWIG_JAVABODY_PROXY(public, public, Space::ABase1)
-SWIG_JAVABODY_PROXY(public, public, Space::CBase1)
-SWIG_JAVABODY_PROXY(public, public, Space::CBase2)
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 #endif
 

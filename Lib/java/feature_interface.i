@@ -41,7 +41,6 @@
     return $imclassname.$javaclazzname##INTERFACE##_SWIGInterfaceUpcast(swigCPtr);
   }
 %}
-SWIG_JAVABODY_PROXY(public, protected, CTYPE)
 %enddef
 
 %define DECLARE_INTERFACE_RENAME(INTERFACE, IMPL, CTYPE...)
