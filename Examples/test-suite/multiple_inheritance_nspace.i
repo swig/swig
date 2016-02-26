@@ -1,14 +1,27 @@
 // This is a copy of the multiple_inheritance_abstract test
-%module  multiple_inheritance_abstract
+%module  multiple_inheritance_nspace
+
+// nspace feature only supported by these languages
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+
+%nspace;
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "feature_interface.i"
-DECLARE_INTERFACE_RENAME(ABase1, SWIGTYPE_ABase1, ABase1)
-DECLARE_INTERFACE_RENAME(CBase1, SWIGTYPE_CBase1, CBase1)
-DECLARE_INTERFACE_RENAME(CBase2, SWIGTYPE_CBase2, CBase2)
+DECLARE_INTERFACE_RENAME(ABase1, SWIGTYPE_ABase1, Space::ABase1)
+DECLARE_INTERFACE_RENAME(CBase1, SWIGTYPE_CBase1, Space::CBase1)
+DECLARE_INTERFACE_RENAME(CBase2, SWIGTYPE_CBase2, Space::CBase2)
+#endif
+
+#if defined(SWIGJAVA)
+SWIG_JAVABODY_PROXY(public, public, Space::ABase1)
+SWIG_JAVABODY_PROXY(public, public, Space::CBase1)
+SWIG_JAVABODY_PROXY(public, public, Space::CBase2)
+SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 #endif
 
 %inline %{
+namespace Space {
   struct CBase1 {
     virtual void cbase1x() {
       return;
@@ -312,5 +325,8 @@ DECLARE_INTERFACE_RENAME(CBase2, SWIGTYPE_CBase2, CBase2)
   CBase2 MakeValDerived3_CBase2() {
     return Derived3();
   }
+}
 
 %}
+
+#endif
