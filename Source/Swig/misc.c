@@ -1328,7 +1328,7 @@ String *replace_captures(int num_captures, const char *input, String *subst, int
  *
  * Executes a regular expression substitution. For example:
  *
- *   Printf(stderr,"gsl%(regex:/GSL_.*_/\\1/)s","GSL_Hello_") -> gslHello
+ *   Printf(stderr,"gsl%(regex:/GSL_(.*)_/\\1/)s", "GSL_Hello_") -> gslHello
  * ----------------------------------------------------------------------------- */
 String *Swig_string_regex(String *s) {
   const int pcre_options = 0;
