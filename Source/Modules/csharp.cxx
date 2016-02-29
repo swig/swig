@@ -1673,12 +1673,12 @@ public:
    * getInterfaceName()
    * ----------------------------------------------------------------------------- */
 
-  String *getInterfaceName(SwigType *t) {
+  String *getInterfaceName(SwigType *t, bool qualified) {
     String *interface_name = NULL;
     if (proxy_flag) {
       Node *n = classLookup(t);
       if (n && Getattr(n, "interface:name"))
-	interface_name = getQualifiedInterfaceName(n);
+	interface_name = qualified ? getQualifiedInterfaceName(n) : Getattr(n, "interface:name");
     }
     return interface_name;
   }
@@ -1692,7 +1692,7 @@ public:
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
       String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
-      String *interface_name = getQualifiedInterfaceName(base);
+      String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
       Append(interface_list, interface_name);
@@ -1701,12 +1701,14 @@ public:
       String *interface_code = Copy(typemapLookup(base, "csinterfacecode", Getattr(base, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
       String *cptr_method_name = 0;
       if (interface_code) {
+        Replaceall(interface_code, "$interfacename", interface_name);
 	Printv(interface_upcasts, interface_code, NIL);
 	cptr_method_name = Copy(Getattr(attributes, "tmap:csinterfacecode:cptrmethod"));
       }
       if (!cptr_method_name)
 	cptr_method_name = NewStringf("%s_GetInterfaceCPtr", interface_name);
       Replaceall(cptr_method_name, ".", "_");
+      Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
       String *wname = Swig_name_wrapper(upcast_method);
@@ -2023,6 +2025,7 @@ public:
     if (interface_code) {
       String *interface_declaration = Copy(Getattr(attributes, "tmap:csinterfacecode:declaration"));
       if (interface_declaration) {
+        Replaceall(interface_declaration, "$interfacename", interface_name);
 	Printv(f_interface, interface_declaration, NIL);
 	Delete(interface_declaration);
       }
@@ -3401,7 +3404,7 @@ public:
     }
     if (Strstr(tm, "$csinterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$csinterfacename");
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$csinterfacename", true);
       substitution_performed = true;
       Delete(interfacenametype);
     }
@@ -3409,7 +3412,7 @@ public:
       SwigType *interfacenametype = Copy(strippedtype);
       Delete(SwigType_pop(interfacenametype));
       if (Len(interfacenametype) > 0) {
-	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*csinterfacename");
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*csinterfacename", true);
 	substitution_performed = true;
       }
       Delete(interfacenametype);
@@ -3417,7 +3420,29 @@ public:
     if (Strstr(tm, "$&csinterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
       SwigType_add_pointer(interfacenametype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&csinterfacename");
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&csinterfacename", true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$interfacename", false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*interfacename", false);
+	substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&interfacename", false);
       substitution_performed = true;
       Delete(interfacenametype);
     }
@@ -3470,9 +3495,9 @@ public:
    * substituteInterfacenameSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable) {
+  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool qualified) {
 
-    String *interfacename = getInterfaceName(interfacenametype);
+    String *interfacename = getInterfaceName(interfacenametype, qualified);
     if (interfacename) {
       String *replacementname = Copy(interfacename);
       Replaceall(tm, interfacenamespecialvariable, replacementname);

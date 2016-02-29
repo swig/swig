@@ -1755,12 +1755,12 @@ public:
    * getInterfaceName()
    * ----------------------------------------------------------------------------- */
 
-  String *getInterfaceName(SwigType *t) {
+  String *getInterfaceName(SwigType *t, bool qualified) {
     String *interface_name = NULL;
     if (proxy_flag) {
       Node *n = classLookup(t);
       if (n && Getattr(n, "interface:name"))
-	interface_name = getQualifiedInterfaceName(n);
+	interface_name = qualified ? getQualifiedInterfaceName(n) : Getattr(n, "interface:name");
     }
     return interface_name;
   }
@@ -1783,12 +1783,14 @@ public:
       String *interface_code = Copy(typemapLookup(base, "javainterfacecode", Getattr(base, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACECODE_UNDEF, attributes));
       String *cptr_method_name = 0;
       if (interface_code) {
+        Replaceall(interface_code, "$interfacename", interface_name);
 	Printv(interface_upcasts, interface_code, NIL);
 	cptr_method_name = Copy(Getattr(attributes, "tmap:javainterfacecode:cptrmethod"));
       }
       if (!cptr_method_name)
 	cptr_method_name = NewStringf("%s_GetInterfaceCPtr", interface_name);
       Replaceall(cptr_method_name, ".", "_");
+      Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, cptr_method_name);
       String *jniname = makeValidJniName(upcast_method);
@@ -2061,6 +2063,7 @@ public:
     if (interface_code) {
       String *interface_declaration = Copy(Getattr(attributes, "tmap:javainterfacecode:declaration"));
       if (interface_declaration) {
+        Replaceall(interface_declaration, "$interfacename", interface_name);
 	Printv(f_interface, interface_declaration, NIL);
 	Delete(interface_declaration);
       }
@@ -3271,7 +3274,7 @@ public:
     }
     if (Strstr(tm, "$javainterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$javainterfacename", jnidescriptor);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$javainterfacename", jnidescriptor, true);
       substitution_performed = true;
       Delete(interfacenametype);
     }
@@ -3279,7 +3282,7 @@ public:
       SwigType *interfacenametype = Copy(strippedtype);
       Delete(SwigType_pop(interfacenametype));
       if (Len(interfacenametype) > 0) {
-	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*javainterfacename", jnidescriptor);
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*javainterfacename", jnidescriptor, true);
 	substitution_performed = true;
       }
       Delete(interfacenametype);
@@ -3287,7 +3290,29 @@ public:
     if (Strstr(tm, "$&javainterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
       SwigType_add_pointer(interfacenametype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&javainterfacename", jnidescriptor);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&javainterfacename", jnidescriptor, true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$interfacename", jnidescriptor, false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*interfacename", jnidescriptor, false);
+	substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&interfacename", jnidescriptor, false);
       substitution_performed = true;
       Delete(interfacenametype);
     }
@@ -3343,9 +3368,9 @@ public:
    * substituteInterfacenameSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool jnidescriptor) {
+  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool jnidescriptor, bool qualified) {
 
-    String *interfacename = getInterfaceName(interfacenametype/*, jnidescriptor*/);
+    String *interfacename = getInterfaceName(interfacenametype/*, jnidescriptor*/, qualified);
     if (interfacename) {
       String *replacementname = Copy(interfacename);
 
@@ -3531,7 +3556,7 @@ public:
     if (Cmp(jtype, "long") == 0) {
       if (proxy_flag) {
 	if (!GetFlag(p, "tmap:jtype:nopgcpp") && !nopgcpp_flag) {
-	  String *interface_name = getInterfaceName(t);
+	  String *interface_name = getInterfaceName(t, true);
           pgcpp_java_type = interface_name ? interface_name : getProxyName(t);
           if (!pgcpp_java_type) {
             // Look for proxy class parameters passed to C++ layer using non-default typemaps, ie not one of above types

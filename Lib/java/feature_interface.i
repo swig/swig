@@ -6,8 +6,10 @@
 %typemap(jstype) CTYPE "$&javainterfacename"
 %typemap(jstype) CTYPE *, CTYPE [], CTYPE & "$javainterfacename"
 %typemap(jstype) CTYPE *const& "$*javainterfacename"
-%typemap(javain) CTYPE, CTYPE & "$javainput." ## #INTERFACE ## "_GetInterfaceCPtr()"
-%typemap(javain) CTYPE *, CTYPE *const&, CTYPE [] "($javainput == null) ? 0 : $javainput." ## #INTERFACE ## "_GetInterfaceCPtr()"
+%typemap(javain) CTYPE "$javainput.$&interfacename_GetInterfaceCPtr()"
+%typemap(javain) CTYPE & "$javainput.$interfacename_GetInterfaceCPtr()"
+%typemap(javain) CTYPE *, CTYPE [] "($javainput == null) ? 0 : $javainput.$interfacename_GetInterfaceCPtr()"
+%typemap(javain) CTYPE *const& "($javainput == null) ? 0 : $javainput.$*interfacename_GetInterfaceCPtr()"
 %typemap(javaout) CTYPE {
     return ($&javainterfacename)new $&javaclassname($jnicall, true);
   }
@@ -27,7 +29,9 @@
 %typemap(javadirectorin) CTYPE & "($javainterfacename)new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) CTYPE *, CTYPE [] "($jniinput == 0) ? null : ($javainterfacename)new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) CTYPE *const& "($jniinput == 0) ? null : ($*javainterfacename)new $*javaclassname($jniinput, false)"
-%typemap(javadirectorout) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "$javacall." ## #INTERFACE ## "_GetInterfaceCPtr()"
+%typemap(javadirectorout) CTYPE "$javacall.$&interfacename_GetInterfaceCPtr()"
+%typemap(javadirectorout) CTYPE *, CTYPE [], CTYPE & "$javacall.$interfacename_GetInterfaceCPtr()"
+%typemap(javadirectorout) CTYPE *const& "$javacall.$*interfacename_GetInterfaceCPtr()"
 %typemap(directorin,descriptor="L$packagepath/$&javainterfacename;") CTYPE
 %{ $input = 0;
    *(($&1_ltype*)&$input) = &$1; %}
@@ -38,9 +42,9 @@
 %typemap(directorin,descriptor="L$packagepath/$*javainterfacename;") CTYPE *const&
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
-%typemap(javainterfacecode, declaration="  long " ## #INTERFACE ## "_GetInterfaceCPtr();\n", cptrmethod=#INTERFACE ## "_GetInterfaceCPtr") CTYPE %{
-  public long INTERFACE##_GetInterfaceCPtr() {
-    return $imclassname.$javaclazzname##INTERFACE##_GetInterfaceCPtr(swigCPtr);
+%typemap(javainterfacecode, declaration="  long $interfacename_GetInterfaceCPtr();\n", cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
+  public long $interfacename_GetInterfaceCPtr() {
+    return $imclassname.$javaclazzname$interfacename_GetInterfaceCPtr(swigCPtr);
   }
 %}
 %enddef
