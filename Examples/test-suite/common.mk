@@ -284,6 +284,7 @@ CPP_TEST_CASES += \
 	multiple_inheritance \
 	multiple_inheritance_abstract \
 	multiple_inheritance_interfaces \
+	multiple_inheritance_nspace \
 	name_cxx \
 	name_warnings \
 	namespace_class \
