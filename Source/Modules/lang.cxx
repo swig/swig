@@ -3857,7 +3857,7 @@ static List *collect_interface_methods(Node *n) {
 
 static void collect_interface_bases(Hash *bases, Node *n) {
   if (Getattr(n, "feature:interface")) {
-    String *name = Getattr(n, "feature:interface:name");
+    String *name = Getattr(n, "interface:name");
     if (!Getattr(bases, name))
       Setattr(bases, name, n);
   }
@@ -3884,10 +3884,6 @@ static void collect_interface_bases(Hash *bases, Node *n) {
 
 static void collect_interface_base_classes(Node *n) {
   if (Getattr(n, "feature:interface")) {
-    if (!Getattr(n, "feature:interface:name")) {
-      Swig_error(Getfile(n), Getline(n), "The interface feature for '%s' is missing the name attribute.\n", SwigType_namestr(Getattr(n, "name")));
-      SWIG_exit(EXIT_FAILURE);
-    }
     // check all bases are also interfaces
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -3910,6 +3906,26 @@ static void collect_interface_base_classes(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * process_interface_name()
+ * ----------------------------------------------------------------------------- */
+
+void process_interface_name(Node *n) {
+  if (Getattr(n, "feature:interface")) {
+    String *interface_name = Getattr(n, "feature:interface:name");
+    if (!Len(interface_name)) {
+      Swig_error(Getfile(n), Getline(n), "The interface feature for '%s' is missing the name attribute.\n", SwigType_namestr(Getattr(n, "name")));
+      SWIG_exit(EXIT_FAILURE);
+    }
+    if (Strchr(interface_name, '%')) {
+      String *name = NewStringf(interface_name, Getattr(n, "sym:name"));
+      Setattr(n, "interface:name", name);
+    } else {
+      Setattr(n, "interface:name", interface_name);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_propagate_interface_methods()
  *
  * Find all the base classes marked as an interface (with feature:interface) for
@@ -3919,6 +3935,7 @@ static void collect_interface_base_classes(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_propagate_interface_methods(Node *n) {
+  process_interface_name(n);
   collect_interface_base_classes(n);
   List *methods = collect_interface_methods(n);
   bool is_interface = Getattr(n, "feature:interface") != 0;

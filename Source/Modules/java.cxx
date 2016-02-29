@@ -1737,7 +1737,7 @@ public:
     String *ret = Getattr(n, "interface:qname");
     if (!ret) {
       String *nspace = Getattr(n, "sym:nspace");
-      String *symname = Getattr(n, "feature:interface:name");
+      String *symname = Getattr(n, "interface:name");
       if (nspace) {
 	if (package)
 	  ret = NewStringf("%s.%s.%s", package, nspace, symname);
@@ -1759,7 +1759,7 @@ public:
     String *interface_name = NULL;
     if (proxy_flag) {
       Node *n = classLookup(t);
-      if (n && Getattr(n, "feature:interface:name"))
+      if (n && Getattr(n, "interface:name"))
 	interface_name = getQualifiedInterfaceName(n);
     }
     return interface_name;
@@ -1774,7 +1774,7 @@ public:
     for (Iterator it = First(keys); it.item; it = Next(it)) {
       Node *base = Getattr(base_list, it.item);
       String *c_baseclass = SwigType_namestr(Getattr(base, "name"));
-      String *interface_name = Getattr(base, "feature:interface:name");
+      String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
 	Append(interface_list, ", ");
       Append(interface_list, interface_name);
@@ -2041,7 +2041,7 @@ public:
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
-	String *base_iname = Getattr(base.item, "feature:interface:name");
+	String *base_iname = Getattr(base.item, "interface:name");
 	if (!bases)
 	  bases = Copy(base_iname);
 	else {
@@ -2185,8 +2185,7 @@ public:
 
       if (Getattr(n, "feature:interface")) {
         interface_class_code = NewString("");
-	String *interface_name = Getattr(n, "feature:interface:name");
-	// TODO check feature:interface:name is not missing
+	String *interface_name = Getattr(n, "interface:name");
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
@@ -3270,25 +3269,25 @@ public:
       substitution_performed = true;
       Delete(classnametype);
     }
-    if (Strstr(tm, "$interfacename")) {
+    if (Strstr(tm, "$javainterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$interfacename", jnidescriptor);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$javainterfacename", jnidescriptor);
       substitution_performed = true;
       Delete(interfacenametype);
     }
-    if (Strstr(tm, "$*interfacename")) {
+    if (Strstr(tm, "$*javainterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
       Delete(SwigType_pop(interfacenametype));
       if (Len(interfacenametype) > 0) {
-	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*interfacename", jnidescriptor);
+	substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*javainterfacename", jnidescriptor);
 	substitution_performed = true;
       }
       Delete(interfacenametype);
     }
-    if (Strstr(tm, "$&interfacename")) {
+    if (Strstr(tm, "$&javainterfacename")) {
       SwigType *interfacenametype = Copy(strippedtype);
       SwigType_add_pointer(interfacenametype);
-      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&interfacename", jnidescriptor);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&javainterfacename", jnidescriptor);
       substitution_performed = true;
       Delete(interfacenametype);
     }
