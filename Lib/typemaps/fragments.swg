@@ -168,9 +168,11 @@
 %fragment("SWIG_isfinite","header",fragment="<math.h>,<float.h>") %{
 /* Getting isfinite working pre C99 across multiple platforms is non-trivial. Users can provide SWIG_isfinite on older platforms. */
 #ifndef SWIG_isfinite
-/* isfinite() is a macro for C99, but a function for C++11. */
-# if defined(isfinite) || (defined __cplusplus && __cplusplus >= 201103L)
+/* isfinite() is a macro for C99, but a function in namespace std for C++11. */
+# if defined(isfinite)
 #  define SWIG_isfinite(X) (isfinite(X))
+# elif defined __cplusplus && __cplusplus >= 201103L
+#  define SWIG_isfinite(X) (std::isfinite(X))
 # elif defined(_MSC_VER)
 #  define SWIG_isfinite(X) (_finite(X))
 # elif defined(__sun) && defined(__SVR4)
