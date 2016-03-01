@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-01: wsfulton
+            Add rstrip encoder for use in %rename. This is like the strip encoder but
+            strips the symbol's suffix instead of the prefix. The example below
+            will rename SomeThingCls to SomeThing and AnotherThingCls to AnotherThing:
+
+              %rename("%(rstrip:[Cls])s") ""; 
+
+              class SomeThingCls {};
+              struct AnotherThingCls {};
+
 2016-02-07: kwwette
             [Octave] recognise various unary functions
             * Use __float__() for numeric conversions, e.g. when calling double()
