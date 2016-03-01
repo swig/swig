@@ -42,7 +42,7 @@ INTERFACE_TYPEMAPS(CTYPE)
 
 %define %interface_impl(CTYPE...)
 %rename("%sSwigImpl") CTYPE;
-%feature("interface", name="%(regex:/(.*)SwigImpl$/\\1/)s") CTYPE;
+%feature("interface", name="%(rstrip:[SwigImpl])s") CTYPE;
 INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
