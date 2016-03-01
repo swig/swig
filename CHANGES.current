@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-01: olly
+	    [Python] Fix isfinite() check to work with GCC6.  Fixes
+	    https://github.com/swig/swig/issues/615 reported by jplesnik.
+
 2016-02-17: olly
 	    [Python] Add missing keywords 'as' and 'with' to pythonkw.swg.
 
