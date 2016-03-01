@@ -102,7 +102,7 @@ fail:
 %{
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
-#if (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
     self = $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       SWIGV8_ESCAPE(self);
@@ -124,13 +124,13 @@ fail:
 %fragment ("js_dtor", "templates")
 %{
 
-#if (SWIG_V8_VERSION < 0x031710)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
 static void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < 0x031900)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Value> object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Object> *object, SWIGV8_Proxy *proxy) {
 #else
 static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
@@ -148,11 +148,11 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
 
   object.Clear();
   
-#if (SWIG_V8_VERSION < 0x031710)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
-#elif (SWIG_V8_VERSION < 0x031900)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
   object.Dispose(isolate);
-#elif (SWIG_V8_VERSION < 0x032100)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
 #else
   object->Dispose();
@@ -168,13 +168,13 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtoroverride", "templates")
 %{
-#if (SWIG_V8_VERSION < 0x031710)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
 static void $jswrapper(v8::Persistent<v8::Value> object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < 0x031900)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Value> object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
-#elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object> *object, SWIGV8_Proxy *proxy) {
 #else
 static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
@@ -188,13 +188,13 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
   }
   delete proxy;
 
-#if (SWIG_V8_VERSION < 0x031710)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
-#elif (SWIG_V8_VERSION < 0x031900)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
   object.Dispose(isolate);
-#elif (SWIG_V8_VERSION < 0x032100)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
-#elif (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   object->Dispose();
 #else
   object.Clear();
@@ -326,7 +326,7 @@ fail:
 
   if(args.Length() == $jsargcount) {
     errorHandler.err.Clear();
-#if (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
     jsresult = $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       SWIGV8_ESCAPE(jsresult);
@@ -376,7 +376,7 @@ fail:
 %{
   if (SWIGTYPE_p$jsbaseclass->clientdata && !(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ.IsEmpty()))
   {
-#if (SWIG_V8_VERSION < 0x031903)
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
     $jsmangledname_class->Inherit(static_cast<SWIGV8_ClientData *>(SWIGTYPE_p$jsbaseclass->clientdata)->class_templ);
 #else
     $jsmangledname_class->Inherit(

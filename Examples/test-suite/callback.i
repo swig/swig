@@ -1,10 +1,18 @@
 %module callback
 
+// Not specifying the callback name is only possible in Python.
+#ifdef SWIGPYTHON
 %callback(1) foo;
 %callback(1) foof;
 %callback(1) A::bar;
 %callback(1) A::foom;
-%callback("%s_Cb_Ptr") foo_T;  // old style, still works.
+#else
+%callback("%s") foo;
+%callback("%s") foof;
+%callback("%s") A::bar;
+%callback("%s") A::foom;
+#endif
+%callback("%(uppercase)s_Cb_Ptr") foo_T;  // this works in Python too
 
 %inline %{
 
@@ -56,6 +64,22 @@
   T foobar_T(T a, T (*pf)(T a)) {
     return pf(a);
   }
+
+#if defined(__SUNPRO_CC)
+// workaround for: Error: Could not find a match for foobar_T<T>(int, extern "C" int(*)(int)).
+  extern "C" {
+    typedef int (*foobar_int_int)(int a);
+    typedef double (*foobar_double_double)(double a);
+  };
+  template <class T>
+  int foobar_T(int a, foobar_int_int pf) {
+    return pf(a);
+  }
+  template <class T>
+  double foobar_T(double a, foobar_double_double pf) {
+    return pf(a);
+  }
+#endif
 
   template <class T>
   const T& ident(const T& x) {

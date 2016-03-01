@@ -58,7 +58,13 @@ INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
-SWIG       = swig
+
+# SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
+SWIG_LIB_DIR = ./Lib
+SWIGEXE    = swig
+SWIG_LIB_SET = @SWIG_LIB_SET@
+SWIGTOOL   =
+SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
@@ -132,6 +138,13 @@ distclean:
 	rm -f Makefile
 	rm -f d/example.mk
 	rm -f xml/Makefile
+
+##################################################################
+# Very generic invocation of swig
+##################################################################
+
+swiginvoke:
+	$(SWIG) $(SWIGOPT)
 
 ##################################################################
 #####                       Tcl/Tk                          ######
@@ -321,6 +334,9 @@ else
   SWIGPYTHON = $(SWIG) -python -py3
 endif
 
+PEP8         = @PEP8@
+PEP8_FLAGS   = --ignore=E402,E501,E30,W291,W391
+
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
@@ -373,8 +389,10 @@ endif
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
 python_run: $(PYSCRIPT)
-	export PYTHONPATH=".:$$PYTHONPATH"; \
-	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+ifneq (,$(PEP8))
+	$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
+endif
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
 ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
@@ -542,11 +560,10 @@ guile: $(SRCDIR_SRCS)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCDIR_SRCS)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-guile_cpp: $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-$(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCDIR_SRCS)
+guile_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $@
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
@@ -653,7 +670,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(JAVACFLAGS) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example
@@ -941,7 +958,7 @@ OCAMLFIND=@OCAMLFIND@
 OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
-OCAMLP4WHERE=`$(COMPILETOOL) camlp4 -where`
+OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
 OCAMLCORE=\
 	rm -rf swig.mli swig.ml swigp4.ml && \
 	$(SWIG) -ocaml -co swig.mli 2>/dev/null &&  \
@@ -1136,7 +1153,7 @@ ruby_cpp_static: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 ruby_run:
-	$(RUNTOOL) $(RUBY) -I. $(RUBY_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1403,6 +1420,8 @@ CSHARPCOMPILER = @CSHARPCOMPILER@
 CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
 CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
 CSHARPCFLAGS = @CSHARPCFLAGS@
+CSHARPFLAGS =
+CSHARPOPTIONS =
 CSHARPSO = @CSHARPSO@
 CSHARP_RUNME = $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$(RUNME).exe
 
@@ -1435,7 +1454,7 @@ SRCDIR_CSHARPSRCS =
 endif
 
 csharp_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS) $(SRCDIR_CSHARPSRCS)
+	$(COMPILETOOL) $(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPOPTIONS) $(CSHARPSRCS) $(SRCDIR_CSHARPSRCS)
 
 # -----------------------------------------------------------------
 # Run CSharp example
@@ -1497,6 +1516,12 @@ lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
 	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+lua_externalhdr:
+	$(SWIG) -lua -external-runtime $(TARGET)
+
+lua_swig_cpp:
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 
 # -----------------------------------------------------------------
 # Build statically linked Lua interpreter
@@ -1702,7 +1727,7 @@ R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
 R_CFLAGS=-fPIC
-R_SCRIPT=$(RUNME).R
+R_SCRIPT=$(SRCDIR)$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
@@ -1722,7 +1747,6 @@ endif
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
 # ----------------------------------------------------------------
-
 r_cpp: $(SRCDIR_CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(SRCDIR_CXXSRCS),)
@@ -1755,31 +1779,91 @@ r_clean:
 	rm -f $(RRSRC) $(RUNME).Rout .RData
 
 ##################################################################
+#####                 SCILAB                                ######
+##################################################################
+
+SCILAB = @SCILAB@
+SCILAB_INC= @SCILABINCLUDE@
+SCILAB_OPT = @SCILABOPT@
+SCILAB_LIBPREFIX = lib
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab:
+	$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab_cpp:
+	$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Running a Scilab example
+# -----------------------------------------------------------------
+
+scilab_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Scilab version
+# -----------------------------------------------------------------
+
+scilab_version:
+	echo `$(SCILAB) -version | head -1`
+
+# -----------------------------------------------------------------
+# Cleaning the scilab examples
+# -----------------------------------------------------------------
+
+scilab_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.sce
+
+##################################################################
 #####                        Go                             ######
 ##################################################################
 
+# TODO: The Go make targets need simplifying to use configure time
+# configuration or to use Make's ifeq rather than using lots of
+# runtime shell code. The output will then be a lot less verbose.
+
 GO = @GO@
 GOGCC = @GOGCC@
+GCCGO = @GCCGO@
 GO1 = @GO1@
 GO12 = @GO12@
 GO13 = @GO13@
+GO15 = @GO15@
 GOC = @GOC@
 GOOPT = @GOOPT@
+GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) ; then echo -pack ; fi`
+GOCOMPILEARG = `if $(GO15); then echo tool compile; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi` `if $(GO13) || $(GO15); then echo -pack ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
 
-GOLD = $(GOC:c=l)
+GOLD = `if $(GO15); then echo link; else echo $(GOC:c=l); fi`
 GOTOOL = `if $(GO1) ; then echo go tool; fi`
 GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
-GOPACKAGE = $(INTERFACE:.i=.a)
+GOPACKAGE = $(notdir $(INTERFACE:.i=.a))
 
-GOOBJEXT = $(GOC:c=)
+GOPATHDIR = gopath/src/$(INTERFACE:.i=)
+
+GOOBJEXT = `if $(GO15); then echo o; else echo $(GOC:c=); fi`
 GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
 GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 
@@ -1787,19 +1871,21 @@ GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 # Build a Go module (C)
 # ----------------------------------------------------------------
 
-go: $(SRCDIR_SRCS)
+go_nocgo: $(SRCDIR_SRCS)
 	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	if $(GO12) || $(GO13) || $(GOGCC); then \
+	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
 	  $(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
 	else \
 	  $(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES); \
 	  $(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
-	if ! $(GOGCC) ; then \
+	if $(GOGCC) ; then \
+	  $(COMPILETOOL) $(GCCGO) -g -c -I . $(GOSRCS); \
+	else \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS); \
 	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
 	  rm -f $(GOPACKAGE); \
-	  if $(GO13); then \
+	  if $(GO13) || $(GO15); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
 	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
 	  elif $(GO12); then \
@@ -1809,12 +1895,54 @@ go: $(SRCDIR_SRCS)
 	  fi; \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
-	  elif $(GO12) || $(GO13); then \
+	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS); \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
+	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
+	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  fi; \
+	fi
+
+go: $(SRCDIR_SRCS)
+	$(SWIG) -go -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	@mkdir gopath 2>/dev/null || true
+	@mkdir gopath/src 2>/dev/null || true
+	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
+	rm -f $(GOPATHDIR)/*
+	cp $(ISRCS) $(GOPATHDIR)/
+	if test -f $(IWRAP:.i=.h); then \
+	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	fi
+	if test -n "$(SRCDIR_SRCS)"; then \
+	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	fi
+	cp $(GOSRCS) $(GOPATHDIR)/
+	GOPATH=`pwd`/gopath; \
+	export GOPATH; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
+	export CGO_CPPFLAGS; \
+	CGO_CFLAGS="$(CFLAGS)"; \
+	export CGO_CFLAGS; \
+	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	export CGO_LDFLAGS; \
+	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
+	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
+	if $(GOGCC); then \
+	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
+	fi
+	if test -f $(SRCDIR)$(RUNME).go; then \
+	  if $(GOGCC) ; then \
+	    $(COMPILETOOL) $(GCCGO) -c -g $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE); \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CC)" -extldflags "$(CFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  else \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  fi; \
 	fi
@@ -1823,19 +1951,29 @@ go: $(SRCDIR_SRCS)
 # Build a Go module (C++)
 # ----------------------------------------------------------------
 
-go_cpp: $(SRCDIR_SRCS)
+go_cpp_nocgo: $(SRCDIR_SRCS)
 	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	if $(GO12) || $(GO13) || $(GOGCC); then \
-	  $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
+	if $(GO12) || $(GO13) || $(GO15) || $(GOGCC); then \
+	  if test -n "$(SRCDIR_CXXSRCS)$(SRCDIR_SRCS)"; then \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_CXXSRCS) $(SRCDIR_SRCS) $(INCLUDES); \
+	  fi; \
+	  $(foreach f,$(ICXXSRCS), \
+	    $(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) -o $(addsuffix .@OBJEXT@,$(basename $f)) $f $(INCLUDES); \
+	  ) \
 	else \
 	  $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES); \
 	  $(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO); \
 	fi
-	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} $(GOCSRCS); \
+	  $(foreach f,$(GOSRCS), \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f \
+	  ); \
+	  $(foreach f,$(GOCSRCS), \
+	    $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`} \
+	    -o $(addsuffix .$(GOOBJEXT),$(basename $f)) $f; \
+	  ) \
 	  rm -f $(GOPACKAGE); \
-	  if $(GO13); then \
+	  if $(GO13) || $(GO15); then \
 	    cp $(GOGCOBJS) $(GOPACKAGE); \
 	    $(COMPILETOOL) $(GOPACK) r $(GOPACKAGE) $(GOCSRCS:.c=.$(GOOBJEXT)) $(OBJS) $(IOBJS); \
 	  elif $(GO12); then \
@@ -1843,14 +1981,65 @@ go_cpp: $(SRCDIR_SRCS)
 	  else \
 	    $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	  fi; \
+	else \
+	  $(foreach f,$(GOSRCS), \
+	    $(COMPILETOOL) $(GCCGO) -g -c -I . -o $(addsuffix .@OBJEXT@,$(basename $f)) $f \
+	  ); \
 	fi
 	if test -f $(SRCDIR)$(RUNME).go; then \
-	  $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	  if $(GOGCC) ; then \
-	    $(COMPILETOOL) $(GO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
-	  elif $(GO12) || $(GO13); then \
+	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(GOGCCOBJS) $(OBJS) $(IOBJS) -lstdc++; \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
+	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  else \
+	    $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  fi; \
+	fi
+
+go_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -go -c++ -cgo $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	@mkdir gopath 2>/dev/null || true
+	@mkdir gopath/src 2>/dev/null || true
+	@mkdir gopath/src/$(INTERFACE:.i=) 2>/dev/null || true
+	rm -f $(GOPATHDIR)/*
+	cp $(ICXXSRCS) $(GOPATHDIR)/
+	if test -f $(IWRAP:.i=.h); then \
+	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	fi
+	if test -n "$(SRCDIR_CXXSRCS)"; then \
+	  cp $(SRCDIR_CXXSRCS) $(GOPATHDIR)/; \
+	fi
+	if test -n "$(SRCDIR_SRCS)"; then \
+	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	fi
+	cp $(GOSRCS) $(GOPATHDIR)/
+	GOPATH=`pwd`/gopath; \
+	export GOPATH; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
+	export CGO_CPPFLAGS; \
+	CGO_CFLAGS="$(CFLAGS)"; \
+	export CGO_CFLAGS; \
+	CGO_CXXFLAGS="$(CXXFLAGS)"; \
+	export CGO_CXXFLAGS; \
+	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	export CGO_LDFLAGS; \
+	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE))
+	cp $(GOPATHDIR)/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE)
+	if $(GOGCC); then \
+	  cp $(dir $(INTERFACE))/$(GOPACKAGE) $(dir $(INTERFACE))/$(GOPACKAGE:.a=.gox); \
+	fi
+	if test -f $(SRCDIR)$(RUNME).go; then \
+	  if $(GOGCC) ; then \
+	    $(COMPILETOOL) $(GCCGO) -g -c $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GCCGO) -o $(RUNME) $(RUNME).@OBJEXT@ $(dir $(INTERFACE))/$(GOPACKAGE) -lstdc++; \
+	  elif $(GO12) || $(GO13) || $(GO15); then \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -o $(RUNME).$(GOOBJEXT) $(SRCDIR)$(RUNME).go; \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -linkmode external -extld "$(CXX)" -extldflags "$(CXXFLAGS) $(LDFLAGS)" -o $(RUNME) $(RUNME).$(GOOBJEXT); \
+	  else \
+	    $(COMPILETOOL) $(GO) $(GOCOMPILEARG) $(SRCDIR)$(RUNME).go; \
 	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT:-`go env GOROOT`}/pkg/$${GOOS:-`go env GOOS`}_$${GOARCH:-`go env GOARCH`}:. -o $(RUNME) $(RUNME).$(GOOBJEXT); \
 	  fi; \
 	fi
@@ -1860,7 +2049,7 @@ go_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 go_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1874,7 +2063,8 @@ go_version:
 # -----------------------------------------------------------------
 
 go_clean:
-	rm -f *_wrap* *_gc* .~* $(RUNME) $(GOSRCS)
+	rm -f *_wrap* *_gc* *.gox .~* $(RUNME) $(GOSRCS)
+	rm -rf gopath
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
 

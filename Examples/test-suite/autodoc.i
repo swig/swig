@@ -1,4 +1,4 @@
-%module(docstring="hello") autodoc
+%module(docstring="hello.") autodoc
 
 %feature("autodoc");
 
@@ -27,7 +27,7 @@
 %feature("autodoc","2") A::variable_c; // extended
 %feature("autodoc","3") A::variable_d; // extended + types
 
-%feature("autodoc","just a string") A::funk; // names
+%feature("autodoc","just a string.") A::funk; // names
 
 %inline {
 

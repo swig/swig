@@ -2,7 +2,7 @@
 
 // Test __LINE__ and __FILE__ (don't change line numbering in here else runtime tests will need modifying)
 #define MYLINE __LINE__
-#define MYLINE_ADJUSTED __LINE__ + 100 
+#define MYLINE_ADJUSTED __LINE__ + 100
 
 #define MYFILE __FILE__
 #define MYFILE_ADJUSTED __FILE__ ".bak"
@@ -78,7 +78,7 @@ struct NAME { \
   int num; \
 };
 #endif
-KLASS(SillyMultipleMacroStruct)
+KLASS(SillyMulMacroStruc)
 %}
 
 %inline %{

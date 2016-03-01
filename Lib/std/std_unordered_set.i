@@ -77,9 +77,9 @@
 
 namespace std {
 
-  template <class _Key, class _Hash = std::hash<_Key>,
-            class _Compare = std::equal_to<_Key>,
-	    class _Alloc = allocator<_Key> >
+  template <class _Key, class _Hash = std::hash< _Key >,
+            class _Compare = std::equal_to< _Key >,
+	    class _Alloc = allocator< _Key > >
   class unordered_set {
   public:
     typedef size_t size_type;
@@ -95,11 +95,11 @@ namespace std {
 
     %traits_swigtype(_Key);
 
-    %fragment(SWIG_Traits_frag(std::unordered_set<_Key, _Hash, _Compare, _Alloc >), "header",
+    %fragment(SWIG_Traits_frag(std::unordered_set< _Key, _Hash, _Compare, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(_Key),
 	      fragment="StdUnorderedSetTraits") {
       namespace swig {
-	template <>  struct traits<std::unordered_set<_Key, _Hash, _Compare, _Alloc > > {
+	template <>  struct traits<std::unordered_set< _Key, _Hash, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::unordered_set<" #_Key "," #_Hash "," #_Compare "," #_Alloc " >";
@@ -108,13 +108,13 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::unordered_set<_Key, _Hash, _Compare, _Alloc >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_SET, std::unordered_set< _Key, _Hash, _Compare, _Alloc >);
 
     unordered_set( const _Compare& );
 
 #ifdef %swig_unordered_set_methods
     // Add swig/language extra methods
-    %swig_unordered_set_methods(std::unordered_set<_Key, _Hash, _Compare, _Alloc >);
+    %swig_unordered_set_methods(std::unordered_set< _Key, _Hash, _Compare, _Alloc >);
 #endif
   
     %std_unordered_set_methods(unordered_set);

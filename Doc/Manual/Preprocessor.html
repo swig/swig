@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG Preprocessor</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Preprocessor"></a>8 Preprocessing</H1>
+<H1><a name="Preprocessor">8 Preprocessing</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -37,7 +38,7 @@ However, a number of modifications and enhancements have been made.  This
 chapter describes some of these modifications.
 </p>
 
-<H2><a name="Preprocessor_nn2"></a>8.1 File inclusion</H2>
+<H2><a name="Preprocessor_nn2">8.1 File inclusion</a></H2>
 
 
 <p>
@@ -63,7 +64,7 @@ By default, the <tt>#include</tt> is ignored unless you run SWIG with the
 is that you often don't want SWIG to try and wrap everything included
 in standard header system headers and auxiliary files.
 
-<H2><a name="Preprocessor_nn3"></a>8.2 File imports</H2>
+<H2><a name="Preprocessor_nn3">8.2 File imports</a></H2>
 
 
 <p>
@@ -92,7 +93,7 @@ The <tt>-importall</tt> directive tells SWIG to follow all <tt>#include</tt> sta
 as imports.    This might be useful if you want to extract type definitions from system 
 header files without generating any wrappers.
 
-<H2><a name="Preprocessor_condition_compilation"></a>8.3 Conditional Compilation</H2>
+<H2><a name="Preprocessor_condition_compilation">8.3 Conditional Compilation</a></H2>
 
 
 <p>
@@ -120,7 +121,7 @@ SWIG_JAVASCRIPT_JSC             Defined when using Javascript for JavascriptCore
 SWIG_JAVASCRIPT_V8              Defined when using Javascript for v8 or node.js 
 SWIGLUA                         Defined when using Lua
 SWIGMODULA3                     Defined when using Modula-3
-SWIGMZSCHEME                    Defined when using Mzscheme        
+SWIGMZSCHEME                    Defined when using Mzscheme
 SWIGOCAML                       Defined when using Ocaml
 SWIGOCTAVE                      Defined when using Octave
 SWIGPERL                        Defined when using Perl
@@ -129,6 +130,7 @@ SWIGPIKE                        Defined when using Pike
 SWIGPYTHON                      Defined when using Python
 SWIGR                           Defined when using R
 SWIGRUBY                        Defined when using Ruby
+SWIGSCILAB                      Defined when using Scilab
 SWIGSEXP                        Defined when using S-expressions
 SWIGTCL                         Defined when using Tcl
 SWIGXML                         Defined when using XML
@@ -155,7 +157,7 @@ SWIG (except for the symbol `<tt>SWIG</tt>' which is only defined
 within the SWIG compiler).
 </p>
 
-<H2><a name="Preprocessor_nn5"></a>8.4 Macro Expansion</H2>
+<H2><a name="Preprocessor_nn5">8.4 Macro Expansion</a></H2>
 
 
 <p>
@@ -210,7 +212,7 @@ like <tt>#x</tt>.  This is a non-standard SWIG extension.
 </li>
 </ul>
 
-<H2><a name="Preprocessor_nn6"></a>8.5 SWIG Macros</H2>
+<H2><a name="Preprocessor_nn6">8.5 SWIG Macros</a></H2>
 
 
 <p>
@@ -256,7 +258,7 @@ many of SWIG's advanced features and libraries are built using this mechanism (s
 support).
 </p>
 
-<H2><a name="Preprocessor_nn7"></a>8.6 C99 and GNU Extensions</H2>
+<H2><a name="Preprocessor_nn7">8.6 C99 and GNU Extensions</a></H2>
 
 
 <p>
@@ -312,14 +314,14 @@ interface building.   However, they are used internally to implement a number of
 SWIG directives and are provided to make SWIG more compatible with C99 code.
 </p>
 
-<H2><a name="Preprocessor_delimiters"></a>8.7 Preprocessing and delimiters</H2>
+<H2><a name="Preprocessor_delimiters">8.7 Preprocessing and delimiters</a></H2>
 
 
 <p>
 The preprocessor handles { }, " " and %{ %} delimiters differently.
 </p>
 
-<H3><a name="Preprocessor_nn8"></a>8.7.1 Preprocessing and %{ ... %} &amp; " ... " delimiters</H3>
+<H3><a name="Preprocessor_nn8">8.7.1 Preprocessing and %{ ... %} &amp; " ... " delimiters</a></H3>
 
 
 <p>
@@ -344,7 +346,7 @@ the contents of the <tt>%{ ... %}</tt> block are copied without
 modification to the output (including all preprocessor directives).
 </p>
 
-<H3><a name="Preprocessor_nn9"></a>8.7.2 Preprocessing and { ... } delimiters</H3>
+<H3><a name="Preprocessor_nn9">8.7.2 Preprocessing and { ... } delimiters</a></H3>
 
 
 <p>
@@ -386,7 +388,7 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the code.
 </p>
 
-<H2><a name="Preprocessor_typemap_delimiters"></a>8.8 Preprocessor and Typemaps</H2>
+<H2><a name="Preprocessor_typemap_delimiters">8.8 Preprocessor and Typemaps</a></H2>
 
 
 <p>
@@ -457,7 +459,7 @@ would generate
 </div>
 
 
-<H2><a name="Preprocessor_nn10"></a>8.9 Viewing preprocessor output</H2>
+<H2><a name="Preprocessor_nn10">8.9 Viewing preprocessor output</a></H2>
 
 
 <p>
@@ -467,7 +469,7 @@ Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>
 
-<H2><a name="Preprocessor_warning_error"></a>8.10 The #error and #warning directives</H2>
+<H2><a name="Preprocessor_warning_error">8.10 The #error and #warning directives</a></H2>
 
 
 <p>

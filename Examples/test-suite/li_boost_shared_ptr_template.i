@@ -15,6 +15,7 @@
     class Base {
   public:
     virtual T bar() {return 1;}
+    virtual ~Base() {}
   };
 
   template <class T> 
@@ -29,7 +30,7 @@
 
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -79,6 +80,7 @@ template <class X, class T = int>
 class BaseDefault {
   public:
   virtual T bar2() {return 3;}
+  virtual ~BaseDefault() {}
 };
 
 template <class X, class T = int> 

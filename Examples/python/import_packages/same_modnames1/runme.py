@@ -8,6 +8,12 @@ import pkg2.foo
 print "  Finished importing pkg2.foo"
 
 var2 = pkg2.foo.Pkg2_Foo()
-if str(type(var2)).find("'pkg2.foo.Pkg2_Foo'") == -1:
-  raise RuntimeError("failed type checking: " + str(type(var2)))
+
+classname = str(type(var2))
+# Check for an old-style class if swig was run in -classic mode
+if classname == "<type 'instance'>":
+    classname = str(var2.__class__)
+
+if classname.find("pkg2.foo.Pkg2_Foo") == -1:
+    raise RuntimeError("failed type checking: " + classname)
 print "  Successfully created object pkg2.foo.Pkg2_Foo"

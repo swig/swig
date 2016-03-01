@@ -20,13 +20,5 @@ public class default_constructor_runme {
           throw new RuntimeException("Protected destructor exception should have been thrown");
       } catch (UnsupportedOperationException e) {
       }
-
-      // calling private destructor test
-      try {
-          FFF f = new FFF();
-          f.delete();
-          throw new RuntimeException("Private destructor exception should have been thrown");
-      } catch (UnsupportedOperationException e) {
-      }
   }
 }

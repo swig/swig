@@ -1,6 +1,8 @@
 from director_thread import Foo
 
-class Derived(Foo) :
+
+class Derived(Foo):
+
     def __init__(self):
         Foo.__init__(self)
 

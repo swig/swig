@@ -1,7 +1,9 @@
 #!/bin/sh
-builddir=`dirname $0`
-srcdir=`cd "$builddir" && cd '@srcdir@' && pwd`
-SWIG_LIB=$srcdir/Lib
-#SWIG_LIB=`cygpath -w $srcdir/Lib` # For native Windows version of SWIG
+
+# Convenience script for running SWIG before it is installed.
+# Intended for ad-hoc usage and not by the test-suite or examples.
+
+builddir=`dirname "$0"`
+SWIG_LIB='@SWIG_LIB_PREINST@'
 export SWIG_LIB
 exec "$builddir/swig" "$@"

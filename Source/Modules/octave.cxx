@@ -19,8 +19,10 @@ static String *op_prefix   = 0;
 
 static const char *usage = "\
 Octave Options (available with -octave)\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
                        Use '.' to load C global variables into module namespace\n\
+     -nocppcast      - Disable C++ casting operators\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";
 
@@ -90,6 +92,8 @@ public:
   }
 
   virtual void main(int argc, char *argv[]) {
+    int cppcast = 1;
+      
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
@@ -112,6 +116,12 @@ public:
           } else {
             Swig_arg_error();
           }
+        } else if (strcmp(argv[i], "-cppcast") == 0) {
+ 	  cppcast = 1;
+ 	  Swig_mark_arg(i);
+ 	} else if (strcmp(argv[i], "-nocppcast") == 0) {
+ 	  cppcast = 0;
+ 	  Swig_mark_arg(i);
         }
       }
     }
@@ -120,6 +130,8 @@ public:
       global_name = NewString("cvar");
     if (!op_prefix)
       op_prefix = NewString("op_");
+    if(cppcast)
+      Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
 
     SWIG_library_directory("octave");
     Preprocessor_define("SWIGOCTAVE 1", 0);
@@ -182,8 +194,8 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOCTAVE\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGOCTAVE\n#define SWIGOCTAVE\n#endif\n\n");
+
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
@@ -216,11 +228,13 @@ public:
     if (Len(docs))
       emit_doc_texinfo();
 
-    if (directorsEnabled())
+    if (directorsEnabled()) {
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
+    }
 
     Printf(f_init, "return true;\n}\n");
-    Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
+    Printf(s_global_tab, "{0,0,0,0,0,0}\n};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -952,7 +966,14 @@ public:
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType_add_pointer(t);
 
+    // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+    SwigType *smart = Swig_cparse_smartptr(n);
     String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
+    if (smart) {
+      SwigType_add_pointer(smart);
+      SwigType_remember_clientdata(smart, wrap_class);
+    }
+    //String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
     SwigType_remember_clientdata(t, wrap_class);
 
     int use_director = Swig_directorclass(n);
@@ -977,7 +998,7 @@ public:
       Delete(cnameshdw);
     }
 
-    Printf(s_members_tab, "{0,0,0,0}\n};\n");
+    Printf(s_members_tab, "{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers, s_members_tab, NIL);
 
     String *base_class_names = NewString("");
@@ -1031,6 +1052,7 @@ public:
 
     Delete(base_class);
     Delete(base_class_names);
+    Delete(smart);
     Delete(t);
     Delete(s_members_tab);
     s_members_tab = 0;
@@ -1354,7 +1376,7 @@ public:
                SwigType_namestr(name));
       }
     } else {
-      // attach typemaps to arguments (C/C++ -> Python)
+      // attach typemaps to arguments (C/C++ -> Octave)
       String *parse_args = NewString("");
 
       Swig_director_parms_fixup(l);

@@ -65,9 +65,11 @@
 #endif
 
 /* exporting methods */
-#if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-#  ifndef GCC_HASCLASSVISIBILITY
-#    define GCC_HASCLASSVISIBILITY
+#if defined(__GNUC__)
+#  if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#    ifndef GCC_HASCLASSVISIBILITY
+#      define GCC_HASCLASSVISIBILITY
+#    endif
 #  endif
 #endif
 
@@ -106,3 +108,16 @@
 # define _SCL_SECURE_NO_DEPRECATE
 #endif
 
+/* Deal with Apple's deprecated 'AssertMacros.h' from Carbon-framework */
+#if defined(__APPLE__) && !defined(__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES)
+# define __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES 0
+#endif
+
+/* Intel's compiler complains if a variable which was never initialised is
+ * cast to void, which is a common idiom which we use to indicate that we
+ * are aware a variable isn't used.  So we just silence that warning.
+ * See: https://github.com/swig/swig/issues/192 for more discussion.
+ */
+#ifdef __INTEL_COMPILER
+# pragma warning disable 592
+#endif

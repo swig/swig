@@ -15,7 +15,7 @@
 
 (defvar *swig-source-directory* #p"/home/mkoeppe/s/swig1.3/")
 
-(defvar *swig-program* (merge-pathnames "preinst-swig" *swig-source-directory*))
+(defvar *swig-program* (merge-pathnames "swig" *swig-source-directory*))
 
 (defun run-swig (swig-interface-file-name &key directory-search-list module
 		 ignore-errors c++)

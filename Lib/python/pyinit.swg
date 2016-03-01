@@ -183,10 +183,19 @@ swig_varlink_type(void) {
       0,                                  /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                  /* tp_version */
+      0,                                  /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                  /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                             /* tp_alloc -> tp_next */
+      0,                                  /* tp_allocs */
+      0,                                  /* tp_frees */
+      0,                                  /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                  /* tp_prev */
+#endif
+      0                                   /* tp_next */
 #endif
     };
     varlink_type = tmp;
@@ -275,7 +284,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
   size_t i;
   for (i = 0; methods[i].ml_name; ++i) {
     const char *c = methods[i].ml_doc;
-    if (c && (c = strstr(c, "swig_ptr: "))) {
+    if (!c) continue;
+    c = strstr(c, "swig_ptr: ");
+    if (c) {
       int j;
       swig_const_info *ci = 0;
       const char *name = c + 10;

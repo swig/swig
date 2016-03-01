@@ -24,6 +24,10 @@ extern "C" {
 # define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
 #endif
 
+#ifndef ZEND_FE_END
+# define ZEND_FE_END { NULL, NULL, NULL }
+#endif
+
 #ifndef Z_SET_ISREF_P
 /* For PHP < 5.3 */
 # define Z_SET_ISREF_P(z) (z)->is_ref = 1

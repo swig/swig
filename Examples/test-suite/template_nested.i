@@ -114,6 +114,8 @@ namespace ns {
   };
 }
 %}
+
+#if !defined(SWIGSCILAB)
 %extend ns::OuterClass {
   %template(T_OuterClassInner2Double) Inner2<double>;
 }
@@ -125,3 +127,14 @@ namespace ns {
 %template(T_OuterClassInner1Int) ns::OuterClass::Inner1<int>;
 %template(T_OuterClassInner2NormalClass) ns::OuterClass::Inner2<ns::NormalClass>;
 %template(T_OuterClassInner2Int) ns::OuterClass::Inner2<int>;
+
+#else
+%extend ns::OuterClass {
+  %template(T_OutClsIn2Dbl) Inner2<double>;
+}
+
+%template(T_OutClsIn1Int) ns::OuterClass::Inner1<int>;
+%template(T_OutClsIn2NormCls) ns::OuterClass::Inner2<ns::NormalClass>;
+%template(T_OutClsIn2Int) ns::OuterClass::Inner2<int>;
+
+#endif

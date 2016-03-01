@@ -9,8 +9,18 @@ SWIGINTERN void					\
 wrapper##_closure(PyObject *a) {		\
     SwigPyObject *sobj;				\
     sobj = (SwigPyObject *)a;			\
+    Py_XDECREF(sobj->dict);			\
     if (sobj->own) {				\
-	PyObject *o = wrapper(a, NULL);		\
+	PyObject *o;				\
+	PyObject *val = 0, *type = 0, *tb = 0;	\
+	PyErr_Fetch(&val, &type, &tb);		\
+	o = wrapper(a, NULL);			\
+	if (!o) {				\
+	    PyObject *deallocname = PyString_FromString(#wrapper); \
+	    PyErr_WriteUnraisable(deallocname);	\
+	    Py_DECREF(deallocname);		\
+	}					\
+	PyErr_Restore(val, type, tb);		\
 	Py_XDECREF(o);				\
     }						\
     if (PyType_IS_GC(a->ob_type)) {		\
@@ -63,7 +73,7 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
 
 #define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
-wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) {	\
+wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) { \
     return wrapper(callable_object, args);			\
 }
 
@@ -123,7 +133,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     return result;					\
 }
 
-#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
+#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *					\
 wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *arg, *result;				\
@@ -432,10 +442,19 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-      0,                                        /* tp_version */
+      0,                                        /* tp_version_tag */
+#endif
+#if PY_VERSION_HEX >= 0x03040000
+      0,                                        /* tp_finalize */
 #endif
 #ifdef COUNT_ALLOCS
-      0,0,0,0                                   /* tp_alloc -> tp_next */
+      0,                                        /* tp_allocs */
+      0,                                        /* tp_frees */
+      0,                                        /* tp_maxalloc */
+#if PY_VERSION_HEX >= 0x02050000
+      0,                                        /* tp_prev */
+#endif
+      0                                         /* tp_next */
 #endif
     };
     staticvar_type = tmp;

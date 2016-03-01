@@ -940,7 +940,7 @@ int Language::cDeclaration(Node *n) {
   }
 
   if (!validIdentifier(symname)) {
-    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n", symname);
+    Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
   }
 
@@ -3676,14 +3676,26 @@ int Language::abstractClassTest(Node *n) {
     return 0;
   if (Getattr(n, "allocate:nonew"))
     return 1;
+
+  // A class cannot be instantiated if one of its bases has a private destructor
+  // Note that if the above does not hold the class can be instantiated if its own destructor is private
+  List *bases = Getattr(n, "bases");
+  if (bases) {
+    for (int i = 0; i < Len(bases); i++) {
+      Node *b = Getitem(bases, i);
+      if (GetFlag(b, "allocate:private_destructor"))
+	return 1;
+    }
+  }
+
   /* now check for the rest */
   List *abstracts = Getattr(n, "abstracts");
   if (!abstracts)
     return 0;
   int labs = Len(abstracts);
 #ifdef SWIG_DEBUG
-  List *bases = Getattr(n, "allbases");
-  Printf(stderr, "testing %s %d %d\n", Getattr(n, "name"), labs, Len(bases));
+  List *allbases = Getattr(n, "allbases");
+  Printf(stderr, "testing %s %d %d\n", Getattr(n, "name"), labs, Len(allbases));
 #endif
   if (!labs)
     return 0;			/*strange, but need to be fixed */

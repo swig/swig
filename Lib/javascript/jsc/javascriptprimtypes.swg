@@ -76,11 +76,12 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
+  long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  long longVal = (long) JSValueToNumber(context, obj, NULL);
+  longVal = (long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -97,18 +98,21 @@ SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 
 %fragment(SWIG_From_frag(long long),"header",
     fragment=SWIG_From_frag(long),
-    fragment="<limits.h>") {
+    fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE JSValueRef
 SWIG_From_dec(long long)(long long value)
 {
   return JSValueMakeNumber(context, value);
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
     fragment=SWIG_AsVal_frag(long),
     fragment="SWIG_CanCastAsInteger",
-    fragment="<limits.h>") {
+    fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 {
@@ -119,6 +123,7 @@ SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 
   return SWIG_OK;
 }
+%#endif
 }
 
 /* unsigned long long */
@@ -126,27 +131,31 @@ SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
 	  fragment=SWIG_From_frag(long long),
-	  fragment="<limits.h>") {
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN JSValueRef
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
     JSValueMakeNumber(context, value) : JSValueMakeNumber(context, %numeric_cast(value,long));
 }
+%#endif
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
     fragment=SWIG_AsVal_frag(unsigned long),
     fragment="SWIG_CanCastAsInteger",
-    fragment="<limits.h>") {
+   fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
+  long long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  long long longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
+  longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -156,6 +165,7 @@ SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 
   return SWIG_OK;
 }
+%#endif
 }
 
 /* double */

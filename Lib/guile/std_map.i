@@ -43,9 +43,9 @@ namespace std {
     template<class K, class T> class map {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
                     K* k;
@@ -77,10 +77,10 @@ namespace std {
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
@@ -109,8 +109,7 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$i.rbegin(); 
-                                                  i!=$i.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$i.rbegin(); i!=$i.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
@@ -156,7 +155,7 @@ namespace std {
                 }
             } else {
                 /* wrapped map? */
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -201,7 +200,7 @@ namespace std {
                 }
             } else {
                 /* wrapped map? */
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -222,14 +221,14 @@ namespace std {
         typedef K key_type;
         typedef T mapped_type;
         map();
-        map(const map<K,T> &);
+        map(const map< K, T> &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             const T& __getitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -239,20 +238,19 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(const K& key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
-                                                      i!=self->rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scm_cons(k,result);
@@ -270,9 +268,9 @@ namespace std {
     template<class T> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
                     T* x;
@@ -305,10 +303,10 @@ namespace std {
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
@@ -338,8 +336,7 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 T* val = new T(i->second);
                 SCM k = CONVERT_TO(i->first);
                 SCM x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
@@ -382,7 +379,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -425,7 +422,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -442,14 +439,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T > &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T& __getitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -459,20 +456,19 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
-                                                      i!=self->rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     SCM k = CONVERT_TO(i->first);
                     result = scm_cons(k,result);
                 }
@@ -486,9 +482,9 @@ namespace std {
     template<class K> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
                     K* k;
@@ -520,10 +516,10 @@ namespace std {
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
@@ -552,8 +548,7 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                 SCM x = CONVERT_TO(i->second);
@@ -595,7 +590,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -637,7 +632,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -654,14 +649,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T > &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T __getitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -671,20 +666,19 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(const K& key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
-                                                      i!=self->rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scm_cons(k,result);
@@ -700,9 +694,9 @@ namespace std {
     template<> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
-                $1 = std::map<K,T >();
+                $1 = std::map< K, T >();
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
                     SCM entry, key, val;
@@ -736,10 +730,10 @@ namespace std {
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
             if (scm_is_null($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
-                temp = std::map<K,T >();
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
                 while (!scm_is_null(alist)) {
@@ -769,8 +763,7 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 SCM k = CONVERT_K_TO(i->first);
                 SCM x = CONVERT_T_TO(i->second);
                 SCM entry = scm_cons(k,x);
@@ -809,7 +802,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -849,7 +842,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -866,14 +859,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T> &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T __getitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -883,20 +876,19 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
-                                                      i!=self->rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     SCM k = CONVERT_K_TO(i->first);
                     result = scm_cons(k,result);
                 }

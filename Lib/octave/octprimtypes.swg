@@ -97,15 +97,20 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 
 // long long
 
-%fragment(SWIG_From_frag(long long),"header") {
+%fragment(SWIG_From_frag(long long),"header",
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
   SWIGINTERNINLINE octave_value SWIG_From_dec(long long)  (long long value)
     {    
       return octave_int64(value);
     }
+%#endif
 }
 
 
-%fragment(SWIG_AsVal_frag(long long),"header") {
+%fragment(SWIG_AsVal_frag(long long),"header",
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
   SWIGINTERN int SWIG_AsVal_dec(long long)(const octave_value& ov, long long* val)
     {
       if (!ov.is_scalar_type())
@@ -127,16 +132,22 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
       }
       return SWIG_OK;
     }
+%#endif
 }
 
-%fragment(SWIG_From_frag(unsigned long long),"header") {
+%fragment(SWIG_From_frag(unsigned long long),"header",
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
   SWIGINTERNINLINE octave_value SWIG_From_dec(unsigned long long)  (unsigned long long value)
     {    
       return octave_uint64(value);
     }
+%#endif
 }
 
-%fragment(SWIG_AsVal_frag(unsigned long long),"header") {
+%fragment(SWIG_AsVal_frag(unsigned long long),"header",
+	  fragment="SWIG_LongLongAvailable") {
+%#ifdef SWIG_LONG_LONG_AVAILABLE
   SWIGINTERN int SWIG_AsVal_dec(unsigned long long)(const octave_value& ov, unsigned long long* val)
     {
       if (!ov.is_scalar_type())
@@ -171,6 +182,7 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
       }
       return SWIG_OK;
     }
+%#endif
 }
 
 // double

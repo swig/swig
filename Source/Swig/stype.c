@@ -195,7 +195,7 @@ int SwigType_ispointer_return(const SwigType *t) {
   if (!t)
     return 0;
   c = Char(t);
-  idx = strlen(c) - 4;
+  idx = (int)strlen(c) - 4;
   if (idx >= 0) {
     return (strcmp(c + idx, ").p.") == 0);
   }
@@ -208,7 +208,7 @@ int SwigType_isreference_return(const SwigType *t) {
   if (!t)
     return 0;
   c = Char(t);
-  idx = strlen(c) - 4;
+  idx = (int)strlen(c) - 4;
   if (idx >= 0) {
     return (strcmp(c + idx, ").r.") == 0);
   }
@@ -485,7 +485,7 @@ String *SwigType_namestr(const SwigType *t) {
   if (!c || !strstr(c + 2, ")>"))
     return NewString(t);
 
-  r = NewStringWithSize(d, c - d);
+  r = NewStringWithSize(d, (int)(c - d));
   if (*(c - 1) == '<')
     Putc(' ', r);
   Putc('<', r);

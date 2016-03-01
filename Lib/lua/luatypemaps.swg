@@ -122,14 +122,14 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
-%{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, &$1, 1); SWIG_arg++;%}
 
 // by const ref
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char& (char temp)
 %{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
-%{  lua_pushfstring(L,"%c",*$1); SWIG_arg++;%}
+%{  lua_pushlstring(L, $1, 1); SWIG_arg++;%}
 
 // pointers and references
 // under SWIG rules, it is ok, to have a pass in a lua nil,

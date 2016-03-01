@@ -20,9 +20,13 @@
      Bar(){ }
      Bar(int){ }
      
+#if !defined(__SUNPRO_CC)
      operator int() { return 0; }
+#endif
      operator int&() { static int num = 0; return num; }
+#if !defined(__SUNPRO_CC)
      operator Foo<T>() { return Foo<T>(); }
+#endif
      operator Foo<T>&() { return *(new Foo<T>()); }
    }; 
   } 

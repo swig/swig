@@ -13,13 +13,11 @@
 
 #include "swigmod.h"
 #include "cparse.h"
-static int treduce = SWIG_cparse_template_reduce(0);
-
-#define SWIG_PROTECTED_TARGET_METHODS 1
-
 #include <ctype.h>
 #include <string.h>
 #include <limits.h>		/* for INT_MAX */
+
+#define SWIG_PROTECTED_TARGET_METHODS 1
 
 class RClass {
 private:
@@ -234,7 +232,7 @@ private:
 
   /* ------------------------------------------------------------
    * docstring()
-   *    Get the docstring text, stripping off {} if neccessary,
+   *    Get the docstring text, stripping off {} if necessary,
    *    and enclose in triple double quotes.  If autodoc is also
    *    set then it will build a combined docstring.
    * ------------------------------------------------------------ */
@@ -1099,8 +1097,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGRUBY\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGRUBY\n#define SWIGRUBY\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -1171,6 +1168,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -1741,11 +1739,13 @@ public:
 
     /* Now write the wrapper function itself */
     if (current == CONSTRUCTOR_ALLOCATE) {
+      Printv(f->def, "SWIGINTERN VALUE\n", NIL);
       Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(VALUE self) {", NIL);
+      Printv(f->def, wname, "(VALUE self)\n", NIL);
       Printf(f->def, "#else\n");
-      Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printv(f->def, wname, "(int argc, VALUE *argv, VALUE self)\n", NIL);
       Printf(f->def, "#endif\n");
+      Printv(f->def, "{\n", NIL);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
@@ -1794,8 +1794,8 @@ public:
 
     /* if the object is a director, and the method call originated from its
      * underlying Ruby object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * inheritance chain.  otherwise try to resolve the method in Ruby.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 
@@ -1831,10 +1831,19 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-	  Printf(action, "\nDATA_PTR(self) = %s;", Swig_cresult_name());
-	  if (GetFlag(pn, "feature:trackobjects")) {
-	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", Swig_cresult_name());
+          SwigType *smart = Swig_cparse_smartptr(pn);
+	  String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
+	  if (smart) {
+	    String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
+	    Wrapper_add_local(f, result_name, result_var);
+	    Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
 	  }
+	  Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+	  if (GetFlag(pn, "feature:trackobjects")) {
+	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
+	  }
+	  Delete(result_name);
+	  Delete(smart);
 	}
       }
 
@@ -1922,11 +1931,17 @@ public:
 
     /* Extra code needed for new and initialize methods */
     if (current == CONSTRUCTOR_ALLOCATE) {
+      Node *pn = Swig_methodclass(n);
+      SwigType *smart = Swig_cparse_smartptr(pn);
+      if (smart)
+	SwigType_add_pointer(smart);
+      String *classtype = smart ? smart : t;
       need_result = 1;
-      Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(t)));
+      Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
       Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
       Printf(f->code, "#endif\n");
+      Delete(smart);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
     }
@@ -2425,19 +2440,23 @@ public:
 	  SwigType *btype = NewString(basename);
 	  SwigType_add_pointer(btype);
 	  SwigType_remember(btype);
+	  SwigType *smart = Swig_cparse_smartptr(base.item);
+	  if (smart) {
+	    SwigType_add_pointer(smart);
+	    SwigType_remember(smart);
+	  }
+	  String *bmangle = SwigType_manglestr(smart ? smart : btype);
 	  if (multipleInheritance) {
-	    String *bmangle = SwigType_manglestr(btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->mImpl");
 	    Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
-	    Delete(bmangle);
 	  } else {
-	    String *bmangle = SwigType_manglestr(btype);
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->klass");
 	    Replaceall(klass->init, "$super", bmangle);
-	    Delete(bmangle);
 	  }
+	  Delete(bmangle);
+	  Delete(smart);
 	  Delete(btype);
 	}
 	base = Next(base);
@@ -2538,9 +2557,15 @@ public:
     SwigType *tt = NewString(name);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
-    String *tm = SwigType_manglestr(tt);
+    SwigType *smart = Swig_cparse_smartptr(n);
+    if (smart) {
+      SwigType_add_pointer(smart);
+      SwigType_remember(smart);
+    }
+    String *tm = SwigType_manglestr(smart ? smart : tt);
     Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &SwigClass%s);\n", tm, valid_name);
     Delete(tm);
+    Delete(smart);
     Delete(tt);
     Delete(valid_name);
 
@@ -2719,7 +2744,9 @@ public:
     String *pname0 = Swig_cparm_name(0, 0);
 
     Printv(freefunc, "free_", klass->mname, NIL);
-    Printv(freebody, "SWIGINTERN void\n", freefunc, "(", klass->type, " *", pname0, ") {\n", tab4, NIL);
+    Printv(freebody, "SWIGINTERN void\n", freefunc, "(void *self) {\n", NIL);
+    Printv(freebody, tab4, klass->type, " *", pname0, " = (", klass->type, " *)self;\n", NIL);
+    Printv(freebody, tab4, NIL);
 
     /* Check to see if object tracking is activated for the class
        that owns this destructor. */
@@ -2972,6 +2999,7 @@ public:
 	Printf(rescue->code, "if (%s == 0) ", depthCountName);
 	Printv(rescue->code, Str(tm), "\n", NIL);
 	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
+	Printv(rescue->code, "return Qnil;\n", NIL);
 	Printv(rescue->code, "}", NIL);
       }
 

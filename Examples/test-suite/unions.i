@@ -8,7 +8,7 @@ This testcase checks that unions can be set and read.
 /* Must undefine small to work on Windows.  small is defined as a
 char in rpcndr.h */
 #ifdef small
-#undef small	
+#undef small
 #endif
 %}
 
@@ -37,6 +37,12 @@ typedef struct {
     SmallStruct small;
   } uni;
   int           number;
-} EmbeddedUnionTest;
+}
+#if !defined(SWIGSCILAB)
+EmbeddedUnionTest;
+#else
+EmbedUnionTst;
+#endif
 
 %}
+

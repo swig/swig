@@ -100,4 +100,9 @@ void overloadinline2(const int *) {}
 void overload5(int *) {}
 void overload5(const int *) {}
 
-
+%ignore Outer2::QuietInner;
+struct Outer2 {
+  struct QuietInner {
+    VARIABLEMACRO(MyInnerVar)
+  };
+};

@@ -1,8 +1,13 @@
 from implicittest import *
 
+
 def check(a, b):
     if a != b:
         raise RuntimeError(str(a) + " does not equal " + str(b))
+
+
+def is_new_style_class(cls):
+    return hasattr(cls, "__class__")
 
 #### Class ####
 
@@ -17,7 +22,8 @@ try:
 except ValueError:
     # ValueError: invalid null reference in method 'new_A', argument 1 of type 'B const &'
     # Arguably A(char *) should be chosen, but there is a bug to do with None passed to methods overloaded by value,
-    # references and pointers to different types, where pointers ought to be given a slightly higher precedence.
+    # references and pointers to different types, where pointers ought to be
+    # given a slightly higher precedence.
     pass
 
 check(1, get(1))
@@ -39,23 +45,31 @@ check(2, A_int(1.0).get())
 check(3, A_int(B()).get())
 check(4, A_int("hello").get())
 
-check(1, A_int.sget(1))
-check(2, A_int.sget(1.0))
-check(3, A_int.sget(B()))
+if is_new_style_class(A_int):
+    A_int_static = A_int
+else:
+    A_int_static = A_int(0)
+check(1, A_int_static.sget(1))
+check(2, A_int_static.sget(1.0))
+check(3, A_int_static.sget(B()))
 
 # explicit constructor:
 try:
-    check(4, A_int.sget("hello"))
+    check(4, A_int_static.sget("hello"))
     raise RuntimeError
 except TypeError:
     pass
 
 #### Global variable assignment ####
 
-cvar.foo = Foo(1);          check(cvar.foo.ii, 1)
-cvar.foo = 1;               check(cvar.foo.ii, 1)
-cvar.foo = 1.0;             check(cvar.foo.ii, 2)
-cvar.foo = Foo("hello");    check(cvar.foo.ii, 3)
+cvar.foo = Foo(1)
+check(cvar.foo.ii, 1)
+cvar.foo = 1
+check(cvar.foo.ii, 1)
+cvar.foo = 1.0
+check(cvar.foo.ii, 2)
+cvar.foo = Foo("hello")
+check(cvar.foo.ii, 3)
 
 # explicit constructor:
 try:
@@ -67,10 +81,14 @@ except TypeError:
 #### Member variable assignment ####
 # Note: also needs naturalvar
 
-b = Bar();                  check(b.f.ii, 0)
-b.f = Foo("hello");         check(b.f.ii, 3)
-b.f = 1;                    check(b.f.ii, 1)
-b.f = 1.0;                  check(b.f.ii, 2)
+b = Bar()
+check(b.f.ii, 0)
+b.f = Foo("hello")
+check(b.f.ii, 3)
+b.f = 1
+check(b.f.ii, 1)
+b.f = 1.0
+check(b.f.ii, 2)
 
 # explicit constructor:
 try:
@@ -122,4 +140,3 @@ ccc = CCC(B())
 check(ccc.checkvalue, 10)
 check(ccc.xx(123), 11)
 check(ccc.yy(123, 123), 111)
-

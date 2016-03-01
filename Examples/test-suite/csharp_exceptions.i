@@ -198,7 +198,7 @@ enum UnmanagedExceptions {
   UnmanagedSystemException,
   UnmanagedArgumentException,
   UnmanagedArgumentNullException,
-  UnmanagedArgumentOutOfRangeException,
+  UnmanagedArgumentOutOfRangeException
 };
 
 void check_exception(UnmanagedExceptions e) {

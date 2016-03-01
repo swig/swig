@@ -5,8 +5,15 @@ if (t.strlen('hile') != 4) {
   print(t.strlen('hile'));
   throw("bad multi-arg typemap 1");
 }
+if (t.ustrlen('hile') != 4) {
+  print(t.ustrlen('hile'));
+  throw("bad multi-arg typemap 1");
+}
 
 if (t.strlen('hil\0') != 4) {
+  throw("bad multi-arg typemap 2");
+}
+if (t.ustrlen('hil\0') != 4) {
   throw("bad multi-arg typemap 2");
 }
 
@@ -22,6 +29,9 @@ char_binary.pchar_setitem(pc, 4, 0);
 
 
 if (t.strlen(pc) != 4) {
+  throw("bad multi-arg typemap (3)");
+}
+if (t.ustrlen(pc) != 4) {
   throw("bad multi-arg typemap (3)");
 }
 

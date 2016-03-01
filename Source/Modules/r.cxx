@@ -281,6 +281,7 @@ public:
   
   void dispatchFunction(Node *n);
   int functionWrapper(Node *n);
+  int constantWrapper(Node *n);
   int variableWrapper(Node *n);
 
   int classDeclaration(Node *n);
@@ -792,9 +793,7 @@ int R::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n");
-  Printf(f_runtime, "#define SWIGR\n");
-  Printf(f_runtime, "\n");
+  Printf(f_runtime, "\n\n#ifndef SWIGR\n#define SWIGR\n#endif\n\n");
 
   
   Swig_banner_target_lang(s_init, "#");
@@ -1381,12 +1380,12 @@ List * R::Swig_overload_rank(Node *n,
 	    }
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "xx Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
 	      nodes[j].error = 1;
 	    }
@@ -2178,6 +2177,16 @@ int R::functionWrapper(Node *n) {
 
   Delete(sargs);
   Delete(sfname);
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * R::constantWrapper()
+ * ---------------------------------------------------------------------- */
+
+int R::constantWrapper(Node *n) {
+  (void) n;
+  // TODO
   return SWIG_OK;
 }
 

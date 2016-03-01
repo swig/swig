@@ -16,7 +16,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
   PyObject *tmp = 0;
   int isunicode = PyUnicode_Check(obj);
-%#if PY_VERSION_HEX < 0x03000000
+%#if PY_VERSION_HEX < 0x03000000 && !defined(SWIG_PYTHON_STRICT_UNICODE_WCHAR)
   if (!isunicode && PyString_Check(obj)) {
     obj = tmp = PyUnicode_FromObject(obj);
     isunicode = 1;
@@ -58,7 +58,7 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
       return pwchar_descriptor ? 
 	SWIG_InternalNewPointerObj(%const_cast(carray,wchar_t *), pwchar_descriptor, 0) : SWIG_Py_Void();
     } else {
-      return PyUnicode_FromWideChar(carray, %numeric_cast(size,int));
+      return PyUnicode_FromWideChar(carray, %numeric_cast(size, Py_ssize_t));
     }
   } else {
     return SWIG_Py_Void();

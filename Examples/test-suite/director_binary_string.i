@@ -4,6 +4,7 @@
 
 %apply (char *STRING, size_t LENGTH) { (char *dataBufferAA, int sizeAA) };
 %apply (char *STRING, size_t LENGTH) { (char *dataBufferBB, int sizeBB) };
+%apply (char* STRING, size_t LENGTH) { (const void* data, size_t datalen) };
 
 %inline %{
 #include <stdlib.h>
@@ -20,6 +21,7 @@ public:
     if (dataBufferBB)
       memset(dataBufferBB, -1, sizeBB);
   }
+  virtual void writeData(const void* data, size_t datalen) = 0;
 };
 
 class Caller {
@@ -49,6 +51,17 @@ public:
   }
   void call_null() {
     _callback->run(NULL, 0, NULL, 0);
+  }
+  int callWriteData() {
+    int sum = 0;
+    if (_callback) {
+      char* aa = (char*)malloc(BUFFER_SIZE_AA);
+      memset(aa, 9, BUFFER_SIZE_AA);
+      _callback->writeData(aa, BUFFER_SIZE_AA);
+      for (int i = 0; i < BUFFER_SIZE_AA; i++)
+        sum += aa[i];
+    }
+    return sum;
   }
 };
 

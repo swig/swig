@@ -4,6 +4,31 @@ and CHANGES files.
 
 Release Notes
 =============
+Detailed release notes are available with the release and are also
+published on the SWIG web site at http://swig.org/release.html.
+
+SWIG-3.0.8 summary:
+- pdf documentation enhancements.
+- Various Python 3.5 issues fixed.
+- std::array support added for Ruby and Python.
+- shared_ptr support added for Ruby.
+- Minor improvements for CFFI, Go, Java, Perl, Python, Ruby.
+
+SWIG-3.0.7 summary:
+- Add support for Octave-4.0.0.
+- Remove potential Android security exploit in generated Java classes.
+- Minor new features and bug fixes.
+
+SWIG-3.0.6 summary:
+- Stability and regression fixes.
+- Fixed parsing of C++ corner cases.
+- Language improvements and bug fixes for C#, Go, Java, Lua, Python, R.
+
+SWIG-3.0.5 summary:
+- Added support for Scilab.
+- Important Python regression fix when wrapping C++ default arguments.
+- Minor improvements for C#, Go, Octave, PHP and Python.
+
 SWIG-3.0.4 summary:
 - Python regression fix when wrapping C++ default arguments.
 - Improved error messages.
@@ -353,7 +378,7 @@ SWIG-1.3.22 summary:
   exceptions into target language exceptions.
 - Improved enum support, mapping to built-in Java 1.5 enums and C#
   enums or the typesafe enum pattern for these two languages.
-- Python - much better STL suppport and support for std::wstring,
+- Python - much better STL support and support for std::wstring,
   wchar_t and FILE *.
 - Initial support for Modula3 and Allegro CL.
 - 64 bit TCL support.

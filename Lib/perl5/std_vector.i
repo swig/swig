@@ -119,7 +119,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
             {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                     $&1_descriptor,0) != -1) {
                     $1 = 1;
@@ -151,7 +151,7 @@ namespace std {
                                           const vector<T>* {
             {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                     $1_descriptor,0) != -1) {
                     $1 = 1;
@@ -292,7 +292,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T *> {
             {
                 /* wrapped vector? */
-                std::vector<T *>* v;
+                std::vector< T *>* v;
 		int res = SWIG_ConvertPtr($input,(void **) &v, $&1_descriptor,0);
                 if (SWIG_IsOK(res)) {
                     $1 = 1;
@@ -323,7 +323,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T *>&,const vector<T *>* {
             {
                 /* wrapped vector? */
-                std::vector<T *> *v;
+                std::vector< T *> *v;
 		int res = SWIG_ConvertPtr($input,%as_voidptrptr(&v), $1_descriptor,0);
                 if (SWIG_IsOK(res)) {
                     $1 = 1;
@@ -466,7 +466,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
             {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                     $&1_descriptor,0) != -1) {
                     $1 = 1;
@@ -496,7 +496,7 @@ namespace std {
                                           const vector<T>* {
             {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                     $1_descriptor,0) != -1) {
                     $1 = 1;

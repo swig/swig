@@ -48,11 +48,10 @@
 	  return SWIG_NewPointerObj(new unordered_map_type(unordered_map), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = unordered_map.size();
-	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
 	  if (pysize < 0) {
 	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	    PyErr_SetString(PyExc_OverflowError,
-			    "unordered_map size not valid in python");
+	    PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	    SWIG_PYTHON_THREAD_END_BLOCK;
 	    return NULL;
 	  }
@@ -164,17 +163,16 @@
     
     PyObject* keys() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       if (pysize < 0) {
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	PyErr_SetString(PyExc_OverflowError,
-			"unordered_map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* keyList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(keyList, j, swig::from(i->first));
       }
       return keyList;
@@ -182,17 +180,16 @@
     
     PyObject* values() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       if (pysize < 0) {
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	PyErr_SetString(PyExc_OverflowError,
-			"unordered_map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }
       PyObject* valList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(valList, j, swig::from(i->second));
       }
       return valList;
@@ -200,17 +197,16 @@
     
     PyObject* items() {
       Map::size_type size = self->size();
-      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
       if (pysize < 0) {
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	PyErr_SetString(PyExc_OverflowError,
-			"unordered_map size not valid in python");
+	PyErr_SetString(PyExc_OverflowError, "unordered_map size not valid in python");
 	SWIG_PYTHON_THREAD_END_BLOCK;
 	return NULL;
       }    
       PyObject* itemList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
+      for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
 	PyList_SET_ITEM(itemList, j, swig::from(*i));
       }
       return itemList;
@@ -231,14 +227,14 @@
       return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
-    %pythoncode {def __iter__(self):
-    return self.key_iterator()}    
-    %pythoncode {def iterkeys(self):
-    return self.key_iterator()}
-    %pythoncode {def itervalues(self):
-    return self.value_iterator()}
-    %pythoncode {def iteritems(self):
-    return self.iterator()}
+    %pythoncode %{def __iter__(self):
+    return self.key_iterator()%}
+    %pythoncode %{def iterkeys(self):
+    return self.key_iterator()%}
+    %pythoncode %{def itervalues(self):
+    return self.value_iterator()%}
+    %pythoncode %{def iteritems(self):
+    return self.iterator()%}
   }
 %enddef
 

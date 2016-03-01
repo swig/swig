@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Perl5</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Perl5"></a>33 SWIG and Perl5</H1>
+<H1><a name="Perl5">33 SWIG and Perl5</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -96,7 +97,7 @@ later. We're no longer testing regularly with older versions, but
 Perl 5.6 seems to mostly work, while older versions don't.
 </p>
 
-<H2><a name="Perl5_nn2"></a>33.1 Overview</H2>
+<H2><a name="Perl5_nn2">33.1 Overview</a></H2>
 
 
 <p>
@@ -117,7 +118,7 @@ described.  Advanced customization features, typemaps, and other
 options are found near the end of the chapter.
 </p>
 
-<H2><a name="Perl5_nn3"></a>33.2 Preliminaries</H2>
+<H2><a name="Perl5_nn3">33.2 Preliminaries</a></H2>
 
 
 <p>
@@ -142,7 +143,7 @@ To build the module, you will need to compile the file
 <tt>example_wrap.c</tt> and link it with the rest of your program.
 </p>
 
-<H3><a name="Perl5_nn4"></a>33.2.1 Getting the right header files</H3>
+<H3><a name="Perl5_nn4">33.2.1 Getting the right header files</a></H3>
 
 
 <p>
@@ -174,7 +175,7 @@ $ perl -e 'use Config; print "$Config{archlib}\n";'
 </pre>
 </div>
 
-<H3><a name="Perl5_nn5"></a>33.2.2 Compiling a dynamic module</H3>
+<H3><a name="Perl5_nn5">33.2.2 Compiling a dynamic module</a></H3>
 
 
 <p>
@@ -207,7 +208,7 @@ the target should be named `<tt>example.so</tt>',
 `<tt>example.sl</tt>', or the appropriate dynamic module name on your system.
 </p>
 
-<H3><a name="Perl5_nn6"></a>33.2.3 Building a dynamic module with MakeMaker</H3>
+<H3><a name="Perl5_nn6">33.2.3 Building a dynamic module with MakeMaker</a></H3>
 
 
 <p>
@@ -219,9 +220,9 @@ script such as the following:</p>
 # File : Makefile.PL
 use ExtUtils::MakeMaker;
 WriteMakefile(
-	`NAME'    =&gt; `example',                  # Name of package
-	`LIBS'    =&gt; [`-lm'],                    # Name of custom libraries
-	`OBJECT'  =&gt; `example.o example_wrap.o'  # Object files
+        `NAME'    =&gt; `example',                  # Name of package
+        `LIBS'    =&gt; [`-lm'],                    # Name of custom libraries
+        `OBJECT'  =&gt; `example.o example_wrap.o'  # Object files
 );
 
 </pre></div>
@@ -241,7 +242,7 @@ the preferred approach to compilation.  More information about MakeMaker can be
 found in "Programming Perl, 2nd ed." by Larry Wall, Tom Christiansen,
 and Randal Schwartz.</p>
 
-<H3><a name="Perl5_nn7"></a>33.2.4 Building a static version of Perl</H3>
+<H3><a name="Perl5_nn7">33.2.4 Building a static version of Perl</a></H3>
 
 
 <p>
@@ -300,7 +301,7 @@ for a dynamic module, but change the link line to something like this:
 
 <div class="code"><pre>
 $ gcc example.o example_wrap.o -L/usr/lib/perl/5.14/CORE \
-	-lperl -lsocket -lnsl -lm -o myperl
+        -lperl -lsocket -lnsl -lm -o myperl
 </pre></div>
 
 <p>
@@ -310,7 +311,7 @@ added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 </p>
 
-<H3><a name="Perl5_nn8"></a>33.2.5 Using the module</H3>
+<H3><a name="Perl5_nn8">33.2.5 Using the module</a></H3>
 
 
 <p>
@@ -463,7 +464,7 @@ system configuration (this requires root access and you will need to
 read the man pages).
 </p>
 
-<H3><a name="Perl5_nn9"></a>33.2.6 Compilation problems and compiling with C++</H3>
+<H3><a name="Perl5_nn9">33.2.6 Compilation problems and compiling with C++</a></H3>
 
 
 <p>
@@ -606,7 +607,7 @@ have to find the macro that conflicts and add an #undef into the .i file.  Pleas
 any conflicting macros you find to <a href="http://www.swig.org/mail.html">swig-user mailing list</a>.
 </p>
 
-<H3><a name="Perl5_nn10"></a>33.2.7 Compiling for 64-bit platforms</H3>
+<H3><a name="Perl5_nn10">33.2.7 Compiling for 64-bit platforms</a></H3>
 
 
 <p>
@@ -633,7 +634,7 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 </p>
 
-<H2><a name="Perl5_nn11"></a>33.3 Building Perl Extensions under Windows</H2>
+<H2><a name="Perl5_nn11">33.3 Building Perl Extensions under Windows</a></H2>
 
 
 <p>
@@ -644,7 +645,7 @@ section assumes you are using SWIG with Microsoft Visual C++
 although the procedure may be similar with other compilers.  
 </p>
 
-<H3><a name="Perl5_nn12"></a>33.3.1 Running SWIG from Developer Studio</H3>
+<H3><a name="Perl5_nn12">33.3.1 Running SWIG from Developer Studio</a></H3>
 
 
 <p>
@@ -707,7 +708,7 @@ print "$a\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn13"></a>33.3.2 Using other compilers</H3>
+<H3><a name="Perl5_nn13">33.3.2 Using other compilers</a></H3>
 
 
 <p>
@@ -715,7 +716,7 @@ SWIG is known to work with Cygwin and may work with other compilers on Windows.
 For general hints and suggestions refer to the <a href="Windows.html#Windows">Windows</a> chapter.
 </p>
 
-<H2><a name="Perl5_nn14"></a>33.4 The low-level interface</H2>
+<H2><a name="Perl5_nn14">33.4 The low-level interface</a></H2>
 
 
 <p>
@@ -725,7 +726,7 @@ can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
 </p>
 
-<H3><a name="Perl5_nn15"></a>33.4.1 Functions</H3>
+<H3><a name="Perl5_nn15">33.4.1 Functions</a></H3>
 
 
 <p>
@@ -748,7 +749,7 @@ use example;
 $a = &amp;example::fact(2);
 </pre></div>
 
-<H3><a name="Perl5_nn16"></a>33.4.2 Global variables</H3>
+<H3><a name="Perl5_nn16">33.4.2 Global variables</a></H3>
 
 
 <p>
@@ -818,7 +819,7 @@ extern char *path;       // Declared later in the input
 </pre>
 </div>
 
-<H3><a name="Perl5_nn17"></a>33.4.3 Constants</H3>
+<H3><a name="Perl5_nn17">33.4.3 Constants</a></H3>
 
 
 <p>
@@ -858,7 +859,7 @@ print example::FOO,"\n";
 </pre>
 </div>
 
-<H3><a name="Perl5_nn18"></a>33.4.4 Pointers</H3>
+<H3><a name="Perl5_nn18">33.4.4 Pointers</a></H3>
 
 
 <p>
@@ -891,9 +892,9 @@ To check to see if a value is the NULL pointer, use the
 
 <div class="targetlang"><pre>
 if (defined($ptr)) {
-	print "Not a NULL pointer.";
+  print "Not a NULL pointer.";
 } else {
-	print "Is a NULL pointer.";
+  print "Is a NULL pointer.";
 }
 
 </pre></div>
@@ -916,9 +917,9 @@ dereference them as follows:
 
 <div class="targetlang"><pre>
 if ($$a == $$b) {
-	print "a and b point to the same thing in C";
+  print "a and b point to the same thing in C";
 } else {
-	print "a and b point to different objects.";
+  print "a and b point to different objects.";
 }
 
 </pre></div>
@@ -967,7 +968,7 @@ as XS and <tt>xsubpp</tt>.  Given the advancement of the SWIG typesystem and the
 SWIG and XS, this is no longer supported.
 </p>
 
-<H3><a name="Perl5_nn19"></a>33.4.5 Structures</H3>
+<H3><a name="Perl5_nn19">33.4.5 Structures</a></H3>
 
 
 <p>
@@ -977,7 +978,7 @@ accessor functions as described in the "SWIG Basics" chapter.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 </pre></div>
 
@@ -1101,7 +1102,7 @@ void Bar_f_set(Bar *b, Foo *val) {
 </div>
 
 
-<H3><a name="Perl5_nn20"></a>33.4.6 C++ classes</H3>
+<H3><a name="Perl5_nn20">33.4.6 C++ classes</a></H3>
 
 
 <p>
@@ -1166,7 +1167,7 @@ provides direct access to C++ objects.  A higher level interface using Perl prox
 can be built using these low-level accessors.  This is described shortly.
 </p>
 
-<H3><a name="Perl5_nn21"></a>33.4.7 C++ classes and type-checking</H3>
+<H3><a name="Perl5_nn21">33.4.7 C++ classes and type-checking</a></H3>
 
 
 <p>
@@ -1202,7 +1203,7 @@ If necessary, the type-checker also adjusts the value of the pointer (as is nece
 multiple inheritance is used).
 </p>
 
-<H3><a name="Perl5_nn22"></a>33.4.8 C++ overloaded functions</H3>
+<H3><a name="Perl5_nn22">33.4.8 C++ overloaded functions</a></H3>
 
 
 <p>
@@ -1246,7 +1247,7 @@ example::Spam_foo_d($s,3.14);
 Please refer to the "SWIG Basics" chapter for more information. 
 </p>
 
-<H3><a name="Perl5_nn23"></a>33.4.9 Operators</H3>
+<H3><a name="Perl5_nn23">33.4.9 Operators</a></H3>
 
 
     <p>
@@ -1258,22 +1259,22 @@ The following C++ operators are currently supported by the Perl module:
     </p>
 
     <ul>
-<li>operator++	 </li>
-<li>operator--	 </li>
-<li>operator+	 </li>
-<li>operator-	 </li>
-<li>operator*	 </li>
-<li>operator/	 </li>
-<li>operator==	 </li>
-<li>operator!=	 </li>
-<li>operator%	 </li>
-<li>operator&gt;	 </li>
-<li>operator&lt;	 </li>
+<li>operator++</li>
+<li>operator--</li>
+<li>operator+</li>
+<li>operator-</li>
+<li>operator*</li>
+<li>operator/</li>
+<li>operator==</li>
+<li>operator!=</li>
+<li>operator%</li>
+<li>operator&gt;</li>
+<li>operator&lt;</li>
 <li>operator and </li>
 <li>operator or  </li>
     </ul>
 
-<H3><a name="Perl5_nn24"></a>33.4.10 Modules and packages</H3>
+<H3><a name="Perl5_nn24">33.4.10 Modules and packages</a></H3>
 
 
 <p>
@@ -1368,7 +1369,7 @@ print Foo::fact(4),"\n";        # Call a function in package FooBar
 </pre></div>
 -->
 
-<H2><a name="Perl5_nn25"></a>33.5 Input and output parameters</H2>
+<H2><a name="Perl5_nn25">33.5 Input and output parameters</a></H2>
 
 
 <p>
@@ -1587,7 +1588,7 @@ print "$c\n";
 <b>Note:</b> The <tt>REFERENCE</tt> feature is only currently supported for numeric types (integers and floating point).
 </p>
 
-<H2><a name="Perl5_nn26"></a>33.6 Exception handling</H2>
+<H2><a name="Perl5_nn26">33.6 Exception handling</a></H2>
 
 
 <p>
@@ -1752,7 +1753,7 @@ This is still supported, but it is deprecated.  The newer <tt>%exception</tt> di
 functionality, but it has additional capabilities that make it more powerful.
 </p>
 
-<H2><a name="Perl5_nn27"></a>33.7 Remapping datatypes with typemaps</H2>
+<H2><a name="Perl5_nn27">33.7 Remapping datatypes with typemaps</a></H2>
 
 
 <p>
@@ -1769,7 +1770,7 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Perl interface.
 </p>
 
-<H3><a name="Perl5_nn28"></a>33.7.1 A simple typemap example</H3>
+<H3><a name="Perl5_nn28">33.7.1 A simple typemap example</a></H3>
 
 
 <p>
@@ -1782,8 +1783,8 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-	$1 = (int) SvIV($input);
-	printf("Received an integer : %d\n", $1);
+  $1 = (int) SvIV($input);
+  printf("Received an integer : %d\n", $1);
 }
 ...
 %inline %{
@@ -1828,8 +1829,8 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="targetlang">
 <pre>
 %typemap(in) int n {
-	$1 = (int) SvIV($input);
-	printf("n = %d\n",$1);
+  $1 = (int) SvIV($input);
+  printf("n = %d\n",$1);
 }
 %inline %{
 typedef int Integer;
@@ -1873,7 +1874,7 @@ example::count("e","Hello World");
 </div>
 
 
-<H3><a name="Perl5_nn29"></a>33.7.2 Perl5 typemaps</H3>
+<H3><a name="Perl5_nn29">33.7.2 Perl5 typemaps</a></H3>
 
 
 <p>
@@ -1978,7 +1979,7 @@ Return of C++ member data (all languages).
 Check value of input parameter.
 </div>
 
-<H3><a name="Perl5_nn30"></a>33.7.3 Typemap variables</H3>
+<H3><a name="Perl5_nn30">33.7.3 Typemap variables</a></H3>
 
 
 <p>
@@ -2049,7 +2050,7 @@ properly assigned.
 The Perl name of the wrapper function being created.
 </div>
 
-<H3><a name="Perl5_nn31"></a>33.7.4 Useful functions</H3>
+<H3><a name="Perl5_nn31">33.7.4 Useful functions</a></H3>
 
 
 <p>
@@ -2118,7 +2119,7 @@ int       sv_isa(SV *, char *0;
 </div>
 
 
-<H2><a name="Perl5_nn32"></a>33.8 Typemap Examples</H2>
+<H2><a name="Perl5_nn32">33.8 Typemap Examples</a></H2>
 
 
 <p>
@@ -2127,7 +2128,7 @@ might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Perl5_nn33"></a>33.8.1 Converting a Perl5 array to a char **</H3>
+<H3><a name="Perl5_nn33">33.8.1 Converting a Perl5 array to a char **</a></H3>
 
 
 <p>
@@ -2142,47 +2143,47 @@ reference to be used as a char ** datatype.
 
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
-	AV *tempav;
-	I32 len;
-	int i;
-	SV  **tv;
-	if (!SvROK($input))
-	    croak("Argument $argnum is not a reference.");
-        if (SvTYPE(SvRV($input)) != SVt_PVAV)
-	    croak("Argument $argnum is not an array.");
-        tempav = (AV*)SvRV($input);
-	len = av_len(tempav);
-	$1 = (char **) malloc((len+2)*sizeof(char *));
-	for (i = 0; i &lt;= len; i++) {
-	    tv = av_fetch(tempav, i, 0);	
-	    $1[i] = (char *) SvPV(*tv,PL_na);
-        }
-	$1[i] = NULL;
+  AV *tempav;
+  I32 len;
+  int i;
+  SV  **tv;
+  if (!SvROK($input))
+    croak("Argument $argnum is not a reference.");
+  if (SvTYPE(SvRV($input)) != SVt_PVAV)
+    croak("Argument $argnum is not an array.");
+  tempav = (AV*)SvRV($input);
+  len = av_len(tempav);
+  $1 = (char **) malloc((len+2)*sizeof(char *));
+  for (i = 0; i &lt;= len; i++) {
+    tv = av_fetch(tempav, i, 0);
+    $1[i] = (char *) SvPV(*tv,PL_na);
+  }
+  $1[i] = NULL;
 };
 
 // This cleans up the char ** array after the function call
 %typemap(freearg) char ** {
-	free($1);
+  free($1);
 }
 
 // Creates a new Perl array and places a NULL-terminated char ** into it
 %typemap(out) char ** {
-	AV *myav;
-	SV **svs;
-	int i = 0,len = 0;
-	/* Figure out how many elements we have */
-	while ($1[len])
-	   len++;
-	svs = (SV **) malloc(len*sizeof(SV *));
-	for (i = 0; i &lt; len ; i++) {
-	    svs[i] = sv_newmortal();
-	    sv_setpv((SV*)svs[i],$1[i]);
-	};
-	myav =	av_make(len,svs);
-	free(svs);
-        $result = newRV_noinc((SV*)myav);
-        sv_2mortal($result);
-        argvi++;
+  AV *myav;
+  SV **svs;
+  int i = 0,len = 0;
+  /* Figure out how many elements we have */
+  while ($1[len])
+     len++;
+  svs = (SV **) malloc(len*sizeof(SV *));
+  for (i = 0; i &lt; len ; i++) {
+      svs[i] = sv_newmortal();
+      sv_setpv((SV*)svs[i],$1[i]);
+  };
+  myav = av_make(len,svs);
+  free(svs);
+  $result = newRV_noinc((SV*)myav);
+  sv_2mortal($result);
+  argvi++;
 }
 
 // Now a few test functions
@@ -2219,7 +2220,7 @@ print @$b,"\n";                                  # Print it out
 </pre></div>
 
 
-<H3><a name="Perl5_nn34"></a>33.8.2 Return values</H3>
+<H3><a name="Perl5_nn34">33.8.2 Return values</a></H3>
 
 
 <p>
@@ -2239,16 +2240,16 @@ can be done using the <tt>EXTEND()</tt> macro as in:
 
 <div class="code"><pre>
 %typemap(argout) int *OUTPUT {
-	if (argvi &gt;= items) {            
-		EXTEND(sp,1);              /* Extend the stack by 1 object */
-	}
-	$result = sv_newmortal();
-	sv_setiv($target,(IV) *($1));
-	argvi++;
+  if (argvi &gt;= items) {
+    EXTEND(sp,1);              /* Extend the stack by 1 object */
+  }
+  $result = sv_newmortal();
+  sv_setiv($target,(IV) *($1));
+  argvi++;
 }
 </pre></div>
 
-<H3><a name="Perl5_nn35"></a>33.8.3 Returning values from arguments</H3>
+<H3><a name="Perl5_nn35">33.8.3 Returning values from arguments</a></H3>
 
 
 <p>
@@ -2263,24 +2264,24 @@ its arguments.  This example describes the implementation of the <tt>OUTPUT</tt>
 // an output value.  
 
 %typemap(argout) double *OUTPUT {
-	$result = sv_newmortal();
-	sv_setnv($result, *$input);
-	argvi++;                     /* Increment return count -- important! */
+  $result = sv_newmortal();
+  sv_setnv($result, *$input);
+  argvi++;                     /* Increment return count -- important! */
 }
 
 // We don't care what the input value is. Ignore, but set to a temporary variable
 
 %typemap(in,numinputs=0) double *OUTPUT(double junk) {
-	$1 = &amp;junk;
+  $1 = &amp;junk;
 }
 
 // Now a function to test it
 %{
 /* Returns the first two input arguments */
 int multout(double a, double b, double *out1, double *out2) {
-	*out1 = a;
-	*out2 = b;
-	return 0;
+  *out1 = a;
+  *out2 = b;
+  return 0;
 };
 %}
 
@@ -2302,7 +2303,7 @@ print "multout(7,13) = @r\n";
 ($x,$y) = multout(7,13);
 </pre></div>
 
-<H3><a name="Perl5_nn36"></a>33.8.4 Accessing array structure members</H3>
+<H3><a name="Perl5_nn36">33.8.4 Accessing array structure members</a></H3>
 
 
 <p>
@@ -2365,7 +2366,7 @@ the "in" typemap in the previous section would be used to convert an
 to copy the converted array into a C data structure.
 </p>
 
-<H3><a name="Perl5_nn37"></a>33.8.5 Turning Perl references into C pointers</H3>
+<H3><a name="Perl5_nn37">33.8.5 Turning Perl references into C pointers</a></H3>
 
 
 <p>
@@ -2376,7 +2377,7 @@ have a C function that modifies its arguments like this:
 
 <div class="code"><pre>
 void add(double a, double b, double *c) {
-	*c = a + b;
+  *c = a + b;
 }
 </pre></div>
 
@@ -2430,7 +2431,7 @@ print "$c\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn38"></a>33.8.6 Pointer handling</H3>
+<H3><a name="Perl5_nn38">33.8.6 Pointer handling</a></H3>
 
 
 <p>
@@ -2509,7 +2510,7 @@ For example:
 </pre>
 </div>
 
-<H2><a name="Perl5_nn39"></a>33.9 Proxy classes</H2>
+<H2><a name="Perl5_nn39">33.9 Proxy classes</a></H2>
 
 
 <p>
@@ -2525,7 +2526,7 @@ to the underlying code.  This section describes the implementation
 details of the proxy interface.
 </p>
 
-<H3><a name="Perl5_nn40"></a>33.9.1 Preliminaries</H3>
+<H3><a name="Perl5_nn40">33.9.1 Preliminaries</a></H3>
 
 
 <p>
@@ -2547,7 +2548,7 @@ SWIG creates a collection of high-level Perl wrappers.  In your scripts, you wil
 high level wrappers.  The wrappers, in turn, interact with the low-level procedural module.
 </p>
 
-<H3><a name="Perl5_nn41"></a>33.9.2 Structure and class wrappers</H3>
+<H3><a name="Perl5_nn41">33.9.2 Structure and class wrappers</a></H3>
 
 
 <p>
@@ -2557,9 +2558,9 @@ Suppose you have the following SWIG interface file:
 <div class="code"><pre>
 %module example
 struct Vector {
-	Vector(double x, double y, double z);
-	~Vector();
-	double x,y,z;
+  Vector(double x, double y, double z);
+  ~Vector();
+  double x,y,z;
 };
 
 </pre></div>
@@ -2609,8 +2610,9 @@ sub DESTROY {
     my $self = tied(%{$_[0]});
     delete $ITERATORS{$self};
     if (exists $OWNER{$self}) {
-	 examplec::delete_Vector($self));
-	 delete $OWNER{$self};
+        examplec::delete_Vector($self));
+        delete $OWNER{$self};
+    }
 }
 
 sub FETCH {
@@ -2662,8 +2664,8 @@ $v-&gt;{x} = 7.5;
 
 # Assignment of all members
 %$v = ( x=&gt;3,
-	 y=&gt;9,
-	 z=&gt;-2);
+        y=&gt;9,
+        z=&gt;-2);
 
 # Reading members
 $x = $v-&gt;{x};
@@ -2673,7 +2675,7 @@ $v-&gt;DESTROY();
 
 </pre></div>
 
-<H3><a name="Perl5_nn42"></a>33.9.3 Object Ownership</H3>
+<H3><a name="Perl5_nn42">33.9.3 Object Ownership</a></H3>
 
 
 <p>
@@ -2684,7 +2686,7 @@ problem---suppose you had a function like this:
 
 <div class="code"><pre>
 Vector *Vector_get(Vector *v, int index) {
-	return &amp;v[i];
+  return &amp;v[i];
 }
 </pre></div>
 
@@ -2697,9 +2699,9 @@ Vector object:
 
 <div class="code"><pre>
 Vector *new_Vector(double x, double y, double z) {
-	Vector *v;
-	v = new Vector(x,y,z);        // Call C++ constructor
-	return v;
+  Vector *v;
+  v = new Vector(x,y,z);        // Call C++ constructor
+  return v;
 }
 </pre></div>
 
@@ -2760,7 +2762,7 @@ counting, garbage collection, or advanced features one might find in
 sophisticated languages.
 </p>
 
-<H3><a name="Perl5_nn43"></a>33.9.4 Nested Objects</H3>
+<H3><a name="Perl5_nn43">33.9.4 Nested Objects</a></H3>
 
 
 <p>
@@ -2769,10 +2771,10 @@ Suppose that we have a new object that looks like this:
 
 <div class="code"><pre>
 struct Particle {
-	Vector r;
-	Vector v;
-	Vector f;
-	int	type;
+  Vector r;
+  Vector v;
+  Vector f;
+  int type;
 }
 
 </pre></div>
@@ -2788,9 +2790,9 @@ look like this (along with some supporting code):
 package Particle;
 ...
 %BLESSEDMEMBERS = (
-	r =&gt; `Vector',
-	v =&gt; `Vector',
-	f =&gt; `Vector',
+        r =&gt; `Vector',
+        v =&gt; `Vector',
+        f =&gt; `Vector',
 );
 
 </pre></div>
@@ -2813,7 +2815,7 @@ $p-&gt;{f}-&gt;{x} = 0.0;
 %${$p-&gt;{v}} = ( x=&gt;0, y=&gt;0, z=&gt;0);         
 </pre></div>
 
-<H3><a name="Perl5_nn44"></a>33.9.5 Proxy Functions</H3>
+<H3><a name="Perl5_nn44">33.9.5 Proxy Functions</a></H3>
 
 
 <p>
@@ -2847,7 +2849,7 @@ This function replaces the original function, but operates in an
 identical manner.
 </p>
 
-<H3><a name="Perl5_nn45"></a>33.9.6 Inheritance</H3>
+<H3><a name="Perl5_nn45">33.9.6 Inheritance</a></H3>
 
 
 <p>
@@ -2866,23 +2868,23 @@ interface file:
 
 class Shape {
 public:
-	virtual double area() = 0;
-	virtual double perimeter() = 0;
-	void    set_location(double x, double y);
+  virtual double area() = 0;
+  virtual double perimeter() = 0;
+  void    set_location(double x, double y);
 };
 class Circle : public Shape {
 public:
-	Circle(double radius);
-	~Circle();
-	double area();
-	double perimeter();
+  Circle(double radius);
+  ~Circle();
+  double area();
+  double perimeter();
 };
 class Square : public Shape {
 public:
-	Square(double size);
-	~Square();
-	double area();
-	double perimeter();
+  Square(double size);
+  ~Square();
+  double area();
+  double perimeter();
 }
 
 </pre></div>
@@ -2923,7 +2925,7 @@ particular, inheritance of data members is extremely tricky (and I'm
 not even sure if it really works).
 </p>
 
-<H3><a name="Perl5_nn46"></a>33.9.7 Modifying the proxy methods</H3>
+<H3><a name="Perl5_nn46">33.9.7 Modifying the proxy methods</a></H3>
 
 
 <p>
@@ -2951,7 +2953,7 @@ public:
 };
 </pre></div>
 
-<H2><a name="Perl5_nn47"></a>33.10 Adding additional Perl code</H2>
+<H2><a name="Perl5_nn47">33.10 Adding additional Perl code</a></H2>
 
 
 <p>
@@ -3002,7 +3004,7 @@ set_transform($im, $a);
 </pre>
 </div>
 
-<H2><a name="Perl5_directors"></a>33.11 Cross language polymorphism</H2>
+<H2><a name="Perl5_directors">33.11 Cross language polymorphism</a></H2>
 
 
 <p>
@@ -3036,7 +3038,7 @@ proxy classes, director classes, and C wrapper functions takes care of
 all the cross-language method routing transparently.
 </p>
 
-<H3><a name="Perl5_nn48"></a>33.11.1 Enabling directors</H3>
+<H3><a name="Perl5_nn48">33.11.1 Enabling directors</a></H3>
 
 
 <p>
@@ -3126,7 +3128,7 @@ sub one {
 </div>
 
 
-<H3><a name="Perl5_nn49"></a>33.11.2 Director classes</H3>
+<H3><a name="Perl5_nn49">33.11.2 Director classes</a></H3>
 
 
  
@@ -3206,7 +3208,7 @@ so there is no need for the extra overhead involved with routing the
 calls through Perl.
 </p>
 
-<H3><a name="Perl5_nn50"></a>33.11.3 Ownership and object destruction</H3>
+<H3><a name="Perl5_nn50">33.11.3 Ownership and object destruction</a></H3>
 
 
 <p>
@@ -3255,7 +3257,7 @@ sub DESTROY {
 </div>
 
 
-<H3><a name="Perl5_nn51"></a>33.11.4 Exception unrolling</H3>
+<H3><a name="Perl5_nn51">33.11.4 Exception unrolling</a></H3>
 
 
 <p>
@@ -3311,7 +3313,7 @@ Swig::DirectorMethodException is thrown, Perl will register the
 exception as soon as the C wrapper function returns.
 </p>
 
-<H3><a name="Perl5_nn52"></a>33.11.5 Overhead and code bloat</H3>
+<H3><a name="Perl5_nn52">33.11.5 Overhead and code bloat</a></H3>
 
 
 <p>
@@ -3345,7 +3347,7 @@ directive) for only those methods that are likely to be extended in
 Perl.
 </p>
 
-<H3><a name="Perl5_nn53"></a>33.11.6 Typemaps</H3>
+<H3><a name="Perl5_nn53">33.11.6 Typemaps</a></H3>
 
 
 <p>

@@ -1,8 +1,6 @@
 TOP        = ../..
-SWIG       = $(realpath $(TOP)/../preinst-swig)
 SWIGOPT    =
 LIBS       =
-PY3        =
 
 import_packages_subdirs = \
 	same_modnames1 \
@@ -26,12 +24,12 @@ check: build
 
 build:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build); \
+		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build); \
 	done
 
 static:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static); \
+		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static); \
 	done
 
 clean:

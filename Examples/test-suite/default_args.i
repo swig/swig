@@ -114,7 +114,10 @@
 %rename(renamed2arg) Foo::renameme(int x) const;
 %rename(renamed1arg) Foo::renameme() const;
 
+%typemap(default) double* null_by_default "$1=0;";
+
 %inline %{
+  typedef void* MyHandle;
 
   // Define a class
   class Foo {
@@ -139,6 +142,12 @@
       // test the method itself being renamed
       void oldname(int x = 1234) {}
       void renameme(int x = 1234, double d=123.4) const {}
+
+      // test default values for pointer arguments
+      int double_if_void_ptr_is_null(int n, void* p = NULL) { return p ? n : 2*n; }
+      int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
+      int double_if_dbl_ptr_is_null(int n, double* null_by_default)
+        { return null_by_default ? n : 2*n; }
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
@@ -269,3 +278,26 @@ struct ConstMethods {
     } Pointf;
   }
 %}
+
+// Default arguments after ignored ones.
+%typemap(in, numinputs=0) int square_error { $1 = 2; };
+%typemap(default, noblock=1) int def17 { $1 = 17; };
+
+// Enabling autodoc feature has a side effect of disabling the generation of
+// aliases for functions that can hide problems with default arguments at
+// Python level.
+%feature("autodoc","0") slightly_off_square;
+
+%inline %{
+  inline int slightly_off_square(int square_error, int def17) { return def17*def17 + square_error; }
+%}
+
+// Python C default args
+%feature("python:cdefaultargs") CDA::cdefaultargs_test1;
+%inline %{
+struct CDA {
+  int cdefaultargs_test1(int a = 1) { return a; }
+  int cdefaultargs_test2(int a = 1) { return a; }
+};
+%}
+

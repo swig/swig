@@ -13,14 +13,12 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	primitive_types \
-	li_cdata \
 	li_cstring \
-	li_cdata_carrays \
+	li_cdata_carrays_cpp \
 	li_reference \
 	director_nestedmodule \
 
 C_TEST_CASES += \
-	li_cdata \
 	li_cstring \
 	li_cdata_carrays \
 
@@ -60,4 +58,4 @@ run_testcase = \
 	@rm -f $*.pm;
 
 clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" perl5_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' perl5_clean

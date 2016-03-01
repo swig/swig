@@ -27,11 +27,17 @@ class string;
 %typemap(directorout) string
 %{ $result.assign($input.p, $input.n); %}
 
-%typemap(out) string
-%{ $result = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(out,fragment="AllocateString") string
+%{ $result = Swig_AllocateString($1.data(), $1.length()); %}
 
-%typemap(directorin) string
-%{ $input = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(goout,fragment="CopyString") string
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString") string
+%{ $input = Swig_AllocateString($1.data(), $1.length()); %}
+
+%typemap(godirectorin,fragment="CopyString") string
+%{ $result = swigCopyString($input) %}
 
 %typemap(in) const string &
 %{
@@ -46,10 +52,16 @@ class string;
   $result = &$1_str;
 %}
 
-%typemap(out) const string &
-%{ $result = _swig_makegostring((*$1).data(), (*$1).length()); %}
+%typemap(out,fragment="AllocateString") const string &
+%{ $result = Swig_AllocateString((*$1).data(), (*$1).length()); %}
 
-%typemap(directorin) const string &
-%{ $input = _swig_makegostring($1.data(), $1.length()); %}
+%typemap(goout,fragment="CopyString") const string &
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString") const string &
+%{ $input = Swig_AllocateString($1.data(), $1.length()); %}
+
+%typemap(godirectorin,fragment="CopyString") const string &
+%{ $result = swigCopyString($input) %}
 
 }

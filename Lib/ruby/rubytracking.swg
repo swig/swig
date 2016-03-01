@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+#if !defined(ST_DATA_T_DEFINED)
+/* Needs to be explicitly included for Ruby 1.8 and earlier */
+#include <st.h>
+#endif
+
 /* Ruby 1.8 actually assumes the first case. */
 #if SIZEOF_VOIDP == SIZEOF_LONG
 #  define SWIG2NUM(v) LONG2NUM((unsigned long)v)
@@ -22,19 +27,19 @@ extern "C" {
 #  error sizeof(void*) is not the same as long or long long
 #endif
 
-
-/* Global Ruby hash table to store Trackings from C/C++
+/* Global hash table to store Trackings from C/C++
    structs to Ruby Objects. 
 */
-static VALUE swig_ruby_trackings = Qnil;
+static st_table* swig_ruby_trackings = NULL;
 
-/* Global variable that stores a reference to the ruby
-   hash table delete function. */
-static ID swig_ruby_hash_delete;
+static VALUE swig_ruby_trackings_count(ANYARGS) {
+  return SWIG2NUM(swig_ruby_trackings->num_entries);
+}
 
-/* Setup a Ruby hash table to store Trackings */
+
+/* Setup a hash table to store Trackings */
 SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
-  /* Create a ruby hash table to store Trackings from C++ 
+  /* Create a hash table to store Trackings from C++
      objects to Ruby objects. */
 
   /* Try to see if some other .so has already created a 
@@ -43,87 +48,45 @@ SWIGRUNTIME void SWIG_RubyInitializeTrackings(void) {
      This is done to allow multiple DSOs to share the same
      tracking table.
   */
-  ID trackings_id = rb_intern( "@__trackings__" );
+  VALUE trackings_value = Qnil;
+  /* change the variable name so that we can mix modules
+     compiled with older SWIG's - this used to be called "@__trackings__" */
+  ID trackings_id = rb_intern( "@__safetrackings__" );
   VALUE verbose = rb_gv_get("VERBOSE");
   rb_gv_set("VERBOSE", Qfalse);
-  swig_ruby_trackings = rb_ivar_get( _mSWIG, trackings_id );
+  trackings_value = rb_ivar_get( _mSWIG, trackings_id );
   rb_gv_set("VERBOSE", verbose);
 
-  /* No, it hasn't.  Create one ourselves */ 
-  if ( swig_ruby_trackings == Qnil )
-    {
-      swig_ruby_trackings = rb_hash_new();
-      rb_ivar_set( _mSWIG, trackings_id, swig_ruby_trackings );
-    }
+  /* The trick here is that we have to store the hash table
+  pointer in a Ruby variable. We do not want Ruby's GC to
+  treat this pointer as a Ruby object, so we convert it to
+  a Ruby numeric value. */
+  if (trackings_value == Qnil) {
+    /* No, it hasn't.  Create one ourselves */
+    swig_ruby_trackings = st_init_numtable();
+    rb_ivar_set( _mSWIG, trackings_id, SWIG2NUM(swig_ruby_trackings) );
+  } else {
+    swig_ruby_trackings = (st_table*)NUM2SWIG(trackings_value);
+  }
 
-  /* Now store a reference to the hash table delete function
-     so that we only have to look it up once.*/
-  swig_ruby_hash_delete = rb_intern("delete");
-}
-
-/* Get a Ruby number to reference a pointer */
-SWIGRUNTIME VALUE SWIG_RubyPtrToReference(void* ptr) {
-  /* We cast the pointer to an unsigned long
-     and then store a reference to it using
-     a Ruby number object. */
-
-  /* Convert the pointer to a Ruby number */
-  return SWIG2NUM(ptr);
-}
-
-/* Get a Ruby number to reference an object */
-SWIGRUNTIME VALUE SWIG_RubyObjectToReference(VALUE object) {
-  /* We cast the object to an unsigned long
-     and then store a reference to it using
-     a Ruby number object. */
-
-  /* Convert the Object to a Ruby number */
-  return SWIG2NUM(object);
-}
-
-/* Get a Ruby object from a previously stored reference */
-SWIGRUNTIME VALUE SWIG_RubyReferenceToObject(VALUE reference) {
-  /* The provided Ruby number object is a reference
-     to the Ruby object we want.*/
-
-  /* Convert the Ruby number to a Ruby object */
-  return NUM2SWIG(reference);
+  rb_define_virtual_variable("SWIG_TRACKINGS_COUNT", swig_ruby_trackings_count, NULL);
 }
 
 /* Add a Tracking from a C/C++ struct to a Ruby object */
 SWIGRUNTIME void SWIG_RubyAddTracking(void* ptr, VALUE object) {
-  /* In a Ruby hash table we store the pointer and
-     the associated Ruby object.  The trick here is
-     that we cannot store the Ruby object directly - if
-     we do then it cannot be garbage collected.  So
-     instead we typecast it as a unsigned long and
-     convert it to a Ruby number object.*/
-
-  /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
-
-  /* Get a reference to the Ruby object as a Ruby number */
-  VALUE value = SWIG_RubyObjectToReference(object);
-
   /* Store the mapping to the global hash table. */
-  rb_hash_aset(swig_ruby_trackings, key, value);
+  st_insert(swig_ruby_trackings, (st_data_t)ptr, object);
 }
 
 /* Get the Ruby object that owns the specified C/C++ struct */
 SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
-  /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
-
   /* Now lookup the value stored in the global hash table */
-  VALUE value = rb_hash_aref(swig_ruby_trackings, key);
-	
-  if (value == Qnil) {
-    /* No object exists - return nil. */
+  VALUE value;
+
+  if (st_lookup(swig_ruby_trackings, (st_data_t)ptr, &value)) {
+    return value;
+  } else {
     return Qnil;
-  }
-  else {
-    /* Convert this value to Ruby object */
-    return SWIG_RubyReferenceToObject(value);
   }
 }
 
@@ -132,12 +95,8 @@ SWIGRUNTIME VALUE SWIG_RubyInstanceFor(void* ptr) {
    since the same memory address may be reused later to create
    a new object. */
 SWIGRUNTIME void SWIG_RubyRemoveTracking(void* ptr) {
-  /* Get a reference to the pointer as a Ruby number */
-  VALUE key = SWIG_RubyPtrToReference(ptr);
-
-  /* Delete the object from the hash table by calling Ruby's
-     do this we need to call the Hash.delete method.*/
-  rb_funcall(swig_ruby_trackings, swig_ruby_hash_delete, 1, key);
+  /* Delete the object from the hash table */
+  st_delete(swig_ruby_trackings, (st_data_t *)&ptr, NULL);
 }
 
 /* This is a helper method that unlinks a Ruby object from its
@@ -147,10 +106,25 @@ SWIGRUNTIME void SWIG_RubyUnlinkObjects(void* ptr) {
   VALUE object = SWIG_RubyInstanceFor(ptr);
 
   if (object != Qnil) {
+    if (TYPE(object) != T_DATA)
+      abort();
     DATA_PTR(object) = 0;
   }
 }
 
+/* This is a helper method that iterates over all the trackings
+   passing the C++ object pointer and its related Ruby object
+   to the passed callback function. */
+
+/* Proxy method to abstract the internal trackings datatype */
+static int swig_ruby_internal_iterate_callback(void* ptr, VALUE obj, void(*meth)(void* ptr, VALUE obj)) {
+  (*meth)(ptr, obj);
+  return ST_CONTINUE;
+}
+
+SWIGRUNTIME void SWIG_RubyIterateTrackings( void(*meth)(void* ptr, VALUE obj) ) {
+  st_foreach(swig_ruby_trackings, (int (*)(ANYARGS))&swig_ruby_internal_iterate_callback, (st_data_t)meth);
+}
 
 #ifdef __cplusplus
 }

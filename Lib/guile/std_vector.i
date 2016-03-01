@@ -44,17 +44,17 @@ namespace std {
         %typemap(in) vector<T> {
             if (scm_is_vector($input)) {
                 unsigned long size = scm_c_vector_length($input);
-                $1 = std::vector<T >(size);
+                $1 = std::vector< T >(size);
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref($input,scm_from_ulong(i));
                     (($1_type &)$1)[i] =
                         *((T*) SWIG_MustGetPtr(o,$descriptor(T *),$argnum, 0));
                 }
             } else if (scm_is_null($input)) {
-                $1 = std::vector<T >();
+                $1 = std::vector< T >();
             } else if (scm_is_pair($input)) {
                 SCM head, tail;
-                $1 = std::vector<T >();
+                $1 = std::vector< T >();
                 tail = $input;
                 while (!scm_is_null(tail)) {
                     head = SCM_CAR(tail);
@@ -72,7 +72,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (scm_is_vector($input)) {
                 unsigned long size = scm_c_vector_length($input);
-                temp = std::vector<T >(size);
+                temp = std::vector< T >(size);
                 $1 = &temp;
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref($input,scm_from_ulong(i));
@@ -81,10 +81,10 @@ namespace std {
                                                      $argnum, 0));
                 }
             } else if (scm_is_null($input)) {
-                temp = std::vector<T >();
+                temp = std::vector< T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
-                temp = std::vector<T >();
+                temp = std::vector< T >();
                 $1 = &temp;
                 SCM head, tail;
                 tail = $input;
@@ -138,7 +138,7 @@ namespace std {
                     $1 = 0;
             } else {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                       $&1_descriptor, 0) != -1)
                     $1 = 1;
@@ -178,7 +178,7 @@ namespace std {
                     $1 = 0;
             } else {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
                                       $1_descriptor, 0) != -1)
                     $1 = 1;
@@ -232,7 +232,7 @@ namespace std {
         %typemap(in) vector<T> {
             if (scm_is_vector($input)) {
                 unsigned long size = scm_c_vector_length($input);
-                $1 = std::vector<T >(size);
+                $1 = std::vector< T >(size);
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref($input,scm_from_ulong(i));
                     if (CHECK(o))
@@ -245,7 +245,7 @@ namespace std {
             } else if (scm_is_pair($input)) {
                 SCM v = scm_vector($input);
                 unsigned long size = scm_c_vector_length(v);
-                $1 = std::vector<T >(size);
+                $1 = std::vector< T >(size);
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref(v,scm_from_ulong(i));
                     if (CHECK(o))
@@ -262,7 +262,7 @@ namespace std {
                      const vector<T>* (std::vector<T> temp) {
             if (scm_is_vector($input)) {
                 unsigned long size = scm_c_vector_length($input);
-                temp = std::vector<T >(size);
+                temp = std::vector< T >(size);
                 $1 = &temp;
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref($input,scm_from_ulong(i));
@@ -272,12 +272,12 @@ namespace std {
                         scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
                 }
             } else if (scm_is_null($input)) {
-                temp = std::vector<T >();
+                temp = std::vector< T >();
                 $1 = &temp;
             } else if (scm_is_pair($input)) {
                 SCM v = scm_vector($input);
                 unsigned long size = scm_c_vector_length(v);
-                temp = std::vector<T >(size);
+                temp = std::vector< T >(size);
                 $1 = &temp;
                 for (unsigned long i=0; i<size; i++) {
                     SCM o = scm_vector_ref(v,scm_from_ulong(i));
@@ -318,7 +318,7 @@ namespace std {
                 $1 = CHECK(head) ? 1 : 0;
             } else {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 $1 = (SWIG_ConvertPtr($input,(void **) &v, 
                                         $&1_descriptor, 0) != -1) ? 1 : 0;
             }
@@ -345,7 +345,7 @@ namespace std {
                 $1 = CHECK(head) ? 1 : 0;
             } else {
                 /* wrapped vector? */
-                std::vector<T >* v;
+                std::vector< T >* v;
                 $1 = (SWIG_ConvertPtr($input,(void **) &v, 
                                         $1_descriptor, 0) != -1) ? 1 : 0;
             }

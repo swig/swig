@@ -44,14 +44,14 @@ type GoRetStruct struct {
   $result.str.assign($input.p, $input.n);
 %}
 
-%typemap(out) RetStruct
+%typemap(out,fragment="AllocateString") RetStruct
 %{
-  $result = _swig_makegostring($1.str.data(), $1.str.length());
+  $result = Swig_AllocateString($1.str.data(), $1.str.length());
 %}
 
-%typemap(goout) RetStruct
+%typemap(goout,fragment="CopyString") RetStruct
 %{
-	$result = GoRetStruct{Str: $input}
+	$result = GoRetStruct{Str: swigCopyString($input)}
 %}
 
 %typemap(godirectorout) RetStruct
@@ -81,21 +81,26 @@ type GoRetStruct struct {
 	}
 %}
 
-%typemap(directorin) MyStruct
+%typemap(directorin,fragment="AllocateString") MyStruct
 %{
-  $input = _swig_makegostring($1.str.data(), $1.str.length());
+  $input = Swig_AllocateString($1.str.data(), $1.str.length());
 %}
 
-%typemap(out) MyStruct
+%typemap(godirectorin,fragment="CopyString") MyStruct
 %{
-  $result = _swig_makegostring($1.str.data(), $1.str.length());
-%}
-
-%typemap(godirectorin) MyStruct
-%{
-	if err := json.Unmarshal([]byte($input), &$result); err != nil {
+	if err := json.Unmarshal([]byte(swigCopyString($input)), &$result); err != nil {
 		panic(err)
 	}
+%}
+
+%typemap(out,fragment="AllocateString") MyStruct
+%{
+  $result = Swig_AllocateString($1.str.data(), $1.str.length());
+%}
+
+%typemap(goout,fragment="CopyString") MyStruct
+%{
+	$result = swigCopyString($input)
 %}
 
 %typemap(in) MyStruct

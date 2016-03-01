@@ -2,12 +2,71 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.5 (in progress)
+Version 3.0.9 (in progress)
 ===========================
 
-2015-01-15: wsfulton
-            [Python] Merge patch #250 - Fixes for using %constant and objects (non-primitive types)
+2016-03-01: olly
+	    [Python] Fix isfinite() check to work with GCC6.  Fixes
+	    https://github.com/swig/swig/issues/615 reported by jplesnik.
 
-2015-01-15: wsfulton
-            [C# Go] Merge patch #308 and fix #307 - C++11 strongly typed enum support
-            in directors
+2016-02-17: olly
+	    [Python] Add missing keywords 'as' and 'with' to pythonkw.swg.
+
+2016-02-07: kwwette
+            [Octave] recognise various unary functions
+            * Use __float__() for numeric conversions, e.g. when calling double()
+            * Map various unary functions, e.g. abs() to __abs__(), see full list
+              in section 32.3.10 of manual; only available in Octave 3.8.0 or later
+
+2016-02-07: kwwette
+            [Octave] export function swig_octave_prereq() for testing Octave version
+
+2016-02-06: pjohangustavsson
+            [C#] Fix duplicate symbol problems when linking the source generated
+            from multiple SWIG modules into one shared library for the -namespace
+            option. The namespace is now mangled into the global PInvoke function
+            names.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2016-01-27: ahnolds
+            [Python] Added support for differentiating between Python Bytes
+            and Unicode objects using by defining SWIG_PYTHON_STRICT_BYTE_CHAR
+            and SWIG_PYTHON_STRICT_UNICODE_WCHAR.
+
+2016-01-27: steeve
+            [Go] Ensure structs are properly packed between gc and GCC/clang.
+
+2016-01-25: ahnolds
+            [Python] Support the full Python test suite in -classic mode
+            * Convert long/unsigned long/long long/unsigned long long to PyInt
+              rather than PyLong when possible. Certain python functions like
+              len() require a PyInt when operating on old-style classes.
+            * Add support for static methods in classic mode, including support
+              for pythonappend, pythonprepend, and docstrings.
+            * Removing the use of __swig_getmethods__ for static member methods
+              since they will always be found by the standard argument lookup
+            * Fix a bug where the wrong type of exception was caught when
+              checking for new-style class support
+
+2016-01-23: ahnolds
+            [Go] Enable support for the Go test-suite on OSX:
+            * The linker on OSX requires that all symbols (even weak symbols)
+              are defined at link time. Because the function _cgo_topofstack is
+              only defined starting in Go version 1.4, we explicitly mark it as
+              undefined for older versions of Go on OSX.
+            * Avoid writing empty swigargs structs, since empty structs are not
+              allowed in extern "C" blocks.
+
+2016-01-12: olly
+	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
+	    as the former on Debian.
+
+2016-01-12: olly
+	    [Javascript] For v8 >= 4.3.0, use V8_MAJOR_VERSION.
+	    Fixes https://github.com/swig/swig/issues/561.
+
+2016-01-10: ahnolds
+            Improved size_t and ptrdiff_t typemaps to support large values
+            on platforms where sizeof(size_t) > sizeof(unsigned long) and
+            sizeof(ptrdiff_t) > sizeof(long).

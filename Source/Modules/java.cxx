@@ -425,7 +425,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n#define SWIGJAVA\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGJAVA\n#define SWIGJAVA\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -481,6 +481,7 @@ public:
 
     if (directorsEnabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
     // Generate the intermediary class
@@ -1787,7 +1788,7 @@ public:
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java. "
-		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
+		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the javabase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 
     // Pure Java interfaces
@@ -1874,40 +1875,33 @@ public:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      SwigType *smart = Swig_cparse_smartptr(n);
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *jniname = makeValidJniName(upcast_method);
       String *wname = Swig_name_wrapper(jniname);
       Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
-      if (smartptr) {
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  SwigType *smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  SwigType *bsmart = Copy(smart);
-	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
-	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
-	  Replaceall(bsmart, rclassname, rbaseclass);
-	  Delete(rclassname);
-	  Delete(rbaseclass);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  Printv(upcasts_code,
-		 "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-		 "    jlong baseptr = 0;\n"
-		 "    ", smartnamestr, " *argp1;\n"
-		 "    (void)jenv;\n"
-		 "    (void)jcls;\n"
-		 "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
-		 "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
-		 "    return baseptr;\n"
-		 "}\n", "\n", NIL);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  Delete(bsmart);
-	} else {
-	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
-	}
+      if (smart) {
+	SwigType *bsmart = Copy(smart);
+	SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+	SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+	Replaceall(bsmart, rclassname, rbaseclass);
+	Delete(rclassname);
+	Delete(rbaseclass);
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
+	Printv(upcasts_code,
+	       "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+	       "    jlong baseptr = 0;\n"
+	       "    ", smartnamestr, " *argp1;\n"
+	       "    (void)jenv;\n"
+	       "    (void)jcls;\n"
+	       "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
+	       "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
+	       "    return baseptr;\n"
+	       "}\n", "\n", NIL);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+	Delete(bsmart);
       } else {
 	Printv(upcasts_code,
 	       "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1921,6 +1915,7 @@ public:
       Delete(wname);
       Delete(jniname);
       Delete(upcast_method);
+      Delete(smart);
     }
     Delete(baseclass);
   }
@@ -3427,7 +3422,7 @@ public:
       Printf(f_runtime, "namespace Swig {\n");
       Printf(f_runtime, "  namespace {\n");
       Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
-      Printf(f_runtime, "    jmethodID director_methids[%d];\n", n_methods);
+      Printf(f_runtime, "    jmethodID director_method_ids[%d];\n", n_methods);
       Printf(f_runtime, "  }\n");
       Printf(f_runtime, "}\n");
 
@@ -3444,8 +3439,8 @@ public:
       Printf(w->code, "Swig::jclass_%s = (jclass) jenv->NewGlobalRef(jcls);\n", imclass_name);
       Printf(w->code, "if (!Swig::jclass_%s) return;\n", imclass_name);
       Printf(w->code, "for (i = 0; i < (int) (sizeof(methods)/sizeof(methods[0])); ++i) {\n");
-      Printf(w->code, "  Swig::director_methids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
-      Printf(w->code, "  if (!Swig::director_methids[i]) return;\n");
+      Printf(w->code, "  Swig::director_method_ids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
+      Printf(w->code, "  if (!Swig::director_method_ids[i]) return;\n");
       Printf(w->code, "}\n");
 
       Printf(w->code, "}\n");
@@ -3485,7 +3480,7 @@ public:
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
 	   "jboolean jweak_global) {\n", jnipackage, jni_imclass_name, swig_director_connect_jni);
 
-    if (Len(smartptr)) {
+    if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
       Printf(code_wrap->code, "  (void)jcls;\n");
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
@@ -4099,7 +4094,7 @@ public:
       if (!is_void)
 	Printf(w->code, "jresult = (%s) ", c_ret_type);
 
-      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
+      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_method_ids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
       // Generate code to handle any Java exception thrown by director delegation
       directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
@@ -4488,7 +4483,7 @@ public:
       Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "    bool swig_override[%d];\n", n_methods);
+      Printf(f_directors_h, "    Swig::BoolArray<%d> swig_override;\n", n_methods);
 
       /* Emit the code to look up the class's methods, initialize the override array */
 

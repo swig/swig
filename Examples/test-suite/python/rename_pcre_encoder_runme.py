@@ -10,7 +10,7 @@ a = AnotherWidget()
 a.DoSomething()
 
 evt = wxEVTSomeEvent()
-t   = xUnchangedName()
+t = xUnchangedName()
 
 if StartINSAneAndUNSAvoryTraNSAtlanticRaNSAck() != 42:
     raise RuntimeError("Unexpected result of renamed function call")

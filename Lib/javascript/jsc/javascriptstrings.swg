@@ -52,6 +52,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
       return JSValueMakeUndefined(context);
     } else {
       JSStringRef jsstring;
+      JSValueRef result;
       if(size < 2) {
         char c[2];
         int i;
@@ -63,7 +64,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
       } else {
         jsstring = JSStringCreateWithUTF8CString(carray);
       }
-      JSValueRef result = JSValueMakeString(context, jsstring);
+      result = JSValueMakeString(context, jsstring);
       JSStringRelease(jsstring);
       return result;
     }

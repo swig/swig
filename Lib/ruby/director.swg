@@ -29,8 +29,9 @@ namespace Swig {
     virtual ~GCItem() {
     }
 
-    virtual ruby_owntype get_own() const {
-      return 0;
+    virtual swig_ruby_owntype get_own() const {
+      swig_ruby_owntype own = {0, 0};
+      return own;
     }
   };
 
@@ -72,18 +73,18 @@ namespace Swig {
   };
 
   struct GCItem_Object : GCItem {
-    GCItem_Object(ruby_owntype own) : _own(own) {
+    GCItem_Object(swig_ruby_owntype own) : _own(own) {
     }
 
     virtual ~GCItem_Object() {
     }
 
-    ruby_owntype get_own() const {
+    swig_ruby_owntype get_own() const {
       return _own;
     }
 
   private:
-    ruby_owntype _own;
+    swig_ruby_owntype _own;
   };
 
   template <typename Type>
@@ -278,7 +279,7 @@ namespace Swig {
     mutable bool swig_disown_flag;
 
   public:
-    /* wrap a Ruby object, optionally taking ownership */
+    /* wrap a Ruby object. */
     Director(VALUE self) : swig_self(self), swig_disown_flag(false) {
     }
 
@@ -323,20 +324,20 @@ namespace Swig {
       }
     }
 
-    void swig_acquire_ownership_obj(void *vptr, ruby_owntype own) const {
-      if (vptr && own) {
+    void swig_acquire_ownership_obj(void *vptr, swig_ruby_owntype own) const {
+      if (vptr && own.datafree) {
 	SWIG_GUARD(swig_mutex_own);
 	swig_owner[vptr] = new GCItem_Object(own);
       }
     }
 
-    ruby_owntype swig_release_ownership(void *vptr) const {
-      ruby_owntype own = 0;
+    swig_ruby_owntype swig_release_ownership(void *vptr) const {
+      swig_ruby_owntype own = {0, 0};
       if (vptr) {
 	SWIG_GUARD(swig_mutex_own);
 	swig_ownership_map::iterator iter = swig_owner.find(vptr);
 	if (iter != swig_owner.end()) {
-	  own = iter->second->get_own();
+	  own.datafree = iter->second->get_own().datafree;
 	  swig_owner.erase(iter);
 	}
       }

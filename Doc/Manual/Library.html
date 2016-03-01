@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG Library</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Library"></a>9 SWIG library</H1>
+<H1><a name="Library">9 SWIG library</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -59,7 +60,7 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 </p>
 
-<H2><a name="Library_nn2"></a>9.1 The %include directive and library search path</H2>
+<H2><a name="Library_nn2">9.1 The %include directive and library search path</a></H2>
 
 
 <p>
@@ -91,7 +92,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3"></a>9.2 C Arrays and Pointers</H2>
+<H2><a name="Library_nn3">9.2 C Arrays and Pointers</a></H2>
 
 
 <p>
@@ -103,7 +104,7 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_nn4"></a>9.2.1 cpointer.i</H3>
+<H3><a name="Library_nn4">9.2.1 cpointer.i</a></H3>
 
 
 <p>
@@ -319,7 +320,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_carrays"></a>9.2.2 carrays.i</H3>
+<H3><a name="Library_carrays">9.2.2 carrays.i</a></H3>
 
 
 <p>
@@ -497,7 +498,7 @@ you should consider using a special array object rather than a bare pointer.
 used with types of <tt>char</tt> or <tt>char *</tt>.
 </p>
 
-<H3><a name="Library_nn6"></a>9.2.3 cmalloc.i</H3>
+<H3><a name="Library_nn6">9.2.3 cmalloc.i</a></H3>
 
 
 <p>
@@ -658,7 +659,7 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7"></a>9.2.4 cdata.i</H3>
+<H3><a name="Library_nn7">9.2.4 cdata.i</a></H3>
 
 
 <p>
@@ -760,7 +761,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8"></a>9.3 C String Handling</H2>
+<H2><a name="Library_nn8">9.3 C String Handling</a></H2>
 
 
 <p>
@@ -780,7 +781,7 @@ morality.  The modules in this section provide basic functionality
 for manipulating raw C strings.
 </p>
 
-<H3><a name="Library_nn9"></a>9.3.1 Default string handling</H3>
+<H3><a name="Library_nn9">9.3.1 Default string handling</a></H3>
 
 
 <p>
@@ -821,7 +822,7 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10"></a>9.3.2 Passing binary data</H3>
+<H3><a name="Library_nn10">9.3.2 Passing binary data</a></H3>
 
 
 <p>
@@ -863,7 +864,7 @@ In the wrapper function, the passed string will be expanded to a pointer and len
 The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
-<H3><a name="Library_nn11"></a>9.3.3 Using %newobject to release memory</H3>
+<H3><a name="Library_nn11">9.3.3 Using %newobject to release memory</a></H3>
 
 
 <p>
@@ -904,7 +905,7 @@ however, you may need to provide your own "newfree" typemap for other types.
 See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for more details.
 </p>
 
-<H3><a name="Library_nn12"></a>9.3.4 cstring.i</H3>
+<H3><a name="Library_nn12">9.3.4 cstring.i</a></H3>
 
 
 <p>
@@ -1364,7 +1365,7 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library"></a>9.4 STL/C++ Library</H2>
+<H2><a name="Library_stl_cpp_library">9.4 STL/C++ Library</a></H2>
 
 
 <p>
@@ -1392,7 +1393,8 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
-<tr> <td>std::shared_ptr</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
+<tr> <td>std::array</td>           <td>array (C++11)</td>             <td>std_array.i</td> </tr>
+<tr> <td>std::shared_ptr</td>           <td>shared_ptr (C++11)</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1402,7 +1404,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string"></a>9.4.1 std::string</H3>
+<H3><a name="Library_std_string">9.4.1 std::string</a></H3>
 
 
 <p>
@@ -1486,7 +1488,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector"></a>9.4.2 std::vector</H3>
+<H3><a name="Library_std_vector">9.4.2 std::vector</a></H3>
 
 
 <p>
@@ -1665,7 +1667,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions"></a>9.4.3 STL exceptions</H3>
+<H3><a name="Library_stl_exceptions">9.4.3 STL exceptions</a></H3>
 
 
 <p>
@@ -1715,7 +1717,7 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr"></a>9.4.4 shared_ptr smart pointer</H3>
+<H3><a name="Library_std_shared_ptr">9.4.4 shared_ptr smart pointer</a></H3>
 
 
 <p>
@@ -1900,11 +1902,13 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </div>
 
 <p>
-<b>Note:</b> There is currently no support for <tt>%shared_ptr</tt> and the director feature.
+<b>Note:</b> There is somewhat limited support for <tt>%shared_ptr</tt> and the director feature
+and the degress of success varies among the different target languages.
+Please help to improve this support by providing patches with improvements.
 </p>
 
 
-<H3><a name="Library_std_auto_ptr"></a>9.4.5 auto_ptr smart pointer</H3>
+<H3><a name="Library_std_auto_ptr">9.4.5 auto_ptr smart pointer</a></H3>
 
 
 <p>
@@ -1953,10 +1957,10 @@ int value = k.getValue();
 </pre>
 </div>
 
-<H2><a name="Library_nn16"></a>9.5 Utility Libraries</H2>
+<H2><a name="Library_nn16">9.5 Utility Libraries</a></H2>
 
 
-<H3><a name="Library_nn17"></a>9.5.1 exception.i</H3>
+<H3><a name="Library_nn17">9.5.1 exception.i</a></H3>
 
 
 <p>

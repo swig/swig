@@ -4,6 +4,8 @@
  * Go configuration module.
  * ------------------------------------------------------------ */
 
+%include <gostring.swg>
+
 /* Code insertion directives */
 #define %go_import(...) %insert(go_imports) %{__VA_ARGS__%}
 
@@ -75,6 +77,22 @@
 	      double
 %{ $result = $1; %}
 
+%typemap(goout) bool,
+	      char,
+	      signed char,
+	      unsigned char,
+	      short,
+	      unsigned short,
+	      int,
+	      unsigned int,
+	      long,
+	      unsigned long,
+	      long long,
+	      unsigned long long,
+	      float,
+	      double
+""
+
 %typemap(out) const bool &,
 	      const char &,
 	      const signed char &,
@@ -91,7 +109,25 @@
 	      const double &
 %{ $result = ($*1_ltype)*$1; %}
 
+%typemap(goout) const bool &,
+	      const char &,
+	      const signed char &,
+	      const unsigned char &,
+	      const short &,
+	      const unsigned short &,
+	      const int &,
+	      const unsigned int &,
+	      const long &,
+	      const unsigned long &,
+	      const long long &,
+	      const unsigned long long &,
+	      const float &,
+	      const double &
+""
+
 %typemap(out) void ""
+
+%typemap(goout) void ""
 
 %typemap(directorin) bool,
 		     char,
@@ -109,6 +145,22 @@
 		     double
 %{ $input = ($1_ltype)$1; %}
 
+%typemap(godirectorin) bool,
+		     char,
+		     signed char,
+		     unsigned char,
+		     short,
+		     unsigned short,
+		     int,
+		     unsigned int,
+		     long,
+		     unsigned long,
+		     long long,
+		     unsigned long long,
+		     float,
+		     double
+""
+
 %typemap(directorin) const bool &,
 		     const char &,
 		     const signed char &,
@@ -124,6 +176,22 @@
 		     const float &,
 		     const double &
 %{ $input = ($*1_ltype)$1; %}
+
+%typemap(godirectorin) const bool &,
+		     const char &,
+		     const signed char &,
+		     const unsigned char &,
+		     const short &,
+		     const unsigned short &,
+		     const int &,
+		     const unsigned int &,
+		     const long &,
+		     const unsigned long &,
+		     const long long &,
+		     const unsigned long long &,
+		     const float &,
+		     const double &
+""
 
 %typemap(directorout) bool,
 		      char,
@@ -141,7 +209,7 @@
 		      double
 %{ $result = ($1_ltype)$input; %}
 
-%typemap(directorout) const bool &,
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) const bool &,
 		      const char &,
 		      const signed char &,
 		      const unsigned char &,
@@ -156,8 +224,8 @@
 		      const float &,
 		      const double &
 %{
-  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
-  *$result = *($1_ltype)&$input;
+  $result = new $*1_ltype($input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 /* The size_t type.  */
@@ -173,22 +241,30 @@
 %typemap(out) size_t
 %{ $result = $1; %}
 
+%typemap(goout) size_t ""
+
 %typemap(out) const size_t &
 %{ $result = ($*1_ltype)*$1; %}
+
+%typemap(goout) const size_t & ""
 
 %typemap(directorin) size_t
 %{ $input = (size_t)$1; %}
 
+%typemap(godirectorin) size_t ""
+
 %typemap(directorin) const size_t &
 %{ $input = ($*1_ltype)$1; %}
+
+%typemap(godirectorin) const size_t & ""
 
 %typemap(directorout) size_t
 %{ $result = ($1_ltype)$input; %}
 
-%typemap(directorout) const size_t &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) const size_t &
 %{
-  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
-  *$result = *($1_ltype)$input;
+  $result = new $*1_ltype($input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 /* Member pointers.  */
@@ -201,17 +277,45 @@
 
 %typemap(out) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_goallocate(sizeof($1_ltype));
-  *($&1_ltype)$result = $1;
+  struct swig_out_type { intgo size; void* val; } *swig_out;
+  swig_out = (struct swig_out_type*)malloc(sizeof(*swig_out));
+  if (swig_out) {
+    swig_out->size = sizeof($1_ltype);
+    swig_out->val = malloc(swig_out->size);
+    if (swig_out->val) {
+      *($&1_ltype)(swig_out->val) = $1;
+    }
+  }
+  $result = swig_out;
+%}
+
+%typemap(goout) SWIGTYPE (CLASS::*)
+%{
+  {
+    type swig_out_type struct { size int; val uintptr }
+    p := (*swig_out_type)(unsafe.Pointer($1))
+    if p == nil || p.val == 0 {
+      $result = nil
+    } else {
+      m := make([]byte, p.size)
+      a := (*[1024]byte)(unsafe.Pointer(p.val))[:p.size]
+      copy(m, a)
+      Swig_free(p.val)
+      Swig_free(uintptr(unsafe.Pointer(p)))
+      $result = &m[0]
+    }
+  }
 %}
 
 %typemap(directorin) SWIGTYPE (CLASS::*)
 %{ $input = *($&1_ltype)$1; %}
 
+%typemap(godirectorin) SWIGTYPE (CLASS::*) ""
+
 %typemap(directorout) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_goallocate(sizeof($1_ltype));
-  *($&1_ltype)$result = $input;
+  $result = new $1_ltype($input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 /* Pointers.  */
@@ -227,8 +331,12 @@
 %typemap(out) SWIGTYPE *
 %{ *($&1_ltype)&$result = ($1_ltype)$1; %}
 
+%typemap(goout) SWIGTYPE * ""
+
 %typemap(directorin) SWIGTYPE *
 %{ *($&1_ltype)&$input = ($1_ltype)$1; %}
+
+%typemap(godirectorin) SWIGTYPE * ""
 
 %typemap(directorout) SWIGTYPE *
 %{ $result = *($&1_ltype)&$input; %}
@@ -249,6 +357,8 @@
 %typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %}
 
+%typemap(goout) SWIGTYPE *const& ""
+
 /* References.  */
 
 /* Converting a C++ reference to Go has to be handled in the C++
@@ -262,8 +372,12 @@
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %}
 
+%typemap(goout) SWIGTYPE & ""
+
 %typemap(directorin) SWIGTYPE &
 %{ $input = ($1_ltype)&$1; %}
+
+%typemap(godirectorin) SWIGTYPE & ""
 
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
@@ -277,8 +391,12 @@
 %typemap(out) SWIGTYPE &&
 %{ *($&1_ltype)&$result = $1; %}
 
+%typemap(goout) SWIGTYPE && ""
+
 %typemap(directorin) SWIGTYPE &&
 %{ $input = ($1_ltype)&$1_name; %}
+
+%typemap(godirectorin) SWIGTYPE && ""
 
 %typemap(directorout) SWIGTYPE &&
 %{ *($&1_ltype)&$result = $input; %}
@@ -295,8 +413,12 @@
 %typemap(out) SWIGTYPE []
 %{ *($&1_ltype)&$result = $1; %}
 
+%typemap(goout) SWIGTYPE [] ""
+
 %typemap(directorin) SWIGTYPE []
 %{ $input = *($1_ltype)&$1; %}
+
+%typemap(godirectorin) SWIGTYPE [] ""
 
 %typemap(directorout) SWIGTYPE []
 %{ *($&1_ltype)&$result = $input; %}
@@ -304,10 +426,7 @@
 /* Strings.  */
 
 %typemap(gotype)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
-"string"
+	char *, char *&, char[ANY], char[] "string"
 
 /* Needed to avoid confusion with the way the go module handles
    references.  */
@@ -315,32 +434,34 @@
 %typemap(gotype) signed char& "*int8"
 
 %typemap(in)
-	char *, char[ANY], char[],
-	signed char *, signed char[ANY], signed char[],
-	unsigned char *, unsigned char[ANY], unsigned char[]
+	char *, char[ANY], char[]
 %{ $1 = ($1_ltype)$input.p; %}
 
-%typemap(in) char *&, signed char *&, unsigned char *&
+%typemap(in) char *&
 %{ $1 = ($1_ltype)$input.p; %}
 
-%typemap(out)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
-%{ $result = _swig_makegostring((char*)$1, $1 ? strlen((char*)$1) : 0); %}
+%typemap(out,fragment="AllocateString")
+	char *, char *&, char[ANY], char[]
+%{ $result = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0); %}
 
-%typemap(directorin)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+%typemap(goout,fragment="CopyString")
+	char *, char *&, char[ANY], char[]
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString")
+	char *, char *&, char[ANY], char[]
 %{
-  $input = _swig_makegostring((char*)$1, $1 ? strlen((char*)$1) : 0);
+  $input = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0);
+%}
+
+%typemap(godirectorin,fragment="CopyString")
+	char *, char *&, char[ANY], char[]
+%{
+  $result = swigCopyString($input)
 %}
 
 %typemap(directorout)
-	char *, char *&, char[ANY], char[],
-	signed char *, signed char *&, signed char[ANY], signed char[],
-	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
+	char *, char *&, char[ANY], char[]
 %{ $result = ($1_ltype)$input.p; %}
 
 /* String & length */
@@ -353,11 +474,17 @@
   $2 = ($2_ltype)$input.n;
 %}
 
-%typemap(out) (char *STRING, size_t LENGTH)
-%{ $result = _swig_makegostring((char*)$1, (size_t)$2); %}
+%typemap(out,fragment="AllocateString") (char *STRING, size_t LENGTH)
+%{ $result = Swig_AllocateString((char*)$1, (size_t)$2); %}
 
-%typemap(directorin) (char *STRING, size_t LENGTH)
-%{ $input = _swig_makegostring((char*)$1, $2); %}
+%typemap(goout,fragment="CopyString") (char *STRING, size_t LENGTH)
+%{ $result = swigCopyString($1) %}
+
+%typemap(directorin,fragment="AllocateString") (char *STRING, size_t LENGTH)
+%{ $input = Swig_AllocateString((char*)$1, $2); %}
+
+%typemap(godirectorin,fragment="CopyString") (char *STRING, size_t LENGTH)
+%{ $result = swigCopyString($input) %}
 
 %typemap(directorout) (char *STRING, size_t LENGTH)
 %{
@@ -378,8 +505,12 @@
 %typemap(out) enum SWIGTYPE
 %{ $result = (intgo)$1; %}
 
+%typemap(goout) enum SWIGTYPE ""
+
 %typemap(directorin) enum SWIGTYPE
 %{ $input = (intgo)$1; %}
+
+%typemap(godirectorin) enum SWIGTYPE ""
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
@@ -387,8 +518,10 @@
 %typemap(directorin) enum SWIGTYPE & (intgo e)
 %{
   e = (intgo)$1;
-  $input = &e;
+  $input = ($1_ltype)&e;
 %}
+
+%typemap(godirectorin) enum SWIGTYPE & ""
 
 %typemap(directorout) enum SWIGTYPE &
 %{
@@ -423,8 +556,12 @@
 }
 #endif
 
+%typemap(goout) SWIGTYPE ""
+
 %typemap(directorin) SWIGTYPE
 %{ $input = ($&1_ltype)&$1; %}
+
+%typemap(godirectorin) SWIGTYPE ""
 
 %typemap(directorout) SWIGTYPE
 %{ $result = *($&1_ltype)$input; %}

@@ -12,6 +12,10 @@
 %rename(PlusPlusPostfix) operator++(int);
 #endif
 
+%ignore operator new (size_t);
+%ignore operator delete (void *);
+%ignore operator delete[] (void *);
+
 %{
 #include <iostream>
 using namespace std;
@@ -59,5 +63,17 @@ public:
 
     int k;
 };
+
+struct Op2 {
+    void *operator new
+         (size_t); // definition split over two lines was giving syntax error
+    void operator delete /* comment here did not work */ (void *);
+    void operator
+         delete[] (void *);
+};
+
+void *Op2::operator new(size_t) { return malloc(sizeof(Op)); }
+void Op2::operator delete(void *p) { free(p); }
+void Op2::operator delete[] (void *) {}
 
 %}

@@ -329,8 +329,7 @@ public:
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGLUA\n");
+    Printf(f_runtime, "\n\n#ifndef SWIGLUA\n#define SWIGLUA\n#endif\n\n");
 
     emitLuaFlavor(f_runtime);
 
