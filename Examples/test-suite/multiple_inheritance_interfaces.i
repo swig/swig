@@ -2,9 +2,9 @@
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "feature_interface.i"
-DECLARE_INTERFACE_RENAME(IA, A, IA)
-DECLARE_INTERFACE_RENAME(IB, B, IB)
-DECLARE_INTERFACE_RENAME(IC, C, IC)
+%interface_custom("A", "IA", IA)
+%interface_custom("B", "IB", IB)
+%interface_custom("%(strip:[I])s", "I%s", IC) // same as %interface_custom("C", "IC", IC)
 #endif
 %inline %{
 struct IA {
@@ -19,9 +19,9 @@ struct E : D {};
 %}
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-DECLARE_INTERFACE_RENAME(IJ, J, IJ)
-DECLARE_INTERFACE_RENAME(IK, K, IK)
-DECLARE_INTERFACE_RENAME(IL, L, IL)
+%interface_custom("J", "IJ", IJ)
+%interface_custom("K", "IK", IK)
+%interface_custom("L", "IL", IL)
 #endif
 %inline %{
 struct IJ { virtual void ij() {} };
@@ -31,7 +31,7 @@ struct M : IL {};
 %}
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-DECLARE_INTERFACE_RENAME(IQ, Q, IQ)
+%interface_custom("Q", "IQ", IQ)
 #endif
 %inline %{
 struct P { virtual void p() {}; };

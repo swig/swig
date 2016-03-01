@@ -8,9 +8,9 @@
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "feature_interface.i"
-DECLARE_INTERFACE_RENAME(ABase1, SWIGTYPE_ABase1, Space::ABase1)
-DECLARE_INTERFACE_RENAME(CBase1, SWIGTYPE_CBase1, Space::CBase1)
-DECLARE_INTERFACE_RENAME(CBase2, SWIGTYPE_CBase2, Space::CBase2)
+%interface_custom("SWIGTYPE_ABase1", "ABase1", Space::ABase1)
+%interface_custom("SWIGTYPE_CBase1", "CBase1", Space::CBase1)
+%interface_custom("SWIGTYPE_CBase2", "CBase2", Space::CBase2)
 #endif
 
 #if defined(SWIGJAVA)

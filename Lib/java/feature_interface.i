@@ -1,7 +1,4 @@
-%define DECLARE_INTERFACE_(INTERFACE, CTYPE...)
-%feature("interface", name="INTERFACE") CTYPE;
-//%feature("interface", name="%(rstrip:[Impl])s") CTYPE;
-//%feature("interface", name="%(regex:/(.*)Impl$/\\1/)s") CTYPE;
+%define INTERFACE_TYPEMAPS(CTYPE...)
 %typemap(jtype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
 %typemap(jstype) CTYPE "$&javainterfacename"
 %typemap(jstype) CTYPE *, CTYPE [], CTYPE & "$javainterfacename"
@@ -49,12 +46,20 @@
 %}
 %enddef
 
-%define DECLARE_INTERFACE_RENAME(INTERFACE, IMPL, CTYPE...)
-%rename (IMPL) CTYPE;
-DECLARE_INTERFACE_(INTERFACE, CTYPE)
+%define %interface(CTYPE...)
+%feature("interface", name="I%s") CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
-%define DECLARE_INTERFACE(INTERFACE, CTYPE...)
-DECLARE_INTERFACE_(INTERFACE, CTYPE)
+%define %interface_impl(CTYPE...)
+%rename("%sSwigImpl") CTYPE;
+%feature("interface", name="%(regex:/(.*)SwigImpl$/\\1/)s") CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
+%enddef
+
+%define %interface_custom(IMPL, INTERFACE, CTYPE...)
+%rename(IMPL) CTYPE;
+%feature("interface", name=INTERFACE) CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 

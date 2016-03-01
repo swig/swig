@@ -1,5 +1,4 @@
-%define DECLARE_INTERFACE_(INTERFACE, CTYPE...)
-%feature("interface", name="INTERFACE") CTYPE;
+%define INTERFACE_TYPEMAPS(CTYPE...)
 %typemap(cstype) CTYPE "$&csinterfacename"
 %typemap(cstype) CTYPE *, CTYPE [], CTYPE & "$csinterfacename"
 %typemap(cstype) CTYPE *const& "$*csinterfacename"
@@ -36,12 +35,20 @@
 %}
 %enddef
 
-%define DECLARE_INTERFACE_RENAME(INTERFACE, IMPL, CTYPE...)
-%rename (IMPL) CTYPE;
-DECLARE_INTERFACE_(INTERFACE, CTYPE)
+%define %interface(CTYPE...)
+%feature("interface", name="I%s") CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
-%define DECLARE_INTERFACE(INTERFACE, CTYPE...)
-DECLARE_INTERFACE_(INTERFACE, CTYPE, CTYPE)
+%define %interface_impl(CTYPE...)
+%rename("%sSwigImpl") CTYPE;
+%feature("interface", name="%(regex:/(.*)SwigImpl$/\\1/)s") CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
+%enddef
+
+%define %interface_custom(IMPL, INTERFACE, CTYPE...)
+%rename(IMPL) CTYPE;
+%feature("interface", name=INTERFACE) CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
