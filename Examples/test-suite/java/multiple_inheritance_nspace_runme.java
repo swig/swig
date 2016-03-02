@@ -14,13 +14,13 @@ public class multiple_inheritance_nspace_runme {
   }
 
   //Test base class as a parameter in java
-  int jcbase1b(CBase1 cb1){
+  int jcbase1b(ICBase1 cb1){
     return cb1.cbase1y();
   }
-  int jabase1(ABase1 ab1){
+  int jabase1(IABase1 ab1){
     return ab1.abase1();
   }
-  int jcbase2(CBase2 cb2){
+  int jcbase2(ICBase2 cb2){
     return cb2.cbase2();
   }
 
@@ -63,26 +63,26 @@ public class multiple_inheritance_nspace_runme {
     check(b3.abase1()!=309, "Bottom3::abase1() failed");
 
     //Test interfaces from c++ classes 
-    CBase1 cb1=new SWIGTYPE_CBase1();
-    CBase2 cb2=new SWIGTYPE_CBase2();
+    ICBase1 cb1=new CBase1();
+    ICBase2 cb2=new CBase2();
     check(cb1.cbase1y()!=1, "CBase1::cbase1y() failed");
     check(cb2.cbase2()!=2, "CBase2::cbase2() failed");
 
     //Test nspace class as return value
-    ABase1 ab1=d3.clone();
+    IABase1 ab1=d3.clone();
     check(ab1.abase1()!=9, "Derived3::abase1() through ABase1 failed");
 
     //Test concrete base class as return value
-    CBase1 cb6=d2.clone();
-    CBase2 cb7=d1.clone();
+    ICBase1 cb6=d2.clone();
+    ICBase2 cb7=d1.clone();
     check(cb6.cbase1y()!=6, "Derived2::cbase1y() through CBase1 failed");
     check(cb7.cbase2()!=4, "Derived1:cbase2() through ABase1 failed");
 
     //Test multi inheritance 
-    CBase1 cb3=new Derived1();
-    CBase1 cb4=new Derived3();
-    CBase2 cb5=new Derived3();
-    ABase1 ab6=new Derived2();
+    ICBase1 cb3=new Derived1();
+    ICBase1 cb4=new Derived3();
+    ICBase2 cb5=new Derived3();
+    IABase1 ab6=new Derived2();
     check(cb3.cbase1y()!=3, "Derived1::cbase1y() through CBase1 failed");
     check(cb4.cbase1y()!=7, "Derived3::cbase1y() through CBase1 failed");
     check(cb5.cbase2()!=8, "Derived3::cbase2() through CBase2 failed");
