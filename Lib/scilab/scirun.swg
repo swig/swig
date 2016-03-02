@@ -17,7 +17,9 @@ extern "C" {
 #define __USE_DEPRECATED_STACK_FUNCTIONS__
 #include "stack-c.h"
 #endif
+#if SWIG_SCILAB_VERSION < 600
 #include "MALLOC.h"
+#endif
 #include "Scierror.h"
 #include "localization.h"
 #include "freeArrayOfString.h"
