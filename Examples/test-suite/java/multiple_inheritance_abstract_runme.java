@@ -61,8 +61,8 @@ public class multiple_inheritance_abstract_runme {
     check(b3.abase1()!=309, "Bottom3::abase1() failed");
 
     //Test interfaces from c++ classes 
-    CBase1 cb1=new SWIGTYPE_CBase1();
-    CBase2 cb2=new SWIGTYPE_CBase2();
+    CBase1 cb1=new CBase1SwigImpl();
+    CBase2 cb2=new CBase2SwigImpl();
     check(cb1.cbase1y()!=1, "CBase1::cbase1y() failed");
     check(cb2.cbase2()!=2, "CBase2::cbase2() failed");
 
