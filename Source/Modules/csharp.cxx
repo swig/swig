@@ -18,8 +18,6 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
-// helper function used in feature:interface implementation
-void Swig_propagate_interface_methods(Node *n);
 
 class CSHARP:public Language {
   static const char *usage;
@@ -276,6 +274,7 @@ public:
     SWIG_config_file("csharp.swg");
 
     allow_overloading();
+    Swig_interface_feature_enable();
   }
 
   /* ---------------------------------------------------------------------
@@ -4403,8 +4402,6 @@ public:
     String *old_director_delegate_instances = director_delegate_instances;
     String *old_director_method_types = director_method_types;
     String *old_director_connect_parms = director_connect_parms;
-    if (proxy_flag)
-      Swig_propagate_interface_methods(n);
 
     int ret = Language::classDeclaration(n);
 

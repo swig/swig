@@ -729,6 +729,8 @@ Allocate():
       }
     }
 
+    Swig_interface_propagate_methods(n);
+
     /* Only care about default behavior.  Remove temporary values */
     Setattr(n, "allocate:visit", "1");
     Swig_symbol_setscope(symtab);

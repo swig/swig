@@ -18,8 +18,6 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
-// helper function used in feature:interface implementation
-void Swig_propagate_interface_methods(Node *n);
 
 class JAVA:public Language {
   static const char *usage;
@@ -307,6 +305,7 @@ public:
     SWIG_config_file("java.swg");
 
     allow_overloading();
+    Swig_interface_feature_enable();
   }
 
   /* ---------------------------------------------------------------------
@@ -2076,8 +2075,6 @@ public:
   * ---------------------------------------------------------------------- */
 
   int classDeclaration(Node *n) {
-    if (proxy_flag)
-      Swig_propagate_interface_methods(n);
     return Language::classDeclaration(n);
   }
 
