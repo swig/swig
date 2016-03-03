@@ -208,8 +208,9 @@ public:
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
   virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
+  virtual int addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope = "");
   virtual void dumpSymbols();
-  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
+  virtual Node *symbolLookup(const String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
   virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
   virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);

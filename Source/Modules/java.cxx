@@ -2136,16 +2136,20 @@ public:
 	}
       }
 
+      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (outerClassesPrefix) {
 	String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, fnspace))
+	  return SWIG_ERROR;
 	if (nspace)
 	  Delete(fnspace);
 	Delete(outerClassesPrefix);
-      }
-      else {
+      } else {
 	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, nspace))
 	  return SWIG_ERROR;
       }
 
@@ -2185,7 +2189,6 @@ public:
 
       if (Getattr(n, "feature:interface")) {
         interface_class_code = NewString("");
-	String *interface_name = Getattr(n, "interface:name");
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());

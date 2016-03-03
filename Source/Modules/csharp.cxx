@@ -2081,6 +2081,7 @@ public:
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
+      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (Node *outer = Getattr(n, "nested:outer")) {
 	String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -2090,12 +2091,15 @@ public:
 	String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, fnspace))
+	  return SWIG_ERROR;
 	if (nspace)
 	  Delete(fnspace);
 	Delete(outerClassesPrefix);
-      }
-      else {
+      } else {
 	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+	if (interface_name && !addInterfaceSymbol(interface_name, n, nspace))
 	  return SWIG_ERROR;
       }
 
@@ -2135,7 +2139,6 @@ public:
 
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewString("");
-	String *interface_name = Getattr(n, "interface:name");
 	String *output_directory = outputDirectory(nspace);
 	f_interface = getOutputFile(output_directory, interface_name);
 	addOpenNamespace(nspace, f_interface);
