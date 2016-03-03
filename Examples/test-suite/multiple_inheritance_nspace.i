@@ -1,16 +1,26 @@
 // This is a copy of the multiple_inheritance_abstract test
 %module  multiple_inheritance_nspace
 
+%warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
+
 // nspace feature only supported by these languages
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
-
 %nspace;
+#endif
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "swiginterface.i"
 %interface(Space::ABase1)
 %interface(Space::CBase1)
 %interface(Space::CBase2)
+#endif
+
+#if defined(SWIGD)
+// Missing multiple inheritance support results in incorrect use of override
+%ignore CBase1;
+%ignore CBase2;
 #endif
 
 #if defined(SWIGJAVA)
@@ -57,7 +67,7 @@ namespace Space {
     virtual int cbase2() {
       return 4;
     }
-    virtual CBase2 *clone() {
+    virtual CBase2 *cloneit() {
       return new Derived1(*this);
     }
     void derived1() {
@@ -74,7 +84,7 @@ namespace Space {
     virtual int abase1() {
       return 5;
     }
-    virtual CBase1 *clone() {
+    virtual CBase1 *cloneit() {
       return new Derived2(*this);
     }
     void derived2() {
@@ -93,7 +103,7 @@ namespace Space {
     }
     virtual void cbase1x() {
     }
-    virtual ABase1 *clone() {
+    virtual ABase1 *cloneit() {
       return new Derived3(*this);
     }
     void derived3() {
@@ -326,4 +336,3 @@ namespace Space {
 
 %}
 
-#endif

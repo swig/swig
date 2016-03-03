@@ -1,11 +1,21 @@
 // This is a copy of the multiple_inheritance_abstract test
 %module  multiple_inheritance_abstract
 
+%warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
+
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "swiginterface.i"
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)
 %interface_impl(Space::CBase2)
+#endif
+
+#if defined(SWIGD)
+// Missing multiple inheritance support results in incorrect use of override
+%ignore CBase1;
+%ignore CBase2;
 #endif
 
 %inline %{
@@ -48,7 +58,7 @@ namespace Space {
     virtual int cbase2() {
       return 4;
     }
-    virtual CBase2 *clone() {
+    virtual CBase2 *cloneit() {
       return new Derived1(*this);
     }
     void derived1() {
@@ -65,7 +75,7 @@ namespace Space {
     virtual int abase1() {
       return 5;
     }
-    virtual CBase1 *clone() {
+    virtual CBase1 *cloneit() {
       return new Derived2(*this);
     }
     void derived2() {
@@ -84,7 +94,7 @@ namespace Space {
     }
     virtual void cbase1x() {
     }
-    virtual ABase1 *clone() {
+    virtual ABase1 *cloneit() {
       return new Derived3(*this);
     }
     void derived3() {

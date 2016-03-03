@@ -59,12 +59,12 @@ public class multiple_inheritance_abstract_runme {
     check(cb2.cbase2()!=2, "CBase2::cbase2() failed");
 
     //Test abstract class as return value
-    ABase1 ab1=d3.clone();
+    ABase1 ab1=d3.cloneit();
     check(ab1.abase1()!=9, "Derived3::abase1() through ABase1 failed");
 
     //Test concrete base class as return value
-    CBase1 cb6=d2.clone();
-    CBase2 cb7=d1.clone();
+    CBase1 cb6=d2.cloneit();
+    CBase2 cb7=d1.cloneit();
     check(cb6.cbase1y()!=6, "Derived2::cbase1y() through CBase1 failed");
     check(cb7.cbase2()!=4, "Derived1:cbase2() through ABase1 failed");
 
