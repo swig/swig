@@ -1,3 +1,12 @@
+/* -----------------------------------------------------------------------------
+ * swiginterface.i
+ *
+ * SWIG interface feature and typemaps implementation providing:
+ *   %interface
+ *   %interface_impl
+ *   %interface_custom
+ * ----------------------------------------------------------------------------- */
+
 %define INTERFACE_TYPEMAPS(CTYPE...)
 %typemap(cstype) CTYPE "$&csinterfacename"
 %typemap(cstype) CTYPE *, CTYPE [], CTYPE & "$csinterfacename"

@@ -7,7 +7,7 @@
 %nspace;
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "feature_interface.i"
+%include "swiginterface.i"
 %interface(Space::ABase1)
 %interface(Space::CBase1)
 %interface(Space::CBase2)

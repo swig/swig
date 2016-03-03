@@ -1,3 +1,12 @@
+/* -----------------------------------------------------------------------------
+ * swiginterface.i
+ *
+ * SWIG interface feature and typemaps implementation providing:
+ *   %interface
+ *   %interface_impl
+ *   %interface_custom
+ * ----------------------------------------------------------------------------- */
+
 %define INTERFACE_TYPEMAPS(CTYPE...)
 %typemap(jtype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "long"
 %typemap(jstype) CTYPE "$&javainterfacename"

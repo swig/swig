@@ -2,7 +2,7 @@
 %module  multiple_inheritance_abstract
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "feature_interface.i"
+%include "swiginterface.i"
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)
 %interface_impl(Space::CBase2)

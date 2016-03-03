@@ -1,7 +1,7 @@
 %module  multiple_inheritance_interfaces
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "feature_interface.i"
+%include "swiginterface.i"
 %interface_custom("A", "IA", IA)
 %interface_custom("B", "IB", IB)
 %interface_custom("%(strip:[I])s", "I%s", IC) // same as %interface_custom("C", "IC", IC)
