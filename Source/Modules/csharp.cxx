@@ -2415,15 +2415,19 @@ public:
       if (!is_smart_pointer()) {
 	// Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
 	if (Node *base_ovr = Getattr(n, "override")) {
-	  Node* base = parentNode(base_ovr);
-	  bool ovr = false;
-	  for (Node* direct_base = Getattr(parentNode(n), "direct_base"); direct_base; direct_base = Getattr(direct_base, "direct_base")) {
-	    if (direct_base == base) { // "override" only applies if the base was not discarded (e.g. in case of multiple inheritance or via "ignore")
-	      ovr = true;
-	      break;
+	  if (GetFlag(n, "isextendmember"))
+	    Printf(function_code, "override ");
+	  else {
+	    Node* base = parentNode(base_ovr);
+	    bool ovr = false;
+	    for (Node* direct_base = Getattr(parentNode(n), "direct_base"); direct_base; direct_base = Getattr(direct_base, "direct_base")) {
+	      if (direct_base == base) { // "override" only applies if the base was not discarded (e.g. in case of multiple inheritance or via "ignore")
+		ovr = true;
+		break;
+	      }
 	    }
+	    Printf(function_code, ovr ? "override " : "virtual ");
 	  }
-	  Printf(function_code, ovr ? "override " : "virtual ");
 	}
 	else if (checkAttribute(n, "storage", "virtual"))
 	  Printf(function_code, "virtual ");
