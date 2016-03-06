@@ -3164,7 +3164,7 @@ private:
       }
     } else if (basename && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-	"Warning for %s proxy: Base class %s ignored. Multiple inheritance is not supported in D. "
+	"Warning for %s, base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 

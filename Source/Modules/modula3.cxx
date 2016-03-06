@@ -2190,7 +2190,7 @@ MODULA3():
 	    /* Warn about multiple inheritance for additional base class(es) */
 	    String *proxyclassname = Getattr(n, "classtypeobj");
 	    Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		"Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+		"Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
 	  }
 	}
 	base = Next(base);
@@ -2205,7 +2205,7 @@ MODULA3():
     const String *pure_baseclass = typemapLookup(n, "m3base", name, WARN_NONE);
     if (hasContent(pure_baseclass) && hasContent(baseclass)) {
       Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n", name, pure_baseclass);
+		   "Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n", name, pure_baseclass);
     }
     // Pure Modula 3 interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "m3interfaces_derived" : "m3interfaces",
@@ -2435,7 +2435,7 @@ MODULA3():
 	      base = Next(base);
 	      if (base.item) {
 		Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+		    "Warning for %s, base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 		    proxy_class_name, Getattr(base.item, "name"));
 	      }
 	    }
