@@ -49,3 +49,18 @@ struct U : R {};
 struct V : S {};
 struct W : T {};
 %}
+
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface_impl(BaseOverloaded);
+#endif
+%inline %{
+struct BaseOverloaded {
+  typedef P PTypedef;
+  virtual ~BaseOverloaded() {}
+  virtual void identical_overload(int i, const PTypedef &pp = PTypedef()) {}
+};
+
+struct DerivedOverloaded : public BaseOverloaded {
+  virtual void identical_overload(int i, const PTypedef &p = PTypedef()) {}
+};
+%}

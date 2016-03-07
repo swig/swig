@@ -144,27 +144,29 @@ void Swig_interface_propagate_methods(Node *n) {
       if (!is_interface && GetFlag(mi.item, "abstract"))
 	continue;
       String *this_decl = Getattr(mi.item, "decl");
-      String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
-      bool overloaded = false;
-      if (SwigType_isfunction(resolved_decl)) {
+      String *this_decl_resolved = SwigType_typedef_resolve_all(this_decl);
+      bool identically_overloaded_method = false; // true when a base class' method is implemented in n
+      if (SwigType_isfunction(this_decl_resolved)) {
 	String *name = Getattr(mi.item, "name");
 	for (Node *child = firstChild(n); child; child = nextSibling(child)) {
 	  if (Getattr(child, "interface:owner"))
 	    break; // at the end of the list are newly appended methods
 	  if (checkAttribute(child, "name", name)) {
 	    String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
-	    overloaded = Strcmp(decl, this_decl) == 0;
+	    identically_overloaded_method = Strcmp(decl, this_decl_resolved) == 0;
 	    Delete(decl);
-	    if (overloaded)
+	    if (identically_overloaded_method)
 	      break;
 	  }
 	}
       }
-      Delete(resolved_decl);
-      if (!overloaded)
+      Delete(this_decl_resolved);
+      if (!identically_overloaded_method) {
+	// TODO: Fix if the method is overloaded with different arguments / has default args
 	appendChild(n, mi.item);
-      else
+      } else {
 	Delete(mi.item);
+      }
     }
     Delete(methods);
   }
