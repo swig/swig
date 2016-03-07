@@ -2654,7 +2654,11 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
-      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      if (tm) {
+        Append(w->code, "error = call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      } else {
+        Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
+      }
       Printf(w->code, " %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
       if (tm) {
