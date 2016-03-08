@@ -5,6 +5,7 @@ if ierr <> 0 then
   disp(lasterror());
   exit(ierr);
 end
+example_Init();
 
 // Try to set the values of some global variables
 ivar_set(42);

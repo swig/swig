@@ -5,6 +5,7 @@ if ierr <> 0 then
   disp(lasterror());
   exit(ierr);
 end
+example_Init();
 
 a = 37
 b = 42

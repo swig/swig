@@ -5,6 +5,7 @@ if ierr <> 0 then
   disp(lasterror());
   exit(ierr);
 end
+example_Init();
 
 // First create some objects using the pointer library.
 printf("Testing the pointer library\n")
