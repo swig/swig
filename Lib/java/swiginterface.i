@@ -56,7 +56,7 @@
 %enddef
 
 %define %interface(CTYPE...)
-%feature("interface", name="I%s") CTYPE;
+%feature("interface", name="%sSwigInterface") CTYPE;
 INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
