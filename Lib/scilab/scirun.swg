@@ -100,14 +100,13 @@ SWIG_Scilab_SetOutput(void *pvApiCtx, SwigSciObject output) {
   return SWIG_OK;
 }
 
-
 /* Pointer conversion functions */
 
 SWIGINTERN int
-SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info *descriptor, int flags, char *fname) {
+SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *fname) {
   SciErr sciErr;
-  int iType = 0;
   int *piAddrVar = NULL;
+  int iType = 0;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -121,8 +120,94 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info
     return SWIG_ERROR;
   }
 
-  if (iType == sci_pointer) {
-    sciErr = getPointer(pvApiCtx, piAddrVar, pObjValue);
+  if (iType == sci_tlist) {
+    int iItemCount = 0;
+    void *pvTypeinfo = NULL;
+
+    sciErr = getListItemNumber(pvApiCtx, piAddrVar, &iItemCount);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return 0;
+    }
+    if (iItemCount < 3) {
+      return 0;
+    }
+
+    sciErr = getPointerInList(pvApiCtx, piAddrVar, 2, &pvTypeinfo);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return 0;
+    }
+
+    if (descriptor) {
+      swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info *)pvTypeinfo), descriptor);
+      return (cast != NULL);
+    }
+  }
+  else return (iType == sci_pointer);
+}
+
+SWIGINTERN int
+SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *descriptor, int flags, char *fname) {
+  SciErr sciErr;
+  int *piAddrVar = NULL;
+  int iType = 0;
+  void *pvPtr = NULL;
+
+  sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if (iType == sci_tlist) {
+    int iItemCount = 0;
+    void *pvTypeinfo = NULL;
+
+    sciErr = getListItemNumber(pvApiCtx, piAddrVar, &iItemCount);
+    if (sciErr.iErr)
+    {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+    if (iItemCount < 3) {
+      return SWIG_ERROR;
+    }
+
+    sciErr = getPointerInList(pvApiCtx, piAddrVar, 2, &pvTypeinfo);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    sciErr = getPointerInList(pvApiCtx, piAddrVar, 3, &pvPtr);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    if (pvPtr) {
+      if (descriptor) {
+        swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info *)pvTypeinfo), descriptor);
+        if (!cast) {
+          return SWIG_ERROR;
+        }
+
+        int newmemory = 0;
+        pvPtr = SWIG_TypeCast(cast, pvPtr, &newmemory);
+        // TODO newmemory
+      }
+    }
+  }
+  else if (iType == sci_pointer) {
+    sciErr = getPointer(pvApiCtx, piAddrVar, &pvPtr);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -132,21 +217,62 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pObjValue, swig_type_info
     return SWIG_ERROR;
   }
 
-  return SWIG_OK;
+  if (pvObj) {
+    *pvObj = pvPtr;
+    return SWIG_OK;
+  }
+  else {
+    return SWIG_ERROR;
+  }
 }
 
 SWIGRUNTIMEINLINE int
-SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *obj, swig_type_info *descriptor, int flags) {
+SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info *descriptor, int flags) {
   SciErr sciErr;
 
-  sciErr = createPointer(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, (void *)obj);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return SWIG_ERROR;
+  if (descriptor) {
+    int *piTListAddr = NULL;
+    const char *pstString;
+
+    sciErr = createTList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piTListAddr);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    pstString = SWIG_TypePrettyName(descriptor);
+    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 1, 1, 1, &pstString);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 2, descriptor);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+
+
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 3, pvObj);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
+  }
+  else {
+    sciErr = createPointer(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, pvObj);
+    if (sciErr.iErr) {
+      printError(&sciErr, 0);
+      return SWIG_ERROR;
+    }
   }
 
   return SWIG_OK;
 }
+
+/* Pointer argument conversions */
+
 
 SWIGRUNTIME int
 SWIG_Scilab_ConvertPacked(void *pvApiCtx, int iVar, void *ptr, int sz, swig_type_info *ty, char *fname) {
@@ -326,4 +452,3 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     return SWIG_ERROR;
   }
 }
-
