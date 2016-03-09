@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -2530,7 +2530,7 @@ done:
 
     Printf(w->code, "TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);\n");
 
-    /* declare method return value 
+    /* declare method return value
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
@@ -2622,6 +2622,7 @@ done:
       }
 
       /* exception handling */
+      bool error_appended = false;
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
 	tm = Getattr(n, "feature:director:except");
@@ -2631,6 +2632,7 @@ done:
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
 	if (Replaceall(tm, "$error", "error")) {
 	  /* Only declare error if it is used by the typemap. */
+	  error_appended = true;
 	  Append(w->code, "int error;\n");
 	}
       } else {
@@ -2654,7 +2656,7 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
-      if (tm) {
+      if (error_appended) {
         Append(w->code, "error = call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
       } else {
         Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
