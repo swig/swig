@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-11: wsfulton
+            [Java C#] Add support for treating C++ base classes as Java interfaces
+            instead of Java proxy classes. This enable some sort of support for
+            multiple inheritance. The implementation is in swiginterface.i and
+            provides additional macros (see Java.html for full documentation):
+
+              %interface(CTYPE)
+              %interface_impl(CTYPE)
+              %interface_custom("PROXY", "INTERFACE", CTYPE)
+
 2016-03-01: wsfulton
             Add rstrip encoder for use in %rename. This is like the strip encoder but
             strips the symbol's suffix instead of the prefix. The example below
