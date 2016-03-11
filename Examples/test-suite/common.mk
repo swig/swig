@@ -282,6 +282,10 @@ CPP_TEST_CASES += \
 	minherit2 \
 	mixed_types \
 	multiple_inheritance \
+	multiple_inheritance_abstract \
+	multiple_inheritance_interfaces \
+	multiple_inheritance_nspace \
+	multiple_inheritance_shared_ptr \
 	name_cxx \
 	name_warnings \
 	namespace_class \
@@ -341,6 +345,7 @@ CPP_TEST_CASES += \
 	rename2 \
 	rename3 \
 	rename4 \
+	rename_rstrip_encoder \
 	rename_scope \
 	rename_simple \
 	rename_strip_encoder \

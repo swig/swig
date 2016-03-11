@@ -1889,6 +1889,13 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <td><tt>wxPrint</tt></td><td><tt>Print</tt></td>
 </tr>
 <tr>
+    <td><tt>rstrip:[suffix]</tt></td>
+    <td>String without the given suffix or the original string if it doesn't
+    end with this suffix. Note that square brackets should be used
+    literally, e.g. <tt>%rename("rstrip:[Cls]")</tt></td>
+    <td><tt>PrintCls</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
     <td><span style="white-space: nowrap;"><tt>regex:/pattern/subst/</tt></span></td>
     <td>String after (Perl-like) regex substitution operation. This function
     allows to apply arbitrary regular expressions to the identifier names. The

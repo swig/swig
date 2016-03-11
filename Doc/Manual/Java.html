@@ -83,6 +83,7 @@
 <li><a href="#Java_proper_enums_classes">Proper Java enum classes</a>
 <li><a href="#Java_typeunsafe_enums_classes">Type unsafe enum classes</a>
 </ul>
+<li><a href="#Java_interfaces">Interfaces</a>
 </ul>
 <li><a href="#Java_directors">Cross language polymorphism using directors</a>
 <ul>
@@ -3331,6 +3332,251 @@ public final class Beverage {
 </pre>
 </div>
 
+<H3><a name="Java_interfaces">25.4.6 Interfaces</a></H3>
+
+
+<p>
+By default SWIG wraps all C++ classes as Java classes.
+As Java only supports derivation from a single base class, SWIG has to ignore all
+bases except the first when a C++ class inherits from more than one base class.
+However, there is a family of SWIG macros that change the default wrapping and allows a C++ class
+to be wrapped as a Java interface instead of a Java class.
+These macros provide a way to support some sort of multiple inheritance as there is no limit to
+the number of interfaces that a Java class can inherit from.
+</p>
+
+<p>
+When a C++ class is wrapped as a Java interface, a Java proxy class is still needed.
+The <tt>swiginterface.i</tt> library file provides three macros for marking a C++ class to be
+wrapped as a Java interface.
+There is more than one macro in order to provide a choice for choosing the Java interface and Java proxy names.
+</p>
+
+<table BORDER summary="Java interface macros">
+<tr VALIGN=TOP>
+  <td><b>Interface Macro Name</b></td>
+  <td><b>Description</b></td>
+</tr>
+<tr>
+  <td><tt>%interface(CTYPE)</tt></td>
+  <td>Proxy class name is unchanged, interface name has <tt>SwigInterface</tt> added as a suffix for C++ class <tt>CTYPE</tt>.</td>
+</tr>
+<tr>
+  <td><tt>%interface_impl(CTYPE)</tt></td>
+  <td>Proxy class name has <tt>SwigImpl</tt> as a suffix, interface name has <tt>SwigInterface</tt> added as a suffix for C++ class <tt>CTYPE</tt>.</td>
+</tr>
+<tr>
+  <td><tt>%interface_custom("PROXY", "INTERFACE", CTYPE)</tt></td>
+  <td>Proxy class name is given by the string <tt>PROXY</tt>, interface name is given by the string <tt>INTERFACE</tt> for C++ class <tt>CTYPE</tt>. The <tt>PROXY</tt> and <tt>INTERFACE</tt> names can use the <a href="SWIG.html#SWIG_advanced_renaming">string formatting functions</a> used in <tt>%rename</tt>.</td>
+</tr>
+</table>
+
+<p>
+The table below has a few examples showing the resulting proxy and interface names.
+</p>
+
+<table BORDER summary="Java interface macro examples">
+<tr VALIGN=TOP>
+  <td><b>Example Usage</b></td>
+  <td><b>Proxy Class Name</b></td>
+  <td><b>Interface Class Name</b></td>
+</tr>
+<tr>
+  <td><tt>%interface(Base)</tt></td>
+  <td><tt>Base</tt></td>
+  <td><tt>BaseSwigInterface</tt></td>
+</tr>
+<tr>
+  <td><tt>%interface_impl(Base)</tt></td>
+  <td><tt>BaseSwigImpl</tt></td>
+  <td><tt>Base</tt></td>
+</tr>
+<tr>
+  <td><tt>%interface_custom("BaseProxy", "IBase", Base)</tt></td>
+  <td><tt>BaseProxy</tt></td>
+  <td><tt>IBase</tt></td>
+</tr>
+<tr>
+  <td><tt>%interface_custom("%sProxy", "IBase", Base)</tt></td>
+  <td><tt>BaseProxy</tt></td>
+  <td><tt>IBase</tt></td>
+</tr>
+<tr>
+  <td><tt>%interface_custom("%sProxy", "%sInterface", Base)</tt></td>
+  <td><tt>BaseProxy</tt></td>
+  <td><tt>BaseProxyInterface</tt></td>
+</tr>
+<tr>
+  <td><tt>%interface_custom("%sProxy", "%(rstrip:[Proxy])sInterface", Base)</tt></td>
+  <td><tt>BaseProxy</tt></td>
+  <td><tt>BaseInterface</tt></td>
+</tr>
+</table>
+
+<p>
+The 2nd last example shows the names used in the string formatting functions.
+The input for <tt>PROXY</tt> that <tt>"%s"</tt> expands to is the proxy name, that is, Base.
+The input for <tt>INTERFACE</tt> that <tt>"%s"</tt> expands to is the proxy name, that is, <tt>BaseProxy</tt>.
+</p>
+<p>
+The last example shows <tt>rstrip</tt> and in this case strips the <tt>Proxy</tt> suffix and then adds on <tt>Interface</tt>.
+</p>
+
+<p>
+Consider the following C++ code:
+</p>
+
+<div class="code">
+<pre>
+namespace Space {
+  struct Base1 {
+    virtual void Method1();
+  };
+  struct Base2 {
+    virtual void Method2();
+  };
+  struct Derived : Base1, Base2 {
+  };
+  void UseBases(const Base1 &amp;b1, const Base2 &amp;b2);
+}
+</pre>
+</div>
+
+<p>
+By default all classes are wrapped and are available in Java, but, <tt>Derived</tt>
+has all bases ignored except the first.
+SWIG generates a warning for the above code:
+</p>
+
+<div class="shell">
+<pre>
+example.i:10: Warning 813: Warning for Derived, base Base2 ignored. 
+Multiple inheritance is not supported in Java.
+</pre>
+</div>
+
+<p>
+If we decide to wrap the two base classes as interfaces and add the following before SWIG parses the above example code:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;swiginterface.i&gt;
+%interface_impl(Space::Base1);
+%interface_impl(Space::Base2);
+</pre>
+</div>
+
+<p>
+then two interface files are generated, Base1.java and Base2.java in addition to proxy class files, Base1SwigImpl.java and Base2SwigImpl.java.
+The contents of interface file Base1.java for <tt>Base1</tt> is shown below:
+</p>
+
+<div class="code">
+<pre>
+public interface Base1 {
+  long Base1_GetInterfaceCPtr();
+  void Method1();
+}
+</pre>
+</div>
+
+<p>
+The proxy class in Base1SwigImpl.java for Base1 is as it would have been if <tt>%interface</tt> was not used,
+except the name has changed to <tt>Base1SwigImpl</tt> and it implements the appropriate base:
+</p>
+
+<div class="code">
+<pre>
+public class Base1SwigImpl implements Base1 {
+...
+  public long Base1_GetInterfaceCPtr() {
+    return exampleJNI.Base1SwigImpl_Base1_GetInterfaceCPtr(swigCPtr);
+  }
+
+  public void Method1() {
+    exampleJNI.Base1SwigImpl_Method1(swigCPtr, this);
+  }
+...
+}
+</pre>
+</div>
+
+<p>
+In fact any class deriving from <tt>Base</tt> will now implement the interface instead of
+deriving from it (or ignoring the base in the case of multiple base classes).
+Hence the <tt>Derived</tt> proxy class will now implement both bases:
+</p>
+
+<div class="code">
+<pre>
+public class Derived implements Base1, Base2 {
+...
+  public long Base1_GetInterfaceCPtr() {
+    return exampleJNI.Derived_Base1_GetInterfaceCPtr(swigCPtr);
+  }
+
+  public long Base2_GetInterfaceCPtr() {
+    return exampleJNI.Derived_Base2_GetInterfaceCPtr(swigCPtr);
+  }
+
+  public void Method1() {
+    exampleJNI.Derived_Method1(swigCPtr, this);
+  }
+
+  public void Method2() {
+    exampleJNI.Derived_Method2(swigCPtr, this);
+  }
+...
+}
+</pre>
+</div>
+
+<p>
+Wherever a class marked as an interface is used, such as the <tt>UseBases</tt> method in the example,
+the interface name is used as the type in the Java layer:
+</p>
+
+<div class="code">
+<pre>
+  public static void UseBases(Base1 b1, Base2 b2) {
+    exampleJNI.UseBases(b1.Base1_GetInterfaceCPtr(), b1, b2.Base2_GetInterfaceCPtr(), b2);
+  }
+</pre>
+</div>
+
+<p>
+Note that each Java interface has a method added to obtain the correct C++ pointer for passing to the native function -
+<tt>Base1_GetInterfaceCPtr</tt> for <tt>Base1</tt>.
+This method is similar to the <tt>getCPtr</tt> method in the proxy classes.
+In fact, as shown above in the <tt>Derived</tt> class, the proxy classes implement 
+this generated interface by calling a native method (<tt>Derived_Base1_GetInterfaceCPtr</tt>)
+which calls an appropriate C++ cast of the pointer up the inheritance chain.
+</p>
+
+<p>
+The interface macros are implemented using the <tt>interface</tt> feature and typemaps.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%define %interface(CTYPE...)
+%feature("interface", name="%sSwigInterface") CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
+%enddef
+</pre>
+</div>
+
+<p>
+The feature accepts one attribute called <tt>name</tt>, which is the name of the Java interface mentioned earlier.
+The <tt>INTERFACE_TYPEMAPS</tt> macro implements the typemaps and can be viewed in the
+<tt>swiginterface.i</tt> file and contain
+the usual Java typemaps for generating code plus the <tt>javainterfacecode</tt>
+typemap which is only used when a class is marked with the <tt>interface</tt> feature.
+See <a href="Java.html#Java_code_typemaps">Java code typemaps</a> for details.
+</p>
+
 <H2><a name="Java_directors">25.5 Cross language polymorphism using directors</a></H2>
 
 
@@ -5585,6 +5831,8 @@ For example, <tt>$javaclassname</tt> is replaced by the proxy classname <tt>Foo<
 expands to the proxy classname when wrapping <tt>Foo *&amp;</tt>.
 If the type does not have an associated proxy class, it expands to the type wrapper class name, for example,
 <tt>SWIGTYPE_p_unsigned_short</tt> is generated when wrapping <tt>unsigned short *</tt>.
+The class name is fully qualified with the package name when using the
+<a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
 </p>
 
 <p>
@@ -5713,6 +5961,35 @@ This special variable expands to the module name, as specified by <tt>%module</t
 <b><tt>$imclassname</tt></b><br>
 This special variable expands to the intermediary class name. Usually this is the same as '$moduleJNI',
 unless the jniclassname attribute is specified in the <a href="Java.html#Java_module_directive">%module directive</a>.
+</p>
+
+<p>
+<b><tt>$javainterfacename</tt></b><br>
+This special variable is only expanded when the <tt>interface</tt> feature is applied to a class.
+It works much like <tt>$javaclassname</tt>, but instead of expanding to the proxy classname,
+it expands to the value in the <tt>name</tt> attribute in the <tt>interface</tt> feature.
+For example:
+</p>
+
+<div class="code"><pre>
+%feature("interface", name="MyInterface") MyClass;
+%typemap(jstype) MyClass  "$&amp;javainterfacename"
+%typemap(jstype) MyClass * "$javainterfacename"
+</pre></div>
+
+<p>
+will result in the <tt>jstype</tt> typemap expanding to <tt>MyInterface</tt> for both
+<tt>MyClass</tt> and <tt>MyClass *</tt>.
+The interface name is fully qualified with the package name when using the
+<a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
+</p>
+
+<p>
+<b><tt>$interfacename</tt></b><br>
+This special variable is only expanded when the <tt>interface</tt> feature is applied to a class.
+It expands to just the interface name and is thus different to <tt>$javainterfacename</tt>
+in that it is not fully qualified with the package name when using the
+<a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
 </p>
 
 <H3><a name="Java_typemaps_for_c_and_cpp">25.9.8 Typemaps for both C and C++ compilation</a></H3>
@@ -5848,9 +6125,39 @@ Below shows an example modifying the finalizer, assuming the <tt>delete</tt> met
 
 </div>
 
+<p><tt>%typemap(javainterfacecode, declaration="...", cptrmethod="...")</tt></p>
+<div class="indent">
+<p>
+The code in this typemap is added to the body of a Java proxy class but only when a class is 
+marked with the <tt>interface</tt> feature.
+The typemap is used in the proxy class marked with the interface feature as well as all proxy classes derived from the marked C++ class,
+as they are all generated as implementing the Java interface.
+The default typemap used in the <tt>%interface</tt> family of macros mentioned in
+the <a href="Java.html#Java_interfaces">Java interfaces</a> section,
+where <tt>CTYPE</tt> is the C++ class macro argument,
+is as follows:
+</p>
+
+<div class="code"><pre>
+%typemap(javainterfacecode,
+         declaration="  long $interfacename_GetInterfaceCPtr();\n",
+         cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
+  public long $interfacename_GetInterfaceCPtr() {
+    return $imclassname.$javaclazzname$interfacename_GetInterfaceCPtr(swigCPtr);
+  }
+%}
+</pre></div>
+</div>
+
+<p>
+The special variable <tt>$interfacename</tt> is expanded into the
+name specified in the <tt>interface</tt> feature.
+</p>
+
 <p>
 <b>Compatibility Note:</b> In SWIG-1.3.21 and earlier releases, typemaps called "javagetcptr" and "javaptrconstructormodifiers" were available.
 These are deprecated and the "javabody" typemap can be used instead.
+The <tt>javainterfacecode</tt> typemap and interface feature was introduced in SWIG-3.0.9.
 </p>
 
 <p>
@@ -5866,6 +6173,7 @@ In summary the contents of the typemaps make up a proxy class like this:
 [ javafinalize typemap ]
 public synchronized void <i>delete</i>() [ javadestruct OR javadestruct_derived typemap ]
 [ javacode typemap ]
+[ javainterfacecode typemap]
 ... proxy functions ...
 }
 </pre>
@@ -5873,6 +6181,11 @@ public synchronized void <i>delete</i>() [ javadestruct OR javadestruct_derived 
 
 <p>
 Note the <tt><i>delete</i>()</tt> methodname and method modifiers are configurable, see "javadestruct" and "javadestruct_derived" typemaps above.
+</p>
+
+<p>
+The <tt>javainterfacecode</tt> typemap is only used when bases are marked by the <tt>interface</tt>
+feature and the <tt>implements</tt> list will also then be expanded to include these Java interfaces.
 </p>
 
 <p>
@@ -5907,8 +6220,23 @@ The type wrapper class is similar in construction:
 The "javaimports" typemap is ignored if the enum class is wrapped by an inner Java class, that is when wrapping an enum declared within a C++ class.
 </p>
 
+<p>The Java interface turned on by the <tt>interface</tt> feature is fairly simple:</p>
+<div class="code">
+<pre>
+[ javaimports typemap ]
+public interface [ javainterfacename ] {
+[ javainterfacecode:cptrmethod typemap attribute ]
+... interface declarations ...
+}
+</pre>
+</div>
+
 <p>
-The defaults can be overridden to tailor these classes.
+where <tt>javainterfacename</tt> is the <tt>name</tt> attribute in the <a href="Java.html#Java_interfaces">interface feature</a>.
+</p>
+
+<p>
+The defaults can be overridden to tailor the generated classes.
 Here is an example which will change the <tt>getCPtr</tt> method and constructor from the default public access to protected access. 
 If the classes in one package are not using the classes in another package, then these methods need not be public and removing access to these low level implementation details, is a good thing.
 If you are invoking SWIG more than once and generating the wrapped classes into different packages in each invocation, then you cannot do this as you will then have different packages.

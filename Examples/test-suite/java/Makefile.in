@@ -38,7 +38,7 @@ CPP_TEST_CASES = \
 	java_prepost \
 	java_throws \
 	java_typemaps_proxy \
-	java_typemaps_typewrapper
+	java_typemaps_typewrapper \
 #	li_boost_intrusive_ptr
 
 CPP11_TEST_CASES = \
@@ -53,12 +53,13 @@ JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
-java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
-java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
-nspace.%: JAVA_PACKAGE = $*Package
-nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
 director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
+java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
+java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
+multiple_inheritance_nspace.%: JAVA_PACKAGE = $*Package
+nspace.%: JAVA_PACKAGE = $*Package
+nspace_extend.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest:
