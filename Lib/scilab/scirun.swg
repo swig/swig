@@ -196,13 +196,14 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
     if (pvPtr) {
       if (descriptor) {
         swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info *)pvTypeinfo), descriptor);
-        if (!cast) {
+        if (cast) {
+          int newmemory = 0;
+          pvPtr = SWIG_TypeCast(cast, pvPtr, &newmemory);
+          // TODO newmemory
+        }
+        else {
           return SWIG_ERROR;
         }
-
-        int newmemory = 0;
-        pvPtr = SWIG_TypeCast(cast, pvPtr, &newmemory);
-        // TODO newmemory
       }
     }
   }
