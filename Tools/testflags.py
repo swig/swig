@@ -47,7 +47,7 @@ def get_cxxflags(language, std, compiler):
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
           "ruby":"-Werror " + cxx_common,
-        "scilab":             cxx_common,
+        "scilab":"-Werror " + cxx_common,
            "tcl":"-Werror " + cxx_common,
     }
     if compiler == 'clang':
