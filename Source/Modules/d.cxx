@@ -910,7 +910,7 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
       Setattr(n, "enumvalue", val);
       Delete(val);
     }
@@ -1423,6 +1423,7 @@ public:
 
     String *constants_code = NewString("");
     SwigType *t = Getattr(n, "type");
+    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
 
     // Attach the non-standard typemaps to the parameter list.
@@ -1470,16 +1471,21 @@ public:
       Printf(constants_code, "%s;\n", override_value);
     } else {
       // Just take the value from the C definition and hope it compiles in D.
-      String* value = Getattr(n, "wrappedasconstant") ?
-	Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value");
-
-      // Add the stripped quotes back in.
-      if (SwigType_type(t) == T_STRING) {
-	Printf(constants_code, "\"%s\";\n", value);
-      } else if (SwigType_type(t) == T_CHAR) {
-	Printf(constants_code, "\'%s\';\n", value);
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(valuetype) == T_CHAR)
+          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-	Printf(constants_code, "%s;\n", value);
+	// Add the stripped quotes back in.
+	String* value = Getattr(n, "value");
+	if (SwigType_type(t) == T_STRING) {
+	  Printf(constants_code, "\"%s\";\n", value);
+	} else if (SwigType_type(t) == T_CHAR) {
+	  Printf(constants_code, "\'%s\';\n", value);
+	} else {
+	  Printf(constants_code, "%s;\n", value);
+	}
       }
     }
 

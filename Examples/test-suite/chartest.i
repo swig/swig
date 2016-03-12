@@ -41,6 +41,10 @@ struct CharTestClass {
 
 #if defined(SWIGJAVA)
 %javaconst(1);
+//#elif SWIGCSHARP
+//%csconst(1);
+#elif SWIGD
+%dmanifestconst;
 #endif
 
 %inline %{
