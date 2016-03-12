@@ -309,6 +309,7 @@ int Swig_storage_isstatic(Node *n) {
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.
+ * Octal escaping is used.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_escape(String *s) {
@@ -342,6 +343,43 @@ String *Swig_string_escape(String *s) {
   return ns;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_string_hexescape()
+ *
+ * Takes a string object and produces a string with escape codes added to it.
+ * Hex escaping is used.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_hexescape(String *s) {
+  String *ns;
+  int c;
+  ns = NewStringEmpty();
+
+  while ((c = Getc(s)) != EOF) {
+    if (c == '\n') {
+      Printf(ns, "\\n");
+    } else if (c == '\r') {
+      Printf(ns, "\\r");
+    } else if (c == '\t') {
+      Printf(ns, "\\t");
+    } else if (c == '\\') {
+      Printf(ns, "\\\\");
+    } else if (c == '\'') {
+      Printf(ns, "\\'");
+    } else if (c == '\"') {
+      Printf(ns, "\\\"");
+    } else if (c == ' ') {
+      Putc(c, ns);
+    } else if (!isgraph(c)) {
+      if (c < 0)
+	c += UCHAR_MAX + 1;
+      Printf(ns, "\\x%X", c);
+    } else {
+      Putc(c, ns);
+    }
+  }
+  return ns;
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_string_upper()
@@ -1392,6 +1430,7 @@ String *Swig_pcre_version(void) {
 void Swig_init() {
   /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
+  DohEncoding("hexescape", Swig_string_hexescape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);
