@@ -5,14 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
-2016-01-27: wsfulton
-	    [Java] Fix static const char member variables wrappers with %javaconst(1).
+2016-03-12: wsfulton
+	    [Java, C#, D] Fix static const char member variables wrappers with %javaconst(1)
+            %csconst(1) or %dmanifestconst.
             This fixes the case when an integer is used as the initializer, such as:
 
               struct W { static const char w = 100; };
 
-2016-01-26: wsfulton
-	    [Java] Fix generated code parsing enum values using char escape sequences
+	    Fix generated code parsing enum values using char escape sequences
             when these values appear in the Java code (usually when using %javaconst(1))
             such as:
 
@@ -21,6 +21,9 @@ Version 3.0.9 (in progress)
             Similarly for static const member char variables such as:
 
               struct Y { static const char y = '\n'; }
+
+            Likewise for D and %dmanifestconstant. For C# and %csconst(1), char
+            values in C# are now hex escaped as C# doesn't support C octal escaping.
 
 2016-01-12: olly
 	    [Javascript] Look for "nodejs" as well as "node", as it's packaged
