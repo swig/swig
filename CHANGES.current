@@ -5,6 +5,26 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-12: wsfulton
+	    [Java, C#, D] Fix static const char member variables wrappers with %javaconst(1)
+            %csconst(1) or %dmanifestconst.
+            This fixes the case when an integer is used as the initializer, such as:
+
+              struct W { static const char w = 100; };
+
+	    Fix generated code parsing enum values using char escape sequences
+            when these values appear in the Java code (usually when using %javaconst(1))
+            such as:
+
+              enum X { x1 = '\n', x2 = '\1' };
+
+            Similarly for static const member char variables such as:
+
+              struct Y { static const char y = '\n'; }
+
+            Likewise for D and %dmanifestconstant. For C# and %csconst(1), char
+            values in C# are now hex escaped as C# doesn't support C octal escaping.
+
 2016-03-11: wsfulton
             [Java C#] Add support for treating C++ base classes as Java interfaces
             instead of Java proxy classes. This enable some sort of support for

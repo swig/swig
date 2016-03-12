@@ -2289,7 +2289,7 @@ The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block fo
 %pragma(java) jniclasscode=%{
   static {
     try {
-        System.loadLibrary("example");
+      System.loadLibrary("example");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. \n" + e);
       System.exit(1);

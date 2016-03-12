@@ -585,7 +585,56 @@ enum {
 };
 int globalDifferentTypesTest(int n) { return n; }
 }
+%}
 
+#if defined(SWIGCSHARP)
+%csconstvalue("1") globalenumchar1;
+%csconstvalue("'B'") globalenumcharB;
+%csconstvalue("1") enumchar1;
+%csconstvalue("'B'") enumcharB;
+#endif
+%inline %{
+enum {
+  globalenumchar0 = '\0',
+  globalenumchar1 = '\1',
+  globalenumchar2 = '\n',
+  globalenumcharA = 'A',
+  globalenumcharB = '\102', // B
+  globalenumcharC = '\x43', // C
+  globalenumcharD = 0x44, // D
+  globalenumcharE = 69,  // E
+  globalenumcharAE1 = 'Æ', // AE (latin1 encoded)
+  globalenumcharAE2 = '\306', // AE (latin1 encoded)
+  globalenumcharAE3 = '\xC6' // AE (latin1 encoded)
+};
+enum EnumChar {
+  enumchar0 = '\0',
+  enumchar1 = '\1',
+  enumchar2 = '\n',
+  enumcharA = 'A',
+  enumcharB = '\102', // B
+  enumcharC = '\x43', // C
+  enumcharD = 0x44, // D
+  enumcharE = 69, // E
+  enumcharAE1 = 'Æ', // AE (latin1 encoded)
+  enumcharAE2 = '\306', // AE (latin1 encoded)
+  enumcharAE3 = '\xC6' // AE (latin1 encoded)
+};
+struct EnumCharStruct {
+  enum EnumChar {
+    enumchar0 = '\0',
+    enumchar1 = '\1',
+    enumchar2 = '\n',
+    enumcharA = 'A',
+    enumcharB = '\102', // B
+    enumcharC = '\x43', // C
+    enumcharD = 0x44, // D
+    enumcharE = 69, // E
+    enumcharAE1 = 'Æ', // AE (latin1 encoded)
+    enumcharAE2 = '\306', // AE (latin1 encoded)
+    enumcharAE3 = '\xC6' // AE (latin1 encoded)
+  };
+};
 %}
 
 #if defined(SWIGJAVA)
@@ -593,6 +642,50 @@ int globalDifferentTypesTest(int n) { return n; }
 #elif defined(SWIGCSHARP)
 %csconst(0);
 #endif
+
+%inline %{
+enum {
+  x_globalenumchar0 = '\0',
+  x_globalenumchar1 = '\1',
+  x_globalenumchar2 = '\n',
+  x_globalenumcharA = 'A',
+  x_globalenumcharB = '\102', // B
+  x_globalenumcharC = '\x43', // C
+  x_globalenumcharD = 0x44, // D
+  x_globalenumcharE = 69,  // E
+  x_globalenumcharAE1 = 'Æ', // AE (latin1 encoded)
+  x_globalenumcharAE2 = '\306', // AE (latin1 encoded)
+  x_globalenumcharAE3 = '\xC6' // AE (latin1 encoded)
+};
+enum X_EnumChar {
+  x_enumchar0 = '\0',
+  x_enumchar1 = '\1',
+  x_enumchar2 = '\n',
+  x_enumcharA = 'A',
+  x_enumcharB = '\102', // B
+  x_enumcharC = '\x43', // C
+  x_enumcharD = 0x44, // D
+  x_enumcharE = 69, // E
+  x_enumcharAE1 = 'Æ', // AE (latin1 encoded)
+  x_enumcharAE2 = '\306', // AE (latin1 encoded)
+  x_enumcharAE3 = '\xC6' // AE (latin1 encoded)
+};
+struct X_EnumCharStruct {
+  enum X_EnumChar {
+    enumchar0 = '\0',
+    enumchar1 = '\1',
+    enumchar2 = '\n',
+    enumcharA = 'A',
+    enumcharB = '\102', // B
+    enumcharC = '\x43', // C
+    enumcharD = 0x44, // D
+    enumcharE = 69, // E
+    enumcharAE1 = 'Æ', // AE (latin1 encoded)
+    enumcharAE2 = '\306', // AE (latin1 encoded)
+    enumcharAE3 = '\xC6' // AE (latin1 encoded)
+  };
+};
+%}
 
 %inline %{
 namespace DifferentSpace {
@@ -614,5 +707,4 @@ enum {
   global_typedefaultint_noconst
 };
 }
-
 %}

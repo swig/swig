@@ -1904,7 +1904,7 @@ done:
 	enumvalue = GetChar(n, "enumvalueex");
       }
 
-      if (enumvalue) {
+      if (enumvalue && *Char(enumvalue)) {
 	// Check for a simple constant expression which is valid in PHP.
 	// If we find one, initialise the const member with it; otherwise
 	// we initialise it using the C/C++ wrapped constant.
@@ -1916,7 +1916,8 @@ done:
 	    break;
 	  }
 	}
-	if (!*p) set_to = enumvalue;
+	if (!*p)
+	  set_to = enumvalue;
       }
 
       if (wrapping_member_constant) {

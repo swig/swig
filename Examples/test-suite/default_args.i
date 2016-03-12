@@ -77,6 +77,10 @@
   // char
   char chartest1(char c = 'x') { return c; }
   char chartest2(char c = '\0') { return c; }
+  char chartest3(char c = '\1') { return c; }
+  char chartest4(char c = '\n') { return c; }
+  char chartest5(char c = '\102') { return c; } // 'B'
+  char chartest6(char c = '\x43') { return c; } // 'C'
 
   // namespaces
   namespace AType { 
