@@ -2792,6 +2792,7 @@ private:
     } else if (SwigType_type(type) == T_CHAR) {
       quote = '\'';
     } else if (SwigType_type(type) == T_STRING) {
+      Printv(get, "(char *)", NULL);
       quote = '"';
     } else {
       quote = '\0';
