@@ -1,6 +1,11 @@
 %module chartest
 
 %inline %{
+#if defined(__clang__)
+#pragma clang diagnostic push
+// Suppress: illegal character encoding in character literal
+#pragma clang diagnostic ignored "-Winvalid-source-encoding"
+#endif
 char printable_global_char = 'a';
 char unprintable_global_char = 0x7F;
 
@@ -73,4 +78,7 @@ struct X_CharTestClass {
   static const char membercharAE2 = '\306'; // AE (latin1 encoded)
   static const char membercharAE3 = '\xC6'; // AE (latin1 encoded)
 };
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 %}

@@ -594,6 +594,12 @@ int globalDifferentTypesTest(int n) { return n; }
 %csconstvalue("'B'") enumcharB;
 #endif
 %inline %{
+#if defined(__clang__)
+#pragma clang diagnostic push
+// Suppress: illegal character encoding in character literal
+#pragma clang diagnostic ignored "-Winvalid-source-encoding"
+#endif
+
 enum {
   globalenumchar0 = '\0',
   globalenumchar1 = '\1',
@@ -685,6 +691,9 @@ struct X_EnumCharStruct {
     enumcharAE3 = '\xC6' // AE (latin1 encoded)
   };
 };
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 %}
 
 %inline %{
