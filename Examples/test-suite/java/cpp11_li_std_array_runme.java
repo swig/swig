@@ -69,14 +69,14 @@ public class cpp11_li_std_array_runme {
 
     // out of range errors
     try {
-      ai.set(ai.size()) = 999;
+      ai.set((int)ai.size(), 0);
       throw new RuntimeException("Out of range exception not caught");
-    } catch(OutOfRangeException e) {
+    } catch(IndexOutOfBoundsException e) {
     }
     try {
-      ai.set(-1) = 999;
+      ai.set(-1, 0);
       throw new RuntimeException("Out of range exception not caught");
-    } catch(OutOfRangeException e) {
+    } catch(IndexOutOfBoundsException e) {
     }
   }
 }
