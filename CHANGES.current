@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-14: wsfulton
+	    [Java] Add std_array.i for C++11 std::array support.
+
 2016-03-12: wsfulton
 	    [Java, C#, D] Fix static const char member variables wrappers with %javaconst(1)
             %csconst(1) or %dmanifestconst.
