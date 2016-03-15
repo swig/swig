@@ -1,5 +1,5 @@
 unittest <- function (x,y) {
-  if (x==y) {
+  if (all(x==y)) {
     print("PASS") 
   } else {
     print("FAIL") 
@@ -8,7 +8,7 @@ unittest <- function (x,y) {
 }
 
 unittesttol <- function(x,y,z) {
-  if (abs(x-y) < z) {
+  if (all(abs(x-y) < z)) {
     print("PASS")
   } else {
     print("FAIL")
