@@ -161,10 +161,6 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
-    # Currently broken
-    - compiler: gcc
-      os: linux
-      env: SWIGLANG=scilab
 before_install:
   - date -u
   - uname -a
