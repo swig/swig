@@ -2,6 +2,7 @@
 %module(directors="1") primitive_types
 
 #if defined(SWIGSCILAB)
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_str;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) ovr_val;
 %rename(TestDir) TestDirector;
 #endif
