@@ -125,27 +125,31 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     void *pvTypeinfo = NULL;
 
     sciErr = getListItemNumber(pvApiCtx, piAddrVar, &iItemCount);
-    if (sciErr.iErr)
-    {
+    if (sciErr.iErr) {
       printError(&sciErr, 0);
-      return 0;
+      return SWIG_ERROR;
     }
     if (iItemCount < 3) {
-      return 0;
+      return SWIG_ERROR;
     }
 
     sciErr = getPointerInList(pvApiCtx, piAddrVar, 2, &pvTypeinfo);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
-      return 0;
+      return SWIG_ERROR;
     }
 
     if (descriptor) {
-      swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info *)pvTypeinfo), descriptor);
+      swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info*)pvTypeinfo), descriptor);
       return (cast != NULL);
-    }
+    } 
+    else {
+      return SWIG_ERROR;
+    }    
   }
-  else return (iType == sci_pointer);
+  else {
+    return (iType == sci_pointer);
+  }
 }
 
 SWIGINTERN int
