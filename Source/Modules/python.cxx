@@ -3458,11 +3458,15 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
+    SwigType *basetype = SwigType_base(type);
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
     int have_tm = 0;
     int have_builtin_symname = 0;
+    int is_classobj = SwigType_isclass(basetype);
+
+    Delete(basetype);
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
@@ -3496,8 +3500,15 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
-        // Generate method which registers the new constant
+      if (is_classobj && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+	// Generate `*_swigconstant()` method which registers the new constant.
+	//
+	// *_swigconstant methods are required for constants of class type.
+	// Class types are registered in shadow file (see *_swigregister). The
+	// instances of class must be created (registered) after the type is
+	// registered, so we can't let SWIG_init() to register constants of
+	// class type (the SWIG_init() is called before shadow classes are
+	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
         Printf(f_wrappers, tab2 "PyObject *d;\n");
@@ -3537,13 +3548,17 @@ public:
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       if (!in_class) {
-	Printv(f_shadow, "\n",NIL);
-	Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
+	if(is_classobj) {
+	  Printv(f_shadow, "\n",NIL);
+	  Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
+	}
 	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
       } else {
 	if (!(Getattr(n, "feature:python:callback"))) {
-	  Printv(f_shadow_stubs, "\n",NIL);
-	  Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
+	  if(is_classobj) {
+	    Printv(f_shadow_stubs, "\n",NIL);
+	    Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
+	  }
 	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
 	}
       }
