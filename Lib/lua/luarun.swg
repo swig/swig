@@ -14,6 +14,7 @@ extern "C" {
 #include "lauxlib.h"
 #include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
+#include <limits.h> /* for some constants */
 
 /* -----------------------------------------------------------------------------
  * Lua flavors
@@ -319,7 +320,7 @@ typedef struct {
 #define SWIG_fail_ptr(func_name,argnum,type) \
   SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
 #define SWIG_check_num_args(func_name,a,b) \
-  if (lua_gettop(L)<a || lua_gettop(L)>b) \
+  if (lua_gettop(L)<a || ( lua_gettop(L)>b ) ) \
   {SWIG_Lua_pushferrstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
   goto fail;}
 
@@ -544,7 +545,7 @@ SWIGINTERN int SWIG_Lua_namespace_get(lua_State *L)
   lua_pushvalue(L,2);  /* key */
   lua_rawget(L,-2);
   lua_remove(L,-2); /* stack tidy, remove .get table */
-  if (lua_iscfunction(L,-1))
+  if (lua_isfunction(L,-1))
   {  /* found it so call the fn & return its value */
     lua_call(L,0,1);  /* 1 value in (userdata),1 out (result) */
     lua_remove(L,-2); /* stack tidy, remove metatable */
@@ -584,7 +585,7 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State *L)
     /* look for the key in the .set table */
     lua_pushvalue(L,2);  /* key */
     lua_rawget(L,-2);
-    if (lua_iscfunction(L,-1))
+    if (lua_isfunction(L,-1))
     {  /* found it so call the fn & return its value */
       lua_pushvalue(L,3);  /* value */
       lua_call(L,1,0);
@@ -829,7 +830,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   lua_pushvalue(L,substack_start+2);  /* key */
   lua_rawget(L,-2);
   lua_remove(L,-2); /* stack tidy, remove .get table */
-  if (lua_iscfunction(L,-1))
+  if (lua_isfunction(L,-1))
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_call(L,1,1);  /* 1 value in (userdata),1 out (result) */
@@ -856,7 +857,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   /* NEW: looks for the __getitem() fn
   this is a user provided get fn */
   SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_isfunction(L,-1))  /* if its there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -922,7 +923,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
     lua_pushvalue(L,substack_start+2);  /* key */
     lua_rawget(L,-2);
     lua_remove(L,-2); /* tidy stack, remove .set table */
-    if (lua_iscfunction(L,-1))
+    if (lua_isfunction(L,-1))
     {  /* found it so call the fn & return its value */
       lua_pushvalue(L,substack_start+1);  /* userdata */
       lua_pushvalue(L,substack_start+3);  /* value */
@@ -937,7 +938,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   /* NEW: looks for the __setitem() fn
   this is a user provided set fn */
   SWIG_Lua_get_table(L,"__setitem"); /* find the fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_isfunction(L,-1))  /* if its there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -1586,6 +1587,10 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   /* add string of class name called ".type" */
   lua_pushstring(L,".type");
   lua_pushstring(L,clss->fqname);
+  lua_rawset(L,-3);
+  /* add pointer to swig_lua_class structure */
+  lua_pushstring(L,".type_info");
+  lua_pushlightuserdata(L,clss);
   lua_rawset(L,-3);
   /* add a table called bases */
   lua_pushstring(L,".bases");
