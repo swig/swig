@@ -390,7 +390,7 @@ PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}
 
 python_run: $(PYSCRIPT)
 ifneq (,$(PEP8))
-	$(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
+	$(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $(PYSCRIPT)
 endif
 	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
