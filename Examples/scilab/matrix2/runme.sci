@@ -5,7 +5,6 @@ if ierr <> 0 then
   disp(lasterror());
   exit(ierr);
 end
-example_Init();
 
 // Test lib double matrix functions
 disp("Call lib function getDoubleMatrix()");
