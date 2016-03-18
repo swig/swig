@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-18: ptomulik
+	    [Python] #563 Stop generating unnecessary _swigconstant helpers.
+
+2016-03-16: richardbeare
+	    [R] #636 Add extra std::vector numeric types
+
 2016-03-14: wsfulton
 	    [Java] Add std_array.i for C++11 std::array support.
 
