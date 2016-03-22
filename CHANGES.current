@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-22: alexwarg
+	    [Lua] #398 Fix lua __getitem + inheritance
+            The new handling of classes in Lua (not merging methods into the derived classes)
+            breaks for classes that provide a __getitem function. The __getitem function
+            prevents method calls to any method defined in a base class. This fix calls
+            __getitem only if the member is not found using recursive lookup.
+
 2016-03-18: ptomulik
 	    [Python] #563 Stop generating unnecessary _swigconstant helpers.
 
