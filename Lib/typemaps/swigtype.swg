@@ -625,6 +625,7 @@
 %typemap(constcode, noblock=1) SWIGTYPE ((*)(ANY)){
   %set_constant("$symname", SWIG_NewFunctionPtrObj((void *)$value, $descriptor));
 }
+%typemap(constcode) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
