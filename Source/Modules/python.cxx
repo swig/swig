@@ -2376,21 +2376,21 @@ public:
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
     String *parms = make_pyParmList(n, false, false, kw);
     String *callParms = make_pyParmList(n, false, true, kw);
-    /* Make a wrapper function to insert the code into */
-    Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-    if (have_docstring(n))
-      Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
-    if (have_pythonprepend(n))
-      Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
-    if (have_pythonappend(n)) {
-      Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
-      Printv(f_dest, tab4 "return val\n", NIL);
+    if (have_addtofunc(n)) {
+      /* Make a wrapper function to insert the code into */
+      Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+      if (have_docstring(n))
+        Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+      if (have_pythonprepend(n))
+        Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
+      if (have_pythonappend(n)) {
+        Printv(f_dest, tab4 "val = ", funcCall(name, callParms), "\n", NIL);
+        Printv(f_dest, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
+        Printv(f_dest, tab4 "return val\n", NIL);
+      } else {
+        Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
+      }
     } else {
-      Printv(f_dest, tab4 "return ", funcCall(name, callParms), "\n", NIL);
-    }
-
-    if (!have_addtofunc(n)) {
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
       Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     }
