@@ -3454,19 +3454,37 @@ public:
    * constantWrapper()
    * ------------------------------------------------------------ */
 
+  /* Determine if the node requires the _swigconstant code to be generated */
+  bool needs_swigconstant(Node* n) {
+    SwigType *type = Getattr(n, "type");
+    SwigType *qtype = SwigType_typedef_resolve_all(type);
+    SwigType *uqtype = SwigType_strip_qualifiers(qtype);
+    bool result = false;
+
+    /* Note, that we need special handling for function pointers, as
+     * SwigType_base(fptr) does not return the underlying pointer-to-function
+     * type but the return-type of function. */
+    if(!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
+      SwigType *basetype = SwigType_base(uqtype);
+      result = (bool)SwigType_isclass(basetype);
+      Delete(basetype);
+    }
+
+    Delete(qtype);
+    Delete(uqtype);
+
+    return result;
+  }
+
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    SwigType *basetype = SwigType_base(type);
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
     int have_tm = 0;
     int have_builtin_symname = 0;
-    int is_classobj = SwigType_isclass(basetype);
-
-    Delete(basetype);
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
@@ -3500,7 +3518,7 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      if (is_classobj && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+      if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
 	// Generate `*_swigconstant()` method which registers the new constant.
 	//
 	// *_swigconstant methods are required for constants of class type.
@@ -3548,14 +3566,14 @@ public:
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       if (!in_class) {
-	if(is_classobj) {
+	if(needs_swigconstant(n)) {
 	  Printv(f_shadow, "\n",NIL);
 	  Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
 	}
 	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
       } else {
 	if (!(Getattr(n, "feature:python:callback"))) {
-	  if(is_classobj) {
+	  if(needs_swigconstant(n)) {
 	    Printv(f_shadow_stubs, "\n",NIL);
 	    Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
 	  }
