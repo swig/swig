@@ -406,7 +406,6 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     if (!$input) return $null;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
-// boohoo
 }
 
 %typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
