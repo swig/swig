@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-03-31: wsfulton
+	    [Java] unsigned long long marshalling improvements when a negative number
+            is passed from Java to C. A cast to signed long long in the C layer will now
+            result in the expected value. No change for positive numbers passed to C.
+            Fixes #623.
+
 2016-03-22: alexwarg
 	    [Lua] #398 Fix lua __getitem + inheritance
             The new handling of classes in Lua (not merging methods into the derived classes)
