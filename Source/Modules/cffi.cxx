@@ -688,6 +688,9 @@ int CFFI::typedefHandler(Node *n) {
 }
 
 int CFFI::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *name = Getattr(n, "sym:name");
   bool slot_name_keywords;
   String *lisp_name = 0;

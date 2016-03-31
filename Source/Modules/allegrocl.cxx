@@ -3166,6 +3166,9 @@ int ALLEGROCL::enumDeclaration(Node *n) {
   Printf(stderr, "enumDeclaration %s\n", Getattr(n, "name"));
 #endif
 
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   if (Getattr(n, "sym:name")) {
     add_defined_foreign_type(n);
   }

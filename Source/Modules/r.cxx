@@ -1179,6 +1179,9 @@ int R::OutputArrayMethod(String *className, List *el, File *out) {
  tdname is the typedef of the enumeration, i.e. giving its name.
 *************************************************************/
 int R::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
   

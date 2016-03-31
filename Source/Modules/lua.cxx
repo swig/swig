@@ -1157,6 +1157,9 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
     // There is some slightly specific behaviour with enums. Basically,

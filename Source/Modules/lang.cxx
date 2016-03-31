@@ -1649,6 +1649,9 @@ int Language::externDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumDeclaration(Node *n) {
+  if (CurrentClass && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
 

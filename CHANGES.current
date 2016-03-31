@@ -6,7 +6,13 @@ Version 3.0.9 (in progress)
 ===========================
 
 2016-03-31: wsfulton
-	    [Java] unsigned long long marshalling improvements when a negative number
+            Fixes #594. Fix assertion for some languages when wrapping a C++11 enum class that
+            is private in a class.
+
+            Also don't wrap private enums for a few languages that attempted to do so.
+
+2016-03-31: wsfulton
+            [Java] unsigned long long marshalling improvements when a negative number
             is passed from Java to C. A cast to signed long long in the C layer will now
             result in the expected value. No change for positive numbers passed to C.
             Fixes #623.
