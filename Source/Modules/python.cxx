@@ -2728,7 +2728,9 @@ public:
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
-    if (builtin && funpack && !overname && !builtin_ctor && !GetFlag(n, "feature:compactdefaultargs")) {
+    if (builtin && funpack && !overname && !builtin_ctor &&
+        !(GetFlag(n, "feature:compactdefaultargs") &&
+          (tuple_arguments > tuple_required || varargs))) {
       String *argattr = NewStringf("%d", tuple_arguments);
       Setattr(n, "python:argcount", argattr);
       Delete(argattr);
