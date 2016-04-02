@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-02: ahnolds
+            [Python] Apply #598. Fix misleading error message when attempting to read a non-existent
+            attribute. The previous cryptic error message:
+              AttributeError: type object 'object' has no attribute '__getattr__'
+            is now replaced with one mentioning the attribute name, eg:
+              AttributeError: 'Foo' object has no attribute 'bar'
+
 2016-04-02: derkuci
             [Python] Patch #610 to fix #607. 
             Fix single arguments when using python -builtin -O with %feature("compactdefaultargs")
