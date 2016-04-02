@@ -1161,7 +1161,7 @@ When wrapped, you will be able to use the functions in a natural way from Python
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; f = example.fopen("junk","w")
+&gt;&gt;&gt; f = example.fopen("junk", "w")
 &gt;&gt;&gt; example.fputs("Hello World\n", f)
 &gt;&gt;&gt; example.fclose(f)
 </pre>
@@ -4725,7 +4725,7 @@ follows :
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; from argv import *
-&gt;&gt;&gt; print_args(["Dave","Mike","Mary","Jane","John"])
+&gt;&gt;&gt; print_args(["Dave", "Mike", "Mary", "Jane", "John"])
 argv[0] = Dave
 argv[1] = Mike
 argv[2] = Mary
@@ -4763,7 +4763,7 @@ allows the function to be used from Python as follows:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; foo(4, ["foo","bar","spam","1"])
+&gt;&gt;&gt; foo(4, ["foo", "bar", "spam", "1"])
 </pre>
 </div>
 
@@ -4817,7 +4817,47 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; foo(["foo","bar","spam","1"])
+&gt;&gt;&gt; foo(["foo", "bar", "spam", "1"])
+</pre>
+</div>
+
+<p>
+If your function is overloaded in C++, for example:
+</p>
+
+<div class="code">
+<pre>
+int foo(int argc, char **argv);
+int foo();
+</pre>
+</div>
+
+<p>
+don't forget to also provide a suitable <a href="Typemaps.html#Typemaps_overloading">typecheck typemap for overloading</a>
+such as:
+</p>
+
+<div class="code">
+<pre>
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) (int argc, char **argv) {
+  $1 = PyList_Check($input) ? 1 : 0;
+}
+</pre>
+</div>
+
+<p>
+If you don't you'll get an error message along the lines of:
+</p>
+
+<div class="shell">
+<pre>
+Traceback (most recent call last):
+  File "runme.py", line 3, in <module>
+    example.foo(["foo", "bar", "spam", "1"])
+NotImplementedError: Wrong number or type of arguments for overloaded function 'foo'.
+  Possible C/C++ prototypes are:
+    foo(int,char **)
+    foo()
 </pre>
 </div>
 
