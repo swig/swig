@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-02: derkuci
+            [Python] Patch #610 to fix #607. 
+            Fix single arguments when using python -builtin -O with %feature("compactdefaultargs")
+
 2016-03-31: wsfulton
             Fixes #594. Fix assertion for some languages when wrapping a C++11 enum class that
             is private in a class.
