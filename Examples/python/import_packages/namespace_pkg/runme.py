@@ -40,7 +40,7 @@ def mkzip():
 def main():
     copyMods()
 
-    # Run each test with a seperate interpreter
+    # Run each test with a separate interpreter
     os.system(sys.executable + " nonpkg.py")
     os.system(sys.executable + " normal.py")
     os.system(sys.executable + " split.py")
