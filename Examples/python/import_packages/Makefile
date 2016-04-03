@@ -10,8 +10,7 @@ import_packages_subdirs = \
 	from_init3 \
 	relativeimport1 \
 	relativeimport2 \
-	relativeimport3 \
-        namespace_pkg
+	relativeimport3
 
 check: build
 	if test "x$(SRCDIR)" != x; then \
