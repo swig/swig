@@ -863,7 +863,14 @@ public:
       Printv(f_shadow, "del version_info\n", NULL);
 
       if (builtin) {
-	Printf(f_shadow, "from %s import *\n", module);
+        /*
+         * Python3 removes relative imports.  So 'from _foo import *'
+         * will only work for non-package modules.
+         */
+        Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printf(f_shadow, tab4 "from .%s import *\n", module);
+        Printv(f_shadow, "else:\n", NULL);
+        Printf(f_shadow, tab4 "from %s import *\n", module);
       }
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
