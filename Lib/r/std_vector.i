@@ -870,15 +870,25 @@
 %typemap("scoercein") std::vector<int> , std::vector<int> const, std::vector<int> const& "$input = as.integer($input);";
 
 // strings
-%typemap("rtype") std::vector< std::basic_string<char> >,  std::vector< std::basic_string<char> > *,
-   std::vector< std::basic_string<char> > & "character";
+%typemap("rtype") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & "character"
 
-%typemap("scoercein") std::vector< std::basic_string<char> >,  std::vector< std::basic_string<char> > *,
+%typemap("rtypecheck") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > &
+   %{ is.character($arg) %}
+
+%typemap("scoercein") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
    std::vector< std::basic_string<char> > & "$input = as.character($input);";
 
-%typemap("scoerceout") std::vector< std::basic_string<char> >,  std::vector< std::basic_string<char> > *,
+%typemap("scoerceout") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
    std::vector< std::basic_string<char> > & 
 %{    %}
+
+%apply std::vector< std::basic_string<char> > { std::vector< std::string> };
 
 // all the related integer vectors
 // signed
