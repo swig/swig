@@ -29,12 +29,23 @@
 #   define JCALL7(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7)
 #endif
 
+#if defined(SWIGWORDSIZE64)
+%insert(runtime) %{
+/* Fix for jlong on some versions of gcc on Windows */
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+  typedef long __int64;
+#endif
+%}
+#else
 %insert(runtime) %{
 /* Fix for jlong on some versions of gcc on Windows */
 #if defined(__GNUC__) && !defined(__INTEL_COMPILER)
   typedef long long __int64;
 #endif
+%}
+#endif
 
+%insert(runtime) %{
 /* Fix for jlong on 64-bit x86 Solaris */
 #if defined(__x86_64)
 # ifdef _LP64
