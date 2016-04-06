@@ -868,7 +868,8 @@ public:
          * will only work for non-package modules.
          */
         Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
-        Printf(f_shadow, tab4 "from .%s import *\n", module);
+        Printf(f_shadow, tab4 "from %s%s import *\n", (py3 ? "." : ""),
+          module);
         Printv(f_shadow, "else:\n", NULL);
         Printf(f_shadow, tab4 "from %s import *\n", module);
       }
