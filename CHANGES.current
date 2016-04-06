@@ -10,7 +10,6 @@ Version 3.0.9 (in progress)
             Instead of a Scilab pointer which has no type, SWIG Scilab maps a
             pointer to a structure tlist containing the pointer adress and its type.
 
-
 2016-04-02: ahnolds
             [Python] Apply #598. Fix misleading error message when attempting to read a non-existent
             attribute. The previous cryptic error message:
