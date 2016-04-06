@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-06: smarchetto
+            [Scilab] #552 Make Scilab runtime keep track of pointer types
+            Instead of a Scilab pointer which has no type, SWIG Scilab maps a
+            pointer to a structure tlist containing the pointer adress and its type.
+
 2016-04-02: ahnolds
             [Python] Apply #598. Fix misleading error message when attempting to read a non-existent
             attribute. The previous cryptic error message:
@@ -13,7 +18,7 @@ Version 3.0.9 (in progress)
               AttributeError: 'Foo' object has no attribute 'bar'
 
 2016-04-02: derkuci
-            [Python] Patch #610 to fix #607. 
+            [Python] Patch #610 to fix #607.
             Fix single arguments when using python -builtin -O with %feature("compactdefaultargs")
 
 2016-03-31: wsfulton
@@ -79,7 +84,7 @@ Version 3.0.9 (in progress)
             strips the symbol's suffix instead of the prefix. The example below
             will rename SomeThingCls to SomeThing and AnotherThingCls to AnotherThing:
 
-              %rename("%(rstrip:[Cls])s") ""; 
+              %rename("%(rstrip:[Cls])s") "";
 
               class SomeThingCls {};
               struct AnotherThingCls {};

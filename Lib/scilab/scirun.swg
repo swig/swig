@@ -245,7 +245,7 @@ SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info
       return SWIG_ERROR;
     }
 
-    pstString = SWIG_TypePrettyName(descriptor);
+    pstString = SWIG_TypeName(descriptor);
     sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 1, 1, 1, &pstString);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
