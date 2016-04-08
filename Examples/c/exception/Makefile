@@ -1,21 +1,18 @@
 TOP        = ../..
-SWIG       = $(TOP)/../preinst-swig
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
-RUNME      = runme.c
-PROXY      = example_proxy.c
 
-all::
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c_cpp
-	$(MAKE) -f $(TOP)/Makefile RUNME='$(RUNME)' PROXY='$(PROXY)' \
-	TARGET='$(TARGET)' c_compile
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c_run
 
-run:
-	env LD_LIBRARY_PATH=. ./runme
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' c_cpp
 
 clean:
-	rm -f *.o *.out *.so *.a *.dll *.dylib *.exe *_wrap* *_proxy* *~ runme
-
-check: all
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' c_clean

@@ -82,10 +82,9 @@ RUNPIPE=
 RUNME = runme
 
 IWRAP      = $(INTERFACE:.i=_wrap.i)
-IPROXYSRCS = $(INTERFACE:.i=_proxy.c)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
-IOBJS      = $(IWRAP:.i=.o) $(IPROXYSRCS:.c=.o)
+IOBJS      = $(IWRAP:.i=.@OBJEXT@)
 
 ##################################################################
 # Some options for silent output
@@ -1735,20 +1734,40 @@ C_LDSHARED = @C_LDSHARED@
 CXX_LDSHARED = @CXX_LDSHARED@
 C_SO = @C_SO@
 
-c: $(SRCS)
-	$(SWIG) -c $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(IPROXYSRCS) $(INCLUDES)
+PROXYSRC := $(INTERFACE:.i=_proxy.c)
+PROXYOBJ := $(PROXYSRC:.c=.@OBJEXT@)
+
+c: $(SRCDIR_SRCS)
+	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(PROXYSRC) $(INCLUDES)
 	$(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 	
-c_cpp: $(SRCS)
-	$(SWIG) -c++ -c $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CXXFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(IPROXYSRCS) $(INCLUDES)
+c_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ISRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(PROXYSRC) $(INCLUDES)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
-c_compile: $(RUNME) $(PROXY)
-	$(CC) $(RUNME) $(PROXY) -L. -l$(TARGET) -o $(RUNME:.c=)
+c_compile: $(SRCDIR)$(RUNME).c $(PROXYOBJ)
+	$(COMPILETOOL) $(CC) -o $(RUNME) -I. $^ -L. -l$(TARGET)
+
+# -----------------------------------------------------------------
+# Run C example
+# -----------------------------------------------------------------
+
+c_run: c_compile
+	$(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Cleaning the C examples
+# -----------------------------------------------------------------
+
+c_clean:
+	rm -f *_wrap.c *_proxy.[ch]
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f $(RUNME)
 
 ##################################################################
 #####                 SCILAB                                ######
