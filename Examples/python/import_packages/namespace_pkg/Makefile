@@ -1,7 +1,6 @@
 TOP        = ../../..
 SWIGEXE    = $(TOP)/../swig
 SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
-SRCS       = robin.c
 TARGET     = robin
 INTERFACE  = robin.i
 

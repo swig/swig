@@ -1,7 +1,7 @@
 %module robin
 
-%{
-extern const char *run(void);
+%inline %{
+const char *run(void) {
+    return "AWAY!";
+}
 %}
-
-const char *run(void);
