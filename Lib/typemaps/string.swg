@@ -17,8 +17,19 @@ SWIG_pchar_descriptor(void)
 }
 }
 
+%fragment("SWIG_strnlen","header",fragment="SWIG_FromCharPtrAndSize") {
+size_t
+SWIG_strnlen(const char* s, size_t maxlen)
+{
+  const char *p;
+  for (p = s; maxlen-- && *p; p++)
+    ;
+  return p - s;
+}
+}
 
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(STRING), %checkcode(CHAR),
-		 char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, strlen,
+		 char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize,
+		 strlen, SWIG_strnlen,
 		"<limits.h>", CHAR_MIN, CHAR_MAX)

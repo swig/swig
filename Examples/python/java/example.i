@@ -7,3 +7,7 @@
 
 
 %include Example.h
+
+%extend Example {
+  ~Example() {}
+}

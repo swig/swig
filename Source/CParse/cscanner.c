@@ -9,13 +9,11 @@
  * scanner.c
  *
  * SWIG tokenizer.  This file is a wrapper around the generic C scanner
- * found in Swig/scanner.c.   Extra logic is added both to accomodate the
+ * found in Swig/scanner.c.   Extra logic is added both to accommodate the
  * bison-based grammar and certain peculiarities of C++ parsing (e.g.,
  * operator overloading, typedef resolution, etc.).  This code also splits
  * C identifiers up into keywords and SWIG directives.
  * ----------------------------------------------------------------------------- */
-
-char cvsroot_cscanner_c[] = "$Id$";
 
 #include "cparse.h"
 #include "parser.h"
@@ -39,6 +37,12 @@ int     cparse_start_line = 0;
 /* C++ mode */
 int cparse_cplusplus = 0;
 
+/* Generate C++ compatible code when wrapping C code */
+int cparse_cplusplusout = 0;
+
+/* To allow better error reporting */
+String *cparse_unknown_directive = 0;
+
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
@@ -52,6 +56,14 @@ static int rename_active = 0;
 
 void Swig_cparse_cplusplus(int v) {
   cparse_cplusplus = v;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_cplusplusout()
+ * ----------------------------------------------------------------------------- */
+
+void Swig_cparse_cplusplusout(int v) {
+  cparse_cplusplusout = v;
 }
 
 /* ----------------------------------------------------------------------------
@@ -103,10 +115,11 @@ void start_inline(char *text, int line) {
  * ----------------------------------------------------------------------------- */
 
 void skip_balanced(int startchar, int endchar) {
+  int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
   if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
-    Swig_error(Scanner_file(scan),Scanner_errline(scan), "Missing '%c'. Reached end of input.\n", endchar);
+    Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
     return;
   }
 
@@ -119,6 +132,16 @@ void skip_balanced(int startchar, int endchar) {
   return;
 }
 
+/* -----------------------------------------------------------------------------
+ * get_raw_text_balanced()
+ *
+ * Returns raw text between 2 braces
+ * ----------------------------------------------------------------------------- */
+
+String *get_raw_text_balanced(int startchar, int endchar) {
+  return Scanner_get_raw_text_balanced(scan, startchar, endchar);
+}
+
 /* ----------------------------------------------------------------------------
  * void skip_decl(void)
  *
@@ -127,7 +150,7 @@ void skip_balanced(int startchar, int endchar) {
  *  friend ostream& operator<<(ostream&, const char *s);
  *
  * or
- *  friend ostream& operator<<(ostream&, const char *s) { };
+ *  friend ostream& operator<<(ostream&, const char *s) { }
  *
  * ------------------------------------------------------------------------- */
 
@@ -247,6 +270,8 @@ static int yylook(void) {
       return GREATERTHANOREQUALTO;
     case SWIG_TOKEN_RSHIFT:
       return RSHIFT;
+    case SWIG_TOKEN_ARROW:
+      return ARROW;
     case SWIG_TOKEN_PERIOD:
       return PERIOD;
     case SWIG_TOKEN_MODULO:
@@ -284,15 +309,25 @@ static int yylook(void) {
     case SWIG_TOKEN_STRING:
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return STRING;
+
+    case SWIG_TOKEN_WSTRING:
+      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      return WSTRING;
       
     case SWIG_TOKEN_CHAR:
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
 	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
-	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
       }
       return CHARCONST;
-      
+
+    case SWIG_TOKEN_WCHAR:
+      yylval.str = NewString(Scanner_text(scan));
+      if (Len(yylval.str) == 0) {
+	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+      }
+      return WCHARCONST;
+
       /* Numbers */
       
     case SWIG_TOKEN_INT:
@@ -372,7 +407,7 @@ void scanner_clear_rename() {
   rename_active = 0;
 }
 
-/* Used to push a ficticious token into the scanner */
+/* Used to push a fictitious token into the scanner */
 static int next_token = 0;
 void scanner_next_token(int tok) {
   next_token = tok;
@@ -543,8 +578,16 @@ int yylex(void) {
 	  return (PROTECTED);
 	if (strcmp(yytext, "friend") == 0)
 	  return (FRIEND);
+	if (strcmp(yytext, "constexpr") == 0)
+	  return (CONSTEXPR);
+	if (strcmp(yytext, "thread_local") == 0)
+	  return (THREAD_LOCAL);
+	if (strcmp(yytext, "decltype") == 0)
+	  return (DECLTYPE);
 	if (strcmp(yytext, "virtual") == 0)
 	  return (VIRTUAL);
+	if (strcmp(yytext, "static_assert") == 0)
+	  return (STATIC_ASSERT);
 	if (strcmp(yytext, "operator") == 0) {
 	  int nexttok;
 	  String *s = NewString("operator ");
@@ -567,7 +610,10 @@ int yylex(void) {
  
 	  */
 
-	  nexttok = Scanner_token(scan);
+	  do {
+	    nexttok = Scanner_token(scan);
+	  } while (nexttok == SWIG_TOKEN_ENDLINE || nexttok == SWIG_TOKEN_COMMENT);
+
 	  if (Scanner_isoperator(nexttok)) {
 	    /* One of the standard C/C++ symbolic operators */
 	    Append(s,Scanner_text(scan));
@@ -593,6 +639,11 @@ int yylex(void) {
 	      yylval.str = s;
 	      return OPERATOR;
 	    }
+	  } else if (nexttok == SWIG_TOKEN_STRING) {
+	    /* Operator "" or user-defined string literal ""_suffix */
+	    Append(s,"\"\"");
+	    yylval.str = s;
+	    return OPERATOR;
 	  } else if (nexttok == SWIG_TOKEN_ID) {
 	    /* We have an identifier.  This could be any number of things. It could be a named version of
                an operator (e.g., 'and_eq') or it could be a conversion operator.   To deal with this, we're
@@ -633,6 +684,8 @@ int yylex(void) {
 		  Append(s," ");
 		}
 		Append(s,Scanner_text(scan));
+	      } else if (nexttok == SWIG_TOKEN_ENDLINE) {
+	      } else if (nexttok == SWIG_TOKEN_COMMENT) {
 	      } else {
 		Append(s,Scanner_text(scan));
 		needspace = 0;
@@ -669,7 +722,7 @@ int yylex(void) {
 		Setfile(cs,cparse_file);
 		Scanner_push(scan,cs);
 		Delete(cs);
-		return COPERATOR;
+		return CONVERSIONOPERATOR;
 	      }
 	    }
 	    if (termtoken)
@@ -679,6 +732,8 @@ int yylex(void) {
 	}
 	if (strcmp(yytext, "throw") == 0)
 	  return (THROW);
+	if (strcmp(yytext, "noexcept") == 0)
+	  return (NOEXCEPT);
 	if (strcmp(yytext, "try") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "catch") == 0)
@@ -689,6 +744,8 @@ int yylex(void) {
 	  return (yylex());
 	if (strcmp(yytext, "explicit") == 0)
 	  return (EXPLICIT);
+	if (strcmp(yytext, "auto") == 0)
+	  return (AUTO);
 	if (strcmp(yytext, "export") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "typename") == 0)
@@ -697,15 +754,18 @@ int yylex(void) {
 	  yylval.intvalue = cparse_line;
 	  return (TEMPLATE);
 	}
-	if (strcmp(yytext, "delete") == 0) {
+	if (strcmp(yytext, "delete") == 0)
 	  return (DELETE_KW);
-	}
-	if (strcmp(yytext, "using") == 0) {
+	if (strcmp(yytext, "default") == 0)
+	  return (DEFAULT);
+	if (strcmp(yytext, "using") == 0)
 	  return (USING);
-	}
-	if (strcmp(yytext, "namespace") == 0) {
+	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
-	}
+	if (strcmp(yytext, "override") == 0)
+	  return (OVERRIDE);
+	if (strcmp(yytext, "final") == 0)
+	  return (FINAL);
       } else {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
@@ -749,8 +809,11 @@ int yylex(void) {
       if (strcmp(yytext, "inline") == 0)
 	return (yylex());
 
-      /* SWIG directives */
     } else {
+      Delete(cparse_unknown_directive);
+      cparse_unknown_directive = NULL;
+
+      /* SWIG directives */
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
@@ -826,6 +889,9 @@ int yylex(void) {
       }
       if (strcmp(yytext, "%warn") == 0)
 	return (WARN);
+
+      /* Note down the apparently unknown directive for error reporting. */
+      cparse_unknown_directive = NewString(yytext);
     }
     /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

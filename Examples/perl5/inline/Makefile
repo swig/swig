@@ -1,7 +1,6 @@
-all:
-
 run:
-	perl runme.pl
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' perl5_run
 
 clean:
-	rm -fr _Inline *~
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' perl5_clean
+	rm -rf _Inline

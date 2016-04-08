@@ -29,7 +29,7 @@
 #ifdef __cplusplus
     $1 = new char*[size+1];
 #else
-    $1 = (char **)calloc(size+1, sizeof(char *));
+    $1 = (char **)malloc((size+1) * sizeof(char *));
 #endif
     for (i = 0; i<size; i++) {
       jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
@@ -37,7 +37,7 @@
 #ifdef __cplusplus
       $1[i] = new char [strlen(c_string)+1];
 #else
-      $1[i] = (char *)calloc(strlen(c_string)+1, sizeof(const char *));
+      $1[i] = (char *)malloc((strlen(c_string)+1) * sizeof(const char *));
 #endif
       strcpy($1[i], c_string);
       JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
@@ -46,12 +46,13 @@
     $1[i] = 0;
   } else {
     $1 = 0;
+    size = 0;
   }
 }
 
 %typemap(freearg) char **STRING_ARRAY {
   int i;
-  for (i=0; i<size$argnum-1; i++)
+  for (i=0; i<size$argnum; i++)
 #ifdef __cplusplus
     delete[] $1[i];
   delete[] $1;
@@ -64,7 +65,7 @@
 %typemap(out) char **STRING_ARRAY {
   if ($1) {
     int i;
-    int len=0;
+    jsize len=0;
     jstring temp_string;
     const jclass clazz = JCALL1(FindClass, jenv, "java/lang/String");
 
@@ -91,6 +92,7 @@
  * The returned string appears in the 1st element of the passed in Java String array.
  *
  * Example usage wrapping:
+ *   %apply char **STRING_OUT { char **string_out };
  *   void foo(char **string_out);
  *  
  * Java usage:
@@ -113,6 +115,7 @@
     return $null;
   }
   $1 = &temp; 
+  *$1 = 0;
 }
 
 %typemap(argout) char **STRING_OUT {
@@ -151,4 +154,41 @@
 
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
+
+/* 
+ * unsigned char *NIOBUFFER typemaps. 
+ * This is for mapping Java nio buffers to C char arrays.
+ * It is useful for performance critical code as it reduces the memory copy an marshaling overhead.
+ * Note: The Java buffer has to be allocated with allocateDirect.
+ *
+ * Example usage wrapping:
+ *   %apply unsigned char *NIOBUFFER { unsigned char *buf };
+ *   void foo(unsigned char *buf);
+ *  
+ * Java usage:
+ *   java.nio.ByteBuffer b = ByteBuffer.allocateDirect(20); 
+ *   modulename.foo(b);
+ */
+%typemap(jni) unsigned char *NIOBUFFER "jobject"  
+%typemap(jtype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
+%typemap(jstype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
+%typemap(javain,
+  pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") unsigned char *NIOBUFFER "$javainput"
+%typemap(javaout) unsigned char *NIOBUFFER {  
+  return $jnicall;  
+}  
+%typemap(in) unsigned char *NIOBUFFER {  
+  $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input); 
+  if ($1 == NULL) {  
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of a java.nio.ByteBuffer direct byte buffer. Buffer must be a direct buffer and not a non-direct buffer.");  
+  }  
+}  
+%typemap(memberin) unsigned char *NIOBUFFER {  
+  if ($input) {  
+    $1 = $input;  
+  } else {  
+    $1 = 0;  
+  }  
+}  
+%typemap(freearg) unsigned char *NIOBUFFER ""  
 

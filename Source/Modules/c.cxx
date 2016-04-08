@@ -442,8 +442,8 @@ public:
       Printv(f_proxy_c, f_proxy_code_init, "\n", NIL);
       Printv(f_proxy_c, f_proxy_code_body, "\n", NIL);
       Printv(f_proxy_h, f_proxy_header, "\n#endif /* _", Char(module), "_proxy_H_ */\n", NIL);
-      Close(f_proxy_c);
-      Close(f_proxy_h);
+      Delete(f_proxy_c);
+      Delete(f_proxy_h);
       Delete(f_proxy_code_init);
       Delete(f_proxy_header);
     }
@@ -459,7 +459,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_runtime);
     Delete(f_runtime);
 
     return SWIG_OK;

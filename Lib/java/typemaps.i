@@ -109,8 +109,11 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
-  for(i=0; i<sz; i++) {
-    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+  if (sz > 0) {
+    temp = ($*1_ltype)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
@@ -195,6 +198,7 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
+  temp = ($*1_ltype)0;
   $1 = &temp; 
 }
 
@@ -206,8 +210,8 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
-%typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE &OUTPUT = TYPECHECKTYPE;
 %enddef
 
 OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Ljava/lang/Boolean;", jbooleanArray);
@@ -225,6 +229,20 @@ OUTPUT_TYPEMAP(float, jfloat, float, Float, "[Ljava/lang/Float;", jfloatArray);
 OUTPUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArray);             
 
 #undef OUTPUT_TYPEMAP
+
+%typemap(in) bool *OUTPUT($*1_ltype temp), bool &OUTPUT($*1_ltype temp)
+{
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  temp = false;
+  $1 = &temp; 
+}
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
@@ -401,8 +419,11 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
   bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   sz = JCALL1(GetArrayLength, jenv, ba);
   temp = 0;
-  for(i=0; i<sz; i++) {
-    temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+  if (sz > 0) {
+    temp = ($*1_ltype)(signed char)bae[0];
+    for(i=1; i<sz; i++) {
+      temp = (temp << 8) | ($*1_ltype)(unsigned char)bae[i];
+    }
   }
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;

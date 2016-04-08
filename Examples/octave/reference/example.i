@@ -2,7 +2,9 @@
 
 /* This file has a few "typical" uses of C++ references. */
 
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
 
 %{
 #include "example.h"
@@ -31,7 +33,7 @@ public:
   VectorArray(int maxsize);
   ~VectorArray();
   int size();
-  
+
   /* This wrapper provides an alternative to the [] operator */
   %extend {
     Vector &get(int index) {
@@ -42,7 +44,3 @@ public:
     }
   }
 };
-
-
-
-

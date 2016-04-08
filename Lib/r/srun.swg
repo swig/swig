@@ -62,7 +62,7 @@ function(className, ..., append = TRUE)
 
 if(!isGeneric("copyToC")) 
  setGeneric("copyToC", 
-             function(value, obj = RSWIG_createNewRef(class(value)))
+             function(value, obj = SWIG_createNewRef(class(value)))
               standardGeneric("copyToC"
             ))
 

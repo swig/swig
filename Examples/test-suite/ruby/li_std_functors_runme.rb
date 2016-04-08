@@ -34,6 +34,12 @@ def _set(container)
 EOF
 end
     
+def b_lessthan_a(b, a)
+  res = b < a
+#  print b, "<", a, "=", res
+  return res
+end
+
 def _map(container)
   swig_assert_each_line(<<EOF, binding)
     cont = #{container}.new
@@ -43,7 +49,7 @@ def _map(container)
     cont['w'] = 2
     cont.to_a == [['w',2],['x',8],['y',1],['z',9]]
 
-    cont = #{container}.new(proc { |a,b| b < a } )
+    cont = #{container}.new(proc { |a,b| b_lessthan_a(b, a) } )
     cont['z'] = 9
     cont['y'] = 1
     cont['x'] = 8

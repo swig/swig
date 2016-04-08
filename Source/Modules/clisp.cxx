@@ -11,11 +11,9 @@
  * clisp language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_clisp_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
-static const char *usage = (char *) "\
+static const char *usage = "\
 CLISP Options (available with -clisp)\n\
      -extern-all       - Create clisp definitions for all the functions and\n\
                          global variables otherwise only definitions for\n\
@@ -78,12 +76,12 @@ int CLISP::top(Node *n) {
   /* Get the output file name */
   String *outfile = Getattr(n, "outfile");
 
-  if (!outfile)
-    output_filename = outfile;
-  else {
-    output_filename = NewString("");
-    Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
+  if (!outfile) {
+    Printf(stderr, "Unable to determine outfile\n");
+    SWIG_exit(EXIT_FAILURE);
   }
+
+  output_filename = NewStringf("%s%s.lisp", SWIG_output_directory(), module);
 
   f_cl = NewFile(output_filename, "w+", SWIG_output_files());
   if (!f_cl) {
@@ -132,17 +130,16 @@ int CLISP::top(Node *n) {
 
   for (len--; len >= 0; len--) {
     end--;
-    Seek(f_cl, len, SEEK_SET);
+    (void)Seek(f_cl, len, SEEK_SET);
     int ch = Getc(f_cl);
-    Seek(f_cl, end, SEEK_SET);
+    (void)Seek(f_cl, end, SEEK_SET);
     Putc(ch, f_cl);
   }
 
   Seek(f_cl, 0, SEEK_SET);
   Write(f_cl, Char(header), Len(header));
 
-  Close(f_cl);
-  Delete(f_cl);			// Deletes the handle, not the file
+  Delete(f_cl);
 
   return SWIG_OK;
 }
@@ -151,7 +148,7 @@ int CLISP::top(Node *n) {
 int CLISP::functionWrapper(Node *n) {
   is_function = 1;
   String *storage = Getattr(n, "storage");
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && !Swig_storage_isexternc(n))))
     return SWIG_OK;
 
   String *func_name = Getattr(n, "sym:name");
@@ -220,10 +217,9 @@ int CLISP::constantWrapper(Node *n) {
 
 int CLISP::variableWrapper(Node *n) {
   is_function = 0;
-  //  SwigType *type=;
   String *storage = Getattr(n, "storage");
 
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && !Swig_storage_isexternc(n))))
     return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");
@@ -246,6 +242,9 @@ int CLISP::typedefHandler(Node *n) {
 }
 
 int CLISP::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   is_function = 0;
   String *name = Getattr(n, "sym:name");
 

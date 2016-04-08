@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>Scripting Languages</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Scripting"></a>4 Scripting Languages</H1>
+<H1><a name="Scripting">4 Scripting Languages</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -37,7 +38,7 @@ programming and the mechanisms by which scripting language interpreters
 access C and C++ code.
 </p>
 
-<H2><a name="Scripting_nn2"></a>4.1 The two language view of the world</H2>
+<H2><a name="Scripting_nn2">4.1 The two language view of the world</a></H2>
 
 
 <p>
@@ -68,7 +69,7 @@ languages can be used for rapid prototyping, interactive debugging,
 scripting, and access to high-level data structures such associative
 arrays. </p>
 
-<H2><a name="Scripting_nn3"></a>4.2 How does a scripting language talk to C?</H2>
+<H2><a name="Scripting_nn3">4.2 How does a scripting language talk to C?</a></H2>
 
 
 <p>
@@ -93,7 +94,7 @@ function, arguments, and so forth.  The next few sections illustrate
 the process.
 </p>
 
-<H3><a name="Scripting_nn4"></a>4.2.1 Wrapper functions</H3>
+<H3><a name="Scripting_nn4">4.2.1 Wrapper functions</a></H3>
 
 
 <p>
@@ -101,8 +102,10 @@ Suppose you have an ordinary C function like this :</p>
 
 <div class="code"><pre>
 int fact(int n) {
-	if (n &lt;= 1) return 1;
-	else return n*fact(n-1);
+  if (n &lt;= 1)
+    return 1;
+  else
+    return n*fact(n-1);
 }
 </pre></div>
 
@@ -123,18 +126,17 @@ As an example, the Tcl wrapper function for the <tt>fact()</tt>
 function above example might look like the following : </p>
 
 <div class="code"><pre>
-int wrap_fact(ClientData clientData, Tcl_Interp *interp,
-		int argc, char *argv[]) {
-	int result;
-	int arg0;
-	if (argc != 2) {
-		interp-&gt;result = "wrong # args";
-		return TCL_ERROR;
-	}
-	arg0 = atoi(argv[1]);
-	result = fact(arg0);
-	sprintf(interp-&gt;result,"%d", result);
-	return TCL_OK;
+int wrap_fact(ClientData clientData, Tcl_Interp *interp, int argc, char *argv[]) {
+  int result;
+  int arg0;
+  if (argc != 2) {
+    interp-&gt;result = "wrong # args";
+    return TCL_ERROR;
+  }
+  arg0 = atoi(argv[1]);
+  result = fact(arg0);
+  sprintf(interp-&gt;result,"%d", result);
+  return TCL_OK;
 }
 
 </pre></div>
@@ -148,9 +150,9 @@ requires code like the following :</p>
 
 <div class="code"><pre>
 int Wrap_Init(Tcl_Interp *interp) {
-	Tcl_CreateCommand(interp, "fact", wrap_fact, (ClientData) NULL,
-				(Tcl_CmdDeleteProc *) NULL);
-	return TCL_OK;
+  Tcl_CreateCommand(interp, "fact", wrap_fact, (ClientData) NULL,
+                    (Tcl_CmdDeleteProc *) NULL);
+  return TCL_OK;
 }
 </pre></div>
 
@@ -165,7 +167,7 @@ Python. Both require special wrappers to be written and both need
 additional initialization code. Only the specific details are
 different.</p>
 
-<H3><a name="Scripting_nn5"></a>4.2.2 Variable linking</H3>
+<H3><a name="Scripting_nn5">4.2.2 Variable linking</a></H3>
 
 
 <p>
@@ -201,7 +203,7 @@ typing <tt>$Foo = 4</tt> would call the underlying set function to change
 the value.
 </p>
 
-<H3><a name="Scripting_nn6"></a>4.2.3 Constants</H3>
+<H3><a name="Scripting_nn6">4.2.3 Constants</a></H3>
 
 
 <p>
@@ -222,7 +224,7 @@ functions for creating variables so installing constants is usually
 a trivial exercise.
 </p>
 
-<H3><a name="Scripting_nn7"></a>4.2.4 Structures and classes</H3>
+<H3><a name="Scripting_nn7">4.2.4 Structures and classes</a></H3>
 
 
 <p>
@@ -243,9 +245,9 @@ representation of a structure.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	Vector();
-	~Vector();
-	double x,y,z;
+  Vector();
+  ~Vector();
+  double x,y,z;
 };
 
 </pre></div>
@@ -283,7 +285,7 @@ internals of an object, the interpreter does not need to know anything
 about the actual representation of a <tt>Vector</tt>.
 </p>
 
-<H3><a name="Scripting_nn8"></a>4.2.5 Proxy classes</H3>
+<H3><a name="Scripting_nn8">4.2.5 Proxy classes</a></H3>
 
 
 <p>
@@ -293,14 +295,14 @@ A proxy class is a special kind of object that gets created
 in a scripting language to access a C/C++ class (or struct) in a way
 that looks like the original structure (that is, it proxies the real
 C++ class). For example, if you
-have the following C definition :</p>
+have the following C++ definition :</p>
 
 <div class="code"><pre>
 class Vector {
 public:
-	Vector();
-	~Vector();
-	double x,y,z;
+  Vector();
+  ~Vector();
+  double x,y,z;
 };
 </pre></div>
 
@@ -334,18 +336,18 @@ Finally, in Tcl :
 
 <div class="targetlang"><pre>
 Vector v
-v configure -x 3 -y 4 -z 13
+v configure -x 3 -y 4 -z -13
 
 </pre></div>
 
 <p>
-When proxy classes are used, two objects are at really work--one in
+When proxy classes are used, two objects are really at work--one in
 the scripting language, and an underlying C/C++ object. Operations
 affect both objects equally and for all practical purposes, it appears
 as if you are simply manipulating a C/C++ object. 
 </p>
 
-<H2><a name="Scripting_nn9"></a>4.3 Building scripting language extensions</H2>
+<H2><a name="Scripting_nn9">4.3 Building scripting language extensions</a></H2>
 
 
 <p>
@@ -353,32 +355,27 @@ The final step in using a scripting language with your C/C++
 application is adding your extensions to the scripting language
 itself. There are two primary approaches for doing
 this. The preferred technique is to build a dynamically loadable
-extension in the form a shared library.  Alternatively, you can
+extension in the form of a shared library.  Alternatively, you can
 recompile the scripting language interpreter with your extensions
 added to it.
 </p>
 
-<H3><a name="Scripting_nn10"></a>4.3.1 Shared libraries and dynamic loading</H3>
+<H3><a name="Scripting_nn10">4.3.1 Shared libraries and dynamic loading</a></H3>
 
 
 <p>
 To create a shared library or DLL, you often need to look at the
 manual pages for your compiler and linker.  However, the procedure
-for a few common machines is shown below:</p>
+for a few common platforms is shown below:</p>
 
 <div class="shell"><pre>
 # Build a shared library for Solaris
-gcc -c example.c example_wrap.c -I/usr/local/include
+gcc -fpic -c example.c example_wrap.c -I/usr/local/include
 ld -G example.o example_wrap.o -o example.so
 
 # Build a shared library for Linux
 gcc -fpic -c example.c example_wrap.c -I/usr/local/include
 gcc -shared example.o example_wrap.o -o example.so
-
-# Build a shared library for Irix
-gcc -c example.c example_wrap.c -I/usr/local/include
-ld -shared example.o example_wrap.o -o example.so
-
 </pre></div>
 
 <p>
@@ -405,7 +402,7 @@ changing the link line to the following :</p>
 c++ -shared example.o example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Scripting_nn11"></a>4.3.2 Linking with shared libraries</H3>
+<H3><a name="Scripting_nn11">4.3.2 Linking with shared libraries</a></H3>
 
 
 <p>
@@ -452,7 +449,7 @@ the path using linker options instead.
 
 </ul>
 
-<H3><a name="Scripting_nn12"></a>4.3.3 Static linking</H3>
+<H3><a name="Scripting_nn12">4.3.3 Static linking</a></H3>
 
 
 <p>

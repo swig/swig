@@ -55,14 +55,19 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
   };
 }
 
+#ifdef SWIGCSHARP
+#define TYPEMAP_OUT_INIT $result = 0;
+#else
+#define TYPEMAP_OUT_INIT
+#endif
 
 // Test obscure bug where named typemaps where not being applied when symbol name contained a number
 %typemap(out) double "_typemap_for_double_no_compile_"
-%typemap(out) double ABCD::meth "$1 = 0.0;"
-%typemap(out) double ABCD::m1   "$1 = 0.0;"
-%typemap(out) double ABCD::_x2  "$1 = 0.0;"
-%typemap(out) double ABCD::y_   "$1 = 0.0;"
-%typemap(out) double ABCD::_3   "$1 = 0.0;"
+%typemap(out) double ABCD::meth {$1 = 0.0; TYPEMAP_OUT_INIT}
+%typemap(out) double ABCD::m1   {$1 = 0.0; TYPEMAP_OUT_INIT}
+%typemap(out) double ABCD::_x2  {$1 = 0.0; TYPEMAP_OUT_INIT}
+%typemap(out) double ABCD::y_   {$1 = 0.0; TYPEMAP_OUT_INIT}
+%typemap(out) double ABCD::_3   {$1 = 0.0; TYPEMAP_OUT_INIT}
 %inline %{
 struct ABCD {
   double meth() { return 0.0; }

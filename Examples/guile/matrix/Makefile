@@ -1,18 +1,17 @@
-SRCS   = matrix.c vector.c
-TARGET = matrix
-IFILE  = package.i
-MKDIR  = ..
+TOP        = ../..
+SWIGEXE    = $(TOP)/../swig
+SWIG_LIB_DIR = $(TOP)/../$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
+SRCS       = matrix.c vector.c
+TARGET     = my-guile
+INTERFACE  = example.i
 
+check: build
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' GUILE_RUNOPTIONS='-e do-test' guile_augmented_run
 
-all::
-	$(MAKE) -f $(MKDIR)/Makefile		\
-		SRCS='$(SRCS)'			\
-		TARGET=$(TARGET)		\
-		IFILE=$(IFILE)			\
-		MODULE=$(MODULE)		\
-	  sub-all
+build:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' LIBS='-lm' guile_augmented
 
-clean::
-	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all
+clean:
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' guile_clean

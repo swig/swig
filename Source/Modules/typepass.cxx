@@ -16,8 +16,6 @@
  * and other information needed for compilation.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typepass_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 
@@ -40,7 +38,14 @@ class TypePass:private Dispatcher {
   Hash *classhash;
   List *normalize;
 
-  TypePass() {
+  TypePass() :
+    inclass(0),
+    module(0),
+    importmode(0),
+    nsname(0),
+    nssymname(0),
+    classhash(0),
+    normalize(0) {
   }
 
   /* Normalize a type. Replaces type with fully qualified version */
@@ -173,6 +178,20 @@ class TypePass:private Dispatcher {
 		    }
 		    continue;
 		  }
+		  // A case when both outer and nested classes inherit from the same parent. Constructor may be found instead of the class itself.
+		} else if (GetFlag(cls, "nested") && checkAttribute(bcls, "nodeType", "constructor")) {
+		  bcls = Getattr(bcls, "parentNode");
+		  if (Getattr(bcls, "typepass:visit")) {
+		    if (!Getattr(bcls, "feature:onlychildren")) {
+		      if (!ilist)
+			ilist = alist = NewList();
+		      Append(ilist, bcls);
+		    } else {
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		    }
+		  }
+		  break;
 		}
 		if (Strcmp(nodeType(bcls), "classforward") != 0) {
 		  Swig_error(Getfile(bname), Getline(bname), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
@@ -185,9 +204,14 @@ class TypePass:private Dispatcher {
 		bcls = 0;
 	      } else {
 		if (Getattr(bcls, "typepass:visit")) {
-		  if (!ilist)
-		    ilist = alist = NewList();
-		  Append(ilist, bcls);
+		  if (!Getattr(bcls, "feature:onlychildren")) {
+		    if (!ilist)
+		      ilist = alist = NewList();
+		    Append(ilist, bcls);
+		  } else {
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		  }
 		} else {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));
@@ -230,41 +254,38 @@ class TypePass:private Dispatcher {
       Node *bclass = n;		/* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
-      String *smartptr = Getattr(first, "feature:smartptr");
-      if (smartptr) {
-	SwigType *smart = 0;
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  /* Record a (fake) inheritance relationship between smart pointer
-	     and smart pointer to base class, so that smart pointer upcasts
-	     are automatically generated. */
-          SwigType *bsmart = Copy(smart);
-          SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
-          SwigType *rbname = SwigType_typedef_resolve_all(bname);
-	  Replaceall(bsmart, rclsname, rbname);
-          Delete(rclsname);
-          Delete(rbname);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  /* construct casting code */
-	  String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  /* setup inheritance relationship between smart pointer templates */
-	  SwigType_inherit(smart, bsmart, 0, convcode);
-	  if (!GetFlag(bclass, "feature:smartptr"))
-	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
-	  Delete(convcode);
-	  Delete(bsmart);
+      if (ispublic && !GetFlag(bclass, "feature:ignore")) {
+	String *smartptr = Getattr(first, "feature:smartptr");
+	if (smartptr) {
+	  SwigType *smart = Swig_cparse_smartptr(first);
+	  if (smart) {
+	    /* Record a (fake) inheritance relationship between smart pointer
+	       and smart pointer to base class, so that smart pointer upcasts
+	       are automatically generated. */
+	    SwigType *bsmart = Copy(smart);
+	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
+	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
+	    Replaceall(bsmart, rclsname, rbname);
+	    Delete(rclsname);
+	    Delete(rbname);
+	    String *smartnamestr = SwigType_namestr(smart);
+	    String *bsmartnamestr = SwigType_namestr(bsmart);
+	    /* construct casting code */
+	    String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
+	    Delete(bsmartnamestr);
+	    Delete(smartnamestr);
+	    /* setup inheritance relationship between smart pointer templates */
+	    SwigType_inherit(smart, bsmart, 0, convcode);
+	    if (!GetFlag(bclass, "feature:smartptr"))
+	      Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
+	    Delete(convcode);
+	    Delete(bsmart);
+	  }
 	  Delete(smart);
 	} else {
-	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
+	  if (GetFlag(bclass, "feature:smartptr"))
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
 	}
-      } else {
-	if (GetFlag(bclass, "feature:smartptr"))
-	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
       }
       if (!importmode) {
 	String *btype = Copy(bname);
@@ -393,7 +414,7 @@ class TypePass:private Dispatcher {
     String *unnamed = Getattr(n, "unnamed");
     String *storage = Getattr(n, "storage");
     String *kind = Getattr(n, "kind");
-    Node *oldinclass = inclass;
+    save_value<Node*> oldinclass(inclass);
     List *olist = normalize;
     Symtab *symtab;
     String *nname = 0;
@@ -452,6 +473,17 @@ class TypePass:private Dispatcher {
     if (unnamed && tdname && (Cmp(storage, "typedef") == 0)) {
       SwigType_typedef(unnamed, tdname);
     }
+    // name of the outer class should already be patched to contain its outer classes names, but not to contain namespaces
+    // namespace name (if present) is added after processing child nodes
+    if (Getattr(n, "nested:outer") && name) {
+      String *outerName = Getattr(Getattr(n, "nested:outer"), "name");
+      name = NewStringf("%s::%s", outerName, name);
+      Setattr(n, "name", name);
+      if (tdname) {
+	tdname = NewStringf("%s::%s", outerName, tdname);
+	Setattr(n, "tdname", tdname);
+      }
+    }
 
     if (nsname && name) {
       nname = NewStringf("%s::%s", nsname, name);
@@ -469,7 +501,8 @@ class TypePass:private Dispatcher {
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
     /* Inherit type definitions into the class */
-    if (name) {
+    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
+      (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
@@ -502,8 +535,6 @@ class TypePass:private Dispatcher {
 
     normalize = olist;
 
-    inclass = oldinclass;
-
     /* If in a namespace, patch the class name */
     if (nname) {
       Setattr(n, "name", nname);
@@ -514,7 +545,7 @@ class TypePass:private Dispatcher {
   }
 
   /* ------------------------------------------------------------
-   * namespaceDeclaration()
+   * templateDeclaration()
    * ------------------------------------------------------------ */
 
   virtual int templateDeclaration(Node *n) {
@@ -530,6 +561,14 @@ class TypePass:private Dispatcher {
       Delete(rname);
       /*      SwigType_typedef_class(name); */
     }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * lambdaDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int lambdaDeclaration(Node *) {
     return SWIG_OK;
   }
 
@@ -560,12 +599,9 @@ class TypePass:private Dispatcher {
     if (alias) {
       Typetab *ts = Getattr(n, "typescope");
       if (!ts) {
-	Node *ns;
-	/* Create a empty scope for the alias */
-	ns = Getattr(n, "namespace");
-	if (ns) {
-	  SwigType_scope_alias(name, Getattr(ns, "typescope"));
-	}
+	/* Create an empty scope for the alias */
+	Node *ns = Getattr(n, "namespace");
+	SwigType_scope_alias(name, Getattr(ns, "typescope"));
 	ts = Getattr(ns, "typescope");
 	Setattr(n, "typescope", ts);
       }
@@ -628,6 +664,9 @@ class TypePass:private Dispatcher {
 
     /* Normalize types. */
     SwigType *ty = Getattr(n, "type");
+    if (!ty) {
+      return SWIG_OK;
+    }
     normalize_type(ty);
     SwigType *decl = Getattr(n, "decl");
     if (decl) {
@@ -638,7 +677,7 @@ class TypePass:private Dispatcher {
     if (GetFlag(n, "conversion_operator")) {
       /* The call to the operator in the generated wrapper must be fully qualified in order to compile */
       SwigType *name = Getattr(n, "name");
-      SwigType *qualifiedname = Swig_symbol_string_qualify(name,0);
+      SwigType *qualifiedname = Swig_symbol_string_qualify(name, 0);
       Clear(name);
       Append(name, qualifiedname);
       Delete(qualifiedname);
@@ -697,11 +736,6 @@ class TypePass:private Dispatcher {
     normalize_parms(Getattr(n, "parms"));
     normalize_parms(Getattr(n, "throws"));
 
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
     clean_overloaded(n);
     return SWIG_OK;
   }
@@ -710,12 +744,7 @@ class TypePass:private Dispatcher {
    * destructorDeclaration()
    * ------------------------------------------------------------ */
 
-  virtual int destructorDeclaration(Node *n) {
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
+  virtual int destructorDeclaration(Node *) {
     return SWIG_OK;
   }
 
@@ -847,16 +876,17 @@ class TypePass:private Dispatcher {
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
     String *value = Getattr(n, "value");
+    String *scopedenum = Getattr(parentNode(n), "scopedenum");
     if (!value)
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if ((nsname || inclass) && cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
       }
-      if ((nsname || inclass) && !cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && !cparse_cplusplus) {
 	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
 	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }
@@ -886,7 +916,22 @@ class TypePass:private Dispatcher {
 
     // Use enumDeclaration() to do all the hard work.
     // Note that no children can be emitted in a forward declaration as there aren't any.
-    return enumDeclaration(n);
+    int result = enumDeclaration(n);
+    if (result == SWIG_OK) {
+      // Detect when the real enum matching the forward enum declaration has not been parsed/declared
+      SwigType *ty = SwigType_typedef_resolve_all(Getattr(n, "type"));
+      Replaceall(ty, "enum ", "");
+      Node *nn = Swig_symbol_clookup(ty, 0);
+
+      String *nodetype = nn ? nodeType(nn) : 0;
+      if (nodetype) {
+	if (Equal(nodetype, "enumforward")) {
+	  SetFlag(nn, "enumMissing");
+	} // if a real enum was declared this would be an "enum" node type
+      }
+      Delete(ty);
+    }
+    return result;
   }
 
 #ifdef DEBUG_OVERLOADED
@@ -974,7 +1019,7 @@ class TypePass:private Dispatcher {
 	      String *symname = Getattr(n, "sym:name");
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
-		  if (!(checkAttribute(c, "storage", "static")
+		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
 			|| checkAttribute(c, "storage", "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
@@ -1069,8 +1114,7 @@ class TypePass:private Dispatcher {
 	       * list of overloaded methods we have just added in as child nodes to the "using" node.
 	       * The node will still exist, it is just the symbol table linked list of overloaded methods
 	       * which is hacked. */
-	      if (Getattr(n, "sym:overloaded"))
-	      {
+	      if (Getattr(n, "sym:overloaded")) {
 		int cnt = 0;
 #ifdef DEBUG_OVERLOADED
 		Node *debugnode = n;
@@ -1133,7 +1177,7 @@ class TypePass:private Dispatcher {
 #ifdef DEBUG_OVERLOADED
 		show_overloaded(debugnode);
 #endif
-		clean_overloaded(n); // Needed?
+		clean_overloaded(n);	// Needed?
 	      }
 	    }
 	  }
@@ -1144,6 +1188,11 @@ class TypePass:private Dispatcher {
 	  SwigType_typedef_using(uname);
 	} else if (Strcmp(ntype, "enum") == 0) {
 	  SwigType_typedef_using(Getattr(n, "uname"));
+	} else if (Strcmp(ntype, "template") == 0) {
+	  /*
+	  Printf(stdout, "usingDeclaration template %s --- %s\n", Getattr(n, "name"), Getattr(n, "uname"));
+	  SwigType_typedef_using(Getattr(n, "uname"));
+	  */
 	}
       }
     }
@@ -1232,3 +1281,4 @@ void Swig_process_types(Node *n) {
     return;
   TypePass::pass(n);
 }
+

@@ -13,6 +13,27 @@
 %inline %{
   #include <string>
 
+  // All kinds of numbers: hex, octal (which pose special problems to Python), negative...
+  void trickyvalue1(int first, int pos = -1) {}
+  void trickyvalue2(int first, unsigned rgb = 0xabcdef) {}
+  void trickyvalue3(int first, int mode = 0644) {}
+
+  void doublevalue1(int first, double num = 0.0e-1) {}
+  void doublevalue2(int first, double num = -0.0E2) {}
+
+  // Long long arguments are not handled at Python level currently but still work.
+  void seek(long long offset = 0LL) {}
+  void seek2(unsigned long long offset = 0ULL) {}
+  void seek3(long offset = 0L) {}
+  void seek4(unsigned long offset = 0UL) {}
+  void seek5(unsigned long offset = 0U) {}
+  void seek6(unsigned long offset = 02U) {}
+  void seek7(unsigned long offset = 00U) {}
+  void seek8(unsigned long offset = 1U) {}
+  void seek9(long offset = 1L) {}
+  void seekA(long long offset = 1LL) {}
+  void seekB(unsigned long long offset = 1ULL) {}
+
   // Anonymous arguments
   int anonymous(int = 7771);
   int anonymous(int x) { return x; }
@@ -27,6 +48,12 @@
       enum speed { FAST, SLOW };
       // Note: default values should be EnumClass::FAST and SWEET 
       bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
+  };
+
+  // using base class enum in a derived class
+  class DerivedEnumClass : public EnumClass {
+  public:
+    void accelerate(speed s = SLOW) { }
   };
 
   // casts
@@ -50,6 +77,10 @@
   // char
   char chartest1(char c = 'x') { return c; }
   char chartest2(char c = '\0') { return c; }
+  char chartest3(char c = '\1') { return c; }
+  char chartest4(char c = '\n') { return c; }
+  char chartest5(char c = '\102') { return c; } // 'B'
+  char chartest6(char c = '\x43') { return c; } // 'C'
 
   // namespaces
   namespace AType { 
@@ -87,7 +118,10 @@
 %rename(renamed2arg) Foo::renameme(int x) const;
 %rename(renamed1arg) Foo::renameme() const;
 
+%typemap(default) double* null_by_default "$1=0;";
+
 %inline %{
+  typedef void* MyHandle;
 
   // Define a class
   class Foo {
@@ -112,6 +146,12 @@
       // test the method itself being renamed
       void oldname(int x = 1234) {}
       void renameme(int x = 1234, double d=123.4) const {}
+
+      // test default values for pointer arguments
+      int double_if_void_ptr_is_null(int n, void* p = NULL) { return p ? n : 2*n; }
+      int double_if_handle_is_null(int n, MyHandle h = 0) { return h ? n : 2*n; }
+      int double_if_dbl_ptr_is_null(int n, double* null_by_default)
+        { return null_by_default ? n : 2*n; }
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
@@ -199,6 +239,7 @@ namespace Space {
 struct Klass {
   int val;
   Klass(int val = -1) : val(val) {}
+  static Klass inc(int n = 1, const Klass& k = Klass()) { return Klass(k.val + n); }
 };
 Klass constructorcall(const Klass& k = Klass()) { return k; }
 
@@ -241,3 +282,26 @@ struct ConstMethods {
     } Pointf;
   }
 %}
+
+// Default arguments after ignored ones.
+%typemap(in, numinputs=0) int square_error { $1 = 2; };
+%typemap(default, noblock=1) int def17 { $1 = 17; };
+
+// Enabling autodoc feature has a side effect of disabling the generation of
+// aliases for functions that can hide problems with default arguments at
+// Python level.
+%feature("autodoc","0") slightly_off_square;
+
+%inline %{
+  inline int slightly_off_square(int square_error, int def17) { return def17*def17 + square_error; }
+%}
+
+// Python C default args
+%feature("python:cdefaultargs") CDA::cdefaultargs_test1;
+%inline %{
+struct CDA {
+  int cdefaultargs_test1(int a = 1) { return a; }
+  int cdefaultargs_test2(int a = 1) { return a; }
+};
+%}
+

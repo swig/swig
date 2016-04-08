@@ -17,7 +17,7 @@ if cpp_namespace.do_method(t) != "Test::method":
 
 if cpp_namespace.do_method2(t) != "Test::method":
     raise RuntimeError("Bad return value!")
-    
+
 cpp_namespace.weird("hello", 4)
 
 del t
@@ -30,16 +30,14 @@ t5 = cpp_namespace.Test5()
 if cpp_namespace.foo3(42) != 42:
     raise RuntimeError("Bad return value!")
 
-if cpp_namespace.do_method3(t2,40) != "Test2::method":
+if cpp_namespace.do_method3(t2, 40) != "Test2::method":
     raise RuntimeError("Bad return value!")
 
-if cpp_namespace.do_method3(t3,40) != "Test3::method":
+if cpp_namespace.do_method3(t3, 40) != "Test3::method":
     raise RuntimeError("Bad return value!")
 
-if cpp_namespace.do_method3(t4,40) != "Test4::method":
+if cpp_namespace.do_method3(t4, 40) != "Test4::method":
     raise RuntimeError("Bad return value!")
 
-if cpp_namespace.do_method3(t5,40) != "Test5::method":
+if cpp_namespace.do_method3(t5, 40) != "Test5::method":
     raise RuntimeError("Bad return value!")
-
-    

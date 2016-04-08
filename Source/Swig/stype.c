@@ -12,8 +12,6 @@
  * the form of simple strings.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_stype_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -43,6 +41,7 @@ char cvsroot_stype_c[] = "$Id$";
  * 
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference (&)
+ *  'z.'                = Rvalue reference (&&)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
@@ -130,12 +129,22 @@ SwigType *NewSwigType(int t) {
   case T_UCHAR:
     return NewString("unsigned char");
     break;
-  case T_STRING:{
+  case T_STRING: {
       SwigType *t = NewString("char");
+      SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
       break;
     }
+  case T_WCHAR:
+    return NewString("wchar_t");
+    break;
+  case T_WSTRING: {
+    SwigType *t = NewString("wchar_t");
+    SwigType_add_pointer(t);
+    return t;
+    break;
+  }
   case T_LONGLONG:
     return NewString("long long");
     break;
@@ -144,6 +153,9 @@ SwigType *NewSwigType(int t) {
     break;
   case T_VOID:
     return NewString("void");
+    break;
+  case T_AUTO:
+    return NewString("auto");
     break;
   default:
     break;
@@ -183,7 +195,7 @@ int SwigType_ispointer_return(const SwigType *t) {
   if (!t)
     return 0;
   c = Char(t);
-  idx = strlen(c) - 4;
+  idx = (int)strlen(c) - 4;
   if (idx >= 0) {
     return (strcmp(c + idx, ").p.") == 0);
   }
@@ -196,7 +208,7 @@ int SwigType_isreference_return(const SwigType *t) {
   if (!t)
     return 0;
   c = Char(t);
-  idx = strlen(c) - 4;
+  idx = (int)strlen(c) - 4;
   if (idx >= 0) {
     return (strcmp(c + idx, ").r.") == 0);
   }
@@ -232,7 +244,7 @@ int SwigType_isconst(const SwigType *t) {
 int SwigType_ismutable(const SwigType *t) {
   int r;
   SwigType *qt = SwigType_typedef_resolve_all(t);
-  if (SwigType_isreference(qt) || SwigType_isarray(qt)) {
+  if (SwigType_isreference(qt) || SwigType_isrvalue_reference(qt) || SwigType_isarray(qt)) {
     Delete(SwigType_pop(qt));
   }
   r = SwigType_isconst(qt);
@@ -487,7 +499,7 @@ String *SwigType_namestr(const SwigType *t) {
   if (!c || !strstr(c + 2, ")>"))
     return NewString(t);
 
-  r = NewStringWithSize(d, c - d);
+  r = NewStringWithSize(d, (int)(c - d));
   if (*(c - 1) == '<')
     Putc(' ', r);
   Putc('<', r);
@@ -589,6 +601,12 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
+    } else if (SwigType_isrvalue_reference(element)) {
+      Insert(result, 0, "&&");
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result, 0, "(");
+	Append(result, ")");
+      }
     } else if (SwigType_isarray(element)) {
       DOH *size;
       Append(result, "[");
@@ -653,10 +671,9 @@ SwigType *SwigType_ltype(const SwigType *s) {
     SwigType *tt = Copy(tc);
     td = 0;
     while ((td = SwigType_typedef_resolve(tt))) {
-      if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
+      if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td) || SwigType_isrvalue_reference(td))) {
 	/* We need to use the typedef type */
 	Delete(tt);
-	tt = td;
 	break;
       } else if (td) {
 	Delete(tt);
@@ -687,6 +704,13 @@ SwigType *SwigType_ltype(const SwigType *s) {
       Append(result, element);
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
+      if (notypeconv) {
+	Append(result, element);
+      } else {
+	Append(result, "p.");
+      }
+      firstarray = 0;
+    } else if (SwigType_isrvalue_reference(element)) {
       if (notypeconv) {
 	Append(result, element);
       } else {
@@ -772,14 +796,14 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     rs = s;
   }
 
-  if ((SwigType_isconst(rs) || SwigType_isarray(rs) || SwigType_isreference(rs))) {
+  if ((SwigType_isconst(rs) || SwigType_isarray(rs) || SwigType_isreference(rs) || SwigType_isrvalue_reference(rs))) {
     td = 0;
   } else {
     td = SwigType_typedef_resolve(rs);
   }
 
   if (td) {
-    if ((SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
+    if ((SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td) || SwigType_isrvalue_reference(td))) {
       elements = SwigType_split(td);
     } else {
       elements = SwigType_split(rs);
@@ -838,6 +862,15 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       }
       if (!isfunction)
 	isreference = 1;
+    } else if (SwigType_isrvalue_reference(element)) {
+      Insert(result, 0, "&&");
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
+	Insert(result, 0, "(");
+	Append(result, ")");
+      }
+      if (!isfunction)
+	isreference = 1;
+      clear = 0;
     } else if (SwigType_isarray(element)) {
       DOH *size;
       if (firstarray && !isreference) {
@@ -909,6 +942,12 @@ String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
     Printf(result, "(%s)%s", lstr, name);
     Delete(lstr);
   } else if (SwigType_isreference(s)) {
+    String *str = SwigType_str(s, 0);
+    Printf(result, "(%s)", str);
+    Delete(str);
+    if (name)
+      Append(result, name);
+  } else if (SwigType_isrvalue_reference(s)) {
     String *str = SwigType_str(s, 0);
     Printf(result, "(%s)", str);
     Delete(str);

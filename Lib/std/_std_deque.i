@@ -25,16 +25,21 @@
 */
 
 %define %std_deque_methods_noempty(T)
-       typedef T &reference;
-       typedef const T& const_reference;
+       typedef size_t size_type;
+       typedef ptrdiff_t difference_type;
+       typedef T value_type;
+       typedef value_type* pointer;
+       typedef const value_type* const_pointer;
+       typedef value_type& reference;
+       typedef const value_type& const_reference;
 
        deque();
        deque(unsigned int size, const T& value=T());
-       deque(const deque<T> &);
+       deque(const deque< T > &);
       ~deque();
 
        void assign(unsigned int n, const T& value);
-       void swap(deque<T> &x);
+       void swap(deque< T > &x);
        unsigned int size() const;
        unsigned int max_size() const;
        void resize(unsigned int n, T c = T());
@@ -73,17 +78,17 @@
                     throw std::out_of_range("deque index out of range");
                 }
            }
-           std::deque<T> getslice(int i, int j) {
+           std::deque< T > getslice(int i, int j) {
                 int size = int(self->size());
                 if (i<0) i = size+i;
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::deque<T > tmp(j-i);
+                std::deque< T > tmp(j-i);
                 std::copy(self->begin()+i,self->begin()+j,tmp.begin());
                 return tmp;
             }
-            void setslice(int i, int j, const std::deque<T>& v) {
+            void setslice(int i, int j, const std::deque< T >& v) {
                 int size = int(self->size());
                 if (i<0) i = size+i;
                 if (j<0) j = size+j;

@@ -15,6 +15,11 @@ else
  SWIG=swig
 fi
 
+# fix: Remove ccache from $PATH if it exists
+#      as it will influence the unit tests
+PATH="`echo $PATH | \
+ sed -e 's!:/usr\(/local\)*/lib\([0-9]\)*/ccache\(/\)*!!g'`"
+
 CCACHE=../ccache-swig
 TESTDIR=test.$$
 
@@ -142,7 +147,7 @@ basetests() {
     testname="non-regular"
     mkdir testd
     $CCACHE_COMPILE -o testd -c test1.c > /dev/null 2>&1
-    rmdir testd
+    rm -rf testd
     checkstat 'output to a non-regular file' 1
 
     testname="no-input"
@@ -315,7 +320,7 @@ swigtests() {
     testname="non-regular"
     mkdir testd
     $CCACHE_COMPILE -o testd -java testswig1.i > /dev/null 2>&1
-    rmdir testd
+    rm -rf testd
     checkstat 'output to a non-regular file' 1
 
     testname="no-input"
@@ -402,6 +407,29 @@ swigtests() {
 rm -rf $TESTDIR
 mkdir $TESTDIR
 cd $TESTDIR || exit 1
+
+unset CCACHE_DIR
+unset CCACHE_TEMPDIR
+unset CCACHE_LOGFILE
+unset CCACHE_VERBOSE
+unset CCACHE_PATH
+unset CCACHE_CC
+unset CCACHE_PREFIX
+unset CCACHE_DISABLE
+unset CCACHE_READONLY
+unset CCACHE_CPP2
+unset CCACHE_NOCOMPRESS
+unset CCACHE_NOSTATS
+unset CCACHE_NLEVELS
+unset CCACHE_HARDLINK
+unset CCACHE_RECACHE
+unset CCACHE_UMASK
+unset CCACHE_HASHDIR
+unset CCACHE_UNIFY
+unset CCACHE_EXTENSION
+unset CCACHE_STRIPC
+unset CCACHE_SWIG
+
 CCACHE_DIR="ccache dir" # with space in directory name (like Windows default)
 mkdir "$CCACHE_DIR"
 export CCACHE_DIR

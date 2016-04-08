@@ -36,7 +36,7 @@ if stest11("hello") != "hello":
 if stest12("hello") != "hello":
     raise RuntimeError
 
-c = complex(2,3)
+c = complex(2, 3)
 r = c.real
 
 if ctest1(c) != r:

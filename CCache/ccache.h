@@ -159,7 +159,7 @@ int asprintf(char **ptr, const char *format, ...);
 int snprintf(char *,size_t ,const char *, ...);
 #endif
 
-void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize);
+void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize, size_t minfiles);
 void cleanup_all(const char *dir);
 void wipe_all(const char *dir);
 
@@ -200,6 +200,8 @@ typedef int (*COMPAR_FN_T)(const void *, const void *);
 
 /* mkstemp() on some versions of cygwin don't handle binary files, so
    override */
+/* Seems okay in Cygwin 1.7.0
 #ifdef __CYGWIN__
 #undef HAVE_MKSTEMP
 #endif
+*/

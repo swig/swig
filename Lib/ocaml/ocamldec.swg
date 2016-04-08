@@ -108,7 +108,7 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #endif
 
 #define SWIG_NewPointerObj(p,type,flags) caml_val_ptr(p,type)
-#define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Ocaml_SetModule(pointer)
 
 #define SWIG_contract_assert(expr, msg) if(!(expr)) {failwith(msg);} else
@@ -130,7 +130,7 @@ CAMLextern int64 Int64_val(caml_value_t v);
     SWIGSTATIC CAML_VALUE caml_array_new( int n );
     SWIGSTATIC void caml_array_set( CAML_VALUE arr, int n, CAML_VALUE item );
     SWIGSTATIC CAML_VALUE caml_array_nth( CAML_VALUE arr, int n );
-    SWIGSTATIC int caml_array_length( CAML_VALUE arr );
+    SWIGSTATIC int caml_array_len( CAML_VALUE arr );
 
     SWIGSTATIC CAML_VALUE caml_val_char( char c );
     SWIGSTATIC CAML_VALUE caml_val_uchar( unsigned char c );
@@ -165,5 +165,3 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #ifdef __cplusplus
 }
 #endif
-
-/* mzschemedec.swg ends here */

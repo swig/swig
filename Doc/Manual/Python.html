@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Python</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Python"></a>34 SWIG and Python</H1>
+<H1><a name="Python">36 SWIG and Python</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -38,6 +39,10 @@
 <li><a href="#Python_nn25">C++ namespaces</a>
 <li><a href="#Python_nn26">C++ templates</a>
 <li><a href="#Python_nn27">C++ Smart Pointers</a>
+<ul>
+<li><a href="#Python_smart_pointers_shared_ptr">The shared_ptr Smart Pointer</a>
+<li><a href="#Python_smart_pointers_generic">Generic Smart Pointers</a>
+</ul>
 <li><a href="#Python_nn27a">C++ reference counted objects</a>
 </ul>
 <li><a href="#Python_nn28">Further details on the Python class interface</a>
@@ -74,6 +79,7 @@
 <li><a href="#Python_nn47">Simple pointers</a>
 <li><a href="#Python_nn48">Unbounded C Arrays</a>
 <li><a href="#Python_nn49">String handling</a>
+<li><a href="#Python_default_args">Default arguments</a>
 </ul>
 <li><a href="#Python_nn53">Typemaps</a>
 <ul>
@@ -105,11 +111,19 @@
 <li><a href="#Python_nn71">%feature("docstring")</a>
 </ul>
 <li><a href="#Python_nn72">Python Packages</a>
+<ul>
+<li><a href="#Python_modulepackage">Setting the Python package</a>
+<li><a href="#Python_absrelimports">Absolute and relative imports</a>
+<li><a href="#Python_absimport">Enforcing absolute import semantics</a>
+<li><a href="#Python_importfrominit">Importing from __init__.py</a>
+</ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
 <li><a href="#Python_nn74">Function annotation</a>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
+<li><a href="#Python_nn77">Byte string output conversion</a>
+<li><a href="#Python_2_unicode">Python 2 Unicode</a>
 </ul>
 </ul>
 </div>
@@ -135,7 +149,7 @@ very least, make sure you read the "<a href="SWIG.html#SWIG">SWIG
 Basics</a>" chapter.
 </p>
 
-<H2><a name="Python_nn2"></a>34.1 Overview</H2>
+<H2><a name="Python_nn2">36.1 Overview</a></H2>
 
 
 <p>
@@ -162,10 +176,10 @@ described followed by a discussion of low-level implementation
 details.
 </p>
 
-<H2><a name="Python_nn3"></a>34.2 Preliminaries</H2>
+<H2><a name="Python_nn3">36.2 Preliminaries</a></H2>
 
 
-<H3><a name="Python_nn4"></a>34.2.1 Running SWIG</H3>
+<H3><a name="Python_nn4">36.2.1 Running SWIG</a></H3>
 
 
 <p>
@@ -187,7 +201,7 @@ int fact(int n);
 </div>
 
 <p>
-The <tt> #define SWIG_FILE_WITH_INIT </tt> line inserts a macro that specifies that the
+The <tt>#define SWIG_FILE_WITH_INIT</tt> line inserts a macro that specifies that the
 resulting C file should be built as a python extension, inserting the module
 <tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
 </p>
@@ -263,13 +277,13 @@ The following sections have further practical examples and details on
 how you might go about compiling and using the generated files.
 </p>
 
-<H3><a name="Python_nn6"></a>34.2.2 Using distutils</H3>
+<H3><a name="Python_nn6">36.2.2 Using distutils</a></H3>
 
 
 <p>
 The preferred approach to building an extension module for python is to compile it with
 distutils, which comes with all recent versions of python
-(<a href="http://docs.python.org/distutils/index.html">Distutils Docs</a>).
+(<a href="https://docs.python.org/library/distutils.html">Distutils Docs</a>).
 </p>
 
 <p>
@@ -355,7 +369,7 @@ This same approach works on all platforms if the appropriate compiler is install
 can even build extensions to the standard Windows Python using MingGW)
 </p>
 
-<H3><a name="Python_nn7"></a>34.2.3 Hand compiling a dynamic module</H3>
+<H3><a name="Python_nn7">36.2.3 Hand compiling a dynamic module</a></H3>
 
 
 <p>
@@ -388,7 +402,7 @@ of the module prefixed by an underscore</b>.  If the name of your module is "<tt
 name of the corresponding object file should be
 "<tt>_example.so</tt>" or "<tt>_examplemodule.so</tt>".
 The name of the module is specified using the <tt>%module</tt> directive or the 
-<tt> -module</tt> command line option.
+<tt>-module</tt> command line option.
 </p>
 
 <p>
@@ -403,7 +417,7 @@ module actually consists of two files; <tt>socket.py</tt> and
 </p>
 
 
-<H3><a name="Python_nn8"></a>34.2.4 Static linking</H3>
+<H3><a name="Python_nn8">36.2.4 Static linking</a></H3>
 
 
 <p>
@@ -448,14 +462,14 @@ you simply do something like this:
 </p>
 
 <div class="shell"><pre>
-$ swig -python example.i
+$ swig -python -lembed.i example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
-        -DHAVE_CONFIG_H -I/usr/local/include/python2.1 \
-	-I/usr/local/lib/python2.1/config \
-	-L/usr/local/lib/python2.1/config -lpython2.1 -lm -ldl \
-	-o mypython
-
+        -DHAVE_CONFIG_H -I/usr/include/python2.7 \
+        -I/usr/lib/python2.7/config-x86_64-linux-gnu \
+        -I/usr/lib/python2.7/config \
+        -L/usr/lib/python2.7/config -lpython2.7 -lm -ldl \
+        -o mypython
 </pre></div>
 <p>
 You will need to supply the same libraries that were used to build Python the first
@@ -476,13 +490,13 @@ hassle in the opinion of this author).
 
 <p>
 <b>Compatibility note:</b> The <tt>embed.i</tt> library file is
-deprecated and has not been maintained for several years.  Even though it
-appears to "work" with Python 2.1, no future support is guaranteed.
+deprecated and has not been actively maintained for many years.  Even though it
+appears to "work" with Python 2.7, no future support is guaranteed.
 If using static linking, you might want to rely on a different approach
 (perhaps using distutils).
 </p>
 
-<H3><a name="Python_nn9"></a>34.2.5 Using your module</H3>
+<H3><a name="Python_nn9">36.2.5 Using your module</a></H3>
 
 
 <p>
@@ -639,7 +653,7 @@ system configuration (this requires root access and you will need to
 read the man pages).
 </p>
 
-<H3><a name="Python_nn10"></a>34.2.6 Compilation of C++ extensions</H3>
+<H3><a name="Python_nn10">36.2.6 Compilation of C++ extensions</a></H3>
 
 
 <p>
@@ -731,7 +745,7 @@ erratic program behavior.   If working with lots of software components, you
 might want to investigate using a more formal standard such as COM.
 </p>
 
-<H3><a name="Python_nn11"></a>34.2.7 Compiling for 64-bit platforms</H3>
+<H3><a name="Python_nn11">36.2.7 Compiling for 64-bit platforms</a></H3>
 
 
 <p>
@@ -768,7 +782,7 @@ and -m64 allow you to choose the desired binary format for your python
 extension.
 </p>
 
-<H3><a name="Python_nn12"></a>34.2.8 Building Python Extensions under Windows</H3>
+<H3><a name="Python_nn12">36.2.8 Building Python Extensions under Windows</a></H3>
 
 
 <p>
@@ -776,8 +790,8 @@ Building a SWIG extension to Python under Windows is roughly similar to
 the process used with Unix. Using the distutils, it is essentially
 identical. If you have the same version of the MS compiler that Python
 was built with (the python2.4 and python2.5 distributed by python.org
-are built with Visual Studio 2003), the standard <tt> python setup.py
-build </tt> should just work.
+are built with Visual Studio 2003), the standard <tt>python setup.py
+build</tt> should just work.
 </p>
 
 <p>
@@ -795,7 +809,9 @@ If you need to build it on your own, the following notes are provided:
 You will need to create a DLL that can be loaded into the interpreter. 
 This section briefly describes the use of SWIG with Microsoft Visual
 C++.   As a starting point, many of SWIG's examples include project
-files.  You might want to take a quick look at these in addition to
+files (.dsp files) for Visual C++ 6. These can be opened by more 
+recent versions of Visual Studio.
+You might want to take a quick look at these examples in addition to
 reading this section.
 </p>
 
@@ -869,6 +885,24 @@ the build options of project to try and track this down.
 </p>
 
 <p>
+A 'Debug' build of the wrappers requires a debug build of the Python interpreter.
+This normally requires building the Python interpreter from source, which is not a
+job for the feint-hearted. Alternatively you can use the 'Release' build of the
+Python interpreter with a 'Debug' build of your wrappers by defining the <tt>SWIG_PYTHON_INTERPRETER_NO_DEBUG</tt>
+symbol under the preprocessor options. Or you can ensure this macro is defined at the beginning
+of the wrapper code using the following in your interface file, where <tt>_MSC_VER</tt> ensures it is
+only used by the Visual Studio compiler:
+</p>
+
+<div class="code"><pre>
+%begin %{
+#ifdef _MSC_VER
+#define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
+%}
+</pre></div>
+
+<p>
 Some users have reported success in building extension modules using Cygwin
 and other compilers.  However, the problem of building usable DLLs with these
 compilers tends to be rather problematic.  For the latest information,
@@ -877,7 +911,7 @@ SWIG Wiki</a>.
 </p>
 
 
-<H2><a name="Python_nn13"></a>34.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Python_nn13">36.3 A tour of basic C/C++ wrapping</a></H2>
 
 
 <p>
@@ -886,7 +920,7 @@ to your C/C++ code.  Functions are wrapped as functions, classes are wrapped as 
 This section briefly covers the essential aspects of this wrapping.
 </p>
 
-<H3><a name="Python_nn14"></a>34.3.1 Modules</H3>
+<H3><a name="Python_nn14">36.3.1 Modules</a></H3>
 
 
 <p>
@@ -899,7 +933,7 @@ module name, make sure you don't use the same name as a built-in
 Python command or standard module name.  
 </p>
 
-<H3><a name="Python_nn15"></a>34.3.2 Functions</H3>
+<H3><a name="Python_nn15">36.3.2 Functions</a></H3>
 
 
 <p>
@@ -923,7 +957,7 @@ like you think it does:
 &gt;&gt;&gt;
 </pre></div>
 
-<H3><a name="Python_nn16"></a>34.3.3 Global variables</H3>
+<H3><a name="Python_nn16">36.3.3 Global variables</a></H3>
 
 
 <p>
@@ -1061,7 +1095,7 @@ that starts with a leading underscore. SWIG does not create <tt>cvar</tt>
 if there are no global variables in a module.
 </p>
 
-<H3><a name="Python_nn17"></a>34.3.4 Constants and enums</H3>
+<H3><a name="Python_nn17">36.3.4 Constants and enums</a></H3>
 
 
 <p>
@@ -1101,7 +1135,7 @@ other object.  Unfortunately, there is no easy way for SWIG to
 generate code that prevents this.  You will just have to be careful.
 </p>
 
-<H3><a name="Python_nn18"></a>34.3.5 Pointers</H3>
+<H3><a name="Python_nn18">36.3.5 Pointers</a></H3>
 
 
 <p>
@@ -1127,7 +1161,7 @@ When wrapped, you will be able to use the functions in a natural way from Python
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; f = example.fopen("junk","w")
+&gt;&gt;&gt; f = example.fopen("junk", "w")
 &gt;&gt;&gt; example.fputs("Hello World\n", f)
 &gt;&gt;&gt; example.fclose(f)
 </pre>
@@ -1242,7 +1276,7 @@ C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>None</tt> if the conversion can't be performed.
 </p>
 
-<H3><a name="Python_nn19"></a>34.3.6 Structures</H3>
+<H3><a name="Python_nn19">36.3.6 Structures</a></H3>
 
 
 <p>
@@ -1252,7 +1286,7 @@ a very natural interface.  For example,
 
 <div class="code"><pre>
 struct Vector {
-	double x,y,z;
+  double x,y,z;
 };
 
 </pre></div>
@@ -1431,7 +1465,7 @@ everything works just like you would expect. For example:
 </pre>
 </div>
 
-<H3><a name="Python_nn20"></a>34.3.7 C++ classes</H3>
+<H3><a name="Python_nn20">36.3.7 C++ classes</a></H3>
 
 
 <p>
@@ -1520,7 +1554,7 @@ they are accessed through <tt>cvar</tt> like this:
 </pre>
 </div>
 
-<H3><a name="Python_nn21"></a>34.3.8 C++ inheritance</H3>
+<H3><a name="Python_nn21">36.3.8 C++ inheritance</a></H3>
 
 
 <p>
@@ -1575,7 +1609,7 @@ then the function <tt>spam()</tt> accepts <tt>Foo *</tt> or a pointer to any cla
 It is safe to use multiple inheritance with SWIG.
 </p>
 
-<H3><a name="Python_nn22"></a>34.3.9 Pointers, references, values, and arrays</H3>
+<H3><a name="Python_nn22">36.3.9 Pointers, references, values, and arrays</a></H3>
 
 
 <p>
@@ -1636,7 +1670,7 @@ treated as a returning value, and it will follow the same
 allocation/deallocation process.
 </p>
 
-<H3><a name="Python_nn23"></a>34.3.10 C++ overloaded functions</H3>
+<H3><a name="Python_nn23">36.3.10 C++ overloaded functions</a></H3>
 
 
 <p>
@@ -1759,7 +1793,7 @@ first declaration takes precedence.
 Please refer to the "SWIG and C++" chapter for more information about overloading. 
 </p>
 
-<H3><a name="Python_nn24"></a>34.3.11 C++ operators</H3>
+<H3><a name="Python_nn24">36.3.11 C++ operators</a></H3>
 
 
 <p>
@@ -1848,7 +1882,7 @@ Also, be aware that certain operators don't map cleanly to Python.  For instance
 overloaded assignment operators don't map to Python semantics and will be ignored.
 </p>
 
-<H3><a name="Python_nn25"></a>34.3.12 C++ namespaces</H3>
+<H3><a name="Python_nn25">36.3.12 C++ namespaces</a></H3>
 
 
 <p>
@@ -1915,7 +1949,7 @@ utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
 </p>
 
-<H3><a name="Python_nn26"></a>34.3.13 C++ templates</H3>
+<H3><a name="Python_nn26">36.3.13 C++ templates</a></H3>
 
 
 <p>
@@ -1969,7 +2003,21 @@ Some more complicated
 examples will appear later.
 </p>
 
-<H3><a name="Python_nn27"></a>34.3.14 C++ Smart Pointers</H3>
+<H3><a name="Python_nn27">36.3.14 C++ Smart Pointers</a></H3>
+
+
+<H4><a name="Python_smart_pointers_shared_ptr">36.3.14.1 The shared_ptr Smart Pointer</a></H4>
+
+
+<p>
+The C++11 standard provides <tt>std::shared_ptr</tt> which was derived from the Boost
+implementation, <tt>boost::shared_ptr</tt>.
+Both of these are available for Python in the SWIG library and usage is outlined
+in the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library section.
+</p>
+
+
+<H4><a name="Python_smart_pointers_generic">36.3.14.2 Generic Smart Pointers</a></H4>
 
 
 <p>
@@ -2053,7 +2101,7 @@ simply use the <tt>__deref__()</tt> method.  For example:
 </pre>
 </div>
 
-<H3><a name="Python_nn27a"></a>34.3.15 C++ reference counted objects</H3>
+<H3><a name="Python_nn27a">36.3.15 C++ reference counted objects</a></H3>
 
 
 <p>
@@ -2062,7 +2110,7 @@ Python examples of memory management using referencing counting.
 </p>
 
 
-<H2><a name="Python_nn28"></a>34.4 Further details on the Python class interface</H2>
+<H2><a name="Python_nn28">36.4 Further details on the Python class interface</a></H2>
 
 
 <p>
@@ -2085,7 +2133,7 @@ the <tt>-builtin</tt> option are in the <a href="#Python_builtin_types">Built-in
 section.
 </p>
 
-<H3><a name="Python_nn29"></a>34.4.1 Proxy classes</H3>
+<H3><a name="Python_nn29">36.4.1 Proxy classes</a></H3>
 
 
 <p>
@@ -2142,15 +2190,15 @@ for Python 2.2):
 import _example
 
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
-     def __del__(self):
-         if self.thisown:
-               _example.delete_Foo(self.this)
-     def spam(self,arg1):
-         return _example.Foo_spam(self.this,arg1)
-     x = property(_example.Foo_x_get, _example.Foo_x_set)
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
+    def __del__(self):
+        if self.thisown:
+            _example.delete_Foo(self.this)
+    def spam(self,arg1):
+        return _example.Foo_spam(self.this,arg1)
+    x = property(_example.Foo_x_get, _example.Foo_x_set)
 </pre>
 </div>
 
@@ -2174,7 +2222,7 @@ you can attach new Python methods to the class and you can even inherit from it 
 by Python built-in types until Python 2.2).
 </p>
 
-<H3><a name="Python_builtin_types"></a>34.4.2 Built-in Types</H3>
+<H3><a name="Python_builtin_types">36.4.2 Built-in Types</a></H3>
 
 
 <p>
@@ -2192,9 +2240,9 @@ like in a proxy class:
 <div class="targetlang">
 <pre>
 class Foo(object):
-     def __init__(self):
-         self.this = _example.new_Foo()
-         self.thisown = 1
+    def __init__(self):
+        self.this = _example.new_Foo()
+        self.thisown = 1
 </pre>
 </div>
 
@@ -2218,7 +2266,7 @@ please refer to the python documentation:</p>
 
 <p><a href="http://docs.python.org/extending/newtypes.html">http://docs.python.org/extending/newtypes.html</a></p>
 
-<H4><a name="Python_builtin_limitations"></a>34.4.2.1 Limitations</H4>
+<H4><a name="Python_builtin_limitations">36.4.2.1 Limitations</a></H4>
 
 
 <p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
@@ -2286,11 +2334,11 @@ private:
 
 <div class="targetlang">
 <pre>
-class MyPyException (Exception) :
-    def __init__(self, msg, *args) :
+class MyPyException(Exception):
+    def __init__(self, msg, *args):
         Exception.__init__(self, *args)
         self.myexc = MyException(msg)
-    def what (self) :
+    def what(self):
         return self.myexc.what()
 </pre>
 </div>
@@ -2345,7 +2393,7 @@ doesn't know how to add an instance of <tt>MyString</tt> to itself.
 </li>
 
 <li><p>If you have multiple SWIG modules that share type information (<a href="Modules.html#Modules_nn2">more info</a>),
-the <tt>-builtin</tt> option requiress a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
+the <tt>-builtin</tt> option requires a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
 <ul>
 <li><p>There must be an unambiguous dependency graph for the modules.</p></li>
 <li><p>Module dependencies must be explicitly stated with <tt>%import</tt> statements in the SWIG interface file.</p>
@@ -2386,7 +2434,7 @@ assert(issubclass(B.Derived, A.Base))
 </li>
 </ul>
 
-<H4><a name="Python_builtin_overloads"></a>34.4.2.2 Operator overloads -- use them!</H4>
+<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads -- use them!</a></H4>
 
 
 <p>The entire justification for the <tt>-builtin</tt> option is improved
@@ -2487,7 +2535,7 @@ structs.
 </p>
 
 
-<H3><a name="Python_nn30"></a>34.4.3 Memory management</H3>
+<H3><a name="Python_nn30">36.4.3 Memory management</a></H3>
 
 
 <p>NOTE: Although this section refers to proxy objects, everything here also applies
@@ -2682,7 +2730,7 @@ It is also possible to deal with situations like this using
 typemaps--an advanced topic discussed later.
 </p>
 
-<H3><a name="Python_nn31"></a>34.4.4 Python 2.2 and classic classes</H3>
+<H3><a name="Python_nn31">36.4.4 Python 2.2 and classic classes</a></H3>
 
 
 <p>
@@ -2692,7 +2740,7 @@ in Python-2.2, an entirely new type of class system was introduced.
 This new-style class system offers many enhancements including static
 member functions, properties (managed attributes), and class methods.
 Details about all of these changes can be found on <a
-href="http://www.python.org">www.python.org</a> and is not repeated here.
+href="https://www.python.org">www.python.org</a> and is not repeated here.
 </p>
 
 <p>
@@ -2707,7 +2755,7 @@ old-style classes are used instead.
 <p>
 This dual-nature of the wrapper code means that you can create extension
 modules with SWIG and those modules will work with all versions of Python
-ranging from Python-1.4 to the very latest release.  Moreover, the wrappers take
+ranging from Python-2.0 to the very latest release.  Moreover, the wrappers take
 advantage of Python-2.2 features when available.
 </p>
 
@@ -2719,7 +2767,7 @@ class itself.  In Python-2.1 and earlier, they have to be accessed as a global
 function or through an instance (see the earlier section).
 </p>
 
-<H2><a name="Python_directors"></a>34.5 Cross language polymorphism</H2>
+<H2><a name="Python_directors">36.5 Cross language polymorphism</a></H2>
 
 
 <p>
@@ -2753,7 +2801,7 @@ proxy classes, director classes, and C wrapper functions takes care of
 all the cross-language method routing transparently.
 </p>
 
-<H3><a name="Python_nn33"></a>34.5.1 Enabling directors</H3>
+<H3><a name="Python_nn33">36.5.1 Enabling directors</a></H3>
 
 
 <p>
@@ -2782,9 +2830,6 @@ globally, to specific classes, and to specific methods, like this:
 
 // generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
-
-// generate a director for just Foo::bar()
-%feature("director") Foo::bar; 
 </pre>
 </div>
 
@@ -2817,6 +2862,7 @@ the methods one() and two() (but not three()):
 class Foo {
 public:
     Foo(int foo);
+    virtual ~Foo();
     virtual void one();
     virtual void two();
 };
@@ -2837,16 +2883,17 @@ then at the python side you can define
 import mymodule
 
 class MyFoo(mymodule.Foo):
-  def __init__(self, foo):
-     mymodule.Foo(self, foo)  
+    def __init__(self, foo):
+        mymodule.Foo.__init__(self, foo)
+#       super().__init__(foo) # Alternative construction for Python3
 
-  def one(self):
-     print "one from python"
+    def one(self):
+        print "one from python"
 </pre>
 </div>
 
 
-<H3><a name="Python_nn34"></a>34.5.2 Director classes</H3>
+<H3><a name="Python_nn34">36.5.2 Director classes</a></H3>
 
 
  
@@ -2928,7 +2975,7 @@ so there is no need for the extra overhead involved with routing the
 calls through Python.
 </p>
 
-<H3><a name="Python_nn35"></a>34.5.3 Ownership and object destruction</H3>
+<H3><a name="Python_nn35">36.5.3 Ownership and object destruction</a></H3>
 
 
 <p>
@@ -2995,7 +3042,7 @@ deleting all the Foo pointers it contains at some point.  Note that no hard
 references to the Foo objects remain in Python.
 </p>
 
-<H3><a name="Python_nn36"></a>34.5.4 Exception unrolling</H3>
+<H3><a name="Python_nn36">36.5.4 Exception unrolling</a></H3>
 
 
 <p>
@@ -3054,7 +3101,7 @@ Swig::DirectorMethodException is thrown, Python will register the
 exception as soon as the C wrapper function returns.
 </p>
 
-<H3><a name="Python_nn37"></a>34.5.5 Overhead and code bloat</H3>
+<H3><a name="Python_nn37">36.5.5 Overhead and code bloat</a></H3>
 
 
 <p>
@@ -3088,7 +3135,7 @@ directive) for only those methods that are likely to be extended in
 Python.
 </p>
 
-<H3><a name="Python_nn38"></a>34.5.6 Typemaps</H3>
+<H3><a name="Python_nn38">36.5.6 Typemaps</a></H3>
 
 
 <p>
@@ -3102,7 +3149,7 @@ need to be supported.
 </p>
 
 
-<H3><a name="Python_nn39"></a>34.5.7 Miscellaneous</H3>
+<H3><a name="Python_nn39">36.5.7 Miscellaneous</a></H3>
 
 
 <p>
@@ -3149,7 +3196,7 @@ methods that return const references.
 </p>
 
 
-<H2><a name="Python_nn40"></a>34.6 Common customization features</H2>
+<H2><a name="Python_nn40">36.6 Common customization features</a></H2>
 
 
 <p>
@@ -3162,7 +3209,7 @@ This section describes some common SWIG features that are used to
 improve your the interface to an extension module.
 </p>
 
-<H3><a name="Python_nn41"></a>34.6.1 C/C++ helper functions</H3>
+<H3><a name="Python_nn41">36.6.1 C/C++ helper functions</a></H3>
 
 
 <p>
@@ -3243,7 +3290,7 @@ hard to implement.  It is possible to clean this up using Python code, typemaps,
 customization features as covered in later sections.
 </p>
 
-<H3><a name="Python_nn42"></a>34.6.2 Adding additional Python code</H3>
+<H3><a name="Python_nn42">36.6.2 Adding additional Python code</a></H3>
 
 
 <p>
@@ -3297,6 +3344,77 @@ what can be done without having to rely on any of the more advanced
 customization features.
 </p>
 
+<p>
+There is also <tt>%pythonbegin</tt> which is another directive very similar to <tt>%pythoncode</tt>,
+but generates the given Python code at the beginning of the <tt>.py</tt> file.
+This directive works in the same way as <tt>%pythoncode</tt>, except the code is copied
+just after the SWIG banner (comment) at the top of the file, before any real code.
+This provides an opportunity to add your own description in a comment near the top of the file as well
+as Python imports that have to appear at the top of the file, such as "<tt>from __future__ import</tt>"
+statements.
+</p>
+
+<p>
+The following shows example usage for Python 2.6 to use <tt>print</tt> as it can in Python 3, that is, as a function instead of a statement:
+</p>
+
+<div class="code">
+<pre>
+%pythonbegin %{
+# This module provides wrappers to the Whizz Bang library
+%}
+
+%pythonbegin %{
+from __future__ import print_function
+print("Loading", "Whizz", "Bang", sep=' ... ')
+%}
+</pre>
+</div>
+
+<p>
+which can be seen when viewing the first few lines of the generated <tt>.py</tt> file:
+</p>
+
+<div class="code">
+<pre>
+# This file was automatically generated by SWIG (http://www.swig.org).
+# Version 2.0.11
+#
+# Do not make changes to this file unless you know what you are doing--modify
+# the SWIG interface file instead.
+
+# This module provides wrappers to the Whizz Bang library
+
+from __future__ import print_function
+print("Loading", "Whizz", "Bang", sep=' ... ')
+
+</pre>
+</div>
+
+<p>When using <tt>%pythoncode</tt> and <tt>%pythonbegin</tt> you generally
+want to make sure that the block is delimited by <tt>%{</tt> and <tt>%}</tt>.
+If you delimit it with <tt>{</tt> and <tt>}</tt> then any lines with a
+leading <tt>#</tt> will be handled by SWIG as preprocessor directives, when
+you probably meant them as Python comments.  Prior to SWIG 3.0.3, invalid
+preprocessor directives were silently ignored, so generally using the wrong
+delimiters resulted in such comments not appearing in the generated output
+(though a comment starting with a valid preprocessor directive could cause
+problems, for example: <tt># error handling</tt>).  SWIG 3.0.3 and later report
+an error for invalid preprocessor directives, so you may have to update
+existing interface files to delimit blocks of Python code correctly.</p>
+
+<p>As an alternative to providing a block containing Python code, you can
+include python code from a file.  The code is inserted exactly as in the
+file, so this avoids any issues with the SWIG preprocessor.  It's a good
+approach if you have a non-trivial chunk of Python code to insert.  To
+use this feature you specify a filename in double quotes, for example:</p>
+
+<div class="code">
+<pre>
+%pythoncode "somecode.py"
+</pre>
+</div>
+
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
 in SWIG provides some features that enable you to do this.  First, to
@@ -3319,7 +3437,7 @@ def bar(*args):
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
@@ -3356,7 +3474,7 @@ proxy, just before the return statement.
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
@@ -3385,14 +3503,46 @@ SWIG version 1.3.28 you can use the directive forms
 class Foo {
 public:
     int bar(int x);
-}
+};
 </pre>
 </div>
 
+<p>
+Note that when the underlying C++ method is overloaded, there is only one proxy Python method
+for multiple C++ methods. In this case, only one of parsed methods is examined
+for the feature. You are better off specifying the feature without the argument list to ensure it will get used,
+as it will then get attached to all the overloaded C++ methods. For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar()
+
+%pythonprepend Foo::bar %{
+   #do something before C++ call
+%}
+
+%pythonappend Foo::bar %{
+   #do something after C++ call
+%}
 
 
+class Foo {
+public:
+    int bar(int x);
+    int bar();
+};
+</pre>
+</div>
 
-<H3><a name="Python_nn43"></a>34.6.3 Class extension with %extend</H3>
+<p>
+The same applies for overloaded constructors.
+</p>
+
+
+<H3><a name="Python_nn43">36.6.3 Class extension with %extend</a></H3>
 
 
 <p>
@@ -3481,7 +3631,7 @@ Vector(12,14,16)
 in any way---the extensions only show up in the Python interface.
 </p>
 
-<H3><a name="Python_nn44"></a>34.6.4 Exception handling with %exception</H3>
+<H3><a name="Python_nn44">36.6.4 Exception handling with %exception</a></H3>
 
 
 <p>
@@ -3607,7 +3757,7 @@ The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html#Library">SWIG Library</a> chapter.
 </p>
 
-<H2><a name="Python_nn45"></a>34.7 Tips and techniques</H2>
+<H2><a name="Python_nn45">36.7 Tips and techniques</a></H2>
 
 
 <p>
@@ -3617,7 +3767,7 @@ strings, binary data, and arrays.   This chapter discusses the common techniques
 solving these problems.
 </p>
 
-<H3><a name="Python_nn46"></a>34.7.1 Input and output parameters</H3>
+<H3><a name="Python_nn46">36.7.1 Input and output parameters</a></H3>
 
 
 <p>
@@ -3830,7 +3980,7 @@ void foo(Bar *OUTPUT);
 may not have the intended effect since <tt>typemaps.i</tt> does not define an OUTPUT rule for <tt>Bar</tt>.
 </p>
 
-<H3><a name="Python_nn47"></a>34.7.2 Simple pointers</H3>
+<H3><a name="Python_nn47">36.7.2 Simple pointers</a></H3>
 
 
 <p>
@@ -3899,7 +4049,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</t
 See the <a href="Library.html#Library">SWIG Library</a> chapter for further details.
 </p>
 
-<H3><a name="Python_nn48"></a>34.7.3 Unbounded C Arrays</H3>
+<H3><a name="Python_nn48">36.7.3 Unbounded C Arrays</a></H3>
 
 
 <p>
@@ -3961,7 +4111,7 @@ well suited for applications in which you need to create buffers,
 package binary data, etc.
 </p>
 
-<H3><a name="Python_nn49"></a>34.7.4 String handling</H3>
+<H3><a name="Python_nn49">36.7.4 String handling</a></H3>
 
 
 <p>
@@ -4030,7 +4180,107 @@ If you need to return binary data, you might use the
 also be used to extra binary data from arbitrary pointers.
 </p>
 
-<H2><a name="Python_nn53"></a>34.8 Typemaps</H2>
+
+<H3><a name="Python_default_args">36.7.5 Default arguments</a></H3>
+
+
+<p>
+C++ default argument code generation is documented in the main
+<a href="SWIG.html#SWIGPlus_default_args">Default arguments</a> section.
+There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a>.
+By default, SWIG attempts to convert C++ default argument values
+into Python values and generates code into the Python layer containing these values.
+For example:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = 1, bool b = false);
+};
+</pre>
+</div>
+
+<p>
+From Python this can be called as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; CDA().fff()        # C++ layer receives a=1 and b=false
+&gt;&gt;&gt; CDA().fff(2)       # C++ layer receives a=2 and b=false
+&gt;&gt;&gt; CDA().fff(3, True) # C++ layer receives a=3 and b=true
+</pre>
+</div>
+
+<p>
+The default code generation in the Python layer is:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, a=1, b=False):
+        return _default_args.CDA_fff(self, a, b)
+</pre>
+</div>
+
+<p>
+Adding the feature:
+</p>
+  
+<div class="code">
+<pre>
+%feature("python:cdefaultargs") CDA::fff;
+struct CDA {
+  int fff(int a = 1, bool b = false);
+</pre>
+</div>
+
+<p>
+results in identical behaviour when called from Python, however, it results in different code generation:
+</p>
+
+<div class="targetlang">
+<pre>
+class CDA(object):
+    ...
+    def fff(self, *args):
+        return _default_args.CDA_fff(self, *args)
+</pre>
+</div>
+
+<p>
+The default arguments are obtained in the C++ wrapper layer instead of the Python layer.
+Some code generation modes are quite different, eg <tt>-builtin</tt> and <tt>-fastproxy</tt>,
+and are unaffected by <tt>python:cdefaultargs</tt> as the default values are always obtained from the C++ layer.
+</p>
+
+<p>
+Note that not all default arguments can be converted into a Python equivalent.
+When SWIG does not convert them, it will generate code to obtain them from the C++ layer as if
+<tt>python:cdefaultargs</tt> was specified.
+This will happen if just one argument cannot be converted into a Python equivalent.
+This occurs typically when the argument is not fully numeric, such as <tt>int(1)</tt>:
+</p>
+
+<div class="code">
+<pre>
+struct CDA {
+  int fff(int a = int(1), bool b = false);
+};
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> SWIG-3.0.6 introduced the <tt>python:cdefaultargs</tt> feature.
+Versions of SWIG prior to this varied in their ability to convert C++ default values into
+equivalent Python default argument values.
+</p>
+
+<H2><a name="Python_nn53">36.8 Typemaps</a></H2>
 
 
 <p>
@@ -4047,7 +4297,7 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface or if you want to elevate your guru status.
 </p>
 
-<H3><a name="Python_nn54"></a>34.8.1 What is a typemap?</H3>
+<H3><a name="Python_nn54">36.8.1 What is a typemap?</a></H3>
 
 
 <p>
@@ -4060,8 +4310,8 @@ you might define a typemap like this:
 %module example
 
 %typemap(in) int {
-	$1 = (int) PyLong_AsLong($input);
-	printf("Received an integer : %d\n",$1);
+  $1 = (int) PyLong_AsLong($input);
+  printf("Received an integer : %d\n",$1);
 }
 %inline %{
 extern int fact(int n);
@@ -4098,11 +4348,11 @@ You can refine this by supplying an optional parameter name.  For example:
 %module example
 
 %typemap(in) int nonnegative {
-	$1 = (int) PyLong_AsLong($input);
-        if ($1 &lt; 0) {
-           PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
-           return NULL;
-        }
+  $1 = (int) PyLong_AsLong($input);
+  if ($1 &lt; 0) {
+    PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
+    return NULL;
+  }
 }
 %inline %{
 extern int fact(int nonnegative);
@@ -4124,8 +4374,8 @@ the typemap system follows <tt>typedef</tt> declarations.  For example:
 <div class="code">
 <pre>
 %typemap(in) int n {
-	$1 = (int) PyLong_AsLong($input);
-	printf("n = %d\n",$1);
+  $1 = (int) PyLong_AsLong($input);
+  printf("n = %d\n",$1);
 }
 %inline %{
 typedef int Integer;
@@ -4163,7 +4413,7 @@ parameter is omitted):
 </pre>
 </div>
 
-<H3><a name="Python_nn55"></a>34.8.2 Python typemaps</H3>
+<H3><a name="Python_nn55">36.8.2 Python typemaps</a></H3>
 
 
 <p>
@@ -4204,7 +4454,7 @@ a look at the SWIG library version 1.3.20 or so.
 </p>
 
 
-<H3><a name="Python_nn56"></a>34.8.3 Typemap variables</H3>
+<H3><a name="Python_nn56">36.8.3 Typemap variables</a></H3>
 
 
 <p>
@@ -4275,7 +4525,7 @@ properly assigned.
 The Python name of the wrapper function being created.
 </div>
 
-<H3><a name="Python_nn57"></a>34.8.4 Useful Python Functions</H3>
+<H3><a name="Python_nn57">36.8.4 Useful Python Functions</a></H3>
 
 
 <p>
@@ -4403,7 +4653,7 @@ write me
 </pre>
 </div>
 
-<H2><a name="Python_nn58"></a>34.9 Typemap Examples</H2>
+<H2><a name="Python_nn58">36.9 Typemap Examples</a></H2>
 
 
 <p>
@@ -4412,7 +4662,7 @@ might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Python_nn59"></a>34.9.1 Converting  Python list to a char ** </H3>
+<H3><a name="Python_nn59">36.9.1 Converting  Python list to a char ** </a></H3>
 
 
 <p>
@@ -4435,11 +4685,11 @@ object to be used as a <tt>char **</tt> object.
     for (i = 0; i &lt; size; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$1[i] = PyString_AsString(PyList_GetItem($input,i));
+        $1[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($1);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($1);
+        return NULL;
       }
     }
     $1[i] = 0;
@@ -4475,7 +4725,7 @@ follows :
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; from argv import *
-&gt;&gt;&gt; print_args(["Dave","Mike","Mary","Jane","John"])
+&gt;&gt;&gt; print_args(["Dave", "Mike", "Mary", "Jane", "John"])
 argv[0] = Dave
 argv[1] = Mike
 argv[2] = Mary
@@ -4492,7 +4742,7 @@ memory allocation is used to allocate memory for the array, the
 the C function. 
 </p>
 
-<H3><a name="Python_nn60"></a>34.9.2 Expanding a Python object into multiple arguments</H3>
+<H3><a name="Python_nn60">36.9.2 Expanding a Python object into multiple arguments</a></H3>
 
 
 <p>
@@ -4513,7 +4763,7 @@ allows the function to be used from Python as follows:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; foo(4, ["foo","bar","spam","1"])
+&gt;&gt;&gt; foo(4, ["foo", "bar", "spam", "1"])
 </pre>
 </div>
 
@@ -4534,11 +4784,11 @@ previous example:
     for (i = 0; i &lt; $1; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
-	$2[i] = PyString_AsString(PyList_GetItem($input,i));
+        $2[i] = PyString_AsString(PyList_GetItem($input,i));
       else {
-	PyErr_SetString(PyExc_TypeError,"list must contain strings");
-	free($2);
-	return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        free($2);
+        return NULL;
       }
     }
     $2[i] = 0;
@@ -4567,11 +4817,51 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; foo(["foo","bar","spam","1"])
+&gt;&gt;&gt; foo(["foo", "bar", "spam", "1"])
 </pre>
 </div>
 
-<H3><a name="Python_nn61"></a>34.9.3 Using typemaps to return arguments</H3>
+<p>
+If your function is overloaded in C++, for example:
+</p>
+
+<div class="code">
+<pre>
+int foo(int argc, char **argv);
+int foo();
+</pre>
+</div>
+
+<p>
+don't forget to also provide a suitable <a href="Typemaps.html#Typemaps_overloading">typecheck typemap for overloading</a>
+such as:
+</p>
+
+<div class="code">
+<pre>
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) (int argc, char **argv) {
+  $1 = PyList_Check($input) ? 1 : 0;
+}
+</pre>
+</div>
+
+<p>
+If you don't you'll get an error message along the lines of:
+</p>
+
+<div class="shell">
+<pre>
+Traceback (most recent call last):
+  File "runme.py", line 3, in &gt;module&lt;
+    example.foo(["foo", "bar", "spam", "1"])
+NotImplementedError: Wrong number or type of arguments for overloaded function 'foo'.
+  Possible C/C++ prototypes are:
+    foo(int,char **)
+    foo()
+</pre>
+</div>
+
+<H3><a name="Python_nn61">36.9.3 Using typemaps to return arguments</a></H3>
 
 
 <p>
@@ -4582,12 +4872,11 @@ arguments rather than in the return value of a function.  For example:
 <div class="code"><pre>
 /* Returns a status value and two values in out1 and out2 */
 int spam(double a, double b, double *out1, double *out2) {
-	... Do a bunch of stuff ...
-	*out1 = result1;
-	*out2 = result2;
-	return status;
-};
-
+  ... Do a bunch of stuff ...
+  *out1 = result1;
+  *out2 = result2;
+  return status;
+}
 </pre></div>
 
 <p>
@@ -4660,7 +4949,7 @@ function can now be used as follows:
 &gt;&gt;&gt;
 </pre></div>
 
-<H3><a name="Python_nn62"></a>34.9.4 Mapping Python tuples into small arrays</H3>
+<H3><a name="Python_nn62">36.9.4 Mapping Python tuples into small arrays</a></H3>
 
 
 <p>
@@ -4709,7 +4998,7 @@ array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.
 </p>
 
-<H3><a name="Python_nn63"></a>34.9.5 Mapping sequences to C arrays</H3>
+<H3><a name="Python_nn63">36.9.5 Mapping sequences to C arrays</a></H3>
 
 
 <p>
@@ -4798,7 +5087,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 </pre>
 </div>
 
-<H3><a name="Python_nn64"></a>34.9.6 Pointer handling</H3>
+<H3><a name="Python_nn64">36.9.6 Pointer handling</a></H3>
 
 
 <p>
@@ -4895,7 +5184,7 @@ class object (if applicable).
 
 
 
-<H2><a name="Python_nn65"></a>34.10 Docstring Features</H2>
+<H2><a name="Python_nn65">36.10 Docstring Features</a></H2>
 
 
 <p>
@@ -4923,7 +5212,7 @@ of your users much simpler.
 </p>
 
 
-<H3><a name="Python_nn66"></a>34.10.1 Module docstring</H3>
+<H3><a name="Python_nn66">36.10.1 Module docstring</a></H3>
 
 
 <p>
@@ -4957,7 +5246,7 @@ layout of controls on a panel, etc. to be loaded from an XML file."
 </div>
 
 
-<H3><a name="Python_nn67"></a>34.10.2 %feature("autodoc")</H3>
+<H3><a name="Python_nn67">36.10.2 %feature("autodoc")</a></H3>
 
 
 <p>
@@ -4985,7 +5274,7 @@ four levels for autodoc controlled by the value given to the
 feature, <tt>%feature("autodoc", "<i>level</i>")</tt>.
 The four values for <i>level</i> are covered in the following sub-sections.
 
-<H4><a name="Python_nn68"></a>34.10.2.1 %feature("autodoc", "0")</H4>
+<H4><a name="Python_nn68">36.10.2.1 %feature("autodoc", "0")</a></H4>
 
 
 <p>
@@ -5014,7 +5303,7 @@ def function_name(*args, **kwargs):
 </div>
 
 
-<H4><a name="Python_nn69"></a>34.10.2.2 %feature("autodoc", "1")</H4>
+<H4><a name="Python_nn69">36.10.2.2 %feature("autodoc", "1")</a></H4>
 
 
 <p>
@@ -5039,13 +5328,13 @@ def function_name(*args, **kwargs):
 </div>
 
 
-<H4><a name="Python_autodoc2"></a>34.10.2.3 %feature("autodoc", "2")</H4>
+<H4><a name="Python_autodoc2">36.10.2.3 %feature("autodoc", "2")</a></H4>
 
 
 <p>
 Level "2" results in the function prototype as per level "0". In addition, a line of
-documentation is generated for each parameter. Using the previous example, the generated
-code will be:
+documentation is generated for each parameter using <a href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc</a> style.
+Using the previous example, the generated code will be:
 </p>
 
 <div class="targetlang">
@@ -5054,11 +5343,12 @@ def function_name(*args, **kwargs):
     """
     function_name(x, y, foo=None, bar=None) -&gt; bool
 
-    Parameters:
-        x: int
-        y: int
-        foo: Foo *
-        bar: Bar *
+    Parameters
+    ----------
+    x: int
+    y: int
+    foo: Foo *
+    bar: Bar *
 
     """
     ...
@@ -5089,17 +5379,18 @@ def function_name(*args, **kwargs):
   """
     function_name(x, y, foo=None, bar=None) -&gt; bool
 
-    Parameters:
-        x (C++ type: int) -- Input x dimension
-        y: int
-        foo: Foo *
-        bar: Bar *
+    Parameters
+    ----------
+    x (C++ type: int) -- Input x dimension
+    y: int
+    foo: Foo *
+    bar: Bar *
 
     """
 </pre>
 </div>
 
-<H4><a name="Python_autodoc3"></a>34.10.2.4 %feature("autodoc", "3")</H4>
+<H4><a name="Python_autodoc3">36.10.2.4 %feature("autodoc", "3")</a></H4>
 
 
 <p>
@@ -5112,11 +5403,12 @@ def function_name(*args, **kwargs):
     """
     function_name(int x, int y, Foo foo=None, Bar bar=None) -&gt; bool
 
-    Parameters:
-        x: int
-        y: int
-        foo: Foo *
-        bar: Bar *
+    Parameters
+    ----------
+    x: int
+    y: int
+    foo: Foo *
+    bar: Bar *
 
     """
     ...
@@ -5124,7 +5416,7 @@ def function_name(*args, **kwargs):
 </div>
 
 
-<H4><a name="Python_nn70"></a>34.10.2.5 %feature("autodoc", "docstring")</H4>
+<H4><a name="Python_nn70">36.10.2.5 %feature("autodoc", "docstring")</a></H4>
 
 
 <p>
@@ -5143,7 +5435,7 @@ void GetPosition(int* OUTPUT, int* OUTPUT);
 </div>
 
 
-<H3><a name="Python_nn71"></a>34.10.3 %feature("docstring")</H3>
+<H3><a name="Python_nn71">36.10.3 %feature("docstring")</a></H3>
 
 
 <p>
@@ -5175,13 +5467,70 @@ with more than one line.
 </pre>
 </div>
 
-<H2><a name="Python_nn72"></a>34.11 Python Packages</H2>
+<H2><a name="Python_nn72">36.11 Python Packages</a></H2>
+
+
+<p>Python has concepts of modules and packages. Modules are separate units of
+code and may be grouped together to form a package. Packages may be nested,
+that is they may contain subpackages. This leads to tree-like hierarchy, with
+packages as intermediate nodes and modules as leaf nodes.</p>
+
+<p>The hierarchy of Python packages/modules follows the hierarchy of
+<tt>*.py</tt> files found in a source tree (or, more generally, in the Python path).
+Normally, the developer creates new module by placing a <tt>*.py</tt> file
+somewhere under Python path; the module is then named after that <tt>*.py</tt>
+file. A package is created by placing an <tt>__init__.py</tt> file within a
+directory; the package is then named after that directory. For example, the
+following source tree:</p>
+
+<div class="diagram">
+<pre>
+mod1.py
+pkg1/__init__.py
+pkg1/mod2.py
+pkg1/pkg2/__init__.py
+pkg1/pkg2/mod3.py
+</pre>
+</div>
+
+<p>
+defines the following Python packages and modules:
+</p>
+
+<div class="diagram">
+<pre>
+pkg1            # package
+pkg1.pkg2       # package
+mod1            # module
+pkg1.mod2       # module
+pkg1.pkg2.mod3  # module
+</pre>
+</div>
+
+<p>
+The purpose of an <tt>__init__.py</tt> file is two-fold. First, the existence of
+<tt>__init__.py</tt> in a directory informs the Python interpreter that this
+directory contains a Python package. Second, the code in <tt>__init__.py</tt> is
+loaded/executed automatically when the package is initialized (when it or its
+submodule/subpackage gets <tt>import</tt>'ed). By default, SWIG generates
+proxy Python code &ndash; one <tt>*.py</tt> file for each <tt>*.i</tt>
+interface. The <tt>__init__.py</tt> files, however, are not generated by SWIG.
+They should be created by other means. Both files (module <tt>*.py</tt> and
+<tt>__init__.py</tt>) should be installed in appropriate destination
+directories in order to obtain a desirable package/module hierarchy.
+</p>
+
+<p>The way Python defines its modules and packages impacts SWIG users. Some
+users may need to use special features such as the <tt>package</tt> option in the
+<tt>%module</tt> directive or import related command line options. These are
+explained in the following sections.</p>
+
+<H3><a name="Python_modulepackage">36.11.1 Setting the Python package</a></H3>
 
 
 <p>
-Using the <tt>package</tt> option of the <tt>%module</tt> directive
-allows you to specify what Python package that the module will be
-living in when installed.
+Using the <tt>package</tt> option in the <tt>%module</tt> directive allows you
+to specify a Python package that the module will be in when installed.
 </p>
 
 <div class="code">
@@ -5194,15 +5543,330 @@ living in when installed.
 This is useful when the <tt>.i</tt> file is <tt>%import</tt>ed by
 another <tt>.i</tt> file.  By default SWIG will assume that the
 importer is able to find the importee with just the module name, but
-if they live in separate Python packages then that won't work.
+if they live in separate Python packages then this won't work.
 However if the importee specifies what its package is with the
 <tt>%module</tt> option then the Python code generated for the
 importer will use that package name when importing the other module
-and also in base class declarations, etc. if the package name is
-different than its own.
+and in base class declarations, etc..
 </p>
 
-<H2><a name="Python_python3support"></a>34.12 Python 3 Support</H2>
+<p>SWIG assumes that the <tt>package</tt> option provided to <tt>%module</tt>
+together with the <tt>module</tt> name (that is, <tt>wx.xrc</tt> in the above
+example) forms a fully qualified (absolute) name of a module (in Python terms).
+This is important especially for Python 3, where absolute imports are used by
+default. It's up to you to place the generated module files (<tt>.py</tt>,
+<tt>.so</tt>) in appropriate subdirectories. For example, if you have an
+interface file <tt>foo.i</tt> with:
+</p>
+
+<div class="code">
+<pre>
+%module(package="pkg1.pkg2") foo
+</pre>
+</div>
+
+<p>
+then the resulting directory layout should be
+</p>
+
+<div class="diagram">
+<pre>
+pkg1/
+pkg1/__init__.py
+pkg1/pkg2/__init__.py
+pkg1/pkg2/foo.py        # (generated by SWIG)
+pkg1/pkg2/_foo.so       # (shared library built from C/C++ code generated by SWIG)
+</pre>
+</div>
+
+<H3><a name="Python_absrelimports">36.11.2 Absolute and relative imports</a></H3>
+
+
+<p>Suppose, we have the following hierarchy of files:</p>
+
+<div class="diagram">
+<pre>
+pkg1/
+pkg1/__init__.py
+pkg1/mod2.py
+pkg1/pkg2/__init__.py
+pkg1/pkg2/mod3.py
+</pre>
+</div>
+
+<p>Let the contents of <tt>pkg1/pkg2/mod3.py</tt> be</p>
+<div class="targetlang">
+<pre>
+class M3: pass
+</pre>
+</div>
+
+<p>
+We edit <tt>pkg1/mod2.py</tt> and want to import module
+<tt>pkg1/pkg2/mod3.py</tt> in order to derive from class <tt>M3</tt>. We can
+write appropriate Python code in several ways, for example:
+</p>
+
+<ol>
+  <li><p>Using "<tt>import &lt;&gt;</tt>" syntax with absolute package name:</p>
+    <div class="targetlang">
+<pre>
+# pkg1/mod2.py
+import pkg1.pkg2.mod3
+class M2(pkg1.pkg2.mod3.M3): pass
+</pre>
+    </div>
+  </li>
+
+  <li><p>Using "<tt>import &lt;&gt;</tt>" syntax with package name relative to
+  <tt>pkg1</tt> (only in Python 2.7 and earlier):</p>
+    <div class="targetlang">
+<pre>
+# pkg1/mod2.py
+import pkg2.mod3
+class M2(pkg2.mod3.M3): pass
+</pre>
+    </div>
+  </li>
+
+  <li><p>Using "<tt>from &lt;&gt; import &lt;&gt;</tt>" syntax (relative import
+  syntax, only in Python 2.5 and later):</p>
+    <div class="targetlang">
+<pre>
+# pkg1/mod2.py
+from .pkg2 import mod3
+class M2(mod3.M3): pass
+</pre>
+    </div>
+  </li>
+
+  <li><p>Other variants, for example the following construction in order to
+  have the <tt>pkg2.mod3.M3</tt> symbol available in <tt>mod2</tt> as
+  in point 2 above (but now under Python 3):</p>
+    <div class="targetlang">
+<pre>
+# pkg1/mod2.py
+from . import pkg2
+from .pkg2 import mod3
+class M2(pkg2.mod3.M3): pass
+</pre>
+    </div>
+  </li>
+
+</ol>
+
+<p>Now suppose we have <tt>mod2.i</tt> with</p>
+
+<div class="code">
+<pre>
+// mod2.i
+%module (package="pkg1") mod2
+%import "mod3.i"
+// ...
+</pre>
+</div>
+
+<p>and <tt>mod3.i</tt> with</p>
+
+<div class="code">
+<pre>
+// mod3.i
+%module (package="pkg1.pkg2") mod3
+// ...
+</pre>
+</div>
+
+<p>By default, SWIG would generate <tt>mod2.py</tt> proxy file with
+<tt>import</tt> directive as in point 1. This can be changed with the
+<tt>-relativeimport</tt> command line option. The <tt>-relativeimport</tt> instructs
+SWIG to organize imports as in point 2 (for Python 2.x) or as in point 4 (for
+Python 3, that is when the -py3 command line option is enabled). In short, if you have
+<tt>mod2.i</tt> and <tt>mod3.i</tt> as above, then without
+<tt>-relativeimport</tt> SWIG will write</p>
+
+<div class="targetlang">
+<pre>
+import pkg1.pkg2.mod3
+</pre>
+</div>
+
+<p>to <tt>mod2.py</tt> proxy file, and with <tt>-relativeimport</tt> it will
+write</p>
+
+<div class="targetlang">
+<pre>
+import pkg2.mod3
+</pre>
+</div>
+
+<p>if <tt>-py3</tt> is not used, or</p>
+
+<div class="targetlang">
+<pre>
+from . import pkg2
+import pkg1.pkg2.mod3
+</pre>
+</div>
+
+<p>when <tt>-py3</tt> is used.</p>
+
+<p>You should avoid using relative imports and use absolute ones whenever
+possible. There are some cases, however, when relative imports may be
+necessary. The first example is, when some (legacy) Python code refers entities
+imported by proxy files generated by SWIG, and it assumes that the proxy file
+uses relative imports. Second case is, when one puts import directives in
+<tt>__init__.py</tt> to import symbols from submodules or subpackages and the
+submodule depends on other submodules (discussed later).</p>
+
+<H3><a name="Python_absimport">36.11.3 Enforcing absolute import semantics</a></H3>
+
+
+<p>As you may know, there is an incompatibility in import semantics (for the
+<tt>import &lt;&gt;</tt> syntax) between Python 2 and 3. In Python 2.4 and
+earlier it is not clear whether</p>
+
+<div class="targetlang">
+<pre>
+import foo
+</pre>
+</div>
+<p>refers to a top-level module or to another module inside the current
+package. In Python 3 it always refers to a top-level module
+(see <a href="https://www.python.org/dev/peps/pep-0328/">PEP 328</a>).
+To instruct Python 2.5 through 2.7 to use new semantics (that is <tt>import
+foo</tt> is interpreted as absolute import), one has to put the following
+line
+</p>
+
+<div class="targetlang">
+<pre>
+from __future__ import absolute_import
+</pre>
+</div>
+
+<p>at the very beginning of his proxy <tt>*.py</tt> file. In SWIG, it may be
+accomplished with <tt>%pythonbegin</tt> directive as follows:</p>
+
+<div class="code">
+<pre>
+%pythonbegin %{
+from __future__ import absolute_import
+%}
+</pre>
+</div>
+
+<H3><a name="Python_importfrominit">36.11.4 Importing from __init__.py</a></H3>
+
+
+<p>Imports in <tt>__init__.py</tt> are handy when you want to populate a
+package's namespace with names imported from other modules. In SWIG based
+projects this approach may also be used to split large pieces of code into
+smaller modules, compile them in parallel and then re-assemble everything at
+runtime by importing submodules' contents in <tt>__init__.py</tt>, for
+example.</p>
+
+<p>Unfortunately import directives in <tt>__init__.py</tt> may cause problems,
+especially if they refer to a package's submodules. This is caused by the way
+Python initializes packages. If you spot problems with imports from
+<tt>__init__.py</tt> try using <tt>-relativeimport</tt> option. Below we
+explain in detail one issue, for which the <tt>-relativeimport</tt> workaround
+may be helpful.</p>
+
+<p>Consider the following example (Python 3):</p>
+
+<div class="diagram">
+<pre>
+pkg1/__init__.py        # (empty)
+pkg1/pkg2/__init__.py   # (imports something from bar.py)
+pkg1/pkg2/foo.py
+pkg1/pkg2/bar.py        # (imports foo.py)
+</pre>
+</div>
+
+<p>If the file contents are:</p>
+
+<ul>
+  <li> <p><tt>pkg1/pkg2/__init__.py:</tt></p>
+    <div class="targetlang">
+<pre>
+# pkg1/pkg2/__init__.py
+from .bar import Bar
+</pre>
+    </div>
+  </li>
+
+  <li> <p><tt>pkg1/pkg2/foo.py:</tt></p>
+    <div class="targetlang">
+<pre>
+# pkg1/pkg2/foo.py
+class Foo: pass
+</pre>
+    </div>
+  </li>
+
+  <li> <p><tt>pkg1/pkg2/bar.py:</tt></p>
+    <div class="targetlang">
+<pre>
+# pkg1/pkg2/bar.py
+import pkg1.pkg2.foo
+class Bar(pkg1.pkg2.foo.Foo): pass
+</pre>
+    </div>
+  </li>
+</ul>
+
+<p>Now if one simply used <tt>import pkg1.pkg2</tt>, it will usually fail:</p>
+
+<div class="diagram">
+<pre>
+&gt;&gt;&gt; import pkg1.pkg2
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "./pkg1/pkg2/__init__.py", line 2, in &lt;module&gt;
+    from .bar import Bar
+  File "./pkg1/pkg2/bar.py", line 3, in &lt;module&gt;
+    class Bar(pkg1.pkg2.foo.Foo): pass
+AttributeError: 'module' object has no attribute 'pkg2'
+</pre>
+</div>
+
+<p>Surprisingly, if we execute the <tt>import pkg1.pkg2</tt> directive for the
+second time, it succeeds. The reason seems to be following: when Python spots
+the <tt>from .bar import Bar</tt> directive in <tt>pkg1/pkg2/__init__.py</tt>
+it starts loading <tt>pkg1/pkg2/bar.py</tt>. This module imports
+<tt>pkg1.pkg2.foo</tt> in turn and tries to use <tt>pkg1.pkg2.foo.Foo</tt>, but
+the package <tt>pkg1</tt> is not fully initialized yet (the initialization
+procedure is actually in progress) and it seems like the effect of the already seen
+<tt>import pkg1.pkg2.pkg3.foo</tt> is "delayed" or ignored. Exactly the
+same may happen to a proxy module generated by SWIG.</p>
+
+<p>One workaround for this case is to use a relative
+import in <tt>pkg1/pkg2/bar.py</tt>. If we change <tt>bar.py</tt> to be:</p>
+
+<div class="targetlang">
+<pre>
+from .pkg3 import foo
+class Bar(foo.Foo): pass
+</pre>
+</div>
+
+<p>or</p>
+
+<div class="targetlang">
+<pre>
+from . import pkg3
+from .pkg3 import foo
+class Bar(pkg3.foo.Foo): pass
+</pre>
+</div>
+
+<p>then the example works again. With SWIG, you need to enable the
+<tt>-relativeimport</tt> option in order to have the above workaround in
+effect (note, that the Python 2 case also needs the <tt>-relativeimport</tt>
+workaround).</p>
+
+
+<H2><a name="Python_python3support">36.12 Python 3 Support</a></H2>
 
 
 <p>
@@ -5229,7 +5893,7 @@ The following are Python 3.0 new features that are currently supported by
 SWIG.
 </p>
 
-<H3><a name="Python_nn74"></a>34.12.1 Function annotation</H3>
+<H3><a name="Python_nn74">36.12.1 Function annotation</a></H3>
 
 
 <p>
@@ -5259,10 +5923,10 @@ all overloaded functions share the same function in SWIG generated proxy class.
 
 <p>
 For detailed usage of function annotation, see
-<a href="http://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
+<a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
 </p>
 
-<H3><a name="Python_nn75"></a>34.12.2 Buffer interface</H3>
+<H3><a name="Python_nn75">36.12.2 Buffer interface</a></H3>
 
 
 <p>
@@ -5414,7 +6078,7 @@ modify the buffer.
 </div>
 
 
-<H3><a name="Python_nn76"></a>34.12.3 Abstract base classes</H3>
+<H3><a name="Python_nn76">36.12.3 Abstract base classes</a></H3>
 
 
 <p>
@@ -5452,7 +6116,243 @@ used to define an abstract base class for your own C++ class:
 
 <p>
 For details of abstract base class, please see
-<a href="http://www.python.org/dev/peps/pep-3119/">PEP 3119</a>.
+<a href="https://www.python.org/dev/peps/pep-3119/">PEP 3119</a>.
+</p>
+
+<H3><a name="Python_nn77">36.12.4 Byte string output conversion</a></H3>
+
+
+<p>
+By default, any byte string (<tt>char*</tt> or <tt>std::string</tt>) returned
+from C or C++ code is decoded to text as UTF-8. This decoding uses the
+<tt>surrogateescape</tt> error handler under Python 3.1 or higher -- this
+error handler decodes invalid byte sequences to high surrogate characters
+in the range U+DC80 to U+DCFF.
+
+As an example, consider the following SWIG interface, which exposes a byte
+string that cannot be completely decoded as UTF-8:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%include &lt;std_string.i&gt;
+
+%inline %{
+
+const char* non_utf8_c_str(void) {
+        return "h\xe9llo w\xc3\xb6rld";
+}
+
+%}
+</pre></div>
+
+<p>
+When this method is called from Python 3, the return value is the following
+text string:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; s = example.non_utf8_c_str()
+&gt;&gt;&gt; s
+'h\udce9llo w&#246;rld'
+</pre></div>
+
+<p>
+Since the C string contains bytes that cannot be decoded as UTF-8, those raw
+bytes are represented as high surrogate characters that can be used to obtain
+the original byte sequence:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; b = s.encode('utf-8', errors='surrogateescape')
+&gt;&gt;&gt; b
+b'h\xe9llo w\xc3\xb6rld'
+</pre></div>
+
+<p>
+One can then attempt a different encoding, if desired (or simply leave the
+byte string as a raw sequence of bytes for use in binary protocols):
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; b.decode('latin-1')
+'h&#233;llo w&#195;&#182;rld'
+</pre></div>
+
+<p>
+Note, however, that text strings containing surrogate characters are rejected
+with the default <tt>strict</tt> codec error handler. For example:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; with open('test', 'w') as f:
+...     print(s, file=f)
+...
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 2, in &lt;module&gt;
+UnicodeEncodeError: 'utf-8' codec can't encode character '\udce9' in position 1: surrogates not allowed
+</pre></div>
+
+<p>
+This requires the user to check most strings returned by SWIG bindings, but
+the alternative is for a non-UTF8 byte string to be completely inaccessible
+in Python 3 code.
+</p>
+
+<p>
+For more details about the <tt>surrogateescape</tt> error handler, please see
+<a href="https://www.python.org/dev/peps/pep-0383/">PEP 383</a>.
+</p>
+
+<p>
+In some cases, users may wish to instead handle all byte strings as bytes
+objects in Python 3. This can be accomplished by adding
+<tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> to the generated code:
+</p>
+
+<div class="code"><pre>
+%module char_to_bytes
+%begin %{
+#define SWIG_PYTHON_STRICT_BYTE_CHAR
+%}
+
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+This will modify the behavior so that only Python 3 bytes objects will be
+accepted and converted to a C/C++ string, and any string returned from C/C++
+will be converted to a bytes object in Python 3:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from char_to_bytes import *
+&gt;&gt;&gt; charstring(b"hi") # Byte string
+b'hi'
+&gt;&gt;&gt; charstring("hi")  # Unicode string
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'char *'
+</pre></div>
+
+<p>
+Note that in Python 2, defining <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> has no
+effect, since strings in Python 2 are equivalent to Python 3 bytes objects.
+However, there is a similar capability to force unicode-only handling for
+wide characters C/C++ strings (<tt>wchar_t *</tt> or <tt>std::wstring</tt>
+types) in Python 2. By default, in Python 2 both strings and unicode strings
+are converted to C/C++ wide strings, and returned wide strings are converted
+to a Python unicode string. To instead only convert unicode strings to wide
+strings, users can add <tt>SWIG_PYTHON_STRICT_UNICODE_WCHAR</tt> to the
+generated code:
+</p>
+
+<div class="code"><pre>
+%module wchar_to_unicode
+%begin %{
+#define SWIG_PYTHON_STRICT_UNICODE_WCHAR
+%}
+
+wchar_t *wcharstring(wchar_t *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+This ensures that only unicode strings are accepted by wcharstring in both
+Python 2 and Python 3:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from wchar_to_unicode import *
+&gt;&gt;&gt; wcharstring(u"hi") # Unicode string
+u'hi'
+&gt;&gt;&gt; wcharstring(b"hi") # Byte string
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'wchar_t *'
+</pre></div>
+
+<p>
+By defining both <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> and
+<tt>SWIG_PYTHON_STRICT_UNICODE_WCHAR</tt>, Python wrapper code can support
+overloads taking both std::string (as Python bytes) and std::wstring
+(as Python unicode).
+</p>
+
+<H3><a name="Python_2_unicode">36.12.5 Python 2 Unicode</a></H3>
+
+
+<p>
+A Python 3 string is a Unicode string so by default a Python 3 string that contains Unicode
+characters passed to C/C++ will be accepted and converted to a C/C++ string
+(<tt>char *</tt> or <tt>std::string</tt> types).
+A Python 2 string is not a unicode string by default and should a Unicode string be
+passed to C/C++ it will fail to convert to a C/C++ string
+(<tt>char *</tt> or <tt>std::string</tt> types).
+The Python 2 behavior can be made more like Python 3 by defining
+<tt>SWIG_PYTHON_2_UNICODE</tt> when compiling the generated C/C++ code.
+By default when the following is wrapped:
+</p>
+
+<div class="code"><pre>
+%module unicode_strings
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+An error will occur when using Unicode strings in Python 2:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from unicode_strings import *
+&gt;&gt;&gt; charstring("hi")
+'hi'
+&gt;&gt;&gt; charstring(u"hi")
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in ?
+TypeError: in method 'charstring', argument 1 of type 'char *'
+</pre></div>
+
+<p>
+When the <tt>SWIG_PYTHON_2_UNICODE</tt> macro is added to the generated code:
+</p>
+
+<div class="code"><pre>
+%module unicode_strings
+%begin %{
+#define SWIG_PYTHON_2_UNICODE
+%}
+
+char *charstring(char *s) {
+  return s;
+}
+</pre></div>
+
+<p>
+Unicode strings will be successfully accepted and converted from UTF-8,
+but note that they are returned as a normal Python 2 string:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; from unicode_strings import *
+&gt;&gt;&gt; charstring("hi")
+'hi'
+&gt;&gt;&gt; charstring(u"hi")
+'hi'
+&gt;&gt;&gt;
+</pre></div>
+
+<p>
+Note that defining both <tt>SWIG_PYTHON_2_UNICODE</tt> and
+<tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> at the same time is not allowed, since
+the first is allowing unicode conversion and the second is explicitly
+prohibiting it.
 </p>
 
 </body>

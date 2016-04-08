@@ -1,6 +1,6 @@
 /* File : example.c */
 
-void add(double *x, double *y, double  *result) {
+void add(int *x, int *y, int  *result) {
   *result = *x + *y;
 }
 

@@ -151,11 +151,11 @@ __bool__ = __nonzero__
 
   They translate the inplace C++ operators (+=, -=, ...)  into the
   corresponding python equivalents(__iadd__,__isub__), etc,
-  disabling the ownership of the input 'self' pointer, and assigning
+  disabling the ownership of the input 'this' pointer, and assigning
   it to the returning object:  
 
-     %feature("del") *::Operator;
-     %feature("new") *::Operator;
+     %feature("del") *::Operator; // disables ownership by generating SWIG_POINTER_DISOWN
+     %feature("new") *::Operator; // claims ownership by generating SWIG_POINTER_OWN
   
   This makes the most common case safe, ie:
 
@@ -174,8 +174,8 @@ __bool__ = __nonzero__
   that never get deleted (maybe, not sure, it depends). But if that is
   the case, you could recover the old behaviour using
 
-     %feature("del","") A::operator+=;
-     %feature("new","") A::operator+=;
+     %feature("del","0") A::operator+=;
+     %feature("new","0") A::operator+=;
 
   which recovers the old behaviour for the class 'A', or if you are
   100% sure your entire system works fine in the old way, use:
@@ -183,6 +183,12 @@ __bool__ = __nonzero__
     %feature("del","") *::operator+=;
     %feature("new","") *::operator+=;
 
+  The default behaviour assumes that the 'this' pointer's memory is
+  already owned by the SWIG object; it relinquishes ownership then
+  takes it back. This may not be the case though as the SWIG object
+  might be owned by memory managed elsewhere, eg after calling a
+  function that returns a C++ reference. In such case you will need
+  to use the features above to recover the old behaviour too.
 */
 
 #if defined(SWIGPYTHON_BUILTIN)

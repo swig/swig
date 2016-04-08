@@ -114,12 +114,19 @@ signed int *OUTPUT,
 unsigned int *OUTPUT,
 short *OUTPUT,
 signed short *OUTPUT,
+unsigned short *OUTPUT,
 long *OUTPUT,
 signed long *OUTPUT,
+unsigned long *OUTPUT,
 long long *OUTPUT,
+signed long long *OUTPUT,
 unsigned long long *OUTPUT,
 float *OUTPUT,
-double *OUTPUT {}
+double *OUTPUT,
+char *OUTPUT,
+signed char *OUTPUT,
+unsigned char *OUTPUT
+{}
 
 
 
@@ -257,8 +264,8 @@ x
 setAs('ExternalReference', 'character',
 function(from) {if (!is.null(from$"__str__")) from$"__str__"()})
 
-setMethod('print', 'ExternalReference',
-function(x) {print(as(x, "character"))})
+suppressMessages(suppressWarnings(setMethod('print', 'ExternalReference',
+function(x) {print(as(x, "character"))})))
 %}
 
 

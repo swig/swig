@@ -1,12 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Common Lisp</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Lisp"></a>25 SWIG and Common Lisp</H1>
+<H1><a name="Lisp">27 SWIG and Common Lisp</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -41,7 +42,7 @@
       Lisp, Common Foreign Function Interface(CFFI), CLisp and UFFI
       foreign function interfaces.  
 </p>
-<H2><a name="Lisp_nn2"></a>25.1 Allegro Common Lisp</H2>
+<H2><a name="Lisp_nn2">27.1 Allegro Common Lisp</a></H2>
 
 
 <p>
@@ -50,7 +51,7 @@
   <a href="Allegrocl.html#Allegrocl">here</a>
 </p>
 
-<H2><a name="Lisp_nn3"></a>25.2 Common Foreign Function Interface(CFFI)</H2>
+<H2><a name="Lisp_nn3">27.2 Common Foreign Function Interface(CFFI)</a></H2>
 
 
 <p>
@@ -77,7 +78,7 @@ swig -cffi -module <i>module-name</i>   <i>file-name</i>
       files and the various things which you can do with them.
 </p>
 
-<H3><a name="Lisp_nn4"></a>25.2.1 Additional Commandline Options </H3>
+<H3><a name="Lisp_nn4">27.2.1 Additional Commandline Options </a></H3>
 
 
 <p>
@@ -118,11 +119,11 @@ swig -cffi -help
 
 </table>
 
-<H3><a name="Lisp_nn5"></a>25.2.2 Generating CFFI bindings</H3>
+<H3><a name="Lisp_nn5">27.2.2 Generating CFFI bindings</a></H3>
 
 
 As we mentioned earlier the ideal way to use SWIG is to use interface
-    files. To illustrate the use of it, lets assume that we have a
+    files. To illustrate the use of it, let's assume that we have a
     file named <i>test.h</i> with the following C code:
 
 <div class="code"><pre>
@@ -219,19 +220,19 @@ The generated SWIG Code will be:
 (cl:defconstant x (cl:ash 5 -1))
 
 (cffi:defcstruct bar
-	(p :short)
-	(q :short)
-	(a :char)
-	(b :char)
-	(z :pointer)
-	(n :pointer))
+        (p :short)
+        (q :short)
+        (a :char)
+        (b :char)
+        (z :pointer)
+        (n :pointer))
 
 (cffi:defcvar ("my_struct" my_struct)
  :pointer)
 
 (cffi:defcstruct foo
-	(a :int)
-	(b :pointer))
+        (a :int)
+        (b :pointer))
 
 (cffi:defcfun ("pointer_func" pointer_func) :int
   (ClosureFun :pointer)
@@ -247,9 +248,9 @@ The generated SWIG Code will be:
   (array :pointer))
 
 (cffi:defcenum color
-	:RED
-	:BLUE
-	:GREEN)
+        :RED
+        :BLUE
+        :GREEN)
 </pre></div>
 
 <p>
@@ -284,9 +285,11 @@ Let's edit the interface file such that the C type "div_t*" is changed
 %feature("export");
 
 %feature("inline") lispsort_double;
-
 %feature("intern_function", "my-lispify") lispsort_double;
+%feature("export", package="'some-other-package") lispsort_double;
+
 %rename func123 renamed_cool_func;
+
 %ignore "pointer_func";
 
 %include "test.h"
@@ -310,12 +313,13 @@ The feature <i>intern_function</i> ensures that all C names are
         lispsort_double;</i>, here we are using an additional feature
       which allows us to use our lispify function.
 </p>
-<p>The <i>export</i> feature allows us to export the symbols. The <i>inline</i>
-      feature declaims the declared function as inline. The <i>rename</i>
-      directive allows us to change the name(it is useful when
-      generating C wrapper code for handling overloaded
-      functions). The <i>ignore</i> directive ignores a certain
-      declaration. 
+<p>The <i>export</i> feature allows us to export the symbols. If
+      the <i>package</i> argument is given, then the symbol will be exported to
+      the specified Lisp package. The <i>inline</i> feature declaims the
+      declared function as inline. The <i>rename</i> directive allows us to
+      change the name(it is useful when generating C wrapper code for handling
+      overloaded functions). The <i>ignore</i> directive ignores a certain
+      declaration.
 </p>
 <p>There are several other things which are possible, to see some
       example of usage of SWIG look at the Lispbuilder and wxCL
@@ -332,12 +336,12 @@ The feature <i>intern_function</i> ensures that all C names are
 (cl:export '#.(swig-lispify "x" 'constant))
 
 (cffi:defcstruct #.(swig-lispify "bar" 'classname)
-	(#.(swig-lispify "p" 'slotname) :short)
-	(#.(swig-lispify "q" 'slotname) :short)
-	(#.(swig-lispify "a" 'slotname) :char)
-	(#.(swig-lispify "b" 'slotname) :char)
-	(#.(swig-lispify "z" 'slotname) :pointer)
-	(#.(swig-lispify "n" 'slotname) :pointer))
+        (#.(swig-lispify "p" 'slotname) :short)
+        (#.(swig-lispify "q" 'slotname) :short)
+        (#.(swig-lispify "a" 'slotname) :char)
+        (#.(swig-lispify "b" 'slotname) :char)
+        (#.(swig-lispify "z" 'slotname) :pointer)
+        (#.(swig-lispify "n" 'slotname) :pointer))
 
 (cl:export '#.(swig-lispify "bar" 'classname))
 
@@ -359,8 +363,8 @@ The feature <i>intern_function</i> ensures that all C names are
 (cl:export '#.(swig-lispify "my_struct" 'variable))
 
 (cffi:defcstruct #.(swig-lispify "foo" 'classname)
-	(#.(swig-lispify "a" 'slotname) :int)
-	(#.(swig-lispify "b" 'slotname) :pointer))
+        (#.(swig-lispify "a" 'slotname) :int)
+        (#.(swig-lispify "b" 'slotname) :pointer))
 
 (cl:export '#.(swig-lispify "foo" 'classname))
 
@@ -381,18 +385,18 @@ The feature <i>intern_function</i> ensures that all C names are
   (n :int)
   (array :pointer))
 
-(cl:export '#.(my-lispify "lispsort_double" 'function))
+(cl:export '#.(my-lispify "lispsort_double" 'function) 'some-other-package)
 
 (cffi:defcenum #.(swig-lispify "color" 'enumname)
-	#.(swig-lispify "RED" 'enumvalue :keyword)
-	#.(swig-lispify "BLUE" 'enumvalue :keyword)
-	#.(swig-lispify "GREEN" 'enumvalue :keyword))
+        #.(swig-lispify "RED" 'enumvalue :keyword)
+        #.(swig-lispify "BLUE" 'enumvalue :keyword)
+        #.(swig-lispify "GREEN" 'enumvalue :keyword))
 
 (cl:export '#.(swig-lispify "color" 'enumname))
 
 </pre></div>
 
-<H3><a name="Lisp_nn6"></a>25.2.3 Generating CFFI bindings for C++ code</H3>
+<H3><a name="Lisp_nn6">27.2.3 Generating CFFI bindings for C++ code</a></H3>
 
 
 <p>This feature to SWIG (for CFFI) is very new and still far from
@@ -568,7 +572,7 @@ If you have any questions, suggestions, patches, etc., related to CFFI
       module feel free to contact us on the SWIG mailing list, and
       also please add a "[CFFI]" tag in the subject line.
 
-<H3><a name="Lisp_nn7"></a>25.2.4 Inserting user code into generated files</H3>
+<H3><a name="Lisp_nn7">27.2.4 Inserting user code into generated files</a></H3>
 
 
 <p>
@@ -608,7 +612,7 @@ Note that the block <tt>%{ ... %}</tt> is effectively a shortcut for
 </p>
 
 
-<H2><a name="Lisp_nn8"></a>25.3 CLISP</H2>
+<H2><a name="Lisp_nn8">27.3 CLISP</a></H2>
 
 
 <p>
@@ -638,7 +642,7 @@ swig -clisp -module <i>module-name</i>   <i>file-name</i>
     interface file for the CLISP module. The CLISP module tries to
     produce code which is both human readable and easily modifyable.
 </p>
-<H3><a name="Lisp_nn9"></a>25.3.1 Additional Commandline Options </H3>
+<H3><a name="Lisp_nn9">27.3.1 Additional Commandline Options </a></H3>
 
 
 <p>
@@ -658,33 +662,33 @@ swig -clisp -help
 <td>-extern-all</td>
 <td>If this option is given then clisp definitions for all the functions<br/>
 and global variables will be created otherwise only definitions for<br/>
-	    externed functions and variables are created. 
+externed functions and variables are created.
 </td>
 </tr>
 
 <tr>
 <td>-generate-typedef</td>
 <td>If this option is given then def-c-type will be used to generate<br/>
-	    shortcuts according to the typedefs in the input.
+shortcuts according to the typedefs in the input.
 </td>
 </tr>
 
 </table>
 
-<H3><a name="Lisp_nn10"></a>25.3.2 Details on CLISP bindings</H3>
+<H3><a name="Lisp_nn10">27.3.2 Details on CLISP bindings</a></H3>
 
 
 <p>
 As mentioned earlier the CLISP bindings generated by SWIG may need
-	some modifications. The clisp module creates a lisp file with
-	the same name as the module name. This
-	lisp file contains a 'defpackage' declaration, with the
-	package name same as the module name. This package uses the
-	'common-lisp' and 'ffi' packages. Also, package exports all
-	the functions, structures and variables for which an ffi
-	binding was generated.<br/>
-     After generating the defpackage statement, the clisp module also
-	sets the default language.
+some modifications. The clisp module creates a lisp file with
+the same name as the module name. This
+lisp file contains a 'defpackage' declaration, with the
+package name same as the module name. This package uses the
+'common-lisp' and 'ffi' packages. Also, package exports all
+the functions, structures and variables for which an ffi
+binding was generated.<br/>
+After generating the defpackage statement, the clisp module also
+sets the default language.
 
 <div class="targetlang"><pre>
 (defpackage :test
@@ -734,18 +738,18 @@ void test123(float x , double y);
 (ffi:def-call-out pointer_func
     (:name "pointer_func")
   (:arguments (ClosureFun (ffi:c-function (:arguments (arg0 (ffi:c-pointer NIL))
-						      (arg1 (ffi:c-pointer NIL))
-						      (arg2 (ffi:c-pointer NIL)))
-					  (:return-type NIL)))
-	      (y ffi:int))
+                                                      (arg1 (ffi:c-pointer NIL))
+                                                      (arg2 (ffi:c-pointer NIL)))
+                                          (:return-type NIL)))
+              (y ffi:int))
   (:return-type ffi:int)
   (:library +library-name+))
 
 (ffi:def-call-out func123
     (:name "func123")
   (:arguments (x (ffi:c-pointer div_t))
-	      (z (ffi:c-ptr (ffi:c-array (ffi:c-ptr (ffi:c-ptr ffi:int)) 100)))
-	      (y (ffi:c-ptr (ffi:c-ptr (ffi:c-array ffi:int (1000 10))))))
+              (z (ffi:c-ptr (ffi:c-array (ffi:c-ptr (ffi:c-ptr ffi:int)) 100)))
+              (y (ffi:c-ptr (ffi:c-ptr (ffi:c-array ffi:int (1000 10))))))
   (:return-type ffi:int)
   (:library +library-name+))
 
@@ -753,14 +757,14 @@ void test123(float x , double y);
 (ffi:def-call-out lispsort_double
     (:name "lispsort_double")
   (:arguments (n ffi:int)
-	      (array (ffi:c-ptr DOUBLE-FLOAT)))
+              (array (ffi:c-ptr DOUBLE-FLOAT)))
   (:return-type NIL)
   (:library +library-name+))
 
 (ffi:def-call-out test123
     (:name "test")
   (:arguments (x SINGLE-FLOAT)
-	      (y DOUBLE-FLOAT))
+              (y DOUBLE-FLOAT))
   (:return-type NIL)
   (:library +library-name+))
 
@@ -795,7 +799,7 @@ struct bar {
 
 </pre></div>
 
-<H2><a name="Lisp_nn11"></a>25.4 UFFI </H2>
+<H2><a name="Lisp_nn11">27.4 UFFI </a></H2>
 
 
 </body>

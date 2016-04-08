@@ -62,6 +62,14 @@ private:
   /*%typemap(in) NameWrap *NAMEWRAP end */
 %}
 
+// check $descriptor gets expanded properly when used in a fragment
+%fragment("nameDescriptor", "header")
+%{
+/*%fragment("getNameDescriptor", "header") start */
+static const char *nameDescriptor = "$descriptor(Name)";
+/*%fragment("getNameDescriptor", "header") end */
+%}
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -86,6 +94,14 @@ $typemap(in, NameWrap *NAMEWRAP)
 // %typemap(in) Name *mary end
 }
 
+%typemap(in, fragment="nameDescriptor") Name *james (Name temp) {
+  // %typemap(in) Name *james start
+  temp = Name(nameDescriptor);
+  (void)$input;
+  $1 = &temp;
+  // %typemap(in) Name *james end
+}
+
 %inline %{
 const char * testFred(Name *fred) {
   return fred->getName();
@@ -98,6 +114,9 @@ const char * testJill(Name *jill) {
 }
 const char * testMary(Name *mary) {
   return mary->getName();
+}
+const char * testJames(Name *james) {
+  return james->getName();
 }
 %}
 
@@ -169,7 +188,7 @@ namespace Space {
 
 #if defined(SWIGCSHARP)
 %typemap(cscode) Space::RenameMe %{
-  public static NewName factory(String s) {
+  public static NewName factory(System.String s) {
   //below should expand to:
   //return new NewName( new Name(s) );
     return new $typemap(cstype, Space::RenameMe)( new $typemap(cstype, Name)(s) ); 

@@ -7,6 +7,11 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) Hello::empty();
 #endif
 
+%ignore prev::operator++;
+%extend prev {
+  void next() { ++(*self); }
+}
+
 %inline %{
 
   int Exception() { return 13; }
@@ -24,6 +29,11 @@
   struct Hello
   {
     void empty() {}
+  };
+
+  struct prev {
+    prev & operator++() { return *this; }
+    prev operator++(int) { return *this; }
   };
 
 %}

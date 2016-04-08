@@ -42,30 +42,30 @@ namespace std {
 
     template<class K, class T> class map {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                $1 = std::map<K,T >();
-            } else if (gh_pair_p($input)) {
-                $1 = std::map<K,T >();
+            if (scm_is_null($input)) {
+                $1 = std::map< K, T >();
+            } else if (scm_is_pair($input)) {
+                $1 = std::map< K, T >();
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     K* k;
                     T* x;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (SWIG_ConvertPtr(val,(void**) &x,
                                     $descriptor(T *), 0) != 0) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     (($1_type &)$1)[*k] = *x;
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = *(($&1_type)
@@ -76,32 +76,32 @@ namespace std {
                                       std::map<K,T>* m),
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                temp = std::map<K,T >();
+            if (scm_is_null($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
-            } else if (gh_pair_p($input)) {
-                temp = std::map<K,T >();
+            } else if (scm_is_pair($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     K* k;
                     T* x;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (SWIG_ConvertPtr(val,(void**) &x,
                                     $descriptor(T *), 0) != 0) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     temp[*k] = *x;
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
@@ -109,30 +109,29 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$i.rbegin(); i!=$i.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                 SCM x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
-                SCM entry = gh_cons(k,x);
-                alist = gh_cons(entry,alist);
+                SCM entry = scm_cons(k,x);
+                alist = scm_cons(entry,alist);
             }
             $result = alist;
         }
         %typecheck(SWIG_TYPECHECK_MAP) map<K,T> {
             /* native sequence? */
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 /* check the first element only */
                 K* k;
                 T* x;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(key,(void**) &k,
                                     $descriptor(K *), 0) != 0) {
                         $1 = 0;
@@ -140,8 +139,8 @@ namespace std {
                         if (SWIG_ConvertPtr(val,(void**) &x,
                                         $descriptor(T *), 0) == 0) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (SWIG_ConvertPtr(val,(void**) &x,
                                             $descriptor(T *), 0) == 0)
                                 $1 = 1;
@@ -156,7 +155,7 @@ namespace std {
                 }
             } else {
                 /* wrapped map? */
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -167,17 +166,17 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_MAP) const map<K,T>&,
                                        const map<K,T>* {
             /* native sequence? */
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 /* check the first element only */
                 K* k;
                 T* x;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(key,(void**) &k,
                                     $descriptor(K *), 0) != 0) {
                         $1 = 0;
@@ -185,8 +184,8 @@ namespace std {
                         if (SWIG_ConvertPtr(val,(void**) &x,
                                         $descriptor(T *), 0) == 0) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (SWIG_ConvertPtr(val,(void**) &x,
                                             $descriptor(T *), 0) == 0)
                                 $1 = 1;
@@ -201,7 +200,7 @@ namespace std {
                 }
             } else {
                 /* wrapped map? */
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -217,15 +216,19 @@ namespace std {
         %rename("delete!") __delitem__;
         %rename("has-key?") has_key;
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
         map();
-        map(const map<K,T> &);
+        map(const map< K, T> &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             const T& __getitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -235,23 +238,22 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(const K& key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
-                    result = gh_cons(k,result);
+                    result = scm_cons(k,result);
                 }
                 return result;
             }
@@ -265,31 +267,31 @@ namespace std {
 
     template<class T> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                $1 = std::map<K,T >();
-            } else if (gh_pair_p($input)) {
-                $1 = std::map<K,T >();
+            if (scm_is_null($input)) {
+                $1 = std::map< K, T >();
+            } else if (scm_is_pair($input)) {
+                $1 = std::map< K, T >();
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     T* x;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     if (!CHECK(key))
                         SWIG_exception(SWIG_TypeError,
                                        "map<" #K "," #T "> expected");
                     if (SWIG_ConvertPtr(val,(void**) &x,
                                     $descriptor(T *), 0) != 0) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     (($1_type &)$1)[CONVERT_FROM(key)] = *x;
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = *(($&1_type)
@@ -300,33 +302,33 @@ namespace std {
                                       std::map<K,T>* m),
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                temp = std::map<K,T >();
+            if (scm_is_null($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
-            } else if (gh_pair_p($input)) {
-                temp = std::map<K,T >();
+            } else if (scm_is_pair($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     T* x;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     if (!CHECK(key))
                         SWIG_exception(SWIG_TypeError,
                                        "map<" #K "," #T "> expected");
                     if (SWIG_ConvertPtr(val,(void**) &x,
                                     $descriptor(T *), 0) != 0) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     temp[CONVERT_FROM(key)] = *x;
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
@@ -334,36 +336,35 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 T* val = new T(i->second);
                 SCM k = CONVERT_TO(i->first);
                 SCM x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
-                SCM entry = gh_cons(k,x);
-                alist = gh_cons(entry,alist);
+                SCM entry = scm_cons(k,x);
+                alist = scm_cons(entry,alist);
             }
             $result = alist;
         }
         %typecheck(SWIG_TYPECHECK_MAP) map<K,T> {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
                 T* x;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
                         if (SWIG_ConvertPtr(val,(void**) &x,
                                         $descriptor(T *), 0) == 0) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (SWIG_ConvertPtr(val,(void**) &x,
                                             $descriptor(T *), 0) == 0)
                                 $1 = 1;
@@ -378,7 +379,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -389,24 +390,24 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_MAP) const map<K,T>&,
                                        const map<K,T>* {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
                 T* x;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
                         if (SWIG_ConvertPtr(val,(void**) &x,
                                         $descriptor(T *), 0) == 0) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (SWIG_ConvertPtr(val,(void**) &x,
                                             $descriptor(T *), 0) == 0)
                                 $1 = 1;
@@ -421,7 +422,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -438,14 +439,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T > &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T& __getitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -455,22 +456,21 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     SCM k = CONVERT_TO(i->first);
-                    result = gh_cons(k,result);
+                    result = scm_cons(k,result);
                 }
                 return result;
             }
@@ -481,30 +481,30 @@ namespace std {
     %define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class K> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                $1 = std::map<K,T >();
-            } else if (gh_pair_p($input)) {
-                $1 = std::map<K,T >();
+            if (scm_is_null($input)) {
+                $1 = std::map< K, T >();
+            } else if (scm_is_pair($input)) {
+                $1 = std::map< K, T >();
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     K* k;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (!CHECK(val)) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         if (!CHECK(val))
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     }
                     (($1_type &)$1)[*k] = CONVERT_FROM(val);
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = *(($&1_type)
@@ -515,32 +515,32 @@ namespace std {
                                       std::map<K,T>* m),
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                temp = std::map<K,T >();
+            if (scm_is_null($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
-            } else if (gh_pair_p($input)) {
-                temp = std::map<K,T >();
+            } else if (scm_is_pair($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     K* k;
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (!CHECK(val)) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         if (!CHECK(val))
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     }
                     temp[*k] = CONVERT_FROM(val);
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
@@ -548,36 +548,35 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                 SCM x = CONVERT_TO(i->second);
-                SCM entry = gh_cons(k,x);
-                alist = gh_cons(entry,alist);
+                SCM entry = scm_cons(k,x);
+                alist = scm_cons(entry,alist);
             }
             $result = alist;
         }
         %typecheck(SWIG_TYPECHECK_MAP) map<K,T> {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
                 K* k;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
                         if (CHECK(val)) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (CHECK(val))
                                 $1 = 1;
                             else
@@ -591,7 +590,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -602,24 +601,24 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_MAP) const map<K,T>&,
                                        const map<K,T>* {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
                 K* k;
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
                         if (CHECK(val)) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (CHECK(val))
                                 $1 = 1;
                             else
@@ -633,7 +632,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -650,14 +649,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T > &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T __getitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -667,23 +666,22 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(const K& key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
-                    result = gh_cons(k,result);
+                    result = scm_cons(k,result);
                 }
                 return result;
             }
@@ -695,32 +693,32 @@ namespace std {
                                        T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
     template<> class map<K,T> {
         %typemap(in) map<K,T> (std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                $1 = std::map<K,T >();
-            } else if (gh_pair_p($input)) {
-                $1 = std::map<K,T >();
+            if (scm_is_null($input)) {
+                $1 = std::map< K, T >();
+            } else if (scm_is_pair($input)) {
+                $1 = std::map< K, T >();
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     if (!CHECK_K(key))
                         SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     if (!CHECK_T(val)) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         if (!CHECK_T(val))
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     }
                     (($1_type &)$1)[CONVERT_K_FROM(key)] = 
                                                CONVERT_T_FROM(val);
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = *(($&1_type)
@@ -731,33 +729,33 @@ namespace std {
                                       std::map<K,T>* m),
                      const map<K,T>* (std::map<K,T> temp,
                                       std::map<K,T>* m) {
-            if (gh_null_p($input)) {
-                temp = std::map<K,T >();
+            if (scm_is_null($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
-            } else if (gh_pair_p($input)) {
-                temp = std::map<K,T >();
+            } else if (scm_is_pair($input)) {
+                temp = std::map< K, T >();
                 $1 = &temp;
                 SCM alist = $input;
-                while (!gh_null_p(alist)) {
+                while (!scm_is_null(alist)) {
                     SCM entry, key, val;
-                    entry = gh_car(alist);
-                    if (!gh_pair_p(entry))
+                    entry = SCM_CAR(alist);
+                    if (!scm_is_pair(entry))
                         SWIG_exception(SWIG_TypeError,"alist expected");
-                    key = gh_car(entry);
-                    val = gh_cdr(entry);
+                    key = SCM_CAR(entry);
+                    val = SCM_CDR(entry);
                     if (!CHECK_K(key))
                         SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     if (!CHECK_T(val)) {
-                        if (!gh_pair_p(val))
+                        if (!scm_is_pair(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
-                        val = gh_car(val);
+                        val = SCM_CAR(val);
                         if (!CHECK_T(val))
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "> expected");
                     }
                     temp[CONVERT_K_FROM(key)] = CONVERT_T_FROM(val);
-                    alist = gh_cdr(alist);
+                    alist = SCM_CDR(alist);
                 }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
@@ -765,33 +763,32 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map< K, T >::reverse_iterator i=$1.rbegin(); i!=$1.rend(); ++i) {
                 SCM k = CONVERT_K_TO(i->first);
                 SCM x = CONVERT_T_TO(i->second);
-                SCM entry = gh_cons(k,x);
-                alist = gh_cons(entry,alist);
+                SCM entry = scm_cons(k,x);
+                alist = scm_cons(entry,alist);
             }
             $result = alist;
         }
         %typecheck(SWIG_TYPECHECK_MAP) map<K,T> {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (!CHECK_K(key)) {
                         $1 = 0;
                     } else {
                         if (CHECK_T(val)) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (CHECK_T(val))
                                 $1 = 1;
                             else
@@ -805,7 +802,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $&1_descriptor, 0) == 0)
                     $1 = 1;
@@ -816,22 +813,22 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_MAP) const map<K,T>&,
                                        const map<K,T>* {
             // native sequence?
-            if (gh_null_p($input)) {
+            if (scm_is_null($input)) {
                 /* an empty sequence can be of any type */
                 $1 = 1;
-            } else if (gh_pair_p($input)) {
+            } else if (scm_is_pair($input)) {
                 // check the first element only
-                SCM head = gh_car($input);
-                if (gh_pair_p(head)) {
-                    SCM key = gh_car(head);
-                    SCM val = gh_cdr(head);
+                SCM head = SCM_CAR($input);
+                if (scm_is_pair(head)) {
+                    SCM key = SCM_CAR(head);
+                    SCM val = SCM_CDR(head);
                     if (!CHECK_K(key)) {
                         $1 = 0;
                     } else {
                         if (CHECK_T(val)) {
                             $1 = 1;
-                        } else if (gh_pair_p(val)) {
-                            val = gh_car(val);
+                        } else if (scm_is_pair(val)) {
+                            val = SCM_CAR(val);
                             if (CHECK_T(val))
                                 $1 = 1;
                             else
@@ -845,7 +842,7 @@ namespace std {
                 }
             } else {
                 // wrapped map?
-                std::map<K,T >* m;
+                std::map< K, T >* m;
                 if (SWIG_ConvertPtr($input,(void **) &m,
                                 $1_descriptor, 0) == 0)
                     $1 = 1;
@@ -862,14 +859,14 @@ namespace std {
         %rename("has-key?") has_key;
       public:
         map();
-        map(const map<K,T> &);
+        map(const map< K, T> &);
         
         unsigned int size() const;
         bool empty() const;
         void clear();
         %extend {
             T __getitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
@@ -879,22 +876,21 @@ namespace std {
                 (*self)[key] = x;
             }
             void __delitem__(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
             bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
+                std::map< K, T >::iterator i = self->find(key);
                 return i != self->end();
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map< K, T >::reverse_iterator i=self->rbegin(); i!=self->rend(); ++i) {
                     SCM k = CONVERT_K_TO(i->first);
-                    result = gh_cons(k,result);
+                    result = scm_cons(k,result);
                 }
                 return result;
             }
@@ -903,446 +899,446 @@ namespace std {
     %enddef
 
 
-    specialize_std_map_on_key(bool,gh_boolean_p,
-                              gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_key(int,gh_number_p,
-                              gh_scm2long,gh_long2scm);
-    specialize_std_map_on_key(short,gh_number_p,
-                              gh_scm2long,gh_long2scm);
-    specialize_std_map_on_key(long,gh_number_p,
-                              gh_scm2long,gh_long2scm);
-    specialize_std_map_on_key(unsigned int,gh_number_p,
-                              gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_key(unsigned short,gh_number_p,
-                              gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_key(unsigned long,gh_number_p,
-                              gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_key(double,gh_number_p,
-                              gh_scm2double,gh_double2scm);
-    specialize_std_map_on_key(float,gh_number_p,
-                              gh_scm2double,gh_double2scm);
-    specialize_std_map_on_key(std::string,gh_string_p,
+    specialize_std_map_on_key(bool,scm_is_bool,
+                              scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_key(int,scm_is_number,
+                              scm_to_long,scm_from_long);
+    specialize_std_map_on_key(short,scm_is_number,
+                              scm_to_long,scm_from_long);
+    specialize_std_map_on_key(long,scm_is_number,
+                              scm_to_long,scm_from_long);
+    specialize_std_map_on_key(unsigned int,scm_is_number,
+                              scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_key(unsigned short,scm_is_number,
+                              scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_key(unsigned long,scm_is_number,
+                              scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_key(double,scm_is_number,
+                              scm_to_double,scm_from_double);
+    specialize_std_map_on_key(float,scm_is_number,
+                              scm_to_double,scm_from_double);
+    specialize_std_map_on_key(std::string,scm_is_string,
                               SWIG_scm2string,SWIG_string2scm);
 
-    specialize_std_map_on_value(bool,gh_boolean_p,
-                                gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_value(int,gh_number_p,
-                                gh_scm2long,gh_long2scm);
-    specialize_std_map_on_value(short,gh_number_p,
-                                gh_scm2long,gh_long2scm);
-    specialize_std_map_on_value(long,gh_number_p,
-                                gh_scm2long,gh_long2scm);
-    specialize_std_map_on_value(unsigned int,gh_number_p,
-                                gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_value(unsigned short,gh_number_p,
-                                gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_value(unsigned long,gh_number_p,
-                                gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_value(double,gh_number_p,
-                                gh_scm2double,gh_double2scm);
-    specialize_std_map_on_value(float,gh_number_p,
-                                gh_scm2double,gh_double2scm);
-    specialize_std_map_on_value(std::string,gh_string_p,
+    specialize_std_map_on_value(bool,scm_is_bool,
+                                scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_value(int,scm_is_number,
+                                scm_to_long,scm_from_long);
+    specialize_std_map_on_value(short,scm_is_number,
+                                scm_to_long,scm_from_long);
+    specialize_std_map_on_value(long,scm_is_number,
+                                scm_to_long,scm_from_long);
+    specialize_std_map_on_value(unsigned int,scm_is_number,
+                                scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_value(unsigned short,scm_is_number,
+                                scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_value(unsigned long,scm_is_number,
+                                scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_value(double,scm_is_number,
+                                scm_to_double,scm_from_double);
+    specialize_std_map_on_value(float,scm_is_number,
+                                scm_to_double,scm_from_double);
+    specialize_std_map_on_value(std::string,scm_is_string,
                                 SWIG_scm2string,SWIG_string2scm);
 
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(int,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(int,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(short,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(short,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(long,gh_number_p,
-                               gh_scm2long,gh_long2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(long,scm_is_number,
+                               scm_to_long,scm_from_long,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(double,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(double,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(float,gh_number_p,
-                               gh_scm2double,gh_double2scm,
-                               std::string,gh_string_p,
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(float,scm_is_number,
+                               scm_to_double,scm_from_double,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               bool,gh_boolean_p,
-                               gh_scm2bool,SWIG_bool2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               bool,scm_is_bool,
+                               scm_is_true,SWIG_bool2scm);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               int,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               int,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               short,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               short,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               long,gh_number_p,
-                               gh_scm2long,gh_long2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               long,scm_is_number,
+                               scm_to_long,scm_from_long);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               unsigned int,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               unsigned int,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               unsigned short,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               unsigned short,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               unsigned long,gh_number_p,
-                               gh_scm2ulong,gh_ulong2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               unsigned long,scm_is_number,
+                               scm_to_ulong,scm_from_ulong);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               double,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               double,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               float,gh_number_p,
-                               gh_scm2double,gh_double2scm);
-    specialize_std_map_on_both(std::string,gh_string_p,
+                               float,scm_is_number,
+                               scm_to_double,scm_from_double);
+    specialize_std_map_on_both(std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm,
-                               std::string,gh_string_p,
+                               std::string,scm_is_string,
                                SWIG_scm2string,SWIG_string2scm);
 }

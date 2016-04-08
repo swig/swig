@@ -31,7 +31,7 @@ public class li_carrays_runme {
 
     {
       // global array variable
-      int length = 5;
+      int length = 3;
       XY xyArrayPointer = li_carrays.getGlobalXYArray();
       XYArray xyArray = XYArray.frompointer(xyArrayPointer);
       for (int i=0; i<length; i++) {

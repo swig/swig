@@ -1,0 +1,3 @@
+cpp_using_type_aliasing.i:8: Warning 341: The 'using' keyword in type aliasing is not fully supported yet.
+cpp_using_type_aliasing.i:8: Warning 315: Nothing known about 'Okay< int >'.
+cpp_using_type_aliasing.i:8: Warning 315: Nothing known about 'Okay< int >'.

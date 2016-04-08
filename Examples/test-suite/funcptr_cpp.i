@@ -20,7 +20,7 @@ int call3(int & (*d)(const int &, int), int a, int b) { return d(a, b); }
 %constant int (*ADD_BY_VALUE)(const int &, int) = addByValue;
 %constant int * (*ADD_BY_POINTER)(const int &, int) = addByPointer;
 %constant int & (*ADD_BY_REFERENCE)(const int &, int) = addByReference;
-
+%constant int (* const ADD_BY_VALUE_C)(const int &, int) = addByValue;
 
 %inline %{
 typedef int AddByValueTypedef(const int &a, int b);

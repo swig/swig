@@ -1,24 +1,18 @@
 SWIG Examples
 
-The "perl5", "python", "tcl", "guile", "java", "mzscheme", "ruby", and
-"chicken" directories contain a number of simple examples that are
-primarily used for testing. 
+The subdirectories of "Examples" named after SWIG's language backends
+contain a number of simple examples that are primarily used for testing.
 
 The file 'index.html' is the top of a hyperlinked document that
 contains information about all of the examples along with various
 notes related to each example.
-
-The Examples directory is currently quite incomplete because it
-is being reorganized.  A more complete set of examples can be found
-in the SWIG1.1p5 distribution (most of which should still work with
-SWIG1.3).
 
 Note: All of the examples rely upon the Makefile in this directory.
 You may need to edit it to reflect the configuration of your machine
 in case the configure script guesses incorrect settings.
 
 
-*** Special note concering C++ ***
+*** Special note concerning C++ ***
 
 The configure script is currently unable to handle all of the possible
 options for producing dynamically loadable C++ extensions.  Here are

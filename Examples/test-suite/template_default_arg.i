@@ -38,7 +38,7 @@
       X(const T& t = T()) {}
       X(double a, const T& t = T(0)) {}
       T meth(double a, const T& t = T(0)) { return t; }
-      const T& meth(const T& t = T(0)) { return t; }
+      const T& meth(const T& t = T(0)) { static T tt; tt = t; return tt; }
     };
 
   template <typename TT> class Y : private X<TT> {

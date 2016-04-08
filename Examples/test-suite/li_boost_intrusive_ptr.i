@@ -6,6 +6,9 @@
 // count the instances of intrusive_ptr. Uncomment the INTRUSIVE_PTR_WRAPPER macro to turn this on.
 //
 // Also note the debug_shared flag  which can be set from the target language.
+//
+// Usage of intrusive_ptr_add_ref and intrusive_ptr_release based on boost testing:
+// http://www.boost.org/doc/libs/1_36_0/libs/smart_ptr/test/intrusive_ptr_test.cpp
 
 %module li_boost_intrusive_ptr
 
@@ -13,9 +16,12 @@
 %warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerived;
 %warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerivedDerived;
 
-%inline %{
-#include "boost/shared_ptr.hpp"
-#include "boost/intrusive_ptr.hpp"
+%ignore intrusive_ptr_add_ref;
+%ignore intrusive_ptr_release;
+
+%{
+#include <boost/shared_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/detail/atomic_count.hpp>
 
 // Uncomment macro below to turn on intrusive_ptr memory leak checking as described above
@@ -102,8 +108,6 @@
 
 %ignore IgnoredRefCountingBase;
 %ignore *::operator=;
-%ignore intrusive_ptr_add_ref;
-%ignore intrusive_ptr_release;
 %newobject pointerownertest();
 %newobject smartpointerpointerownertest();
   
@@ -131,6 +135,8 @@ struct Klass {
   void release(void) const { if (--count == 0) delete this; }
   int use_count(void) const { return count; }
   static long getTotal_count() { return total_count; }
+  friend void intrusive_ptr_add_ref(const Klass* r) { r->addref(); }
+  friend void intrusive_ptr_release(const Klass* r) { r->release(); }
 
 private:
   static void increment() { ++total_count; if (debug_shared) cout << "      ++xxxxx Klass::increment tot: " << total_count << endl;}
@@ -176,6 +182,8 @@ struct IgnoredRefCountingBase {
   void addref(void) const { ++count; }
   void release(void) const { if (--count == 0) delete this; }
   int use_count(void) const { return count; }
+  inline friend void intrusive_ptr_add_ref(const IgnoredRefCountingBase* r) { r->addref(); }
+  inline friend void intrusive_ptr_release(const IgnoredRefCountingBase* r) { r->release(); }
   static long getTotal_count() { return total_count; }
   
  private:
@@ -413,6 +421,8 @@ template <class T1, class T2> struct Base {
   void addref(void) const { count++; }
   void release(void) const { if (--count == 0) delete this; }
   int use_count(void) const { return count; }
+  inline friend void intrusive_ptr_add_ref(const Base<T1, T2>* r) { r->addref(); }
+  inline friend void intrusive_ptr_release(const Base<T1, T2>* r) { r->release(); }
 };
 %}
 
@@ -429,10 +439,6 @@ template <class T1, class T2> struct Pair : Base<T1, T2> {
 
 Pair<int, double> pair_id2(Pair<int, double> p) { return p; }
 SwigBoost::intrusive_ptr< Pair<int, double> > pair_id1(SwigBoost::intrusive_ptr< Pair<int, double> > p) { return p; }
-
-template<typename T> void intrusive_ptr_add_ref(const T* r) { r->addref(); }
-
-template<typename T> void intrusive_ptr_release(const T* r) { r->release(); }
 
 long use_count(const SwigBoost::shared_ptr<Space::Klass>& sptr) {
   return sptr.use_count();

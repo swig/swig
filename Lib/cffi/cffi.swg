@@ -67,7 +67,7 @@
                 long, signed long, unsigned long,
                 float, double, long double, char *, void *, void,
                 enum SWIGTYPE, SWIGTYPE *,
-                SWIGTYPE[ANY], SWIGTYPE &  "$1_ltype";
+                SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE && "$1_ltype";
 %typemap(ctype) SWIGTYPE                   "$&1_type";
 
 %typemap(in) bool                          "$1 = (bool)$input;";
@@ -77,7 +77,7 @@
              long, signed long, unsigned long,
              float, double, long double, char *, void *, void,
              enum SWIGTYPE, SWIGTYPE *,
-             SWIGTYPE[ANY], SWIGTYPE &     "$1 = $input;";
+             SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE && "$1 = $input;";
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
 
 %typemap(out) void                         "";
@@ -88,7 +88,7 @@
               long, signed long, unsigned long,
               float, double, long double, char *, void *,
               enum SWIGTYPE, SWIGTYPE *,
-              SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
+              SWIGTYPE[ANY], SWIGTYPE &, SWIGTYPE && "$result = $1;";
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE                     "$result = new $1_type($1);";
 #else
@@ -109,7 +109,7 @@
                     int, signed int, unsigned int,
                     long, signed long, unsigned long,
                     enum SWIGTYPE { $1 = 1; };
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &,
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&,
                                    SWIGTYPE[ANY], SWIGTYPE { $1 = 1; };
 /* This maps C/C++ types to Lisp classes for overload dispatch */
 
@@ -132,6 +132,7 @@
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
@@ -152,7 +153,7 @@
 %insert("swiglisp") %{
 ;;;SWIG wrapper code starts here
 
-(cl:defmacro defanonenum (&body enums)
+(cl:defmacro defanonenum (cl:&body enums)
    "Converts anonymous enums to defconstants."
   `(cl:progn ,@(cl:loop for value in enums
                         for index = 0 then (cl:1+ index)

@@ -1,67 +1,9 @@
 //
 //   Maps
 //
-%fragment("StdMapTraits","header",fragment="StdSequenceTraits")
+%fragment("StdMapCommonTraits","header",fragment="StdSequenceTraits")
 {
   namespace swig {
-    template <class RubySeq, class K, class T >
-    inline void
-    assign(const RubySeq& rubyseq, std::map<K,T > *map) {
-      typedef typename std::map<K,T>::value_type value_type;
-      typename RubySeq::const_iterator it = rubyseq.begin();
-      for (;it != rubyseq.end(); ++it) {
-	map->insert(value_type(it->first, it->second));
-      }
-    }
-
-    template <class K, class T>
-    struct traits_asptr<std::map<K,T> >  {
-      typedef std::map<K,T> map_type;
-      static int asptr(VALUE obj, map_type **val) {
-	int res = SWIG_ERROR;
-	if ( TYPE(obj) == T_HASH ) {
-	  static ID id_to_a = rb_intern("to_a");
-	  VALUE items = rb_funcall(obj, id_to_a, 0);
-	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
-	} else {
-	  map_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
-	  if (SWIG_IsOK(res) && val)  *val = p;
-	}
-	return res;
-      }
-    };
-      
-    template <class K, class T >
-    struct traits_from<std::map<K,T> >  {
-      typedef std::map<K,T> map_type;
-      typedef typename map_type::const_iterator const_iterator;
-      typedef typename map_type::size_type size_type;
-            
-      static VALUE from(const map_type& map) {
-	swig_type_info *desc = swig::type_info<map_type>();
-	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
-	} else {
-	  size_type size = map.size();
-	  int rubysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
-	  if (rubysize < 0) {
-	    SWIG_RUBY_THREAD_BEGIN_BLOCK;
-	    rb_raise( rb_eRuntimeError, "map size not valid in Ruby");
-	    SWIG_RUBY_THREAD_END_BLOCK;
-	    return Qnil;
-	  }
-	  VALUE obj = rb_hash_new();
-	  for (const_iterator i= map.begin(); i!= map.end(); ++i) {
-	    VALUE key = swig::from(i->first);
-	    VALUE val = swig::from(i->second);
-	    rb_hash_aset(obj, key, val);
-	  }
-	  return obj;
-	}
-      }
-    };
-
     template <class ValueType>
     struct from_key_oper 
     {
@@ -131,6 +73,69 @@
     {
       return new MapValueIterator_T<OutIter>(current, begin, end, seq);
     }
+  }
+}
+
+%fragment("StdMapTraits","header",fragment="StdMapCommonTraits")
+{
+  namespace swig {
+    template <class RubySeq, class K, class T >
+    inline void
+    assign(const RubySeq& rubyseq, std::map<K,T > *map) {
+      typedef typename std::map<K,T>::value_type value_type;
+      typename RubySeq::const_iterator it = rubyseq.begin();
+      for (;it != rubyseq.end(); ++it) {
+	map->insert(value_type(it->first, it->second));
+      }
+    }
+
+    template <class K, class T>
+    struct traits_asptr<std::map<K,T> >  {
+      typedef std::map<K,T> map_type;
+      static int asptr(VALUE obj, map_type **val) {
+	int res = SWIG_ERROR;
+	if ( TYPE(obj) == T_HASH ) {
+	  static ID id_to_a = rb_intern("to_a");
+	  VALUE items = rb_funcall(obj, id_to_a, 0);
+	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
+	} else {
+	  map_type *p;
+	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
+	  if (SWIG_IsOK(res) && val)  *val = p;
+	}
+	return res;
+      }
+    };
+      
+    template <class K, class T >
+    struct traits_from<std::map<K,T> >  {
+      typedef std::map<K,T> map_type;
+      typedef typename map_type::const_iterator const_iterator;
+      typedef typename map_type::size_type size_type;
+            
+      static VALUE from(const map_type& map) {
+	swig_type_info *desc = swig::type_info<map_type>();
+	if (desc && desc->clientdata) {
+	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	} else {
+	  size_type size = map.size();
+	  int rubysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	  if (rubysize < 0) {
+	    SWIG_RUBY_THREAD_BEGIN_BLOCK;
+	    rb_raise( rb_eRuntimeError, "map size not valid in Ruby");
+	    SWIG_RUBY_THREAD_END_BLOCK;
+	    return Qnil;
+	  }
+	  VALUE obj = rb_hash_new();
+	  for (const_iterator i= map.begin(); i!= map.end(); ++i) {
+	    VALUE key = swig::from(i->first);
+	    VALUE val = swig::from(i->second);
+	    rb_hash_aset(obj, key, val);
+	  }
+	  return obj;
+	}
+      }
+    };
   }
 }
 

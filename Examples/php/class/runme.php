@@ -14,7 +14,7 @@ print "    Created square\n";
 
 # ----- Access a static member -----
 
-print "\nA total of " . Shape::get_nshapes() . " shapes were created\n";
+print "\nA total of " . Shape::nshapes() . " shapes were created\n";
 
 # ----- Member data access -----
 
@@ -54,7 +54,7 @@ $s = NULL;
 # the square.
 $o = NULL;
 
-print Shape::get_nshapes() . " shapes remain\n";
+print Shape::nshapes() . " shapes remain\n";
 print "Goodbye\n";
 
 ?>

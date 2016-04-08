@@ -139,7 +139,7 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 
 /* float */
 
-%numeric_double(float,           "<float.h>", -FLT_MAX, FLT_MAX)
+%numeric_float(float,           "SWIG_Float_Overflow_Check", SWIG_Float_Overflow_Check(v))
 
 /* long/unsigned long */
 
@@ -147,6 +147,12 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 %ensure_type_fragments(unsigned long)
 
 /* long long/unsigned long long */
+
+%fragment("SWIG_LongLongAvailable","header", fragment="<limits.h>") %{
+#if defined(LLONG_MAX) && !defined(SWIG_LONG_LONG_AVAILABLE)
+#  define SWIG_LONG_LONG_AVAILABLE
+#endif
+%}
 
 %ensure_type_fragments(long long)
 %ensure_type_fragments(unsigned long long)
@@ -157,42 +163,82 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 
 /* size_t */
 
-%fragment(SWIG_From_frag(size_t),"header",fragment=SWIG_From_frag(unsigned long)) {
+%fragment(SWIG_From_frag(size_t),"header",fragment=SWIG_From_frag(unsigned long),fragment=SWIG_From_frag(unsigned long long)) {
 SWIGINTERNINLINE SWIG_Object
 SWIG_From_dec(size_t)(size_t value)
 {    
-  return SWIG_From(unsigned long)(%numeric_cast(value, unsigned long));
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(size_t) <= sizeof(unsigned long)) {
+%#endif
+    return SWIG_From(unsigned long)(%numeric_cast(value, unsigned long));
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else {
+    /* assume sizeof(size_t) <= sizeof(unsigned long long) */
+    return SWIG_From(unsigned long long)(%numeric_cast(value, unsigned long long));
+  }
+%#endif
 }
 }
 
-%fragment(SWIG_AsVal_frag(size_t),"header",fragment=SWIG_AsVal_frag(unsigned long)) {
+%fragment(SWIG_AsVal_frag(size_t),"header",fragment=SWIG_AsVal_frag(unsigned long),fragment=SWIG_AsVal_frag(unsigned long long)) {
 SWIGINTERNINLINE int
 SWIG_AsVal_dec(size_t)(SWIG_Object obj, size_t *val)
 {
-  unsigned long v;
-  int res = SWIG_AsVal(unsigned long)(obj, val ? &v : 0);
-  if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, size_t);
+  int res = SWIG_TypeError;
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(size_t) <= sizeof(unsigned long)) {
+%#endif
+    unsigned long v;
+    res = SWIG_AsVal(unsigned long)(obj, val ? &v : 0);
+    if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, size_t);
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else if (sizeof(size_t) <= sizeof(unsigned long long)) {
+    unsigned long long v;
+    res = SWIG_AsVal(unsigned long long)(obj, val ? &v : 0);
+    if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, size_t);
+  }
+%#endif
   return res;
 }
 }
 
 /* ptrdiff_t */
 
-%fragment(SWIG_From_frag(ptrdiff_t),"header",fragment=SWIG_From_frag(long)) {
+%fragment(SWIG_From_frag(ptrdiff_t),"header",fragment=SWIG_From_frag(long),fragment=SWIG_From_frag(long long)) {
 SWIGINTERNINLINE SWIG_Object
 SWIG_From_dec(ptrdiff_t)(ptrdiff_t value)
 {    
-  return SWIG_From(long)(%numeric_cast(value,long));
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(ptrdiff_t) <= sizeof(long)) {
+%#endif
+    return SWIG_From(long)(%numeric_cast(value, long));
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else {
+    /* assume sizeof(ptrdiff_t) <= sizeof(long long) */
+    return SWIG_From(long long)(%numeric_cast(value, long long));
+  }
+%#endif
 }
 }
 
-%fragment(SWIG_AsVal_frag(ptrdiff_t),"header",fragment=SWIG_AsVal_frag(long)) {
+%fragment(SWIG_AsVal_frag(ptrdiff_t),"header",fragment=SWIG_AsVal_frag(long),fragment=SWIG_AsVal_frag(long long)) {
 SWIGINTERNINLINE int
 SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 {
-  long v;
-  int res = SWIG_AsVal(long)(obj, val ? &v : 0);
-  if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, ptrdiff_t);
+  int res = SWIG_TypeError;
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  if (sizeof(ptrdiff_t) <= sizeof(long)) {
+%#endif
+    long v;
+    res = SWIG_AsVal(long)(obj, val ? &v : 0);
+    if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, ptrdiff_t);
+%#ifdef SWIG_LONG_LONG_AVAILABLE
+  } else if (sizeof(ptrdiff_t) <= sizeof(long long)) {
+    long long v;
+    res = SWIG_AsVal(long long)(obj, val ? &v : 0);
+    if (SWIG_IsOK(res) && val) *val = %numeric_cast(v, ptrdiff_t);
+  }
+%#endif
   return res;
 }
 }

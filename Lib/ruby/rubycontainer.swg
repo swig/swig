@@ -26,9 +26,7 @@
 
 /**** The RubySequence C++ Wrap ***/
 
-%insert(header) %{
-#include <stdexcept>
-%}
+%fragment("<stdexcept>");
 
 %include <std_except.i>
 
@@ -93,11 +91,17 @@ namespace swig {
     return pos;
   }
 
+  template <class Sequence>
+  inline void
+  resize(Sequence *seq, typename Sequence::size_type n, typename Sequence::value_type x) {
+    seq->resize(n, x);
+  }
+
   template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swig::check_index(i, size);
+    typename Sequence::size_type ii = swig::check_index(i, size, (i == size && j == size));
     typename Sequence::size_type jj = swig::slice_index(j, size);
 
     if (jj > ii) {
@@ -166,7 +170,6 @@ namespace swig
    * of an element of a Ruby Array of stuff.
    * It can be used by RubySequence_InputIterator to make it work with STL
    * algorithms.
-   * 
    */
   template <class T>
   struct RubySequence_Ref
@@ -212,7 +215,6 @@ namespace swig
    * RubySequence_Ref. 
    * It can be used by RubySequence_InputIterator to make it work with STL
    * algorithms.
-   * 
    */
   template <class T>
   struct RubySequence_ArrowProxy
@@ -227,7 +229,6 @@ namespace swig
   /**
    * Input Iterator.  This adapator class is a random access iterator that 
    * allows you to use STL algorithms with a Ruby class (a Ruby Array by default).
-   * 
    */
   template <class T, class Reference = RubySequence_Ref< T > >
   struct RubySequence_InputIterator
@@ -328,7 +329,6 @@ namespace swig
   /**
    * This adaptor class allows you to use a Ruby Array as if it was an STL
    * container, giving it begin(), end(), and iterators.
-   * 
    */
   template <class T>
   struct RubySequence_Cont
@@ -421,7 +421,6 @@ namespace swig
 
 /** 
  * Macros used to typemap an STL iterator -> SWIGIterator conversion.
- * 
  */
 %define %swig_sequence_iterator(Sequence...)
 #if defined(SWIG_EXPORT_ITERATOR_METHODS)
@@ -551,7 +550,6 @@ namespace swig
 
 /**
  * Macro used to define common Ruby printing methods for STL container
- * 
  */
 %define %swig_sequence_printing_methods(Sequence...)
 
@@ -611,9 +609,8 @@ namespace swig
 
 /**
  * Macro used to add common methods to all STL sequence-type containers 
- * 
  */
-%define %swig_sequence_methods_common(Sequence...)
+%define %swig_sequence_methods_non_resizable_common(Sequence...)
   %swig_container_methods(%arg(Sequence))
   %swig_sequence_iterator(%arg(Sequence))
   %swig_sequence_printing_methods(%arg(Sequence))
@@ -622,24 +619,28 @@ namespace swig
 
   %extend {
 
-
-  VALUE slice( difference_type i, difference_type j )
-    {
-	if ( j <= 0 ) return Qnil;
-	std::size_t len = $self->size();
-	if ( i < 0 ) i = len - i;
-	j += i;
-	if ( static_cast<std::size_t>(j) >= len ) j = len-1;
-
-	VALUE r = Qnil;
-	try {
-	  r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
-	}
-	catch( std::out_of_range )
-	  {
-	  }
-	return r;
+  VALUE slice( difference_type i, difference_type length ) throw (std::invalid_argument) {
+      if ( length < 0 )
+        return Qnil;
+      std::size_t len = $self->size();
+      if ( i < 0 ) {
+        if ( i + static_cast<Sequence::difference_type>(len) < 0 )
+          return Qnil;
+        else
+          i = len + i;
       }
+      Sequence::difference_type j = length + i;
+      if ( j > static_cast<Sequence::difference_type>(len) )
+        j = len;
+
+      VALUE r = Qnil;
+      try {
+	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
+      }
+      catch( std::out_of_range ) {
+      }
+      return r;
+    }
 
 
     Sequence* each()
@@ -659,12 +660,23 @@ namespace swig
 	return self;
       }
 
+    VALUE __delete2__(const value_type& i) {
+      VALUE r = Qnil;
+      return r;
+    }
+
+  }
+%enddef
+
+%define %swig_sequence_methods_resizable_common(Sequence...)
+  %extend {
+
     %newobject select;
     Sequence* select() {
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
-      Sequence* r = new Sequence;
+      Sequence* r = new Sequence();
       Sequence::const_iterator i = $self->begin();
       Sequence::const_iterator e = $self->end();
       for ( ; i != e; ++i )
@@ -675,27 +687,6 @@ namespace swig
 	}
 	
       return r;
-    }
-
-    %alias reject_bang "delete_if";
-    Sequence* reject_bang() {
-      if ( !rb_block_given_p() )
-	rb_raise( rb_eArgError, "no block given" );
-
-      Sequence::iterator i = self->begin();
-      Sequence::iterator e = self->end();
-      for ( ; i != e; )
-	{
-	  VALUE r = swig::from< Sequence::value_type >(*i);
-	  if ( RTEST( rb_yield(r) ) ) {
-	    $self->erase(i++);
-            e = self->end();
-	  } else {
-	    ++i;
-          }
-	}
-	
-      return self;
     }
 
     VALUE delete_at(difference_type i) {
@@ -710,21 +701,17 @@ namespace swig
 	}
       return r;
     }
-
-
-    VALUE __delete2__(const value_type& i) {
-      VALUE r = Qnil;
-      return r;
-    }
-
   }
 %enddef
 
+%define %swig_sequence_methods_common(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_resizable_common(%arg(Sequence))
+%enddef
 
 /**
  * Macro used to add functions for back insertion of values in
- * STL Sequence containers
- * 
+ * STL sequence containers
  */
 %define %swig_sequence_back_inserters( Sequence... )
   %extend {
@@ -747,7 +734,7 @@ namespace swig
       if ( !rb_block_given_p() )
 	rb_raise( rb_eArgError, "no block given" );
 
-      Sequence* r = new Sequence;
+      Sequence* r = new Sequence();
       std::remove_copy_if( $self->begin(), $self->end(),              
 			   std::back_inserter(*r),
 			   swig::yield< Sequence::value_type >() );
@@ -757,15 +744,21 @@ namespace swig
   }
 %enddef
 
+%define %swig_sequence_methods_extra(Sequence...)
+  %extend {
+    %alias reject_bang "delete_if";
+    Sequence* reject_bang() {
+      if ( !rb_block_given_p() )
+	rb_raise( rb_eArgError, "no block given" );
 
-/**
- * Macro used to add functions for Sequences
- * 
- */
-%define %swig_sequence_methods(Sequence...)
-  %swig_sequence_methods_common(%arg(Sequence));
-  %swig_sequence_back_inserters(%arg(Sequence));
+      $self->erase( std::remove_if( $self->begin(), $self->end(),
+            swig::yield< Sequence::value_type >() ), $self->end() );
+      return $self;
+    }
+  }
+%enddef
 
+%define %swig_sequence_methods_non_resizable_accessors(Sequence...)
   %extend {
 
     VALUE at(difference_type i) const {
@@ -773,25 +766,31 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range )
-	{
-	}
+      catch( std::out_of_range ) {
+      }
       return r;
     }
 
-    VALUE __getitem__(difference_type i, difference_type j) const {
-      if ( j <= 0 ) return Qnil;
+    VALUE __getitem__(difference_type i, difference_type length) const throw (std::invalid_argument) {
+      if ( length < 0 )
+        return Qnil;
       std::size_t len = $self->size();
-      if ( i < 0 ) i = len - i;
-      j += i; if ( static_cast<std::size_t>(j) >= len ) j = len-1;
+      if ( i < 0 ) {
+        if ( i + static_cast<Sequence::difference_type>(len) < 0 )
+          return Qnil;
+        else
+          i = len + i;
+      }
+      Sequence::difference_type j = length + i;
+      if ( j > static_cast<Sequence::difference_type>(len) )
+        j = len;
 
       VALUE r = Qnil;
       try {
 	r = swig::from< const Sequence* >( swig::getslice(self, i, j) );
       }
-      catch( std::out_of_range )
-	{
-	}
+      catch( std::out_of_range ) {
+      }
       return r;
     }
 
@@ -800,19 +799,16 @@ namespace swig
       try {
 	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
       }
-      catch( std::out_of_range )
-	{
-	}
+      catch( std::out_of_range ) {
+      }
       return r;
     }
 
-    VALUE __getitem__(VALUE i) const {
-      if ( rb_obj_is_kind_of( i, rb_cRange ) == Qfalse )
-	{
-	  rb_raise( rb_eTypeError, "not a valid index or range" );
-	}
+    VALUE __getitem__(VALUE i) const throw (std::invalid_argument) {
+      if ( rb_obj_is_kind_of( i, rb_cRange ) == Qfalse ) {
+        rb_raise( rb_eTypeError, "not a valid index or range" );
+      }
 
-      VALUE r = Qnil;
       static ID id_end   = rb_intern("end");
       static ID id_start = rb_intern("begin");
       static ID id_noend = rb_intern("exclude_end?");
@@ -824,51 +820,79 @@ namespace swig
       int len = $self->size();
 
       int s = NUM2INT( start );
-      if ( s < 0 ) s = len + s;
-      else if ( s >= len ) return Qnil;
+      if ( s < 0 ) {
+        s = len + s;
+        if ( s < 0 )
+          return Qnil;
+      } else if ( s > len )
+        return Qnil;
 
       int e = NUM2INT( end );
       if ( e < 0 ) e = len + e;
-
-      if ( e < s ) return Qnil; //std::swap( s, e );
-
       if ( noend ) e -= 1;
+      if ( e < 0 ) e = -1;
       if ( e >= len ) e = len - 1;
+      if ( s == len ) e = len - 1;
 
       return swig::from< Sequence* >( swig::getslice(self, s, e+1) );
     }
 
-    VALUE __setitem__(difference_type i, const value_type& x)
+    VALUE __setitem__(difference_type i, const value_type& x) throw (std::invalid_argument, std::out_of_range)
       {
-	std::size_t len = $self->size();
-	if ( i < 0 ) i = len - i;
-	else if ( static_cast<std::size_t>(i) >= len )
-	  $self->resize( i+1, x );
-	else
-	  *(swig::getpos(self,i)) = x;
+	if ( i >= static_cast<Sequence::difference_type>( $self->size()) )
+          swig::resize( $self, i+1, x );
+        else
+          *(swig::getpos($self, i)) = x;
 
 	return swig::from< Sequence::value_type >( x );
       }
 
-    VALUE __setitem__(difference_type i, difference_type j, const Sequence& v) 
-      throw (std::invalid_argument) {
+    VALUE __setitem__(difference_type i, difference_type length, const Sequence& v) throw (std::invalid_argument) {
 
-      if ( j <= 0 ) return Qnil;
+      if ( length < 0 )
+        return Qnil;
       std::size_t len = $self->size();
-      if ( i < 0 ) i = len - i;
-      j += i; 
-      if ( static_cast<std::size_t>(j) >= len ) {
-	$self->resize( j+1, *(v.begin()) );
-	j = len-1;
+      if ( i < 0 ) {
+        if ( i + static_cast<Sequence::difference_type>(len) < 0 )
+          return Qnil;
+        else
+          i = len + i;
+      }
+      Sequence::difference_type j = length + i;
+      if ( j > static_cast<Sequence::difference_type>(len) ) {
+        swig::resize( $self, j, *(v.begin()) );
       }
 
       VALUE r = Qnil;
-      swig::setslice(self, i, j, v);
+      swig::setslice($self, i, j, v);
       r = swig::from< const Sequence* >( &v );
       return r;
     }
-
  }
+%enddef
+
+/**
+ * Macro used to add functions for non resizable sequences
+ */
+%define %swig_sequence_methods_non_resizable(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_non_resizable_accessors(%arg(Sequence))
+%enddef
+
+
+/**
+ * Macro used to add functions for sequences
+ */
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_non_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_resizable_common(%arg(Sequence))
+  %swig_sequence_methods_non_resizable_accessors(%arg(Sequence))
+  %swig_sequence_methods_extra(%arg(Sequence));
+  %swig_sequence_back_inserters(%arg(Sequence));
+%enddef
+
+%define %swig_sequence_methods_non_resizable_val(Sequence...)
+  %swig_sequence_methods_non_resizable(%arg(Sequence))
 %enddef
 
 %define %swig_sequence_methods_val(Sequence...)
@@ -879,10 +903,8 @@ namespace swig
 /**
  * Macro used to add functions for front insertion of
  * elements in STL sequence containers that support it.
- * 
  */
 %define %swig_sequence_front_inserters( Sequence... )
-
 %extend {
 
   VALUE shift()
@@ -962,7 +984,6 @@ namespace swig
 
       return $self;
     }
-
 }
 %enddef
 

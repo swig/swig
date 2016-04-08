@@ -1,7 +1,5 @@
 //
 // SWIG typemaps for std::map
-// Luigi Ballabio
-// Jan. 2003
 //
 // Common implementation
 
@@ -13,9 +11,9 @@
 
 %{
 #include <map>
-#include <algorithm>
-#include <stdexcept>
 %}
+%fragment("<algorithm>");
+%fragment("<stdexcept>");
 
 // exported class
 
@@ -24,6 +22,10 @@ namespace std {
     template<class K, class T> class map {
         // add typemaps here
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
         map();
         map(const map<K,T> &);
         

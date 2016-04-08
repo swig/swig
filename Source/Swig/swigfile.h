@@ -26,10 +26,10 @@ extern void    Swig_set_push_dir(int dopush);
 extern int     Swig_get_push_dir(void);
 extern void    Swig_register_filebyname(const_String_or_char_ptr filename, File *outfile);
 extern File   *Swig_filebyname(const_String_or_char_ptr filename);
-extern char   *Swig_file_suffix(const_String_or_char_ptr filename);
-extern char   *Swig_file_basename(const_String_or_char_ptr filename);
-extern char   *Swig_file_filename(const_String_or_char_ptr filename);
-extern char   *Swig_file_dirname(const_String_or_char_ptr filename);
+extern String *Swig_file_extension(const_String_or_char_ptr filename);
+extern String *Swig_file_basename(const_String_or_char_ptr filename);
+extern String *Swig_file_filename(const_String_or_char_ptr filename);
+extern String *Swig_file_dirname(const_String_or_char_ptr filename);
 extern void   Swig_file_debug_set();
 
 /* Delimiter used in accessing files and directories */

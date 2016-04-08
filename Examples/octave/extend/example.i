@@ -1,5 +1,8 @@
 /* File : example.i */
-%module(directors="1") example
+%module(directors="1") swigexample
+
+%feature("autodoc", 1);
+
 %{
 #include "example.h"
 %}
@@ -12,4 +15,3 @@
 %feature("director") Manager;
 
 %include "example.h"
-

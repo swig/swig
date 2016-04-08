@@ -6,12 +6,14 @@ class SimpleVirtual
 {
 	public:
 		virtual int implementMe() = 0;
+		virtual ~SimpleVirtual() {}
 };
 
 class SimpleNonVirtual
 {
 	public:
 		int dummy() { return 0; }
+		virtual ~SimpleNonVirtual() {}
 };
 
 class SimpleReturnClass

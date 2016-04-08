@@ -1,14 +1,14 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<!-- Hand-written HTML -->
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <title>SWIG and Chicken</title>
 <link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 </head>
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Chicken"></a>20 SWIG and Chicken</H1>
+<H1><a name="Chicken">21 SWIG and Chicken</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -55,10 +55,10 @@
     </p>
 
       <ol>
-	<li>generates portable C code</li>
-	<li>includes a customizable interpreter</li>
-	<li>links to C libraries with a simple Foreign Function Interface</li>
-	<li>supports full tail-recursion and first-class continuations</li>
+        <li>generates portable C code</li>
+        <li>includes a customizable interpreter</li>
+        <li>links to C libraries with a simple Foreign Function Interface</li>
+        <li>supports full tail-recursion and first-class continuations</li>
       </ol>
 
     <p>
@@ -72,7 +72,7 @@
 
     </p>
 
-<H2><a name="Chicken_nn2"></a>20.1 Preliminaries</H2>
+<H2><a name="Chicken_nn2">21.1 Preliminaries</a></H2>
 
 
     <p>
@@ -89,7 +89,7 @@
       directory for the basic steps to run SWIG CHICKEN.
       </p>
 
-<H3><a name="Chicken_nn3"></a>20.1.1 Running SWIG in C mode</H3>
+<H3><a name="Chicken_nn3">21.1.1 Running SWIG in C mode</a></H3>
 
 
       <p>
@@ -98,7 +98,7 @@
       </p>
 
       <div class="shell">
-	<pre>% swig -chicken example.i</pre>
+        <pre>% swig -chicken example.i</pre>
       </div>
 
       <p>
@@ -122,7 +122,7 @@
       object files and linked into your project.
       </p>
 
-<H3><a name="Chicken_nn4"></a>20.1.2 Running SWIG in C++ mode</H3>
+<H3><a name="Chicken_nn4">21.1.2 Running SWIG in C++ mode</a></H3>
 
 
       <p>
@@ -131,7 +131,7 @@
       </p>
 
       <div class="shell">
-	<pre>% swig -chicken -c++ example.i</pre>
+        <pre>% swig -chicken -c++ example.i</pre>
       </div>
 
       <p>
@@ -142,7 +142,7 @@
       </p>
 
       <div class="shell">
-	<pre>% chicken example.scm -output-file oexample.c</pre>
+        <pre>% chicken example.scm -output-file oexample.c</pre>
       </div>
 
       <p>
@@ -151,10 +151,10 @@
       object files and linked into your project.
       </p>
 
-<H2><a name="Chicken_nn5"></a>20.2 Code Generation</H2>
+<H2><a name="Chicken_nn5">21.2 Code Generation</a></H2>
 
 
-<H3><a name="Chicken_nn6"></a>20.2.1 Naming Conventions</H3>
+<H3><a name="Chicken_nn6">21.2.1 Naming Conventions</a></H3>
 
 
     <p>
@@ -170,16 +170,16 @@
       <tt>%rename</tt> SWIG directive in the SWIG interface file.
     </p>
 
-<H3><a name="Chicken_nn7"></a>20.2.2 Modules</H3>
+<H3><a name="Chicken_nn7">21.2.2 Modules</a></H3>
 
 
       <p>
       The name of the module must be declared one of two ways:
       <ul>
-	<li>Placing <tt>%module example</tt> in the SWIG interface
-	  file.</li>
-	<li>Using <tt>-module example</tt> on the SWIG command
-	  line.</li>
+        <li>Placing <tt>%module example</tt> in the SWIG interface
+        file.</li>
+        <li>Using <tt>-module example</tt> on the SWIG command
+        line.</li>
       </ul>
 
       <p>
@@ -189,10 +189,10 @@
 
     <p>
       CHICKEN will be able to access the module using the <code>(declare
-	(uses <i>modulename</i>))</code> CHICKEN Scheme form.
+        (uses <i>modulename</i>))</code> CHICKEN Scheme form.
     </p>
 
-<H3><a name="Chicken_nn8"></a>20.2.3 Constants and Variables</H3>
+<H3><a name="Chicken_nn8">21.2.3 Constants and Variables</a></H3>
 
 
     <p>
@@ -200,10 +200,10 @@
       the interface file:
     </p>
       <ol>
-	<li><code>#define MYCONSTANT1 ...</code></li>
-	<li><code>%constant int MYCONSTANT2 = ...</code></li>
-	<li><code>const int MYCONSTANT3 = ...</code></li>
-	<li><code>enum { MYCONSTANT4  = ... };</code></li>
+        <li><code>#define MYCONSTANT1 ...</code></li>
+        <li><code>%constant int MYCONSTANT2 = ...</code></li>
+        <li><code>const int MYCONSTANT3 = ...</code></li>
+        <li><code>enum { MYCONSTANT4  = ... };</code></li>
       </ol>
 
     <p>
@@ -229,7 +229,7 @@
       for info on how to apply the %feature.
     </p>
 
-<H3><a name="Chicken_nn9"></a>20.2.4 Functions</H3>
+<H3><a name="Chicken_nn9">21.2.4 Functions</a></H3>
 
 
     <p>
@@ -248,7 +248,7 @@
       parameters).  The return values can then be accessed with <code>(call-with-values)</code>.
     </p>
 
-<H3><a name="Chicken_nn10"></a>20.2.5 Exceptions</H3>
+<H3><a name="Chicken_nn10">21.2.5 Exceptions</a></H3>
 
 
      <p>The SWIG chicken module has support for exceptions thrown from
@@ -290,16 +290,16 @@
 </pre></div>
 
 
-<H2><a name="Chicken_nn11"></a>20.3 TinyCLOS</H2>
+<H2><a name="Chicken_nn11">21.3 TinyCLOS</a></H2>
 
 
       <p>
       The author of TinyCLOS, Gregor Kiczales, describes TinyCLOS as:
-	"Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
-	metaobject protocol. The implementation is even simpler than
-	the simple CLOS found in `The Art of the Metaobject Protocol,'
-	weighing in at around 850 lines of code, including (some)
-	comments and documentation."
+      "Tiny CLOS is a Scheme implementation of a `kernelized' CLOS, with a
+      metaobject protocol. The implementation is even simpler than
+      the simple CLOS found in `The Art of the Metaobject Protocol,'
+      weighing in at around 850 lines of code, including (some)
+      comments and documentation."
       </p>
 
       <p>
@@ -333,7 +333,7 @@
       
       </p>
 
-<H2><a name="Chicken_nn12"></a>20.4 Linkage</H2>
+<H2><a name="Chicken_nn12">21.4 Linkage</a></H2>
 
 
     <p>
@@ -354,7 +354,7 @@
    </p>
 
 
-<H3><a name="Chicken_nn13"></a>20.4.1 Static binary or shared library linked at compile time</H3>
+<H3><a name="Chicken_nn13">21.4.1 Static binary or shared library linked at compile time</a></H3>
 
 
    <p>We can easily use csc to build a static binary.</p>
@@ -395,7 +395,7 @@ in which case the test script does not need to be linked with example.so.  The t
 be run with <tt>csi</tt>.
 </p>
 
-<H3><a name="Chicken_nn14"></a>20.4.2 Building chicken extension libraries</H3>
+<H3><a name="Chicken_nn14">21.4.2 Building chicken extension libraries</a></H3>
 
 
 <p>Building a shared library like in the above section only works if the library
@@ -453,7 +453,7 @@ distributed and used by anyone, even if SWIG is not installed.</p>
 <p>See the <tt>Examples/chicken/egg</tt> directory in the SWIG source for an example that builds
 two eggs, one using the first method and one using the second method.</p>
 
-<H3><a name="Chicken_nn15"></a>20.4.3 Linking multiple SWIG modules with TinyCLOS</H3>
+<H3><a name="Chicken_nn15">21.4.3 Linking multiple SWIG modules with TinyCLOS</a></H3>
 
 
 <p>Linking together multiple modules that share type information using the <code>%import</code>
@@ -477,7 +477,7 @@ with <code>(declare (uses ...))</code>.
 To create an extension library or an egg, just create a <tt>module_load.scm</tt> file that <code>(declare (uses ...))</code>
 all the modules.</p>
 
-<H2><a name="Chicken_nn16"></a>20.5 Typemaps</H2>
+<H2><a name="Chicken_nn16">21.5 Typemaps</a></H2>
 
 
     <p>
@@ -486,7 +486,7 @@ all the modules.</p>
       <code>Lib/chicken/chicken.swg</code>.
     </p>
 
-<H2><a name="Chicken_nn17"></a>20.6 Pointers</H2>
+<H2><a name="Chicken_nn17">21.6 Pointers</a></H2>
 
 
     <p>
@@ -519,7 +519,7 @@ all the modules.</p>
       type. flags is either zero or SWIG_POINTER_DISOWN (see below).
     </p>
 
-<H3><a name="Chicken_collection"></a>20.6.1 Garbage collection</H3>
+<H3><a name="Chicken_collection">21.6.1 Garbage collection</a></H3>
 
 
   <p>If the owner flag passed to <code>SWIG_NewPointerObj</code> is 1, <code>NewPointerObj</code> will add a
@@ -550,7 +550,7 @@ all the modules.</p>
   must be called manually.
   </p>
 
-<H2><a name="Chicken_nn18"></a>20.7 Unsupported features and known problems</H2>
+<H2><a name="Chicken_nn18">21.7 Unsupported features and known problems</a></H2>
 
 
     <ul>
@@ -560,7 +560,7 @@ all the modules.</p>
           <a href="SWIGPlus.html#SWIGPlus_default_args">%feature(compactdefaultargs)</a>.</li>
     </ul>
 
-<H3><a name="Chicken_nn19"></a>20.7.1 TinyCLOS problems with Chicken version &lt;= 1.92</H3>
+<H3><a name="Chicken_nn19">21.7.1 TinyCLOS problems with Chicken version &lt;= 1.92</a></H3>
 
 
     <p>In Chicken versions equal to or below 1.92, TinyCLOS has a limitation such that generic methods do not properly work on methods

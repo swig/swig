@@ -1,6 +1,13 @@
 # Examples/xml/Makefile
 
+srcdir		= @srcdir@
 top_srcdir	= @top_srcdir@
+top_builddir	= @top_builddir@
+
+SWIGEXE         = $(top_builddir)/swig
+SWIG_LIB_DIR    = $(top_srcdir)/Lib
+SWIG_LIB_SET    = @SWIG_LIB_SET@
+SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 cleanup		= tail +2 \
 		  | sed -e 's/ident="ID[0-9A-F]*"//g' \
@@ -19,16 +26,12 @@ all-dot-i-files =				\
 	example_xml.i				\
 	gnarly.i
 
-all: check
-
-chk-swiglib = $(top_srcdir)/Lib
-
 check:
 	for f in $(all-dot-i-files) ; do				\
 	  base=`basename $$f .i` ;					\
 	  xml=$$base.xml ;						\
-	  SWIG_LIB=$(chk-swiglib) $(top_srcdir)/swig -xml $$xml $$f ;	\
-	  cat $$xml | $(cleanup) | diff -c $$base.expected-xml - ;	\
+	  $(SWIGINVOKE) -xml $$xml ${srcdir}/$$f ;	\
+	  cat $$xml | $(cleanup) | diff -c ${srcdir}/$$base.expected-xml - ;	\
 	done
 
 clean:
@@ -40,7 +43,7 @@ distclean: clean
 # from here on, non-developers beware!
 
 %.expected-xml : %.i
-	SWIG_LIB=$(top_srcdir)/Lib $(top_srcdir)/swig -xml tmp-file $^
+	$(SWIGINVOKE) -xml tmp-file $^
 	cat tmp-file | $(cleanup) > $@
 	rm -f tmp-file
 

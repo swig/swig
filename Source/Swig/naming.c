@@ -20,8 +20,6 @@
  * %v - variable name is substituted
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_naming_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -493,8 +491,7 @@ static DOH *get_object(Hash *n, String *decl) {
   return rn;
 }
 
-static
-DOH *name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigType *ncdecl) {
+static DOH *name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigType *ncdecl) {
   DOH *rn = 0;
   Hash *n = Getattr(namehash, tname);
   if (n) {
@@ -605,7 +602,7 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   bprefix = NewStringf("%s::", base);
   dprefix = NewStringf("%s::", derived);
   cbprefix = Char(bprefix);
-  plen = strlen(cbprefix);
+  plen = (int)strlen(cbprefix);
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
@@ -673,8 +670,7 @@ static void merge_features(Hash *features, Node *n) {
  * the declaration, decl.
  * ----------------------------------------------------------------------------- */
 
-static
-void features_get(Hash *features, const String *tname, SwigType *decl, SwigType *ncdecl, Node *node) {
+static void features_get(Hash *features, const String *tname, SwigType *decl, SwigType *ncdecl, Node *node) {
   Node *n = Getattr(features, tname);
 #ifdef SWIG_DEBUG
   Printf(stdout, "  features_get: %s\n", tname);
@@ -801,7 +797,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
  * concatenating the feature name plus ':' plus the attribute name.
  * ----------------------------------------------------------------------------- */
 
-void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, String *value, Hash *featureattribs) {
+void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, const_String_or_char_ptr value, Hash *featureattribs) {
   Hash *n;
   Hash *fhash;
 
@@ -871,49 +867,52 @@ void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *d
  * ----------------------------------------------------------------------------- */
 
 static Hash *namewarn_hash = 0;
-Hash *Swig_name_namewarn_hash() {
+static Hash *name_namewarn_hash() {
   if (!namewarn_hash)
     namewarn_hash = NewHash();
   return namewarn_hash;
 }
 
 static Hash *rename_hash = 0;
-Hash *Swig_name_rename_hash() {
+static Hash *name_rename_hash() {
   if (!rename_hash)
     rename_hash = NewHash();
   return rename_hash;
 }
 
 static List *namewarn_list = 0;
-List *Swig_name_namewarn_list() {
+static List *name_namewarn_list() {
   if (!namewarn_list)
     namewarn_list = NewList();
   return namewarn_list;
 }
 
 static List *rename_list = 0;
-List *Swig_name_rename_list() {
+static List *name_rename_list() {
   if (!rename_list)
     rename_list = NewList();
   return rename_list;
 }
 
 /* -----------------------------------------------------------------------------
- * int Swig_need_name_warning(Node *n)
+ * int need_name_warning(Node *n)
  *
  * Detects if a node needs name warnings 
  *
  * ----------------------------------------------------------------------------- */
 
-int Swig_need_name_warning(Node *n) {
+static int need_name_warning(Node *n) {
   int need = 1;
   /* 
-     we don't use name warnings for:
+     We don't use name warnings for:
      - class forwards, no symbol is generated at the target language.
      - template declarations, only for real instances using %template(name).
-     - typedefs, they have no effect at the target language.
+     - typedefs, have no effect at the target language.
+     - using declarations and using directives, have no effect at the target language.
    */
   if (checkAttribute(n, "nodeType", "classforward")) {
+    need = 0;
+  } else if (checkAttribute(n, "nodeType", "using")) {
     need = 0;
   } else if (checkAttribute(n, "storage", "typedef")) {
     need = 0;
@@ -962,8 +961,7 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
 
     /* static functions */
-    if ((Cmp(a_storage, "static") == 0)
-	|| (Cmp(b_storage, "static") == 0)) {
+    if (Swig_storage_isstatic(a) || Swig_storage_isstatic(b)) {
       if (Cmp(a_storage, b_storage) != 0)
 	return 0;
     }
@@ -1028,6 +1026,10 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
       }
       return 0;
     }
+    if (Equal(ta, "template") && Equal(tb, "template")) {
+      if (Cmp(a_storage, "friend") == 0 || Cmp(b_storage, "friend") == 0)
+	return 1;
+    }
   }
   return 0;
 }
@@ -1082,20 +1084,20 @@ int Swig_need_protected(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_nameobj_add()
+ * void name_nameobj_add()
  *
  * Add nameobj (rename/namewarn)
  * 
  * ----------------------------------------------------------------------------- */
 
-static List *Swig_make_attrlist(const char *ckey) {
+static List *make_attrlist(const char *ckey) {
   List *list = NewList();
   const char *cattr = strchr(ckey, '$');
   if (cattr) {
     String *nattr;
     const char *rattr = strchr(++cattr, '$');
     while (rattr) {
-      nattr = NewStringWithSize(cattr, rattr - cattr);
+      nattr = NewStringWithSize(cattr, (int)(rattr - cattr));
       Append(list, nattr);
       Delete(nattr);
       cattr = rattr + 1;
@@ -1110,7 +1112,7 @@ static List *Swig_make_attrlist(const char *ckey) {
   return list;
 }
 
-static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
+static void name_object_attach_keys(const char *keys[], Hash *nameobj) {
   Node *kw = nextSibling(nameobj);
   List *matchlist = 0;
   while (kw) {
@@ -1126,7 +1128,7 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
 	  || (isregexmatch = (strncmp(ckey, "regexmatch", 10) == 0))
 	  || (isnotmatch = isregexmatch = (strncmp(ckey, "notregexmatch", 13) == 0))) {
 	Hash *mi = NewHash();
-	List *attrlist = Swig_make_attrlist(ckey);
+	List *attrlist = make_attrlist(ckey);
 	if (!matchlist)
 	  matchlist = NewList();
 	Setattr(mi, "value", Getattr(kw, "value"));
@@ -1156,7 +1158,7 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
   }
 }
 
-void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, String *name, SwigType *decl, Hash *nameobj) {
+static void name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, String *name, SwigType *decl, Hash *nameobj) {
   String *nname = 0;
   if (name && Len(name)) {
     String *target_fmt = Getattr(nameobj, "targetfmt");
@@ -1185,13 +1187,13 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, Str
 }
 
 /* -----------------------------------------------------------------------------
- * int Swig_name_match_nameobj()
+ * int name_match_nameobj()
  *
  * Apply and check the nameobj's math list to the node
  * 
  * ----------------------------------------------------------------------------- */
 
-static DOH *Swig_get_lattr(Node *n, List *lattr) {
+static DOH *get_lattr(Node *n, List *lattr) {
   DOH *res = 0;
   int ilen = Len(lattr);
   int i;
@@ -1213,7 +1215,7 @@ static DOH *Swig_get_lattr(Node *n, List *lattr) {
 #ifdef HAVE_PCRE
 #include <pcre.h>
 
-int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
+static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   pcre *compiled_pat;
   const char *err;
   int errpos;
@@ -1245,7 +1247,7 @@ int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
 
 #else /* !HAVE_PCRE */
 
-int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
+static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   (void)pattern;
   (void)s;
   Swig_error("SWIG", Getline(n),
@@ -1255,7 +1257,7 @@ int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
 
 #endif /* HAVE_PCRE/!HAVE_PCRE */
 
-int Swig_name_match_value(String *mvalue, String *value) {
+static int name_match_value(String *mvalue, String *value) {
 #if defined(SWIG_USE_SIMPLE_MATCHOR)
   int match = 0;
   char *cvalue = Char(value);
@@ -1281,12 +1283,11 @@ int Swig_name_match_value(String *mvalue, String *value) {
 #endif
 }
 
-
-int Swig_name_match_nameobj(Hash *rn, Node *n) {
+static int name_match_nameobj(Hash *rn, Node *n) {
   int match = 1;
   List *matchlist = Getattr(rn, "matchlist");
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_name_match_nameobj: %s\n", Getattr(n, "name"));
+  Printf(stdout, "name_match_nameobj: %s\n", Getattr(n, "name"));
 #endif
   if (matchlist) {
     int ilen = Len(matchlist);
@@ -1294,14 +1295,14 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
     for (i = 0; match && (i < ilen); ++i) {
       Node *mi = Getitem(matchlist, i);
       List *lattr = Getattr(mi, "attrlist");
-      String *nval = Swig_get_lattr(n, lattr);
+      String *nval = get_lattr(n, lattr);
       int notmatch = GetFlag(mi, "notmatch");
       int regexmatch = GetFlag(mi, "regexmatch");
       match = 0;
       if (nval) {
 	String *kwval = Getattr(mi, "value");
-	match = regexmatch ? Swig_name_regexmatch_value(n, kwval, nval)
-	    : Swig_name_match_value(kwval, nval);
+	match = regexmatch ? name_regexmatch_value(n, kwval, nval)
+	    : name_match_value(kwval, nval);
 #ifdef SWIG_DEBUG
 	Printf(stdout, "val %s %s %d %d \n", nval, kwval, match, ilen);
 #endif
@@ -1311,19 +1312,19 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
     }
   }
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_name_match_nameobj: %d\n", match);
+  Printf(stdout, "name_match_nameobj: %d\n", match);
 #endif
   return match;
 }
 
 /* -----------------------------------------------------------------------------
- * Hash *Swig_name_nameobj_lget()
+ * Hash *name_nameobj_lget()
  *
  * Get a nameobj (rename/namewarn) from the list of filters
  * 
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *name, String *decl) {
+static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *name, String *decl) {
   Hash *res = 0;
   if (namelist) {
     int len = Len(namelist);
@@ -1334,7 +1335,7 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
       String *rdecl = Getattr(rn, "decl");
       if (rdecl && (!decl || !Equal(rdecl, decl))) {
 	continue;
-      } else if (Swig_name_match_nameobj(rn, n)) {
+      } else if (name_match_nameobj(rn, n)) {
 	String *tname = Getattr(rn, "targetname");
 	if (tname) {
 	  String *sfmt = Getattr(rn, "sourcefmt");
@@ -1357,8 +1358,8 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	      DohIncref(name);
 	    }
 	  }
-	  match = regextarget ? Swig_name_regexmatch_value(n, tname, sname)
-	    : Swig_name_match_value(tname, sname);
+	  match = regextarget ? name_regexmatch_value(n, tname, sname)
+	    : name_match_value(tname, sname);
 	  Delete(sname);
 	} else {
 	  /* Applying the renaming rule may fail if it contains a %(regex)s expression that doesn't match the given name. */
@@ -1388,23 +1389,23 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 
 void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn) {
   const char *namewrn_keys[] = { "rename", "error", "fullname", "sourcefmt", "targetfmt", 0 };
-  Swig_name_object_attach_keys(namewrn_keys, namewrn);
-  Swig_name_nameobj_add(Swig_name_namewarn_hash(), Swig_name_namewarn_list(), prefix, name, decl, namewrn);
+  name_object_attach_keys(namewrn_keys, namewrn);
+  name_nameobj_add(name_namewarn_hash(), name_namewarn_list(), prefix, name, decl, namewrn);
 }
 
 /* -----------------------------------------------------------------------------
- * Hash *Swig_name_namewarn_get()
+ * Hash *name_namewarn_get()
  *
  * Return the namewarn object, if there is one.
  * 
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *decl) {
+static Hash *name_namewarn_get(Node *n, String *prefix, String *name, SwigType *decl) {
   if (!namewarn_hash && !namewarn_list)
     return 0;
   if (n) {
     /* Return in the obvious cases */
-    if (!name || !Swig_need_name_warning(n)) {
+    if (!name || !need_name_warning(n)) {
       return 0;
     } else {
       String *access = Getattr(n, "access");
@@ -1416,11 +1417,11 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *de
   }
   if (name) {
     /* Check to see if the name is in the hash */
-    Hash *wrn = Swig_name_object_get(Swig_name_namewarn_hash(), prefix, name, decl);
-    if (wrn && !Swig_name_match_nameobj(wrn, n))
+    Hash *wrn = Swig_name_object_get(name_namewarn_hash(), prefix, name, decl);
+    if (wrn && !name_match_nameobj(wrn, n))
       wrn = 0;
     if (!wrn) {
-      wrn = Swig_name_nameobj_lget(Swig_name_namewarn_list(), n, prefix, name, decl);
+      wrn = name_nameobj_lget(name_namewarn_list(), n, prefix, name, decl);
     }
     if (wrn && Getattr(wrn, "error")) {
       if (n) {
@@ -1443,7 +1444,7 @@ Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *de
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType *decl) {
-  Hash *wrn = Swig_name_namewarn_get(n, prefix, name, decl);
+  Hash *wrn = name_namewarn_get(n, prefix, name, decl);
   return (name && wrn) ? Getattr(wrn, "name") : 0;
 }
 
@@ -1455,7 +1456,7 @@ String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType *decl)
  * ----------------------------------------------------------------------------- */
 
 static void single_rename_add(String *prefix, String *name, SwigType *decl, Hash *newname) {
-  Swig_name_nameobj_add(Swig_name_rename_hash(), Swig_name_rename_list(), prefix, name, decl, newname);
+  name_nameobj_add(name_rename_hash(), name_rename_list(), prefix, name, decl, newname);
 }
 
 /* Add a new rename. Works much like new_feature including default argument handling. */
@@ -1464,7 +1465,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
   ParmList *declparms = declaratorparms;
 
   const char *rename_keys[] = { "fullname", "sourcefmt", "targetfmt", "continue", "regextarget", 0 };
-  Swig_name_object_attach_keys(rename_keys, newname);
+  name_object_attach_keys(rename_keys, newname);
 
   /* Add the name */
   single_rename_add(prefix, name, decl, newname);
@@ -1577,11 +1578,10 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
     }
   }
 
-
   if (rename_hash || rename_list || namewarn_hash || namewarn_list) {
-    Hash *rn = Swig_name_object_get(Swig_name_rename_hash(), prefix, name, decl);
-    if (!rn || !Swig_name_match_nameobj(rn, n)) {
-      rn = Swig_name_nameobj_lget(Swig_name_rename_list(), n, prefix, name, decl);
+    Hash *rn = Swig_name_object_get(name_rename_hash(), prefix, name, decl);
+    if (!rn || !name_match_nameobj(rn, n)) {
+      rn = name_nameobj_lget(name_rename_list(), n, prefix, name, decl);
       if (rn) {
 	String *sfmt = Getattr(rn, "sourcefmt");
 	int fullname = GetFlag(rn, "fullname");
@@ -1617,7 +1617,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
       }
     }
     nname = result ? result : name;
-    wrn = Swig_name_namewarn_get(n, prefix, nname, decl);
+    wrn = name_namewarn_get(n, prefix, nname, decl);
     if (wrn) {
       String *rename = Getattr(wrn, "rename");
       if (rename) {
@@ -1662,16 +1662,90 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 /* -----------------------------------------------------------------------------
  * void Swig_name_inherit()
  *
- * Inherit namewarn,rename, and feature objects
+ * Inherit namewarn, rename, and feature objects
  * 
  * ----------------------------------------------------------------------------- */
 
 void Swig_name_inherit(String *base, String *derived) {
   /*  Printf(stdout,"base = '%s', derived = '%s'\n", base, derived); */
-  Swig_name_object_inherit(Swig_name_rename_hash(), base, derived);
-  Swig_name_object_inherit(Swig_name_namewarn_hash(), base, derived);
+  Swig_name_object_inherit(name_rename_hash(), base, derived);
+  Swig_name_object_inherit(name_namewarn_hash(), base, derived);
   Swig_name_object_inherit(Swig_cparse_features(), base, derived);
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_inherit_base_symbols()
+ * ----------------------------------------------------------------------------- */
+
+void Swig_inherit_base_symbols(List *bases) {
+  if (bases) {
+    Iterator s;
+    for (s = First(bases); s.item; s = Next(s)) {
+      Symtab *st = Getattr(s.item, "symtab");
+      if (st) {
+	Setfile(st, Getfile(s.item));
+	Setline(st, Getline(s.item));
+	Swig_symbol_inherit(st);
+      }
+    }
+    Delete(bases);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_make_inherit_list()
+ * ----------------------------------------------------------------------------- */
+
+List *Swig_make_inherit_list(String *clsname, List *names, String *Namespaceprefix) {
+  int i, ilen;
+  String *derived;
+  List *bases = NewList();
+
+  if (Namespaceprefix)
+    derived = NewStringf("%s::%s", Namespaceprefix, clsname);
+  else
+    derived = NewString(clsname);
+
+  ilen = Len(names);
+  for (i = 0; i < ilen; i++) {
+    String *base;
+    String *n = Getitem(names, i);
+    /* Try to figure out where this symbol is */
+    Node *s = Swig_symbol_clookup(n, 0);
+    if (s) {
+      while (s && (Strcmp(nodeType(s), "class") != 0)) {
+	/* Not a class.  Could be a typedef though. */
+	String *storage = Getattr(s, "storage");
+	if (storage && (Strcmp(storage, "typedef") == 0)) {
+	  String *nn = Getattr(s, "type");
+	  s = Swig_symbol_clookup(nn, Getattr(s, "sym:symtab"));
+	} else {
+	  break;
+	}
+      }
+      if (s && ((Strcmp(nodeType(s), "class") == 0) || (Strcmp(nodeType(s), "template") == 0))) {
+	String *q = Swig_symbol_qualified(s);
+	Append(bases, s);
+	if (q) {
+	  base = NewStringf("%s::%s", q, Getattr(s, "name"));
+	  Delete(q);
+	} else {
+	  base = NewString(Getattr(s, "name"));
+	}
+      } else {
+	base = NewString(n);
+      }
+    } else {
+      base = NewString(n);
+    }
+    if (base) {
+      Swig_name_inherit(base, derived);
+      Delete(base);
+    }
+  }
+  return bases;
+}
+
 
 /* -----------------------------------------------------------------------------
  * void Swig_name_str()

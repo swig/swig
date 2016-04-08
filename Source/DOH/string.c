@@ -12,8 +12,6 @@
  *     file semantics.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_string_c[] = "$Id$";
-
 #include "dohint.h"
 
 extern DohObjInfo DohStringType;
@@ -183,10 +181,10 @@ static int String_hash(DOH *so) {
     return s->hashkey;
   } else {
     register char *c = s->str;
-    register int len = s->len > 50 ? 50 : s->len;
-    register int h = 0;
-    register int mlen = len >> 2;
-    register int i = mlen;
+    register unsigned int len = s->len > 50 ? 50 : s->len;
+    register unsigned int h = 0;
+    register unsigned int mlen = len >> 2;
+    register unsigned int i = mlen;
     for (; i; --i) {
       h = (h << 5) + *(c++);
       h = (h << 5) + *(c++);
@@ -197,7 +195,7 @@ static int String_hash(DOH *so) {
       h = (h << 5) + *(c++);
     }
     h &= 0x7fffffff;
-    s->hashkey = h;
+    s->hashkey = (int)h;
     return h;
   }
 }
@@ -689,7 +687,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     return 0;
 
   base = str->str;
-  tokenlen = strlen(token);
+  tokenlen = (int)strlen(token);
   s = (*match) (base, base, token, tokenlen);
 
   if (!s)
@@ -726,7 +724,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   }
 
   first = s;
-  replen = strlen(rep);
+  replen = (int)strlen(rep);
 
   delta = (replen - tokenlen);
 
@@ -1116,6 +1114,7 @@ DOHString *DohNewStringWithSize(const DOHString_or_char *so, int len) {
   str->maxsize = max;
   if (s) {
     strncpy(str->str, s, len);
+    str->str[l] = 0;
     str->len = l;
     str->sp = l;
   } else {
@@ -1153,11 +1152,7 @@ DOHString *DohNewStringf(const DOHString_or_char *fmt, ...) {
 int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2) {
   const char *c1 = Char(s1);
   const char *c2 = Char(s2);
-  if (c1 && c2) {
-    return strcmp(c1, c2);
-  } else {
-    return c1 < c2;
-  }
+  return strcmp(c1, c2);
 }
 
 int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n) {

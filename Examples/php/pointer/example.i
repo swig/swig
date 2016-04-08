@@ -1,6 +1,12 @@
 /* File : example.i */
 %module example
 
+%{
+extern void add(double *, double *, double *);
+extern void sub(int *, int *, int *);
+extern int divide(int, int, int *);
+%}
+
 /* This example illustrates a couple of different techniques
    for manipulating C pointers */
 

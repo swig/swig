@@ -17,5 +17,3 @@ if b.test(3.5) != 2:
     raise RuntimeError
 if b.test("hello") != 3:
     raise RuntimeError
-
-

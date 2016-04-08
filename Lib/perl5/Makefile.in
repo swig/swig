@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------
 # SWIG Perl5 Makefile
-# 
+#
 # This file can be used to build various Perl5 extensions with SWIG.
 # By default this file is set up for dynamic loading, but it can
 # be easily customized for static extensions by modifying various
@@ -17,11 +17,11 @@
 # script and should already reflect your machine.
 #----------------------------------------------------------------
 
-SRCS          = 
-CXXSRCS       = 
-OBJCSRCS      = 
-OBJS          = 
-INTERFACE     = 
+SRCS          =
+CXXSRCS       =
+OBJCSRCS      =
+OBJS          =
+INTERFACE     =
 WRAPFILE      = $(INTERFACE:.i=_wrap.c)
 WRAPOBJ       = $(INTERFACE:.i=_wrap.o)
 TARGET        = module@SO@ # Use this kind of target for dynamic loading
@@ -32,8 +32,8 @@ exec_prefix   = @exec_prefix@
 
 CC            = @CC@
 CXX           = @CXX@
-OBJC          = @CC@ -Wno-import # -Wno-import needed for gcc 
-CFLAGS        = 
+OBJC          = @CC@ -Wno-import # -Wno-import needed for gcc
+CFLAGS        =
 INCLUDES      =
 LIBS          =
 
@@ -42,12 +42,12 @@ LIBS          =
 #     SWIGOPT   = SWIG compiler options
 #     SWIGCC    = Compiler used to compile the wrapper file
 
-SWIG          = $(exec_prefix)/bin/swig 
-SWIGOPT       = -perl5 
-SWIGCC        = $(CC) 
+SWIG          = $(exec_prefix)/bin/swig
+SWIGOPT       = -perl5
+SWIGCC        = $(CC)
 
-# SWIG Library files.  Uncomment this to staticly rebuild Perl
-#SWIGLIB       = -static -lperlmain.i
+# SWIG Library files.  Uncomment this to statically rebuild Perl
+#SWIGLIBS      = -static -lperlmain.i
 
 # Rules for creating .o files from source.
 
@@ -67,23 +67,13 @@ BUILD         = @LDSHARED@
 # need to provide additional link libraries (this is not always required).
 
 #DLL_LIBS      = -L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
-             -L/usr/local/lib -lg++ -lstdc++ -lgcc
-
-# X11 installation (possibly needed if using Perl-Tk)
-
-XLIB          = @XLIBSW@
-XINCLUDE      = @XINCLUDES@
+	     -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
 # Perl installation
 
 PERL_INCLUDE  = -I@PERL5EXT@
-PERL_LIB      = -L@PERL5EXT@ -lperl 
+PERL_LIB      = -L@PERL5EXT@ -lperl
 PERL_FLAGS    = -Dbool=char -Dexplicit=
-
-# Tcl installation.  If using Tk you might need this
-
-TCL_INCLUDE   = @TCLINCLUDE@
-TCL_LIB       = @TCLLIB@
 
 # Build libraries (needed for static builds)
 
@@ -91,11 +81,9 @@ LIBM          = @LIBM@
 LIBC          = @LIBC@
 SYSLIBS       = $(LIBM) $(LIBC) @LIBS@
 
-# Build options (uncomment only one these)
+# Build options
 
-#TK_LIB        = $(TCL_LIB) -ltcl -ltk $(XLIB)
 BUILD_LIBS    = $(LIBS) # Dynamic loading
-#BUILD_LIBS    = $(PERL_LIB) $(TK_LIB) $(LIBS) $(SYSLIBS)  # Static linking
 
 # Compilation rules for non-SWIG components
 
@@ -123,16 +111,10 @@ $(WRAPOBJ) : $(WRAPFILE)
 	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(PERL_INCLUDE) $(PERL_FLAGS) $(WRAPFILE)
 
 $(WRAPFILE) : $(INTERFACE)
-	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
+	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIBS) $(INTERFACE)
 
 $(TARGET): $(WRAPOBJ) $(ALLOBJS)
 	$(BUILD) $(WRAPOBJ) $(ALLOBJS) $(BUILD_LIBS) -o $(TARGET)
 
 clean:
 	rm -f $(COBJS) $(CXXOBJS) $(OBJCOBJS) $(WRAPOBJ) $(WRAPFILE) $(TARGET)
-
-
-
-
-
-

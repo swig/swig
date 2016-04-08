@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------
 # SWIG Python Makefile
-# 
+#
 # This file can be used to build various Python extensions with SWIG.
 # By default this file is set up for dynamic loading, but it can
 # be easily customized for static extensions by modifying various
@@ -17,11 +17,11 @@
 # script and should already reflect your machine.
 #----------------------------------------------------------------
 
-SRCS          = 
-CXXSRCS       = 
-OBJCSRCS      = 
-OBJS          = 
-INTERFACE     = 
+SRCS          =
+CXXSRCS       =
+OBJCSRCS      =
+OBJS          =
+INTERFACE     =
 WRAPFILE      = $(INTERFACE:.i=_wrap.c)
 WRAPOBJ       = $(INTERFACE:.i=_wrap.o)
 TARGET        = module@SO@ # Use this kind of target for dynamic loading
@@ -32,8 +32,8 @@ exec_prefix   = @exec_prefix@
 
 CC            = @CC@
 CXX           = @CXX@
-OBJC          = @CC@ -Wno-import # -Wno-import needed for gcc 
-CFLAGS        = 
+OBJC          = @CC@ -Wno-import # -Wno-import needed for gcc
+CFLAGS        =
 INCLUDES      =
 LIBS          =
 
@@ -42,12 +42,12 @@ LIBS          =
 #     SWIGOPT   = SWIG compiler options
 #     SWIGCC    = Compiler used to compile the wrapper file
 
-SWIG          = $(exec_prefix)/bin/swig 
-SWIGOPT       = -python 
-SWIGCC        = $(CC) 
+SWIG          = $(exec_prefix)/bin/swig
+SWIGOPT       = -python
+SWIGCC        = $(CC)
 
 # SWIG Library files.  Uncomment if rebuilding the Python interpreter
-#SWIGLIB       = -lembed.i
+#SWIGLIBS      = -lembed.i
 
 # Rules for creating .o files from source.
 
@@ -67,22 +67,12 @@ BUILD         = @LDSHARED@
 # need to provide additional link libraries (this is not always required).
 
 #DLL_LIBS      = -L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
-             -L/usr/local/lib -lg++ -lstdc++ -lgcc
-
-# X11 installation (needed if rebuilding Python + tkinter)
-
-XLIB          = @XLIBSW@
-XINCLUDE      = @XINCLUDES@
+	     -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
 # Python installation
 
-PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@ 
+PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@
 PY_LIB        = @PYLIB@
-
-# Tcl installation.  Needed if rebuilding Python with tkinter.
-
-TCL_INCLUDE   = @TCLINCLUDE@
-TCL_LIB       = @TCLLIB@
 
 # Build libraries (needed for static builds)
 
@@ -90,11 +80,9 @@ LIBM          = @LIBM@
 LIBC          = @LIBC@
 SYSLIBS       = $(LIBM) $(LIBC) @LIBS@
 
-# Build options (uncomment only one these)
+# Build options
 
-#TKINTER      = $(TCL_LIB) -ltk -ltcl $(XLIB)
 BUILD_LIBS    = $(LIBS) # Dynamic loading
-#BUILD_LIBS    = $(PY_LIB) @PYLINK@ $(TKINTER) $(LIBS) $(SYSLIBS)
 
 # Compilation rules for non-SWIG components
 
@@ -119,17 +107,13 @@ all: $(TARGET)
 # Convert the wrapper file into an object file
 
 $(WRAPOBJ) : $(WRAPFILE)
-	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDES) $(PY_INCLUDE) 
+	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDES) $(PY_INCLUDE)
 
 $(WRAPFILE) : $(INTERFACE)
-	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
+	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIBS) $(INTERFACE)
 
 $(TARGET): $(WRAPOBJ) $(ALLOBJS)
 	$(BUILD) $(WRAPOBJ) $(ALLOBJS) $(BUILD_LIBS) -o $(TARGET)
 
 clean:
 	rm -f $(COBJS) $(CXXOBJS) $(OBJCOBJS) $(WRAPOBJ) $(WRAPFILE) $(TARGET)
-
-
-
-

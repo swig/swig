@@ -57,7 +57,7 @@
 
 namespace std {
 
-  template<class _Tp, class _Sequence = std::deque<_Tp> > 
+  template<class _Tp, class _Sequence = std::deque< _Tp > >
   class queue {
   public:
     typedef size_t size_type;
@@ -68,11 +68,11 @@ namespace std {
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::queue<_Tp, _Sequence >), "header",
+    %fragment(SWIG_Traits_frag(std::queue< _Tp, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdQueueTraits") {
       namespace swig {
-	template <>  struct traits<std::queue<_Tp, _Sequence > > {
+	template <>  struct traits<std::queue< _Tp, _Sequence > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::queue<" #_Tp "," #_Sequence " >";
@@ -81,18 +81,18 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp, _Sequence >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue< _Tp, _Sequence >);
   
 #ifdef %swig_queue_methods
     // Add swig/language extra methods
-    %swig_queue_methods(std::queue<_Tp, _Sequence >);
+    %swig_queue_methods(std::queue< _Tp, _Sequence >);
 #endif
 
     %std_queue_methods(queue);
   };
 
   template<class _Tp, class _Sequence > 
-  class queue<_Tp*, _Sequence > {
+  class queue< _Tp*, _Sequence > {
   public:
     typedef size_t size_type;
     typedef _Tp value_type;
@@ -102,11 +102,11 @@ namespace std {
 
     %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::queue<_Tp*, _Sequence >), "header",
+    %fragment(SWIG_Traits_frag(std::queue< _Tp*, _Sequence >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdQueueTraits") {
       namespace swig {
-	template <>  struct traits<std::queue<_Tp*, _Sequence > > {
+	template <>  struct traits<std::queue< _Tp*, _Sequence > > {
 	  typedef value_category category;
 	  static const char* type_name() {
 	    return "std::queue<" #_Tp "," #_Sequence " * >";
@@ -115,14 +115,14 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue<_Tp*, _Sequence >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_QUEUE, std::queue< _Tp*, _Sequence >);
 
 #ifdef %swig_queue_methods_val
     // Add swig/language extra methods
-    %swig_queue_methods_val(std::queue<_Tp*, _Sequence >);
+    %swig_queue_methods_val(std::queue< _Tp*, _Sequence >);
 #endif
 
-    %std_queue_methods_val(std::queue<_Tp*, _Sequence >);
+    %std_queue_methods_val(std::queue< _Tp*, _Sequence >);
   };
 
 }

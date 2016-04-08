@@ -125,6 +125,13 @@
     }
   };
   int A::sfoovar = 1;
+
+#ifdef SWIGPYTHON_BUILTIN
+bool is_python_builtin() { return true; }
+#else
+bool is_python_builtin() { return false; }
+#endif
+
 %}
 
 %template(ET_i) ET<int>;

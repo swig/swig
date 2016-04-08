@@ -5,11 +5,13 @@
 /* ------------------------------------------------------------
  *  Fragment section
  * ------------------------------------------------------------ */
-/* bool is dangerous in Python, change precedence */
+#ifdef SWIG_PYTHON_LEGACY_BOOL
+// Default prior to SWIG 3.0.0
 #undef SWIG_TYPECHECK_BOOL
 %define SWIG_TYPECHECK_BOOL             10000 %enddef
+#endif
 
-/* Include fundamental fragemt definitions */
+/* Include fundamental fragment definitions */
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
@@ -77,10 +79,12 @@
 
 /* Consttab, needed for callbacks, it should be removed later */
 
-%typemap(consttab) SWIGTYPE ((*)(ANY))  
+%typemap(consttab) SWIGTYPE ((*)(ANY))
 { SWIG_PY_POINTER, (char*)"$symname", 0, 0, (void *)($value), &$descriptor }
+%typemap(consttab) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
 
 %typemap(constcode) SWIGTYPE ((*)(ANY)) "";
+%typemap(constcode) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
 
 
 /* Smart Pointers */

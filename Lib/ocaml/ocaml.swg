@@ -578,7 +578,7 @@ extern "C" {
 	}	
     }
 
-    static swig_module_info *SWIG_Ocaml_GetModule() {
+    static swig_module_info *SWIG_Ocaml_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
       CAML_VALUE pointer;
 
       pointer = callback(*caml_named_value("swig_find_type_info"), caml_val_int(0));

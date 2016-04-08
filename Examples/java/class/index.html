@@ -32,8 +32,8 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
-  double  x, y;   
+  }
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area() = 0;
   virtual double perimeter() = 0;
@@ -44,7 +44,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -53,7 +53,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area();
   virtual double perimeter();
 };
@@ -146,50 +146,15 @@ Shape.setNshapes(13);       // Set a static data member
 
 <ul>
 <li>This high-level interface using proxy classes is not the only way to handle C++ code. 
-A low level interface using c functions to access member variables and member functions is the alternative SWIG
-approach. This entails passing around the c pointer or c++ 'this' pointer and as such it is not difficult to crash the JVM. 
+A low level interface using C functions to access member variables and member functions is the alternative SWIG
+approach. This entails passing around the C pointer or C++ 'this' pointer and as such it is not difficult to crash the JVM. 
 The abstraction of the underlying pointer by the java proxy classes far better fits the java programming paradigm.
 
 <p>
-<li>SWIG *does* know how to properly perform upcasting of objects in an inheritance
+<li>SWIG <b>does</b> know how to properly perform upcasting of objects in an inheritance
 hierarchy (including multiple inheritance).  However Java classes can only derive from one base class so multiple inheritance
 is not implemented. Java classes can implement more than one interface so there is scope for improvement in the future. 
 
-<p>
-<li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
-short and incomplete list:
-
-<p>
-<ul>
-<li>Overloaded methods and functions.  SWIG wrappers don't know how to resolve name
-conflicts so you must give an alternative name to any overloaded method name using the
-%name directive like this:
-
-<blockquote>
-<pre>
-void foo(int a);  
-%name(foo2) void foo(double a, double b);
-</pre>
-</blockquote>
-
-<p>
-<li>Overloaded operators.  Not supported at all. The only workaround for this is
-to write a helper function. For example:
-
-<blockquote>
-<pre>
-%inline %{
-    Vector *vector_add(Vector *a, Vector *b) {
-          ... whatever ...
-    }
-%}
-</pre>
-</blockquote>
-
-<p>
-<li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
-
-</ul>
 </ul>
 
 <hr>

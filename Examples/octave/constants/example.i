@@ -1,5 +1,7 @@
 /* File : example.i */
-%module example
+%module swigexample
+
+%feature("autodoc", 1);
 
 /* A few preprocessor macros */
 
@@ -23,5 +25,3 @@
 
 %constant int iconst = 37;
 %constant double fconst = 3.14;
-
-
