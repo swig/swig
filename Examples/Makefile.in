@@ -1744,8 +1744,8 @@ c: $(SRCDIR_SRCS)
 	$(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 	
 c_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ISRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(PROXYSRC) $(INCLUDES)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
@@ -1771,7 +1771,7 @@ c_version:
 # -----------------------------------------------------------------
 
 c_clean:
-	rm -f *_wrap.c *_proxy.[ch]
+	rm -f *_wrap.c *_wrap.cxx *_proxy.[ch]
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 	rm -f $(RUNME)
