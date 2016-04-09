@@ -686,13 +686,6 @@ ready:
             // print the call of the wrapper function
             Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
 
-            /*
-            // add visibility hint for the compiler (do not override this symbol)
-            String *vis_hint = NewString("");
-            Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
-            Printv(f_proxy_header, vis_hint, NIL);
-            Delete(vis_hint);
-            */
             // add function declaration to the proxy header file
             Printv(f_proxy_header, return_type, " ", name, "(", proto, ");\n\n", NIL);
 
@@ -1010,14 +1003,6 @@ ready:
        Printv(f_proxy_code_body, "  return ", wrapper_call, ";\n}\n", NIL);
 
        // add function declaration to the proxy header file
-       /*
-       // add visibility hint for the compiler (do not override this symbol)
-       String *vis_hint = NewString("");
-       Printv(vis_hint, "SWIGPROTECT(", preturn_type, " ", name, "(", pproto, ");)\n\n", NIL);
-       Printv(f_proxy_header, vis_hint, NIL);
-       Delete(vis_hint);
-       */
-
        Printv(f_proxy_header, preturn_type, " ", name, "(", pproto, ");\n\n", NIL);
 
        // cleanup
