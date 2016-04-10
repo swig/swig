@@ -1011,33 +1011,6 @@ ready:
        Delete(preturn_type);
     }
 
-  virtual SwigType *functionWrapperCPPSpecificWrapperSetReturnType(Node *n)
-    {
-       SwigType *type = Getattr(n, "type");
-       SwigType *return_type = NewString("");
-       String *tm;
-
-       // set the return type
-       if (IS_SET_TO_ONE(n, "c:objstruct")) {
-            Printv(return_type, SwigType_str(type, 0), NIL);
-       }
-       else if ((tm = Swig_typemap_lookup("cmodtype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:cmodtype:out");
-            if (ctypeout)
-              {
-                 tm = ctypeout;
-                 Printf(stdout, "Obscure ctype:out found! O.o\n");
-              }
-            Printf(return_type, "%s", tm);
-            // template handling
-            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
-       }
-       else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
-       }
-       return return_type;
-    }
-
 
   virtual void functionWrapperCPPSpecificWrapper(Node *n, String *name)
     {
