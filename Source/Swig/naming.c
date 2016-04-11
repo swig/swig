@@ -246,19 +246,14 @@ String *Swig_name_set(const_String_or_char_ptr nspace, const_String_or_char_ptr 
   return r;
 }
 
-/* -----------------------------------------------------------------------------
- * Swig_name_construct()
- *
- * Returns the name of the accessor function used to create an object.
- * ----------------------------------------------------------------------------- */
-
-String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
+/* Common implementation of all Swig_name_<special-method>() functions below. */
+static String *make_full_name_for(const char *method, const char *def_format, const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
   String *r;
   String *rclassname;
   char *cname;
 
   rclassname = SwigType_namestr(classname);
-  r = get_naming_format_for("construct", "new_%n%c");
+  r = get_naming_format_for(method, def_format);
 
   cname = Char(rclassname);
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
@@ -269,6 +264,16 @@ String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_cha
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
   Delete(rclassname);
   return r;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_construct()
+ *
+ * Returns the name of the accessor function used to create an object.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
+  return make_full_name_for("construct", "new_%n%c", nspace, classname);
 }
 
 
@@ -279,22 +284,7 @@ String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_cha
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *rclassname;
-  char *cname;
-
-  rclassname = SwigType_namestr(classname);
-  r = get_naming_format_for("copy", "copy_%n%c");
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("copy", "copy_%n%c", nspace, classname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -304,21 +294,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *rclassname;
-  char *cname;
-  rclassname = SwigType_namestr(classname);
-  r = get_naming_format_for("destroy", "delete_%n%c");
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("destroy", "delete_%n%c", nspace, classname);
 }
 
 
@@ -329,21 +305,7 @@ String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *rclassname;
-  char *cname;
-  rclassname = SwigType_namestr(classname);
-  r = get_naming_format_for("disown", "disown_%n%c");
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("disown", "disown_%n%c", nspace, classname);
 }
 
 
