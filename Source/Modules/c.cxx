@@ -80,10 +80,7 @@ public:
 
      String *proxyname = NULL;
      if ((proxyname = Getattr(n, "proxyname")))
-     {
-      //Printf(stdout, "Returning proxytype: %s\n", proxyname); 
       return Copy(proxyname);
-     }
 
      String *symname = Getattr(n, "sym:name");
      String *nspace = Getattr(n, "sym:nspace");
@@ -98,7 +95,6 @@ public:
      }
      Setattr(n, "proxyname", proxyname);
      Delete(proxyname);
-     //Printf(stdout, "Returning proxytype: %s\n", proxyname);
 
      return Copy(proxyname);
   }
@@ -114,29 +110,7 @@ public:
    String *getProxyName(SwigType *t) {
      Node *n = NULL;
 
-     /* original java code
-     if (proxy_flag) {
-       Node *n = classLookup(t);
-       if (n) {
-         proxyname = Getattr(n, "proxyname");
-         if (!proxyname) {
-           String *nspace = Getattr(n, "sym:nspace");
-           String *symname = Getattr(n, "sym:name");
-           if (nspace) {
-             if (package)
-               proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
-             else
-               proxyname = NewStringf("%s.%s", nspace, symname);
-           } else {
-             proxyname = Copy(symname);
-           }
-           Setattr(n, "proxyname", proxyname);
-           Delete(proxyname);
-         }
-       }
-     }*/
      t = SwigType_typedef_resolve_all(t);
-     //Printf(stdout, "Proxytype for type %s was asked.\n", t);
      if (!proxy_flag || !t || !(n = classLookup(t)))
       return NULL;
 
@@ -204,14 +178,6 @@ public:
       String *classname = getProxyName(classnametype);
       if (classname) {
   Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
-      } else {/*      // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-  String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
-  Replaceall(tm, classnamespecialvariable, descriptor);
-
-  // Add to hash table so that the type wrapper classes can be created later
-  Setattr(swig_types_hash, descriptor, classnametype);
-  Delete(descriptor);
-  */
       }
     }
   }
@@ -777,7 +743,6 @@ ready:
     {
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = NewString("");
-       //SwigType *ns = Getattr(n, "name");
        String *tm;
 
        // set the return type
@@ -789,7 +754,6 @@ ready:
             String *ctypeout = Getattr(n, "tmap:ctype:out");
             if (ctypeout)
               {
-                 //tm = ctypeout;
                  return_type = ctypeout;
                  Printf(stdout, "Obscure ctype:out found! O.o\n");
               }
@@ -891,8 +855,6 @@ ready:
        int gencomma = 0;
 
        Printv(call, "(", NIL);
-       // attach the standard typemaps
-       //Swig_typemap_attach_parms("in", parms, 0);
 
        // attach typemaps to cast wrapper call with proxy types
        Swig_typemap_attach_parms("cmodtype", parms, 0);
@@ -914,7 +876,6 @@ ready:
             }
             String *lname = Getattr(p, "lname");
             String *c_parm_type = NewString("");
-            //String *proxy_parm_type = NewString("");
             String *arg_name = NewString("");
 
             SwigType *tdtype = SwigType_typedef_resolve_all(type);
@@ -933,17 +894,6 @@ ready:
                  Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
             }
 
-            /*
-            // use proxy-type for parameter if supplied
-            String* stype = Getattr(p, "c:stype");
-            if (stype) {
-                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
-            }
-            else {
-                 Printv(proxy_parm_type, c_parm_type, NIL);
-            }
-            */
-
             Printv(args, gencomma ? ", " : "", c_parm_type, arg_name, NIL);
             gencomma = 1;
 
@@ -961,7 +911,6 @@ ready:
             }
 
             Delete(arg_name);
-            //Delete(proxy_parm_type);
             Delete(c_parm_type);
        }
        Printv(call, args, ")", NIL);
@@ -1033,7 +982,6 @@ ready:
        Setattr(n, "wrap:name", wname);
 
        // add variable for holding result of original function 'cppresult'
-       // WARNING: testing typemap approach
        if (!is_void_return && !IS_SET_TO_ONE(n, "c:objstruct")) {
             String *tm;
             if ((tm = Swig_typemap_lookup("cppouttype", n, "", 0))) {
@@ -1383,7 +1331,6 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-    //String *name = Copy(Getattr(n, "sym:name"));
     String *name = getNamespacedName(n);
     String *sobj = NewString("");
     List *baselist = Getattr(n, "bases");
@@ -1690,9 +1637,7 @@ ready:
     // modify the constructor if necessary
     constr_name = Swig_name_copyconstructor(nspace, newclassname);
 
-    //Setattr(n, "name", constr_name);
     Setattr(n, "name", newclassname);
-    //Setattr(n, "sym:name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
