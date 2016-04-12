@@ -379,21 +379,6 @@ typedef struct {
   SwigObj *SWIG_temporary = (SwigObj *) malloc(sizeof(SwigObj));
 %}
 
-%insert("proxy_header") %{
-#include <stdarg.h>
-
-#define SWIG_MAKE_DELETE(Name,Obj) void Name(Obj *op1, ...) {\
-  Obj *obj;\
-  va_list vl;\
-  va_start(vl, op1);\
-  do {\
-    obj = va_arg(vl, Obj *);\
-    delete_##Obj(obj);\
-  } while (obj);\
-  va_end(vl);\
-}
-%}
-
 #else
 
 %insert("runtime") %{

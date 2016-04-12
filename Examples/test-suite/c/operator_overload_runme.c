@@ -4,8 +4,6 @@
 
 #define assert(x,msg) if (!x) { printf("%d: %s\n", x, msg); SWIG_exit(0); }
 
-SWIG_MAKE_DELETE(delete_Ops, Op);
-
 int main() {
   Op_sanity_check();
   
@@ -20,6 +18,8 @@ int main() {
   assert(3 == *Op_IndexInto(op3, Op_IndexIntoConst(op2, Op_Functor_pOp(op1))), "[] or () failed");
   assert(5 == Op_Functor_pOp_i(op3, 2), "f(x) failed");
   
-  delete_Ops(op1, op2, op3, 0);
+  delete_Op(op1);
+  delete_Op(op2);
+  delete_Op(op3);
   SWIG_exit(0);
 }
