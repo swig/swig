@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "operator_overload/operator_overload_proxy.h"
+#include "operator_overload/operator_overload_wrap.h"
 
 #define assert(x,msg) if (!x) { printf("%d: %s\n", x, msg); SWIG_exit(0); }
 

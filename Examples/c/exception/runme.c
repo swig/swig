@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-#include "example_proxy.h"
+#include "example_wrap.h"
 
 int main() {
   Test *t = new_Test();

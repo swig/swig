@@ -1734,23 +1734,18 @@ C_LDSHARED = @C_LDSHARED@
 CXX_LDSHARED = @CXX_LDSHARED@
 C_SO = @C_SO@
 
-PROXYSRC := $(INTERFACE:.i=_proxy.c)
-PROXYOBJ := $(PROXYSRC:.c=.@OBJEXT@)
-
 c: $(SRCDIR_SRCS)
 	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(PROXYSRC) $(INCLUDES)
 	$(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 	
 c_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(PROXYSRC) $(INCLUDES)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
-c_compile: $(SRCDIR)$(RUNME).c $(PROXYOBJ)
-	$(COMPILETOOL) $(CC) -o $(RUNME) -I. $^ -L. -l$(TARGET)
+c_compile: $(SRCDIR)$(RUNME).c
+	$(COMPILETOOL) $(CC) -o $(RUNME) -I. $< -L. -l$(TARGET)
 
 # -----------------------------------------------------------------
 # Run C example
@@ -1771,7 +1766,7 @@ c_version:
 # -----------------------------------------------------------------
 
 c_clean:
-	rm -f *_wrap.c *_wrap.cxx *_proxy.[ch]
+	rm -f *_wrap.c *_wrap.cxx
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 	rm -f $(RUNME)

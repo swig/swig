@@ -108,18 +108,18 @@ Note that <tt>-c</tt> is the option specifying the <b>target</b> language and <t
 <p>
 
 <p>
-This will generate an <tt>example_wrap.c</tt> file or, in the latter case, <tt>example_wrap.cxx</tt> file, along with <tt>example_proxy.h</tt> and <tt>example_proxy.c</tt> files. The name of the file is derived from the name of the input file. To change this, you can use the <tt>-o</tt> option common to all language modules. 
+This will generate an <tt>example_wrap.c</tt> file or, in the latter case, <tt>example_wrap.cxx</tt> file, along with <tt>example_wrap.h</tt> (the same extension is used in both C and C++ cases for the last one). The names of the files are derived from the name of the input file by default, but can be changed using the <tt>-o</tt> and <tt>-oh</tt> options common to all language modules. 
 </p>
 
 <p>
-The <tt>wrap</tt> file contains the wrapper functions, which perform the main functionality of SWIG: it translates the input arguments from C to C++, makes calls to the original functions and marshalls C++ output back to C data. The <tt>proxy</tt> header file contains the interface we can use in C application code. The additional <tt>.c</tt> file contains calls to the wrapper functions, allowing us to preserve names of the original functions.
+The <tt>xxx_wrap.c</tt> file contains the wrapper functions, which perform the main functionality of SWIG: each of the wrappers translates the input arguments from C to C++, makes calls to the original functions and marshals C++ output back to C data. The <tt>xxx_wrap.h</tt> header file contains the declarations of these functions as well as global variables.
 </p>
 
 <H3><a name="C_commandline"></a>36.2.2 Command line options</H3>
 
 
 <p>
-The following table list the additional commandline options available for the C module. They can also be seen by using: 
+The following table list the additional command line options available for the C module. They can also be seen by using: 
 </p>
 
 <div class="shell"><pre>
@@ -129,11 +129,6 @@ $ swig -c -help
 <table summary="C specific options">
 <tr>
 <th>C specific options</th>
-</tr>
-
-<tr>
-<td>-noproxy</td>
-<td>do not generate proxy files (i.e. <i>filename</i><tt>_proxy.h</tt> and <i>filename</i><tt>_proxy.c</tt>)</td>
 </tr>
 
 <tr>
@@ -153,8 +148,7 @@ The next step is to build a dynamically loadable module, which we can link to ou
 <div class="shell"><pre>
 $ swig -c example.i
 $ gcc -c example_wrap.c
-$ gcc -c example_proxy.c
-$ gcc -shared example_wrap.o example_proxy.o -o libexample.so
+$ gcc -shared example_wrap.o -o libexample.so
 </pre></div>
 
 <p>
@@ -164,8 +158,7 @@ Or, for C++ input:
 <div class="shell"><pre>
 $ swig -c++ -c example.i
 $ g++ -c example_wrap.cxx
-$ gcc -c example_proxy.c
-$ g++ -shared example_proxy.o example_wrap.o -o libexample.so
+$ g++ -shared example_wrap.o -o libexample.so
 </pre></div>
 
 <p>
@@ -176,7 +169,7 @@ Now the shared library module is ready to use. Note that the name of the generat
 
 
 <p>
-The simplest way to use the generated shared module is to link it to the application code during the compilation stage. We have to compile the proxy file as well. The process is usually similar to this:
+The simplest way to use the generated shared module is to link it to the application code during the compilation stage. The process is usually similar to this:
 </p>
 
 <div class="shell"><pre>
@@ -184,14 +177,14 @@ $ gcc runme.c -L. -lexample -o runme
 </pre></div>
 
 <p>
-This will compile the application code (<tt>runme.c</tt>), along with the proxy code and link it against the generated shared module. Following the <tt>-L</tt> option is the path to the directory containing the shared module. The output executable is ready to use. The last thing to do is to supply to the operating system the information of location of our module. This is system dependant, for instance Unix systems look for shared modules in certain directories, like <tt>/usr/lib</tt>, and additionally we can set the environment variable <tt>LD_LIBRARY_PATH</tt> (Unix) or <tt>PATH</tt> (Windows) for other directories.
+This will compile the application code (<tt>runme.c</tt>) and link it against the generated shared module. Following the <tt>-L</tt> option is the path to the directory containing the shared module. The output executable is ready to use. The last thing to do is to supply to the operating system the information of location of our module. This is system dependant, for instance Unix systems look for shared modules in certain directories, like <tt>/usr/lib</tt>, and additionally we can set the environment variable <tt>LD_LIBRARY_PATH</tt> (Unix) or <tt>PATH</tt> (Windows) for other directories.
 </p>
 
 <H2><a name="C_basic_c_wrapping"></a>36.3 Basic C wrapping</H2>
 
 
 <p>
-Wrapping C functions and variables is obviously performed in a straightforward way. There is no need to perform type conversions, and all language constructs can be preserved in their original form. However, SWIG allows you to enchance the code with some additional elements, for instance using <tt>check</tt> typemap or <tt>%extend</tt> directive.
+Wrapping C functions and variables is obviously performed in a straightforward way. There is no need to perform type conversions, and all language constructs can be preserved in their original form. However, SWIG allows you to enhance the code with some additional elements, for instance using <tt>check</tt> typemap or <tt>%extend</tt> directive.
 </p>
 
 <H3><a name="C_functions"></a>36.3.1 Functions</H3>
@@ -218,16 +211,6 @@ int _wrap_gcd(int arg1, int arg2) {
   int result;
   result = gcd(arg1,arg2);
   return result;
-}
-</pre></div>
-
-<p>
-Then again, this wrapper function is usually called from C using helper function declared in proxy file, preserving the original name:
-</p>
-
-<div class="targetlang"><pre>
-int gcd(int arg1, int arg2) {
-  return _wrap_gcd(arg1,arg2);
 }
 </pre></div>
 
@@ -501,7 +484,7 @@ Let's assume we have the following C++ interface file, we'd like to generate cod
 What we would like to generate as a C interface of this function would be something like this:
 
 <div class="targetlang"><pre>
-//proxy header file
+// wrapper header file
 typedef struct SwigObj_SomeClass SomeClass;
 
 SomeClass * new_SomeClass();
@@ -518,15 +501,8 @@ SomeIntTemplateClass * new_SomeIntTemplateClass();
 void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
 </pre></div>
 
-When we generate the bindings, we generate code for two translation units:
-<ul>
-<li>The proxy</li>
-<li>The wrapper</li>
-</ul>
-We need 2 translation units to be able to have C types with the same names as the original C++ types.
-
 <H4>The Wrapper</H4>
-Since the proxy embeds a call to the wrapper function, we'll examine the generation of the wrapper function first.
+We'll examine the generation of the wrapper function first.
 
 <div class="targetlang"><pre>
 SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
@@ -593,7 +569,7 @@ int arg2 ;
 </pre></div>
 
 If it's a C++ function that is wrapped (in this case it is), another variable is emitted for the 'original' return value of the C++ function.</br>
-At this point, we simply 'inject' behavior if it's a C++ function that is wrapped (in this cas it obviously is).
+At this point, we simply 'inject' behavior if it's a C++ function that is wrapped (in this case it obviously is).
 
 <div class="targetlang"><pre>
 cppouttype
@@ -639,11 +615,12 @@ return result;
 </pre></div>
 
 <H4>The Proxy</H4>
-Compared to the wrapper code generation, the proxy code is very simple.</br>
-Basically it just casts types for the wrapper call. Let's have a look at the corresponding proxy header file code of the interface above.
+Compared to the wrapper code generation, the header code is very simple.</br>
+Basically it contains just the declarations corresponding to the definitions
+above.
 
 <div class="targetlang"><pre>
-//proxy header file
+// wrapper header file
 typedef struct SwigObj_SomeClass SomeClass;
 
 SomeClass * new_SomeClass();
@@ -660,33 +637,8 @@ SomeIntTemplateClass * new_SomeIntTemplateClass();
 void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
 </pre></div>
 
-For shortness sake, we'll only examine one function that uses all proxy typemaps, as the other functions are analogous.
-
-<div class="targetlang"><pre>
-SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2) {
-  return (SomeClass*)_wrap_someFunction((SwigObj *)carg1, (int)carg2);
-}
-</pre></div>
-
-Again, let's first examine the protype:
-<div class="targetlang"><pre>
-ctype                   ctype                        ctype
-----------              ---------------------        ---
-SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
-</pre></div>
-
-In the body of this function, we'll reuse the 'proxycouttype' and 'ctype' to cast the return value and arguments of the wrapper function.
-
-<div class="targetlang"><pre>
-        ctype                          cmodtype          cmodtype
-        ----------                     ---------         ___
-return (SomeClass*)_wrap_someFunction((SwigObj *)carg1, (int)carg2);
-</pre></div>
-
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>
 
 
 </body>
 </html>
-
-

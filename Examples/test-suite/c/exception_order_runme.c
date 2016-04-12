@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "exception_order/exception_order_proxy.h"
+#include "exception_order/exception_order_wrap.h"
 
 int main() {
   A* a = new_A();

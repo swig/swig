@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "c_backend_cpp_natural_std_string/c_backend_cpp_natural_std_string_proxy.h"
+#include "c_backend_cpp_natural_std_string/c_backend_cpp_natural_std_string_wrap.h"
 
 int main()
 {

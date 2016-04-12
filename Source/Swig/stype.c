@@ -286,20 +286,6 @@ int SwigType_issimple(const SwigType *t) {
   return 1;
 }
 
-int SwigType_isbuiltin(SwigType *t) {
-  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
-  int i = 0;
-  char *c = Char(t);
-  if (!t)
-    return 0;
-  while (builtins[i]) {
-    if (strcmp(c, builtins[i]) == 0)
-      return 1;
-    i++;
-  }
-  return 0;
-}
-
 /* -----------------------------------------------------------------------------
  * SwigType_default_create()
  *

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cast_operator/cast_operator_proxy.h"
+#include "cast_operator/cast_operator_wrap.h"
 
 int main() {
   A *a = new_A();

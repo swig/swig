@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_template_class/cpp_basic_template_class_proxy.h"
+#include "cpp_basic_template_class/cpp_basic_template_class_wrap.h"
 
 int main() {
 	MyTemplateClass_Int *ci = new_MyTemplateClass_Int();

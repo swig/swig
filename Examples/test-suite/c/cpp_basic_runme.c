@@ -1,4 +1,4 @@
-#include "cpp_basic/cpp_basic_proxy.h"
+#include "cpp_basic/cpp_basic_wrap.h"
 #include <assert.h>
 #include <stdio.h>
 

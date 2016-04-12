@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "enums/enums_proxy.h"
+#include "enums/enums_wrap.h"
 
 int main() {
   bar2(1);

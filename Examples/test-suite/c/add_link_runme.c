@@ -1,4 +1,4 @@
-#include "add_link/add_link_proxy.h"
+#include "add_link/add_link_wrap.h"
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {

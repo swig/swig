@@ -1,4 +1,4 @@
-#include "example_proxy.h"
+#include "example_wrap.h"
 
 int main() {
   Klass *klass = new_Klass();

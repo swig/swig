@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "c_backend_cpp_exception/c_backend_cpp_exception_proxy.h"
+#include "c_backend_cpp_exception/c_backend_cpp_exception_wrap.h"
 
 int main()
 {

@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "example_proxy.h"
+#include "example_wrap.h"
 
 int main(int argc, char **argv) {
   printf("Creating some objects:\n");

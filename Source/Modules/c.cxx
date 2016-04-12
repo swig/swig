@@ -32,6 +32,68 @@ int SwigType_isbuiltin(SwigType *t) {
   return 0;
 }
 
+
+// Private helpers, could be made public and reused from other language modules in the future.
+namespace
+{
+
+// Helper class to output "begin" fragment in the ctor and "end" in the dtor.
+class begin_end_output_guard
+{
+public:
+  begin_end_output_guard(File* f, const_String_or_char_ptr begin, const_String_or_char_ptr end)
+    : f_(f),
+      end_(NewString(end))
+  {
+    String* const s = NewString(begin);
+    Dump(s, f_);
+    Delete(s);
+  }
+
+  ~begin_end_output_guard()
+  {
+    Dump(end_, f_);
+    Delete(end_);
+  }
+
+private:
+  // Non copyable.
+  begin_end_output_guard(const begin_end_output_guard&);
+  begin_end_output_guard& operator=(const begin_end_output_guard&);
+
+  File* const f_;
+  String* const end_;
+};
+
+// Subclass to output extern "C" guards when compiling as C++.
+class cplusplus_output_guard : private begin_end_output_guard
+{
+public:
+  explicit cplusplus_output_guard(File* f)
+    : begin_end_output_guard(
+        f,
+        "#ifdef __cplusplus\n"
+        "extern \"C\" {\n"
+        "#endif\n\n",
+        "#ifdef __cplusplus\n"
+        "}\n"
+        "#endif\n"
+      )
+  {
+  }
+};
+
+// Return the public name to use for the given class.
+//
+// It basically just prepends the namespace, if any, to the class name, and mangles the result.
+String *make_public_class_name(String* nspace, String* classname) {
+  String *s = nspace ? NewStringf("%s_", nspace) : NewString("");
+  Append(s, classname);
+  return s;
+}
+
+} // anonymous namespace
+
 class C:public Language {
   static const char *usage;
 
@@ -39,13 +101,8 @@ class C:public Language {
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
+  File *f_wrappers_decl;
   File *f_init;
-  File *f_proxy_c;
-  File *f_proxy_h;
-
-  String *f_proxy_code_init;
-  String *f_proxy_code_body;
-  String *f_proxy_header;
 
   String *empty_string;
   String *int_string;
@@ -53,7 +110,6 @@ class C:public Language {
   String *destroy_object;
   String *tl_namespace; // optional top level namespace
 
-  bool proxy_flag;
   bool except_flag;
 
 public:
@@ -68,7 +124,6 @@ public:
     create_object(0),
     destroy_object(0),
     tl_namespace(NULL),
-    proxy_flag(true),
     except_flag(true) {
   }
 
@@ -86,10 +141,8 @@ public:
      String *nspace = Getattr(n, "sym:nspace");
 
      if (nspace) {
-          Replaceall(nspace, ".", "_"); // Classes' namespaces get dotted -> replace; FIXME in core!
-          proxyname = Swig_name_proxy(nspace, symname);
-          if (tl_namespace)
-            proxyname = Swig_name_proxy(tl_namespace, proxyname);
+          // FIXME: using namespace as class name is a hack.
+          proxyname = Swig_name_member(tl_namespace, nspace, symname);
      } else {
           proxyname = symname;
      }
@@ -111,7 +164,7 @@ public:
      Node *n = NULL;
 
      t = SwigType_typedef_resolve_all(t);
-     if (!proxy_flag || !t || !(n = classLookup(t)))
+     if (!t || !(n = classLookup(t)))
       return NULL;
 
     return getNamespacedName(n);
@@ -243,12 +296,6 @@ public:
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
           Printf(stdout, "%s\n", usage);
-        } else if ((strcmp(argv[i], "-proxy") == 0) || (strcmp(argv[i], "-proxy") == 0)) {
-          proxy_flag = true;
-          Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-noproxy") == 0) {
-          proxy_flag = false;
-          Swig_mark_arg(i);
         } else if (strcmp(argv[i], "-noexcept") == 0) {
           except_flag = false;
           Swig_mark_arg(i);
@@ -344,75 +391,65 @@ public:
 
     Swig_banner(f_begin);
 
-    // generate proxy files if enabled
-    if (proxy_flag) {
-      f_proxy_code_init = NewString("");
-      f_proxy_code_body = NewString("");
-      f_proxy_header = NewString("");
-
-      // create proxy files with appropriate name
-      String *proxy_code_filename = NewStringf("%s%s_proxy.c", SWIG_output_directory(), Char(module));
-      if ((f_proxy_c = NewFile(proxy_code_filename, "w", SWIG_output_files())) == 0) {
-        FileErrorDisplay(proxy_code_filename);
+    // Open the file where all wrapper declarations will be written to in the end.
+    String* const outfile_h = Getattr(n, "outfile_h");
+    File* const f_wrappers_h = NewFile(outfile_h, "w", SWIG_output_files());
+    if (!f_wrappers_h) {
+      FileErrorDisplay(outfile_h);
         SWIG_exit(EXIT_FAILURE);
       }
 
-      String *proxy_header_filename = NewStringf("%s%s_proxy.h", SWIG_output_directory(), Char(module));
-      if ((f_proxy_h = NewFile(proxy_header_filename, "w", SWIG_output_files())) == 0) {
-        FileErrorDisplay(proxy_header_filename);
-        SWIG_exit(EXIT_FAILURE);
-      }
-
-      Swig_register_filebyname("proxy_code_init", f_proxy_code_init);
-      Swig_register_filebyname("proxy_code_body", f_proxy_code_body);
-      Swig_register_filebyname("proxy_header", f_proxy_header);
-
-      Swig_banner(f_proxy_code_init);
-      Swig_banner(f_proxy_header);
-      Printf(f_proxy_code_init, "#include \"%s\"\n\n", proxy_header_filename);
-      Printf(f_proxy_header, "#ifndef _%s_proxy_H_\n#define _%s_proxy_H_\n\n", Char(module), Char(module));
-    }
+    Swig_banner(f_wrappers_h);
 
     Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("proxy_header", f_wrappers_h);
 
-    Swig_name_register("proxyname", "%n_%v");
+    {
+      // Create a string to which the wrapper declarations will be appended one by one.
+      f_wrappers_decl = NewString("");
 
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "extern \"C\" {\n");
-    Printf(f_wrappers, "#endif\n\n");
+      String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", Char(module));
+      String* const include_guard_begin = NewStringf(
+          "#ifndef %s\n"
+          "#define %s\n\n",
+          include_guard_name,
+          include_guard_name
+        );
+      String* const include_guard_end = NewStringf(
+          "\n"
+          "#endif /* %s */\n",
+          include_guard_name
+        );
 
-    
-    if (except_flag) {
-      start_create_object();
-      start_destroy_object();
-    }
-    
-    // emit code for children
-    Language::top(n);
+      begin_end_output_guard
+        include_guard_wrappers_h(f_wrappers_h, include_guard_begin, include_guard_end);
 
-    if (except_flag) {
-      Append(f_header, finish_create_object());
-      Append(f_header, finish_destroy_object());
-    }
+      {
+        cplusplus_output_guard
+          cplusplus_guard_wrappers(f_wrappers),
+          cplusplus_guard_wrappers_h(f_wrappers_decl);
 
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "}\n");
-    Printf(f_wrappers, "#endif\n");
+        if (except_flag) {
+          start_create_object();
+          start_destroy_object();
+        }
 
-    // finalize generating proxy file
-    if (proxy_flag) {
-      Printv(f_proxy_c, f_proxy_code_init, "\n", NIL);
-      Printv(f_proxy_c, f_proxy_code_body, "\n", NIL);
-      Printv(f_proxy_h, f_proxy_header, "\n#endif /* _", Char(module), "_proxy_H_ */\n", NIL);
-      Delete(f_proxy_c);
-      Delete(f_proxy_h);
-      Delete(f_proxy_code_init);
-      Delete(f_proxy_header);
-    }
+        // emit code for children
+        Language::top(n);
+
+        if (except_flag) {
+          Append(f_header, finish_create_object());
+          Append(f_header, finish_destroy_object());
+        }
+      } // close extern "C" guards
+
+      Dump(f_wrappers_decl, f_wrappers_h);
+      Delete(f_wrappers_decl);
+    } // close wrapper header guard
 
     // write all to the file
     Dump(f_header, f_runtime);
@@ -424,6 +461,7 @@ public:
     Delete(f_begin);
     Delete(f_header);
     Delete(f_wrappers);
+    Delete(f_wrappers_h);
     Delete(f_init);
     Delete(f_runtime);
 
@@ -435,8 +473,6 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
-    if (!proxy_flag)
-      return SWIG_OK;
     String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
     String *type_str = Copy(SwigType_str(type, 0));
@@ -445,11 +481,11 @@ public:
       char *c = Char(type_str);
       c[Len(type_str) - Len(dims) - 1] = '\0';
       String *bare_type = NewStringf("%s", c);
-      Printv(f_proxy_header, "SWIGIMPORT ", bare_type, " ", name, "[];\n\n", NIL);
+      Printv(f_wrappers_decl, "SWIGIMPORT ", bare_type, " ", name, "[];\n\n", NIL);
       Delete(bare_type);
     }
     else
-      Printv(f_proxy_header, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
+      Printv(f_wrappers_decl, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
     Delete(type_str);
     return SWIG_OK;
   }
@@ -633,29 +669,14 @@ ready:
          Printf(wrapper->code, "return result;\n");
        Printf(wrapper->code, "}");
 
-       if (proxy_flag) // take care of proxy function
-         {
-            SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
+       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
 
-            if (proxy_type) {
-                 return_type = SwigType_str(proxy_type, 0);
-            }
+       if (proxy_type) {
+	 return_type = SwigType_str(proxy_type, 0);
+       }
 
-            // emit proxy functions prototypes
-            // print wrapper prototype into proxy body for later use within proxy
-            // body
-            Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
-
-            // print actual proxy code into proxy .c file
-            Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
-
-            // print the call of the wrapper function
-            Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
-
-            // add function declaration to the proxy header file
-            Printv(f_proxy_header, return_type, " ", name, "(", proto, ");\n\n", NIL);
-
-         }
+       // add function declaration to the header file
+       Printv(f_wrappers_decl, return_type, " ", wname, "(", proto, ");\n\n", NIL);
 
        Wrapper_print(wrapper, f_wrappers);
 
@@ -922,9 +943,8 @@ ready:
     {
        // C++ function wrapper proxy code
        ParmList *parms = Getattr(n, "parms");
-       String *wname = Swig_name_wrapper(name);
+       String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        SwigType *preturn_type = functionWrapperCPPSpecificProxyReturnTypeGet(n);
-       String *wproto = Getattr(n, "wrap:proto");
        String *pproto = functionWrapperCPPSpecificProxyPrototypeGet(n, parms);
        String *wrapper_call = NewString("");
        SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
@@ -933,28 +953,11 @@ ready:
             preturn_type = SwigType_str(proxy_type, 0);
        }
 
-       // emit proxy functions prototypes
-       // print wrapper prototype into proxy body for later use within proxy
-       // body
-       Printv(f_proxy_code_init, wproto, "\n", NIL);
-
-       // print actual proxy code into proxy .c file
-       Printv(f_proxy_code_body, preturn_type, " ", name, "(", pproto, ") {\n", NIL);
-
-       // print the call of the wrapper function
-       //Printv(f_proxy_code_body, "  return ", wname, "(", proxy_wrap_args, ");\n}\n", NIL);
-
-       // Add cast if necessary
-       if (SwigType_type(preturn_type) != T_VOID) {
-            Printf(wrapper_call, "(%s)", preturn_type);
-       }
-       Printv(wrapper_call, functionWrapperCPPSpecificProxyWrapperCallGet(n, wname, parms), NIL);
-       Printv(f_proxy_code_body, "  return ", wrapper_call, ";\n}\n", NIL);
-
        // add function declaration to the proxy header file
-       Printv(f_proxy_header, preturn_type, " ", name, "(", pproto, ");\n\n", NIL);
+       Printv(f_wrappers_decl, preturn_type, " ", wname, "(", pproto, ");\n\n", NIL);
 
        // cleanup
+       Delete(wname);
        Delete(pproto);
        Delete(wrapper_call);
        Delete(preturn_type);
@@ -968,7 +971,7 @@ ready:
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
        SwigType *return_type = functionWrapperCPPSpecificWrapperReturnTypeGet(n);
-       String *wname = Swig_name_wrapper(name);
+       String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        String *arg_names = NewString("");
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
@@ -1072,12 +1075,6 @@ ready:
        }
 
        Printv(wrapper->def, ")", NIL);
-       //Create prototype for proxy file
-       String *wrap_proto = Copy(wrapper->def);
-       //Declare function as extern so only the linker has to find it
-       Replaceall(wrap_proto, "SWIGEXPORTC", "extern");
-       Printv(wrap_proto, ";", NIL);
-       Setattr(n, "wrap:proto", wrap_proto);
        Printv(wrapper->def, " {", NIL);
 
        if (Cmp(nodeType(n), "destructor") != 0) {
@@ -1249,9 +1246,7 @@ ready:
 
        // C++ function wrapper
        functionWrapperCPPSpecificWrapper(n, name);
-
-       if (proxy_flag) // take care of proxy function
-         functionWrapperCPPSpecificProxy(n, name);
+       functionWrapperCPPSpecificProxy(n, name);
 
        Delete(name);
     }
@@ -1317,7 +1312,7 @@ ready:
       if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
         String* type = NewString("");
         Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
-        Printv(f_proxy_header, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
+        Printv(f_wrappers_decl, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
         Delete(type);
       }
       // WARNING: proxy delaration can be different than original code
@@ -1381,8 +1376,7 @@ ready:
       }
 
       // declare type for specific class in the proxy header
-      if (proxy_flag)
-        Printv(f_proxy_header, "\ntypedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
+      Printv(f_wrappers_decl, "\ntypedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
@@ -1390,20 +1384,18 @@ ready:
     }
     else if (Cmp(Getattr(n, "kind"), "struct") == 0) {
       // this is C struct, just declare it in the proxy
-      if (proxy_flag) {
-        String *storage = Getattr(n, "storage");
-        int usetd = storage && Cmp(storage, "typedef") == 0;
-        if (usetd)
-          Append(f_proxy_header, "typedef struct {\n");
-        else 
-          Printv(f_proxy_header, "struct ", name, " {\n", NIL);
-        Node *node = firstChild(n);
-        emit_c_struct_def(node);
-        if (usetd)
-          Printv(f_proxy_header, "} ", name, ";\n\n", NIL);
-        else
-          Append(f_proxy_header, "};\n\n");
-      }
+      String *storage = Getattr(n, "storage");
+      int usetd = storage && Cmp(storage, "typedef") == 0;
+      if (usetd)
+        Append(f_wrappers_decl, "typedef struct {\n");
+      else 
+        Printv(f_wrappers_decl, "struct ", name, " {\n", NIL);
+      Node *node = firstChild(n);
+      emit_c_struct_def(node);
+      if (usetd)
+        Printv(f_wrappers_decl, "} ", name, ";\n\n", NIL);
+      else
+        Append(f_wrappers_decl, "};\n\n");
 
       Delete(sobj);
       Delete(name);
@@ -1571,7 +1563,7 @@ ready:
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
     Setattr(n, "c:objstruct", "1");
-    stype = Swig_name_proxy(nspace, newclassname);
+    stype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
 
@@ -1630,7 +1622,7 @@ ready:
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
     Setattr(n, "c:objstruct", "1");
-    stype = Swig_name_proxy(nspace, newclassname);
+    stype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
 
@@ -1687,7 +1679,7 @@ ready:
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self", n);
     Setattr(p, "lname", "arg1");
-    stype = Swig_name_proxy(nspace, newclassname);
+    stype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
     Setattr(p, "c:objstruct", "1");
@@ -1742,7 +1734,7 @@ ready:
     String *name = Getattr(n, "value");
     String *value = Getattr(n, "enumvalueex");
     value = value ? value : Getattr(n, "enumvalue");
-    Printv(f_proxy_header, "#define ", Swig_name_mangle(name), " ", value, "\n", NIL);
+    Printv(f_wrappers_decl, "#define ", Swig_name_mangle(name), " ", value, "\n", NIL);
     Swig_restore(n);
     return SWIG_OK;
   }
@@ -1752,11 +1744,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int constantWrapper(Node *n) {
-    if (!proxy_flag)
-      return SWIG_OK;
     String *name = Getattr(n, "sym:name");
     String *value = Getattr(n, "value");
-    Printv(f_proxy_header, "#define ", name, " ", value, "\n", NIL);
+    Printv(f_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
   
@@ -1811,7 +1801,6 @@ extern "C" Language *swig_c(void) {
 
 const char *C::usage = (char *) "\
 C Options (available with -c)\n\
-     -noproxy      - do not generate proxy interface\n\
      -noexcept     - do not generate exception handling code\n\
 \n";
 

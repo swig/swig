@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_class_var_pub_member_class/cpp_basic_class_var_pub_member_class_proxy.h"
+#include "cpp_basic_class_var_pub_member_class/cpp_basic_class_var_pub_member_class_wrap.h"
 
 int main(int argc, const char *argv[])
 {

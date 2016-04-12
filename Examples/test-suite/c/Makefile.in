@@ -165,4 +165,4 @@ run_testcase = \
 	fi;
 
 clean:
-	@rm -f *_wrap.* *_proxy.* *~ *.exe *.dll *.so *.out *runme
+	@rm -f *_wrap.* *~ *.exe *.dll *.so *.out *runme

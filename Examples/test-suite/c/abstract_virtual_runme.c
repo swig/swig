@@ -1,4 +1,4 @@
-#include "abstract_virtual/abstract_virtual_proxy.h"
+#include "abstract_virtual/abstract_virtual_wrap.h"
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {

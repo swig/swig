@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_class_enum/cpp_basic_class_enum_proxy.h"
+#include "cpp_basic_class_enum/cpp_basic_class_enum_wrap.h"
 
 int main(int argc, const char *argv[])
 {

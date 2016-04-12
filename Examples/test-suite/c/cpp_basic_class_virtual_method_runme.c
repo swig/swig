@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_class_virtual_method/cpp_basic_class_virtual_method_proxy.h"
+#include "cpp_basic_class_virtual_method/cpp_basic_class_virtual_method_wrap.h"
 
 int main()
 {

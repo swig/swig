@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_global_var_class/cpp_basic_global_var_class_proxy.h"
+#include "cpp_basic_global_var_class/cpp_basic_global_var_class_wrap.h"
 
 int main(int argc, const char *argv[])
 {

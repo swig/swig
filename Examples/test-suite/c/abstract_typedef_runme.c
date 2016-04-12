@@ -1,4 +1,4 @@
-#include "abstract_typedef/abstract_typedef_proxy.h"
+#include "abstract_typedef/abstract_typedef_wrap.h"
 #include <stdbool.h>
 #include <assert.h>
 

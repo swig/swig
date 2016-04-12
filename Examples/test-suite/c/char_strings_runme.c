@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "char_strings/char_strings_proxy.h"
+#include "char_strings/char_strings_wrap.h"
 
 int main() {
   char *CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";

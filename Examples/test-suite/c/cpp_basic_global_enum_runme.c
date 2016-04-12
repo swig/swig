@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_global_enum/cpp_basic_global_enum_proxy.h"
+#include "cpp_basic_global_enum/cpp_basic_global_enum_wrap.h"
 
 int main(int argc, const char *argv[])
 {
