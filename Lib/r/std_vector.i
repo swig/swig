@@ -192,7 +192,6 @@
           }
         UNPROTECT(1);
         return(result);
-        //return SWIG_R_NewPointerObj(val, type_info< std::vector<T > >(), owner);
       }
     };
     
@@ -208,7 +207,6 @@
            }
         UNPROTECT(1);
         return(result);
-        //return SWIG_R_NewPointerObj(val, type_info< std::vector<T > >(), owner);
       }
     };
 
@@ -506,6 +504,31 @@
       for (unsigned pos = 0; pos < p->size(); pos++)
         {
           (*p)[pos] = static_cast<bool>(S[pos]);
+        }
+      int res = SWIG_OK;
+      if (SWIG_IsOK(res)) {
+        if (val) *val = p;
+      }
+      UNPROTECT(1);
+      return res;
+    }
+  };
+
+    template <>
+      struct traits_asptr < std::vector<std::basic_string<char> > > {
+      static int asptr(SEXP obj, std::vector<std::basic_string<char> > **val) {
+	std::vector<std::basic_string<char> > *p;
+      // R character vectors are STRSXP containing CHARSXP
+      // access a CHARSXP using STRING_ELT
+      int sexpsz = Rf_length(obj);
+      p = new std::vector<std::basic_string<char> >(sexpsz);
+      SEXP coerced;
+      PROTECT(coerced = Rf_coerceVector(obj, STRSXP));
+      //SEXP *S = CHARACTER_POINTER(coerced);
+      for (unsigned pos = 0; pos < p->size(); pos++)
+        {
+	  const char * thecstring = CHAR(STRING_ELT(coerced, pos));
+          (*p)[pos] = std::basic_string<char>(thecstring);
         }
       int res = SWIG_OK;
       if (SWIG_IsOK(res)) {
@@ -845,6 +868,27 @@
 
 %typemap("rtype") std::vector<int> "integer"
 %typemap("scoercein") std::vector<int> , std::vector<int> const, std::vector<int> const& "$input = as.integer($input);";
+
+// strings
+%typemap("rtype") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & "character"
+
+%typemap("rtypecheck") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > &
+   %{ is.character($arg) %}
+
+%typemap("scoercein") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & "$input = as.character($input);";
+
+%typemap("scoerceout") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & 
+%{    %}
+
+%apply std::vector< std::basic_string<char> > { std::vector< std::string> };
 
 // all the related integer vectors
 // signed

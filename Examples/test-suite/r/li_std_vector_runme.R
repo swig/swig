@@ -9,6 +9,10 @@ testvec <- c(1, 2, 3)
 
 unittest(half(testvec), testvec/2)
 unittest(average(testvec), mean(testvec))
+## string vector test
+vlen <- 13
+stringvec <- paste(letters[1:vlen], as.character(rnorm(vlen)))
+unittest(rev(stringvec), RevStringVec(stringvec))
 q(save="no")
 
 
