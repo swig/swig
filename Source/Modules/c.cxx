@@ -101,6 +101,7 @@ class C:public Language {
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
+  File *f_wrappers_types;
   File *f_wrappers_decl;
   File *f_init;
 
@@ -409,9 +410,6 @@ public:
     Swig_register_filebyname("proxy_header", f_wrappers_h);
 
     {
-      // Create a string to which the wrapper declarations will be appended one by one.
-      f_wrappers_decl = NewString("");
-
       String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", Char(module));
       String* const include_guard_begin = NewStringf(
           "#ifndef %s\n"
@@ -428,10 +426,17 @@ public:
       begin_end_output_guard
         include_guard_wrappers_h(f_wrappers_h, include_guard_begin, include_guard_end);
 
+      // All the struct types used by the functions go to f_wrappers_types so that they're certain to be defined before they're used by any functions. All the
+      // functions declarations go directly to f_wrappers_decl and f_wrappers_h_body combines both of them.
+      String* const f_wrappers_h_body = NewString("");
+      f_wrappers_types = NewString("");
+      f_wrappers_decl = NewString("");
+
       {
+
         cplusplus_output_guard
           cplusplus_guard_wrappers(f_wrappers),
-          cplusplus_guard_wrappers_h(f_wrappers_decl);
+          cplusplus_guard_wrappers_h(f_wrappers_h_body);
 
         if (except_flag) {
           start_create_object();
@@ -445,10 +450,16 @@ public:
           Append(f_header, finish_create_object());
           Append(f_header, finish_destroy_object());
         }
+
+        Dump(f_wrappers_types, f_wrappers_h_body);
+        Delete(f_wrappers_types);
+
+        Dump(f_wrappers_decl, f_wrappers_h_body);
+        Delete(f_wrappers_decl);
       } // close extern "C" guards
 
-      Dump(f_wrappers_decl, f_wrappers_h);
-      Delete(f_wrappers_decl);
+      Dump(f_wrappers_h_body, f_wrappers_h);
+      Delete(f_wrappers_h_body);
     } // close wrapper header guard
 
     // write all to the file
@@ -1312,7 +1323,7 @@ ready:
       if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
         String* type = NewString("");
         Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
-        Printv(f_wrappers_decl, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
+        Printv(f_wrappers_types, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
         Delete(type);
       }
       // WARNING: proxy delaration can be different than original code
@@ -1376,7 +1387,7 @@ ready:
       }
 
       // declare type for specific class in the proxy header
-      Printv(f_wrappers_decl, "\ntypedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
+      Printv(f_wrappers_types, "typedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
@@ -1387,15 +1398,15 @@ ready:
       String *storage = Getattr(n, "storage");
       int usetd = storage && Cmp(storage, "typedef") == 0;
       if (usetd)
-        Append(f_wrappers_decl, "typedef struct {\n");
+        Append(f_wrappers_types, "typedef struct {\n");
       else 
-        Printv(f_wrappers_decl, "struct ", name, " {\n", NIL);
+        Printv(f_wrappers_types, "struct ", name, " {\n", NIL);
       Node *node = firstChild(n);
       emit_c_struct_def(node);
       if (usetd)
-        Printv(f_wrappers_decl, "} ", name, ";\n\n", NIL);
+        Printv(f_wrappers_types, "} ", name, ";\n\n", NIL);
       else
-        Append(f_wrappers_decl, "};\n\n");
+        Append(f_wrappers_types, "};\n\n");
 
       Delete(sobj);
       Delete(name);
