@@ -50,6 +50,13 @@ void Swig_name_unregister(const_String_or_char_ptr method) {
   }
 }
 
+/* Return naming format for the specified method or the default format if none was explicitly registered */
+static String* get_naming_format_for(const char *method, const char *def_format) {
+  String* f = naming_hash ? Getattr(naming_hash, method) : NULL;
+
+  return f ? Copy(f) : NewString(def_format);
+}
+
 static int name_mangle(String *r) {
   char *c;
   int special;
@@ -172,18 +179,8 @@ String *Swig_name_mangle(const_String_or_char_ptr s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_wrapper(const_String_or_char_ptr fname) {
-  String *r;
-  String *f;
+  String *r = get_naming_format_for("wrapper", "_wrap_%f");
 
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "wrapper");
-  if (!f) {
-    Append(r, "_wrap_%f");
-  } else {
-    Append(r, f);
-  }
   Replace(r, "%f", fname, DOH_REPLACE_ANY);
   name_mangle(r);
   return r;
@@ -198,20 +195,11 @@ String *Swig_name_wrapper(const_String_or_char_ptr fname) {
 
 String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername) {
   String *r;
-  String *f;
   String *rclassname;
   char *cname;
 
   rclassname = SwigType_namestr(classname);
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "member");
-  if (!f) {
-    Append(r, "%n%c_%m");
-  } else {
-    Append(r, f);
-  }
+  r = get_naming_format_for("member", "%n%c_%m");
   cname = Char(rclassname);
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
     cname = strchr(cname, ' ') + 1;
@@ -231,22 +219,11 @@ String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_p
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname) {
-  String *r;
-  String *f;
+  String *r = get_naming_format_for("get", "%n%v_get");
 
 #ifdef SWIG_DEBUG
   Printf(stdout, "Swig_name_get:  '%s'\n", vname);
 #endif
-
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "get");
-  if (!f) {
-    Append(r, "%n%v_get");
-  } else {
-    Append(r, f);
-  }
 
   replace_nspace(r, nspace);
   Replace(r, "%v", vname, DOH_REPLACE_ANY);
@@ -261,22 +238,31 @@ String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr 
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_set(const_String_or_char_ptr nspace, const_String_or_char_ptr vname) {
-  String *r;
-  String *f;
-
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "set");
-  if (!f) {
-    Append(r, "%n%v_set");
-  } else {
-    Append(r, f);
-  }
+  String *r = get_naming_format_for("set", "%n%v_set");
 
   replace_nspace(r, nspace);
   Replace(r, "%v", vname, DOH_REPLACE_ANY);
   /* name_mangle(r); */
+  return r;
+}
+
+/* Common implementation of all Swig_name_<special-method>() functions below. */
+static String *make_full_name_for(const char *method, const char *def_format, const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
+  String *r;
+  String *rclassname;
+  char *cname;
+
+  rclassname = SwigType_namestr(classname);
+  r = get_naming_format_for(method, def_format);
+
+  cname = Char(rclassname);
+  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
+    cname = strchr(cname, ' ') + 1;
+  }
+
+  replace_nspace(r, nspace);
+  Replace(r, "%c", cname, DOH_REPLACE_ANY);
+  Delete(rclassname);
   return r;
 }
 
@@ -287,31 +273,7 @@ String *Swig_name_set(const_String_or_char_ptr nspace, const_String_or_char_ptr 
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *f;
-  String *rclassname;
-  char *cname;
-
-  rclassname = SwigType_namestr(classname);
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "construct");
-  if (!f) {
-    Append(r, "new_%n%c");
-  } else {
-    Append(r, f);
-  }
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("construct", "new_%n%c", nspace, classname);
 }
 
 
@@ -322,31 +284,7 @@ String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_cha
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *f;
-  String *rclassname;
-  char *cname;
-
-  rclassname = SwigType_namestr(classname);
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "copy");
-  if (!f) {
-    Append(r, "copy_%n%c");
-  } else {
-    Append(r, f);
-  }
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("copy", "copy_%n%c", nspace, classname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -356,30 +294,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *f;
-  String *rclassname;
-  char *cname;
-  rclassname = SwigType_namestr(classname);
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "destroy");
-  if (!f) {
-    Append(r, "delete_%n%c");
-  } else {
-    Append(r, f);
-  }
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("destroy", "delete_%n%c", nspace, classname);
 }
 
 
@@ -390,30 +305,7 @@ String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
-  String *r;
-  String *f;
-  String *rclassname;
-  char *cname;
-  rclassname = SwigType_namestr(classname);
-  r = NewStringEmpty();
-  if (!naming_hash)
-    naming_hash = NewHash();
-  f = Getattr(naming_hash, "disown");
-  if (!f) {
-    Append(r, "disown_%n%c");
-  } else {
-    Append(r, f);
-  }
-
-  cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
-    cname = strchr(cname, ' ') + 1;
-  }
-
-  replace_nspace(r, nspace);
-  Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Delete(rclassname);
-  return r;
+  return make_full_name_for("disown", "disown_%n%c", nspace, classname);
 }
 
 
