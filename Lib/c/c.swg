@@ -371,6 +371,7 @@ template <class T> SWIGINTERN SwigObj* SWIG_create_object(T* obj, const char* sy
     
   #else
     
+%insert("runtime") %{
 #ifdef __cplusplus
 extern "C" {
 #endif
