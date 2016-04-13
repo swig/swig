@@ -10,11 +10,7 @@ srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
-include $(srcdir)/../common.mk
-
-SRCDIR       = ../$(srcdir)/
-
-CPP_TEST_CASES += \
+CPP_TEST_CASES := \
 				 cpp_basic_class \
 				 cpp_basic_class_enum \
 				 cpp_basic_class_method \
@@ -30,27 +26,102 @@ CPP_TEST_CASES += \
 				 c_backend_cpp_natural_std_string \
 				 c_backend_cpp_exception
 
-#
-# BROKEN TEST CASES:
-# default_constructor - last case fail: using %extend generates 2 ctors wrappers,
-#                       both using new, while the class constructor is private
-# extend*             - directive %extend is not fully supported yet
-# li*                 - not supported at all yet
-# long_long_apply     - no INPUT, OUTPUT, INOUT typemaps defined
-# template*           - not fully supported yet
-#
+# The following tests are currently broken and need to be fixed.
+FAILING_C_TESTS := \
+    arrays \
+    enums \
+    funcptr \
+    function_typedef \
+    lextype \
+    li_cdata \
+    li_constraints \
 
-C_CPP_TEST_BROKEN = \
+FAILING_CPP_TESTS := \
+    abstract_typedef \
+    anonymous_bitfield \
+    apply_signed_char \
+    argout \
+    array_member \
+    arrays_dimensionless \
+    bools \
+    char_strings \
+    constant_pointers \
+    cpp_basic \
+    cpp_basic_class_enum \
+    cpp_basic_class_var_pub_member_built_in \
+    cpp_basic_global_enum \
+    cpp_basic_global_var_built_in \
+    cpp_basic_global_var_class \
+    cpp_basic_template_class \
+    cpp_basic_template_function \
+    cpp_enum \
+    c_backend_cpp_natural_std_string \
+    c_backend_cpp_exception \
+    default_args \
     default_constructor \
+    director_basic \
+    director_binary_string \
+    director_frob \
+    director_property \
+    director_string \
+    exception_order \
     extend \
+    extend_constructor_destructor \
     extend_default \
     extend_placement \
+    features \
+    funcptr_cpp \
+    langobj \
     li_attribute \
+    li_attribute_template \
     li_boost_shared_ptr \
-    li_carrays \
-    li_cdata \
+    li_carrays_cpp \
+    li_cdata_cpp \
+    li_std_combinations \
+    li_std_deque \
+    li_std_map \
+    li_std_pair \
+    li_std_pair_using \
+    li_std_vector \
     li_windows \
-    long_long_apply
+    mixed_types \
+    nested_class \
+    operator_overload \
+    overload_arrays \
+    overload_simple \
+    primitive_ref \
+    smart_pointer_not \
+    smart_pointer_template_defaults_overload \
+    special_variables \
+    template_arg_typename \
+    template_basic \
+    template_explicit \
+    template_ns4 \
+    template_tbase_template \
+    template_typedef \
+    template_typedef_class_template \
+    template_typedef_cplx \
+    template_typedef_cplx2 \
+    template_typedef_cplx3 \
+    template_typedef_cplx4 \
+    template_typedef_funcptr \
+    template_typemaps_typedef \
+    template_typemaps_typedef2 \
+    typedef_array_member \
+    typedef_struct_cpp \
+    typemap_namespace \
+    using_extend \
+    varargs \
+    varargs_overload \
+    virtual_poly \
+    voidtest
+
+FAILING_MULTI_CPP_TESTS := \
+    template_typedef_import \
+
+include $(srcdir)/../common.mk
+
+SRCDIR       = ../$(srcdir)/
 
 # Rules for the different types of tests
 %.cpptest: 
