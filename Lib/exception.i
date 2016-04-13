@@ -216,8 +216,7 @@ struct SWIG_CException {
 %}
 
 #define SWIG_exception(code, msg)\
-  SwigObj *_ex = SWIG_create_object("SWIG_CException"); \
-  _ex->obj = (void *) new SWIG_CException(code); \
+  SwigObj *_ex = SWIG_create_object(new SWIG_CException(code), "SWIG_CException"); \
   SWIG_CThrowException(_ex, msg);
 
 #endif // SWIGC

@@ -101,14 +101,13 @@ class C:public Language {
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
+  File *f_wrappers_cxx;
   File *f_wrappers_types;
   File *f_wrappers_decl;
   File *f_init;
 
   String *empty_string;
   String *int_string;
-  String *create_object;
-  String *destroy_object;
   String *tl_namespace; // optional top level namespace
 
   bool except_flag;
@@ -122,8 +121,6 @@ public:
   C() : 
     empty_string(NewString("")),
     int_string(NewString("int")),
-    create_object(0),
-    destroy_object(0),
     tl_namespace(NULL),
     except_flag(true) {
   }
@@ -324,54 +321,6 @@ public:
   }
 
   /* ---------------------------------------------------------------------
-   * start_create_object()
-   * --------------------------------------------------------------------- */
-
-  void start_create_object() {
-    String *s = create_object = NewString("");
-    Printv(s, "\nSWIGINTERN SwigObj *SWIG_create_object(", except_flag ? "const char *classname" : "", ") {\n", NIL);
-    if (except_flag)
-      Printf(s, "SWIG_runtime_init();\n");
-    Printf(s, "SwigObj *result;\n");
-    Printf(s, "result = (SwigObj *) malloc(sizeof(SwigObj));\n");
-    Printf(s, "result->obj = 0;\n");
-  }
-
-  /* ---------------------------------------------------------------------
-   * finish_create_object()
-   * --------------------------------------------------------------------- */
-
-  String *finish_create_object() {
-    String *s = create_object;
-    Printf(s, "SWIG_add_registry_entry(result);\n");
-    Printf(s, "return result;\n");
-    Printf(s, "}\n\n");
-    return create_object;
-  }
-
-  /* ---------------------------------------------------------------------
-   * start_destroy_object()
-   * --------------------------------------------------------------------- */
-
-  void start_destroy_object() {
-    String *s = destroy_object = NewString("");
-    Printf(s, "\nSWIGINTERN void SWIG_destroy_object(SwigObj *object) {\n");
-    Printf(s, "if (object) {\n");
-    if (except_flag)
-      Printf(s, "if (object->typenames) {\n");
-  }
-
-  /* ---------------------------------------------------------------------
-   * finish_destroy_object()
-   * --------------------------------------------------------------------- */
-  
-  String *finish_destroy_object() {
-    String *s = destroy_object;
-    Printf(s, "SWIG_free_SwigObj(object);\n}\n}\n}\n");
-    return destroy_object;
-  }
-
-  /* ---------------------------------------------------------------------
    * top()
    * --------------------------------------------------------------------- */
 
@@ -389,6 +338,7 @@ public:
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
+    f_wrappers_cxx = NewString("");
 
     Swig_banner(f_begin);
 
@@ -438,18 +388,8 @@ public:
           cplusplus_guard_wrappers(f_wrappers),
           cplusplus_guard_wrappers_h(f_wrappers_h_body);
 
-        if (except_flag) {
-          start_create_object();
-          start_destroy_object();
-        }
-
         // emit code for children
         Language::top(n);
-
-        if (except_flag) {
-          Append(f_header, finish_create_object());
-          Append(f_header, finish_destroy_object());
-        }
 
         Dump(f_wrappers_types, f_wrappers_h_body);
         Delete(f_wrappers_types);
@@ -464,6 +404,7 @@ public:
 
     // write all to the file
     Dump(f_header, f_runtime);
+    Dump(f_wrappers_cxx, f_runtime);
     Wrapper_pretty_print(f_wrappers, f_runtime);
     Dump(f_init, f_runtime);
     Dump(f_runtime, f_begin);
@@ -472,6 +413,7 @@ public:
     Delete(f_begin);
     Delete(f_header);
     Delete(f_wrappers);
+    Delete(f_wrappers_cxx);
     Delete(f_wrappers_h);
     Delete(f_init);
     Delete(f_runtime);
@@ -1343,46 +1285,73 @@ ready:
     if (CPlusPlus) {
       // inheritance support: attach all members from base classes to this class
       if (baselist) {
-        Iterator i;
-        for (i = First(baselist); i.item; i = Next(i)) {
-          // look for member variables and functions
-          Node *node;
-          for (node = firstChild(i.item); node; node = nextSibling(node)) {
-            if ((Cmp(Getattr(node, "kind"), "variable") == 0) 
-                || (Cmp(Getattr(node, "kind"), "function") == 0)) {
-              if ((Cmp(Getattr(node, "access"), "public") == 0)
-                  && (Cmp(Getattr(node, "storage"), "static") != 0)) {
-                    Node *new_node = copy_node(node);
-                    String *parent_name = Getattr(parentNode(node), "name");
-                    Hash *dupl_name_node = is_in(Getattr(node, "name"), n);
-                    // if there's a duplicate inherited name, due to the C++ multiple
-                    // inheritance, change both names to avoid ambiguity
-                    if (dupl_name_node) {
-                      String *cif = Getattr(dupl_name_node, "c:inherited_from");
-                      String *old_name = Getattr(dupl_name_node, "name");
-                      if (cif && parent_name && (Cmp(cif, parent_name) != 0)) {
-                        Setattr(dupl_name_node, "name", NewStringf("%s%s", cif ? cif : "", old_name));                      
-                        Setattr(dupl_name_node, "c:base_name", old_name);
-                        Setattr(new_node, "name", NewStringf("%s%s", parent_name, old_name));
-                        Setattr(new_node, "c:base_name", old_name);
-                        Setattr(new_node, "c:inherited_from", parent_name);
-                        Setattr(new_node, "sym:name", Getattr(new_node, "name"));
-                        Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
-                        set_nodeType(new_node, "cdecl");
-                        appendChild(n, new_node);
-                      }
-                    }
-                    else {
-                      Setattr(new_node, "c:inherited_from", parent_name);
-                      Setattr(new_node, "sym:name", Getattr(new_node, "name"));
-                      Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
-                      set_nodeType(new_node, "cdecl");
-                      appendChild(n, new_node);
-                    } 
-              }
-            }
-          }
-        }
+	// We may need to specialize SWIG_derives_from<> for this class: its unique check() method will return true iff it's given the name of any subclasses of
+	// this class. Notice that it may happen that all our base classes are ignored, in which case we don't do anything.
+	bool started_derives_from_spec = false;
+
+	Iterator i;
+	for (i = First(baselist); i.item; i = Next(i)) {
+	  // look for member variables and functions
+	  Node *node;
+	  for (node = firstChild(i.item); node; node = nextSibling(node)) {
+	    if ((Cmp(Getattr(node, "kind"), "variable") == 0)
+		|| (Cmp(Getattr(node, "kind"), "function") == 0)) {
+	      if ((Cmp(Getattr(node, "access"), "public") == 0)
+		  && (Cmp(Getattr(node, "storage"), "static") != 0)) {
+		    Node *new_node = copy_node(node);
+		    String *parent_name = Getattr(parentNode(node), "name");
+		    Hash *dupl_name_node = is_in(Getattr(node, "name"), n);
+		    // if there's a duplicate inherited name, due to the C++ multiple
+		    // inheritance, change both names to avoid ambiguity
+		    if (dupl_name_node) {
+		      String *cif = Getattr(dupl_name_node, "c:inherited_from");
+		      String *old_name = Getattr(dupl_name_node, "name");
+		      if (cif && parent_name && (Cmp(cif, parent_name) != 0)) {
+			Setattr(dupl_name_node, "name", NewStringf("%s%s", cif ? cif : "", old_name));
+			Setattr(dupl_name_node, "c:base_name", old_name);
+			Setattr(new_node, "name", NewStringf("%s%s", parent_name, old_name));
+			Setattr(new_node, "c:base_name", old_name);
+			Setattr(new_node, "c:inherited_from", parent_name);
+			Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+			Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
+			set_nodeType(new_node, "cdecl");
+			appendChild(n, new_node);
+		      }
+		    }
+		    else {
+		      Setattr(new_node, "c:inherited_from", parent_name);
+		      Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+		      Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
+		      set_nodeType(new_node, "cdecl");
+		      appendChild(n, new_node);
+		    }
+	      }
+	    }
+	  }
+
+	  // Account for this base class in the RTTI checks.
+	  String* const name = Getattr(i.item, "sym:name");
+	  if (name) {
+	    if (!started_derives_from_spec) {
+	      started_derives_from_spec = true;
+
+	      Printv(f_wrappers_cxx,
+		  "template<> struct SWIG_derives_from< ", Getattr(n, "classtype"), " > {\n",
+		  "  static bool check(const char* type) {\n",
+		  "    return ",
+		  NIL);
+	    } else {
+	      Printv(f_wrappers_cxx, " ||\n    ", NIL);
+	    }
+
+	    Printv(f_wrappers_cxx, "strcmp(type, \"", name, "\") == 0", NIL);
+	  }
+	}
+
+	if (started_derives_from_spec) {
+	  // End SWIG_derives_from specialization.
+	  Printv(f_wrappers_cxx, ";\n  }\n};\n\n", NIL);
+	}
       }
 
       // declare type for specific class in the proxy header
@@ -1500,46 +1469,6 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
-   * add_to_create_object()
-   * --------------------------------------------------------------------- */
-
-  void add_to_create_object(Node *n, String *classname, String *newclassname) {
-    String *s = create_object;
-
-    Printv(s, "if (strcmp(classname, \"", classname, "\") == 0) {\n", NIL);
-
-    // store the name of each class in the hierarchy
-    List *baselist = Getattr(Swig_methodclass(n), "bases");
-    Printf(s, "result->typenames = (const char **) malloc(%d*sizeof(const char*));\n", Len(baselist) + 2);
-    Printv(s, "result->typenames[0] = Swig_typename_", newclassname, ";\n", NIL);
-    int i = 1;
-    if (baselist) {
-      Iterator it;
-      for (it = First(baselist); it.item; it = Next(it)) {
-        String *kname = Getattr(it.item, "sym:name");
-        if (kname)
-          Printf(s, "result->typenames[%d] = Swig_typename_%s;\n", i++, kname);
-      }
-    }
-    Printf(s, "result->typenames[%d] = 0;\n", i);
-    Printf(s, "}\n");
-  }
-  
-  /* ---------------------------------------------------------------------
-   * add_to_destroy_object()
-   * --------------------------------------------------------------------- */
-
-  void add_to_destroy_object(Node *n, String *classname, String *classtype) {
-    String *s = destroy_object;
-    String *access = Getattr(n, "access");
-    if (access && Cmp(access, "private") != 0) {
-      Printv(s, "if (strcmp(object->typenames[0], \"", classname, "\") == 0) {\n", NIL);
-      Printv(s, "if (object->obj)\ndelete (", classtype, " *) (object->obj);\n", NIL);
-      Printf(s, "}\n");
-    }
-  }
-
-  /* ---------------------------------------------------------------------
    * constructorHandler()
    * --------------------------------------------------------------------- */
 
@@ -1551,7 +1480,6 @@ ready:
       return copyconstructorHandler(n);
 
     Node *klass = Swig_methodclass(n);
-    String *classname = Getattr(klass, "name");
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
@@ -1582,17 +1510,12 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    if (except_flag) {
-      if (!Getattr(klass, "c:create")) {
-        add_to_create_object(n, classname, newclassname);
-        Setattr(klass, "c:create", "1");
-      }
-      Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
+    if (!Getattr(klass, "c:create")) {
+      Setattr(klass, "c:create", "1");
     }
-    else {
-      Printf(code, "result = SWIG_create_object();\n");
-    }
-    Printv(code, "result->obj = (void*) new ", Getattr(klass, "classtype"), arg_lnames, ";\n", NIL);
+    Printv(code, "result = SWIG_create_object(new ", Getattr(klass, "classtype"), arg_lnames,
+	", \"", newclassname, "\");\n",
+	NIL);
 
     Setattr(n, "wrap:action", code);
     functionWrapper(n);
@@ -1641,17 +1564,12 @@ ready:
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
-    if (except_flag) {
-      if (!Getattr(klass, "c:create")) {
-        add_to_create_object(n, classname, newclassname);
-        Setattr(klass, "c:create", "1");
-      }
-      Printv(code, "result = SWIG_create_object(\"", classname, "\");\n", NIL);
+    if (!Getattr(klass, "c:create")) {
+      Setattr(klass, "c:create", "1");
     }
-    else {
-      Printf(code, "result = SWIG_create_object();\n");
-    }
-    Printv(code, "result->obj = (void*) new ", classname, "((", classname, " const &)*arg1);\n", NIL);    
+    Printv(code, "result = SWIG_create_object(new ", classname, "((", classname, " const &)*arg1)",
+	", \"", newclassname, "\");\n",
+	NIL);
 
     Setattr(n, "wrap:action", code);    
     functionWrapper(n);
@@ -1673,8 +1591,6 @@ ready:
       return SWIG_NOWRAP;
 
     Node *klass = Swig_methodclass(n);
-    String *classname = Getattr(klass, "name");// Remove class namespace from constructor
-    String *classtype = Getattr(klass, "classtype");
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
@@ -1704,15 +1620,7 @@ ready:
     Setattr(n, "sym:name", destr_name);
 
     // create action code
-    if (except_flag) {
-      add_to_destroy_object(n, classname, classtype);
-      Printf(code, "SWIG_remove_registry_entry(carg1);\n");
-      Printf(code, "SWIG_destroy_object(carg1);");
-    }
-    else {
-      Printv(code, "if (carg1->obj)\ndelete (", classtype, " *) (carg1->obj);\n", NIL);
-    }
-    
+    Printv(code, "SWIG_destroy_object< ", Getattr(klass, "classtype"), " >(carg1);", NIL);
     Setattr(n, "wrap:action", code);
     
     functionWrapper(n);
@@ -1776,8 +1684,6 @@ ready:
     }
     Append(name, Swig_name_mangle(Getattr(n, "sym:name")));
     Setattr(n, "sym:name", name);
-    if (except_flag)
-      Printv(f_header, "const char* Swig_typename_", name, " = \"", Getattr(n, "name"), "\";\n\n", NIL);
     return Language::classDeclaration(n);
   }
   

@@ -21,6 +21,7 @@
 <ul>
 <li><a href="#C_functions">Functions</a>
 <li><a href="#C_variables">Variables</a>
+<li><a href="#C_enums">Enums</a>
 </ul>
 <li><a href="#C_basic_cpp_wrapping">Basic C++ wrapping</a>
 <ul>
@@ -324,6 +325,14 @@ By default, SWIG attempts to build a natural C interface to your C/C++ code.
 This section briefly covers the essential aspects of this wrapping.
 </p>
 
+<H3><a name="C_enums"></a>36.3.3 Enums</H3>
+
+<p>
+C enums are simply copied to the generated code and keep the same name as in
+the original code.
+</p>
+
+
 <H3><a name="C_classes"></a>36.4.1 Classes</H3>
 
 
@@ -522,8 +531,7 @@ SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
     const SomeClass &_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &_result_ref;
   }
   {
-    result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
-    result->obj = (void*) &cppresult;
+    result = SWIG_create_object(cppresult, SWIG_STR(SomeClass));
   }
   return result;
 }
@@ -604,8 +612,7 @@ At this point we are ready to call the C++ function with our parameters.</br>
 Subsequently, the return value is assigned to the dedicated return value variable using the 'out' typemap
 <div class="targetlang"><pre>
 {
-  result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
-  result->obj = (void*) &cppresult;
+  result = SWIG_create_object(cppresult, SWIG_STR(SomeClass));
 }
 </pre></div>
 

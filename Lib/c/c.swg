@@ -273,19 +273,16 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
 }
 
 %typemap(out) SWIGTYPE *&, SWIGTYPE ** {
-  static SwigObj* _ptr = (SwigObj*) SWIG_create_object(SWIG_STR($1_basetype));
+  static SwigObj* _ptr = (SwigObj*) SWIG_create_object($1, SWIG_STR($1_basetype));
   $result = &_ptr;
-  (*result)->obj = (void*) $1;
 }
 
 %typemap(out) SWIGTYPE {
-  $result = (SwigObj*) SWIG_create_object(SWIG_STR($1_basetype));
-  $result->obj = (void*) &$1;
+  $result = (SwigObj*) SWIG_create_object(&$1, SWIG_STR($1_basetype));
 }
 
 %typemap(out) SWIGTYPE *, SWIGTYPE & {
-  $result = (SwigObj*) SWIG_create_object(SWIG_STR($1_basetype));
-  $result->obj = (void*) $1;
+  $result = (SwigObj*) SWIG_create_object($1, SWIG_STR($1_basetype));
 }
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
@@ -294,14 +291,13 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
     size_t i = 0;
     if (_temp) {
         for ( ; i < $1_dim0; ++i)
-          SWIG_destroy_object(_temp[i]);
+          SWIG_destroy_object< $1_ltype >(_temp[i]);
         free(_temp);
     }
     _temp = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
     for (i = 0 ; i < $1_dim0; ++i) {
       if ($1[i]) {
-        _temp[i] = SWIG_create_object(SWIG_STR($1_ltype));
-        _temp[i]->obj = (void*) $1[i];
+        _temp[i] = SWIG_create_object($1[i], SWIG_STR($1_ltype));
       }
       else
         _temp[i] = (SwigObj*) 0;
@@ -333,31 +329,48 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cppouttype);
 
 #ifdef SWIG_CPPMODE
 
-  #ifdef SWIG_C_EXCEPT
-  
 %insert("runtime") %{
 typedef struct {
   void *obj;
-  const char **typenames;
+  const char* symname;
+  bool (*derives_from)(const char* type);
 } SwigObj;
+
+template <class T> SWIGINTERN void SWIG_destroy_object(SwigObj* object) {
+  if (!object)
+    return;
+
+  delete static_cast<T*>(object->obj);
+
+  free(object);
+}
+
+template <class T> struct SWIG_derives_from {
+  static bool check(const char* type) { return false; }
+};
+
+template <class T> SWIGINTERN SwigObj* SWIG_create_object(T* obj, const char* symname) {
+  SwigObj* const result = (SwigObj*)malloc(sizeof(SwigObj));
+  if (result) {
+    result->obj = const_cast<void*>(static_cast<const void*>(obj));
+    result->symname = symname;
+    result->derives_from = SWIG_derives_from<T>::check;
+  }
+
+  return result;
+}
 %}
 
 %insert("proxy_header") %{
-typedef struct {
-  void *obj;
-  const char **typenames;
-} SwigObj;
+    typedef struct SwigObjStruct SwigObj;
 %}
 
+  #ifdef SWIG_C_EXCEPT
+  
 %include "cexcept.swg"
     
   #else
     
-%insert("runtime") %{
-typedef struct {
-  void *obj;
-} SwigObj;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -367,12 +380,6 @@ SWIGEXPORTC int SWIG_exit(int code) { exit(code); }
 #endif
 %}
 
-%insert("proxy_header") %{
-typedef struct {
-  void *obj;
-} SwigObj;
-%}
-  
   #endif
 #else
 

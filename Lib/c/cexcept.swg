@@ -19,29 +19,23 @@
 // this should match only SwigObj objects
 %typemap(throws) SWIGTYPE {
   SwigObj *c_ex;
-  c_ex = SWIG_create_object(SWIG_STR($1_basetype));
-  c_ex->obj = (void*) &$1;
+  c_ex = SWIG_create_object(&$1, SWIG_STR($1_basetype));
   SWIG_CThrowException(c_ex, "C++ $1_type exception thrown");
 }
 
 %typemap(throws) SWIGTYPE * {
   SwigObj *c_ex;
-  c_ex = SWIG_create_object(SWIG_STR($1_basetype));
-  c_ex->obj = (void*) $1;
+  c_ex = SWIG_create_object($1, SWIG_STR($1_basetype));
   SWIG_CThrowException(c_ex, "C++ $1_type exception thrown");
 }
 
 %insert("runtime") %{
+#include <typeinfo>
+
+SWIGINTERN void SWIG_terminate();
+
 #define SWIG_MAX_RT_STACK 256
 #define SWIG_REGISTRY_INIT 256
-
-SWIGINTERN SwigObj **SWIG_registry_base = 0;
-SWIGINTERN SwigObj **SWIG_registry = 0;
-SWIGINTERN int SWIG_registry_size = SWIG_REGISTRY_INIT;
-
-SWIGINTERN SwigObj *SWIG_create_object(const char *classname);
-SWIGINTERN void SWIG_destroy_object(SwigObj *object);
-SWIGINTERN void SWIG_free_SwigObj(SwigObj *object);
 
 SWIGEXPORTC struct SWIG_exc_struct {
   int code;
@@ -51,12 +45,24 @@ SWIGEXPORTC struct SWIG_exc_struct {
 } SWIG_exc = { 0, 0, 0, 0 };
 
 SWIGEXPORTC jmp_buf SWIG_rt_env;
-SWIGEXPORTC int SWIG_rt_init = 0;
 SWIGINTERN jmp_buf SWIG_cpp_back_env;
 SWIGINTERN jmp_buf *SWIG_rt_stack_base = 0;
 SWIGINTERN jmp_buf *SWIG_rt_stack_ptr = 0;
 
 SWIGINTERN void SWIG_rt_stack_push() {
+  if (!SWIG_rt_stack_base) {
+    SWIG_rt_stack_base = SWIG_rt_stack_ptr = (jmp_buf *) malloc(sizeof(jmp_buf) * SWIG_MAX_RT_STACK);
+    if ((SWIG_exc.code = setjmp(SWIG_rt_env))) {
+      // deallocate C++ exception
+      if (setjmp(SWIG_rt_env) == 0) {
+        SWIG_rt_stack_push();
+        SWIG_exc.handled = 1;
+        longjmp(SWIG_cpp_back_env, 1);
+      }
+      SWIG_terminate();
+    }
+  }
+
   // TODO: check for stack overflow
   memcpy(SWIG_rt_stack_ptr, SWIG_rt_env, sizeof(SWIG_rt_env));
   SWIG_rt_stack_ptr++;
@@ -69,65 +75,14 @@ SWIGINTERN void SWIG_rt_stack_pop() {
   memcpy(SWIG_rt_env, SWIG_rt_stack_ptr, sizeof(SWIG_rt_env));
 }
 
-SWIGINTERN void SWIG_add_registry_entry(SwigObj *entry) {
-  if (SWIG_registry_base == 0) {
-    SWIG_registry_base = SWIG_registry = (SwigObj **) malloc(SWIG_registry_size * sizeof(SwigObj *));
-    memset(SWIG_registry_base, 0, SWIG_registry_size * sizeof(SwigObj *));
-  }
-  *SWIG_registry = entry;
-  SWIG_registry++;
-  if ((SWIG_registry - SWIG_registry_base) == SWIG_registry_size) {
-    SWIG_registry = SWIG_registry_base;
-    SWIG_registry_size += SWIG_REGISTRY_INIT;
-    int new_size = SWIG_registry_size * sizeof(SwigObj *);
-    SWIG_registry_base = (SwigObj **) malloc(new_size);
-    memset(SWIG_registry_base, 0, new_size);
-    memcpy(SWIG_registry_base, SWIG_registry, (SWIG_registry_size - SWIG_REGISTRY_INIT) * sizeof(SwigObj *));
-    free(SWIG_registry);
-    SWIG_registry = SWIG_registry_base + (SWIG_registry_size - SWIG_REGISTRY_INIT);
-  }
-}
-
-SWIGINTERN void SWIG_remove_registry_entry(SwigObj *entry) {
-  int i;
-  for (i = 0; i < SWIG_registry_size; ++i) {
-    if (*(SWIG_registry_base + i) == entry) {
-      *(SWIG_registry_base + i) = 0;
-      break;
-    }
-  }
-}
-
-SWIGINTERN void SWIG_free_SwigObj(SwigObj *object) {
-  if (object) {
-    if (object->typenames)
-      free(object->typenames);
-    free(object);
-    object = (SwigObj *) 0;
-  }
-}
-
 SWIGINTERN void SWIG_cleanup() {
   if (SWIG_rt_stack_base)
     free(SWIG_rt_stack_base);
   if (SWIG_exc.msg)
    free(SWIG_exc.msg);
   if (SWIG_exc.klass) {
-    if (SWIG_exc.klass->typenames)
-      free(SWIG_exc.klass->typenames);
     free(SWIG_exc.klass);
   }
-  int i;
-  if (SWIG_registry_base) {
-    for (i = 0; i < SWIG_registry_size; ++i) {
-      if (*(SWIG_registry_base + i)) {
-        SWIG_free_SwigObj(*(SWIG_registry_base + i));
-        *(SWIG_registry_base + i)  = 0;
-      }
-    }
-  }
-  free(SWIG_registry_base);
-  SWIG_registry_base = 0;
 }
 
 #ifdef __cplusplus
@@ -144,13 +99,7 @@ SWIGEXPORTC int SWIG_rt_catch(const char *type) {
     result = 1;
   }
   else if (SWIG_exc.klass) {
-    int i = 0;
-    while (SWIG_exc.klass->typenames[i]) {
-      if (strcmp(SWIG_exc.klass->typenames[i++], type) == 0) {
-        result = 1;
-        break;
-      }
-    }
+    result = strcmp(SWIG_exc.klass->symname, type) == 0 || SWIG_exc.klass->derives_from(type);
   }
   if (result) {
     SWIG_rt_stack_pop();
@@ -205,26 +154,9 @@ SWIGEXPORTC int SWIG_exit(int code) {
 
 SWIGINTERN void SWIG_terminate() {
   fprintf(stderr, "Unhandled exception: %s\n%s\nExitting...\n", 
-    SWIG_exc.klass->typenames[0],
+    typeid(*SWIG_exc.klass).name(),
     SWIG_exc.msg ? SWIG_exc.msg : "");
   SWIG_exit(SWIG_exc.code);
-}
-
-SWIGINTERN void SWIG_runtime_init() {
-  int i, code;
-  if (!SWIG_rt_init) {
-    SWIG_rt_init = 1;
-    SWIG_rt_stack_base = SWIG_rt_stack_ptr = (jmp_buf *) malloc(sizeof(jmp_buf) * SWIG_MAX_RT_STACK);
-    if ((SWIG_exc.code = setjmp(SWIG_rt_env))) {
-      // deallocate C++ exception
-      if (setjmp(SWIG_rt_env) == 0) {
-        SWIG_rt_stack_push();
-        SWIG_exc.handled = 1;
-        longjmp(SWIG_cpp_back_env, 1);
-      }
-      SWIG_terminate();
-    }
-  }
 }
 
 #define SWIG_CThrowException(klass, msg) \
