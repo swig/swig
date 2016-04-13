@@ -1745,7 +1745,7 @@ c_cpp: $(SRCDIR_SRCS)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
 c_compile: $(SRCDIR)$(RUNME).c
-	$(COMPILETOOL) $(CC) -o $(RUNME) -I. $< -L. -l$(TARGET)
+	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. $< -L. -l$(TARGET)
 
 # -----------------------------------------------------------------
 # Run C example
