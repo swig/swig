@@ -1338,7 +1338,6 @@ ready:
 
   virtual int classHandler(Node *n) {
     String *name = getNamespacedName(n);
-    String *sobj = NewString("");
     List *baselist = Getattr(n, "bases");
 
     if (CPlusPlus) {
@@ -1389,7 +1388,6 @@ ready:
       // declare type for specific class in the proxy header
       Printv(f_wrappers_types, "typedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
-      Delete(sobj);
       Delete(name);
       return Language::classHandler(n);
     }
@@ -1408,7 +1406,6 @@ ready:
       else
         Append(f_wrappers_types, "};\n\n");
 
-      Delete(sobj);
       Delete(name);
     }
     return SWIG_OK;
