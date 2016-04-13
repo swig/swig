@@ -374,11 +374,6 @@ typedef struct {
 %}
   
   #endif
-  
-%insert(runtime) %{    
-  SwigObj *SWIG_temporary = (SwigObj *) malloc(sizeof(SwigObj));
-%}
-
 #else
 
 %insert("runtime") %{
