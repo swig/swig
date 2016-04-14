@@ -92,6 +92,9 @@ String *make_public_class_name(String* nspace, String* classname) {
   return s;
 }
 
+// String containing one indentation level for the generated code.
+const char* const cindent = "  ";
+
 } // anonymous namespace
 
 class C:public Language {
@@ -1269,7 +1272,7 @@ ready:
       if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
         String* type = NewString("");
         Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
-        Printv(f_wrappers_types, "  ", SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
+        Printv(f_wrappers_types, cindent, SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
         Delete(type);
       }
       // WARNING: proxy delaration can be different than original code
@@ -1352,8 +1355,8 @@ ready:
 
 		Printv(f_wrappers_cxx,
 		    "template<> struct SWIG_derives_from< ", fulltype_str, " > {\n",
-		    "  static bool check(const char* type) {\n",
-		    "    return ",
+		    cindent, "static bool check(const char* type) {\n",
+		    cindent, cindent, "return ",
 		    NIL);
 
 		specialize_derives_from = true;
@@ -1365,7 +1368,7 @@ ready:
 	    }
 	    else if (specialize_derives_from) {
 	      // Continue the already started specialization.
-	      Printv(f_wrappers_cxx, " ||\n    ", NIL);
+	      Printv(f_wrappers_cxx, " ||\n", cindent, cindent, NIL);
 	    }
 
 	    if (specialize_derives_from) {
