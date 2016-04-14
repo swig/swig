@@ -436,20 +436,9 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
-    String *name = Getattr(n, "name");
-    SwigType *type = Getattr(n, "type");
-    String *type_str = Copy(SwigType_str(type, 0));
-    if (SwigType_isarray(type)) {
-      String *dims = Strchr(type_str, '[');
-      char *c = Char(type_str);
-      c[Len(type_str) - Len(dims) - 1] = '\0';
-      String *bare_type = NewStringf("%s", c);
-      Printv(f_wrappers_decl, "SWIGIMPORT ", bare_type, " ", name, "[];\n\n", NIL);
-      Delete(bare_type);
-    }
-    else
-      Printv(f_wrappers_decl, "SWIGIMPORT ", type_str, " ", name, ";\n\n", NIL);
-    Delete(type_str);
+    String* const var_decl = make_var_decl(n);
+    Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
+    Delete(var_decl);
     return SWIG_OK;
   }
 
@@ -1265,21 +1254,71 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
+   * make_var_decl()
+   *
+   * Return the declaration for the given node of "variable" kind.
+   * This function accounts for two special cases:
+   *  1. If the type is an anonymous enum, "int" is used instead.
+   *  2. If the type is an array, its bounds are stripped.
+   * --------------------------------------------------------------------- */
+  String *make_var_decl(Node *n) {
+    String *name = Getattr(n, "name");
+    SwigType *type = Getattr(n, "type");
+    String *type_str = SwigType_str(type, 0);
+
+    if (Getattr(n, "unnamedinstance")) {
+      // If this is an anonymous enum, we can declare the variable as int even though we can't reference this type.
+      if (Strncmp(type_str, "enum $", 6) != 0) {
+	// Otherwise we're out of luck, with the current approach of exposing the variables directly we simply can't do it, we would need to use accessor
+	// functions instead to support this.
+	Swig_error(Getfile(n), Getline(n), "Variables of anonymous non-enum types are not supported.\n");
+	return SWIG_ERROR;
+      }
+
+      const char * const unnamed_end = strchr(Char(type_str) + 6, '$');
+      if (!unnamed_end) {
+	Swig_error(Getfile(n), Getline(n), "Unsupported anonymous enum type \"%s\".\n", type_str);
+	return SWIG_ERROR;
+      }
+
+      String* const int_type_str = NewStringf("int%s", unnamed_end + 1);
+      Delete(type_str);
+      type_str = int_type_str;
+    }
+
+    String* const var_decl = NewStringEmpty();
+    if (SwigType_isarray(type)) {
+      String *dims = Strchr(type_str, '[');
+      char *c = Char(type_str);
+      c[Len(type_str) - Len(dims) - 1] = '\0';
+      Printv(var_decl, c, " ", name, "[]", NIL);
+    } else {
+      Printv(var_decl, type_str, " ", name, NIL);
+    }
+
+    Delete(type_str);
+
+    return var_decl;
+  }
+
+  /* ---------------------------------------------------------------------
    * emit_c_struct_def()
    * --------------------------------------------------------------------- */
 
   void emit_c_struct_def(Node *node) {
     for ( ; node; node = nextSibling(node)) {
-      String* kind = Getattr(node, "kind");
-      if ((Cmp(kind, "variable") == 0) || (Cmp(kind, "function") == 0)) {
-        String* type = NewString("");
-        Printv(type, Getattr(node, "decl"), Getattr(node, "type"), NIL);
-        Printv(f_wrappers_types, cindent, SwigType_str(type, 0), " ", Getattr(node, "name"), ";\n", NIL);
-        Delete(type);
+      String* const ntype = nodeType(node);
+      if (Cmp(ntype, "cdecl") == 0) {
+	String* const var_decl = make_var_decl(node);
+	Printv(f_wrappers_types, cindent, Getattr(node, "decl"), var_decl, ";\n", NIL);
+	Delete(var_decl);
+      } else if (Cmp(ntype, "enum") == 0) {
+	emit_one(node);
+      } else {
+	// WARNING: proxy declaration can be different than original code
+	if (Cmp(nodeType(node), "extend") == 0)
+	  emit_c_struct_def(firstChild(node));
       }
-      // WARNING: proxy delaration can be different than original code
-      if (Cmp(nodeType(node), "extend") == 0)
-        emit_c_struct_def(firstChild(node));
     }
   }
 
