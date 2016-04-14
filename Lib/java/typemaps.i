@@ -80,10 +80,15 @@ INPUT_TYPEMAP(short, jshort, short, "S");
 INPUT_TYPEMAP(unsigned short, jint, int, "I");
 INPUT_TYPEMAP(int, jint, int, "I");
 INPUT_TYPEMAP(unsigned int, jlong, long, "J");
+#if defined(SWIGWORDSIZE64)
+INPUT_TYPEMAP(long, jlong, long, "J");
+INPUT_TYPEMAP(unsigned long, jobject, java.math.BigInteger, "Ljava/math/BigInteger;");
+#else
 INPUT_TYPEMAP(long, jint, int, "I");
 INPUT_TYPEMAP(unsigned long, jlong, long, "J");
 INPUT_TYPEMAP(long long, jlong, long, "J");
 INPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, "Ljava/math/BigInteger;");
+#endif
 INPUT_TYPEMAP(float, jfloat, float, "F");
 INPUT_TYPEMAP(double, jdouble, double, "D");
 
@@ -91,7 +96,11 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
 
 /* Convert from BigInteger using the toByteArray member function */
 /* Overrides the typemap in the INPUT_TYPEMAP macro */
+#if defined(SWIGWORDSIZE64)
+%typemap(in) unsigned long *INPUT($*1_ltype temp), unsigned long &INPUT($*1_ltype temp) {
+#else
 %typemap(in) unsigned long long *INPUT($*1_ltype temp), unsigned long long &INPUT($*1_ltype temp) {
+#endif
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -220,11 +229,16 @@ OUTPUT_TYPEMAP(unsigned char, jshort, short, Short, "[Ljava/lang/Short;", jshort
 OUTPUT_TYPEMAP(short, jshort, short, Short, "[Ljava/lang/Short;", jshortArray);              
 OUTPUT_TYPEMAP(unsigned short, jint, int, Int, "[Ljava/lang/Integer;", jintArray);                
 OUTPUT_TYPEMAP(int, jint, int, Int, "[Ljava/lang/Integer;", jintArray);                
-OUTPUT_TYPEMAP(unsigned int, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);               
+OUTPUT_TYPEMAP(unsigned int, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);
+#if defined(SWIGWORDSIZE64)
+OUTPUT_TYPEMAP(long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);               
+OUTPUT_TYPEMAP(unsigned long, jobject, java.math.BigInteger, NOTUSED, "[Ljava/lang/BigInteger;", SWIGBIGINTEGERARRAY);
+#else
 OUTPUT_TYPEMAP(long, jint, int, Int, "[Ljava/lang/Integer;", jintArray);                
 OUTPUT_TYPEMAP(unsigned long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);               
 OUTPUT_TYPEMAP(long long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);               
 OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, "[Ljava/lang/BigInteger;", SWIGBIGINTEGERARRAY);
+#endif
 OUTPUT_TYPEMAP(float, jfloat, float, Float, "[Ljava/lang/Float;", jfloatArray);              
 OUTPUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArray);             
 
@@ -247,7 +261,11 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleAr
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
 /* Overrides the typemap in the OUTPUT_TYPEMAP macro */
+#if defined(SWIGWORDSIZE64)
+%typemap(argout) unsigned long *OUTPUT, unsigned long &OUTPUT { 
+#else
 %typemap(argout) unsigned long long *OUTPUT, unsigned long long &OUTPUT { 
+#endif
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
@@ -359,11 +377,16 @@ INOUT_TYPEMAP(unsigned char, jshort, short, Short, "[Ljava/lang/Short;", jshortA
 INOUT_TYPEMAP(short, jshort, short, Short, "[Ljava/lang/Short;", jshortArray);
 INOUT_TYPEMAP(unsigned short, jint, int, Int, "[Ljava/lang/Integer;", jintArray); 
 INOUT_TYPEMAP(int, jint, int, Int, "[Ljava/lang/Integer;", jintArray);
-INOUT_TYPEMAP(unsigned int, jlong, long, Long, "[Ljava/lang/Long;", jlongArray); 
+INOUT_TYPEMAP(unsigned int, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);
+#if defined(SWIGWORDSIZE64)
+INOUT_TYPEMAP(long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);
+INOUT_TYPEMAP(unsigned long, jobject, java.math.BigInteger, NOTUSED, "[Ljava.math.BigInteger;", SWIGBIGINTEGERARRAY);
+#else
 INOUT_TYPEMAP(long, jint, int, Int, "[Ljava/lang/Integer;", jintArray);
 INOUT_TYPEMAP(unsigned long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray); 
 INOUT_TYPEMAP(long long, jlong, long, Long, "[Ljava/lang/Long;", jlongArray);
 INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, NOTUSED, "[Ljava.math.BigInteger;", SWIGBIGINTEGERARRAY);
+#endif
 INOUT_TYPEMAP(float, jfloat, float, Float, "[Ljava/lang/Float;", jfloatArray);
 INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArray); 
 
@@ -391,7 +414,11 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
 }
 
 /* Override the typemap in the INOUT_TYPEMAP macro for unsigned long long */
+#if defined(SWIGWORDSIZE64)
+%typemap(in) unsigned long *INOUT ($*1_ltype temp), unsigned long &INOUT ($*1_ltype temp) { 
+#else
 %typemap(in) unsigned long long *INOUT ($*1_ltype temp), unsigned long long &INOUT ($*1_ltype temp) { 
+#endif
   jobject bigint;
   jclass clazz;
   jmethodID mid;
@@ -428,6 +455,10 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[Ljava/lang/Double;", jdoubleArr
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   $1 = &temp;
 }
-
+#if defined(SWIGWORDSIZE64)
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+#else
 %typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
+#endif
