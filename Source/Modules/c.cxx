@@ -179,22 +179,26 @@ public:
   /* -----------------------------------------------------------------------------
    * getEnumName()
    *
+   * Return the name to use for the enum in the generated code.
+   * Also caches it in the node for subsequent access.
+   * Returns NULL if the node doesn't correspond to an enum.
    * ----------------------------------------------------------------------------- */
 
-  String *getEnumName(SwigType *t) {
-    Node *enumname = NULL;
-    Node *n = enumLookup(t);
+  String *getEnumName(Node *n) {
+    String *enumname = NULL;
     if (n) {
       enumname = Getattr(n, "enumname");
       if (!enumname) {
         String *symname = Getattr(n, "sym:name");
         if (symname) {
           // Add in class scope when referencing enum if not a global enum
-          String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
           String *proxyname = 0;
-          if (scopename_prefix) {
-            proxyname = getProxyName(scopename_prefix);
-          }
+          if (String *name = Getattr(n, "name")) {
+	    if (String *scopename_prefix = Swig_scopename_prefix(name)) {
+	      proxyname = getProxyName(scopename_prefix);
+	      Delete(scopename_prefix);
+	    }
+	  }
           if (proxyname) {
             enumname = NewStringf("%s_%s", proxyname, symname);
           } else {
@@ -211,7 +215,6 @@ public:
           }
           Setattr(n, "enumname", enumname);
           Delete(enumname);
-          Delete(scopename_prefix);
         }
       }
     }
@@ -227,7 +230,7 @@ public:
   void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
 
     if (SwigType_isenum(classnametype)) {
-      String *enumname = getEnumName(classnametype);
+      String *enumname = getEnumName(enumLookup(classnametype));
       if (enumname)
   Replaceall(tm, classnamespecialvariable, enumname);
       else
@@ -1386,19 +1389,17 @@ ready:
 
       Delete(name);
       return Language::classHandler(n);
-    }
-    else if (Cmp(Getattr(n, "kind"), "struct") == 0) {
+    } else {
       // this is C struct, just declare it in the proxy
-      String *storage = Getattr(n, "storage");
-      int usetd = storage && Cmp(storage, "typedef") == 0;
-      if (usetd)
+      String* const tdname = Getattr(n, "tdname");
+      if (tdname)
         Append(f_wrappers_types, "typedef struct {\n");
       else 
         Printv(f_wrappers_types, "struct ", name, " {\n", NIL);
       Node *node = firstChild(n);
       emit_c_struct_def(node);
-      if (usetd)
-        Printv(f_wrappers_types, "} ", name, ";\n\n", NIL);
+      if (tdname)
+        Printv(f_wrappers_types, "} ", tdname, ";\n\n", NIL);
       else
         Append(f_wrappers_types, "};\n\n");
 
@@ -1666,7 +1667,38 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
-    return Language::enumDeclaration(n);
+    if (ImportMode)
+      return SWIG_OK;
+
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
+    // Preserve the typedef if we have it in the input.
+    String* const tdname = Getattr(n, "tdname");
+    if (tdname) {
+      Printv(f_wrappers_types, "typedef ", NIL);
+    }
+    Printv(f_wrappers_types, "enum", NIL);
+
+    if (String* const name = Getattr(n, "name")) {
+      String* const enumname = Swig_name_mangle(name);
+      Printv(f_wrappers_types, " ", enumname, NIL);
+      Delete(enumname);
+    }
+    Printv(f_wrappers_types, " {\n", NIL);
+
+    // Emit each enum item.
+    Language::enumDeclaration(n);
+
+    Printv(f_wrappers_types, "\n}", NIL);
+    if (tdname) {
+      String* const enumname = Swig_name_mangle(tdname);
+      Printv(f_wrappers_types, " ", enumname, NIL);
+      Delete(enumname);
+    }
+    Printv(f_wrappers_types, ";\n\n", NIL);
+
+    return SWIG_OK;
   }
 
   /* ---------------------------------------------------------------------
@@ -1677,10 +1709,19 @@ ready:
     if (Cmp(Getattr(n, "ismember"), "1") == 0 && Cmp(Getattr(n, "access"), "public") != 0)
       return SWIG_NOWRAP;
     Swig_require("enumvalueDeclaration", n, "*value", "?enumvalueex", "?enumvalue", NIL);
-    String *name = Getattr(n, "value");
-    String *value = Getattr(n, "enumvalueex");
-    value = value ? value : Getattr(n, "enumvalue");
-    Printv(f_wrappers_decl, "#define ", Swig_name_mangle(name), " ", value, "\n", NIL);
+
+    if (!GetFlag(n, "firstenumitem"))
+      Printv(f_wrappers_types, ",\n", NIL);
+
+    Printv(f_wrappers_types, cindent, Swig_name_mangle(Getattr(n, "value")), NIL);
+
+    // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
+    // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
+    String *value = Getattr(n, "enumvalue");
+    if (value) {
+      Printv(f_wrappers_types, " = ", value, NIL);
+    }
+
     Swig_restore(n);
     return SWIG_OK;
   }
