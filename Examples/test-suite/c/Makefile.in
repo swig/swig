@@ -12,12 +12,10 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES := \
 				 cpp_basic_class \
-				 cpp_basic_class_enum \
 				 cpp_basic_class_method \
 				 cpp_basic_class_virtual_method \
 				 cpp_basic_class_var_pub_member_built_in \
 				 cpp_basic_class_var_pub_member_class \
-				 cpp_basic_global_enum \
 				 cpp_basic_global_var_built_in \
 				 cpp_basic_global_var_class \
 				 cpp_basic_namespaced_class \
