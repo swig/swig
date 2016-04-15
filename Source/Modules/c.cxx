@@ -1752,13 +1752,31 @@ ready:
     if (!GetFlag(n, "firstenumitem"))
       Printv(f_wrappers_types, ",\n", NIL);
 
-    Printv(f_wrappers_types, cindent, Swig_name_mangle(Getattr(n, "value")), NIL);
+    String* const enumitemname = Getattr(n, "value");
+    Printv(f_wrappers_types, cindent, Swig_name_mangle(enumitemname), NIL);
 
     // We only use "enumvalue", which comes from the input, and not "enumvalueex" synthesized by SWIG itself because C should use the correct value for the enum
     // items without an explicit one anyhow (and "enumvalueex" can't be always used as is in C code for enum elements inside a class or even a namespace).
     String *value = Getattr(n, "enumvalue");
     if (value) {
-      Printv(f_wrappers_types, " = ", value, NIL);
+      String* const cvalue = Copy(value);
+
+      // Due to what seems to be a bug in SWIG parser, char values for enum elements lose their quotes, i.e.
+      //
+      //  enum { x = 'a', y = '\x62' };
+      //
+      // in input results in value being just "a" or "\x62". Try to repair this brokenness.
+      if (*Char(value) == '\\') {
+	Push(cvalue, "'");
+	Append(cvalue, "'");
+      } else if (Len(value) == 1 && !Swig_symbol_clookup(enumitemname, NULL)) {
+	Push(cvalue, "'");
+	Append(cvalue, "'");
+      }
+
+      Printv(f_wrappers_types, " = ", cvalue, NIL);
+
+      Delete(cvalue);
     }
 
     Swig_restore(n);

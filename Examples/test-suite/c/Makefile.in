@@ -29,7 +29,6 @@ CPP_TEST_CASES := \
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
-    enums \
     funcptr \
     function_typedef \
     lextype \
