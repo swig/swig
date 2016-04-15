@@ -1669,6 +1669,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
+    if (Cmp(Getattr(n, "access"), "public") != 0)
+      return SWIG_NOWRAP;
+
     Node *klass = Swig_methodclass(n);
     String *classname = Getattr(klass, "name");// Remove class namespace from constructor
     String *classtype = Getattr(klass, "classtype");
