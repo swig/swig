@@ -645,7 +645,6 @@ ready:
        Delete(arg_names);
        Delete(wname);
        Delete(return_type);
-       Delete(name);
        DelWrapper(wrapper);
     }
 
