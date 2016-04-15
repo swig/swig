@@ -266,7 +266,7 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
 %typemap(out, fragment="stdbool_inc") bool &, const bool & "$result = $1;"
 
 %typemap(out) enum SWIGTYPE "$result = (int) $1;"
-%typemap(out) enum SWIGTYPE &, enum SWIGTYPE * "$result = (int *) &$1;"
+%typemap(out) enum SWIGTYPE &, enum SWIGTYPE * "$result = $1;"
 
 %typemap(out) SWIGTYPE (CLASS::*) {
   *($&1_ltype) &$result = $1; 
