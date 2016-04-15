@@ -63,10 +63,10 @@ int main(int argc, const char *argv[]) {
 	play_state t;
 
 	t = PLAY;
-	assert(t == true);
+	assert(t == 1);
 
 	t = STOP;
-	assert(t == false);
+	assert(t == 0);
 
 	return 0;
 }
