@@ -95,7 +95,6 @@ FAILING_CPP_TESTS := \
     special_variables \
     template_arg_typename \
     template_basic \
-    template_default2 \
     template_explicit \
     template_ns4 \
     template_tbase_template \

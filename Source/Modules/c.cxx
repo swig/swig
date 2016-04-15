@@ -110,6 +110,9 @@ class C:public Language {
   String *int_string;
   String *tl_namespace; // optional top level namespace
 
+  // Contains fully expanded names of the classes for which we have already specialized SWIG_derives_from<>.
+  Hash *already_specialized_derives_from;
+
   bool except_flag;
 
 public:
@@ -122,6 +125,7 @@ public:
     empty_string(NewString("")),
     int_string(NewString("int")),
     tl_namespace(NULL),
+    already_specialized_derives_from(NULL),
     except_flag(true) {
   }
 
@@ -1287,7 +1291,7 @@ ready:
       if (baselist) {
 	// We may need to specialize SWIG_derives_from<> for this class: its unique check() method will return true iff it's given the name of any subclasses of
 	// this class. Notice that it may happen that all our base classes are ignored, in which case we don't do anything.
-	bool started_derives_from_spec = false;
+	int specialize_derives_from = -1;
 
 	Iterator i;
 	for (i = First(baselist); i.item; i = Next(i)) {
@@ -1332,23 +1336,45 @@ ready:
 	  // Account for this base class in the RTTI checks.
 	  String* const name = Getattr(i.item, "sym:name");
 	  if (name) {
-	    if (!started_derives_from_spec) {
-	      started_derives_from_spec = true;
+	    if (specialize_derives_from == -1) {
+	      // Check if we hadn't specialized it already. Somewhat surprisingly, this can happen for an instantiation of a template with default parameter(s)
+	      // if it appears both without them and with the default values explicitly given as it happens in e.g. template_default2 unit test.
+	      SwigType* const fulltype = Swig_symbol_template_deftype(Getattr(n, "name"), NULL);
+	      String* const fulltype_str = SwigType_str(fulltype, NULL);
+	      Delete(fulltype);
 
-	      Printv(f_wrappers_cxx,
-		  "template<> struct SWIG_derives_from< ", Getattr(n, "classtype"), " > {\n",
-		  "  static bool check(const char* type) {\n",
-		  "    return ",
-		  NIL);
-	    } else {
+	      if (!already_specialized_derives_from || !Getattr(already_specialized_derives_from, fulltype_str)) {
+		if (!already_specialized_derives_from) {
+		  already_specialized_derives_from = NewHash();
+		}
+
+		Setattr(already_specialized_derives_from, fulltype_str, "1");
+
+		Printv(f_wrappers_cxx,
+		    "template<> struct SWIG_derives_from< ", fulltype_str, " > {\n",
+		    "  static bool check(const char* type) {\n",
+		    "    return ",
+		    NIL);
+
+		specialize_derives_from = true;
+	      } else {
+		specialize_derives_from = false;
+	      }
+
+	      Delete(fulltype_str);
+	    }
+	    else if (specialize_derives_from) {
+	      // Continue the already started specialization.
 	      Printv(f_wrappers_cxx, " ||\n    ", NIL);
 	    }
 
-	    Printv(f_wrappers_cxx, "strcmp(type, \"", name, "\") == 0", NIL);
+	    if (specialize_derives_from) {
+	      Printv(f_wrappers_cxx, "strcmp(type, \"", name, "\") == 0", NIL);
+	    }
 	  }
 	}
 
-	if (started_derives_from_spec) {
+	if (specialize_derives_from == true) {
 	  // End SWIG_derives_from specialization.
 	  Printv(f_wrappers_cxx, ";\n  }\n};\n\n", NIL);
 	}
