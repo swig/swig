@@ -16,10 +16,10 @@ int main(int argc, const char *argv[]) {
 	assert(StructWithEnums_some_enum_get(s) == ENUM_TWO);
 
 	// check function call
-	StructWithEnums_some_enum_test1(s, &e, &e, &e);
+	StructWithEnums_enum_test1(s, e, &e, &e);
 
 	// check function call
-	StructWithEnums_some_enum_test2(s, &e, &e, &e);
+	StructWithEnums_enum_test2(s, e, &e, &e);
 
 	// check function call
 	assert(StructWithEnums_enum_test3(s) == ENUM_ONE);
