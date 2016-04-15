@@ -1286,11 +1286,10 @@ ready:
 
   virtual int classHandler(Node *n) {
     String *name = getNamespacedName(n);
-    List *baselist = Getattr(n, "bases");
 
     if (CPlusPlus) {
       // inheritance support: attach all members from base classes to this class
-      if (baselist) {
+      if (List *baselist = Getattr(n, "bases")) {
 	// We may need to specialize SWIG_derives_from<> for this class: its unique check() method will return true iff it's given the name of any subclasses of
 	// this class. Notice that it may happen that all our base classes are ignored, in which case we don't do anything.
 	int specialize_derives_from = -1;
