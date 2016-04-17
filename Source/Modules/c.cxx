@@ -116,6 +116,9 @@ class C:public Language {
   // Contains fully expanded names of the classes for which we have already specialized SWIG_derives_from<>.
   Hash *already_specialized_derives_from;
 
+  // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
+  bool enum_is_empty;
+
   bool except_flag;
 
 public:
@@ -1724,12 +1727,18 @@ ready:
       Printv(f_wrappers_types, " ", enumname, NIL);
       Delete(enumname);
     }
-    Printv(f_wrappers_types, " {\n", NIL);
+
+    // We don't know here if we're going to have any non-ignored enum elements, so let enumvalueDeclaration() itself reset this flag if it does get called, this
+    // is simpler than trying to determine it here, even if it's a bit ugly because we generate the opening brace there, but the closing one here.
+    enum_is_empty = true;
 
     // Emit each enum item.
     Language::enumDeclaration(n);
 
-    Printv(f_wrappers_types, "\n}", NIL);
+    if (!enum_is_empty) {
+      Printv(f_wrappers_types, "\n}", NIL);
+    }
+
     if (tdname) {
       String* const enumname = Swig_name_mangle(tdname);
       Printv(f_wrappers_types, " ", enumname, NIL);
@@ -1749,7 +1758,11 @@ ready:
       return SWIG_NOWRAP;
     Swig_require("enumvalueDeclaration", n, "*value", "?enumvalueex", "?enumvalue", NIL);
 
-    if (!GetFlag(n, "firstenumitem"))
+    enum_is_empty = false;
+
+    if (GetFlag(n, "firstenumitem"))
+      Printv(f_wrappers_types, " {\n", NIL);
+    else
       Printv(f_wrappers_types, ",\n", NIL);
 
     String* const enumitemname = Getattr(n, "value");
