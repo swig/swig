@@ -231,6 +231,14 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    if (!CPlusPlus) {
+      // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
+      Clear(tm);
+      String* const s = SwigType_str(classnametype, 0);
+      Append(tm, s);
+      Delete(s);
+      return;
+    }
 
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(enumLookup(classnametype));
@@ -624,16 +632,9 @@ ready:
          Printf(wrapper->code, "return result;\n");
        Printf(wrapper->code, "}");
 
-       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
-
-       if (proxy_type) {
-	 return_type = SwigType_str(proxy_type, 0);
-       }
-
-       // add function declaration to the header file
-       Printv(f_wrappers_decl, return_type, " ", wname, "(", proto, ");\n\n", NIL);
-
        Wrapper_print(wrapper, f_wrappers);
+
+       emit_wrapper_func_decl(n, name);
 
        // cleanup
        Delete(proto);
@@ -714,10 +715,14 @@ ready:
        return return_type;
     }
 
-  virtual SwigType *functionWrapperCPPSpecificProxyReturnTypeGet(Node *n)
+  String *get_wrapper_func_return_type(Node *n)
     {
+       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
+       if (proxy_type)
+	 return SwigType_str(proxy_type, 0);
+
        SwigType *type = Getattr(n, "type");
-       SwigType *return_type = NewString("");
+       String *return_type = NewString("");
        String *tm;
 
        // set the return type
@@ -747,8 +752,10 @@ ready:
        return return_type;
     }
 
-  virtual String *functionWrapperCPPSpecificProxyPrototypeGet(Node *n, ParmList *parms)
+  String *get_wrapper_func_proto(Node *n)
     {
+       ParmList *parms = Getattr(n, "parms");
+
        Parm *p;
        String *proto = NewString("");
        int gencomma = 0;
@@ -893,19 +900,19 @@ ready:
        return call;
     }
 
-  virtual void functionWrapperCPPSpecificProxy(Node *n, String *name)
+  /* ----------------------------------------------------------------------
+   * emit_wrapper_func_decl()
+   *
+   * Declares the wrapper function, using the C types used for it, in the header.
+   * The node here is a function declaration.
+   * ---------------------------------------------------------------------- */
+  void emit_wrapper_func_decl(Node *n, String *name)
     {
        // C++ function wrapper proxy code
-       ParmList *parms = Getattr(n, "parms");
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
-       SwigType *preturn_type = functionWrapperCPPSpecificProxyReturnTypeGet(n);
-       String *pproto = functionWrapperCPPSpecificProxyPrototypeGet(n, parms);
+       String *preturn_type = get_wrapper_func_return_type(n);
+       String *pproto = get_wrapper_func_proto(n);
        String *wrapper_call = NewString("");
-       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
-
-       if (proxy_type) {
-            preturn_type = SwigType_str(proxy_type, 0);
-       }
 
        // add function declaration to the proxy header file
        Printv(f_wrappers_decl, preturn_type, " ", wname, "(", pproto, ");\n\n", NIL);
@@ -1200,7 +1207,7 @@ ready:
 
        // C++ function wrapper
        functionWrapperCPPSpecificWrapper(n, name);
-       functionWrapperCPPSpecificProxy(n, name);
+       emit_wrapper_func_decl(n, name);
 
        Delete(name);
     }
