@@ -1320,7 +1320,7 @@ ready:
       String* const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
 	String* const var_decl = make_var_decl(node);
-	Printv(f_wrappers_types, cindent, Getattr(node, "decl"), var_decl, ";\n", NIL);
+	Printv(f_wrappers_types, cindent, var_decl, ";\n", NIL);
 	Delete(var_decl);
       } else if (Cmp(ntype, "enum") == 0) {
 	emit_one(node);
