@@ -3,7 +3,7 @@
 
 int main(int argc, const char *argv[])
 {
-    assert(myGlobalClassInstance);
+    assert(myGlobalClassInstance_get());
 
     return 0;
 }

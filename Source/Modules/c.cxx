@@ -447,10 +447,15 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
-    String* const var_decl = make_var_decl(n);
-    Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
-    Delete(var_decl);
-    return SWIG_OK;
+    // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
+    if (String* const var_decl = make_c_var_decl(n)) {
+      Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
+      Delete(var_decl);
+      return SWIG_OK;
+    }
+
+    // Otherwise, e.g. if it's of a C++-only type, or a reference, generate accessor functions for it.
+    return Language::globalvariableHandler(n);
   }
 
   /* -----------------------------------------------------------------------
@@ -1264,14 +1269,17 @@ ready:
   }
 
   /* ---------------------------------------------------------------------
-   * make_var_decl()
+   * make_c_var_decl()
    *
-   * Return the declaration for the given node of "variable" kind.
+   * Return the C declaration for the given node of "variable" kind.
+   *
+   * If the variable has a type not representable in C, returns NULL, the caller must check for this!
+   *
    * This function accounts for two special cases:
    *  1. If the type is an anonymous enum, "int" is used instead.
    *  2. If the type is an array, its bounds are stripped.
    * --------------------------------------------------------------------- */
-  String *make_var_decl(Node *n) {
+  String *make_c_var_decl(Node *n) {
     String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
@@ -1294,6 +1302,18 @@ ready:
       String* const int_type_str = NewStringf("int%s", unnamed_end + 1);
       Delete(type_str);
       type_str = int_type_str;
+    } else {
+      // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
+      if (CPlusPlus) {
+	if (SwigType_isreference(type))
+	  return NIL;
+
+	SwigType *btype = SwigType_base(type);
+	const bool can_be_repr_in_c = SwigType_isbuiltin(btype) || SwigType_isenum(btype);
+	Delete(btype);
+	if (!can_be_repr_in_c)
+	  return NIL;
+      }
     }
 
     String* const var_decl = NewStringEmpty();
@@ -1319,7 +1339,7 @@ ready:
     for ( ; node; node = nextSibling(node)) {
       String* const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
-	String* const var_decl = make_var_decl(node);
+	String* const var_decl = make_c_var_decl(node);
 	Printv(f_wrappers_types, cindent, var_decl, ";\n", NIL);
 	Delete(var_decl);
       } else if (Cmp(ntype, "enum") == 0) {
