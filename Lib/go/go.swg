@@ -441,11 +441,12 @@
   $1[$input.n] = '\0';
 %}
 
-%typemap(in) char *&
+%typemap(in) char *& (char *temp)
 %{
-  $1 = ($1_ltype)malloc($input.n + 1);
-  memcpy($1, $input.p, $input.n);
-  $1[$input.n] = '\0';
+  temp = (char *)malloc($input.n + 1);
+  memcpy(temp, $input.p, $input.n);
+  temp[$input.n] = '\0';
+  $1 = ($1_ltype)&temp;
 %}
 
 %typemap(freearg)
