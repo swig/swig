@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-17: ianlancetaylor
+	    [Go] Fixes for Go 1.6: avoid returning Go pointers from
+	    directors that return string values; add a trailing 0 byte
+	    when treating Go string as C char*.
+
 2016-04-06: smarchetto
             [Scilab] #552 Make Scilab runtime keep track of pointer types
             Instead of a Scilab pointer which has no type, SWIG Scilab maps a

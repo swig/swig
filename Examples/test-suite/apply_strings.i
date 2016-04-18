@@ -68,6 +68,10 @@ TAscii *DigitsGlobalC;
 // Director test
 %feature("director");
 
+#if defined(SWIGGO)
+%typemap(godirectorout) CharPtr, CCharPtr ""
+#endif
+
 %inline %{
   struct DirectorTest {
     virtual UCharPtr UCharFunction(UCharPtr str) { return str; }

@@ -23,7 +23,7 @@ struct RetStruct {
 
 // Write a typemap that calls C++ by converting in and out of JSON.
 
-%go_import("encoding/json", "bytes", "encoding/binary")
+%go_import("encoding/json", "bytes", "encoding/binary", "reflect", "unsafe")
 
 %insert(go_header)
 %{
@@ -87,6 +87,10 @@ struct MyArray {
   std::vector<std::string> strings;
 };
 
+void* Allocate(int n) {
+  return new char[n];
+}
+
 static uint64_t getuint64(const char* s) {
   uint64_t ret = 0;
   for (int i = 0; i < 8; i++, s++) {
@@ -121,7 +125,12 @@ static void putuint64(std::string *s, size_t off, uint64_t v) {
 			buf.Write(b[:])
 			buf.WriteString(s)
 		}
-		str := buf.String()
+		bb := buf.Bytes()
+		p := Allocate(len(bb))
+		copy((*[1<<15]byte)(unsafe.Pointer(p))[:len(bb)], bb)
+		var str string
+		(*reflect.StringHeader)(unsafe.Pointer(&str)).Data = uintptr(unsafe.Pointer(p))
+		(*reflect.StringHeader)(unsafe.Pointer(&str)).Len = len(bb)
 		$result = &str
 	}
 %}
