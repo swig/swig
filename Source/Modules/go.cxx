@@ -1362,6 +1362,10 @@ private:
     goargout(info->parms);
 
     if (SwigType_type(info->result) != T_VOID) {
+
+      Swig_save("cgoGoWrapper", info->n, "type", "tmap:goout", NULL);
+      Setattr(info->n, "type", info->result);
+
       String *goout = goTypemapLookup("goout", info->n, "swig_r");
       if (goout == NULL) {
 	Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
@@ -1374,6 +1378,8 @@ private:
 	Printv(f_go_wrappers, goout, "\n", NULL);
 	Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
       }
+
+      Swig_restore(info->n);
     }
 
     Printv(f_go_wrappers, "}\n\n", NULL);

@@ -68,6 +68,26 @@ type In json.Marshaler
 	}
 %}
 
+%typemap(gotype) RetStruct* "*map[string]interface{}"
+
+%typemap(imtype) RetStruct* "*string"
+
+%typemap(out,fragment="AllocateString") RetStruct*
+%{
+  $result = (_gostring_*)malloc(sizeof(_gostring_));
+  *$result = Swig_AllocateString($1->str.data(), $1->str.length());
+%}
+
+%typemap(goout,fragment="CopyString") RetStruct*
+%{
+	defer Swig_free(uintptr(unsafe.Pointer($1)))
+	var rm map[string]interface{}
+	if err := json.Unmarshal([]byte(swigCopyString(*$1)), &rm); err != nil {
+		panic(err)
+	}
+	$result = &rm
+%}
+
 %inline
 %{
 
@@ -205,4 +225,19 @@ void DoubleArray(MyArray* v) {
     v->strings.push_back(v->strings[i] + v->strings[i]);
   }
 }
+%}
+
+%inline
+%{
+class C1 {
+ public:
+  RetStruct* M() {
+    RetStruct* r = new RetStruct;
+    r->str = "{\"ID\":1}";
+    return r;
+  }
+};
+
+class C2 : public C1 {
+};
 %}

@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-18: ianlancetaylor
+	    [Go] Fix use of goout typemap when calling base method by
+	    forcing the "type" attribute to the value we need.
+
 2016-04-17: ianlancetaylor
 	    [Go] Fixes for Go 1.6: avoid returning Go pointers from
 	    directors that return string values; add a trailing 0 byte
