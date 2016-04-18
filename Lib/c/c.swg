@@ -169,7 +169,7 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
 
 %typemap(cmodtype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
 %typemap(cmodtype, fragment="stdbool_inc") bool & "$1_ltype"
-%typemap(cmodtype, fragment="stdbool_inc") const bool & "$1_ltype const"
+%typemap(cmodtype, fragment="stdbool_inc") const bool & "const $1_ltype"
 
 
 // Typemaps for assigning wrapper parameters to local variables
