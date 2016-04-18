@@ -137,8 +137,8 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(ctype, fragment="stdbool_inc") bool & "$1_basetype*"
-%typemap(ctype, fragment="stdbool_inc") const bool & "$1_basetype const *"
+%typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
+%typemap(ctype, fragment="stdbool_inc") const bool & "const $1_ltype"
 
 // Typemaps for wrapper function parameters and its local variables
 // void
