@@ -705,6 +705,7 @@ all: $(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 broken: $(BROKEN_TEST_CASES)
 
 check: $(NOT_BROKEN_TEST_CASES)
+	@echo $(words $^) tests passed
 
 check-c: $(C_TEST_CASES:=.ctest)
 
