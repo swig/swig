@@ -19,7 +19,8 @@
 #include <string.h>
 #include <setjmp.h>
 
-#define SWIG_STR(x) #x
+#define SWIG_STR2(x) #x
+#define SWIG_STR(x) SWIG_STR2(x)
 #define SWIG_contract_assert(expr, msg) if(!(expr)) { printf("%s\n", msg); SWIG_exit(0); } else
 %}
 
@@ -273,16 +274,16 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
 }
 
 %typemap(out) SWIGTYPE *&, SWIGTYPE ** {
-  static SwigObj* _ptr = (SwigObj*) SWIG_create_object($1, SWIG_STR($1_basetype));
+  static SwigObj* _ptr = (SwigObj*) SWIG_create_object($1, SWIG_STR(($1_basetype)));
   $result = &_ptr;
 }
 
 %typemap(out) SWIGTYPE {
-  $result = (SwigObj*) SWIG_create_object(&$1, SWIG_STR($1_basetype));
+  $result = (SwigObj*) SWIG_create_object(&$1, SWIG_STR(($1_basetype)));
 }
 
 %typemap(out) SWIGTYPE *, SWIGTYPE & {
-  $result = (SwigObj*) SWIG_create_object($1, SWIG_STR($1_basetype));
+  $result = (SwigObj*) SWIG_create_object($1, SWIG_STR(($1_basetype)));
 }
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
@@ -297,7 +298,7 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
     _temp = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
     for (i = 0 ; i < $1_dim0; ++i) {
       if ($1[i]) {
-        _temp[i] = SWIG_create_object($1[i], SWIG_STR($1_ltype));
+        _temp[i] = SWIG_create_object($1[i], SWIG_STR(($1_ltype)));
       }
       else
         _temp[i] = (SwigObj*) 0;
