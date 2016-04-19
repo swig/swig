@@ -670,6 +670,11 @@ MULTI_CPP_TEST_CASES += \
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
 
+# Allow modules to define temporarily failing tests.
+C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
+CPP_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP_TEST_CASES))
+MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
+
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
@@ -700,6 +705,7 @@ all: $(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 broken: $(BROKEN_TEST_CASES)
 
 check: $(NOT_BROKEN_TEST_CASES)
+	@echo $(words $^) tests passed
 
 check-c: $(C_TEST_CASES:=.ctest)
 
