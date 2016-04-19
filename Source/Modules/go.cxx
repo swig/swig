@@ -1624,7 +1624,12 @@ private:
       receiver = NULL;
     }
 
+    Swig_save("cgoGoWrapper", n, "type", "tmap:goout", NULL);
+    Setattr(n, "type", result);
+
     String *goout = goTypemapLookup("goout", n, "swig_r");
+
+    Swig_restore(n);
 
     bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
