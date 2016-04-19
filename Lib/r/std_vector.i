@@ -848,9 +848,9 @@
 %traits_type_name(std::vector<float>)
 
 // reuse these for float
-%typemap("rtype") std::vector<float> = std::vector<double>;
-%typemap("rtypecheck") std::vector<float> = std::vector<double>;
-%typemap("scoercein") std::vector<float> = std::vector<double>;
+%typemap("rtype") std::vector<float>, std::vector<float> const, std::vector<float> const& = std::vector<double>;
+%typemap("rtypecheck") std::vector<float>, std::vector<float> const, std::vector<float> const& = std::vector<double>;
+%typemap("scoercein") std::vector<float>, std::vector<float> const, std::vector<float> const& = std::vector<double>;
 
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool>);
@@ -928,44 +928,44 @@ std::vector< std::basic_string<char> > *,
 // but we can't use %apply as it will copy the C side ones too
 // Also note that we don't seem to be able to use types like
 // int_least8_t here.
-%typemap("rtype") std::vector<signed char> = std::vector<int>;
-%typemap("rtype") std::vector<signed short> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned char> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned int> = std::vector<int>;
+%typemap("rtype") std::vector<signed char>, std::vector<signed char> const, std::vector<signed char> const & = std::vector<int>;
+%typemap("rtype") std::vector<signed short>, std::vector<signed short> const, std::vector<signed short> const & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned char>, std::vector<unsigned char> const, std::vector<unsigned char> const & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned int>, std::vector<unsigned int> const, std::vector<unsigned int> const & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("rtype") std::vector<long int> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned long int> = std::vector<int>;
+%typemap("rtype") std::vector<long int>, std::vector<long int> const, std::vector<long int> const & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned long int>, std::vector<unsigned long int> const, std::vector<unsigned long int> const & = std::vector<int>;
 #else
-%typemap("rtype") std::vector<long long int> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("rtype") std::vector<long long int>, std::vector<long long int> const, std::vector<long long int> const & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned long long int>, std::vector<unsigned long long int> const, std::vector<unsigned long long int> const & = std::vector<int>;
 #endif
 
 
-%typemap("scoercein") std::vector<signed char> = std::vector<int>;
-%typemap("scoercein") std::vector<signed short> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned char> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned int> = std::vector<int>;
+%typemap("scoercein") std::vector<signed char>, std::vector<signed char> const, std::vector<signed char> const & = std::vector<int>;
+%typemap("scoercein") std::vector<signed short>, std::vector<signed short> const, std::vector<signed short> const & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned char>, std::vector<unsigned char> const, std::vector<unsigned char> const & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned int>, std::vector<unsigned int> const, std::vector<unsigned int> const & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("scoercein") std::vector<long int> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned long int> = std::vector<int>;
+%typemap("scoercein") std::vector<long int>, std::vector<long int> const, std::vector<long int> const & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned long int>, std::vector<unsigned long int> const, std::vector<unsigned long int> const & = std::vector<int>;
 #else
-%typemap("scoercein") std::vector<long long int> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("scoercein") std::vector<long long int>, std::vector<long long int> const, std::vector<long long int> const & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned long long int>, std::vector<unsigned long long int> const, std::vector<unsigned long long int> const & = std::vector<int>;
 #endif
 
-%typemap("rtypecheck") std::vector<signed char> = std::vector<int>;
-%typemap("rtypecheck") std::vector<signed short> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned char> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<signed char>, std::vector<signed char> const, std::vector<signed char> const & = std::vector<int>;
+%typemap("rtypecheck") std::vector<signed short>, std::vector<signed short> const, std::vector<signed short> const & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned char>, std::vector<unsigned char> const, std::vector<unsigned char> const & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned int>, std::vector<unsigned int> const, std::vector<unsigned int> const & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("rtypecheck") std::vector<long int> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned long int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<long int>, std::vector<long int> const, std::vector<long int> const & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned long int>, std::vector<unsigned long int> const, std::vector<unsigned long int> const & = std::vector<int>;
 #else
-%typemap("rtypecheck") std::vector<long long int> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<long long int>, std::vector<long long int> const, std::vector<long long int> const & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned long long int>, std::vector<unsigned long long int> const, std::vector<unsigned long long int> const & = std::vector<int>;
 #endif
 
 ///////////////////////////////////////////////////////////////
