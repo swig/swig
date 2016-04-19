@@ -544,8 +544,7 @@
   struct traits_asptr < std::vector<T> > {
     static int asptr(SEXP obj, std::vector<T> **val) {
       std::vector<T> *p;
-      Rprintf("my asptr\n");
-     int res = SWIG_R_ConvertPtr(obj, (void**)&p, type_info< std::vector<T> >(), 0);
+      int res = SWIG_R_ConvertPtr(obj, (void**)&p, type_info< std::vector<T> >(), 0);
       if (SWIG_IsOK(res)) {
         if (val) *val = p;
       }
