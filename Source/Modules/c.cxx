@@ -37,6 +37,22 @@ int SwigType_isbuiltin(SwigType *t) {
 namespace
 {
 
+// Delete a DOH object on scope exit.
+class scoped_dohptr
+{
+public:
+  explicit scoped_dohptr(DOH* obj) : obj_(obj) {}
+  ~scoped_dohptr() { Delete(obj_); }
+
+  operator DOH*() const { return obj_; }
+
+private:
+  scoped_dohptr(scoped_dohptr const&);
+  scoped_dohptr& operator=(scoped_dohptr const&);
+
+  DOH* const obj_;
+};
+
 // Helper class to output "begin" fragment in the ctor and "end" in the dtor.
 class begin_end_output_guard
 {
@@ -1352,10 +1368,8 @@ ready:
 	if (SwigType_isreference(type))
 	  return NIL;
 
-	SwigType *btype = SwigType_base(type);
-	const bool can_be_repr_in_c = SwigType_isbuiltin(btype) || SwigType_isenum(btype);
-	Delete(btype);
-	if (!can_be_repr_in_c)
+	scoped_dohptr btype(SwigType_base(type));
+	if (!SwigType_isbuiltin(btype) && !SwigType_isenum(btype))
 	  return NIL;
       }
     }
