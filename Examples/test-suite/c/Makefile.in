@@ -47,14 +47,12 @@ FAILING_C_TESTS := \
 FAILING_CPP_TESTS := \
     abstract_typedef2 \
     apply_signed_char \
-    apply_strings \
     array_member \
     array_typedef_memberin \
     arrayref \
     arrays_dimensionless \
     arrays_global \
     arrays_global_twodim \
-    char_binary \
     char_strings \
     class_ignore \
     class_scope_weird \

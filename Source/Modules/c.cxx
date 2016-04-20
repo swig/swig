@@ -251,9 +251,16 @@ public:
       if (classname) {
   Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
       } else {
-	String* const s = SwigType_str(classnametype, 0);
-	Swig_error(Getfile(n), Getline(n), "Unhandled type \"%s\".\n", s);
-	Delete(s);
+	String* const typestr = SwigType_str(classnametype, 0);
+	SwigType *btype = SwigType_base(classnametype);
+	if (SwigType_isbuiltin(btype)) {
+	  // This should work just as well in C without any changes.
+	  Replaceall(tm, classnamespecialvariable, typestr);
+	} else {
+	  Swig_error(Getfile(n), Getline(n), "Unhandled type \"%s\".\n", typestr);
+	}
+	Delete(btype);
+	Delete(typestr);
       }
     }
   }
