@@ -35,7 +35,6 @@ FAILING_C_TESTS := \
     li_cdata \
     li_constraints \
     li_cpointer \
-    memberin_extend_c \
     nested \
     nested_extend_c \
     nested_structs \
@@ -51,7 +50,6 @@ FAILING_CPP_TESTS := \
     anonymous_bitfield \
     apply_signed_char \
     apply_strings \
-    argout \
     array_member \
     array_typedef_memberin \
     arrayref \
@@ -72,14 +70,10 @@ FAILING_CPP_TESTS := \
     default_constructor \
     derived_nested \
     director_basic \
-    director_binary_string \
     director_enum \
-    director_frob \
     director_property \
     director_string \
     enum_thorough \
-    enum_var \
-    exception_order \
     extend \
     extend_constructor_destructor \
     extend_default \
@@ -89,14 +83,11 @@ FAILING_CPP_TESTS := \
     friends_template \
     funcptr_cpp \
     global_scope_types \
-    global_vars \
     grouping \
     import_nomodule \
     inherit_missing \
     kind \
-    langobj \
     li_attribute \
-    li_attribute_template \
     li_boost_shared_ptr \
     li_boost_shared_ptr_bits \
     li_carrays_cpp \
@@ -106,7 +97,6 @@ FAILING_CPP_TESTS := \
     li_std_map \
     li_std_pair \
     li_std_pair_using \
-    li_std_string \
     li_std_vector \
     li_swigtype_inout \
     li_windows \
@@ -118,7 +108,6 @@ FAILING_CPP_TESTS := \
     namespace_class \
     namespace_typemap \
     namespace_virtual_method \
-    naturalvar \
     naturalvar_more \
     nested_class \
     nested_scope \
@@ -126,9 +115,7 @@ FAILING_CPP_TESTS := \
     operator_overload \
     overload_arrays \
     overload_polymorphic \
-    primitive_ref \
     refcount \
-    reference_global_vars \
     register_par \
     smart_pointer_extend \
     smart_pointer_not \
@@ -148,21 +135,13 @@ FAILING_CPP_TESTS := \
     template_forward \
     template_nested \
     template_ns2 \
-    template_ns4 \
     template_ns_enum \
     template_ns_enum2 \
     template_opaque \
     template_retvalue \
-    template_tbase_template \
-    template_typedef \
     template_typedef_class_template \
-    template_typedef_cplx \
-    template_typedef_cplx2 \
-    template_typedef_cplx3 \
-    template_typedef_cplx4 \
     template_typedef_cplx5 \
     template_typedef_fnc \
-    template_typedef_funcptr \
     template_typemaps \
     template_typemaps_typedef \
     template_typemaps_typedef2 \
@@ -181,7 +160,6 @@ FAILING_CPP_TESTS := \
     varargs \
     varargs_overload \
     virtual_poly \
-    voidtest
 
 FAILING_MULTI_CPP_TESTS := \
     clientdata_prop \
