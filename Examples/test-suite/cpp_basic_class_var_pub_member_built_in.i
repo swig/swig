@@ -1,4 +1,4 @@
-%module cpp_basic_class_var_pub_member_atom
+%module cpp_basic_class_var_pub_member_built_in
 
 %inline{
     class MyClass {

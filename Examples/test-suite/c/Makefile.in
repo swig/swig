@@ -64,7 +64,6 @@ FAILING_CPP_TESTS := \
     class_scope_weird \
     constant_pointers \
     cpp_basic \
-    cpp_basic_class_var_pub_member_built_in \
     cpp_basic_global_var_built_in \
     cpp_basic_template_class \
     cpp_basic_template_function \
