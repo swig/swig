@@ -230,7 +230,7 @@ public:
    * substituteResolvedTypeSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  void substituteResolvedTypeSpecialVariable(Node* n, SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
     if (!CPlusPlus) {
       // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
       Clear(tm);
@@ -250,6 +250,10 @@ public:
       String *classname = getProxyName(classnametype);
       if (classname) {
   Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
+      } else {
+	String* const s = SwigType_str(classnametype, 0);
+	Swig_error(Getfile(n), Getline(n), "Unhandled type \"%s\".\n", s);
+	Delete(s);
       }
     }
   }
@@ -270,14 +274,14 @@ public:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(SwigType *pt, String *tm) {
+  bool substituteResolvedType(Node* n, SwigType *pt, String *tm) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
+      substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -285,7 +289,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
+  substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$*resolved_type");
   substitution_performed = true;
       }
       Delete(classnametype);
@@ -293,7 +297,7 @@ public:
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
+      substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$&resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -744,7 +748,7 @@ ready:
               }
             else
               {
-                 substituteResolvedType(type, tm);
+                 substituteResolvedType(n, type, tm);
                  return_type = tm;
               }
        }
@@ -808,7 +812,7 @@ ready:
             if ((stype = Getattr(p, "c:stype"))) {
                 proxy_parm_type = SwigType_lstr(stype, 0);
             } else {
-                substituteResolvedType(type, tm);
+                substituteResolvedType(n, type, tm);
                 proxy_parm_type = tm;              
             }
 
