@@ -213,7 +213,13 @@ SRCDIR       = ../$(srcdir)/
 %.multicpptest: 
 	$(setup)
 	+(cd $* && $(swig_and_compile_multi_cpp))
-	$(run_testcase)
+	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; do \
+	    $(call syntax_check_testcase,$${f}) || exit 1; \
+	  done; \
+	fi
 
 # Makes a directory for the testcase if it does not exist
 setup = \
@@ -226,15 +232,29 @@ setup = \
 		mkdir $*;						  \
 	fi;
 
-# Compiles C files then runs the testcase. A testcase is only run if
-# a file is found which has _runme.c appended after the testcase name.
+# Checks the header syntax if there is no runnable testcase for it.
+syntax_check_testcase = \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  SRCDIR='$(SRCDIR)' \
+	  INTERFACEDIR='$(INTERFACEDIR)' \
+	  C_HEADER=$1_wrap.h \
+	  c_syntax_check
+
+# Compiles C files then runs the testcase unconditionally.
+do_run_testcase = \
+	cd $* && $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  SRCDIR='$(SRCDIR)' \
+	  RUNME=$*_runme \
+	  TARGET='$*' \
+	  c_run
+
+# Only compile and run testcase if a file with _rume.c appended to the testcase
+# name is found, otherwise only check the syntax of the generated files.
 run_testcase = \
 	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  cd $* && $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	    SRCDIR='$(SRCDIR)' \
-	    RUNME=$*_runme \
-	    TARGET='$*' \
-	    c_run; \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && $(call syntax_check_testcase,$*); \
 	fi
 
 # Clean: remove testcase directories

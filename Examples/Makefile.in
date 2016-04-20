@@ -1740,16 +1740,20 @@ c: $(SRCDIR_SRCS)
 	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
 	$(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
-	$(SYNTAX_CHECK) -I$(SRCDIR)$(INTERFACEDIR) $(IWRAP:.i=.h)
 
 c_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
-	$(SYNTAX_CHECK) -I$(SRCDIR)$(INTERFACEDIR) $(IWRAP:.i=.h)
 
 c_compile: $(SRCDIR)$(RUNME).c
 	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
+
+# This target is used for the unit tests: if we don't have any test code to
+# run, we at least can check that the generated header can be included without
+# giving any syntax errors.
+c_syntax_check:
+	$(SYNTAX_CHECK) -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
 
 # -----------------------------------------------------------------
 # Run C example
