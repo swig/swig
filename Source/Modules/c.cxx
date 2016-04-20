@@ -77,7 +77,7 @@ public:
         "#endif\n\n",
         "#ifdef __cplusplus\n"
         "}\n"
-        "#endif\n"
+        "#endif\n\n"
       )
   {
   }
