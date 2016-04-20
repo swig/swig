@@ -85,12 +85,12 @@ int main(int argc, const char *argv[]) {
 
 	// getting, setting and calling function pointers isn't supported yet
 #if 0
-	SomeTypeForMemFnPtr func1 = _wrap_get_func1_ptr();
+	SomeTypeForMemFnPtr func1 = get_func1_ptr();
 	Foo_func_ptr_set(f, func1);
-	assert(_wrap_test_func_ptr(f, 2) == 28);
-	SomeTypeForMemFnPtr func2 = _wrap_get_func2_ptr();
+	assert(test_func_ptr(f, 2) == 28);
+	SomeTypeForMemFnPtr func2 = get_func2_ptr();
 	Foo_func_ptr_set(f, func2);
-	assert(_wrap_test_func_ptr(f, 2) == -14);
+	assert(test_func_ptr(f, 2) == -14);
 #endif
 
 	delete_Bar(b);

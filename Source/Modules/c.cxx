@@ -107,6 +107,7 @@ class C:public Language {
   File *f_wrappers_cxx;
   File *f_wrappers_types;
   File *f_wrappers_decl;
+  File *f_wrappers_aliases;
   File *f_init;
 
   String *empty_string;
@@ -416,6 +417,11 @@ public:
       f_wrappers_types = NewString("");
       f_wrappers_decl = NewString("");
 
+      // We also define aliases for the global wrapper functions to allow calling them using their original names, but as this can result in problems (as usual
+      // when using the preprocessor), we provide a way to disable this by defining SWIG_NO_WRAPPER_ALIASES when compiling the generated code and so we use a
+      // separate section for this too.
+      f_wrappers_aliases = NIL;
+
       {
 
         cplusplus_output_guard
@@ -434,6 +440,13 @@ public:
 
       Dump(f_wrappers_h_body, f_wrappers_h);
       Delete(f_wrappers_h_body);
+
+      if (f_wrappers_aliases) {
+	Dump(f_wrappers_aliases, f_wrappers_h);
+	Delete(f_wrappers_aliases);
+
+	Printv(f_wrappers_h, "#endif /* SWIG_NO_WRAPPER_ALIASES */\n", NIL);
+      }
     } // close wrapper header guard
 
     // write all to the file
@@ -928,18 +941,30 @@ ready:
    * emit_wrapper_func_decl()
    *
    * Declares the wrapper function, using the C types used for it, in the header.
+   * Also emits a define allowing to use the function without the "_wrap_" prefix.
    * The node here is a function declaration.
    * ---------------------------------------------------------------------- */
   void emit_wrapper_func_decl(Node *n, String *name)
     {
        // C++ function wrapper proxy code
-       String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
+       bool const is_global = IS_SET_TO_ONE(n, "c:globalfun");
+       String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
        String *preturn_type = get_wrapper_func_return_type(n);
        String *pproto = get_wrapper_func_proto(n);
        String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
        Printv(f_wrappers_decl, preturn_type, " ", wname, "(", pproto, ");\n\n", NIL);
+
+       if (is_global) {
+	 if (!f_wrappers_aliases) {
+	   // Allocate it on demand.
+	   f_wrappers_aliases = NewStringEmpty();
+	   Printv(f_wrappers_aliases, "#ifndef SWIG_NO_WRAPPER_ALIASES\n", NIL);
+	 }
+
+	 Printf(f_wrappers_aliases, "#define %s %s\n", name, wname);
+       }
 
        // cleanup
        Delete(wname);

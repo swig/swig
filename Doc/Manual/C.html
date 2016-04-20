@@ -192,7 +192,7 @@ Wrapping C functions and variables is obviously performed in a straightforward w
 
 
 <p>
-For each C function declared in the interface file a wrapper function is created. Basically, the wrapper function performs a call to the original function, and returns its result.
+For each C function declared in the interface file a wrapper function with the prefix <tt>_wrap_</tt> is created. Basically, the wrapper function performs a call to the original function, and returns its result. For convenience, a <tt>#define func _wrap_func</tt> is also provided in the generated header file to make it possible to call the function under its original name. If this is undesirable, <tt>SWIG_NO_WRAPPER_ALIASES</tt> can be predefined before including the wrapper header to disable these defines.
 </p>
 
 <p>
