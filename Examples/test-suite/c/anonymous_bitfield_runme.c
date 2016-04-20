@@ -8,10 +8,10 @@ int main(int argc, const char *argv[]) {
 
 	Foo_x_set(f, 1);
 	assert(Foo_x_get(f) == 1);
-	assert(Foo_y_get(f) == 1);
+	assert(Foo_y_get(f) == 0);
 
 	Foo_y_set(f, 0);
-	assert(Foo_x_get(f) == 0);
+	assert(Foo_x_get(f) == 1);
 	assert(Foo_y_get(f) == 0);
 
 	Foo_f_set(f, 1);
