@@ -1335,8 +1335,8 @@ ready:
    * emit_c_struct_def()
    * --------------------------------------------------------------------- */
 
-  void emit_c_struct_def(Node *node) {
-    for ( ; node; node = nextSibling(node)) {
+  void emit_c_struct_def(Node *n) {
+    for ( Node* node = firstChild(n); node; node = nextSibling(node)) {
       String* const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
 	String* const var_decl = make_c_var_decl(node);
@@ -1347,7 +1347,7 @@ ready:
       } else {
 	// WARNING: proxy declaration can be different than original code
 	if (Cmp(nodeType(node), "extend") == 0)
-	  emit_c_struct_def(firstChild(node));
+	  emit_c_struct_def(node);
       }
     }
   }
@@ -1465,8 +1465,7 @@ ready:
         Append(f_wrappers_types, "typedef struct {\n");
       else 
         Printv(f_wrappers_types, "struct ", name, " {\n", NIL);
-      Node *node = firstChild(n);
-      emit_c_struct_def(node);
+      emit_c_struct_def(n);
       if (tdname)
         Printv(f_wrappers_types, "} ", tdname, ";\n\n", NIL);
       else
