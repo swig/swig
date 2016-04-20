@@ -45,7 +45,6 @@ FAILING_C_TESTS := \
     unions \
 
 FAILING_CPP_TESTS := \
-    abstract_typedef2 \
     apply_signed_char \
     array_member \
     array_typedef_memberin \
@@ -54,19 +53,13 @@ FAILING_CPP_TESTS := \
     arrays_global \
     arrays_global_twodim \
     char_strings \
-    class_ignore \
-    class_scope_weird \
     constant_pointers \
-    cpp_typedef \
     c_backend_cpp_natural_std_string \
     c_backend_cpp_exception \
     default_arg_values \
     default_args \
     default_constructor \
-    derived_nested \
-    director_basic \
     director_enum \
-    director_property \
     director_string \
     enum_thorough \
     extend \
@@ -75,83 +68,47 @@ FAILING_CPP_TESTS := \
     extend_placement \
     extern_c \
     features \
-    friends_template \
     funcptr_cpp \
     global_scope_types \
     grouping \
     import_nomodule \
-    inherit_missing \
-    kind \
     li_attribute \
     li_boost_shared_ptr \
-    li_boost_shared_ptr_bits \
     li_carrays_cpp \
-    li_cdata_cpp \
     li_std_combinations \
     li_std_deque \
     li_std_map \
     li_std_pair \
     li_std_pair_using \
     li_std_vector \
-    li_swigtype_inout \
     li_windows \
-    long_long_apply \
     member_funcptr_galore \
     member_pointer \
     mixed_types \
-    multiple_inheritance_shared_ptr \
     namespace_class \
-    namespace_typemap \
-    namespace_virtual_method \
-    naturalvar_more \
     nested_class \
     nested_scope \
     nested_template_base \
     operator_overload \
     overload_arrays \
-    overload_polymorphic \
-    refcount \
-    register_par \
     smart_pointer_extend \
     smart_pointer_not \
     smart_pointer_template_defaults_overload \
     special_variables \
     struct_initialization_cpp \
-    template_arg_scope \
     template_arg_typename \
     template_basic \
     template_default \
-    template_default_arg \
     template_default_class_parms_typedef \
-    template_default_vw \
     template_enum \
     template_explicit \
-    template_extend_overload \
-    template_forward \
-    template_nested \
-    template_ns2 \
-    template_ns_enum \
-    template_ns_enum2 \
-    template_opaque \
-    template_retvalue \
-    template_typedef_class_template \
-    template_typedef_cplx5 \
     template_typedef_fnc \
-    template_typemaps \
-    template_typemaps_typedef \
-    template_typemaps_typedef2 \
-    template_using_directive_and_declaration_forward \
-    template_whitespace \
     typedef_array_member \
     typedef_funcptr \
     typedef_struct_cpp \
     typemap_array_qualifiers \
     typemap_namespace \
-    typemap_template_parm_typedef \
-    typemap_variables \
-    typemap_various \
     using_extend \
-    valuewrapper_opaque \
     varargs \
     varargs_overload \
     virtual_poly \
@@ -160,7 +117,6 @@ FAILING_MULTI_CPP_TESTS := \
     clientdata_prop \
     imports \
     import_stl \
-    mod \
     template_typedef_import \
 
 include $(srcdir)/../common.mk

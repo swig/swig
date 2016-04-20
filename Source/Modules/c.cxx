@@ -226,7 +226,7 @@ public:
    * substituteResolvedTypeSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedTypeSpecialVariable(Node* n, SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
     if (!CPlusPlus) {
       // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
       Clear(tm);
@@ -247,15 +247,21 @@ public:
       if (classname) {
   Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
       } else {
-	String* const typestr = SwigType_str(classnametype, 0);
+	String* typestr = NIL;
 	SwigType *btype = SwigType_base(classnametype);
 	if (SwigType_isbuiltin(btype)) {
 	  // This should work just as well in C without any changes.
-	  Replaceall(tm, classnamespecialvariable, typestr);
+	  typestr = SwigType_str(classnametype, 0);
 	} else {
-	  Swig_error(Getfile(n), Getline(n), "Unhandled type \"%s\".\n", typestr);
+	  // Swig doesn't know anything about this type, use descriptor for it.
+	  typestr = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+
+	  // And make sure it is declared before it is used.
+	  Printf(f_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
 	}
 	Delete(btype);
+
+	Replaceall(tm, classnamespecialvariable, typestr);
 	Delete(typestr);
       }
     }
@@ -277,14 +283,14 @@ public:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(Node* n, SwigType *pt, String *tm) {
+  bool substituteResolvedType(SwigType *pt, String *tm) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$resolved_type");
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -292,7 +298,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-  substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$*resolved_type");
+  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
   substitution_performed = true;
       }
       Delete(classnametype);
@@ -300,7 +306,7 @@ public:
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteResolvedTypeSpecialVariable(n, classnametype, tm, "$&resolved_type");
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -757,7 +763,7 @@ ready:
               }
             else
               {
-                 substituteResolvedType(n, type, tm);
+                 substituteResolvedType(type, tm);
                  return_type = tm;
               }
        }
@@ -821,7 +827,7 @@ ready:
             if ((stype = Getattr(p, "c:stype"))) {
                 proxy_parm_type = SwigType_lstr(stype, 0);
             } else {
-                substituteResolvedType(n, type, tm);
+                substituteResolvedType(type, tm);
                 proxy_parm_type = tm;              
             }
 
