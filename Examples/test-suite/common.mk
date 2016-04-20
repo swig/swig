@@ -713,6 +713,13 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
+check-failing-test = \
+	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $t passed."
+
+check-failing:
+	+-$(foreach t,$(FAILING_C_TESTS),$(call check-failing-test,$t,ctest);)
+	+-$(foreach t,$(FAILING_CPP_TESTS),$(call check-failing-test,$t,cpptest);)
+	+-$(foreach t,$(FAILING_MULTI_CPP_TESTS),$(call check-failing-test,$t,multicpptest);)
 endif
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
