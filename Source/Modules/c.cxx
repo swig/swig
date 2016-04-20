@@ -458,11 +458,17 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
-    // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
-    if (String* const var_decl = make_c_var_decl(n)) {
-      Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
-      Delete(var_decl);
-      return SWIG_OK;
+    // We can't export variables defined inside namespaces to C directly, whatever their type.
+    String* const scope = Swig_scopename_prefix(Getattr(n, "name"));
+    if (!scope) {
+      // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
+      if (String* const var_decl = make_c_var_decl(n)) {
+	Printv(f_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
+	Delete(var_decl);
+	return SWIG_OK;
+      }
+    } else {
+      Delete(scope);
     }
 
     // Otherwise, e.g. if it's of a C++-only type, or a reference, generate accessor functions for it.

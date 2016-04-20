@@ -57,7 +57,6 @@ FAILING_CPP_TESTS := \
     class_ignore \
     class_scope_weird \
     constant_pointers \
-    cpp_namespace \
     cpp_typedef \
     c_backend_cpp_natural_std_string \
     c_backend_cpp_exception \
