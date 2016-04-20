@@ -45,7 +45,6 @@ FAILING_C_TESTS := \
     unions \
 
 FAILING_CPP_TESTS := \
-    abstract_typedef \
     abstract_typedef2 \
     anonymous_bitfield \
     apply_signed_char \
