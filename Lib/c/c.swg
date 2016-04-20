@@ -5,11 +5,6 @@
  * c.swg
  * ----------------------------------------------------------------------------- */ 
 
-// WARNING: passing function pointers from C as parameters of type (or as
-// return values) SWIGTYPE (CLASS::*) causes cast of C function to type
-// void(*)() and it is user's responsibility to properly handle this 
-// function's arguments and return value. See 'cpp_basic' test for details.
-
 %insert("runtime") "clabels.swg"
 %insert("proxy_header") "cproxy.swg"
 
@@ -24,8 +19,6 @@
 #define SWIG_contract_assert(expr, msg) if(!(expr)) { printf("%s\n", msg); SWIG_exit(0); } else
 %}
 
-%fragment("fptr_decl", "runtime") {typedef void(*SWIG_CPP_FP)();}
-%fragment("fptr_decl_proxy", "proxy_header") {typedef void(*SWIG_CPP_FP)();}
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 
 %define same_macro_all_primitive_types_but_void(macro_name, TM)
@@ -135,7 +128,6 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
 %typemap(ctype) enum SWIGTYPE "int"
 %typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(ctype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
@@ -166,7 +158,6 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
 %typemap(cmodtype) SWIGTYPE *&      "/* *& */ SwigObj **"
 %typemap(cmodtype) enum SWIGTYPE    "int"
 %typemap(cmodtype) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
-%typemap(cmodtype, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
 %typemap(cmodtype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
 %typemap(cmodtype, fragment="stdbool_inc") bool & "$1_ltype"
@@ -323,7 +314,7 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cppouttype);
 %typemap(cppouttype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_basetype **"
 %typemap(cppouttype, retobj="1") enum SWIGTYPE "int"
 %typemap(cppouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(cppouttype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "$1_ltype"
+%typemap(cppouttype) SWIGTYPE (CLASS::*) "$1_ltype"
 
 %typemap(cppouttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
 %typemap(cppouttype, fragment="stdbool_inc") bool & "$1_basetype*"
