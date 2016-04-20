@@ -1,4 +1,4 @@
-#include "abstract_typedef2/abstract_change_wrap.h"
+#include "anonymous_bitfield/anonymous_bitfield_wrap.h"
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
