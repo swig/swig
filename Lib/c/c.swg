@@ -93,7 +93,7 @@ same_macro_all_primitive_types_but_void(explicit_same_type,TM);
 %typemap(TM) const T* * const ACTION
 %enddef
 
-%define same_action_all_primitive_types_but_void(TM, ACTION)
+%define same_action_all_primitive_types(TM, ACTION)
 same_action(TM, short, ACTION);
 same_action(TM, unsigned short, ACTION);
 same_action(TM, int, ACTION);
@@ -109,6 +109,7 @@ same_action(TM, unsigned char, ACTION);
 same_action(TM, float, ACTION);
 same_action(TM, double, ACTION);
 same_action(TM, size_t, ACTION);
+%typemap(TM) void*, void const* ACTION
 %enddef
 
 // Typemaps for proxy function parameters
@@ -173,7 +174,7 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
 
 
 // Typemaps for assigning wrapper parameters to local variables
-same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
+same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
@@ -259,7 +260,7 @@ same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 
 
 // Typemaps for assigning result values to a special return variable
-same_action_all_primitive_types_but_void(out, "$result = $1;")
+same_action_all_primitive_types(out, "$result = $1;")
 
 %typemap(out) void ""
 

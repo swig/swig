@@ -131,7 +131,6 @@ FAILING_CPP_TESTS := \
     operator_overload \
     overload_arrays \
     overload_polymorphic \
-    overload_simple \
     primitive_ref \
     refcount \
     reference_global_vars \
