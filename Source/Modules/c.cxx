@@ -169,13 +169,9 @@ public:
    * ----------------------------------------------------------------------------- */
   
    String *getProxyName(SwigType *t) {
-     Node *n = NULL;
+     Node *n = classLookup(t);
 
-     t = SwigType_typedef_resolve_all(t);
-     if (!t || !(n = classLookup(t)))
-      return NULL;
-
-    return getNamespacedName(n);
+    return n ? getNamespacedName(n) : NULL;
 
    }
 
