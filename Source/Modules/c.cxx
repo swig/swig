@@ -1333,21 +1333,26 @@ ready:
 
   /* ---------------------------------------------------------------------
    * emit_c_struct_def()
+   *
+   * Append the declarations of C struct members to the given string.
+   * Notice that this function has a side effect of outputting all enum declarations inside the struct into f_wrappers_types directly.
+   * This is done to avoid gcc warnings "declaration does not declare anything" given for the anonymous enums inside the structs.
    * --------------------------------------------------------------------- */
 
-  void emit_c_struct_def(Node *n) {
+  void emit_c_struct_def(String* out, Node *n) {
     for ( Node* node = firstChild(n); node; node = nextSibling(node)) {
       String* const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
 	String* const var_decl = make_c_var_decl(node);
-	Printv(f_wrappers_types, cindent, var_decl, ";\n", NIL);
+	Printv(out, cindent, var_decl, ";\n", NIL);
 	Delete(var_decl);
       } else if (Cmp(ntype, "enum") == 0) {
+	// This goes directly into f_wrappers_types, before this struct declaration.
 	emit_one(node);
       } else {
 	// WARNING: proxy declaration can be different than original code
 	if (Cmp(nodeType(node), "extend") == 0)
-	  emit_c_struct_def(node);
+	  emit_c_struct_def(out, node);
       }
     }
   }
@@ -1460,16 +1465,20 @@ ready:
       return Language::classHandler(n);
     } else {
       // this is C struct, just declare it in the proxy
+      String* struct_def = NewStringEmpty();
       String* const tdname = Getattr(n, "tdname");
       if (tdname)
-        Append(f_wrappers_types, "typedef struct {\n");
+        Append(struct_def, "typedef struct {\n");
       else 
-        Printv(f_wrappers_types, "struct ", name, " {\n", NIL);
-      emit_c_struct_def(n);
+        Printv(struct_def, "struct ", name, " {\n", NIL);
+      emit_c_struct_def(struct_def, n);
       if (tdname)
-        Printv(f_wrappers_types, "} ", tdname, ";\n\n", NIL);
+        Printv(struct_def, "} ", tdname, ";\n\n", NIL);
       else
-        Append(f_wrappers_types, "};\n\n");
+        Append(struct_def, "};\n\n");
+
+      Printv(f_wrappers_types, struct_def, NIL);
+      Delete(struct_def);
 
       Delete(name);
     }
