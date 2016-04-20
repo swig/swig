@@ -1749,7 +1749,7 @@ c_cpp: $(SRCDIR_SRCS)
 	$(SYNTAX_CHECK) -I$(SRCDIR)$(INTERFACEDIR) $(IWRAP:.i=.h)
 
 c_compile: $(SRCDIR)$(RUNME).c
-	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. $< -L. -l$(TARGET)
+	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME) -I. -I.. $< -L. -l$(TARGET)
 
 # -----------------------------------------------------------------
 # Run C example

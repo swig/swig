@@ -229,10 +229,13 @@ setup = \
 # Compiles C files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.c appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (\
-		cd $* && $(COMPILETOOL) $(CC) ../$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -I.. -L. -l$* -o $*_runme && \
-	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" PATH=".:$$PATH" SHLIB_PATH=".:$$SHLIB_PATH" DYLD_LIBRARY_PATH=".:$$DYLD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme;) \
-	fi;
+	+if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  cd $* && $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	    SRCDIR='$(SRCDIR)' \
+	    RUNME=$*_runme \
+	    TARGET='$*' \
+	    c_run; \
+	fi
 
 # Clean: remove testcase directories
 %.clean:
