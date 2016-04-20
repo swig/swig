@@ -1363,14 +1363,21 @@ ready:
       Delete(type_str);
       type_str = int_type_str;
     } else {
-      // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
-      if (CPlusPlus) {
-	if (SwigType_isreference(type))
-	  return NIL;
+      scoped_dohptr btype(SwigType_base(type));
+      if (SwigType_isenum(btype)) {
+	// Enums are special as they can be unknown, i.e. not wrapped by SWIG. In this case we just use int instead.
+	if (!enumLookup(btype)) {
+	  Replaceall(type_str, btype, "int");
+	}
+      } else {
+	// Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
+	if (CPlusPlus) {
+	  if (SwigType_isreference(type))
+	    return NIL;
 
-	scoped_dohptr btype(SwigType_base(type));
-	if (!SwigType_isbuiltin(btype) && !SwigType_isenum(btype))
-	  return NIL;
+	  if (!SwigType_isbuiltin(btype))
+	    return NIL;
+	}
       }
     }
 
