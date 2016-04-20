@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_basic_global_var_atom/cpp_basic_global_var_atom_wrap.h"
+#include "cpp_basic_global_var_built_in/cpp_basic_global_var_built_in_wrap.h"
 
 int main(int argc, const char *argv[])
 {
