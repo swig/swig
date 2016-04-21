@@ -759,21 +759,11 @@ ready:
 
   String *get_wrapper_func_return_type(output_target target, Node *n)
     {
-      if (target == output_wrapper_decl) {
-       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
-       if (proxy_type)
-	 return SwigType_str(proxy_type, 0);
-      }
-
        SwigType *type = Getattr(n, "type");
        String *return_type = NewString("");
        String *tm;
 
-       // set the return type
-       if (IS_SET_TO_ONE(n, "c:objstruct")) {
-            Printv(return_type, SwigType_str(type, 0), NIL);
-       }
-       else if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
+       if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
             // handle simple typemap cases
             String *ctypeout = Getattr(n, "tmap:ctype:out");
             if (ctypeout)
@@ -850,24 +840,15 @@ ready:
 
             Printf(arg_name, "c%s", lname);
 
-            // use proxy-type for parameter if supplied
-	    if (!wrapper) {
-	      if (String* stype = Getattr(p, "c:stype")) {
-		  c_parm_type = SwigType_lstr(stype, 0);
-	      }
+	    if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
+		 c_parm_type = Copy(tm);
+		 substituteResolvedType(wrapper ? output_wrapper_def : output_wrapper_decl, type, c_parm_type);
+
+		 // template handling
+		 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
 	    }
-
-	    if (!c_parm_type) {
-	      if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
-		   c_parm_type = Copy(tm);
-		   substituteResolvedType(wrapper ? output_wrapper_def : output_wrapper_decl, type, c_parm_type);
-
-		   // template handling
-		   Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
-	      }
-	      else {
-		   Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
-	      }
+	    else {
+		 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
 	    }
 
             Printv(proto, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
@@ -1105,9 +1086,6 @@ ready:
                  Setattr(parms, "c:objstruct", "1");
                  if (!Getattr(parms, "lname"))
                    Setattr(parms, "lname", "arg1");
-                 SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
-                 SwigType_add_pointer(stype);
-                 Setattr(parms, "c:stype", stype);
             }
        }
     }
@@ -1518,7 +1496,6 @@ ready:
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
-    String *stype;
     String *code = NewString("");
     String *constr_name = NewString("");
     String *arg_lnames = NewString("");
@@ -1529,14 +1506,10 @@ ready:
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
 
     // set the function return type to the pointer to struct
-    Printf(sobj_name, "SwigObj");
-    ctype = Copy(sobj_name);
+    Setattr(n, "c:objstruct", "1");
+    ctype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
-    Setattr(n, "c:objstruct", "1");
-    stype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(stype);
-    Setattr(n, "c:stype", stype);
 
     // Modify the constructor name if necessary
     constr_name = Swig_name_construct(nspace, newclassname);
@@ -1558,7 +1531,6 @@ ready:
     Delete(arg_lnames);
     Delete(constr_name);
     Delete(code);
-    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     return SWIG_OK;
@@ -1574,7 +1546,6 @@ ready:
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
-    String *stype;
     String *code = NewString("");
     String *constr_name = NewString("");
     ParmList *parms = Getattr(n, "parms");
@@ -1583,14 +1554,10 @@ ready:
     Setattr(parms, "lname", "arg1");
 
     // set the function return type to the pointer to struct
-    Printf(sobj_name, "SwigObj");
-    ctype = Copy(sobj_name);
+    Setattr(n, "c:objstruct", "1");
+    ctype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
-    Setattr(n, "c:objstruct", "1");
-    stype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(stype);
-    Setattr(n, "c:stype", stype);
 
     // modify the constructor if necessary
     constr_name = Swig_name_copyconstructor(nspace, newclassname);
@@ -1611,7 +1578,6 @@ ready:
 
     Delete(constr_name);
     Delete(code);
-    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     return SWIG_OK;
@@ -1629,21 +1595,16 @@ ready:
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
     String *ctype;
-    String *stype;
     String *code = NewString("");
     String *destr_name = NewString("");
     String *nspace = Getattr(klass, "sym:nspace");
     Parm *p;
 
     // create first argument
-    Printf(sobj_name, "SwigObj");
-    ctype = Copy(sobj_name);
+    ctype = make_public_class_name(nspace, newclassname);
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self", n);
     Setattr(p, "lname", "arg1");
-    stype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(stype);
-    Setattr(p, "c:stype", stype);
     Setattr(p, "c:objstruct", "1");
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
@@ -1663,7 +1624,6 @@ ready:
     Delete(p);
     Delete(destr_name);
     Delete(code);
-    Delete(stype);
     Delete(ctype);
     Delete(sobj_name);
     return SWIG_OK;
