@@ -1247,6 +1247,11 @@ ready:
 
 	  if (!SwigType_isbuiltin(btype))
 	    return NIL;
+
+	  // Final complication: define bool if it is used here.
+	  if (Cmp(btype, "bool") == 0) {
+	    Printv(f_wrappers_types, "#include <stdbool.h>\n\n", NIL);
+	  }
 	}
       }
     }
