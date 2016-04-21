@@ -788,7 +788,14 @@ ready:
        return return_type;
     }
 
-  String *get_wrapper_func_proto(Node *n)
+  /* ----------------------------------------------------------------------
+   * get_wrapper_func_proto()
+   *
+   * Return the function signature, i.e. the comma-separated list of argument types and names.
+   * If a non-null wrapper is specified, it is used to emit typemap-defined code in it and it also determines whether we're generating the prototype for the
+   * declarations or the definitions, which changes the type used for the C++ objects.
+   * ---------------------------------------------------------------------- */
+  String *get_wrapper_func_proto(Node *n, Wrapper* wrapper = NULL)
     {
        ParmList *parms = Getattr(n, "parms");
 
@@ -797,7 +804,14 @@ ready:
        int gencomma = 0;
 
        // attach the standard typemaps
-       Swig_typemap_attach_parms("in", parms, 0);
+       if (wrapper) {
+	 emit_attach_parmmaps(parms, wrapper);
+       } else {
+	 // We can't call emit_attach_parmmaps() without a wrapper, it would just crash.
+	 // Attach "in" manually, we need it for tmap:in:numinputs below.
+	 Swig_typemap_attach_parms("in", parms, 0);
+       }
+       Setattr(n, "wrap:parms", parms); //never read again?!
 
        // attach 'ctype' typemaps
        Swig_typemap_attach_parms("ctype", parms, 0);
@@ -819,9 +833,8 @@ ready:
                  continue;
             }
             String *lname = Getattr(p, "lname");
-            String *proxy_parm_type = 0;
+            String *c_parm_type = 0;
             String *arg_name = NewString("");
-            String* stype = 0;
 
             SwigType *tdtype = SwigType_typedef_resolve_all(type);
             if (tdtype)
@@ -829,21 +842,27 @@ ready:
 
             Printf(arg_name, "c%s", lname);
 
-            if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
-                 tm = Copy(tm);
-            }
-            else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
-            }
             // use proxy-type for parameter if supplied
-            if ((stype = Getattr(p, "c:stype"))) {
-                proxy_parm_type = SwigType_lstr(stype, 0);
-            } else {
-                substituteResolvedType(output_wrapper_decl, type, tm);
-                proxy_parm_type = tm;              
-            }
+	    if (!wrapper) {
+	      if (String* stype = Getattr(p, "c:stype")) {
+		  c_parm_type = SwigType_lstr(stype, 0);
+	      }
+	    }
 
-            Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
+	    if (!c_parm_type) {
+	      if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
+		   c_parm_type = Copy(tm);
+		   substituteResolvedType(wrapper ? output_wrapper_def : output_wrapper_decl, type, c_parm_type);
+
+		   // template handling
+		   Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
+	      }
+	      else {
+		   Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+	      }
+	    }
+
+            Printv(proto, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
             gencomma = 1;
 
             // apply typemaps for input parameter
@@ -852,6 +871,10 @@ ready:
             }
             else if ((tm = Getattr(p, "tmap:in"))) {
                  Replaceall(tm, "$input", arg_name);
+		 if (wrapper) {
+		   Setattr(p, "emit:input", arg_name);
+		   Printf(wrapper->code, "%s\n", tm);
+		 }
                  p = Getattr(p, "tmap:in:next");
             }
             else {
@@ -860,7 +883,7 @@ ready:
             }
 
             Delete(arg_name);
-            Delete(proxy_parm_type);
+            Delete(c_parm_type);
        }
        return proto;
     }
@@ -910,10 +933,8 @@ ready:
        SwigType *otype = Copy(type);
        SwigType *return_type = get_wrapper_func_return_type(output_wrapper_def, n);
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
-       String *arg_names = NewString("");
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
-       int gencomma = 0;
        bool is_void_return = (SwigType_type(type) == T_VOID);
        bool return_object = false;
        // create new function wrapper object
@@ -937,83 +958,7 @@ ready:
        // create wrapper function prototype
        Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
 
-       // attach the standard typemaps
-       emit_attach_parmmaps(parms, wrapper);
-       Setattr(n, "wrap:parms", parms); //never read again?!
-
-       // attach 'ctype' typemaps
-       Swig_typemap_attach_parms("ctype", parms, wrapper);
-
-       // prepare function definition
-       for (p = parms, gencomma = 0; p; ) {
-            String *tm;
-
-            while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
-                 p = Getattr(p, "tmap:in:next");
-            }
-            if (!p) break;
-
-            SwigType *type = Getattr(p, "type");
-            if (SwigType_type(type) == T_VOID) {
-                 p = nextSibling(p);
-                 continue;
-            }
-            String *lname = Getattr(p, "lname");
-            String *c_parm_type = NewString("");
-            String *proxy_parm_type = NewString("");
-            String *arg_name = NewString("");
-
-            SwigType *tdtype = SwigType_typedef_resolve_all(type);
-            if (tdtype)
-              type = tdtype;
-
-            Printf(arg_name, "c%s", lname);
-
-            // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:ctype"))) {
-		 substituteResolvedType(output_wrapper_def, type, tm);
-
-                 Printv(c_parm_type, tm, NIL);
-                 // template handling
-                 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
-            }
-            else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
-            }
-
-            // use proxy-type for parameter if supplied
-            String* stype = Getattr(p, "c:stype");
-            if (stype) {
-                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
-            }
-            else {
-                 Printv(proxy_parm_type, c_parm_type, NIL);
-            }
-
-            Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
-            Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
-            gencomma = 1;
-
-            // apply typemaps for input parameter
-            if (Cmp(nodeType(n), "destructor") == 0) {
-                 p = Getattr(p, "tmap:in:next");
-            }
-            else if ((tm = Getattr(p, "tmap:in"))) {
-                 Replaceall(tm, "$input", arg_name);
-                 Setattr(p, "emit:input", arg_name);
-                 Printf(wrapper->code, "%s\n", tm);
-                 p = Getattr(p, "tmap:in:next");
-            }
-            else {
-                 Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
-                 p = nextSibling(p);
-            }
-
-            Delete(arg_name);
-            Delete(proxy_parm_type);
-            Delete(c_parm_type);
-       }
-
+       Printv(wrapper->def, (DOH*)scoped_dohptr(get_wrapper_func_proto(n, wrapper)), NIL);
        Printv(wrapper->def, ")", NIL);
        Printv(wrapper->def, " {", NIL);
 
@@ -1134,7 +1079,6 @@ ready:
        Wrapper_print(wrapper, f_wrappers);
 
        // cleanup
-       Delete(arg_names);
        Delete(wname);
        Delete(return_type);
        Delete(otype);
