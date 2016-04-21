@@ -35,7 +35,7 @@ std::string ExceptionVars(double i, double j) {
   result = (char*)$symname(1.0,2.0).c_str(); // Should expand to ExceptionVars
   result = (char*)$name(3.0,4.0).c_str(); // Should expand to Space::exceptionvars
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname";
+  result = (char*)"$action  $name  $symname  $overname $wrapname";
 %}
 
 #else
@@ -67,7 +67,7 @@ std::string exceptionvars(double i, double j) {
   result = (char*)$name().c_str();
   result = (char*)$name(2.0).c_str();
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname";
+  result = (char*)"$action  $name  $symname  $overname $wrapname";
   // $decl
 %}
 
