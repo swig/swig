@@ -7,8 +7,6 @@
  * C language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_c_cxx[] = "$Id: c.cxx 11186 2009-04-11 10:46:13Z maciekd $";
-
 #include <ctype.h>
 #include "swigmod.h"
 
