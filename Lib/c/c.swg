@@ -38,9 +38,11 @@ macro_name(TM, double);
 macro_name(TM, size_t);
 %enddef
 
-//unconsted types are necessary, because some the methods using this declare variables of the resolved type first and assign their values later
-//used by 'cmodtype' and 'cppouttype' typemaps
-%define explicit_same_type_unconsted(TM, T)
+// This is used to handle all primitive types as just themselves.
+// Notice that const pointers are mapped to non-const ones as we need to
+// declare variables of this type when it's used as a return type, and top
+// level const doesn't matter anyhow in the function declarations.
+%define same_type(TM, T)
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T[ANY], T[] "T *"
 %typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
@@ -52,25 +54,8 @@ macro_name(TM, size_t);
 %typemap(TM) const T* * const "const T* *"
 %enddef
 
-%define explicit_same_type_unconsted_all_primitive_types_but_void(TM)
-same_macro_all_primitive_types_but_void(explicit_same_type_unconsted,TM);
-%enddef
-
-//Used by 'ctype' typemap
-%define explicit_same_type(TM, T)
-%typemap(TM) T, const T "T"
-%typemap(TM) T*, T&, T[ANY], T[] "T *"
-%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
-%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
-%typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] "const T **"
-// constant pointers
-%typemap(TM) T * const "T * const"
-%typemap(TM) T* * const "T* * const"
-%typemap(TM) const T* * const "const T* * const"
-%enddef
-
-%define explicit_same_type_all_primitive_types_but_void(TM)
-same_macro_all_primitive_types_but_void(explicit_same_type,TM);
+%define same_type_all_primitive_types_but_void(TM)
+same_macro_all_primitive_types_but_void(same_type,TM);
 %enddef
 
 //Used by 'in' and 'out' typemaps
@@ -116,7 +101,7 @@ same_action(TM, size_t, ACTION);
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
 
-explicit_same_type_all_primitive_types_but_void(ctype);
+same_type_all_primitive_types_but_void(ctype);
 
 // objects
 %typemap(ctype) SWIGTYPE      "$&resolved_type*"
@@ -140,11 +125,10 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(cmodtype) const void&, const void* "const void *"
 %typemap(cmodtype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
 %typemap(cmodtype) const void**, const void*& "const void **"
-// unconst constant pointers
 %typemap(cmodtype) void* * const "void* *"
 %typemap(cmodtype) const void* * const "const void* *"
 
-explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
+same_type_all_primitive_types_but_void(cmodtype);
 
 // special cases of array passing - does not intended to be used for objects
 %typemap(cmodtype) SWIGTYPE [] "$1_ltype"
@@ -302,7 +286,7 @@ same_action_all_primitive_types(out, "$result = $1;")
 }
 
 // typemaps for 'cppresult'
-explicit_same_type_unconsted_all_primitive_types_but_void(cppouttype);
+same_type_all_primitive_types_but_void(cppouttype);
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
