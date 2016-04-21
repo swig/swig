@@ -917,6 +917,7 @@ ready:
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
+       bool const is_ctor = Cmp(nodeType(n), "constructor") == 0;
        bool is_void_return = (SwigType_type(type) == T_VOID);
        bool return_object = false;
        // create new function wrapper object
@@ -926,7 +927,7 @@ ready:
        Setattr(n, "wrap:name", wname);
 
        // add variable for holding result of original function 'cppresult'
-       if (!is_void_return && !IS_SET_TO_ONE(n, "c:objstruct")) {
+       if (!is_void_return && !is_ctor) {
             String *tm;
             if ((tm = Swig_typemap_lookup("cppouttype", n, "", 0))) {
                  functionWrapperAddCPPResult(wrapper, type, tm);
@@ -978,7 +979,6 @@ ready:
        }
 
        // handle special cases of cpp return result
-       bool const is_ctor = Cmp(nodeType(n), "constructor") == 0;
        if (!is_ctor) {
             if (SwigType_isenum(SwigType_base(type))){
                  if (return_object)
@@ -1025,7 +1025,7 @@ ready:
        action = emit_action(n);
 
        // emit output typemap if needed
-       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
+       if (!is_void_return && !is_ctor) {
             String *tm;
             if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
                  Replaceall(tm, "$result", "result");
@@ -1531,8 +1531,6 @@ ready:
       );
 
     Delete(arg_lnames);
-
-    Setattr(n, "c:objstruct", "1");
 
     return is_copy_ctor ? Language::copyconstructorHandler(n) : Language::constructorHandler(n);
   }
