@@ -115,6 +115,10 @@ FAILING_MULTI_CPP_TESTS := \
     import_stl \
     template_typedef_import \
 
+# Ignore warnings about failing to apply typemaps because none are defined:
+# usually there is no need for special typemaps in C.
+char_binary.cpptest director_binary_string.cpptest li_typemaps.cpptest li_typemaps_apply.cpptest long_long_apply.cpptest: SWIGOPT += -w453
+
 include $(srcdir)/../common.mk
 
 SRCDIR       = ../$(srcdir)/
