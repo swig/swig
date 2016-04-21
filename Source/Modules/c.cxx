@@ -44,10 +44,20 @@ public:
   explicit scoped_dohptr(DOH* obj) : obj_(obj) {}
   ~scoped_dohptr() { Delete(obj_); }
 
+  // This is an std::auto_ptr<>-like "destructive" copy ctor which allows to return objects of this type from functions.
+  scoped_dohptr(scoped_dohptr const& tmp) : obj_(tmp.release()) {}
+
+  DOH* get() const { return obj_; }
+
+  DOH* release() const /* not really */ {
+    DOH* obj = obj_;
+    const_cast<DOH*&>(const_cast<scoped_dohptr*>(this)->obj_) = NULL;
+    return obj;
+  }
+
   operator DOH*() const { return obj_; }
 
 private:
-  scoped_dohptr(scoped_dohptr const&);
   scoped_dohptr& operator=(scoped_dohptr const&);
 
   DOH* const obj_;
@@ -795,7 +805,7 @@ ready:
    * If a non-null wrapper is specified, it is used to emit typemap-defined code in it and it also determines whether we're generating the prototype for the
    * declarations or the definitions, which changes the type used for the C++ objects.
    * ---------------------------------------------------------------------- */
-  String *get_wrapper_func_proto(Node *n, Wrapper* wrapper = NULL)
+  scoped_dohptr get_wrapper_func_proto(Node *n, Wrapper* wrapper = NULL)
     {
        ParmList *parms = Getattr(n, "parms");
 
@@ -887,7 +897,7 @@ ready:
        }
 
        Printv(proto, ")", NIL);
-       return proto;
+       return scoped_dohptr(proto);
     }
 
   /* ----------------------------------------------------------------------
@@ -903,11 +913,10 @@ ready:
        bool const is_global = IS_SET_TO_ONE(n, "c:globalfun");
        String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
        String *preturn_type = get_wrapper_func_return_type(output_wrapper_decl, n);
-       String *pproto = get_wrapper_func_proto(n);
        String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, preturn_type, " ", wname, pproto, ";\n\n", NIL);
+       Printv(f_wrappers_decl, preturn_type, " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
 
        if (is_global) {
 	 if (!f_wrappers_aliases) {
@@ -921,7 +930,6 @@ ready:
 
        // cleanup
        Delete(wname);
-       Delete(pproto);
        Delete(wrapper_call);
        Delete(preturn_type);
     }
@@ -960,7 +968,7 @@ ready:
        // create wrapper function prototype
        Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, NIL);
 
-       Printv(wrapper->def, (DOH*)scoped_dohptr(get_wrapper_func_proto(n, wrapper)), NIL);
+       Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
        Printv(wrapper->def, " {", NIL);
 
        if (Cmp(nodeType(n), "destructor") != 0) {
