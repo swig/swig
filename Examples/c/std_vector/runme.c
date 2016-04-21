@@ -35,5 +35,7 @@ int main() {
     printf("%s %d\n", A_name_get(a), A_value_get(a));
   }
   
+  delete_Klass(klass);
+
   SWIG_exit(0);
 }
