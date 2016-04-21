@@ -10,6 +10,9 @@ srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
+# This can be set to ":" to avoid progress messages.
+ECHO_PROGRESS := echo
+
 CPP_TEST_CASES := \
 				 cpp_basic_class \
 				 cpp_basic_class_method \
@@ -147,9 +150,9 @@ SRCDIR       = ../$(srcdir)/
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
 	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
 		mkdir $*;						  \
