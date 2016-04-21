@@ -107,15 +107,6 @@ public:
   }
 };
 
-// Return the public name to use for the given class.
-//
-// It basically just prepends the namespace, if any, to the class name, and mangles the result.
-String *make_public_class_name(String* nspace, String* classname) {
-  String *s = nspace ? NewStringf("%s_", nspace) : NewString("");
-  Append(s, classname);
-  return s;
-}
-
 // String containing one indentation level for the generated code.
 const char* const cindent = "  ";
 
@@ -141,6 +132,9 @@ class C:public Language {
   // Contains fully expanded names of the classes for which we have already specialized SWIG_derives_from<>.
   Hash *already_specialized_derives_from;
 
+  // If non-null, contains wrap:action code to be used in the next functionWrapper() call.
+  String *special_wrap_action;
+
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
 
@@ -163,6 +157,7 @@ public:
     int_string(NewString("int")),
     tl_namespace(NULL),
     already_specialized_derives_from(NULL),
+    special_wrap_action(NULL),
     except_flag(true) {
   }
 
@@ -950,7 +945,8 @@ ready:
        Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
        Printv(wrapper->def, " {", NIL);
 
-       if (Cmp(nodeType(n), "destructor") != 0) {
+       bool const is_dtor = Cmp(nodeType(n), "destructor") == 0;
+       if (!is_dtor) {
             // emit variables for holding parameters
             emit_parameter_variables(parms, wrapper);
 
@@ -984,7 +980,8 @@ ready:
        }
 
        // handle special cases of cpp return result
-       if (Cmp(nodeType(n), "constructor") != 0) {
+       bool const is_ctor = Cmp(nodeType(n), "constructor") == 0;
+       if (!is_ctor) {
             if (SwigType_isenum(SwigType_base(type))){
                  if (return_object)
                    Replaceall(action, "result =", "cppresult = (int)");
@@ -1016,6 +1013,17 @@ ready:
        }
 
        // prepare action code to use, e.g. insert try-catch blocks
+
+       // We don't take extension ctors and dtors into account currently (objects are always created using hardcoded new in constructorHandler() and destroyed
+       // using SWIG_destroy_object()) and generating them is at best useless and can be harmful when it results in a clash of names between an extension ctor
+       // new_Foo() and the ctor wrapper which has exactly the same name. So for now just drop them completely, which is certainly not right, but not worse than
+       // before.
+       //
+       // TODO-C: Implement proper extension ctors/dtor support.
+       if (is_ctor || is_dtor) {
+	 Delattr(n, "wrap:code");
+       }
+
        action = emit_action(n);
 
        // emit output typemap if needed
@@ -1092,6 +1100,13 @@ ready:
 
   virtual void functionWrapperCPPSpecific(Node *n)
     {
+      // Use special actions for special methods if set up.
+      if (special_wrap_action) {
+	Setattr(n, "wrap:action", special_wrap_action);
+	Delete(special_wrap_action);
+	special_wrap_action = NULL;
+      }
+
        ParmList *parms = Getattr(n, "parms");
        String *name = Copy(Getattr(n, "sym:name"));
        SwigType *type = Getattr(n, "type");
@@ -1486,101 +1501,32 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node *n) {
-    String *access = Getattr(n, "access");
-    if (Cmp(access, "private") == 0)
-      return SWIG_NOWRAP;
-    if (Getattr(n, "copy_constructor"))
-      return copyconstructorHandler(n);
-
-    Node *klass = Swig_methodclass(n);
-    String *newclassname = Getattr(klass, "sym:name");
-    String *sobj_name = NewString("");
-    String *ctype;
-    String *code = NewString("");
-    String *constr_name = NewString("");
-    String *arg_lnames = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-    String *nspace = Getattr(klass, "sym:nspace");
-
-    // prepare argument names
-    Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
-
-    // set the function return type to the pointer to struct
-    Setattr(n, "c:objstruct", "1");
-    ctype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(ctype);
-    Setattr(n, "type", ctype);
-
-    // Modify the constructor name if necessary
-    constr_name = Swig_name_construct(nspace, newclassname);
-
-    Setattr(n, "name", newclassname);
-    Setattr(n, "sym:name", constr_name);
-
-    // generate action code
-    if (!Getattr(klass, "c:create")) {
-      Setattr(klass, "c:create", "1");
-    }
-    Printv(code, "result = SWIG_create_object(new ", Getattr(klass, "classtype"), arg_lnames,
-	", \"", newclassname, "\");\n",
-	NIL);
-
-    Setattr(n, "wrap:action", code);
-    functionWrapper(n);
-
-    Delete(arg_lnames);
-    Delete(constr_name);
-    Delete(code);
-    Delete(ctype);
-    Delete(sobj_name);
-    return SWIG_OK;
-  }
-
-  /* ---------------------------------------------------------------------
-   * copyconstructorHandler()
-   * --------------------------------------------------------------------- */
-
-  virtual int copyconstructorHandler(Node *n) {
     Node *klass = Swig_methodclass(n);
     String *classname = Getattr(klass, "classtype");
     String *newclassname = Getattr(klass, "sym:name");
-    String *sobj_name = NewString("");
-    String *ctype;
-    String *code = NewString("");
-    String *constr_name = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-    String *nspace = Getattr(klass, "sym:nspace");
 
-    Setattr(parms, "lname", "arg1");
-
-    // set the function return type to the pointer to struct
-    Setattr(n, "c:objstruct", "1");
-    ctype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(ctype);
-    Setattr(n, "type", ctype);
-
-    // modify the constructor if necessary
-    constr_name = Swig_name_copyconstructor(nspace, newclassname);
-
-    Setattr(n, "name", newclassname);
-    Setattr(n, "sym:name", constr_name);
-
-    // generate action code
-    if (!Getattr(klass, "c:create")) {
-      Setattr(klass, "c:create", "1");
+    bool const is_copy_ctor = Getattr(n, "copy_constructor");
+    String *arg_lnames;
+    if (is_copy_ctor) {
+      arg_lnames = NewStringf("((%s const &)*arg1)", classname);
+    } else {
+      ParmList *parms = Getattr(n, "parms");
+      arg_lnames = Swig_cfunction_call(empty_string, parms);
     }
-    Printv(code, "result = SWIG_create_object(new ", classname, "((", classname, " const &)*arg1)",
-	", \"", newclassname, "\");\n",
-	NIL);
 
-    Setattr(n, "wrap:action", code);    
-    functionWrapper(n);
+    // TODO-C: We need to call the extension ctor here instead of hard-coding "new classname".
+    special_wrap_action = NewStringf(
+	"result = SWIG_create_object(new %s%s, \"%s\");",
+	classname,
+	arg_lnames,
+	newclassname
+      );
 
-    Delete(constr_name);
-    Delete(code);
-    Delete(ctype);
-    Delete(sobj_name);
-    return SWIG_OK;
+    Delete(arg_lnames);
+
+    Setattr(n, "c:objstruct", "1");
+
+    return is_copy_ctor ? Language::copyconstructorHandler(n) : Language::constructorHandler(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -1588,45 +1534,14 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int destructorHandler(Node *n) {
-    if (Cmp(Getattr(n, "access"), "public") != 0)
-      return SWIG_NOWRAP;
-
     Node *klass = Swig_methodclass(n);
-    String *newclassname = Getattr(klass, "sym:name");
-    String *sobj_name = NewString("");
-    String *ctype;
-    String *code = NewString("");
-    String *destr_name = NewString("");
-    String *nspace = Getattr(klass, "sym:nspace");
-    Parm *p;
 
-    // create first argument
-    ctype = make_public_class_name(nspace, newclassname);
-    SwigType_add_pointer(ctype);
-    p = NewParm(ctype, "self", n);
-    Setattr(p, "lname", "arg1");
-    Setattr(p, "c:objstruct", "1");
-    Setattr(n, "parms", p);
-    Setattr(n, "type", "void");
+    // TODO-C: We need to use the extension dtor here if one is defined.
+    special_wrap_action = NewStringf(
+	"SWIG_destroy_object< %s >(carg1);", Getattr(klass, "classtype")
+      );
 
-    // modify the destructor name if necessary
-    destr_name = Swig_name_destroy(nspace, newclassname);
-
-    Setattr(n, "name", NULL);
-    Setattr(n, "sym:name", destr_name);
-
-    // create action code
-    Printv(code, "SWIG_destroy_object< ", Getattr(klass, "classtype"), " >(carg1);", NIL);
-    Setattr(n, "wrap:action", code);
-    
-    functionWrapper(n);
-      
-    Delete(p);
-    Delete(destr_name);
-    Delete(code);
-    Delete(ctype);
-    Delete(sobj_name);
-    return SWIG_OK;
+    return Language::destructorHandler(n);
   }
 
   /* ---------------------------------------------------------------------
