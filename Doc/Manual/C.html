@@ -432,20 +432,6 @@ area: 7.068583
       </td>
   </tr>
   <tr>
-    <td><tt>cmodtype</tt></td>
-    <td>Provides types used by wrapper functions and</br>
-       Casts of function parameters of wrapper function calls</br>
-       </br>
-       <code>
-         extern void _wrap_MyClass_delete(SwigObj *o);</br>
-         </br>
-         void MyClass_delete(MyClass *c) {</br>
-            &nbsp;_wrap_MyClass_delete((Swig_Obj *)c);</br>
-         }
-       </code>
-    </td>
-  </tr>
-  <tr>
     <td><tt>in</tt></td>
     <td>Mapping of wrapper functions parameters to local C++ variables</br>
        </br>
@@ -556,7 +542,7 @@ A typical wrapper will be composited with these [optional] blocks:
 Let's go through it step by step and start with the wrapper prototype
 
 <div class="targetlang"><pre>
-cmodtype                     cmodtype         cmodtype
+ctype                        ctype            ctype
 ---------                    ---------        ---
 SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
 </pre></div>
@@ -564,7 +550,7 @@ SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
 As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
 
 <div class="targetlang"><pre>
-cmodtype
+ctype
 ---------
 SwigObj * result;
 </pre></div>

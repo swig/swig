@@ -9,10 +9,6 @@ namespace std {
 
 class string;
 
-%typemap(cmodtype) string "char *"
-%typemap(cmodtype) string * "char *"
-%typemap(cmodtype) string & "char *"
-%typemap(cmodtype) const string & "char *"
 %typemap(ctype) string "char *"
 %typemap(ctype) string * "char *"
 %typemap(ctype) string & "char *"

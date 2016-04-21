@@ -138,6 +138,12 @@ class C:public Language {
 
   bool except_flag;
 
+  // Selects between the wrappers (public) declarations and (private) definitions.
+  enum output_target {
+    output_wrapper_decl,
+    output_wrapper_def
+  };
+
 public:
 
   /* -----------------------------------------------------------------------------
@@ -243,7 +249,7 @@ public:
    * substituteResolvedTypeSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  void substituteResolvedTypeSpecialVariable(output_target target, SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
     if (!CPlusPlus) {
       // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
       Clear(tm);
@@ -260,27 +266,29 @@ public:
       else
   Replaceall(tm, classnamespecialvariable, NewStringf("int"));
     } else {
-      String *classname = getProxyName(classnametype);
-      if (classname) {
-  Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
+      scoped_dohptr btype(SwigType_base(classnametype));
+      String* typestr = NIL;
+      if (target == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
+	// Special case, just leave it unchanged.
+	typestr = NewString("SwigObj");
       } else {
-	String* typestr = NIL;
-	SwigType *btype = SwigType_base(classnametype);
-	if (SwigType_isbuiltin(btype)) {
-	  // This should work just as well in C without any changes.
-	  typestr = SwigType_str(classnametype, 0);
-	} else {
-	  // Swig doesn't know anything about this type, use descriptor for it.
-	  typestr = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+	typestr = getProxyName(classnametype);
+	if (!typestr) {
+	  if (SwigType_isbuiltin(btype)) {
+	    // This should work just as well in C without any changes.
+	    typestr = SwigType_str(classnametype, 0);
+	  } else {
+	    // Swig doesn't know anything about this type, use descriptor for it.
+	    typestr = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
 
-	  // And make sure it is declared before it is used.
-	  Printf(f_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+	    // And make sure it is declared before it is used.
+	    Printf(f_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+	  }
 	}
-	Delete(btype);
-
-	Replaceall(tm, classnamespecialvariable, typestr);
-	Delete(typestr);
       }
+
+      Replaceall(tm, classnamespecialvariable, typestr);
+      Delete(typestr);
     }
   }
 
@@ -300,14 +308,14 @@ public:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(SwigType *pt, String *tm) {
+  bool substituteResolvedType(output_target target, SwigType *pt, String *tm) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
+      substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -315,7 +323,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
+  substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$*resolved_type");
   substitution_performed = true;
       }
       Delete(classnametype);
@@ -323,7 +331,7 @@ public:
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
+      substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$&resolved_type");
       substitution_performed = true;
       Delete(classnametype);
     }
@@ -741,38 +749,13 @@ ready:
          Wrapper_add_local(wrapper, "cppresult", SwigType_str(cpptype, "cppresult"));
     }
 
-  virtual SwigType *functionWrapperCPPSpecificWrapperReturnTypeGet(Node *n)
+  String *get_wrapper_func_return_type(output_target target, Node *n)
     {
-       SwigType *type = Getattr(n, "type");
-       SwigType *return_type = NewString("");
-       String *tm;
-
-       // set the return type
-       if (IS_SET_TO_ONE(n, "c:objstruct")) {
-            Printv(return_type, SwigType_str(type, 0), NIL);
-       }
-       else if ((tm = Swig_typemap_lookup("cmodtype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:cmodtype:out");
-            if (ctypeout)
-              {
-                 tm = ctypeout;
-                 Printf(stdout, "Obscure cmodtype:out found! O.o\n");
-              }
-            Printf(return_type, "%s", tm);
-            // template handling
-            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
-       }
-       else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
-       }
-       return return_type;
-    }
-
-  String *get_wrapper_func_return_type(Node *n)
-    {
+      if (target == output_wrapper_decl) {
        SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
        if (proxy_type)
 	 return SwigType_str(proxy_type, 0);
+      }
 
        SwigType *type = Getattr(n, "type");
        String *return_type = NewString("");
@@ -792,12 +775,12 @@ ready:
               }
             else
               {
-                 substituteResolvedType(type, tm);
+                 substituteResolvedType(target, type, tm);
                  return_type = tm;
               }
        }
        else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
        }
 
        Replaceall(return_type, "::", "_");
@@ -856,7 +839,7 @@ ready:
             if ((stype = Getattr(p, "c:stype"))) {
                 proxy_parm_type = SwigType_lstr(stype, 0);
             } else {
-                substituteResolvedType(type, tm);
+                substituteResolvedType(output_wrapper_decl, type, tm);
                 proxy_parm_type = tm;              
             }
 
@@ -892,7 +875,7 @@ ready:
        Printv(call, "(", NIL);
 
        // attach typemaps to cast wrapper call with proxy types
-       Swig_typemap_attach_parms("cmodtype", parms, 0);
+       Swig_typemap_attach_parms("ctype", parms, 0);
 
        // prepare function definition
        for (p = parms, gencomma = 0; p; ) {
@@ -920,13 +903,15 @@ ready:
             Printf(arg_name, "c%s", lname);
 
             // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:cmodtype"))) {
+            if ((tm = Getattr(p, "tmap:ctype"))) {
+		 substituteResolvedType(output_wrapper_def, type, tm);
+
                  Printv(c_parm_type, NewString("("), tm, NewString(")"), NIL);
                  // template handling
                  Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
             }
             else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
             }
 
             Printv(args, gencomma ? ", " : "", c_parm_type, arg_name, NIL);
@@ -965,7 +950,7 @@ ready:
        // C++ function wrapper proxy code
        bool const is_global = IS_SET_TO_ONE(n, "c:globalfun");
        String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
-       String *preturn_type = get_wrapper_func_return_type(n);
+       String *preturn_type = get_wrapper_func_return_type(output_wrapper_decl, n);
        String *pproto = get_wrapper_func_proto(n);
        String *wrapper_call = NewString("");
 
@@ -996,7 +981,7 @@ ready:
        String *storage = Getattr(n, "storage");
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
-       SwigType *return_type = functionWrapperCPPSpecificWrapperReturnTypeGet(n);
+       SwigType *return_type = get_wrapper_func_return_type(output_wrapper_def, n);
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        String *arg_names = NewString("");
        ParmList *parms = Getattr(n, "parms");
@@ -1030,7 +1015,7 @@ ready:
        Setattr(n, "wrap:parms", parms); //never read again?!
 
        // attach 'ctype' typemaps
-       Swig_typemap_attach_parms("cmodtype", parms, wrapper);
+       Swig_typemap_attach_parms("ctype", parms, wrapper);
 
        // prepare function definition
        for (p = parms, gencomma = 0; p; ) {
@@ -1058,13 +1043,15 @@ ready:
             Printf(arg_name, "c%s", lname);
 
             // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:cmodtype"))) {
+            if ((tm = Getattr(p, "tmap:ctype"))) {
+		 substituteResolvedType(output_wrapper_def, type, tm);
+
                  Printv(c_parm_type, tm, NIL);
                  // template handling
                  Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
             }
             else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
             }
 
             // use proxy-type for parameter if supplied

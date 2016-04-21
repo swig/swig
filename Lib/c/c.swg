@@ -90,7 +90,7 @@ same_action(TM, size_t, ACTION);
 %typemap(TM) void*, void const* ACTION
 %enddef
 
-// Typemaps for proxy function parameters
+// "ctype" is the type used with C wrapper functions.
 // void
 %typemap(ctype) void "void"
 %typemap(ctype) void*, void& "void *"
@@ -117,36 +117,6 @@ same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") const bool & "const $1_ltype"
-
-// Typemaps for wrapper function parameters and its local variables
-// void
-%typemap(cmodtype) void "void"
-%typemap(cmodtype) void*, void& "void *"
-%typemap(cmodtype) const void&, const void* "const void *"
-%typemap(cmodtype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
-%typemap(cmodtype) const void**, const void*& "const void **"
-%typemap(cmodtype) void* * const "void* *"
-%typemap(cmodtype) const void* * const "const void* *"
-
-same_type_all_primitive_types_but_void(cmodtype);
-
-// special cases of array passing - does not intended to be used for objects
-%typemap(cmodtype) SWIGTYPE [] "$1_ltype"
-%typemap(cmodtype) SWIGTYPE ((&)[ANY]) "$1_basetype **"
-
-%typemap(cmodtype) SWIGTYPE         "SwigObj *"
-%typemap(cmodtype) SWIGTYPE *       "SwigObj *"
-%typemap(cmodtype) SWIGTYPE &       "SwigObj *"
-%typemap(cmodtype) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ SwigObj ***"
-%typemap(cmodtype) SWIGTYPE *[ANY]  "/*ooooh*/ SwigObj **"
-%typemap(cmodtype) SWIGTYPE *&      "/* *& */ SwigObj **"
-%typemap(cmodtype) enum SWIGTYPE    "int"
-%typemap(cmodtype) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
-
-%typemap(cmodtype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
-%typemap(cmodtype, fragment="stdbool_inc") bool & "$1_ltype"
-%typemap(cmodtype, fragment="stdbool_inc") const bool & "const $1_ltype"
-
 
 // Typemaps for assigning wrapper parameters to local variables
 same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
