@@ -791,7 +791,7 @@ ready:
   /* ----------------------------------------------------------------------
    * get_wrapper_func_proto()
    *
-   * Return the function signature, i.e. the comma-separated list of argument types and names.
+   * Return the function signature, i.e. the comma-separated list of argument types and names surrounded by parentheses.
    * If a non-null wrapper is specified, it is used to emit typemap-defined code in it and it also determines whether we're generating the prototype for the
    * declarations or the definitions, which changes the type used for the C++ objects.
    * ---------------------------------------------------------------------- */
@@ -800,7 +800,7 @@ ready:
        ParmList *parms = Getattr(n, "parms");
 
        Parm *p;
-       String *proto = NewString("");
+       String *proto = NewString("(");
        int gencomma = 0;
 
        // attach the standard typemaps
@@ -885,6 +885,8 @@ ready:
             Delete(arg_name);
             Delete(c_parm_type);
        }
+
+       Printv(proto, ")", NIL);
        return proto;
     }
 
@@ -905,7 +907,7 @@ ready:
        String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
-       Printv(f_wrappers_decl, preturn_type, " ", wname, "(", pproto, ");\n\n", NIL);
+       Printv(f_wrappers_decl, preturn_type, " ", wname, pproto, ";\n\n", NIL);
 
        if (is_global) {
 	 if (!f_wrappers_aliases) {
@@ -956,10 +958,9 @@ ready:
        }
 
        // create wrapper function prototype
-       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
+       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, NIL);
 
        Printv(wrapper->def, (DOH*)scoped_dohptr(get_wrapper_func_proto(n, wrapper)), NIL);
-       Printv(wrapper->def, ")", NIL);
        Printv(wrapper->def, " {", NIL);
 
        if (Cmp(nodeType(n), "destructor") != 0) {
