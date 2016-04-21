@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "example_wrap.h"
 
 int main() {
