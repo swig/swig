@@ -1079,23 +1079,6 @@ ready:
        DelWrapper(wrapper);
     }
 
-  virtual void functionWrapperCPPSpecificMarkFirstParam(Node *n)
-    {
-       bool is_global = IS_SET_TO_ONE(n, "c:globalfun");  // possibly no longer neede
-       String *storage = Getattr(n, "storage");
-       ParmList *parms = Getattr(n, "parms");
-
-       // mark the first parameter as object-struct
-       if (!is_global && storage && (Cmp(storage, "static") != 0)) {
-            if (IS_SET_TO_ONE(n, "ismember") &&
-                  (Cmp(nodeType(n), "constructor") != 0)) {
-                 Setattr(parms, "c:objstruct", "1");
-                 if (!Getattr(parms, "lname"))
-                   Setattr(parms, "lname", "arg1");
-            }
-       }
-    }
-
   virtual void functionWrapperCPPSpecific(Node *n)
     {
       // Use special actions for special methods if set up.
@@ -1109,8 +1092,6 @@ ready:
        String *name = Copy(Getattr(n, "sym:name"));
        SwigType *type = Getattr(n, "type");
        SwigType *tdtype = NULL;
-
-       functionWrapperCPPSpecificMarkFirstParam(n);
 
        // mangle name if function is overloaded
        if (Getattr(n, "sym:overloaded")) {
