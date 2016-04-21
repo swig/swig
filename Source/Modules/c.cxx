@@ -500,6 +500,10 @@ public:
    * ------------------------------------------------------------------------ */  
 
   virtual int globalvariableHandler(Node *n) {
+    // Don't export static globals, they won't be accessible when using a shared library, for example.
+    if (Checkattr(n, "storage", "static"))
+      return SWIG_NOWRAP;
+
     // We can't export variables defined inside namespaces to C directly, whatever their type.
     String* const scope = Swig_scopename_prefix(Getattr(n, "name"));
     if (!scope) {
