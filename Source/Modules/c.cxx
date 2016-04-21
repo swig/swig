@@ -408,7 +408,7 @@ public:
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
-    Swig_register_filebyname("proxy_header", f_wrappers_h);
+    Swig_register_filebyname("cheader", f_wrappers_h);
 
     {
       String* const include_guard_name = NewStringf("SWIG_%s_WRAP_H_", Char(module));

@@ -164,7 +164,7 @@ SWIGINTERN void SWIG_terminate() {
     SWIG_rt_throw((SwigObj *) klass, msg);
 %}
 
-%insert("proxy_header") %{
+%insert("cheader") %{
 // special value indicating any type of exception like 'catch(...)'
 #define SWIG_AnyException "SWIG_AnyException"
 

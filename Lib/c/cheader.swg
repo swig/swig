@@ -1,7 +1,5 @@
 /* -----------------------------------------------------------------------------
- * cproxy.swg
- *
- * Definitions of C specific preprocessor symbols for proxies.
+ * cheader.swg
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIGIMPORT

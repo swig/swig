@@ -6,7 +6,7 @@
  * ----------------------------------------------------------------------------- */ 
 
 %insert("runtime") "clabels.swg"
-%insert("proxy_header") "cproxy.swg"
+%insert("cheader") "cheader.swg"
 
 %insert("runtime") %{
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 #define SWIG_contract_assert(expr, msg) if(!(expr)) { printf("%s\n", msg); SWIG_exit(0); } else
 %}
 
-%fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
+%fragment("stdbool_inc", "cheader") {#include <stdbool.h>}
 
 %define same_macro_all_primitive_types_but_void(macro_name, TM)
 macro_name(TM, short);
@@ -354,7 +354,7 @@ template <class T> SWIGINTERN SwigObj* SWIG_create_object(T* obj, const char* sy
 }
 %}
 
-%insert("proxy_header") %{
+%insert("cheader") %{
     typedef struct SwigObjStruct SwigObj;
 %}
 
