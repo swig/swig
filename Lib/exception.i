@@ -205,22 +205,6 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 
 #endif // SWIGLUA
 
-#ifdef SWIGC
-
-%inline %{
-struct SWIG_CException {
-  SWIG_CException(int code) {
-    SWIG_exc.code = code;
-  }
-};
-%}
-
-#define SWIG_exception(code, msg)\
-  SwigObj *_ex = SWIG_create_object(new SWIG_CException(code), "SWIG_CException"); \
-  SWIG_CThrowException(_ex, msg);
-
-#endif // SWIGC
-
 #ifdef SWIGD
 %{
 SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {

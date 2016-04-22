@@ -3,57 +3,41 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "example_wrap.h"
+
+static void show_exception(const char* prefix) {
+  SWIG_CException* ex = SWIG_PendingException_get();
+  assert(ex);
+  printf("%s exception: %s (%d)\n", prefix, SWIG_CException_msg_get(ex), SWIG_CException_code_get(ex));
+  SWIG_PendingException_reset();
+}
 
 int main() {
   Test *t = Test_new();
 
-  SWIG_try {
-    Test_unknown(t);
-  }
-  SWIG_catch(SWIG_AnyException) {
-    printf("incomplete type: %s\n", SWIG_exc.msg);
-  }
-  SWIG_endtry;
+  Test_unknown(t);
+  show_exception("Unknown");
 
-  SWIG_try {
-    Test_simple(t);
-  }
-  SWIG_catch(SWIG_AnyException) {
-    printf("%s\n", SWIG_exc.msg);
-  }
-  SWIG_endtry;
+  Test_simple(t);
+  show_exception("Int");
 
-  SWIG_try {
-    Test_message(t);
-  }
-  SWIG_catch(SWIG_AnyException) {
-    printf("%s\n", SWIG_exc.msg);
-  }
-  SWIG_endtry;
+  Test_message(t);
+  show_exception("String");
 
-  SWIG_try {
-    Test_hosed(t);
-  }
-  SWIG_catch(Exc) {
-    printf("%d %s\n", Exc_code_get(SWIG_exc.klass), 
-        Exc_msg_get(SWIG_exc.klass));
-  }
+  Test_hosed(t);
+  show_exception("Custom");
 
   int i;
   for (i = 0; i < 4; ++i) {
-    SWIG_try {
-      Test_multi(t, i);
+    Test_multi(t, i);
+    if (!SWIG_PendingException_get()) {
+        printf("Success for i=%d\n", i);
+    } else {
+        printf("For i=%d", i);
+        show_exception("");
     }
-    SWIG_catch(Exc) {
-      printf("%d %s\n", Exc_code_get(SWIG_exc.klass), 
-          Exc_msg_get(SWIG_exc.klass));
-    }
-    SWIG_catch(SWIG_AnyException) {
-      printf("%s\n", SWIG_exc.msg);
-    }
-    SWIG_endtry;
   }
 
   SWIG_exit(0);

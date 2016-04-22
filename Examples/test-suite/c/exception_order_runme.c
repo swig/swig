@@ -5,60 +5,40 @@
 int main() {
   A* a = A_new();
 
-  SWIG_try {
-    A_foo(a);
-  }
-  SWIG_catch(E1) {
-
-  }
-  SWIG_catch(SWIG_AnyException) {
+  A_foo(a);
+  if (!SWIG_PendingException_get()) {
     fprintf(stderr, "foo: bad exception order\n");
+  } else {
+      SWIG_PendingException_reset();
   }
-  SWIG_endtry;
 
-  SWIG_try {
-    A_bar(a);
-  }
-  SWIG_catch(E2) {
-
-  }
-  SWIG_catch(SWIG_AnyException) {
+  A_bar(a);
+  if (!SWIG_PendingException_get()) {
     fprintf(stderr, "bar: bad exception order\n");
+  } else {
+      SWIG_PendingException_reset();
   }
-  SWIG_endtry;
 
-  SWIG_try {
-    A_foobar(a);
+  A_foobar(a);
+  if (!SWIG_PendingException_get()) {
+    fprintf(stderr, "foobar: bad exception order\n");
+  } else {
+      SWIG_PendingException_reset();
   }
-  SWIG_catch(SWIG_AnyException) {
-    if (strcmp(SWIG_exc.msg, "postcatch unknown") != 0) {
-      fprintf(stderr, "bad exception order\n");
-      SWIG_throw_msg(SWIG_exc.klass, SWIG_exc.msg);
-    }
-  }
-  SWIG_endtry;
 
-  SWIG_try {
-    A_barfoo(a, 1);
-  }
-  SWIG_catch(E1) {
-
-  }
-  SWIG_catch(SWIG_AnyException) {
+  A_barfoo(a, 1);
+  if (!SWIG_PendingException_get()) {
     fprintf(stderr, "barfoo(1): bad exception order\n");
+  } else {
+      SWIG_PendingException_reset();
   }
-  SWIG_endtry;
 
-  SWIG_try {
-    A_barfoo(a, 2);
-  }
-  SWIG_catch(E2) {
-
-  }
-  SWIG_catch(SWIG_AnyException) {
+  A_barfoo(a, 2);
+  if (!SWIG_PendingException_get()) {
     fprintf(stderr, "barfoo(2): bad exception order\n");
+  } else {
+      SWIG_PendingException_reset();
   }
-  SWIG_endtry;
 
   SWIG_exit(0);
 }

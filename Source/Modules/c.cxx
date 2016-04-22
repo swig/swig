@@ -129,16 +129,11 @@ class C:public Language {
   String *int_string;
   String *tl_namespace; // optional top level namespace
 
-  // Contains fully expanded names of the classes for which we have already specialized SWIG_derives_from<>.
-  Hash *already_specialized_derives_from;
-
   // If non-null, contains wrap:action code to be used in the next functionWrapper() call.
   String *special_wrap_action;
 
   // Used only while generating wrappers for an enum, initially true and reset to false as soon as we see any enum elements.
   bool enum_is_empty;
-
-  bool except_flag;
 
   // Selects between the wrappers (public) declarations and (private) definitions.
   enum output_target {
@@ -156,9 +151,8 @@ public:
     empty_string(NewString("")),
     int_string(NewString("int")),
     tl_namespace(NULL),
-    already_specialized_derives_from(NULL),
-    special_wrap_action(NULL),
-    except_flag(true) {
+    special_wrap_action(NULL)
+  {
   }
 
 
@@ -350,6 +344,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
+    bool except_flag = CPlusPlus;
 
     // look for certain command line options
     for (int i = 1; i < argc; i++) {
@@ -362,9 +357,6 @@ public:
         }
       }
     }
-
-    if (!CPlusPlus) 
-      except_flag = false;
 
     // add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGC 1", 0);
@@ -1053,12 +1045,6 @@ ready:
             Append(wrapper->code, action);
        }
 
-       String *except = Getattr(n, "feature:except");
-       if (Getattr(n, "throws") || except) {
-            if (!except || (Cmp(except, "0") != 0))
-              Printf(wrapper->code, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
-       }
-
        // insert cleanup code
        for (p = parms; p; ) {
             String *tm;
@@ -1319,10 +1305,6 @@ ready:
     if (CPlusPlus) {
       // inheritance support: attach all members from base classes to this class
       if (List *baselist = Getattr(n, "bases")) {
-	// We may need to specialize SWIG_derives_from<> for this class: its unique check() method will return true iff it's given the name of any subclasses of
-	// this class. Notice that it may happen that all our base classes are ignored, in which case we don't do anything.
-	int specialize_derives_from = -1;
-
 	Iterator i;
 	for (i = First(baselist); i.item; i = Next(i)) {
 	  // look for member variables and functions
@@ -1362,51 +1344,6 @@ ready:
 	      }
 	    }
 	  }
-
-	  // Account for this base class in the RTTI checks.
-	  String* const name = Getattr(i.item, "sym:name");
-	  if (name) {
-	    if (specialize_derives_from == -1) {
-	      // Check if we hadn't specialized it already. Somewhat surprisingly, this can happen for an instantiation of a template with default parameter(s)
-	      // if it appears both without them and with the default values explicitly given as it happens in e.g. template_default2 unit test.
-	      SwigType* const fulltype = Swig_symbol_template_deftype(Getattr(n, "name"), NULL);
-	      String* const fulltype_str = SwigType_str(fulltype, NULL);
-	      Delete(fulltype);
-
-	      if (!already_specialized_derives_from || !Getattr(already_specialized_derives_from, fulltype_str)) {
-		if (!already_specialized_derives_from) {
-		  already_specialized_derives_from = NewHash();
-		}
-
-		Setattr(already_specialized_derives_from, fulltype_str, "1");
-
-		Printv(f_wrappers_cxx,
-		    "template<> struct SWIG_derives_from< ", fulltype_str, " > {\n",
-		    cindent, "static bool check(const char* type) {\n",
-		    cindent, cindent, "return ",
-		    NIL);
-
-		specialize_derives_from = true;
-	      } else {
-		specialize_derives_from = false;
-	      }
-
-	      Delete(fulltype_str);
-	    }
-	    else if (specialize_derives_from) {
-	      // Continue the already started specialization.
-	      Printv(f_wrappers_cxx, " ||\n", cindent, cindent, NIL);
-	    }
-
-	    if (specialize_derives_from) {
-	      Printv(f_wrappers_cxx, "strcmp(type, \"", name, "\") == 0", NIL);
-	    }
-	  }
-	}
-
-	if (specialize_derives_from == true) {
-	  // End SWIG_derives_from specialization.
-	  Printv(f_wrappers_cxx, ";\n  }\n};\n\n", NIL);
 	}
       }
 
@@ -1532,7 +1469,6 @@ ready:
   virtual int constructorHandler(Node *n) {
     Node *klass = Swig_methodclass(n);
     String *classname = Getattr(klass, "classtype");
-    String *newclassname = Getattr(klass, "sym:name");
 
     bool const is_copy_ctor = Getattr(n, "copy_constructor");
     String *arg_lnames;
@@ -1544,12 +1480,7 @@ ready:
     }
 
     // TODO-C: We need to call the extension ctor here instead of hard-coding "new classname".
-    special_wrap_action = NewStringf(
-	"result = SWIG_create_object(new %s%s, \"%s\");",
-	classname,
-	arg_lnames,
-	newclassname
-      );
+    special_wrap_action = NewStringf("result = (SwigObj*)new %s%s;", classname, arg_lnames);
 
     Delete(arg_lnames);
 
@@ -1564,9 +1495,7 @@ ready:
     Node *klass = Swig_methodclass(n);
 
     // TODO-C: We need to use the extension dtor here if one is defined.
-    special_wrap_action = NewStringf(
-	"SWIG_destroy_object< %s >(carg1);", Getattr(klass, "classtype")
-      );
+    special_wrap_action = NewStringf("delete (%s *)carg1;", Getattr(klass, "classtype"));
 
     return Language::destructorHandler(n);
   }

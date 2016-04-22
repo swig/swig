@@ -34,7 +34,6 @@ FAILING_C_TESTS := \
     lextype \
     li_carrays \
     li_cdata \
-    li_constraints \
     li_cpointer \
     nested \
     nested_extend_c \
@@ -88,12 +87,10 @@ FAILING_CPP_TESTS := \
     nested_class \
     nested_scope \
     nested_template_base \
-    overload_arrays \
     smart_pointer_extend \
     smart_pointer_not \
     smart_pointer_template_defaults_overload \
     struct_initialization_cpp \
-    template_arg_typename \
     template_basic \
     template_default \
     template_default_class_parms_typedef \
