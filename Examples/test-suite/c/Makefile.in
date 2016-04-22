@@ -33,7 +33,6 @@ FAILING_C_TESTS := \
     function_typedef \
     lextype \
     li_carrays \
-    li_cdata \
     li_cpointer \
     nested \
     nested_extend_c \
