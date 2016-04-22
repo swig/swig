@@ -40,6 +40,8 @@ int main() {
     }
   }
 
+  Test_delete(t);
+
   SWIG_exit(0);
 }
 
