@@ -28,6 +28,7 @@ int main() {
   for (i = 0; i < 10; i++) {
     A *a = A_new_std_string_i("hello", i);
     VA_push_back(va, a);
+    A_delete(a);
   }
     
   for (i = 0; i < VA_size(va); i++) {
