@@ -694,7 +694,7 @@ ready:
             Printv(wrapper->code, return_type, " result;\n", NIL);
             Printf(wrapper->code, "result = ");
        }
-       Printv(wrapper->code, name, "(", arg_names, ");\n", NIL);
+       Printv(wrapper->code, Getattr(n, "name"), "(", arg_names, ");\n", NIL);
        Append(wrapper->code, append_feature(n));
        if (!is_void_return)
          Printf(wrapper->code, "return result;\n");
