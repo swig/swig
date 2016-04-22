@@ -1152,6 +1152,10 @@ ready:
    * ---------------------------------------------------------------------- */
    
   virtual int functionWrapper(Node *n) {
+    if (!Getattr(n, "sym:overloaded")) {
+      if (!addSymbol(Getattr(n, "sym:name"), n))
+	return SWIG_ERROR;
+    }
 
     if (CPlusPlus) {
          functionWrapperCPPSpecific(n);
