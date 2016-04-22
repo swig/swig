@@ -2,11 +2,11 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	D *d = new_D();
+	D *d = D_new();
 
 	assert(D_do_x(d) == 1);
 
-	delete_D(d);
+	D_delete(d);
 
 	return 0;
 }

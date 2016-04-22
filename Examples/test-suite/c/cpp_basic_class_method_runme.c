@@ -3,11 +3,11 @@
 
 int main(int argc, const char *argv[])
 {
-    MyClass *mc = new_MyClass();
+    MyClass *mc = MyClass_new();
 
     assert(MyClass_someMethod(mc) == 42);
 
-    delete_MyClass(mc);
+    MyClass_delete(mc);
 
     return 0;
 }

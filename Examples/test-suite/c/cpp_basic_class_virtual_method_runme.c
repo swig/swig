@@ -3,10 +3,10 @@
 
 int main()
 {
-    BaseClass *bc = new_BaseClass();
-    NonMethodOverwritingClass *noc = new_NonMethodOverwritingClass();
-    MethodOverwritingClass *oc = new_MethodOverwritingClass();
-    BaseClass *inherited_bc = (BaseClass*)new_MethodOverwritingClass();
+    BaseClass *bc = BaseClass_new();
+    NonMethodOverwritingClass *noc = NonMethodOverwritingClass_new();
+    MethodOverwritingClass *oc = MethodOverwritingClass_new();
+    BaseClass *inherited_bc = (BaseClass*)MethodOverwritingClass_new();
 
     assert(BaseClass_myInt(bc) == 0xba53);
     assert(NonMethodOverwritingClass_myInt(noc) == 0xba53);
@@ -15,10 +15,10 @@ int main()
     assert(BaseClass_myInt((BaseClass*)oc) == 0xa173123d);
     assert(BaseClass_myInt(inherited_bc) == 0xa173123d);
     
-    delete_BaseClass(bc);
-    delete_NonMethodOverwritingClass(noc);
-    delete_MethodOverwritingClass(oc);
-    delete_BaseClass(inherited_bc);
+    BaseClass_delete(bc);
+    NonMethodOverwritingClass_delete(noc);
+    MethodOverwritingClass_delete(oc);
+    BaseClass_delete(inherited_bc);
     
     return 0;
 }

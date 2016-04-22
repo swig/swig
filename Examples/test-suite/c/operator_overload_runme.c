@@ -7,7 +7,7 @@
 int main() {
   Op_sanity_check();
   
-  Op *op1 = new_Op_i(1), *op2 = new_Op_i(2), *op3 = copy_Op(op1);
+  Op *op1 = Op_new_i(1), *op2 = Op_new_i(2), *op3 = Op_copy(op1);
 
   assert(Op_NotEqual(op1, op2), "neq failed");
   Op_PlusPlusPrefix(op3);  
@@ -18,8 +18,8 @@ int main() {
   assert(3 == *Op_IndexInto(op3, Op_IndexIntoConst(op2, Op_Functor(op1))), "[] or () failed");
   assert(5 == Op_Functor_i(op3, 2), "f(x) failed");
   
-  delete_Op(op1);
-  delete_Op(op2);
-  delete_Op(op3);
+  Op_delete(op1);
+  Op_delete(op2);
+  Op_delete(op3);
   SWIG_exit(0);
 }

@@ -3,13 +3,13 @@
 
 int main(int argc, const char *argv[])
 {
-    MyClass *mc = new_MyClass();
+    MyClass *mc = MyClass_new();
 
     assert(MyClass_myPubInt_get(mc) == 42);
     MyClass_myPubInt_set(mc, 4711);
     assert(MyClass_myPubInt_get(mc) == 4711);
 
-    delete_MyClass(mc);
+    MyClass_delete(mc);
 
     return 0;
 }

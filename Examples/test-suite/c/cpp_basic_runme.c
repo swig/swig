@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 int main(int argc, const char *argv[]) {
-	Foo *f = new_Foo(5);
+	Foo *f = Foo_new(5);
 
 	// test global static variables
 	// TODO: Implement or document as not available
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	// because of unclear implementation details
 	//assert(c_init_ref != 0);
 
-	Bar *b = new_Bar();
+	Bar *b = Bar_new();
 
 	// check default value set by constructor
 	assert(Bar_cint_get(b) == 3);
@@ -55,9 +55,9 @@ int main(int argc, const char *argv[]) {
 	Foo_num_set(Bar_fref_get(b), 1);
 	assert(Foo_num_get(Bar_fref_get(b)) == 1);
 	// create new Bar instance and check static member value
-	Bar *b2 = new_Bar();
+	Bar *b2 = Bar_new();
 	assert(Foo_num_get(Bar_fref_get(b2)) == 1);
-	delete_Bar(b2);
+	Bar_delete(b2);
 	b2 = 0;
 
 	// Try to set a pointer
@@ -68,7 +68,7 @@ int main(int argc, const char *argv[]) {
 
 	Foo *f2 = Bar_testFoo(b, 2, f);
 	assert(Foo_num_get(f2) == 11);
-	delete_Foo(f2);
+	Foo_delete(f2);
 	f2 = 0;
 
 	// test static variables
@@ -93,16 +93,16 @@ int main(int argc, const char *argv[]) {
 	assert(test_func_ptr(f, 2) == -14);
 #endif
 
-	delete_Bar(b);
-	delete_Foo(f);
+	Bar_delete(b);
+	Foo_delete(f);
 
-	Fl_Window *w = new_Fl_Window();
+	Fl_Window *w = Fl_Window_new();
 	// Test whether macro worked for code extension
 	// and test optional function parameters
 	Fl_Window_show(w);
 	Fl_Window_show_pv(w, 0);
 	Fl_Window_show_pv_pv(w, 0, 0);
-	delete_Fl_Window(w);
+	Fl_Window_delete(w);
 	w = 0;
 
 	return 0;

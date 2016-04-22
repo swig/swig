@@ -3,7 +3,7 @@
 #include "exception_order/exception_order_wrap.h"
 
 int main() {
-  A* a = new_A();
+  A* a = A_new();
 
   SWIG_try {
     A_foo(a);

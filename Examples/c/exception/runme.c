@@ -7,7 +7,7 @@
 #include "example_wrap.h"
 
 int main() {
-  Test *t = new_Test();
+  Test *t = Test_new();
 
   SWIG_try {
     Test_unknown(t);

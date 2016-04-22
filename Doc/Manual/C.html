@@ -367,8 +367,8 @@ The generated functions make calls to class' constructors and destructors, respe
 </p>
 
 <div class="targetlang"><pre>
-Circle * new_Circle(double r);
-void delete_Circle(Circle * self);
+Circle * Circle_new(double r);
+void Circle_delete(Circle * self);
 </pre></div>
 
 <p>
@@ -397,9 +397,9 @@ Our application code could look like this:
 </p>
 
 <div class="targetlang"><pre>
-  Circle *c = new_Circle(1.5);
+  Circle *c = Circle_new(1.5);
   printf("radius: %f\narea: %f\n", Circle_radius_get(c), Circle_area(c));
-  delete_Circle(c);
+  Circle_delete(c);
 </pre></div>
 
 <p>
@@ -482,18 +482,18 @@ What we would like to generate as a C interface of this function would be someth
 // wrapper header file
 typedef struct SwigObj_SomeClass SomeClass;
 
-SomeClass * new_SomeClass();
+SomeClass * SomeClass_new();
 
-void delete_SomeClass(SomeClass * carg1);
+void SomeClass_delete(SomeClass * carg1);
         
 SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
         
         
 typedef struct SwigObj_SomeIntTemplateClass SomeIntTemplateClass;
         
-SomeIntTemplateClass * new_SomeIntTemplateClass();
+SomeIntTemplateClass * SomeIntTemplateClass_new();
         
-void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
+void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 </pre></div>
 
 <H4>The Wrapper</H4>
@@ -616,18 +616,18 @@ above.
 // wrapper header file
 typedef struct SwigObj_SomeClass SomeClass;
 
-SomeClass * new_SomeClass();
+SomeClass * SomeClass_new();
 
-void delete_SomeClass(SomeClass * carg1);
+void SomeClass_delete(SomeClass * carg1);
 
 SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
 
 
 typedef struct SwigObj_SomeIntTemplateClass SomeIntTemplateClass;
 
-SomeIntTemplateClass * new_SomeIntTemplateClass();
+SomeIntTemplateClass * SomeIntTemplateClass_new();
 
-void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
+void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 </pre></div>
 
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>

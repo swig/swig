@@ -379,6 +379,14 @@ public:
     SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
+    // The default naming convention is to use new_Foo(), copy_Foo() and delete_Foo() for the default/copy ctor and dtor of the class Foo, but we prefer to
+    // start all Foo methods with the same prefix, so change this. Notice that new/delete are chosen to ensure that we avoid conflicts with the existing class
+    // methods, more natural create/destroy, for example, could result in errors if the class already had a method with the same name, but this is impossible
+    // for the chosen names as they're keywords in C++ ("copy" is still a problem but we'll just have to live with it).
+    Swig_name_register("construct", "%n%c_new");
+    Swig_name_register("copy", "%n%c_copy");
+    Swig_name_register("destroy", "%n%c_delete");
+
     allow_overloading();
   }
 

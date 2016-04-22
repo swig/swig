@@ -3,9 +3,9 @@
 int main(int argc, const char *argv[])
 {
     myNamespace_MyClass *mc;
-    mc = new_myNamespace_MyClass();
+    mc = myNamespace_MyClass_new();
 
-    delete_myNamespace_MyClass(mc);
+    myNamespace_MyClass_delete(mc);
 
     return 0;
 }

@@ -3,9 +3,9 @@
 int main(int argc, const char *argv[])
 {
     MyClass *mc;
-    mc = new_MyClass();
+    mc = MyClass_new();
 
-    delete_MyClass(mc);
+    MyClass_delete(mc);
 
     return 0;
 }

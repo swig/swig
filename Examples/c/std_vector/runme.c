@@ -3,7 +3,7 @@
 #include "example_wrap.h"
 
 int main() {
-  Klass *klass = new_Klass();
+  Klass *klass = Klass_new();
   Vint *vint = Klass_vi_get(klass);
   VA *va = Klass_va_get(klass);
 
@@ -26,7 +26,7 @@ int main() {
   printf("\nVector of objects:\n");
   
   for (i = 0; i < 10; i++) {
-    A *a = new_A_std_string_i("hello", i);
+    A *a = A_new_std_string_i("hello", i);
     VA_push_back(va, a);
   }
     
@@ -35,7 +35,7 @@ int main() {
     printf("%s %d\n", A_name_get(a), A_value_get(a));
   }
   
-  delete_Klass(klass);
+  Klass_delete(klass);
 
   SWIG_exit(0);
 }

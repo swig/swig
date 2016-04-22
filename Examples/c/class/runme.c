@@ -4,9 +4,9 @@
 
 int main(int argc, char **argv) {
   printf("Creating some objects:\n");
-  Circle* c = new_Circle(10);
+  Circle* c = Circle_new(10);
   printf("    Created circle\n");
-  Square* s = new_Square(10);
+  Square* s = Square_new(10);
   printf("    Created square\n");
 
   printf("\nA total of %d shapes were created\n", Shape_nshapes_get());
@@ -33,8 +33,8 @@ int main(int argc, char **argv) {
 
   printf("\nGuess I'll clean up now\n");
 
-  delete_Square(s);
-  delete_Circle(c);
+  Square_delete(s);
+  Circle_delete(c);
 
   printf("%d shapes remain\n", Shape_nshapes_get());
   printf("Goodbye\n");

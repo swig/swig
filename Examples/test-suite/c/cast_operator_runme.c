@@ -3,10 +3,10 @@
 #include "cast_operator/cast_operator_wrap.h"
 
 int main() {
-  A *a = new_A();
+  A *a = A_new();
   if (strcmp(A_tochar(a), "hi"))
     fprintf(stderr, "cast failed\n");
-  delete_A(a);
+  A_delete(a);
   SWIG_exit(0);
 }
 

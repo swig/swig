@@ -8,7 +8,7 @@ int main(int argc, const char *argv[]) {
 	int e = ENUM_ONE, *p;
 
 	// check the constructor's default value
-	StructWithEnums *s = new_StructWithEnums();
+	StructWithEnums *s = StructWithEnums_new();
 	assert(StructWithEnums_some_enum_get(s) == ENUM_ONE);
 
 	// check setter
@@ -43,9 +43,9 @@ int main(int argc, const char *argv[]) {
 	p = StructWithEnums_enum_test8(s);
 	assert(*p == ENUM_TWO);
 	
-	delete_StructWithEnums(s);
+	StructWithEnums_delete(s);
 
-	Foo *f = new_Foo();
+	Foo *f = Foo_new();
 
 	// check the constructor's default value
 	assert(Foo_hola_get(f) == Foo_Hello);
@@ -53,7 +53,7 @@ int main(int argc, const char *argv[]) {
 	Foo_hola_set(f, Foo_Hi);
 	assert(Foo_hola_get(f) == Foo_Hi);
 
-	delete_Foo(f);
+	Foo_delete(f);
 
 	//check C enum
 	hi = Hi;

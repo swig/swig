@@ -2,9 +2,9 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	Base *ba = new_Base();
-	Derived *d = new_Derived();
-	Bottom *bo = new_Bottom();
+	Base *ba = Base_new();
+	Derived *d = Derived_new();
+	Bottom *bo = Bottom_new();
 
 	assert(Base_PublicProtectedPublic1(ba) == 0);
 	assert(Base_PublicProtectedPublic2(ba) == 0);
@@ -26,9 +26,9 @@ int main(int argc, const char *argv[]) {
 	assert(Bottom_WasProtected3(ba) == 0);
 	assert(Bottom_WasProtected4(ba) == 0);
 
-	delete_Base(ba);
-	delete_Derived(d);
-	delete_Bottom(bo);
+	Base_delete(ba);
+	Derived_delete(d);
+	Bottom_delete(bo);
 
 	return 0;
 }

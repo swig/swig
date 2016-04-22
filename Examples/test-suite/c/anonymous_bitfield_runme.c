@@ -2,7 +2,7 @@
 #include <assert.h>
 
 int main(int argc, const char *argv[]) {
-	Foo *f = new_Foo();
+	Foo *f = Foo_new();
 
 	assert(f != 0);
 
@@ -23,7 +23,7 @@ int main(int argc, const char *argv[]) {
 	Foo_seq_set(f, 1);
 	assert(Foo_seq_get(f) == 1);
 
-	delete_Foo(f);
+	Foo_delete(f);
 
 	return 0;
 }
