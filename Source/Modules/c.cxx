@@ -740,20 +740,6 @@ ready:
        Delete(over_suffix);
     }
 
-  static void functionWrapperAddCPPResult(Wrapper *wrapper, const SwigType *type, const String *tm)
-    {
-       SwigType *cpptype;
-       SwigType *tdtype = SwigType_typedef_resolve_all(tm);
-       if (tdtype)
-         cpptype = tdtype;
-       else
-         cpptype = (SwigType*)tm;
-       if (SwigType_ismemberpointer(type))
-         Wrapper_add_local(wrapper, "cppresult", SwigType_str(type, "cppresult"));
-       else
-         Wrapper_add_local(wrapper, "cppresult", SwigType_str(cpptype, "cppresult"));
-    }
-
   String *get_wrapper_func_return_type(output_target target, Node *n)
     {
        SwigType *type = Getattr(n, "type");
@@ -932,9 +918,8 @@ ready:
 
        // add variable for holding result of original function 'cppresult'
        if (!is_void_return && !is_ctor) {
-            String *tm;
-            if ((tm = Swig_typemap_lookup("cppouttype", n, "", 0))) {
-                 functionWrapperAddCPPResult(wrapper, type, tm);
+            if (String *tm = Swig_typemap_lookup("cppouttype", n, "", 0)) {
+		 Wrapper_add_local(wrapper, "cppresult", SwigType_str(tm, "cppresult"));
                  return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
             }
             else {
