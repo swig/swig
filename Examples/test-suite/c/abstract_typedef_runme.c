@@ -6,7 +6,7 @@ int main(int argc, const char *argv[]) {
 	Engine *e = Engine_new();
 	A *a = A_new();
 
-	assert(AbstractBaseClass_write(a, e) == true);
+	assert(AbstractBaseClass_write((AbstractBaseClass*)a, e) == true);
 
 	A_delete(a);
 	Engine_delete(e);
