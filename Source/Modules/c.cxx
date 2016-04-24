@@ -1299,6 +1299,8 @@ ready:
 		|| (Cmp(Getattr(node, "kind"), "function") == 0)) {
 	      if ((Cmp(Getattr(node, "access"), "public") == 0)
 		  && (Cmp(Getattr(node, "storage"), "static") != 0)) {
+		  // Assignment operators are not inherited in C++.
+		  if (Cmp(Getattr(node, "name"), "operator =") != 0) {
 		    Node *new_node = copy_node(node);
 		    String *parent_name = Getattr(parentNode(node), "name");
 		    Hash *dupl_name_node = is_in(Getattr(node, "name"), n);
@@ -1306,14 +1308,14 @@ ready:
 		    // inheritance, change both names to avoid ambiguity
 		    if (dupl_name_node) {
 		      String *cif = Getattr(dupl_name_node, "c:inherited_from");
-		      String *old_name = Getattr(dupl_name_node, "name");
+		      String *old_name = Getattr(dupl_name_node, "sym:name");
 		      if (cif && parent_name && (Cmp(cif, parent_name) != 0)) {
-			Setattr(dupl_name_node, "name", NewStringf("%s%s", cif ? cif : "", old_name));
+			Setattr(dupl_name_node, "sym:name", NewStringf("%s%s", cif ? cif : "", old_name));
 			Setattr(dupl_name_node, "c:base_name", old_name);
 			Setattr(new_node, "name", NewStringf("%s%s", parent_name, old_name));
 			Setattr(new_node, "c:base_name", old_name);
 			Setattr(new_node, "c:inherited_from", parent_name);
-			Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+			Setattr(new_node, "sym:name", Getattr(node, "sym:name"));
 			Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
 			set_nodeType(new_node, "cdecl");
 			appendChild(n, new_node);
@@ -1321,11 +1323,12 @@ ready:
 		    }
 		    else {
 		      Setattr(new_node, "c:inherited_from", parent_name);
-		      Setattr(new_node, "sym:name", Getattr(new_node, "name"));
+		      Setattr(new_node, "sym:name", Getattr(node, "sym:name"));
 		      Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
 		      set_nodeType(new_node, "cdecl");
 		      appendChild(n, new_node);
 		    }
+		  }
 	      }
 	    }
 	  }
