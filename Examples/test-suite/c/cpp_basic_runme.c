@@ -99,9 +99,9 @@ int main(int argc, const char *argv[]) {
 	Fl_Window *w = new_Fl_Window();
 	// Test whether macro worked for code extension
 	// and test optional function parameters
-	Fl_Window_show_pFl_Window(w);
-	Fl_Window_show_pFl_Window_pv(w, 0);
-	Fl_Window_show_pFl_Window_pv_pv(w, 0, 0);
+	Fl_Window_show(w);
+	Fl_Window_show_pv(w, 0);
+	Fl_Window_show_pv_pv(w, 0, 0);
 	delete_Fl_Window(w);
 	w = 0;
 

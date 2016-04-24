@@ -722,15 +722,13 @@ ready:
        }
     }
 
-  virtual void functionWrapperAppendOverloaded(String *name, const ParmList *parms)
+  virtual void functionWrapperAppendOverloaded(String *name, Parm* first_param)
     {
        String *over_suffix = NewString("");
        Parm *p;
        String *mangled;
 
-       for (p = (Parm*)parms; p; p = nextSibling(p)) {
-            if (Getattr(p, "c:objstruct"))
-              continue;
+       for (p = first_param; p; p = nextSibling(p)) {
             mangled = get_mangled_type(Getattr(p, "type"));
             Printv(over_suffix, "_", mangled, NIL);
        }
@@ -1117,7 +1115,36 @@ ready:
        // mangle name if function is overloaded
        if (Getattr(n, "sym:overloaded")) {
             if (!Getattr(n, "copy_constructor")) {
-                 functionWrapperAppendOverloaded(name, parms);
+		Parm* first_param = (Parm*)parms;
+		if (first_param) {
+		  // Skip the first "this" parameter of the wrapped methods, it doesn't participate in overload resolution and would just result in extra long
+		  // and ugly names.
+		  //
+		  // The check for c:globalfun is needed to avoid dropping the first argument of static methods which don't have "this" pointer neither, in
+		  // spite of being members. Of course, the constructors don't have it neither.
+		  if (!Checkattr(n, "nodeType", "constructor") &&
+			Checkattr(n, "ismember", "1") &&
+			  !Checkattr(n, "c:globalfun", "1")) {
+		    first_param = nextSibling(first_param);
+
+		    // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
+		    if (SwigType_isconst(Getattr(n, "decl"))) {
+		      const char * const nonconst = Char(Getattr(n, "decl")) + 9 /* strlen("q(const).") */;
+		      for (Node* nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
+			if (nover == n)
+			  continue;
+
+			if (Cmp(Getattr(nover, "decl"), nonconst) == 0) {
+			  // We have an overload differing by const only, disambiguate.
+			  Append(name, "_const");
+			  break;
+			}
+		      }
+		    }
+		  }
+
+		  functionWrapperAppendOverloaded(name, first_param);
+		}
             }
        }
 

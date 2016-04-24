@@ -15,8 +15,8 @@ int main() {
   assert(Op_GreaterThanEqual(op2, op1), "geq failed");
   Op_PlusEqual(op3, op1);
   assert(Op_LessThan(op1, op2) && Op_LessThan(op2, op3), "lt failed");
-  assert(3 == *Op_IndexInto(op3, Op_IndexIntoConst(op2, Op_Functor_pOp(op1))), "[] or () failed");
-  assert(5 == Op_Functor_pOp_i(op3, 2), "f(x) failed");
+  assert(3 == *Op_IndexInto(op3, Op_IndexIntoConst(op2, Op_Functor(op1))), "[] or () failed");
+  assert(5 == Op_Functor_i(op3, 2), "f(x) failed");
   
   delete_Op(op1);
   delete_Op(op2);
