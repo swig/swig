@@ -37,13 +37,15 @@ macro_name(TM, size_t);
 %enddef
 
 // This is used to handle all primitive types as just themselves.
+// This macro doesn't cover const references, use either cref_as_value or
+// cref_as_ptr below in addition to it.
 // Notice that const pointers are mapped to non-const ones as we need to
 // declare variables of this type when it's used as a return type, and top
 // level const doesn't matter anyhow in the function declarations.
 %define same_type(TM, T)
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T[ANY], T[] "T *"
-%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
+%typemap(TM) const T*, const T[ANY], const T[] "const T *"
 %typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
 %typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
 // constant pointers
@@ -52,15 +54,23 @@ macro_name(TM, size_t);
 %typemap(TM) const T* * const "const T* *"
 %enddef
 
+%define cref_as_value(TM, T)
+%typemap(TM) const T& "T"
+%enddef
+
+%define cref_as_ptr(TM, T)
+%typemap(TM) const T& "T *"
+%enddef
+
 %define same_type_all_primitive_types_but_void(TM)
-same_macro_all_primitive_types_but_void(same_type,TM);
 %enddef
 
 //Used by 'in' and 'out' typemaps
-%define same_action(TM, T, ACTION)
+%define same_action(TM, T, ACTION, ACTION_CREF)
 %typemap(TM) T, const T ACTION
+%typemap(TM) const T& ACTION_CREF
 %typemap(TM) T*, T&, T[ANY], T[] ACTION
-%typemap(TM) const T&, const T*, const T[ANY], const T[] ACTION
+%typemap(TM) const T*, const T[ANY], const T[] ACTION
 %typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] ACTION
 %typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] ACTION
 // constant pointers
@@ -69,22 +79,22 @@ same_macro_all_primitive_types_but_void(same_type,TM);
 %typemap(TM) const T* * const ACTION
 %enddef
 
-%define same_action_all_primitive_types(TM, ACTION)
-same_action(TM, short, ACTION);
-same_action(TM, unsigned short, ACTION);
-same_action(TM, int, ACTION);
-same_action(TM, unsigned int, ACTION);
-same_action(TM, long, ACTION);
-same_action(TM, unsigned long, ACTION);
-same_action(TM, long long, ACTION);
-same_action(TM, unsigned long long, ACTION);
-same_action(TM, char, ACTION);
-same_action(TM, signed char, ACTION);
-same_action(TM, unsigned char, ACTION);
+%define same_action_all_primitive_types(TM, ACTION, ACTION_CREF)
+same_action(TM, short, ACTION, ACTION_CREF);
+same_action(TM, unsigned short, ACTION, ACTION_CREF);
+same_action(TM, int, ACTION, ACTION_CREF);
+same_action(TM, unsigned int, ACTION, ACTION_CREF);
+same_action(TM, long, ACTION, ACTION_CREF);
+same_action(TM, unsigned long, ACTION, ACTION_CREF);
+same_action(TM, long long, ACTION, ACTION_CREF);
+same_action(TM, unsigned long long, ACTION, ACTION_CREF);
+same_action(TM, char, ACTION, ACTION_CREF);
+same_action(TM, signed char, ACTION, ACTION_CREF);
+same_action(TM, unsigned char, ACTION, ACTION_CREF);
 //unsigned only
-same_action(TM, float, ACTION);
-same_action(TM, double, ACTION);
-same_action(TM, size_t, ACTION);
+same_action(TM, float, ACTION, ACTION_CREF);
+same_action(TM, double, ACTION, ACTION_CREF);
+same_action(TM, size_t, ACTION, ACTION_CREF);
 %typemap(TM) void*, void const* ACTION
 %enddef
 
@@ -99,7 +109,8 @@ same_action(TM, size_t, ACTION);
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
 
-same_type_all_primitive_types_but_void(ctype);
+same_macro_all_primitive_types_but_void(same_type,ctype);
+same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 
 // objects
 %typemap(ctype) SWIGTYPE      "$&resolved_type*"
@@ -117,7 +128,7 @@ same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype, fragment="stdbool_inc") const bool & "const $1_ltype"
 
 // Typemaps for assigning wrapper parameters to local variables
-same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
+same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
@@ -203,7 +214,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
 
 
 // Typemaps for assigning result values to a special return variable
-same_action_all_primitive_types(out, "$result = $1;")
+same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 
 %typemap(out) void ""
 
@@ -254,7 +265,8 @@ same_action_all_primitive_types(out, "$result = $1;")
 }
 
 // typemaps for 'cppresult'
-same_type_all_primitive_types_but_void(cppouttype);
+same_macro_all_primitive_types_but_void(same_type,cppouttype);
+same_macro_all_primitive_types_but_void(cref_as_ptr,cppouttype);
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
