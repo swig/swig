@@ -1152,6 +1152,8 @@ ready:
 
   /* ---------------------------------------------------------------------
    * copy_node()
+   *
+   * This is not a general-purpose node copying function, but just a helper of classHandler().
    * --------------------------------------------------------------------- */
 
   Node *copy_node(Node *node) {
@@ -1164,9 +1166,13 @@ ready:
     Setattr(new_node, "parms", Copy(Getattr(node, "parms")));
     Setattr(new_node, "type", Copy(Getattr(node, "type")));
     Setattr(new_node, "decl", Copy(Getattr(node, "decl")));
-    String *cif = Getattr(node, "c:inherited_from");
-    if (cif) 
-      Setattr(new_node, "c:inherited_from", Copy(cif));
+
+    Node* const parent = parentNode(node);
+    Setattr(new_node, "c:inherited_from", Getattr(parent, "name"));
+    Setattr(new_node, "sym:name", Getattr(node, "sym:name"));
+    Setattr(new_node, "sym:symtab", Getattr(parent, "symtab"));
+    set_nodeType(new_node, "cdecl");
+
     return new_node;
   }
 
@@ -1305,7 +1311,6 @@ ready:
 		  && (Cmp(Getattr(node, "storage"), "static") != 0)) {
 		  // Assignment operators are not inherited in C++ and symbols without sym:name should be ignored, not copied into the derived class.
 		  if (Getattr(node, "sym:name") && Cmp(Getattr(node, "name"), "operator =") != 0) {
-		    Node *new_node = copy_node(node);
 		    String *parent_name = Getattr(parentNode(node), "name");
 		    Hash *dupl_name_node = is_in(Getattr(node, "name"), n);
 		    // if there's a duplicate inherited name, due to the C++ multiple
@@ -1316,23 +1321,14 @@ ready:
 		      if (cif && parent_name && (Cmp(cif, parent_name) != 0)) {
 			Setattr(dupl_name_node, "sym:name", NewStringf("%s%s", cif ? cif : "", old_name));
 			Setattr(dupl_name_node, "c:base_name", old_name);
+			Node *new_node = copy_node(node);
 			Setattr(new_node, "name", NewStringf("%s%s", parent_name, old_name));
 			Setattr(new_node, "c:base_name", old_name);
-			Setattr(new_node, "c:inherited_from", parent_name);
-			Setattr(new_node, "sym:name", Getattr(node, "sym:name"));
-			Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
-			set_nodeType(new_node, "cdecl");
 			appendChild(n, new_node);
-		      } else {
-			Delete(new_node);
 		      }
 		    }
 		    else {
-		      Setattr(new_node, "c:inherited_from", parent_name);
-		      Setattr(new_node, "sym:name", Getattr(node, "sym:name"));
-		      Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
-		      set_nodeType(new_node, "cdecl");
-		      appendChild(n, new_node);
+		      appendChild(n, copy_node(node));
 		    }
 		  }
 	      }
