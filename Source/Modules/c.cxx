@@ -1303,8 +1303,8 @@ ready:
 		|| (Cmp(Getattr(node, "kind"), "function") == 0)) {
 	      if ((Cmp(Getattr(node, "access"), "public") == 0)
 		  && (Cmp(Getattr(node, "storage"), "static") != 0)) {
-		  // Assignment operators are not inherited in C++.
-		  if (Cmp(Getattr(node, "name"), "operator =") != 0) {
+		  // Assignment operators are not inherited in C++ and symbols without sym:name should be ignored, not copied into the derived class.
+		  if (Getattr(node, "sym:name") && Cmp(Getattr(node, "name"), "operator =") != 0) {
 		    Node *new_node = copy_node(node);
 		    String *parent_name = Getattr(parentNode(node), "name");
 		    Hash *dupl_name_node = is_in(Getattr(node, "name"), n);
