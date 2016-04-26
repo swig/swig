@@ -743,7 +743,7 @@ ready:
   String *get_wrapper_func_return_type(output_target target, Node *n)
     {
        SwigType *type = Getattr(n, "type");
-       String *return_type = NewString("");
+       String *return_type;
        String *tm;
 
        if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
@@ -752,6 +752,7 @@ ready:
        }
        else {
             Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+	    return_type = NewString("");
        }
 
        Replaceall(return_type, "::", "_");
