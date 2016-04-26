@@ -747,18 +747,8 @@ ready:
        String *tm;
 
        if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
-            // handle simple typemap cases
-            String *ctypeout = Getattr(n, "tmap:ctype:out");
-            if (ctypeout)
-              {
-                 return_type = ctypeout;
-                 Printf(stdout, "Obscure ctype:out found! O.o\n");
-              }
-            else
-              {
-                 substituteResolvedType(target, type, tm);
-                 return_type = tm;
-              }
+	 substituteResolvedType(target, type, tm);
+	 return_type = tm;
        }
        else {
             Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
