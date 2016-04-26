@@ -68,6 +68,7 @@ namespace std {
     typedef const _Tp& const_reference;
     typedef _Alloc allocator_type;
 
+#ifndef SWIGC
     %traits_swigtype(_Tp);
     %traits_enum(_Tp);
 
@@ -85,6 +86,7 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector< _Tp, _Alloc >);
+#endif // !SWIGC
 
 #ifdef %swig_vector_methods
     // Add swig/language extra methods
@@ -110,6 +112,7 @@ namespace std {
     typedef value_type const_reference;
     typedef _Alloc allocator_type;
 
+#ifndef SWIGC
     %traits_swigtype(_Tp);
 
     %fragment(SWIG_Traits_frag(std::vector< _Tp*, _Alloc >), "header",
@@ -126,6 +129,7 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector< _Tp*, _Alloc >);
+#endif // !SWIGC
 
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods
@@ -150,6 +154,7 @@ namespace std {
     typedef value_type const_reference;
     typedef _Alloc allocator_type;
 
+#ifndef SWIGC
     %traits_swigtype(_Tp);
 
     %fragment(SWIG_Traits_frag(std::vector< _Tp const*, _Alloc >), "header",
@@ -166,6 +171,7 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector< _Tp const*, _Alloc >);
+#endif // !SWIGC
 
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods
@@ -191,6 +197,7 @@ namespace std {
     typedef value_type const_reference;
     typedef _Alloc allocator_type;
 
+#ifndef SWIGC
     %traits_swigtype(bool);
 
     %fragment(SWIG_Traits_frag(std::vector<bool, _Alloc >), "header",
@@ -207,7 +214,7 @@ namespace std {
     }
 
     %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool, _Alloc >);
-
+#endif // !SWIGC
 
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods

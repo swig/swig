@@ -17,7 +17,7 @@ int main() {
   printf("size=%d\ncapacity=%d\n\n", Vint_size(vint), Vint_capacity(vint));
   
   for (i = 0; i < Vint_size(vint); i++)
-    printf("%d%c", Vint_at(vint, i), i+1 == Vint_size(vint) ? '\n' : ',');
+    printf("%d%c", Vint_get(vint, i), i+1 == Vint_size(vint) ? '\n' : ',');
   
   Vint_clear(vint); 
   Vint_reserve(vint, 100);
@@ -32,7 +32,7 @@ int main() {
   }
     
   for (i = 0; i < VA_size(va); i++) {
-    A *a = VA_at(va, i);
+    A *a = VA_get(va, i);
     printf("%s %d\n", A_name_get(a), A_value_get(a));
   }
   
