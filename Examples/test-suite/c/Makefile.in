@@ -53,7 +53,6 @@ FAILING_CPP_TESTS := \
     arrays_global_twodim \
     char_strings \
     constant_pointers \
-    default_arg_values \
     default_args \
     default_constructor \
     director_enum \

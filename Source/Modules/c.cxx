@@ -817,15 +817,19 @@ ready:
             String *c_parm_type = 0;
             String *arg_name = NewString("");
 
-            SwigType *tdtype = SwigType_typedef_resolve_all(type);
-            if (tdtype)
-              type = tdtype;
-
             Printf(arg_name, "c%s", lname);
 
 	    if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
 		 c_parm_type = Copy(tm);
 		 substituteResolvedType(wrapper ? output_wrapper_def : output_wrapper_decl, type, c_parm_type);
+
+		 // We prefer to keep typedefs in the wrapper functions signatures as it makes them more readable, but we can't do it for nested typedefs as
+		 // they're not valid in C, so resolve them in this case.
+		 if (strstr(Char(c_parm_type), "::")) {
+		   SwigType* const tdtype = SwigType_typedef_resolve_all(c_parm_type);
+		   Delete(c_parm_type);
+		   c_parm_type = tdtype;
+		 }
 
 		 // template handling
 		 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
