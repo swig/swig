@@ -304,7 +304,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substituteResolvedType(output_target target, SwigType *pt, String *tm) {
-    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *type = SwigType_typedef_resolve_all(pt);
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
