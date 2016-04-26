@@ -123,9 +123,8 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) enum SWIGTYPE "int"
 %typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 
-%typemap(ctype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
-%typemap(ctype, fragment="stdbool_inc") const bool & "const $1_ltype"
+%typemap(ctype, fragment="stdbool_inc") bool, const bool, const bool & "bool"
+%typemap(ctype, fragment="stdbool_inc") bool *, const bool *, bool & "bool *"
 
 // Typemaps for assigning wrapper parameters to local variables
 same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
@@ -280,9 +279,8 @@ same_macro_all_primitive_types_but_void(cref_as_ptr,cppouttype);
 %typemap(cppouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 %typemap(cppouttype) SWIGTYPE (CLASS::*) "$1_ltype"
 
-%typemap(cppouttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(cppouttype, fragment="stdbool_inc") bool & "$1_basetype*"
-%typemap(cppouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
+%typemap(cppouttype, fragment="stdbool_inc") bool, const bool, const bool & "bool"
+%typemap(cppouttype, fragment="stdbool_inc") bool *, const bool *, bool & "bool *"
 
 #ifdef SWIG_CPPMODE
 
