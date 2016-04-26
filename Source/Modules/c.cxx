@@ -301,19 +301,15 @@ public:
    *   tm - typemap contents that might contain the special variable to be replaced
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
-   * Return:
-   *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(output_target target, SwigType *pt, String *tm) {
-    bool substitution_performed = false;
+  void substituteResolvedType(output_target target, SwigType *pt, String *tm) {
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$resolved_type");
-      substitution_performed = true;
       Delete(classnametype);
     }
     if (Strstr(tm, "$*resolved_type")) {
@@ -321,7 +317,6 @@ public:
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
   substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$*resolved_type");
-  substitution_performed = true;
       }
       Delete(classnametype);
     }
@@ -329,14 +324,11 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
       substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$&resolved_type");
-      substitution_performed = true;
       Delete(classnametype);
     }
 
     Delete(strippedtype);
     Delete(type);
-
-    return substitution_performed;
   }
 
   /* ------------------------------------------------------------
