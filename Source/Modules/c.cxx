@@ -1323,6 +1323,8 @@ ready:
 			Setattr(new_node, "sym:symtab", Getattr(n, "symtab"));
 			set_nodeType(new_node, "cdecl");
 			appendChild(n, new_node);
+		      } else {
+			Delete(new_node);
 		      }
 		    }
 		    else {
