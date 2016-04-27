@@ -331,6 +331,18 @@ public:
     Delete(type);
   }
 
+  /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *
+   * Override the base class method to ensure that $resolved_type is expanded correctly inside $typemap().
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substituteResolvedType(type, tm);
+  }
+
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
