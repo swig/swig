@@ -136,10 +136,10 @@ class C:public Language {
   bool enum_is_empty;
 
   // Selects between the wrappers (public) declarations and (private) definitions.
-  enum output_target {
+  enum {
     output_wrapper_decl,
     output_wrapper_def
-  };
+  } current_output;
 
 public:
 
@@ -246,7 +246,7 @@ public:
    * substituteResolvedTypeSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedTypeSpecialVariable(output_target target, SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
     if (!CPlusPlus) {
       // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
       Clear(tm);
@@ -265,7 +265,7 @@ public:
     } else {
       scoped_dohptr btype(SwigType_base(classnametype));
       String* typestr = NIL;
-      if (target == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
+      if (current_output == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
 	// Special case, just leave it unchanged.
 	typestr = NewString("SwigObj");
       } else {
@@ -303,27 +303,27 @@ public:
    *   tm - typemap contents complete with the special variable substitution
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedType(output_target target, SwigType *pt, String *tm) {
+  void substituteResolvedType(SwigType *pt, String *tm) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$resolved_type");
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
       Delete(classnametype);
     }
     if (Strstr(tm, "$*resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-  substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$*resolved_type");
+  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
       }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteResolvedTypeSpecialVariable(target, classnametype, tm, "$&resolved_type");
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
       Delete(classnametype);
     }
 
@@ -732,13 +732,13 @@ ready:
        Delete(over_suffix);
     }
 
-  String *get_wrapper_func_return_type(output_target target, Node *n)
+  String *get_wrapper_func_return_type(Node *n)
     {
        SwigType *type = Getattr(n, "type");
        String *return_type;
 
        if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
-	 substituteResolvedType(target, type, return_type);
+	 substituteResolvedType(type, return_type);
        }
        else {
             Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
@@ -802,7 +802,7 @@ ready:
 
 	    if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
 		 c_parm_type = Copy(tm);
-		 substituteResolvedType(wrapper ? output_wrapper_def : output_wrapper_decl, type, c_parm_type);
+		 substituteResolvedType(type, c_parm_type);
 
 		 // We prefer to keep typedefs in the wrapper functions signatures as it makes them more readable, but we can't do it for nested typedefs as
 		 // they're not valid in C, so resolve them in this case.
@@ -856,10 +856,12 @@ ready:
    * ---------------------------------------------------------------------- */
   void emit_wrapper_func_decl(Node *n, String *name)
     {
+       current_output = output_wrapper_decl;
+
        // C++ function wrapper proxy code
        bool const is_global = IS_SET_TO_ONE(n, "c:globalfun");
        String *wname = is_global ? Swig_name_wrapper(name) : Copy(name);
-       String *preturn_type = get_wrapper_func_return_type(output_wrapper_decl, n);
+       String *preturn_type = get_wrapper_func_return_type(n);
        String *wrapper_call = NewString("");
 
        // add function declaration to the proxy header file
@@ -884,11 +886,13 @@ ready:
 
   virtual void functionWrapperCPPSpecificWrapper(Node *n, String *name)
     {
+       current_output = output_wrapper_def;
+
        // C++ function wrapper
        String *storage = Getattr(n, "storage");
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
-       SwigType *return_type = get_wrapper_func_return_type(output_wrapper_def, n);
+       SwigType *return_type = get_wrapper_func_return_type(n);
        String *wname = IS_SET_TO_ONE(n, "c:globalfun") ? Swig_name_wrapper(name) : Copy(name);
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
