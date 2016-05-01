@@ -26,10 +26,6 @@ case "$SWIGLANG" in
 		sudo dpkg -i dmd_2.066.0-0_amd64.deb
 		;;
 	"go")
-		# Until configure.ac is fixed
-		go env | sed -e 's/^/export /' > goenvsetup
-		source goenvsetup
-		rm -f goenvsetup
 		;;
 	"javascript")
 		case "$ENGINE" in

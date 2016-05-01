@@ -22,6 +22,11 @@ matrix:
       env: SWIGLANG=go
     - compiler: gcc
       os: linux
+      env: SWIGLANG=go VER=1.5
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=guile
     - compiler: gcc
       os: linux
