@@ -18,7 +18,9 @@ public class li_std_vector_runme {
     IntConstPtrVector v3 = li_std_vector.vecintconstptr(new IntConstPtrVector());
 
     v1.add(123);
+    v1.add(456);
     if (v1.get(0) != 123) throw new RuntimeException("v1 test failed");
+    if (v1.get(v1.size() - 1) != 456) throw new RuntimeException("v1[last] test failed");
 
     StructVector v4 = li_std_vector.vecstruct(new StructVector());
     StructPtrVector v5 = li_std_vector.vecstructptr(new StructPtrVector());

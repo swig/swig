@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-04-28: vadz
+	    [Java] Take long, not int, in std::vector wrappers get() and set() methods.
+	    This allows to write vec.get(vec.size()-1) without casts.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2016-04-18: ianlancetaylor
 	    [Go] Fix use of goout typemap when calling base method by
 	    forcing the "type" attribute to the value we need.
