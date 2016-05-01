@@ -587,6 +587,7 @@ JAVASO =@JAVASO@
 JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
+JAVAFLAGS = @JAVAFLAGS@
 JAVA = @JAVA@
 JAVAC = @JAVAC@ -d .
 
@@ -620,7 +621,7 @@ java_compile: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 java_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

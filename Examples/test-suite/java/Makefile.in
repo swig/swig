@@ -5,7 +5,7 @@
 LANGUAGE     = java
 JAVA         = @JAVA@
 JAVAC        = @JAVAC@
-JAVAFLAGS    = -Xcheck:jni
+JAVAFLAGS    = @JAVAFLAGS@
 SCRIPTSUFFIX = _runme.java
 
 srcdir       = @srcdir@

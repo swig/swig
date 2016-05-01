@@ -1377,6 +1377,8 @@ if test -n "$JAVAC"; then
   JAVAC=\"$JAVAC\"
 fi
 
+# Turned off due to spurious warnings in later versions of openjdk-1.8
+# JAVAFLAGS=-Xcheck:jni
 
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
@@ -1386,6 +1388,7 @@ AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
 AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
+AC_SUBST(JAVAFLAGS)
 AC_SUBST(JAVACFLAGS)
 
 #----------------------------------------------------------------
