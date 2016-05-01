@@ -140,7 +140,7 @@ public class director_classes_runme {
     Package packag = klass.getPackage();
     String simpleName = null;
     if (packag != null)
-        simpleName = fullName.replaceAll(packag.getName() + ".", "");
+        simpleName = fullName.replaceAll(packag.getName() + "\\.", "");
     else
         simpleName = fullName;
     return simpleName;
