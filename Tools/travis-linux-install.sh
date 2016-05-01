@@ -51,7 +51,13 @@ case "$SWIGLANG" in
 		sudo apt-get -qq install guile-2.0-dev
 		;;
 	"lua")
-		sudo apt-get -qq install lua5.1 liblua5.1-dev
+		if [[ -z "$VER" ]]; then
+			sudo apt-get -qq install lua5.1 liblua5.1-dev
+		else
+			sudo add-apt-repository -y ppa:ubuntu-cloud-archive/mitaka-staging
+			sudo apt-get -qq update
+			sudo apt-get -qq install lua${VER} liblua${VER}-dev
+		fi
 		;;
 	"ocaml")
 		# configure also looks for ocamldlgen, but this isn't packaged.  But it isn't used by default so this doesn't matter.

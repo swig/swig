@@ -40,6 +40,11 @@ matrix:
       env: SWIGLANG=lua
     - compiler: gcc
       os: linux
+      env: SWIGLANG=lua VER=5.3
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=octave SWIGJOBS=-j2 # 3.2
     - compiler: gcc
       os: linux
