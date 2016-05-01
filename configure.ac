@@ -2299,7 +2299,7 @@ if test "x$LUABIN" = xyes; then
    # The search order should match the include-file and library search
    # orders below (a Lua shared library built for one version may not
    # work with a Lua binary of a different version).
-   AC_PATH_PROGS(LUABIN, [lua5.2 lua5.1 lua])
+   AC_PATH_PROGS(LUABIN, [lua5.4 lua5.3 lua5.2 lua5.1 lua])
 fi
 
 # check version: we need Lua 5.x
@@ -2350,7 +2350,7 @@ if test "$LUABIN"; then
       # The ordering of the include directories to search should match
       # the ordering of libraries to search in the library test below.
       inc=/usr/include
-      dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      dirs="$inc/lua5.4 $inc/lua5.3 $inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
       for i in $dirs; do
         #echo "$i"
         if test -r $i/lua.h; then
@@ -2373,7 +2373,7 @@ if test "$LUABIN"; then
   if test -n "$LUALIB"; then
     AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
   else
-    AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+    AC_SEARCH_LIBS(lua_close, [lua lua5.4 lua5.3 lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
   fi
 
   # adding lualib for lua 5.0
