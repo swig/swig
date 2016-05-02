@@ -503,7 +503,8 @@ class TypePass:private Dispatcher {
     /* Inherit type definitions into the class */
     if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
       (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
-      cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
+      if (!GetFlag(n, "feature:ignore"))
+	cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
     inclass = n;
