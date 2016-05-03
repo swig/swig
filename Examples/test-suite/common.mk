@@ -714,7 +714,7 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
 check-failing-test = \
-	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $t passed."
+	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $1 passed."
 
 check-failing:
 	+-$(foreach t,$(FAILING_C_TESTS),$(call check-failing-test,$t,ctest);)
