@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-05-05: ejulian
+            [Python] Patch #617. Fix operator/ wrappers.
+
 2016-05-02: wsfulton
             Fix #669. Don't issue warning about ignoring base classes when the derived class is
             itself ignored.
