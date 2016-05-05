@@ -73,6 +73,10 @@ see bottom for a set of possible tests
 %rename(OrOperator) operator ||;
 #endif
 
+#if defined(SWIGPYTHON)
+%feature("python:slot", "tp_str", functype="reprfunc") Op::__str__;
+#endif
+
 #ifdef SWIG_ALLEGRO_CL
 %{
 #include <stdio.h>
