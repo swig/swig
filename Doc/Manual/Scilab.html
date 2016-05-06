@@ -40,12 +40,12 @@
 <li><a href="#Scilab_wrapping_pointers">Pointers</a>
 <ul>
 <li><a href="#Scilab_wrapping_pointers_pointer_adresses">Utility functions</a>
-<li><a href="#Scilab_wrapping_pointers_null_pointers">Null pointers</a>
+<li><a href="#Scilab_wrapping_pointers_null_pointers">Null pointers:</a>
 </ul>
 <li><a href="#Scilab_wrapping_structs">Structures</a>
 <li><a href="#Scilab_wrapping_cpp_classes">C++ classes</a>
 <li><a href="#Scilab_wrapping_cpp_inheritance">C++ inheritance</a>
-<li><a href="#Scilab_wrapping_cpp_overloading">C++ overloading</a></li>
+<li><a href="#Scilab_wrapping_cpp_overloading">C++ overloading</a>
 <li><a href="#Scilab_wrapping_pointers_references_values_arrays">Pointers, references, values, and arrays</a>
 <li><a href="#Scilab_wrapping_cpp_templates">C++ templates</a>
 <li><a href="#Scilab_wrapping_cpp_operators">C++ operators</a>
@@ -56,7 +56,6 @@
 <li><a href="#Scilab_typemaps">Type mappings and libraries</a>
 <ul>
 <li><a href="#Scilab_typemaps_primitive_types">Default primitive type mappings</a>
-<li><a href="#Scilab_typemaps_non-primitive_types">Default type mappings for non-primitive types</a>
 <li><a href="#Scilab_typemaps_arrays">Arrays</a>
 <li><a href="#Scilab_typemaps_pointer-to-pointers">Pointer-to-pointers</a>
 <li><a href="#Scilab_typemaps_matrices">Matrices</a>
@@ -764,11 +763,11 @@ Why a native pointer is not mapped to a Scilab pointer (type name: "pointer", ty
 
 <p>
 Notes:
+</p>
 <ul>
 <li>type tracking needs the SWIG runtime to be first initialized with the appropriate function (see the <a href="#Scilab_module_initialization">Module initialization</a> section).</li>
 <li>for any reason, if a wrapped pointer type is unknown (or if the SWIG runtime is not initialized), SWIG maps it to a Scilab pointer. Also, a Scilab pointer is always accepted as a pointer argument of a wrapped function. The drawaback is that pointer type is lost.</li>
 </ul>
-</p>
 
 <p>
 Following is an example of the wrapping of the C <tt>FILE*</tt> pointer:
@@ -854,6 +853,7 @@ ans  =
 
 <H4><a name="Scilab_wrapping_pointers_null_pointers">39.3.6.2 Null pointers:</a></H4>
 
+
 <p>
 Using the previous <tt>SWIG_this()</tt> and <tt>SWIG_ptr()</tt>, it is possible to create and check null pointers:
 </p>
@@ -904,6 +904,7 @@ Several functions are generated:
 </ul>
 
 
+<p>
 Usage example:
 </p>
 
@@ -963,7 +964,7 @@ ans  =
 
 <p>
 Note: the pointer to the struct works as described in <a href="Scilab_wrapping_pointers">Pointers</a>. For example, the type of the struct pointer can be get with <tt>typeof</tt>, as following:
-<p>
+</p>
 
 <div class="targetlang"><pre>
 --&gt; example_Init();
@@ -1027,7 +1028,7 @@ ans  =
 
 <p>
 Note: like structs, class pointers are mapped as described in <a href="Scilab_wrapping_pointers">Pointers</a>. Let's give an example which shows that each class pointer type is a new type in Scilab that can be used for example (through <a href="https://help.scilab.org/docs/5.5.2/en_US/overloading.html">overloading</a>) to implement a custom print for the <tt>Point</tt> class:
-<p>
+</p>
 
 <div class="targetlang"><pre>
 --&gt; function %_p_Point_p(p)
@@ -1120,27 +1121,26 @@ But we can use either use the <tt>get_perimeter()</tt> function of the parent cl
 
 <H3><a name="Scilab_wrapping_cpp_overloading">39.3.10 C++ overloading</a></H3>
 
+
 <p>
 As explained in <a href="http://www.swig.org/Doc3.0/SWIGPlus.html#SWIGPlus_overloaded_methods">6.15</a> SWIG provides support for overloaded functions and constructors.
 </p>
 
 <p>As SWIG knows pointer types, the overloading works also with pointer types, here is is an example with a function <tt>magnify</tt> overloaded for the previous classes <tt>Shape</tt> and <tt>Circle</tt>:
+</p>
 
-<p>
 <div class="code"><pre>
 %module example
 
 void magnify(Square *square, double factor) {
-    square->size *= factor;
+    square-&gt;size *= factor;
 };
 
 void magnify(Circle *circle, double factor) {
-    square->radius *= factor;
+    square-&gt;radius *= factor;
 };
 </pre></div>
-</p>
 
-<p>
 <div class="targetlang"><pre>
 --&gt; example_Init();
 --&gt; c = new_Circle(3);
@@ -1157,7 +1157,6 @@ void magnify(Circle *circle, double factor) {
 
    20;
 </pre></div>
-</p>
 
 
 <H3><a name="Scilab_wrapping_pointers_references_values_arrays">39.3.11 Pointers, references, values, and arrays</a></H3>
