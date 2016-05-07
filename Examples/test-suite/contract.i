@@ -3,8 +3,9 @@
 %warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_COM_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) C; /* Ruby, C#, D, Java, PHP multiple inheritance */
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) C; /* Ruby, C#, COM, D, Java, PHP multiple inheritance */
 
 #ifdef SWIGCSHARP
 %ignore B::bar; // otherwise get a warning: `C.bar' no suitable methods found to override

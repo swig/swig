@@ -2674,6 +2674,165 @@ AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
+# Look for COM
+#----------------------------------------------------------------
+
+AC_ARG_WITH(com, AS_HELP_STRING([--without-com], [Disable COM]), [with_com="$withval"], [with_com=yes])
+AC_ARG_WITH(com-runtool, [  --with-com-runtool=path         Set location of the COM run tool (e.g. WINE)], [COM_RUNTOOL="$withval"], [COM_RUNTOOL=])
+AC_ARG_WITH(com-cc, [  --with-com-cc=path      Set location of C compiler for COM], [COM_CC="$withval"], [COM_CC=])
+AC_ARG_WITH(com-cxx, [  --with-com-cxx=path     Set location of C++ compiler for COM], [COM_CXX="$withval"], [COM_CXX=])
+AC_ARG_WITH(com-idl, [  --with-com-idl=path     Set location of COM IDL compiler], [COM_IDL="$withval"], [COM_IDL=]) 
+AC_ARG_WITH(com-rc, [  --with-com-rc=path      Set location of Resource Compiler for COM], [COM_RC="$withval"], [COM_RC=])
+AC_ARG_WITH(com-cscript, [  --with-com-cscript=path         Set location of the cscript interpreter], [COM_CSCRIPT="$withval"], [COM_CSCRIPT=])
+
+# Check if COM is requested
+if test x"${with_com}" = xno -o x"${with_alllang}" = xno ; then
+AC_MSG_NOTICE([Disabling COM])
+
+else
+
+case $host in
+*-*-cygwin* | *-*-mingw*)
+  COM_CYGPATH_W='cygpath -w'
+
+  if test -z "$COM_RUNTOOL" ; then
+    COM_RUNTOOL=
+  fi
+  if test -z "$COM_CC" ; then
+    AC_CHECK_PROGS(COM_CC, gcc dmc cl)
+  fi
+  if test -z "$COM_CXX" ; then
+    AC_CHECK_PROGS(COM_CXX, g++ dmc cl)
+  fi
+  if test -z "$COM_IDL" ; then
+    # There seems to be no IDL compiler in MinGW/Cygwin
+    AC_CHECK_PROGS(COM_IDL, widl midl)
+  fi
+  if test -z "$COM_RC" ; then
+    AC_CHECK_PROGS(COM_RC, windres rcc rc wrc)
+  fi
+  if test -z "$COM_CSCRIPT" ; then
+    AC_CHECK_PROGS(COM_CSCRIPT, cscript)
+  fi
+;;
+*)
+  COM_CYGPATH_W=echo
+
+  if test -z "$COM_RUNTOOL" ; then
+    AC_CHECK_PROGS(COM_RUNTOOL, wine)
+  fi
+  if test -z "$COM_CC" ; then
+    AC_CHECK_PROGS(COM_CC, winegcc i586-mingw32msvc-gcc)
+  fi
+  if test -z "$COM_CXX" ; then
+    AC_CHECK_PROGS(COM_CXX, wineg++ i586-mingw32msvc-g++)
+  fi
+  if test -z "$COM_IDL" ; then
+    AC_CHECK_PROGS(COM_IDL, widl)
+  fi
+  if test -z "$COM_RC" ; then
+    AC_CHECK_PROGS(COM_RC, wrc i586-mingw32msvc-windres)
+  fi
+  if test -z "$COM_CSCRIPT" ; then
+    AC_CHECK_PROGS(COM_CSCRIPT, cscript true)
+  fi
+ ;;
+esac
+
+if test "widl" = "$COM_IDL" ; then
+  COM_IDL_COMMON_SWITCHES='-I /usr/include/wine/windows'
+  COM_IDL_TLB_SWITCHES='-t -T'
+  COM_IDL_HEADER_SWITCHES='-h -H'
+  COM_IDL_IID_SWITCHES='-u -U'
+elif test "midl" = "$COM_IDL" ; then
+  COM_IDL_COMMON_SWITCHES='/nologo'
+  COM_IDL_TLB_SWITCHES='/tlb'
+  COM_IDL_HEADER_SWITCHES='/h'
+  COM_IDL_IID_SWITCHES='/iid'
+fi
+
+if test "rc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES='/fo '
+  COM_RC_IN_SWITCHES=
+elif test "rcc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES='-o'
+  COM_RC_IN_SWITCHES=
+elif test "windres" = "$COM_RC" -o "wrc" = "$COM_RC" ; then
+  COM_RC_OUT_SWITCHES='-o '
+  COM_RC_IN_SWITCHES=-i
+fi
+
+if test "gcc" = "$COM_CC" -o "i586-mingw32msvc-gcc" = "$COM_CC" -o "winegcc" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES='-shared -mno-cygwin'
+  COM_CC_OUT_SWITCHES='-o '
+  COM_CC_SWITCHES='-mno-cygwin -mconsole'
+  COM_LIBS='-lole32 -luuid -ladvapi32 -loleaut32'
+  if test "winegcc" = "$COM_CC" ; then
+    COM_EXEC_SUFFIX=.so
+    COM_RES_SUFFIX=.res
+  else
+    COM_EXEC_SUFFIX=
+    COM_RES_SUFFIX=_rc.o
+  fi
+elif test "dmc" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES='-WD -L/exetype:nt'
+  COM_CC_OUT_SWITCHES=-o
+  COM_CC_SWITCHES='-L/exetype:nt'
+  COM_LIBS='user32.lib kernel32.lib ole32.lib uuid.lib advapi32.lib oleaut32.lib'
+  COM_EXEC_SUFFIX=
+  COM_RES_SUFFIX=.res
+elif test "cl" = "$COM_CC" ; then
+  COM_CC_SHARED_SWITCHES=/LD
+  COM_CC_OUT_SWITCHES=/Fe
+  COM_CC_SWITCHES=
+  COM_LIBS='ole32.lib uuid.lib advapi32.lib oleaut32.lib'
+  COM_EXEC_SUFFIX=
+  COM_RES_SUFFIX=.res
+fi
+
+if test "g++" = "$COM_CXX" -o "i586-mingw32msvc-g++" = "$COM_CXX" -o "wineg++" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES='-shared -mno-cygwin'
+  COM_CXX_OUT_SWITCHES='-o '
+elif test "dmc" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES='-WD -Ae -Ar -L/exetype:nt'
+  COM_CXX_OUT_SWITCHES=-o
+elif test "cl" = "$COM_CXX" ; then
+  COM_CXX_SHARED_SWITCHES='/LD /GR /EHs'
+  COM_CXX_OUT_SWITCHES=/Fe
+fi
+
+if test "cscript" = "$COM_CSCRIPT" ; then
+  COM_CSCRIPT_SWITCHES=//Nologo
+else
+  COM_CSCRIPT_SWITCHES=
+fi
+
+fi
+
+AC_SUBST(COM_RUNTOOL)
+AC_SUBST(COM_CC)
+AC_SUBST(COM_CXX)
+AC_SUBST(COM_IDL)
+AC_SUBST(COM_RC)
+AC_SUBST(COM_CSCRIPT)
+AC_SUBST(COM_LIBS)
+AC_SUBST(COM_IDL_COMMON_SWITCHES)
+AC_SUBST(COM_IDL_TLB_SWITCHES)
+AC_SUBST(COM_IDL_HEADER_SWITCHES)
+AC_SUBST(COM_IDL_IID_SWITCHES)
+AC_SUBST(COM_RC_IN_SWITCHES)
+AC_SUBST(COM_RC_OUT_SWITCHES)
+AC_SUBST(COM_CC_SHARED_SWITCHES)
+AC_SUBST(COM_CC_OUT_SWITCHES)
+AC_SUBST(COM_CXX_SHARED_SWITCHES)
+AC_SUBST(COM_CXX_OUT_SWITCHES)
+AC_SUBST(COM_CC_SWITCHES)
+AC_SUBST(COM_EXEC_SUFFIX)
+AC_SUBST(COM_RES_SUFFIX)
+AC_SUBST(COM_CSCRIPT_SWITCHES)
+AC_SUBST(COM_CYGPATH_W)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2840,6 +2999,12 @@ if test -z "$DDEFAULTVERSION" ; then
 fi
 AC_SUBST(SKIP_D)
 
+SKIP_COM=
+if test -z "$COM_CC" || test -z "$COM_RC" || test -z "$COM_IDL" ; then
+    SKIP_COM="1"
+fi
+AC_SUBST(SKIP_COM)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2962,6 +3127,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/uffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
+    Examples/test-suite/com/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -3011,6 +3177,7 @@ test -n "$SKIP_ALLEGROCL"	|| langs="${langs}allegrocl "
 test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
 test -n "$SKIP_CHICKEN"		|| langs="${langs}chicken "
 test -n "$SKIP_CLISP"		|| langs="${langs}clisp "
+test -n "$SKIP_COM"		|| langs="${langs}com "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
