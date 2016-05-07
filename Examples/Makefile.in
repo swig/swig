@@ -1671,6 +1671,7 @@ R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
 R_CFLAGS=-fPIC
+R_OPT = --slave --quiet --no-save --no-restore
 R_SCRIPT=$(SRCDIR)$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
@@ -1703,7 +1704,7 @@ endif
 # -----------------------------------------------------------------
 
 r_run:
-	$(RUNTOOL) $(R) CMD BATCH $(R_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
