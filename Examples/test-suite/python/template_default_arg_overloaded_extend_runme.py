@@ -6,8 +6,8 @@ def check(flag):
 
 rs = ResultSet()
 
-check(rs.go_get(0, SearchPoint()) == -1)
-check(rs.go_get(0, SearchPoint(), 100) == 100)
+check(rs.go_get_method(0, SearchPoint()) == -1)
+check(rs.go_get_method(0, SearchPoint(), 100) == 100)
 
 check(rs.go_get_template(0, SearchPoint()) == -2)
 check(rs.go_get_template(0, SearchPoint(), 100) == 100)

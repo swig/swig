@@ -22,7 +22,7 @@ public:
 
 // Specialized template extend
 %extend gaia2::BaseResultSet<gaia2::SearchPoint, gaia2::DataSet> {
-  int go_get(int n, gaia2::SearchPoint, int offset = -1) {
+  int go_get_method(int n, gaia2::SearchPoint, int offset = -1) {
     return offset;
   }
   const char *over(gaia2::SearchPoint, int x = 0) {
