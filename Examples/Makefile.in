@@ -429,7 +429,7 @@ python_clean:
 ##################################################################
 
 # Make sure these locate your Octave installation
-OCTAVE        = OCTAVE_HISTFILE=/dev/null @OCTAVE@
+OCTAVE        = @OCTAVE@
 OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 
 # Extra Octave specific dynamic linking options
@@ -463,7 +463,7 @@ octave_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 octave_run:
-	$(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+	OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
