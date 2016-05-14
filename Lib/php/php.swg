@@ -429,7 +429,7 @@
 
 %typemap(directorin) SWIGTYPE
 {
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1), $&1_descriptor, 2);
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1|2);
 }
 
 %typemap(out) void "";

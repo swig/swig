@@ -174,7 +174,6 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
-	director_property \
 	director_binary_string \
 	director_classes \
 	director_classic \
@@ -189,12 +188,14 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_nested \
 	director_nspace \
 	director_nspace_director_name_collision \
-	director_nested \
 	director_overload \
 	director_overload2 \
+	director_pass_by_value \
 	director_primitives \
+	director_property \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \

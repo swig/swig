@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-05-14: wsfulton
+            Fix #434 - Passing classes by value as parameters in director methods did not create
+            a copy of the argument leading to invalid memory accesses if the object was used
+            after the upcall into the target language. Passing arguments by value shouldn't give
+            rise to these sorts of memory problems and so the objects are now copied and ownership
+            of their lifetime is controlled by the target language.
+
 2016-05-07: wsfulton
             Fix #611. Fix assertion handling defaultargs when using %extend for a template
             class and the extended methods contain default arguments.

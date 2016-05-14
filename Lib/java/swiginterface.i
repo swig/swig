@@ -31,7 +31,7 @@
     return (cPtr == 0) ? null : ($javainterfacename)new $javaclassname(cPtr, $owner);
   }
 
-%typemap(javadirectorin) CTYPE "($&javainterfacename)new $&javaclassname($jniinput, false)"
+%typemap(javadirectorin) CTYPE "($&javainterfacename)new $&javaclassname($jniinput, true)"
 %typemap(javadirectorin) CTYPE & "($javainterfacename)new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) CTYPE *, CTYPE [] "($jniinput == 0) ? null : ($javainterfacename)new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) CTYPE *const& "($jniinput == 0) ? null : ($*javainterfacename)new $*javaclassname($jniinput, false)"
@@ -40,7 +40,7 @@
 %typemap(javadirectorout) CTYPE *const& "$javacall.$*interfacename_GetInterfaceCPtr()"
 %typemap(directorin,descriptor="L$packagepath/$&javainterfacename;") CTYPE
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = &$1; %}
+   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
 %typemap(directorin,descriptor="L$packagepath/$javainterfacename;") CTYPE *, CTYPE []
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 %typemap(directorin,descriptor="L$packagepath/$javainterfacename;") CTYPE &

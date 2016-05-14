@@ -31,7 +31,7 @@
     $*csclassname ret = (cPtr == global::System.IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
     return ($*csinterfacename)ret;
   }
-%typemap(csdirectorin) CTYPE "($&csinterfacename)new $&csclassname($iminput, false)"
+%typemap(csdirectorin) CTYPE "($&csinterfacename)new $&csclassname($iminput, true)"
 %typemap(csdirectorin) CTYPE & "($csinterfacename)new $csclassname($iminput, false)"
 %typemap(csdirectorin) CTYPE *, CTYPE [] "($iminput == global::System.IntPtr.Zero) ? null : ($csinterfacename)new $csclassname($iminput, false)"
 %typemap(csdirectorin) CTYPE *const& "($iminput == global::System.IntPtr.Zero) ? null : ($*csinterfacename)new $*csclassname($iminput, false)"
