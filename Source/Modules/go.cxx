@@ -6525,8 +6525,10 @@ private:
 	break;
       }
     }
-
-    if (Getattr(undefined_types, ty) && !Getattr(defined_types, ty)) {
+    
+    String* go_type = goType(n, ty);
+    
+    if (Getattr(undefined_types, go_type) && !Getattr(defined_types, go_type)) {
       return goWrapperType(n, type, true);
     }
 
