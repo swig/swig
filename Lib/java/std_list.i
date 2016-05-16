@@ -44,7 +44,9 @@ namespace std {
 
     // Possible bug: jint != size_type
     jint size () const;
-    void sort();
+    
+    // Although sort() is nice it makes operator<() mandatory which it probably shouldn't be
+    //void sort();
 
     // Only for helping implement listIterator
     iterator begin();
