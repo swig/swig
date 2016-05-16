@@ -20,8 +20,7 @@
 namespace std {
   template <typename T> class list {
   public:
-    // This typedef is a weird hack to make stuff work
-    typedef std::list<T>::iterator iterator;
+    struct iterator;
     typedef size_t size_type;
     typedef T value_type;
     typedef T& reference;
