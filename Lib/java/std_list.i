@@ -30,7 +30,6 @@ namespace std {
     void pop_front();
     void push_back(const value_type &x);
     void push_front(const value_type &x);
-    void remove(const T &v);
 
     // Possible bug: jint != size_type
     jint size () const;
