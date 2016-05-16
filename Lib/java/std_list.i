@@ -6,6 +6,17 @@
 #include <algorithm>
 %}
 
+%javamethodmodifiers std::list::begin "private";
+%javamethodmodifiers std::list::insert "private";
+%javamethodmodifiers std::list::set "private";
+%javamethodmodifiers std::list::previous_index "private";
+%javamethodmodifiers std::list::next_index "private";
+%javamethodmodifiers std::list::previous "private";
+%javamethodmodifiers std::list::next "private";
+%javamethodmodifiers std::list::deref "private";
+%javamethodmodifiers std::list::advance "private";
+%javamethodmodifiers std::list::has_next "private";
+
 namespace std {
   template <typename T> class list {
   public:
@@ -35,7 +46,6 @@ namespace std {
     jint size () const;
     void sort();
 
-%javamethodmodifiers "private";
     // Only for helping implement listIterator
     iterator begin();
     iterator insert(iterator pos, const value_type &v);
@@ -73,7 +83,6 @@ namespace std {
         return pos != $self->end();
       }
     }
-%javamethodmodifiers "public";
   };
 }
 
