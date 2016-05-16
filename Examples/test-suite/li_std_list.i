@@ -40,9 +40,17 @@ struct Struct {
   Struct(double d) : num(d) {}
 //  bool operator==(const Struct &other) { return (num == other.num); }
 };
+
+enum Fruit {
+  APPLE,
+  BANANNA,
+  PEAR,
+  KIWI,
+};
 %}
 
 %template(StructList) std::list<Struct>;
 %template(StructPtrList) std::list<Struct*>;
 %template(StructConstPtrList) std::list<const Struct *>;
 
+%template(FruitList) std::list<Fruit>;
