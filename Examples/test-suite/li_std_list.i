@@ -42,5 +42,7 @@ struct Struct {
 };
 %}
 
-
+%template(StructList) std::list<Struct>;
+%template(StructPtrList) std::list<Struct*>;
+%template(StructConstPtrList) std::list<const Struct *>;
 
