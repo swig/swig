@@ -104,6 +104,7 @@ namespace std {
   public $javaclassname(Collection c) {
     this();
     ListIterator<JAVA_VALUE_TYPE> it = listIterator(0);
+    // We should special case the "copy constructor" here to avoid lots of cross-language calls
     for (Object o: c) {
       it.add((JAVA_VALUE_TYPE)o);
     }
@@ -167,6 +168,7 @@ namespace std {
       }
 
       public boolean hasPrevious() {
+        // This call to previousIndex() will be much slower than the hasNext() implementation, but it's simpler like this with C++ forward iterators
         return previousIndex() != -1;
       }
 
