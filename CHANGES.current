@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-05-17: aurelj
+            [Ruby] Patch #582 - add support for docstring option in %module()
+
 2016-05-14: wsfulton
             Fix #434 - Passing classes by value as parameters in director methods did not create
             a copy of the argument leading to invalid memory accesses if the object was used
