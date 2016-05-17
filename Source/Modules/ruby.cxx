@@ -2122,13 +2122,11 @@ public:
     // Generate prototype list, go to first node
     Node *sibl = n;
 
-    String* type = SwigType_str(Getattr(sibl,"type"),NULL);
-
     while (Getattr(sibl, "sym:previousSibling"))
       sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
 
     // Constructors will be treated specially
-    const bool isCtor = Cmp(Getattr(sibl,"feature:new"), "1") == 0;
+    const bool isCtor = (!Cmp(Getattr(sibl, "nodeType"), "constructor"));
     const bool isMethod = ( Cmp(Getattr(sibl, "ismember"), "1") == 0 &&
 			    (!isCtor) );
 
@@ -2150,7 +2148,11 @@ public:
     String *protoTypes = NewString("");
     do {
       Append( protoTypes, "\n\"    ");
-      if ( !isCtor )  Printv( protoTypes, type, " ", NIL );
+      if (!isCtor) {
+	SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
+	Printv(protoTypes, type, " ", NIL);
+	Delete(type);
+      }
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
@@ -2171,7 +2173,6 @@ public:
     Append(f->code, "\nreturn Qnil;\n");
 
     Delete(methodName);
-    Delete(type);
     Delete(protoTypes);
 
     Printv(f->code, "}\n", NIL);
