@@ -1011,6 +1011,8 @@ public:
 
   virtual int top(Node *n) {
 
+    String *mod_docstring = NULL;
+
     /**
      * See if any Ruby module options have been specified as options
      * to the %module directive.
@@ -1032,6 +1034,7 @@ public:
 	  multipleInheritance = true;
 	  director_multiple_inheritance = 1;
 	}
+	mod_docstring = Getattr(options, "docstring");
       }
     }
 
@@ -1146,6 +1149,15 @@ public:
 
     Printf(f_header, "#define SWIG_init    Init_%s\n", feature);
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
+
+    if (mod_docstring) {
+      if (Len(mod_docstring)) {
+	Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
+      }
+      Delete(mod_docstring);
+      mod_docstring = NULL;
+    }
+
     Printf(f_header, "static VALUE %s;\n", modvar);
 
     /* Start generating the initialization function */
