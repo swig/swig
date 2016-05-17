@@ -2136,7 +2136,11 @@ public:
     String *protoTypes = NewString("");
     do {
       Append( protoTypes, "\n\"    ");
-      if ( !isCtor )  Printv( protoTypes, SwigType_str(Getattr(sibl,"type"), NULL), " ", NIL );
+      if (!isCtor) {
+	SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
+	Printv(protoTypes, type, " ", NIL);
+	Delete(type);
+      }
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
