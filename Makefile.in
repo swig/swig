@@ -502,7 +502,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+lib-languages = gcj typemaps tcl perl5 python guile hhvm java mzscheme ruby php ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d javascript javascript/jsc \
 	javascript/v8 scilab
 
