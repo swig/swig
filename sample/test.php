@@ -9,6 +9,7 @@ print "SCONST2 = " . SCONST2 . " (should be '\"Hello World\"')\n";
 print "EXPR    = " . EXPR  . " (should be 48.5484)\n";
 print "iconst  = " . iconst . " (should be 37)\n";
 print "fconst  = " . fconst . " (should be 3.14)\n";
+print "bconst  = " . (bconst ? 'true' : 'false') . " (should be false)\n";
 
 if (EXTERN!="EXTERN") {
     print "EXTERN = " . EXTERN . " (Arg! This shouldn't print anything)\n";

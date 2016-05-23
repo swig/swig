@@ -22,5 +22,6 @@
 /* The following statements also produce constants */
 %constant int     iconst = 37;
 %constant double  fconst = 3.14;
+%constant bool    bconst = false;
 
 

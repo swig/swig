@@ -38,19 +38,6 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    filename = NewStringEmpty();
-    Printv(filename, SWIG_output_directory(), "ext_", module, ".php", NIL);
-
-    f_phpcode = NewFile(filename, "w", SWIG_output_files());
-    if (!f_phpcode) {
-      FileErrorDisplay(filename);
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    Printf(f_phpcode, "<?hh\n\n");
-
-    Swig_banner(f_phpcode);
-
     f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
@@ -65,15 +52,28 @@ public:
     Swig_register_filebyname("init", f_init);
 
     /* Output module initialization code */
-    Swig_banner(f_header);
+    Swig_banner(f_begin);
 
-    Printf(f_header, "\n");
+    Printf(f_begin, "\n");
     Printf(f_header, "#include \"hphp/runtime/ext/extension.h\"\n");
     Printf(f_header, "#include \"hphp/runtime/base/execution-context.h\"\n");
     Printf(f_header, "#include \"hphp/runtime/vm/native-data.h\"\n");
     Printf(f_header, "\n");
     Printf(f_header, "namespace HPHP {\n");
     Printf(f_header, "\n");
+
+    filename = NewStringEmpty();
+    Printv(filename, SWIG_output_directory(), "ext_", module, ".php", NIL);
+
+    f_phpcode = NewFile(filename, "w", SWIG_output_files());
+    if (!f_phpcode) {
+      FileErrorDisplay(filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    Printf(f_phpcode, "<?hh\n\n");
+
+    Swig_banner(f_phpcode);
 
     /* module extension class declaration */
     Printf(f_register, "\n\nclass %sExtension : public Extension {\n", cap_module);
@@ -130,8 +130,6 @@ public:
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Printf(f_wrappers, "const StaticString s_%s(\"%s\");\n", name, name);
-      
-      bool isChar = false;
 
       if (Strcmp(tm, "KindOfPersistentString") == 0) {
         Printf(f_register, "    Native::registerConstant<%s>(s_%s.get(), makeStaticString(%s));\n", tm, name, value);

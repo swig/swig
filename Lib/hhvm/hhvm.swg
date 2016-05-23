@@ -11,10 +11,12 @@
                    long,
                    unsigned long,
                    unsigned char,
-                   signed char,
-                   bool
+                   signed char
                    // enum SWIGTYPE
   "KindOfInt64";
+
+%typemap(consttab) bool
+  "KindOfBoolean";
 
 %typemap(consttab) float,
                    double
