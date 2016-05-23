@@ -129,14 +129,11 @@ public:
     SwigType_remember(type);
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
-      Printf(f_wrappers, "const StaticString s_%s(\"%s\");\n", name, name);
-
       if (Strcmp(tm, "KindOfPersistentString") == 0) {
-        Printf(f_register, "    Native::registerConstant<%s>(s_%s.get(), makeStaticString(%s));\n", tm, name, value);
+        Printf(f_register, "    Native::registerConstant<%s>(makeStaticString(\"%s\"), makeStaticString(%s));\n", tm, name, value);
       } else {
-        Printf(f_register, "    Native::registerConstant<%s>(s_%s.get(), %s);\n", tm, name, value);
+        Printf(f_register, "    Native::registerConstant<%s>(makeStaticString(\"%s\"), %s);\n", tm, name, value);
       }
-      
     }
 
     return SWIG_OK;

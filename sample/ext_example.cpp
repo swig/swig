@@ -7,6 +7,7 @@
  * changes to this file unless you know what you are doing--modify the SWIG
  * interface file instead.
  * ----------------------------------------------------------------------------- */
+
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -131,23 +132,12 @@
 # pragma warning disable 592
 #endif
 
-
 #include "hphp/runtime/ext/extension.h"
 #include "hphp/runtime/base/execution-context.h"
 #include "hphp/runtime/vm/native-data.h"
 
 namespace HPHP {
 
-const StaticString s_ICONST("ICONST");
-const StaticString s_FCONST("FCONST");
-const StaticString s_CCONST("CCONST");
-const StaticString s_CCONST2("CCONST2");
-const StaticString s_SCONST("SCONST");
-const StaticString s_SCONST2("SCONST2");
-const StaticString s_EXPR("EXPR");
-const StaticString s_iconst("iconst");
-const StaticString s_fconst("fconst");
-const StaticString s_bconst("bconst");
 
 
 class EXAMPLEExtension : public Extension {
@@ -155,16 +145,16 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
-    Native::registerConstant<KindOfInt64>(s_ICONST.get(), 42);
-    Native::registerConstant<KindOfDouble>(s_FCONST.get(), 2.1828);
-    Native::registerConstant<KindOfPersistentString>(s_CCONST.get(), makeStaticString('x'));
-    Native::registerConstant<KindOfPersistentString>(s_CCONST2.get(), makeStaticString('\n'));
-    Native::registerConstant<KindOfPersistentString>(s_SCONST.get(), makeStaticString("Hello World"));
-    Native::registerConstant<KindOfPersistentString>(s_SCONST2.get(), makeStaticString("\"Hello World\""));
-    Native::registerConstant<KindOfDouble>(s_EXPR.get(), 42+3*(2.1828));
-    Native::registerConstant<KindOfInt64>(s_iconst.get(), 37);
-    Native::registerConstant<KindOfDouble>(s_fconst.get(), 3.14);
-    Native::registerConstant<KindOfBoolean>(s_bconst.get(), false);
+    Native::registerConstant<KindOfInt64>(makeStaticString("ICONST"), 42);
+    Native::registerConstant<KindOfDouble>(makeStaticString("FCONST"), 2.1828);
+    Native::registerConstant<KindOfPersistentString>(makeStaticString("CCONST"), makeStaticString('x'));
+    Native::registerConstant<KindOfPersistentString>(makeStaticString("CCONST2"), makeStaticString('\n'));
+    Native::registerConstant<KindOfPersistentString>(makeStaticString("SCONST"), makeStaticString("Hello World"));
+    Native::registerConstant<KindOfPersistentString>(makeStaticString("SCONST2"), makeStaticString("\"Hello World\""));
+    Native::registerConstant<KindOfDouble>(makeStaticString("EXPR"), 42+3*(2.1828));
+    Native::registerConstant<KindOfInt64>(makeStaticString("iconst"), 37);
+    Native::registerConstant<KindOfDouble>(makeStaticString("fconst"), 3.14);
+    Native::registerConstant<KindOfBoolean>(makeStaticString("bconst"), false);
     loadSystemlib();
   }
 } s_example_extension;
