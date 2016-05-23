@@ -8,6 +8,7 @@ protected:
   File *f_wrappers;
   File *f_register;
   File *f_init;
+  File *f_phpcode;
 
 public:
   virtual void main(int argc, char *argv[]) {
@@ -28,11 +29,28 @@ public:
     String *outfile = Getattr(n,"outfile");
 
     /* Initialize I/O */
-    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    String *filename = NewStringEmpty();
+    /* TODO: Use the default outfile */
+    Printv(filename, SWIG_output_directory(), "ext_", module, ".cpp", NIL);
+    f_begin = NewFile(filename, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+
+    filename = NewStringEmpty();
+    Printv(filename, SWIG_output_directory(), "ext_", module, ".php", NIL);
+
+    f_phpcode = NewFile(filename, "w", SWIG_output_files());
+    if (!f_phpcode) {
+      FileErrorDisplay(filename);
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    Printf(f_phpcode, "<?hh\n\n");
+
+    Swig_banner(f_phpcode);
+
     f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
@@ -57,16 +75,16 @@ public:
     Printf(f_header, "namespace HPHP {\n");
     Printf(f_header, "\n");
 
-    /* Emit code for children */
-    Language::top(n);
-
     /* module extension class declaration */
-    Printf(f_register, "class %sExtension : public Extension {\n", cap_module);
+    Printf(f_register, "\n\nclass %sExtension : public Extension {\n", cap_module);
     Printf(f_register, "public:\n");
 
     /* TODO: Take extension version as input */ 
     Printf(f_register, "  %sExtension(): Extension(\"%s\", \"1.0\") {}\n\n", cap_module, module);
     Printf(f_register, "  void moduleInit() override {\n");
+
+    /* Emit code for children */
+    Language::top(n);
     
     /* All registrations go here */
 
@@ -92,6 +110,36 @@ public:
     Delete(f_register);
     Delete(f_init);
     Delete(f_begin);
+    Delete(f_phpcode); 
+
+    return SWIG_OK;
+  }
+
+  virtual int constantWrapper(Node *n) {
+    String *name = GetChar(n, "name");
+    String *iname = GetChar(n, "sym:name");
+    SwigType *type = Getattr(n, "type");
+    String *rawval = Getattr(n, "rawval");
+    String *value = rawval ? rawval : Getattr(n, "value");
+    String *tm;
+
+    if (!addSymbol(iname, n))
+      return SWIG_ERROR;
+
+    SwigType_remember(type);
+
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+      Printf(f_wrappers, "const StaticString s_%s(\"%s\");\n", name, name);
+      
+      bool isChar = false;
+
+      if (Strcmp(tm, "KindOfPersistentString") == 0) {
+        Printf(f_register, "    Native::registerConstant<%s>(s_%s.get(), makeStaticString(%s));\n", tm, name, value);
+      } else {
+        Printf(f_register, "    Native::registerConstant<%s>(s_%s.get(), %s);\n", tm, name, value);
+      }
+      
+    }
 
     return SWIG_OK;
   }
