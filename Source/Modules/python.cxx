@@ -828,7 +828,16 @@ public:
        * isn't available in python 2.4 or earlier, so we have to write some
        * code conditional on the python version.
        */
-      Printv(f_shadow, "if version_info >= (2, 6, 0):\n", NULL);
+      Printv(f_shadow, "if version_info >= (2, 7, 0):\n", NULL);
+      Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
+      Printv(f_shadow, tab8, "import importlib\n", NULL);
+      Printv(f_shadow, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printf(f_shadow, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n",
+        module);
+      Printv(f_shadow, tab8, "return importlib.import_module(mname)\n", NULL);
+      Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
+      Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
+      Printv(f_shadow, "elif version_info >= (2, 6, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab8, "import imp\n", NULL);
@@ -855,7 +864,15 @@ public:
       Printv(f_shadow, "del version_info\n", NULL);
 
       if (builtin) {
-	Printf(f_shadow, "from %s import *\n", module);
+        /*
+         * Python3 removes relative imports.  So 'from _foo import *'
+         * will only work for non-package modules.
+         */
+        Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printf(f_shadow, tab4 "from %s%s import *\n", (py3 ? "." : ""),
+          module);
+        Printv(f_shadow, "else:\n", NULL);
+        Printf(f_shadow, tab4 "from %s import *\n", module);
       }
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);

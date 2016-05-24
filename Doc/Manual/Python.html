@@ -116,6 +116,7 @@
 <li><a href="#Python_absrelimports">Absolute and relative imports</a>
 <li><a href="#Python_absimport">Enforcing absolute import semantics</a>
 <li><a href="#Python_importfrominit">Importing from __init__.py</a>
+<li><a href="#Python_implicit_namespace_packages">Implicit Namespace Packages</a>
 </ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
@@ -5865,6 +5866,82 @@ class Bar(pkg3.foo.Foo): pass
 effect (note, that the Python 2 case also needs the <tt>-relativeimport</tt>
 workaround).</p>
 
+<H3><a name="Python_implicit_namespace_packages">36.11.5 Implicit Namespace Packages</a></H3>
+
+
+<p> Python 3.3 introduced
+<a href="https://www.python.org/dev/peps/pep-0420/">PEP 0420</a> which
+implements implicit namespace packages.  In a nutshell, implicit namespace
+packages remove the requirement of an __init__.py file and allow packages
+to be split across multiple PATH elements.  For example:
+</p>
+
+<div class="diagram">
+<pre>
+/fragment1/pkg1/mod1.py
+/fragment2/pkg1/mod2.py
+/fragment3/pkg1/mod3.py
+</pre>
+</div>
+
+<p>If PYTHONPATH is set to "/fragment1:/fragment2:/fragment3", then mod1, mod2
+and mod3 will be part of pkg1.  This allows for splitting of packages into
+separate pieces.  This can be useful for SWIG generated wrappers in the
+following way.
+</p>
+
+<p> Suppose you create a SWIG wrapper for a module called robin.  The SWIG
+generated code consists of two files robin.py and _robin.so.  You wish to
+make these modules part of a subpackage (brave.sir).  With implicit namespace
+packages you can place these files in the following configurations:
+</p>
+
+<p>Using PYTHONPATH="/some/path"</p>
+<div class="diagram">
+<pre>
+/some/path/brave/sir/robin.py
+/some/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p>Using PYTHONPATH="/some/path:/some/other/path"
+
+<div class="diagram">
+<pre>
+/some/path/brave/sir/robin.py
+/some/other/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p> Finally suppose that your pure python code is stored in a .zip file or
+some other way (database, web service connection, etc).  Python can load the
+robin.py module using a custom importer.  But the _robin.so module will need
+to be located on a file system.  Implicit namespace packages make this
+possible.  For example, using PYTHONPATH="/some/path/foo.zip:/some/other/path"
+
+<p> Contents of foo.zip</p>
+<div class="diagram">
+<pre>
+brave/
+brave/sir/
+brave/sir/robin.py
+</pre>
+</div>
+
+<p> File system contents</p>
+<div class="diagram">
+<pre>
+/some/other/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p>Support for implicit namespace packages was added to python-3.3.  The
+zipimporter requires python-3.5.1 or newer to work with subpackages.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for implicit namespace packages was added in SWIG-3.0.9.
+</p>
 
 <H2><a name="Python_python3support">36.12 Python 3 Support</a></H2>
 
