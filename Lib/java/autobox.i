@@ -1,6 +1,6 @@
 // Java typemaps for autoboxing in return types of generics
 %define AUTOBOX(CTYPE, JTYPE)
-%typemap(autobox) CTYPE, const CTYPE&, CTYPE& "JTYPE"
+%typemap(autobox) CTYPE, const CTYPE& "JTYPE"
 %enddef
 AUTOBOX(double, Double)
 AUTOBOX(float, Float)
