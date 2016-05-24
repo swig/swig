@@ -147,9 +147,40 @@ public:
     String   *parmstr= ParmList_str_defaultargs(parms); // to string
     String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
     String   *action = Getattr(n,"wrap:action");
+    Parm *p;
+    String *tm;
 
-    Printf(f_wrappers,"functionWrapper   : %s\n", func);
-    Printf(f_wrappers,"           action : %s\n", action);
+    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+      Printf(f_wrappers, "%s ", tm);
+    } else {
+      Printf(f_wrappers, "%s ", type);
+    }
+
+    Printf(f_wrappers, "HHVM_FUNCTION(%s", name);
+    Printf(f_phpcode, "<<__Native>>\n");
+    Printf(f_phpcode, "function %s(", name);
+    bool prev = false;
+    for (p = parms; p; p = nextSibling(p)) {
+      String *parm_name  = Getattr(p,"name");
+      if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {
+        Printf(f_wrappers, ", %s %s", tm, parm_name);
+      }
+      if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
+        if (prev) {
+          Printf(f_phpcode, ", ");
+        }
+        prev = true;
+        Printf(f_phpcode, "%s %s", tm, parm_name);
+      }
+    }
+    Printf(f_phpcode, ") ");
+    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+      Printf(f_phpcode, ": %s", tm);
+    }
+    
+    Printf(f_wrappers, ") {\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_phpcode, ";\n\n");
     return SWIG_OK;
   }
 };

@@ -9,3 +9,9 @@
  * changes to this file unless you know what you are doing--modify the SWIG
  * interface file instead.
  * ----------------------------------------------------------------------------- */
+<<__Native>>
+function fact(int n) : int;
+
+<<__Native>>
+function my_mod(int x, int y) : int;
+

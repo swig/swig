@@ -138,6 +138,10 @@
 
 namespace HPHP {
 
+int HHVM_FUNCTION(fact, int64_t n) {
+}
+int HHVM_FUNCTION(my_mod, int64_t x, int64_t y) {
+}
 
 
 class EXAMPLEExtension : public Extension {
@@ -145,16 +149,6 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
-    Native::registerConstant<KindOfInt64>(makeStaticString("ICONST"), 42);
-    Native::registerConstant<KindOfDouble>(makeStaticString("FCONST"), 2.1828);
-    Native::registerConstant<KindOfPersistentString>(makeStaticString("CCONST"), makeStaticString('x'));
-    Native::registerConstant<KindOfPersistentString>(makeStaticString("CCONST2"), makeStaticString('\n'));
-    Native::registerConstant<KindOfPersistentString>(makeStaticString("SCONST"), makeStaticString("Hello World"));
-    Native::registerConstant<KindOfPersistentString>(makeStaticString("SCONST2"), makeStaticString("\"Hello World\""));
-    Native::registerConstant<KindOfDouble>(makeStaticString("EXPR"), 42+3*(2.1828));
-    Native::registerConstant<KindOfInt64>(makeStaticString("iconst"), 37);
-    Native::registerConstant<KindOfDouble>(makeStaticString("fconst"), 3.14);
-    Native::registerConstant<KindOfBoolean>(makeStaticString("bconst"), false);
     loadSystemlib();
   }
 } s_example_extension;
