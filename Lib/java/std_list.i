@@ -1,5 +1,5 @@
+%include <std_common.i>
 %include <autobox.i>
-%include <stdint.i>
 
 %{
 #include <list>
@@ -16,6 +16,18 @@
 %javamethodmodifiers std::list::deref "private";
 %javamethodmodifiers std::list::advance "private";
 %javamethodmodifiers std::list::has_next "private";
+
+/*
+ To conform to Java Collection interface we must return int from size().
+ Unfortunately that loses precision from the integer types commonly used in
+ C++ implementations. Since we can't overload on return values the best 
+ workaround here is to expose the real C++ size() return value to Java as a 
+ long under a different name. We can then wrap that with a Java specific 
+ size() implementation that at least checks and fails gracefully in the case
+ where we have a collection with > 2^31-1 items rather than failing 
+ mysteriously. The wrapper implementaiton is in the javacode typemap later.
+*/
+%rename(realSize) std::list::size;
 
 namespace std {
   template <typename T> class list {
@@ -41,8 +53,7 @@ namespace std {
     void push_back(const value_type &x);
     void push_front(const value_type &x);
 
-    // Possible bug: jint != size_type
-    jint size () const;
+    size_type size() const;
     
     // Although sort() is nice it makes operator<() mandatory which it probably shouldn't be
     //void sort();
@@ -107,6 +118,14 @@ namespace std {
     for (Object o: c) {
       it.add((JAVA_VALUE_TYPE)o);
     }
+  }
+
+  public int size() {
+    final long val = realSize();
+    if (val > Integer.MAX_VALUE) {
+      throw new IndexOutOfBoundsException("Size of Collection $javaclassname is not representable as int");
+    }
+    return (int)val;
   }
 
   public ListIterator<JAVA_VALUE_TYPE> listIterator(int index) {
