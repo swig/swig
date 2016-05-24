@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.9 (in progress)
 ===========================
 
+2016-05-24: mromberg
+            [Python] Add support for Python's implicit namespace packages.
+
 2016-05-23: wsfulton
             [Ruby] Fix #602 - Error handling regression of opaque pointers introduced
             in swig-3.0.8 when C functions explicitly reset a pointer using 'DATA_PTR(self) = 0'.
