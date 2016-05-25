@@ -155,7 +155,7 @@ convert_testcase = \
 	  $(MAKE) $(SCRIPTDIR)/$(py_runme); \
 	fi
 
-$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX)
+$(SCRIPTDIR)/$(SCRIPTPREFIX)%$(SCRIPTSUFFIX): $(abspath $(srcdir)/$(SCRIPTPREFIX)%$(PY2SCRIPTSUFFIX))
 	test x$< = x$@ || cp $< $@ || exit 1
 	test x$(PY3) = x || $(PY2TO3) -w $@ >/dev/null 2>&1 || exit 1
 
