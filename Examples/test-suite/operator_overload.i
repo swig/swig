@@ -93,8 +93,6 @@ see bottom for a set of possible tests
   #include <iso646.h> /* for named logical operator, eg 'operator or' */
 #endif
 
-#include <assert.h>
-
 class Op {
 public:
   int i;
@@ -249,8 +247,8 @@ public:
 
 
 %{
-
-#include <assert.h>
+#include <stdexcept>
+#define ASSERT(X) { if (!(X)) { throw std::runtime_error(#X); } }
 
 void Op::sanity_check()
 {
@@ -262,66 +260,66 @@ void Op::sanity_check()
         Op dd=d; // assignment operator
 
 	// test equality
-	assert(a!=b);
-	assert(b==c);
-	assert(a!=d);
-        assert(d==dd);
+	ASSERT(a!=b);
+	ASSERT(b==c);
+	ASSERT(a!=d);
+        ASSERT(d==dd);
 
 	// test <
-	assert(a<b);
-	assert(a<=b);
-	assert(b<=c);
-	assert(b>=c);
-	assert(b>d);
-	assert(b>=d);
+	ASSERT(a<b);
+	ASSERT(a<=b);
+	ASSERT(b<=c);
+	ASSERT(b>=c);
+	ASSERT(b>d);
+	ASSERT(b>=d);
 
 	// test +=
 	Op e=3;
 	e+=d;
-	assert(e==b);
+	ASSERT(e==b);
 	e-=c;
-	assert(e==a);
+	ASSERT(e==a);
 	e=Op(1);
 	e*=b;
-	assert(e==c);
+	ASSERT(e==c);
 	e/=d;
-	assert(e==d);
+	ASSERT(e==d);
 	e%=c;
-	assert(e==d);
+	ASSERT(e==d);
 
 	// test +
 	Op f(1),g(1);
-	assert(f+g==Op(2));
-	assert(f-g==Op(0));
-	assert(f*g==Op(1));
-	assert(f/g==Op(1));
-	assert(f%g==Op(0));
+	ASSERT(f+g==Op(2));
+	ASSERT(f-g==Op(0));
+	ASSERT(f*g==Op(1));
+	ASSERT(f/g==Op(1));
+	ASSERT(f%g==Op(0));
 
 	// test unary operators
-	assert(!a==true);
-	assert(!b==false);
-	assert(-a==a);
-	assert(-b==Op(-5));
+	ASSERT(!a==true);
+	ASSERT(!b==false);
+	ASSERT(-a==a);
+	ASSERT(-b==Op(-5));
 
 	// test []
 	Op h=3;
-	assert(h[0]==3);
-	assert(h[1]==0);
+	ASSERT(h[0]==3);
+	ASSERT(h[1]==0);
 	h[0]=2;	// set
-	assert(h[0]==2);
+	ASSERT(h[0]==2);
 	h[1]=2;	// ignored
-	assert(h[0]==2);
-	assert(h[1]==0);
+	ASSERT(h[0]==2);
+	ASSERT(h[1]==0);
 
 	// test ()
 	Op i=3;
-	assert(i()==3);
-	assert(i(1)==4);
-	assert(i(1,2)==6);
+	ASSERT(i()==3);
+	ASSERT(i(1)==4);
+	ASSERT(i(1,2)==6);
 
 	// plus add some code to check the __str__ fn
-	//assert(str(Op(1))=="Op(1)");
-	//assert(str(Op(-3))=="Op(-3)");
+	//ASSERT(str(Op(1))=="Op(1)");
+	//ASSERT(str(Op(-3))=="Op(-3)");
 
         // test ++ and --
         Op j(100);
@@ -329,36 +327,36 @@ void Op::sanity_check()
         {
           Op newOp = j++;
           int newInt = original++;
-          assert(j.i == original);
-          assert(newOp.i == newInt);
+          ASSERT(j.i == original);
+          ASSERT(newOp.i == newInt);
         }
         {
           Op newOp = j--;
           int newInt = original--;
-          assert(j.i == original);
-          assert(newOp.i == newInt);
+          ASSERT(j.i == original);
+          ASSERT(newOp.i == newInt);
         }
         {
           Op newOp = ++j;
           int newInt = ++original;
-          assert(j.i == original);
-          assert(newOp.i == newInt);
+          ASSERT(j.i == original);
+          ASSERT(newOp.i == newInt);
         }
         {
           Op newOp = --j;
           int newInt = --original;
-          assert(j.i == original);
-          assert(newOp.i == newInt);
+          ASSERT(j.i == original);
+          ASSERT(newOp.i == newInt);
         }
 
         // cast operators
         Op k=3;
         int check_k = k;
-        assert (check_k == 3);
+        ASSERT (check_k == 3);
 
         Op l=4;
         double check_l = l;
-        assert (check_l == 4);
+        ASSERT (check_l == 4);
 }
 
 %}
