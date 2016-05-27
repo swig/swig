@@ -1546,7 +1546,8 @@ public:
     /* Finish argument marshalling */
     Printf(kwargs, " NULL }");
     if (allow_kwargs) {
-      Printv(f->locals, tab4, "const char *kwnames[] = ", kwargs, ";\n", NIL);
+// kwarg support not implemented
+//      Printv(f->locals, tab4, "const char *kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     /* Trailing varargs */
@@ -3473,6 +3474,7 @@ public:
    *--------------------------------------------------------------------*/
 
   bool kwargsSupport() const {
+    // kwargs support isn't actually implemented, but changing to return false may break something now as it turns on compactdefaultargs
     return true;
   }
 };				/* class RUBY */
