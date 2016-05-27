@@ -1935,7 +1935,7 @@ else
 	fi
 	;;
     "")
-        AC_MSG_RESULT([could not find $PHP-config or obtain PHP version from it]) ;;
+        AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
     *)
 	AC_MSG_RESULT([found PHP $php_version, but only PHP 5 is supported]) ;;
     esac
