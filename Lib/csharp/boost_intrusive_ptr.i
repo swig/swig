@@ -21,7 +21,7 @@
 
 // Typemap customisations...
 
-%typemap(in, canthrow=1) CONST TYPE ($&1_type argp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
+%typemap(in, canthrow=1) CONST TYPE ($&1_type argp = 0) %{
   // plain value
   argp = (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0;
   if (!argp) {
@@ -56,7 +56,7 @@
   #endif
 %}
 
-%typemap(in, canthrow=1) CONST TYPE & (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
+%typemap(in, canthrow=1) CONST TYPE & %{
   // plain reference
   $1 = ($1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
   if(!$1) {
@@ -78,7 +78,7 @@
   #endif
 %}
 
-%typemap(in) TYPE *CONST& ($*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{ 
+%typemap(in) TYPE *CONST& ($*1_ltype temp = 0) %{
   // plain pointer by reference
   temp = ($*1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
   $1 = &temp; 
