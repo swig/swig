@@ -18,7 +18,7 @@ namespace B {
 
     struct F
     {
-        const E::D func();
+        const E::D foo();
     };
 }
 %}
