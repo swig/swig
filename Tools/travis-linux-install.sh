@@ -7,12 +7,15 @@ sudo apt-get -qq update
 
 if [[ "$CC" == gcc-5 ]]; then
 	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	sudo add-apt-repository -y ppa:boost-latest/ppa
 	sudo apt-get -qq update
-	sudo apt-get install -qq g++-5 libboost1.55-dev
-else
-	sudo apt-get -qq install libboost-dev
+	sudo apt-get install -qq g++-5
+elif [[ "$CC" == gcc-6 ]]; then
+	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	sudo apt-get -qq update
+	sudo apt-get install -qq g++-6
 fi
+
+sudo apt-get -qq install libboost-dev
 
 WITHLANG=$SWIGLANG
 

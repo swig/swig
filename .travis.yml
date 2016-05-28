@@ -9,8 +9,12 @@ matrix:
       env: SWIGLANG=
     - os: linux
       env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
     - os: linux
-      env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP14=1
+      env: SWIGLANG= SWIG_CC=gcc-6 SWIG_CXX=g++-6
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
@@ -119,10 +123,28 @@ matrix:
       env: SWIGLANG=tcl
     - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG=java SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG=python SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=csharp SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=java SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
+    - os: linux
+      env: SWIGLANG=python SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
+      sudo: required
+      dist: trusty
     - os: osx
       env: SWIGLANG= SWIG_CC=gcc-4.2 SWIG_CXX=g++-4.2
     - compiler: clang
