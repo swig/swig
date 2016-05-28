@@ -3,6 +3,9 @@
 // %constant and struct
 
 %inline %{
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4190) // warning C4190: 'result' has C-linkage specified, but returns UDT 'Type1' which is incompatible with C
+#endif
 struct Type1 {
   Type1(int val = 0) : val(val) {}
   int val;
