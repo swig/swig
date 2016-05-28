@@ -43,10 +43,19 @@ else
     if test x$zip = x; then
       zip=zip
     fi
-    extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
     echo "Checking that mingw gcc is installed/available"
-    i586-mingw32msvc-gcc --version || exit 1
-    i586-mingw32msvc-g++ --version || exit 1
+    if [[ `which i686-w64-mingw32-gcc` ]] ; then
+      extraconfigureoptions="--host=i686-w64-mingw32"
+      i686-w64-mingw32-gcc --version || exit 1
+      i686-w64-mingw32-g++ --version || exit 1
+    else [[ `which i586-mingw32msvc-gcc` ]] ; then
+      extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+      i586-mingw32msvc-gcc --version || exit 1
+      i586-mingw32msvc-g++ --version || exit 1
+    elif
+      echo "Could not detect mingw gcc - please install mingw-w64 package."
+      exit 1;
+    fi
   else 
     if test "$cygwin"; then
       echo "Building native Windows executable on Cygwin"
