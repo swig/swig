@@ -3481,7 +3481,7 @@ public:
      * type but the return-type of function. */
     if(!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
       SwigType *basetype = SwigType_base(uqtype);
-      result = (bool)SwigType_isclass(basetype);
+      result = SwigType_isclass(basetype) != 0;
       Delete(basetype);
     }
 
