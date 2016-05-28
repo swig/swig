@@ -2520,8 +2520,8 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.0* | go1 )
-      AC_MSG_RESULT([yes - minimum version is 1.1])
+    go1.1* | go1.0* | go1 )
+      AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
       ;;
