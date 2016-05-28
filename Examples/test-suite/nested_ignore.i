@@ -1,7 +1,9 @@
 %module A
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) B::C::D;
 
 %rename($ignore) B::C;
 
+%inline %{
 namespace B {
     class C {
     public:
@@ -19,3 +21,4 @@ namespace B {
         const E::D func();
     };
 }
+%}
