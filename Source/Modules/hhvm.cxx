@@ -144,43 +144,90 @@ public:
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
     ParmList *parms  = Getattr(n,"parms");
-    String   *parmstr= ParmList_str_defaultargs(parms); // to string
-    String   *func   = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-    String   *action = Getattr(n,"wrap:action");
+
     Parm *p;
     String *tm;
+    String *return_type = NewString("");
+    Wrapper *wrapper = NewWrapper();
+    bool is_void_return;
 
-    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
-      Printf(f_wrappers, "%s ", tm);
+    if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
+      Printv(wrapper->def, tm, " ");
+      Printf(return_type, "%s", tm);
     } else {
-      Printf(f_wrappers, "%s ", type);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
     }
 
-    Printf(f_wrappers, "HHVM_FUNCTION(%s", name);
+    is_void_return = (Cmp(return_type, "void") == 0);
+
+    Printf(f_register, "    HHVM_FE(%s);\n", name);
+    Printf(wrapper->def, "HHVM_FUNCTION(%s", name);
     Printf(f_phpcode, "<<__Native>>\n");
     Printf(f_phpcode, "function %s(", name);
     bool prev = false;
     for (p = parms; p; p = nextSibling(p)) {
-      String *parm_name  = Getattr(p,"name");
-      if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {
-        Printf(f_wrappers, ", %s %s", tm, parm_name);
+      String *parm_name = Getattr(p, "lname");
+      String *parm_type = Getattr(p, "type");
+      String *arg = NewString("");
+
+      Printf(arg, "t%s", parm_name);
+
+      if ((tm = Swig_typemap_lookup("hni_type", p, arg, 0))) {
+        Printf(wrapper->def, ", %s %s", tm, arg);
       }
+
       if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
         if (prev) {
           Printf(f_phpcode, ", ");
         }
         prev = true;
-        Printf(f_phpcode, "%s %s", tm, parm_name);
+        Printf(f_phpcode, "%s $%s", tm, parm_name);
+      }
+
+      if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {
+        Replaceall(tm, "$input", arg);
+        Setattr(p, "emit:input", arg);
+        Printf(wrapper->code, "%s\n", tm);
+      } else {
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(parm_type, 0));
       }
     }
+
     Printf(f_phpcode, ") ");
     if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
       Printf(f_phpcode, ": %s", tm);
     }
     
-    Printf(f_wrappers, ") {\n");
-    Printf(f_wrappers, "}\n");
+    Printf(wrapper->def, ") {");
+    emit_parameter_variables(parms, wrapper);
+
+    /* Attach the standard typemaps */
+    emit_attach_parmmaps(parms, wrapper);
+    Setattr(n, "wrap:name", name);
+
+    if (!is_void_return) {
+      Wrapper_add_localv(wrapper, "tresult", return_type, "tresult", NIL);
+    }
+
+    /* emit function call */
+    String *actioncode = emit_action(n);
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), wrapper, actioncode))) {
+      Replaceall(tm, "$result", "tresult");
+      Printf(wrapper->code, "%s\n", tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
+    }
+    emit_return_variable(n, type, wrapper);
+  
+    if (!is_void_return)
+      Printv(wrapper->code, "return tresult;\n", NIL);
+
+    Printv(wrapper->code, "}\n", NIL);
     Printf(f_phpcode, ";\n\n");
+
+    Wrapper_print(wrapper,f_wrappers);
+    DelWrapper(wrapper);
+
     return SWIG_OK;
   }
 };

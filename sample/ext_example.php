@@ -10,8 +10,11 @@
  * interface file instead.
  * ----------------------------------------------------------------------------- */
 <<__Native>>
-function fact(int n) : int;
+function fact(int $arg1) : int;
 
 <<__Native>>
-function my_mod(int x, int y) : int;
+function my_mod(int $arg1, int $arg2, string $arg3) : int;
+
+<<__Native>>
+function print_pair(int $arg1, int $arg2) : void;
 

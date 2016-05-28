@@ -135,13 +135,53 @@
 #include "hphp/runtime/ext/extension.h"
 #include "hphp/runtime/base/execution-context.h"
 #include "hphp/runtime/vm/native-data.h"
-
+#include "example.cxx"
 namespace HPHP {
 
-int HHVM_FUNCTION(fact, int64_t n) {
+int64_t HHVM_FUNCTION(fact, int64_t targ1) {
+  int arg1 ;
+  int64_t tresult ;
+  int result;
+  
+  arg1 = (int)targ1; 
+  result = (int)fact(arg1);
+  tresult = result;
+  return tresult;
 }
-int HHVM_FUNCTION(my_mod, int64_t x, int64_t y) {
+
+
+int64_t HHVM_FUNCTION(my_mod, int64_t targ1, int64_t targ2, const String& targ3) {
+  int arg1 ;
+  int arg2 ;
+  char arg3 ;
+  int64_t tresult ;
+  int result;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  {
+    if (targ3.length() != 1) {
+      throw std::runtime_error("Expecting a string of length 1.\n");
+    }
+    arg3 = targ3[0];
+  }
+  result = (int)my_mod(arg1,arg2,arg3);
+  tresult = result;
+  return tresult;
 }
+
+
+void HHVM_FUNCTION(print_pair, int64_t targ1, int64_t targ2) {
+  int arg1 ;
+  int arg2 ;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  print_pair(arg1,arg2);
+  
+}
+
+
 
 
 class EXAMPLEExtension : public Extension {
@@ -149,6 +189,9 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
+    HHVM_FE(fact);
+    HHVM_FE(my_mod);
+    HHVM_FE(print_pair);
     loadSystemlib();
   }
 } s_example_extension;
