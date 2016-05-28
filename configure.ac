@@ -2347,7 +2347,10 @@ if test "$LUABIN"; then
     AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
-    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS_SAVED=$CFLAGS
+    CFLAGS= # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
+    AC_CHECK_HEADER([lua.h],[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS=$CFLAGS_SAVED
     # if we didn't get it, going to have to look elsewhere (the hard way)
     if test -z "$LUA_OK"; then
       AC_MSG_CHECKING(for lua.h in other locations)
