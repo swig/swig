@@ -100,8 +100,8 @@ if test -f "$tarball"; then
       (cd ../.. && cp $pcre_tarball $builddir/$swigbasename)
       echo Running: Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
       ./Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
-      echo Running: ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
-      ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
+      echo Running: ./configure $extraconfigureoptions --without-alllang CFLAGS="$compileflags" CXXFLAGS="$compileflags"
+      ./configure $extraconfigureoptions --without-alllang CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."
