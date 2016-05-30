@@ -138,6 +138,12 @@
 
 namespace HPHP {
 
+
+ extern int fact(int n);
+ extern int my_mod(int x, int y, char z);
+ extern int my_mod(int x, int y);
+ extern void print_pair(int x, int y = my_mod(5, 4)); 
+ 
 int64_t HHVM_FUNCTION(fact, int64_t targ1) {
   int arg1 ;
   int64_t tresult ;
