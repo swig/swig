@@ -136,6 +136,7 @@
 #include "hphp/runtime/base/execution-context.h"
 #include "hphp/runtime/vm/native-data.h"
 #include "example.cxx"
+
 namespace HPHP {
 
 int64_t HHVM_FUNCTION(fact, int64_t targ1) {
@@ -173,7 +174,7 @@ int64_t HHVM_FUNCTION(my_mod, int64_t targ1, int64_t targ2, const String& targ3)
 
 void HHVM_FUNCTION(print_pair, int64_t targ1, int64_t targ2) {
   int arg1 ;
-  int arg2 ;
+  int arg2 = (int) my_mod(5, 4) ;
   
   arg1 = (int)targ1; 
   arg2 = (int)targ2; 

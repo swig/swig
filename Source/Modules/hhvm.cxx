@@ -169,6 +169,7 @@ public:
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *arg = NewString("");
+      String *val = Getattr(p, "value");
 
       Printf(arg, "t%s", parm_name);
 
@@ -182,6 +183,9 @@ public:
         }
         prev = true;
         Printf(f_phpcode, "%s $%s", tm, parm_name);
+        if (val) {
+          Printf(f_phpcode, " = %s", val);
+        }
       }
 
       if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {

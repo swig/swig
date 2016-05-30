@@ -13,8 +13,8 @@
 function fact(int $arg1) : int;
 
 <<__Native>>
-function my_mod(int $arg1, int $arg2, string $arg3) : int;
+function my_mod(int $arg1, int $arg2, string $arg3 = 'A') : int;
 
 <<__Native>>
-function print_pair(int $arg1, int $arg2) : void;
+function print_pair(int $arg1, int $arg2 = my_mod(5, 4)) : void;
 
