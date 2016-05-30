@@ -135,7 +135,6 @@
 #include "hphp/runtime/ext/extension.h"
 #include "hphp/runtime/base/execution-context.h"
 #include "hphp/runtime/vm/native-data.h"
-#include "example.cxx"
 
 namespace HPHP {
 
