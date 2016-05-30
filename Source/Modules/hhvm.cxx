@@ -59,8 +59,8 @@ public:
     Printf(f_header, "#include \"hphp/runtime/base/execution-context.h\"\n");
     Printf(f_header, "#include \"hphp/runtime/vm/native-data.h\"\n");
     Printf(f_header, "\n");
-    Printf(f_header, "namespace HPHP {\n");
-    Printf(f_header, "\n");
+    Printf(f_wrappers, "namespace HPHP {\n");
+    Printf(f_wrappers, "\n");
 
     filename = NewStringEmpty();
     Printv(filename, SWIG_output_directory(), "ext_", module, ".php", NIL);
