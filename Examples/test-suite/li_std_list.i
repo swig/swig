@@ -14,12 +14,8 @@ namespace std {
 
 %template(DoubleList) std::list<double>;
 
-%inline %{
-typedef float Real;
-%}
-
 namespace std {
-    %template(RealList) list<Real>;
+    %template(RealList) list<float>;
 }
 
 %inline %{
@@ -53,4 +49,4 @@ enum Fruit {
 %template(StructPtrList) std::list<Struct*>;
 %template(StructConstPtrList) std::list<const Struct *>;
 
-%template(FruitList) std::list<Fruit>;
+%template(FruitList) std::list<enum Fruit>;
