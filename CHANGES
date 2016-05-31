@@ -783,7 +783,7 @@ Version 3.0.3 (30 Dec 2014)
 2014-10-21: wsfulton
             Fix issue #242 - Use of the "kwargs" feature no longer automatically turns on the
             "compactdefaultargs" feature if the target language does not support kwargs.
-            Only Java and Ruby support kwargs, so this affects all the other languages.
+            This change affects all languages except Python and Ruby.
 
             *** POTENTIAL INCOMPATIBILITY  ***
 
