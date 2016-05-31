@@ -72,8 +72,10 @@ namespace std {
 	  return **$self;
 	}
 
-	void advance_unchecked(jint index) {
-	  std::advance(*$self, index);
+	iterator advance_unchecked(jint index) const {
+	  std::list<T>::iterator ret=*$self;
+	  std::advance(ret, index);
+	  return ret;
 	}
       }
     };
@@ -156,7 +158,7 @@ namespace std {
 
       private ListIterator<JAVA_VALUE_TYPE> init(int index) {
         pos = $javaclassname.this.begin();
-	pos.advance_unchecked(index);
+	pos = pos.advance_unchecked(index);
         return this;
       }
 
