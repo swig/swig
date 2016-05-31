@@ -29,13 +29,41 @@
 */
 %rename(realSize) std::list::size;
 
+%nodefaultctor std::list::iterator;
+
 namespace std {
   template <typename T> class list {
   public:
-    struct iterator;
     typedef size_t size_type;
     typedef T value_type;
     typedef T& reference;
+    struct iterator {
+      %extend {
+	void set_unchecked(const value_type& v) {
+	  **$self = v;
+	}
+
+	iterator next_unchecked() const {
+	  std::list<T>::iterator ret=*$self;
+	  ++ret;
+	  return ret;
+	}
+
+	iterator previous_unchecked() const {
+	  std::list<T>::iterator ret=*$self;
+	  --ret;
+	  return ret;
+	}
+
+	value_type deref_unchecked() const {
+	  return **$self;
+	}
+
+	void advance_unchecked(jint index) {
+	  std::advance(*$self, index);
+	}
+      }
+    };
 
     void assign(size_type n, const value_type &val);
 
@@ -58,37 +86,17 @@ namespace std {
     // Although sort() is nice it makes operator<() mandatory which it probably shouldn't be
     //void sort();
 
-    // Only for helping implement listIterator
     iterator begin();
+    iterator end();
     iterator insert(iterator pos, const value_type &v);
 
     %extend {
-      static void set(iterator pos, const value_type& v) {
-        *pos = v;
-      }
-
       jint previous_index(const iterator& pos) const {
         return pos == self->begin() ? -1 : std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos));
       }
 
       jint next_index(const iterator& pos) const {
         return pos == self->end() ? self->size() : std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos));
-      }
-
-      static iterator next(iterator pos) {
-        return ++pos;
-      }
-
-      static iterator previous(iterator pos) {
-        return --pos;
-      }
-
-      static value_type deref(const iterator& pos) {
-        return *pos;
-      }
-
-      static void advance(iterator& pos, jint index) {
-        std::advance(pos, index);
       }
 
       bool has_next(const iterator& pos) const {
@@ -108,7 +116,7 @@ namespace std {
 %typemap(javabase) std::list "AbstractSequentialList<$typemap(autobox,$1_basetype::value_type)>"
 
 #define JAVA_VALUE_TYPE $typemap(autobox,$1_basetype::value_type)
-#define JAVA_ITERATOR_TYPE $typemap(jstype, $1_basetype::iterator)
+#define JAVA_ITERATOR_TYPE iterator
 
 %typemap(javacode,noblock=1) std::list {
   public $javaclassname(Collection c) {
@@ -135,7 +143,7 @@ namespace std {
 
       private ListIterator<JAVA_VALUE_TYPE> init(int index) {
         pos = $javaclassname.this.begin();
-        $javaclassname.advance(pos, index);
+	pos.advance_unchecked(index);
         return this;
       }
 
@@ -148,7 +156,7 @@ namespace std {
         if (null==last) {
           throw new IllegalStateException();
         }
-        $javaclassname.set(last, v);
+        last.set_unchecked(v);
       }
 
       public void remove() {
@@ -172,8 +180,8 @@ namespace std {
           throw new NoSuchElementException();
         }
         last = pos;
-        pos = $javaclassname.previous(pos);
-        return $javaclassname.deref(last);
+        pos = pos.previous_unchecked();
+        return last.deref_unchecked();
       }
 
       public JAVA_VALUE_TYPE next() {
@@ -181,8 +189,8 @@ namespace std {
           throw new NoSuchElementException();
         }
         last = pos;
-        pos = $javaclassname.next(pos);  
-        return $javaclassname.deref(last);
+        pos = pos.next_unchecked();  
+        return last.deref_unchecked();
       }
 
       public boolean hasPrevious() {
