@@ -40,6 +40,16 @@ namespace std {
     typedef size_t size_type;
     typedef T value_type;
     typedef T& reference;
+
+    /*
+     * We'd actually be better off having the nested class *not* be static in the wrapper
+     * output, but this doesn't actually remove the $static from the nested class still.
+     * (This would allow us to somewhat simplify the implementation of the ListIterator
+     * interface and give "natural" semantics to Java users of the C++ iterator)
+     */
+    //%typemap(javaclassmodifiers) iterator "public class"
+    //%typemap(javainterfaces) iterator "ListIterator<$typemap(autobox,$1_basetype::value_type)>"
+
     struct iterator {
       %extend {
 	void set_unchecked(const value_type& v) {
