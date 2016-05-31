@@ -22,12 +22,24 @@
  Unfortunately that loses precision from the integer types commonly used in
  C++ implementations. Since we can't overload on return values the best 
  workaround here is to expose the real C++ size() return value to Java as a 
- long under a different name. We can then wrap that with a Java specific 
- size() implementation that at least checks and fails gracefully in the case
- where we have a collection with > 2^31-1 items rather than failing 
- mysteriously. The wrapper implementaiton is in the javacode typemap later.
+ long and use the javaout typemap to validate. We can then at least fails 
+ gracefully in the case where we have a collection with > 2^31-1 items rather 
+ than failing mysteriously.
+
+ The use of SWIG_list_size_type here allows us to selectively %apply this to 
+ only the cases where we have to conform to the Java interface requirement,
+ without interfering with other size_type usage. The intention is that 
+ SWIG_list_size_type is both reserved and unique. (Perhaps it could live in 
+ std_common.i later on?)
 */
-%rename(realSize) std::list::size;
+%typemap(jstype) SWIG_list_size_type "int";
+%typemap(javaout) SWIG_list_size_type {
+  final long result = $jnicall;
+  if (result > Integer.MAX_VALUE) {
+    throw new IndexOutOfBoundsException("Size of Collection is not representable as int");
+  }
+  return (int)result;
+}
 
 // Match Java style better:
 %rename(Iterator) std::list::iterator;
@@ -40,6 +52,7 @@ namespace std {
     typedef size_t size_type;
     typedef T value_type;
     typedef T& reference;
+    %apply SWIG_list_size_type { size_type next_index, size_type previous_index, size_type size };
 
     /*
      * We'd actually be better off having the nested class *not* be static in the wrapper
@@ -72,7 +85,7 @@ namespace std {
 	  return **$self;
 	}
 
-	iterator advance_unchecked(jint index) const {
+	iterator advance_unchecked(const size_type index) const {
 	  std::list<T>::iterator ret=*$self;
 	  std::advance(ret, index);
 	  return ret;
@@ -106,11 +119,11 @@ namespace std {
     iterator insert(iterator pos, const value_type &v);
 
     %extend {
-      jint previous_index(const iterator& pos) const {
+      size_type previous_index(const iterator& pos) const {
         return pos == self->begin() ? -1 : std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos));
       }
 
-      jint next_index(const iterator& pos) const {
+      size_type next_index(const iterator& pos) const {
         return pos == self->end() ? self->size() : std::distance(self->begin(), static_cast<std::list<T>::const_iterator>(pos));
       }
 
@@ -141,14 +154,6 @@ namespace std {
     for (Object o: c) {
       it.add((JAVA_VALUE_TYPE)o);
     }
-  }
-
-  public int size() {
-    final long val = realSize();
-    if (val > Integer.MAX_VALUE) {
-      throw new IndexOutOfBoundsException("Size of Collection $javaclassname is not representable as int");
-    }
-    return (int)val;
   }
 
   public ListIterator<JAVA_VALUE_TYPE> listIterator(int index) {
