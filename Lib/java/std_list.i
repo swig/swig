@@ -29,6 +29,9 @@
 */
 %rename(realSize) std::list::size;
 
+// Match Java style better:
+%rename(Iterator) std::list::iterator;
+
 %nodefaultctor std::list::iterator;
 
 namespace std {
@@ -116,7 +119,7 @@ namespace std {
 %typemap(javabase) std::list "AbstractSequentialList<$typemap(autobox,$1_basetype::value_type)>"
 
 #define JAVA_VALUE_TYPE $typemap(autobox,$1_basetype::value_type)
-#define JAVA_ITERATOR_TYPE iterator
+#define JAVA_ITERATOR_TYPE Iterator
 
 %typemap(javacode,noblock=1) std::list {
   public $javaclassname(Collection c) {
