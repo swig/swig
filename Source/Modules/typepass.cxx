@@ -224,7 +224,7 @@ class TypePass:private Dispatcher {
 	  if (tname)
 	    Delete(tname);
 	  if (!bcls) {
-	    if (!clsforward) {
+	    if (!clsforward && !GetFlag(cls, "feature:ignore")) {
 	      if (ispublic && !Getmeta(bname, "already_warned")) {
 		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname, '<')) {
@@ -503,8 +503,7 @@ class TypePass:private Dispatcher {
     /* Inherit type definitions into the class */
     if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
       (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
-      if (!GetFlag(n, "feature:ignore"))
-	cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
+      cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
     inclass = n;

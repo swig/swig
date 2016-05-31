@@ -5,3 +5,6 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.10 (in progress)
 ============================
 
+2016-05-31: wsfulton
+            Fix #690 - Smart pointer to %ignored class doesn't expose inherited methods.
+            Regression introduced in swig-3.0.9.
