@@ -7,6 +7,7 @@ protected:
   File *f_header;
   File *f_wrappers;
   File *f_register;
+  File *f_link;
   File *f_init;
   File *f_phpcode;
 
@@ -43,6 +44,7 @@ public:
     f_header = NewString("");
     f_wrappers = NewString("");
     f_register = NewString("");
+    f_link = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("begin", f_begin);
@@ -100,6 +102,7 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
     Dump(f_wrappers, f_begin);
+    Dump(f_link, f_begin);
     Dump(f_register, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
 
@@ -108,6 +111,7 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_register);
+    Delete(f_link);
     Delete(f_init);
     Delete(f_begin);
     Delete(f_phpcode); 
@@ -139,20 +143,14 @@ public:
     return SWIG_OK;
   }
 
-  virtual int functionWrapper(Node *n) {
-    /* Get some useful attributes of this function */
+  void create_command(Node *n) {
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
     ParmList *parms  = Getattr(n,"parms");
-
-    Parm *p;
-    String *tm;
-    String *return_type = NewString("");
-    Wrapper *wrapper = NewWrapper();
+    String *return_type = NewString(""), *tm;
     bool is_void_return;
-
     if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
-      Printv(wrapper->def, tm, " ");
+      Printv(f_link, tm, " ");
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
@@ -161,20 +159,17 @@ public:
     is_void_return = (Cmp(return_type, "void") == 0);
 
     Printf(f_register, "    HHVM_FE(%s);\n", name);
-    Printf(wrapper->def, "HHVM_FUNCTION(%s", name);
+    Printf(f_link, "HHVM_FUNCTION(%s", name);
     Printf(f_phpcode, "<<__Native>>\n");
     Printf(f_phpcode, "function %s(", name);
     bool prev = false;
-    for (p = parms; p; p = nextSibling(p)) {
+    for (Parm *p = parms; p; p = nextSibling(p)) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
-      String *arg = NewString("");
       String *val = Getattr(p, "value");
 
-      Printf(arg, "t%s", parm_name);
-
-      if ((tm = Swig_typemap_lookup("hni_type", p, arg, 0))) {
-        Printf(wrapper->def, ", %s %s", tm, arg);
+      if ((tm = Swig_typemap_lookup("hni_type", p, parm_name, 0))) {
+        Printf(f_link, ", %s %s", tm, parm_name);
       }
 
       if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
@@ -187,6 +182,74 @@ public:
           Printf(f_phpcode, " = %s", val);
         }
       }
+    }
+
+    Printf(f_phpcode, ") ");
+    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+      Printf(f_phpcode, ": %s", tm);
+    }
+    
+    Printf(f_link, ") {\n");
+    Printf(f_phpcode, ";\n\n");
+  }
+
+  virtual int functionWrapper(Node *n) {
+    /* Get some useful attributes of this function */
+    String   *name   = Getattr(n,"sym:name");
+    SwigType *type   = Getattr(n,"type");
+    ParmList *parms  = Getattr(n,"parms");
+
+    Parm *p;
+    String *tm, *wname;
+    String *return_type = NewString("");
+    String *call_parms = NewString("");
+    Wrapper *wrapper = NewWrapper();
+    bool is_void_return;
+    bool overloaded = false;
+    String *overname;
+
+    // Test for overloading;
+    if (Getattr(n, "sym:overloaded")) {
+      overloaded = true;
+      overname = Getattr(n, "sym:overname");
+    } else {
+      if (!addSymbol(name, n))
+        return SWIG_ERROR;
+    }
+
+    wname = Swig_name_wrapper(name);
+    if (overloaded) {
+      Printf(wname, "%s", overname);
+    }
+
+    if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
+      Printv(wrapper->def, tm, " ");
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
+    }
+
+    Printf(wrapper->def, "%s(", wname);
+
+    is_void_return = (Cmp(return_type, "void") == 0);
+    bool prev = false;
+    for (p = parms; p; p = nextSibling(p)) {
+      String *parm_name = Getattr(p, "lname");
+      String *parm_type = Getattr(p, "type");
+      String *arg = NewString("");
+      String *val = Getattr(p, "value");
+
+      Printf(arg, "t%s", parm_name);
+
+      if ((tm = Swig_typemap_lookup("hni_type", p, arg, 0))) {
+        if (prev) {
+          Printf(wrapper->def, ", ");
+          Printf(call_parms, ", ");
+        }
+        Printf(wrapper->def, "%s %s", tm, arg);
+        Printf(call_parms, "%s", parm_name);
+        prev = true;
+      }
 
       if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {
         Replaceall(tm, "$input", arg);
@@ -196,17 +259,20 @@ public:
         Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(parm_type, 0));
       }
     }
-
-    Printf(f_phpcode, ") ");
-    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
-      Printf(f_phpcode, ": %s", tm);
-    }
     
     Printf(wrapper->def, ") {");
     emit_parameter_variables(parms, wrapper);
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(parms, wrapper);
+    if (!overloaded) {
+      create_command(n);
+      Printf(f_link, "  ");
+      if (!is_void_return) {
+        Printf(f_link, "return ");
+      }
+      Printf(f_link, "%s(%s);\n}\n\n", wname, call_parms);
+    }
     Setattr(n, "wrap:name", name);
 
     if (!is_void_return) {
@@ -227,7 +293,6 @@ public:
       Printv(wrapper->code, "return tresult;\n", NIL);
 
     Printv(wrapper->code, "}\n", NIL);
-    Printf(f_phpcode, ";\n\n");
 
     Wrapper_print(wrapper,f_wrappers);
     DelWrapper(wrapper);

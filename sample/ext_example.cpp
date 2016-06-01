@@ -140,11 +140,11 @@
  extern int fact(int n);
  extern int my_mod(int x, int y, char z);
  extern int my_mod(int x, int y);
- extern void print_pair(int x, int y = my_mod(5, 4)); 
+ extern void print_pair(int x, int y); 
  
 namespace HPHP {
 
-int64_t HHVM_FUNCTION(fact, int64_t targ1) {
+int64_t _wrap_fact(int64_t targ1) {
   int arg1 ;
   int64_t tresult ;
   int result;
@@ -156,7 +156,7 @@ int64_t HHVM_FUNCTION(fact, int64_t targ1) {
 }
 
 
-int64_t HHVM_FUNCTION(my_mod, int64_t targ1, int64_t targ2, const String& targ3) {
+int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) {
   int arg1 ;
   int arg2 ;
   char arg3 ;
@@ -177,9 +177,9 @@ int64_t HHVM_FUNCTION(my_mod, int64_t targ1, int64_t targ2, const String& targ3)
 }
 
 
-void HHVM_FUNCTION(print_pair, int64_t targ1, int64_t targ2) {
+void _wrap_print_pair(int64_t targ1, int64_t targ2) {
   int arg1 ;
-  int arg2 = (int) my_mod(5, 4) ;
+  int arg2 ;
   
   arg1 = (int)targ1; 
   arg2 = (int)targ2; 
@@ -187,6 +187,14 @@ void HHVM_FUNCTION(print_pair, int64_t targ1, int64_t targ2) {
   
 }
 
+
+int64_t HHVM_FUNCTION(fact, int64_t arg1) {
+  return _wrap_fact(arg1);
+}
+
+void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
+  _wrap_print_pair(arg1, arg2);
+}
 
 
 
@@ -196,7 +204,6 @@ public:
 
   void moduleInit() override {
     HHVM_FE(fact);
-    HHVM_FE(my_mod);
     HHVM_FE(print_pair);
     loadSystemlib();
   }
