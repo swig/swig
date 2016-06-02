@@ -8,6 +8,30 @@
  * interface file instead.
  * ----------------------------------------------------------------------------- */
 
+
+#ifdef __cplusplus
+/* SwigValueWrapper is described in swig.swg */
+template<typename T> class SwigValueWrapper {
+  struct SwigMovePointer {
+    T *ptr;
+    SwigMovePointer(T *p) : ptr(p) { }
+    ~SwigMovePointer() { delete ptr; }
+    SwigMovePointer& operator=(SwigMovePointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
+  } pointer;
+  SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
+  SwigValueWrapper(const SwigValueWrapper<T>& rhs);
+public:
+  SwigValueWrapper() : pointer(0) { }
+  SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
+  operator T&() const { return *pointer.ptr; }
+  T *operator&() { return pointer.ptr; }
+};
+
+template <typename T> T SwigValueInit() {
+  return T();
+}
+#endif
+
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -177,6 +201,20 @@ int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) 
 }
 
 
+int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
+  int arg1 ;
+  int arg2 ;
+  int64_t tresult ;
+  int result;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  result = (int)my_mod(arg1,arg2);
+  tresult = result;
+  return tresult;
+}
+
+
 void _wrap_print_pair(int64_t targ1, int64_t targ2) {
   int arg1 ;
   int arg2 ;
@@ -192,6 +230,26 @@ int64_t HHVM_FUNCTION(fact, int64_t arg1) {
   return _wrap_fact(arg1);
 }
 
+int64_t HHVM_FUNCTION(my_mod, int64_t arg1, int64_t arg2) {
+
+int argc;
+zval **argv[1];
+
+argc = ZEND_NUM_ARGS();
+zend_get_parameters_array_ex(argc,argv);
+if (argc == 0) {
+  _wrap_my_mod__SWIG_0(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;
+}
+if (argc == 0) {
+  _wrap_my_mod__SWIG_1(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;
+}
+
+SWIG_ErrorCode() = E_ERROR;
+SWIG_ErrorMsg() = "No matching function for overloaded 'my_mod'";
+SWIG_FAIL(TSRMLS_C);
+}
+
+
 void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
   _wrap_print_pair(arg1, arg2);
 }
@@ -204,6 +262,7 @@ public:
 
   void moduleInit() override {
     HHVM_FE(fact);
+    HHVM_FE(my_mod);
     HHVM_FE(print_pair);
     loadSystemlib();
   }

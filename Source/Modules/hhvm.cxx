@@ -19,6 +19,7 @@ public:
     Preprocessor_define("SWIGHHVM 1", 0);
     SWIG_config_file("hhvm.swg");
     SWIG_typemap_lang("hhvm");
+    allow_overloading();
   }
 
   virtual int top(Node *n) {
@@ -193,6 +194,48 @@ public:
     Printf(f_phpcode, ";\n\n");
   }
 
+  void dispatchFunction(Node *n) {
+    /* Last node in overloaded chain */
+
+    int maxargs;
+    String *tmp = NewStringEmpty();
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+
+    /* Generate a dispatch wrapper for all overloaded functions */
+
+    Wrapper *wrapper = NewWrapper();
+    String *name = Getattr(n, "sym:name");
+    String *wname = Swig_name_wrapper(name);
+
+    create_command(n);
+    // Printv(wrapper->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
+
+    Wrapper_add_local(wrapper, "argc", "int argc");
+
+    Printf(tmp, "zval **argv[%d]", maxargs);
+    Wrapper_add_local(wrapper, "argv", tmp);
+
+    Printf(wrapper->code, "argc = ZEND_NUM_ARGS();\n");
+
+    Printf(wrapper->code, "zend_get_parameters_array_ex(argc,argv);\n");
+
+    Replaceall(dispatch, "$args", "self,args");
+
+    Printv(wrapper->code, dispatch, "\n", NIL);
+
+    Printf(wrapper->code, "SWIG_ErrorCode() = E_ERROR;\n");
+    Printf(wrapper->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", name);
+    Printv(wrapper->code, "SWIG_FAIL(TSRMLS_C);\n", NIL);
+
+    Printv(wrapper->code, "}\n", NIL);
+    Wrapper_print(wrapper, f_link);
+
+    DelWrapper(wrapper);
+    Delete(dispatch);
+    Delete(tmp);
+    Delete(wname);
+  }
+
   virtual int functionWrapper(Node *n) {
     /* Get some useful attributes of this function */
     String   *name   = Getattr(n,"sym:name");
@@ -273,7 +316,7 @@ public:
       }
       Printf(f_link, "%s(%s);\n}\n\n", wname, call_parms);
     }
-    Setattr(n, "wrap:name", name);
+    Setattr(n, "wrap:name", wname);
 
     if (!is_void_return) {
       Wrapper_add_localv(wrapper, "tresult", return_type, "tresult", NIL);
@@ -296,6 +339,10 @@ public:
 
     Wrapper_print(wrapper,f_wrappers);
     DelWrapper(wrapper);
+
+    if (overloaded && !Getattr(n, "sym:nextSibling")) {
+      dispatchFunction(n);
+    }
 
     return SWIG_OK;
   }
