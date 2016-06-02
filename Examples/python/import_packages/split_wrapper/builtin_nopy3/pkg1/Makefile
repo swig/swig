@@ -6,6 +6,7 @@ LIBS       =
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' \
+        SWIGPYTHON='$$(SWIG) -python' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='foo' \
         INTERFACE='foo.i' python_cpp
