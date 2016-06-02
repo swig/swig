@@ -199,7 +199,7 @@ public:
 
     int maxargs;
     String *tmp = NewStringEmpty();
-    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "%s($commaargs);", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -207,19 +207,12 @@ public:
     String *name = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(name);
 
-    create_command(n);
-    // Printv(wrapper->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
+    Printf(f_phpcode, "<<__Native>>\n");
+    Printf(f_phpcode, "function %s(...$argv): mixed;", name);
+    Printv(wrapper->def, "Variant HHVM_FUNCTION(", name, ", const Array& argv) {\n", NIL);
 
     Wrapper_add_local(wrapper, "argc", "int argc");
-
-    Printf(tmp, "zval **argv[%d]", maxargs);
-    Wrapper_add_local(wrapper, "argv", tmp);
-
-    Printf(wrapper->code, "argc = ZEND_NUM_ARGS();\n");
-
-    Printf(wrapper->code, "zend_get_parameters_array_ex(argc,argv);\n");
-
-    Replaceall(dispatch, "$args", "self,args");
+    Printf(wrapper->code, "argc = argv.size();\n");
 
     Printv(wrapper->code, dispatch, "\n", NIL);
 
@@ -317,6 +310,9 @@ public:
       Printf(f_link, "%s(%s);\n}\n\n", wname, call_parms);
     }
     Setattr(n, "wrap:name", wname);
+
+    // wrap:parms is used by overload resolution.
+    Setattr(n, "wrap:parms", parms);
 
     if (!is_void_return) {
       Wrapper_add_localv(wrapper, "tresult", return_type, "tresult", NIL);

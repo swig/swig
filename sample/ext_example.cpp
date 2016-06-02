@@ -230,23 +230,22 @@ int64_t HHVM_FUNCTION(fact, int64_t arg1) {
   return _wrap_fact(arg1);
 }
 
-int64_t HHVM_FUNCTION(my_mod, int64_t arg1, int64_t arg2) {
-
-int argc;
-zval **argv[1];
-
-argc = ZEND_NUM_ARGS();
-zend_get_parameters_array_ex(argc,argv);
-if (argc == 0) {
-  _wrap_my_mod__SWIG_0(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;
-}
-if (argc == 0) {
-  _wrap_my_mod__SWIG_1(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;
-}
-
-SWIG_ErrorCode() = E_ERROR;
-SWIG_ErrorMsg() = "No matching function for overloaded 'my_mod'";
-SWIG_FAIL(TSRMLS_C);
+Variant HHVM_FUNCTION(my_mod, const Array& argv) {
+  int argc;
+  
+  argc = argv.size();
+  if (argc == 2) {
+    int _v;
+    _wrap_my_mod__SWIG_1(, argv[0], argv[1]);
+  }
+  if (argc == 3) {
+    int _v;
+    _wrap_my_mod__SWIG_0(, argv[0], argv[1], argv[2]);
+  }
+  
+  SWIG_ErrorCode() = E_ERROR;
+  SWIG_ErrorMsg() = "No matching function for overloaded 'my_mod'";
+  SWIG_FAIL(TSRMLS_C);
 }
 
 
@@ -262,7 +261,6 @@ public:
 
   void moduleInit() override {
     HHVM_FE(fact);
-    HHVM_FE(my_mod);
     HHVM_FE(print_pair);
     loadSystemlib();
   }
