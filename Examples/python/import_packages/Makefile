@@ -11,13 +11,14 @@ import_packages_subdirs = \
 	relativeimport1 \
 	relativeimport2 \
 	relativeimport3 \
-	split_modules
+	split_modules \
+        namespace_pkg
 
-#	cd split_modules && $(MAKE) check
+
 check: build
-	echo "SRCDIR=$(SRCDIR)"
 	if test "x$(SRCDIR)" != x; then \
-		for file in `cd $(SRCDIR) && find . -type f -name __init__.py`; do \
+		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
+                        mkdir -p `dirname $$file`; \
 			cp "${SRCDIR}$$file" "$$file" || exit 1; \
 		done; \
 	fi; \
