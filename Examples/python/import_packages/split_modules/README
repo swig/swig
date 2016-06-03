@@ -12,3 +12,6 @@ vanilla        # "plane Jane" module both halves in pkg1
 vanilla_split  # python 1/2 in pkg1 C 1/2 in global namespace
 builtin        # both halves in pkg1 (-builtin passed to swig)
 builtin        # python 1/2 in pkg1 C 1/2 in global namespace (with -builtin)
+
+  All of the _nopy3 tests are the same as the above except swig will not
+use -py3 for python3.
