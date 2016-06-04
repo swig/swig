@@ -1,7 +1,7 @@
 TOP        = ../../..
 LIBS       =
 
-subdirs = builtin vanilla builtin_split vanilla_split
+subdirs = vanilla vanilla_split
 
 
 check: build

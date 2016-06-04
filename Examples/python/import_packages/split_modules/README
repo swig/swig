@@ -10,6 +10,3 @@ additional code in the python wrappers.
 
 vanilla        # "plane Jane" module both halves in pkg1
 vanilla_split  # python 1/2 in pkg1 C 1/2 in global namespace
-builtin        # both halves in pkg1 (-builtin passed to swig)
-builtin        # python 1/2 in pkg1 C 1/2 in global namespace (with -builtin)
-
