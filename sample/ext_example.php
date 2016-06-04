@@ -13,6 +13,11 @@
 function fact(int $arg1) : int;
 
 <<__Native>>
-function my_mod(...$argv): mixed;<<__Native>>
+function my_mod(...$argv): mixed;
+
+<<__Native>>
 function print_pair(int $arg1, int $arg2) : void;
+
+<<__Native>>
+function overprint(...$argv): mixed;
 

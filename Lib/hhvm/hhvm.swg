@@ -139,3 +139,29 @@
 
 %typemap(php_type) void
   "void";
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+  int, short, long,
+  unsigned int, unsigned short, unsigned long,
+  signed char, unsigned char,
+  long long, unsigned long long,
+  const int &, const short &, const long &,
+  const unsigned int &, const unsigned short &, const unsigned long &,
+  const long long &, const unsigned long long &,
+  enum SWIGTYPE
+  "int64_t $result;\n _v = $input.isInteger();\n if (_v) $result = $input.toInt64Val();\n"
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+  float, double,
+  const float &, const double &
+  "double $result;\n _v = $input.isDouble();\n if (_v) $result = $input.toDouble();\n"
+
+%typecheck(SWIG_TYPECHECK_CHAR) char 
+  "String $result;\n _v = ($input.isString() && $input.toString().length() == 1);\n if (_v) $result = $input.toString();\n"
+
+%typecheck(SWIG_TYPECHECK_STRING) char * 
+  "String $result;\n _v = $input.isString();\n if (_v) $result = $input.toString();\n"
+
+%typecheck(SWIG_TYPECHECK_BOOL)
+bool, const bool &
+  "bool $result;\n _v = $input.isBoolean();\n if (_v) $result = $input.toBoolean();\n"

@@ -194,12 +194,150 @@ public:
     Printf(f_phpcode, ";\n\n");
   }
 
+  static bool hhvm_print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
+    char tmp[256], rtmp[256];
+    sprintf(tmp, Char(argv_template_string), j);
+    sprintf(rtmp, "targ%d", j);
+    String *tm = Getattr(pj, "tmap:typecheck");
+    if (tm) {
+      tm = Copy(tm);
+      Replaceid(tm, Getattr(pj, "lname"), "_v");
+      String *conv = Getattr(pj, "implicitconv");
+      if (conv && !implicitconvtypecheckoff) {
+        Replaceall(tm, "$implicitconv", conv);
+      } else {
+        Replaceall(tm, "$implicitconv", "0");
+      }
+      Replaceall(tm, "$input", tmp);
+      Replaceall(tm, "$result", rtmp);
+      Printv(f, tm, "\n", NIL);
+      Delete(tm);
+      return true;
+    } else
+      return false;
+  }
+
+  String *hhvm_overload_dispatch(Node *n) {
+    int i, j;
+
+    int maxargs = 1;
+
+    String *f = NewString("");
+
+    /* Get a list of methods ranked by precedence values and argument count */
+    List *dispatch = Swig_overload_rank(n, true);
+    int nfunc = Len(dispatch);
+    bool is_void_return;
+
+    /* Loop over the functions */
+
+    for (i = 0; i < nfunc; i++) {
+      Node *ni = Getitem(dispatch, i);
+      Parm *pi = Getattr(ni, "wrap:parms");
+      SwigType *return_type = SwigType_namestr(Getattr(n,"type"));
+      bool implicitconvtypecheckoff = GetFlag(ni, "implicitconvtypecheckoff") != 0;
+      int num_required = emit_num_required(pi);
+      int num_arguments = emit_num_arguments(pi);
+      if (num_arguments > maxargs)
+        maxargs = num_arguments;
+
+      if (num_required == num_arguments) {
+        Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
+      } else {
+        Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
+      }
+
+      if (num_arguments) {
+        Printf(f, "bool _v;\n");
+      }
+
+      int num_braces = 0;
+      bool prev_comma;
+      j = 0;
+      Parm *pj = pi;
+      while (pj) {
+        if (checkAttribute(pj, "tmap:in:numinputs", "0")) {
+        pj = Getattr(pj, "tmap:in:next");
+          continue;
+      }
+      if (j >= num_required) {
+        String *lfmt = NewString("");
+        prev_comma = false;
+        is_void_return = (Cmp(return_type, "void") == 0);
+        if (!is_void_return) {
+          Printf(lfmt, "return ");
+        }
+        Printf(lfmt, "%%s(");
+        for (int it = 0; it < num_arguments; it++) {
+          if (prev_comma) {
+            Printf(lfmt, ", ", it);
+          }
+          prev_comma = true;
+          Printf(lfmt, "targ%d", it);
+        }
+        Printf(lfmt, ");\n");
+        if (is_void_return) {
+          Printf(lfmt, "return Variant();\n");
+        }
+        Printf(f, "if (%s <= %d) {\n", argc_template_string, j);
+        Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
+        Printf(f, "}\n");
+        Delete(lfmt);
+      }
+      if (hhvm_print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj, implicitconvtypecheckoff)) {
+        Printf(f, "if (_v) {\n");
+        num_braces++;
+      }
+      if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
+        /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+        Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
+        "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
+        Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
+      }
+      Parm *pk = Getattr(pj, "tmap:in:next");
+      if (pk)
+        pj = pk;
+      else
+        pj = nextSibling(pj);
+        j++;
+      }
+      String *lfmt = NewString("");
+      is_void_return = (Cmp(return_type, "void") == 0);
+      if (!is_void_return) {
+        Printf(lfmt, "return Variant();\n");
+      }
+      Printf(lfmt, "%%s(");
+      prev_comma = false;
+      for (int it = 0; it < num_arguments; it++) {
+        if (prev_comma) {
+          Printf(lfmt, ", ", it);
+        }
+        prev_comma = true;
+        Printf(lfmt, "targ%d", it);
+      }
+      Printf(lfmt, ");\n");
+      if (is_void_return) {
+        Printf(lfmt, "return Variant();\n");
+      }
+      Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
+      Delete(lfmt);
+      /* close braces */
+      for ( /* empty */ ; num_braces > 0; num_braces--)
+        Printf(f, "}\n");
+      Printf(f, "}\n");   
+    }
+    Delete(dispatch);
+    return f;
+  }
+
   void dispatchFunction(Node *n) {
     /* Last node in overloaded chain */
 
     int maxargs;
     String *tmp = NewStringEmpty();
-    String *dispatch = Swig_overload_dispatch(n, "%s($commaargs);", &maxargs);
+    Printf(tmp, "result = %%s($commaargs);\n");
+    Printf(tmp, "if (result.isInitialized()) {\n return result; \n}");
+    String *dispatch = hhvm_overload_dispatch(n);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -207,18 +345,19 @@ public:
     String *name = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(name);
 
+    Printf(f_register, "    HHVM_FE(%s);\n", name);
     Printf(f_phpcode, "<<__Native>>\n");
-    Printf(f_phpcode, "function %s(...$argv): mixed;", name);
+    Printf(f_phpcode, "function %s(...$argv): mixed;\n\n", name);
     Printv(wrapper->def, "Variant HHVM_FUNCTION(", name, ", const Array& argv) {\n", NIL);
 
     Wrapper_add_local(wrapper, "argc", "int argc");
+    Wrapper_add_local(wrapper, "result", "Variant result");
     Printf(wrapper->code, "argc = argv.size();\n");
 
     Printv(wrapper->code, dispatch, "\n", NIL);
 
-    Printf(wrapper->code, "SWIG_ErrorCode() = E_ERROR;\n");
-    Printf(wrapper->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", name);
-    Printv(wrapper->code, "SWIG_FAIL(TSRMLS_C);\n", NIL);
+    // Printf(wrapper->code, "SWIG_ErrorCode() = E_ERROR;\n");
+    Printf(wrapper->code, "throw \"No matching function for overloaded '%s'\";\n", name);
 
     Printv(wrapper->code, "}\n", NIL);
     Wrapper_print(wrapper, f_link);
@@ -258,6 +397,7 @@ public:
       Printf(wname, "%s", overname);
     }
 
+    Printf(wrapper->def, "static ");
     if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);

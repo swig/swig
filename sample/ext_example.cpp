@@ -165,10 +165,12 @@ template <typename T> T SwigValueInit() {
  extern int my_mod(int x, int y, char z);
  extern int my_mod(int x, int y);
  extern void print_pair(int x, int y); 
+ extern void overprint(int x);
+ extern void overprint(int x, int y);
  
 namespace HPHP {
 
-int64_t _wrap_fact(int64_t targ1) {
+static int64_t _wrap_fact(int64_t targ1) {
   int arg1 ;
   int64_t tresult ;
   int result;
@@ -180,7 +182,7 @@ int64_t _wrap_fact(int64_t targ1) {
 }
 
 
-int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) {
+static int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) {
   int arg1 ;
   int arg2 ;
   char arg3 ;
@@ -201,7 +203,7 @@ int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) 
 }
 
 
-int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
+static int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
   int arg1 ;
   int arg2 ;
   int64_t tresult ;
@@ -215,7 +217,7 @@ int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
 }
 
 
-void _wrap_print_pair(int64_t targ1, int64_t targ2) {
+static void _wrap_print_pair(int64_t targ1, int64_t targ2) {
   int arg1 ;
   int arg2 ;
   
@@ -226,32 +228,121 @@ void _wrap_print_pair(int64_t targ1, int64_t targ2) {
 }
 
 
+static void _wrap_overprint__SWIG_0(int64_t targ1) {
+  int arg1 ;
+  
+  arg1 = (int)targ1; 
+  overprint(arg1);
+  
+}
+
+
+static void _wrap_overprint__SWIG_1(int64_t targ1, int64_t targ2) {
+  int arg1 ;
+  int arg2 ;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  overprint(arg1,arg2);
+  
+}
+
+
 int64_t HHVM_FUNCTION(fact, int64_t arg1) {
   return _wrap_fact(arg1);
 }
 
 Variant HHVM_FUNCTION(my_mod, const Array& argv) {
   int argc;
+  Variant result;
   
   argc = argv.size();
   if (argc == 2) {
-    int _v;
-    _wrap_my_mod__SWIG_1(, argv[0], argv[1]);
+    bool _v;
+    int64_t targ0;
+    _v = argv[0].isInteger();
+    if (_v) targ0 = argv[0].toInt64Val();
+    
+    if (_v) {
+      int64_t targ1;
+      _v = argv[1].isInteger();
+      if (_v) targ1 = argv[1].toInt64Val();
+      
+      if (_v) {
+        return Variant();
+        _wrap_my_mod__SWIG_1(targ0, targ1);
+      }
+    }
   }
   if (argc == 3) {
-    int _v;
-    _wrap_my_mod__SWIG_0(, argv[0], argv[1], argv[2]);
+    bool _v;
+    int64_t targ0;
+    _v = argv[0].isInteger();
+    if (_v) targ0 = argv[0].toInt64Val();
+    
+    if (_v) {
+      int64_t targ1;
+      _v = argv[1].isInteger();
+      if (_v) targ1 = argv[1].toInt64Val();
+      
+      if (_v) {
+        String targ2;
+        _v = (argv[2].isString() && argv[2].toString().length() == 1);
+        if (_v) targ2 = argv[2].toString();
+        
+        if (_v) {
+          return Variant();
+          _wrap_my_mod__SWIG_0(targ0, targ1, targ2);
+        }
+      }
+    }
   }
   
-  SWIG_ErrorCode() = E_ERROR;
-  SWIG_ErrorMsg() = "No matching function for overloaded 'my_mod'";
-  SWIG_FAIL(TSRMLS_C);
+  throw "No matching function for overloaded 'my_mod'";
 }
 
 
 void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
   _wrap_print_pair(arg1, arg2);
 }
+
+Variant HHVM_FUNCTION(overprint, const Array& argv) {
+  int argc;
+  Variant result;
+  
+  argc = argv.size();
+  if (argc == 1) {
+    bool _v;
+    int64_t targ0;
+    _v = argv[0].isInteger();
+    if (_v) targ0 = argv[0].toInt64Val();
+    
+    if (_v) {
+      _wrap_overprint__SWIG_0(targ0);
+      return Variant();
+    }
+  }
+  if (argc == 2) {
+    bool _v;
+    int64_t targ0;
+    _v = argv[0].isInteger();
+    if (_v) targ0 = argv[0].toInt64Val();
+    
+    if (_v) {
+      int64_t targ1;
+      _v = argv[1].isInteger();
+      if (_v) targ1 = argv[1].toInt64Val();
+      
+      if (_v) {
+        _wrap_overprint__SWIG_1(targ0, targ1);
+        return Variant();
+      }
+    }
+  }
+  
+  throw "No matching function for overloaded 'overprint'";
+}
+
 
 
 
@@ -261,7 +352,9 @@ public:
 
   void moduleInit() override {
     HHVM_FE(fact);
+    HHVM_FE(my_mod);
     HHVM_FE(print_pair);
+    HHVM_FE(overprint);
     loadSystemlib();
   }
 } s_example_extension;
