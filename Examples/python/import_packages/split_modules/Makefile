@@ -1,8 +1,8 @@
 TOP        = ../../..
 LIBS       =
 
-subdirs = builtin vanilla builtin_split vanilla_split \
-          builtin_nopy3 vanilla_nopy3 builtin_split_nopy3 vanilla_split_nopy3
+subdirs = builtin vanilla builtin_split vanilla_split
+
 
 check: build
 	for s in $(subdirs); do \
