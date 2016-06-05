@@ -93,6 +93,9 @@ matrix:
       env: SWIGLANG=python PY3=3 VER=3.5
     - compiler: gcc
       os: linux
+      env: SWIGLANG=python SWIG_FEATURES=-builtin VER=2.6
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
     - compiler: gcc
       os: linux
