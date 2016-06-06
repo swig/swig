@@ -5680,8 +5680,9 @@ class M2(pkg2.mod3.M3): pass
 <p>By default, SWIG would generate <tt>mod2.py</tt> proxy file with
 <tt>import</tt> directive as in point 1. This can be changed with the
 <tt>-relativeimport</tt> command line option. The <tt>-relativeimport</tt> instructs
-SWIG to organize imports as in point 2 (for Python 2.x) or as in point 4 (for
-Python 3, that is when the -py3 command line option is enabled). In short, if you have
+SWIG to organize imports as in point 2 (for Python < 2.7.0) or as in point 4
+for Python 2.7.0 and newer. This is a check done at the time the module is
+imported. In short, if you have
 <tt>mod2.i</tt> and <tt>mod3.i</tt> as above, then without
 <tt>-relativeimport</tt> SWIG will write</p>
 
@@ -5695,21 +5696,16 @@ import pkg1.pkg2.mod3
 write</p>
 
 <div class="targetlang">
-<pre>
-import pkg2.mod3
+  <pre>
+from sys import version_info
+if version_info &gt;= (2, 7, 0):
+    from . import pkg2
+    import pkg1.pkg2.mod3
+else:
+    import pkg2.mod3
+del version_info
 </pre>
 </div>
-
-<p>if <tt>-py3</tt> is not used, or</p>
-
-<div class="targetlang">
-<pre>
-from . import pkg2
-import pkg1.pkg2.mod3
-</pre>
-</div>
-
-<p>when <tt>-py3</tt> is used.</p>
 
 <p>You should avoid using relative imports and use absolute ones whenever
 possible. There are some cases, however, when relative imports may be
