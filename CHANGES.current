@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.10 (in progress)
 ============================
 
+2016-06-06: mromberg
+            [Python] Patch #698. Add support for -relativeimport for python 2.7, so -py3 is no
+            longer also required for relative import support.
+
 2016-06-05: mromberg
             [Python] Patch #694 - Fix package import regressions introduced in swig-3.0.9.
 
