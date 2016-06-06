@@ -5697,12 +5697,13 @@ write</p>
 
 <div class="targetlang">
   <pre>
-import sys
-if sys.version_info >= (2, 7, 0):
+from sys import version_info
+if version_info &gt;= (2, 7, 0):
     from . import pkg2
     import pkg1.pkg2.mod3
 else:
     import pkg2.mod3
+del version_info
 </pre>
 </div>
 
