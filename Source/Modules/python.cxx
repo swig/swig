@@ -1251,13 +1251,14 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      if (py3) {
-        if (py3_rlen1)
-	  Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
-        Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
-      } else {
-        Printf(out, "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
-      }
+      Printf(out, "import sys\n");
+      Printf(out, "if sys.version_info > (2, 7, 0):\n");
+      if (py3_rlen1)
+          Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
+      Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
+      Printf(out, "else:\n");
+      Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "",
+        pfx, mod);
       Delete(rpkg);
     }
     return out;
