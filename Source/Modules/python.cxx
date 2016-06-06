@@ -1252,7 +1252,7 @@ public:
       Delete(apkg);
     } else {
       Printf(out, "import sys\n");
-      Printf(out, "if sys.version_info > (2, 7, 0):\n");
+      Printf(out, "if sys.version_info >= (2, 7, 0):\n");
       if (py3_rlen1)
           Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
       Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
