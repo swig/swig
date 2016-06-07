@@ -810,10 +810,10 @@ public:
 	mod_docstring = NULL;
       }
 
-      Printv(f_shadow, "\nfrom sys import version_info\n", NULL);
+      Printv(f_shadow, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
 
       if (!builtin && fastproxy) {
-	Printv(f_shadow, "if version_info >= (3, 0, 0):\n", NULL);
+	Printv(f_shadow, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
 	Printf(f_shadow, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
 	Printv(f_shadow, "else:\n", NULL);
 	Printv(f_shadow, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
@@ -836,7 +836,7 @@ public:
        * ImportError then fallback and try and load just the module name from
        * the global namespace.
        */
-      Printv(f_shadow, "if version_info >= (2, 7, 0):\n", NULL);
+      Printv(f_shadow, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "import importlib\n", NULL);
       Printv(f_shadow, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
@@ -850,7 +850,7 @@ public:
         module);
       Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
       Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
-      Printv(f_shadow, "elif version_info >= (2, 6, 0):\n", NULL);
+      Printv(f_shadow, "elif _swig_python_version_info >= (2, 6, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab8, "import imp\n", NULL);
@@ -887,7 +887,7 @@ public:
          */
         Printf(f_shadow, "# pull in all the attributes from %s\n", module);
         Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
-        Printv(f_shadow, tab4, "if version_info >= (2, 7, 0):\n", NULL);
+        Printv(f_shadow, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
         Printv(f_shadow, tab8, "try:\n", NULL);
         Printf(f_shadow, tab8 tab4 "from .%s import *\n", module);
         Printv(f_shadow, tab8 "except ImportError:\n", NULL);
@@ -898,9 +898,9 @@ public:
         Printf(f_shadow, tab4 "from %s import *\n", module);
       }
 
-      /* Delete the version_info symbol since we don't use it elsewhere in the
+      /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
        * module. */
-      Printv(f_shadow, "del version_info\n", NULL);
+      Printv(f_shadow, "del _swig_python_version_info\n", NULL);
 
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
@@ -1251,14 +1251,14 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      Printf(out, "from sys import version_info\n");
-      Printf(out, "if version_info >= (2, 7, 0):\n");
+      Printf(out, "from sys import version_info as _swig_python_version_info\n");
+      Printf(out, "if _swig_python_version_info >= (2, 7, 0):\n");
       if (py3_rlen1)
 	Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
       Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
       Printf(out, "else:\n");
       Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
-      Printf(out, "del version_info\n");
+      Printf(out, "del _swig_python_version_info\n");
       Delete(rpkg);
     }
     return out;
