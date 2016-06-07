@@ -2127,14 +2127,15 @@ public:
 		// This must have been a hex number, we can use it directly in Python,
 		// so nothing to do here.
 	      } else {
-		// This must have been an octal number, we have to change its prefix
-		// to be "0o" in Python 3 only (and as long as we still support Python
-		// 2.5, this can't be done unconditionally).
-		if (py3) {
-		  if (end - s > 1) {
-		    result = NewString("0o");
-		    Append(result, NewStringWithSize(s + 1, (int)(end - s - 1)));
-		  }
+		// This must have been an octal number. We will let python convert it
+		// to an int using base 8, since we would have to change its prefix
+		// to be "0o" in Python 3 only.
+		if (end - s > 1) {
+		  result = NewString("int('");
+		  String *octal_string = NewStringWithSize(s + 1, (int)(end - s - 1));
+		  Append(result, octal_string);
+		  Append(result, "', 8)");
+		  Delete(octal_string);
 		}
 	      }
 	    }
