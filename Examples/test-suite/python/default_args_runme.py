@@ -113,14 +113,38 @@ def run(module_name):
     if Klass_inc().val != 0:
         raise RuntimeError("Klass::inc failed")
 
-    default_args.trickyvalue1(10)
-    default_args.trickyvalue1(10, 10)
-    default_args.trickyvalue2(10)
-    default_args.trickyvalue2(10, 10)
-    default_args.trickyvalue3(10)
-    default_args.trickyvalue3(10, 10)
+    tricky_failure = False
+    tricky = default_args.TrickyInPython()
+    if tricky.value_m1(10) != -1:
+        print "trickyvalue_m1 failed"
+        tricky_failure = True
+    if tricky.value_m1(10, 10) != 10:
+        print "trickyvalue_m1 failed"
+        tricky_failure = True
+    if tricky.value_0xabcdef(10) != 0xabcdef:
+        print "trickyvalue_0xabcdef failed"
+        tricky_failure = True
+    if tricky.value_0644(10) != 420:
+        print "trickyvalue_0644 failed"
+        tricky_failure = True
+    if tricky.value_perm(10) != 420:
+        print "trickyvalue_perm failed"
+        tricky_failure = True
+    if tricky.value_m01(10) != -1:
+        print "trickyvalue_m01 failed"
+        tricky_failure = True
+    if not tricky.booltest2():
+        print "booltest2 failed"
+        tricky_failure = True
+
+    if tricky_failure:
+        raise RuntimeError
+
     default_args.seek()
     default_args.seek(10)
+
+    if not default_args.booltest():
+        raise RuntimeError("booltest failed")
 
     if default_args.slightly_off_square(10) != 102:
         raise RuntimeError
