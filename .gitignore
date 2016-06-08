@@ -195,3 +195,8 @@ Examples/r/*/.RData
 Examples/test-suite/scilab/*/
 loader.sce
 
+# android
+Examples/android/*/bin
+Examples/android/*/gen
+Examples/android/*/obj
+Examples/android/*/proguard-project.txt
