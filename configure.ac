@@ -380,6 +380,12 @@ case $host in
    *) GUILE_SO=$SO;;
 esac
 
+AC_SUBST(HHVM_SO)
+case $host in
+   *-*-darwin*) HHVM_SO=.so;;
+   *) HHVM_SO=$SO;;
+esac
+
 AC_SUBST(PHP_SO)
 case $host in
    *-*-darwin*) PHP_SO=.so;;
@@ -1721,6 +1727,38 @@ AC_SUBST(GUILE)
 AC_SUBST(GUILE_CFLAGS)
 AC_SUBST(GUILE_LIBS)
 
+#-------------------------------------------------------------------------
+# Look for HHVM
+#-------------------------------------------------------------------------
+
+HHVMBIN=
+
+AC_ARG_WITH(hhvm, AS_HELP_STRING([--without-hhvm], [Disable HHVM])
+AS_HELP_STRING([--with-hhvm=path], [Set location of HHVM executable]),[ HHVMBIN="$withval"], [HHVMBIN="$alllang_default"])
+
+# First, check for "--without-hhvm" or "--with-hhvm=no".
+if test x"${HHVMBIN}" = xno; then
+	AC_MSG_NOTICE([Disabling HHVM])
+	HHVM=
+else
+	if test "x$HHVMBIN" = xyes; then
+		AC_CHECK_PROGS(HHVM, [hhvm])
+	else
+		HHVM=$HHVMBIN
+	fi
+	AC_MSG_CHECKING(for hhvm header files)
+	HHVMCONFIG=$HHVM-config
+	hhvm__version=`$HHVMCONFIG --version 2>/dev/null`
+	HHVMINC=`$HHVMCONFIG --includes 2>/dev/null`
+	if test -n "$HHVMINC"; then
+	  AC_MSG_RESULT($HHVMINC)
+	else
+	  AC_MSG_RESULT(not found)
+	fi
+fi
+AC_SUBST(HHVM)
+AC_SUBST(HHVMINC)
+
 #----------------------------------------------------------------
 # Look for MzScheme
 #----------------------------------------------------------------
@@ -2753,6 +2791,13 @@ fi
 AC_SUBST(SKIP_PHP)
 
 
+SKIP_HHVM=
+if test -z "$HHVM" ; then
+	SKIP_HHVM="1"
+fi
+AC_SUBST(SKIP_HHVM)
+
+
 SKIP_OCAML=
 if test -z "$OCAMLC" ; then
     SKIP_OCAML="1"
@@ -3017,6 +3062,7 @@ test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
+test -n "$SKIP_HHVM"		|| langs="${langs}hhvm "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "

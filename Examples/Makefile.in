@@ -586,8 +586,8 @@ HHVM_SCRIPT  = $(SRCDIR)$(RUNME).php
 
 hhvm: $(SRCDIR_SRCS)
 	$(SWIG) -hhvm $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	hphpize
-	mkdir build
+	@hphpize
+	@mkdir build
 	cd build && \
 	cmake .. && \
 	$(MAKE) && \
@@ -601,8 +601,8 @@ hhvm: $(SRCDIR_SRCS)
 
 hhvm_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -hhvm -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	hphpize
-	mkdir build
+	@hphpize
+	@mkdir build
 	cd build && \
 	cmake .. && \
 	$(MAKE) && \
