@@ -62,6 +62,9 @@ public:
     Printf(f_header, "#include \"hphp/runtime/base/execution-context.h\"\n");
     Printf(f_header, "#include \"hphp/runtime/vm/native-data.h\"\n");
     Printf(f_header, "\n");
+    // Printf(f_header, "#ifdef __cplusplus\n");
+    // Printf(f_header, "extern \"C\" {\n");
+    // Printf(f_header, "#endif\n");
     Printf(f_wrappers, "namespace HPHP {\n");
     Printf(f_wrappers, "\n");
 
@@ -98,6 +101,11 @@ public:
 
     /* close namespace HPHP */
     Printf(f_register, "}");
+
+    /* close cplusplus */
+    // Printf(f_header, "#ifdef __cplusplus\n");
+    // Printf(f_header, "}\n");
+    // Printf(f_header, "#endif\n");
 
     /* Write all to the file */
     Dump(f_runtime, f_begin);
