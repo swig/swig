@@ -397,6 +397,7 @@ public:
       Printf(wname, "%s", overname);
     }
 
+    Swig_typemap_attach_parms("hni_type", parms, wrapper);
     Printf(wrapper->def, "static ");
     if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
       Printv(wrapper->def, tm, " ");
@@ -408,8 +409,13 @@ public:
     Printf(wrapper->def, "%s(", wname);
 
     is_void_return = (Cmp(return_type, "void") == 0);
+
+    emit_parameter_variables(parms, wrapper);
+    /* Attach the standard typemaps */
+    emit_attach_parmmaps(parms, wrapper);
+
     bool prev = false;
-    for (p = parms; p; p = nextSibling(p)) {
+    for (p = parms; p;) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *arg = NewString("");
@@ -417,7 +423,7 @@ public:
 
       Printf(arg, "t%s", parm_name);
 
-      if ((tm = Swig_typemap_lookup("hni_type", p, arg, 0))) {
+      if ((tm = Getattr(p, "tmap:hni_type"))) {
         if (prev) {
           Printf(wrapper->def, ", ");
           Printf(call_parms, ", ");
@@ -427,20 +433,19 @@ public:
         prev = true;
       }
 
-      if ((tm = Swig_typemap_lookup("in", p, parm_name, 0))) {
+      if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", arg);
         Setattr(p, "emit:input", arg);
         Printf(wrapper->code, "%s\n", tm);
+        p = Getattr(p, "tmap:in:next");
       } else {
         Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(parm_type, 0));
+        p = nextSibling(p);
       }
     }
     
     Printf(wrapper->def, ") {");
-    emit_parameter_variables(parms, wrapper);
 
-    /* Attach the standard typemaps */
-    emit_attach_parmmaps(parms, wrapper);
     if (!overloaded) {
       create_command(n);
       Printf(f_link, "  ");
@@ -480,6 +485,15 @@ public:
       dispatchFunction(n);
     }
 
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * variableWrapper()
+   * ----------------------------------------------------------------------- */
+
+  virtual int variableWrapper(Node *n) {
+    Language::variableWrapper(n);
     return SWIG_OK;
   }
 };

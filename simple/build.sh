@@ -1,0 +1,2 @@
+hphpize
+cmake . && make

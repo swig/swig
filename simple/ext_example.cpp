@@ -137,49 +137,12 @@
 #include "hphp/runtime/vm/native-data.h"
 
 
- extern int fact(int n);
- extern int my_mod(int x, int y, char z);
- extern int my_mod(int x, int y);
- extern void print_pair(int x, int y); 
- extern void overprint(int x);
- extern void overprint(int x, int y);
- 
+extern int    gcd(int x, int y);
+extern double Foo;
+
 namespace HPHP {
 
-static int64_t _wrap_fact(int64_t targ1) {
-  int arg1 ;
-  int64_t tresult ;
-  int result;
-  
-  arg1 = (int)targ1; 
-  result = (int)fact(arg1);
-  tresult = result;
-  return tresult;
-}
-
-
-static int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) {
-  int arg1 ;
-  int arg2 ;
-  char arg3 ;
-  int64_t tresult ;
-  int result;
-  
-  arg1 = (int)targ1; 
-  arg2 = (int)targ2; 
-  {
-    if (targ3.length() != 1) {
-      throw std::runtime_error("Expecting a string of length 1.\n");
-    }
-    arg3 = targ3[0];
-  }
-  result = (int)my_mod(arg1,arg2,arg3);
-  tresult = result;
-  return tresult;
-}
-
-
-static int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
+static int64_t _wrap_gcd(int64_t targ1, int64_t targ2) {
   int arg1 ;
   int arg2 ;
   int64_t tresult ;
@@ -187,138 +150,42 @@ static int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
   
   arg1 = (int)targ1; 
   arg2 = (int)targ2; 
-  result = (int)my_mod(arg1,arg2);
+  result = (int)gcd(arg1,arg2);
   tresult = result;
   return tresult;
 }
 
 
-static void _wrap_print_pair(int64_t targ1, int64_t targ2) {
-  int arg1 ;
-  int arg2 ;
+static void _wrap_Foo_set(double targ1) {
+  double arg1 ;
   
-  arg1 = (int)targ1; 
-  arg2 = (int)targ2; 
-  print_pair(arg1,arg2);
+  arg1 = (double)targ1; 
+  Foo = arg1;
   
 }
 
 
-static void _wrap_overprint__SWIG_0(int64_t targ1) {
-  int arg1 ;
+static double _wrap_Foo_get() {
+  double tresult ;
+  double result;
   
-  arg1 = (int)targ1; 
-  overprint(arg1);
-  
+  result = (double)Foo;
+  tresult = result;
+  return tresult;
 }
 
 
-static void _wrap_overprint__SWIG_1(int64_t targ1, int64_t targ2) {
-  int arg1 ;
-  int arg2 ;
-  
-  arg1 = (int)targ1; 
-  arg2 = (int)targ2; 
-  overprint(arg1,arg2);
-  
+int64_t HHVM_FUNCTION(gcd, int64_t arg1, int64_t arg2) {
+  return _wrap_gcd(arg1, arg2);
 }
 
-
-int64_t HHVM_FUNCTION(fact, int64_t arg1) {
-  return _wrap_fact(arg1);
+void HHVM_FUNCTION(Foo_set, double arg1) {
+  _wrap_Foo_set(arg1);
 }
 
-Variant HHVM_FUNCTION(my_mod, const Array& argv) {
-  int argc;
-  Variant result;
-  
-  argc = argv.size();
-  if (argc == 2) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    
-    if (_v) {
-      int64_t targ1;
-      _v = argv[1].isInteger();
-      if (_v) targ1 = argv[1].toInt64Val();
-      
-      if (_v) {
-        return Variant();
-        _wrap_my_mod__SWIG_1(targ0, targ1);
-      }
-    }
-  }
-  if (argc == 3) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    
-    if (_v) {
-      int64_t targ1;
-      _v = argv[1].isInteger();
-      if (_v) targ1 = argv[1].toInt64Val();
-      
-      if (_v) {
-        String targ2;
-        _v = (argv[2].isString() && argv[2].toString().length() == 1);
-        if (_v) targ2 = argv[2].toString();
-        
-        if (_v) {
-          return Variant();
-          _wrap_my_mod__SWIG_0(targ0, targ1, targ2);
-        }
-      }
-    }
-  }
-  
-  throw "No matching function for overloaded 'my_mod'";
+double HHVM_FUNCTION(Foo_get) {
+  return _wrap_Foo_get();
 }
-
-
-void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
-  _wrap_print_pair(arg1, arg2);
-}
-
-Variant HHVM_FUNCTION(overprint, const Array& argv) {
-  int argc;
-  Variant result;
-  
-  argc = argv.size();
-  if (argc == 1) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    
-    if (_v) {
-      _wrap_overprint__SWIG_0(targ0);
-      return Variant();
-    }
-  }
-  if (argc == 2) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    
-    if (_v) {
-      int64_t targ1;
-      _v = argv[1].isInteger();
-      if (_v) targ1 = argv[1].toInt64Val();
-      
-      if (_v) {
-        _wrap_overprint__SWIG_1(targ0, targ1);
-        return Variant();
-      }
-    }
-  }
-  
-  throw "No matching function for overloaded 'overprint'";
-}
-
 
 
 
@@ -327,10 +194,9 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
-    HHVM_FE(fact);
-    HHVM_FE(my_mod);
-    HHVM_FE(print_pair);
-    HHVM_FE(overprint);
+    HHVM_FE(gcd);
+    HHVM_FE(Foo_set);
+    HHVM_FE(Foo_get);
     loadSystemlib();
   }
 } s_example_extension;
