@@ -2013,6 +2013,66 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * convertIntegerValue()
+   *
+   * Check if string v is an integer and can be represented in
+   * Python. If so, return an appropriate Python representation,
+   * otherwise (or if we are unsure), return NIL.
+   * ------------------------------------------------------------ */
+  String *convertIntegerValue(String *v, SwigType *resolved_type) {
+    const char *const s = Char(v);
+    char *end;
+    String *result = NIL;
+
+    // Check if this is an integer number in any base.
+    long value = strtol(s, &end, 0);
+    if (errno == ERANGE || end == s)
+      return NIL;
+    if (*end != '\0') {
+      // If there is a suffix after the number, we can safely ignore any
+      // combination of "l" and "u", but not anything else.
+      for (char *p = end; *p != '\0'; ++p) {
+        switch (*p) {
+          case 'l':
+          case 'L':
+          case 'u':
+          case 'U':
+            break;
+          default:
+            return NIL;
+        }
+      }
+    }
+    // So now we are certain that we are indeed dealing with an integer
+    // that has a representation as long given by value.
+
+    if (Cmp(resolved_type, "bool") == 0)
+      // Allow integers as the default value for a bool parameter.
+      return NewString(value ? "True" : "False");
+
+    if (value == 0)
+      return NewString(SwigType_ispointer(resolved_type) ? "None" : "0");
+
+    // v may still be octal or hexadecimal:
+    const char *p = s;
+    if (*p == '+' || *p == '-')
+      ++p;
+    if (*p == '0' && *(p+1) != 'x' && *(p+1) != 'X') {
+      // This must have been an octal number. This is the only case we
+      // cannot use in Python directly, since Python 2 and 3 use non-
+      // compatible representations.
+      result = NewString(*s == '-' ? "int('-" : "int('");
+      String *octal_string = NewStringWithSize(p, (int) (end - p));
+      Append(result, octal_string);
+      Append(result, "', 8)");
+      Delete(octal_string);
+      return result;
+    }
+    result = *end == '\0' ? v : NewStringWithSize(s, (int) (end - s));
+    return result;
+  }
+
+  /* ------------------------------------------------------------
    * convertDoubleValue()
    *
    * Check if the given string looks like a decimal floating point constant
@@ -2022,8 +2082,7 @@ public:
     const char *const s = Char(v);
     char *end;
 
-    double value = strtod(s, &end);
-    (void) value;
+    strtod(s, &end);
     if (errno != ERANGE && end != s) {
       // An added complication: at least some versions of strtod() recognize
       // hexadecimal floating point numbers which don't exist in Python, so
@@ -2033,19 +2092,19 @@ public:
       // Also don't accept neither "NAN" nor "INFINITY" (both of which
       // conveniently contain "n").
       if (strpbrk(s, "xXnN"))
-	return NIL;
+        return NIL;
 
       // Disregard optional "f" suffix, it can be just dropped in Python as it
       // uses doubles for everything anyhow.
       for (char* p = end; *p != '\0'; ++p) {
-	switch (*p) {
-	  case 'f':
-	  case 'F':
-	    break;
+        switch (*p) {
+          case 'f':
+          case 'F':
+            break;
 
-	  default:
-	    return NIL;
-	}
+          default:
+            return NIL;
+        }
       }
 
       // Avoid unnecessary string allocation in the common case when we don't
@@ -2060,120 +2119,34 @@ public:
    * convertValue()
    *
    * Check if string v can be a Python value literal or a
-   * constant. Return NIL if it isn't.
+   * constant. Return an equivalent Python representation,
+   * or NIL if it isn't, or we are unsure.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, SwigType *type) {
     const char *const s = Char(v);
-    char *end;
     String *result = NIL;
-    bool fail = false;
-    SwigType *resolved_type = 0;
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
 
-    // Check if this is a number in any base.
-    long value = strtol(s, &end, 0);
-    (void) value;
-    if (end != s) {
-      if (errno == ERANGE) {
-	// There was an overflow, we could try representing the value as Python
-	// long integer literal, but for now don't bother with it.
-	fail = true;
-      } else {
-	if (*end != '\0') {
-	  // If there is a suffix after the number, we can safely ignore any
-	  // combination of "l" and "u", but not anything else (again, stuff like
-	  // "LL" could be handled, but we don't bother to do it currently).
-	  bool seen_long = false;
-	  for (char* p = end; *p != '\0'; ++p) {
-	    switch (*p) {
-	      case 'l':
-	      case 'L':
-		// Bail out on "LL".
-		if (seen_long) {
-		  fail = true;
-		  break;
-		}
-		seen_long = true;
-		break;
-
-	      case 'u':
-	      case 'U':
-		break;
-
-	      default:
-		// Except that our suffix could actually be the fractional part of
-		// a floating point number, so we still have to check for this.
-		result = convertDoubleValue(v);
-	    }
-	  }
-	}
-
-	if (!fail) {
-	  // Allow integers as the default value for a bool parameter.
-	  resolved_type = SwigType_typedef_resolve_all(type);
-	  if (Cmp(resolved_type, "bool") == 0) {
-	    result = NewString(value ? "True" : "False");
-	  } else {
-	    // Deal with the values starting with 0 first as they can be octal or
-	    // hexadecimal numbers or even pointers.
-	    if (s[0] == '0') {
-	      if (Len(v) == 1) {
-		// This is just a lone 0, but it needs to be represented differently
-		// in Python depending on whether it's a zero or a null pointer.
-		if (SwigType_ispointer(resolved_type))
-		  result = NewString("None");
-		else
-		  result = v;
-	      } else if (s[1] == 'x' || s[1] == 'X') {
-		// This must have been a hex number, we can use it directly in Python,
-		// so nothing to do here.
-	      } else {
-		// This must have been an octal number. We will let python convert it
-		// to an int using base 8, since we would have to change its prefix
-		// to be "0o" in Python 3 only.
-		if (end - s > 1) {
-		  result = NewString("int('");
-		  String *octal_string = NewStringWithSize(s + 1, (int)(end - s - 1));
-		  Append(result, octal_string);
-		  Append(result, "', 8)");
-		  Delete(octal_string);
-		}
-	      }
-	    }
-
-	    // Avoid unnecessary string allocation in the common case when we don't
-	    // need to remove any suffix.
-	    if (!result)
-	      result = *end == '\0' ? v : NewStringWithSize(s, (int)(end - s));
-	  }
-	}
-      }
-    }
-
-    // Check if this is a floating point number (notice that it wasn't
-    // necessarily parsed as a long above, consider e.g. ".123").
-    if (!fail && !result) {
+    result = convertIntegerValue(v, resolved_type);
+    if (!result) {
       result = convertDoubleValue(v);
       if (!result) {
-	if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	  result = NewString("True");
-	else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	  result = NewString("False");
-	else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0) {
-	  if (!resolved_type)
-	    resolved_type = SwigType_typedef_resolve_all(type);
-	  result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
-	}
-
-	// This could also be an enum type, default value of which could be
-	// representable in Python if it doesn't include any scope (which could,
-	// but currently is not, translated).
-	else if (!Strchr(s, ':')) {
-	  Node *lookup = Swig_symbol_clookup(v, 0);
-	  if (lookup) {
-	    if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	      result = Getattr(lookup, "sym:name");
-	  }
-	}
+        if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+          result = NewString("True");
+        else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+          result = NewString("False");
+        else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+          result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+        // This could also be an enum type, default value of which could be
+        // representable in Python if it doesn't include any scope (which could,
+        // but currently is not, translated).
+        else if (!Strchr(s, ':')) {
+          Node *lookup = Swig_symbol_clookup(v, 0);
+          if (lookup) {
+            if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+              result = Getattr(lookup, "sym:name");
+          }
+        }
       }
     }
 
