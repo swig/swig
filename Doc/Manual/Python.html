@@ -117,6 +117,12 @@
 <li><a href="#Python_absimport">Enforcing absolute import semantics</a>
 <li><a href="#Python_importfrominit">Importing from __init__.py</a>
 <li><a href="#Python_implicit_namespace_packages">Implicit Namespace Packages</a>
+<li><a href="#Python_package_search">Searching for the wrapper module</a>
+<ul>
+<li><a href="#Python_package_search_both_package_modules">Both modules in the same package</a>
+<li><a href="#Python_package_search_wrapper_split">Split modules</a>
+<li><a href="#Python_package_search_both_global_modules">Both modules are global</a>
+</ul>
 </ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
@@ -5521,6 +5527,23 @@ They should be created by other means. Both files (module <tt>*.py</tt> and
 directories in order to obtain a desirable package/module hierarchy.
 </p>
 
+<p>
+Python3 adds another option for packages with
+<a href="https://www.python.org/dev/peps/pep-0420/">PEP 0420</a> (implicit
+namespace packages).  Implicit namespace packages no longer use
+__init__.py files.  SWIG generated Python modules support implicit
+namespace packages.  See
+<a href="#Python_implicit_namespace_packages">36.11.5 Implicit Namespace
+Packages</a> for more information.
+</p>
+
+<p>
+If you place a SWIG generated module into a Python package then there
+are details concerning the way SWIG  
+<a href="#Python_package_search">searches for the wrapper module</a>
+that you may want to familiarize yourself with.
+</p>
+
 <p>The way Python defines its modules and packages impacts SWIG users. Some
 users may need to use special features such as the <tt>package</tt> option in the
 <tt>%module</tt> directive or import related command line options. These are
@@ -5937,6 +5960,109 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 
 <p>
 <b>Compatibility Note:</b> Support for implicit namespace packages was added in SWIG-3.0.9.
+</p>
+
+
+<H3><a name="Python_package_search">36.11.6 Searching for the wrapper module</a></H3>
+
+
+<p>
+When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
+created.  There is a pure Python module module (foo.py) and C/C++ code which is
+built and linked into a dynamically (or statically) loaded module _foo
+(see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
+file really defines two Python modules.   How these two modules are loaded is
+covered next.
+</p>
+
+<p>
+The pure Python module needs to load the C/C++ module in order to link
+to the wrapped C/C++ methods.   To do this it must make some assumptions
+about what package the C/C++ module may be located in.  The approach the
+pure Python module uses to find the C/C++ module is as follows:
+</p>
+
+<ol>
+  <li><p>The pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
+      located in.  The package name is determined from the <tt>__name__</tt>
+      attribute given to foo.py by the Python loader that imported
+      foo.py.  If foo.py is not in a package then _foo is loaded
+      as a global module.</p>
+  </li>
+  <li><p>If the above import of _foo results in an ImportError
+      being thrown, then foo.py makes a final attempt to load _foo
+    as a global module.</p>
+  </li>
+</ol>
+
+<p>
+As an example suppose foo.i is compiled into foo.py and _foo.so.  Assuming
+/dir is on PYTHONPATH, then the two modules can be installed and used in the
+following ways:
+</p>
+
+
+<H4><a name="Python_package_search_both_package_modules">36.11.6.1 Both modules in the same package</a></H4>
+
+
+<p>Both modules are in one package:</p>
+<div class="diagram">
+<pre>
+/dir/package/foo.py
+/dir/package/__init__.py
+/dir/package/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+from package import foo
+</pre>
+</div>
+
+
+<H4><a name="Python_package_search_wrapper_split">36.11.6.2 Split modules</a></H4>
+
+
+<p>The pure python module is in a package and the C/C++ module is global:</p>
+<div class="diagram">
+<pre>
+/dir/package/foo.py
+/dir/package/__init__.py
+/dir/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+from package import foo
+</pre>
+</div>
+
+
+<H4><a name="Python_package_search_both_global_modules">36.11.6.3 Both modules are global</a></H4>
+
+
+<p>Both modules are global:</p>
+<div class="diagram">
+<pre>
+/dir/foo.py
+/dir/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+import foo
+</pre>
+</div>
+
+<p>
+If _foo is statically linked into an embedded Python interpreter, then it may or
+may not be in a Python package.  This depends in the exact way the module was
+loaded statically.  The above search order will still be used for statically
+loaded modules.  So, one may place the module either globally or in a package
+as desired.
 </p>
 
 <H2><a name="Python_python3support">36.12 Python 3 Support</a></H2>
