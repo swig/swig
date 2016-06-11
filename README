@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 3.0.10 (in progress)
+Version: 3.0.10 (12 Jun 2016)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,

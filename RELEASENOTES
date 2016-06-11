@@ -8,7 +8,7 @@ Detailed release notes are available with the release and are also
 published on the SWIG web site at http://swig.org/release.html.
 
 SWIG-3.0.10 summary:
-- Regression fixes for smart pointers and importing python modules.
+- Regression fixes for smart pointers and importing Python modules.
 
 SWIG-3.0.9 summary:
 - Add support for Python's implicit namespace packages.
