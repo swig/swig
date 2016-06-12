@@ -103,11 +103,6 @@
 %pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
 %pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
 %pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
-#if defined(SWIGPYTHON_PY3)
-%pybinoperator(__truediv__,  *::operator/,		binaryfunc, nb_divide);
-#else
-%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_divide);
-#endif
 %pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
 %pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
 %pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
@@ -129,6 +124,7 @@
 
 #if defined(SWIGPYTHON_BUILTIN)
 %pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);
+%pybinoperator(__truediv__,   *::operator/    ,		binaryfunc, nb_divide);
 #else
 %feature("shadow")      *::operator bool %{
 def __nonzero__(self):
@@ -136,6 +132,13 @@ def __nonzero__(self):
 __bool__ = __nonzero__
 %};
 %rename(__nonzero__)    *::operator bool;
+%feature("shadow")      *::operator/ %{
+def __truediv__(self, *args):
+    return $action(self, *args)
+__div__ = __truediv__
+%};
+%rename(__truediv__)    *::operator/;
+%pythonmaybecall        *::operator/;
 #endif
 
 /* Ignored operators */
@@ -202,11 +205,6 @@ __bool__ = __nonzero__
 %pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);
 %pyinplaceoper(__isub__   , *::operator -=,	binaryfunc, nb_inplace_subtract);
 %pyinplaceoper(__imul__   , *::operator *=,	binaryfunc, nb_inplace_multiply);
-#if defined(SWIGPYTHON_PY3)
-%pyinplaceoper(__itruediv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
-#else
-%pyinplaceoper(__idiv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
-#endif
 %pyinplaceoper(__imod__   , *::operator %=,	binaryfunc, nb_inplace_remainder);
 %pyinplaceoper(__iand__   , *::operator &=,	binaryfunc, nb_inplace_and);
 %pyinplaceoper(__ior__    , *::operator |=,	binaryfunc, nb_inplace_or);
@@ -214,6 +212,19 @@ __bool__ = __nonzero__
 %pyinplaceoper(__ilshift__, *::operator <<=,	binaryfunc, nb_inplace_lshift);
 %pyinplaceoper(__irshift__, *::operator >>=,	binaryfunc, nb_inplace_rshift);
 
+/* Special cases */
+#if defined(SWIGPYTHON_BUILTIN)
+%pyinplaceoper(__itruediv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
+#else
+%delobject *::operator /=;
+%newobject *::operator /=;
+%feature("shadow")      *::operator /= %{
+def __itruediv__(self, *args):
+    return $action(self, *args)
+__idiv__ = __itruediv__
+%};
+%rename(__itruediv__)    *::operator /=;
+#endif
 
 /* Finally, in python we need to mark the binary operations to fail as
  'maybecall' methods */
@@ -228,6 +239,7 @@ __bool__ = __nonzero__
 %pybinopermaybecall(neg);
 %pybinopermaybecall(mul);
 %pybinopermaybecall(div);
+%pybinopermaybecall(truediv);
 %pybinopermaybecall(mod);
 %pybinopermaybecall(lshift);
 %pybinopermaybecall(rshift);
