@@ -2131,9 +2131,9 @@ public:
     if (!result) {
       result = convertDoubleValue(v);
       if (!result) {
-        if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+        if (Strcmp(v, "true") == 0)
           result = NewString("True");
-        else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+        else if (Strcmp(v, "false") == 0)
           result = NewString("False");
         else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
           result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
