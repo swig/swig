@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -79,7 +79,7 @@ protected:
 
   // Current constant
   int con_id;
-  
+
   // List of function names
   List *l_fnames;
 
@@ -115,6 +115,7 @@ protected:
   void finalizeConstant();
   void createSwigRef();
   void createSwigMem();
+  void createSwigGet();
   void createSwigStorage();
   void autodoc_to_m(File* f, Node *n);
   void process_autodoc(Node *n);
@@ -136,7 +137,7 @@ extern "C" Language *swig_matlab(void) {
 
 // Only implementations from here on
 
-MATLAB::MATLAB() : 
+MATLAB::MATLAB() :
   f_wrap_m(0),
   f_setup_m(0),
   f_gateway(0),
@@ -235,7 +236,7 @@ void MATLAB::main(int argc, char *argv[]) {
       }
     }
   }
-    
+
   if (!op_prefix) {
     op_prefix = NewString("op_");
   }
@@ -299,13 +300,16 @@ int MATLAB::top(Node *n) {
   // Create SwigMem helper function
   createSwigMem();
 
+  // Crete SwigGet helper function
+  createSwigGet();
+
   String *module = Getattr(n, "name");
   String *outfile = Getattr(n, "outfile");
 
-  
+
   /* Initialize all of the output files */
   String *outfile_h = !no_header_file ? Getattr(n, "outfile_h") : 0;
-  
+
   // Add default package prefix
   if (!pkg_name) {
     pkg_name = Copy(module);
@@ -424,7 +428,7 @@ int MATLAB::top(Node *n) {
 
   // Finalize constant lookup
   finalizeConstant();
-    
+
   // Finalize Mex-file gate way
   finalizeGateway();
 
@@ -488,7 +492,7 @@ int MATLAB::top(Node *n) {
     Delete(i.item);
   }
   Delete(l_cnames);
-  
+
   // Default case
   Printf(f_begin,"  default: return 0;\n");
   Printf(f_begin,"  }\n");
@@ -540,7 +544,7 @@ int MATLAB::top(Node *n) {
     Delete(i.item);
   }
   Delete(l_fnames);
-  
+
   // Default case
   Printf(f_begin,"  default: return 0;\n");
   Printf(f_begin,"  }\n");
@@ -929,7 +933,7 @@ int MATLAB::functionWrapper(Node *n) {
     Append(f->code, "int is_owned;\n");
   }
 
-  Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) " 
+  Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) "
          "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
   if (constructor && num_arguments == 1 && num_required == 1) {
     if (Cmp(storage, "explicit") == 0) {
@@ -1066,9 +1070,9 @@ int MATLAB::functionWrapper(Node *n) {
     Setattr(n, "wrap:name", overname);
 
     /* if the object is a director, and the method call originated from its
-     * underlying python object, resolve the call by going up the c++ 
-     * inheritance chain.  otherwise try to resolve the method in python.  
-     * without this check an infinite loop is set up between the director and 
+     * underlying python object, resolve the call by going up the c++
+     * inheritance chain.  otherwise try to resolve the method in python.
+     * without this check an infinite loop is set up between the director and
      * shadow class method calls.
      */
 
@@ -1234,7 +1238,7 @@ int MATLAB::globalfunctionHandler(Node *n) {
 
   // No MATLAB wrapper for the overloads
   bool overloaded = !!Getattr(n, "sym:overloaded");
-  bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");  
+  bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
   if (overloaded && !last_overload) return flag;
 
   // Create MATLAB proxy
@@ -1288,7 +1292,7 @@ int MATLAB::variableWrapper(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering variableWrapper\n");
 #endif
-  
+
   // Skip if inside class
   if (class_name) return Language::variableWrapper(n);
 
@@ -1327,7 +1331,7 @@ int MATLAB::variableWrapper(Node *n) {
     int gw_ind_set = toGateway(setname,setwname);
 
     // Getter and setter
-    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);  
+    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
     Printf(f_wrap_m,"  narginchk(0,1)\n");
     Printf(f_wrap_m,"  if nargin==0\n");
     Printf(f_wrap_m,"    nargoutchk(0,1)\n");
@@ -1401,7 +1405,7 @@ int MATLAB::constantWrapper(Node *n) {
 
     // Add getter function
     checkValidSymName(n);
-    Printf(f_wrap_m,"function v = %s()\n",symname);  
+    Printf(f_wrap_m,"function v = %s()\n",symname);
     Printf(f_wrap_m,"  persistent vInitialized;\n");
     Printf(f_wrap_m,"  if isempty(vInitialized)\n");
     Printf(f_wrap_m,"    vInitialized = %s(0, %d);\n",mex_name,con_id);
@@ -1466,7 +1470,7 @@ int MATLAB::constantWrapper(Node *n) {
       }
     }
 
-    
+
 
     Delete(sub);
     Delete(classname);
@@ -1559,7 +1563,7 @@ int MATLAB::constantWrapper(Node *n) {
 /* ---------------------------------------------------------------
  * classDirectorMethod()
  *
- * Emit a virtual director method to pass a method call on to the 
+ * Emit a virtual director method to pass a method call on to the
  * underlying MATLAB object.
  *
  * ** Moved it here due to internal error on gcc-2.96 **
@@ -1647,7 +1651,7 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
   Append(w->def, " {");
   Append(declaration, ";\n");
 
-  /* declare method return value 
+  /* declare method return value
    * if the return value is a reference or const reference, a specialized typemap must
    * handle it, including declaration of c_result ($result).
    */
@@ -1794,7 +1798,7 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  } else {
 	    Wrapper_add_localv(w, source, "SwigVar_mxArray", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n",
 	    //       source, nonconst, base);
 	    Printv(arglist, source, NIL);
 	  }
@@ -2097,10 +2101,10 @@ int MATLAB::classHandler(Node *n) {
       String *bpkg = Getattr(bpkgNode, "name");
       if (!bname || !bpkg || GetFlag(b.item,"feature:ignore")) continue;
       base_count++;
-        
+
       // Separate multiple base classes with &
       if (base_count>1) Printf(f_wrap_m," & ");
-      
+
       // Add to list of bases
       Printf(f_wrap_m,"%s.%s",bpkg,bname);
 
@@ -2112,7 +2116,7 @@ int MATLAB::classHandler(Node *n) {
   // Getters and setters for fields
   get_field=NewString("");
   set_field=NewString("");
-  
+
   // Static methods
   static_methods=NewString("");
 
@@ -2120,7 +2124,7 @@ int MATLAB::classHandler(Node *n) {
   if (base_count==0) {
     Printf(f_wrap_m,"SwigRef");
   }
-    
+
   // End of class def
   Printf(f_wrap_m,"\n");
 
@@ -2179,7 +2183,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering memberfunctionHandler\n");
 #endif
-  
+
   // Emit C wrappers
   int flag = Language::memberfunctionHandler(n);
   if (flag!=SWIG_OK) return flag;
@@ -2232,7 +2236,7 @@ int MATLAB::memberfunctionHandler(Node *n) {
 void MATLAB::initGateway() {
   if (CPlusPlus) Printf(f_gateway,"extern \"C\"\n");
   Printf(f_gateway,"void mexFunction(int resc, mxArray *resv[], int argc, const mxArray *argv[]) {\n");
-  
+
   // Load module if first call
   Printf(f_gateway,"  /* Initialize module if first call */\n");
   Printf(f_gateway,"  SWIG_Matlab_LoadModule();\n\n");
@@ -2308,7 +2312,7 @@ void MATLAB::finalizeGateway() {
 void MATLAB::initConstant() {
   if (CPlusPlus) Printf(f_constants,"extern \"C\"\n");
   Printf(f_constants,"int swigConstant(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
-  
+
   // The first argument is always the ID
   Printf(f_constants,"  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
   Printf(f_constants,"    SWIG_Error(SWIG_RuntimeError, \"This function should only be called from inside the .m files generated by SWIG. First input should be the constant ID .\");\n");
@@ -2335,7 +2339,7 @@ int MATLAB::toConstant(String *constname, String *constdef) {
 void MATLAB::finalizeConstant() {
   Printf(f_constants,"  default:\n");
   Printf(f_constants,"    SWIG_Error(SWIG_RuntimeError, \"No such constant.\");\n");
-  Printf(f_constants,"    return 1;\n");  
+  Printf(f_constants,"    return 1;\n");
   Printf(f_constants,"  }\n");
   Printf(f_constants,"  return 0;\n");
   Printf(f_constants,"}\n");
@@ -2345,7 +2349,7 @@ int MATLAB::membervariableHandler(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering membervariableHandler\n");
 #endif
-  
+
   // Name of variable
   checkValidSymName(n);
   String *symname = Getattr(n, "sym:name");
@@ -2354,10 +2358,10 @@ int MATLAB::membervariableHandler(Node *n) {
   String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
   String *getwname = Swig_name_wrapper(getname);
   int gw_ind_get = toGateway(getname,getwname);
-  
+
   if (GetFlag(n,"feature:immutable")) {
     // Only getter function
-    Printf(f_wrap_m,"    function v = %s(self)\n", symname);  
+    Printf(f_wrap_m,"    function v = %s(self)\n", symname);
     Printf(f_wrap_m,"      v = %s(%d, self);\n", mex_name, gw_ind_get);
     Printf(f_wrap_m,"    end\n");
   } else {
@@ -2367,7 +2371,7 @@ int MATLAB::membervariableHandler(Node *n) {
     int gw_ind_set = toGateway(setname,setwname);
 
     // Getter and setter function
-    Printf(f_wrap_m,"    function varargout = %s(self, varargin)\n", symname);  
+    Printf(f_wrap_m,"    function varargout = %s(self, varargin)\n", symname);
     Printf(f_wrap_m,"      narginchk(1, 2)\n");
     Printf(f_wrap_m,"      if nargin==1\n");
     Printf(f_wrap_m,"        nargoutchk(0, 1)\n");
@@ -2509,7 +2513,7 @@ int MATLAB::destructorHandler(Node *n) {
   Printf(f_wrap_m,"      if self.swigPtr\n");
   Printf(f_wrap_m,"        %s(%d, self);\n", mex_name, gw_ind);
   // Prevent that the object gets deleted another time.
-  // This is important for MATLAB as for class hierarchies, it calls delete for 
+  // This is important for MATLAB as for class hierarchies, it calls delete for
   // each class in the hierarchy. This isn't the case for C++ which only calls the
   // destructor of the "leaf-class", which should take care of deleting everything.
   Printf(f_wrap_m,"        self.swigPtr=[];\n");
@@ -2518,7 +2522,7 @@ int MATLAB::destructorHandler(Node *n) {
 
   Delete(wname);
   Delete(fullname);
-  
+
   return Language::destructorHandler(n);
 }
 
@@ -2588,10 +2592,10 @@ int MATLAB::memberconstantHandler(Node *n) {
 
   // Get name of wrapper
   String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
-  
+
   // Add getter function
   checkValidSymName(n);
-  Printf(static_methods,"    function v = %s()\n", symname);  
+  Printf(static_methods,"    function v = %s()\n", symname);
   Printf(static_methods,"      persistent vInitialized;\n");
   Printf(static_methods,"      if isempty(vInitialized)\n");
   Printf(static_methods,"        vInitialized = %s(0, %d);\n", mex_name, con_id);
@@ -2643,7 +2647,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
 
   if (GetFlag(n, "feature:immutable")) {
     // Only getter
-    Printf(static_methods,"    function v = %s()\n",symname);  
+    Printf(static_methods,"    function v = %s()\n",symname);
     if (have_matlabprepend(n))
       Printf(static_methods, "%s\n", Char(matlabprepend(n)));
     Printf(static_methods,"      v = %s(%d);\n",mex_name, gw_ind_get);
@@ -2657,7 +2661,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
     int gw_ind_set = toGateway(setname,setwname);
 
     // Getter and setter
-    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);  
+    Printf(static_methods,"    function varargout = %s(varargin)\n",symname);
     Printf(static_methods,"      narginchk(0,1)\n");
     if (have_matlabprepend(n))
       Printf(static_methods, "%s\n", Char(matlabprepend(n)));
@@ -2723,7 +2727,7 @@ void MATLAB::createSwigRef() {
 
   // Output SwigRef abstract base class
   Printf(f_wrap_m,"classdef SwigRef < handle\n");
-  Printf(f_wrap_m,"  properties \n");
+  Printf(f_wrap_m,"  properties(Hidden = true, Access = protected) \n");
   Printf(f_wrap_m,"    swigPtr\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods(Static = true, Access = protected)\n");
@@ -2767,6 +2771,12 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"        self = builtin('subsasgn',self,s,v);\n");
   Printf(f_wrap_m,"      end\n");
   Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function SwigSet(self,ptr)\n");
+  Printf(f_wrap_m,"        self.swigPtr = ptr;\n");
+  Printf(f_wrap_m,"    end\n");
+  Printf(f_wrap_m,"    function ptr = SwigGet(self)\n");
+  Printf(f_wrap_m,"        ptr = self.swigPtr;\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"end\n");
 
@@ -2799,6 +2809,28 @@ void MATLAB::createSwigMem() {
   Printf(f_wrap_m,"    nargoutchk(0,0)\n");
   Printf(f_wrap_m,"    mem = varargin{1};\n");
   Printf(f_wrap_m,"  end\n");
+  Printf(f_wrap_m,"end\n");
+
+  // Tidy up
+  Delete(f_wrap_m);
+  Delete(mfile);
+  f_wrap_m = 0;
+}
+
+void MATLAB::createSwigGet() {
+  // Create file
+  String* mfile = NewString(SWIG_output_directory());
+  Append(mfile, "SwigGet.m");
+  if (f_wrap_m) SWIG_exit(EXIT_FAILURE);
+  f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
+  if (!f_wrap_m) {
+    FileErrorDisplay(mfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  // Output SwigMem function
+  Printf(f_wrap_m,"function ptr = SwigGet(self)\n");
+  Printf(f_wrap_m,"  ptr = [];\n");
   Printf(f_wrap_m,"end\n");
 
   // Tidy up
@@ -2885,7 +2917,7 @@ void MATLAB::dispatchFunction(Node *n) {
   Delete(dispatch);
   Delete(wname);
 }
- 
+
 // this function is used on autodoc strings
 // it currently just appends "    %" after every explicit newline
 String* MATLAB::matlab_escape(String *_s) {
@@ -2969,7 +3001,3 @@ String *MATLAB::runtimeCode() {
 String *MATLAB::defaultExternalRuntimeFilename() {
   return NewString("swigmatlabrun.h");
 }
-
-
-
-
