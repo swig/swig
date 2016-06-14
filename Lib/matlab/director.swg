@@ -223,7 +223,7 @@ namespace Swig {
 
 # define SWIG_GUARD(mutex)
 
- 
+
   /* director base class */
   class Director {
   private:
@@ -251,11 +251,17 @@ namespace Swig {
           mxArray* field = mxCreateString(fname.c_str());
           mxArray* empty = mxCreateDoubleMatrix(0, 0, mxREAL);
           mxArray* rhs[2] = {field, empty};
+          #ifndef HAVE_OCTAVE
           mxArray* error = mexCallMATLABWithTrap(0, 0, 2, rhs, "SwigStorage");
+          #else
+          int error = mexCallMATLAB(0, 0, 2, rhs, "SwigStorage");
+          #endif
           mxDestroyArray(field);
           mxDestroyArray(empty);
           if (error) {
+            #ifndef HAVE_OCTAVE
             mxDestroyArray(error);
+            #endif
             mexErrMsgIdAndTxt("SWIG:Director:swig_decref", "Cannot call SwigStorage");
           }
         }
