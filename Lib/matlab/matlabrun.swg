@@ -139,6 +139,36 @@ void SWIG_Matlab_ExitFcn(void) {
   /* Unused at the moment */
 }
 
+SWIGRUNTIME int
+SWIG_Matlab_CallInterp(int nlhs, mxArray *plhs[], int nrhs,
+                       mxArray *prhs[], const char *functionName) {
+#ifdef HAVE_OCTAVE
+  return mexCallMATLAB(nlhs, plhs, nrhs, prhs, functionName);
+#else
+  mxArray* ex = mexCallMATLABWithTrap(nlhs, plhs, nrhs, prhs, functionName);
+  if (ex) {
+    mxDestroyArray(ex);
+    return 1;
+  } else {
+    return 0;
+  }
+#endif
+}
+
+SWIGRUNTIME mxArray*
+SWIG_Matlab_CallInterpEx(int nlhs, mxArray *plhs[], int nrhs,
+                       mxArray *prhs[], const char *functionName) {
+#ifdef HAVE_OCTAVE
+  int flag = mexCallMATLAB(nlhs, plhs, nrhs, prhs, functionName);
+  if (flag) {
+    mexErrMsgIdAndTxt("SWIG:CallInterpEx","Not implemented for Octave");
+  }
+  return 0;
+#else
+  return mexCallMATLABWithTrap(nlhs, plhs, nrhs, prhs, functionName);
+#endif
+}
+
 /* Runtime API implementation */
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   /* Ownership? */
@@ -152,12 +182,8 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
 
   /* Create a SwigRef instance */
   mxArray* pm = 0;
-  #ifndef HAVE_OCTAVE
-  mxArray* ex = mexCallMATLABWithTrap(1, &pm, 0, 0, "SwigRef");
-  #else
-  int ex = mexCallMATLAB(1, &pm, 0, 0, "SwigRef");
-  #endif
-  if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj", "Cannot create SwigRef instance");
+  int ex = SWIG_Matlab_CallInterp(1, &pm, 0, 0, "SwigRef");
+  if (ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj", "Cannot create SwigRef instance");
 
   /* Set pointer property */
   mxArray *pm_ptr = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
@@ -172,17 +198,10 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   if (type->clientdata) {
     const char* matlab_classname = (const char *)type->clientdata;
     mxArray* pm_test = 0;
-    #ifndef HAVE_OCTAVE
-    ex = mexCallMATLABWithTrap(1, &pm_test, 1, &pm, matlab_classname);
-    #else
-    ex = mexCallMATLAB(1, &pm_test, 1, &pm, matlab_classname);
-    #endif
+    ex = SWIG_Matlab_CallInterp(1, &pm_test, 1, &pm, matlab_classname);
     if (ex) {
       mexWarnMsgIdAndTxt("SWIG:NewPointerObj",
                          "NewPointerObj problem. creating SwigRef as opposed to %s", matlab_classname);
-      #ifndef HAVE_OCTAVE
-      mxDestroyArray(ex);
-      #endif
     } else {
       mxDestroyArray(pm);
       pm = pm_test;

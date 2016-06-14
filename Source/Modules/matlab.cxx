@@ -435,10 +435,11 @@ int MATLAB::top(Node *n) {
   // Load dependent modules
   Iterator i = First(l_modules);
   if (i.item) {
-    Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4)), *error;\n");
+    Printf(f_init, "mxArray *id = mxCreateDoubleScalar(double(4));\n");
+    Printf(f_init, "int error;\n");
     Printf(f_init, "if (!id) mexErrMsgIdAndTxt(\"SWIG:RuntimeError\", \"Setup failed\");\n");
     for (; i.item; i = Next(i)) {
-      Printf(f_init, "error = mexCallMATLABWithTrap(0, 0, 1, &id, \"%s\");\n", i.item);
+      Printf(f_init, "error = SWIG_Matlab_CallInterp(0, 0, 1, &id, \"%s\");\n", i.item);
       Printf(f_init, "if (error) mexErrMsgIdAndTxt(\"SWIG:RuntimeError\", \"Cannot initialize %s\");\n", i.item);
       Delete(i.item);
     }
@@ -1833,14 +1834,14 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
       } else {
         Printf(w->code, "mxArray* dispatch_in[%d] = {swig_get_self()%s};\n", Len(parse_args)+1, arglist);
         Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
-        Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(%d, dispatch_out, %d, dispatch_in, \"%s\");\n",
+        Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, %d, dispatch_in, \"%s\");\n",
                outputs, Len(parse_args)+1, symname);
         Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
       }
     } else {
       Printf(w->code, "mxArray* dispatch_in[1] = {swig_get_self()};\n");
       Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
-      Printf(w->code, "mxArray* error = mexCallMATLABWithTrap(%d, dispatch_out, 1, dispatch_in, \"%s\");\n",
+      Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, 1, dispatch_in, \"%s\");\n",
              outputs, symname);
       Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
     }

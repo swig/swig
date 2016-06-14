@@ -251,17 +251,10 @@ namespace Swig {
           mxArray* field = mxCreateString(fname.c_str());
           mxArray* empty = mxCreateDoubleMatrix(0, 0, mxREAL);
           mxArray* rhs[2] = {field, empty};
-          #ifndef HAVE_OCTAVE
-          mxArray* error = mexCallMATLABWithTrap(0, 0, 2, rhs, "SwigStorage");
-          #else
-          int error = mexCallMATLAB(0, 0, 2, rhs, "SwigStorage");
-          #endif
+          int error = SWIG_Matlab_CallInterp(0, 0, 2, rhs, "SwigStorage");
           mxDestroyArray(field);
           mxDestroyArray(empty);
           if (error) {
-            #ifndef HAVE_OCTAVE
-            mxDestroyArray(error);
-            #endif
             mexErrMsgIdAndTxt("SWIG:Director:swig_decref", "Cannot call SwigStorage");
           }
         }
@@ -275,10 +268,9 @@ namespace Swig {
       std::string fname = fieldname();
       mxArray* field = mxCreateString(fname.c_str());
       mxArray* rhs[2] = {field, self};
-      mxArray* error = mexCallMATLABWithTrap(0, 0, 2, rhs, "SwigStorage");
+      int error = SWIG_Matlab_CallInterp(0, 0, 2, rhs, "SwigStorage");
       mxDestroyArray(field);
       if (error) {
-        mxDestroyArray(error);
         mexErrMsgIdAndTxt("SWIG:Director:Director", "Cannot call SwigStorage");
       }
     }
@@ -295,10 +287,9 @@ namespace Swig {
       std::string fname = fieldname();
       mxArray* field = mxCreateString(fname.c_str());
       mxArray* swig_self = 0;
-      mxArray* error = mexCallMATLABWithTrap(1, &swig_self, 1, &field, "SwigStorage");
+      int error = SWIG_Matlab_CallInterp(1, &swig_self, 1, &field, "SwigStorage");
       mxDestroyArray(field);
       if (error) {
-        mxDestroyArray(error);
         mexErrMsgIdAndTxt("SWIG:Director:Director", "Cannot call SwigStorage");
       }
       return swig_self;
