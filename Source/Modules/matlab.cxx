@@ -2727,7 +2727,7 @@ void MATLAB::createSwigRef() {
 
   // Output SwigRef abstract base class
   Printf(f_wrap_m,"classdef SwigRef < handle\n");
-  Printf(f_wrap_m,"  properties(Hidden = true, Access = protected) \n");
+  Printf(f_wrap_m,"  properties(Hidden = true, Access = public) \n");
   Printf(f_wrap_m,"    swigPtr\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods(Static = true, Access = protected)\n");
