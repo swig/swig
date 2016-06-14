@@ -2398,7 +2398,7 @@ void MATLAB::wrapConstructor(int gw_ind, String *symname, String *fullname, Node
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin==1 && strcmp(class(varargin{1}),'SwigRef')\n");
-    Printf(f_wrap_m,"        if varargin{1}~=SwigRef.Null\n");
+    Printf(f_wrap_m,"        if ~isnull(varargin{1})\n");
     Printf(f_wrap_m,"          self.swigPtr = varargin{1}.swigPtr;\n");
     Printf(f_wrap_m,"        end\n");
     Printf(f_wrap_m,"      else\n");
@@ -2423,7 +2423,7 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
     Printf(f_wrap_m,"    function self = %s(varargin)\n",symname);
     Printf(f_wrap_m,"%s",base_init);
     Printf(f_wrap_m,"      if nargin==1 && strcmp(class(varargin{1}),'SwigRef')\n");
-    Printf(f_wrap_m,"        if varargin{1}~=SwigRef.Null\n");
+    Printf(f_wrap_m,"        if ~isnull(varargin{1})\n");
     Printf(f_wrap_m,"          self.swigPtr = varargin{1}.swigPtr;\n");
     Printf(f_wrap_m,"        end\n");
     Printf(f_wrap_m,"      else\n");
@@ -2740,6 +2740,9 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
+  Printf(f_wrap_m,"    function b = isnull(self)\n");
+  Printf(f_wrap_m,"      b = isempty(self.swigPtr);\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function disp(self)\n");
   Printf(f_wrap_m,"      disp(sprintf('<Swig object, ptr=%%d>',self.swigPtr))\n");
   Printf(f_wrap_m,"    end\n");
