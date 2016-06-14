@@ -43,7 +43,6 @@ for i=0:2
   elseif i==2
     o = u;
   end
-  disp(sprintf('  type      = %s', o.swigType()))
   disp(sprintf('  area      = %f', o.area()))
   disp(sprintf('  perimeter = %f', o.perimeter()))
 end
