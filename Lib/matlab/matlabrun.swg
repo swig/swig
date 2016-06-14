@@ -152,7 +152,11 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
 
   /* Create a SwigRef instance */
   mxArray* pm = 0;
+  #ifndef HAVE_OCTAVE
   mxArray* ex = mexCallMATLABWithTrap(1, &pm, 0, 0, "SwigRef");
+  #else
+  int ex = mexCallMATLAB(1, &pm, 0, 0, "SwigRef");
+  #endif
   if(ex) mexErrMsgIdAndTxt("SWIG:NewPointerObj", "Cannot create SwigRef instance");
 
   /* Set pointer property */
@@ -168,11 +172,17 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   if (type->clientdata) {
     const char* matlab_classname = (const char *)type->clientdata;
     mxArray* pm_test = 0;
+    #ifndef HAVE_OCTAVE
     ex = mexCallMATLABWithTrap(1, &pm_test, 1, &pm, matlab_classname);
+    #else
+    ex = mexCallMATLAB(1, &pm_test, 1, &pm, matlab_classname);
+    #endif
     if (ex) {
       mexWarnMsgIdAndTxt("SWIG:NewPointerObj",
                          "NewPointerObj problem. creating SwigRef as opposed to %s", matlab_classname);
+      #ifndef HAVE_OCTAVE
       mxDestroyArray(ex);
+      #endif
     } else {
       mxDestroyArray(pm);
       pm = pm_test;
