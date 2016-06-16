@@ -910,25 +910,60 @@ public:
          defined in this module (try both Python 3 and Python 2 names) */
       Printv(f_shadow, "try:\n", tab4, "import builtins as __builtin__\n", "except ImportError:\n", tab4, "import __builtin__\n", NULL);
 
+      Printv(f_shadow, "\n", NULL);
+      Printv(f_shadow, "class _swig_nondynamic_meta(type):\n", NULL);
+      Printv(f_shadow, tab4, "def __init__(cls, name, bases, dct):\n", NULL);
+      Printv(f_shadow, tab8, "# Adds a __setattr__ method to a class.\n", NULL);
+      Printv(f_shadow, tab8,
+        "super(_swig_nondynamic_meta, cls).__init__(name, bases, dct)\n", NULL);
+      Printv(f_shadow, tab8,
+        "cls.__setattr__ = cls.__class__.get_setattr(cls)\n\n", NULL);
+      Printv(f_shadow, tab4, "@classmethod\n", NULL);
+      Printv(f_shadow, tab4, "def get_setattr(mcs, cls):\n", NULL);
+      Printv(f_shadow, tab8,     "def setter(self, name, value):\n", NULL);
+      Printv(f_shadow, tab8, tab4,
+        "return _swig_setattr_nondynamic(self, cls, name, value)\n", NULL);
+      Printv(f_shadow, tab8, "return setter\n\n", NULL);
+
+      Printv(f_shadow, "def _swig_with_metaclass(meta, *bases):\n", NULL);
+      Printv(f_shadow, tab4, "class metaclass(meta):\n", NULL);
+      Printv(f_shadow, tab8, "def __new__(cls, name, this_bases, d):\n", NULL);
+      Printv(f_shadow, tab8, tab4, "return meta(name, bases, d)\n", NULL);
+      Printv(f_shadow, tab4,
+        "return type.__new__(metaclass, 'temporary_class', (), {})\n\n", NULL);
+
       /* if (!modern) */
       /* always needed, a class can be forced to be no-modern, such as an exception */
       {
 	// Python-2.2 object hack
-	Printv(f_shadow,
-	       "\n", "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
-	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own(value)\n",
-	       tab4, "if (name == \"this\"):\n", tab8, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
+      Printv(f_shadow, "\n",
+        "def _swig_setattr_nondynamic(self, class_type, name, value, static=1):\n",
+        tab4, "if (name == \"thisown\"):\n",
+        tab8,     "return self.this.own(value)\n",
+        tab4, "if (name == \"this\"):\n",
+        tab8,     "if type(value).__name__ == 'SwigPyObject':\n",
+        tab4, tab8,   "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
-	       tab4, tab8, "if hasattr(value,\"thisown\"):\n", tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
+        tab4, tab8, "if hasattr(value,\"thisown\"):\n",
+        tab8, tab8, "self.__dict__[\"thisown\"] = value.thisown\n",
+        tab4, tab8, "del value.thisown\n",
 #endif
-	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name, None)\n", tab4, "if method:\n", tab4, tab4, "return method(self, value)\n",
+        tab4, tab8, "return\n",
+        tab4, "if hasattr(class_type, '__swig_setmethods__'):\n"
+        tab8,     "method = class_type.__swig_setmethods__.get(name, None)\n",
+        tab8,     "if method:\n",
+        tab8, tab4,   "return method(self, value)\n",
+        tab4, "elif name in class_type.__dict__:\n",
+        tab8,     "return class_type.__dict__[name].__set__(self, value)\n",
+        tab4, "elif hasattr(self, name):\n",
+        tab8,     "return super(class_type, self).__setattr__(name, value)\n",
 #ifdef USE_THISOWN
-	       tab4, "if (not static) or (name == \"thisown\"):\n",
+        tab4, "if (not static) or (name == \"thisown\"):\n",
 #else
-	       tab4, "if (not static):\n",
+        tab4, "if (not static):\n",
 #endif
-	       NIL);
-	if (!classic) {
+        NIL);
+      if (!classic) {
 	  if (!modern)
 	    Printv(f_shadow, tab4, tab4, "if _newclass:\n", tab4, NIL);
 	  Printv(f_shadow, tab4, tab4, "object.__setattr__(self, name, value)\n", NIL);
@@ -4423,7 +4458,12 @@ public:
 	  Printf(f_shadow, "(%s)", base_class);
 	} else {
 	  if (!classic) {
-	    Printf(f_shadow, modern ? "(object)" : "(_object)");
+            const char *objstr = modern ? "object" : "_object";
+            if (GetFlag(n, "feature:python:nondynamic"))
+              Printf(f_shadow,
+                "(_swig_with_metaclass(_swig_nondynamic_meta, %s))", objstr);
+            else
+              Printf(f_shadow, "(%s)", objstr);
 	  }
 	  if (GetFlag(n, "feature:exceptionclass")) {
 	    Printf(f_shadow, "(Exception)");
@@ -4445,8 +4485,6 @@ public:
 
 	  if (!GetFlag(n, "feature:python:nondynamic")) {
 	    Printv(f_shadow, tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n", NIL);
-	  } else {
-	    Printv(f_shadow, tab4, "__setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, ", class_name, ", name, value)\n", NIL);
 	  }
 
 	  Printv(f_shadow, tab4, "__swig_getmethods__ = {}\n", NIL);
@@ -4457,12 +4495,6 @@ public:
 	  Printv(f_shadow, tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n", NIL);
 	} else {
 	  Printv(f_shadow, tab4, "thisown = _swig_property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc='The membership flag')\n", NIL);
-	  /* Add static attribute */
-	  if (GetFlag(n, "feature:python:nondynamic")) {
-	    Printv(f_shadow_file,
-		   tab4, "__setattr__ = _swig_setattr_nondynamic_method(object.__setattr__)\n",
-		   tab4, "class __metaclass__(type):\n", tab4, tab4, "__setattr__ = _swig_setattr_nondynamic_method(type.__setattr__)\n", NIL);
-	  }
 	}
       }
     }
