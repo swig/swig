@@ -212,10 +212,9 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT, TYPE *OUTPUT
-{
+%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT, TYPE *OUTPUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-}
+  Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout) TYPE &OUTPUT
 {
@@ -283,6 +282,7 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
   bigint = JCALL3(NewObject, jenv, clazz, mid, ba);
+  JCALL1(DeleteLocalRef, jenv, ba);
   JCALL3(SetObjectArrayElement, jenv, $input, 0, bigint);
 }
 
@@ -371,19 +371,17 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(argout) TYPE *INOUT, TYPE &INOUT
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
-%typemap(directorin,descriptor=JNIDESC) TYPE &INOUT
-{
-  $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  const JNITYPE jvalue = (JNITYPE)$1;
-  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-}
+%typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
+    $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
+    const JNITYPE $1_jvalue = (JNITYPE)$1;
+    JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+    Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
-%typemap(directorin,descriptor=JNIDESC) TYPE *INOUT
-{
+%typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  const JNITYPE jvalue = (JNITYPE)*$1;
-  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-}
+  const JNITYPE $1_jvalue = (JNITYPE)*$1;
+  JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
+  Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorargout) TYPE &INOUT
 {
