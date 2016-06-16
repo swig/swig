@@ -3,6 +3,8 @@
  *
  * HHVM configuration file
  * ----------------------------------------------------------------------------- */
+%runtime "swigrun.swg"  // Common C API type-checking code
+%runtime "hhvmrun.swg" // PHP runtime functions
 
 %typemap(consttab) int,
                    unsigned int,
@@ -29,9 +31,9 @@
                    const char []
   "KindOfPersistentString";
 
-/* hni_type typemaps */
+/* hni_parmtype typemaps */
 
-%typemap(hni_type) int,
+%typemap(hni_parmtype) int,
                   unsigned int,
                   short,
                   unsigned short,
@@ -40,14 +42,14 @@
                   // enum SWIGTYPE
   "int64_t";
 
-%typemap(hni_type) bool
+%typemap(hni_parmtype) bool
   "bool";
 
-%typemap(hni_type) float,
+%typemap(hni_parmtype) float,
                   double
   "double";
 
-%typemap(hni_type)  char *,
+%typemap(hni_parmtype)  char *,
                    char,
                    const char *,
                    unsigned char,
@@ -56,8 +58,41 @@
                    const char []
   "const String&";
 
-%typemap(hni_type) void
+%typemap(hni_parmtype) SWIGTYPE *
+  "const Resource&";
+
+/* hni_rttype typemaps */
+
+%typemap(hni_rttype) int,
+                  unsigned int,
+                  short,
+                  unsigned short,
+                  long,
+                  unsigned long
+                  // enum SWIGTYPE
+  "int64_t";
+
+%typemap(hni_rttype) bool
+  "bool";
+
+%typemap(hni_rttype) float,
+                  double
+  "double";
+
+%typemap(hni_rttype)  char *,
+                   char,
+                   const char *,
+                   unsigned char,
+                   signed char,
+                   char [],
+                   const char []
+  "String";
+
+%typemap(hni_rttype) void
   "void";
+
+%typemap(hni_rttype) SWIGTYPE *
+  "Resource";
 
 /* in typemap */
 
@@ -82,6 +117,9 @@
   }
   $1 = $input[0];
 }
+
+%typemap(in) SWIGTYPE * 
+%{ $1 = dyn_cast_or_null<SWIG_Ptr<$*1_ltype>>($input)->get(); %}
 
 /* out typemaps */
 
@@ -109,6 +147,8 @@
   "$result = makeStaticString($1);"
 
 %typemap(out) void ""
+%typemap(out) SWIGTYPE * 
+%{ $result = Resource(req::make<SWIG_Ptr<$*1_ltype>>($1)); %} 
 
 /* php types */
 
@@ -139,6 +179,10 @@
 
 %typemap(php_type) void
   "void";
+
+%typemap(php_type) SWIGTYPE *
+  "resource" 
+
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
   int, short, long,

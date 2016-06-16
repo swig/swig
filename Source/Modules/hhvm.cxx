@@ -58,10 +58,10 @@ public:
     Swig_banner(f_begin);
 
     Printf(f_begin, "\n");
-    Printf(f_header, "#include \"hphp/runtime/ext/extension.h\"\n");
-    Printf(f_header, "#include \"hphp/runtime/base/execution-context.h\"\n");
-    Printf(f_header, "#include \"hphp/runtime/vm/native-data.h\"\n");
-    Printf(f_header, "\n");
+    Printf(f_begin, "#include \"hphp/runtime/ext/extension.h\"\n");
+    Printf(f_begin, "#include \"hphp/runtime/base/execution-context.h\"\n");
+    Printf(f_begin, "#include \"hphp/runtime/vm/native-data.h\"\n");
+    Printf(f_begin, "\n");
     // Printf(f_header, "#ifdef __cplusplus\n");
     // Printf(f_header, "extern \"C\" {\n");
     // Printf(f_header, "#endif\n");
@@ -158,7 +158,7 @@ public:
     ParmList *parms  = Getattr(n,"parms");
     String *return_type = NewString(""), *tm;
     bool is_void_return;
-    if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("hni_rttype", n, name, 0))) {
       Printv(f_link, tm, " ");
       Printf(return_type, "%s", tm);
     } else {
@@ -177,7 +177,7 @@ public:
       String *parm_type = Getattr(p, "type");
       String *val = Getattr(p, "value");
 
-      if ((tm = Swig_typemap_lookup("hni_type", p, parm_name, 0))) {
+      if ((tm = Swig_typemap_lookup("hni_parmtype", p, parm_name, 0))) {
         Printf(f_link, ", %s %s", tm, parm_name);
       }
 
@@ -405,13 +405,15 @@ public:
       Printf(wname, "%s", overname);
     }
 
-    Swig_typemap_attach_parms("hni_type", parms, wrapper);
+    Swig_typemap_attach_parms("hni_parmtype", parms, wrapper);
+    Swig_typemap_attach_parms("php_type", parms, wrapper);
+
     Printf(wrapper->def, "static ");
-    if ((tm = Swig_typemap_lookup("hni_type", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Func: Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
     }
 
     Printf(wrapper->def, "%s(", wname);
@@ -431,7 +433,7 @@ public:
 
       Printf(arg, "t%s", parm_name);
 
-      if ((tm = Getattr(p, "tmap:hni_type"))) {
+      if ((tm = Getattr(p, "tmap:hni_parmtype"))) {
         if (prev) {
           Printf(wrapper->def, ", ");
           Printf(call_parms, ", ");
@@ -439,6 +441,8 @@ public:
         Printf(wrapper->def, "%s %s", tm, arg);
         Printf(call_parms, "%s", parm_name);
         prev = true;
+      } else {
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to define type %s as a function argument.\n", SwigType_str(parm_type, 0));
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
@@ -447,7 +451,7 @@ public:
         Printf(wrapper->code, "%s\n", tm);
         p = Getattr(p, "tmap:in:next");
       } else {
-        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(parm_type, 0));
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to convert type %s as a function argument.\n", SwigType_str(parm_type, 0));
         p = nextSibling(p);
       }
     }
@@ -504,6 +508,25 @@ public:
     Language::variableWrapper(n);
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * classDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int classDeclaration(Node *n) {
+    return Language::classDeclaration(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classHandler()
+   * ------------------------------------------------------------ */
+  virtual int classHandler(Node *n) {
+    String *name = GetChar(n, "name");
+    Printf(f_phpcode, "class circle {\n");
+    Language::classHandler(n);
+    Printf(f_phpcode, "}\n");
+    return SWIG_OK;
+  } 
 };
 
 extern "C" Language *
