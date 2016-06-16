@@ -41,7 +41,7 @@
 namespace std {
 
     template<class K, class T> class map {
-        %typemap(in) map<K,T> (std::map<K,T>* m) {
+        %typemap(in) map<K,T> {
             if (scm_is_null($input)) {
                 $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
@@ -72,10 +72,8 @@ namespace std {
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
-        %typemap(in) const map<K,T>& (std::map<K,T> temp,
-                                      std::map<K,T>* m),
-                     const map<K,T>* (std::map<K,T> temp,
-                                      std::map<K,T>* m) {
+        %typemap(in) const map<K,T>& (std::map<K,T> temp),
+                     const map<K,T>* (std::map<K,T> temp) {
             if (scm_is_null($input)) {
                 temp = std::map< K, T >();
                 $1 = &temp;
@@ -266,7 +264,7 @@ namespace std {
     %define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
 
     template<class T> class map<K,T> {
-        %typemap(in) map<K,T> (std::map<K,T>* m) {
+        %typemap(in) map<K,T> {
             if (scm_is_null($input)) {
                 $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
@@ -298,10 +296,8 @@ namespace std {
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
-        %typemap(in) const map<K,T>& (std::map<K,T> temp,
-                                      std::map<K,T>* m),
-                     const map<K,T>* (std::map<K,T> temp,
-                                      std::map<K,T>* m) {
+        %typemap(in) const map<K,T>& (std::map<K,T> temp),
+                     const map<K,T>* (std::map<K,T> temp) {
             if (scm_is_null($input)) {
                 temp = std::map< K, T >();
                 $1 = &temp;
@@ -480,7 +476,7 @@ namespace std {
 
     %define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class K> class map<K,T> {
-        %typemap(in) map<K,T> (std::map<K,T>* m) {
+        %typemap(in) map<K,T> {
             if (scm_is_null($input)) {
                 $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
@@ -511,10 +507,8 @@ namespace std {
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
-        %typemap(in) const map<K,T>& (std::map<K,T> temp,
-                                      std::map<K,T>* m),
-                     const map<K,T>* (std::map<K,T> temp,
-                                      std::map<K,T>* m) {
+        %typemap(in) const map<K,T>& (std::map<K,T> temp),
+                     const map<K,T>* (std::map<K,T> temp) {
             if (scm_is_null($input)) {
                 temp = std::map< K, T >();
                 $1 = &temp;
@@ -567,7 +561,6 @@ namespace std {
                 K* k;
                 SCM head = SCM_CAR($input);
                 if (scm_is_pair(head)) {
-                    SCM key = SCM_CAR(head);
                     SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) != 0) {
@@ -609,7 +602,6 @@ namespace std {
                 K* k;
                 SCM head = SCM_CAR($input);
                 if (scm_is_pair(head)) {
-                    SCM key = SCM_CAR(head);
                     SCM val = SCM_CDR(head);
                     if (SWIG_ConvertPtr(val,(void **) &k,
                                     $descriptor(K *), 0) != 0) {
@@ -692,7 +684,7 @@ namespace std {
     %define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO,
                                        T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
     template<> class map<K,T> {
-        %typemap(in) map<K,T> (std::map<K,T>* m) {
+        %typemap(in) map<K,T> {
             if (scm_is_null($input)) {
                 $1 = std::map< K, T >();
             } else if (scm_is_pair($input)) {
@@ -725,10 +717,8 @@ namespace std {
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
-        %typemap(in) const map<K,T>& (std::map<K,T> temp,
-                                      std::map<K,T>* m),
-                     const map<K,T>* (std::map<K,T> temp,
-                                      std::map<K,T>* m) {
+        %typemap(in) const map<K,T>& (std::map<K,T> temp),
+                     const map<K,T>* (std::map<K,T> temp) {
             if (scm_is_null($input)) {
                 temp = std::map< K, T >();
                 $1 = &temp;

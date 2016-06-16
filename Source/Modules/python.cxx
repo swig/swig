@@ -810,10 +810,10 @@ public:
 	mod_docstring = NULL;
       }
 
-      Printv(f_shadow, "\nfrom sys import version_info\n", NULL);
+      Printv(f_shadow, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
 
       if (!builtin && fastproxy) {
-	Printv(f_shadow, "if version_info >= (3, 0, 0):\n", NULL);
+	Printv(f_shadow, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
 	Printf(f_shadow, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
 	Printv(f_shadow, "else:\n", NULL);
 	Printv(f_shadow, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
@@ -827,8 +827,30 @@ public:
        * in 2.6, and fail in 2.7 onwards), but the relative import syntax
        * isn't available in python 2.4 or earlier, so we have to write some
        * code conditional on the python version.
+       *
+       * For python 2.7.0 and newer, first determine the shadow wrappers package
+       * based on the __name__ it was given by the importer that loaded it.
+       * Then construct a name for the module based on the package name and the
+       * module name (we know the module name).  Use importlib to try and load 
+       * it.  If an attempt to load the module with importlib fails with an
+       * ImportError then fallback and try and load just the module name from
+       * the global namespace.
        */
-      Printv(f_shadow, "if version_info >= (2, 6, 0):\n", NULL);
+      Printv(f_shadow, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+      Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
+      Printv(f_shadow, tab8, "import importlib\n", NULL);
+      Printv(f_shadow, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printf(f_shadow, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n",
+        module);
+      Printv(f_shadow, tab8, "try:\n", NULL);
+      Printv(f_shadow, tab8, tab4, "return importlib.import_module(mname)\n",
+        NULL);
+      Printv(f_shadow, tab8, "except ImportError:\n", NULL);
+      Printf(f_shadow, tab8 tab4 "return importlib.import_module('%s')\n",
+        module);
+      Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
+      Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
+      Printv(f_shadow, "elif _swig_python_version_info >= (2, 6, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab8, "import imp\n", NULL);
@@ -850,13 +872,36 @@ public:
       Printv(f_shadow, "else:\n", NULL);
       Printf(f_shadow, tab4 "import %s\n", module);
 
-      /* Delete the version_info symbol since we don't use it elsewhere in the
-       * module. */
-      Printv(f_shadow, "del version_info\n", NULL);
-
       if (builtin) {
-	Printf(f_shadow, "from %s import *\n", module);
+        /*
+         * Pull in all the attributes from the C module.
+         *
+         * An alternative approach to doing this if/else chain was
+         * proposed by Michael Thon.  Someone braver than I may try it out.
+         * I fear some current swig user may depend on some side effect
+         * of from _foo import *
+         *
+         * for attr in _foo.__all__:
+         *     globals()[attr] = getattr(_foo, attr)
+         * 
+         */
+        Printf(f_shadow, "# pull in all the attributes from %s\n", module);
+        Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printv(f_shadow, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+        Printv(f_shadow, tab8, "try:\n", NULL);
+        Printf(f_shadow, tab8 tab4 "from .%s import *\n", module);
+        Printv(f_shadow, tab8 "except ImportError:\n", NULL);
+        Printf(f_shadow, tab8 tab4 "from %s import *\n", module);
+        Printv(f_shadow, tab4, "else:\n", NULL);
+        Printf(f_shadow, tab8 "from %s import *\n", module);
+        Printv(f_shadow, "else:\n", NULL);
+        Printf(f_shadow, tab4 "from %s import *\n", module);
       }
+
+      /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
+       * module. */
+      Printv(f_shadow, "del _swig_python_version_info\n", NULL);
+
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
       }
@@ -1206,13 +1251,14 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      if (py3) {
-        if (py3_rlen1)
-	  Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
-        Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
-      } else {
-        Printf(out, "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
-      }
+      Printf(out, "from sys import version_info as _swig_python_version_info\n");
+      Printf(out, "if _swig_python_version_info >= (2, 7, 0):\n");
+      if (py3_rlen1)
+	Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
+      Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
+      Printf(out, "else:\n");
+      Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
+      Printf(out, "del _swig_python_version_info\n");
       Delete(rpkg);
     }
     return out;
@@ -3464,7 +3510,7 @@ public:
      * type but the return-type of function. */
     if(!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
       SwigType *basetype = SwigType_base(uqtype);
-      result = (bool)SwigType_isclass(basetype);
+      result = SwigType_isclass(basetype) != 0;
       Delete(basetype);
     }
 

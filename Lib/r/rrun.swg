@@ -218,10 +218,6 @@ SWIGRUNTIME SEXP
 SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
 {
   SEXP external, r_obj;
-  const char *p = typeName;
-
-  if(typeName[0] == '_')
-     p = typeName + 1;
 
   Rf_protect(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
   Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));

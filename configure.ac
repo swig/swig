@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.9],[http://www.swig.org])
+AC_INIT([swig],[3.0.11],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -1973,7 +1973,7 @@ else
 	fi
 	;;
     "")
-        AC_MSG_RESULT([could not find $PHP-config or obtain PHP version from it]) ;;
+        AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
     *)
 	AC_MSG_RESULT([found PHP $php_version, but only PHP 5 is supported]) ;;
     esac
@@ -2385,7 +2385,10 @@ if test "$LUABIN"; then
     AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
-    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS_SAVED=$CFLAGS
+    CFLAGS= # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
+    AC_CHECK_HEADER([lua.h],[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS=$CFLAGS_SAVED
     # if we didn't get it, going to have to look elsewhere (the hard way)
     if test -z "$LUA_OK"; then
       AC_MSG_CHECKING(for lua.h in other locations)
@@ -2555,8 +2558,8 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.0* | go1 )
-      AC_MSG_RESULT([yes - minimum version is 1.1])
+    go1.1* | go1.0* | go1 )
+      AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
       ;;

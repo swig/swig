@@ -98,5 +98,9 @@ typedef struct {
 static struct {
    int i;
 } THING;
+
+int useThing() {
+  return THING.i;
+}
 %}
 
