@@ -4,6 +4,11 @@ aa = python_nondynamic.A()
 
 aa.a = 1
 aa.b = 2
+
+# Sanity check to see if all the funky setattr methods make it into C.
+assert(python_nondynamic._python_nondynamic.A_a_get(aa) == 1)
+assert(python_nondynamic._python_nondynamic.A_b_get(aa) == 2)
+
 try:
     aa.c = 2
     err = 0
@@ -23,6 +28,11 @@ class B(python_nondynamic.A):
     pass
 
 bb = B()
+bb.a = 4
+bb.b = 5
+assert(bb.a == 4)
+assert(bb.b == 5)
+
 
 try:
     bb.c = 3
