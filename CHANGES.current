@@ -2,25 +2,5 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 3.0.10 (in progress)
+Version 3.0.11 (in progress)
 ============================
-
-2016-06-06: mromberg
-            [Python] Patch #698. Add support for -relativeimport for python 2.7, so -py3 is no
-            longer also required for relative import support.
-
-2016-06-05: mromberg
-            [Python] Patch #694 - Fix package import regressions introduced in swig-3.0.9.
-
-            1) The code in 3.0.9 did not fall back to 'import _foo' if 'import bar._foo' failed
-            (assuming bar.foo was the main module). Every place _foo is imported now first tries
-            it from the package where foo was found and if that fails tries _foo as a global module.
-
-            2) The separate block of python code that injected code to pull in the attributes
-            from _foo when -builtin is used made use of the -py3 switch to either do
-            'from ._foo import *' or "from _foo import *". This block of code no longer does this
-            and instead checks the python version at runtime to switch between the two syntaxes.
-
-2016-05-31: wsfulton
-            Fix #690 - Smart pointer to %ignored class doesn't expose inherited methods.
-            Regression introduced in swig-3.0.9.

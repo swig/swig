@@ -3,6 +3,48 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 3.0.10 (12 Jun 2016)
+============================
+
+2016-06-06: mromberg
+            [Python] Patch #698. Add support for -relativeimport for python 2.7, so -py3 is no
+            longer also required for relative import support.
+
+2016-06-05: mromberg
+            [Python] Patch #694 - Fix package import regressions introduced in swig-3.0.9.
+
+            1) The code in 3.0.9 did not fall back to 'import _foo' if 'import bar._foo' failed
+            (assuming bar.foo was the main module). Every place _foo is imported now first tries
+            it from the package where foo was found and if that fails tries _foo as a global module.
+
+            2) The separate block of Python code that injected code to pull in the attributes
+            from _foo when -builtin is used made use of the -py3 switch to either do
+            'from ._foo import *' or "from _foo import *". This block of code no longer does this
+            and instead checks the Python version at runtime to switch between the two syntaxes.
+
+            In summary, swig-3.0.10 has been modified to ease the creation of wrapper modules
+            that can be fully made part of a Python package.  SWIG no longer
+            assumes the dynamically linked C module is a global module.
+            The dynamic module can now be placed into either the same package as the pure Python
+            module or as a global module.  Both locations are used by the Python wrapper to
+            locate the C module.
+
+            However, this could cause a backwards incompatibility with some code
+            that was relying on the ability of "from package import _module" to
+            pull attributes out of the package directly.  If your code populates a
+            module (which is also a package) with attributes that are SWIG
+            generated modules which were not loaded in a conventional way,
+            swig-3.0.8 and earlier may have worked due to 'from package import
+            _module' bypassing a real import and pulling your module in as an
+            attribute. This will no longer work.  Since this is not a common (or
+            even recommended) practice, most folk should not be affected.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2016-05-31: wsfulton
+            Fix #690 - Smart pointer to %ignored class doesn't expose inherited methods.
+            Regression introduced in swig-3.0.9.
+
 Version 3.0.9 (29 May 2016)
 ===========================
 
