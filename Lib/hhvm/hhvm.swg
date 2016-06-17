@@ -184,7 +184,7 @@
   "resource" 
 
 
-%typecheck(SWIG_TYPECHECK_INTEGER)
+%typecheck(SWIG_TYPECHECK_INTEGER, noblock = 1)
   int, short, long,
   unsigned int, unsigned short, unsigned long,
   signed char, unsigned char,
@@ -193,19 +193,39 @@
   const unsigned int &, const unsigned short &, const unsigned long &,
   const long long &, const unsigned long long &,
   enum SWIGTYPE
-  "int64_t $result;\n _v = $input.isInteger();\n if (_v) $result = $input.toInt64Val();\n"
+  {
+    int64_t $result;
+    _v = $input.isInteger();
+    if (_v) $result = $input.toInt64Val();
+  }
 
-%typecheck(SWIG_TYPECHECK_DOUBLE)
+%typecheck(SWIG_TYPECHECK_DOUBLE, noblock = 1)
   float, double,
   const float &, const double &
-  "double $result;\n _v = $input.isDouble();\n if (_v) $result = $input.toDouble();\n"
+  {
+    double $result;
+    _v = $input.isDouble();
+    if (_v) $result = $input.toDouble();
+  }
 
-%typecheck(SWIG_TYPECHECK_CHAR) char 
-  "String $result;\n _v = ($input.isString() && $input.toString().length() == 1);\n if (_v) $result = $input.toString();\n"
+%typecheck(SWIG_TYPECHECK_CHAR, noblock = 1) char 
+  {
+    String $result;
+    _v = ($input.isString() && $input.toString().length() == 1);
+    if (_v) $result = $input.toString();
+  }
 
-%typecheck(SWIG_TYPECHECK_STRING) char * 
-  "String $result;\n _v = $input.isString();\n if (_v) $result = $input.toString();\n"
+%typecheck(SWIG_TYPECHECK_STRING, noblock = 1) char * 
+  {
+    String $result;
+    _v = $input.isString();
+    if (_v) $result = $input.toString();
+  }
 
-%typecheck(SWIG_TYPECHECK_BOOL)
+%typecheck(SWIG_TYPECHECK_BOOL, noblock = 1)
 bool, const bool &
-  "bool $result;\n _v = $input.isBoolean();\n if (_v) $result = $input.toBoolean();\n"
+  {
+    bool $result;
+    _v = $input.isBoolean();
+    if (_v) $result = $input.toBoolean();
+  }
