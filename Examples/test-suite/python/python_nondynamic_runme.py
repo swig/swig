@@ -5,9 +5,15 @@ aa = python_nondynamic.A()
 aa.a = 1
 aa.b = 2
 
+assert(aa.a == 1)
+assert(aa.b == 2)
+
 # Sanity check to see if all the funky setattr methods make it into C.
-assert(python_nondynamic._python_nondynamic.A_a_get(aa) == 1)
-assert(python_nondynamic._python_nondynamic.A_b_get(aa) == 2)
+if hasattr(python_nondynamic._python_nondynamic, "A_a_get"):
+    # -builtin was not used.
+    assert(python_nondynamic._python_nondynamic.A_a_get(aa) == 1)
+    assert(python_nondynamic._python_nondynamic.A_b_get(aa) == 2)
+    
 
 try:
     aa.c = 2
