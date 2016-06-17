@@ -4485,7 +4485,9 @@ public:
 
 	  if (!GetFlag(n, "feature:python:nondynamic")) {
 	    Printv(f_shadow, tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n", NIL);
-	  }
+	  } else if (classic) {
+            Printv(f_shadow, tab4, "__setattr__ = lambda self, name, value: _swig_setattr_nondynamic(self, ", class_name, ", name, value)\n", NIL);
+          }
 
 	  Printv(f_shadow, tab4, "__swig_getmethods__ = {}\n", NIL);
 	  if (Len(base_class)) {
