@@ -1738,23 +1738,23 @@ AS_HELP_STRING([--with-hhvm=path], [Set location of HHVM executable]),[ HHVMBIN=
 
 # First, check for "--without-hhvm" or "--with-hhvm=no".
 if test x"${HHVMBIN}" = xno; then
-	AC_MSG_NOTICE([Disabling HHVM])
-	HHVM=
+  AC_MSG_NOTICE([Disabling HHVM])
+  HHVM=
 else
-	if test "x$HHVMBIN" = xyes; then
-		AC_CHECK_PROGS(HHVM, [hhvm])
-	else
-		HHVM=$HHVMBIN
-	fi
-	AC_MSG_CHECKING(for hhvm header files)
-	HHVMCONFIG=$HHVM-config
-	hhvm__version=`$HHVMCONFIG --version 2>/dev/null`
-	HHVMINC=`$HHVMCONFIG --includes 2>/dev/null`
-	if test -n "$HHVMINC"; then
-	  AC_MSG_RESULT($HHVMINC)
-	else
-	  AC_MSG_RESULT(not found)
-	fi
+  if test "x$HHVMBIN" = xyes; then
+    AC_CHECK_PROGS(HHVM, [hhvm])
+  else
+    HHVM=$HHVMBIN
+  fi
+  AC_MSG_CHECKING(for hhvm header files)
+  HHVMCONFIG=$HHVM-config
+  hhvm__version=`$HHVMCONFIG --version 2>/dev/null`
+  HHVMINC=`$HHVMCONFIG --includes 2>/dev/null`
+  if test -n "$HHVMINC"; then
+    AC_MSG_RESULT($HHVMINC)
+  else
+    AC_MSG_RESULT(not found)
+  fi
 fi
 AC_SUBST(HHVM)
 AC_SUBST(HHVMINC)
