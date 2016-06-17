@@ -12,11 +12,11 @@ public:
 
   explicit SWIG_Ptr(T* ptr) : m_ptr(ptr) {}
   virtual ~SWIG_Ptr() { close(); }
-  void close() const {
+  void close() {
     delete m_ptr;
     m_ptr = nullptr;
   }
-  T* get() { return m_ptr; }
+  T* get() const { return m_ptr; }
 };
 
 template<typename T> inline void SWIG_Ptr<T>::sweep() { close(); }
