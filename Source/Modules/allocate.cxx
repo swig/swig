@@ -220,7 +220,12 @@ class Allocate:public Dispatcher {
 		      if (!Swig_symbol_isoverloaded(n)) {
 			// Don't eliminate if an overloaded method as this hides the method
 			// in the scripting languages: the dispatch function will hide the base method if ignored.
-			SetFlag(n, "feature:ignore");
+                        if (!Getattr(b, "feature:smartptr")) {
+                          // Also don't ignore if the class uses
+                          // smart pointers as the swig run time type checker
+                          // can't deal with it unless they exist.
+			  SetFlag(n, "feature:ignore");
+                        }
 		      }
 	      } else {
 		// Some languages need to know about covariant return types
