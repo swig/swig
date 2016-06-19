@@ -161,7 +161,7 @@ static const char *usage3 = "\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
-                         -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel -castmode\n\
+                         -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel \n\
                          -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
      -py3            - Generate code with Python 3 specific features:\n\
                          Function annotation \n\
@@ -508,7 +508,6 @@ public:
 	  fastinit = 1;
 	  fastquery = 1;
 	  modernargs = 1;
-          castmode = 1;
 	  Wrapper_fast_dispatch_mode_set(1);
 	  Wrapper_virtual_elimination_mode_set(1);
 	  Swig_mark_arg(i);
