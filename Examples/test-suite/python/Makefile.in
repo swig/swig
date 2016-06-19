@@ -96,7 +96,7 @@ LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options
-implicittest.cpptest: SWIGOPT += -castmode
+# none!
 
 # Rules for the different types of tests
 %.cpptest:
