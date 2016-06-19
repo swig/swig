@@ -1,4 +1,5 @@
 import exception_classname
 
 a = exception_classname.Exception()
-assert a.testfunc() == 42
+if a.testfunc() != 42:
+    raise RuntimeError("Not 42!")
