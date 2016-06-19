@@ -1746,15 +1746,6 @@ else
   else
     HHVM=$HHVMBIN
   fi
-  AC_MSG_CHECKING(for hhvm header files)
-  HHVMCONFIG=$HHVM-config
-  hhvm__version=`$HHVMCONFIG --version 2>/dev/null`
-  HHVMINC=`$HHVMCONFIG --includes 2>/dev/null`
-  if test -n "$HHVMINC"; then
-    AC_MSG_RESULT($HHVMINC)
-  else
-    AC_MSG_RESULT(not found)
-  fi
 fi
 AC_SUBST(HHVM)
 AC_SUBST(HHVMINC)
