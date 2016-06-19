@@ -157,9 +157,20 @@ public:
     SwigType *type   = Getattr(n,"type");
     ParmList *parms  = Getattr(n,"parms");
     String *return_type = NewString(""), *tm;
+    String *classname = NewString("");
+    String *wclassname = NewString("");
+    String *methodname = NewString("");
+    String *acc = NewString(Getattr(n, "access"));
     bool is_void_return;
-    if ((tm = Swig_typemap_lookup("hni_rttype", n, name, 0))) {
-      Printv(f_link, tm, " ");
+    bool is_member = Getattr(n, "ismember");
+    bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
+    bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
+
+    if (is_constructor || is_destructor) {
+      Printf(f_link, "void ");
+      Printf(return_type, "void");
+    } else if ((tm = Swig_typemap_lookup("hni_rttype", n, name, 0))) {
+      Printv(f_link, tm, " ", NIL);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
@@ -167,12 +178,40 @@ public:
 
     is_void_return = (Cmp(return_type, "void") == 0);
 
-    Printf(f_register, "    HHVM_FE(%s);\n", name);
-    Printf(f_link, "HHVM_FUNCTION(%s", name);
     Printf(f_phpcode, "<<__Native>>\n");
-    Printf(f_phpcode, "function %s(", name);
+    if (is_constructor){
+      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      classname = GetChar(Swig_methodclass(n), "sym:name");
+      Printf(f_register, "    HHVM_MALIAS(%s, __construct, %s, __construct);\n", classname, wclassname);
+      Printf(f_link, "HHVM_METHOD(%s, __construct", wclassname);
+      Printf(f_phpcode, "function __construct(");
+    } else if (is_destructor) {
+      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      classname = GetChar(Swig_methodclass(n), "sym:name");
+      Printf(f_register, "    HHVM_MALIAS(%s, __destruct, %s, __destruct);\n", classname, wclassname);
+      Printf(f_link, "HHVM_METHOD(%s, __destruct", wclassname);
+      Printf(f_phpcode, "function __destruct(");
+    } else if (is_member) {
+      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      classname = GetChar(Swig_methodclass(n), "sym:name");
+      methodname = Getattr(n, "memberfunctionHandler:sym:name");
+      Printf(f_register, "    HHVM_MALIAS(%s, %s, %s, %s);\n", classname, methodname, wclassname, methodname);
+      Printf(f_link, "HHVM_METHOD(%s, %s", wclassname, methodname);
+      Printf(f_phpcode, "%s function %s(", acc, methodname);
+    } else {
+      Printf(f_register, "    HHVM_FE(%s);\n", name);
+      Printf(f_link, "HHVM_FUNCTION(%s", name);
+      Printf(f_phpcode, "function %s(", name);
+    }
+
     bool prev = false;
-    for (Parm *p = parms; p; p = nextSibling(p)) {
+    Parm *p = parms;
+
+    // Skip the class pointer
+    if ((!is_constructor && is_member) || is_destructor) {
+      p = nextSibling(p);
+    }
+    for (; p; p = nextSibling(p)) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *val = Getattr(p, "value");
@@ -194,7 +233,7 @@ public:
     }
 
     Printf(f_phpcode, ") ");
-    if ((tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+    if (!is_constructor && !is_destructor && (tm = Swig_typemap_lookup("php_type", n, name, 0))) {
       Printf(f_phpcode, ": %s", tm);
     }
     
@@ -377,6 +416,7 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
+    Swig_print_tree(n);
     /* Get some useful attributes of this function */
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
@@ -386,10 +426,14 @@ public:
     String *tm, *wname;
     String *return_type = NewString("");
     String *call_parms = NewString("");
+    String *member_name = NewString("");
     Wrapper *wrapper = NewWrapper();
     bool is_void_return;
     bool overloaded = false;
     String *overname;
+    bool is_member = Getattr(n, "ismember");
+    bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
+    bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     // Test for overloading;
     if (Getattr(n, "sym:overloaded")) {
@@ -408,7 +452,9 @@ public:
     Swig_typemap_attach_parms("hni_parmtype", parms, wrapper);
     Swig_typemap_attach_parms("php_type", parms, wrapper);
 
-    Printf(wrapper->def, "static ");
+    if (!is_member) {
+      Printf(wrapper->def, "static ");
+    }
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);
@@ -460,11 +506,29 @@ public:
 
     if (!overloaded) {
       create_command(n);
-      Printf(f_link, "  ");
-      if (!is_void_return) {
-        Printf(f_link, "return ");
+      if (is_constructor || is_destructor || is_member) {
+        String *classname = GetChar(Swig_methodclass(n), "wrap:name");
+        Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
+        if (!is_constructor) {
+          Replaceall(call_parms, "arg1", "data->_obj_ptr");
+        }
       }
-      Printf(f_link, "%s(%s);\n}\n\n", wname, call_parms);
+
+      if (is_constructor) {
+        Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
+      } else if(is_destructor) {
+        Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
+      } else {
+        Printf(f_link, "  ");
+        if (!is_void_return) {
+          Printf(f_link, "return ");
+        }
+        if (is_member) {
+          Printf(f_link, "data->");
+        }
+        Printf(f_link, "%s(%s);\n", wname, call_parms);
+      }
+      Printf(f_link, "}\n\n");
     }
     Setattr(n, "wrap:name", wname);
 
@@ -522,9 +586,17 @@ public:
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
     String *name = GetChar(n, "name");
-    Printf(f_phpcode, "class circle {\n");
+    String *wname = Swig_name_wrapper(name);
+    Setattr(n, "wrap:name", wname);
+    Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", wname);
+    Printf(f_phpcode, "class %s {\n", name);
+    Printf(f_wrappers, "class %s {\n", wname);
+    Printf(f_wrappers, "public:\n");
     Language::classHandler(n);
+    Printf(f_wrappers, "Resource _obj_ptr;\n");
     Printf(f_phpcode, "}\n");
+    Printf(f_wrappers, "}; // class %s\n", wname);
+    Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, wname);
     return SWIG_OK;
   } 
 };
