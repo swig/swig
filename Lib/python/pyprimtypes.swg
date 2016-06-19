@@ -223,6 +223,8 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
     const double mant_min = -mant_max;
     double d;
     res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, mant_min, mant_max))
+      return SWIG_OverflowError;
     if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
       if (val) *val = (long long)(d);
       return SWIG_AddCast(res);
@@ -280,6 +282,8 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
     const double mant_max = 1LL << DBL_MANT_DIG;
     double d;
     res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, 0, mant_max))
+      return SWIG_OverflowError;
     if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
       if (val) *val = (unsigned long long)(d);
       return SWIG_AddCast(res);
