@@ -1,4 +1,7 @@
-%module(naturalvar="1") implicittest
+%module(naturalvar="1", castmode="1") implicittest
+// castmode is enabled because %implicitconv is enabled by -O
+// and %implicitconv highly recommends castmode.  This test will
+// fail with -O and no castmode.
 
 %implicitconv;
 
