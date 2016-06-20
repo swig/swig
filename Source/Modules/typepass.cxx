@@ -265,7 +265,13 @@ class TypePass:private Dispatcher {
 	    SwigType *bsmart = Copy(smart);
 	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
 	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
-	    Replaceall(bsmart, rclsname, rbname);
+	    int replace_count = Replaceall(bsmart, rclsname, rbname);
+	    if (replace_count == 0) {
+	      // If no replacement made, it will be because rclsname is fully resolved, but the
+	      // type in the smartptr feature used a typedef or not fully resolved name.
+	      String *firstname = Getattr(first, "name");
+	      Replaceall(bsmart, firstname, rbname);
+	    }
 	    Delete(rclsname);
 	    Delete(rbname);
 	    String *smartnamestr = SwigType_namestr(smart);

@@ -8,9 +8,8 @@ if d.bar() != 2:
     raise RuntimeError
 if bar_getter(b) != 1:
     raise RuntimeError
-# Fix reverted in rev 12953
-# if bar_getter(d) != 2:
-#  raise RuntimeError
+if bar_getter(d) != 2:
+    raise RuntimeError
 
 b = BaseDefaultInt()
 d = DerivedDefaultInt()
