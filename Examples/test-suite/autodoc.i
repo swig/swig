@@ -139,5 +139,11 @@ bool is_python_builtin() { return true; }
 #else
 bool is_python_builtin() { return false; }
 #endif
+
+#ifdef SWIGPYTHON_FASTPROXY
+bool is_python_fastproxy() { return true; }
+#else
+bool is_python_fastproxy() { return false; }
+#endif
 %}
   

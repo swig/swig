@@ -715,6 +715,10 @@ public:
       Printf(f_runtime, "#define SWIGPYTHON_BUILTIN\n");
     }
 
+    if (fastproxy) {
+      Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
+    }
+
     Printf(f_runtime, "\n");
 
     Printf(f_header, "#if (PY_VERSION_HEX <= 0x02000000)\n");
