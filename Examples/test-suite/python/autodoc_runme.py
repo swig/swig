@@ -1,5 +1,5 @@
 from autodoc import *
-import sys, types
+import sys
 
 
 def check(got, expected, expected_builtin=None, skip=False):
@@ -15,17 +15,6 @@ def check(got, expected, expected_builtin=None, skip=False):
 def is_new_style_class(cls):
     return hasattr(cls, "__class__")
 
-def is_builtin_method(fn):
-    # Instance method enabled by -O overwrite the function
-    # with an PyInstanceMethod.  This type is not exported
-    # to python.  This check is for "normal" instance
-    # methods (as yes dodgy using im_func).  We will
-    # use this test to skip checks for instance methods.
-    if hasattr(fn, "__func__"):
-        return type(fn.im_func) == types.BuiltinMethodType
-    return True
-
-
 if not is_new_style_class(A):
     # Missing static methods make this hard to test... skip if -classic is
     # used!
@@ -38,12 +27,10 @@ check(A.__doc__, "Proxy of C++ A class.", "::A")
 check(A.funk.__doc__, "just a string.")
 check(A.func0.__doc__,
       "func0(self, arg2, hello) -> int",
-      "func0(arg2, hello) -> int",
-      skip=is_builtin_method(A.func0))
+      "func0(arg2, hello) -> int")
 check(A.func1.__doc__,
       "func1(A self, short arg2, Tuple hello) -> int",
-      "func1(short arg2, Tuple hello) -> int",
-      skip=is_builtin_method(A.func1))
+      "func1(short arg2, Tuple hello) -> int")
 check(A.func2.__doc__,
       "\n"
       "        func2(self, arg2, hello) -> int\n"
@@ -62,8 +49,8 @@ check(A.func2.__doc__,
       "arg2: short\n"
       "hello: int tuple[2]\n"
       "\n"
-      "",
-      skip=is_builtin_method(A.func2))
+      ""
+      )
 check(A.func3.__doc__,
       "\n"
       "        func3(A self, short arg2, Tuple hello) -> int\n"
@@ -82,8 +69,8 @@ check(A.func3.__doc__,
       "arg2: short\n"
       "hello: int tuple[2]\n"
       "\n"
-      "",
-      skip=is_builtin_method(A.func2))
+      ""
+      )
 
 check(A.func0default.__doc__,
       "\n"
@@ -93,8 +80,8 @@ check(A.func0default.__doc__,
       "\n"
       "func0default(e, arg3, hello, f=2) -> int\n"
       "func0default(e, arg3, hello) -> int\n"
-      "",
-      skip=is_builtin_method(A.func0default))
+      ""
+      )
 check(A.func1default.__doc__,
       "\n"
       "        func1default(A self, A e, short arg3, Tuple hello, double f=2) -> int\n"
@@ -103,8 +90,8 @@ check(A.func1default.__doc__,
       "\n"
       "func1default(A e, short arg3, Tuple hello, double f=2) -> int\n"
       "func1default(A e, short arg3, Tuple hello) -> int\n"
-      "",
-      skip=is_builtin_method(A.func1default))
+      ""
+      )
 check(A.func2default.__doc__,
       "\n"
       "        func2default(self, e, arg3, hello, f=2) -> int\n"
@@ -143,8 +130,8 @@ check(A.func2default.__doc__,
       "arg3: short\n"
       "hello: int tuple[2]\n"
       "\n"
-      "",
-      skip=is_builtin_method(A.func2default))
+      ""
+      )
 check(A.func3default.__doc__,
       "\n"
       "        func3default(A self, A e, short arg3, Tuple hello, double f=2) -> int\n"
@@ -183,8 +170,8 @@ check(A.func3default.__doc__,
       "arg3: short\n"
       "hello: int tuple[2]\n"
       "\n"
-      "",
-      skip=is_builtin_method(A.func3default))
+      ""
+      )
 
 check(A.func0static.__doc__,
       "\n"
@@ -352,8 +339,7 @@ check(F.__init__.__doc__,
 
 check(B.funk.__doc__,
       "funk(B self, int c, int d) -> int",
-      "funk(int c, int d) -> int",
-      skip=is_builtin_method(B.funk))
+      "funk(int c, int d) -> int")
 check(funk.__doc__, "funk(A e, short arg2, int c, int d) -> int")
 check(funkdefaults.__doc__,
       "\n"
