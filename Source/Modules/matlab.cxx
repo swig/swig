@@ -1320,7 +1320,7 @@ int MATLAB::variableWrapper(Node *n) {
   int gw_ind_get = toGateway(getname,getwname);
 
   // Add getter/setter function
-  if (GetFlag(n, "feature:immutable")) {
+  if (!is_assignable(n)) {
     // Only getter
     Printf(f_wrap_m,"function v = %s()\n",symname);
     Printf(f_wrap_m,"  v = %s(%d);\n",mex_name,gw_ind_get);
@@ -2360,7 +2360,7 @@ int MATLAB::membervariableHandler(Node *n) {
   String *getwname = Swig_name_wrapper(getname);
   int gw_ind_get = toGateway(getname,getwname);
 
-  if (GetFlag(n,"feature:immutable")) {
+  if (!is_assignable(n)) {
     // Only getter function
     Printf(f_wrap_m,"    function v = %s(self)\n", symname);
     Printf(f_wrap_m,"      v = %s(%d, self);\n", mex_name, gw_ind_get);
@@ -2646,7 +2646,7 @@ int MATLAB::staticmembervariableHandler(Node *n) {
   String *getwname = Swig_name_wrapper(getname);
   int gw_ind_get = toGateway(getname,getwname);
 
-  if (GetFlag(n, "feature:immutable")) {
+  if (!is_assignable(n)) {
     // Only getter
     Printf(static_methods,"    function v = %s()\n",symname);
     if (have_matlabprepend(n))
