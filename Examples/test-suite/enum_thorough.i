@@ -97,33 +97,33 @@ const SpeedClass::speed &      speedTest5(const SpeedClass::speed &s) { return s
 
 typedef enum { NamedAnon1, NamedAnon2 } namedanon;
 
-namedanon                       namedanonTest1(namedanon e) { return e; } 
+namedanon                       namedanonTest1(namedanon e) { return e; }
 
 typedef enum twonamestag { TwoNames1, TwoNames2, TwoNames3 = 33 } twonames;
 
-twonames                        twonamesTest1(twonames e) { return e; } 
-twonamestag                     twonamesTest2(twonamestag e) { return e; } 
-enum twonamestag                twonamesTest3(enum twonamestag e) { return e; } 
+twonames                        twonamesTest1(twonames e) { return e; }
+twonamestag                     twonamesTest2(twonamestag e) { return e; }
+enum twonamestag                twonamesTest3(enum twonamestag e) { return e; }
 
 struct TwoNamesStruct {
   typedef enum twonamestag { TwoNamesStruct1, TwoNamesStruct2 } twonames;
-  twonames                      twonamesTest1(twonames e) { return e; } 
-  twonamestag                   twonamesTest2(twonamestag e) { return e; } 
-  enum twonamestag              twonamesTest3(enum twonamestag e) { return e; } 
+  twonames                      twonamesTest1(twonames e) { return e; }
+  twonamestag                   twonamesTest2(twonamestag e) { return e; }
+  enum twonamestag              twonamesTest3(enum twonamestag e) { return e; }
 };
 
 namespace AnonSpace{
   typedef enum { NamedAnonSpace1, NamedAnonSpace2 } namedanonspace;
-  namedanonspace                namedanonspaceTest1(namedanonspace e) { return e; } 
-  AnonSpace::namedanonspace     namedanonspaceTest2(AnonSpace::namedanonspace e) { return e; } 
+  namedanonspace                namedanonspaceTest1(namedanonspace e) { return e; }
+  AnonSpace::namedanonspace     namedanonspaceTest2(AnonSpace::namedanonspace e) { return e; }
 }
-AnonSpace::namedanonspace       namedanonspaceTest3(AnonSpace::namedanonspace e) { return e; } 
+AnonSpace::namedanonspace       namedanonspaceTest3(AnonSpace::namedanonspace e) { return e; }
 using namespace AnonSpace;
-namedanonspace                  namedanonspaceTest4(namedanonspace e) { return e; } 
+namedanonspace                  namedanonspaceTest4(namedanonspace e) { return e; }
 
 
 template<typename T> struct TemplateClass {
-  enum scientists { einstein, galileo = 10 }; 
+  enum scientists { einstein, galileo = 10 };
   typedef enum scientists scientiststd1;
   typedef scientists scientiststd2;
   typedef scientiststd1 scientiststd3;
@@ -160,7 +160,7 @@ const TemplateClass<int>::scientiststd3 &   scientistsTest8(const TemplateClass<
 
 namespace Name {
 template<typename T> struct TClass {
-  enum scientists { faraday, bell = 20 }; 
+  enum scientists { faraday, bell = 20 };
   typedef enum scientists scientiststd1;
   typedef scientists scientiststd2;
   typedef scientiststd1 scientiststd3;

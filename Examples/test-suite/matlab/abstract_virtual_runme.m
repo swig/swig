@@ -1,7 +1,3 @@
-import abstract_virtual.*
+d = abstract_virtual.D();
 
-
-d = D();
-
-e = E();
-
+e = abstract_virtual.E();

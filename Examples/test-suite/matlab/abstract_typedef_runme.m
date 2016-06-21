@@ -1,12 +1,8 @@
-import abstract_typedef.*
-e = Engine();
+e = abstract_typedef.Engine();
 
-a = A();
-  
+a = abstract_typedef.A();
+
 
 if (a.write(e) ~= 1)
   error('FAILED!!')
 end
-
-
-

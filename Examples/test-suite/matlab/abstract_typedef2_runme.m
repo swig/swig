@@ -1,8 +1,1 @@
-import abstract_typedef2.*
-
-a = A_UF();
-  
-
-
-
-
+a = abstract_typedef2.A_UF();
