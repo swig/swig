@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-06-25: mromberg
+            [Python] #711 Fix -castmode and conversion of signed and unsigned integer types.
+            See 2015-12-23 CHANGES entry for details of these improvements when they were
+            implemented for the default options (ie not using -castmode).
+
 2016-06-25: ahnolds
             Patch #730 - Fix %implicitconv for overloaded functions when using
             -castmode or -fastdispatch options.
