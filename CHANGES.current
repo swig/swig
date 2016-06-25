@@ -5,5 +5,17 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-06-25: ahnolds
+            Patch #730 - Fix %implicitconv for overloaded functions when using
+            -castmode or -fastdispatch options.
+
+            The result is that in all overload cases where there are multiple possibilities
+            with the same number of arguments, the dispatch function will first check for
+            exact (aka non implicit) matches, and then subsequently check for implicit
+            casting matches. This was already happening in the normal dispatch situation,
+            and in the -fastdispatch case two passes through the candidates were happening,
+            just with SWIG_POINTER_IMPLICIT_CONV always set. After this patch, it is not set
+            on the first pass, and then set on the second pass.
+
 2016-06-25: liorgold
-            Add support for C++11 type aliasing.
+            Patch #727 - Add support for C++11 type aliasing.
