@@ -281,6 +281,7 @@ int unify_hash(const char *fname)
 	fd = open(fname, O_RDONLY|O_BINARY);
 	if (fd == -1 || fstat(fd, &st) != 0) {
 		cc_log("Failed to open preprocessor output %s\n", fname);
+		if (fd != -1) close(fd);
 		stats_update(STATS_PREPROCESSOR);
 		return -1;
 	}
@@ -289,12 +290,12 @@ int unify_hash(const char *fname)
            lines in preprocessor output. I have seen lines of over
            100k in length, so this is well worth it */
 	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	close(fd);
 	if (map == (char *)-1) {
 		cc_log("Failed to mmap %s\n", fname);
 		stats_update(STATS_PREPROCESSOR);
 		return -1;
 	}
-	close(fd);
 
 	/* pass it through the unifier */
 	unify((unsigned char *)map, st.st_size);

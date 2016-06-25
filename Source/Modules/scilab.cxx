@@ -326,6 +326,7 @@ public:
     bool isLastOverloaded = isOverloaded && !Getattr(node, "sym:nextSibling");
 
     if (!isOverloaded && !addSymbol(functionName, node)) {
+      DelWrapper(wrapper);
       return SWIG_ERROR;
     }
 
@@ -633,7 +634,10 @@ public:
 
       /* Add function to builder table */
       addFunctionToScilab(scilabSetFunctionName, setFunctionName);
+
+      DelWrapper(setFunctionWrapper);
     }
+    DelWrapper(getFunctionWrapper);
 
     return SWIG_OK;
   }
