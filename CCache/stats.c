@@ -141,7 +141,7 @@ static void stats_update_size(enum stats stat, size_t size, size_t numfiles)
 	if (lock_fd(fd) != 0) {
 		close(fd);
 		return;
-  }
+	}
 
 	/* read in the old stats */
 	stats_read_fd(fd, counters);
