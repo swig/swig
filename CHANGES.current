@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-06-26: wkalinin
+            [Java, C#] Patch #681 Fix seg fault when ignoring nested classes.
+
 2016-06-25: mromberg
             [Python] #711 Fix -castmode and conversion of signed and unsigned integer types.
             See 2015-12-23 CHANGES entry for details of these improvements when they were
