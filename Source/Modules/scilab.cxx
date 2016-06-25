@@ -604,7 +604,6 @@ public:
     Append(getFunctionWrapper->code, "return SWIG_OK;\n");
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
-    DelWrapper(getFunctionWrapper);
 
     /* Add function to builder table */
     addFunctionToScilab(scilabGetFunctionName, getFunctionName);
@@ -632,11 +631,13 @@ public:
       Append(setFunctionWrapper->code, "return SWIG_OK;\n");
       Append(setFunctionWrapper->code, "}\n");
       Wrapper_print(setFunctionWrapper, wrappersSection);
-      DelWrapper(setFunctionWrapper);
 
       /* Add function to builder table */
       addFunctionToScilab(scilabSetFunctionName, setFunctionName);
+
+      DelWrapper(setFunctionWrapper);
     }
+    DelWrapper(getFunctionWrapper);
 
     return SWIG_OK;
   }
