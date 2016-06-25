@@ -4,3 +4,6 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 3.0.11 (in progress)
 ============================
+
+2016-06-25: liorgold
+            Add support for C++11 type aliasing.
