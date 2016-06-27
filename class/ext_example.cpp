@@ -790,6 +790,35 @@ int64_t _wrap_Circle_area(const Resource& targ1) {
 }
 
 
+static void _wrap_Circle_info() {
+  Circle::info();
+  
+}
+
+
+void _wrap_Circle_z_set(const Resource& targ1, int64_t targ2) {
+  Circle *arg1 = (Circle *) 0 ;
+  int arg2 ;
+  
+  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
+  arg2 = (int)targ2; 
+  if (arg1) (arg1)->z = arg2;
+  
+}
+
+
+int64_t _wrap_Circle_z_get(const Resource& targ1) {
+  Circle *arg1 = (Circle *) 0 ;
+  int64_t tresult ;
+  int result;
+  
+  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
+  result = (int) ((arg1)->z);
+  tresult = result;
+  return tresult;
+}
+
+
 static void _wrap_delete_Circle(const Resource& targ1) {
   Circle *arg1 = (Circle *) 0 ;
   
@@ -820,6 +849,20 @@ int64_t HHVM_METHOD(_wrap_Circle, area) {
   return data->_wrap_Circle_area(data->_obj_ptr);
 }
 
+void HHVM_STATIC_METHOD(_wrap_Circle, Circle_info) {
+  _wrap_Circle::_wrap_Circle_info();
+}
+
+void HHVM_METHOD(_wrap_Circle, Circle_z_set, int64_t arg2) {
+  auto data = Native::data<_wrap_Circle>(this_);
+  data->_wrap_Circle_z_set(data->_obj_ptr, arg2);
+}
+
+int64_t HHVM_METHOD(_wrap_Circle, Circle_z_get) {
+  auto data = Native::data<_wrap_Circle>(this_);
+  return data->_wrap_Circle_z_get(data->_obj_ptr);
+}
+
 void HHVM_METHOD(_wrap_Circle, __destruct) {
   auto data = Native::data<_wrap_Circle>(this_);
   data->_wrap_delete_Circle(data->_obj_ptr);
@@ -838,6 +881,9 @@ public:
   void moduleInit() override {
     HHVM_MALIAS(Circle, __construct, _wrap_Circle, __construct);
     HHVM_MALIAS(Circle, area, _wrap_Circle, area);
+    HHVM_STATIC_MALIAS(Circle, Circle_info, _wrap_Circle, Circle_info);
+    HHVM_MALIAS(Circle, Circle_z_set, _wrap_Circle, Circle_z_set);
+    HHVM_MALIAS(Circle, Circle_z_get, _wrap_Circle, Circle_z_get);
     HHVM_MALIAS(Circle, __destruct, _wrap_Circle, __destruct);
     Native::registerNativeDataInfo<_wrap_Circle>(makeStaticString("_wrap_Circle"));
     HHVM_FE(pnt);

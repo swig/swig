@@ -10,6 +10,7 @@ protected:
   File *f_link;
   File *f_init;
   File *f_phpcode;
+  bool staticmethodwrapper;
 
 public:
   virtual void main(int argc, char *argv[]) {
@@ -89,6 +90,8 @@ public:
     Printf(f_register, "  %sExtension(): Extension(\"%s\", \"1.0\") {}\n\n", cap_module, module);
     Printf(f_register, "  void moduleInit() override {\n");
 
+    staticmethodwrapper = false;
+
     /* Emit code for children */
     Language::top(n);
     
@@ -165,6 +168,7 @@ public:
     bool is_member = Getattr(n, "ismember");
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
+    Printf(stdout, "%s\n", Getattr(n, "nodeType"));
 
     if (is_constructor || is_destructor) {
       Printf(f_link, "void ");
@@ -191,10 +195,25 @@ public:
       Printf(f_register, "    HHVM_MALIAS(%s, __destruct, %s, __destruct);\n", classname, wclassname);
       Printf(f_link, "HHVM_METHOD(%s, __destruct", wclassname);
       Printf(f_phpcode, "function __destruct(");
+    } else if (staticmethodwrapper) {
+      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      classname = GetChar(Swig_methodclass(n), "sym:name");
+      if (Getattr(n, "memberfunctionHandler:sym:name")) {
+        methodname = Getattr(n, "memberfunctionHandler:sym:name");
+      } else {
+        methodname = name;
+      }
+      Printf(f_register, "    HHVM_STATIC_MALIAS(%s, %s, %s, %s);\n", classname, methodname, wclassname, methodname);
+      Printf(f_link, "HHVM_STATIC_METHOD(%s, %s", wclassname, methodname);
+      Printf(f_phpcode, "static %s function %s(", acc, methodname);
     } else if (is_member) {
       wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       classname = GetChar(Swig_methodclass(n), "sym:name");
-      methodname = Getattr(n, "memberfunctionHandler:sym:name");
+      if (Getattr(n, "memberfunctionHandler:sym:name")) {
+        methodname = Getattr(n, "memberfunctionHandler:sym:name");
+      } else {
+        methodname = name;
+      }
       Printf(f_register, "    HHVM_MALIAS(%s, %s, %s, %s);\n", classname, methodname, wclassname, methodname);
       Printf(f_link, "HHVM_METHOD(%s, %s", wclassname, methodname);
       Printf(f_phpcode, "%s function %s(", acc, methodname);
@@ -208,7 +227,9 @@ public:
     Parm *p = parms;
 
     // Skip the class pointer
-    if ((!is_constructor && is_member) || is_destructor) {
+    Printf(stdout, "H%d\n", staticmethodwrapper);
+    if ((!is_constructor && !staticmethodwrapper && is_member) || is_destructor) {
+      assert(p);
       p = nextSibling(p);
     }
     for (; p; p = nextSibling(p)) {
@@ -416,7 +437,7 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
-    Swig_print_tree(n);
+    Swig_print_node(n);
     /* Get some useful attributes of this function */
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
@@ -452,7 +473,7 @@ public:
     Swig_typemap_attach_parms("hni_parmtype", parms, wrapper);
     Swig_typemap_attach_parms("php_type", parms, wrapper);
 
-    if (!is_member) {
+    if (staticmethodwrapper || !is_member) {
       Printf(wrapper->def, "static ");
     }
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
@@ -506,7 +527,7 @@ public:
 
     if (!overloaded) {
       create_command(n);
-      if (is_constructor || is_destructor || is_member) {
+      if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper) {
         String *classname = GetChar(Swig_methodclass(n), "wrap:name");
         Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
         if (!is_constructor) {
@@ -514,7 +535,14 @@ public:
         }
       }
 
-      if (is_constructor) {
+      if (staticmethodwrapper) {
+        String *classname = GetChar(Swig_methodclass(n), "wrap:name");
+        Printf(f_link, "  ");
+        if (!is_void_return) {
+          Printf(f_link, "return ");
+        }
+        Printf(f_link, "%s::%s(%s);\n", classname, wname, call_parms);
+      } else if (is_constructor) {
         Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
       } else if(is_destructor) {
         Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
@@ -585,6 +613,7 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
+    Swig_print_tree(n);
     String *name = GetChar(n, "name");
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
@@ -597,6 +626,18 @@ public:
     Printf(f_phpcode, "}\n");
     Printf(f_wrappers, "}; // class %s\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, wname);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   * ------------------------------------------------------------ */
+
+  virtual int staticmemberfunctionHandler(Node *n) {
+    staticmethodwrapper = true;
+    Language::staticmemberfunctionHandler(n);
+    staticmethodwrapper = false;
+
     return SWIG_OK;
   } 
 };

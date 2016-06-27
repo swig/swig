@@ -14,3 +14,7 @@ int Circle::area() {
 void pnt(Circle *c) {
 	cout << sizeof(*c) << endl;
 }
+
+void Circle::info() {
+	cout << "Example Circle Class" << endl;
+}

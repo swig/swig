@@ -7,6 +7,8 @@ public:
 		r = pr;
     }
     int area();
+    static void info();
+    int z;
 };
 
 void pnt(Circle *);
