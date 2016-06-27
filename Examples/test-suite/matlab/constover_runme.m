@@ -1,5 +1,3 @@
-import constover.*
-
 p = constover.test('test');
 if (~strcmp(p,'test'))
     error('test failed~')
@@ -9,7 +7,7 @@ p = constover.test_pconst('test');
 if (~strcmp(p,'test_pconst'))
     error('test_pconst failed~')
 end
-    
+
 f = constover.Foo();
 p = f.test('test');
 if (~strcmp(p,'test'))
@@ -30,5 +28,3 @@ p = f.test_pconstm('test');
 if (~strcmp(p,'test_pconstmethod'))
     error('member-test_pconstm failed~')
 end
-
-
