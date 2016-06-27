@@ -11,62 +11,8 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-#CPP_TEST_CASES += \
-#	li_std_pair_extra \
-#	li_std_string_extra \
-#	matlab_cell_deref\
-#	matlab_dim
-
-# CPP_TEST_BROKEN += \
-# 	allprotected \
-# 	apply_signed_char \
-# 	apply_strings \
-# 	nested_directors \
-# 	special_variables \
-# 	typemap_directorout \
-# 	director_abstract \
-# 	director_alternating \
-# 	director_basic \
-# 	director_binary_string \
-# 	director_classes \
-# 	director_classic \
-# 	director_constructor \
-# 	director_default \
-# 	director_detect \
-# 	director_enum \
-# 	director_exception \
-# 	director_extend \
-# 	director_finalizer \
-# 	director_frob \
-# 	director_ignore \
-# 	director_keywords \
-# 	director_namespace_clash \
-# 	director_nested \
-# 	director_nspace_director_name_collision \
-# 	director_nspace \
-# 	director_overload2 \
-# 	director_overload \
-# 	director_primitives \
-# 	director_profile \
-# 	director_protected \
-# 	director_protected_overloaded \
-# 	director_redefined \
-# 	director_smartptr \
-# 	director_stl \
-# 	director_string \
-# 	director_thread \
-# 	director_unroll \
-# 	director_using \
-# 	director_wombat \
-# 	director_wstring
-
-#C_TEST_CASES +=
-
-#
-# This test only works with modern C compilers
-#
-#C_TEST_CASES += \
-#	complextest
+CPP_TEST_BROKEN += \
+	arrays_global
 
 include $(srcdir)/../common.mk
 

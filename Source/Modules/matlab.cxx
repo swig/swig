@@ -1293,19 +1293,22 @@ int MATLAB::variableWrapper(Node *n) {
 #ifdef MATLABPRINTFUNCTIONENTRY
   Printf(stderr,"Entering variableWrapper\n");
 #endif
+  String *name = Getattr(n, "name");
+  String *iname = Getattr(n, "sym:name");
+  SwigType *t = Getattr(n, "type");
 
-  // Skip if inside class
+  if (!addSymbol(iname, n))
+    return SWIG_ERROR;
+
+  // Skip if inside class // FIXME(@jaeandersson) ignores varin, varout
   if (class_name) return Language::variableWrapper(n);
 
-  if (Language::variableWrapper(n)!=SWIG_OK) return SWIG_ERROR;
-
   // Name of variable
-  String *symname = Getattr(n, "sym:name");
   checkValidSymName(n);
 
   // Create MATLAB proxy
   String* mfile = NewString("");
-  Printf(mfile, "%s/%s.m", pkg_name_fullpath, symname);
+  Printf(mfile, "%s/%s.m", pkg_name_fullpath, iname);
   if (f_wrap_m)
     SWIG_exit(EXIT_FAILURE);
   f_wrap_m = NewFile(mfile, "w", SWIG_output_files());
@@ -1315,37 +1318,87 @@ int MATLAB::variableWrapper(Node *n) {
   }
 
   // Add getter function
-  String *getname = Swig_name_get(NSPACE_TODO, symname);
+  String *getname = Swig_name_get(NSPACE_TODO, iname);
   String *getwname = Swig_name_wrapper(getname);
   int gw_ind_get = toGateway(getname,getwname);
+
+  // varout typemap
+  String *tm;
+  Wrapper *getf = NewWrapper();
+  int addfail = 0;
+  Setattr(n, "wrap:name", getname);
+  Printf(getf->def, "SWIGINTERN int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", getwname);
+  if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
+    Replaceall(tm, "$source", name);
+    Replaceall(tm, "$target", "resv[0]");
+    Replaceall(tm, "$result", "resv[0]");
+    addfail = emit_action_code(n, getf->code, tm);
+    Delete(tm);
+  } else {
+    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
+  }
+  Append(getf->code, "  return 0;\n");
+  if (addfail) {
+    Append(getf->code, "fail:\n");
+    Append(getf->code, "  return 1;\n");
+  }
+  Append(getf->code, "}\n");
+  Wrapper_print(getf, f_wrappers);
 
   // Add getter/setter function
   if (!is_assignable(n)) {
     // Only getter
-    Printf(f_wrap_m,"function v = %s()\n",symname);
-    Printf(f_wrap_m,"  v = %s(%d);\n",mex_name,gw_ind_get);
-    Printf(f_wrap_m,"end\n");
+    if (!class_name) {
+      Printf(f_wrap_m,"function v = %s()\n",iname);
+      Printf(f_wrap_m,"  v = %s(%d);\n",mex_name,gw_ind_get);
+      Printf(f_wrap_m,"end\n");
+    }
   } else {
     // Add setter function
-    String *setname = Swig_name_set(NSPACE_TODO, symname);
+    String *setname = Swig_name_set(NSPACE_TODO, iname);
     String *setwname = Swig_name_wrapper(setname);
     int gw_ind_set = toGateway(setname,setwname);
 
+    // varin typemap
+    Wrapper *setf = NewWrapper();
+    Setattr(n, "wrap:name", setname);
+    Printf(setf->def, "SWIGINTERN int %s (int resc, mxArray *resv[], int argc, mxArray *argv[]) {", setwname);
+    if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
+      Replaceall(tm, "$source", "argv[0]");
+      Replaceall(tm, "$target", name);
+      Replaceall(tm, "$input", "argv[0]");
+      if (Getattr(n, "tmap:varin:implicitconv")) {
+        Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
+      }
+      emit_action_code(n, setf->code, tm);
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
+    }
+    Printf(setf->code, "return 0;\n");
+    Append(setf->code, "fail:\n");
+    Printf(setf->code, "return 1;\n");
+    Append(setf->code, "}\n");
+    Wrapper_print(setf, f_wrappers);
+
     // Getter and setter
-    Printf(f_wrap_m,"function varargout = %s(varargin)\n",symname);
-    Printf(f_wrap_m,"  narginchk(0,1)\n");
-    Printf(f_wrap_m,"  if nargin==0\n");
-    Printf(f_wrap_m,"    nargoutchk(0,1)\n");
-    Printf(f_wrap_m,"    varargout{1} = %s(%d);\n",mex_name,gw_ind_get);
-    Printf(f_wrap_m,"  else\n");
-    Printf(f_wrap_m,"    nargoutchk(0,0)\n");
-    Printf(f_wrap_m,"    %s(%d,varargin{1});\n",mex_name,gw_ind_set);
-    Printf(f_wrap_m,"  end\n");
-    Printf(f_wrap_m,"end\n");
+    if (!class_name) {
+      Printf(f_wrap_m,"function varargout = %s(varargin)\n",iname);
+      Printf(f_wrap_m,"  narginchk(0,1)\n");
+      Printf(f_wrap_m,"  if nargin==0\n");
+      Printf(f_wrap_m,"    nargoutchk(0,1)\n");
+      Printf(f_wrap_m,"    varargout{1} = %s(%d);\n",mex_name,gw_ind_get);
+      Printf(f_wrap_m,"  else\n");
+      Printf(f_wrap_m,"    nargoutchk(0,0)\n");
+      Printf(f_wrap_m,"    %s(%d,varargin{1});\n",mex_name,gw_ind_set);
+      Printf(f_wrap_m,"  end\n");
+      Printf(f_wrap_m,"end\n");
+    }
 
     // Tidy up
     Delete(setname);
     Delete(setwname);
+    DelWrapper(setf);
   }
 
   // Tidy up
@@ -1353,6 +1406,7 @@ int MATLAB::variableWrapper(Node *n) {
   Delete(getwname);
   Delete(mfile);
   Delete(f_wrap_m);
+  DelWrapper(getf);
   f_wrap_m = 0;
 
   return SWIG_OK;

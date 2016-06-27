@@ -1,19 +1,16 @@
-import arrays_global.*
+arrays_global.array_i(arrays_global.array_const_i);
 
-arrays_global.cvar.array_i = arrays_global.cvar.array_const_i;
+arrays_global.BeginString_FIX44a;
+arrays_global.BeginString_FIX44b;
+arrays_global.BeginString_FIX44c;
+arrays_global.BeginString_FIX44d;
+arrays_global.BeginString_FIX44d;
+arrays_global.BeginString_FIX44b(strcat('12','\0','45'));
+arrays_global.BeginString_FIX44b;
+arrays_global.BeginString_FIX44d;
+arrays_global.BeginString_FIX44e;
+arrays_global.BeginString_FIX44f;
 
-cvar.BeginString_FIX44a;
-cvar.BeginString_FIX44b;
-cvar.BeginString_FIX44c;
-cvar.BeginString_FIX44d;
-cvar.BeginString_FIX44d;
-cvar.BeginString_FIX44b = strcat('12','\0','45');
-cvar.BeginString_FIX44b;
-cvar.BeginString_FIX44d;
-cvar.BeginString_FIX44e;
-cvar.BeginString_FIX44f;
+arrays_global.test_a('hello','hi','chello','chi');
 
-test_a('hello','hi','chello','chi');
-
-test_b('1234567','hi');
-
+arrays_global.test_b('1234567','hi');
