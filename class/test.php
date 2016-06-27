@@ -9,7 +9,7 @@ $c = new Circle(10);
 print "    Created circle\n";
 print "area = " + $c->area() + "\n";
 print "Checking static method\n";
-print Circle::Circle_info();
+print Circle::info();
 print "Goodbye\n";
 
 ?>

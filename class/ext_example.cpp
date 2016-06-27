@@ -849,7 +849,7 @@ int64_t HHVM_METHOD(_wrap_Circle, area) {
   return data->_wrap_Circle_area(data->_obj_ptr);
 }
 
-void HHVM_STATIC_METHOD(_wrap_Circle, Circle_info) {
+void HHVM_STATIC_METHOD(_wrap_Circle, info) {
   _wrap_Circle::_wrap_Circle_info();
 }
 
@@ -881,7 +881,7 @@ public:
   void moduleInit() override {
     HHVM_MALIAS(Circle, __construct, _wrap_Circle, __construct);
     HHVM_MALIAS(Circle, area, _wrap_Circle, area);
-    HHVM_STATIC_MALIAS(Circle, Circle_info, _wrap_Circle, Circle_info);
+    HHVM_STATIC_MALIAS(Circle, info, _wrap_Circle, info);
     HHVM_MALIAS(Circle, Circle_z_set, _wrap_Circle, Circle_z_set);
     HHVM_MALIAS(Circle, Circle_z_get, _wrap_Circle, Circle_z_get);
     HHVM_MALIAS(Circle, __destruct, _wrap_Circle, __destruct);

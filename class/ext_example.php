@@ -18,7 +18,7 @@ function __construct(int $arg1) ;
 public function area() : int;
 
 <<__Native>>
-static public function Circle_info() : void;
+static public function info() : void;
 
 <<__Native>>
 public function Circle_z_set(int $arg2) : void;

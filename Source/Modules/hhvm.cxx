@@ -168,7 +168,6 @@ public:
     bool is_member = Getattr(n, "ismember");
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
-    Printf(stdout, "%s\n", Getattr(n, "nodeType"));
 
     if (is_constructor || is_destructor) {
       Printf(f_link, "void ");
@@ -198,11 +197,7 @@ public:
     } else if (staticmethodwrapper) {
       wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       classname = GetChar(Swig_methodclass(n), "sym:name");
-      if (Getattr(n, "memberfunctionHandler:sym:name")) {
-        methodname = Getattr(n, "memberfunctionHandler:sym:name");
-      } else {
-        methodname = name;
-      }
+      methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
       Printf(f_register, "    HHVM_STATIC_MALIAS(%s, %s, %s, %s);\n", classname, methodname, wclassname, methodname);
       Printf(f_link, "HHVM_STATIC_METHOD(%s, %s", wclassname, methodname);
       Printf(f_phpcode, "static %s function %s(", acc, methodname);
@@ -227,7 +222,6 @@ public:
     Parm *p = parms;
 
     // Skip the class pointer
-    Printf(stdout, "H%d\n", staticmethodwrapper);
     if ((!is_constructor && !staticmethodwrapper && is_member) || is_destructor) {
       assert(p);
       p = nextSibling(p);
@@ -437,7 +431,6 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
-    Swig_print_node(n);
     /* Get some useful attributes of this function */
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
@@ -613,7 +606,6 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    Swig_print_tree(n);
     String *name = GetChar(n, "name");
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
