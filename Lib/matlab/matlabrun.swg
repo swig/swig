@@ -169,6 +169,13 @@ SWIG_Matlab_CallInterpEx(int nlhs, mxArray *plhs[], int nrhs,
 #endif
 }
 
+/* Convert a packed value value */
+SWIGRUNTIME int
+SWIG_Matlab_ConvertPacked(mxArray* pm, void *ptr, size_t sz, swig_type_info *ty) {
+  mexErrMsgIdAndTxt("SWIG:ConvertPacked","Not implemented");
+  return SWIG_ERROR;
+}
+
 /* Runtime API implementation */
 SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   /* Ownership? */
@@ -209,6 +216,14 @@ SWIGRUNTIME mxArray* SWIG_Matlab_NewPointerObj(void *ptr, swig_type_info *type, 
   }
 
   return pm;
+}
+
+/* Create a new packed object */
+
+SWIGRUNTIMEINLINE mxArray*
+SWIG_Matlab_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
+  mexErrMsgIdAndTxt("SWIG:NewPackedOb","Not implemented");
+  return 0;
 }
 
 SWIGRUNTIME int SWIG_Matlab_isOwned(mxArray* pm) {
