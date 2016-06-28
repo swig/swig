@@ -1,5 +1,9 @@
 %module naturalvar_more
 
+#if defined(SWIGMATLAB)
+%rename(glob1) glob;
+#endif
+
 // The instantiation of a template using an enum in the template parameter was not picking up %naturalvar.
 
 // These typemaps will be used if %naturalvar is not working
@@ -50,4 +54,3 @@ struct S {
   S() : const_te(), const_string_member("initial string value") {}
 };
 }
-

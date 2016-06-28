@@ -1,6 +1,6 @@
 %module li_boost_shared_ptr_bits
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGMATLAB) || defined(SWIGRUBY)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -13,6 +13,10 @@
 
 #if defined(SWIGPYTHON)
 %pythonnondynamic NonDynamic;
+#endif
+
+#if defined(SWIGMATLAB)
+%rename(sum1) sum;
 #endif
 
 %inline %{
