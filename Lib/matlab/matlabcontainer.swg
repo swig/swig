@@ -36,22 +36,22 @@ namespace swig {
     typedef value_category category;
     static const char* type_name() { return  "mxArray"; }
   };
-  
+
   template <>  struct traits_from<mxArray*> {
     typedef mxArray* value_type;
     static mxArray* from(const value_type& val) {
       return val;
     }
   };
-  
-  template <> 
+
+  template <>
   struct traits_check<mxArray*, value_category> {
     static bool check(mxArray*) {
       return true;
     }
   };
-  
-  template <>  struct traits_asval<mxArray* > {   
+
+  template <>  struct traits_asval<mxArray* > {
     typedef mxArray* value_type;
     static int asval(mxArray* obj, value_type *val) {
       if (val) *val = obj;
@@ -73,7 +73,7 @@ KT do we need this?
   {
     bool
     operator()(mxArray* v, mxArray* w) const
-    { 
+    {
       mxArray* res = do_binary_op(mxArray*::op_le,v,w);
       return res.is_true();
     }
@@ -92,7 +92,7 @@ namespace swig {
     } else if (insert && ((size_t) i == size)) {
       return size;
     }
-    
+
     throw std::out_of_range("index out of range");
   }
 
@@ -198,7 +198,7 @@ namespace swig
       : _seq(seq), _index(index)
     {
     }
-    
+
     operator T () const
     {
       //      swig::SwigVar_PyObject item = MatlabSequence_GetItem(_seq, _index);
@@ -498,7 +498,7 @@ namespace swig
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
-  
+
   %fragment("MatlabSequence_Base");
 
   %extend {
@@ -570,23 +570,21 @@ namespace swig {
               mxGetM(obj)==1 && mxGetN(obj)>0 ) {
         // Convert to cell array.
         if (seq) {
-          *seq = new sequence(mxGetN(obj));
-          if(*seq) {
-            int i = 0;
-            for (iterator it = (*seq)->begin();
-                 it != (*seq)->end(); ++it, ++i) {
-              *it = swig::as<value_type>(mxGetCell(obj, i));
-            }
-            return SWIG_NEWOBJ;
+          *seq = new sequence();
+          int N = mxGetN(obj);
+          (*seq)->reserve(N);
+          for (int i=0; i<N; ++i) {
+            (*seq)->push_back(swig::as<value_type>(mxGetCell(obj, i)));
           }
+          return SWIG_NEWOBJ;
         }
       } else {
-	sequence *p;
-        if (SWIG_ConvertPtr(obj,(void**)&p,
+	     sequence *p;
+       if (SWIG_ConvertPtr(obj,(void**)&p,
                             swig::type_info<sequence>(),0) == SWIG_OK) {
-	  if (seq) *seq = p;
-	  return SWIG_OLDOBJ;
-	}
+	      if (seq) *seq = p;
+	        return SWIG_OLDOBJ;
+	      }
       }
       return SWIG_ERROR;
     }
@@ -625,4 +623,3 @@ namespace swig {
   };
 }
 }
-

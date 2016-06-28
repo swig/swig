@@ -1,7 +1,5 @@
-import constructor_copy.*
-
-f1 = Foo1(3);
-f11 = Foo1(f1);
+f1 = constructor_copy.Foo1(3);
+f11 = constructor_copy.Foo1(f1);
 
 
 if (f1.x ~= f11.x)
@@ -9,9 +7,9 @@ if (f1.x ~= f11.x)
 end
 
 
-f8 = Foo8();
+f8 = constructor_copy.Foo8();
 try
-    f81 = Foo8(f8);
+    f81 = constructor_copy.Foo8(f8);
     good = 0;
 catch
     good = 1;
@@ -22,17 +20,17 @@ if (~good)
 end
 
 
-bi = Bari(5);
-bc = Bari(bi);
+bi = constructor_copy.Bari(5);
+bc = constructor_copy.Bari(bi);
 
 if (bi.x ~= bc.x)
     error
 end
-    
 
-bd = Bard(5);
+
+bd = constructor_copy.Bard(5);
 try
-    bc = Bard(bd);
+    bc = constructor_copy.Bard(bd);
     good = 0;
 catch
     good = 1;
@@ -41,4 +39,3 @@ end
 if (~good)
     error
 end
-
