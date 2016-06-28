@@ -1,5 +1,3 @@
-import contract.*
-
 contract.test_preassert(1,2);
 try
 	contract.test_preassert(-1,0)
@@ -58,19 +56,19 @@ try
 catch
 end
 
-contract.Foo_stest_prepost(4,0);
+contract.Foo.stest_prepost(4,0);
 try
-	contract.Foo_stest_prepost(-4,2);
+	contract.Foo.stest_prepost(-4,2);
 	error('Failed~ Static method preassertion')
 catch
 end
 
 try
-	contract.Foo_stest_prepost(4,-10);
+	contract.Foo.stest_prepost(4,-10);
 	error('Failed~ Static method posteassertion')
 catch
 end
-	
+
 b = contract.Bar();
 try
 	b.test_prepost(2,-4);
@@ -132,4 +130,3 @@ try
 	error('Failed~ Inherited preassertion (D).')
 catch
 end
-
