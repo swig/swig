@@ -1,6 +1,3 @@
-import default_args.*
-
-
 if (default_args.Statics.staticmethod() ~= 60)
   error
 end
@@ -83,4 +80,3 @@ end
 if (ok)
   error('Foo::meth ignore is not working')
 end
-
