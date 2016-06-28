@@ -53,4 +53,7 @@
 // %ignoreoperator(PARENS)     operator*();
 // %ignoreoperator(PARENSC)    operator*() const;
 
+// Python/Octave style naming
+%rename(disp)     *::__str__;
+
 #endif /* cplusplus */
