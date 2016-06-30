@@ -1,14 +1,13 @@
-import unions.*
 % This is the union runtime testcase. It ensures that values within a 
 % union embedded within a struct can be set and read correctly.
 
 % Create new instances of SmallStruct and BigStruct for later use
 small = unions.SmallStruct();
-small.jill = 200;
+small.jill(200);
 
 big = unions.BigStruct();
-big.smallstruct = small;
-big.jack = 300;
+big.smallstruct(small);
+big.jack(300);
 
 % Use SmallStruct then BigStruct to setup EmbeddedUnionTest.
 % Ensure values in EmbeddedUnionTest are set correctly for each.
@@ -16,7 +15,7 @@ eut = unions.EmbeddedUnionTest();
 
 % First check the SmallStruct in EmbeddedUnionTest
 eut.number = 1;
-eut.uni.small = small;
+eut.uni.small(small);
 Jill1 = eut.uni.small.jill;
 if (Jill1 ~= 200)
     error('Runtime test1 failed. eut.uni.small.jill=%i' , Jill1)
@@ -28,8 +27,8 @@ if (Num1 ~= 1)
 end
 
 % Secondly check the BigStruct in EmbeddedUnionTest
-eut.number = 2;
-eut.uni.big = big;
+eut.number(2);
+eut.uni.big(big);
 Jack1 = eut.uni.big.jack;
 if (Jack1 ~= 300)
     error('Runtime test3 failed. eut.uni.big.jack=%i' , Jack1)
