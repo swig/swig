@@ -1978,6 +1978,23 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	  }
 	}
 
+	/* If the typemap method name contains ":", the user is trying to access an attribute of the method.
+	 * For example, in C#: $typemap(imtype:out, ctype) or $typemap(csin:pre, ctype).
+	 * Split the string into the real method_name and the attribute name. */
+	String *tmap_attr = 0;
+	String *tmap_method_with_attr = 0;
+	{
+	  char *eq = strchr(Char(tmap_method), ':');
+	  char *c = Char(tmap_method);
+	  if (eq && (eq - c > 0)) {
+	    tmap_method = NewStringWithSize(c, (int)(eq - c));
+	    /* tmap_method memory is owned by a list, but since we're overriding it,
+	     * keep track of this so we can clean up. */
+	    tmap_method_with_attr = tmap_method;
+	    tmap_attr = NewString(eq + 1);
+	  }
+	}
+
 	/* Perform a typemap search */
 	if (to_match_parms) {
 	  static int already_substituting = 0;
@@ -2001,6 +2018,18 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    /* Look for the typemap code */
 	    attr = NewStringf("tmap:%s", tmap_method);
 	    tm = Getattr(to_match_parms, attr);
+
+	    /* Replace the typemap code with the attribute value, if there is one. */
+	    if (tmap_attr) {
+	      String *attr2 = NewStringf("%s:%s", attr, tmap_attr);
+	      String *replacement = Getattr(to_match_parms, attr2);
+	      if (replacement) {
+		tm = replacement;
+	      }
+	      Delete(attr2);
+	      Delete(tmap_attr);
+	    }
+
 	    if (tm) {
 	      Printf(attr, "%s", ":next");
 	      /* fail if multi-argument lookup requested in $typemap(...) and the lookup failed */
@@ -2036,6 +2065,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	  }
 	  syntax_error = 0;
 	}
+	Delete(tmap_method_with_attr);
 	Delete(vars);
       }
       Delete(l);
