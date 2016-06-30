@@ -1438,7 +1438,7 @@ int MATLAB::constantWrapper(Node *n) {
   if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
     Replaceall(tm, "$source", value);
     Replaceall(tm, "$target", name);
-    Replaceall(tm, "$value", cppvalue ? cppvalue : value);
+    Replaceall(tm, "$value", CPlusPlus && cppvalue ? cppvalue : value);
     Replaceall(tm, "$nsname", symname);
     con_id = toConstant(symname,tm);
   } else {
