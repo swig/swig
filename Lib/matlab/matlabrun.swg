@@ -375,7 +375,8 @@ SWIGRUNTIME void SWIG_Matlab_SetModule(swig_module_info *pointer) {
     }
     nfields = mxGetNumberOfFields(mem);
     /* Check if same type table */
-    for (int ii=0; ii<nfields; ++ii){
+    int ii;
+    for (ii=0; ii<nfields; ++ii){
       if(strcmp(mxGetFieldNameByNumber(mem, ii), fields[0]) == 0) {
         mxDestroyArray(mem);
         return;
