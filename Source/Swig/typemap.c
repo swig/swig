@@ -1967,8 +1967,9 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    String *parm = Getitem(l, i);
 	    char *eq = strchr(Char(parm), '=');
 	    char *c = Char(parm);
-	    if (eq && (eq - c > 0)) {
-	      String *name = NewStringWithSize(c, (int)(eq - c));
+	    int size = (int)(eq - c);
+	    if (eq && size > 0) {
+	      String *name = NewStringWithSize(c, size);
 	      String *value = NewString(eq + 1);
 	      Insert(name, 0, "$");
 	      Setattr(vars, name, value);
@@ -1986,8 +1987,9 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	{
 	  char *eq = strchr(Char(tmap_method), ':');
 	  char *c = Char(tmap_method);
-	  if (eq && (eq - c > 0)) {
-	    tmap_method = NewStringWithSize(c, (int)(eq - c));
+	  int size = (int)(eq - c);
+	  if (eq && size > 0) {
+	    tmap_method = NewStringWithSize(c, size);
 	    /* tmap_method memory is owned by a list, but since we're overriding it,
 	     * keep track of this so we can clean up. */
 	    tmap_method_with_attr = tmap_method;
@@ -2028,6 +2030,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      }
 	      Delete(attr2);
 	      Delete(tmap_attr);
+	      tmap_attr = 0;
 	    }
 
 	    if (tm) {
