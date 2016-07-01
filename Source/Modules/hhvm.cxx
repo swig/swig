@@ -168,6 +168,7 @@ public:
     bool is_member = Getattr(n, "ismember");
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
+    bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
 
     if (is_constructor || is_destructor) {
       Printf(f_link, "void ");
@@ -194,10 +195,13 @@ public:
       Printf(f_register, "    HHVM_MALIAS(%s, __destruct, %s, __destruct);\n", classname, wclassname);
       Printf(f_link, "HHVM_METHOD(%s, __destruct", wclassname);
       Printf(f_phpcode, "function __destruct(");
-    } else if (staticmethodwrapper) {
+    } else if (staticmethodwrapper || is_static) {
       wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       classname = GetChar(Swig_methodclass(n), "sym:name");
-      methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
+      if (staticmethodwrapper)
+        methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
+      else
+        methodname = Char(Getattr(n, "sym:name"));
       Printf(f_register, "    HHVM_STATIC_MALIAS(%s, %s, %s, %s);\n", classname, methodname, wclassname, methodname);
       Printf(f_link, "HHVM_STATIC_METHOD(%s, %s", wclassname, methodname);
       Printf(f_phpcode, "static %s function %s(", acc, methodname);
@@ -222,8 +226,8 @@ public:
     Parm *p = parms;
 
     // Skip the class pointer
-    if ((!is_constructor && !staticmethodwrapper && is_member) || is_destructor) {
-      assert(p);
+    if ((!is_constructor && !staticmethodwrapper && !is_static && is_member) || is_destructor) {
+      // assert(p);
       p = nextSibling(p);
     }
     for (; p; p = nextSibling(p)) {
@@ -448,6 +452,8 @@ public:
     bool is_member = Getattr(n, "ismember");
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
+    bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
+    // Swig_print_node(n);
 
     // Test for overloading;
     if (Getattr(n, "sym:overloaded")) {
@@ -466,7 +472,7 @@ public:
     Swig_typemap_attach_parms("hni_parmtype", parms, wrapper);
     Swig_typemap_attach_parms("php_type", parms, wrapper);
 
-    if (staticmethodwrapper || !is_member) {
+    if (staticmethodwrapper || is_static || !is_member) {
       Printf(wrapper->def, "static ");
     }
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
@@ -520,7 +526,7 @@ public:
 
     if (!overloaded) {
       create_command(n);
-      if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper) {
+      if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper && !is_static) {
         String *classname = GetChar(Swig_methodclass(n), "wrap:name");
         Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
         if (!is_constructor) {
@@ -528,7 +534,7 @@ public:
         }
       }
 
-      if (staticmethodwrapper) {
+      if (staticmethodwrapper || is_static) {
         String *classname = GetChar(Swig_methodclass(n), "wrap:name");
         Printf(f_link, "  ");
         if (!is_void_return) {

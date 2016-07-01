@@ -6,8 +6,9 @@ using namespace std;
 
 #define M_PI 3.14159
 
+int Circle::objectCount = 0;
+
 int Circle::area() {
-  cout<<"Circle::area called"<<endl;
   return M_PI*r*r;
 }
 

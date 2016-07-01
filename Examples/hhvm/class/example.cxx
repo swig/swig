@@ -10,3 +10,7 @@ int Circle::area() {
   cout<<"Circle::area called"<<endl;
   return M_PI*r*r;
 }
+
+Circle::Circle(int r) {
+  this->r = r;
+}

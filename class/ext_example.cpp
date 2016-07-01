@@ -819,6 +819,25 @@ int64_t _wrap_Circle_z_get(const Resource& targ1) {
 }
 
 
+static void _wrap_Circle_objectCount_set(int64_t targ1) {
+  int arg1 ;
+  
+  arg1 = (int)targ1; 
+  Circle::objectCount = arg1;
+  
+}
+
+
+static int64_t _wrap_Circle_objectCount_get() {
+  int64_t tresult ;
+  int result;
+  
+  result = (int)Circle::objectCount;
+  tresult = result;
+  return tresult;
+}
+
+
 static void _wrap_delete_Circle(const Resource& targ1) {
   Circle *arg1 = (Circle *) 0 ;
   
@@ -863,6 +882,14 @@ int64_t HHVM_METHOD(_wrap_Circle, Circle_z_get) {
   return data->_wrap_Circle_z_get(data->_obj_ptr);
 }
 
+void HHVM_STATIC_METHOD(_wrap_Circle, Circle_objectCount_set, int64_t arg1) {
+  _wrap_Circle::_wrap_Circle_objectCount_set(arg1);
+}
+
+int64_t HHVM_STATIC_METHOD(_wrap_Circle, Circle_objectCount_get) {
+  return _wrap_Circle::_wrap_Circle_objectCount_get();
+}
+
 void HHVM_METHOD(_wrap_Circle, __destruct) {
   auto data = Native::data<_wrap_Circle>(this_);
   data->_wrap_delete_Circle(data->_obj_ptr);
@@ -884,6 +911,8 @@ public:
     HHVM_STATIC_MALIAS(Circle, info, _wrap_Circle, info);
     HHVM_MALIAS(Circle, Circle_z_set, _wrap_Circle, Circle_z_set);
     HHVM_MALIAS(Circle, Circle_z_get, _wrap_Circle, Circle_z_get);
+    HHVM_STATIC_MALIAS(Circle, Circle_objectCount_set, _wrap_Circle, Circle_objectCount_set);
+    HHVM_STATIC_MALIAS(Circle, Circle_objectCount_get, _wrap_Circle, Circle_objectCount_get);
     HHVM_MALIAS(Circle, __destruct, _wrap_Circle, __destruct);
     Native::registerNativeDataInfo<_wrap_Circle>(makeStaticString("_wrap_Circle"));
     HHVM_FE(pnt);

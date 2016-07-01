@@ -27,6 +27,12 @@ public function Circle_z_set(int $arg2) : void;
 public function Circle_z_get() : int;
 
 <<__Native>>
+static public function Circle_objectCount_set(int $arg1) : void;
+
+<<__Native>>
+static public function Circle_objectCount_get() : int;
+
+<<__Native>>
 function __destruct() ;
 
 }

@@ -1,7 +1,8 @@
 class Circle
 {
 private:
-     int r;
+    int r;
 public:
-     int area();
+    Circle(int r);
+    int area();
 };
