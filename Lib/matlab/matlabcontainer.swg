@@ -572,7 +572,6 @@ namespace swig {
         if (seq) {
           *seq = new sequence();
           int N = mxGetN(obj);
-          (*seq)->reserve(N);
           for (int i=0; i<N; ++i) {
             (*seq)->push_back(swig::as<value_type>(mxGetCell(obj, i)));
           }
