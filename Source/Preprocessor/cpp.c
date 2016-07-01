@@ -828,13 +828,25 @@ static String *expand_macro(String *name, List *args, String *line_file) {
   temp = NewStringEmpty();
   tempa = NewStringEmpty();
   if (args && margs) {
+    /* instead of replacing the args one by one, build a list of markers
+     * of the form \006[num]\007, then replace them all at the end
+     * this solves issues where the expansion of one arg contains another arg.
+     */
+    String **list_markers;
+    String **list_repargs;
     l = Len(margs);
+    list_markers = malloc(sizeof(String*) * l);
+    list_repargs = malloc(sizeof(String*) * l);
     for (i = 0; i < l; i++) {
       DOH *arg, *aname;
-      String *reparg;
+      String *reparg, *amarker;
       arg = Getitem(args, i);	/* Get an argument value */
       reparg = Preprocessor_replace(arg);
       aname = Getitem(margs, i);	/* Get macro argument name */
+      amarker = NewStringEmpty();
+      Printf(amarker, "\006%i\007", i);
+      list_markers[i] = amarker;
+      list_repargs[i] = reparg;
       if (strstr(Char(ns), "\001")) {
 	/* Try to replace a quoted version of the argument */
 	Clear(temp);
@@ -925,9 +937,15 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	}
       }
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
-      Replace(ns, aname, reparg, DOH_REPLACE_ID);	/* Replace expanded args */
+      /* Replace(ns, aname, reparg, DOH_REPLACE_ID); */	/* Replace expanded args */
+      Replace(ns, aname, amarker, DOH_REPLACE_ID); /* replace with temporary marker */
       Replace(ns, "\003", arg, DOH_REPLACE_ANY);	/* Replace unexpanded arg */
-      Delete(reparg);
+    }
+    /* and now, actually replace the tokens */
+    for (i = 0; i < l; i++) {
+      Replace(ns, list_markers[i], list_repargs[i], DOH_REPLACE_ANY);
+      Delete(list_markers[i]);
+      Delete(list_repargs[i]);
     }
   }
   Replace(ns, "\002", "", DOH_REPLACE_ANY);	/* Get rid of concatenation tokens */
