@@ -2087,6 +2087,18 @@ int MATLAB::classHandler(Node *n) {
   // Save current class name
   if (class_name) SWIG_exit(EXIT_FAILURE);
   class_name = Getattr(n, "sym:name");
+
+   // Wrappers cannot be emitted
+   static Hash *emitted = NewHash();
+   String *mangled_classname = Swig_name_mangle(Getattr(n, "name"));
+   if (Getattr(emitted, mangled_classname)) {
+     Delete(mangled_classname);
+     class_name=0;
+     return SWIG_NOWRAP;
+   }
+   Setattr(emitted, mangled_classname, "1");
+   Delete(mangled_classname);
+
   // store class_name for use by NewPointerObj
   {
     // need to add quotes around class_name
