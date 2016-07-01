@@ -122,7 +122,7 @@ namespace aa {
 }
 %}
 
-#if !defined(SWIGOCTAVE)
+#if !defined(SWIGOCTAVE) && !defined(SWIGMATLAB)
 // To fix: something different in Octave is preventing this from working
 %template(VectorTest) std::vector< ::aa::Holder >;
 
