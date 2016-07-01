@@ -12,6 +12,30 @@
 #include "hphp/runtime/base/execution-context.h"
 #include "hphp/runtime/vm/native-data.h"
 
+
+#ifdef __cplusplus
+/* SwigValueWrapper is described in swig.swg */
+template<typename T> class SwigValueWrapper {
+  struct SwigMovePointer {
+    T *ptr;
+    SwigMovePointer(T *p) : ptr(p) { }
+    ~SwigMovePointer() { delete ptr; }
+    SwigMovePointer& operator=(SwigMovePointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
+  } pointer;
+  SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
+  SwigValueWrapper(const SwigValueWrapper<T>& rhs);
+public:
+  SwigValueWrapper() : pointer(0) { }
+  SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
+  operator T&() const { return *pointer.ptr; }
+  T *operator&() { return pointer.ptr; }
+};
+
+template <typename T> T SwigValueInit() {
+  return T();
+}
+#endif
+
 /* -----------------------------------------------------------------------------
  *  This section contains generic SWIG labels for method/variable
  *  declarations/attributes, and other compiler dependent labels.
@@ -727,7 +751,7 @@ public:
     delete m_ptr;
     m_ptr = nullptr;
   }
-  T* get() { return m_ptr; }
+  T* get() const { return m_ptr; }
 };
 
 template<typename T> inline void SWIG_Ptr<T>::sweep() { close(); }
@@ -842,8 +866,7 @@ Variant HHVM_FUNCTION(my_mod, const Array& argv) {
       _v = argv[1].isInteger();
       if (_v) targ1 = argv[1].toInt64Val();
       if (_v) {
-        return Variant();
-        _wrap_my_mod__SWIG_1(targ0, targ1);
+        return _wrap_my_mod__SWIG_1(targ0, targ1);
       }
     }
   }
@@ -861,8 +884,7 @@ Variant HHVM_FUNCTION(my_mod, const Array& argv) {
         _v = (argv[2].isString() && argv[2].toString().length() == 1);
         if (_v) targ2 = argv[2].toString();
         if (_v) {
-          return Variant();
-          _wrap_my_mod__SWIG_0(targ0, targ1, targ2);
+          return _wrap_my_mod__SWIG_0(targ0, targ1, targ2);
         }
       }
     }

@@ -370,7 +370,7 @@ public:
       String *lfmt = NewString("");
       is_void_return = (Cmp(return_type, "void") == 0);
       if (!is_void_return) {
-        Printf(lfmt, "return Variant();\n");
+        Printf(lfmt, "return ");
       }
       Printf(lfmt, "%%s(");
       prev_comma = false;
