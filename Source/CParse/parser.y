@@ -2910,16 +2910,17 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
-		  $$ = new_node("using");
-		  Setattr($$,"name",$6);
+		  /* Convert alias template to a "template" typedef statement */
+		  $$ = new_node("template");
 		  SwigType_push($8,$9.type);
-		  Setattr($$,"uname",$8);
+		  Setattr($$,"type",$8);
+		  Setattr($$,"storage","typedef");
+		  Setattr($$,"name",$6);
+		  Setattr($$,"decl","");
+		  Setattr($$,"templateparms",$3);
+		  Setattr($$,"templatetype","cdecl");
+		  SetFlag($$,"aliastemplate");
 		  add_symbols($$);
-		  SWIG_WARN_NODE_BEGIN($$);
-		  Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line, "The 'using' keyword in template aliasing is not fully supported yet.\n");
-		  SWIG_WARN_NODE_END($$);
-
-		  $$ = 0; /* TODO - ignored for now */
 		}
                 ;
 
