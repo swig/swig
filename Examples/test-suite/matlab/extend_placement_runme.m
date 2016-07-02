@@ -1,5 +1,3 @@
-import extend_placement.*
-
 foo = extend_placement.Foo();
 foo = extend_placement.Foo(1);
 foo = extend_placement.Foo(1,1);

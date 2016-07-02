@@ -1,5 +1,3 @@
-import overload_extendc.*
-
 f = overload_extendc.Foo();
 if (f.test(3) ~= 1)
     error('Failed!')

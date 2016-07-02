@@ -1,4 +1,3 @@
-import typename.*
 f = typename.Foo();
 b = typename.Bar();
 

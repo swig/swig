@@ -1,6 +1,4 @@
-import using_composition.*
-
-f = FooBar();
+f = using_composition.FooBar();
 if (f.blah(3) ~= 3)
   error('FooBar::blah(int)')
 end
@@ -14,7 +12,7 @@ if (~strcmp(f.blah('hello'),'hello'))
 end
 
 
-f = FooBar2();
+f = using_composition.FooBar2();
 if (f.blah(3) ~= 3)
   error('FooBar2::blah(int)')
 end
@@ -28,7 +26,7 @@ if (~strcmp(f.blah('hello'),'hello'))
 end
 
 
-f = FooBar3();
+f = using_composition.FooBar3();
 if (f.blah(3) ~= 3)
   error('FooBar3::blah(int)')
 end

@@ -1,7 +1,4 @@
-import li_std_carray.*
-
-
-v3 = Vector3();
+v3 = li_std_carray.Vector3();
 for i=0:len(v3),
     v3(i) = i;
 end
@@ -15,7 +12,7 @@ for d in v3,
 end
 
 
-m3 = Matrix3();
+m3 = li_std_carray.Matrix3();
 
 for i=0:len(m3),
   v3 = m3(i);
@@ -44,8 +41,8 @@ for i=0:len(m3),
   end
 end
 
-da = Vector3([1,2,3]);
-ma = Matrix3({[1,2,3],[4,5,6],[7,8,9]});
+da = li_std_carray.Vector3([1,2,3]);
+ma = li_std_carray.Matrix3({[1,2,3],[4,5,6],[7,8,9]});
 
 
 

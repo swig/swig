@@ -1,6 +1,4 @@
-import template_tbase_template.*
-
-a = make_Class_dd();
+a = template_tbase_template.make_Class_dd();
 if (~strcmp(a.test(),'test'))
   error
 end

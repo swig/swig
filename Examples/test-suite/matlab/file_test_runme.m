@@ -1,5 +1,3 @@
-import file_test.*
-
 file_test.nfile('stdout');
 
 cstdout = file_test.GetStdOut();

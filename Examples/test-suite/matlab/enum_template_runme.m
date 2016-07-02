@@ -1,5 +1,3 @@
-import enum_template.*
-
 if (enum_template.MakeETest() ~= 1)
   error
 end

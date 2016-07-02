@@ -1,3 +1,2 @@
-import overload_copy.*
-f = Foo();
-g = Foo(f);
+f = overload_copy.Foo();
+g = overload_copy.Foo(f);

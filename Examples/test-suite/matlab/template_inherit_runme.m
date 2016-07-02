@@ -1,10 +1,9 @@
-import template_inherit.*
-a = FooInt();
-b = FooDouble();
-c = BarInt();
-d = BarDouble();
-e = FooUInt();
-f = BarUInt();
+a = template_inherit.FooInt();
+b = template_inherit.FooDouble();
+c = template_inherit.BarInt();
+d = template_inherit.BarDouble();
+e = template_inherit.FooUInt();
+f = template_inherit.BarUInt();
 
 if (~strcmp(a.blah(),'Foo'))
     error
@@ -42,27 +41,27 @@ if (~strcmp(f.foomethod(),'foomethod'))
     error
 end
 
-if (~strcmp(invoke_blah_int(a),'Foo'))
+if (~strcmp(template_inherit.invoke_blah_int(a),'Foo'))
     error
 end
 
-if (~strcmp(invoke_blah_int(c),'Bar'))
+if (~strcmp(template_inherit.invoke_blah_int(c),'Bar'))
     error
 end
 
-if (~strcmp(invoke_blah_double(b),'Foo'))
+if (~strcmp(template_inherit.invoke_blah_double(b),'Foo'))
     error
 end
 
-if (~strcmp(invoke_blah_double(d),'Bar'))
+if (~strcmp(template_inherit.invoke_blah_double(d),'Bar'))
     error
 end
 
-if (~strcmp(invoke_blah_uint(e),'Foo'))
+if (~strcmp(template_inherit.invoke_blah_uint(e),'Foo'))
     error
 end
 
-if (~strcmp(invoke_blah_uint(f),'Bar'))
+if (~strcmp(template_inherit.invoke_blah_uint(f),'Bar'))
     error
 end
 

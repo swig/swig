@@ -1,5 +1,3 @@
-import typedef_scope.*
-
 b = typedef_scope.Bar();
 x = b.test1(42,'hello');
 if (x ~= 42)

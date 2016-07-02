@@ -1,6 +1,3 @@
-import template_default_arg.*
-
-
 helloInt = template_default_arg.Hello_int();
 helloInt.foo(template_default_arg.Hello_int.hi);
 

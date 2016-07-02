@@ -1,10 +1,6 @@
-import li_std_wstream.*
+a = li_std_wstream.A();
 
-
-
-a = A();
-
-o = wostringstream();
+o = li_std_wstream.wostringstream();
 
 o << a << u' ' << 2345 << u' ' << 1.435 << wends;
 

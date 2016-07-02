@@ -1,5 +1,3 @@
-import li_std_string_extra.*
-
 x='hello';
 
 

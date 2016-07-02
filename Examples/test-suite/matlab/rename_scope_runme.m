@@ -1,7 +1,5 @@
-import rename_scope.*
-
-a = Natural_UP();
-b = Natural_BP();
+a = rename_scope.Natural_UP();
+b = rename_scope.Natural_BP();
 
 if (a.rtest() ~= 1)
     error

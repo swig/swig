@@ -1,5 +1,3 @@
-import inctest.*
-
 try
   a = inctest.A();
 catch

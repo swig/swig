@@ -1,5 +1,3 @@
-import varargs.*
-
 if (~strcmp(varargs.test('Hello'),'Hello'))
     error('Failed')
 end

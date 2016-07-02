@@ -1,5 +1,3 @@
-import inherit_missing.*
-
 a = inherit_missing.new_Foo();
 b = inherit_missing.Bar();
 c = inherit_missing.Spam();

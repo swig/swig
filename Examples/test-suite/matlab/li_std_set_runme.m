@@ -1,6 +1,4 @@
-import li_std_set.*
-
-s = set_string()
+s = li_std_set.set_string()
 
 s.append('a')
 s.append('b')
@@ -41,7 +39,7 @@ if sum ~= 'cba':
 
 
 
-si = set_int()
+si = li_std_set.set_int()
 
 si.append(1)
 si.append(2)

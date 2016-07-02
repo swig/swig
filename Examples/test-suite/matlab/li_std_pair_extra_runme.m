@@ -1,5 +1,3 @@
-import li_std_pair_extra.*
-
 p = {1,2};
 p1 = li_std_pair_extra.p_inout(p);
 assert(all(cell2mat(p1)==[2,1]));

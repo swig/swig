@@ -1,6 +1,4 @@
-import extend_template_ns.*
-
-f = Foo_One();
+f = extend_template_ns.Foo_One();
 if (f.test1(37) ~= 37)
     error
 end

@@ -1,5 +1,3 @@
-import inout.*
-
 a = inout.AddOne1(1);
 if (a ~= 2)
   error

@@ -1,5 +1,3 @@
-import template_rename.*
-
 i = template_rename.iFoo();
 d = template_rename.dFoo();
 

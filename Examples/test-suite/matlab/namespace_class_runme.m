@@ -1,7 +1,5 @@
-import namespace_class.*
-
 try
-  p = Private1();
+  p = namespace_class.Private1();
   ok = 1;
 catch
   ok = 0;
@@ -12,7 +10,7 @@ if (ok)
 end
 
 try
-  p = Private2();
+  p = namespace_class.Private2();
   ok = 1;
 catch
   ok = 0;
@@ -22,18 +20,18 @@ if (ok)
   error('Private2 is private')
 end
 
-EulerT3D.toFrame(1,1,1);
+namespace_class.EulerT3D.toFrame(1,1,1);
 
-b = BooT_i();
-b = BooT_H();
+b = namespace_class.BooT_i();
+b = namespace_class.BooT_H();
 
 
-f = FooT_i();
+f = namespace_class.FooT_i();
 f.quack(1);
 
-f = FooT_d();
+f = namespace_class.FooT_d();
 f.moo(1);
 
-f = FooT_H();
-f.foo(Hi);
+f = namespace_class.FooT_H();
+f.foo(namespace_class.Hi);
 

@@ -1,6 +1,3 @@
-import import _profiletest       .*
-import profiletest       
-
 a = profiletest.A()
 print a
 print a.this

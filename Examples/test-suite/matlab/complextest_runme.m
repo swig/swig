@@ -1,6 +1,4 @@
-import complextest.*
-
-a = complex(-1,2);
+a = complextest.complex(-1,2);
 
 if (complextest.Conj(a) ~= a.conjugate())
   error('bad complex mapping')

@@ -1,6 +1,4 @@
-import using_extend.*
-
-f = FooBar();
+f = using_extend.FooBar();
 if (f.blah(3) ~= 3)
     error('blah(int)')
 end

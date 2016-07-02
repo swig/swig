@@ -1,13 +1,11 @@
-import overload_subtype.*
+f = overload_subtype.Foo();
+b = overload_subtype.Bar();
 
-f = Foo();
-b = Bar();
-
-if (spam(f) ~= 1)
+if (overload_subtype.spam(f) ~= 1)
     error('foo')
 end
 
-if (spam(b) ~= 2)
+if (overload_subtype.spam(b) ~= 2)
     error('bar')
 end
 

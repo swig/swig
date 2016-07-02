@@ -1,5 +1,4 @@
 % Note: This example assumes that namespaces are flattened.*
-import cpp_namespace.*
 
 n = cpp_namespace.fact(4);
 if (n ~= 24)

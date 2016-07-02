@@ -1,6 +1,4 @@
-import input.*
-
-f = Foo();
+f = input.Foo();
 if (f.foo(2) ~= 4)
   error
 end

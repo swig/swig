@@ -1,32 +1,30 @@
-import template_typedef_cplx3.*
-
 %
 % this is OK
 %
 
 
-s = Sin();
+s = template_typedef_cplx3.Sin();
 s.get_base_value();
 s.get_value();
 s.get_arith_value();
-my_func_r(s);
-make_Multiplies_double_double_double_double(s,s);
+template_typedef_cplx3.my_func_r(s);
+template_typedef_cplx3.make_Multiplies_double_double_double_double(s,s);
 
-z = CSin();
+z = template_typedef_cplx3.CSin();
 z.get_base_value();
 z.get_value();
 z.get_arith_value();
-my_func_c(z);
-make_Multiplies_complex_complex_complex_complex(z,z);
+template_typedef_cplx3.my_func_c(z);
+template_typedef_cplx3.make_Multiplies_complex_complex_complex_complex(z,z);
 
 %
 % Here we fail
 %
-d = make_Identity_double();
-my_func_r(d);
+d = template_typedef_cplx3.make_Identity_double();
+template_typedef_cplx3.my_func_r(d);
 
-c = make_Identity_complex();
-my_func_c(c);
+c = template_typedef_cplx3.make_Identity_complex();
+template_typedef_cplx3.my_func_c(c);
 
   
 

@@ -1,7 +1,5 @@
-import using_private.*
-
-f = FooBar();
-f.x = 3;
+f = using_private.FooBar();
+f.x(3);
 
 if (f.blah(4) ~= 4)
     error, 'blah(int)'

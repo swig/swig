@@ -1,5 +1,3 @@
-import li_attribute.*
-
 aa = li_attribute.A(1,2,3);
 
 if (aa.a ~= 1)

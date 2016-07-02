@@ -1,5 +1,3 @@
-import grouping.*
-
 x = grouping.test1(42);
 if (x ~= 42)
     error
@@ -12,4 +10,4 @@ if (x ~= -37)
     error
 end
 
-grouping.cvar.test3 = 42;
+grouping.test3(42);

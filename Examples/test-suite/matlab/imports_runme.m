@@ -1,8 +1,5 @@
 % This is the import runtime testcase.
 
-import  imports_b.*;
-import  imports_a.*;
-
   x = imports_b.B();
   x.hello();
 

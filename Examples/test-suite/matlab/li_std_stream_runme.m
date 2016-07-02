@@ -1,8 +1,6 @@
-import li_std_stream.*
+a = li_std_stream.A();
 
-a = A();
-
-o = ostringstream();
+o = li_std_stream.ostringstream();
 
 o << a << ' ' << 2345 << ' ' << 1.435;
 

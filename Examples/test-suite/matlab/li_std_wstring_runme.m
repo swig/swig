@@ -1,5 +1,3 @@
-import li_std_wstring.*
-
 x='h';
 
 if (li_std_wstring.test_wcvalue(x) ~= x)

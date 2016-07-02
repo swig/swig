@@ -1,6 +1,4 @@
-import director_frob.*
-
-foo = Bravo();
+foo = director_frob.Bravo();
 s = foo.abs_method();
 
 if (~strcmp(s,'Bravo::abs_method()'))

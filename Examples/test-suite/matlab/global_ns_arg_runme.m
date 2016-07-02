@@ -1,5 +1,3 @@
-import global_ns_arg.*
-
-a = foo(1);
-b = bar_fn();
+a = global_ns_arg.foo(1);
+b = global_ns_arg.bar_fn();
 

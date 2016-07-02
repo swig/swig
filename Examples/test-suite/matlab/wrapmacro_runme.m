@@ -1,5 +1,3 @@
-import wrapmacro.*
-
 a = 2;
 b = -1;
 wrapmacro.maximum(a,b);

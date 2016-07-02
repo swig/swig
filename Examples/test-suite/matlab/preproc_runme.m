@@ -1,5 +1,3 @@
-import preproc.*
-
 if (preproc.endif ~= 1)
   error('failed')
 end

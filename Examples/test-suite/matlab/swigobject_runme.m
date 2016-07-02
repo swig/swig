@@ -1,6 +1,4 @@
-import swigobject.*
-
-a = A();
+a = swigobject.A();
 
 a1 = a_ptr(a);
 a2 = a_ptr(a);

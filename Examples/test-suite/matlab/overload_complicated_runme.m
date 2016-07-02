@@ -1,11 +1,9 @@
-import overload_complicated.*
-
 pInt = None;
 
 % Check the correct constructors are available
-p = Pop(pInt);
+p = overload_complicated.Pop(pInt);
 
-p = Pop(pInt, 0);
+p = overload_complicated.Pop(pInt, 0);
 
 % Check overloaded in const only and pointers/references which target languages cannot disambiguate
 if (p.hip(0) ~= 701)
@@ -48,11 +46,11 @@ if (p.bip(pInt) ~= 2001)
 end
 
 % Globals
-if (muzak(0) ~= 3001)
+if (overload_complicated.muzak(0) ~= 3001)
   error('Test 10 failed')
 end
 
-if (muzak(pInt) ~= 3002)
+if (overload_complicated.muzak(pInt) ~= 3002)
   error('Test 11 failed')
 end
 

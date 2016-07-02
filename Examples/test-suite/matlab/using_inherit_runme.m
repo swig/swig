@@ -1,6 +1,4 @@
-import using_inherit.*
-
-b = Bar();
+b = using_inherit.Bar();
 if (b.test(3) ~= 3)
   error('Bar::test(int)')
 end
@@ -10,7 +8,7 @@ if (b.test(3.5) ~= 3.5)
 end
 
 
-b = Bar2();
+b = using_inherit.Bar2();
 if (b.test(3) ~= 6)
   error('Bar2::test(int)')
 end
@@ -20,7 +18,7 @@ if (b.test(3.5) ~= 7.0)
 end
 
 
-b = Bar3();
+b = using_inherit.Bar3();
 if (b.test(3) ~= 6)
   error('Bar3::test(int)')
 end
@@ -30,7 +28,7 @@ if (b.test(3.5) ~= 7.0)
 end
 
 
-b = Bar4();
+b = using_inherit.Bar4();
 if (b.test(3) ~= 6)
   error('Bar4::test(int)')
 end
@@ -40,7 +38,7 @@ if (b.test(3.5) ~= 7.0)
 end
 
 
-b = Fred1();
+b = using_inherit.Fred1();
 if (b.test(3) ~= 3)
   error('Fred1::test(int)')
 end
@@ -50,7 +48,7 @@ if (b.test(3.5) ~= 7.0)
 end
 
 
-b = Fred2();
+b = using_inherit.Fred2();
 if (b.test(3) ~= 3)
   error('Fred2::test(int)')
 end

@@ -1,5 +1,3 @@
-import typedef_inherit.*
-
 a = typedef_inherit.Foo();
 b = typedef_inherit.Bar();
 

@@ -1,5 +1,3 @@
-import template_extend2.*
-
 a = template_extend2.lBaz();
 b = template_extend2.dBaz();
 

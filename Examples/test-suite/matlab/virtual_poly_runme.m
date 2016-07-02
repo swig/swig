@@ -1,5 +1,3 @@
-import virtual_poly.*
-
 d = virtual_poly.NDouble(3.5);
 i = virtual_poly.NInt(2);
 

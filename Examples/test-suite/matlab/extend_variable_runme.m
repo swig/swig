@@ -1,6 +1,4 @@
-import extend_variable.*
-
-if (Foo.Bar ~= 42)
+if (extend_variable.Foo.Bar ~= 42)
     error
 end
 
