@@ -155,10 +155,11 @@ public:
     return SWIG_OK;
   }
 
-  void create_command(Node *n) {
+  void create_command(Node *n, String *call_parms, bool is_overloaded) {
     String   *name   = Getattr(n,"sym:name");
     SwigType *type   = Getattr(n,"type");
     ParmList *parms  = Getattr(n,"parms");
+    String *wname = Swig_name_wrapper(name);
     String *return_type = NewString(""), *tm;
     String *classname = NewString("");
     String *wclassname = NewString("");
@@ -173,6 +174,9 @@ public:
     if (is_constructor || is_destructor) {
       Printf(f_link, "void ");
       Printf(return_type, "void");
+    } else if (is_overloaded) {
+      Printf(f_link, "Variant ");
+      Printf(return_type, "Variant");
     } else if ((tm = Swig_typemap_lookup("hni_rttype", n, name, 0))) {
       Printv(f_link, tm, " ", NIL);
       Printf(return_type, "%s", tm);
@@ -222,42 +226,81 @@ public:
       Printf(f_phpcode, "function %s(", name);
     }
 
-    bool prev = false;
-    Parm *p = parms;
+    if (!is_overloaded) {
+      bool prev = false;
+      Parm *p = parms;
 
-    // Skip the class pointer
-    if ((!is_constructor && !staticmethodwrapper && !is_static && is_member) || is_destructor) {
-      // assert(p);
-      p = nextSibling(p);
-    }
-    for (; p; p = nextSibling(p)) {
-      String *parm_name = Getattr(p, "lname");
-      String *parm_type = Getattr(p, "type");
-      String *val = Getattr(p, "value");
-
-      if ((tm = Swig_typemap_lookup("hni_parmtype", p, parm_name, 0))) {
-        Printf(f_link, ", %s %s", tm, parm_name);
+      // Skip the class pointer
+      if ((!is_constructor && !staticmethodwrapper && !is_static && is_member) || is_destructor) {
+        p = nextSibling(p);
       }
+      for (; p; p = nextSibling(p)) {
+        String *parm_name = Getattr(p, "lname");
+        String *parm_type = Getattr(p, "type");
+        String *val = Getattr(p, "value");
 
-      if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
-        if (prev) {
-          Printf(f_phpcode, ", ");
+        if ((tm = Swig_typemap_lookup("hni_parmtype", p, parm_name, 0))) {
+          Printf(f_link, ", %s %s", tm, parm_name);
         }
-        prev = true;
-        Printf(f_phpcode, "%s $%s", tm, parm_name);
-        if (val) {
-          Printf(f_phpcode, " = %s", val);
+
+        if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
+          if (prev) {
+            Printf(f_phpcode, ", ");
+          }
+          prev = true;
+          Printf(f_phpcode, "%s $%s", tm, parm_name);
+          if (val) {
+            Printf(f_phpcode, " = %s", val);
+          }
         }
       }
-    }
-
-    Printf(f_phpcode, ") ");
-    if (!is_constructor && !is_destructor && (tm = Swig_typemap_lookup("php_type", n, name, 0))) {
-      Printf(f_phpcode, ": %s", tm);
+      Printf(f_phpcode, ") ");
+      if (!is_constructor && !is_destructor && (tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+        Printf(f_phpcode, ": %s", tm);
+      }
+    } else {
+      if (is_constructor) {
+        Printf(f_phpcode, "...$argv): void");
+      } else {
+        Printf(f_phpcode, "...$argv): mixed");
+      }
+      Printf(f_link, ", const Array& argv");
     }
     
     Printf(f_link, ") {\n");
     Printf(f_phpcode, ";\n\n");
+
+    if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper && !is_static) {
+      String *classname = GetChar(Swig_methodclass(n), "wrap:name");
+      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
+      if (!is_constructor) {
+        Replaceall(call_parms, "arg1", "data->_obj_ptr");
+      }
+    }
+
+    if (staticmethodwrapper || is_static) {
+      String *classname = GetChar(Swig_methodclass(n), "wrap:name");
+      Printf(f_link, "  ");
+      if (!is_void_return) {
+        Printf(f_link, "return ");
+      }
+      Printf(f_link, "%s::%s(%s);\n", classname, wname, call_parms);
+    } else if (is_constructor) {
+      String *overresolve = is_overloaded ? NewString(".toResource()") : NULL;
+      Printf(f_link, "  data->_obj_ptr = data->%s(%s)%s;\n", wname, call_parms, overresolve);
+    } else if(is_destructor) {
+      Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
+    } else {
+      Printf(f_link, "  ");
+      if (!is_void_return) {
+        Printf(f_link, "return ");
+      }
+      if (is_member) {
+        Printf(f_link, "data->");
+      }
+      Printf(f_link, "%s(%s);\n", wname, call_parms);
+    }
+    Printf(f_link, "}\n\n");
   }
 
   static bool hhvm_print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
@@ -411,11 +454,12 @@ public:
     String *name = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(name);
 
-    Printf(f_register, "    HHVM_FE(%s);\n", name);
-    Printf(f_phpcode, "<<__Native>>\n");
-    Printf(f_phpcode, "function %s(...$argv): mixed;\n\n", name);
-    Printv(wrapper->def, "Variant HHVM_FUNCTION(", name, ", const Array& argv) {\n", NIL);
+    // Printf(f_register, "    HHVM_FE(%s);\n", name);
+    // Printf(f_phpcode, "<<__Native>>\n");
+    // Printf(f_phpcode, "function %s(...$argv): mixed;\n\n", name);
+    // Printv(wrapper->def, "Variant HHVM_FUNCTION(", name, ", const Array& argv) {\n", NIL);
 
+    Printf(wrapper->def, "Variant %s(const Array& argv) {\n", wname);
     Wrapper_add_local(wrapper, "argc", "int argc");
     Wrapper_add_local(wrapper, "result", "Variant result");
     Printf(wrapper->code, "argc = argv.size();\n");
@@ -426,7 +470,10 @@ public:
     Printf(wrapper->code, "throw \"No matching function for overloaded '%s'\";\n", name);
 
     Printv(wrapper->code, "}\n", NIL);
-    Wrapper_print(wrapper, f_link);
+    String *call_parms = NewString("");
+    Printf(call_parms, "argv");
+    create_command(n, call_parms, true);
+    Wrapper_print(wrapper, f_wrappers);
 
     DelWrapper(wrapper);
     Delete(dispatch);
@@ -444,7 +491,6 @@ public:
     String *tm, *wname;
     String *return_type = NewString("");
     String *call_parms = NewString("");
-    String *member_name = NewString("");
     Wrapper *wrapper = NewWrapper();
     bool is_void_return;
     bool overloaded = false;
@@ -471,6 +517,10 @@ public:
 
     Swig_typemap_attach_parms("hni_parmtype", parms, wrapper);
     Swig_typemap_attach_parms("php_type", parms, wrapper);
+    Setattr(n, "wrap:name", wname);
+
+    // wrap:parms is used for overload resolution.
+    Setattr(n, "wrap:parms", parms);
 
     if (staticmethodwrapper || is_static || !is_member) {
       Printf(wrapper->def, "static ");
@@ -525,42 +575,8 @@ public:
     Printf(wrapper->def, ") {");
 
     if (!overloaded) {
-      create_command(n);
-      if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper && !is_static) {
-        String *classname = GetChar(Swig_methodclass(n), "wrap:name");
-        Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
-        if (!is_constructor) {
-          Replaceall(call_parms, "arg1", "data->_obj_ptr");
-        }
-      }
-
-      if (staticmethodwrapper || is_static) {
-        String *classname = GetChar(Swig_methodclass(n), "wrap:name");
-        Printf(f_link, "  ");
-        if (!is_void_return) {
-          Printf(f_link, "return ");
-        }
-        Printf(f_link, "%s::%s(%s);\n", classname, wname, call_parms);
-      } else if (is_constructor) {
-        Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
-      } else if(is_destructor) {
-        Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
-      } else {
-        Printf(f_link, "  ");
-        if (!is_void_return) {
-          Printf(f_link, "return ");
-        }
-        if (is_member) {
-          Printf(f_link, "data->");
-        }
-        Printf(f_link, "%s(%s);\n", wname, call_parms);
-      }
-      Printf(f_link, "}\n\n");
+      create_command(n, call_parms, false);
     }
-    Setattr(n, "wrap:name", wname);
-
-    // wrap:parms is used by overload resolution.
-    Setattr(n, "wrap:parms", parms);
 
     if (!is_void_return) {
       Wrapper_add_localv(wrapper, "tresult", return_type, "tresult", NIL);

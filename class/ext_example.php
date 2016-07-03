@@ -12,7 +12,7 @@
 <<__NativeData("_wrap_Circle")>>
 class Circle {
 <<__Native>>
-function new_Circle(...$argv): mixed;
+function __construct(...$argv): void;
 
 <<__Native>>
 public function area() : int;

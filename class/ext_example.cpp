@@ -788,6 +788,28 @@ Resource _wrap_new_Circle__SWIG_1(int64_t targ1) {
 }
 
 
+Variant _wrap_new_Circle(const Array& argv) {
+  int argc;
+  Variant result;
+  
+  argc = argv.size();
+  if (argc == 0) {
+    return _wrap_new_Circle__SWIG_0();
+  }
+  if (argc == 1) {
+    bool _v;
+    int64_t targ0;
+    _v = argv[0].isInteger();
+    if (_v) targ0 = argv[0].toInt64Val();
+    if (_v) {
+      return _wrap_new_Circle__SWIG_1(targ0);
+    }
+  }
+  
+  throw "No matching function for overloaded 'new_Circle'";
+}
+
+
 int64_t _wrap_Circle_area(const Resource& targ1) {
   Circle *arg1 = (Circle *) 0 ;
   int64_t tresult ;
@@ -868,27 +890,10 @@ static void _wrap_pnt(const Resource& targ1) {
 }
 
 
-Variant HHVM_FUNCTION(new_Circle, const Array& argv) {
-  int argc;
-  Variant result;
-  
-  argc = argv.size();
-  if (argc == 0) {
-    return _wrap_new_Circle__SWIG_0();
-  }
-  if (argc == 1) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    if (_v) {
-      return _wrap_new_Circle__SWIG_1(targ0);
-    }
-  }
-  
-  throw "No matching function for overloaded 'new_Circle'";
+void HHVM_METHOD(_wrap_Circle, __construct, const Array& argv) {
+  auto data = Native::data<_wrap_Circle>(this_);
+  data->_obj_ptr = data->_wrap_new_Circle(argv).toResource();
 }
-
 
 int64_t HHVM_METHOD(_wrap_Circle, area) {
   auto data = Native::data<_wrap_Circle>(this_);
@@ -933,7 +938,7 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
-    HHVM_FE(new_Circle);
+    HHVM_MALIAS(Circle, __construct, _wrap_Circle, __construct);
     HHVM_MALIAS(Circle, area, _wrap_Circle, area);
     HHVM_STATIC_MALIAS(Circle, info, _wrap_Circle, info);
     HHVM_MALIAS(Circle, Circle_z_set, _wrap_Circle, Circle_z_set);

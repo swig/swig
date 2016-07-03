@@ -24,10 +24,13 @@ $total_circles = Circle::Circle_objectCount_get();
 print "Now, total $total_circles Circles around\n";
 
 Circle::Circle_objectCount_set(10);
-print "Hacked circle counter to indicate 10. Let's verify that.\n";
+print "Hacked circle counter to indicate 10. Let's check whether that worked.\n";
 $total_circles = Circle::Circle_objectCount_get();
 print "Now, total $total_circles Circles around.\n";
 
+print "What's the area covered by a point?\n";
+$point = new Circle();
+print $point->area() . "\n";
 print "Goodbye!\n";
 
 ?>
