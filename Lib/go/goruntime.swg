@@ -8,6 +8,10 @@
 static void Swig_free(void* p) {
   free(p);
 }
+
+static void* Swig_malloc(int c) {
+  return malloc(c);
+}
 %}
 
 %insert(runtime) %{

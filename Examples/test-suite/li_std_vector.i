@@ -130,3 +130,13 @@ namespace aa {
 std::vector< ::aa::Holder > vec1(std::vector< ::aa::Holder > x) { return x; }
 %}
 #endif
+
+// exercising vectors of strings
+%inline %{
+std::vector<std::string> RevStringVec (const std::vector<std::string> &In)
+  {
+    std::vector<std::string> result(In);
+    std::reverse(result.begin(), result.end());
+    return(result);
+  }
+%}

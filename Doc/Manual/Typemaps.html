@@ -750,7 +750,7 @@ code       : { ... }
 
 <p>
 Note that the preprocessor will expand code within the {} delimiters, but not in the last two styles of delimiters,
-see <a href="Preprocessor.html#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>.
+see <a href="Preprocessor.html#Preprocessor_delimiters">Preprocessor and Typemaps</a>.
 Here are some examples of valid typemap specifications:
 </p>
 
@@ -3444,7 +3444,7 @@ list of strings like this:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; foo(["ale","lager","stout"])
+&gt;&gt;&gt; foo(["ale", "lager", "stout"])
 </pre>
 </div>
 
@@ -3486,6 +3486,11 @@ maps perform the conversion described for the above example:
 
 %typemap(freearg) (int argc, char *argv[]) {
    if ($2) free($2);
+}
+
+/* Required for C++ method overloading */
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) (int argc, char *argv[]) {
+  $1 = PyList_Check($input) ? 1 : 0;
 }
 </pre>
 </div>
@@ -3553,6 +3558,11 @@ Other directives such as <tt>%apply</tt> and <tt>%clear</tt> also work with mult
 ...
 </pre>
 </div>
+
+<p>
+Don't forget to also provide a suitable <a href="#Typemaps_overloading">typemap for overloaded functions</a>, such as <tt>%typecheck</tt> shown for foo above.
+This is only required if the function is overloaded in C++.
+</p>
 
 <p>
 Although multi-argument typemaps may seem like an exotic, little used feature, there

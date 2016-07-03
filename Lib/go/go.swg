@@ -435,10 +435,23 @@
 
 %typemap(in)
 	char *, char[ANY], char[]
-%{ $1 = ($1_ltype)$input.p; %}
+%{
+  $1 = ($1_ltype)malloc($input.n + 1);
+  memcpy($1, $input.p, $input.n);
+  $1[$input.n] = '\0';
+%}
 
-%typemap(in) char *&
-%{ $1 = ($1_ltype)$input.p; %}
+%typemap(in) char *& (char *temp)
+%{
+  temp = (char *)malloc($input.n + 1);
+  memcpy(temp, $input.p, $input.n);
+  temp[$input.n] = '\0';
+  $1 = ($1_ltype)&temp;
+%}
+
+%typemap(freearg)
+	char *, char *&, char[ANY], char[]
+%{ free($1); %}
 
 %typemap(out,fragment="AllocateString")
 	char *, char *&, char[ANY], char[]
@@ -460,7 +473,19 @@
   $result = swigCopyString($input)
 %}
 
-%typemap(directorout)
+%typemap(godirectorout)
+	char *, char *&, char[ANY], char[]
+%{
+  {
+    p := Swig_malloc(len($input) + 1)
+    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len($input) + 1]
+    copy(s, $input)
+    s[len($input)] = 0
+    $result = *(*string)(unsafe.Pointer(&s))
+  }
+%}
+
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG)
 	char *, char *&, char[ANY], char[]
 %{ $result = ($1_ltype)$input.p; %}
 
@@ -559,7 +584,7 @@
 %typemap(goout) SWIGTYPE ""
 
 %typemap(directorin) SWIGTYPE
-%{ $input = ($&1_ltype)&$1; %}
+%{ $input = new $1_ltype((const $1_ltype &)$1); %}
 
 %typemap(godirectorin) SWIGTYPE ""
 

@@ -6,6 +6,10 @@ from collections import *
 if is_python_builtin():
     exit(0)
 
+# Python abc is only turned on when -py3 option is passed to SWIG
+if not is_swig_py3:
+    exit(0)
+
 assert issubclass(Mapii, MutableMapping)
 assert issubclass(Multimapii, MutableMapping)
 assert issubclass(IntSet, MutableSet)

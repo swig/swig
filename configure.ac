@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[3.0.9],[http://www.swig.org])
+AC_INIT([swig],[3.0.11],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -1448,6 +1448,8 @@ if test -n "$JAVAC"; then
   JAVAC=\"$JAVAC\"
 fi
 
+# Turned off due to spurious warnings in later versions of openjdk-1.8
+# JAVAFLAGS=-Xcheck:jni
 
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
@@ -1457,6 +1459,7 @@ AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
 AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
+AC_SUBST(JAVAFLAGS)
 AC_SUBST(JAVACFLAGS)
 
 #----------------------------------------------------------------
@@ -2002,8 +2005,10 @@ else
 	  AC_MSG_RESULT(not found)
 	fi
 	;;
+    "")
+        AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
     *)
-	AC_MSG_RESULT([found PHP $version, but only PHP 5 is supported]) ;;
+	AC_MSG_RESULT([found PHP $php_version, but only PHP 5 is supported]) ;;
     esac
 fi
 AC_SUBST(PHP)
@@ -2370,7 +2375,7 @@ if test "x$LUABIN" = xyes; then
    # The search order should match the include-file and library search
    # orders below (a Lua shared library built for one version may not
    # work with a Lua binary of a different version).
-   AC_PATH_PROGS(LUABIN, [lua5.2 lua5.1 lua])
+   AC_PATH_PROGS(LUABIN, [lua5.4 lua5.3 lua5.2 lua5.1 lua])
 fi
 
 # check version: we need Lua 5.x
@@ -2413,7 +2418,10 @@ if test "$LUABIN"; then
     AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="$ISYSTEM$LUAINCLUDE"],[LUABIN=])
   else
     LUA_OK="1"
-    AC_CHECK_HEADER(lua.h,[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS_SAVED=$CFLAGS
+    CFLAGS= # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
+    AC_CHECK_HEADER([lua.h],[LUAFLAGS=""],[LUA_OK=""])
+    CFLAGS=$CFLAGS_SAVED
     # if we didn't get it, going to have to look elsewhere (the hard way)
     if test -z "$LUA_OK"; then
       AC_MSG_CHECKING(for lua.h in other locations)
@@ -2421,7 +2429,7 @@ if test "$LUABIN"; then
       # The ordering of the include directories to search should match
       # the ordering of libraries to search in the library test below.
       inc=/usr/include
-      dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
+      dirs="$inc/lua5.4 $inc/lua5.3 $inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
       for i in $dirs; do
         #echo "$i"
         if test -r $i/lua.h; then
@@ -2444,7 +2452,7 @@ if test "$LUABIN"; then
   if test -n "$LUALIB"; then
     AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
   else
-    AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
+    AC_SEARCH_LIBS(lua_close, [lua lua5.4 lua5.3 lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
   fi
 
   # adding lualib for lua 5.0
@@ -2583,8 +2591,8 @@ else
     esac
     AC_MSG_CHECKING([whether go version is too old])
     case $go_version in
-    go1.0* | go1 )
-      AC_MSG_RESULT([yes - minimum version is 1.1])
+    go1.1* | go1.0* | go1 )
+      AC_MSG_RESULT([yes - minimum version is 1.2])
       GO=
       GOOPT="-intgosize 32"
       ;;

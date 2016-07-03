@@ -130,6 +130,7 @@ static void failed(void)
 			exit(1);
 		}
 		args_add_prefix(orig_args, p);
+		free(p);
 	}
 
 	if (ccache_verbose) {
@@ -490,7 +491,9 @@ static void find_hash(ARGS *args)
 	/* also include the hash of the compiler name - as some compilers
 	   use hard links and behave differently depending on the real name */
 	if (st.st_nlink > 1) {
-		hash_string(str_basename(args->argv[0]));
+		char *path = str_basename(args->argv[0]);
+		hash_string(path);
+		free(path);
 	}
 
 	hash_int(st.st_size);
@@ -523,6 +526,7 @@ static void find_hash(ARGS *args)
 		   input_base, tmp_string(), 
 		   i_extension);
 	x_asprintf(&path_stderr, "%s/tmp.cpp_stderr.%s", temp_dir, tmp_string());
+	free(input_base);
 
 	if (!direct_i_file) {
 		/* run cpp on the input file to obtain the .i */
@@ -781,6 +785,7 @@ static void find_compiler(int argc, char **argv)
 
 	/* support user override of the compiler */
 	if ((path=getenv("CCACHE_CC"))) {
+		free(base);
 		base = x_strdup(path);
 	}
 
@@ -791,8 +796,10 @@ static void find_compiler(int argc, char **argv)
 		stats_update(STATS_COMPILER);
 		cc_log("could not find compiler (%s)\n", base);
 		perror(base);
+		free(base);
 		exit(1);
 	}
+  	free(base);
 }
 
 
@@ -1076,6 +1083,7 @@ static void process_args(int argc, char **argv)
 				if (strlen(p) < 2) {
 					cc_log("badly formed dependency file %s\n", output_file);
 					stats_update(STATS_ARGS);
+					free(default_depfile_name);
 					failed();
 					return;
 				}
@@ -1093,6 +1101,7 @@ static void process_args(int argc, char **argv)
 			strcat(default_depfile_name, ".d");
 			args_add(stripped_args, "-MF");
 			args_add(stripped_args, default_depfile_name);
+			free(default_depfile_name);
 		}
 
 		if (!dependency_target_specified) {
@@ -1117,6 +1126,7 @@ static void process_args(int argc, char **argv)
 			exit(1);
 		}
 		args_add_prefix(stripped_args, p);
+		free(p);
 	}
 }
 
@@ -1305,6 +1315,7 @@ static void setup_uncached_err(void)
 
 	if (putenv(buf) == -1) {
 		cc_log("putenv failed\n");
+		close(uncached_fd);
 		stats_update(STATS_ERROR);
 		failed();
 	}

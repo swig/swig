@@ -47,21 +47,21 @@ namespace swig {
   // Error returned for sequence containers of default item type
   template <typename T> struct traits_as_sequence {
     static int check(SwigSciObject obj) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
     static int get(SwigSciObject obj, void **sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
     static int size(SwigSciObject obj, int *size) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
   };
   template <typename T> struct traits_from_sequence {
     static int create(int size, void **sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
     static SwigSciObject set(int size, void *sequence) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported.");       
     }
   };
 
@@ -136,12 +136,12 @@ namespace swig {
   // Error returned for sequence containers of default item type
   template <typename T> struct traits_asval_sequenceitem {
     static T asval(SwigSciObject obj, void *pSequence, int iItemIndex) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
   };
   template <typename T> struct traits_from_sequenceitem {
     static int from(void *pSequence, int iItemIndex, T itemValue) {
-      SWIG_Error(SWIG_TypeError, type_name<T>());
+      throw std::invalid_argument("The container data type is not supported."); 
     }
   };
 

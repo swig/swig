@@ -3,7 +3,8 @@
 // unsigned long long types map correctly to long and BigInteger respectively.
 
 import long_long.*;
-import java.math.*;
+import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class long_long_runme {
 
@@ -54,12 +55,57 @@ public class long_long_runme {
       check_ull(testNumber);
       testNumber = testNumber.add(BigInteger.ONE);
     }
-    
+
     try {
       long_long.setUll(null);
       throw new RuntimeException("null check failed");
     } catch (NullPointerException e) {
     }
+
+    // UnsignedToSigned - checks that a cast from unsigned long long to long long in C
+    // gives expected value (including -ve numbers)
+
+    long[] nums = {
+       0x00,
+       0xFF,  0x80,  0x7F,  0x01,
+      -0xFF, -0x80, -0x7F, -0x01,
+       0x100,  0x10000,
+      -0x100, -0x10000,
+       0xFFFF,  0xFF80,  0xFF7F,  0xFF01,  0xFF00,
+      -0xFFFF, -0xFF80, -0xFF7F, -0xFF01, -0xFF00,
+       0x7FFF,  0x7F80,  0x7F7F,  0x7F01,  0x7F00,
+      -0x7FFF, -0x7F80, -0x7F7F, -0x7F01, -0x7F00,
+       0x80FF,  0x8080,  0x807F,  0x8001,  0x8000,
+      -0x80FF, -0x8080, -0x807F, -0x8001, -0x8000,
+      Integer.MAX_VALUE, Integer.MIN_VALUE,
+      Integer.MAX_VALUE+1, Integer.MIN_VALUE-1,
+      Long.MAX_VALUE, Long.MIN_VALUE,
+    };
+
+    ArrayList<BigInteger> bigIntegers = new ArrayList<BigInteger>();
+    for (int i=0; i<nums.length; ++i) {
+      BigInteger bi = new BigInteger(new Long(nums[i]).toString());
+      bigIntegers.add(bi);
+    }
+
+    {
+      BigInteger bi = new BigInteger(new Long(Long.MAX_VALUE).toString());
+      bigIntegers.add(bi.add(BigInteger.ONE));
+      bi = new BigInteger(new Long(Long.MIN_VALUE).toString());
+      bigIntegers.add(bi.subtract(BigInteger.ONE));
+    }
+
+    boolean failed = false;
+    for (int i=0; i<bigIntegers.size(); ++i) {
+      BigInteger bi = (BigInteger)bigIntegers.get(i);
+      long longReturn = long_long.UnsignedToSigned(bi);
+      if (bi.longValue() != longReturn) {
+        System.err.println("Conversion to long failed, in:" + bi + " out:" + longReturn);
+        failed = true;
+      }
+    }
+    if (failed)
+      throw new RuntimeException("There were UnsignedToSigned failures");
   }
 
   public static void check_ll(long ll) {

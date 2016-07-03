@@ -517,6 +517,7 @@ public:
 	  fputs(usage3, stdout);
 	} else if (strcmp(argv[i], "-py3") == 0) {
 	  py3 = 1;
+	  Preprocessor_define("SWIGPYTHON_PY3", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
@@ -809,10 +810,10 @@ public:
 	mod_docstring = NULL;
       }
 
-      Printv(f_shadow, "\nfrom sys import version_info\n", NULL);
+      Printv(f_shadow, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
 
       if (!builtin && fastproxy) {
-	Printv(f_shadow, "if version_info >= (3, 0, 0):\n", NULL);
+	Printv(f_shadow, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
 	Printf(f_shadow, tab4 "new_instancemethod = lambda func, inst, cls: %s.SWIG_PyInstanceMethod_New(func)\n", module);
 	Printv(f_shadow, "else:\n", NULL);
 	Printv(f_shadow, tab4, "from new import instancemethod as new_instancemethod\n", NULL);
@@ -826,8 +827,30 @@ public:
        * in 2.6, and fail in 2.7 onwards), but the relative import syntax
        * isn't available in python 2.4 or earlier, so we have to write some
        * code conditional on the python version.
+       *
+       * For python 2.7.0 and newer, first determine the shadow wrappers package
+       * based on the __name__ it was given by the importer that loaded it.
+       * Then construct a name for the module based on the package name and the
+       * module name (we know the module name).  Use importlib to try and load 
+       * it.  If an attempt to load the module with importlib fails with an
+       * ImportError then fallback and try and load just the module name from
+       * the global namespace.
        */
-      Printv(f_shadow, "if version_info >= (2, 6, 0):\n", NULL);
+      Printv(f_shadow, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+      Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
+      Printv(f_shadow, tab8, "import importlib\n", NULL);
+      Printv(f_shadow, tab8, "pkg = __name__.rpartition('.')[0]\n", NULL);
+      Printf(f_shadow, tab8 "mname = '.'.join((pkg, '%s')).lstrip('.')\n",
+        module);
+      Printv(f_shadow, tab8, "try:\n", NULL);
+      Printv(f_shadow, tab8, tab4, "return importlib.import_module(mname)\n",
+        NULL);
+      Printv(f_shadow, tab8, "except ImportError:\n", NULL);
+      Printf(f_shadow, tab8 tab4 "return importlib.import_module('%s')\n",
+        module);
+      Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
+      Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
+      Printv(f_shadow, "elif _swig_python_version_info >= (2, 6, 0):\n", NULL);
       Printv(f_shadow, tab4, "def swig_import_helper():\n", NULL);
       Printv(f_shadow, tab8, "from os.path import dirname\n", NULL);
       Printv(f_shadow, tab8, "import imp\n", NULL);
@@ -849,13 +872,36 @@ public:
       Printv(f_shadow, "else:\n", NULL);
       Printf(f_shadow, tab4 "import %s\n", module);
 
-      /* Delete the version_info symbol since we don't use it elsewhere in the
-       * module. */
-      Printv(f_shadow, "del version_info\n", NULL);
-
       if (builtin) {
-	Printf(f_shadow, "from %s import *\n", module);
+        /*
+         * Pull in all the attributes from the C module.
+         *
+         * An alternative approach to doing this if/else chain was
+         * proposed by Michael Thon.  Someone braver than I may try it out.
+         * I fear some current swig user may depend on some side effect
+         * of from _foo import *
+         *
+         * for attr in _foo.__all__:
+         *     globals()[attr] = getattr(_foo, attr)
+         * 
+         */
+        Printf(f_shadow, "# pull in all the attributes from %s\n", module);
+        Printv(f_shadow, "if __name__.rpartition('.')[0] != '':\n", NULL);
+        Printv(f_shadow, tab4, "if _swig_python_version_info >= (2, 7, 0):\n", NULL);
+        Printv(f_shadow, tab8, "try:\n", NULL);
+        Printf(f_shadow, tab8 tab4 "from .%s import *\n", module);
+        Printv(f_shadow, tab8 "except ImportError:\n", NULL);
+        Printf(f_shadow, tab8 tab4 "from %s import *\n", module);
+        Printv(f_shadow, tab4, "else:\n", NULL);
+        Printf(f_shadow, tab8 "from %s import *\n", module);
+        Printv(f_shadow, "else:\n", NULL);
+        Printf(f_shadow, tab4 "from %s import *\n", module);
       }
+
+      /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
+       * module. */
+      Printv(f_shadow, "del _swig_python_version_info\n", NULL);
+
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
       }
@@ -897,15 +943,11 @@ public:
 	        "\n", "def _swig_setattr(self, class_type, name, value):\n", tab4, "return _swig_setattr_nondynamic(self, class_type, name, value, 0)\n\n", NIL);
 
 	Printv(f_shadow,
-	       "\n", "def _swig_getattr_nondynamic(self, class_type, name, static=1):\n",
+	       "\n", "def _swig_getattr(self, class_type, name):\n",
 	       tab4, "if (name == \"thisown\"):\n", tab8, "return self.this.own()\n",
 	       tab4, "method = class_type.__swig_getmethods__.get(name, None)\n",
 	       tab4, "if method:\n", tab8, "return method(self)\n",
-	       tab4, "if (not static):\n",
-	       tab4, tab4, "return object.__getattr__(self, name)\n",
-	       tab4, "else:\n",
-	       tab4, tab4, "raise AttributeError(name)\n\n",
-	       "def _swig_getattr(self, class_type, name):\n", tab4, "return _swig_getattr_nondynamic(self, class_type, name, 0)\n\n", NIL);
+	       tab4, "raise AttributeError(\"'%s' object has no attribute '%s'\" % (class_type.__name__, name))\n\n", NIL);
 
 	Printv(f_shadow,
 	        "\n", "def _swig_repr(self):\n",
@@ -1209,13 +1251,14 @@ public:
       Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
       Delete(apkg);
     } else {
-      if (py3) {
-        if (py3_rlen1)
-	  Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
-        Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
-      } else {
-        Printf(out, "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
-      }
+      Printf(out, "from sys import version_info as _swig_python_version_info\n");
+      Printf(out, "if _swig_python_version_info >= (2, 7, 0):\n");
+      if (py3_rlen1)
+	Printf(out, tab4 "from . import %.*s\n", py3_rlen1, rpkg);
+      Printf(out, tab4 "from .%s import %s%s\n", rpkg, pfx, mod);
+      Printf(out, "else:\n");
+      Printf(out, tab4 "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
+      Printf(out, "del _swig_python_version_info\n");
       Delete(rpkg);
     }
     return out;
@@ -2728,7 +2771,8 @@ public:
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
-    if (builtin && funpack && !overname && !builtin_ctor && !GetFlag(n, "feature:compactdefaultargs")) {
+    if (builtin && funpack && !overname && !builtin_ctor && 
+      !(GetFlag(n, "feature:compactdefaultargs") && (tuple_arguments > tuple_required || varargs))) {
       String *argattr = NewStringf("%d", tuple_arguments);
       Setattr(n, "python:argcount", argattr);
       Delete(argattr);
@@ -3454,6 +3498,28 @@ public:
    * constantWrapper()
    * ------------------------------------------------------------ */
 
+  /* Determine if the node requires the _swigconstant code to be generated */
+  bool needs_swigconstant(Node* n) {
+    SwigType *type = Getattr(n, "type");
+    SwigType *qtype = SwigType_typedef_resolve_all(type);
+    SwigType *uqtype = SwigType_strip_qualifiers(qtype);
+    bool result = false;
+
+    /* Note, that we need special handling for function pointers, as
+     * SwigType_base(fptr) does not return the underlying pointer-to-function
+     * type but the return-type of function. */
+    if(!SwigType_isfunction(uqtype) && !SwigType_isfunctionpointer(uqtype)) {
+      SwigType *basetype = SwigType_base(uqtype);
+      result = SwigType_isclass(basetype) != 0;
+      Delete(basetype);
+    }
+
+    Delete(qtype);
+    Delete(uqtype);
+
+    return result;
+  }
+
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
@@ -3496,8 +3562,15 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
-        // Generate method which registers the new constant
+      if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+	// Generate `*_swigconstant()` method which registers the new constant.
+	//
+	// *_swigconstant methods are required for constants of class type.
+	// Class types are registered in shadow file (see *_swigregister). The
+	// instances of class must be created (registered) after the type is
+	// registered, so we can't let SWIG_init() to register constants of
+	// class type (the SWIG_init() is called before shadow classes are
+	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
         Printf(f_wrappers, tab2 "PyObject *module;\n", tm);
         Printf(f_wrappers, tab2 "PyObject *d;\n");
@@ -3537,13 +3610,17 @@ public:
 
     if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       if (!in_class) {
-	Printv(f_shadow, "\n",NIL);
-	Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
+	if(needs_swigconstant(n)) {
+	  Printv(f_shadow, "\n",NIL);
+	  Printv(f_shadow, module, ".", iname, "_swigconstant(",module,")\n", NIL);
+	}
 	Printv(f_shadow, iname, " = ", module, ".", iname, "\n", NIL);
       } else {
 	if (!(Getattr(n, "feature:python:callback"))) {
-	  Printv(f_shadow_stubs, "\n",NIL);
-	  Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
+	  if(needs_swigconstant(n)) {
+	    Printv(f_shadow_stubs, "\n",NIL);
+	    Printv(f_shadow_stubs, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
+	  }
 	  Printv(f_shadow_stubs, iname, " = ", module, ".", iname, "\n", NIL);
 	}
       }
@@ -4123,9 +4200,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_inplace_xor"), "nb_inplace_xor", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_or"), "nb_inplace_or", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_floor_divide"), "nb_floor_divide", "binaryfunc");
-    printSlot(f, getSlot(n, "feature:python:nb_true_divide"), "nb_true_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_divide"), "nb_true_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
-    printSlot(f, getSlot(n, "feature:python:nb_inplace_true_divide"), "nb_inplace_true_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
     Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
     Printv(f, "#endif\n", NIL);

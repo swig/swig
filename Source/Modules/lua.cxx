@@ -856,6 +856,9 @@ public:
     //Printf(stdout,"Swig_overload_dispatch %s %s '%s' %d\n",symname,wname,dispatch,maxargs);
 
     if (!luaAddSymbol(lua_name, n)) {
+      DelWrapper(f);
+      Delete(dispatch);
+      Delete(tmp);
       return SWIG_ERROR;
     }
 
@@ -1157,6 +1160,9 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
     current[STATIC_CONST] = true;
     current[ENUM_CONST] = true;
     // There is some slightly specific behaviour with enums. Basically,

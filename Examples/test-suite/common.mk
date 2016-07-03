@@ -174,7 +174,6 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
-	director_property \
 	director_binary_string \
 	director_classes \
 	director_classic \
@@ -189,12 +188,14 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_nested \
 	director_nspace \
 	director_nspace_director_name_collision \
-	director_nested \
 	director_overload \
 	director_overload2 \
+	director_pass_by_value \
 	director_primitives \
+	director_property \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \
@@ -282,6 +283,10 @@ CPP_TEST_CASES += \
 	minherit2 \
 	mixed_types \
 	multiple_inheritance \
+	multiple_inheritance_abstract \
+	multiple_inheritance_interfaces \
+	multiple_inheritance_nspace \
+	multiple_inheritance_shared_ptr \
 	name_cxx \
 	name_warnings \
 	namespace_class \
@@ -303,6 +308,7 @@ CPP_TEST_CASES += \
 	nested_class \
 	nested_directors \
 	nested_comment \
+	nested_ignore \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \
@@ -341,6 +347,7 @@ CPP_TEST_CASES += \
 	rename2 \
 	rename3 \
 	rename4 \
+	rename_rstrip_encoder \
 	rename_scope \
 	rename_simple \
 	rename_strip_encoder \
@@ -357,6 +364,7 @@ CPP_TEST_CASES += \
 	smart_pointer_const2 \
 	smart_pointer_const_overload \
 	smart_pointer_extend \
+	smart_pointer_ignore \
 	smart_pointer_member \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
@@ -379,6 +387,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	string_constants \
 	struct_initialization_cpp \
 	struct_value \
 	symbol_clash \
@@ -396,6 +405,7 @@ CPP_TEST_CASES += \
 	template_default2 \
 	template_default_arg \
 	template_default_arg_overloaded \
+	template_default_arg_overloaded_extend \
 	template_default_arg_virtual_destructor \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
@@ -664,6 +674,11 @@ MULTI_CPP_TEST_CASES += \
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
 
+# Allow modules to define temporarily failing tests.
+C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
+CPP_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP_TEST_CASES))
+MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
+
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
@@ -694,6 +709,7 @@ all: $(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 broken: $(BROKEN_TEST_CASES)
 
 check: $(NOT_BROKEN_TEST_CASES)
+	@echo $(words $^) $(LANGUAGE) tests passed
 
 check-c: $(C_TEST_CASES:=.ctest)
 
@@ -701,6 +717,13 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
+check-failing-test = \
+	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $1 passed."
+
+check-failing:
+	+-$(foreach t,$(FAILING_C_TESTS),$(call check-failing-test,$t,ctest);)
+	+-$(foreach t,$(FAILING_CPP_TESTS),$(call check-failing-test,$t,cpptest);)
+	+-$(foreach t,$(FAILING_MULTI_CPP_TESTS),$(call check-failing-test,$t,multicpptest);)
 endif
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)

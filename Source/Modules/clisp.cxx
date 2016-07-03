@@ -242,6 +242,9 @@ int CLISP::typedefHandler(Node *n) {
 }
 
 int CLISP::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   is_function = 0;
   String *name = Getattr(n, "sym:name");
 

@@ -18,3 +18,11 @@ if constant_directive.TYPE1_CONSTANT2.val != 2:
 if constant_directive.TYPE1_CONSTANT3.val != 3:
     raise RuntimeError("constant_directive.TYPE1_CONSTANT3.val is %r (should be 3)" %
                        constant_directive.TYPE1_CONSTANT3.val)
+
+if constant_directive.TYPE1CONST_CONSTANT1.val != 1:
+    raise RuntimeError("constant_directive.TYPE1CONST_CONSTANT1.val is %r (should be 1)" %
+                       constant_directive.TYPE1CONST_CONSTANT1.val)
+
+if constant_directive.TYPE1CPTR_CONSTANT1.val != 1:
+    raise RuntimeError("constant_directive.TYPE1CPTR_CONSTANT1.val is %r (should be 1)" %
+                       constant_directive.TYPE1CPTR_CONSTANT1.val)

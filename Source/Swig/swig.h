@@ -283,13 +283,11 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern void Swig_naming_init(void);
   extern void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn);
-  extern Hash *Swig_name_namewarn_get(Node *n, String *prefix, String *name, SwigType *decl);
   extern void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *namewrn, ParmList *declaratorparms);
   extern void Swig_name_inherit(String *base, String *derived);
   extern List *Swig_make_inherit_list(String *clsname, List *names, String *Namespaceprefix);
   extern void Swig_inherit_base_symbols(List *bases);
   extern int Swig_need_protected(Node *n);
-  extern int Swig_need_name_warning(Node *n);
   extern int Swig_need_redefined_warn(Node *a, Node *b, int InClass);
 
   extern String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, SwigType *decl, String *oldname);

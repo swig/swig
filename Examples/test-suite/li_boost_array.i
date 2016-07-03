@@ -25,6 +25,8 @@ namespace boost {
   using std::array;
 }
 
+%ignore std::array::fill; // Some older versions of boost don't have this function
+
 %include <std_array.i>
 
 %template(ArrayInt6) std::array<int, 6>;

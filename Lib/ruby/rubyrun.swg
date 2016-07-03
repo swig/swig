@@ -305,6 +305,14 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
 
   /* Do type-checking if type info was provided */
   if (ty) {
+    if (ty->clientdata) {
+      if (rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass)) {
+        if (vptr == 0) {
+          /* The object has already been deleted */
+          return SWIG_ObjectPreviouslyDeletedError;
+        }
+      }
+    }
     if ((c = SWIG_MangleStr(obj)) == NULL) {
       return SWIG_ERROR;
     }
@@ -312,10 +320,6 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     if (!tc) {
       return SWIG_ERROR;
     } else {
-      if (vptr == 0) {
-        /* The object has already been deleted */
-        return SWIG_ObjectPreviouslyDeletedError;
-      }
       if (ptr) {
         if (tc->type == ty) {
           *ptr = vptr;

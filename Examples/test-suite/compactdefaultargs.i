@@ -30,6 +30,7 @@ public:
   static const double PUBLIC_DEFAULT;
   Defaults2(int a = PRIVATE_DEFAULT) {}
   double ret(double d = PUBLIC_DEFAULT) { return d; }
+  double nodefault(int x) { return x; }
 };
 %}
 

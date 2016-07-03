@@ -130,11 +130,11 @@ py2_runme = $(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
 py3_runme = $(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
 
 ifneq (,$(PEP8))
-check_pep8 = $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py
+check_pep8 = $(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $(SCRIPTPREFIX)$*.py
 
 check_pep8_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(PEP8) $(PEP8_FLAGS) $$f.py; \
+	  $(COMPILETOOL) $(PEP8) $(PEP8_FLAGS) $$f.py; \
 	done
 endif
 

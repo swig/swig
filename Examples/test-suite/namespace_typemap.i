@@ -109,7 +109,11 @@ namespace test {
 #ifdef SWIGGO
 	%typemap(gotype) string_class * "string"
 	%typemap(in) string_class * {
-            $1 = new string_class($input.p);
+	    char* buf = new char[$input.n + 1];
+	    memcpy(buf, $input.p, $input.n);
+	    buf[$input.n] = '\0';
+	    $1 = new string_class(buf);
+	    delete[] buf;
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

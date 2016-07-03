@@ -688,6 +688,9 @@ int CFFI::typedefHandler(Node *n) {
 }
 
 int CFFI::enumDeclaration(Node *n) {
+  if (getCurrentClass() && (cplus_mode != PUBLIC))
+    return SWIG_NOWRAP;
+
   String *name = Getattr(n, "sym:name");
   bool slot_name_keywords;
   String *lisp_name = 0;
@@ -1107,7 +1110,7 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return num;
   } else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    String* result = NewStringf("#\\%c", s[0]);
+    String* result = NewStringf("#\\%s", s);
     Delete(num);
     return result;
   } else if (SwigType_type(type) == T_STRING) {

@@ -1904,7 +1904,7 @@ done:
 	enumvalue = GetChar(n, "enumvalueex");
       }
 
-      if (enumvalue) {
+      if (enumvalue && *Char(enumvalue)) {
 	// Check for a simple constant expression which is valid in PHP.
 	// If we find one, initialise the const member with it; otherwise
 	// we initialise it using the C/C++ wrapped constant.
@@ -1916,7 +1916,8 @@ done:
 	    break;
 	  }
 	}
-	if (!*p) set_to = enumvalue;
+	if (!*p)
+	  set_to = enumvalue;
       }
 
       if (wrapping_member_constant) {
@@ -2018,7 +2019,7 @@ done:
 	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
 	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
 	    Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
-			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
+			 "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
 	    base = Next(base);
 	  }
 	}

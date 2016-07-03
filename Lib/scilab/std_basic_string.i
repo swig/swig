@@ -16,7 +16,6 @@ SWIG_AsPtr_dec(std::basic_string<char>)(int _iVar, std::basic_string<char> **_ps
     if (buf) {
       if (_pstValue) {
         *_pstValue = new std::string(buf, len - 1);
-        sciprint("%s\n", (*_pstValue)->c_str());
       }
       if (alloc == SWIG_NEWOBJ) {
         delete[] buf;

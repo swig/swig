@@ -20,7 +20,9 @@
  #include <sys/wait.h>
  #include <sys/mman.h>
 #else
-#define _WIN32_WINNT 0x0500
+#ifndef _WIN32_WINNT
+ #define _WIN32_WINNT 0x0500
+#endif
  #include <windows.h>
  #include <shlobj.h>
 #endif

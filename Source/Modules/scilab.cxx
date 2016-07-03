@@ -326,6 +326,7 @@ public:
     bool isLastOverloaded = isOverloaded && !Getattr(node, "sym:nextSibling");
 
     if (!isOverloaded && !addSymbol(functionName, node)) {
+      DelWrapper(wrapper);
       return SWIG_ERROR;
     }
 
@@ -633,7 +634,10 @@ public:
 
       /* Add function to builder table */
       addFunctionToScilab(scilabSetFunctionName, setFunctionName);
+
+      DelWrapper(setFunctionWrapper);
     }
+    DelWrapper(getFunctionWrapper);
 
     return SWIG_OK;
   }
@@ -884,7 +888,7 @@ public:
     Printf(builderCode, "libs = [];\n");
 
     // Flags from command line arguments
-    Printf(builderCode, "cflags = [];\n");
+    Printf(builderCode, "cflags = \"\";\n");
     for (int i = 0; i < Len(cflags); i++) {
       String *cflag = Getitem(cflags, i);
       Printf(builderCode, "cflags = cflags + \" %s\";\n", cflag);
@@ -900,7 +904,7 @@ public:
 	}
       }
     } else {
-      Printf(builderCode, "ldflags = [];\n");
+      Printf(builderCode, "ldflags = \"\";\n");
     }
 
     // External script to set flags

@@ -60,14 +60,7 @@ namespace swig
 
     operator T () const
     {
-      try
-      {
-        return traits_asval_sequenceitem<T>::asval(_seq, piSeqAddr, _index);
-      }
-      catch (std::exception& e)
-      {
-        SWIG_exception(SWIG_RuntimeError, e.what());
-      }
+      return traits_asval_sequenceitem<T>::asval(_seq, piSeqAddr, _index);
     }
 
     SciSequence_Ref& operator=(const T& v)
@@ -391,13 +384,18 @@ namespace swig {
           }
           else
           {
-            return true;
+            return SWIG_ERROR;
           }
         }
         catch (std::exception& e)
         {
           SWIG_exception(SWIG_RuntimeError, e.what());
+          return SWIG_ERROR;
         }
+      }
+      else 
+      {
+        return SWIG_ERROR;
       }
     }
   };
@@ -438,6 +436,7 @@ namespace swig {
       catch (std::exception& e)
       {
         SWIG_exception(SWIG_RuntimeError, e.what());
+        return SWIG_ERROR;
       }
     }
   };

@@ -41,6 +41,7 @@ check:
 #  3) <pre> <tt> <code> elements do not always select a fixed-width font - try installing the
 #     Courier font to fix - these have been added to style.css.
 generate: SWIGDocumentation.html
+	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from http://wkhtmltopdf.org/downloads.html" && false)
 	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' SWIGDocumentation.html SWIGDocumentation.pdf
 
 SWIGDocumentation.html: swightml.book
