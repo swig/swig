@@ -66,8 +66,8 @@ public:
     // Printf(f_header, "#ifdef __cplusplus\n");
     // Printf(f_header, "extern \"C\" {\n");
     // Printf(f_header, "#endif\n");
-    Printf(f_wrappers, "namespace HPHP {\n");
-    Printf(f_wrappers, "\n");
+    Printf(f_link, "namespace HPHP {\n");
+    Printf(f_link, "\n");
 
     filename = NewStringEmpty();
     Printv(filename, SWIG_output_directory(), "ext_", module, ".php", NIL);
@@ -175,8 +175,8 @@ public:
       Printf(f_link, "void ");
       Printf(return_type, "void");
     } else if (is_overloaded) {
-      Printf(f_link, "Variant ");
-      Printf(return_type, "Variant");
+      Printf(f_link, "HPHP::Variant ");
+      Printf(return_type, "HPHP::Variant");
     } else if ((tm = Swig_typemap_lookup("hni_rttype", n, name, 0))) {
       Printv(f_link, tm, " ", NIL);
       Printf(return_type, "%s", tm);
@@ -264,7 +264,7 @@ public:
       } else {
         Printf(f_phpcode, "...$argv): mixed");
       }
-      Printf(f_link, ", const Array& argv");
+      Printf(f_link, ", const HPHP::Array& argv");
     }
     
     Printf(f_link, ") {\n");
@@ -386,7 +386,7 @@ public:
         }
         Printf(lfmt, ");\n");
         if (is_void_return) {
-          Printf(lfmt, "return Variant();\n");
+          Printf(lfmt, "return HPHP::Variant();\n");
         }
         Printf(f, "if (%s <= %d) {\n", argc_template_string, j);
         Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
@@ -426,7 +426,7 @@ public:
       }
       Printf(lfmt, ");\n");
       if (is_void_return) {
-        Printf(lfmt, "return Variant();\n");
+        Printf(lfmt, "return HPHP::Variant();\n");
       }
       Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
       Delete(lfmt);
@@ -459,9 +459,9 @@ public:
     // Printf(f_phpcode, "function %s(...$argv): mixed;\n\n", name);
     // Printv(wrapper->def, "Variant HHVM_FUNCTION(", name, ", const Array& argv) {\n", NIL);
 
-    Printf(wrapper->def, "Variant %s(const Array& argv) {\n", wname);
+    Printf(wrapper->def, "HPHP::Variant %s(const HPHP::Array& argv) {\n", wname);
     Wrapper_add_local(wrapper, "argc", "int argc");
-    Wrapper_add_local(wrapper, "result", "Variant result");
+    Wrapper_add_local(wrapper, "result", "HPHP::Variant result");
     Printf(wrapper->code, "argc = argv.size();\n");
 
     Printv(wrapper->code, dispatch, "\n", NIL);
@@ -632,12 +632,41 @@ public:
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
     Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", wname);
-    Printf(f_phpcode, "class %s {\n", name);
+
+    List *baselist = Getattr(n, "bases");
+    Iterator base;
+
+    if (baselist) {
+      base = First(baselist);
+      while (base.item && GetFlag(base.item, "feature:ignore")) {
+        base = Next(base);
+      }
+    } else {
+      base.item = NULL;
+    }
+
+    if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
+      Printf(f_phpcode, "abstract ");
+    }
+
+    Printf(f_phpcode, "class %s ", name);
     Printf(f_wrappers, "class %s {\n", wname);
     Printf(f_wrappers, "public:\n");
+    String *baseclass = NULL;
+    if (base.item && Getattr(base.item, "module")) {
+      baseclass = Getattr(base.item, "sym:name");
+      if (!baseclass)
+      baseclass = Getattr(base.item, "name");
+      Printf(f_phpcode, "extends %s ", baseclass);
+    } else if (GetFlag(n, "feature:exceptionclass")) {
+      Append(f_phpcode, "extends Exception ");
+    }
+    Printf(f_phpcode, "{\n");
+
     Language::classHandler(n);
-    Printf(f_wrappers, "Resource _obj_ptr;\n");
-    Printf(f_phpcode, "}\n");
+
+    Printf(f_wrappers, "HPHP::Resource _obj_ptr;\n");
+    Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, wname);
     return SWIG_OK;

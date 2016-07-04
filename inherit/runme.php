@@ -2,8 +2,6 @@
 
 # This example illustrates how member variables are wrapped.
 
-require("example.php");
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";
@@ -14,7 +12,7 @@ print "    Created square\n";
 
 # ----- Access a static member -----
 
-/* print "\nA total of " . Shape::nshapes() . " shapes were created\n";
+print "\nA total of " . Shap::Shap_nshapes_get() . " shapes were created\n";
 
 # ----- Member data access -----
 
@@ -47,14 +45,14 @@ foreach (array($c,$s) as $o) {
 print "\nGuess I'll clean up now\n";
 
 # Note: this invokes the virtual destructor
-$c = NULL;
-$s = NULL;
+// $c = NULL;
+// $s = NULL;
 
 # and don't forget the $o from the for loop above.  It still refers to
 # the square.
-$o = NULL;
+// $o = NULL;
 
-print Shape::nshapes() . " shapes remain\n";
-print "Goodbye\n"; */
+print Shap::Shap_nshapes_get() . " shapes remain\n";
+print "Goodbye\n"; 
 
 ?>

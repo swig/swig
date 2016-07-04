@@ -816,42 +816,7 @@ static int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
 }
 
 
-static void _wrap_print_pair(int64_t targ1, int64_t targ2) {
-  int arg1 ;
-  int arg2 ;
-  
-  arg1 = (int)targ1; 
-  arg2 = (int)targ2; 
-  print_pair(arg1,arg2);
-  
-}
-
-
-static void _wrap_overprint__SWIG_0(int64_t targ1) {
-  int arg1 ;
-  
-  arg1 = (int)targ1; 
-  overprint(arg1);
-  
-}
-
-
-static void _wrap_overprint__SWIG_1(int64_t targ1, int64_t targ2) {
-  int arg1 ;
-  int arg2 ;
-  
-  arg1 = (int)targ1; 
-  arg2 = (int)targ2; 
-  overprint(arg1,arg2);
-  
-}
-
-
-int64_t HHVM_FUNCTION(fact, int64_t arg1) {
-  return _wrap_fact(arg1);
-}
-
-Variant HHVM_FUNCTION(my_mod, const Array& argv) {
+Variant _wrap_my_mod(const Array& argv) {
   int argc;
   Variant result;
   
@@ -894,11 +859,38 @@ Variant HHVM_FUNCTION(my_mod, const Array& argv) {
 }
 
 
-void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
-  _wrap_print_pair(arg1, arg2);
+static void _wrap_print_pair(int64_t targ1, int64_t targ2) {
+  int arg1 ;
+  int arg2 ;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  print_pair(arg1,arg2);
+  
 }
 
-Variant HHVM_FUNCTION(overprint, const Array& argv) {
+
+static void _wrap_overprint__SWIG_0(int64_t targ1) {
+  int arg1 ;
+  
+  arg1 = (int)targ1; 
+  overprint(arg1);
+  
+}
+
+
+static void _wrap_overprint__SWIG_1(int64_t targ1, int64_t targ2) {
+  int arg1 ;
+  int arg2 ;
+  
+  arg1 = (int)targ1; 
+  arg2 = (int)targ2; 
+  overprint(arg1,arg2);
+  
+}
+
+
+Variant _wrap_overprint(const Array& argv) {
   int argc;
   Variant result;
   
@@ -932,6 +924,22 @@ Variant HHVM_FUNCTION(overprint, const Array& argv) {
   throw "No matching function for overloaded 'overprint'";
 }
 
+
+int64_t HHVM_FUNCTION(fact, int64_t arg1) {
+  return _wrap_fact(arg1);
+}
+
+Variant HHVM_FUNCTION(my_mod, const Array& argv) {
+  return _wrap_my_mod(argv);
+}
+
+void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
+  _wrap_print_pair(arg1, arg2);
+}
+
+Variant HHVM_FUNCTION(overprint, const Array& argv) {
+  return _wrap_overprint(argv);
+}
 
 
 

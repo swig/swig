@@ -762,164 +762,282 @@ template<typename T> inline void SWIG_Ptr<T>::sweep() { close(); }
 
 #include "example.h"
 
-namespace HPHP {
-
-class _wrap_Circle {
+class _wrap_Shap {
 public:
-Resource _wrap_new_Circle__SWIG_0() {
-  Resource tresult ;
-  Circle *result = 0 ;
+void _wrap_delete_Shap(const HPHP::Resource& targ1) {
+  Shap *arg1 = (Shap *) 0 ;
   
-  result = (Circle *)new Circle();
-  tresult = Resource(req::make<SWIG_Ptr<Circle>>(result)); 
-  return tresult;
-}
-
-
-Resource _wrap_new_Circle__SWIG_1(int64_t targ1) {
-  int arg1 ;
-  Resource tresult ;
-  Circle *result = 0 ;
-  
-  arg1 = (int)targ1; 
-  result = (Circle *)new Circle(arg1);
-  tresult = Resource(req::make<SWIG_Ptr<Circle>>(result)); 
-  return tresult;
-}
-
-
-Variant _wrap_new_Circle(const Array& argv) {
-  int argc;
-  Variant result;
-  
-  argc = argv.size();
-  if (argc == 0) {
-    return _wrap_new_Circle__SWIG_0();
-  }
-  if (argc == 1) {
-    bool _v;
-    int64_t targ0;
-    _v = argv[0].isInteger();
-    if (_v) targ0 = argv[0].toInt64Val();
-    if (_v) {
-      return _wrap_new_Circle__SWIG_1(targ0);
-    }
-  }
-  
-  throw "No matching function for overloaded 'new_Circle'";
-}
-
-
-int64_t _wrap_Circle_area(const Resource& targ1) {
-  Circle *arg1 = (Circle *) 0 ;
-  int64_t tresult ;
-  int result;
-  
-  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
-  result = (int)(arg1)->area();
-  tresult = result;
-  return tresult;
-}
-
-
-static void _wrap_Circle_info() {
-  Circle::info();
-  
-}
-
-
-void _wrap_Circle_z_set(const Resource& targ1, int64_t targ2) {
-  Circle *arg1 = (Circle *) 0 ;
-  int arg2 ;
-  
-  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
-  arg2 = (int)targ2; 
-  if (arg1) (arg1)->z = arg2;
-  
-}
-
-
-int64_t _wrap_Circle_z_get(const Resource& targ1) {
-  Circle *arg1 = (Circle *) 0 ;
-  int64_t tresult ;
-  int result;
-  
-  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
-  result = (int) ((arg1)->z);
-  tresult = result;
-  return tresult;
-}
-
-
-static void _wrap_Circle_objectCount_set(int64_t targ1) {
-  int arg1 ;
-  
-  arg1 = (int)targ1; 
-  Circle::objectCount = arg1;
-  
-}
-
-
-static int64_t _wrap_Circle_objectCount_get() {
-  int64_t tresult ;
-  int result;
-  
-  result = (int)Circle::objectCount;
-  tresult = result;
-  return tresult;
-}
-
-
-static void _wrap_delete_Circle(const Resource& targ1) {
-  Circle *arg1 = (Circle *) 0 ;
-  
-  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
   delete arg1;
   
 }
 
 
-Resource _obj_ptr;
-}; // class _wrap_Circle
-static void _wrap_pnt(const Resource& targ1) {
+void _wrap_Shap_x_set(const HPHP::Resource& targ1, double targ2) {
+  Shap *arg1 = (Shap *) 0 ;
+  double arg2 ;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  arg2 = (double)targ2; 
+  if (arg1) (arg1)->x = arg2;
+  
+}
+
+
+double _wrap_Shap_x_get(const HPHP::Resource& targ1) {
+  Shap *arg1 = (Shap *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  result = (double) ((arg1)->x);
+  tresult = result;
+  return tresult;
+}
+
+
+void _wrap_Shap_y_set(const HPHP::Resource& targ1, double targ2) {
+  Shap *arg1 = (Shap *) 0 ;
+  double arg2 ;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  arg2 = (double)targ2; 
+  if (arg1) (arg1)->y = arg2;
+  
+}
+
+
+double _wrap_Shap_y_get(const HPHP::Resource& targ1) {
+  Shap *arg1 = (Shap *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  result = (double) ((arg1)->y);
+  tresult = result;
+  return tresult;
+}
+
+
+void _wrap_Shap_move(const HPHP::Resource& targ1, double targ2, double targ3) {
+  Shap *arg1 = (Shap *) 0 ;
+  double arg2 ;
+  double arg3 ;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  arg2 = (double)targ2; 
+  arg3 = (double)targ3; 
+  (arg1)->move(arg2,arg3);
+  
+}
+
+
+double _wrap_Shap_area(const HPHP::Resource& targ1) {
+  Shap *arg1 = (Shap *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  result = (double)(arg1)->area();
+  tresult = result;
+  return tresult;
+}
+
+
+double _wrap_Shap_perimeter(const HPHP::Resource& targ1) {
+  Shap *arg1 = (Shap *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Shap>>(targ1)->get(); 
+  result = (double)(arg1)->perimeter();
+  tresult = result;
+  return tresult;
+}
+
+
+static void _wrap_Shap_nshapes_set(int64_t targ1) {
+  int arg1 ;
+  
+  arg1 = (int)targ1; 
+  Shap::nshapes = arg1;
+  
+}
+
+
+static int64_t _wrap_Shap_nshapes_get() {
+  int64_t tresult ;
+  int result;
+  
+  result = (int)Shap::nshapes;
+  tresult = result;
+  return tresult;
+}
+
+
+HPHP::Resource _obj_ptr;
+}; // class _wrap_Shap
+class _wrap_Circle {
+public:
+HPHP::Resource _wrap_new_Circle(double targ1) {
+  double arg1 ;
+  HPHP::Resource tresult ;
+  Circle *result = 0 ;
+  
+  arg1 = (double)targ1; 
+  result = (Circle *)new Circle(arg1);
+  tresult = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<Circle>>(result)); 
+  return tresult;
+}
+
+
+double _wrap_Circle_area(const HPHP::Resource& targ1) {
+  Circle *arg1 = (Circle *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Circle>>(targ1)->get(); 
+  result = (double)(arg1)->area();
+  tresult = result;
+  return tresult;
+}
+
+
+double _wrap_Circle_perimeter(const HPHP::Resource& targ1) {
+  Circle *arg1 = (Circle *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Circle>>(targ1)->get(); 
+  result = (double)(arg1)->perimeter();
+  tresult = result;
+  return tresult;
+}
+
+
+static void _wrap_delete_Circle(const HPHP::Resource& targ1) {
   Circle *arg1 = (Circle *) 0 ;
   
-  arg1 = dyn_cast_or_null<SWIG_Ptr<Circle>>(targ1)->get(); 
-  pnt(arg1);
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Circle>>(targ1)->get(); 
+  delete arg1;
   
 }
 
 
-void HHVM_METHOD(_wrap_Circle, __construct, const Array& argv) {
-  auto data = Native::data<_wrap_Circle>(this_);
-  data->_obj_ptr = data->_wrap_new_Circle(argv).toResource();
+HPHP::Resource _obj_ptr;
+}; // class _wrap_Circle
+class _wrap_Square {
+public:
+HPHP::Resource _wrap_new_Square(double targ1) {
+  double arg1 ;
+  HPHP::Resource tresult ;
+  Square *result = 0 ;
+  
+  arg1 = (double)targ1; 
+  result = (Square *)new Square(arg1);
+  tresult = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<Square>>(result)); 
+  return tresult;
 }
 
-int64_t HHVM_METHOD(_wrap_Circle, area) {
+
+double _wrap_Square_area(const HPHP::Resource& targ1) {
+  Square *arg1 = (Square *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Square>>(targ1)->get(); 
+  result = (double)(arg1)->area();
+  tresult = result;
+  return tresult;
+}
+
+
+double _wrap_Square_perimeter(const HPHP::Resource& targ1) {
+  Square *arg1 = (Square *) 0 ;
+  double tresult ;
+  double result;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Square>>(targ1)->get(); 
+  result = (double)(arg1)->perimeter();
+  tresult = result;
+  return tresult;
+}
+
+
+static void _wrap_delete_Square(const HPHP::Resource& targ1) {
+  Square *arg1 = (Square *) 0 ;
+  
+  arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Square>>(targ1)->get(); 
+  delete arg1;
+  
+}
+
+
+HPHP::Resource _obj_ptr;
+}; // class _wrap_Square
+namespace HPHP {
+
+void HHVM_METHOD(_wrap_Shap, __destruct) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  data->_wrap_delete_Shap(data->_obj_ptr);
+}
+
+void HHVM_METHOD(_wrap_Shap, Shap_x_set, double arg2) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  data->_wrap_Shap_x_set(data->_obj_ptr, arg2);
+}
+
+double HHVM_METHOD(_wrap_Shap, Shap_x_get) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  return data->_wrap_Shap_x_get(data->_obj_ptr);
+}
+
+void HHVM_METHOD(_wrap_Shap, Shap_y_set, double arg2) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  data->_wrap_Shap_y_set(data->_obj_ptr, arg2);
+}
+
+double HHVM_METHOD(_wrap_Shap, Shap_y_get) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  return data->_wrap_Shap_y_get(data->_obj_ptr);
+}
+
+void HHVM_METHOD(_wrap_Shap, move, double arg2, double arg3) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  data->_wrap_Shap_move(data->_obj_ptr, arg2, arg3);
+}
+
+double HHVM_METHOD(_wrap_Shap, area) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  return data->_wrap_Shap_area(data->_obj_ptr);
+}
+
+double HHVM_METHOD(_wrap_Shap, perimeter) {
+  auto data = Native::data<_wrap_Shap>(this_);
+  return data->_wrap_Shap_perimeter(data->_obj_ptr);
+}
+
+void HHVM_STATIC_METHOD(_wrap_Shap, Shap_nshapes_set, int64_t arg1) {
+  _wrap_Shap::_wrap_Shap_nshapes_set(arg1);
+}
+
+int64_t HHVM_STATIC_METHOD(_wrap_Shap, Shap_nshapes_get) {
+  return _wrap_Shap::_wrap_Shap_nshapes_get();
+}
+
+void HHVM_METHOD(_wrap_Circle, __construct, double arg1) {
+  auto data = Native::data<_wrap_Circle>(this_);
+  data->_obj_ptr = data->_wrap_new_Circle(arg1);
+}
+
+double HHVM_METHOD(_wrap_Circle, area) {
   auto data = Native::data<_wrap_Circle>(this_);
   return data->_wrap_Circle_area(data->_obj_ptr);
 }
 
-void HHVM_STATIC_METHOD(_wrap_Circle, info) {
-  _wrap_Circle::_wrap_Circle_info();
-}
-
-void HHVM_METHOD(_wrap_Circle, Circle_z_set, int64_t arg2) {
+double HHVM_METHOD(_wrap_Circle, perimeter) {
   auto data = Native::data<_wrap_Circle>(this_);
-  data->_wrap_Circle_z_set(data->_obj_ptr, arg2);
-}
-
-int64_t HHVM_METHOD(_wrap_Circle, Circle_z_get) {
-  auto data = Native::data<_wrap_Circle>(this_);
-  return data->_wrap_Circle_z_get(data->_obj_ptr);
-}
-
-void HHVM_STATIC_METHOD(_wrap_Circle, Circle_objectCount_set, int64_t arg1) {
-  _wrap_Circle::_wrap_Circle_objectCount_set(arg1);
-}
-
-int64_t HHVM_STATIC_METHOD(_wrap_Circle, Circle_objectCount_get) {
-  return _wrap_Circle::_wrap_Circle_objectCount_get();
+  return data->_wrap_Circle_perimeter(data->_obj_ptr);
 }
 
 void HHVM_METHOD(_wrap_Circle, __destruct) {
@@ -927,8 +1045,24 @@ void HHVM_METHOD(_wrap_Circle, __destruct) {
   data->_wrap_delete_Circle(data->_obj_ptr);
 }
 
-void HHVM_FUNCTION(pnt, const Resource& arg1) {
-  _wrap_pnt(arg1);
+void HHVM_METHOD(_wrap_Square, __construct, double arg1) {
+  auto data = Native::data<_wrap_Square>(this_);
+  data->_obj_ptr = data->_wrap_new_Square(arg1);
+}
+
+double HHVM_METHOD(_wrap_Square, area) {
+  auto data = Native::data<_wrap_Square>(this_);
+  return data->_wrap_Square_area(data->_obj_ptr);
+}
+
+double HHVM_METHOD(_wrap_Square, perimeter) {
+  auto data = Native::data<_wrap_Square>(this_);
+  return data->_wrap_Square_perimeter(data->_obj_ptr);
+}
+
+void HHVM_METHOD(_wrap_Square, __destruct) {
+  auto data = Native::data<_wrap_Square>(this_);
+  data->_wrap_delete_Square(data->_obj_ptr);
 }
 
 
@@ -938,16 +1072,27 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
+    HHVM_MALIAS(Shap, __destruct, _wrap_Shap, __destruct);
+    HHVM_MALIAS(Shap, Shap_x_set, _wrap_Shap, Shap_x_set);
+    HHVM_MALIAS(Shap, Shap_x_get, _wrap_Shap, Shap_x_get);
+    HHVM_MALIAS(Shap, Shap_y_set, _wrap_Shap, Shap_y_set);
+    HHVM_MALIAS(Shap, Shap_y_get, _wrap_Shap, Shap_y_get);
+    HHVM_MALIAS(Shap, move, _wrap_Shap, move);
+    HHVM_MALIAS(Shap, area, _wrap_Shap, area);
+    HHVM_MALIAS(Shap, perimeter, _wrap_Shap, perimeter);
+    HHVM_STATIC_MALIAS(Shap, Shap_nshapes_set, _wrap_Shap, Shap_nshapes_set);
+    HHVM_STATIC_MALIAS(Shap, Shap_nshapes_get, _wrap_Shap, Shap_nshapes_get);
+    Native::registerNativeDataInfo<_wrap_Shap>(makeStaticString("_wrap_Shap"));
     HHVM_MALIAS(Circle, __construct, _wrap_Circle, __construct);
     HHVM_MALIAS(Circle, area, _wrap_Circle, area);
-    HHVM_STATIC_MALIAS(Circle, info, _wrap_Circle, info);
-    HHVM_MALIAS(Circle, Circle_z_set, _wrap_Circle, Circle_z_set);
-    HHVM_MALIAS(Circle, Circle_z_get, _wrap_Circle, Circle_z_get);
-    HHVM_STATIC_MALIAS(Circle, Circle_objectCount_set, _wrap_Circle, Circle_objectCount_set);
-    HHVM_STATIC_MALIAS(Circle, Circle_objectCount_get, _wrap_Circle, Circle_objectCount_get);
+    HHVM_MALIAS(Circle, perimeter, _wrap_Circle, perimeter);
     HHVM_MALIAS(Circle, __destruct, _wrap_Circle, __destruct);
     Native::registerNativeDataInfo<_wrap_Circle>(makeStaticString("_wrap_Circle"));
-    HHVM_FE(pnt);
+    HHVM_MALIAS(Square, __construct, _wrap_Square, __construct);
+    HHVM_MALIAS(Square, area, _wrap_Square, area);
+    HHVM_MALIAS(Square, perimeter, _wrap_Square, perimeter);
+    HHVM_MALIAS(Square, __destruct, _wrap_Square, __destruct);
+    Native::registerNativeDataInfo<_wrap_Square>(makeStaticString("_wrap_Square"));
     loadSystemlib();
   }
 } s_example_extension;

@@ -59,7 +59,7 @@
   "const String&";
 
 %typemap(hni_parmtype) SWIGTYPE *
-  "const Resource&";
+  "const HPHP::Resource&";
 
 /* hni_rttype typemaps */
 
@@ -86,13 +86,13 @@
                    signed char,
                    char [],
                    const char []
-  "String";
+  "HPHP::String";
 
 %typemap(hni_rttype) void
   "void";
 
 %typemap(hni_rttype) SWIGTYPE *
-  "Resource";
+  "HPHP::Resource";
 
 /* in typemap */
 
@@ -119,7 +119,7 @@
 }
 
 %typemap(in) SWIGTYPE * 
-%{ $1 = dyn_cast_or_null<SWIG_Ptr<$*1_ltype>>($input)->get(); %}
+%{ $1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<$*1_ltype>>($input)->get(); %}
 
 /* out typemaps */
 
@@ -144,11 +144,11 @@
               const char *,
               char [],
               const char []
-  "$result = makeStaticString($1);"
+  "$result = HPHP::makeStaticString($1);"
 
 %typemap(out) void ""
 %typemap(out) SWIGTYPE * 
-%{ $result = Resource(req::make<SWIG_Ptr<$*1_ltype>>($1)); %} 
+%{ $result = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<$*1_ltype>>($1)); %} 
 
 /* php types */
 
