@@ -1,11 +1,11 @@
 /* File : example.h */
 
-class Shape {
+class _Shape {
 public:
-  Shape() {
+  _Shape() {
     nshapes++;
   }
-  virtual ~Shape() {
+  virtual ~_Shape() {
     nshapes--;
   }
   double  x, y;
@@ -15,7 +15,7 @@ public:
   static  int nshapes;
 };
 
-class Circle : public Shape {
+class Circle : public _Shape {
 private:
   double radius;
 public:
@@ -24,7 +24,7 @@ public:
   virtual double perimeter();
 };
 
-class Square : public Shape {
+class Square : public _Shape {
 private:
   double width;
 public:

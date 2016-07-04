@@ -2,8 +2,6 @@
 
 # This example illustrates how member variables are wrapped.
 
-require("example.php");
-
 # ----- Object creation -----
 
 print "Creating some objects:\n";
@@ -14,7 +12,7 @@ print "    Created square\n";
 
 # ----- Access a static member -----
 
-/* print "\nA total of " . Shape::nshapes() . " shapes were created\n";
+print "\nA total of " . _Shape::_Shape_nshapes_get() . " shapes were created\n";
 
 # ----- Member data access -----
 
@@ -54,7 +52,7 @@ $s = NULL;
 # the square.
 $o = NULL;
 
-print Shape::nshapes() . " shapes remain\n";
-print "Goodbye\n"; */
+print _Shape::_Shape_nshapes_get() . " shapes remain\n";
+print "Goodbye\n";
 
 ?>

@@ -4,12 +4,12 @@
 #define M_PI 3.14159265358979323846
 
 /* Move the shape to a new location */
-void Shape::move(double dx, double dy) {
+void _Shape::move(double dx, double dy) {
   x += dx;
   y += dy;
 }
 
-int Shape::nshapes = 0;
+int _Shape::nshapes = 0;
 
 double Circle::area() {
   return M_PI*radius*radius;
