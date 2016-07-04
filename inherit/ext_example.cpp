@@ -748,7 +748,6 @@ public:
   explicit SWIG_Ptr(T* ptr) : m_ptr(ptr) {}
   virtual ~SWIG_Ptr() { close(); }
   void close() {
-    delete m_ptr;
     m_ptr = nullptr;
   }
   T* get() const { return m_ptr; }
@@ -915,7 +914,7 @@ double _wrap_Circle_perimeter(const HPHP::Resource& targ1) {
 }
 
 
-static void _wrap_delete_Circle(const HPHP::Resource& targ1) {
+void _wrap_delete_Circle(const HPHP::Resource& targ1) {
   Circle *arg1 = (Circle *) 0 ;
   
   arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Circle>>(targ1)->get(); 
@@ -964,7 +963,7 @@ double _wrap_Square_perimeter(const HPHP::Resource& targ1) {
 }
 
 
-static void _wrap_delete_Square(const HPHP::Resource& targ1) {
+void _wrap_delete_Square(const HPHP::Resource& targ1) {
   Square *arg1 = (Square *) 0 ;
   
   arg1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<Square>>(targ1)->get(); 

@@ -522,7 +522,7 @@ public:
     // wrap:parms is used for overload resolution.
     Setattr(n, "wrap:parms", parms);
 
-    if (staticmethodwrapper || is_static || !is_member) {
+    if (staticmethodwrapper || is_static || (!is_member && !is_destructor)) {
       Printf(wrapper->def, "static ");
     }
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {

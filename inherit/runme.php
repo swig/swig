@@ -45,12 +45,12 @@ foreach (array($c,$s) as $o) {
 print "\nGuess I'll clean up now\n";
 
 # Note: this invokes the virtual destructor
-// $c = NULL;
-// $s = NULL;
+$c = NULL;
+$s = NULL;
 
 # and don't forget the $o from the for loop above.  It still refers to
 # the square.
-// $o = NULL;
+$o = NULL;
 
 print Shap::Shap_nshapes_get() . " shapes remain\n";
 print "Goodbye\n"; 

@@ -13,7 +13,6 @@ public:
   explicit SWIG_Ptr(T* ptr) : m_ptr(ptr) {}
   virtual ~SWIG_Ptr() { close(); }
   void close() {
-    delete m_ptr;
     m_ptr = nullptr;
   }
   T* get() const { return m_ptr; }
