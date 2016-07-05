@@ -37,15 +37,15 @@ SWIGRUNTIME const char* SWIG_ErrorType(int code) {
   return "SWIG:UnknownError";
 }
 
-SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
+SWIGRUNTIME int SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs) {
     SWIG_Error(SWIG_RuntimeError, "function %s takes at most %i arguments", func_name, max_args);
   } else if (num_args < min_args) {
     SWIG_Error(SWIG_RuntimeError, "function %s requires at least %i arguments", func_name, min_args);
   } else {
-    return true;
+    return 1;
   }
-  return false;
+  return 0;
 }
 
 #define SWIG_fail                                       goto fail
@@ -276,7 +276,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
   if (!swig_ptr) return SWIG_ERROR;
 
   swig_cast_info *tc;
-  bool same_type = false;
+  int same_type = 0;
   SwigPtr* p=swig_ptr;
   while (p) {
     /* Loop over types */
@@ -284,7 +284,7 @@ SWIGRUNTIME int SWIG_Matlab_ConvertPtrAndOwn(mxArray* pm, void **ptr, swig_type_
 
     /* No type cast needed */
     if (p_type==type || !type) {
-      same_type = true;
+      same_type = 1;
       break;
     }
 
