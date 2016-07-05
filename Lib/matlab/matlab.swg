@@ -4,8 +4,8 @@
 %include <matlabuserdir.swg>
 %include <matlabtypemaps.swg>
 %include <matlabopers.swg>
+%include <matlabkw.swg>
 
 %define %docstring %feature("docstring") %enddef
 
 %define %matlabsetup %insert("matlabsetup") %enddef
-
