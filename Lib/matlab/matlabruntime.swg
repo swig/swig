@@ -3,14 +3,12 @@
 #include <stdint.h>
 /* MATLAB's C-API */
 #include <mex.h>
-/* need this for floor() */
+/* MISC C libraries */
 #include <math.h>
-/* need this for strcmp() */
 #include <string.h>
-/* need this for SWIG_Error below */
 #include <stdarg.h>
-/* needed for SWIG_Error */
 #include <stdio.h>
+#include <limits.h>
 %}
 
 %insert(runtime) "swigrun.swg";
