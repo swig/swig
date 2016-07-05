@@ -5,7 +5,7 @@ end
 
 grouping.test2(42);
 
-x = (grouping.do_unary(37, grouping.NEGATE));
+x = (grouping.do_unary(37, grouping.NEGATEC));
 if (x ~= -37)
     error
 end

@@ -28,4 +28,9 @@ int negate(int x) {
 
 %}
 
+/* MATLAB/Octave not (always) case sensitive */
+#ifdef SWIGMATLAB
+%rename(NEGATEC) NEGATE;
+#endif
+
 %constant UnaryOp *NEGATE = negate;
