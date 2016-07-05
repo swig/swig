@@ -9,5 +9,4 @@ if (b.rtest() ~= 1)
     error
 end
 
-f = @equals;
-
+%f = @equals;
