@@ -17,4 +17,3 @@ end
 if (enums.Thigh ~= 12)
   error
 end
-
