@@ -34,7 +34,7 @@ extern "C"
 
 
 /* This interface file tests whether SWIG's extended C
-   preprocessor is working right. 
+   preprocessor is working right.
 
    In this example, SWIG 1.3.6 chokes on "//" in a #define with a
    syntax error.
@@ -55,7 +55,7 @@ extern "C"
 
      /* Don't check for NULL pointers (override checks). */
 
-     %typemap(argout, doc="($arg <vector of <" #SCM_TYPE ">>)") 
+     %typemap(argout, doc="($arg <vector of <" #SCM_TYPE ">>)")
           int *VECTORLENOUTPUT
      {
      }
@@ -68,7 +68,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(boolean)
 
 #define Sum( A, B, \
              C)    \
-        A + B + C 
+        A + B + C
 
 
 // preproc_4
@@ -86,7 +86,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(boolean)
   int hello2()
   {
     return 2;
-  }  
+  }
   int f(int min) { return min; }
 %}
 
@@ -104,12 +104,12 @@ ARITH_RTYPE(double,int) hello1();
 //
 // This doesn't work with 1.3.17+ ( but it was ok in 1.3.16 )
 // it gets expanded as (using -E)
-// 
+//
 //   ARITH_RTYPE(double,int) hello2();
 //
 HELLO_TYPE(double,int) hello2();
 
-#define min(x,y) ((x) < (y)) ? (x) : (y) 
+#define min(x,y) ((x) < (y)) ? (x) : (y)
 int f(int min);
 
 // preproc_5
@@ -138,7 +138,7 @@ int f(int min);
 
 #define cat(x,y) x ## y
 
-/* This should expand to cat(1,2);  
+/* This should expand to cat(1,2);
    See K&R, p. 231 */
 
 %constant int c5 = cat(cat(1,2),;)
@@ -171,7 +171,7 @@ NAME 42
 #define add(a, b) (a + b)
 #define times(a, b) (a * b)
 #define op(x) x(1, 5)
- 
+
 /* expand to (1 + 5) */
 %constant int a6 = op(add);
 /* expand to (1 * 5) */
@@ -179,10 +179,10 @@ NAME 42
 /* expand to ((1 + 5) * 5) */
 %constant int c6 = times(add(1, 5), 5);
 /* expand to ((1 + 5) * 5) */
-%constant int d6 = times(op(add), 5);                 
+%constant int d6 = times(op(add), 5);
 
 /* This interface file tests whether SWIG's extended C
-   preprocessor is working right. 
+   preprocessor is working right.
 
    In this example, SWIG 1.3a5 reports missing macro arguments, which
    is bogus.
@@ -199,11 +199,11 @@ NAME 42
 MACRO2(int)
 
 // cpp_macro_noarg.  Tests to make sure macros with no arguments work right.
-#define MACROWITHARG(x) something(x) 
+#define MACROWITHARG(x) something(x)
 
-typedef int MACROWITHARG; 
+typedef int MACROWITHARG;
 
-/* 
+/*
 This testcase tests for embedded defines and embedded %constants
 */
 
@@ -219,7 +219,7 @@ typedef struct EmbeddedDefines {
 
 %}
 
-/* 
+/*
 This testcase tests operators for defines
 */
 
@@ -240,7 +240,7 @@ This testcase tests operators for defines
 
 
 #ifdef __cplusplus
-		   
+
 #define %mangle_macro(...) #@__VA_ARGS__
 #define %mangle_macro_str(...) ##@__VA_ARGS__
 
@@ -273,6 +273,12 @@ inline const char* mangle_macro ## #@__VA_ARGS__ () {
 #define __GMP_HAVE_TOKEN_PASTE 0
 #endif
 
+/* MATLAB/Octave not (always) case sensitive */
+#ifdef SWIGMATLAB
+%rename(ONE_) ONE;
+%rename(TWO_) TWO;
+%rename(THREE_) THREE;
+#endif
 
 /* empty TWO() macro is broken */
 #define ONE 1
@@ -292,7 +298,7 @@ inline const char* mangle_macro ## #@__VA_ARGS__ () {
 
 #ifdef SWIGCHICKEN
 /* define is a scheme keyword (and thus an invalid variable name), so SWIG warns about it */
-%warnfilter(SWIGWARN_PARSE_KEYWORD) define; 
+%warnfilter(SWIGWARN_PARSE_KEYWORD) define;
 #endif
 
 #ifdef SWIGRUBY
@@ -301,15 +307,18 @@ inline const char* mangle_macro ## #@__VA_ARGS__ () {
 #ifdef SWIGPHP
 %rename(endif_) endif;
 #endif
+#ifdef SWIGMATLAB
+%rename(endif_) endif;
+#endif
 %inline %{
 const int endif = 1;
 const int define = 1;
-const int defined = 1; 
+const int defined = 1;
 int test(int defined)
 {
   return defined;
 }
- 
+
 %}
 
 #pragma SWIG nowarn=SWIGWARN_PP_CPP_WARNING
@@ -362,11 +371,10 @@ int method(struct TypeNameTraits tnt) {
 # /** comment 6
 #
 # more comment 6 */
-# 
 #
-#	    
+#
+#
 int methodX(int x);
 %{
 int methodX(int x) { return x+100; }
 %}
-
