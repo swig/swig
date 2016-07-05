@@ -1,5 +1,10 @@
 %module nested_structs
 
+/* MATLAB/Octave not (always) case sensitive */
+#ifdef SWIGMATLAB
+%rename(outer_) outer;
+#endif
+
 // bug #491476
 %inline %{
 struct Outer {
@@ -29,7 +34,7 @@ void setValues(struct Outer *outer, int val) {
 int getInside1Val(struct Outer *n) { return n->inside1.val; }
 %}
 
-/* 
+/*
 Below was causing problems in Octave as wrappers were compiled as C++.
 Solution requires regenerating the inner struct into
 the global C++ namespace (which is where it is intended to be in C).
@@ -43,4 +48,3 @@ int nestedByPtr(struct Named *s);
 int nestedByVal(struct Named s) { return s.val; }
 int nestedByPtr(struct Named *s) { return s->val; }
 %}
-
