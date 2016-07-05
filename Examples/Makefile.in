@@ -488,14 +488,14 @@ octave_clean:
 
 # Make sure these locate your Matlab installation
 MATLAB        = @MATLAB@
-MATLABOPTS    = -nodisplay -nosplash -nojvm
-#MATLAB_CXX    = $(DEFS) @MATLAB_CPPFLAGS@ @MATLAB_CXXFLAGS@
+MATLAB_OPTS   = @MATLAB_OPTS@
+MATLAB_EXEC   = @MATLAB_EXEC@
+MATLAB_EXT     = @MATLAB_EXT@
 
-# Extra Matlab specific dynamic linking options
+#MATLAB_CXX   = $(DEFS) @MATLAB_CPPFLAGS@ @MATLAB_CXXFLAGS@
 #MATLAB_DLNK   = @MATLAB_LDFLAGS@
-MATLAB_MEXSUFFIX     = @MATLAB_MEXSUFFIX@
-MATLAB_MEX = @MATLAB_MEX@
 
+MATLAB_MEX = @MATLAB_MEX@
 MATLAB_SCRIPT = $(SRCDIR)$(RUNME)
 
 # ----------------------------------------------------------------
@@ -521,14 +521,14 @@ matlab_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 matlab_run:
-	$(RUNTOOL) "$(MATLAB)" $(MATLABOPTS) -r "try; $(MATLAB_SCRIPT); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)" $(RUNPIPE)
+	$(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "try; $(MATLAB_SCRIPT); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)" $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
-matlab_version:
-	"$(MATLAB)" $(MATLABOPTS) -r "disp(version);exit" | tail -n 2
+ matlab_version:
+	"$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "disp(version);exit" | tail -n 2
 
 # -----------------------------------------------------------------
 # Cleaning the Matlab examples
@@ -537,7 +537,7 @@ matlab_version:
 matlab_clean:
 	rm -f *_wrap* *~
 	rm -rf \+*
-	rm -f *.@OBJEXT@ *@SO@ *$(MATLAB_MEXSUFFIX)
+	rm -f *.@OBJEXT@ *@SO@ *$(MATLAB_EXT)
 
 ##################################################################
 #####                       GUILE                           ######

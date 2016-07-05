@@ -1089,7 +1089,7 @@ AC_SUBST(OCTAVE_LDFLAGS)
 #----------------------------------------------------------------
 
 # Try to detect if there is matlab installed on the system and set the
-# MATLAB_HOME, MATLAB and MATLAB_MEXSUFFIX variable
+# MATLAB_HOME, MATLAB and MATLAB_EXT variable
 
 AC_ARG_WITH([matlab], AS_HELP_STRING([--without-matlab], [Disable Matlab])
 AS_HELP_STRING([--with-matlab=path], [specify location of matlab installation for the matlab interface.  The "mex" compiler should be in MATLAB_HOME/bin]),[use_matlab=$withval], [use_matlab=yes])
@@ -1140,7 +1140,7 @@ if test x"$MATLAB" != x; then
   fi
 fi
 
-MATLAB_MEXSUFFIX=
+MATLAB_EXT=
 if test x"$MATLAB" != x; then
   AC_MSG_CHECKING([for Matlab mexext command])
   AC_PATH_PROG(MATLAB_MEXEXT, [mexext], [], [$MATLAB_HOME/bin$PATH_SEPARATOR$PATH])
@@ -1148,15 +1148,19 @@ if test x"$MATLAB" != x; then
     AC_MSG_WARN([Cannot find mexext command. Disabling matlab])
     MATLAB=
   else
-    MATLAB_MEXSUFFIX=`"$MATLAB_MEXEXT"`
-    AC_MSG_RESULT([matlab mex suffix: $MATLAB_MEXSUFFIX])
+    MATLAB_EXT=`"$MATLAB_MEXEXT"`
+    AC_MSG_RESULT([matlab mex suffix: $MATLAB_EXT])
   fi
 fi
+MATLAB_OPTS=-nodisplay -nojvm
+MATLAB_EXEC=-r
 
 AC_SUBST(MATLAB)
+AC_SUBST(MATLAB_OPTS)
+AC_SUBST(MATLAB_EXEC)
 AC_SUBST(MATLAB_HOME)
 AC_SUBST(MATLAB_MEX)
-AC_SUBST(MATLAB_MEXSUFFIX)
+AC_SUBST(MATLAB_EXT)
 # Look for Scilab
 #----------------------------------------------------------------
 
