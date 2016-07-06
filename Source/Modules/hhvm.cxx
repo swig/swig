@@ -592,6 +592,18 @@ public:
     }
     emit_return_variable(n, type, wrapper);
   
+    for (p = parms; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+        Replaceall(tm, "$input", Getattr(p, "lname"));
+        Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+        Replaceall(tm, "$result", Getattr(p, "emit:input"));
+        Printv(wrapper->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+
     if (!is_void_return)
       Printv(wrapper->code, "return tresult;\n", NIL);
 
@@ -631,6 +643,7 @@ public:
     String *name = GetChar(n, "name");
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
+    Swig_print_tree(n);
     Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", wname);
 
     List *baselist = Getattr(n, "bases");

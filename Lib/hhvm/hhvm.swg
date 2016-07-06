@@ -56,10 +56,14 @@
                    signed char,
                    char [],
                    const char []
-  "const String&";
+  "const HPHP::String&";
 
 %typemap(hni_parmtype) SWIGTYPE *
   "const HPHP::Resource&";
+
+%typemap(hni_parmtype) SWIGTYPE &,
+                    SWIGTYPE &&
+  "HPHP::VRefParam";
 
 /* hni_rttype typemaps */
 
@@ -94,6 +98,10 @@
 %typemap(hni_rttype) SWIGTYPE *
   "HPHP::Resource";
 
+%typemap(hni_rttype) SWIGTYPE &,
+                    SWIGTYPE &&
+  "HPHP::Variant";
+
 /* in typemap */
 
 %typemap(in) short, 
@@ -120,6 +128,11 @@
 
 %typemap(in) SWIGTYPE * 
 %{ $1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<$*1_ltype>>($input)->get(); %}
+
+%typemap(in) SWIGTYPE &,
+             SWIGTYPE &&
+%{ $*1_ltype ref$1 = ($*1_ltype)$input;
+$1 = &ref$1;%} 
 
 /* out typemaps */
 
@@ -148,7 +161,11 @@
 
 %typemap(out) void ""
 %typemap(out) SWIGTYPE * 
-%{ $result = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<$*1_ltype>>($1)); %} 
+%{ $result = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<$*1_ltype>>($1)); %}
+
+%typemap(out) SWIGTYPE &,
+              SWIGTYPE &&
+%{$result = ($1_ltype)$1;%} 
 
 /* php types */
 
@@ -183,6 +200,14 @@
 %typemap(php_type) SWIGTYPE *
   "resource" 
 
+%typemap(php_type) SWIGTYPE &,
+                    SWIGTYPE &&
+  "mixed&";
+
+%typemap(argout) SWIGTYPE &,
+                 SWIGTYPE &&
+%{$result.assignIfRef(*$1);%} 
+
 
 %typecheck(SWIG_TYPECHECK_INTEGER, noblock = 1)
   int, short, long,
@@ -210,14 +235,14 @@
 
 %typecheck(SWIG_TYPECHECK_CHAR, noblock = 1) char 
   {
-    String $result;
+    HPHP::String $result;
     _v = ($input.isString() && $input.toString().length() == 1);
     if (_v) $result = $input.toString();
   }
 
 %typecheck(SWIG_TYPECHECK_STRING, noblock = 1) char * 
   {
-    String $result;
+    HPHP::String $result;
     _v = $input.isString();
     if (_v) $result = $input.toString();
   }

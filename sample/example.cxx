@@ -28,3 +28,7 @@ void overprint(int x) {
 void overprint(int x, int y) {
   printf("%d %d\n", x, y);
 }
+
+void add(int& x, int& y, int& r) {
+  r = x + y;
+}

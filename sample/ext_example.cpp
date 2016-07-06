@@ -748,7 +748,6 @@ public:
   explicit SWIG_Ptr(T* ptr) : m_ptr(ptr) {}
   virtual ~SWIG_Ptr() { close(); }
   void close() {
-    delete m_ptr;
     m_ptr = nullptr;
   }
   T* get() const { return m_ptr; }
@@ -766,9 +765,8 @@ template<typename T> inline void SWIG_Ptr<T>::sweep() { close(); }
  extern void print_pair(int x, int y); 
  extern void overprint(int x);
  extern void overprint(int x, int y);
+ extern void add(int& x, int& y, int& r);
  
-namespace HPHP {
-
 static int64_t _wrap_fact(int64_t targ1) {
   int arg1 ;
   int64_t tresult ;
@@ -781,7 +779,7 @@ static int64_t _wrap_fact(int64_t targ1) {
 }
 
 
-static int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const String& targ3) {
+static int64_t _wrap_my_mod__SWIG_0(int64_t targ1, int64_t targ2, const HPHP::String& targ3) {
   int arg1 ;
   int arg2 ;
   char arg3 ;
@@ -816,9 +814,9 @@ static int64_t _wrap_my_mod__SWIG_1(int64_t targ1, int64_t targ2) {
 }
 
 
-Variant _wrap_my_mod(const Array& argv) {
+HPHP::Variant _wrap_my_mod(const HPHP::Array& argv) {
   int argc;
-  Variant result;
+  HPHP::Variant result;
   
   argc = argv.size();
   if (argc == 2) {
@@ -845,7 +843,7 @@ Variant _wrap_my_mod(const Array& argv) {
       _v = argv[1].isInteger();
       if (_v) targ1 = argv[1].toInt64Val();
       if (_v) {
-        String targ2;
+        HPHP::String targ2;
         _v = (argv[2].isString() && argv[2].toString().length() == 1);
         if (_v) targ2 = argv[2].toString();
         if (_v) {
@@ -890,9 +888,9 @@ static void _wrap_overprint__SWIG_1(int64_t targ1, int64_t targ2) {
 }
 
 
-Variant _wrap_overprint(const Array& argv) {
+HPHP::Variant _wrap_overprint(const HPHP::Array& argv) {
   int argc;
-  Variant result;
+  HPHP::Variant result;
   
   argc = argv.size();
   if (argc == 1) {
@@ -902,7 +900,7 @@ Variant _wrap_overprint(const Array& argv) {
     if (_v) targ0 = argv[0].toInt64Val();
     if (_v) {
       _wrap_overprint__SWIG_0(targ0);
-      return Variant();
+      return HPHP::Variant();
     }
   }
   if (argc == 2) {
@@ -916,7 +914,7 @@ Variant _wrap_overprint(const Array& argv) {
       if (_v) targ1 = argv[1].toInt64Val();
       if (_v) {
         _wrap_overprint__SWIG_1(targ0, targ1);
-        return Variant();
+        return HPHP::Variant();
       }
     }
   }
@@ -925,11 +923,32 @@ Variant _wrap_overprint(const Array& argv) {
 }
 
 
+static void _wrap_add(HPHP::VRefParam targ1, HPHP::VRefParam targ2, HPHP::VRefParam targ3) {
+  int *arg1 = 0 ;
+  int *arg2 = 0 ;
+  int *arg3 = 0 ;
+  
+  int refarg1 = (int)targ1;
+  arg1 = &refarg1;
+  int refarg2 = (int)targ2;
+  arg2 = &refarg2;
+  int refarg3 = (int)targ3;
+  arg3 = &refarg3;
+  add(*arg1,*arg2,*arg3);
+  
+  targ1.assignIfRef(*arg1);
+  targ2.assignIfRef(*arg2);
+  targ3.assignIfRef(*arg3);
+}
+
+
+namespace HPHP {
+
 int64_t HHVM_FUNCTION(fact, int64_t arg1) {
   return _wrap_fact(arg1);
 }
 
-Variant HHVM_FUNCTION(my_mod, const Array& argv) {
+HPHP::Variant HHVM_FUNCTION(my_mod, const HPHP::Array& argv) {
   return _wrap_my_mod(argv);
 }
 
@@ -937,8 +956,12 @@ void HHVM_FUNCTION(print_pair, int64_t arg1, int64_t arg2) {
   _wrap_print_pair(arg1, arg2);
 }
 
-Variant HHVM_FUNCTION(overprint, const Array& argv) {
+HPHP::Variant HHVM_FUNCTION(overprint, const HPHP::Array& argv) {
   return _wrap_overprint(argv);
+}
+
+void HHVM_FUNCTION(add, HPHP::VRefParam arg1, HPHP::VRefParam arg2, HPHP::VRefParam arg3) {
+  _wrap_add(arg1, arg2, arg3);
 }
 
 
@@ -952,6 +975,7 @@ public:
     HHVM_FE(my_mod);
     HHVM_FE(print_pair);
     HHVM_FE(overprint);
+    HHVM_FE(add);
     loadSystemlib();
   }
 } s_example_extension;

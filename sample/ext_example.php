@@ -21,3 +21,6 @@ function print_pair(int $arg1, int $arg2) : void;
 <<__Native>>
 function overprint(...$argv): mixed;
 
+<<__Native>>
+function add(mixed& $arg1, mixed& $arg2, mixed& $arg3) : void;
+
