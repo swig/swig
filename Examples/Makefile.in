@@ -483,20 +483,18 @@ octave_clean:
 	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
 
 ##################################################################
-#####                       MATLAB                          ######
+#####                       MATLAB/Octave                   ######
 ##################################################################
 
-# Make sure these locate your Matlab installation
-MATLAB        = @MATLAB@
-MATLAB_OPTS   = @MATLAB_OPTS@
-MATLAB_EXEC   = @MATLAB_EXEC@
-MATLAB_EXT     = @MATLAB_EXT@
-
-#MATLAB_CXX   = $(DEFS) @MATLAB_CPPFLAGS@ @MATLAB_CXXFLAGS@
-#MATLAB_DLNK   = @MATLAB_LDFLAGS@
-
-MATLAB_MEX = @MATLAB_MEX@
-MATLAB_SCRIPT = $(SRCDIR)$(RUNME)
+MATLAB          = @MATLAB@
+MATLAB_OPTS     = @MATLAB_OPTS@
+MATLAB_EXEC     = @MATLAB_EXEC@
+MATLAB_EXT      = @MATLAB_EXT@
+MATLAB_MEX      = @MATLAB_MEX@
+MATLAB_CFLAGS   = @MATLAB_CFLAGS@
+MATLAB_CXXFLAGS = @MATLAB_CXXFLAGS@
+MATLAB_LDFLAGS  = @MATLAB_LDFLAGS@
+MATLAB_SCRIPT   = $(SRCDIR)$(RUNME)
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -504,8 +502,15 @@ MATLAB_SCRIPT = $(SRCDIR)$(RUNME)
 
 matlab: $(SRCDIR_SRCS)
 	$(SWIG) -matlab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) "$(MATLAB_MEX)" -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) \
-		$(INCLUDES) $(LIBS) -output $(TARGET)MEX
+ifdef MATLAB_MEX
+		$(COMPILETOOL) "$(MATLAB_MEX)" -g CFLAGS='$$CFLAGS $(CFLAGS)' $(ISRCS) $(SRCDIR_SRCS) \
+			$(SRCDIR_CSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MEX
+else
+		$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) \
+			$(SRCDIR_CSRCS) $(MATLAB_CFLAGS)
+		$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(MATLAB_LDFLAGS) $(LIBS) \
+			-o $(LIBPREFIX)$(TARGET)MEX$(MATLAB_EXT)
+endif
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -513,15 +518,23 @@ matlab: $(SRCDIR_SRCS)
 
 matlab_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -matlab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) "$(MATLAB_MEX)" -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) $(SRCDIR_SRCS) \
-		$(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MEX
+ifdef MATLAB_MEX
+		$(COMPILETOOL) "$(MATLAB_MEX)" -g $(CPPFLAGS) CXXFLAGS='$$CXXFLAGS $(CXXFLAGS)' $(ICXXSRCS) \
+			$(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(LIBS) -output $(TARGET)MEX
+else
+		$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) \
+			$(SRCDIR_CXXSRCS) $(MATLAB_CXXFLAGS)
+		$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(MATLAB_LDFLAGS) $(LIBS) \
+			$(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)MEX${MATLAB_EXT}
+
+endif
 
 # -----------------------------------------------------------------
-# Running an Matlab example
+# Running an MATLAB/Octave example
 # -----------------------------------------------------------------
 
 matlab_run:
-	$(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "try; $(MATLAB_SCRIPT); catch err, fprintf(2,['ERROR: ' err.message '\n']),exit(1), end, exit(0)" $(RUNPIPE)
+	$(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "try; $(MATLAB_SCRIPT); catch err; fprintf(2,['ERROR: ' err.message '\n']);exit(1); end; exit(0)" $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -531,7 +544,7 @@ matlab_run:
 	"$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "disp(version);exit" | tail -n 2
 
 # -----------------------------------------------------------------
-# Cleaning the Matlab examples
+# Cleaning the MATLAB/Octave examples
 # -----------------------------------------------------------------
 
 matlab_clean:

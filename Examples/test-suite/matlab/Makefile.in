@@ -2,10 +2,11 @@
 # Makefile for matlab test-suite
 #######################################################################
 
-LANGUAGE     = matlab
-MATLAB       = @MATLAB@
-MATLABOPTS   = -nodisplay -nosplash -nojvm
-SCRIPTSUFFIX = _runme
+LANGUAGE        = matlab
+MATLAB          = @MATLAB@
+MATLAB_OPTS     = @MATLAB_OPTS@
+MATLAB_EXEC     = @MATLAB_EXEC@
+SCRIPTSUFFIX    = _runme
 
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -15,10 +16,6 @@ CPP_TEST_BROKEN += \
 	arrays_global
 
 include $(srcdir)/../common.mk
-
-# Overridden variables here
-#LIBS       = -L.
-#CSRCS      = matlab_empty.c
 
 # Custom tests - tests with additional commandline options
 # none!
@@ -53,7 +50,7 @@ run_testcase = \
 	    end; \
 	  exit(0)" ; \
 	 env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" MATLABPATH="$(srcdir):$(SCRIPTDIR):$$MATLAB_PATH" \
-	 $(RUNTOOL) "$(MATLAB)" $(MATLABOPTS) -r "$$RUNSCRIPT"  $(RUNPIPE); \
+	 $(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "$$RUNSCRIPT"  $(RUNPIPE); \
 	 if [ $$? -ne 0 ] ; then \
 	   echo "   $* failed" $(RUNPIPE) ; \
 	 else \
