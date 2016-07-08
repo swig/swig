@@ -14,8 +14,6 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-//#define MATLABPRINTFUNCTIONENTRY
-
 static const char *usage = (char *) "\
 Matlab Options (available with -matlab)\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
@@ -166,10 +164,6 @@ MATLAB::MATLAB() :
   pkg_name_fullpath(0),
   no_header_file(0)
 {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering MATLAB()\n");
-#endif
-
   /* Add code to manage protected constructors and directors */
   director_prot_ctor_code = NewString("");
   Printv(director_prot_ctor_code,
@@ -184,9 +178,6 @@ MATLAB::MATLAB() :
 }
 
 void MATLAB::main(int argc, char *argv[]) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering main\n");
-#endif
   int cppcast = 1;
   redirectoutput=false;
 
@@ -256,10 +247,6 @@ void MATLAB::main(int argc, char *argv[]) {
 }
 
 int MATLAB::top(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering top\n");
-#endif
-
   {
     Node *mod = Getattr(n, "module");
     if (mod) {
@@ -891,10 +878,6 @@ String* MATLAB::convertValue(String *v, SwigType *t) {
 }
 
 int MATLAB::functionWrapper(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering functionWrapper\n");
-#endif
-
   Parm *p;
   String *tm;
   int j;
@@ -1070,37 +1053,11 @@ int MATLAB::functionWrapper(Node *n) {
 
   Setattr(n, "wrap:name", overname);
 
-  /* if the object is a director, and the method call originated from its
-   * underlying python object, resolve the call by going up the c++
-   * inheritance chain.  otherwise try to resolve the method in python.
-   * without this check an infinite loop is set up between the director and
-   * shadow class method calls.
-   */
-
-  // NOTE: this code should only be inserted if this class is the
-  // base class of a director class.  however, in general we haven't
-  // yet analyzed all classes derived from this one to see if they are
-  // directors.  furthermore, this class may be used as the base of
-  // a director class defined in a completely different module at a
-  // later time, so this test must be included whether or not directorbase
-  // is true.  we do skip this code if directors have not been enabled
-  // at the command line to preserve source-level compatibility with
-  // non-polymorphic swig.  also, if this wrapper is for a smart-pointer
-  // method, there is no need to perform the test since the calling object
-  // (the smart-pointer) and the director object (the "pointee") are
-  // distinct.
-
+  /* See comments in Python module */
   int director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
   if (director_method) {
     Wrapper_add_local(f, "director", "Swig::Director *director = 0");
     Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
-    //if (dirprot_mode() && !is_public(n)) {
-    //Printf(//f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
-    //Printf(f->code, "SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
-    //Append(f->code, "SWIG_fail;\n");
-    //Append(f->code, "}\n");
-    //}
-
     Wrapper_add_local(f, "upcall", "bool upcall = false");
     const char *self_parm = "argv[0]";
     Printf(f->code, "upcall = director;\n", self_parm);
@@ -1110,7 +1067,6 @@ int MATLAB::functionWrapper(Node *n) {
   if (director_method) {
     Append(f->code, "try {\n");
   }
-
 
   Swig_director_emit_dynamic_cast(n, f);
 
@@ -1223,10 +1179,6 @@ int MATLAB::functionWrapper(Node *n) {
 }
 
 int MATLAB::globalfunctionHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering globalfunctionHandler\n");
-#endif
-
   // Emit C wrappers
   int flag = Language::globalfunctionHandler(n);
   if (flag!=SWIG_OK) return flag;
@@ -1290,9 +1242,6 @@ int MATLAB::globalfunctionHandler(Node *n) {
 }
 
 int MATLAB::variableWrapper(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering variableWrapper\n");
-#endif
   String *name = Getattr(n, "name");
   String *iname = Getattr(n, "sym:name");
   SwigType *t = Getattr(n, "type");
@@ -1413,9 +1362,6 @@ int MATLAB::variableWrapper(Node *n) {
 }
 
 int MATLAB::constantWrapper(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering constantWrapper\n");
-#endif
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
@@ -2056,34 +2002,18 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
 
 
 int MATLAB::nativeWrapper(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering nativeWrapper\n");
-#endif
   return Language::nativeWrapper(n);
 }
 
 int MATLAB::enumDeclaration(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering enumDeclaration\n");
-#endif
   return Language::enumDeclaration(n);
 }
 
 int MATLAB::enumvalueDeclaration(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering enumvalueDeclaration\n");
-#endif
   return Language::enumvalueDeclaration(n);
 }
 
 int MATLAB::classHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering classHandler\n");
-  //Printf(stderr,"name %s\nsymname %s\n",Getattr(n,"name"),Getattr(n,"sym:name"));
-#endif
-  // Typedef C name for the class
-  //    Printf(f_wrap_h,"typedef void* _%s;\n", Getattr(n,"sym:name"));
-
   // Save current class name
   if (class_name) SWIG_exit(EXIT_FAILURE);
   class_name = Getattr(n, "sym:name");
@@ -2247,10 +2177,6 @@ int MATLAB::classHandler(Node *n) {
 }
 
 int MATLAB::memberfunctionHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering memberfunctionHandler\n");
-#endif
-
   // Emit C wrappers
   int flag = Language::memberfunctionHandler(n);
   if (flag!=SWIG_OK) return flag;
@@ -2413,10 +2339,6 @@ void MATLAB::finalizeConstant() {
 }
 
 int MATLAB::membervariableHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering membervariableHandler\n");
-#endif
-
   // Name of variable
   checkValidSymName(n);
   String *symname = Getattr(n, "sym:name");
@@ -2514,9 +2436,6 @@ void MATLAB::wrapConstructorDirector(int gw_ind, String *symname, String *fullna
 }
 
 int MATLAB::constructorHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering constructorHandler\n");
-#endif
   have_constructor = true;
   bool overloaded = !!Getattr(n, "sym:overloaded");
   bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
@@ -2566,9 +2485,6 @@ int MATLAB::constructorHandler(Node *n) {
 }
 
 int MATLAB::destructorHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering destructorHandler\n");
-#endif
   have_destructor = true;
   Printf(f_wrap_m,"    function delete(self)\n");
   String *symname = Getattr(n, "sym:name");
@@ -2594,10 +2510,6 @@ int MATLAB::destructorHandler(Node *n) {
 }
 
 int MATLAB::staticmemberfunctionHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering staticmemberfunctionHandler\n");
-#endif
-
   // Emit C wrappers
   int flag = Language::staticmemberfunctionHandler(n);
   if (flag!=SWIG_OK) return flag;
@@ -2646,10 +2558,6 @@ int MATLAB::staticmemberfunctionHandler(Node *n) {
 }
 
 int MATLAB::memberconstantHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering memberconstantHandler\n");
-#endif
-
   // Emit C wrappers
   int flag = Language::memberconstantHandler(n);
   if (flag!=SWIG_OK) return flag;
@@ -2692,10 +2600,6 @@ int MATLAB::insertDirective(Node *n) {
 }
 
 int MATLAB::staticmembervariableHandler(Node *n) {
-#ifdef MATLABPRINTFUNCTIONENTRY
-  Printf(stderr,"Entering staticmembervariableHandler\n");
-#endif
-
   // call Language implementation first, as this sets wrappedasconstant
   if (Language::staticmembervariableHandler(n) != SWIG_OK)
     return SWIG_ERROR;
