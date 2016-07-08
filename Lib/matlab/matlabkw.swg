@@ -17,7 +17,7 @@ MATLABKW(classdef);
 MATLABKW(continue);
 MATLABKW(else);
 MATLABKW(elseif);
-MATLABKW(end);
+//MATLABKW(end); /* must sometimes be overloaded */
 MATLABKW(for);
 MATLABKW(function);
 MATLABKW(global);
