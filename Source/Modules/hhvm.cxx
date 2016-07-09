@@ -11,6 +11,7 @@ protected:
   File *f_init;
   File *f_phpcode;
   bool staticmethodwrapper;
+  bool in_class;
 
 public:
   virtual void main(int argc, char *argv[]) {
@@ -91,6 +92,7 @@ public:
     Printf(f_register, "  void moduleInit() override {\n");
 
     staticmethodwrapper = false;
+    in_class = false;
 
     /* Emit code for children */
     Language::top(n);
@@ -231,7 +233,7 @@ public:
       Parm *p = parms;
 
       // Skip the class pointer
-      if ((!is_constructor && !staticmethodwrapper && !is_static && is_member) || is_destructor) {
+      if (!is_constructor && !staticmethodwrapper && !is_static && in_class) {
         p = nextSibling(p);
       }
       for (; p; p = nextSibling(p)) {
@@ -270,7 +272,7 @@ public:
     Printf(f_link, ") {\n");
     Printf(f_phpcode, ";\n\n");
 
-    if ((is_constructor || is_destructor || is_member) && !staticmethodwrapper && !is_static) {
+    if (in_class && !staticmethodwrapper && !is_static) {
       String *classname = GetChar(Swig_methodclass(n), "wrap:name");
       Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
       if (!is_constructor) {
@@ -286,10 +288,10 @@ public:
       }
       Printf(f_link, "%s::%s(%s);\n", classname, wname, call_parms);
     } else if (is_constructor) {
-      String *overresolve = is_overloaded ? NewString(".toResource()") : NULL;
-      Printf(f_link, "  data->_obj_ptr = data->%s(%s)%s;\n", wname, call_parms, overresolve);
+      Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
     } else if(is_destructor) {
       Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
+      Printf(f_link, "  data->_obj_ptr = nullptr;\n");
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
@@ -522,10 +524,14 @@ public:
     // wrap:parms is used for overload resolution.
     Setattr(n, "wrap:parms", parms);
 
-    if (staticmethodwrapper || is_static || (!is_member && !is_destructor)) {
+    if (staticmethodwrapper || is_static || !in_class) {
       Printf(wrapper->def, "static ");
     }
-    if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
+    if (is_constructor) {
+      String *classname = GetChar(Swig_methodclass(n), "sym:name");
+      Printf(wrapper->def, "%s* ", classname);
+      Printf(return_type, "%s*", classname);
+    } else if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);
     } else {
@@ -541,7 +547,17 @@ public:
     emit_attach_parmmaps(parms, wrapper);
 
     bool prev = false;
-    for (p = parms; p;) {
+    p = parms;
+    if (in_class && !staticmethodwrapper && !is_static && !is_constructor) {
+      String *parm_name = Getattr(p, "lname");
+      String *classname = GetChar(Swig_methodclass(n), "sym:name");
+      Printf(wrapper->def, "%s* t%s", classname, parm_name);
+      Printf(call_parms, "%s", parm_name);
+      prev = true;
+      Printf(wrapper->code, "%s = t%s;\n", parm_name, parm_name);
+      p = nextSibling(p);
+    }
+    while (p) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *arg = NewString("");
@@ -585,8 +601,12 @@ public:
     /* emit function call */
     String *actioncode = emit_action(n);
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), wrapper, actioncode))) {
-      Replaceall(tm, "$result", "tresult");
-      Printf(wrapper->code, "%s\n", tm);
+      if (is_constructor) {
+        Printf(wrapper->code, "tresult = result;\n");
+      } else {
+        Replaceall(tm, "$result", "tresult");
+        Printf(wrapper->code, "%s\n", tm);
+      }
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
     }
@@ -643,6 +663,7 @@ public:
     String *name = GetChar(n, "name");
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
+    in_class = true;
     Swig_print_tree(n);
     Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", wname);
 
@@ -678,10 +699,11 @@ public:
 
     Language::classHandler(n);
 
-    Printf(f_wrappers, "HPHP::Resource _obj_ptr;\n");
+    Printf(f_wrappers, "%s* _obj_ptr;\n", Getattr(n, "classtype"));
     Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, wname);
+    in_class = false;
     return SWIG_OK;
   }
 

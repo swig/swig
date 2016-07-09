@@ -58,12 +58,14 @@
                    const char []
   "const HPHP::String&";
 
-%typemap(hni_parmtype) SWIGTYPE *
-  "const HPHP::Resource&";
-
-%typemap(hni_parmtype) SWIGTYPE &,
-                    SWIGTYPE &&
+%typemap(hni_parmtype)  SWIGTYPE *,
+                        SWIGTYPE [],
+                        SWIGTYPE &,
+                        SWIGTYPE &&
   "HPHP::VRefParam";
+
+%typemap(hni_parmtype) SWIGTYPE
+  "const HPHP::Object&";
 
 /* hni_rttype typemaps */
 
@@ -95,12 +97,14 @@
 %typemap(hni_rttype) void
   "void";
 
-%typemap(hni_rttype) SWIGTYPE *
-  "HPHP::Resource";
-
-%typemap(hni_rttype) SWIGTYPE &,
-                    SWIGTYPE &&
+%typemap(hni_rttype)  SWIGTYPE *,
+                      SWIGTYPE [],
+                      SWIGTYPE &,
+                      SWIGTYPE &&
   "HPHP::Variant";
+
+%typemap(hni_rttype) SWIGTYPE
+  "HPHP::Object";
 
 /* in typemap */
 
@@ -126,13 +130,14 @@
   $1 = $input[0];
 }
 
-%typemap(in) SWIGTYPE * 
-%{ $1 = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<$*1_ltype>>($input)->get(); %}
+%typemap(in)  SWIGTYPE *,
+              SWIGTYPE [],
+              SWIGTYPE &,
+              SWIGTYPE &&
+%{$1 = HPHP::Native::data<_wrap_$*1_ltype>($input.toObject())->_obj_ptr;%}
 
-%typemap(in) SWIGTYPE &,
-             SWIGTYPE &&
-%{ $*1_ltype ref$1 = ($*1_ltype)$input;
-$1 = &ref$1;%} 
+%typemap(in) SWIGTYPE
+%{$1 = *(HPHP::Native::data<_wrap_$1_ltype>($input)->_obj_ptr);%} 
 
 /* out typemaps */
 
@@ -160,12 +165,29 @@ $1 = &ref$1;%}
   "$result = HPHP::makeStaticString($1);"
 
 %typemap(out) void ""
-%typemap(out) SWIGTYPE * 
-%{ $result = HPHP::Resource(HPHP::req::make<HPHP::SWIG_Ptr<$*1_ltype>>($1)); %}
 
-%typemap(out) SWIGTYPE &,
+%typemap(out) SWIGTYPE *,
+              SWIGTYPE [],
+              SWIGTYPE &,
               SWIGTYPE &&
-%{$result = ($1_ltype)$1;%} 
+%{
+  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("_wrap_$*1_ltype"));
+  $result = HPHP::Object(HPHP::ObjectData::newInstance(cls));
+  HPHP::TypedValue dummy;
+  HPHP::g_context->invokeFunc(&dummy, cls->getCtor(), HPHP::Array::Create(), $result.get());
+  auto wrap_$1 = HPHP::Native::data<_wrap_$*1_ltype>($result);
+  wrap_$1->_obj_ptr = $1;
+%} 
+
+%typemap(out) SWIGTYPE
+%{
+  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("_wrap_$1_ltype"));
+  auto data = (HPHP::ObjectData::newInstance(cls));
+  $result = HPHP::Object(data);
+  data->incRefCount();
+  auto wrap_$1 = HPHP::Native::data<_wrap_$1_ltype>($result);
+  wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
+%} 
 
 /* php types */
 
@@ -197,16 +219,18 @@ $1 = &ref$1;%}
 %typemap(php_type) void
   "void";
 
-%typemap(php_type) SWIGTYPE *
-  "resource" 
-
-%typemap(php_type) SWIGTYPE &,
+%typemap(php_type)  SWIGTYPE *,
+                    SWIGTYPE [],
+                    SWIGTYPE &,
                     SWIGTYPE &&
   "mixed&";
 
+%typemap(php_type) SWIGTYPE
+  "object";
+
 %typemap(argout) SWIGTYPE &,
                  SWIGTYPE &&
-%{$result.assignIfRef(*$1);%} 
+%{//$result.assignIfRef(*$1);%} 
 
 
 %typecheck(SWIG_TYPECHECK_INTEGER, noblock = 1)
