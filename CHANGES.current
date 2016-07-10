@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-18  bcaine
+            [Guile] Patch #744 Added support for Guile's native pointer functionality
+
 2016-12-01: wsfulton
             [Python] Issue https://github.com/swig/swig/issues/769
             Add optional moduleimport attribute to %module so that the
