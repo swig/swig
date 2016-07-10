@@ -664,8 +664,8 @@ public:
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
     in_class = true;
-    Swig_print_tree(n);
-    Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", wname);
+    // Swig_print_tree(n);
+    Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", name);
 
     List *baselist = Getattr(n, "bases");
     Iterator base;
@@ -699,10 +699,15 @@ public:
 
     Language::classHandler(n);
 
+    Printf(f_wrappers, "void sweep() {\n");
+    Printf(f_wrappers, "  delete _obj_ptr;\n");
+    Printf(f_wrappers, "  _obj_ptr = nullptr;\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_wrappers, "~%s() {sweep();}\n", wname);
     Printf(f_wrappers, "%s* _obj_ptr;\n", Getattr(n, "classtype"));
     Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n", wname);
-    Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, wname);
+    Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, name);
     in_class = false;
     return SWIG_OK;
   }

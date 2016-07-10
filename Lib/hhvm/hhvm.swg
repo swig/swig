@@ -171,20 +171,16 @@
               SWIGTYPE &,
               SWIGTYPE &&
 %{
-  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("_wrap_$*1_ltype"));
-  $result = HPHP::Object(HPHP::ObjectData::newInstance(cls));
-  HPHP::TypedValue dummy;
-  HPHP::g_context->invokeFunc(&dummy, cls->getCtor(), HPHP::Array::Create(), $result.get());
+  auto $1_cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$*1_ltype"));
+  $result = HPHP::Object($1_cls);
   auto wrap_$1 = HPHP::Native::data<_wrap_$*1_ltype>($result);
   wrap_$1->_obj_ptr = $1;
 %} 
 
 %typemap(out) SWIGTYPE
 %{
-  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("_wrap_$1_ltype"));
-  auto data = (HPHP::ObjectData::newInstance(cls));
-  $result = HPHP::Object(data);
-  data->incRefCount();
+  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$1_ltype"));
+  $result = HPHP::Object(cls);
   auto wrap_$1 = HPHP::Native::data<_wrap_$1_ltype>($result);
   wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
 %} 
