@@ -3,7 +3,7 @@ aa = li_attribute.A(1,2,3);
 if (aa.a ~= 1)
   error('Failed!!')
 end
-aa.a = 3;
+aa.a(3);
 if (aa.a ~= 3)
   error('aa.a = %i',aa.a)
 end
@@ -11,7 +11,7 @@ end
 if (aa.b ~= 2)
   error(aa.b)
 end
-aa.b = 5;
+aa.b(5);
 if (aa.b ~= 5)
   error('Failed!!')
 end
@@ -29,7 +29,7 @@ if (pi.value ~= 7)
  error('Failed!!')
 end
 
-pi.value=3;
+pi.value(3);
 if (pi.value ~= 3)
  error('Failed!!')
 end
@@ -42,9 +42,9 @@ end
 
 % class/struct attribute with get/set methods using return/pass by reference
 myFoo = li_attribute.MyFoo();
-myFoo.x = 8;
+myFoo.x(8);
 myClass = li_attribute.MyClass();
-myClass.Foo = myFoo;
+myClass.Foo(myFoo);
 if (myClass.Foo.x ~= 8)
   error
 end
@@ -57,7 +57,7 @@ end
 if (myClassVal.ReadOnlyFoo.x ~= -1)
   error('Failed!!')
 end
-myClassVal.ReadWriteFoo = myFoo;
+myClassVal.ReadWriteFoo(myFoo);
 if (myClassVal.ReadWriteFoo.x ~= 8)
   error('Failed!!')
 end
@@ -73,7 +73,7 @@ end
 if (myStringyClass.ReadOnlyString ~= 'initial string')
   error('Failed!!')
 end
-myStringyClass.ReadWriteString = 'changed string';
+myStringyClass.ReadWriteString('changed string');
 if (myStringyClass.ReadWriteString ~= 'changed string')
   error('Failed!!')
 end

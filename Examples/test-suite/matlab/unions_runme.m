@@ -14,7 +14,7 @@ big.jack(300);
 eut = unions.EmbeddedUnionTest();
 
 % First check the SmallStruct in EmbeddedUnionTest
-eut.number = 1;
+eut.number(1);
 eut.uni.small(small);
 Jill1 = eut.uni.small.jill;
 if (Jill1 ~= 200)
