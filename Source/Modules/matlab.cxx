@@ -2714,9 +2714,6 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"    function b = isnull(self)\n");
   Printf(f_wrap_m,"      b = isempty(self.swigPtr);\n");
   Printf(f_wrap_m,"    end\n");
-  Printf(f_wrap_m,"    function disp(self)\n");
-  Printf(f_wrap_m,"      disp(sprintf('<Swig object, ptr=%%d>',self.swigPtr))\n");
-  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function SwigSet(self,ptr)\n");
   Printf(f_wrap_m,"        self.swigPtr = ptr;\n");
   Printf(f_wrap_m,"    end\n");
