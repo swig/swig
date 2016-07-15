@@ -258,7 +258,12 @@ public:
       }
       Printf(f_phpcode, ") ");
       if (!is_constructor && !is_destructor && (tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+        // Small hack to avoid creating separate php return typemap
+        if(Cmp(tm, "mixed&") == 0) {
+          Printf(f_phpcode, ": mixed");
+        } else {
         Printf(f_phpcode, ": %s", tm);
+        }
       }
     } else {
       if (is_constructor) {
@@ -290,7 +295,8 @@ public:
     } else if (is_constructor) {
       Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
     } else if(is_destructor) {
-      Printf(f_link, "  data->%s(%s);\n", wname, call_parms);
+      Printf(f_link, "  if (!data->isRef)\n");
+      Printf(f_link, "    data->%s(%s);\n", wname, call_parms);
       Printf(f_link, "  data->_obj_ptr = nullptr;\n");
     } else {
       Printf(f_link, "  ");
@@ -705,6 +711,7 @@ public:
     Printf(f_wrappers, "}\n");
     Printf(f_wrappers, "~%s() {sweep();}\n", wname);
     Printf(f_wrappers, "%s* _obj_ptr;\n", Getattr(n, "classtype"));
+    Printf(f_wrappers, "bool isRef{false};\n");
     Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, name);

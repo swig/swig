@@ -130,6 +130,10 @@
   $1 = $input[0];
 }
 
+%typemap(in) char *, 
+             char [ANY]
+%{$1 = $input.c_str();%}
+
 %typemap(in)  SWIGTYPE *,
               SWIGTYPE [],
               SWIGTYPE &,
@@ -159,10 +163,13 @@
 
 %typemap(out) char *,
               char,
+              signed char,
+              unsigned char,
               const char *,
+              char [ANY],
               char [],
               const char []
-  "$result = HPHP::makeStaticString($1);"
+  "$result = HPHP::String($1, HPHP::CopyString);"
 
 %typemap(out) void ""
 
@@ -173,8 +180,9 @@
 %{
   auto $1_cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$*1_ltype"));
   $result = HPHP::Object($1_cls);
-  auto wrap_$1 = HPHP::Native::data<_wrap_$*1_ltype>($result);
+  auto wrap_$1 = HPHP::Native::data<_wrap_$*1_ltype>($result.toObject());
   wrap_$1->_obj_ptr = $1;
+  wrap_$1->isRef = true;
 %} 
 
 %typemap(out) SWIGTYPE
@@ -184,6 +192,38 @@
   auto wrap_$1 = HPHP::Native::data<_wrap_$1_ltype>($result);
   wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
 %} 
+
+/* Ref for basic types */
+%define as_ref(TYPE)
+%typemap(in)  TYPE *,
+              TYPE [],
+              TYPE &,
+              TYPE &&
+%{
+  $*1_ltype ref$1 = ($*1_ltype)$input;
+  $1 = &ref$1;
+%}
+
+%typemap(out) TYPE *,
+              TYPE [],
+              TYPE &,
+              TYPE &&
+%{$result = ($1_ltype)$1;%} 
+
+%typemap(argout) TYPE &,
+                 TYPE &&
+%{$result.assignIfRef(*$1);%}
+%enddef
+as_ref(short); 
+as_ref(unsigned short); 
+as_ref(int); 
+as_ref(unsigned int); 
+as_ref(long); 
+as_ref(unsigned long); 
+as_ref(long long); 
+as_ref(unsigned long long); 
+as_ref(float); 
+as_ref(double);
 
 /* php types */
 
@@ -222,12 +262,7 @@
   "mixed&";
 
 %typemap(php_type) SWIGTYPE
-  "object";
-
-%typemap(argout) SWIGTYPE &,
-                 SWIGTYPE &&
-%{//$result.assignIfRef(*$1);%} 
-
+  "object"; 
 
 %typecheck(SWIG_TYPECHECK_INTEGER, noblock = 1)
   int, short, long,
