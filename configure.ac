@@ -598,9 +598,33 @@ if test x"${PYBIN}" = xno; then
 else
   # First figure out the name of the Python executable
   if test "x$PYBIN" = xyes; then
-    AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0])
+    for py_ver in "" 2.8 2.7 2.6 2.5 2.4 2.3 2.2 2.1 2.0; do
+      AC_CHECK_PROGS(PYTHON, [python$py_ver])
+      if test -n "$PYTHON"; then
+        dnl Also check if we have the matching python-config if not using
+        dnl Cygwin as python-config there will typically by Cygwin's one and
+        dnl not the one matching the Windows Python we use.
+        case $host in
+          *-*-cygwin*)
+            ;;
+
+          *)
+            AC_CHECK_PROGS(PYCONFIG, [$PYTHON-config])
+            ;;
+        esac
+        break
+      fi
+    done
   else
     PYTHON="$PYBIN"
+    case $host in
+      *-*-cygwin*)
+        ;;
+
+      *)
+        AC_CHECK_PROGS(PYCONFIG, [$PYTHON-config])
+        ;;
+    esac
   fi
 
   PYVER=0
@@ -617,7 +641,11 @@ else
     fi
   fi
 
-  if test $PYVER -eq 1 -o $PYVER -eq 2; then
+  dnl If we have python-config, just use it.
+  if test -n "$PYCONFIG"; then
+    PYINCLUDE=`$PYCONFIG --includes`
+    PYLINK=`$PYCONFIG --libs`
+  elif test $PYVER -eq 1 -o $PYVER -eq 2; then
     AC_MSG_CHECKING(for Python prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -697,6 +725,9 @@ else
       AC_MSG_RESULT(Not found)
     else
       AC_MSG_RESULT($PYLIB)
+      if test -n "$PYLINK"; then
+        PYLINK="-L$PYLIB $PYLINK"
+      fi
     fi
     AC_MSG_CHECKING(for Python library)
     if test -z "$PYLINK"; then
@@ -709,7 +740,7 @@ else
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    PYTHONDYNAMICLINKING="$PYLINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *)PYTHONDYNAMICLINKING="";;
@@ -717,7 +748,6 @@ else
 fi
 
 AC_SUBST(PYINCLUDE)
-AC_SUBST(PYLIB)
 AC_SUBST(PYLINK)
 AC_SUBST(PYTHONDYNAMICLINKING)
 
@@ -803,6 +833,9 @@ else
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
+        if test -n "$PY3LINK"; then
+          PY3LINK="-L$PY3LIB $PY3LINK"
+        fi
       fi
       AC_MSG_CHECKING([for Python 3.x library])
       if test -z "$PY3LINK"; then
@@ -853,34 +886,32 @@ else
           break
         fi
       done
+
+      PY3LINK="-l$PY3VERSION"
       if test -z "$PY3LIB"; then
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
+        PY3LINK="-L$PY3LIB $PY3LINK"
       fi
 
-      PY3LINK="-l$PY3VERSION"
-
+      dnl We're not really checking for it, but display it too, for
+      dnl consistency
       AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
+      AC_MSG_RESULT($PY3LINK)
     fi
   fi
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="$PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
   esac
 
   AC_SUBST(PY3INCLUDE)
-  AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
   AC_SUBST(PYTHON3DYNAMICLINKING)
   AC_CHECK_PROGS(PEP8, pep8)
