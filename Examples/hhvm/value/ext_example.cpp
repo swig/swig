@@ -977,10 +977,12 @@ public:
   EXAMPLEExtension(): Extension("example", "1.0") {}
 
   void moduleInit() override {
+    const StaticString s_Vector("Vector");
     HHVM_MALIAS(Vector, __construct, _wrap_Vector, __construct);
     HHVM_MALIAS(Vector, __destruct, _wrap_Vector, __destruct);
-    Native::registerNativePropHandler<VectorPropHandler>("Vector");
-    Native::registerNativeDataInfo<_wrap_Vector>(makeStaticString("Vector"));
+    Native::registerNativePropHandler<VectorPropHandler>(s_Vector);
+    Native::registerNativeDataInfo<_wrap_Vector>(s_Vector.get());
+
     HHVM_FE(dot_product);
     HHVM_FE(vector_add);
     HHVM_FE(vector_print);

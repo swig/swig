@@ -512,7 +512,9 @@ public:
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
     bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
-    bool accessor = is_member && (Cmp(Getattr(n, "kind"), "variable") == 0);
+    bool accessor = is_member && 
+      (Cmp(Getattr(n, "kind"), "variable") == 0) &&
+      (Cmp(Getattr(n, "view"), "membervariableHandler") == 0);
     // Swig_print_node(n);
 
     // Test for overloading;
@@ -710,6 +712,7 @@ public:
       Printf(f_phpcode, "abstract ");
     }
 
+    Printf(f_register, "    const StaticString s_%s(\"%s\");\n", name, name);
     Printf(f_phpcode, "class %s ", name);
     Printf(f_wrappers, "class %s {\n", wname);
     Printf(f_wrappers, "public:\n");
@@ -732,7 +735,7 @@ public:
     Printf(s_accessor, "struct %sPropHandler : public Native::MapPropHandler<%sPropHandler> {\n", name, name);
     Printf(s_accessor, "  static constexpr Native::PropAccessorMap& map = %s_properties_map;\n", name);
     Printf(s_accessor, "};\n\n");
-    Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(\"%s\");\n", name, name);
+    Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(s_%s);\n", name, name);
     Printv(f_link, s_accessor, NIL);
 
     Printf(f_wrappers, "void sweep() {\n");
@@ -744,7 +747,7 @@ public:
     Printf(f_wrappers, "bool isRef{false};\n");
     Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n\n", wname);
-    Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, name);
+    Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
     in_class = false;
 
     Delete(class_set_vars);

@@ -20,7 +20,7 @@ print "    Created b: {$b->as_string()}\n";
 # It returns a new allocated object.
 
 print "Adding a+b\n";
-$c = example::addv($a, $b);
+$c = addv($a, $b);
 print "    a+b ={$c->as_string()}\n";
 
 # ----- Create a vector array -----
