@@ -2,14 +2,14 @@
 
 
 	$v = new vector();
-        $v->vector_x_set(1.0);
-        $v->vector_y_set(2.0);
-        $v->vector_z_set(3.0);
+    $v->x = 1.0;
+    $v->y = 2.0;
+    $v->z = 3.0;
 
 	$w = new vector();
-        $w->vector_x_set(10.0);
-        $w->vector_y_set(11.0);
-        $w->vector_z_set(12.0);
+    $w->x = 10.0;
+    $w->y = 11.0;
+    $w->z = 12.0;
 
 	echo "I just created the following vector\n";
 	vector_print($v);
@@ -23,7 +23,7 @@
 
 	echo "\nNow I'm going to add the vectors together\n";
 
-        $r = new vector();
+    $r = new vector();
 	vector_add($v, $w, $r);
 
 	vector_print($r);

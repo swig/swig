@@ -309,3 +309,31 @@ bool, const bool &
     _v = $input.isBoolean();
     if (_v) $result = $input.toBoolean();
   }
+ 
+%typemap(variant_out) int,
+                  unsigned int,
+                  short,
+                  unsigned short,
+                  long,
+                  unsigned long
+                  // enum SWIGTYPE
+  "toInt64Val";
+
+%typemap(variant_out) bool
+  "toBooleanVal";
+
+%typemap(variant_out) float,
+                  double
+  "toDoubleVal";
+
+%typemap(variant_out)  char *,
+                   char,
+                   const char *,
+                   unsigned char,
+                   signed char,
+                   char [],
+                   const char []
+  "toString";
+
+%typemap(variant_out) SWIGTYPE
+  "toObject";

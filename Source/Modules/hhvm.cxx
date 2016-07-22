@@ -1,5 +1,8 @@
 #include "swigmod.h"
 
+static Hash *class_get_vars;
+static Hash *class_set_vars;
+
 class HHVM : public Language {
 protected:
   File *f_begin;
@@ -10,6 +13,7 @@ protected:
   File *f_link;
   File *f_init;
   File *f_phpcode;
+  String *s_accessor;
   bool staticmethodwrapper;
   bool in_class;
 
@@ -63,6 +67,7 @@ public:
     Printf(f_begin, "#include \"hphp/runtime/ext/extension.h\"\n");
     Printf(f_begin, "#include \"hphp/runtime/base/execution-context.h\"\n");
     Printf(f_begin, "#include \"hphp/runtime/vm/native-data.h\"\n");
+    Printf(f_begin, "#include \"hphp/runtime/vm/native-prop-handler.h\"\n");
     Printf(f_begin, "\n");
     // Printf(f_header, "#ifdef __cplusplus\n");
     // Printf(f_header, "extern \"C\" {\n");
@@ -507,6 +512,7 @@ public:
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
     bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
+    bool accessor = is_member && (Cmp(Getattr(n, "kind"), "variable") == 0);
     // Swig_print_node(n);
 
     // Test for overloading;
@@ -530,9 +536,7 @@ public:
     // wrap:parms is used for overload resolution.
     Setattr(n, "wrap:parms", parms);
 
-    if (staticmethodwrapper || is_static || !in_class) {
-      Printf(wrapper->def, "static ");
-    }
+    Printf(wrapper->def, "static ");
     if (is_constructor) {
       String *classname = GetChar(Swig_methodclass(n), "sym:name");
       Printf(wrapper->def, "%s* ", classname);
@@ -596,8 +600,19 @@ public:
     
     Printf(wrapper->def, ") {");
 
-    if (!overloaded) {
+    if (!overloaded && !accessor) {
       create_command(n, call_parms, false);
+    } else if (accessor) {
+      const char *fname = Char(name);
+      if (strlen(fname) > 4) {
+        fname += strlen(fname) - 4;
+        String *varname = Getattr(n, "membervariableHandler:sym:name");
+        if (strcmp(fname, "_get") == 0) {
+          Setattr(class_get_vars, varname, wname);
+        } else if (strcmp(fname, "_set") == 0) {
+          Setattr(class_set_vars, varname, wname);
+        }
+      }
     }
 
     if (!is_void_return) {
@@ -673,6 +688,12 @@ public:
     // Swig_print_tree(n);
     Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", name);
 
+    class_get_vars = NewHash();
+    class_set_vars = NewHash();
+    s_accessor = NewString("");
+
+    Printf(s_accessor, "static Native::PropAccessor %s_properties[] {\n", name);
+
     List *baselist = Getattr(n, "bases");
     Iterator base;
 
@@ -705,6 +726,15 @@ public:
 
     Language::classHandler(n);
 
+    Printf(s_accessor, "  { nullptr }\n");
+    Printf(s_accessor, "};\n");
+    Printf(s_accessor, "static Native::PropAccessorMap %s_properties_map{ %s_properties };\n", name, name);
+    Printf(s_accessor, "struct %sPropHandler : public Native::MapPropHandler<%sPropHandler> {\n", name, name);
+    Printf(s_accessor, "  static constexpr Native::PropAccessorMap& map = %s_properties_map;\n", name);
+    Printf(s_accessor, "};\n\n");
+    Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(\"%s\");\n", name, name);
+    Printv(f_link, s_accessor, NIL);
+
     Printf(f_wrappers, "void sweep() {\n");
     Printf(f_wrappers, "  delete _obj_ptr;\n");
     Printf(f_wrappers, "  _obj_ptr = nullptr;\n");
@@ -713,9 +743,17 @@ public:
     Printf(f_wrappers, "%s* _obj_ptr;\n", Getattr(n, "classtype"));
     Printf(f_wrappers, "bool isRef{false};\n");
     Printf(f_phpcode, "}\n\n");
-    Printf(f_wrappers, "}; // class %s\n", wname);
+    Printf(f_wrappers, "}; // class %s\n\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(makeStaticString(\"%s\"));\n", wname, name);
     in_class = false;
+
+    Delete(class_set_vars);
+    class_set_vars = NULL;
+    Delete(class_get_vars);
+    class_get_vars = NULL;
+    Delete(s_accessor);
+    s_accessor = NULL;
+
     return SWIG_OK;
   }
 
@@ -728,6 +766,47 @@ public:
     Language::staticmemberfunctionHandler(n);
     staticmethodwrapper = false;
 
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * membervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int membervariableHandler(Node *n) {
+    String *varname = Getattr(n, "sym:name");
+    String *wname, *tm;
+    String *classname = GetChar(Swig_methodclass(n), "sym:name");
+    String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+    String *out_str = NewStringf("  { \"%s\", ", varname);
+    
+    Language::membervariableHandler(n);
+
+    if ((wname = Getattr(class_get_vars, varname))) {
+      String *accname = NewStringf("SWIG_get_%s_%s", classname, varname);
+      Printf(f_link, "static Variant %s(const Object& this_) {\n", accname);
+      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
+      Printf(f_link, "  return Variant(data->%s(data->_obj_ptr));\n", wname);
+      Printf(f_link, "}\n\n");
+      Printf(out_str, "%s, ", accname);
+    } else {
+      Printf(out_str, "nullptr, ");
+    }
+
+    if ((wname = Getattr(class_set_vars, varname))) {
+      String *accname = NewStringf("SWIG_set_%s_%s", classname, varname);
+      Printf(f_link, "static void %s(const Object& this_, const Variant& value) {\n", accname);
+      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
+      if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
+        Printf(f_link, "  data->%s(data->_obj_ptr, value.%s());\n", wname, tm);
+      }
+      Printf(f_link, "}\n\n");
+      Printf(out_str, "%s },\n", accname);
+    } else {
+      Printf(out_str, "nullptr },\n");
+    }
+
+    Printv(s_accessor, out_str, NIL);
     return SWIG_OK;
   } 
 };
