@@ -811,6 +811,34 @@ public:
 
     Printv(s_accessor, out_str, NIL);
     return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * memberconstantHandler()
+   * ------------------------------------------------------------ */
+
+  virtual int memberconstantHandler(Node *n) {
+    String *classname = GetChar(Swig_methodclass(n), "name");
+    String *name = GetChar(n, "name");
+    String *rawval = Getattr(n, "rawval");
+    String *value = rawval ? rawval : Getattr(n, "value");
+    String *tm;
+    bool is_enum = (Cmp(Getattr(n, "nodeType"), "enumitem") == 0);
+
+    if (is_enum) {
+      classname = GetChar(parentNode(Swig_methodclass(n)), "name");
+    }
+
+    // name = GetChar(n, "memberconstantHandler:sym:name");
+    if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+      if (Strcmp(tm, "KindOfPersistentString") == 0) {
+        Printf(f_register, "    Native::registerClassConstant<%s>(s_%s.get(), makeStaticString(\"%s\"), makeStaticString(%s));\n", tm, classname, name, value);
+      } else {
+        Printf(f_register, "    Native::registerClassConstant<%s>(s_%s.get(), makeStaticString(\"%s\"), %s);\n", tm, classname, name, value);
+      }
+    }
+
+    return SWIG_OK;
   } 
 };
 

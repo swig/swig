@@ -11,8 +11,8 @@
                    short,
                    unsigned short,
                    long,
-                   unsigned long
-                   // enum SWIGTYPE
+                   unsigned long,
+                   enum SWIGTYPE
   "KindOfInt64";
 
 %typemap(consttab) bool
@@ -38,8 +38,8 @@
                   short,
                   unsigned short,
                   long,
-                  unsigned long
-                  // enum SWIGTYPE
+                  unsigned long,
+                  enum SWIGTYPE
   "int64_t";
 
 %typemap(hni_parmtype) bool
@@ -74,8 +74,8 @@
                   short,
                   unsigned short,
                   long,
-                  unsigned long
-                  // enum SWIGTYPE
+                  unsigned long,
+                  enum SWIGTYPE
   "int64_t";
 
 %typemap(hni_rttype) bool
@@ -117,7 +117,8 @@
              long long, 
              unsigned long long, 
              float, 
-             double
+             double,
+             enum SWIGTYPE
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(in) char, 
@@ -150,8 +151,8 @@
               short,
               unsigned short,
               long,
-              unsigned long 
-              // enum SWIGTYPE
+              unsigned long, 
+              enum SWIGTYPE
   "$result = $1;"
 
 %typemap(out) bool
@@ -224,6 +225,7 @@ as_ref(long long);
 as_ref(unsigned long long); 
 as_ref(float); 
 as_ref(double);
+as_ref(enum SWIGTYPE)
 
 /* php types */
 
@@ -234,8 +236,8 @@ as_ref(double);
                     long,
                     unsigned long,
                     unsigned char,
-                    signed char
-                    // enum SWIGTYPE
+                    signed char,
+                    enum SWIGTYPE
   "int";
 
 %typemap(php_type) bool
@@ -315,8 +317,8 @@ bool, const bool &
                   short,
                   unsigned short,
                   long,
-                  unsigned long
-                  // enum SWIGTYPE
+                  unsigned long,
+                  enum SWIGTYPE
   "toInt64Val";
 
 %typemap(variant_out) bool
