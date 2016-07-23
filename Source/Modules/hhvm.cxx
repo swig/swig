@@ -829,7 +829,6 @@ public:
       classname = GetChar(parentNode(Swig_methodclass(n)), "name");
     }
 
-    // name = GetChar(n, "memberconstantHandler:sym:name");
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       if (Strcmp(tm, "KindOfPersistentString") == 0) {
         Printf(f_register, "    Native::registerClassConstant<%s>(s_%s.get(), makeStaticString(\"%s\"), makeStaticString(%s));\n", tm, classname, name, value);
