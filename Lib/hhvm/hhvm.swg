@@ -132,8 +132,9 @@
 }
 
 %typemap(in) char *, 
-             char [ANY]
-%{$1 = $input.c_str();%}
+             char [ANY],
+             char []
+%{$1 = (char *)$input.c_str();%}
 
 %typemap(in)  SWIGTYPE *,
               SWIGTYPE [],
