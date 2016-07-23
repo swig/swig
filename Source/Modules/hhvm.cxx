@@ -241,6 +241,7 @@ public:
       if (!is_constructor && !staticmethodwrapper && !is_static && in_class) {
         p = nextSibling(p);
       }
+
       for (; p; p = nextSibling(p)) {
         String *parm_name = Getattr(p, "lname");
         String *parm_type = Getattr(p, "type");
@@ -291,18 +292,19 @@ public:
     }
 
     if (staticmethodwrapper || is_static) {
-      String *classname = GetChar(Swig_methodclass(n), "wrap:name");
+      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       Printf(f_link, "  ");
       if (!is_void_return) {
         Printf(f_link, "return ");
       }
-      Printf(f_link, "%s::%s(%s);\n", classname, wname, call_parms);
+      Printf(f_link, "%s::%s(%s);\n", wclassname, wname, call_parms);
     } else if (is_constructor) {
-      Printf(f_link, "  data->_obj_ptr = data->%s(%s);\n", wname, call_parms);
+      String *overresolve = is_overloaded ? NewString(".toResource()") : NULL;
+      Printf(f_link, "  data->_obj_ptr = data->%s(%s)%s;\n", wname, call_parms, overresolve);
     } else if(is_destructor) {
       Printf(f_link, "  if (!data->isRef)\n");
       Printf(f_link, "    data->%s(%s);\n", wname, call_parms);
-      Printf(f_link, "  data->_obj_ptr = nullptr;\n");
+      Printf(f_link, "  HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(data->_obj_ptr)->close();\n", Getattr(Swig_methodclass(n), "classtype"));
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
@@ -539,11 +541,7 @@ public:
     Setattr(n, "wrap:parms", parms);
 
     Printf(wrapper->def, "static ");
-    if (is_constructor) {
-      String *classname = GetChar(Swig_methodclass(n), "sym:name");
-      Printf(wrapper->def, "%s* ", classname);
-      Printf(return_type, "%s*", classname);
-    } else if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
+    if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);
     } else {
@@ -560,15 +558,6 @@ public:
 
     bool prev = false;
     p = parms;
-    if (in_class && !staticmethodwrapper && !is_static && !is_constructor) {
-      String *parm_name = Getattr(p, "lname");
-      String *classname = GetChar(Swig_methodclass(n), "sym:name");
-      Printf(wrapper->def, "%s* t%s", classname, parm_name);
-      Printf(call_parms, "%s", parm_name);
-      prev = true;
-      Printf(wrapper->code, "%s = t%s;\n", parm_name, parm_name);
-      p = nextSibling(p);
-    }
     while (p) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
@@ -624,12 +613,8 @@ public:
     /* emit function call */
     String *actioncode = emit_action(n);
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), wrapper, actioncode))) {
-      if (is_constructor) {
-        Printf(wrapper->code, "tresult = result;\n");
-      } else {
-        Replaceall(tm, "$result", "tresult");
-        Printf(wrapper->code, "%s\n", tm);
-      }
+      Replaceall(tm, "$result", "tresult");
+      Printf(wrapper->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
     }
@@ -683,7 +668,7 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    String *name = GetChar(n, "name");
+    String *name = GetChar(n, "sym:name");
     String *wname = Swig_name_wrapper(name);
     Setattr(n, "wrap:name", wname);
     in_class = true;
@@ -739,11 +724,12 @@ public:
     Printv(f_link, s_accessor, NIL);
 
     Printf(f_wrappers, "void sweep() {\n");
-    Printf(f_wrappers, "  delete _obj_ptr;\n");
-    Printf(f_wrappers, "  _obj_ptr = nullptr;\n");
+    Printf(f_wrappers, "  auto ptr = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(_obj_ptr)->get();\n", Getattr(n, "classtype"));
+    Printf(f_wrappers, "  delete ptr;\n");
+    Printf(f_wrappers, "  ptr = nullptr;\n");
     Printf(f_wrappers, "}\n");
-    Printf(f_wrappers, "~%s() {sweep();}\n", wname);
-    Printf(f_wrappers, "%s* _obj_ptr;\n", Getattr(n, "classtype"));
+    Printf(f_wrappers, "~%s() { sweep(); }\n", wname);
+    Printf(f_wrappers, "HPHP::Resource _obj_ptr;\n\n");
     Printf(f_wrappers, "bool isRef{false};\n");
     Printf(f_phpcode, "}\n\n");
     Printf(f_wrappers, "}; // class %s\n\n", wname);

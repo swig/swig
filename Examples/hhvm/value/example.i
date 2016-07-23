@@ -10,8 +10,8 @@
 /* Some helper functions for our interface */
 %inline %{
 
-void vector_print(Vector *v) {
-  printf("Vector %p = (%g, %g, %g)\n", (void *)v, v->x, v->y, v->z);
+void vector_print(Vector &v) {
+  printf("Vector %p = (%g, %g, %g)\n", (void *)&v, v.x, v.y, v.z);
 }
 %}
 

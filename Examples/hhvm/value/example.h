@@ -5,4 +5,4 @@ typedef struct {
 } Vector;
 
 double dot_product(Vector a, Vector b);
-void vector_add(Vector a, Vector b, Vector* result);
+void vector_add(Vector a, Vector b, Vector& result);
