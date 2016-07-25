@@ -27,6 +27,7 @@
                    unsigned char,
                    signed char,
                    const char *,
+                   char [ANY],
                    char [],
                    const char []
   "KindOfPersistentString";
@@ -54,6 +55,7 @@
                    const char *,
                    unsigned char,
                    signed char,
+                   char [ANY],
                    char [],
                    const char []
   "const HPHP::String&";
@@ -92,6 +94,7 @@
                    const char *,
                    unsigned char,
                    signed char,
+                   char [ANY],
                    char [],
                    const char []
   "HPHP::String";
@@ -212,18 +215,14 @@
 
 /* Ref for basic types */
 %define as_ref(TYPE)
-%typemap(in)  TYPE *,
-              TYPE [],
-              TYPE &,
+%typemap(in)  TYPE &,
               TYPE &&
 %{
   $*1_ltype ref$1 = ($*1_ltype)$input;
   $1 = &ref$1;
 %}
 
-%typemap(out) TYPE *,
-              TYPE [],
-              TYPE &,
+%typemap(out) TYPE &,
               TYPE &&
 %{$result = ($1_ltype)$1;%} 
 
@@ -266,6 +265,7 @@ as_ref(enum SWIGTYPE)
 %typemap(php_type) char *,
                    char,
                    const char *,
+                   char [ANY],
                    char [],
                    const char []
   "string";
@@ -274,8 +274,10 @@ as_ref(enum SWIGTYPE)
   "void";
 
 %typemap(php_type)  SWIGTYPE *,
-                    SWIGTYPE [],
-                    SWIGTYPE &,
+                    SWIGTYPE []
+  "resource"
+
+%typemap(php_type)  SWIGTYPE &,
                     SWIGTYPE &&
   "mixed&";
 
@@ -358,6 +360,7 @@ bool, const bool &
                    const char *,
                    unsigned char,
                    signed char,
+                   char [ANY],
                    char [],
                    const char []
   "toString";

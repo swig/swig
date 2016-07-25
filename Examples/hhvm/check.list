@@ -1,9 +1,11 @@
 # see top-level Makefile.in
 # (see also top-level configure.ac kludge)
-constants
-simple
 class
-value
-reference
+constants
 enum
+functor
+reference
+simple
 sync
+template
+value
