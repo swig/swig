@@ -3,8 +3,8 @@
  *
  * HHVM configuration file
  * ----------------------------------------------------------------------------- */
-%runtime "swigrun.swg"  // Common C API type-checking code
-%runtime "hhvmrun.swg" // PHP runtime functions
+
+%runtime "hhvmrun.swg" // runtime functions
 
 %typemap(consttab) int,
                    unsigned int,

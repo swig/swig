@@ -93,7 +93,7 @@ public:
     Printf(f_register, "public:\n");
 
     /* TODO: Take extension version as input */ 
-    Printf(f_register, "  %sExtension(): Extension(\"%s\", \"1.0\") {}\n\n", cap_module, module);
+    Printf(f_register, "  %sExtension(): Extension(\"%s\", NO_EXTENSION_VERSION_YET) {}\n\n", cap_module, module);
     Printf(f_register, "  void moduleInit() override {\n");
 
     staticmethodwrapper = false;
@@ -292,26 +292,22 @@ public:
     }
 
     if (staticmethodwrapper || is_static) {
-      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       Printf(f_link, "  ");
       if (!is_void_return) {
         Printf(f_link, "return ");
       }
-      Printf(f_link, "%s::%s(%s);\n", wclassname, wname, call_parms);
+      Printf(f_link, "%s(%s);\n", wname, call_parms);
     } else if (is_constructor) {
       String *overresolve = is_overloaded ? NewString(".toResource()") : NULL;
-      Printf(f_link, "  data->_obj_ptr = data->%s(%s)%s;\n", wname, call_parms, overresolve);
+      Printf(f_link, "  data->_obj_ptr = %s(%s)%s;\n", wname, call_parms, overresolve);
     } else if(is_destructor) {
       Printf(f_link, "  if (!data->isRef)\n");
-      Printf(f_link, "    data->%s(%s);\n", wname, call_parms);
+      Printf(f_link, "    %s(%s);\n", wname, call_parms);
       Printf(f_link, "  HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(data->_obj_ptr)->close();\n", Getattr(Swig_methodclass(n), "classtype"));
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
         Printf(f_link, "return ");
-      }
-      if (is_member) {
-        Printf(f_link, "data->");
       }
       Printf(f_link, "%s(%s);\n", wname, call_parms);
     }
@@ -712,6 +708,17 @@ public:
     }
     Printf(f_phpcode, "{\n");
 
+    Printf(f_wrappers, "  void sweep() {\n");
+    Printf(f_wrappers, "    auto ptr = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(_obj_ptr)->get();\n", Getattr(n, "classtype"));
+    Printf(f_wrappers, "    delete ptr;\n");
+    Printf(f_wrappers, "    ptr = nullptr;\n");
+    Printf(f_wrappers, "  }\n");
+    Printf(f_wrappers, "  ~%s() { sweep(); }\n", wname);
+    Printf(f_wrappers, "  HPHP::Resource _obj_ptr;\n\n");
+    Printf(f_wrappers, "  bool isRef{false};\n");
+    Printf(f_wrappers, "}; // class %s\n\n", wname);
+    Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
+
     Language::classHandler(n);
 
     Printf(s_accessor, "  { nullptr }\n");
@@ -722,18 +729,7 @@ public:
     Printf(s_accessor, "};\n\n");
     Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(s_%s);\n", name, name);
     Printv(f_link, s_accessor, NIL);
-
-    Printf(f_wrappers, "void sweep() {\n");
-    Printf(f_wrappers, "  auto ptr = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(_obj_ptr)->get();\n", Getattr(n, "classtype"));
-    Printf(f_wrappers, "  delete ptr;\n");
-    Printf(f_wrappers, "  ptr = nullptr;\n");
-    Printf(f_wrappers, "}\n");
-    Printf(f_wrappers, "~%s() { sweep(); }\n", wname);
-    Printf(f_wrappers, "HPHP::Resource _obj_ptr;\n\n");
-    Printf(f_wrappers, "bool isRef{false};\n");
     Printf(f_phpcode, "}\n\n");
-    Printf(f_wrappers, "}; // class %s\n\n", wname);
-    Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
     in_class = false;
 
     Delete(class_set_vars);
@@ -775,7 +771,7 @@ public:
       String *accname = NewStringf("SWIG_get_%s_%s", classname, varname);
       Printf(f_link, "static Variant %s(const Object& this_) {\n", accname);
       Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
-      Printf(f_link, "  return Variant(data->%s(data->_obj_ptr));\n", wname);
+      Printf(f_link, "  return Variant(%s(data->_obj_ptr));\n", wname);
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s, ", accname);
     } else {
@@ -787,7 +783,7 @@ public:
       Printf(f_link, "static void %s(const Object& this_, const Variant& value) {\n", accname);
       Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
       if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
-        Printf(f_link, "  data->%s(data->_obj_ptr, value.%s());\n", wname, tm);
+        Printf(f_link, "  %s(data->_obj_ptr, value.%s());\n", wname, tm);
       }
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s },\n", accname);
