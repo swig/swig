@@ -8,6 +8,7 @@ protected:
   File *f_begin;
   File *f_runtime;
   File *f_header;
+  File *f_classes;
   File *f_wrappers;
   File *f_register;
   File *f_link;
@@ -16,6 +17,7 @@ protected:
   String *s_accessor;
   bool staticmethodwrapper;
   bool in_class;
+  Hash *swig_types_hash;
 
 public:
   virtual void main(int argc, char *argv[]) {
@@ -49,6 +51,7 @@ public:
     f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
+    f_classes = NewString("");
     f_wrappers = NewString("");
     f_register = NewString("");
     f_link = NewString("");
@@ -98,10 +101,25 @@ public:
 
     staticmethodwrapper = false;
     in_class = false;
+    swig_types_hash = NewHash();
 
     /* Emit code for children */
     Language::top(n);
     
+    // Output a type wrapper class for each SWIG type
+    for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+      String *classname = swig_type.key;
+      SwigType *type = swig_type.item;
+      Node *node = NewHash();
+      Setattr(node, "type", type);
+      String *tm = Swig_typemap_lookup("hhwrapclass", node, "", 0);
+      Replaceall(tm, "$hhclassname", classname);
+      Printv(f_classes, tm, NIL);
+      Printf(f_register, "    Native::registerNativeDataInfo<_wrap_%s>(makeStaticString(\"%s\"));\n", classname, classname);
+      Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", classname);
+      Printf(f_phpcode, "class %s {}\n", classname);
+    }
+
     /* All registrations go here */
 
     Printf(f_register, "    loadSystemlib();\n");
@@ -120,14 +138,19 @@ public:
     /* Write all to the file */
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
+    Dump(f_classes, f_begin);
     Dump(f_wrappers, f_begin);
     Dump(f_link, f_begin);
     Dump(f_register, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
 
+    Delete(swig_types_hash);
+    swig_types_hash = NULL;
+
      /* Cleanup files */
     Delete(f_runtime);
     Delete(f_header);
+    Delete(f_classes);
     Delete(f_wrappers);
     Delete(f_register);
     Delete(f_link);
@@ -136,6 +159,148 @@ public:
     Delete(f_phpcode); 
 
     return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getProxyName()
+   *
+   * Test to see if a type corresponds to something wrapped with a proxy class.
+   * Return NULL if not otherwise the proxy class name, fully qualified with
+   * a namespace if the nspace feature is used.
+   * ----------------------------------------------------------------------------- */
+  
+  String *getProxyName(SwigType *t) {
+    String *proxyname = NULL;
+    // TODO: Add proxy flag and nspace
+    Node *n = classLookup(t);
+    if (n) {
+      proxyname = Getattr(n, "proxyname");
+      if (!proxyname) {
+        proxyname = Copy(Getattr(n, "sym:name"));
+        Setattr(n, "proxyname", proxyname);
+        Delete(proxyname);
+      }
+    }
+    return proxyname;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getEnumName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t) {
+    Node *enumname = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      enumname = Getattr(n, "enumname");
+      if (!enumname) {
+        String *symname = Getattr(n, "sym:name");
+        if (symname) {
+          // Add in class scope when referencing enum if not a global enum
+          String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+          String *proxyname = 0;
+          if (scopename_prefix) {
+            proxyname = getProxyName(scopename_prefix);
+          }
+          if (proxyname) {
+            enumname = NewStringf("%s/%s", proxyname, symname);
+          } else {
+            // global enum or enum in a namespace
+            String *nspace = Getattr(n, "sym:nspace");
+            if (nspace) {
+              enumname = NewStringf("%s/%s", nspace, symname);
+            } else {
+              enumname = Copy(symname);
+            }
+          }
+          Setattr(n, "enumname", enumname);
+          Delete(enumname);
+          Delete(scopename_prefix);
+        }
+      }
+    }
+
+    return enumname;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassname()
+   *
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * that SWIG knows about. Also substitutes enums with enum name.
+   * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Inputs:
+   *   pt - parameter type
+   *   tm - typemap contents that might contain the special variable to be replaced
+   * Outputs:
+   *   tm - typemap contents complete with the special variable substitution
+   * Return:
+   *   substitution_performed - flag indicating if a substitution was performed
+   * ----------------------------------------------------------------------------- */
+
+  bool substituteClassname(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    if (Strstr(tm, "$hhclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$hhclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&hhclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&hhclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    String *replacementname;
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype);
+      if (enumname) {
+        replacementname = Copy(enumname);
+      } else {
+        bool anonymous_enum = (Cmp(classnametype, "enum ") == 0);
+        if (anonymous_enum) {
+          replacementname = NewString("int");
+        } else {
+          // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+          replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+          Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+          Setattr(swig_types_hash, replacementname, classnametype);
+        }
+      }
+    } else {
+      String *classname = getProxyName(classnametype); // getProxyName() works for pointers to classes too
+      if (classname) {
+        replacementname = Copy(classname);
+      } else {
+        // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+        replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+
+        // Add to hash table so that the type wrapper classes can be created later
+        Setattr(swig_types_hash, replacementname, classnametype);
+      }
+
+    }
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
   }
 
   virtual int constantWrapper(Node *n) {
@@ -244,6 +409,7 @@ public:
 
       for (; p; p = nextSibling(p)) {
         String *parm_name = Getattr(p, "lname");
+        SwigType *parm_type = Getattr(p, "type");
         String *val = Getattr(p, "value");
 
         if ((tm = Swig_typemap_lookup("hni_parmtype", p, parm_name, 0))) {
@@ -251,6 +417,7 @@ public:
         }
 
         if ((tm = Swig_typemap_lookup("php_type", p, parm_name, 0))) {
+          substituteClassname(parm_type, tm);
           if (prev) {
             Printf(f_phpcode, ", ");
           }
@@ -263,6 +430,7 @@ public:
       }
       Printf(f_phpcode, ") ");
       if (!is_constructor && !is_destructor && (tm = Swig_typemap_lookup("php_type", n, name, 0))) {
+        substituteClassname(type, tm);
         // Small hack to avoid creating separate php return typemap
         if(Cmp(tm, "mixed&") == 0) {
           Printf(f_phpcode, ": mixed");
@@ -283,10 +451,9 @@ public:
     Printf(f_phpcode, ";\n\n");
 
     if (in_class && !staticmethodwrapper && !is_static) {
-      String *classname = GetChar(Swig_methodclass(n), "wrap:name");
-      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", classname);
+    Printf(f_link, "  auto data = Object(this_);\n", classname);
       if (!is_constructor) {
-        Replaceall(call_parms, "arg1", "data->_obj_ptr");
+        Replaceall(call_parms, "arg1", "data");
       }
     }
 
@@ -297,12 +464,16 @@ public:
       }
       Printf(f_link, "%s(%s);\n", wname, call_parms);
     } else if (is_constructor) {
-      String *overresolve = is_overloaded ? NewString(".toResource()") : NULL;
-      Printf(f_link, "  data->_obj_ptr = %s(%s)%s;\n", wname, call_parms, overresolve);
+      String *overresolve = is_overloaded ? NewString(".toObject()") : NULL;
+      Printf(f_link, "  auto new_obj = %s(%s)%s;\n", wname, call_parms, overresolve);
+      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = Native::data<%s>(new_obj)->_obj_ptr;\n", wclassname, wclassname);
+      Printf(f_link, "  Native::data<%s>(new_obj)->_obj_ptr = nullptr;\n", wclassname);
     } else if(is_destructor) {
-      Printf(f_link, "  if (!data->isRef)\n");
+      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      Printf(f_link, "  if (!Native::data<%s>(this_)->isRef)\n", wclassname);
       Printf(f_link, "    %s(%s);\n", wname, call_parms);
-      Printf(f_link, "  HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(data->_obj_ptr)->close();\n", Getattr(Swig_methodclass(n), "classtype"));
+      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = nullptr;\n", wclassname);
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
@@ -531,7 +702,7 @@ public:
     // wrap:parms is used for overload resolution.
     Setattr(n, "wrap:parms", parms);
 
-    Printf(wrapper->def, "static ");
+    Printf(wrapper->def, "SWIGINTERN\n");
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ");
       Printf(return_type, "%s", tm);
@@ -570,6 +741,7 @@ public:
 
       if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", arg);
+        substituteClassname(parm_type, tm);
         Setattr(p, "emit:input", arg);
         Printf(wrapper->code, "%s\n", tm);
         p = Getattr(p, "tmap:in:next");
@@ -604,6 +776,7 @@ public:
     String *actioncode = emit_action(n);
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), wrapper, actioncode))) {
       Replaceall(tm, "$result", "tresult");
+      substituteClassname(type, tm);
       Printf(wrapper->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
@@ -693,8 +866,8 @@ public:
 
     Printf(f_register, "    const StaticString s_%s(\"%s\");\n", name, name);
     Printf(f_phpcode, "class %s ", name);
-    Printf(f_wrappers, "class %s {\n", wname);
-    Printf(f_wrappers, "public:\n");
+    Printf(f_classes, "class %s {\n", wname);
+    Printf(f_classes, "public:\n");
     String *baseclass = NULL;
     if (base.item && Getattr(base.item, "module")) {
       baseclass = Getattr(base.item, "sym:name");
@@ -706,15 +879,14 @@ public:
     }
     Printf(f_phpcode, "{\n");
 
-    Printf(f_wrappers, "  void sweep() {\n");
-    Printf(f_wrappers, "    auto ptr = HPHP::dyn_cast_or_null<HPHP::SWIG_Ptr<%s>>(_obj_ptr)->get();\n", Getattr(n, "classtype"));
-    Printf(f_wrappers, "    delete ptr;\n");
-    Printf(f_wrappers, "    ptr = nullptr;\n");
-    Printf(f_wrappers, "  }\n");
-    Printf(f_wrappers, "  ~%s() { sweep(); }\n\n", wname);
-    Printf(f_wrappers, "  HPHP::Resource _obj_ptr;\n");
-    Printf(f_wrappers, "  bool isRef{false};\n");
-    Printf(f_wrappers, "}; // class %s\n\n", wname);
+    Printf(f_classes, "  void sweep() {\n");
+    Printf(f_classes, "     delete _obj_ptr;\n");
+    Printf(f_classes, "    _obj_ptr = nullptr;\n");
+    Printf(f_classes, "  }\n");
+    Printf(f_classes, "  ~%s() { sweep(); }\n\n", wname);
+    Printf(f_classes, "  %s* _obj_ptr;\n", Getattr(n, "classtype"));
+    Printf(f_classes, "  bool isRef{false};\n");
+    Printf(f_classes, "}; // class %s\n\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
 
     Language::classHandler(n);
@@ -768,8 +940,8 @@ public:
     if ((wname = Getattr(class_get_vars, varname))) {
       String *accname = NewStringf("SWIG_get_%s_%s", classname, varname);
       Printf(f_link, "static Variant %s(const Object& this_) {\n", accname);
-      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
-      Printf(f_link, "  return Variant(%s(data->_obj_ptr));\n", wname);
+      Printf(f_link, "  auto data = Object(this_);\n", wclassname);
+      Printf(f_link, "  return Variant(%s(data));\n", wname);
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s, ", accname);
     } else {
@@ -779,9 +951,9 @@ public:
     if ((wname = Getattr(class_set_vars, varname))) {
       String *accname = NewStringf("SWIG_set_%s_%s", classname, varname);
       Printf(f_link, "static void %s(const Object& this_, const Variant& value) {\n", accname);
-      Printf(f_link, "  auto data = Native::data<%s>(this_);\n", wclassname);
+      Printf(f_link, "  auto data = Object(this_);\n", wclassname);
       if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
-        Printf(f_link, "  %s(data->_obj_ptr, value.%s());\n", wname, tm);
+        Printf(f_link, "  %s(data, value.%s());\n", wname, tm);
       }
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s },\n", accname);
