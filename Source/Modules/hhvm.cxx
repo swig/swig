@@ -244,7 +244,6 @@ public:
 
       for (; p; p = nextSibling(p)) {
         String *parm_name = Getattr(p, "lname");
-        String *parm_type = Getattr(p, "type");
         String *val = Getattr(p, "value");
 
         if ((tm = Swig_typemap_lookup("hni_parmtype", p, parm_name, 0))) {
@@ -453,7 +452,6 @@ public:
   void dispatchFunction(Node *n) {
     /* Last node in overloaded chain */
 
-    int maxargs;
     String *tmp = NewStringEmpty();
     Printf(tmp, "result = %%s($commaargs);\n");
     Printf(tmp, "if (result.isInitialized()) {\n return result; \n}");
@@ -507,9 +505,6 @@ public:
     bool overloaded = false;
     String *overname;
     bool is_member = Getattr(n, "ismember");
-    bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
-    bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
-    bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
     bool accessor = is_member && 
       (Cmp(Getattr(n, "kind"), "variable") == 0) &&
       (Cmp(Getattr(n, "view"), "membervariableHandler") == 0);
@@ -558,7 +553,6 @@ public:
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *arg = NewString("");
-      String *val = Getattr(p, "value");
 
       Printf(arg, "t%s", parm_name);
 
@@ -669,6 +663,10 @@ public:
     Setattr(n, "wrap:name", wname);
     in_class = true;
     // Swig_print_tree(n);
+
+    if (!addSymbol(name, n))
+      return SWIG_ERROR;
+
     Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", name);
 
     class_get_vars = NewHash();
@@ -713,8 +711,8 @@ public:
     Printf(f_wrappers, "    delete ptr;\n");
     Printf(f_wrappers, "    ptr = nullptr;\n");
     Printf(f_wrappers, "  }\n");
-    Printf(f_wrappers, "  ~%s() { sweep(); }\n", wname);
-    Printf(f_wrappers, "  HPHP::Resource _obj_ptr;\n\n");
+    Printf(f_wrappers, "  ~%s() { sweep(); }\n\n", wname);
+    Printf(f_wrappers, "  HPHP::Resource _obj_ptr;\n");
     Printf(f_wrappers, "  bool isRef{false};\n");
     Printf(f_wrappers, "}; // class %s\n\n", wname);
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
