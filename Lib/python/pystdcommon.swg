@@ -46,7 +46,8 @@ namespace swig {
   struct traits_asptr {   
     static int asptr(PyObject *obj, Type **val) {
       Type *p;
-      int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
+      swig_type_info *descriptor = type_info<Type>();
+      int res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
       if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }

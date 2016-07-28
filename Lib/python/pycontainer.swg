@@ -968,8 +968,8 @@ namespace swig {
     static int asptr(PyObject *obj, sequence **seq) {
       if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
 	sequence *p;
-	if (::SWIG_ConvertPtr(obj,(void**)&p,
-			      swig::type_info<sequence>(),0) == SWIG_OK) {
+	swig_type_info *descriptor = swig::type_info<sequence>();
+	if (descriptor && SWIG_IsOK(::SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
