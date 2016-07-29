@@ -115,7 +115,7 @@ public:
       String *tm = Swig_typemap_lookup("hhwrapclass", node, "", 0);
       Replaceall(tm, "$hhclassname", classname);
       Printv(f_classes, tm, NIL);
-      Printf(f_register, "    Native::registerNativeDataInfo<_wrap_%s>(makeStaticString(\"%s\"));\n", classname, classname);
+      Printf(f_register, "    Native::registerNativeDataInfo<_wrap_%s>(_wrap_%s::s_className.get()));\n", classname, classname);
       Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", classname);
       Printf(f_phpcode, "class %s {}\n", classname);
     }
@@ -864,7 +864,6 @@ public:
       Printf(f_phpcode, "abstract ");
     }
 
-    Printf(f_register, "    const StaticString s_%s(\"%s\");\n", name, name);
     Printf(f_phpcode, "class %s ", name);
     Printf(f_classes, "class %s {\n", wname);
     Printf(f_classes, "public:\n");
@@ -894,7 +893,7 @@ public:
     Printf(f_classes, "const HPHP::StaticString %s::s_className(\"%s\");\n\n", wname, name);
     Printf(f_classes, "IMPLEMENT_GET_CLASS(%s)\n\n", wname);
 
-    Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
+    Printf(f_register, "    Native::registerNativeDataInfo<%s>(%s::s_className.get());\n\n", wname, wname);
 
     Language::classHandler(n);
 
@@ -904,7 +903,7 @@ public:
     Printf(s_accessor, "struct %sPropHandler : public Native::MapPropHandler<%sPropHandler> {\n", name, name);
     Printf(s_accessor, "  static constexpr Native::PropAccessorMap& map = %s_properties_map;\n", name);
     Printf(s_accessor, "};\n\n");
-    Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(s_%s);\n", name, name);
+    Printf(f_register, "    Native::registerNativePropHandler<%sPropHandler>(%s::s_className);\n", name, wname);
     Printv(f_link, s_accessor, NIL);
     Printf(f_phpcode, "}\n\n");
     in_class = false;
@@ -977,7 +976,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    String *classname = GetChar(Swig_methodclass(n), "name");
+    String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
     String *name = GetChar(n, "name");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
@@ -985,14 +984,14 @@ public:
     bool is_enum = (Cmp(Getattr(n, "nodeType"), "enumitem") == 0);
 
     if (is_enum) {
-      classname = GetChar(parentNode(Swig_methodclass(n)), "name");
+      wclassname = GetChar(parentNode(Swig_methodclass(n)), "wrap:name");
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       if (Strcmp(tm, "KindOfPersistentString") == 0) {
-        Printf(f_register, "    Native::registerClassConstant<%s>(s_%s.get(), makeStaticString(\"%s\"), makeStaticString(%s));\n", tm, classname, name, value);
+        Printf(f_register, "    Native::registerClassConstant<%s>(%s::s_className.get(), makeStaticString(\"%s\"), makeStaticString(%s));\n", tm, wclassname, name, value);
       } else {
-        Printf(f_register, "    Native::registerClassConstant<%s>(s_%s.get(), makeStaticString(\"%s\"), %s);\n", tm, classname, name, value);
+        Printf(f_register, "    Native::registerClassConstant<%s>(%s::s_className.get(), makeStaticString(\"%s\"), %s);\n", tm, wclassname, name, value);
       }
     }
 
