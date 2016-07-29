@@ -189,8 +189,7 @@
 %typemap(out) SWIGTYPE *,
               SWIGTYPE []
 %{
-  auto $1_cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$hhclassname"));
-  $result = HPHP::Object($1_cls);
+  $result = HPHP::Object(_wrap_$hhclassname::getClass());
   auto wrap_$1 = HPHP::Native::data<_wrap_$hhclassname>($result);
   wrap_$1->_obj_ptr = $1;
   wrap_$1->isRef = true;
@@ -199,8 +198,7 @@
 %typemap(out) SWIGTYPE &,
               SWIGTYPE &&
 %{
-  auto $1_cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$hhclassname"));
-  $result = HPHP::Object($1_cls);
+  $result = HPHP::Object(_wrap_$hhclassname::getClass());
   auto wrap_$1 = HPHP::Native::data<_wrap_$hhclassname>($result.toObject());
   wrap_$1->_obj_ptr = $1;
   wrap_$1->isRef = true;
@@ -378,6 +376,7 @@ bool, const bool &
 
 class _wrap_$hhclassname {
 public:
+  static HPHP::Class* getClass();
   void sweep() {
     if (!isRef) {
       delete _obj_ptr;
@@ -386,8 +385,15 @@ public:
   }
   ~_wrap_$hhclassname() { sweep(); }
 
+  static HPHP::Class* s_class;
+  static const HPHP::StaticString s_className;
   $1_ltype _obj_ptr{nullptr};
   bool isRef{false};
 };
+
+HPHP::Class* _wrap_$hhclassname::s_class = nullptr;
+const HPHP::StaticString _wrap_$hhclassname::s_className("$hhclassname");
+
+IMPLEMENT_GET_CLASS(_wrap_$hhclassname)
 
 %}                    

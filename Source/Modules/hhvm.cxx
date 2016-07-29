@@ -879,14 +879,21 @@ public:
     }
     Printf(f_phpcode, "{\n");
 
+    Printf(f_classes, "  static HPHP::Class* getClass();\n");
     Printf(f_classes, "  void sweep() {\n");
     Printf(f_classes, "     delete _obj_ptr;\n");
     Printf(f_classes, "    _obj_ptr = nullptr;\n");
     Printf(f_classes, "  }\n");
     Printf(f_classes, "  ~%s() { sweep(); }\n\n", wname);
-    Printf(f_classes, "  %s* _obj_ptr;\n", Getattr(n, "classtype"));
+    Printf(f_classes, "  static HPHP::Class* s_class;\n");
+    Printf(f_classes, "  static const HPHP::StaticString s_className;\n");
+    Printf(f_classes, "  %s* _obj_ptr{nullptr};\n", Getattr(n, "classtype"));
     Printf(f_classes, "  bool isRef{false};\n");
     Printf(f_classes, "}; // class %s\n\n", wname);
+    Printf(f_classes, "HPHP::Class* %s::s_class = nullptr;\n", wname);
+    Printf(f_classes, "const HPHP::StaticString %s::s_className(\"%s\");\n\n", wname, name);
+    Printf(f_classes, "IMPLEMENT_GET_CLASS(%s)\n\n", wname);
+
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(s_%s.get());\n\n", wname, name);
 
     Language::classHandler(n);

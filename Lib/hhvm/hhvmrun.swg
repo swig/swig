@@ -1,3 +1,12 @@
+#define IMPLEMENT_GET_CLASS(cls) \
+        HPHP::Class* cls::getClass() { \
+                if (s_class == nullptr) { \
+                        s_class = HPHP::Unit::lookupClass(s_className.get()); \
+                        assert(s_class); \
+                } \
+                return s_class; \
+        }
+
 namespace HPHP {
 namespace {
 
