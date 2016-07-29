@@ -664,7 +664,7 @@ public:
       if (isConstant || isEnum) {
 	if (isEnum) {
 	  Setattr(node, "type", "double");
-	  constantValue = Getattr(node, "enumvalue");
+	  constantValue = Getattr(node, "value");
 	}
 
 	constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
