@@ -115,7 +115,7 @@ public:
       String *tm = Swig_typemap_lookup("hhwrapclass", node, "", 0);
       Replaceall(tm, "$hhclassname", classname);
       Printv(f_classes, tm, NIL);
-      Printf(f_register, "    Native::registerNativeDataInfo<_wrap_%s>(_wrap_%s::s_className.get()));\n", classname, classname);
+      Printf(f_register, "    Native::registerNativeDataInfo<_wrap_%s>(_wrap_%s::s_className.get());\n", classname, classname);
       Printf(f_phpcode, "<<__NativeData(\"%s\")>>\n", classname);
       Printf(f_phpcode, "class %s {}\n", classname);
     }

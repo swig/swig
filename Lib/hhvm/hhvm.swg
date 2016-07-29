@@ -12,6 +12,8 @@
                    unsigned short,
                    long,
                    unsigned long,
+                   unsigned char,
+                   signed char,
                    enum SWIGTYPE
   "KindOfInt64";
 
@@ -24,8 +26,6 @@
 
 %typemap(consttab) char *,
                    char,
-                   unsigned char,
-                   signed char,
                    const char *,
                    char [ANY],
                    char [],
@@ -40,6 +40,8 @@
                   unsigned short,
                   long,
                   unsigned long,
+                  unsigned char,
+                  signed char,
                   enum SWIGTYPE
   "int64_t";
 
@@ -53,8 +55,6 @@
 %typemap(hni_parmtype)  char *,
                    char,
                    const char *,
-                   unsigned char,
-                   signed char,
                    char [ANY],
                    char [],
                    const char []
@@ -79,6 +79,8 @@
                   unsigned short,
                   long,
                   unsigned long,
+                  unsigned char,
+                  signed char,
                   enum SWIGTYPE
   "int64_t";
 
@@ -92,8 +94,6 @@
 %typemap(hni_rttype)  char *,
                    char,
                    const char *,
-                   unsigned char,
-                   signed char,
                    char [ANY],
                    char [],
                    const char []
@@ -125,12 +125,12 @@
              unsigned long long, 
              float, 
              double,
+             unsigned char,
+             signed char,
              enum SWIGTYPE
 %{ $1 = ($1_ltype)$input; %}
 
-%typemap(in) char, 
-             signed char, 
-             unsigned char 
+%typemap(in) char
 {
   if ($input.length() != 1) {
     throw std::runtime_error("Expecting a string of length 1.\n");
@@ -161,7 +161,9 @@
               short,
               unsigned short,
               long,
-              unsigned long, 
+              unsigned long,
+              unsigned char,
+              signed char, 
               enum SWIGTYPE
   "$result = $1;"
 
@@ -172,9 +174,7 @@
               double
   "$result = $1;"
 
-%typemap(out) char,
-              signed char,
-              unsigned char
+%typemap(out) char
   "$result = HPHP::String::FromChar($1);"
 
 %typemap(out) char *,
@@ -250,6 +250,7 @@ as_ref(enum SWIGTYPE)
                     long,
                     unsigned long,
                     unsigned char,
+                    signed char,
                     enum SWIGTYPE
   "int";
 
@@ -262,8 +263,6 @@ as_ref(enum SWIGTYPE)
 
 %typemap(php_type) char *,
                    char,
-                   signed char,
-                   unsigned char,
                    const char *,
                    char [ANY],
                    char [],
@@ -345,6 +344,8 @@ bool, const bool &
                   unsigned short,
                   long,
                   unsigned long,
+                  unsigned char,
+                  signed char,
                   enum SWIGTYPE
   "toInt64Val";
 
@@ -358,8 +359,6 @@ bool, const bool &
 %typemap(variant_out)  char *,
                    char,
                    const char *,
-                   unsigned char,
-                   signed char,
                    char [ANY],
                    char [],
                    const char []
