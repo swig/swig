@@ -22,7 +22,7 @@ int** makeIntPtrPtr(int* v) {
 
 void displayVector(std::vector<int *> vpi) {
   cout << "displayVector..." << endl;
-  for (int i=0; i<vpi.size(); ++i)
+  for (size_t i=0; i<vpi.size(); ++i)
     cout << *vpi[i] << endl;
 }
 int getValueFromVector(std::vector<int *> vpi, size_t index) {
