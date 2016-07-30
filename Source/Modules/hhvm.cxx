@@ -704,7 +704,7 @@ public:
 
     Printf(wrapper->def, "SWIGINTERN\n");
     if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
-      Printv(wrapper->def, tm, " ");
+      Printv(wrapper->def, tm, " ", NIL);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Func: Unable to use return type %s in function %s.\n", SwigType_str(type, 0), name);
