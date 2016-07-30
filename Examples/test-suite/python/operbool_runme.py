@@ -1,3 +1,4 @@
 #!/usr/bin/env python
 import operbool
-assert not operbool.Test()
+if operbool.Test():
+    raise RuntimeError("operbool failed")

@@ -26,8 +26,10 @@ def test1():
         sys.stderr.flush()
         sys.stderr = stderr_saved
 
-    assert attributeErrorOccurred
-    assert buffer.getvalue().count("I am the ClassWithThrowingDestructor dtor doing bad things") >= 1
+    if not attributeErrorOccurred:
+        raise RuntimeError("attributeErrorOccurred failed")
+    if not buffer.getvalue().count("I am the ClassWithThrowingDestructor dtor doing bad things") >= 1:
+        raise RuntimeError("ClassWithThrowingDestructor dtor doing bad things failed")
 
 class VectorHolder(object):
     def __init__(self, v):

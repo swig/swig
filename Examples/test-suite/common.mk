@@ -308,6 +308,7 @@ CPP_TEST_CASES += \
 	nested_class \
 	nested_directors \
 	nested_comment \
+	nested_ignore \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \

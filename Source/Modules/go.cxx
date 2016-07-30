@@ -4176,7 +4176,6 @@ private:
 
     Wrapper *dummy = NewWrapper();
     emit_attach_parmmaps(parms, dummy);
-    DelWrapper(dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
     Swig_typemap_attach_parms("imtype", parms, NULL);
@@ -4232,6 +4231,8 @@ private:
     Swig_typemap_attach_parms("godirectorin", parms, w);
     Swig_typemap_attach_parms("goin", parms, dummy);
     Swig_typemap_attach_parms("goargout", parms, dummy);
+
+    DelWrapper(dummy);
 
     if (!is_ignored) {
       // We use an interface to see if this method is defined in Go.
