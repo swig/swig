@@ -197,6 +197,11 @@ public:
   virtual int emitWrapperFunction(Node *n);
 
   /**
+   * Invoked by nativeWrapper callback
+   */
+  virtual int emitNativeFunction(Node *n);
+
+  /**
    * Invoked from constantWrapper after call to Language::constantWrapper.
    **/
   virtual int emitConstant(Node *n);
@@ -310,6 +315,8 @@ public:
   virtual int classHandler(Node *n);
   virtual int functionWrapper(Node *n);
   virtual int constantWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
+
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
 
@@ -340,6 +347,13 @@ int JAVASCRIPT::functionWrapper(Node *n) {
   emitter->emitWrapperFunction(n);
 
   return SWIG_OK;
+}
+
+int JAVASCRIPT::nativeWrapper(Node *n)
+{
+	emitter->emitNativeFunction(n);
+
+	return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
@@ -718,11 +732,10 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   String *kind = Getattr(n, "kind");
 
   if (kind) {
-
     if (Equal(kind, "function")
-	// HACK: sneaky.ctest revealed that typedef'd (global) functions must be
-	// detected via the 'view' attribute.
-	|| (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
+		// HACK: sneaky.ctest revealed that typedef'd (global) functions must be
+		// detected via the 'view' attribute.
+		|| (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
 	) {
       bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
       bool is_static = GetFlag(state.function(), IS_STATIC) != 0;
@@ -731,20 +744,19 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       bool is_static = GetFlag(state.variable(), IS_STATIC) != 0;
       // HACK: smartpointeraccessed static variables are not treated as statics
       if (GetFlag(n, "allocate:smartpointeraccess")) {
-	is_static = false;
+		is_static = false;
       }
 
       bool is_member = GetFlag(n, "ismember") != 0;
       bool is_setter = GetFlag(n, "memberset") != 0 || GetFlag(n, "varset") != 0;
       bool is_getter = GetFlag(n, "memberget") != 0 || GetFlag(n, "varget") != 0;
       if (is_setter) {
-	ret = emitSetter(n, is_member, is_static);
+		ret = emitSetter(n, is_member, is_static);
       } else if (is_getter) {
-	ret = emitGetter(n, is_member, is_static);
+		ret = emitGetter(n, is_member, is_static);
       } else {
-	Swig_print_node(n);
+		Swig_print_node(n);
       }
-
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type\n");
       Swig_print_node(n);
@@ -765,6 +777,17 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   }
 
   return ret;
+}
+
+int JSEmitter::emitNativeFunction(Node *n) {
+	String *wrap_name = Getattr(n, "wrap:name");
+
+	Setattr(n, "feature:extend", "last");
+	enterFunction(n);
+	state.function(WRAPPER_NAME, wrap_name);
+	exitFunction(n);
+
+	return SWIG_OK;
 }
 
 int JSEmitter::enterClass(Node *n) {
