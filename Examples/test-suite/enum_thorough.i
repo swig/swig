@@ -47,6 +47,12 @@
 
 %inline %{
 
+#if __GNUC__ >= 5 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+/* for anonymous enums */
+/* dereferencing type-punned pointer will break strict-aliasing rules [-Werror=strict-aliasing] */
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 enum { AnonEnum1, AnonEnum2 = 100 };
 enum { ReallyAnInteger = 200 };
 //enum { AnonEnum3, AnonEnum4 } instance;
