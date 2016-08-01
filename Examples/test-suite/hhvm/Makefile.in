@@ -1,0 +1,74 @@
+#######################################################################
+# Makefile for hhvm test-suite
+#######################################################################
+
+LANGUAGE     = hhvm
+SCRIPTSUFFIX = _runme.php
+
+srcdir       = @srcdir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
+OBJEXT = @OBJEXT@
+SO = @SO@
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+SRCDIR       = ../$(srcdir)/
+
+# Custom tests - tests with additional commandline options
+prefix.cpptest: SWIGOPT += -prefix Project
+
+# write out tests without a _runme.php
+missingcpptests:
+	for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done
+
+missingctests:
+	for test in $(C_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done
+
+missingtests: missingcpptests missingctests
+
+# Rules for the different types of tests
+%.cpptest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	+$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	+$(run_testcase)
+
+%.multicpptest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	+$(run_testcase)
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	else								  \
+	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+	  mkdir $* &&							  \
+      sed -e 's|$$testcase|$*|g;' $(srcdir)/config.cmake > $*/config.cmake;   \
+	fi;
+
+# Runs the testcase. Tries to run testcase_runme.php.
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	   $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile HHVM_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' hhvm_run; \
+	fi
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $* ]; then \
+	  rm -rf $*; \
+	fi
+
+clean:
+	rm -f ext_* *~ .~* example.php run-test CMakeLists.txt
+	rm -rf build
+	rm -f *.@OBJEXT@ *$(SO)

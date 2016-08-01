@@ -2984,6 +2984,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/guile/Makefile
+    Examples/test-suite/hhvm/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/mzscheme/Makefile

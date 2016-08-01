@@ -586,11 +586,11 @@ HHVM_SCRIPT  = $(SRCDIR)$(RUNME).php
 
 hhvm: $(SRCDIR_SRCS)
 	$(SWIG) -hhvm $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	@hphpize
+	@hphpize >/dev/null
 	@mkdir build
 	cd build && \
-	cmake .. -DCMAKE_CXX_COMPILER='$(CXX)' && \
-	$(MAKE) && \
+	cmake .. -DCMAKE_CXX_COMPILER='$(CXX)' >/dev/null && \
+	$(MAKE) >/dev/null && \
 	mv $(LIBPREFIX)$(TARGET)$(HHVM_SO) ..
 	#$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(HHVM_INCLUDE)
 	#$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(HHVM_SO)
@@ -601,11 +601,11 @@ hhvm: $(SRCDIR_SRCS)
 
 hhvm_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -hhvm -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	@hphpize
+	@hphpize >/dev/null
 	@mkdir build
 	cd build && \
-	cmake .. -DCMAKE_CXX_COMPILER='$(CXX)' && \
-	$(MAKE) && \
+	cmake .. -DCMAKE_CXX_COMPILER='$(CXX)' >/dev/null && \
+	$(MAKE) >/dev/null && \
 	mv $(LIBPREFIX)$(TARGET)$(HHVM_SO) ..
 	#$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(HHVM_INCLUDE)
 	#$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(HHVM_SO)

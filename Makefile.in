@@ -133,7 +133,7 @@ check-aliveness:
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
-	@$(skip-hhvm) || ./$(TARGET) -hhvm -help
+	@$(skip-hhvm) 		|| ./$(TARGET) -hhvm -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -164,7 +164,8 @@ check-versions:					\
 	check-r-version				\
 	check-scilab-version			\
 	check-go-version			\
-	check-d-version
+	check-d-version				\
+	check-hhvm-version			
 
 # all examples
 check-%-version :
@@ -291,7 +292,8 @@ check-test-suite:				\
 	check-scilab-test-suite			\
 	check-go-test-suite			\
 	check-d-test-suite			\
-	check-javascript-test-suite
+	check-javascript-test-suite		\
+	check-hhvm-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -345,7 +347,8 @@ all-test-suite:					\
 	all-scilab-test-suite   		\
 	all-go-test-suite			\
 	all-d-test-suite			\
-	all-javascript-test-suite
+	all-javascript-test-suite	\
+	all-hhvm-test-suite
 
 all-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=all
@@ -375,7 +378,8 @@ broken-test-suite:				\
 	broken-scilab-test-suite           	\
 	broken-go-test-suite			\
 	broken-d-test-suite			\
-	broken-javascript-test-suite
+	broken-javascript-test-suite	\
+	broken-hhvm-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=broken
