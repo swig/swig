@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-07-01: wsfulton
+            Fix corner case of wrapping std::vector of T pointers where a pointer to a pointer of T
+            also exists in the wrapped code. SF Bug 2359417 (967).
+
 2016-06-26: wkalinin
             [Java, C#] Patch #681 Fix seg fault when ignoring nested classes.
 
