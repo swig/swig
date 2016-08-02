@@ -1833,17 +1833,27 @@ int MATLAB::classDirectorMethod(Node *n, Node *parent, String *super) {
       if (use_parse) {
       } else {
         Printf(w->code, "mxArray* dispatch_in[%d] = {swig_get_self()%s};\n", Len(parse_args)+1, arglist);
-        Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
-        Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, %d, dispatch_in, \"%s\");\n",
-               outputs, Len(parse_args)+1, symname);
-        Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
+        if (outputs) {
+          Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
+          Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, %d, dispatch_in, \"%s\");\n",
+                 outputs, Len(parse_args)+1, symname);
+          Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
+        } else {
+          Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(0, 0, %d, dispatch_in, \"%s\");\n",
+                 Len(parse_args)+1, symname);
+        }
       }
     } else {
       Printf(w->code, "mxArray* dispatch_in[1] = {swig_get_self()};\n");
-      Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
-      Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, 1, dispatch_in, \"%s\");\n",
+      if (outputs) {
+        Printf(w->code, "mxArray* dispatch_out[%d];\n", outputs);
+        Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(%d, dispatch_out, 1, dispatch_in, \"%s\");\n",
              outputs, symname);
-      Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
+        Printf(w->code, "mxArray* %s = dispatch_out[0];\n",Swig_cresult_name());
+      } else {
+        Printf(w->code, "mxArray* error = SWIG_Matlab_CallInterpEx(0, 0, 1, dispatch_in, \"%s\");\n",
+             symname);
+      }
     }
     // todo: destroy
     // todo: exception handling
