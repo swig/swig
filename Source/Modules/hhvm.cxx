@@ -880,7 +880,6 @@ public:
 
     Printf(f_classes, "  static HPHP::Class* getClass();\n");
     Printf(f_classes, "  void sweep() {\n");
-    Printf(f_classes, "     delete _obj_ptr;\n");
     Printf(f_classes, "    _obj_ptr = nullptr;\n");
     Printf(f_classes, "  }\n");
     Printf(f_classes, "  ~%s() { sweep(); }\n\n", wname);

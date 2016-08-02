@@ -19,7 +19,7 @@
   "KindOfInt64";
 
 %typemap(consttab) bool
-  "KindOfBoolean";t
+  "KindOfBoolean";
 
 %typemap(consttab) float,
                    double
@@ -355,9 +355,6 @@ class _wrap_$hhclassname {
 public:
   static HPHP::Class* getClass();
   void sweep() {
-    if (!isRef) {
-      delete _obj_ptr;
-    }
     _obj_ptr = nullptr;
   }
   ~_wrap_$hhclassname() { sweep(); }
