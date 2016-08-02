@@ -11,6 +11,7 @@
                    short,
                    unsigned short,
                    long,
+                   long long,
                    unsigned long,
                    unsigned char,
                    signed char,
@@ -18,7 +19,7 @@
   "KindOfInt64";
 
 %typemap(consttab) bool
-  "KindOfBoolean";
+  "KindOfBoolean";t
 
 %typemap(consttab) float,
                    double
@@ -39,6 +40,7 @@
                   short,
                   unsigned short,
                   long,
+                  long long,
                   unsigned long,
                   unsigned char,
                   signed char,
@@ -78,6 +80,7 @@
                   short,
                   unsigned short,
                   long,
+                  long long,
                   unsigned long,
                   unsigned char,
                   signed char,
@@ -115,7 +118,8 @@
 
 /* in typemap */
 
-%typemap(in) short, 
+%typemap(in) bool,
+             short, 
              unsigned short, 
              int, 
              unsigned int, 
@@ -161,6 +165,7 @@
               short,
               unsigned short,
               long,
+              long long,
               unsigned long,
               unsigned char,
               signed char, 
@@ -219,6 +224,7 @@
                     short,
                     unsigned short,
                     long,
+                    long long,
                     unsigned long,
                     unsigned char,
                     signed char,
@@ -314,6 +320,7 @@ bool, const bool &
                   short,
                   unsigned short,
                   long,
+                  long long,
                   unsigned long,
                   unsigned char,
                   signed char,
