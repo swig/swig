@@ -6,6 +6,49 @@
 
 %runtime "hhvmrun.swg" // runtime functions
 
+/* Fragments */
+%fragment("SWIG_PackData", "header") {
+/* Pack binary data into a string */
+SWIGINTERN char * SWIG_PackData(char *c, void *ptr, size_t sz) {
+  static const char hex[17] = "0123456789abcdef";
+  const unsigned char *u = (unsigned char *) ptr;
+  const unsigned char *eu =  u + sz;
+  for (; u != eu; ++u) {
+    unsigned char uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+}
+
+%fragment("SWIG_UnPackData", "header") {
+/* Unpack binary data from a string */
+SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
+  unsigned char *u = (unsigned char *) ptr;
+  const unsigned char *eu = u + sz;
+  for (; u != eu; ++u) {
+    char d = *(c++);
+    unsigned char uu;
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    else 
+      return (char *) 0;
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    else 
+      return (char *) 0;
+    *u = uu;
+  }
+  return c;
+}
+}
+
 %typemap(consttab) int,
                    unsigned int,
                    short,
@@ -147,15 +190,15 @@
               SWIGTYPE [],
               SWIGTYPE &,
               SWIGTYPE &&
-%{$1 = *($&1_ltype)&(HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr);%}
+%{$1 = ($1_ltype)HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr;%}
 
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{
-  argp = *($&1_ltype*)&(HPHP::Native::data<_wrap_$&hhclassname>($input)->_obj_ptr);
+  argp = ($&1_ltype)HPHP::Native::data<_wrap_$&hhclassname>($input)->_obj_ptr;
   $1 = *argp;
 %} 
 
-%typemap(in) SWIGTYPE (CLASS::*) %{
+%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{
   const char *temp = HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr.c_str(); 
   SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
 %}
@@ -199,14 +242,14 @@
 %{
   $result = HPHP::Object(_wrap_$hhclassname::getClass());
   auto wrap_$1 = HPHP::Native::data<_wrap_$hhclassname>($result.toObject());
-  *($&1_ltype)&wrap_$1->_obj_ptr = $1;
+  wrap_$1->_obj_ptr = (void *)$1;
   wrap_$1->isRef = true;
 %} 
 
-%typemap(out) SWIGTYPE (CLASS::*) %{
+%typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
   auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$&hhclassname"));
   $result = HPHP::Object(cls);
-  auto wrap_$1 = HPHP::Native::data<_wrap_$&hhclassname>($result);
+  auto wrap_$1 = HPHP::Native::data<_wrap_$&hhclassname>($result.toObject());
   char buf[128];
   char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
   *data = '\0';
@@ -218,7 +261,7 @@
   auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$&hhclassname"));
   $result = HPHP::Object(cls);
   auto wrap_$1 = HPHP::Native::data<_wrap_$&hhclassname>($result);
-  *($&1_ltype*)&wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
+  wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
 %} 
 
 /* php types */
@@ -357,13 +400,13 @@ class _wrap_$hhclassname {
 public:
   static HPHP::Class* getClass();
   void sweep() {
-    _obj_ptr = 0;
+    _obj_ptr = nullptr;
   }
   ~_wrap_$hhclassname() { sweep(); }
 
   static HPHP::Class* s_class;
   static const HPHP::StaticString s_className;
-  int64_t _obj_ptr{0};
+  void* _obj_ptr{nullptr};
   bool isRef{false};
 };
 

@@ -473,7 +473,7 @@ public:
       String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       Printf(f_link, "  if (!Native::data<%s>(this_)->isRef)\n", wclassname);
       Printf(f_link, "    %s(%s);\n", wname, call_parms);
-      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = 0;\n", wclassname);
+      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = nullptr;\n", wclassname);
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
