@@ -66,6 +66,8 @@ public:
     /* Output module initialization code */
     Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n\n#ifndef SWIGHHVM\n#define SWIGHHVM\n#endif\n\n");
+
     Printf(f_begin, "\n");
     Printf(f_begin, "#include \"hphp/runtime/ext/extension.h\"\n");
     Printf(f_begin, "#include \"hphp/runtime/base/execution-context.h\"\n");
