@@ -220,7 +220,7 @@ setup = \
 # Runs the testcase. Tries to run testcase_runme.php.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	   $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile HHVM_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' hhvm_run; \
+	   $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile HHVM_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) TARGET='$*/$*' RUNTOOL='$(RUNTOOL)' hhvm_run; \
 	fi
 
 # Clean: remove testcase directories

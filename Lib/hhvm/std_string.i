@@ -48,7 +48,7 @@ class string;
 %typemap(argout) string & %{$result.assignIfRef(*$1);%}
 
 %typemap(throws) string, const string& %{
-	throw HPHP::Object(HPHP::SystemLib::AllocRuntimeExceptionObject($1));
+	HPHP::SystemLib::throwRuntimeExceptionObject($1);
 	return;
 %}
 }
