@@ -466,16 +466,14 @@ public:
       }
       Printf(f_link, "%s(%s);\n", wname, call_parms);
     } else if (is_constructor) {
-      String *overresolve = is_overloaded ? NewString(".toObject()") : NULL;
-      Printf(f_link, "  auto new_obj = %s(%s)%s;\n", wname, call_parms, overresolve);
+      Printf(f_link, "  auto new_obj = %s(%s);\n", wname, call_parms);
       String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
-      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = Native::data<%s>(new_obj)->_obj_ptr;\n", wclassname, wclassname);
-      Printf(f_link, "  Native::data<%s>(new_obj)->_obj_ptr = nullptr;\n", wclassname);
+      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = Native::data<%s>(new_obj.toObject())->_obj_ptr;\n", wclassname, wclassname);
     } else if(is_destructor) {
       String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
       Printf(f_link, "  if (!Native::data<%s>(this_)->isRef)\n", wclassname);
       Printf(f_link, "    %s(%s);\n", wname, call_parms);
-      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = nullptr;\n", wclassname);
+      Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = 0;\n", wclassname);
     } else {
       Printf(f_link, "  ");
       if (!is_void_return) {
@@ -867,8 +865,6 @@ public:
     }
 
     Printf(f_phpcode, "class %s ", name);
-    Printf(f_classes, "class %s {\n", wname);
-    Printf(f_classes, "public:\n");
     String *baseclass = NULL;
     if (base.item && Getattr(base.item, "module")) {
       baseclass = Getattr(base.item, "sym:name");
@@ -880,19 +876,15 @@ public:
     }
     Printf(f_phpcode, "{\n");
 
-    Printf(f_classes, "  static HPHP::Class* getClass();\n");
-    Printf(f_classes, "  void sweep() {\n");
-    Printf(f_classes, "    _obj_ptr = nullptr;\n");
-    Printf(f_classes, "  }\n");
-    Printf(f_classes, "  ~%s() { sweep(); }\n\n", wname);
-    Printf(f_classes, "  static HPHP::Class* s_class;\n");
-    Printf(f_classes, "  static const HPHP::StaticString s_className;\n");
-    Printf(f_classes, "  %s* _obj_ptr{nullptr};\n", Getattr(n, "classtype"));
-    Printf(f_classes, "  bool isRef{false};\n");
-    Printf(f_classes, "}; // class %s\n\n", wname);
-    Printf(f_classes, "HPHP::Class* %s::s_class = nullptr;\n", wname);
-    Printf(f_classes, "const HPHP::StaticString %s::s_className(\"%s\");\n\n", wname, name);
-    Printf(f_classes, "IMPLEMENT_GET_CLASS(%s)\n\n", wname);
+    {
+      SwigType *t = Copy(Getattr(n, "sym:name"));
+      SwigType_add_pointer(t);
+      Node *node = NewHash();
+      Setattr(node, "type", t);
+      String *tm = Swig_typemap_lookup("hhwrapclass", node, "", 0);
+      Replaceall(tm, "$hhclassname", name);
+      Printv(f_classes, tm, NIL);
+    }
 
     Printf(f_register, "    Native::registerNativeDataInfo<%s>(%s::s_className.get());\n\n", wname, wname);
 

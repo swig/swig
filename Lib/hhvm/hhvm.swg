@@ -60,13 +60,11 @@
                    char [ANY],
                    char [],
                    const char []
-  "const HPHP::String&";
+  "const HPHP::String&";                        
 
 %typemap(hni_parmtype)  SWIGTYPE *,
-                        SWIGTYPE []
-  "const HPHP::Object&";                        
-
-%typemap(hni_parmtype)  SWIGTYPE &,
+                        SWIGTYPE [],
+                        SWIGTYPE &,
                         SWIGTYPE &&
   "HPHP::VRefParam";
 
@@ -106,10 +104,8 @@
   "void";
 
 %typemap(hni_rttype)  SWIGTYPE *,
-                      SWIGTYPE []
- "HPHP::Object";
-
-%typemap(hni_rttype)  SWIGTYPE &,
+                      SWIGTYPE [],
+                      SWIGTYPE &,
                       SWIGTYPE &&
   "HPHP::Variant";
 
@@ -148,16 +144,21 @@
 %{$1 = (char *)$input.c_str();%}
 
 %typemap(in)  SWIGTYPE *,
-              SWIGTYPE []
-%{$1 = HPHP::Native::data<_wrap_$hhclassname>($input)->_obj_ptr;%}
-
-%typemap(in)  SWIGTYPE &,
+              SWIGTYPE [],
+              SWIGTYPE &,
               SWIGTYPE &&
-%{$1 = HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr;%}
+%{$1 = *($&1_ltype)&(HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr);%}
 
-%typemap(in) SWIGTYPE
-%{$1 = *(HPHP::Native::data<_wrap_$&hhclassname>($input)->_obj_ptr);%} 
+%typemap(in) SWIGTYPE ($&1_type argp)
+%{
+  argp = *($&1_ltype*)&(HPHP::Native::data<_wrap_$&hhclassname>($input)->_obj_ptr);
+  $1 = *argp;
+%} 
 
+%typemap(in) SWIGTYPE (CLASS::*) %{
+  const char *temp = HPHP::Native::data<_wrap_$hhclassname>($input.toObject())->_obj_ptr.c_str(); 
+  SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
+%}
 /* out typemaps */
 
 %typemap(out) int,
@@ -192,29 +193,32 @@
 %typemap(out) void ""
 
 %typemap(out) SWIGTYPE *,
-              SWIGTYPE []
-%{
-  $result = HPHP::Object(_wrap_$hhclassname::getClass());
-  auto wrap_$1 = HPHP::Native::data<_wrap_$hhclassname>($result);
-  wrap_$1->_obj_ptr = $1;
-  wrap_$1->isRef = true;
-%}              
-
-%typemap(out) SWIGTYPE &,
+              SWIGTYPE [],
+              SWIGTYPE &,
               SWIGTYPE &&
 %{
   $result = HPHP::Object(_wrap_$hhclassname::getClass());
   auto wrap_$1 = HPHP::Native::data<_wrap_$hhclassname>($result.toObject());
-  wrap_$1->_obj_ptr = $1;
+  *($&1_ltype)&wrap_$1->_obj_ptr = $1;
   wrap_$1->isRef = true;
 %} 
+
+%typemap(out) SWIGTYPE (CLASS::*) %{
+  auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$&hhclassname"));
+  $result = HPHP::Object(cls);
+  auto wrap_$1 = HPHP::Native::data<_wrap_$&hhclassname>($result);
+  char buf[128];
+  char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+  *data = '\0';
+  wrap_$1->_obj_ptr = HPHP::String::FromCStr(buf);
+%}
 
 %typemap(out) SWIGTYPE
 %{
   auto cls = HPHP::Unit::lookupClass(HPHP::makeStaticString("$&hhclassname"));
   $result = HPHP::Object(cls);
   auto wrap_$1 = HPHP::Native::data<_wrap_$&hhclassname>($result);
-  wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
+  *($&1_ltype*)&wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
 %} 
 
 /* php types */
@@ -250,10 +254,8 @@
   "void";
 
 %typemap(php_type)  SWIGTYPE *,
-                    SWIGTYPE []
-  "$hhclassname";
-
-%typemap(php_type)  SWIGTYPE &,
+                    SWIGTYPE [],
+                    SWIGTYPE &,
                     SWIGTYPE &&
   "mixed&";
 
@@ -355,13 +357,13 @@ class _wrap_$hhclassname {
 public:
   static HPHP::Class* getClass();
   void sweep() {
-    _obj_ptr = nullptr;
+    _obj_ptr = 0;
   }
   ~_wrap_$hhclassname() { sweep(); }
 
   static HPHP::Class* s_class;
   static const HPHP::StaticString s_className;
-  $1_ltype _obj_ptr{nullptr};
+  int64_t _obj_ptr{0};
   bool isRef{false};
 };
 
@@ -370,4 +372,27 @@ const HPHP::StaticString _wrap_$hhclassname::s_className("$hhclassname");
 
 IMPLEMENT_GET_CLASS(_wrap_$hhclassname)
 
-%}                    
+%}
+
+%typemap(hhwrapclass) SWIGTYPE (CLASS::*) %{
+
+class _wrap_$hhclassname {
+public:
+  static HPHP::Class* getClass();
+  void sweep() {
+    _obj_ptr.clear();
+  }
+  ~_wrap_$hhclassname() { sweep(); }
+
+  static HPHP::Class* s_class;
+  static const HPHP::StaticString s_className;
+  HPHP::String _obj_ptr;
+  bool isRef{false};
+};
+
+HPHP::Class* _wrap_$hhclassname::s_class = nullptr;
+const HPHP::StaticString _wrap_$hhclassname::s_className("$hhclassname");
+
+IMPLEMENT_GET_CLASS(_wrap_$hhclassname)
+
+%}                       
