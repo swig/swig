@@ -212,35 +212,6 @@
   wrap_$1->_obj_ptr = new $1_ltype((const $1_ltype &) $1);
 %} 
 
-/* Ref for basic types */
-%define as_ref(TYPE)
-%typemap(in)  TYPE &,
-              TYPE &&
-%{
-  $*1_ltype ref$1 = ($*1_ltype)$input;
-  $1 = &ref$1;
-%}
-
-%typemap(out) TYPE &,
-              TYPE &&
-%{$result = ($1_ltype)$1;%} 
-
-%typemap(argout) TYPE &,
-                 TYPE &&
-%{$result.assignIfRef(*$1);%}
-%enddef
-as_ref(short); 
-as_ref(unsigned short); 
-as_ref(int); 
-as_ref(unsigned int); 
-as_ref(long); 
-as_ref(unsigned long); 
-as_ref(long long); 
-as_ref(unsigned long long); 
-as_ref(float); 
-as_ref(double);
-as_ref(enum SWIGTYPE)
-
 /* php types */
 
 %typemap(php_type)  int,

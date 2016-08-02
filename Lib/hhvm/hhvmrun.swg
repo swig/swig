@@ -7,6 +7,12 @@
                 return s_class; \
         }
 
+#if (HHVM_VERSION_MAJOR > 3 || (HHVM_VERSION_MAJOR == 3 && HHVM_VERSION_MINOR >= 13))
+ #define HHVM_PROP_CONST const
+#else
+ #define HHVM_PROP_CONST 
+#endif
+
 namespace HPHP {
 namespace {
 

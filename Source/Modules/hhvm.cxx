@@ -956,7 +956,7 @@ public:
 
     if ((wname = Getattr(class_set_vars, varname))) {
       String *accname = NewStringf("SWIG_set_%s_%s", classname, varname);
-      Printf(f_link, "static void %s(const Object& this_, const Variant& value) {\n", accname);
+      Printf(f_link, "static void %s(const Object& this_, HHVM_PROP_CONST Variant& value) {\n", accname);
       Printf(f_link, "  auto data = Object(this_);\n", wclassname);
       if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
         Printf(f_link, "  %s(data, value.%s());\n", wname, tm);
