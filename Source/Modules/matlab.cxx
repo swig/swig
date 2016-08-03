@@ -2721,6 +2721,9 @@ void MATLAB::createSwigRef() {
   Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"  end\n");
   Printf(f_wrap_m,"  methods\n");
+  Printf(f_wrap_m,"    function out = saveobj(self)\n");
+  Printf(f_wrap_m,"      error('Serializing SWIG objects not supported.')\n");
+  Printf(f_wrap_m,"    end\n");
   Printf(f_wrap_m,"    function b = isnull(self)\n");
   Printf(f_wrap_m,"      b = isempty(self.swigPtr);\n");
   Printf(f_wrap_m,"    end\n");
