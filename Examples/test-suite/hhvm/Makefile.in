@@ -85,7 +85,6 @@ FAILING_CPP_TESTS =         \
     pointer_reference       \
     primitive_ref           \
     redefined               \
-    refcount                \
     rename_scope            \
     return_const_value      \
     sizet                   \
