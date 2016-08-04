@@ -89,24 +89,10 @@ FAILING_CPP_TESTS =         \
     rename_scope            \
     return_const_value      \
     sizet                   \
-    smart_pointer_const     \
-    smart_pointer_const2    \
     smart_pointer_const_overload    \
-    smart_pointer_extend    \
-    smart_pointer_ignore    \
     smart_pointer_inherit   \
     smart_pointer_member    \
-    smart_pointer_multi     \
-    smart_pointer_multi_typedef \
-    smart_pointer_namespace     \
-    smart_pointer_namespace2    \
-    smart_pointer_overload  \
-    smart_pointer_rename    \
-    smart_pointer_simple    \
-    smart_pointer_template_const_overload   \
     smart_pointer_template_defaults_overload    \
-    smart_pointer_templatemethods   \
-    smart_pointer_typedef   \
     special_variable_macros \
     special_variables       \
     template_default        \
