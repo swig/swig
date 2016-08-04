@@ -311,6 +311,8 @@ public:
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
+    String *cppvalue = Getattr(n, "cppvalue");
+    if (cppvalue) value = cppvalue;
     String *tm;
 
     if (!addSymbol(iname, n))
