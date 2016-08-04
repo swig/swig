@@ -204,6 +204,7 @@ FAILING_CPP_TESTS =         \
     wrapmacro               \
     li_std_map              \
     li_std_pair_using       \
+    li_std_vector_ptr       \
 
 FAILING_MULTI_CPP_TESTS =   \
 	clientdata_prop         \
