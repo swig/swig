@@ -362,20 +362,20 @@ public:
 
     Printf(f_phpcode, "<<__Native>>\n");
     if (is_constructor){
-      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
-      classname = GetChar(Swig_methodclass(n), "sym:name");
+      wclassname = GetChar(getCurrentClass(), "wrap:name");
+      classname = GetChar(getCurrentClass(), "sym:name");
       Printf(f_register, "    HHVM_MALIAS(%s, __construct, %s, __construct);\n", classname, wclassname);
       Printf(f_link, "HHVM_METHOD(%s, __construct", wclassname);
       Printf(f_phpcode, "function __construct(");
     } else if (is_destructor) {
-      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
-      classname = GetChar(Swig_methodclass(n), "sym:name");
+      wclassname = GetChar(getCurrentClass(), "wrap:name");
+      classname = GetChar(getCurrentClass(), "sym:name");
       Printf(f_register, "    HHVM_MALIAS(%s, __destruct, %s, __destruct);\n", classname, wclassname);
       Printf(f_link, "HHVM_METHOD(%s, __destruct", wclassname);
       Printf(f_phpcode, "function __destruct(");
     } else if (staticmethodwrapper || is_static) {
-      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
-      classname = GetChar(Swig_methodclass(n), "sym:name");
+      wclassname = GetChar(getCurrentClass(), "wrap:name");
+      classname = GetChar(getCurrentClass(), "sym:name");
       if (staticmethodwrapper)
         methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
       else
@@ -384,8 +384,8 @@ public:
       Printf(f_link, "HHVM_STATIC_METHOD(%s, %s", wclassname, methodname);
       Printf(f_phpcode, "static %s function %s(", acc, methodname);
     } else if (is_member) {
-      wclassname = GetChar(Swig_methodclass(n), "wrap:name");
-      classname = GetChar(Swig_methodclass(n), "sym:name");
+      wclassname = GetChar(getCurrentClass(), "wrap:name");
+      classname = GetChar(getCurrentClass(), "sym:name");
       if (Getattr(n, "memberfunctionHandler:sym:name")) {
         methodname = Getattr(n, "memberfunctionHandler:sym:name");
       } else {
@@ -467,10 +467,10 @@ public:
       Printf(f_link, "%s(%s);\n", wname, call_parms);
     } else if (is_constructor) {
       Printf(f_link, "  auto new_obj = %s(%s);\n", wname, call_parms);
-      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      String *wclassname = GetChar(getCurrentClass(), "wrap:name");
       Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = Native::data<%s>(new_obj.toObject())->_obj_ptr;\n", wclassname, wclassname);
     } else if(is_destructor) {
-      String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+      String *wclassname = GetChar(getCurrentClass(), "wrap:name");
       Printf(f_link, "  if (!Native::data<%s>(this_)->isRef)\n", wclassname);
       Printf(f_link, "    %s(%s);\n", wname, call_parms);
       Printf(f_link, "  Native::data<%s>(this_)->_obj_ptr = nullptr;\n", wclassname);
@@ -967,16 +967,11 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
+    String *wclassname = GetChar(getCurrentClass(), "wrap:name");
     String *name = GetChar(n, "name");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
-    bool is_enum = (Cmp(Getattr(n, "nodeType"), "enumitem") == 0);
-
-    if (is_enum) {
-      wclassname = GetChar(parentNode(Swig_methodclass(n)), "wrap:name");
-    }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       if (Strcmp(tm, "KindOfPersistentString") == 0) {
