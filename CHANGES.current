@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-08-05: olly
+            [xml] Fix how the output filename is built to avoid problems when
+            it contains the embedded strings ".c", ".cpp" or ".cxx".
+            Fixes #540 reported by djack42.
+
 2016-07-01: wsfulton
             Fix corner case of wrapping std::vector of T pointers where a pointer to a pointer of T
             also exists in the wrapped code. SF Bug 2359417 (967).
