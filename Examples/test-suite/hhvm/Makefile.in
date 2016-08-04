@@ -15,13 +15,13 @@ FAILING_C_TESTS +=          \
     enums                   \
     inctest                 \
     nested                  \
-    nested_structs          \
     nested_extend_c         \
-    overload_extend_c       \
+    nested_structs          \
     overload_extend2        \
+    overload_extend_c       \
     preproc_include         \
-    typemap_subst           \
     typedef_struct          \
+    typemap_subst           \
 
 FAILING_CPP_TESTS =         \
     aggregate               \
@@ -30,19 +30,19 @@ FAILING_CPP_TESTS =         \
     autodoc                 \
     catches                 \
     class_scope_weird       \
-    constructor_copy        \
     constant_pointers       \
+    constructor_copy        \
     contract                \
     cpp_basic               \
-    default_constructor     \
-    defvalue_constructor    \
-    director_basic          \
     default_args            \
+    default_constructor     \
     default_target          \
+    defvalue_constructor    \
     director_abstract       \
+    director_basic          \
     director_nspace         \
-    director_property       \
     director_overload       \
+    director_property       \
     dynamic_cast            \
     exception_order         \
     extend_placement        \
@@ -55,12 +55,17 @@ FAILING_CPP_TESTS =         \
     kwargs_feature          \
     li_boost_shared_ptr     \
     li_boost_shared_ptr_bits    \
+    li_std_combinations     \
     li_std_deque            \
+    li_std_except           \
     li_std_except_as_class  \
+    li_std_map              \
     li_std_pair             \
-    li_std_vector_enum      \
+    li_std_pair_using       \
     li_std_vector           \
+    li_std_vector_enum      \
     li_std_vector_member_var    \
+    li_std_vector_ptr       \
     li_swigtype_inout       \
     li_typemaps             \
     li_typemaps_apply       \
@@ -107,12 +112,12 @@ FAILING_CPP_TESTS =         \
     smart_pointer_rename    \
     smart_pointer_simple    \
     smart_pointer_template_const_overload   \
-    smart_pointer_templatemethods   \
     smart_pointer_template_defaults_overload    \
+    smart_pointer_templatemethods   \
     smart_pointer_templatevariables \
     smart_pointer_typedef   \
-    special_variables       \
     special_variable_macros \
+    special_variables       \
     template_default        \
     template_default_arg    \
     template_default_arg_overloaded \
@@ -120,7 +125,6 @@ FAILING_CPP_TESTS =         \
     template_default_class_parms_typedef    \
     template_default_vw     \
     template_extend_overload    \
-    typemap_namespace       \
     template_ns             \
     template_opaque         \
     template_type_namespace \
@@ -128,18 +132,13 @@ FAILING_CPP_TESTS =         \
     template_typedef_cplx3  \
     template_typedef_cplx4  \
     template_typedef_fnc    \
+    typemap_namespace       \
     typemap_out_optimal     \
     typemap_qualifier_strip \
     valuewrapper            \
-    virtual_poly            \
     valuewrapper_opaque     \
     virtual_poly            \
-    li_std_combinations     \
-    li_std_except           \
     wrapmacro               \
-    li_std_map              \
-    li_std_pair_using       \
-    li_std_vector_ptr       \
 
 FAILING_MULTI_CPP_TESTS =   \
 	clientdata_prop         \
