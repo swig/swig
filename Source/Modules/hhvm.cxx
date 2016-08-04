@@ -930,16 +930,14 @@ public:
   virtual int membervariableHandler(Node *n) {
     String *varname = Getattr(n, "sym:name");
     String *wname, *tm;
-    String *classname = GetChar(Swig_methodclass(n), "sym:name");
-    String *wclassname = GetChar(Swig_methodclass(n), "wrap:name");
     String *out_str = NewStringf("  { \"%s\", ", varname);
     
     Language::membervariableHandler(n);
 
     if ((wname = Getattr(class_get_vars, varname))) {
-      String *accname = NewStringf("SWIG_get_%s_%s", classname, varname);
+      String *accname = NewStringf("SWIG%s", wname);
       Printf(f_link, "static Variant %s(const Object& this_) {\n", accname);
-      Printf(f_link, "  auto data = Object(this_);\n", wclassname);
+      Printf(f_link, "  auto data = Object(this_);\n");
       Printf(f_link, "  return Variant(%s(data));\n", wname);
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s, ", accname);
@@ -948,9 +946,9 @@ public:
     }
 
     if ((wname = Getattr(class_set_vars, varname))) {
-      String *accname = NewStringf("SWIG_set_%s_%s", classname, varname);
+      String *accname = NewStringf("SWIG%s", wname);
       Printf(f_link, "static void %s(const Object& this_, HHVM_PROP_CONST Variant& value) {\n", accname);
-      Printf(f_link, "  auto data = Object(this_);\n", wclassname);
+      Printf(f_link, "  auto data = Object(this_);\n");
       if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
         Printf(f_link, "  %s(data, value.%s());\n", wname, tm);
       }
