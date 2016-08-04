@@ -343,7 +343,7 @@ public:
     bool is_member = Getattr(n, "ismember");
     bool is_constructor = (Cmp(Getattr(n, "nodeType"), "constructor") == 0);
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
-    bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0);
+    bool is_static = (Cmp(Getattr(n, "storage"), "static") == 0) && in_class;
 
     if (is_constructor || is_destructor) {
       Printf(f_link, "void ");
