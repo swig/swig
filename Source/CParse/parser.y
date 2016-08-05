@@ -2899,16 +2899,15 @@ c_declaration   : c_decl {
 		  SWIG_WARN_NODE_END($$);
 		}
                 | USING idcolon EQUAL type plain_declarator SEMI {
-		  $$ = new_node("using");
-		  Setattr($$,"name",$2);
+		  /* Convert using statement to a typedef statement */
+		  $$ = new_node("cdecl");
 		  SwigType_push($4,$5.type);
-		  Setattr($$,"uname",$4);
+		  Setattr($$,"type",$4);
+		  Setattr($$,"storage","typedef");
+		  Setattr($$,"name",$2);
+		  Setattr($$,"decl","");
+		  SetFlag($$,"typealias");
 		  add_symbols($$);
-		  SWIG_WARN_NODE_BEGIN($$);
-		  Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line, "The 'using' keyword in type aliasing is not fully supported yet.\n");
-		  SWIG_WARN_NODE_END($$);
-
-		  $$ = 0; /* TODO - ignored for now */
 		}
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
 		  $$ = new_node("using");

@@ -29,7 +29,7 @@
 <li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
 <li><a href="#CPlusPlus11_double_angle_brackets">Double angle brackets</a>
 <li><a href="#CPlusPlus11_explicit_conversion_operators">Explicit conversion operators</a>
-<li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
+<li><a href="#CPlusPlus11_alias_templates">Type alias and alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
 <li><a href="#CPlusPlus11_new_string_literals">New string literals</a>
@@ -52,7 +52,7 @@
 <li><a href="#CPlusPlus11_general_purpose_smart_pointers">General-purpose smart pointers</a>
 <li><a href="#CPlusPlus11_extensible_random_number_facility">Extensible random number facility</a>
 <li><a href="#CPlusPlus11_wrapper_reference">Wrapper reference</a>
-<li><a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphous wrappers for function objects</a>
+<li><a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>
 <li><a href="#CPlusPlus11_type_traits_for_metaprogramming">Type traits for metaprogramming</a>
 <li><a href="#CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects">Uniform method for computing return type of function objects</a>
 </ul>
@@ -603,8 +603,28 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.16 Alias templates</a></H3>
+<H3><a name="CPlusPlus11_alias_templates">7.2.16 Type alias and alias templates</a></H3>
 
+
+<p>
+A type alias is a statement of the form:
+</p>
+
+<div class="code"><pre>
+using PFD = void (*)(double); // New introduced syntax
+</pre></div>
+
+<p>
+which is equivalent to the old style typedef:
+</p>
+
+<div class="code"><pre>
+typedef void (*PFD)(double);  // The old style
+</pre></div>
+
+<p>
+SWIG supports type aliasing.
+</p>
 
 <p>
 The following is an example of an alias template:
@@ -631,31 +651,6 @@ These are partially supported as SWIG will parse these and identify them, howeve
 example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
 </pre>
 </div>
-
-<p>
-Similarly for non-template type aliasing:
-</p>
-
-<div class="code"><pre>
-using PFD = void (*)(double); // New introduced syntax
-</pre></div>
-
-<p>
-A warning will be issued:
-</p>
-
-<div class="shell">
-<pre>
-example.i:17: Warning 341: The 'using' keyword in type aliasing is not fully supported yet.
-</pre>
-</div>
-
-
-<p>The equivalent old style typedefs can be used as a workaround:</p>
-
-<div class="code"><pre>
-typedef void (*PFD)(double);  // The old style
-</pre></div>
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 
@@ -1034,7 +1029,7 @@ Users would need to write their own typemaps if wrapper references are being use
 </p>
 
 
-<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphous wrappers for function objects</a></H3>
+<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphic wrappers for function objects</a></H3>
 
 
 <p>

@@ -81,9 +81,11 @@ public:
   virtual int top(Node *n) {
     if (out == 0) {
       String *outfile = Getattr(n, "outfile");
-      Replaceall(outfile, ".cxx", ".xml");
-      Replaceall(outfile, ".cpp", ".xml");
-      Replaceall(outfile, ".c", ".xml");
+      String *ext = Swig_file_extension(outfile);
+      // If there's an extension, ext will include the ".".
+      Delslice(outfile, Len(outfile) - Len(ext), DOH_END);
+      Delete(ext);
+      Append(outfile, ".xml");
       out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);

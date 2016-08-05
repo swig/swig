@@ -210,10 +210,14 @@ public:
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
 	   if (symname && !GetFlag(n, "feature:flatnested")) {
-	     for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-	       Push(symname, jnidescriptor ? "$" : ".");
-	       Push(symname, Getattr(outer_class, "sym:name"));
-	     }
+             for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+               if (String* name = Getattr(outer_class, "sym:name")) {
+                 Push(symname, jnidescriptor ? "$" : ".");
+                 Push(symname, name);
+               }
+               else
+                 return NULL;
+             }
 	   }
 	   if (nspace) {
 	     if (package && !jnidescriptor)

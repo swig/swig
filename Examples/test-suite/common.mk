@@ -87,7 +87,6 @@ CPP_TEST_BROKEN += \
 	director_nested_class \
 	exception_partial_info \
 	extend_variable \
-	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
@@ -308,6 +307,7 @@ CPP_TEST_CASES += \
 	nested_class \
 	nested_directors \
 	nested_comment \
+	nested_ignore \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \
@@ -587,6 +587,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector \
 	li_std_vector_enum \
 	li_std_vector_member_var\
+	li_std_vector_ptr \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
