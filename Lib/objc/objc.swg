@@ -228,20 +228,19 @@
  * OUT TYPEMAPS: Used for return-type type conversions: C++ to ObjectiveC++
  */
 //Primary types
-%typemap(out) char,
-            signed char,
-            unsigned char,
-            short,
-            unsigned short,
-            int,
-            unsigned int,
-            long,
-            unsigned long,
-            long long,
-            unsigned long long,
-            float,
-            double
-%{ $result = $1; %}
+%typemap(out) char               %{ $result = (char)$1; %}
+%typemap(out) signed char        %{ $result = (signed char)$1; %}
+%typemap(out) unsigned char      %{ $result = (unsigned char)$1; %}
+%typemap(out) short              %{ $result = (short)$1; %}
+%typemap(out) unsigned short     %{ $result = (unsigned short)$1; %}
+%typemap(out) int                %{ $result = (int)$1; %}
+%typemap(out) unsigned int       %{ $result = (unsigned int)$1; %}
+%typemap(out) long               %{ $result = (long)$1; %}
+%typemap(out) unsigned long      %{ $result = (unsigned long)$1; %}
+%typemap(out) long long          %{ $result = (long long)$1; %}
+%typemap(out) unsigned long long %{ $result = (unsigned long long)$1; %}
+%typemap(out) float              %{ $result = (float)$1; %}
+%typemap(out) double             %{ $result = (double)$1; %}
 
 %typemap(directorin) char,
 		     signed char,
