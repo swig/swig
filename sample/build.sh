@@ -1,2 +1,2 @@
 hphpize
-cmake . && make
+cmake -Wno-dev . && make
