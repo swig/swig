@@ -407,7 +407,7 @@ public:
       Parm *p = parms;
 
       // Skip the class pointer
-      if (!is_constructor && !staticmethodwrapper && !is_static && in_class) {
+      if (!is_constructor && !staticmethodwrapper && !is_static && is_member) {
         p = nextSibling(p);
       }
 
@@ -454,7 +454,7 @@ public:
     Printf(f_link, ") {\n");
     Printf(f_phpcode, ";\n\n");
 
-    if (in_class && !staticmethodwrapper && !is_static) {
+    if (is_member && !staticmethodwrapper && !is_static) {
     Printf(f_link, "  auto data = Object(this_);\n", classname);
       if (!is_constructor) {
         Replaceall(call_parms, "arg1", "data");
