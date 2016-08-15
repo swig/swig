@@ -54,6 +54,7 @@ FAILING_CPP_TESTS =         \
     li_std_map              \
     li_std_pair             \
     li_std_pair_using       \
+    li_std_string           \
     li_std_vector           \
     li_std_vector_enum      \
     li_std_vector_member_var    \
@@ -75,6 +76,7 @@ FAILING_CPP_TESTS =         \
     overload_method         \
     overload_rename         \
     overload_return_type    \
+    overload_simple         \
     overload_template       \
     overload_template_fast  \
     pointer_reference       \

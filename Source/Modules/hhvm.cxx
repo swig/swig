@@ -407,7 +407,7 @@ public:
       Parm *p = parms;
 
       // Skip the class pointer
-      if (!is_constructor && !staticmethodwrapper && !is_static && is_member) {
+      if (!is_constructor && !staticmethodwrapper && !is_static && (is_member || is_destructor)) {
         p = nextSibling(p);
       }
 
@@ -454,10 +454,14 @@ public:
     Printf(f_link, ") {\n");
     Printf(f_phpcode, ";\n\n");
 
-    if (is_member && !staticmethodwrapper && !is_static) {
-    Printf(f_link, "  auto data = Object(this_);\n", classname);
+    if ((is_member || is_destructor) && !staticmethodwrapper && !is_static) {
+      Printf(f_link, "  auto data = Object(this_);\n", classname);
       if (!is_constructor) {
         Replaceall(call_parms, "arg1", "data");
+        if (is_overloaded) {
+          Printf(f_link, "  Array args = Array::Create(data) + argv;\n");
+          Replaceall(call_parms, "argv", "args");
+        }
       }
     }
 
@@ -625,10 +629,9 @@ public:
   void dispatchFunction(Node *n) {
     /* Last node in overloaded chain */
 
-    String *tmp = NewStringEmpty();
-    Printf(tmp, "result = %%s($commaargs);\n");
-    Printf(tmp, "if (result.isInitialized()) {\n return result; \n}");
-    String *dispatch = hhvm_overload_dispatch(n);
+    int maxargs;
+    const char* ret = "return %s(argv);\n";
+    String *dispatch = Swig_overload_dispatch(n, ret, &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -643,7 +646,6 @@ public:
 
     Printf(wrapper->def, "HPHP::Variant %s(const HPHP::Array& argv) {\n", wname);
     Wrapper_add_local(wrapper, "argc", "int argc");
-    Wrapper_add_local(wrapper, "result", "HPHP::Variant result");
     Printf(wrapper->code, "argc = argv.size();\n");
 
     Printv(wrapper->code, dispatch, "\n", NIL);
@@ -659,7 +661,6 @@ public:
 
     DelWrapper(wrapper);
     Delete(dispatch);
-    Delete(tmp);
     Delete(wname);
   }
 
@@ -705,7 +706,10 @@ public:
     Setattr(n, "wrap:parms", parms);
 
     Printf(wrapper->def, "SWIGINTERN\n");
-    if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
+    if (overloaded) {
+      Printv(wrapper->def, "HPHP::Variant ", NIL);
+      Printf(return_type, "HPHP::Variant");
+    } else if ((tm = Swig_typemap_lookup("hni_rttype", n, "", 0))) {
       Printv(wrapper->def, tm, " ", NIL);
       Printf(return_type, "%s", tm);
     } else {
@@ -720,25 +724,38 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(parms, wrapper);
 
+    if (overloaded) {
+      Printf(wrapper->def, "const HPHP::Array& argv");
+      Swig_typemap_attach_parms("variant_out", parms, wrapper);
+    }
+
     bool prev = false;
-    p = parms;
-    while (p) {
+    int parm_i = 0;
+    for (p = parms; p; parm_i++) {
       String *parm_name = Getattr(p, "lname");
       String *parm_type = Getattr(p, "type");
       String *arg = NewString("");
 
       Printf(arg, "t%s", parm_name);
 
-      if ((tm = Getattr(p, "tmap:hni_parmtype"))) {
-        if (prev) {
-          Printf(wrapper->def, ", ");
-          Printf(call_parms, ", ");
+      if (!overloaded) {
+        if ((tm = Getattr(p, "tmap:hni_parmtype"))) {
+          if (prev) {
+            Printf(wrapper->def, ", ");
+            Printf(call_parms, ", ");
+          }
+          Printf(wrapper->def, "%s %s", tm, arg);
+          Printf(call_parms, "%s", parm_name);
+          prev = true;
+        } else {
+          Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to define type %s as a function argument.\n", SwigType_str(parm_type, 0));
         }
-        Printf(wrapper->def, "%s %s", tm, arg);
-        Printf(call_parms, "%s", parm_name);
-        prev = true;
       } else {
-        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to define type %s as a function argument.\n", SwigType_str(parm_type, 0));
+        Printf(wrapper->code, "auto %s = argv[%d]", arg, parm_i);
+        if ((tm = Getattr(p, "tmap:variant_out"))) {
+          Printf(wrapper->code, "%s", tm);
+        }
+        Printf(wrapper->code, ";\n");
       }
 
       if ((tm = Getattr(p, "tmap:in"))) {
@@ -799,6 +816,9 @@ public:
 
     if (!is_void_return)
       Printv(wrapper->code, "return tresult;\n", NIL);
+    else if (overloaded) {
+      Printv(wrapper->code, "return HPHP::Variant();\n", NIL);
+    }
 
     Printv(wrapper->code, "}\n", NIL);
 
@@ -952,7 +972,7 @@ public:
       Printf(f_link, "static void %s(const Object& this_, HHVM_PROP_CONST Variant& value) {\n", accname);
       Printf(f_link, "  auto data = Object(this_);\n");
       if ((tm = Swig_typemap_lookup("variant_out", n, varname, 0))) {
-        Printf(f_link, "  %s(data, value.%s());\n", wname, tm);
+        Printf(f_link, "  %s(data, value%s);\n", wname, tm);
       }
       Printf(f_link, "}\n\n");
       Printf(out_str, "%s },\n", accname);

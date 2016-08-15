@@ -19,7 +19,7 @@ class string;
 %typemap(hni_parmtype) string, const string & "const HPHP::String&"
 %typemap(hni_rttype) string, const string & "HPHP::String";
 %typemap(php_type) string, const string & "string";
-%typemap(variant_out) string "toString"
+%typemap(variant_out) string ".toString()"
 
 %typemap(in) string %{$1 = $input.toCppString();%}
 %typemap(out) string %{$result = HPHP::String($1);%}

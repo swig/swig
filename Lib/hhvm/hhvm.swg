@@ -320,49 +320,37 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   const long long &, const unsigned long long &,
   enum SWIGTYPE
   {
-    int64_t $result;
     _v = $input.isInteger();
-    if (_v) $result = $input.toInt64Val();
   }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE, noblock = 1)
   float, double,
   const float &, const double &
   {
-    double $result;
     _v = $input.isDouble();
-    if (_v) $result = $input.toDouble();
   }
 
 %typecheck(SWIG_TYPECHECK_CHAR, noblock = 1) char 
   {
-    HPHP::String $result;
     _v = ($input.isString() && $input.toString().length() == 1);
-    if (_v) $result = $input.toString();
   }
 
 %typecheck(SWIG_TYPECHECK_STRING, noblock = 1) char * 
   {
-    HPHP::String $result;
     _v = $input.isString();
-    if (_v) $result = $input.toString();
   }
 
 %typecheck(SWIG_TYPECHECK_BOOL, noblock = 1)
 bool, const bool &
   {
-    bool $result;
     _v = $input.isBoolean();
-    if (_v) $result = $input.toBoolean();
   }
 
 %typecheck(SWIG_TYPECHECK_POINTER, noblock = 1)
   SWIGTYPE *,
   SWIGTYPE []
   {
-    HPHP::Object $result;
     _v = $input.isObject();
-    if (_v) $result = $input.toObject();
   }
  
 %typemap(variant_out) int,
@@ -376,14 +364,14 @@ bool, const bool &
                   unsigned char,
                   signed char,
                   enum SWIGTYPE
-  "toInt64Val";
+  ".toInt64Val()";
 
 %typemap(variant_out) bool
-  "toBooleanVal";
+  ".toBooleanVal()";
 
 %typemap(variant_out) float,
                   double
-  "toDoubleVal";
+  ".toDoubleVal()";
 
 %typemap(variant_out)  char *,
                    char,
@@ -391,14 +379,16 @@ bool, const bool &
                    char [ANY],
                    char [],
                    const char []
-  "toString";
+  ".toString()";
 
 %typemap(variant_out) SWIGTYPE
-  "toObject";
+  ".toObject()";
 
 %typemap(variant_out) SWIGTYPE *,
-                      SWIGTYPE []
-  "toObject";
+                      SWIGTYPE [],
+                      SWIGTYPE &,
+                      SWIGTYPE &&
+  "";
 
 %typemap(hhwrapclass) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] %{
 
