@@ -192,9 +192,11 @@ wrapper##_closure(PyObject *a) {		\
     PyObject *pyresult;				\
     long result;				\
     pyresult = wrapper(a, NULL);		\
-    if (!pyresult || !PyLong_Check(pyresult))	\
-	return -1;				\
+    if (!pyresult)				\
+      return -1;				\
     result = PyLong_AsLong(pyresult);		\
+    if (PyErr_Occurred())			\
+      result = -1;				\
     Py_DECREF(pyresult);			\
     return result;				\
 }
