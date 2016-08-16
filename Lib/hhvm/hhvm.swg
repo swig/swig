@@ -218,14 +218,14 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
               unsigned char,
               signed char, 
               enum SWIGTYPE
-  "$result = $1;"
+  "$result = (int64_t)$1;"
 
 %typemap(out) bool
-  "$result = $1;"
+  "$result = (bool)$1;"
 
 %typemap(out) float,
               double
-  "$result = $1;"
+  "$result = (double)$1;"
 
 %typemap(out) char
   "$result = HPHP::String::FromChar($1);"
