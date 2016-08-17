@@ -346,12 +346,21 @@ bool, const bool &
     _v = $input.isBoolean();
   }
 
+%typecheck(SWIG_TYPECHECK_POINTER)
+             SWIGTYPE *,
+             SWIGTYPE [],
+             SWIGTYPE &,
+             SWIGTYPE &&,
+             SWIGTYPE *const&
+{
+  _v = $input.isObject() && $input.toObject().instanceof(SWIG_s_wrap_$1_descriptor);
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER, noblock = 1)
-  SWIGTYPE *,
-  SWIGTYPE []
-  {
-    _v = $input.isObject();
-  }
+  SWIGTYPE
+{
+  _v = $input.isObject() && $input.toObject().instanceof(SWIG_s_wrap_$&1_descriptor);
+}
  
 %typemap(variant_out) int,
                   unsigned int,
@@ -408,6 +417,7 @@ public:
 
 HPHP::Class* _wrap_$hhclassname::s_class = nullptr;
 const HPHP::StaticString _wrap_$hhclassname::s_className("$hhclassname");
+const HPHP::StaticString SWIG_s_wrap_$1_descriptor("_wrap_$hhclassname");
 
 IMPLEMENT_GET_CLASS(_wrap_$hhclassname)
 
@@ -431,6 +441,7 @@ public:
 
 HPHP::Class* _wrap_$hhclassname::s_class = nullptr;
 const HPHP::StaticString _wrap_$hhclassname::s_className("$hhclassname");
+const HPHP::StaticString SWIG_s_wrap_$1_descriptor("_wrap_$hhclassname");
 
 IMPLEMENT_GET_CLASS(_wrap_$hhclassname)
 
