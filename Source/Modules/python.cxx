@@ -3321,7 +3321,7 @@ public:
     }
 
     if (in_class && builtin) {
-      /* Handle operator overloads overloads for builtin types */
+      /* Handle operator overloads for builtin types */
       String *slot = Getattr(n, "feature:python:slot");
       if (slot) {
 	String *func_type = Getattr(n, "feature:python:slot:functype");
@@ -3329,9 +3329,9 @@ public:
 	String *feature_name = NewStringf("feature:python:%s", slot);
 	String *closure_name = Copy(wrapper_name);
 	if (closure_decl) {
-	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
-	    Printv(f_wrappers, closure_decl, "\n\n", NIL);
 	  Append(closure_name, "_closure");
+	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
+	    Printf(f_wrappers, "%s /* defines %s */\n\n", closure_decl, closure_name);
 	  Delete(closure_decl);
 	}
 	if (func_type) {
