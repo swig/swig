@@ -167,10 +167,10 @@ static const char *usage3 = "\
                          Function annotation \n\
 \n";
 
-static String *getSlot(Node *n = NULL, const char *key = NULL) {
-  static String *slot_default = NewString("0");
-  String *val = key && *key ? Getattr(n, key) : NULL;
-  return val ? val : slot_default;
+static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_slot = NULL) {
+  static String *zero = NewString("0");
+  String *val = n && key && *key ? Getattr(n, key) : NULL;
+  return val ? val : default_slot ? default_slot : zero;
 }
 
 static void printSlot(File *f, const String *slotval, const char *slotname, const char *functype = NULL) {
@@ -3956,13 +3956,7 @@ public:
     // Check for non-public destructor, in which case tp_dealloc will issue
     // a warning and allow the memory to leak.  Any class that doesn't explicitly
     // have a private/protected destructor has an implicit public destructor.
-    String *tp_dealloc = Getattr(n, "feature:python:tp_dealloc");
-    if (tp_dealloc) {
-      Printf(f, "SWIGPY_DESTRUCTOR_CLOSURE(%s)\n", tp_dealloc);
-      tp_dealloc = NewStringf("%s_closure", tp_dealloc);
-    } else {
-      tp_dealloc = NewString("SwigPyBuiltin_BadDealloc");
-    }
+    static String *tp_dealloc_bad = NewString("SwigPyBuiltin_BadDealloc");
 
     String *getset_name = NewStringf("%s_getset", templ);
     String *methods_name = NewStringf("%s_methods", templ);
@@ -4075,7 +4069,7 @@ public:
     printSlot(f, quoted_symname, "tp_name");
     printSlot(f, "sizeof(SwigPyObject)", "tp_basicsize");
     printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
-    printSlot(f, tp_dealloc, "tp_dealloc", "destructor");
+    printSlot(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
     printSlot(f, getSlot(n, "feature:python:tp_print"), "tp_print", "printfunc");
     printSlot(f, getSlot(n, "feature:python:tp_getattr"), "tp_getattr", "getattrfunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattr"), "tp_setattr", "setattrfunc");
@@ -4306,7 +4300,6 @@ public:
     Delete(mname);
     Delete(pmname);
     Delete(templ);
-    Delete(tp_dealloc);
     Delete(tp_flags);
     Delete(py3_tp_flags);
     Delete(quoted_symname);
@@ -4967,12 +4960,10 @@ public:
 
     if (builtin && in_class) {
       Node *cls = Swig_methodclass(n);
+      // Use the destructor for the tp_dealloc slot unless a user overrides it with another method
       if (!Getattr(cls, "feature:python:tp_dealloc")) {
-	String *dealloc = Swig_name_destroy(NSPACE_TODO, symname);
-	String *wdealloc = Swig_name_wrapper(dealloc);
-	Setattr(cls, "feature:python:tp_dealloc", wdealloc);
-	Delete(wdealloc);
-	Delete(dealloc);
+	Setattr(n, "feature:python:slot", "tp_dealloc");
+	Setattr(n, "feature:python:slot:functype", "destructor");
       }
     }
 
