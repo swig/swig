@@ -19,16 +19,20 @@
  PyMappingMethods, PySequenceMethods, or PyBufferProcs.  For example:
 
    %{
-   
-   static long myHashFunc (PyObject *pyobj) {
-     MyClass *cobj;
-     // Convert pyobj to cobj
-     return (cobj->field1 * (cobj->field2 << 7));
-   }
-   
+     // Note: Py_hash_t was introduced in Python 3.2
+     static Py_hash_t myHashFunc(PyObject *pyobj) {
+       MyClass *cobj;
+       // Convert pyobj to cobj
+       return (cobj->field1 * (cobj->field2 << 7));
+     }
    %}
 
    %feature("python:tp_hash") MyClass "myHashFunc";
+
+   class MyClass {
+     public:
+       ...
+   };
 
  NOTE: It is the responsibility of the programmer (that's you) to ensure
  that a statically defined slot function has the correct signature.
@@ -36,13 +40,13 @@
  If, instead, you want to dispatch to an instance method, you can
  use %feature("python:slot").  For example:
 
+   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
    class MyClass {
      public:
-       long myHashFunc () const;
+       Py_hash_t myHashFunc () const;
        ...
    };
-   
-   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
 
  NOTE: Some python slots use a method signature which does not
  match the signature of SWIG-wrapped methods.  For those slots,
