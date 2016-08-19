@@ -72,3 +72,43 @@ struct ExceptionHashFunction {
 };
 %}
 
+// Test 4 for tp_dealloc (which is handled differently to other slots in the SWIG source)
+#if defined(SWIGPYTHON_BUILTIN)
+%feature("python:tp_dealloc") Dealloc1 "Dealloc1Destroyer"
+%feature("python:tp_dealloc") Dealloc2 "Dealloc2Destroyer"
+%feature("python:slot", "tp_dealloc", functype="destructor") Dealloc3::Destroyer;
+#endif
+
+%inline %{
+static int Dealloc1CalledCount = 0;
+static int Dealloc2CalledCount = 0;
+static int Dealloc3CalledCount = 0;
+
+struct Dealloc1 {
+};
+struct Dealloc2 {
+  ~Dealloc2() {}
+};
+struct Dealloc3 {
+  void Destroyer() {
+    Dealloc3CalledCount++;
+    delete this;
+  }
+};
+%}
+
+%{
+void Dealloc1Destroyer(PyObject *v) {
+  SwigPyObject *sobj = (SwigPyObject *) v;
+  Dealloc1 *p = (Dealloc1 *)sobj->ptr;
+  delete p;
+  Dealloc1CalledCount++;
+}
+void Dealloc2Destroyer(PyObject *v) {
+  SwigPyObject *sobj = (SwigPyObject *) v;
+  Dealloc2 *p = (Dealloc2 *)sobj->ptr;
+  delete p;
+  Dealloc2CalledCount++;
+}
+%}
+

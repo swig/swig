@@ -24,3 +24,24 @@ if is_python_builtin():
   if not passed:
     raise RuntimeError("did not catch exception in hash()")
 
+  # Test 4 for tp_dealloc (which is handled differently to other slots in the SWIG source)
+  d = Dealloc1()
+  if cvar.Dealloc1CalledCount != 0:
+    raise RuntimeError("count should be 0")
+  del d
+  if cvar.Dealloc1CalledCount != 1:
+    raise RuntimeError("count should be 1")
+
+  d = Dealloc2()
+  if cvar.Dealloc2CalledCount != 0:
+    raise RuntimeError("count should be 0")
+  del d
+  if cvar.Dealloc2CalledCount != 1:
+    raise RuntimeError("count should be 1")
+
+  d = Dealloc3()
+  if cvar.Dealloc3CalledCount != 0:
+    raise RuntimeError("count should be 0")
+  del d
+  if cvar.Dealloc3CalledCount != 1:
+    raise RuntimeError("count should be 1")
