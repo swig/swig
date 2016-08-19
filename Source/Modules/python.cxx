@@ -4073,7 +4073,7 @@ public:
     printSlot(f, getSlot(), "ob_size");
     Printv(f, "#endif\n", NIL);
     printSlot(f, quoted_symname, "tp_name");
-    printSlot(f, tp_basicsize, "tp_basicsize");
+    printSlot(f, getSlot(n, "feature:python:tp_basicsize", tp_basicsize), "tp_basicsize");
     printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
     printSlot(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
     printSlot(f, getSlot(n, "feature:python:tp_print"), "tp_print", "printfunc");
@@ -4106,9 +4106,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_weaklistoffset"), "tp_weaklistoffset");
     printSlot(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
     printSlot(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
-    printSlot(f, methods_name, "tp_methods");
+    printSlot(f, getSlot(n, "feature:python:tp_methods", methods_name), "tp_methods");
     printSlot(f, getSlot(n, "feature:python:tp_members"), "tp_members");
-    printSlot(f, getset_name, "tp_getset");
+    printSlot(f, getSlot(n, "feature:python:tp_getset", getset_name), "tp_getset");
     printSlot(f, getSlot(n, "feature:python:tp_base"), "tp_base");
     printSlot(f, getSlot(n, "feature:python:tp_dict"), "tp_dict");
     printSlot(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
