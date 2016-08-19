@@ -173,13 +173,13 @@ static String *getSlot(Node *n = NULL, const char *key = NULL, String *default_s
   return val ? val : default_slot ? default_slot : zero;
 }
 
-static void printSlot(File *f, const String *slotval, const char *slotname, const char *functype = NULL) {
-  String *slotval_override = functype ? NewStringf("(%s) %s", functype, slotval) : 0;
-  if (slotval_override)
-    slotval = slotval_override;
+static void printSlot(File *f, String *slotval, const char *slotname, const char *functype = NULL) {
+  String *slotval_override = 0;
+  if (functype)
+    slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
-  int fieldwidth = len > 40 ? 0 : 40 - len;
-  Printf(f, "    %s, %*s/* %s */\n", slotval, fieldwidth, "", slotname);
+  int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
+  Printf(f, "    %s,%*s/* %s */\n", slotval, fieldwidth, "", slotname);
   Delete(slotval_override);
 }
 
@@ -4051,10 +4051,16 @@ public:
 	quoted_symname = NewStringf("\"%s\"", symname);
     }
     String *quoted_tp_doc_str = NewStringf("\"%s\"", getSlot(n, "feature:python:tp_doc"));
-    char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit";
+    String *tp_init = NewString(builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit");
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     String *py3_tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
 
+    static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
+    static String *tp_dictoffset_default = NewString("(Py_ssize_t)offsetof(SwigPyObject, dict)");
+    String *tp_as_number = NewStringf("&%s_type.as_number", templ);
+    String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
+    String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
+    String *tp_as_buffer = NewStringf("&%s_type.as_buffer", templ);
 
     Printf(f, "static PyHeapTypeObject %s_type = {\n", templ);
 
@@ -4067,7 +4073,7 @@ public:
     printSlot(f, getSlot(), "ob_size");
     Printv(f, "#endif\n", NIL);
     printSlot(f, quoted_symname, "tp_name");
-    printSlot(f, "sizeof(SwigPyObject)", "tp_basicsize");
+    printSlot(f, tp_basicsize, "tp_basicsize");
     printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
     printSlot(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
     printSlot(f, getSlot(n, "feature:python:tp_print"), "tp_print", "printfunc");
@@ -4079,15 +4085,15 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare", "cmpfunc");
     Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
-    Printf(f, "    &%s_type.as_number,      /* tp_as_number */\n", templ);
-    Printf(f, "    &%s_type.as_sequence,    /* tp_as_sequence */\n", templ);
-    Printf(f, "    &%s_type.as_mapping,     /* tp_as_mapping */\n", templ);
+    printSlot(f, getSlot(n, "feature:python:tp_as_number", tp_as_number), "tp_as_number");
+    printSlot(f, getSlot(n, "feature:python:tp_as_sequence", tp_as_sequence), "tp_as_sequence");
+    printSlot(f, getSlot(n, "feature:python:tp_as_mapping", tp_as_mapping), "tp_as_mapping");
     printSlot(f, getSlot(n, "feature:python:tp_hash"), "tp_hash", "hashfunc");
     printSlot(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
     printSlot(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
     printSlot(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
-    Printf(f, "    &%s_type.as_buffer,      /* tp_as_buffer */\n", templ);
+    printSlot(f, getSlot(n, "feature:python:tp_as_buffer", tp_as_buffer), "tp_as_buffer");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, py3_tp_flags, "tp_flags");
     Printv(f, "#else\n", NIL);
@@ -4107,10 +4113,10 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_dict"), "tp_dict");
     printSlot(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
     printSlot(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
-    Printf(f, "    (Py_ssize_t)offsetof(SwigPyObject, dict), /* tp_dictoffset */\n");
-    printSlot(f, tp_init, "tp_init", "initproc");
+    printSlot(f, getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default), "tp_dictoffset");
+    printSlot(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
-    printSlot(f, "0", "tp_new", "newfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_new"), "tp_new", "newfunc");
     printSlot(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
     printSlot(f, getSlot(), "tp_is_gc", "inquiry");
     printSlot(f, getSlot(), "tp_bases", "PyObject*");
@@ -4302,8 +4308,13 @@ public:
     Delete(templ);
     Delete(tp_flags);
     Delete(py3_tp_flags);
+    Delete(tp_as_buffer);
+    Delete(tp_as_mapping);
+    Delete(tp_as_sequence);
+    Delete(tp_as_number);
     Delete(quoted_symname);
     Delete(quoted_tp_doc_str);
+    Delete(tp_init);
     Delete(clientdata_klass);
     Delete(richcompare_func);
     Delete(getset_name);
