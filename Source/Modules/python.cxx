@@ -3919,7 +3919,6 @@ public:
     int funpack = modernargs && fastunpack;
 
     Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
-    Printf(f_init, "  builtin_pytype->tp_new = PyType_GenericNew;\n");
     Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
     if (baselist) {
@@ -4057,6 +4056,7 @@ public:
 
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("(Py_ssize_t)offsetof(SwigPyObject, dict)");
+    static String *tp_new = NewString("PyType_GenericNew");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
     String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
@@ -4102,7 +4102,7 @@ public:
     printSlot(f, quoted_tp_doc_str, "tp_doc");
     printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
     printSlot(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
-    printSlot(f, richcompare_func, "feature:python:tp_richcompare", "richcmpfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
     printSlot(f, getSlot(n, "feature:python:tp_weaklistoffset"), "tp_weaklistoffset");
     printSlot(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
     printSlot(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
@@ -4116,7 +4116,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default), "tp_dictoffset");
     printSlot(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
-    printSlot(f, getSlot(n, "feature:python:tp_new"), "tp_new", "newfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_new", tp_new), "tp_new", "newfunc");
     printSlot(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
     printSlot(f, getSlot(), "tp_is_gc", "inquiry");
     printSlot(f, getSlot(), "tp_bases", "PyObject*");
