@@ -2901,22 +2901,20 @@ c_declaration   : c_decl {
                 | USING idcolon EQUAL type plain_declarator SEMI {
 		  /* Convert using statement to a typedef statement */
 		  $$ = new_node("cdecl");
-		  SwigType_push($4,$5.type);
 		  Setattr($$,"type",$4);
 		  Setattr($$,"storage","typedef");
 		  Setattr($$,"name",$2);
-		  Setattr($$,"decl","");
+		  Setattr($$,"decl",$5.type);
 		  SetFlag($$,"typealias");
 		  add_symbols($$);
 		}
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
 		  /* Convert alias template to a "template" typedef statement */
 		  $$ = new_node("template");
-		  SwigType_push($8,$9.type);
 		  Setattr($$,"type",$8);
 		  Setattr($$,"storage","typedef");
 		  Setattr($$,"name",$6);
-		  Setattr($$,"decl","");
+		  Setattr($$,"decl",$9.type);
 		  Setattr($$,"templateparms",$3);
 		  Setattr($$,"templatetype","cdecl");
 		  SetFlag($$,"aliastemplate");
