@@ -5,6 +5,36 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-08-22: wsfulton
+            [Python] The following builtin slots can be customized like other slots via the
+            "python:<x>" and "python:slot" features where <x> is the appropriate slot name:
+              tp_allocs
+              tp_bases
+              tp_basicsize
+              tp_cache
+              tp_del
+              tp_dealloc
+              tp_flags
+              tp_frees
+              tp_getset
+              tp_is_gc
+              tp_maxalloc
+              tp_methods
+              tp_mro
+              tp_new
+              tp_next
+              tp_prev
+              tp_richcompare
+              tp_subclasses
+              tp_weaklist
+              was_sq_ass_slice
+              was_sq_slice
+
+            A few documentation improvements for slot customization.
+
+2016-08-09: joequant
+            [R] Patch #765 Fix extern "C" header includes for C++ code.
+
 2016-08-05: olly
             [xml] Fix how the output filename is built to avoid problems when
             it contains the embedded strings ".c", ".cpp" or ".cxx".
