@@ -4055,7 +4055,7 @@ public:
     String *tp_flags_py3 = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
 
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
-    static String *tp_dictoffset_default = NewString("(Py_ssize_t)offsetof(SwigPyObject, dict)");
+    static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
     static String *tp_new = NewString("PyType_GenericNew");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
@@ -4113,7 +4113,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_dict"), "tp_dict");
     printSlot(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
     printSlot(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
-    printSlot(f, getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default), "tp_dictoffset");
+    printSlot(f, getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default), "tp_dictoffset", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
     printSlot(f, getSlot(n, "feature:python:tp_new", tp_new), "tp_new", "newfunc");
@@ -4136,9 +4136,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_frees"), "tp_frees", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_maxalloc"), "tp_maxalloc", "Py_ssize_t");
     Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:tp_prev"), "tp_prev", "struct _typeobject *");
+    printSlot(f, getSlot(n, "feature:python:tp_prev"), "tp_prev");
     Printv(f, "#endif\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:tp_next"), "tp_next", "struct _typeobject *");
+    printSlot(f, getSlot(n, "feature:python:tp_next"), "tp_next");
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
@@ -4262,7 +4262,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:ht_qualname"), "ht_qualname", "PyObject *");
 
     // struct _dictkeysobject *ht_cached_keys;
-    printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys", "struct _dictkeysobject *");
+    printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
 
