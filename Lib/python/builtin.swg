@@ -192,9 +192,11 @@ wrapper##_closure(PyObject *a) {		\
     PyObject *pyresult;				\
     long result;				\
     pyresult = wrapper(a, NULL);		\
-    if (!pyresult || !PyLong_Check(pyresult))	\
-	return -1;				\
+    if (!pyresult)				\
+      return -1;				\
     result = PyLong_AsLong(pyresult);		\
+    if (PyErr_Occurred())			\
+      result = -1;				\
     Py_DECREF(pyresult);			\
     return result;				\
 }
@@ -387,16 +389,15 @@ SwigPyStaticVar_Type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
       PyObject_HEAD_INIT(&PyType_Type)
-      0,
+      0,                                        /* ob_size */
 #endif
-      "swig_static_var_getset_descriptor",
-      sizeof(PyGetSetDescrObject),
-      0,
+      "swig_static_var_getset_descriptor",      /* tp_name */
+      sizeof(PyGetSetDescrObject),              /* tp_basicsize */
+      0,                                        /* tp_itemsize */
       (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
       0,                                        /* tp_print */
       0,                                        /* tp_getattr */
