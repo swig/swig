@@ -112,3 +112,19 @@ void Dealloc2Destroyer(PyObject *v) {
 }
 %}
 
+// Test 5 for python:compare feature
+%feature("python:compare", "Py_LT") MyClass::lessThan;
+
+%inline %{
+  class MyClass {
+  public:
+    MyClass(int val = 0) : val(val) {}
+    bool lessThan(const MyClass& other) const {
+      less_than_counts++;
+      return val < other.val;
+    }
+    int val;
+    static int less_than_counts;
+  };
+  int MyClass::less_than_counts = 0;
+%}

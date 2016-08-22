@@ -45,3 +45,26 @@ if is_python_builtin():
   del d
   if cvar.Dealloc3CalledCount != 1:
     raise RuntimeError("count should be 1")
+
+  # Test 5 for python:compare feature
+  m10 = MyClass(10)
+  m20 = MyClass(20)
+  m15 = MyClass(15)
+
+  if not m10 < m15:
+    raise RuntimeError("m10 < m15")
+  if not m10 < m20:
+    raise RuntimeError("m10 < m20")
+  if not m15 < m20:
+    raise RuntimeError("m15 < m20")
+
+  if m10 > m15:
+    raise RuntimeError("m10 > m15")
+  if m10 > m20:
+    raise RuntimeError("m10 > m20")
+  if m15 > m20:
+    raise RuntimeError("m15 > m20")
+
+  if MyClass.less_than_counts != 6:
+    raise RuntimeError("python:compare feature not working")
+
