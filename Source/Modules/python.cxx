@@ -4052,7 +4052,7 @@ public:
     String *quoted_tp_doc_str = NewStringf("\"%s\"", getSlot(n, "feature:python:tp_doc"));
     String *tp_init = NewString(builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit");
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
-    String *py3_tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
+    String *tp_flags_py3 = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
 
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("(Py_ssize_t)offsetof(SwigPyObject, dict)");
@@ -4095,9 +4095,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
     printSlot(f, getSlot(n, "feature:python:tp_as_buffer", tp_as_buffer), "tp_as_buffer");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    printSlot(f, py3_tp_flags, "tp_flags");
+    printSlot(f, getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
     Printv(f, "#else\n", NIL);
-    printSlot(f, tp_flags, "tp_flags");
+    printSlot(f, getSlot(n, "feature:python:tp_flags", tp_flags), "tp_flags");
     Printv(f, "#endif\n", NIL);
     printSlot(f, quoted_tp_doc_str, "tp_doc");
     printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
@@ -4226,13 +4226,13 @@ public:
     printSlot(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
     printSlot(f, getSlot(n, "feature:python:sq_item"), "sq_item", "ssizeargfunc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:was_sq_slice"), "was_sq_slice", "void*");
+    printSlot(f, getSlot(n, "feature:python:was_sq_slice"), "was_sq_slice", "void*");
     Printv(f, "#else\n", NIL);
     printSlot(f, getSlot(n, "feature:python:sq_slice"), "sq_slice", "ssizessizeargfunc");
     Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:sq_ass_item"), "sq_ass_item", "ssizeobjargproc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:was_sq_ass_slice"), "was_sq_ass_slice", "void*");
+    printSlot(f, getSlot(n, "feature:python:was_sq_ass_slice"), "was_sq_ass_slice", "void*");
     Printv(f, "#else\n", NIL);
     printSlot(f, getSlot(n, "feature:python:sq_ass_slice"), "sq_ass_slice", "ssizessizeobjargproc");
     Printv(f, "#endif\n", NIL);
@@ -4307,7 +4307,7 @@ public:
     Delete(pmname);
     Delete(templ);
     Delete(tp_flags);
-    Delete(py3_tp_flags);
+    Delete(tp_flags_py3);
     Delete(tp_as_buffer);
     Delete(tp_as_mapping);
     Delete(tp_as_sequence);
