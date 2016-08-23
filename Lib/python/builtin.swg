@@ -194,7 +194,10 @@ wrapper##_closure(PyObject *a) {		\
     pyresult = wrapper(a, NULL);		\
     if (!pyresult)				\
       return -1;				\
-    result = PyLong_AsLong(pyresult);		\
+    if (!PyLong_Check(pyresult))		\
+      PyErr_Format(PyExc_TypeError, "Wrong type for hash function");\
+    else					\
+      result = PyLong_AsLong(pyresult);		\
     if (PyErr_Occurred())			\
       result = -1;				\
     Py_DECREF(pyresult);			\
