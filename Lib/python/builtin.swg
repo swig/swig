@@ -187,19 +187,14 @@ wrapper##_closure(PyObject *a) {		\
 }
 
 #define SWIGPY_HASHFUNC_CLOSURE(wrapper)	\
-SWIGINTERN long					\
+SWIGINTERN Py_hash_t				\
 wrapper##_closure(PyObject *a) {		\
     PyObject *pyresult;				\
-    long result;				\
+    Py_hash_t result;				\
     pyresult = wrapper(a, NULL);		\
     if (!pyresult)				\
       return -1;				\
-    if (!PyLong_Check(pyresult))		\
-      PyErr_Format(PyExc_TypeError, "Wrong type for hash function");\
-    else					\
-      result = PyLong_AsLong(pyresult);		\
-    if (PyErr_Occurred())			\
-      result = -1;				\
+    result = SWIG_PyNumber_AsPyHash(pyresult);	\
     Py_DECREF(pyresult);			\
     return result;				\
 }
@@ -227,12 +222,33 @@ SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *
 }
 
 SWIGINTERN void
-SwigPyBuiltin_BadDealloc(PyObject *pyobj) {
-  SwigPyObject *sobj;
-  sobj = (SwigPyObject *)pyobj;
+SwigPyBuiltin_BadDealloc(PyObject *obj) {
+  SwigPyObject *sobj = (SwigPyObject *)obj;
   if (sobj->own) {
-    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", pyobj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", obj->ob_type->tp_name);
   }
+}
+
+SWIGINTERN Py_hash_t
+SwigPyObject_hash(PyObject *obj) {
+  SwigPyObject *sobj = (SwigPyObject *)obj;
+  void *ptr = sobj->ptr;
+  return (Py_hash_t)ptr;
+}
+
+SWIGINTERN Py_hash_t
+SWIG_PyNumber_AsPyHash(PyObject *obj) {
+  Py_hash_t result = -1;
+#if PY_VERSION_HEX < 0x03020000
+  if (PyLong_Check(obj))
+    result = PyLong_AsLong(obj);
+#else
+  if (PyNumber_Check(obj))
+    result = PyNumber_AsSsize_t(obj, NULL);
+#endif
+  else
+    PyErr_Format(PyExc_TypeError, "Wrong type for hash function");
+  return result;
 }
 
 typedef struct {
