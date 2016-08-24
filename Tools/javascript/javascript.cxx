@@ -31,6 +31,8 @@ int main(int argc, char* argv[]) {
       shell = JSShell::Create(JSShell::V8);
     } else if(strcmp(argv[idx], "-jsc") == 0) {
       shell = JSShell::Create(JSShell::JSC);
+    } else if(strcmp(argv[idx], "-duk") == 0) {
+      shell = JSShell::Create(JSShell::DUK);
     } else if(strcmp(argv[idx], "-i") == 0) {
       interactive = true;
     } else if(strcmp(argv[idx], "-L") == 0) {
