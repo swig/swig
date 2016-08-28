@@ -163,6 +163,8 @@ namespace swig {
       std::advance(sb,ii);
       std::advance(se,jj);
       self->erase(sb,se);
+      sb = self->begin();
+      std::advance(sb,ii);
       self->insert(sb, v.begin(), v.end());
     }
   }
