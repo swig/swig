@@ -146,7 +146,10 @@ public:
 	Xml_print_parmlist(Getattr(obj, k));
       } else if (Cmp(k, "catchlist") == 0) {
 	Xml_print_parmlist(Getattr(obj, k), "catchlist");
-      } else {
+      } else if (Cmp(k, "templateparms") == 0) {
+      	Xml_print_parmlist(Getattr(obj, k), "templateparms");
+      }
+      else {
 	DOH *o;
 	print_indent(0);
 	if (DohIsString(Getattr(obj, k))) {
