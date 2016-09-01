@@ -262,6 +262,13 @@ namespace swig {
     seq->erase(position);
   }
 
+  template <class Sequence>
+  struct traits_reserve {
+    static void reserve(Sequence & /*seq*/, typename Sequence::size_type /*n*/) {
+      // This should be specialized for types that support reserve
+    }
+  };
+
   template <class Sequence, class Difference>
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j, Py_ssize_t step) {
@@ -279,6 +286,7 @@ namespace swig {
         return new Sequence(sb, se);
       } else {
         Sequence *sequence = new Sequence();
+        swig::traits_reserve<Sequence>::reserve(*sequence, (jj - ii + step - 1) / step);
         typename Sequence::const_iterator it = sb;
         while (it!=se) {
           sequence->push_back(*it);
@@ -289,6 +297,7 @@ namespace swig {
       } 
     } else {
       Sequence *sequence = new Sequence();
+      swig::traits_reserve<Sequence>::reserve(*sequence, (ii - jj - step - 1) / -step);
       typename Sequence::const_reverse_iterator sb = self->rbegin();
       typename Sequence::const_reverse_iterator se = self->rbegin();
       std::advance(sb,size-ii-1);
@@ -315,6 +324,7 @@ namespace swig {
         size_t ssize = jj - ii;
         if (ssize <= is.size()) {
           // expanding/staying the same size
+          swig::traits_reserve<Sequence>::reserve(*self, self->size() - ssize + is.size());
           typename Sequence::iterator sb = self->begin();
           typename InputSeq::const_iterator isit = is.begin();
           std::advance(sb,ii);

@@ -17,6 +17,13 @@
     }
 
     template <class K, class T>
+    struct traits_reserve<std::unordered_multimap<K,T> >  {
+      static void reserve(std::unordered_multimap<K,T> &seq, typename std::unordered_multimap<K,T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class K, class T>
     struct traits_asptr<std::unordered_multimap<K,T> >  {
       typedef std::unordered_multimap<K,T> unordered_multimap_type;
       static int asptr(PyObject *obj, std::unordered_multimap<K,T> **val) {
