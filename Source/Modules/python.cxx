@@ -4057,6 +4057,7 @@ public:
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
     static String *tp_new = NewString("PyType_GenericNew");
+    static String *tp_hash = NewString("SwigPyObject_hash");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
     String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
@@ -4088,7 +4089,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_as_number", tp_as_number), "tp_as_number");
     printSlot(f, getSlot(n, "feature:python:tp_as_sequence", tp_as_sequence), "tp_as_sequence");
     printSlot(f, getSlot(n, "feature:python:tp_as_mapping", tp_as_mapping), "tp_as_mapping");
-    printSlot(f, getSlot(n, "feature:python:tp_hash"), "tp_hash", "hashfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_hash", tp_hash), "tp_hash", "hashfunc");
     printSlot(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
     printSlot(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
     printSlot(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
