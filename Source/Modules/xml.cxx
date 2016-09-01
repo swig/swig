@@ -144,12 +144,9 @@ public:
 	Xml_print_kwargs(Getattr(obj, k));
       } else if (Cmp(k, "parms") == 0 || Cmp(k, "pattern") == 0) {
 	Xml_print_parmlist(Getattr(obj, k));
-      } else if (Cmp(k, "catchlist") == 0) {
-	Xml_print_parmlist(Getattr(obj, k), "catchlist");
-      } else if (Cmp(k, "templateparms") == 0) {
-      	Xml_print_parmlist(Getattr(obj, k), "templateparms");
-      }
-      else {
+      } else if (Cmp(k, "catchlist") == 0 || Cmp(k, "templateparms") == 0) {
+	Xml_print_parmlist(Getattr(obj, k), Char(k));
+      } else {
 	DOH *o;
 	print_indent(0);
 	if (DohIsString(Getattr(obj, k))) {
