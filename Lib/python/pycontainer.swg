@@ -206,7 +206,7 @@ namespace swig {
     if (step == 0) {
       throw std::invalid_argument("slice step cannot be zero");
     } else if (step > 0) {
-      // Required range: 0 <= i < size, 0 <= j < size
+      // Required range: 0 <= i < size, 0 <= j < size, i <= j
       if (i < 0) {
         ii = 0;
       } else if (i < (Difference)size) {
@@ -214,13 +214,15 @@ namespace swig {
       } else if (insert && (i >= (Difference)size)) {
         ii = (Difference)size;
       }
-      if ( j < 0 ) {
+      if (j < 0) {
         jj = 0;
       } else {
         jj = (j < (Difference)size) ? j : (Difference)size;
       }
+      if (jj < ii)
+        jj = ii;
     } else {
-      // Required range: -1 <= i < size-1, -1 <= j < size-1
+      // Required range: -1 <= i < size-1, -1 <= j < size-1, i >= j
       if (i < -1) {
         ii = -1;
       } else if (i < (Difference) size) {
@@ -233,6 +235,8 @@ namespace swig {
       } else {
         jj = (j < (Difference)size ) ? j : (Difference)(size-1);
       }
+      if (ii < jj)
+        ii = jj;
     }
   }
 
@@ -285,17 +289,15 @@ namespace swig {
       } 
     } else {
       Sequence *sequence = new Sequence();
-      if (ii > jj) {
-        typename Sequence::const_reverse_iterator sb = self->rbegin();
-        typename Sequence::const_reverse_iterator se = self->rbegin();
-        std::advance(sb,size-ii-1);
-        std::advance(se,size-jj-1);
-        typename Sequence::const_reverse_iterator it = sb;
-        while (it!=se) {
-          sequence->push_back(*it);
-          for (Py_ssize_t c=0; c<-step && it!=se; ++c)
-            it++;
-        }
+      typename Sequence::const_reverse_iterator sb = self->rbegin();
+      typename Sequence::const_reverse_iterator se = self->rbegin();
+      std::advance(sb,size-ii-1);
+      std::advance(se,size-jj-1);
+      typename Sequence::const_reverse_iterator it = sb;
+      while (it!=se) {
+        sequence->push_back(*it);
+        for (Py_ssize_t c=0; c<-step && it!=se; ++c)
+          it++;
       }
       return sequence;
     }
@@ -309,8 +311,6 @@ namespace swig {
     Difference jj = 0;
     swig::slice_adjust(i, j, step, size, ii, jj, true);
     if (step > 0) {
-      if (jj < ii)
-        jj = ii;
       if (step == 1) {
         size_t ssize = jj - ii;
         if (ssize <= is.size()) {
@@ -348,8 +348,6 @@ namespace swig {
         }
       }
     } else {
-      if (jj > ii)
-        jj = ii;
       size_t replacecount = (ii - jj - step - 1) / -step;
       if (is.size() != replacecount) {
         char msg[1024];
@@ -375,36 +373,32 @@ namespace swig {
     Difference jj = 0;
     swig::slice_adjust(i, j, step, size, ii, jj, true);
     if (step > 0) {
-      if (jj > ii) {
-        typename Sequence::iterator sb = self->begin();
-        std::advance(sb,ii);
-        if (step == 1) {
-          typename Sequence::iterator se = self->begin();
-          std::advance(se,jj);
-          self->erase(sb,se);
-        } else {
-          typename Sequence::iterator it = sb;
-          size_t delcount = (jj - ii + step - 1) / step;
-          while (delcount) {
-            it = self->erase(it);
-            for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
-              it++;
-            delcount--;
-          }
-        }
-      }
-    } else {
-      if (ii > jj) {
-        typename Sequence::reverse_iterator sb = self->rbegin();
-        std::advance(sb,size-ii-1);
-        typename Sequence::reverse_iterator it = sb;
-        size_t delcount = (ii - jj - step - 1) / -step;
+      typename Sequence::iterator sb = self->begin();
+      std::advance(sb,ii);
+      if (step == 1) {
+        typename Sequence::iterator se = self->begin();
+        std::advance(se,jj);
+        self->erase(sb,se);
+      } else {
+        typename Sequence::iterator it = sb;
+        size_t delcount = (jj - ii + step - 1) / step;
         while (delcount) {
-          it = typename Sequence::reverse_iterator(self->erase((++it).base()));
-          for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
+          it = self->erase(it);
+          for (Py_ssize_t c=0; c<(step-1) && it != self->end(); ++c)
             it++;
           delcount--;
         }
+      }
+    } else {
+      typename Sequence::reverse_iterator sb = self->rbegin();
+      std::advance(sb,size-ii-1);
+      typename Sequence::reverse_iterator it = sb;
+      size_t delcount = (ii - jj - step - 1) / -step;
+      while (delcount) {
+        it = typename Sequence::reverse_iterator(self->erase((++it).base()));
+        for (Py_ssize_t c=0; c<(-step-1) && it != self->rend(); ++c)
+          it++;
+        delcount--;
       }
     }
   }
