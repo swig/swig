@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-02: olly
+            [PHP] Fix out typemap for member function pointers.
+
 2016-08-22: wsfulton
             [Python] The following builtin slots can be customized like other slots via the
             "python:<x>" and "python:slot" features where <x> is the appropriate slot name:
