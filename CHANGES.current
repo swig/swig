@@ -8,6 +8,16 @@ Version 3.0.11 (in progress)
 2016-09-02: olly
             [PHP] Fix out typemap for member function pointers.
 
+2016-09-01: wsfulton
+            [Python] More efficient Python slicing.
+            Call reserve for container types that support it to avoid repeated
+            memory reallocations for new slices or slices that grow in size.
+
+2016-09-01: wsfulton
+            [Python] #771 - Make builtin types hashable by default.
+            Default hash is the underlying C/C++ pointer. This matches up with testing for
+            equivalence (Py_EQ in SwigPyObject_richcompare) which compares the pointers.
+
 2016-08-22: wsfulton
             [Python] The following builtin slots can be customized like other slots via the
             "python:<x>" and "python:slot" features where <x> is the appropriate slot name:
