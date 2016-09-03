@@ -10,6 +10,17 @@ bool is_python_builtin() { return false; }
 #endif
 %}
 
+// Test 0 for default tp_hash
+%inline %{
+struct ValueStruct {
+  int value;
+  ValueStruct(int value) : value(value) {}
+  static ValueStruct *inout(ValueStruct *v) {
+    return v;
+  }
+};
+%}
+
 // Test 1 for tp_hash
 #if defined(SWIGPYTHON_BUILTIN)
 %feature("python:tp_hash") SimpleValue "SimpleValueHashFunction"
@@ -19,9 +30,6 @@ bool is_python_builtin() { return false; }
 struct SimpleValue {
   int value;
   SimpleValue(int value) : value(value) {}
-  static SimpleValue *inout(SimpleValue *sv) {
-    return sv;
-  }
 };
 %}
 

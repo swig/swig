@@ -1,6 +1,17 @@
 from python_builtin import *
 
 if is_python_builtin():
+  # Test 0 for default tp_hash
+  vs = ValueStruct(1234)
+  h = hash(vs)
+  d = dict()
+  d[h] = "hi"
+  if h not in d:
+    raise RuntimeError("h should be in d")
+  h2 = hash(ValueStruct.inout(vs))
+  if h != h2:
+    raise RuntimeError("default tp_hash not working")
+
   # Test 1 for tp_hash
   if hash(SimpleValue(222)) != 222:
     raise RuntimeError("tp_hash not working")
