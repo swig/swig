@@ -6095,81 +6095,81 @@ exprnum        :  NUM_INT { $$ = $1; }
                ;
 
 exprcompound   : expr PLUS expr {
-		 $$.val = NewStringf("%s+%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s+%s", COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr MINUS expr {
-		 $$.val = NewStringf("%s-%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s-%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr STAR expr {
-		 $$.val = NewStringf("%s*%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s*%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr SLASH expr {
-		 $$.val = NewStringf("%s/%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s/%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr MODULO expr {
-		 $$.val = NewStringf("%s%%%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s%%%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr AND expr {
-		 $$.val = NewStringf("%s&%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s&%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr OR expr {
-		 $$.val = NewStringf("%s|%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s|%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr XOR expr {
-		 $$.val = NewStringf("%s^%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s^%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr LSHIFT expr {
-		 $$.val = NewStringf("%s << %s",$1.val,$3.val);
+		 $$.val = NewStringf("%s << %s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote_type($1.type);
 	       }
                | expr RSHIFT expr {
-		 $$.val = NewStringf("%s >> %s",$1.val,$3.val);
+		 $$.val = NewStringf("%s >> %s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote_type($1.type);
 	       }
                | expr LAND expr {
-		 $$.val = NewStringf("%s&&%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s&&%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LOR expr {
-		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s||%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr EQUALTO expr {
-		 $$.val = NewStringf("%s==%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s==%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr NOTEQUALTO expr {
-		 $$.val = NewStringf("%s!=%s",$1.val,$3.val);
+		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 /* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
                | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s > %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s < %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 */
                | expr GREATERTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s >= %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s >= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LESSTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s <= %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s <= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
-		 $$.val = NewStringf("%s?%s:%s", $1.val, $3.val, $5.val);
+		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));
 		 /* This may not be exactly right, but is probably good enough
 		  * for the purposes of parsing constant expressions. */
 		 $$.type = promote($3.type, $5.type);
@@ -6187,7 +6187,7 @@ exprcompound   : expr PLUS expr {
 		 $$.type = $2.type;
 	       }
                | LNOT expr {
-                 $$.val = NewStringf("!%s",$2.val);
+                 $$.val = NewStringf("!%s",COMPOUND_EXPR_VAL($2));
 		 $$.type = T_INT;
 	       }
                | type LPAREN {
