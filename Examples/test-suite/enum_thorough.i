@@ -577,7 +577,9 @@ enum DifferentTypes {
   typebooltrue = true,
   typebooltwo,
   typechar = 'C',
-  typedefaultint
+  typedefaultint,
+  typecharcompound='A'+1,
+  typecharcompound2='B' << 2
 };
 DifferentTypes differentTypesTest(DifferentTypes n) { return n; }
 
@@ -587,7 +589,9 @@ enum {
   global_typebooltrue = true,
   global_typebooltwo,
   global_typechar = 'C',
-  global_typedefaultint
+  global_typedefaultint,
+  global_typecharcompound='A'+1,
+  global_typecharcompound2='B' << 2
 };
 int globalDifferentTypesTest(int n) { return n; }
 }

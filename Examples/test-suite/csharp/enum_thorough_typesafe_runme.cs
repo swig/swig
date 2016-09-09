@@ -413,6 +413,8 @@ public class runme {
       if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typeboolfalse).swigValue != 0) throw new Exception("differentTypes 4 failed");
       if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typechar).swigValue != (int)'C') throw new Exception("differentTypes 5 failed");
       if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typedefaultint).swigValue != (int)'D') throw new Exception("differentTypes 6 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typecharcompound).swigValue != (int)'A' + 1) throw new Exception("differentTypes 7 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typecharcompound2).swigValue != (int)'B' << 2) throw new Exception("differentTypes 8 failed");
 
       int global_enum = enum_thorough_typesafe.global_typeint;
       if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 10) throw new Exception("global differentTypes 1 failed");
@@ -426,6 +428,10 @@ public class runme {
       if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 'C') throw new Exception("global differentTypes 5 failed");
       global_enum = enum_thorough_typesafe.global_typedefaultint;
       if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 'D') throw new Exception("global differentTypes 6 failed");
+      global_enum = enum_thorough_typesafe.global_typecharcompound;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != (int)'A' + 1) throw new Exception("global differentTypes 7 failed");
+      global_enum = enum_thorough_typesafe.global_typecharcompound2;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != (int)'B' << 2) throw new Exception("global differentTypes 8 failed");
     }
   }
 }
