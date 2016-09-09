@@ -621,8 +621,7 @@ enum {
   globalenumcharE = 69,  // E
   globalenumcharAE1 = 'Æ', // AE (latin1 encoded)
   globalenumcharAE2 = '\306', // AE (latin1 encoded)
-  globalenumcharAE3 = '\xC6', // AE (latin1 encoded)
-  globalenumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+  globalenumcharAE3 = '\xC6' // AE (latin1 encoded)
 };
 enum EnumChar {
   enumchar0 = '\0',
@@ -635,8 +634,7 @@ enum EnumChar {
   enumcharE = 69, // E
   enumcharAE1 = 'Æ', // AE (latin1 encoded)
   enumcharAE2 = '\306', // AE (latin1 encoded)
-  enumcharAE3 = '\xC6', // AE (latin1 encoded)
-  enumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+  enumcharAE3 = '\xC6' // AE (latin1 encoded)
 };
 struct EnumCharStruct {
   enum EnumChar {
@@ -650,8 +648,7 @@ struct EnumCharStruct {
     enumcharE = 69, // E
     enumcharAE1 = 'Æ', // AE (latin1 encoded)
     enumcharAE2 = '\306', // AE (latin1 encoded)
-    enumcharAE3 = '\xC6', // AE (latin1 encoded)
-    enumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+    enumcharAE3 = '\xC6' // AE (latin1 encoded)
   };
 };
 %}
@@ -674,8 +671,7 @@ enum {
   x_globalenumcharE = 69,  // E
   x_globalenumcharAE1 = 'Æ', // AE (latin1 encoded)
   x_globalenumcharAE2 = '\306', // AE (latin1 encoded)
-  x_globalenumcharAE3 = '\xC6', // AE (latin1 encoded)
-  x_globalenumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+  x_globalenumcharAE3 = '\xC6' // AE (latin1 encoded)
 };
 enum X_EnumChar {
   x_enumchar0 = '\0',
@@ -688,8 +684,7 @@ enum X_EnumChar {
   x_enumcharE = 69, // E
   x_enumcharAE1 = 'Æ', // AE (latin1 encoded)
   x_enumcharAE2 = '\306', // AE (latin1 encoded)
-  x_enumcharAE3 = '\xC6', // AE (latin1 encoded)
-  x_enumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+  x_enumcharAE3 = '\xC6' // AE (latin1 encoded)
 };
 struct X_EnumCharStruct {
   enum X_EnumChar {
@@ -703,8 +698,7 @@ struct X_EnumCharStruct {
     enumcharE = 69, // E
     enumcharAE1 = 'Æ', // AE (latin1 encoded)
     enumcharAE2 = '\306', // AE (latin1 encoded)
-    enumcharAE3 = '\xC6', // AE (latin1 encoded)
-    enumYuy2 = ((('2'<<24) | ('Y' << 16)) | ('U' << 8)) | 'Y'
+    enumcharAE3 = '\xC6' // AE (latin1 encoded)
   };
 };
 #if defined(__clang__)
