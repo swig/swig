@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-09: olly
+            [Python] Fix import handling for Python 2.6 to work in a frozen
+            application.  Fixes #145, reported by Thomas Kluyver.
+
 2016-09-02: smarchetto
             [Scilab] Pointers are mapped to mlist instead of tlist
             (mlist better for scilab overloading)
