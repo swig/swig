@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-12: xypron
+            [C#] Patch #786 Keyword rename to be CLS compliant by adding an underscore
+            suffix instead of an underscore suffix to the C symbol name. Please use an explicit
+            %rename to rename the symbol with a _ prefix if you want the old symbol name.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2016-09-09: olly
             [Python] Fix import handling for Python 2.6 to work in a frozen
             application.  Fixes #145, reported by Thomas Kluyver.
