@@ -92,9 +92,16 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   /* FRAGMENT: js_overloaded_ctor */
   $jslocals
   $jscode
-  SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
-  /* FIXME */
-  return 0;  
+
+  duk_push_this(ctx);
+  duk_push_string(ctx, "\xFFprivate");
+  SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
+  duk_put_prop(ctx, -3);
+  /* The 'this' binding is now at the stack top. */
+  duk_push_heapptr(ctx, SWIGTYPE_$jsmangledtype->clientdata);
+  duk_set_prototype(ctx, -2);
+
+  return 1;  
 }
 %}
 
@@ -108,7 +115,6 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   /* FRAGMENT: js_ctor_dispatch_case */
-  /* FIXME */
   if(duk_get_top(ctx) == $jsargcount) {
     $jswrapper(ctx);
     //FIXME
@@ -309,9 +315,8 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("js_function_dispatch_case", "templates")
 %{
   /* FRAGMENT: js_function_dispatch_case */
-  if(argc == $jsargcount) {
-     res = $jswrapper(ctx, function, thisObject, argc, &jsresult);
-     if(res == SWIG_OK) { *exception = 0; return jsresult; }
+  if(duk_get_top(ctx) == $jsargcount) {
+    $jswrapper(ctx);
   }
 %}
 
@@ -477,9 +482,9 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %{
   duk_push_heapptr(ctx, $jsparent_ptr);
   duk_push_string(ctx, "$jsname");
-  duk_push_object(ctx);
-  swig_duk_install_properties(ctx, -1, $jsnspace_properties);
-  duk_put_function_list(ctx, -1, $jsnspace_functions);
+  duk_idx_t $jsmangledname_idx = duk_push_object(ctx);
+  swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
+  duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
   duk_put_prop(ctx, -3);
   void *$jsmangledname_ptr = duk_get_heapptr(ctx, -1);
 %}
