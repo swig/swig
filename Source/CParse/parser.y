@@ -13,11 +13,14 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
-/*
-Removed until we know more about the min versions of Bison and Yacc required for this
-to work, see Byacc man page: http://invisible-island.net/byacc/manpage/yacc.html
+/* There are 6 known shift-reduce conflicts in this file, fail compilation if any
+   more are introduced.
+
+   Please don't increase the number of the conflicts if at all possible. And if
+   you really have no choice but to do it, make sure you clearly document each
+   new conflict in this file.
+ */
 %expect 6
-*/
 
 %{
 #define yylex yylex
@@ -142,7 +145,7 @@ static Node *copy_node(Node *n) {
       Setattr(nn, key, k.item);
       continue;
     }
-    /* defaultargs will be patched back in later */
+    /* defaultargs will be patched back in later in update_defaultargs() */
     if (strcmp(ckey,"defaultargs") == 0) {
       Setattr(nn, "needs_defaultargs", "1");
       continue;
@@ -657,19 +660,26 @@ static void add_symbols_copy(Node *n) {
   }
 }
 
+/* Add in the "defaultargs" attribute for functions in instantiated templates.
+ * n should be any instantiated template (class or start of linked list of functions). */
 static void update_defaultargs(Node *n) {
   if (n) {
     Node *firstdefaultargs = n;
     update_defaultargs(firstChild(n));
     n = nextSibling(n);
+    /* recursively loop through nodes of all types, but all we really need are the overloaded functions */
     while (n) {
       update_defaultargs(firstChild(n));
-      assert(!Getattr(n, "defaultargs"));
-      if (Getattr(n, "needs_defaultargs")) {
-	Setattr(n, "defaultargs", firstdefaultargs);
-	Delattr(n, "needs_defaultargs");
+      if (!Getattr(n, "defaultargs")) {
+	if (Getattr(n, "needs_defaultargs")) {
+	  Setattr(n, "defaultargs", firstdefaultargs);
+	  Delattr(n, "needs_defaultargs");
+	} else {
+	  firstdefaultargs = n;
+	}
       } else {
-	firstdefaultargs = n;
+	/* Functions added in with %extend (for specialized template classes) will already have default args patched up */
+	assert(Getattr(n, "defaultargs") == firstdefaultargs);
       }
       n = nextSibling(n);
     }
@@ -2753,7 +2763,11 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               Swig_symbol_setscope(csyms);
                             }
 
-                            /* Merge in %extend methods for this class */
+                            /* Merge in %extend methods for this class.
+			       This only merges methods within %extend for a template specialized class such as
+			         template<typename T> class K {}; %extend K<int> { ... }
+			       The copy_node() call above has already added in the generic %extend methods such as
+			         template<typename T> class K {}; %extend K { ... } */
 
 			    /* !!! This may be broken.  We may have to add the
 			       %extend methods at the beginning of the class */
@@ -2885,16 +2899,15 @@ c_declaration   : c_decl {
 		  SWIG_WARN_NODE_END($$);
 		}
                 | USING idcolon EQUAL type plain_declarator SEMI {
-		  $$ = new_node("using");
-		  Setattr($$,"name",$2);
+		  /* Convert using statement to a typedef statement */
+		  $$ = new_node("cdecl");
 		  SwigType_push($4,$5.type);
-		  Setattr($$,"uname",$4);
+		  Setattr($$,"type",$4);
+		  Setattr($$,"storage","typedef");
+		  Setattr($$,"name",$2);
+		  Setattr($$,"decl","");
+		  SetFlag($$,"typealias");
 		  add_symbols($$);
-		  SWIG_WARN_NODE_BEGIN($$);
-		  Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line, "The 'using' keyword in type aliasing is not fully supported yet.\n");
-		  SWIG_WARN_NODE_END($$);
-
-		  $$ = 0; /* TODO - ignored for now */
 		}
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
 		  $$ = new_node("using");

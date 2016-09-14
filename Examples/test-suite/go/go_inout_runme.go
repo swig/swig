@@ -40,4 +40,14 @@ func main() {
 		fmt.Println("got", a, "want", dwant)
 		panic(a)
 	}
+
+	c2 := go_inout.NewC2()
+	pm := c2.M()
+	want = map[string]interface{}{
+		"ID": float64(1),
+	}
+	if !reflect.DeepEqual(*pm, want) {
+		fmt.Println("for c2.M got", pm, "want", want)
+		panic(pm)
+	}
 }

@@ -1,15 +1,4 @@
 
-#ifdef __cplusplus
-#include <exception>
-extern "C" {
-#endif
-
-/* for raw pointer */
-#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
-
-
 /* Remove global namespace pollution */
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
@@ -20,6 +9,17 @@ extern "C" {
 
 #include <Rdefines.h>
 #include <Rversion.h>
+
+#ifdef __cplusplus
+#include <exception>
+extern "C" {
+#endif
+
+/* for raw pointer */
+#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -218,10 +218,6 @@ SWIGRUNTIME SEXP
 SWIG_MakePtr(void *ptr, const char *typeName, R_SWIG_Owner owner)
 {
   SEXP external, r_obj;
-  const char *p = typeName;
-
-  if(typeName[0] == '_')
-     p = typeName + 1;
 
   Rf_protect(external = R_MakeExternalPtr(ptr, Rf_install(typeName), R_NilValue));
   Rf_protect(r_obj = NEW_OBJECT(MAKE_CLASS((char *) typeName)));

@@ -30,7 +30,8 @@ CPP_TEST_CASES = \
 #	stl_new
 
 C_TEST_CASES += \
-	li_cstring
+	li_cstring \
+	ruby_manual_proxy \
 
 include $(srcdir)/../common.mk
 

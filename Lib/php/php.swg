@@ -393,11 +393,7 @@
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
-  zval * resource;
-  MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
-
-  SWIG_SetPointerZval(return_value, (void *)&$1, $1_descriptor, $owner);
+  ZEND_REGISTER_RESOURCE(return_value, p, swig_member_ptr);
 }
 
 %typemap(in, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
@@ -429,7 +425,7 @@
 
 %typemap(directorin) SWIGTYPE
 {
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1), $&1_descriptor, 2);
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1|2);
 }
 
 %typemap(out) void "";

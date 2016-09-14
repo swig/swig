@@ -35,8 +35,9 @@ class check {
       foreach($_original_functions[internal] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
       foreach(array_keys($df) as $func)
-        if ((GETSET && ereg('_[gs]et$',$func)) || ereg('^new_', $func)
-          || ereg('_(alter|get)_newobject$', $func))
+        if ((GETSET && preg_match('/_[gs]et$/', $func)) ||
+            preg_match('/^new_/', $func) ||
+            preg_match('/_(alter|get)_newobject$/', $func))
           $extrags[]=$func;
         else $extra[]=$func;
 //      $extra=array_keys($df);
@@ -52,7 +53,8 @@ class check {
       if (GETSET) {
         $_extra=array();
         foreach(check::get_extra_functions(false,1) as $global) {
-          if (ereg('^(.*)_[sg]et$',$global,$match)) $_extra[$match[1]]=1;
+          if (preg_match('/^(.*)_[sg]et$/', $global, $match))
+            $_extra[$match[1]] = 1;
         }
         $extra=array_keys($_extra);
       } else {
@@ -61,7 +63,8 @@ class check {
           $df=array_flip(array_keys($GLOBALS));
           foreach($_original_globals as $func) unset($df[$func]);
           // MASK xxxx_LOADED__ variables
-          foreach(array_keys($df) as $func) if (ereg('_LOADED__$',$func)) unset($df[$func]);
+          foreach(array_keys($df) as $func)
+            if (preg_match('/_LOADED__$/', $func)) unset($df[$func]);
           $extra=array_keys($df);
         }
       }
@@ -185,7 +188,8 @@ class check {
   }
 
   function functionref($a,$type,$message) {
-    if (! eregi("^_[a-f0-9]+$type$",$a)) return check::fail($message);
+    if (! preg_match("/^_[a-f0-9]+$type$/i", $a))
+      return check::fail($message);
     return TRUE;
   }
 
@@ -196,7 +200,8 @@ class check {
 
   function resource($a,$b,$message) {
     $resource=trim(check::var_dump($a));
-    if (! eregi("^resource\([0-9]+\) of type \($b\)",$resource)) return check::fail($message);
+    if (! preg_match("/^resource\([0-9]+\) of type \($b\)/i", $resource))
+      return check::fail($message);
     return TRUE;
   }
 

@@ -24,4 +24,13 @@ checkEnum(TYPEDEF_ENUM_1_2, 22);
 checkEnum(TYPEDEF_ENUM_2_1, 31);
 checkEnum(TYPEDEF_ENUM_2_2, 32);
 
+checkEnum(ENUM_REF_1, 1);
+checkEnum(ENUM_REF_2, 10);
+
+checkEnum(clsEnum_CLS_ENUM_1, 100);
+checkEnum(clsEnum_CLS_ENUM_2, 101);
+
+checkEnum(clsEnum_CLS_ENUM_REF_1, 101);
+checkEnum(clsEnum_CLS_ENUM_REF_2, 110);
+
 exec("swigtest.quit", -1);

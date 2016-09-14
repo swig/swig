@@ -144,9 +144,9 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 
 #  ifdef PERL_OBJECT
 #    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
-static void SWIG_Perl_croak_null(CPerlObj *pPerl)
+static void SWIGUNUSED SWIG_Perl_croak_null(CPerlObj *pPerl)
 #  else
-static void SWIG_croak_null()
+static void SWIGUNUSED SWIG_croak_null()
 #  endif
 {
   SV *err = get_sv("@", GV_ADD);

@@ -2130,6 +2130,8 @@ public:
 	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
+      }
+      if (!ignored_method) {
 	String *pres = NewStringf("SV *%s", Swig_cresult_name());
 	Wrapper_add_local(w, Swig_cresult_name(), pres);
 	Delete(pres);

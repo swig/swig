@@ -7,7 +7,7 @@ def get_cflags(language, std, compiler):
     cflags = {
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
-            "go":"-Werror " + c_common,
+            "go":"-Werror " + c_common + " -Wno-declaration-after-statement",
          "guile":"-Werror " + c_common,
           "java":"-Werror " + c_common,
     "javascript":"-Werror " + c_common,

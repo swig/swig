@@ -51,7 +51,7 @@
 <li><a href="#Python_builtin_types">Built-in Types</a>
 <ul>
 <li><a href="#Python_builtin_limitations">Limitations</a>
-<li><a href="#Python_builtin_overloads">Operator overloads -- use them!</a>
+<li><a href="#Python_builtin_overloads">Operator overloads and slots -- use them!</a>
 </ul>
 <li><a href="#Python_nn30">Memory management</a>
 <li><a href="#Python_nn31">Python 2.2 and classic classes</a>
@@ -116,6 +116,14 @@
 <li><a href="#Python_absrelimports">Absolute and relative imports</a>
 <li><a href="#Python_absimport">Enforcing absolute import semantics</a>
 <li><a href="#Python_importfrominit">Importing from __init__.py</a>
+<li><a href="#Python_implicit_namespace_packages">Implicit Namespace Packages</a>
+<li><a href="#Python_package_search">Searching for the wrapper module</a>
+<ul>
+<li><a href="#Python_package_search_both_package_modules">Both modules in the same package</a>
+<li><a href="#Python_package_search_wrapper_split">Split modules</a>
+<li><a href="#Python_package_search_both_global_modules">Both modules are global</a>
+<li><a href="#Python_package_search_static">Statically linked C modules</a>
+</ul>
 </ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
@@ -2434,7 +2442,7 @@ assert(issubclass(B.Derived, A.Base))
 </li>
 </ul>
 
-<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads -- use them!</a></H4>
+<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads and slots -- use them!</a></H4>
 
 
 <p>The entire justification for the <tt>-builtin</tt> option is improved
@@ -2486,52 +2494,110 @@ automatically converted to python slot operators, refer to the file
 <tt>python/pyopers.swig</tt> in the SWIG library.
 </p>
 
-<p>There are other very useful python slots that you
-may explicitly define using <tt>%feature</tt> directives.  For example,
-suppose you want to use instances of a wrapped class as keys in a native python
-<tt>dict</tt>.  That will work as long as you define a hash function for
-instances of your class, and use it to define the python <tt>tp_hash</tt>
-slot:
+
+<p>
+Read about all of the available python slots here:
+<a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
+
+<p>
+There are two ways to define a python slot function: dispatch to a
+statically defined function; or dispatch to a method defined on the
+operand.
+</p>
+
+<p>
+To dispatch to a statically defined function, use %feature("python:&lt;slot&gt;"),
+where &lt;slot&gt; is the name of a field in a <tt>PyTypeObject, PyNumberMethods,
+PyMappingMethods, PySequenceMethods</tt> or <tt>PyBufferProcs</tt>.
+You may override (almost) all of these slots.
+</p>
+
+
+<p>
+Let's consider an example setting the <tt>tp_hash</tt> slot for the <tt>MyClass</tt> type.
+This is akin to providing a <tt>__hash__</tt> method (for non-builtin types) to make a type hashable.
+The hashable type can then for example be added to a Python <tt>dict</tt>.
 </p>
 
 <div class="code">
 <pre>
-%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+%feature("python:tp_hash") MyClass "myHashFunc";
 
-class Cheese {
+class MyClass {
 public:
-    Cheese (const char *name);
-    long cheeseHashFunc () const;
+  long field1;
+  long field2;
+  ...
+};
+
+%{
+#if PY_VERSION_HEX &gt;= 0x03020000
+  static Py_hash_t myHashFunc(PyObject *pyobj)
+#else
+  static long myHashFunc(PyObject *pyobj)
+#endif
+  {
+    MyClass *cobj;
+    // Convert pyobj to cobj
+    return (cobj-&gt;field1 * (cobj-&gt;field2 &lt;&lt; 7));
+  }
+%}
+</pre>
+</div>
+
+<p>
+If you examine the generated code, the supplied hash function will now be 
+the function callback in the tp_hash slot for the builtin type for <tt>MyClass</tt>:
+</p>
+
+<div class="code">
+<pre>
+static PyHeapTypeObject SwigPyBuiltin__MyClass_type = {
+    ...
+    (hashfunc) myHashFunc,       /* tp_hash */
+    ...
+</pre>
+</div>
+
+<p>
+NOTE: It is the responsibility of the programmer (that's you!) to ensure
+that a statically defined slot function has the correct signature, the <tt>hashfunc</tt>
+typedef in this case.
+</p>
+
+<p>
+If, instead, you want to dispatch to an instance method, you can
+use %feature("python:slot").  For example:
+</p>
+
+<div class="code">
+<pre>
+%feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
+#if PY_VERSION_HEX &lt; 0x03020000
+  #define Py_hash_t long
+#endif
+
+class MyClass {
+  public:
+    Py_hash_t myHashFunc() const;
+    ...
 };
 </pre>
 </div>
 
-<p>This will allow you to write python code like this:</p>
+<p>
+NOTE: Some python slots use a method signature which does not
+match the signature of SWIG-wrapped methods.  For those slots,
+SWIG will automatically generate a "closure" function to re-marshal
+the arguments before dispatching to the wrapped method.  Setting
+the "functype" attribute of the feature enables SWIG to generate
+the chosen closure function.
+</p>
 
-<div class="targetlang">
-<pre>
-from my MyPackage import Cheese
-
-inventory = {
-    Cheese("cheddar") : 0,
-    Cheese("gouda") : 0,
-    Cheese("camembert") : 0
-}
-</pre>
-</div>
-
-<p>Because you defined the <tt>tp_hash</tt> slot, <tt>Cheese</tt> objects may
-be used as hash keys; and when the <tt>cheeseHashFunc</tt> method is invoked
-by a python <tt>dict</tt>, it will <b>not</b> go through named method dispatch.
-A more detailed discussion about <tt>%feature("python:slot")</tt> can be found
+<p>
+There is further information on <tt>%feature("python:slot")</tt>
 in the file <tt>python/pyopers.swig</tt> in the SWIG library.
-You can read about all of the available python slots here:</p>
-
-<p><a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
-
-<p>You may override (almost) all of the slots defined in the <tt>PyTypeObject,
-PyNumberMethods, PyMappingMethods, PySequenceMethods</tt>, and <tt>PyBufferProcs</tt>
-structs.
 </p>
 
 
@@ -4186,7 +4252,7 @@ also be used to extra binary data from arbitrary pointers.
 
 <p>
 C++ default argument code generation is documented in the main
-<a href="SWIG.html#SWIGPlus_default_args">Default arguments</a> section.
+<a href="SWIGPlus.html#SWIGPlus_default_args">Default arguments</a> section.
 There is also an optional Python specific feature that can be used called the <tt>python:cdefaultargs</tt> 
 <a href="Customization.html#Customization_feature_flags">feature flag</a>.
 By default, SWIG attempts to convert C++ default argument values
@@ -4891,23 +4957,23 @@ A typemap can be used to handle this case as follows :
 // is guaranteed to be a List object by SWIG.
 
 %typemap(argout) double *OutValue {
-    PyObject *o, *o2, *o3;
-    o = PyFloat_FromDouble(*$1);
-    if ((!$result) || ($result == Py_None)) {
-        $result = o;
-    } else {
-        if (!PyTuple_Check($result)) {
-            PyObject *o2 = $result;
-            $result = PyTuple_New(1);
-            PyTuple_SetItem(target,0,o2);
-        }
-        o3 = PyTuple_New(1);
-        PyTuple_SetItem(o3,0,o);
-        o2 = $result;
-        $result = PySequence_Concat(o2,o3);
-        Py_DECREF(o2);
-        Py_DECREF(o3);
+  PyObject *o, *o2, *o3;
+  o = PyFloat_FromDouble(*$1);
+  if ((!$result) || ($result == Py_None)) {
+    $result = o;
+  } else {
+    if (!PyTuple_Check($result)) {
+      PyObject *o2 = $result;
+      $result = PyTuple_New(1);
+      PyTuple_SetItem($result,0,o2);
     }
+    o3 = PyTuple_New(1);
+    PyTuple_SetItem(o3,0,o);
+    o2 = $result;
+    $result = PySequence_Concat(o2,o3);
+    Py_DECREF(o2);
+    Py_DECREF(o3);
+  }
 }
 
 int spam(double a, double b, double *OutValue, double *OutValue);
@@ -5520,6 +5586,23 @@ They should be created by other means. Both files (module <tt>*.py</tt> and
 directories in order to obtain a desirable package/module hierarchy.
 </p>
 
+<p>
+Python3 adds another option for packages with
+<a href="https://www.python.org/dev/peps/pep-0420/">PEP 0420</a> (implicit
+namespace packages).  Implicit namespace packages no longer use
+__init__.py files.  SWIG generated Python modules support implicit
+namespace packages.  See
+<a href="#Python_implicit_namespace_packages">36.11.5 Implicit Namespace
+Packages</a> for more information.
+</p>
+
+<p>
+If you place a SWIG generated module into a Python package then there
+are details concerning the way SWIG  
+<a href="#Python_package_search">searches for the wrapper module</a>
+that you may want to familiarize yourself with.
+</p>
+
 <p>The way Python defines its modules and packages impacts SWIG users. Some
 users may need to use special features such as the <tt>package</tt> option in the
 <tt>%module</tt> directive or import related command line options. These are
@@ -5679,8 +5762,9 @@ class M2(pkg2.mod3.M3): pass
 <p>By default, SWIG would generate <tt>mod2.py</tt> proxy file with
 <tt>import</tt> directive as in point 1. This can be changed with the
 <tt>-relativeimport</tt> command line option. The <tt>-relativeimport</tt> instructs
-SWIG to organize imports as in point 2 (for Python 2.x) or as in point 4 (for
-Python 3, that is when the -py3 command line option is enabled). In short, if you have
+SWIG to organize imports as in point 2 (for Python < 2.7.0) or as in point 4
+for Python 2.7.0 and newer. This is a check done at the time the module is
+imported. In short, if you have
 <tt>mod2.i</tt> and <tt>mod3.i</tt> as above, then without
 <tt>-relativeimport</tt> SWIG will write</p>
 
@@ -5694,21 +5778,16 @@ import pkg1.pkg2.mod3
 write</p>
 
 <div class="targetlang">
-<pre>
-import pkg2.mod3
+  <pre>
+from sys import version_info
+if version_info &gt;= (2, 7, 0):
+    from . import pkg2
+    import pkg1.pkg2.mod3
+else:
+    import pkg2.mod3
+del version_info
 </pre>
 </div>
-
-<p>if <tt>-py3</tt> is not used, or</p>
-
-<div class="targetlang">
-<pre>
-from . import pkg2
-import pkg1.pkg2.mod3
-</pre>
-</div>
-
-<p>when <tt>-py3</tt> is used.</p>
 
 <p>You should avoid using relative imports and use absolute ones whenever
 possible. There are some cases, however, when relative imports may be
@@ -5865,6 +5944,257 @@ class Bar(pkg3.foo.Foo): pass
 effect (note, that the Python 2 case also needs the <tt>-relativeimport</tt>
 workaround).</p>
 
+<H3><a name="Python_implicit_namespace_packages">36.11.5 Implicit Namespace Packages</a></H3>
+
+
+<p> Python 3.3 introduced
+<a href="https://www.python.org/dev/peps/pep-0420/">PEP 0420</a> which
+implements implicit namespace packages.  In a nutshell, implicit namespace
+packages remove the requirement of an __init__.py file and allow packages
+to be split across multiple PATH elements.  For example:
+</p>
+
+<div class="diagram">
+<pre>
+/fragment1/pkg1/mod1.py
+/fragment2/pkg1/mod2.py
+/fragment3/pkg1/mod3.py
+</pre>
+</div>
+
+<p>If PYTHONPATH is set to "/fragment1:/fragment2:/fragment3", then mod1, mod2
+and mod3 will be part of pkg1.  This allows for splitting of packages into
+separate pieces.  This can be useful for SWIG generated wrappers in the
+following way.
+</p>
+
+<p> Suppose you create a SWIG wrapper for a module called robin.  The SWIG
+generated code consists of two files robin.py and _robin.so.  You wish to
+make these modules part of a subpackage (brave.sir).  With implicit namespace
+packages you can place these files in the following configurations:
+</p>
+
+<p>Using PYTHONPATH="/some/path"</p>
+<div class="diagram">
+<pre>
+/some/path/brave/sir/robin.py
+/some/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p>Using PYTHONPATH="/some/path:/some/other/path"
+
+<div class="diagram">
+<pre>
+/some/path/brave/sir/robin.py
+/some/other/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p> Finally suppose that your pure python code is stored in a .zip file or
+some other way (database, web service connection, etc).  Python can load the
+robin.py module using a custom importer.  But the _robin.so module will need
+to be located on a file system.  Implicit namespace packages make this
+possible.  For example, using PYTHONPATH="/some/path/foo.zip:/some/other/path"
+
+<p> Contents of foo.zip</p>
+<div class="diagram">
+<pre>
+brave/
+brave/sir/
+brave/sir/robin.py
+</pre>
+</div>
+
+<p> File system contents</p>
+<div class="diagram">
+<pre>
+/some/other/path/brave/sir/_robin.so
+</pre>
+</div>
+
+<p>Support for implicit namespace packages was added to python-3.3.  The
+zipimporter requires python-3.5.1 or newer to work with subpackages.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for implicit namespace packages was added in SWIG-3.0.9.
+</p>
+
+
+<H3><a name="Python_package_search">36.11.6 Searching for the wrapper module</a></H3>
+
+
+<p>
+When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
+created.  There is a pure Python module module (foo.py) and C/C++ code which is
+built and linked into a dynamically (or statically) loaded module _foo
+(see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
+file really defines two Python modules.   How these two modules are loaded is
+covered next.
+</p>
+
+<p>
+The pure Python module needs to load the C/C++ module in order to link
+to the wrapped C/C++ methods.   To do this it must make some assumptions
+about what package the C/C++ module may be located in.  The approach the
+pure Python module uses to find the C/C++ module is as follows:
+</p>
+
+<ol>
+  <li><p>The pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
+      located in.  The package name is determined from the <tt>__name__</tt>
+      attribute given to foo.py by the Python loader that imported
+      foo.py.  If foo.py is not in a package then _foo is loaded
+      as a global module.</p>
+  </li>
+  <li><p>If the above import of _foo results in an ImportError
+      being thrown, then foo.py makes a final attempt to load _foo
+    as a global module.</p>
+  </li>
+</ol>
+
+<p>
+As an example suppose foo.i is compiled into foo.py and _foo.so.  Assuming
+/dir is on PYTHONPATH, then the two modules can be installed and used in the
+following ways:
+</p>
+
+
+<H4><a name="Python_package_search_both_package_modules">36.11.6.1 Both modules in the same package</a></H4>
+
+
+<p>Both modules are in one package:</p>
+<div class="diagram">
+<pre>
+/dir/package/foo.py
+/dir/package/__init__.py
+/dir/package/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+from package import foo
+</pre>
+</div>
+
+
+<H4><a name="Python_package_search_wrapper_split">36.11.6.2 Split modules</a></H4>
+
+
+<p>The pure python module is in a package and the C/C++ module is global:</p>
+<div class="diagram">
+<pre>
+/dir/package/foo.py
+/dir/package/__init__.py
+/dir/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+from package import foo
+</pre>
+</div>
+
+
+<H4><a name="Python_package_search_both_global_modules">36.11.6.3 Both modules are global</a></H4>
+
+
+<p>Both modules are global:</p>
+<div class="diagram">
+<pre>
+/dir/foo.py
+/dir/_foo.so
+</pre>
+</div>
+<p>And imported with</p>
+<div class="diagram">
+<pre>
+import foo
+</pre>
+</div>
+
+<p>
+If _foo is statically linked into an embedded Python interpreter, then it may or
+may not be in a Python package.  This depends in the exact way the module was
+loaded statically.  The above search order will still be used for statically
+loaded modules.  So, one may place the module either globally or in a package
+as desired.
+</p>
+
+<H4><a name="Python_package_search_static">36.11.6.4 Statically linked C modules</a></H4>
+
+
+<p>It is strongly recommended to use dynamically linked modules for the C
+portion of your pair of Python modules.
+If for some reason you still need
+to link the C module of the pair of Python modules generated by SWIG into
+your interpreter, then this section provides some details on how this impacts
+the pure Python modules ability to locate the other part of the pair.
+Please also see the <a href="Python.html#Python_nn8">Static Linking</a> section.
+</p>
+
+<p>When Python is extended with C code the Python interpreter needs to be
+informed about details of the new C functions that have been linked into
+the executable.  The code to do this is created by SWIG and is automatically
+called in the correct way when the module is dynamically loaded.  However
+when the code is not dynamically loaded (because it is statically linked)
+Then the initialization method for the module created by SWIG is not
+called automatically and the Python interpreter has no idea that the
+new SWIG C module exists.
+</p>
+
+<p>Before Python 3, one could simply call the init method created by SWIG
+which would have normally been called when the shared object was dynamically
+loaded.  The specific name of this method is not given here because statically
+linked modules are not encouraged with SWIG
+(<a href="Python.html#Python_nn8">Static Linking</a>).  However one can find this
+init function in the C file generated by SWIG.
+</p>
+
+<p>If you are really keen on static linking there are two ways
+to initialize the SWIG generated C module with the init method.  Which way
+you use depends on what version of Python your module is being linked with.
+Python 2 and Python 3 treat this init function differently.  And the way
+they treat it affects how the pure Python module will be able to
+locate the C module.
+</p>
+
+<p>The details concerning this are covered completly in the documentation
+for Python itself.  Links to the relavent sections follow:
+</p>
+
+<ul>
+  <li><a href="https://docs.python.org/2/extending/extending.html#methodtable">Extending in python2</a></li>
+  <li><a href="https://docs.python.org/3.6/extending/extending.html#the-module-s-method-table-and-initialization-function">Extending in python3</a></li>
+</ul>
+
+<p>There are two keys things to understand.  The first is that in
+Python 2 the init() function returns void.  In Python 3 the init() function
+returns a PyObject * which points to the new module.  Secondly, when
+you call the init() method manually, you are the Python importer.  So, you
+determine which package the C module will be located in.
+</p>
+
+<p>So, if you are using Python 3 it is important that you follow what is
+described in the Python documentation linked above.  In particular, you can't
+simply call the init() function generated by SWIG and cast the PyObject
+pointer it returns over the side.  If you do then Python 3 will have no
+idea that your C module exists and the pure Python half of your wrapper will
+not be able to find it.  You need to register your module with the Python
+interpreter as described in the Python docs.
+</p>
+
+<p>With Python 2 things are somewhat more simple.  In this case the init function
+returns void.  Calling it will register your new C module as a <b>global</b>
+module.  The pure Python part of the SWIG wrapper will be able to find it
+because it tries both the pure Python module it is part of and the global
+module.  If you wish not to have the statically linked module be a global
+module then you will either need to refer to the Python documentation on how
+to do this (remember you are now the Python importer) or use dynamic linking.
+</p>
 
 <H2><a name="Python_python3support">36.12 Python 3 Support</a></H2>
 

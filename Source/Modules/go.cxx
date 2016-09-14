@@ -1362,6 +1362,10 @@ private:
     goargout(info->parms);
 
     if (SwigType_type(info->result) != T_VOID) {
+
+      Swig_save("cgoGoWrapper", info->n, "type", "tmap:goout", NULL);
+      Setattr(info->n, "type", info->result);
+
       String *goout = goTypemapLookup("goout", info->n, "swig_r");
       if (goout == NULL) {
 	Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
@@ -1374,6 +1378,8 @@ private:
 	Printv(f_go_wrappers, goout, "\n", NULL);
 	Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
       }
+
+      Swig_restore(info->n);
     }
 
     Printv(f_go_wrappers, "}\n\n", NULL);
@@ -1618,7 +1624,12 @@ private:
       receiver = NULL;
     }
 
+    Swig_save("cgoGoWrapper", n, "type", "tmap:goout", NULL);
+    Setattr(n, "type", result);
+
     String *goout = goTypemapLookup("goout", n, "swig_r");
+
+    Swig_restore(n);
 
     bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
@@ -4165,7 +4176,6 @@ private:
 
     Wrapper *dummy = NewWrapper();
     emit_attach_parmmaps(parms, dummy);
-    DelWrapper(dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
     Swig_typemap_attach_parms("imtype", parms, NULL);
@@ -4221,6 +4231,8 @@ private:
     Swig_typemap_attach_parms("godirectorin", parms, w);
     Swig_typemap_attach_parms("goin", parms, dummy);
     Swig_typemap_attach_parms("goargout", parms, dummy);
+
+    DelWrapper(dummy);
 
     if (!is_ignored) {
       // We use an interface to see if this method is defined in Go.

@@ -10,11 +10,15 @@ import_packages_subdirs = \
 	from_init3 \
 	relativeimport1 \
 	relativeimport2 \
-	relativeimport3
+	relativeimport3 \
+	split_modules \
+	namespace_pkg
+
 
 check: build
 	if test "x$(SRCDIR)" != x; then \
-		for file in `cd $(SRCDIR) && find . -type f -name __init__.py`; do \
+		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
+			mkdir -p `dirname $$file`; \
 			cp "${SRCDIR}$$file" "$$file" || exit 1; \
 		done; \
 	fi; \
@@ -35,7 +39,7 @@ static:
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_clean
 	if test "x$(SRCDIR)" != x; then \
-		for file in `cd $(SRCDIR) && find . -type f -name __init__.py`; do \
+		for file in `cd $(SRCDIR) && find . -type f -name "*.py"`; do \
 			rm -f "$$file" || exit 1; \
 		done; \
 	fi; \

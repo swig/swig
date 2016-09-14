@@ -28,6 +28,7 @@ extern "C"
 XS(SWIG_init) {
     dXSARGS;
     int i;
+    (void)items;
 
     SWIG_InitializeModule(0);
 

@@ -87,7 +87,6 @@ CPP_TEST_BROKEN += \
 	director_nested_class \
 	exception_partial_info \
 	extend_variable \
-	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
@@ -174,7 +173,6 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
-	director_property \
 	director_binary_string \
 	director_classes \
 	director_classic \
@@ -189,12 +187,14 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_nested \
 	director_nspace \
 	director_nspace_director_name_collision \
-	director_nested \
 	director_overload \
 	director_overload2 \
+	director_pass_by_value \
 	director_primitives \
+	director_property \
 	director_protected \
 	director_protected_overloaded \
 	director_redefined \
@@ -307,6 +307,7 @@ CPP_TEST_CASES += \
 	nested_class \
 	nested_directors \
 	nested_comment \
+	nested_ignore \
 	nested_scope \
 	nested_template_base \
 	nested_workaround \
@@ -362,6 +363,7 @@ CPP_TEST_CASES += \
 	smart_pointer_const2 \
 	smart_pointer_const_overload \
 	smart_pointer_extend \
+	smart_pointer_ignore \
 	smart_pointer_member \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
@@ -402,6 +404,7 @@ CPP_TEST_CASES += \
 	template_default2 \
 	template_default_arg \
 	template_default_arg_overloaded \
+	template_default_arg_overloaded_extend \
 	template_default_arg_virtual_destructor \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
@@ -584,6 +587,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector \
 	li_std_vector_enum \
 	li_std_vector_member_var\
+	li_std_vector_ptr \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
@@ -714,7 +718,7 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
 check-failing-test = \
-	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $t passed."
+	$(MAKE) -s $1.$2 >/dev/null 2>/dev/null && echo "Failing test $1 passed."
 
 check-failing:
 	+-$(foreach t,$(FAILING_C_TESTS),$(call check-failing-test,$t,ctest);)

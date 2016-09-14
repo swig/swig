@@ -647,8 +647,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = &$1; %}
-%typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, false)"
+   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
+%typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, true)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */

@@ -35,4 +35,21 @@ typedef enum TYPEDEF_ENUM_2 {
   TYPEDEF_ENUM_2_2 = 32
 } TYPEDEF_ENUM_2;
 
+enum ENUM_REF {
+  ENUM_REF_1 = 1,
+  ENUM_REF_2 = ENUM_REF_1 + 9
+};
+
+class clsEnum {
+public:
+  enum CLS_ENUM {
+    CLS_ENUM_1 = 100,
+    CLS_ENUM_2 = 101
+  };
+  enum CLS_ENUM_REF {
+    CLS_ENUM_REF_1 = 101,
+    CLS_ENUM_REF_2 = CLS_ENUM_REF_1 + 9
+  };
+};
+
 %}

@@ -469,7 +469,6 @@ public:
         value = Getattr(p, "tmap:doc:value");
       }
 
-      // Note: the generated name should be consistent with that in kwnames[]
       name = name ? name : Getattr(p, "name");
       name = name ? name : Getattr(p, "lname");
       name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword

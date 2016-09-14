@@ -192,7 +192,6 @@
           }
         UNPROTECT(1);
         return(result);
-        //return SWIG_R_NewPointerObj(val, type_info< std::vector<T > >(), owner);
       }
     };
     
@@ -208,7 +207,6 @@
            }
         UNPROTECT(1);
         return(result);
-        //return SWIG_R_NewPointerObj(val, type_info< std::vector<T > >(), owner);
       }
     };
 
@@ -516,13 +514,37 @@
     }
   };
 
+    template <>
+      struct traits_asptr < std::vector<std::basic_string<char> > > {
+      static int asptr(SEXP obj, std::vector<std::basic_string<char> > **val) {
+	std::vector<std::basic_string<char> > *p;
+      // R character vectors are STRSXP containing CHARSXP
+      // access a CHARSXP using STRING_ELT
+      int sexpsz = Rf_length(obj);
+      p = new std::vector<std::basic_string<char> >(sexpsz);
+      SEXP coerced;
+      PROTECT(coerced = Rf_coerceVector(obj, STRSXP));
+      //SEXP *S = CHARACTER_POINTER(coerced);
+      for (unsigned pos = 0; pos < p->size(); pos++)
+        {
+	  const char * thecstring = CHAR(STRING_ELT(coerced, pos));
+          (*p)[pos] = std::basic_string<char>(thecstring);
+        }
+      int res = SWIG_OK;
+      if (SWIG_IsOK(res)) {
+        if (val) *val = p;
+      }
+      UNPROTECT(1);
+      return res;
+    }
+  };
+
     // catchall for R to vector conversion
   template <typename T>
   struct traits_asptr < std::vector<T> > {
     static int asptr(SEXP obj, std::vector<T> **val) {
       std::vector<T> *p;
-      Rprintf("my asptr\n");
-     int res = SWIG_R_ConvertPtr(obj, (void**)&p, type_info< std::vector<T> >(), 0);
+      int res = SWIG_R_ConvertPtr(obj, (void**)&p, type_info< std::vector<T> >(), 0);
       if (SWIG_IsOK(res)) {
         if (val) *val = p;
       }
@@ -816,35 +838,56 @@
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<double>)
 %traits_type_name(std::vector<double>)
-%typemap("rtypecheck") std::vector<double>, std::vector<double> const, std::vector<double> const&
+%typemap("rtypecheck") std::vector<double>, std::vector<double> *, std::vector<double> &
     %{ is.numeric($arg) %}
 %typemap("rtype") std::vector<double> "numeric"
-%typemap("scoercein") std::vector<double>, std::vector<double> const, std::vector<double> const& "";
+%typemap("scoercein") std::vector<double>, std::vector<double> *, std::vector<double> & "$input = as.numeric($input);";
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<float>)
 %traits_type_name(std::vector<float>)
 
 // reuse these for float
-%typemap("rtype") std::vector<float> = std::vector<double>;
-%typemap("rtypecheck") std::vector<float> = std::vector<double>;
-%typemap("scoercein") std::vector<float> = std::vector<double>;
+%typemap("rtype") std::vector<float>, std::vector<float> *, std::vector<float> & = std::vector<double>;
+%typemap("rtypecheck") std::vector<float>, std::vector<float> *, std::vector<float> & = std::vector<double>;
+%typemap("scoercein") std::vector<float>, std::vector<float> *, std::vector<float> & = std::vector<double>;
 
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool>);
 %traits_type_name(std::vector<bool>);
-%typemap("rtypecheck") std::vector<bool> , std::vector<bool> const, std::vector<bool> const&
+%typemap("rtypecheck") std::vector<bool>, std::vector<bool> *, std::vector<bool> &
    %{ is.logical($arg) %}
 %typemap("rtype") std::vector<bool> "logical"
-%typemap("scoercein") std::vector<bool> , std::vector<bool> const, std::vector<bool> const& "$input = as.logical($input);";
+%typemap("scoercein") std::vector<bool> , std::vector<bool> & "$input = as.logical($input);";
 
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<int>);
 %traits_type_name(std::vector<int>);
-%typemap("rtypecheck") std::vector<int>, std::vector<int> const, std::vector<int> const &
+%typemap("rtypecheck") std::vector<int>, std::vector<int>  *, std::vector<int>  &
    %{ is.integer($arg) || is.numeric($arg) %}
 
 %typemap("rtype") std::vector<int> "integer"
-%typemap("scoercein") std::vector<int> , std::vector<int> const, std::vector<int> const& "$input = as.integer($input);";
+%typemap("scoercein") std::vector<int> , std::vector<int> *, std::vector<int> & "$input = as.integer($input);";
+
+// strings
+%typemap("rtype") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & "character"
+
+%typemap("rtypecheck") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > &
+   %{ is.character($arg) %}
+
+%typemap("scoercein") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & "$input = as.character($input);";
+
+%typemap("scoerceout") std::vector< std::basic_string<char> >,  
+std::vector< std::basic_string<char> > *,
+   std::vector< std::basic_string<char> > & 
+%{    %}
+
+%apply std::vector< std::basic_string<char> > { std::vector< std::string> };
 
 // all the related integer vectors
 // signed
@@ -884,76 +927,83 @@
 // but we can't use %apply as it will copy the C side ones too
 // Also note that we don't seem to be able to use types like
 // int_least8_t here.
-%typemap("rtype") std::vector<signed char> = std::vector<int>;
-%typemap("rtype") std::vector<signed short> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned char> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned int> = std::vector<int>;
+%typemap("rtype") std::vector<signed char>, std::vector<signed char> *, std::vector<signed char> & = std::vector<int>;
+%typemap("rtype") std::vector<signed short>, std::vector<signed short> *, std::vector<signed short> & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("rtype") std::vector<long int> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned long int> = std::vector<int>;
+%typemap("rtype") std::vector<long int>, std::vector<long int> *, std::vector<long int> & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
 #else
-%typemap("rtype") std::vector<long long int> = std::vector<int>;
-%typemap("rtype") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("rtype") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
+%typemap("rtype") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
 #endif
 
 
-%typemap("scoercein") std::vector<signed char> = std::vector<int>;
-%typemap("scoercein") std::vector<signed short> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned char> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned int> = std::vector<int>;
+%typemap("scoercein") std::vector<signed char>, std::vector<signed char> *, std::vector<signed char> & = std::vector<int>;
+%typemap("scoercein") std::vector<signed short>, std::vector<signed short> *, std::vector<signed short> & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("scoercein") std::vector<long int> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned long int> = std::vector<int>;
+%typemap("scoercein") std::vector<long int>, std::vector<long int> *, std::vector<long int> & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
 #else
-%typemap("scoercein") std::vector<long long int> = std::vector<int>;
-%typemap("scoercein") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("scoercein") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
+%typemap("scoercein") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
 #endif
 
-%typemap("rtypecheck") std::vector<signed char> = std::vector<int>;
-%typemap("rtypecheck") std::vector<signed short> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned char> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<signed char>, std::vector<signed char> *, std::vector<signed char> & = std::vector<int>;
+%typemap("rtypecheck") std::vector<signed short>, std::vector<signed short> *, std::vector<signed short> & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
 #if defined(SWIGWORDSIZE64)
-%typemap("rtypecheck") std::vector<long int> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned long int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<long int>, std::vector<long int> *, std::vector<long int> &  = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
 #else
-%typemap("rtypecheck") std::vector<long long int> = std::vector<int>;
-%typemap("rtypecheck") std::vector<unsigned long long int> = std::vector<int>;
+%typemap("rtypecheck") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
+%typemap("rtypecheck") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
 #endif
 
 ///////////////////////////////////////////////////////////////
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<int> >);
 %traits_type_name(std::vector< std::vector<int> >);
-%typemap("rtypecheck") std::vector<std::vector<int> >, std::vector<std::vector<int> > const, std::vector<std::vector<int> >const&
+%typemap("rtypecheck") std::vector<std::vector<int> >, std::vector<std::vector<int> > *, std::vector<std::vector<int> > &
    %{ is.list($arg) && all(sapply($arg , is.integer) || sapply($arg, is.numeric)) %}
-%typemap("rtype") std::vector<std::vector<int> > "list"
-%typemap("scoercein") std::vector< std::vector<int> >, std::vector<std::vector<int> > const, std::vector<std::vector<int> >const& "$input = lapply($input, as.integer);";
+%typemap("rtype") std::vector<std::vector<int> >, std::vector<std::vector<int> > *, std::vector<std::vector<int> > & "list"
+%typemap("scoercein") std::vector< std::vector<int> >, std::vector<std::vector<int> > *, std::vector<std::vector<int> > & "$input = lapply($input, as.integer);";
+
+%typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<unsigned int> >);
+%traits_type_name(std::vector< std::vector<unsigned int> >);
+%typemap("rtypecheck") std::vector<std::vector<unsigned int> >, std::vector<std::vector<unsigned int> > *, std::vector<std::vector<unsigned int> > &
+   %{ is.list($arg) && all(sapply($arg , is.integer) || sapply($arg, is.numeric)) %}
+%typemap("rtype") std::vector<std::vector<unsigned int> >, std::vector<std::vector<unsigned int> > *, std::vector<std::vector<unsigned int> > & "list"
+%typemap("scoercein") std::vector< std::vector<unsigned int> >, std::vector<std::vector<int> > *, std::vector<std::vector<unsigned int> > & "$input = lapply($input, as.integer);";
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<float> >);
 %traits_type_name(std::vector< std::vector<float> >);
-%typemap("rtypecheck") std::vector<std::vector<float> >, std::vector<std::vector<float> > const, std::vector<std::vector<float> >const&
+%typemap("rtypecheck") std::vector<std::vector<float> >, std::vector<std::vector<float> > *, std::vector<std::vector<float> > &
    %{ is.list($arg) && all(sapply($arg , is.integer) || sapply($arg, is.numeric)) %}
-%typemap("rtype") std::vector<std::vector<float> > "list"
-%typemap("scoercein") std::vector< std::vector<float> >, std::vector<std::vector<float> > const, std::vector<std::vector<float> >const& "$input = lapply($input, as.numeric);";
+%typemap("rtype") std::vector<std::vector<float> >, std::vector<std::vector<float> > *, std::vector<std::vector<float> > "list"
+%typemap("scoercein") std::vector< std::vector<float> >, std::vector<std::vector<float> > *, std::vector<std::vector<float> > & "$input = lapply($input, as.numeric);";
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<double> >);
 %traits_type_name(std::vector< std::vector<double> >);
-%typemap("rtypecheck") std::vector<std::vector<double> >, std::vector<std::vector<double> > const, std::vector<std::vector<double> >const&
+%typemap("rtypecheck") std::vector<std::vector<double> >, std::vector<std::vector<double> > *, std::vector<std::vector<double> > &
    %{ is.list($arg) && all(sapply($arg , is.integer) || sapply($arg, is.numeric)) %}
-%typemap("rtype") std::vector<std::vector<double> > "list"
-%typemap("scoercein") std::vector< std::vector<double> >, std::vector<std::vector<double> > const, std::vector<std::vector<double> >const&
+%typemap("rtype") std::vector<std::vector<double> >, std::vector<std::vector<double> > *, std::vector<std::vector<double> > & "list"
+%typemap("scoercein") std::vector< std::vector<double> >, std::vector<std::vector<double> > *, std::vector<std::vector<double> > &
  "$input = lapply($input, as.numeric);";
 
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<bool> >);
 %traits_type_name(std::vector< std::vector<bool> >);
-%typemap("rtypecheck") std::vector<std::vector<bool> >, std::vector<std::vector<bool> > const, std::vector<std::vector<bool> >const&
+%typemap("rtypecheck") std::vector<std::vector<bool> >, std::vector<std::vector<bool> > *, std::vector<std::vector<bool> > &
    %{ is.list($arg) && all(sapply($arg , is.integer) || sapply($arg, is.numeric)) %}
-%typemap("rtype") std::vector<std::vector<bool> > "list"
-%typemap("scoercein") std::vector< std::vector<bool> >, std::vector<std::vector<bool> > const, std::vector<std::vector<bool> >const& "$input = lapply($input, as.logical);";
+%typemap("rtype") std::vector<std::vector<bool> >, std::vector<std::vector<bool> > *, std::vector<std::vector<bool> > & "list"
+%typemap("scoercein") std::vector< std::vector<bool> >, std::vector<std::vector<bool> > *, std::vector<std::vector<bool> > & "$input = lapply($input, as.logical);";
 
 // we don't want these to be given R classes as they
 // have already been turned into R vectors.

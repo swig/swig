@@ -120,7 +120,7 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -171,7 +171,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -236,30 +236,30 @@ SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info
   SciErr sciErr;
 
   if (descriptor) {
-    int *piTListAddr = NULL;
+    int *piMListAddr = NULL;
     const char *pstString;
 
-    sciErr = createTList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piTListAddr);
+    sciErr = createMList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piMListAddr);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
     pstString = SWIG_TypeName(descriptor);
-    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 1, 1, 1, &pstString);
+    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 1, 1, 1, &pstString);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 2, descriptor);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 2, descriptor);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 3, pvObj);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 3, pvObj);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
