@@ -119,7 +119,6 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) SWIGTYPE *&    "$resolved_type**"
 %typemap(ctype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
 %typemap(ctype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
-%typemap(ctype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
 %typemap(ctype) enum SWIGTYPE "int"
 %typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 
@@ -156,11 +155,6 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = ($1_ltype) $input;
 }
 
-%typemap(in) SWIGTYPE ** {
-  if ($input)
-    $1 = ($1_ltype) $input;
-}
-
 %typemap(in) SWIGTYPE *[ANY] {
   if ($input) {
     $1 = ($1_ltype) malloc($1_dim0 * sizeof($1_basetype));
@@ -192,7 +186,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = ($1_ltype) 0;
 }
 
-%typemap(freearg) SWIGTYPE * [ANY], SWIGTYPE * [ANY][ANY], SWIGTYPE **, SWIGTYPE *** {
+%typemap(freearg) SWIGTYPE * [ANY], SWIGTYPE * [ANY][ANY] {
   if ($input)
     free($input);
 }
@@ -227,7 +221,7 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
   *($&1_ltype) &$result = $1; 
 }
 
-%typemap(out) SWIGTYPE *&, SWIGTYPE ** {
+%typemap(out) SWIGTYPE *& {
   static SwigObj* _ptr = (SwigObj*) $1;
   $result = &_ptr;
 }
@@ -274,7 +268,6 @@ same_macro_all_primitive_types_but_void(cref_as_ptr,cppouttype);
 %typemap(cppouttype) SWIGTYPE *&   "$1_ltype"
 %typemap(cppouttype) SWIGTYPE [ANY] "$1_ltype"
 %typemap(cppouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype"
-%typemap(cppouttype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_basetype **"
 %typemap(cppouttype, retobj="1") enum SWIGTYPE "int"
 %typemap(cppouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 %typemap(cppouttype) SWIGTYPE (CLASS::*) "$1_ltype"
