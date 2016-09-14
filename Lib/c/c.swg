@@ -116,7 +116,6 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) SWIGTYPE      "$&resolved_type*"
 %typemap(ctype) SWIGTYPE *    "$resolved_type*"
 %typemap(ctype) SWIGTYPE &    "$*resolved_type*"
-%typemap(ctype) SWIGTYPE *&    "$resolved_type**"
 %typemap(ctype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
 %typemap(ctype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
 %typemap(ctype) enum SWIGTYPE "int"
@@ -198,14 +197,6 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = ($1_ltype) 0;
 }
 
-%typemap(in) SWIGTYPE *& {
-  if ($input)
-    $1 = ($1_ltype) $input;
-  else
-    $1 = ($1_ltype) 0;
-}
-
-
 // Typemaps for assigning result values to a special return variable
 same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 
@@ -219,11 +210,6 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 
 %typemap(out) SWIGTYPE (CLASS::*) {
   *($&1_ltype) &$result = $1; 
-}
-
-%typemap(out) SWIGTYPE *& {
-  static SwigObj* _ptr = (SwigObj*) $1;
-  $result = &_ptr;
 }
 
 %typemap(out) SWIGTYPE {
@@ -265,7 +251,6 @@ same_macro_all_primitive_types_but_void(cref_as_ptr,cppouttype);
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
 %typemap(cppouttype) const SWIGTYPE * "const $1_ltype"
 %typemap(cppouttype) SWIGTYPE &    "$1_ltype"
-%typemap(cppouttype) SWIGTYPE *&   "$1_ltype"
 %typemap(cppouttype) SWIGTYPE [ANY] "$1_ltype"
 %typemap(cppouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype"
 %typemap(cppouttype, retobj="1") enum SWIGTYPE "int"
