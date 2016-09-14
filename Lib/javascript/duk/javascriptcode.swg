@@ -447,7 +447,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   duk_push_heapptr(ctx, $jsnspace_ptr);
   duk_push_string(ctx, "$jsname");
   duk_push_heapptr(ctx, $jsmangledname_ptr);
-  duk_put_prop(ctx, $jsmangledname_idx); /* Register class in the namespace */
+  duk_put_prop(ctx, -3); /* Register class in the namespace */
 %}
 
 /* -----------------------------------------------------------------------------
