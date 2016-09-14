@@ -130,9 +130,9 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper...\n");
   #endif
+  printf("STACK TOP: %i\n", duk_get_top(ctx));
   duk_size_t sz;
-  duk_push_this(ctx); // FIXME
-  duk_get_prop_string(ctx, -1, "\xFFprivate");
+  duk_get_prop_string(ctx, -2, "\xFFprivate");
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->ptr) {
@@ -162,8 +162,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   printf("Called $jswrapper...\n");
   #endif
   duk_size_t sz;
-  duk_push_this(ctx);
-  duk_get_prop_string(ctx, -1, "\xFFprivate");
+  duk_get_prop_string(ctx, -2, "\xFFprivate");
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->own) {
@@ -403,10 +402,10 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   duk_put_function_list(ctx, $jsmangledname_idx, $jsmangledname_staticFunctions);
   swig_duk_install_properties(ctx, $jsmangledname_idx, $jsmangledname_properties);
   duk_put_function_list(ctx, $jsmangledname_idx , $jsmangledname_functions);
-  /* Install finalizer into the prototype */
-  duk_push_c_function(ctx, $jsdtor, /*nargs*/ 0);
-  duk_set_finalizer(ctx, $jsmangledname_idx);
   /* The stack is now [constructor, prototype (w/ finalizer)] */
+  /* Install finalizer into the prototype */
+  duk_push_c_function(ctx, $jsdtor, /*nargs*/ 2);
+  duk_set_finalizer(ctx, $jsmangledname_idx);
   /* Set the constructor prototype to the ancestor object. */
   duk_set_prototype(ctx, $jsmangledname_idx);
   /* Setup references. */  
