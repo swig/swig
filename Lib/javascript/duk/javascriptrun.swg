@@ -170,6 +170,10 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 /* Runtime API */
 #define SWIG_MODULE_CLIENTDATA_TYPE duk_context*
 
+/* Contract support */
+#define SWIG_contract_assert(expr, msg)  \
+  if (!(expr)) { duk_push_string(ctx, (char *) msg); duk_throw(ctx); } else
+
 /* helper #defines */
 #define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(func_name,argnum,type) \
