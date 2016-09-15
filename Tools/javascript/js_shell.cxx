@@ -132,10 +132,13 @@ extern JSShell* JSCShell_Create();
 #ifdef ENABLE_V8
 extern JSShell* V8Shell_Create();
 #endif
+#ifdef ENABLE_DUK
+extern JSShell* DUKShell_Create();
+#endif
 
 typedef JSShell*(*ShellFactory)();
 
-static ShellFactory js_shell_factories[2] = {
+static ShellFactory js_shell_factories[3] = {
 #ifdef ENABLE_JSC
 JSCShell_Create,
 #else
@@ -143,6 +146,11 @@ JSCShell_Create,
 #endif
 #ifdef ENABLE_V8
 V8Shell_Create,
+#else
+0,
+#endif
+#ifdef ENABLE_DUK
+DUKShell_Create,
 #else
 0,
 #endif

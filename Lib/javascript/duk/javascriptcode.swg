@@ -305,7 +305,11 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   $jslocals
   $jscode
 
-  return 1;
+  if ($jsargcount == 0 ) {
+    return 0;
+  } else {
+    return 1;  
+  }
 }
 %}
 
