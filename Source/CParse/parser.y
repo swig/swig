@@ -5828,7 +5828,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   if ($$.type == T_STRING) {
 		     $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
 		   } else if ($$.type != T_CHAR && $$.type != T_WSTRING && $$.type != T_WCHAR) {
-		     $$.rawval = 0;
+		     $$.rawval = NewStringf("%s", $$.val);
 		   }
 		   $$.qualifier = 0;
 		   $$.bitfield = 0;
