@@ -171,8 +171,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 #ifdef SWIGRUNTIME_DEBUG
   printf("magic $input 002\n");
 #endif
-  void *thisVal$argnum = duk_get_heapptr(ctx, $input);
-  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,thisVal$argnum,(void**)&argp,$&descriptor,0))){
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$argnum,(void**)&argp,$&descriptor,0))){
     SWIG_fail_ptr("$symname",$argnum,$&descriptor);
   }
   $1 = *argp;
