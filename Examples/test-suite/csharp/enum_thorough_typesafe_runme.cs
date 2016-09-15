@@ -405,6 +405,10 @@ public class runme {
       if (enum_thorough_typesafe.repeatTest(repeat.llast).swigValue != 3) throw new Exception("repeatTest 5 failed");
       if (enum_thorough_typesafe.repeatTest(repeat.end).swigValue != 3) throw new Exception("repeatTest 6 failed");
     }
+    {
+      if (enum_thorough_typesafe.enumWithMacroTest(enumWithMacro.ABCD).swigValue != (('A' << 24) | ('B' << 16) | ('C' << 8) | 'D')) throw new Exception("enumWithMacroTest 1 failed");
+      if (enum_thorough_typesafe.enumWithMacroTest(enumWithMacro.ABCD2).swigValue != enum_thorough_typesafe.enumWithMacroTest(enumWithMacro.ABCD).swigValue) throw new Exception("enumWithMacroTest 2 failed");
+    }
     // different types
     {
       if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typeint).swigValue != 10) throw new Exception("differentTypes 1 failed");

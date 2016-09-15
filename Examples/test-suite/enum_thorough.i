@@ -570,6 +570,17 @@ repeat repeatTest(repeat e) { return e; }
 %}
 
 %inline %{
+namespace EnumWithMacro {
+#define PACK(C1,C2,C3,C4) ((C1<<24)|(C2<<16)|(C3<<8)|C4)
+typedef enum {
+  ABCD = PACK('A','B','C','D'),
+  ABCD2 = ABCD
+} enumWithMacro;
+enumWithMacro enumWithMacroTest(enumWithMacro e) { return e; }
+}
+%}
+
+%inline %{
 namespace DifferentSpace {
 enum DifferentTypes {
   typeint = 10,
