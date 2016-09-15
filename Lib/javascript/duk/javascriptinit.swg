@@ -68,10 +68,10 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
     duk_put_prop_string(ctx, -2, "SWIG");
     void *swig_obj_ptr = duk_get_heapptr(ctx, -1);
     /* Now the global object is at the stack top.*/
-    duk_idx_t ns_idx = duk_push_object(ctx);
-    void *ns_ptr, *exports_ptr = duk_get_heapptr(ctx, -1);
-    swig_duk_install_properties(ctx, ns_idx, exports_properties);
-    duk_put_function_list(ctx, ns_idx, exports_functions);
+    duk_idx_t exports_idx = duk_push_object(ctx);
+    void *exports_ptr = duk_get_heapptr(ctx, -1);
+    swig_duk_install_properties(ctx, exports_idx, exports_properties);
+    duk_put_function_list(ctx, exports_idx, exports_functions);
    /*
     * By the time we put the property string here, the stack will be...
     * [parent_obj, namespace_obj] 
