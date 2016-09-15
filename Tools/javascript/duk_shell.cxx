@@ -52,6 +52,7 @@ duk_ret_t console_log_impl(duk_context *ctx) {
 duk_ret_t load_module(duk_context *ctx) {
   std::string id = duk_get_string(ctx, 0);
   std::string lib = "lib" + id + ".so";
+  std::string init_fn = "dukopen_" + id;
   void *handle = dlopen(lib.c_str(), RTLD_NOW);
   if (handle == NULL) {
       std::cout << "Error loading " << lib << std::endl;
@@ -59,7 +60,7 @@ duk_ret_t load_module(duk_context *ctx) {
   }
   /* duk_ret_t swig_duk_init(duk_context *ctx) { */
   duk_ret_t (*swig_duk_init)(duk_context*);
-  swig_duk_init = (duk_ret_t(*)(duk_context*))dlsym(handle, "swig_duk_init");
+  swig_duk_init = (duk_ret_t(*)(duk_context*))dlsym(handle, init_fn.c_str());
   if (swig_duk_init == NULL) {
       std::cout << "Error running initializer of " << lib << std::endl;
       dlclose(handle);
