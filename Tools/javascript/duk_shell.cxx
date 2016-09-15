@@ -35,6 +35,20 @@ private:
 DUKShell::~DUKShell() {
 }
 
+duk_ret_t console_log_impl(duk_context *ctx) {
+  int nargs = duk_get_top(ctx);
+
+  /* Mimic Node.js behavior when passed nothing. */
+  if (nargs == 0) {
+    puts("");
+    return 0;
+  }
+
+  const char *str = duk_safe_to_string(ctx, -1);
+  fprintf(stdout, "%s\n", str);
+  return 0;
+}
+
 bool DUKShell::InitializeEngine() {
 
   if(ctx!=NULL) DisposeEngine();
@@ -42,6 +56,12 @@ bool DUKShell::InitializeEngine() {
   ctx = duk_create_heap_default();
   if(ctx==NULL) return false;
 
+  duk_idx_t console_idx = duk_push_object(ctx);
+  duk_push_c_function(ctx, console_log_impl, DUK_VARARGS);
+  duk_put_prop_string(ctx, console_idx, "log");
+  duk_put_global_string(ctx, "console");
+
+  
   return true;
 }
 
