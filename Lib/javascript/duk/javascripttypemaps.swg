@@ -143,13 +143,14 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 %{duk_push_lstring(ctx, $1, 1); %}
 
 // pointers and references
-// under SWIG rules, it is ok, to have a pass in a lua nil,
+// under SWIG rules, it is ok, to have a pass in a JS Undefined.
 // it should be converted to a SWIG NULL.
 // This will only be allowed for pointers & arrays, not refs or by value
-// the checkfn duk_is_pointer will only work for userdata
+// the checkfn duk_is_heapptr will only work for userdata
 // the checkfn SWIG_isptrtype will work for both userdata and nil
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
 %{
+  /* LINE 153 */
   if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,thisObject,(void**)&$1,$descriptor,$disown))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
@@ -164,19 +165,22 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 // passing objects by value
 // SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
 // then dereferences it to get the object
-%typemap(in,checkfn="duk_is_pointer") SWIGTYPE ($&ltype argp)
+%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE ($&ltype argp)
 %{
-      printf("magic $input 002\n");
-   if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&argp,$&descriptor,0))){
-     SWIG_fail_ptr("$symname",$argnum,$&descriptor);
-   }
-   $1 = *argp;
+  /* LINE 170 */
+#ifdef SWIGRUNTIME_DEBUG
+  printf("magic $input 002\n");
+#endif
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&argp,$&descriptor,0))){
+    SWIG_fail_ptr("$symname",$argnum,$&descriptor);
+  }
+  $1 = *argp;
 %}
 
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="duk_is_pointer") SWIGTYPE *const&($*ltype temp)
+%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(ctx,$input,$*descriptor,0,$argnum,"$symname");
 $1=($1_ltype)&temp;%}
 
@@ -190,9 +194,12 @@ $1=($1_ltype)&temp;%}
 // use %apply SWIGTYPE* DISOWN {Foo* toDie};
 // you could just use %delobject, but this is more flexible
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE* DISOWN,SWIGTYPE DISOWN[]
-%{  
-     printf("magic $input 005\n");
-    if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
+%{
+  /* LINE 196 */
+#ifdef SWIGRUNTIME_DEBUG
+  printf("magic $input 005\n");
+#endif
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
@@ -225,9 +232,11 @@ $1=($1_ltype)&temp;%}
 // nor can you cast a member function pointer to a void* (obviously)
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 #ifdef __cplusplus
-%typemap(in,checkfn="duk_is_pointer") SWIGTYPE (CLASS::*)
+%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE (CLASS::*)
 %{
- printf("magic $input 004\n");
+#ifdef SWIGRUNTIME_DEBUG
+  printf("magic $input 004\n");
+#endif
   if (!SWIG_IsOK(SWIG_ConvertMember(ctx,$input,(void*)(&$1),sizeof($type),$descriptor)))
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
 %}
@@ -316,7 +325,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
   void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -325,7 +334,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
   void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -334,7 +343,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $&1_descriptor, 0)) {
+  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $&1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -356,7 +365,7 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
+  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
