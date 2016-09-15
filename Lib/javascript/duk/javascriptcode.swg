@@ -317,6 +317,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   /* FRAGMENT: js_function_dispatch_case */
   if(duk_get_top(ctx) == $jsargcount) {
     $jswrapper(ctx);
+    return 1;
   }
 %}
 

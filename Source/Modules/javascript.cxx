@@ -1233,7 +1233,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
       // handle function overloading
       Template t_dispatch_case = getTemplate("js_function_dispatch_case");
       t_dispatch_case.replace("$jswrapper", siblname)
-	  .replace("$jsargcount", Getattr(sibl, ARGCOUNT));
+                     .replace("$jsargcount", Getattr(sibl, ARGCOUNT));
 
       Append(wrapper->code, t_dispatch_case.str());
     }
