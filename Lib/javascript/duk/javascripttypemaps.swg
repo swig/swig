@@ -151,7 +151,9 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
 %{
   /* LINE 153 */
-  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,thisObject,(void**)&$1,$descriptor,$disown))){
+  duk_push_object(ctx);
+  void *newObject$argnum = duk_get_heapptr(ctx, -1);
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,newObject$argnum,(void**)&$1,$descriptor,$disown))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
