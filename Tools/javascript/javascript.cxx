@@ -43,7 +43,12 @@ int main(int argc, char* argv[]) {
   }
 
   if (shell == 0) {
-    shell = JSShell::Create();
+    try {
+        shell = JSShell::Create();
+    } catch(const char* s) {
+        std::cout << "JSShell::Create(): " << s << std::endl;
+        return 1;
+    }
   }
 
   shell->setModulePath(modulePath);
