@@ -49,6 +49,27 @@ duk_ret_t console_log_impl(duk_context *ctx) {
   return 0;
 }
 
+duk_ret_t load_module(duk_context *ctx) {
+  std::string id = duk_get_string(ctx, 0);
+  std::string lib = "lib" + id + ".so";
+  void *handle = dlopen(lib.c_str(), RTLD_NOW);
+  if (handle == NULL) {
+      std::cout << "Error loading " << lib << std::endl;
+      return 0;
+  }
+  /* duk_ret_t swig_duk_init(duk_context *ctx) { */
+  duk_ret_t (*swig_duk_init)(duk_context*);
+  swig_duk_init = (duk_ret_t(*)(duk_context*))dlsym(handle, "swig_duk_init");
+  if (swig_duk_init == NULL) {
+      std::cout << "Error running initializer of " << lib << std::endl;
+      dlclose(handle);
+      return 0;
+  }
+  duk_ret_t t = swig_duk_init(ctx);
+  dlclose(handle);
+  return t;
+}
+
 bool DUKShell::InitializeEngine() {
 
   if(ctx!=NULL) DisposeEngine();
@@ -56,12 +77,19 @@ bool DUKShell::InitializeEngine() {
   ctx = duk_create_heap_default();
   if(ctx==NULL) return false;
 
+  /* hardcoded console module */
   duk_idx_t console_idx = duk_push_object(ctx);
   duk_push_c_function(ctx, console_log_impl, DUK_VARARGS);
   duk_put_prop_string(ctx, console_idx, "log");
   duk_put_global_string(ctx, "console");
 
+  /* set up "generic" module handler */
+  duk_push_global_object(ctx);
+  duk_idx_t dukint_idx = duk_get_prop_string(ctx, -1, "Duktape");
+  duk_push_c_function(ctx, load_module, 4);
+  duk_put_prop_string(ctx, dukint_idx, "modSearch");
   
+
   return true;
 }
 
