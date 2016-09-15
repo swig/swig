@@ -1919,7 +1919,7 @@ void DuktapeEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "thisObject", 0);
       } else {
-	Printf(arg, "-%d", (i - startIdx));
+	Printf(arg, "%d", i + startIdx);
       }
       break;
     case Setter:
