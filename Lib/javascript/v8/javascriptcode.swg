@@ -106,11 +106,15 @@ fail:
     self = $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
     }
 #else
     $jswrapper(args, errorHandler);
     if(errorHandler.err.IsEmpty()) {
       return;
+    } else {
+      goto fail;
     }
 #endif
   }
