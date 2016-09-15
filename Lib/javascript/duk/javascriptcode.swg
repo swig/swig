@@ -448,10 +448,13 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("duk_class_registration", "templates")
 %{
   /* FRAGMENT: duk_class_registration */
-  duk_push_heapptr(ctx, $jsnspace_ptr);
-  duk_push_string(ctx, "$jsname");
-  duk_push_heapptr(ctx, $jsmangledname_ptr);
-  duk_put_prop(ctx, -3); /* Register class in the namespace */
+  {
+    duk_idx_t p_idx = duk_push_heapptr(ctx, $jsnspace_ptr);
+    duk_push_string(ctx, "$jsname");
+    duk_push_heapptr(ctx, $jsmangledname_ptr);
+    duk_put_prop(ctx, p_idx); /* Register class in the namespace */
+  }
+
 %}
 
 /* -----------------------------------------------------------------------------
@@ -480,12 +483,17 @@ static duk_ret_t $jswrapper(duk_context *ctx)
  * ----------------------------------------------------------------------------- */
 %fragment ("duk_nspace_definition", "templates")
 %{
-  duk_push_heapptr(ctx, $jsparent_ptr);
-  duk_push_string(ctx, "$jsname");
-  duk_idx_t $jsmangledname_idx = duk_push_object(ctx);
-  swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
-  duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
-  duk_put_prop(ctx, -3);
-  void *$jsmangledname_ptr = duk_get_heapptr(ctx, -1);
+
+    duk_idx_t $jsmangledname_idx;
+    void *$jsmangledname_ptr;
+    {
+        duk_idx_t parent_idx = duk_push_heapptr(ctx, $jsparent_ptr);
+        duk_push_string(ctx, "$jsname");
+        $jsmangledname_idx = duk_push_object(ctx);
+        swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
+        duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
+        $jsmangledname_ptr = duk_get_heapptr(ctx, $jsmangledname_idx);
+        duk_put_prop(ctx, parent_idx);
+    }
 %}
 
