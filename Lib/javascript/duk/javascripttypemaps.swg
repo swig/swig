@@ -151,16 +151,32 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 %typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
 %{
   /* LINE 153 */
+<<<<<<< HEAD
+  duk_push_object(ctx);
+  void *newObject$argnum = duk_get_heapptr(ctx, -1);
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,newObject$argnum,(void**)&$1,$descriptor,$disown))){
+=======
   if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$argnum,(void**)&$1,$descriptor,$disown))){
+>>>>>>> exio/dukswig
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
 
 // out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
-%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
+%{
+  duk_push_object(ctx);
+  duk_push_string(ctx, "\xFFprivate");
+  SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);
+  duk_put_prop(ctx, -3);
+%}
 %typemap(out) SWIGTYPE*,SWIGTYPE&&
-%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
+%{
+  duk_push_object(ctx);
+  duk_push_string(ctx, "\xFFprivate");
+  SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);
+  duk_put_prop(ctx, -3);
+%}
 
 // passing objects by value
 // SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
@@ -185,7 +201,12 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 $1=($1_ltype)&temp;%}
 
 %typemap(out) SWIGTYPE *const&
-%{SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);  %}
+%{
+  duk_push_object(ctx);
+  duk_push_string(ctx, "\FFprivate");
+  SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);  
+  duk_put_prop(ctx, -3);
+%}
 
 
 // DISOWN-ing typemaps
@@ -214,7 +235,10 @@ $1=($1_ltype)&temp;%}
 %typemap(out) SWIGTYPE
 {
   $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
+  duk_push_object(ctx);
+  duk_push_string(ctx, "\xFFprivate");
   SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
+  duk_put_prop(ctx, -3);
 }
 #else
 %typemap(out) SWIGTYPE
@@ -222,7 +246,10 @@ $1=($1_ltype)&temp;%}
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
+  duk_push_object(ctx);
+  duk_push_string(ctx, "\xFFprivate");
+  SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1);
+  duk_put_prop(ctx, -3);  
 }
 #endif
 

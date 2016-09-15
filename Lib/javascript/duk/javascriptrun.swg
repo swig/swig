@@ -252,7 +252,7 @@ SWIGRUNTIME const char *SWIG_duk_typename(duk_context *ctx, duk_idx_t idx)
 
 SWIGINTERN duk_ret_t JS_veto_set_variable(duk_context *ctx)
 {
-  duk_push_string(ctx, "Tried to write read-only variable.");
+  duk_push_string(ctx, "Tried to write a read-only variable.");
   duk_throw(ctx);
   return duk_get_top(ctx); /* We should never get here, but stifle warning. */
 }
@@ -280,67 +280,9 @@ swig_duk_install_properties(
   }
 }
 
-/* creates the swig registry */
-SWIGINTERN void SWIG_duk_create_class_registry(duk_context *ctx)
-{
-  /* create the SWIG registry object */
-  duk_set_top(ctx, 0);
-  duk_push_global_stash(ctx);
-  duk_push_string(ctx, "registry");
-  duk_push_object(ctx);
-  duk_put_prop(ctx, -3);
-  /* The heap stash is at the top of the value stack now. */
-}
-
-
-/* gets the swig registry (or creates it) */
-SWIGINTERN void SWIG_duk_get_class_registry(duk_context *ctx) {
-  duk_set_top(ctx, 0);
-  duk_push_global_stash(ctx);
-  duk_get_prop_string(ctx, -1, "registry");
-  if (!duk_is_object(ctx,-1))  /* not there */
-  {  /* must be first time, so add it */
-    duk_pop_n(ctx,1);  /* remove the result */
-    SWIG_duk_create_class_registry(ctx);
-    /* then get the class registry */
-    duk_get_prop_string(ctx, -1, "registry");
-  }
-}
-
-/* Helper function to get the classes prototype from the register */
-SWIGINTERN void SWIG_duk_get_class_prototype(duk_context *ctx,const char *cname)
-{
-  SWIG_duk_get_class_registry(ctx);  /* get the registry */
-  duk_get_prop_string(ctx, -1, cname);  /* get the name */
-}
-
-
 /* -----------------------------------------------------------------------------
  * Class/structure conversion fns
  * ----------------------------------------------------------------------------- */
-
-/* helper to add prototype to new duk object */
-SWIGINTERN void SWIG_duk_AddPrototype(duk_context *ctx,swig_type_info *type)
-{
-  #ifdef SWIGRUNTIME_DEBUG
-  printf("Adding prototype!\n");
-  #endif
-  if (type->clientdata)  /* there is clientdata: so add the prototype */
-  {
-    #ifdef SWIGRUNTIME_DEBUG
-    printf("Adding prototype %s\n", ((swig_duk_class*)type->clientdata)->fqname);
-    #endif
-    SWIG_duk_get_class_prototype(ctx,((swig_duk_class*)(type->clientdata))->fqname);
-    if (duk_is_object(ctx,-1)) {
-      // FIXME
-      duk_set_prototype(ctx,-2);
-    }
-    else
-    {
-      duk_pop_n(ctx,1);
-    }
-  }
-}
 
 /* pushes a new userdata buffer into the duk stack */
 SWIGRUNTIME duk_ret_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_type_info *type,bool own)
@@ -358,13 +300,16 @@ SWIGRUNTIME duk_ret_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
   usr->ptr=ptr;  /* set the ptr */
   usr->type=type;
   usr->own=own;
-  //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
   return 1;
 }
 
+<<<<<<< HEAD
+SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,void *object,void **ptr,swig_type_info *type,int flags)
+=======
 /* takes a object from the duk stack & converts it into an object of the correct type
  (if possible) */
 SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx, duk_idx_t idx,void **ptr,swig_type_info *type,int flags)
+>>>>>>> exio/dukswig
 {
   duk_size_t sz;
   swig_duk_userdata *usr;
