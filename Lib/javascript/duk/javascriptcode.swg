@@ -26,10 +26,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
 
   duk_push_this(ctx);
   duk_push_string(ctx, "\xFFprivate");
-  swig_duk_userdata *usr = duk_push_fixed_buffer(ctx,sizeof(swig_duk_userdata));
-  usr->ptr=NULL;  /* set the ptr */
-  usr->type=swig__p_$jsname;
-  usr->own=0;
+  SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
   duk_put_prop(ctx, -3);
   
   duk_push_heapptr(ctx, SWIGTYPE_$jsmangledtype->clientdata);
