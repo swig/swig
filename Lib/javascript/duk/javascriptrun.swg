@@ -363,20 +363,24 @@ SWIGRUNTIME duk_ret_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
 }
 
 
+/* takes a object from the duk stack & converts it into an object of the correct type
+ (if possible) */
 SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,void *object,void **ptr,swig_type_info *type,int flags)
 {
   duk_size_t sz;
   swig_duk_userdata *usr;
   swig_cast_info *cast;
+  duk_push_heapptr(ctx, object);
+  duk_get_prop_string(ctx, -1, "\xFFprivate");
   /* special case: duk undefined => NULL pointer */
-  if (duk_is_undefined(ctx, idx)){
+  if (duk_is_undefined(ctx, -1)){
     #ifdef SWIGRUNTIME_DEBUG
     printf("Converted a NULL pointer.\n");
     #endif
     *ptr=NULL;
     return SWIG_OK;
   }
-  usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, idx, &sz);  /* get data */
+  usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);  /* get data */
   duk_pop_n(ctx, 2); /* clean up the stack */
   if (usr) {
     if (flags & SWIG_POINTER_DISOWN) {
