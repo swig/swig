@@ -18,12 +18,12 @@
 //FIXME FIXME FIXME
 */
 // numbers
-%typemap(in,checkfn="duk_is_number") int, short, long,
+%typemap(in) int, short, long,
              signed char, float, double
 %{$1 = ($type)duk_to_number(ctx, $input);%}
  
 // additional check for unsigned numbers, to not permit negative input
-%typemap(in,checkfn="duk_is_number") unsigned int,
+%typemap(in) unsigned int,
              unsigned short, unsigned long, unsigned char
 %{SWIG_contract_assert((duk_to_number(ctx, $input)>=0),"number must not be negative")
 $1 = ($type)duk_to_number(ctx, $input);%}
@@ -40,10 +40,10 @@ $1 = ($type)duk_to_number(ctx, $input);%}
 // SWIG assumes that this code will need a pointer to int to be passed in
 // (this might be ok for objects by const ref, but not for numeric primitives)
 // therefore we add a set of typemaps to fix this (for both in & out)
-%typemap(in,checkfn="duk_is_number") const int&($basetype temp)
+%typemap(in) const int&($basetype temp)
 %{ temp=($basetype)duk_to_number(ctx, $input); $1=&temp;%}
 
-%typemap(in,checkfn="duk_is_number") const unsigned int&($basetype temp)
+%typemap(in) const unsigned int&($basetype temp)
 %{SWIG_contract_assert((duk_to_number(ctx,$input)>=0),"number must not be negative")
 temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
 
@@ -60,16 +60,16 @@ temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
 /* enums have to be handled slightly differently
 	VC++ .net will not allow a cast from lua_Number(double) to enum directly.
 */
-%typemap(in,checkfn="duk_is_number") enum SWIGTYPE
+%typemap(in) enum SWIGTYPE
 %{$1 = ($type)(int)duk_to_number(ctx, $input);%}
 
 %typemap(out) enum SWIGTYPE
 %{duk_push_number(ctx, (duk_double_t)($1)); %}
 
 // and const refs
-%typemap(in,checkfn="duk_is_number") const enum SWIGTYPE &($basetype temp)
+%typemap(in) const enum SWIGTYPE &($basetype temp)
 %{ temp=($basetype)(int)duk_to_number(ctx, $input); $1=&temp;%}
-%typemap(in,checkfn="duk_is_number") const enum SWIGTYPE &&($basetype temp)
+%typemap(in) const enum SWIGTYPE &&($basetype temp)
 %{ temp=($basetype)(int)duk_to_number(ctx,$input); $1=&temp;%}
 %typemap(out) const enum SWIGTYPE &
 %{  duk_push_number(ctx, (duk_double_t) *$1); %}
@@ -78,14 +78,14 @@ temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
 
 
 // boolean
-%typemap(in,checkfn="duk_is_boolean") bool
+%typemap(in) bool
 %{$1 = (duk_to_boolean(ctx, $input)!=0);%}
 
 %typemap(out) bool
 %{  duk_push_boolean(ctx,(int)($1!=0)); %}
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
-%typemap(in,checkfn="duk_is_boolean") const bool& (bool temp)
+%typemap(in) const bool& (bool temp)
 %{temp=(duk_to_boolean(ctx, $input)!=0);
   $1=&temp;%}
 
@@ -102,10 +102,10 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 }
 }
 
-%typemap(in,checkfn="SWIG_duk_isnilstring",fragment="SWIG_duk_isnilstring") const char *, char *
+%typemap(in) const char *, char *
 %{$1 = ($ltype)duk_to_string(ctx, $input);%}
 
-%typemap(in,checkfn="SWIG_duk_isnilstring",fragment="SWIG_duk_isnilstring") const char[ANY], char[ANY]
+%typemap(in) const char[ANY], char[ANY]
 %{$1 = ($ltype)duk_to_string(ctx, $input);%}
 
 %typemap(out) const char *, char *
@@ -117,7 +117,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 // char's
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
-%typemap(in,checkfn="SWIG_duk_isnilstring",fragment="SWIG_duk_isnilstring") char
+%typemap(in) char
 %{$1 = (duk_to_string(ctx, $input))[0];%}
 
 %typemap(out) char
@@ -136,7 +136,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 %}
 
 // by const ref
-%typemap(in,checkfn="SWIG_duk_isnilstring",fragment="SWIG_duk_isnilstring") const char& (char temp)
+%typemap(in) const char& (char temp)
 %{temp = (duk_to_string(ctx, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
@@ -148,7 +148,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 // This will only be allowed for pointers & arrays, not refs or by value
 // the checkfn duk_is_heapptr will only work for userdata
 // the checkfn SWIG_isptrtype will work for both userdata and nil
-%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE*,SWIGTYPE[]
+%typemap(in) SWIGTYPE*,SWIGTYPE[]
 %{
   /* LINE 153 */
   {
@@ -168,7 +168,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 // passing objects by value
 // SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
 // then dereferences it to get the object
-%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE ($&ltype argp)
+%typemap(in) SWIGTYPE ($&ltype argp)
 %{
   /* LINE 170 */
 #ifdef SWIGRUNTIME_DEBUG
@@ -184,7 +184,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE *const&($*ltype temp)
+%typemap(in) SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(ctx,$input,$*descriptor,0,$argnum,"$symname");
 $1=($1_ltype)&temp;%}
 
@@ -197,7 +197,7 @@ $1=($1_ltype)&temp;%}
 // eg. for void destroy_foo(Foo* toDie);
 // use %apply SWIGTYPE* DISOWN {Foo* toDie};
 // you could just use %delobject, but this is more flexible
-%typemap(in,checkfn="SWIG_isptrtype") SWIGTYPE* DISOWN,SWIGTYPE DISOWN[]
+%typemap(in) SWIGTYPE* DISOWN,SWIGTYPE DISOWN[]
 %{
   /* LINE 196 */
 #ifdef SWIGRUNTIME_DEBUG
@@ -236,7 +236,7 @@ $1=($1_ltype)&temp;%}
 // nor can you cast a member function pointer to a void* (obviously)
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 #ifdef __cplusplus
-%typemap(in,checkfn="duk_is_heapptr") SWIGTYPE (CLASS::*)
+%typemap(in) SWIGTYPE (CLASS::*)
 %{
 #ifdef SWIGRUNTIME_DEBUG
   printf("magic $input 004\n");
@@ -259,7 +259,7 @@ $1=($1_ltype)&temp;%}
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
 but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
-%typemap(in,checkfn="SWIG_isptrtype") void*
+%typemap(in) void*
 %{$1=($1_ltype)SWIG_MustGetPtr(ctx,$input,0,0,$argnum,"$symname");%}
 
 /* long long is another special case:
