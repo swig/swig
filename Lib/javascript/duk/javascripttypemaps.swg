@@ -160,19 +160,9 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 
 // out is simple
 %typemap(out) SWIGTYPE*,SWIGTYPE&
-%{
-  duk_push_object(ctx);
-  duk_push_string(ctx, "\xFFprivate");
-  SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);
-  duk_put_prop(ctx, -3);
-%}
+%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
 %typemap(out) SWIGTYPE*,SWIGTYPE&&
-%{
-  duk_push_object(ctx);
-  duk_push_string(ctx, "\xFFprivate");
-  SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);
-  duk_put_prop(ctx, -3);
-%}
+%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
 
 // passing objects by value
 // SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
@@ -197,12 +187,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 $1=($1_ltype)&temp;%}
 
 %typemap(out) SWIGTYPE *const&
-%{
-  duk_push_object(ctx);
-  duk_push_string(ctx, "\FFprivate");
-  SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);  
-  duk_put_prop(ctx, -3);
-%}
+%{SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);  %}
 
 
 // DISOWN-ing typemaps
@@ -231,10 +216,7 @@ $1=($1_ltype)&temp;%}
 %typemap(out) SWIGTYPE
 {
   $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
-  duk_push_object(ctx);
-  duk_push_string(ctx, "\xFFprivate");
   SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
-  duk_put_prop(ctx, -3);
 }
 #else
 %typemap(out) SWIGTYPE
@@ -242,10 +224,7 @@ $1=($1_ltype)&temp;%}
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  duk_push_object(ctx);
-  duk_push_string(ctx, "\xFFprivate");
-  SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1);
-  duk_put_prop(ctx, -3);  
+  SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
 }
 #endif
 
