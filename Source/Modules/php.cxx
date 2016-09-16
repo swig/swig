@@ -1000,6 +1000,7 @@ public:
       Delete(tm);
     }
 
+    Printf(f->code, "thrown:\n");
     Printf(f->code, "return;\n");
 
     /* Error handling code */
@@ -2356,6 +2357,7 @@ done:
     Append(f->code, actioncode);
     Delete(actioncode);
 
+    Printf(f->code, "thrown:\n");
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
     Append(f->code, "SWIG_FAIL(TSRMLS_C);\n");
@@ -2715,6 +2717,7 @@ done:
       Delete(outarg);
     }
 
+    Append(w->code, "thrown:\n");
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
 	String *rettype = SwigType_str(returntype, 0);
