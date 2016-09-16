@@ -7,32 +7,16 @@
 /* -----------------------------------------------------------------------------
  *                          standard typemaps
  * ----------------------------------------------------------------------------- */
-/* NEW LANGUAGE NOTE:
-   the 'checkfn' param is something that I added for typemap(in)
-   it is an optional fn call to check the type of the lua object
-   the fn call must be of the form
-     int checkfn(lua_State *ctx, int index);
-   and return 1/0 depending upon if this is the correct type
-   For the typemap(out), an additional SWIG_arg parameter must be incremented
-   to reflect the number of values returned (normally SWIG_arg++; will do)
-//FIXME FIXME FIXME
-*/
-// numbers
-%typemap(in) int, short, long,
-             signed char, float, double
-%{$1 = ($type)duk_to_number(ctx, $input);%}
- 
-// additional check for unsigned numbers, to not permit negative input
-%typemap(in) unsigned int,
-             unsigned short, unsigned long, unsigned char
-%{SWIG_contract_assert((duk_to_number(ctx, $input)>=0),"number must not be negative")
-$1 = ($type)duk_to_number(ctx, $input);%}
 
-%typemap(out) int,short,long,
-             unsigned int,unsigned short,unsigned long,
-             signed char,unsigned char,
-             float,double
-%{ duk_push_number(ctx, (duk_double_t) $1); %}
+// numbers
+%typemap(in) int
+%{$1 = ($type)duk_to_number(ctx, $input);%}
+
+%typemap(out) int
+%{duk_push_number(ctx, (duk_double_t)$1);%}
+
+%apply int { short, long, signed char, float, double, unsigned int,
+             unsigned short, unsigned long, unsigned char }
 
 // we must also provide typemaps for primitives by const reference:
 // given a function:
@@ -44,8 +28,7 @@ $1 = ($type)duk_to_number(ctx, $input);%}
 %{ temp=($basetype)duk_to_number(ctx, $input); $1=&temp;%}
 
 %typemap(in) const unsigned int&($basetype temp)
-%{SWIG_contract_assert((duk_to_number(ctx,$input)>=0),"number must not be negative")
-temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
+%{ temp=($basetype)duk_to_number(ctx,$argnum); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
 %{duk_push_number(ctx, (duk_double_t) *$1); %}
@@ -57,9 +40,6 @@ temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
 %apply const unsigned int & {const unsigned short&,const unsigned long&,
              const unsigned char&};
 
-/* enums have to be handled slightly differently
-	VC++ .net will not allow a cast from lua_Number(double) to enum directly.
-*/
 %typemap(in) enum SWIGTYPE
 %{$1 = ($type)(int)duk_to_number(ctx, $input);%}
 
@@ -92,15 +72,6 @@ temp=($basetype)duk_to_number(ctx,$input); $1=&temp;%}
 %typemap(out) const bool&
 %{duk_push_boolean(ctx,(int)((*$1)!=0)); %}
 
-// strings (char * and char[])
-%fragment("SWIG_duk_isnilstring", "header") {
-SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
-  int ret = duk_is_string(ctx, idx);
-  if (!ret)
-   ret = duk_is_null_or_undefined(ctx, idx);
-  return ret;
-}
-}
 
 %typemap(in) const char *, char *
 %{$1 = ($ltype)duk_to_string(ctx, $input);%}
@@ -152,17 +123,14 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 %{
   /* LINE 153 */
   {
-    void *newObject$argnum = duk_get_heapptr(ctx, -1);
-    if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,newObject$argnum,(void**)&$1,$descriptor,$disown))){
+    if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,$disown))){
         SWIG_fail_ptr("$symname",$argnum,$descriptor);
     }
   }
 %}
 
 // out is simple
-%typemap(out) SWIGTYPE*,SWIGTYPE&
-%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
-%typemap(out) SWIGTYPE*,SWIGTYPE&&
+%typemap(out) SWIGTYPE*,SWIGTYPE&, SWIGTYPE&&
 %{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
 
 // passing objects by value
@@ -174,8 +142,7 @@ SWIGINTERN int SWIG_duk_isnilstring(duk_context *ctx, duk_idx_t idx) {
 #ifdef SWIGRUNTIME_DEBUG
   printf("magic $input 002\n");
 #endif
-  void *thisVal$argnum = duk_get_heapptr(ctx, $input);
-  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,thisVal$argnum,(void**)&argp,$&descriptor,0))){
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&argp,$&descriptor,0))){
     SWIG_fail_ptr("$symname",$argnum,$&descriptor);
   }
   $1 = *argp;
@@ -203,7 +170,7 @@ $1=($1_ltype)&temp;%}
 #ifdef SWIGRUNTIME_DEBUG
   printf("magic $input 005\n");
 #endif
-  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$argnum,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
   }
 %}
@@ -217,6 +184,7 @@ $1=($1_ltype)&temp;%}
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
 {
+    printf("swig");
   $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
   SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
 }
@@ -307,15 +275,6 @@ parameters match which function
     bool, const bool &
 {
   $1 = duk_is_boolean(ctx,$input);
-}
-
-// special check for a char (string of length 1)
-%typecheck(SWIG_TYPECHECK_CHAR,fragment="SWIG_duk_isnilstring") char, const char& {
-  $1 = SWIG_duk_isnilstring(ctx,$input) && (lua_rawlen(ctx,$input)==1);
-}
-
-%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_duk_isnilstring") char *, char[] {
-  $1 = SWIG_duk_isnilstring(ctx,$input);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {

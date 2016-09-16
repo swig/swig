@@ -1916,21 +1916,21 @@ void DuktapeEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
     switch (mode) {
     case Getter:
     case Function:
-      if (is_member && !is_static && i == 0) {
-	Printv(arg, "thisObject", 0);
+      if (startIdx == 1 && i == 0) {
+          Printf(arg, "-1"); /* thisObject is pushed at the start of the function on top of the stack */
       } else {
-	Printf(arg, "%d", i + startIdx);
+          Printf(arg, "%d", i -  startIdx);
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
-	Printv(arg, "thisObject", 0);
+        Printf(arg, "-1");
       } else {
-	Printv(arg, "value", 0);
+        Printf(arg, "%d", i - startIdx);
       }
       break;
     case Ctor:
-      Printf(arg, "-%d", i);
+        Printf(arg, "%d", i);
       break;
     default:
       throw "Illegal state.";

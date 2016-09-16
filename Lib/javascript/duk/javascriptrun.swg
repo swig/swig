@@ -343,7 +343,7 @@ SWIGINTERN void SWIG_duk_AddPrototype(duk_context *ctx,swig_type_info *type)
 }
 
 /* pushes a new userdata buffer into the duk stack */
-SWIGRUNTIME duk_ret_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_type_info *type,bool own)
+SWIGRUNTIME duk_idx_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_type_info *type,bool own)
 {
   duk_size_t sz;
   swig_duk_userdata *usr;
@@ -354,32 +354,33 @@ SWIGRUNTIME duk_ret_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
     duk_push_undefined(ctx);
     return 1;
   }
+  duk_idx_t obj_idx = duk_push_object(ctx);
   usr=(swig_duk_userdata*)duk_push_fixed_buffer(ctx,sizeof(swig_duk_userdata));  /* get data */
   usr->ptr=ptr;  /* set the ptr */
   usr->type=type;
   usr->own=own;
+  duk_put_prop_string(ctx, obj_idx, "\xFFprivate");
   //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
-  return 1;
+  return obj_idx;
 }
 
 
 /* takes a object from the duk stack & converts it into an object of the correct type
  (if possible) */
-SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,void *object,void **ptr,swig_type_info *type,int flags)
+SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **ptr,swig_type_info *type,int flags)
 {
   duk_size_t sz;
   swig_duk_userdata *usr;
   swig_cast_info *cast;
-  duk_push_heapptr(ctx, object);
-  duk_get_prop_string(ctx, -1, "\xFFprivate");
-  /* special case: duk undefined => NULL pointer */
-  if (duk_is_undefined(ctx, -1)){
+    /* special case: duk undefined => NULL pointer */
+  if (duk_is_undefined(ctx, obj_idx)){
     #ifdef SWIGRUNTIME_DEBUG
     printf("Converted a NULL pointer.\n");
     #endif
     *ptr=NULL;
     return SWIG_OK;
   }
+  duk_get_prop_string(ctx, obj_idx, "\xFFprivate");
   usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);  /* get data */
   duk_pop_n(ctx, 2); /* clean up the stack */
   if (usr) {
