@@ -16,6 +16,7 @@ namespace std
   struct exception {};
 }
 
+%typemap(throws) std::bad_cast          "SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.what());\n return $null;"
 %typemap(throws) std::bad_exception     "SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.what());\n return $null;"
 %typemap(throws) std::domain_error      "SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.what());\n return $null;"
 %typemap(throws) std::exception         "SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.what());\n return $null;"

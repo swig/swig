@@ -15,6 +15,10 @@ namespace std {
     virtual const char* what() const throw();
   };
 
+  struct bad_cast : exception 
+  {
+  };
+
   struct bad_exception : exception 
   {
   };

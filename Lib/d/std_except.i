@@ -16,6 +16,7 @@ namespace std
   struct exception {};
 }
 
+%typemap(throws, canthrow=1) std::bad_cast          "SWIG_DSetPendingException(SWIG_DException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::bad_exception     "SWIG_DSetPendingException(SWIG_DException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::domain_error      "SWIG_DSetPendingException(SWIG_DException, $1.what());\n return $null;"
 %typemap(throws, canthrow=1) std::exception         "SWIG_DSetPendingException(SWIG_DException, $1.what());\n return $null;"

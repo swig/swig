@@ -27,6 +27,7 @@ namespace std
 // normally objects which are thrown are returned to the interpreter as errors
 // (which potentially may have problems if they are not copied)
 // therefore all classes based upon std::exception are converted to their strings & returned as errors
+%typemap(throws) std::bad_cast          "SWIG_exception(SWIG_TypeError, $1.what());"
 %typemap(throws) std::bad_exception     "SWIG_exception(SWIG_RuntimeError, $1.what());"
 %typemap(throws) std::domain_error      "SWIG_exception(SWIG_ValueError, $1.what());"
 %typemap(throws) std::exception         "SWIG_exception(SWIG_SystemError, $1.what());"
