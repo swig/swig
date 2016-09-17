@@ -176,7 +176,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   if (SCM_NULLP(smob)) {
     *result = NULL;
     return SWIG_OK;
-  } if (SCM_POINTER_P(s)) {
+  } else if (SCM_POINTER_P(s)) {
     *result = SCM_POINTER_VALUE(s);
     return SWIG_OK;
   } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
