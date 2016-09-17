@@ -53,7 +53,7 @@ SWIGINTERN bool JS_veto_set_variable(JSContextRef context, JSObjectRef thisObjec
     } else {
       SWIG_exception(SWIG_ERROR, msg);
     }
-    
+fail:    
     return false;
 }
 

@@ -97,7 +97,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
  * ---------------------------------------------------------------------------*/
 
 #define SWIG_Error(code, msg)     SWIGV8_ErrorHandler.error(code, msg)
-#define SWIG_exception(code, msg) SWIGV8_ErrorHandler.error(code, msg)
+#define SWIG_exception(code, msg) do { SWIGV8_ErrorHandler.error(code, msg); SWIG_fail; } while (0)
 #define SWIG_fail                 goto fail
 #define SWIGV8_OVERLOAD false
 
