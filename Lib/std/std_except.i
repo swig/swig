@@ -3,6 +3,7 @@
 #endif
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 

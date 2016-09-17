@@ -8,6 +8,7 @@
  * ----------------------------------------------------------------------------- */
 
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 %include <exception.i>
