@@ -385,7 +385,7 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
   if (duk_get_prop_string(ctx, obj_idx, "\xFFprivate")) {
     if (!duk_is_undefined(ctx, -1)) {
       usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);  /* get data */ 
-      duk_pop_n(ctx, 2); /* clean up the stack */
+      duk_pop_n(ctx, 1); /* clean up the stack */
     } else {
       goto sadplace;
     }
