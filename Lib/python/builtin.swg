@@ -199,18 +199,6 @@ wrapper##_closure(PyObject *a) {		\
     return result;				\
 }
 
-#define SWIGPY_ITERNEXT_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_closure(PyObject *a) {		\
-    PyObject *result;				\
-    result = wrapper(a, NULL);			\
-    if (result && result == Py_None) {		\
-	Py_DECREF(result);			\
-	result = NULL;				\
-    }						\
-    return result;				\
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif

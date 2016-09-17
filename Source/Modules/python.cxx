@@ -200,7 +200,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
+    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     NULL
   };
 
@@ -219,7 +219,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
+    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     NULL
   };
 

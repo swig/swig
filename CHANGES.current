@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-17: wsfulton
+            [Python] Fix iterators for containers of NULL pointers (or Python None) when using
+            -builtin. Previously iteration would stop at the first element that was NULL.
+
 2016-09-16: olly
             [Javascript] Fix SWIG_exception() macro to return from the current
             function.  Fixes #789, reported by Julien Dutriaux.
