@@ -365,14 +365,16 @@ SWIGRUNTIME duk_idx_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
 }
 
 
-/* takes a object from the duk stack & converts it into an object of the correct type
- (if possible) */
+/* 
+ * takes a object from the duk stack & converts it into an object of the correct type
+ * (if possible)
+ */
 SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **ptr,swig_type_info *type,int flags)
 {
   duk_size_t sz;
   swig_duk_userdata *usr;
   swig_cast_info *cast;
-    /* special case: duk undefined => NULL pointer */
+  /* special case: duk undefined => NULL pointer */
   if (duk_is_undefined(ctx, obj_idx)){
     #ifdef SWIGRUNTIME_DEBUG
     printf("Converted a NULL pointer.\n");
@@ -380,9 +382,16 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
     *ptr=NULL;
     return SWIG_OK;
   }
-  duk_get_prop_string(ctx, obj_idx, "\xFFprivate");
-  usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);  /* get data */
-  duk_pop_n(ctx, 2); /* clean up the stack */
+  if (duk_get_prop_string(ctx, obj_idx, "\xFFprivate")) {
+    if (!duk_is_undefined(ctx, -1)) {
+      usr=(swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);  /* get data */ 
+      duk_pop_n(ctx, 2); /* clean up the stack */
+    } else {
+      goto sadplace;
+    }
+  } else {
+    goto sadplace;
+  }
   if (usr) {
     if (flags & SWIG_POINTER_DISOWN) {
       /* must disown the object */
@@ -401,7 +410,8 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
       return SWIG_OK;  /* ok */
     }
   }
-  return SWIG_ERROR;  /* error */
+  sadplace:
+    return SWIG_ERROR;  /* error */
 }
 
 /* -----------------------------------------------------------------------------

@@ -8,6 +8,12 @@
  *                          standard typemaps
  * ----------------------------------------------------------------------------- */
 
+/* Include fundamental fragment definitions */
+%include <typemaps/fragments.swg>
+
+/* Look for user fragments file. */
+%include <javascriptfragments.swg>
+
 // numbers
 %typemap(in) int
 %{$1 = ($type)duk_to_number(ctx, $input);%}
@@ -118,7 +124,7 @@
 // it should be converted to a SWIG NULL.
 // This will only be allowed for pointers & arrays, not refs or by value
 // the checkfn duk_is_heapptr will only work for userdata
-// the checkfn SWIG_isptrtype will work for both userdata and nil
+// the checkfn SWIG_isptrtype will work for both userdata and undefined
 %typemap(in) SWIGTYPE*,SWIGTYPE[]
 %{
   /* LINE 153 */
@@ -288,7 +294,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
   void *ptr;
-  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -297,7 +303,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
   void *ptr;
-  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
+  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -306,7 +312,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   void *ptr;
-  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $&1_descriptor, 0)) {
+  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $&1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -328,7 +334,7 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
-  if (duk_is_heapptr(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
+  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
