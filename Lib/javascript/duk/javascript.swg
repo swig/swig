@@ -127,7 +127,7 @@ For a more useful solution: see std_except for more details
 // convert to string and error
 %typemap(throws) SWIGTYPE
 %{(void)$1; /* ignore it */
-lua_pushfstring(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
+duk_push_sprintf(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
 SWIG_fail;%}
 
 // code to make a copy of the object and return this

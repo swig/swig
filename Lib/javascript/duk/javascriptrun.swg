@@ -175,7 +175,7 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   if (!(expr)) { duk_push_string(ctx, (char *) msg); duk_throw(ctx); } else
 
 /* helper #defines */
-#define SWIG_fail {goto fail;}
+#define SWIG_fail {duk_throw(ctx);}
 #define SWIG_fail_arg(func_name,argnum,type) \
   {duk_push_sprintf(ctx,"Error in %s (arg %d), expected '%s' got '%s'",\
   func_name,argnum,type,SWIG_duk_typename(ctx, argnum));\
