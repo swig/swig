@@ -312,7 +312,7 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
     return SWIG_OK;
 %#if PY_VERSION_HEX < 0x03000000
   } else if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
+    if (val) *val = (double) PyInt_AsLong(obj);
     return SWIG_OK;
 %#endif
   } else if (PyLong_Check(obj)) {
