@@ -66,7 +66,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
   $jsdispatchcases
 
   // default:
-  duk_push_string(ctx, "Illegal arguments for construction of $jsname");
+  duk_push_string(ctx, "Illegal arguments for construction of $jswrapper");
   duk_throw(ctx);
 }
 %}
@@ -105,8 +105,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   /* FRAGMENT: js_ctor_dispatch_case */
   if(duk_get_top(ctx) == $jsargcount) {
     $jswrapper(ctx);
-    //FIXME
-    //if(thisObject != NULL) { *exception=0; return thisObject; } /* reset exception and return */
+    return 1;
   }
 %}
 
