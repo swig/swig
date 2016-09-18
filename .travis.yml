@@ -43,6 +43,9 @@ matrix:
       env: SWIGLANG=javascript ENGINE=jsc
     - compiler: gcc
       os: linux
+      env: SWIGLANG=javascript ENGINE=duk
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=javascript ENGINE=v8
     - compiler: gcc
       os: linux
