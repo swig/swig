@@ -101,3 +101,4 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
 }
 #endif
 %}
+// 

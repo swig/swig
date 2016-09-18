@@ -125,12 +125,12 @@
 // This will only be allowed for pointers & arrays, not refs or by value
 // the checkfn duk_is_heapptr will only work for userdata
 // the checkfn SWIG_isptrtype will work for both userdata and undefined
-%typemap(in) SWIGTYPE*,SWIGTYPE[]
+%typemap(in) SWIGTYPE*,SWIGTYPE&, SWIGTYPE[]
 %{
   /* LINE 153 */
   {
     if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,$disown))){
-        SWIG_fail_ptr("$symname",$argnum,$descriptor);
+        SWIG_fail_ptr("$symname",$input,$descriptor);
     }
   }
 %}
@@ -149,7 +149,7 @@
   printf("magic $input 002\n");
 #endif
   if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&argp,$&descriptor,0))){
-    SWIG_fail_ptr("$symname",$argnum,$&descriptor);
+    SWIG_fail_ptr("$symname",$input, $&descriptor);
   }
   $1 = *argp;
 %}
@@ -190,7 +190,6 @@ $1=($1_ltype)&temp;%}
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
 {
-    printf("swig");
   $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
   SWIG_NewPointerObj(ctx,(void *) resultptr,$&1_descriptor,1); 
 }

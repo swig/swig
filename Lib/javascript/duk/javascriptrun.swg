@@ -181,7 +181,14 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   func_name,argnum,type,SWIG_duk_typename(ctx, argnum));\
   duk_throw(ctx);}
 #define SWIG_fail_ptr(func_name,argnum,type) \
-  SWIG_fail_arg(func_name,argnum,(type && type->str)?type->str:"void*")
+  {if (duk_is_object(ctx, argnum)) {\
+   duk_get_prop_string(ctx, argnum, "\xFFprivate");\
+  }else{\
+   duk_dup(ctx, argnum);\
+  }\
+  duk_push_sprintf(ctx,"Error in %s (arg %d), expected '%s' got '%s'",\
+  func_name,argnum,(type && type->str)?type->str:"void*",SWIG_duk_typename(ctx, -1));\
+  duk_throw(ctx);}
 #define SWIG_check_num_args(func_name,a,b) \
   if (duk_get_top(ctx)<a || duk_get_top(ctx)>b) \
   {duk_push_sprintf(ctx,"Error in %s expected %d..%d args, got %d",func_name,a,b,duk_get_top(ctx));\
@@ -360,8 +367,12 @@ SWIGRUNTIME duk_idx_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
   usr->type=type;
   usr->own=own;
   duk_put_prop_string(ctx, obj_idx, "\xFFprivate");
+  if (type && type->clientdata) {
+    duk_push_heapptr(ctx, type->clientdata);
+    duk_set_prototype(ctx, obj_idx);
+  }
   //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
-  return obj_idx;
+  return 1;
 }
 
 

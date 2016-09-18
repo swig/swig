@@ -25,10 +25,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
   $jscode
 
   duk_idx_t obj_idx = SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
-  
-  duk_push_heapptr(ctx, SWIGTYPE_$jsmangledtype->clientdata);
-  duk_set_prototype(ctx, obj_idx);
-  
+
   return 1;
 }
 %}
@@ -91,9 +88,6 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   $jscode
 
   SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
-  /* The 'this' binding is now at the stack top. */
-  duk_push_heapptr(ctx, SWIGTYPE_$jsmangledtype->clientdata);
-  duk_set_prototype(ctx, -2);
 
   return 1;  
 }
