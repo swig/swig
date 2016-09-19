@@ -8,7 +8,7 @@
 SWIGINTERNINLINE
 JSValueRef SWIG_From_dec(bool)(bool value)
 {
-  return JSValueMakeBoolean(ctx, value);
+  return JSValueMakeBoolean(context, value);
 }
 }
 
@@ -17,10 +17,10 @@ JSValueRef SWIG_From_dec(bool)(bool value)
 SWIGINTERN
 int SWIG_AsVal_dec(bool)(JSValueRef obj, bool *val)
 {
-  if(!JSValueIsBoolean(ctx, obj)) {
+  if(!JSValueIsBoolean(context, obj)) {
     return SWIG_ERROR;
   }
-  if (val) *val = JSValueToBoolean(ctx, obj);
+  if (val) *val = JSValueToBoolean(context, obj);
   return SWIG_OK;
 }
 }
@@ -31,7 +31,7 @@ int SWIG_AsVal_dec(bool)(JSValueRef obj, bool *val)
 SWIGINTERNINLINE JSValueRef
   SWIG_From_dec(int)(int value)
 {
-  return JSValueMakeNumber(ctx, value);
+  return JSValueMakeNumber(context, value);
 }
 }
 
@@ -41,7 +41,7 @@ SWIGINTERNINLINE JSValueRef
 SWIGINTERNINLINE JSValueRef
 SWIG_From_dec(long)(long value)
 {
-  return JSValueMakeNumber(ctx, value);
+  return JSValueMakeNumber(context, value);
 }
 }
 
@@ -50,10 +50,10 @@ SWIG_From_dec(long)(long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long)(JSValueRef obj, long* val)
 {
-  if (!JSValueIsNumber(ctx, obj)) {
+  if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  if(val) *val = (long) JSValueToNumber(ctx, obj, NULL);
+  if(val) *val = (long) JSValueToNumber(context, obj, NULL);
 
   return SWIG_OK;
 }
@@ -67,7 +67,7 @@ SWIGINTERNINLINE JSValueRef
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
-    JSValueMakeNumber(ctx, value) : JSValueMakeNumber(ctx, %numeric_cast(value,long));
+    JSValueMakeNumber(context, value) : JSValueMakeNumber(context, %numeric_cast(value,long));
 }
 }
 
@@ -77,11 +77,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
   long longVal;
-  if(!JSValueIsNumber(ctx, obj)) {
+  if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  longVal = (long) JSValueToNumber(ctx, obj, NULL);
+  longVal = (long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -103,7 +103,7 @@ SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 SWIGINTERNINLINE JSValueRef
 SWIG_From_dec(long long)(long long value)
 {
-  return JSValueMakeNumber(ctx, value);
+  return JSValueMakeNumber(context, value);
 }
 %#endif
 }
@@ -116,10 +116,10 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 {
-  if (!JSValueIsNumber(ctx, obj)) {
+  if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  if(val) *val = (long long) JSValueToNumber(ctx, obj, NULL);
+  if(val) *val = (long long) JSValueToNumber(context, obj, NULL);
 
   return SWIG_OK;
 }
@@ -137,7 +137,7 @@ SWIGINTERN JSValueRef
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    JSValueMakeNumber(ctx, value) : JSValueMakeNumber(ctx, %numeric_cast(value,long));
+    JSValueMakeNumber(context, value) : JSValueMakeNumber(context, %numeric_cast(value,long));
 }
 %#endif
 }
@@ -151,11 +151,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
   long long longVal;
-  if(!JSValueIsNumber(ctx, obj)) {
+  if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
 
-  longVal = (unsigned long long) JSValueToNumber(ctx, obj, NULL);
+  longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -174,7 +174,7 @@ SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 SWIGINTERN JSValueRef
 SWIG_From_dec(double) (double val)
 {
-  return JSValueMakeNumber(ctx, val);
+  return JSValueMakeNumber(context, val);
 }
 }
 
@@ -182,10 +182,10 @@ SWIG_From_dec(double) (double val)
 SWIGINTERN int
 SWIG_AsVal_dec(double)(JSValueRef obj, double *val)
 {
-  if(!JSValueIsNumber(ctx, obj)) {
+  if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  if(val) *val = JSValueToNumber(ctx, obj, NULL);
+  if(val) *val = JSValueToNumber(context, obj, NULL);
 
   return SWIG_OK;
 }
