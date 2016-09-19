@@ -93,7 +93,6 @@ as this is overloaded by the const char* version
       string(const char*);
       //string(const string&);
       unsigned int size() const;
-      unsigned int length() const;
       bool empty() const;
       // no support for operator[]
       const char* c_str()const;
