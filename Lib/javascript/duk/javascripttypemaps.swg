@@ -16,13 +16,15 @@
 
 // numbers
 %typemap(in) int
-%{$1 = ($type)duk_to_number(ctx, $input);%}
+%{ if (!duk_is_number(ctx, $input)) { duk_push_string(ctx,"Expected number in $input argument"); goto fail; };
+   $1 = ($type)duk_to_number(ctx, $input); 
+%}
 
 %typemap(out) int
 %{duk_push_number(ctx, (duk_double_t)$1);%}
 
 %apply int { short, long, signed char, float, double, unsigned int,
-             unsigned short, unsigned long, unsigned char }
+             unsigned short, unsigned long, unsigned char, enum SWIGTYPE }
 
 // we must also provide typemaps for primitives by const reference:
 // given a function:
@@ -31,41 +33,24 @@
 // (this might be ok for objects by const ref, but not for numeric primitives)
 // therefore we add a set of typemaps to fix this (for both in & out)
 %typemap(in) const int&($basetype temp)
-%{ temp=($basetype)duk_to_number(ctx, $input); $1=&temp;%}
+%{ if (!duk_is_number(ctx, $input)) { duk_push_string(ctx,"Expected number in $input argument"); goto fail; };
+   temp=($basetype)duk_to_number(ctx, $input); $1=&temp;%}
 
-%typemap(in) const unsigned int&($basetype temp)
-%{ temp=($basetype)duk_to_number(ctx,$argnum); $1=&temp;%}
-
-%typemap(out) const int&, const unsigned int&
+%typemap(out) const int&
 %{duk_push_number(ctx, (duk_double_t) *$1); %}
 
 // for the other numbers we can just use an apply statement to cover them
 %apply const int & {const short&,const long&,const signed char&,
-             const float&,const double&};
-
-%apply const unsigned int & {const unsigned short&,const unsigned long&,
-             const unsigned char&};
-
-%typemap(in) enum SWIGTYPE
-%{$1 = ($type)(int)duk_to_number(ctx, $input);%}
-
-%typemap(out) enum SWIGTYPE
-%{duk_push_number(ctx, (duk_double_t)($1)); %}
-
-// and const refs
-%typemap(in) const enum SWIGTYPE &($basetype temp)
-%{ temp=($basetype)(int)duk_to_number(ctx, $input); $1=&temp;%}
-%typemap(in) const enum SWIGTYPE &&($basetype temp)
-%{ temp=($basetype)(int)duk_to_number(ctx,$input); $1=&temp;%}
-%typemap(out) const enum SWIGTYPE &
-%{  duk_push_number(ctx, (duk_double_t) *$1); %}
-%typemap(out) const enum SWIGTYPE &&
-%{  duk_push_number(ctx, (duk_double_t) *$1); %}
-
+             const float&,const double&,
+             const unsigned short&,const unsigned long&,
+             const unsigned char&,
+             enum SIGTYPE &, enum SIGTYPE&&,
+             const enum SIGTYPE&, const enum SIGTYPE&&};
 
 // boolean
 %typemap(in) bool
-%{$1 = (duk_to_boolean(ctx, $input)!=0);%}
+%{ if (!duk_is_boolean(ctx, $input)) { duk_push_string(ctx,"Expected boolean in $input argument"); goto fail; };
+   $1 = (duk_to_boolean(ctx, $input)!=0); %}
 
 %typemap(out) bool
 %{  duk_push_boolean(ctx,(int)($1!=0)); %}
@@ -79,23 +64,19 @@
 %{duk_push_boolean(ctx,(int)((*$1)!=0)); %}
 
 
-%typemap(in) const char *, char *
-%{$1 = ($ltype)duk_to_string(ctx, $input);%}
+%typemap(in) const char *, char *,  const char[ANY], char[ANY]
+%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
+   $1 = ($ltype)duk_to_string(ctx, $input); %}
 
-%typemap(in) const char[ANY], char[ANY]
-%{$1 = ($ltype)duk_to_string(ctx, $input);%}
-
-%typemap(out) const char *, char *
-%{duk_push_string(ctx,(const char *)$1); %}
-
-%typemap(out) const char[ANY], char[ANY]
+%typemap(out) const char *, char *, const char[ANY], char[ANY]
 %{duk_push_string(ctx,(const char *)$1); %}
 
 // char's
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
 %typemap(in) char
-%{$1 = (duk_to_string(ctx, $input))[0];%}
+%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected char/string in $input argument"); goto fail; }
+   $1 = (duk_to_string(ctx, $input))[0];%}
 
 %typemap(out) char
 %{
@@ -114,7 +95,8 @@
 
 // by const ref
 %typemap(in) const char& (char temp)
-%{temp = (duk_to_string(ctx, $input))[0]; $1=&temp;%}
+%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
+   temp = (duk_to_string(ctx, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
 %{duk_push_lstring(ctx, $1, 1); %}
@@ -258,7 +240,7 @@ These define the detection routines which will spot what
 parameters match which function
 */
 
-// unfortunately lua only considers one type of number
+// unfortunately JS only considers one type of number
 // so all numbers (int,float,double) match
 // you could add an advanced fn to get type & check if its integral
 %typecheck(SWIG_TYPECHECK_INTEGER)
@@ -282,36 +264,9 @@ parameters match which function
   $1 = duk_is_boolean(ctx,$input);
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   void *ptr;
-  if (SWIG_isptrtype(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE & {
-  void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE && {
-  void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
-  void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $&1_descriptor, 0)) {
+  if (SWIG_isptrtype(ctx,$input) || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $1_descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -320,7 +275,7 @@ parameters match which function
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  if (SWIG_isptrtype(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, 0, 0)) {
+  if (SWIG_isptrtype(ctx,$input) || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, 0, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
@@ -333,7 +288,7 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
-  if (duk_is_pointer(ctx,$input)==0 || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
+  if (SWIG_isptrtype(ctx,$input) || SWIG_ConvertPtr(ctx,$input, (void **) &ptr, $*descriptor, 0)) {
     $1 = 0;
   } else {
     $1 = 1;
