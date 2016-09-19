@@ -132,7 +132,8 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #endif
   printf("STACK TOP: %i\n", duk_get_top(ctx));
   duk_size_t sz;
-  duk_get_prop_string(ctx, -2, "\xFFprivate");
+  if (!duk_is_object(ctx, -1)) return 0;
+  duk_get_prop_string(ctx, -1, "\xFFprivate");
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->ptr) {
