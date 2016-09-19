@@ -30,6 +30,7 @@
 <li><a href="#Guile_nn14">Smobs</a>
 <li><a href="#Guile_nn15">Garbage Collection</a>
 </ul>
+<li><a href="#Guile_nn12">Native Guile pointers</a>
 <li><a href="#Guile_nn16">Exception Handling</a>
 <li><a href="#Guile_nn17">Procedure documentation</a>
 <li><a href="#Guile_nn18">Procedures with setters</a>
@@ -453,13 +454,14 @@ is exactly like described in <a href="Customization.html#Customization_ownership
 Object ownership and %newobject</a> in the SWIG manual.  All typemaps use an $owner var, and
 the guile module replaces $owner with 0 or 1 depending on feature:new.</p>
 
-<H2><a name="Guile_nn12">24.7 Native Guile pointers</a></H2>
+<H2><a name="Guile_nn12">24.8 Native Guile pointers</a></H2>
+
 
 <p>
 In addition to SWIG smob pointers, <a href="https://www.gnu.org/software/guile/manual/html_node/Foreign-Pointers.html">Guile's native pointer type</a> are accepted as arguments to wrapped SWIG functions. This can be useful for passing <a href="https://www.gnu.org/software/guile/manual/html_node/Void-Pointers-and-Byte-Access.html#">pointers to bytevector data</a> to wrapped functions.
 </p>
 
-<H2><a name="Guile_nn16">24.8 Exception Handling</a></H2>
+<H2><a name="Guile_nn16">24.9 Exception Handling</a></H2>
 
 
 <p>
@@ -485,7 +487,7 @@ mapping:
 The default when not specified here is to use "swig-error".
 See Lib/exception.i for details.
 
-<H2><a name="Guile_nn17">24.9 Procedure documentation</a></H2>
+<H2><a name="Guile_nn17">24.10 Procedure documentation</a></H2>
 
 
 <p>If invoked with the command-line option <code>-procdoc
@@ -520,7 +522,7 @@ like this:
 typemap argument <code>doc</code>. See <code>Lib/guile/typemaps.i</code> for
 details.
 
-<H2><a name="Guile_nn18">24.10 Procedures with setters</a></H2>
+<H2><a name="Guile_nn18">24.11 Procedures with setters</a></H2>
 
 
 <p>For global variables, SWIG creates a single wrapper procedure
@@ -548,7 +550,7 @@ struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer
 value)</code> are <em>not</em> generated.
 
-<H2><a name="Guile_nn19">24.11 GOOPS Proxy Classes</a></H2>
+<H2><a name="Guile_nn19">24.12 GOOPS Proxy Classes</a></H2>
 
 
 <p>SWIG can also generate classes and generic functions for use with
@@ -694,7 +696,7 @@ Notice that &lt;Foo&gt; is used before it is defined.  The fix is to just put th
 <code>%import "foo.h"</code> before the <code>%inline</code> block.
 </p>
 
-<H3><a name="Guile_nn20">24.11.1 Naming Issues</a></H3>
+<H3><a name="Guile_nn20">24.12.1 Naming Issues</a></H3>
 
 
 <p>As you can see in the example above, there are potential naming conflicts.  The default exported
@@ -731,7 +733,7 @@ guile-modules.  For example,</p>
 (use-modules ((Test) #:renamer (symbol-prefix-proc 'goops:)))
 </pre></div>
 
-<H3><a name="Guile_nn21">24.11.2 Linking</a></H3>
+<H3><a name="Guile_nn21">24.12.2 Linking</a></H3>
 
 
 <p>The guile-modules generated above all need to be linked together.  GOOPS support requires
