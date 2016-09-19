@@ -130,18 +130,19 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper...\n");
   #endif
-  printf("STACK TOP: %i\n", duk_get_top(ctx));
   duk_size_t sz;
   if (!duk_is_object(ctx, -1)) return 0;
   duk_get_prop_string(ctx, -1, "\xFFprivate");
+  if (!duk_is_fixed_buffer(ctx, -1)) return 0;
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->ptr) {
-      duk_free(($jstype)t->ptr);
+        delete ($jstype)t->ptr;
+        t->ptr = NULL;
     }
     duk_push_pointer(ctx, NULL);
     duk_put_prop_string(ctx, -2, "\xFFprivate");
-    duk_free(t);
+    duk_free(ctx,t);
   }
   
   return 0; /* Is this sane? */
@@ -163,20 +164,21 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   printf("Called $jswrapper...\n");
   #endif
   duk_size_t sz;
-  duk_get_prop_string(ctx, -2, "\xFFprivate");
+  if (!duk_is_object(ctx, -1)) return 0;
+  duk_get_prop_string(ctx, -1, "\xFFprivate");
+  if (!duk_is_fixed_buffer(ctx, -1)) return 0;
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->own) {
-      $jstype arg1 = ($jstype)t->ptr;
-      ${destructor_action}
+        delete ($jstype)t->ptr;
+        t->own = false;
     }
-    // remove the private data to make sure that it isn't accessed elsewhere
     duk_push_pointer(ctx, NULL);
-    duk_put_prop(ctx, -2);
-    duk_free(ctx, t);
-    return 0;
+    duk_put_prop_string(ctx, -2, "\xFFprivate");
+    duk_free(ctx,t);
   }
-  return 0;
+  
+  return 0; /* Is this sane? */
 }
 %}
 
