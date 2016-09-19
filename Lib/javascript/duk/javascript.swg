@@ -52,27 +52,10 @@
 %typemap(consttab) SWIGTYPE (CLASS::*)
        { SWIG_DUK_CONSTTAB_BINARY("$symname", sizeof($type),&$value, $1_descriptor) }
 
-
-/* -----------------------------------------------------------------------------
- *                          Overloaded operator support
- * ----------------------------------------------------------------------------- */
-// lua calls the + operator '__add'
-// python likes to call it '__add__'
-// Assuming most SWIGers will probably use the __add__ if they extend their classes
-// we have two sets of renames
-// one to rename the operator+() to __add()
-//	(this lets SWIG rename the operator overloads)
-// another is to rename __add__() to __add()
-//	(this means that people who wrote SWIG code to do that add will also work)
-
-
 /* ------------------------------------------------------------
  *                              Exceptions
  * ------------------------------------------------------------ */
 /* Confession: I don't really like C++ exceptions
-The python/lua ones are great, but C++ ones I don't like
-(mainly because I cannot get the stack trace out of it)
-Therefore I have not bothered to try doing much in this
 
 Therefore currently its just enough to get a few test cases running ok
 
@@ -93,22 +76,32 @@ use %include <std_except.i> instead
 				float&,double&,
 				long long&,unsigned long long&,
 				unsigned char&, signed char&
-%{duk_push_number(ctx,$1);SWIG_fail; %}
+%{
+  duk_push_number(ctx,$1);
+%}
 
 %typemap(throws) bool,bool& 
-%{duk_push_boolean(ctx,(int)($1==true));SWIG_fail; %}
+%{
+  duk_push_boolean(ctx,(int)($1==true));
+%}
 
 // enum as number+error
 %typemap(throws) enum SWIGTYPE
-%{duk_push_number(ctx,$1);SWIG_fail; %}
+%{
+  duk_push_number(ctx,$1);
+%}
 
 // strings are just sent as errors
 %typemap(throws) char *, const char *
-%{duk_push_string(ctx,$1);SWIG_fail;%}
+%{
+  duk_push_string(ctx,$1);
+%}
 
 // char is changed to a string
 %typemap(throws) char
-%{duk_pushlstring(ctx,&$1,1);SWIG_fail;%}
+%{
+  duk_push_lstring(ctx,&$1,1);
+%}
 
 /*
 Throwing object is a serious problem:
@@ -126,9 +119,10 @@ For a more useful solution: see std_except for more details
 // basic typemap for structs, classes, pointers & references
 // convert to string and error
 %typemap(throws) SWIGTYPE
-%{(void)$1; /* ignore it */
-lua_pushfstring(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
-SWIG_fail;%}
+%{
+  (void)$1; /* ignore it */
+  duk_push_sprintf(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
+%}
 
 // code to make a copy of the object and return this
 // if you have a function which throws a FooBar & you want SWIG to return a copy of the object as its error
@@ -136,14 +130,16 @@ SWIG_fail;%}
 //	%apply SWIGTYPE EXCEPTION_BY_VAL {FooBar};
 //	%apply SWIGTYPE& EXCEPTION_BY_VAL {FooBar&}; // note: need & twice
 %typemap(throws) SWIGTYPE EXCEPTION_BY_VAL
-%{SWIG_NewPointerObj(ctx,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
-SWIG_fail;%}
+%{
+  SWIG_NewPointerObj(ctx,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
+%}
 
 // similar for object reference
 // note: swig typemaps seem a little confused around here, therefore we use $basetype
 %typemap(throws) SWIGTYPE& EXCEPTION_BY_VAL
-%{SWIG_NewPointerObj(ctx,(void *)new $basetype($1),$1_descriptor,1);
-SWIG_fail;%}
+%{
+  SWIG_NewPointerObj(ctx,(void *)new $basetype($1),$1_descriptor,1);
+%}
 
 // note: no support for object pointers
 // its not clear how long the pointer is valid for, therefore not supporting it

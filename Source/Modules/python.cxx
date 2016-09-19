@@ -200,7 +200,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
+    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     NULL
   };
 
@@ -219,7 +219,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
+    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     NULL
   };
 
@@ -861,12 +861,13 @@ public:
       /* At here, the module may already loaded, so simply import it. */
       Printf(f_shadow, tab4 tab8 "import %s\n", module);
       Printf(f_shadow, tab4 tab8 "return %s\n", module);
-      Printv(f_shadow, tab8 "if fp is not None:\n", NULL);
-      Printv(f_shadow, tab4 tab8 "try:\n", NULL);
-      Printf(f_shadow, tab8 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
-      Printv(f_shadow, tab4 tab8, "finally:\n", NULL);
+      Printv(f_shadow, tab8 "try:\n", NULL);
+      /* imp.load_module() handles fp being None. */
+      Printf(f_shadow, tab4 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
+      Printv(f_shadow, tab8, "finally:\n", NULL);
+      Printv(f_shadow, tab4 tab8 "if fp is not None:\n", NULL);
       Printv(f_shadow, tab8 tab8, "fp.close()\n", NULL);
-      Printv(f_shadow, tab4 tab8, "return _mod\n", NULL);
+      Printv(f_shadow, tab8, "return _mod\n", NULL);
       Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
       Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
       Printv(f_shadow, "else:\n", NULL);

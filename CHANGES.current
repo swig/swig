@@ -5,6 +5,29 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-17: wsfulton
+            [Python] Fix iterators for containers of NULL pointers (or Python None) when using
+            -builtin. Previously iteration would stop at the first element that was NULL.
+
+2016-09-16: olly
+            [Javascript] Fix SWIG_exception() macro to return from the current
+            function.  Fixes #789, reported by Julien Dutriaux.
+
+2016-09-16: olly
+            [PHP] Fix SWIG_exception() macro to return from the current function.
+            Fixes #240, reported by Sergey Seroshtan.
+
+2016-09-12: xypron
+            [C#] Patch #786 Keyword rename to be CLS compliant by adding an underscore
+            suffix instead of an underscore suffix to the C symbol name. Please use an explicit
+            %rename to rename the symbol with a _ prefix if you want the old symbol name.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2016-09-09: olly
+            [Python] Fix import handling for Python 2.6 to work in a frozen
+            application.  Fixes #145, reported by Thomas Kluyver.
+
 2016-09-02: smarchetto
             [Scilab] Pointers are mapped to mlist instead of tlist
             (mlist better for scilab overloading)
