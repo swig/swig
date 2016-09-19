@@ -7,6 +7,8 @@
 
 #ifdef __APPLE__
   #define LIBRARY_EXT ".bundle"
+#else
+  #define LIBRARY_EXT ".so"
 #endif
 
 #ifdef __GNUC__
