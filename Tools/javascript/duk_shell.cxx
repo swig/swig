@@ -51,13 +51,12 @@ duk_ret_t console_log_impl(duk_context *ctx) {
 
 duk_ret_t load_module(duk_context *ctx) {
   std::string id = duk_get_string(ctx, 0);
-  
   std::vector<std::string> sugs;
   {
-      sugs.push_back("lib" + id + ".so");
-      sugs.push_back(        id + ".so");
-      sugs.push_back("./lib" + id + ".so");
-      sugs.push_back("./"    + id + ".so");
+      sugs.push_back("lib" + id + LIBRARY_EXT);
+      sugs.push_back(        id + LIBRARY_EXT);
+      sugs.push_back("./lib" + id + LIBRARY_EXT);
+      sugs.push_back("./"    + id + LIBRARY_EXT);
   }
   std::string lib = id + " [not found]";
   std::string init_fn = "swig_duk_init"; //"dukopen_" + id;
@@ -121,7 +120,7 @@ bool DUKShell::ExecuteScript(const std::string& source, const std::string& scrip
       std::cout << "" << scriptPath << ":" << duk_safe_to_string(ctx, -1) << std::endl;
       return false;
   } else {
-      std::cout << duk_safe_to_string(ctx, -1) << std::endl;
+      //std::cout << duk_safe_to_string(ctx, -1) << std::endl;
       return true;
   };
 }
