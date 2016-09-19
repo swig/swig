@@ -78,29 +78,34 @@ use %include <std_except.i> instead
 				unsigned char&, signed char&
 %{
   duk_push_number(ctx,$1);
+  goto fail;
 %}
 
 %typemap(throws) bool,bool& 
 %{
   duk_push_boolean(ctx,(int)($1==true));
+  goto fail;
 %}
 
 // enum as number+error
 %typemap(throws) enum SWIGTYPE
 %{
   duk_push_number(ctx,$1);
+  goto fail;
 %}
 
 // strings are just sent as errors
 %typemap(throws) char *, const char *
 %{
   duk_push_string(ctx,$1);
+  goto fail;
 %}
 
 // char is changed to a string
 %typemap(throws) char
 %{
   duk_push_lstring(ctx,&$1,1);
+  goto fail;
 %}
 
 /*
@@ -122,6 +127,7 @@ For a more useful solution: see std_except for more details
 %{
   (void)$1; /* ignore it */
   duk_push_sprintf(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
+  goto fail;
 %}
 
 // code to make a copy of the object and return this
@@ -132,6 +138,7 @@ For a more useful solution: see std_except for more details
 %typemap(throws) SWIGTYPE EXCEPTION_BY_VAL
 %{
   SWIG_NewPointerObj(ctx,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
+  goto fail;
 %}
 
 // similar for object reference
@@ -139,6 +146,7 @@ For a more useful solution: see std_except for more details
 %typemap(throws) SWIGTYPE& EXCEPTION_BY_VAL
 %{
   SWIG_NewPointerObj(ctx,(void *)new $basetype($1),$1_descriptor,1);
+  goto fail;
 %}
 
 // note: no support for object pointers
