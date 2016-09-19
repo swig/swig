@@ -5,6 +5,10 @@
 #include <iostream>
 #include <stdio.h>
 
+#ifdef __APPLE__
+  #define LIBRARY_EXT ".bundle"
+#endif
+
 #ifdef __GNUC__
 #include <dlfcn.h>
 #define LOAD_SYMBOL(handle, name) dlsym(handle, name)
