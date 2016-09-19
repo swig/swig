@@ -204,9 +204,21 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   duk_push_boolean(ctx, b)
 
 /* special helper for allowing 'undefined' for usertypes */
-#define SWIG_isptrtype(ctx,I) (duk_is_fixed_buffer(ctx,I) || duk_is_undefined(ctx,I))
+#define SWIG_isptrtype(ctx,I) SWIG_duk_isptrtype(ctx, I)
 
 #define SWIG_exception_fail
+
+
+bool SWIG_duk_isptrtype(duk_context *ctx, duk_idx_t idx) {
+    if (duk_is_undefined(ctx, idx)) return true; // NULL pointer
+    if (duk_is_object(ctx, idx)) {
+        duk_get_prop_string(ctx, idx, "\xFFprivate");
+        bool is_fb = duk_is_fixed_buffer(ctx, -1);
+        duk_pop(ctx);
+        return is_fb;
+    }
+    return false;
+}
 
 /* -----------------------------------------------------------------------------
  * global variable support code

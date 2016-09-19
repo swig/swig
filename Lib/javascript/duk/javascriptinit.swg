@@ -79,23 +79,18 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
     */
     duk_put_prop_string(ctx, -2, "$jsname");
     /* Create objects for namespaces */
-    $jscreatenamespaces
-    /* Register classes */
-    $jsregisterclasses
-
+    {
+        $jscreatenamespaces
+        /* Register classes */
+        $jsregisterclasses
+    }
     /* Just return the topmost value on the stack, our module. */
     return 1;
-    
-    /* Initialize the base swig type object */
-    //_SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
-    //_SwigObject_objectDefinition.staticValues = _SwigObject_values;
-    //_SwigObject_classRef = JSClassCreate(&_SwigObject_objectDefinition);
 
-    /* Initialize the PackedData class */
-    //_SwigPackedData_objectDefinition.staticFunctions = _SwigPackedData_functions;
-    //_SwigPackedData_objectDefinition.staticValues = _SwigPackedData_values;
-    //_SwigPackedData_objectDefinition.finalize = _wrap_SwigPackedData_delete;
-    //_SwigPackedData_classRef = JSClassCreate(&_SwigPackedData_objectDefinition);
+    fail:
+    duk_throw(ctx);
+    return 0;
+
 }
 #ifdef __cplusplus
 }
