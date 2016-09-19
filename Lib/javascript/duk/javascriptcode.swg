@@ -14,19 +14,24 @@ static duk_idx_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper\n");
   #endif
+  int ret =  0;
   if (duk_get_top(ctx) != $jsargcount) {
     #ifdef SWIGRUNTIME_DEBUG
     printf("Illegal number of arguments for $jswrapper\n");
     #endif
     duk_push_string(ctx, "Illegal number of arguments for $jswrapper.");
-    duk_throw(ctx);
+    goto fail;
   }
-  $jslocals
-  $jscode
+  {
+    $jslocals
+    $jscode
 
-  duk_idx_t obj_idx = SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
-
+    SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  }
   return 1;
+  fail:
+  duk_throw(ctx);
+  return 0;
 }
 %}
 
@@ -62,6 +67,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_ctor_dispatcher */
 
+  int argc = duk_get_top(ctx);
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
 
@@ -84,12 +90,21 @@ static duk_idx_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_overloaded_ctor */
+  int ret = 0;
   $jslocals
-  $jscode
+
+  {
+      $jscode
+  }
 
   SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
 
-  return 1;  
+  return 1;
+  fail:
+  if (ret == 1) {
+    duk_throw(ctx);
+  }
+  return -1;
 }
 %}
 
@@ -103,9 +118,12 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   /* FRAGMENT: js_ctor_dispatch_case */
-  if(duk_get_top(ctx) == $jsargcount) {
-    $jswrapper(ctx);
-    return 1;
+  if(argc == $jsargcount) {
+    if (duk_get_top(ctx) > argc) {
+        duk_pop_n(ctx, duk_get_top(ctx) - argc); /* we remove the "top" elements which shouldn't be there */
+    }
+    duk_ret_t v = $jswrapper(ctx);
+    if (v >= 0) return v;
   }
 %}
 
@@ -123,17 +141,19 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper...\n");
   #endif
-  printf("STACK TOP: %i\n", duk_get_top(ctx));
   duk_size_t sz;
-  duk_get_prop_string(ctx, -2, "\xFFprivate");
+  if (!duk_is_object(ctx, -1)) return 0;
+  duk_get_prop_string(ctx, -1, "\xFFprivate");
+  if (!duk_is_fixed_buffer(ctx, -1)) return 0;
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->ptr) {
-      duk_free(($jstype)t->ptr);
+        delete ($jstype)t->ptr;
+        t->ptr = NULL;
     }
     duk_push_pointer(ctx, NULL);
     duk_put_prop_string(ctx, -2, "\xFFprivate");
-    duk_free(t);
+    duk_free(ctx,t);
   }
   
   return 0; /* Is this sane? */
@@ -155,20 +175,21 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   printf("Called $jswrapper...\n");
   #endif
   duk_size_t sz;
-  duk_get_prop_string(ctx, -2, "\xFFprivate");
+  if (!duk_is_object(ctx, -1)) return 0;
+  duk_get_prop_string(ctx, -1, "\xFFprivate");
+  if (!duk_is_fixed_buffer(ctx, -1)) return 0;
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->own) {
-      $jstype arg1 = ($jstype)t->ptr;
-      ${destructor_action}
+        delete ($jstype)t->ptr;
+        t->own = false;
     }
-    // remove the private data to make sure that it isn't accessed elsewhere
     duk_push_pointer(ctx, NULL);
-    duk_put_prop(ctx, -2);
-    duk_free(ctx, t);
-    return 0;
+    duk_put_prop_string(ctx, -2, "\xFFprivate");
+    duk_free(ctx,t);
   }
-  return 0;
+  
+  return 0; /* Is this sane? */
 }
 %}
 
@@ -186,16 +207,19 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called js_getter $jswrapper...\n");
   #endif
+  int ret = 0;
   /* The object must be on the top of the value stack on entry. */
-  
-  $jslocals
-  
-  duk_push_this(ctx);
-  void *thisObject = duk_get_heapptr(ctx, -1);
-  
-  $jscode
+  {
+    $jslocals
 
+    duk_push_this(ctx);
+
+    $jscode
+  }
   return 1;
+  fail:
+  duk_throw(ctx);
+  return 0;
 }
 %}
 
@@ -210,14 +234,20 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_setter */
+  int ret = 0;
+  {
   /* The value must be on the stack top at entry. */
-  duk_push_this(ctx);
-  void *thisObject = duk_get_heapptr(ctx, -1);
+    duk_push_this(ctx);
 
-  $jslocals
-  $jscode
+    $jslocals
+    $jscode
 
+  }
   return 1;
+
+  fail:
+  duk_throw(ctx);
+  return 0;
 }
 %}
 
@@ -235,16 +265,22 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper\n");
   #endif
+  int ret = 0;
   if (duk_get_top(ctx) != $jsargcount) {
     duk_push_string(ctx, "Illegal numargs for $jswrapper. Expected $jsargcount");
-    duk_throw(ctx);
+    goto fail;
   }
-  duk_push_this(ctx);
-
-  $jslocals
-  $jscode
-
+  {
+    duk_push_this(ctx);
+    $jslocals
+    $jscode
+  }
   return 1;
+  fail:
+  
+  duk_throw(ctx);
+  return 0;
+  
 }
 %}
 
@@ -259,11 +295,18 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %{
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
+  int ret = 0;
+  int argc = duk_get_top(ctx);
   /* FRAGMENT: js_function_dispatcher */
-  $jslocals
-  $jscode
-
-  return 1;
+  {
+    $jslocals
+    $jscode
+  }
+  fail:
+  /* if we got there, we didn't find a matching function */
+  duk_push_string(ctx, "No matching function found for $jswrapper");
+  duk_throw(ctx);
+  return 0;
 }
 %}
 
@@ -278,19 +321,22 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_overloaded_function */
-  
-  if(duk_get_top(ctx) != $jsargcount) {
+  /*if(duk_get_top(ctx) != $jsargcount) {
+    printf("duk_get_top(ctx) = %d, jsargcount = $jsargcount\n", duk_get_top(ctx));
     duk_push_string(ctx, "Illegal number of arguments for $jswrapper.");
+    goto fail;
+  }*/
+  int ret = 0; // 0 means "pass-thru" exception, 1 means "important exception"
+  {
+    $jslocals
+    $jscode
   }
-
-  $jslocals
-  $jscode
-
-  if ($jsargcount == 0 ) {
-    return 0;
-  } else {
-    return 1;  
+  return 0;
+  fail:
+  if (ret == 1) {
+      duk_throw(ctx);
   }
+  return -1;
 }
 %}
 
@@ -303,9 +349,12 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("js_function_dispatch_case", "templates")
 %{
   /* FRAGMENT: js_function_dispatch_case */
-  if(duk_get_top(ctx) == $jsargcount) {
-    $jswrapper(ctx);
-    return 1;
+  if(argc == $jsargcount) {
+    if (duk_get_top(ctx) > argc) {
+        duk_pop_n(ctx, duk_get_top(ctx) - argc); /* we remove the "top" elements which shouldn't be there */
+    }
+    duk_ret_t v = $jswrapper(ctx);
+    if (v >= 0) return v;
   }
 %}
 
@@ -415,7 +464,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     duk_push_heapptr(ctx, SWIGTYPE_p$jsbaseclassmangled->clientdata);
   } else {
     duk_push_string(ctx, "Invalid class! $jsbaseclassmangled");
-    duk_throw(ctx);
+    goto fail;
   }
 %}
 

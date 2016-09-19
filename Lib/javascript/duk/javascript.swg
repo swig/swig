@@ -78,29 +78,54 @@ use %include <std_except.i> instead
 				unsigned char&, signed char&
 %{
   duk_push_number(ctx,$1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 %typemap(throws) bool,bool& 
 %{
   duk_push_boolean(ctx,(int)($1==true));
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // enum as number+error
 %typemap(throws) enum SWIGTYPE
 %{
   duk_push_number(ctx,$1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // strings are just sent as errors
 %typemap(throws) char *, const char *
 %{
   duk_push_string(ctx,$1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // char is changed to a string
 %typemap(throws) char
 %{
   duk_push_lstring(ctx,&$1,1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 /*
@@ -122,6 +147,11 @@ For a more useful solution: see std_except for more details
 %{
   (void)$1; /* ignore it */
   duk_push_sprintf(ctx,"object exception:%s",SWIG_TypePrettyName($1_descriptor));
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // code to make a copy of the object and return this
@@ -132,6 +162,11 @@ For a more useful solution: see std_except for more details
 %typemap(throws) SWIGTYPE EXCEPTION_BY_VAL
 %{
   SWIG_NewPointerObj(ctx,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // similar for object reference
@@ -139,6 +174,11 @@ For a more useful solution: see std_except for more details
 %typemap(throws) SWIGTYPE& EXCEPTION_BY_VAL
 %{
   SWIG_NewPointerObj(ctx,(void *)new $basetype($1),$1_descriptor,1);
+<<<<<<< HEAD
+=======
+  ret = 1;
+  goto fail;
+>>>>>>> exio/dukswig
 %}
 
 // note: no support for object pointers

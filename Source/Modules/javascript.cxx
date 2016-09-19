@@ -1879,6 +1879,7 @@ DuktapeEmitter::~DuktapeEmitter() {
 }
 
 
+
 /* ---------------------------------------------------------------------
  * marshalInputArgs()
  *
@@ -2045,7 +2046,7 @@ int DuktapeEmitter::exitFunction(Node *n) {
 
   t_function.replace("$jsname", state.function(NAME))
       .replace("$jswrapper", state.function(WRAPPER_NAME))
-      .replace("$jsargcount", Getattr(n, ARGCOUNT));
+      .replace("$jsargcount", is_overloaded ? "((duk_int_t) (-1))" : Getattr(n, ARGCOUNT));
 
   if (is_member) {
     if (GetFlag(state.function(), IS_STATIC)) {

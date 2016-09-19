@@ -61,41 +61,44 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
  * ----------------------------------------------------------------------------- */
 %fragment ("js_initializer", "templates") %{
     // FIXME: Fix by convention in module loader by pushing parent object
-    duk_push_global_object(ctx);
-    /* Initialize the base swig type object FIXME */
-    duk_push_object(ctx);
-    duk_put_function_list(ctx, -1, _SwigObject_functions);
-    duk_put_prop_string(ctx, -2, "SWIG");
-    void *swig_obj_ptr = duk_get_heapptr(ctx, -1);
+    //duk_push_global_object(ctx);
+    duk_idx_t module_idx = duk_push_object(ctx);
+
+    void *swig_obj_ptr = NULL;
+    {
+        duk_idx_t swig_obj_idx = duk_push_object(ctx);
+        swig_obj_ptr = duk_get_heapptr(ctx, swig_obj_idx);
+        duk_put_function_list(ctx, -1, _SwigObject_functions);
+        duk_put_prop_string(ctx, module_idx, "SWIG");
+    }
     /* Now the global object is at the stack top.*/
-    duk_idx_t exports_idx = duk_push_object(ctx);
-    void *exports_ptr = duk_get_heapptr(ctx, -1);
-    swig_duk_install_properties(ctx, exports_idx, exports_properties);
-    duk_put_function_list(ctx, exports_idx, exports_functions);
+    void *exports_ptr = NULL;
+    {
+        duk_idx_t exports_idx = duk_push_object(ctx);
+        exports_ptr = duk_get_heapptr(ctx, exports_idx);
+        swig_duk_install_properties(ctx, exports_idx, exports_properties);
+        duk_put_function_list(ctx, exports_idx, exports_functions);
+        duk_put_prop_string(ctx, module_idx, "exports");
+    }
    /*
     * By the time we put the property string here, the stack will be...
     * [parent_obj, namespace_obj] 
     * We want to set the property key $jsname in the parent object.
     */
-    duk_put_prop_string(ctx, -2, "$jsname");
     /* Create objects for namespaces */
-    $jscreatenamespaces
-    /* Register classes */
-    $jsregisterclasses
-
+    {
+        $jscreatenamespaces
+        /* Register classes */
+        $jsregisterclasses
+    }
+    duk_dup(ctx, module_idx); // make sure the module is at the top
     /* Just return the topmost value on the stack, our module. */
     return 1;
-    
-    /* Initialize the base swig type object */
-    //_SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
-    //_SwigObject_objectDefinition.staticValues = _SwigObject_values;
-    //_SwigObject_classRef = JSClassCreate(&_SwigObject_objectDefinition);
 
-    /* Initialize the PackedData class */
-    //_SwigPackedData_objectDefinition.staticFunctions = _SwigPackedData_functions;
-    //_SwigPackedData_objectDefinition.staticValues = _SwigPackedData_values;
-    //_SwigPackedData_objectDefinition.finalize = _wrap_SwigPackedData_delete;
-    //_SwigPackedData_classRef = JSClassCreate(&_SwigPackedData_objectDefinition);
+    fail:
+    duk_throw(ctx);
+    return 0;
+
 }
 #ifdef __cplusplus
 }

@@ -5,6 +5,12 @@
 #include <iostream>
 #include <stdio.h>
 
+#ifdef __APPLE__
+  #define LIBRARY_EXT ".bundle"
+#else
+  #define LIBRARY_EXT ".so"
+#endif
+
 #ifdef __GNUC__
 #include <dlfcn.h>
 #define LOAD_SYMBOL(handle, name) dlsym(handle, name)
@@ -51,11 +57,27 @@ duk_ret_t console_log_impl(duk_context *ctx) {
 
 duk_ret_t load_module(duk_context *ctx) {
   std::string id = duk_get_string(ctx, 0);
-  std::string lib = "lib" + id + ".so";
-  std::string init_fn = "dukopen_" + id;
-  void *handle = dlopen(lib.c_str(), RTLD_NOW);
+  std::vector<std::string> sugs;
+  {
+      sugs.push_back("lib" + id + LIBRARY_EXT);
+      sugs.push_back(        id + LIBRARY_EXT);
+      sugs.push_back("./lib" + id + LIBRARY_EXT);
+      sugs.push_back("./"    + id + LIBRARY_EXT);
+  }
+  std::string lib = id + " [not found]";
+  std::string init_fn = "swig_duk_init"; //"dukopen_" + id;
+  void *handle = NULL;
+  for (std::vector<std::string>::iterator s=sugs.begin() ; s < sugs.end(); s++) {
+      handle = dlopen(s->c_str(), RTLD_NOW);
+      if (handle != NULL) {
+          lib = *s;
+          break;
+      }
+  }
   if (handle == NULL) {
       std::cout << "Error loading " << lib << std::endl;
+      duk_push_string(ctx, "Error loading module");
+      duk_throw(ctx);
       return 0;
   }
   /* duk_ret_t swig_duk_init(duk_context *ctx) { */
@@ -64,11 +86,17 @@ duk_ret_t load_module(duk_context *ctx) {
   if (swig_duk_init == NULL) {
       std::cout << "Error running initializer of " << lib << std::endl;
       dlclose(handle);
+      duk_push_string(ctx, "Error loading module");
+      duk_throw(ctx);
       return 0;
   }
-  duk_ret_t t = swig_duk_init(ctx);
-  dlclose(handle);
-  return t;
+  //duk_set_top(ctx, 0);
+  swig_duk_init(ctx);
+  duk_get_prop_string(ctx, -1, "exports");
+  duk_put_prop_string(ctx, 3 , "exports");
+
+  duk_push_undefined(ctx);
+  return 1;
 }
 
 bool DUKShell::InitializeEngine() {
@@ -77,12 +105,6 @@ bool DUKShell::InitializeEngine() {
 
   ctx = duk_create_heap_default();
   if(ctx==NULL) return false;
-
-  /* hardcoded console module */
-  duk_idx_t console_idx = duk_push_object(ctx);
-  duk_push_c_function(ctx, console_log_impl, DUK_VARARGS);
-  duk_put_prop_string(ctx, console_idx, "log");
-  duk_put_global_string(ctx, "console");
 
   /* set up "generic" module handler */
   duk_push_global_object(ctx);
@@ -104,7 +126,7 @@ bool DUKShell::ExecuteScript(const std::string& source, const std::string& scrip
       std::cout << "" << scriptPath << ":" << duk_safe_to_string(ctx, -1) << std::endl;
       return false;
   } else {
-      std::cout << duk_safe_to_string(ctx, -1) << std::endl;
+      //std::cout << duk_safe_to_string(ctx, -1) << std::endl;
       return true;
   };
 }

@@ -28,33 +28,31 @@ s2=test_value(s)
 assert(s==s2)
 */
 
+
 namespace std {
 
-%naturalvar string;
-
-%typemap(in,checkfn="duk_is_string") string
-%{$1.assign(duk_to_string(ctx,$input),duk_get_length(ctx,$input));%}
+%typemap(in) string
+%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
+   $1.assign(duk_to_string(ctx,$input),duk_get_length(ctx,$input)); %}
 
 %typemap(out) string
-%{ duk_push_lstring(ctx,$1.data(),$1.size()); SWIG_arg++;%}
+%{ duk_push_lstring(ctx,$1.data(),$1.size());%}
 
-%typemap(in,checkfn="duk_is_string") const string& ($*1_ltype temp)
-%{temp.assign(duk_to_string(ctx,$input),duk_get_length(ctx,$input)); $1=&temp;%}
+%typemap(in) const string& ($*1_ltype temp)
+%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
+   temp.assign(duk_to_string(ctx,$input),duk_get_length(ctx,$input)); $1=&temp;%}
 
 %typemap(out) const string&
-%{ duk_push_lstring(ctx,$1->data(),$1->size()); SWIG_arg++;%}
+%{ duk_push_lstring(ctx,$1->data(),$1->size()); 
+%}
 
 // for throwing of any kind of string, string ref's and string pointers
 // we convert all to Duktape strings
 %typemap(throws) string, string&, const string&
-%{ duk_push_lstring(ctx,$1.data(),$1.size()); SWIG_fail;%}
+%{ duk_push_lstring(ctx,$1.data(),$1.size()); %}
 
 %typemap(throws) string*, const string*
-%{ duk_push_lstring(ctx,$1->data(),$1->size()); SWIG_fail;%}
-
-%typecheck(SWIG_TYPECHECK_STRING) string, const string& {
-  $1 = duk_is_string(ctx,$input);
-}
+%{ duk_push_lstring(ctx,$1->data(),$1->size()); %}
 
 /*
 std::string& can be wrapped, but you must inform SWIG if it is in or out
@@ -74,7 +72,7 @@ typemaps to tell SWIG what to do.
 %typemap(in, numinputs=0) string &OUTPUT ($*1_ltype temp)
 %{ $1 = &temp; %}
 %typemap(argout) string &OUTPUT
-%{ duk_push_lstring(ctx,$1->data(),$1->size()); SWIG_arg++;%}
+%{ duk_push_lstring(ctx,$1->data(),$1->size()); %}
 %typemap(in) string &INOUT =const string &;
 %typemap(argout) string &INOUT = string &OUTPUT;
 
@@ -95,7 +93,6 @@ as this is overloaded by the const char* version
       string(const char*);
       //string(const string&);
       unsigned int size() const;
-      unsigned int length() const;
       bool empty() const;
       // no support for operator[]
       const char* c_str()const;
