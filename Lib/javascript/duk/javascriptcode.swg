@@ -14,6 +14,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper\n");
   #endif
+  int ret =  0;
   if (duk_get_top(ctx) != $jsargcount) {
     #ifdef SWIGRUNTIME_DEBUG
     printf("Illegal number of arguments for $jswrapper\n");
@@ -66,6 +67,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_ctor_dispatcher */
 
+  int argc = duk_get_top(ctx);
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
 
@@ -88,15 +90,21 @@ static duk_idx_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_overloaded_ctor */
+  int ret = 0;
   $jslocals
-  $jscode
+
+  {
+      $jscode
+  }
 
   SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
 
   return 1;
   fail:
-  duk_throw(ctx);
-  return 0;
+  if (ret == 1) {
+    duk_throw(ctx);
+  }
+  return -1;
 }
 %}
 
@@ -110,9 +118,12 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   /* FRAGMENT: js_ctor_dispatch_case */
-  if(duk_get_top(ctx) == $jsargcount) {
-    $jswrapper(ctx);
-    return 1;
+  if(argc == $jsargcount) {
+    if (duk_get_top(ctx) > argc) {
+        duk_pop_n(ctx, duk_get_top(ctx) - argc); /* we remove the "top" elements which shouldn't be there */
+    }
+    duk_ret_t v = $jswrapper(ctx);
+    if (v >= 0) return v;
   }
 %}
 
@@ -196,6 +207,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called js_getter $jswrapper...\n");
   #endif
+  int ret = 0;
   /* The object must be on the top of the value stack on entry. */
   {
     $jslocals
@@ -222,6 +234,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_setter */
+  int ret = 0;
   {
   /* The value must be on the stack top at entry. */
     duk_push_this(ctx);
@@ -252,6 +265,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   #ifdef SWIGRUNTIME_DEBUG
   printf("Called $jswrapper\n");
   #endif
+  int ret = 0;
   if (duk_get_top(ctx) != $jsargcount) {
     duk_push_string(ctx, "Illegal numargs for $jswrapper. Expected $jsargcount");
     goto fail;
@@ -281,6 +295,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 %{
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
+  int ret = 0;
   int argc = duk_get_top(ctx);
   /* FRAGMENT: js_function_dispatcher */
   {
@@ -311,13 +326,16 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     duk_push_string(ctx, "Illegal number of arguments for $jswrapper.");
     goto fail;
   }*/
-
+  int ret = 0; // 0 means "pass-thru" exception, 1 means "important exception"
   {
     $jslocals
     $jscode
   }
   return 0;
   fail:
+  if (ret == 1) {
+      duk_throw(ctx);
+  }
   return -1;
 }
 %}
