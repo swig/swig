@@ -1436,62 +1436,6 @@ else
   fi
 
   #----------------------------------------------------------------
-  # Look for Duktape settings (DUKTAPEINCDIR, DUKTAPEDYNAMICLINKING)
-  #----------------------------------------------------------------
-  # check for include files
-  AC_MSG_CHECKING(for duktape.h)
-  AC_ARG_WITH(duktapeinc, [  --with-duktape=path     Set location of Duktape Javascript include directory], [DUKTAPEINCDIR="$withval"], [DUKTAPEINCDIR=])
-
-  DUKTAPEVERSION=
-
-  # Path lookup logic is kept very simple.
-  if test -z "$DUKTAPEINCDIR"; then
-    DUKTAPEINCDIR="/usr/include /usr/local/include"
-  fi
-
-  for d in $DUKTAPEINCDIR ; do
-    if test -r "$d/duktape.h"; then
-      AC_MSG_RESULT($d)
-      DUKTAPEINCDIR=$d
-      DUKTAPEINC=-I\"$d\"
-      break
-    fi
-  done
-
-  if test "$DUKTAPEINC" = "" ; then
-    AC_MSG_RESULT(not found)
-  fi
-
-  # check for Duktape library
-  AC_MSG_CHECKING(for Duktape Javascript library)
-  AC_ARG_WITH(duktapelib,[  --with-duktapelib=path     Set location of Duktape library directory],[DUKTAPELIBDIR="$withval"], [DUKTAPELIBDIR=])
-
-  duktapelibdirs="$DUKTAPELIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-  for d in $duktapelibdirs ; do
-    if test -r $d/libduktape$JSSO; then
-      DUKTAPELIBDIR=$d
-      DUKTAPELIB="-L$d -lduktape"
-      break
-    fi
-  done
-
-  if test "$DUKTAPELIB" = "" ; then
-    AC_MSG_RESULT(not found)
-    DUKTAPEDYNAMICLINKING=""
-    if test "$DUKTAPEINC" != ""; then
-      # Assume static linking if there is an include
-      # but no shared library is found.
-      DUKTAPEENABLED=1
-    else
-      DUKTAPEENABLED=
-    fi
-  else
-    AC_MSG_RESULT($DUKTAPELIBDIR)
-    DUKTAPEDYNAMICLINKING="$DUKTAPELIB"
-    DUKTAPEENABLED=1
-  fi
-
-  #----------------------------------------------------------------
   # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
   #----------------------------------------------------------------
 
@@ -1623,6 +1567,62 @@ else
 
 fi
 
+  #----------------------------------------------------------------
+  # Look for Duktape settings (DUKTAPEINCDIR, DUKTAPEDYNAMICLINKING)
+  #----------------------------------------------------------------
+  # check for include files
+  AC_MSG_CHECKING(for duktape.h)
+  AC_ARG_WITH(duktapeinc, [  --with-duktape=path     Set location of Duktape Javascript include directory], [DUKTAPEINCDIR="$withval"], [DUKTAPEINCDIR=])
+
+  DUKTAPEVERSION=
+
+  # Path lookup logic is kept very simple.
+  if test -z "$DUKTAPEINCDIR"; then
+    DUKTAPEINCDIR="/usr/include /usr/local/include"
+  fi
+
+  for d in $DUKTAPEINCDIR ; do
+    if test -r "$d/duktape.h"; then
+      AC_MSG_RESULT($d)
+      DUKTAPEINCDIR=$d
+      DUKTAPEINC=-I\"$d\"
+      break
+    fi
+  done
+
+  if test "$DUKTAPEINC" = "" ; then
+    AC_MSG_RESULT(not found)
+  fi
+
+  # check for Duktape library
+  AC_MSG_CHECKING(for Duktape Javascript library)
+  AC_ARG_WITH(duktapelib,[  --with-duktapelib=path     Set location of Duktape library directory],[DUKTAPELIBDIR="$withval"], [DUKTAPELIBDIR=])
+
+  duktapelibdirs="$DUKTAPELIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
+  for d in $duktapelibdirs ; do
+    if test -r $d/libduktape$JSSO; then
+      DUKTAPELIBDIR=$d
+      DUKTAPELIB="-L$d -lduktape"
+      break
+    fi
+  done
+
+  if test "$DUKTAPELIB" = "" ; then
+    AC_MSG_RESULT(not found)
+    DUKTAPEDYNAMICLINKING=""
+    if test "$DUKTAPEINC" != ""; then
+      # Assume static linking if there is an include
+      # but no shared library is found.
+      DUKTAPEENABLED=1
+    else
+      DUKTAPEENABLED=
+    fi
+  else
+    AC_MSG_RESULT($DUKTAPELIBDIR)
+    DUKTAPEDYNAMICLINKING="$DUKTAPELIB"
+    DUKTAPEENABLED=1
+  fi
+
 AC_SUBST(JSINTERPRETERCXX)
 AC_SUBST(JSINTERPRETERLINKFLAGS)
 
@@ -1640,6 +1640,7 @@ AC_SUBST(DUKTAPEENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
+
 
 #----------------------------------------------------------------
 # Look for gcj
