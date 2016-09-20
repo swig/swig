@@ -10,6 +10,10 @@
 extern "C" {
 #endif
 
+/* FIXME: code is ignored */
+#define SWIG_exception(code, msg) do { duk_push_error_object(ctx, code, msg); duk_throw(ctx); } while (0)
+#define SWIG_Error(code, msg) SWIG_exception(code, msg)
+
 /* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
@@ -207,7 +211,6 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 #define SWIG_isptrtype(ctx,I) SWIG_duk_isptrtype(ctx, I)
 
 #define SWIG_exception_fail
-
 
 bool SWIG_duk_isptrtype(duk_context *ctx, duk_idx_t idx) {
     if (duk_is_undefined(ctx, idx)) return true; // NULL pointer
@@ -435,6 +438,46 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
   }
   sadplace:
     return SWIG_ERROR;  /* error */
+}
+
+SWIGRUNTIME void* SWIG_duk_MustGetPtr(duk_context *ctx,int idx,swig_type_info *type,int flags,
+       int argnum,const char *func_name){
+  void *result;
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,idx,&result,type,flags))){
+    duk_push_sprintf(ctx,"Error in %s, expected a %s at argument number %d\n",
+		func_name,(type && type->str)?type->str:"void*",argnum);
+    duk_throw(ctx);
+  }
+  return result;
+}
+
+/* pushes a packed userdata. user for member fn pointers only */
+SWIGRUNTIME void SWIG_duk_NewPackedObj(duk_context *ctx,void *ptr,size_t size,swig_type_info *type)
+{
+  duk_size_t sz;
+  swig_duk_rawdata *raw;
+  assert(ptr); /* not acceptable to pass in a NULL value */
+  raw=(swig_duk_rawdata*)duk_push_fixed_buffer(ctx,sizeof(swig_duk_rawdata));  /* get data */
+  raw->type=type;
+  raw->own=0;
+  memcpy(raw->data,ptr,size); /* copy the data */
+  /* FIXME */
+  //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
+}
+    
+/* converts a packed userdata. user for member fn pointers only */
+SWIGRUNTIME int SWIG_duk_ConvertPacked(duk_context *ctx,duk_idx_t idx,void *ptr,size_t size,swig_type_info *type)
+{
+  duk_size_t sz;
+  swig_duk_rawdata *raw;
+  raw=(swig_duk_rawdata*)duk_get_buffer(ctx,idx,&sz);  /* get data */
+  if (!raw) return SWIG_ERROR;  /* error */
+  if (type==0 || type==raw->type) /* void* or identical type */
+  {
+    memcpy(ptr,raw->data,size); /* copy it */
+    return SWIG_OK; /* ok */
+  }
+  return SWIG_ERROR;  /* error */
 }
 
 /* -----------------------------------------------------------------------------

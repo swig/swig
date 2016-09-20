@@ -138,7 +138,6 @@
 
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
-// found in mixed_types.i
 %typemap(in) SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(ctx,$input,$*descriptor,0,$argnum,"$symname");
 $1=($1_ltype)&temp;%}
