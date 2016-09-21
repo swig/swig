@@ -321,11 +321,6 @@ static duk_ret_t $jswrapper(duk_context *ctx)
 static duk_ret_t $jswrapper(duk_context *ctx)
 {
   /* FRAGMENT: js_overloaded_function */
-  /*if(duk_get_top(ctx) != $jsargcount) {
-    printf("duk_get_top(ctx) = %d, jsargcount = $jsargcount\n", duk_get_top(ctx));
-    duk_push_string(ctx, "Illegal number of arguments for $jswrapper.");
-    goto fail;
-  }*/
   int ret = 0; // 0 means "pass-thru" exception, 1 means "important exception"
   {
     $jslocals
@@ -521,17 +516,15 @@ static duk_ret_t $jswrapper(duk_context *ctx)
  * ----------------------------------------------------------------------------- */
 %fragment ("duk_nspace_definition", "templates")
 %{
-
-    duk_idx_t $jsmangledname_idx;
-    void *$jsmangledname_ptr;
-    {
-        duk_idx_t parent_idx = duk_push_heapptr(ctx, $jsparent_ptr);
-        duk_push_string(ctx, "$jsname");
-        $jsmangledname_idx = duk_push_object(ctx);
-        swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
-        duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
-        $jsmangledname_ptr = duk_get_heapptr(ctx, $jsmangledname_idx);
-        duk_put_prop(ctx, parent_idx);
-    }
+  duk_idx_t $jsmangledname_idx;
+  void *$jsmangledname_ptr;
+  {
+    duk_idx_t parent_idx = duk_push_heapptr(ctx, $jsparent_ptr);
+    duk_push_string(ctx, "$jsname");
+    $jsmangledname_idx = duk_push_object(ctx);
+    swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
+    duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
+    $jsmangledname_ptr = duk_get_heapptr(ctx, $jsmangledname_idx);
+    duk_put_prop(ctx, parent_idx);
+  }
 %}
-

@@ -1,79 +1,150 @@
-/* -----------------------------------------------------------------------------
- * javascripttypemaps.swg
- *
- * basic typemaps for Duktape.
- * ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ *  Typemap specializations for Javascript
+ * ------------------------------------------------------------ */
 
-/* -----------------------------------------------------------------------------
- *                          standard typemaps
- * ----------------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ *  Fragment section
+ * ------------------------------------------------------------ */
 
-/* Include fundamental fragment definitions */
+/* 
+ * These macros are necessary to provide an extra parameter
+ * to SWIG_AsVal_dec functions (duk_context *ctx).
+ * They must be defined before including `typemaps/fragments.swg`
+ */
+#define SWIG_FROM_DECL_ARGS SWIG_duk_FROM_DECL_ARGS
+#define SWIG_FROM_CALL_ARGS SWIG_duk_FROM_CALL_ARGS
+#define SWIG_AS_DECL_ARGS SWIG_duk_AS_DECL_ARGS
+#define SWIG_AS_CALL_ARGS SWIG_duk_AS_CALL_ARGS
+
+/* Include fundamental fragemt definitions */
 %include <typemaps/fragments.swg>
-
+/* Javascript fragments for char* strings (hypothetically) */
+%include <javascriptstrings.swg>
 /* Look for user fragments file. */
 %include <javascriptfragments.swg>
 
-// numbers
+/* ------------------------------------------------------------
+ *  Unified typemap section
+ * ------------------------------------------------------------ */
+
+/* numbers */
 %typemap(in) int
-%{ if (!duk_is_number(ctx, $input)) { duk_push_string(ctx,"Expected number in $input argument"); goto fail; };
-   $1 = ($type)duk_to_number(ctx, $input); 
+%{ 
+  if (!duk_is_number(ctx, $input)) {
+    duk_push_string(ctx,"Expected number in $input argument");
+    goto fail;
+  };
+  $1 = ($type)duk_to_number(ctx, $input); 
 %}
 
 %typemap(out) int
-%{duk_push_number(ctx, (duk_double_t)$1);%}
+%{
+  duk_push_int(ctx, $1);
+%}
 
-%apply int { short, long, signed char, float, double, unsigned int,
-             unsigned short, unsigned long, unsigned char, enum SWIGTYPE }
+%apply int {
+  short, long, signed char, unsigned int, unsigned short,
+  unsigned long, unsigned char, enum SWIGTYPE
+}
 
-// we must also provide typemaps for primitives by const reference:
-// given a function:
-//	int intbyref(const int& i);
-// SWIG assumes that this code will need a pointer to int to be passed in
-// (this might be ok for objects by const ref, but not for numeric primitives)
-// therefore we add a set of typemaps to fix this (for both in & out)
+%typemap(in) double
+%{
+  if (!duk_is_number(ctx, $input)) {
+    duk_push_string(ctx,"Expected number in $input argument");
+    goto fail;
+  };
+  $1 = ($type)duk_to_number(ctx, $input); 
+%}
+
+%typemap(out) double
+%{
+  duk_push_number(ctx, $1);
+%}
+
+%apply double { float }
+
+/* 
+ * We must also provide typemaps for primitives by const reference:
+ * Given a function:
+ *     int intbyref(const int& i);
+ * SWIG assumes that this code will need a pointer to int to be passed in
+ * (this might be ok for objects by const ref, but not for numeric primitives)
+ * therefore we add a set of typemaps to fix this (for both in & out)
+ */
 %typemap(in) const int&($basetype temp)
-%{ if (!duk_is_number(ctx, $input)) { duk_push_string(ctx,"Expected number in $input argument"); goto fail; };
-   temp=($basetype)duk_to_number(ctx, $input); $1=&temp;%}
+%{
+  if (!duk_is_number(ctx, $input)) {
+    duk_push_string(ctx,"Expected number in $input argument");
+    goto fail;
+  };
+  temp=($basetype)duk_to_number(ctx, $input); $1=&temp;
+%}
 
 %typemap(out) const int&
-%{duk_push_number(ctx, (duk_double_t) *$1); %}
+%{duk_push_int(ctx, *$1); %}
 
-// for the other numbers we can just use an apply statement to cover them
-%apply const int & {const short&,const long&,const signed char&,
-             const float&,const double&,
-             const unsigned short&,const unsigned long&,
-             const unsigned char&,
-             enum SIGTYPE &, enum SIGTYPE&&,
-             const enum SIGTYPE&, const enum SIGTYPE&&};
+/* for the other numbers we can just use an apply statement to cover them */
+%apply const int & {
+  const short&,
+  const long&,
+  const signed char&,
+  const float&,
+  const double&,
+  const unsigned short&,
+  const unsigned long&,
+  const unsigned char&,
+  enum SIGTYPE &,
+  enum SIGTYPE&&,
+  const enum SIGTYPE&,
+  const enum SIGTYPE&&
+};
 
 // boolean
 %typemap(in) bool
-%{ if (!duk_is_boolean(ctx, $input)) { duk_push_string(ctx,"Expected boolean in $input argument"); goto fail; };
-   $1 = (duk_to_boolean(ctx, $input)!=0); %}
+%{
+  if (!duk_is_boolean(ctx, $input)) {
+    duk_push_string(ctx,"Expected boolean in $input argument");
+    goto fail;
+  };
+   $1 = (duk_to_boolean(ctx, $input)!=0);
+%}
 
 %typemap(out) bool
-%{  duk_push_boolean(ctx,(int)($1!=0)); %}
+%{
+  duk_push_boolean(ctx,(int)($1!=0));
+%}
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
 %typemap(in) const bool& (bool temp)
-%{temp=(duk_to_boolean(ctx, $input)!=0);
-  $1=&temp;%}
+%{
+  temp=(duk_to_boolean(ctx, $input)!=0);
+  $1=&temp;
+%}
 
 %typemap(out) const bool&
-%{duk_push_boolean(ctx,(int)((*$1)!=0)); %}
+%{
+  duk_push_boolean(ctx,(int)((*$1)!=0));
+%}
 
 
 %typemap(in) const char *, char *,  const char[ANY], char[ANY]
-%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
-   $1 = ($ltype)duk_to_string(ctx, $input); %}
+%{
+  if (!duk_is_string(ctx, $input)) {
+    duk_push_string(ctx,"Expected string in $input argument");
+    goto fail;
+  }
+  $1 = ($ltype)duk_to_string(ctx, $input);
+%}
 
 %typemap(out) const char *, char *, const char[ANY], char[ANY]
-%{duk_push_string(ctx,(const char *)$1); %}
+%{
+  duk_push_string(ctx,(const char *)$1);
+%}
 
-// char's
-// currently treating chars as small strings, not as numbers
-// (however signed & unsigned char's are numbers...)
+/* char's
+ *    currently treating chars as small strings, not as numbers
+ *    (however signed & unsigned char's are numbers...)
+ */
 %typemap(in) char
 %{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected char/string in $input argument"); goto fail; }
    $1 = (duk_to_string(ctx, $input))[0];%}
@@ -95,18 +166,27 @@
 
 // by const ref
 %typemap(in) const char& (char temp)
-%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
-   temp = (duk_to_string(ctx, $input))[0]; $1=&temp;%}
+%{
+  if (!duk_is_string(ctx, $input)) {
+    duk_push_string(ctx,"Expected string in $input argument");
+    goto fail;
+  }
+  temp = (duk_to_string(ctx, $input))[0]; $1=&temp;
+%}
 
 %typemap(out) const char&
-%{duk_push_lstring(ctx, $1, 1); %}
+%{
+  duk_push_lstring(ctx, $1, 1);
+%}
 
-// pointers and references
-// under SWIG rules, it is ok, to have a pass in a JS Undefined.
-// it should be converted to a SWIG NULL.
-// This will only be allowed for pointers & arrays, not refs or by value
-// the checkfn duk_is_heapptr will only work for userdata
-// the checkfn SWIG_isptrtype will work for both userdata and undefined
+/*
+ * pointers and references
+ *    under SWIG rules, it is ok, to have a pass in a JS Undefined.
+ *    it should be converted to a SWIG NULL.
+ *    This will only be allowed for pointers & arrays, not refs or by value
+ *    the checkfn duk_is_heapptr will only work for userdata
+ *    the checkfn SWIG_isptrtype will work for both userdata and undefined
+ */
 %typemap(in) SWIGTYPE*,SWIGTYPE&, SWIGTYPE[]
 %{
   /* LINE 153 */
@@ -117,13 +197,31 @@
   }
 %}
 
-// out is simple
+/* out is simple */
 %typemap(out) SWIGTYPE*,SWIGTYPE&, SWIGTYPE&&
-%{SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);  %}
+%{
+  SWIG_NewPointerObj(ctx,$1,$descriptor,$owner);
+%}
 
-// passing objects by value
-// SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
-// then dereferences it to get the object
+/*
+ * dynamic casts
+ *    this uses the SWIG_TypeDynamicCast() which relies on RTTI 
+ *    to find out what the pointer really is, then we return it.
+ *
+ */
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC
+%{
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  SWIG_NewPointerObj(ctx,(void*)$1,ty,$owner); 
+%}
+
+
+/* 
+ * passing objects by value
+ *    SWIG_ConvertPtr wants an object pointer (the $&ltype argp)
+ *    then dereferences it to get the object
+ *
+ */
 %typemap(in) SWIGTYPE ($&ltype argp)
 %{
   /* LINE 170 */
@@ -136,15 +234,21 @@
   $1 = *argp;
 %}
 
-// Also needed for object ptrs by const ref
-// eg A* const& ref_pointer(A* const& a);
+/* Also needed for object ptrs by const ref
+ *    eg A* const& ref_pointer(A* const& a);
+ *    found in mixed_types.i
+ */
 %typemap(in) SWIGTYPE *const&($*ltype temp)
-%{temp=($*ltype)SWIG_MustGetPtr(ctx,$input,$*descriptor,0,$argnum,"$symname");
-$1=($1_ltype)&temp;%}
+%{
+  temp=($*ltype)SWIG_MustGetPtr(ctx,$input,$*descriptor,0,$argnum,"$symname");
+  if (temp == NULL) goto fail;
+  $1=($1_ltype)&temp;
+%}
 
 %typemap(out) SWIGTYPE *const&
-%{SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);  %}
-
+%{
+  SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);
+%}
 
 // DISOWN-ing typemaps
 // if you have an object pointer which must be disowned, use this typemap
@@ -214,7 +318,11 @@ A function void fn(void*) should take any kind of pointer as a parameter (just l
 but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
 %typemap(in) void*
-%{$1=($1_ltype)SWIG_MustGetPtr(ctx,$input,0,0,$argnum,"$symname");%}
+%{
+
+    if (!SWIG_IsOK(SWIG_ConvertMember(ctx,$input,(void*)(&$1),0,$descriptor)))
+      SWIG_fail_ptr("$symname",$argnum,$descriptor);
+%}
 
 /* long long is another special case:
 as Duktape only supports one numeric type (duk_double_t), we will just cast it
@@ -259,9 +367,8 @@ void fn(int a, float b, duk_context* s) is wrappable as
 
 //%inline %{
 %{
-namespace swig {
-typedef struct{} LANGUAGE_OBJ;
-}
+  namespace swig {
+    typedef struct{} LANGUAGE_OBJ;
+  }
 %}
-
-#endif // __cplusplus
+#endif

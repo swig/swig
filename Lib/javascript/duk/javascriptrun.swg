@@ -10,10 +10,6 @@
 extern "C" {
 #endif
 
-/* FIXME: code is ignored */
-#define SWIG_exception(code, msg) do { duk_push_error_object(ctx, code, msg); duk_throw(ctx); } while (0)
-#define SWIG_Error(code, msg) SWIG_exception(code, msg)
-
 /* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
@@ -176,10 +172,12 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 
 /* Contract support */
 #define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { duk_push_string(ctx, (char *) msg); duk_throw(ctx); } else
+  if (!(expr)) { duk_push_string(ctx, (char *) msg); goto fail; } else
 
 /* helper #defines */
-#define SWIG_fail {duk_throw(ctx);}
+#define SWIG_Error(code,msg) { duk_push_sprintf(ctx, "C[%d] %s", code, msg); }
+#define SWIG_exception SWIG_Error
+#define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(func_name,argnum,type) \
   {duk_push_sprintf(ctx,"Error in %s (arg %d), expected '%s' got '%s'",\
   func_name,argnum,type,SWIG_duk_typename(ctx, argnum));\
@@ -341,26 +339,10 @@ SWIGINTERN void SWIG_duk_get_class_prototype(duk_context *ctx,const char *cname)
  * Class/structure conversion fns
  * ----------------------------------------------------------------------------- */
 
-/* helper to add prototype to new duk object */
-SWIGINTERN void SWIG_duk_AddPrototype(duk_context *ctx,swig_type_info *type)
-{
-  #ifdef SWIGRUNTIME_DEBUG
-  printf("Adding prototype!\n");
-  #endif
-  if (type->clientdata)  /* there is clientdata: so add the prototype */
-  {
-    #ifdef SWIGRUNTIME_DEBUG
-    printf("Adding prototype %s\n", ((swig_duk_class*)type->clientdata)->fqname);
-    #endif
-    SWIG_duk_get_class_prototype(ctx,((swig_duk_class*)(type->clientdata))->fqname);
-    if (duk_is_object(ctx,-1)) {
-      // FIXME
-      duk_set_prototype(ctx,-2);
-    }
-    else
-    {
-      duk_pop_n(ctx,1);
-    }
+SWIGINTERN void SWIG_duk_add_prototype(duk_context* ctx, duk_idx_t obj_idx, swig_type_info *type) {
+  if (type && type->clientdata) {
+    duk_push_heapptr(ctx, type->clientdata);
+    duk_set_prototype(ctx, obj_idx);
   }
 }
 
@@ -386,7 +368,7 @@ SWIGRUNTIME duk_idx_t SWIG_duk_NewPointerObj(duk_context *ctx,void *ptr,swig_typ
     duk_push_heapptr(ctx, type->clientdata);
     duk_set_prototype(ctx, obj_idx);
   }
-  //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
+  SWIG_duk_add_prototype(ctx, obj_idx, type);
   return 1;
 }
 
@@ -461,8 +443,7 @@ SWIGRUNTIME void SWIG_duk_NewPackedObj(duk_context *ctx,void *ptr,size_t size,sw
   raw->type=type;
   raw->own=0;
   memcpy(raw->data,ptr,size); /* copy the data */
-  /* FIXME */
-  //SWIG_duk_AddPrototype(ctx,type); /* add prototype */
+  SWIG_duk_add_prototype(ctx, -1, type);
 }
     
 /* converts a packed userdata. user for member fn pointers only */
