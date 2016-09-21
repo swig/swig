@@ -380,8 +380,8 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
   duk_size_t sz;
   swig_duk_userdata *usr;
   swig_cast_info *cast;
-  /* special case: duk undefined => NULL pointer */
-  if (duk_is_undefined(ctx, obj_idx)){
+  /* special case: Javascript 'undefined' or 'null' => NULL pointer */
+  if (duk_is_undefined(ctx, obj_idx) || duk_is_null(ctx, obj_idx)){
     #ifdef SWIGRUNTIME_DEBUG
     printf("Converted a NULL pointer.\n");
     #endif
