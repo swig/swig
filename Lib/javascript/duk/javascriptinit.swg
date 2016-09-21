@@ -63,6 +63,7 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
     // FIXME: Fix by convention in module loader by pushing parent object
     //duk_push_global_object(ctx);
     duk_idx_t module_idx = duk_push_object(ctx);
+    void *module_ptr = duk_get_heapptr(ctx, module_idx);
 
     void *swig_obj_ptr = NULL;
     {
@@ -91,7 +92,7 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
         /* Register classes */
         $jsregisterclasses
     }
-    duk_dup(ctx, module_idx); // make sure the module is at the top
+    duk_push_heapptr(ctx, module_ptr); /* Make sure the module is at the top */
     /* Just return the topmost value on the stack, our module. */
     return 1;
 
