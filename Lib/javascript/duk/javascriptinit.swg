@@ -60,8 +60,6 @@ duk_ret_t swig_duk_init(duk_context *ctx) {
  *   - $jsregisternamespaces:     part with code for registration of namespaces
  * ----------------------------------------------------------------------------- */
 %fragment ("js_initializer", "templates") %{
-    // FIXME: Fix by convention in module loader by pushing parent object
-    //duk_push_global_object(ctx);
     duk_idx_t module_idx = duk_push_object(ctx);
     void *module_ptr = duk_get_heapptr(ctx, module_idx);
 

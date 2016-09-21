@@ -4,7 +4,7 @@
 
 %fragment("SWIG_AsCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
 SWIGINTERN int
-SWIG_duk_AsCharPtrAndSize(duk_context *ctx, duk_idx_t idx, char** cptr, size_t* psize, int *alloc)
+SWIG_duk_AsCharPtrAndSize(duk_context *ctx, duk_idx_t idx, char **cptr, size_t *psize, int *alloc)
 {
   const char *js_str;
   duk_size_t js_str_len;
@@ -198,6 +198,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 }
 
 %typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
+  SWIG_duk_FromCharPtrAndSize(duk_context *ctx, const char* carray, size_t size);
   jbyteArray jb = (jenv)->NewByteArray((jsize)$2);
   (jenv)->SetByteArrayRegion(jb, 0, (jsize)$2, (jbyte *)$1);
   $input = jb;
@@ -209,7 +210,6 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
   (jenv)->DeleteLocalRef($input);
 %}
 
-%typemap(javadirectorin, descriptor="[B") (char *STRING, size_t LENGTH) "$jniinput"
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 %insert(runtime) %{

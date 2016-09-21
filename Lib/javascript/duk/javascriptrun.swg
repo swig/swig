@@ -160,7 +160,6 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   }
 };
 
-
 /* Common SWIG API */
 #define SWIG_NewPointerObj(ctx, ptr, type, owner)       SWIG_duk_NewPointerObj(ctx, (void *)ptr, type, owner)
 #define SWIG_ConvertPtr(ctx, obj, ptr, type, flags)    SWIG_duk_ConvertPtr(ctx,obj,ptr,type,flags)
@@ -209,8 +208,6 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 
 /* special helper for allowing 'undefined' for usertypes */
 #define SWIG_isptrtype(ctx,I) SWIG_duk_isptrtype(ctx, I)
-
-#define SWIG_exception_fail
 
 bool SWIG_duk_isptrtype(duk_context *ctx, duk_idx_t idx) {
     if (duk_is_undefined(ctx, idx)) return true; // NULL pointer
