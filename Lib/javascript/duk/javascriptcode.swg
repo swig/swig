@@ -485,7 +485,14 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     duk_idx_t p_idx = duk_push_heapptr(ctx, $jsnspace_ptr);
     duk_push_string(ctx, "$jsname");
     duk_push_heapptr(ctx, $jsmangledname_ptr);
-    duk_put_prop(ctx, p_idx); /* Register class in the namespace */
+    duk_def_prop(
+      ctx,
+      p_idx,
+      DUK_DEFPROP_HAVE_VALUE |
+      DUK_DEFPROP_HAVE_WRITABLE | DUK_DEFPROP_WRITABLE |
+      DUK_DEFPROP_HAVE_ENUMERABLE | DUK_DEFPROP_ENUMERABLE |
+      DUK_DEFPROP_HAVE_CONFIGURABLE | DUK_DEFPROP_CONFIGURABLE
+    ); /* Register class in the namespace */
   }
 
 %}
@@ -525,6 +532,13 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     swig_duk_install_properties(ctx, $jsmangledname_idx, $jsnspace_properties);
     duk_put_function_list(ctx, $jsmangledname_idx, $jsnspace_functions);
     $jsmangledname_ptr = duk_get_heapptr(ctx, $jsmangledname_idx);
-    duk_put_prop(ctx, parent_idx);
+    duk_def_prop(
+      ctx,
+      parent_idx,
+      DUK_DEFPROP_HAVE_VALUE |
+      DUK_DEFPROP_HAVE_WRITABLE | DUK_DEFPROP_WRITABLE |
+      DUK_DEFPROP_HAVE_ENUMERABLE | DUK_DEFPROP_ENUMERABLE |
+      DUK_DEFPROP_HAVE_CONFIGURABLE | DUK_DEFPROP_CONFIGURABLE
+    );
   }
 %}

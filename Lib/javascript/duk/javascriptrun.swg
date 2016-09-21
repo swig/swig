@@ -100,8 +100,8 @@ SWIGRUNTIME duk_ret_t _wrap_SwigObject_disown(duk_context *ctx)
   duk_get_prop_string(ctx, -1, "\xFFprivate");
   swig_duk_userdata *udata = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   udata->own = false;
-  duk_pop_n(ctx, 2); /* Clean up stack */
-  return 0; // undefined
+  duk_pop_n(ctx, 1); /* Clean up stack */
+  return 0; /* undefined */
 }
 
 SWIGRUNTIME duk_ret_t _wrap_SwigObject_getCPtr(duk_context *ctx)
@@ -312,7 +312,6 @@ SWIGINTERN void SWIG_duk_create_class_registry(duk_context *ctx)
   /* The heap stash is at the top of the value stack now. */
 }
 
-
 /* gets the swig registry (or creates it) */
 SWIGINTERN void SWIG_duk_get_class_registry(duk_context *ctx) {
   duk_set_top(ctx, 0);
@@ -327,7 +326,7 @@ SWIGINTERN void SWIG_duk_get_class_registry(duk_context *ctx) {
   }
 }
 
-/* Helper function to get the classes prototype from the register */
+/* Helper function to get the classes prototype from the registry */
 SWIGINTERN void SWIG_duk_get_class_prototype(duk_context *ctx,const char *cname)
 {
   SWIG_duk_get_class_registry(ctx);  /* get the registry */
