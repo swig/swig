@@ -99,7 +99,7 @@
   const enum SIGTYPE&&
 };
 
-// boolean
+/* boolean */
 %typemap(in) bool
 %{
   if (!duk_is_boolean(ctx, $input)) {
@@ -114,7 +114,9 @@
   duk_push_boolean(ctx,(int)($1!=0));
 %}
 
-// for const bool&, SWIG treats this as a const bool* so we must dereference it
+/*
+ * for const bool&, SWIG treats this as a const bool* so we must dereference it
+ */
 %typemap(in) const bool& (bool temp)
 %{
   temp=(duk_to_boolean(ctx, $input)!=0);
@@ -141,9 +143,11 @@
   duk_push_string(ctx,(const char *)$1);
 %}
 
-/* char's
+/*
+ * char's
  *    currently treating chars as small strings, not as numbers
  *    (however signed & unsigned char's are numbers...)
+ *
  */
 %typemap(in) char
 %{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected char/string in $input argument"); goto fail; }
@@ -164,7 +168,7 @@
   duk_push_string(ctx, str);
 %}
 
-// by const ref
+/* by const ref */
 %typemap(in) const char& (char temp)
 %{
   if (!duk_is_string(ctx, $input)) {
@@ -234,9 +238,10 @@
   $1 = *argp;
 %}
 
-/* Also needed for object ptrs by const ref
- *    eg A* const& ref_pointer(A* const& a);
- *    found in mixed_types.i
+/* 
+ * Also needed for object ptrs by const ref, for instance:
+ *    A* const& ref_pointer(A* const& a);
+ * found in mixed_types.i
  */
 %typemap(in) SWIGTYPE *const&($*ltype temp)
 %{
@@ -250,11 +255,13 @@
   SWIG_NewPointerObj(ctx,*$1,$*descriptor,$owner);
 %}
 
-// DISOWN-ing typemaps
-// if you have an object pointer which must be disowned, use this typemap
-// eg. for void destroy_foo(Foo* toDie);
-// use %apply SWIGTYPE* DISOWN {Foo* toDie};
-// you could just use %delobject, but this is more flexible
+/*
+ * DISOWN-ing typemaps
+ * if you have an object pointer which must be disowned, use this typemap
+ * For instance, for void destroy_foo(Foo* toDie);
+ *     %apply SWIGTYPE* DISOWN {Foo* toDie};
+ * You could just use %delobject, but this is more flexible.
+ */
 %typemap(in) SWIGTYPE* DISOWN,SWIGTYPE DISOWN[]
 %{
   /* LINE 196 */
@@ -313,10 +320,13 @@
 // void (must be empty without the SWIG_arg++)
 %typemap(out) void "";
 
-/* void* is a special case
-A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
-but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
-*/
+/*
+ * void* is a special case
+ * A function void fn(void*) should take any kind of pointer
+ * as a parameter (just like C/C++ does) but if it's an output, 
+ * then it should be wrapped like any other SWIG object 
+ * (using default typemap)
+ */
 %typemap(in) void*
 %{
 
@@ -324,30 +334,38 @@ but if its an output, then it should be wrapped like any other SWIG object (usin
       SWIG_fail_ptr("$symname",$argnum,$descriptor);
 %}
 
-/* long long is another special case:
-as Duktape only supports one numeric type (duk_double_t), we will just cast it
-*/
+/*
+ * long long is another special case:
+ * as Duktape only supports one numeric type (duk_double_t), we just cast it
+ */
 %apply long {long long, signed long long, unsigned long long};
 %apply const long& {const long long&, const signed long long&, const unsigned long long&};
 
-/* It is possible to also pass a duk_context* into a function, so
-void fn(int a, float b, duk_context* s) is wrappable as
-> fn(1,4.3) -- note: the state is implicitly passed in
-*/
+/*
+ * It is possible to also pass a duk_context* into a function, so
+ *    void fn(int a, float b, duk_context* s)
+ * is wrappable as
+ *    > fn(1,4.3) 
+ * NOTE: the state is implicitly passed in
+ */
 %typemap(in, numinputs=0) duk_context* 
 %{$1 = ctx;%}
 
 /* -----------------------------------------------------------------------------
  *                          typecheck rules
  * ----------------------------------------------------------------------------- */
-/* These are needed for the overloaded functions
-These define the detection routines which will spot what
-parameters match which function
+
+/*
+ * These are needed for the overloaded functions.
+ * These define the detection routines which will spot 
+ * what parameters match which function
 */
 
-// unfortunately lua only considers one type of number
-// so all numbers (int,float,double) match
-// you could add an advanced fn to get type & check if its integral
+/* 
+ * unfortunately Duktape only considers one type of number
+ * so all numbers (int,float,double) match
+ * you could add an advanced fn to get type & check if its integral
+ */
 %typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
@@ -433,14 +451,14 @@ parameters match which function
  *                          Others
  * ----------------------------------------------------------------------------- */
 
-// Array reference typemaps
+/* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
 
-// size_t (which is just a unsigned long)
+/* size_t (which is just a unsigned long) */
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
 
@@ -448,11 +466,14 @@ parameters match which function
 /* -----------------------------------------------------------------------------
  *                          Specials
  * ----------------------------------------------------------------------------- */
-// swig::LANGUAGE_OBJ was added to allow containers of native objects
-// however its rather difficult to do this in Duktape, as you cant
-// pin native objects (they are held in the interpreter)
-// therefore for now: just ignoring this feature. However, Duktape 2.x might
-// make it much more tenable.
+
+/*
+ * swig::LANGUAGE_OBJ was added to allow containers of native objects
+ * however its rather difficult to do this in Duktape, as you cant
+ * pin native objects (they are held in the interpreter)
+ * therefore for now: just ignoring this feature. However, Duktape 2.x might
+ * make it much more tenable.
+ */
 #ifdef __cplusplus
 %ignore swig::LANGUAGE_OBJ;
 
