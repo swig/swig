@@ -1300,7 +1300,7 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
 
   return tm;
 }
-
+/* FIXME: Update V8 and JSC to provide 'jsresult' as cresult arg */
 void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   String *tm;
@@ -1345,7 +1345,7 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
     }
   }
 
-  Replaceall(wrapper->code, "$result", "jsresult");
+  Replaceall(wrapper->code, "$result", cresult);
 }
 
 void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
