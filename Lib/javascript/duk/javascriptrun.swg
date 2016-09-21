@@ -82,10 +82,12 @@ typedef struct {
   void *ptr;
 } swig_duk_userdata;
 
-/* this is the struct for wrapping arbitrary packed binary data
-(currently it is only used for member function pointers)
-the data ordering is similar to swig_duk_userdata, but it is currently not possible
-to tell the two structures apart within SWIG, other than by looking at the type
+/* 
+ * This is the struct for wrapping arbitrary packed binary data
+ * (currently it is only used for member function pointers)
+ * The data ordering is similar to swig_duk_userdata, but it is 
+ * currently not possible to tell the two structures apart in SWIG, 
+ * other than by looking at the type
 */
 typedef struct {
   swig_type_info   *type;
