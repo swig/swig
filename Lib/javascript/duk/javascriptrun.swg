@@ -398,23 +398,21 @@ SWIGRUNTIME int SWIG_duk_ConvertPtr(duk_context *ctx,duk_idx_t obj_idx,void **pt
   } else {
     goto sadplace;
   }
-  if (usr) {
-    if (flags & SWIG_POINTER_DISOWN) {
-      /* must disown the object */
-      usr->own=0;
-    }
-    if (!type) {
-      /* special cast void*, no casting fn */
-      *ptr=usr->ptr;
-      return SWIG_OK; /* ok */
-    }
-    cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
-    if (cast) {
-      int newmemory = 0;
-      *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-      return SWIG_OK;  /* ok */
-    }
+  if (flags & SWIG_POINTER_DISOWN) {
+    /* must disown the object */
+    usr->own=0;
+  }
+  if (!type) {
+    /* special cast void*, no casting fn */
+    *ptr=usr->ptr;
+    return SWIG_OK; /* ok */
+  }
+  cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
+  if (cast) {
+    int newmemory = 0;
+    *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+    assert(!newmemory); /* newmemory handling not yet implemented */
+    return SWIG_OK;  /* ok */
   }
   sadplace:
     return SWIG_ERROR;  /* error */
