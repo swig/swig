@@ -47,11 +47,13 @@ static Hash *f_shadow_imports = 0;
 static String *f_shadow_builtin_imports = 0;
 static String *f_shadow_stubs = 0;
 static Hash *builtin_getset = 0;
+static Hash *builtin_closures = 0;
 static Hash *class_members = 0;
 static File *f_builtins = 0;
 static String *builtin_tp_init = 0;
 static String *builtin_methods = 0;
 static String *builtin_default_unref = 0;
+static String *builtin_closures_code = 0;
 
 static String *methods;
 static String *class_name;
@@ -188,7 +190,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
     "inquiry", "SWIGPY_INQUIRY_CLOSURE",
-    "getiterfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "getiterfunc", "SWIGPY_GETITERFUNC_CLOSURE",
     "binaryfunc", "SWIGPY_BINARYFUNC_CLOSURE",
     "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
     "ternarycallfunc", "SWIGPY_TERNARYCALLFUNC_CLOSURE",
@@ -200,7 +202,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
     NULL
   };
 
@@ -208,7 +210,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
     "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
     "inquiry", "SWIGPY_INQUIRY_CLOSURE",
-    "getiterfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "getiterfunc", "SWIGPY_GETITERFUNC_CLOSURE",
     "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
     "ternarycallfunc", "SWIGPY_TERNARYCALLFUNC_CLOSURE",
     "lenfunc", "SWIGPY_LENFUNC_CLOSURE",
@@ -219,7 +221,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
     NULL
   };
 
@@ -626,6 +628,8 @@ public:
     f_directors_h = NewString("");
     f_directors = NewString("");
     builtin_getset = NewHash();
+    builtin_closures = NewHash();
+    builtin_closures_code = NewString("");
     class_members = NewHash();
     builtin_methods = NewString("");
     builtin_default_unref = NewString("delete $self;");
@@ -3328,11 +3332,12 @@ public:
 	String *func_type = Getattr(n, "feature:python:slot:functype");
 	String *closure_decl = getClosure(func_type, wrapper_name, overname ? 0 : funpack);
 	String *feature_name = NewStringf("feature:python:%s", slot);
-	String *closure_name = Copy(wrapper_name);
+	String *closure_name = 0;
 	if (closure_decl) {
-	  Append(closure_name, "_closure");
-	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
-	    Printf(f_wrappers, "%s /* defines %s */\n\n", closure_decl, closure_name);
+	  closure_name = NewStringf("%s_%s_closure", wrapper_name, func_type);
+	  if (!GetFlag(builtin_closures, closure_name))
+	    Printf(builtin_closures_code, "%s /* defines %s */\n\n", closure_decl, closure_name);
+	  SetFlag(builtin_closures, closure_name);
 	  Delete(closure_decl);
 	}
 	if (func_type) {
@@ -4511,7 +4516,12 @@ public:
       SwigType *realct = Copy(real_classname);
       SwigType_add_pointer(realct);
       SwigType_remember(realct);
-      if (!builtin) {
+      if (builtin) {
+	Printv(f_wrappers, builtin_closures_code, NIL);
+	Delete(builtin_closures_code);
+	builtin_closures_code = NewString("");
+	Clear(builtin_closures);
+      } else {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
 	if (modernargs) {

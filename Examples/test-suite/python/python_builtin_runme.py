@@ -79,3 +79,16 @@ if is_python_builtin():
   if MyClass.less_than_counts != 6:
     raise RuntimeError("python:compare feature not working")
 
+sa = SimpleArray(5)
+elements = [x for x in sa]
+if elements != [0, 10, 20, 30, 40]:
+  raise RuntimeError("Iteration not working")
+if len(sa) != 5:
+  raise RuntimeError("len not working")
+for i in range(5):
+  if sa[i] != i*10:
+    raise RuntimeError("indexing not working")
+subslice = sa[1:3]
+elements = [x for x in subslice]
+if elements != [10, 20]:
+  raise RuntimeError("slice not working")

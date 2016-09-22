@@ -1,12 +1,12 @@
 #define SWIGPY_UNARYFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
-wrapper##_closure(PyObject *a) {		\
+wrapper##_unaryfunc_closure(PyObject *a) {	\
   return wrapper(a, NULL);			\
 }
 
 #define SWIGPY_DESTRUCTOR_CLOSURE(wrapper)	\
 SWIGINTERN void					\
-wrapper##_closure(PyObject *a) {		\
+wrapper##_destructor_closure(PyObject *a) {	\
     SwigPyObject *sobj;				\
     sobj = (SwigPyObject *)a;			\
     Py_XDECREF(sobj->dict);			\
@@ -32,7 +32,7 @@ wrapper##_closure(PyObject *a) {		\
 
 #define SWIGPY_INQUIRY_CLOSURE(wrapper)				\
 SWIGINTERN int							\
-wrapper##_closure(PyObject *a) {				\
+wrapper##_inquiry_closure(PyObject *a) {			\
     PyObject *pyresult;						\
     int result;							\
     pyresult = wrapper(a, NULL);				\
@@ -41,9 +41,15 @@ wrapper##_closure(PyObject *a) {				\
     return result;						\
 }
 
+#define SWIGPY_GETITERFUNC_CLOSURE(wrapper)	\
+SWIGINTERN PyObject *				\
+wrapper##_getiterfunc_closure(PyObject *a) {	\
+  return wrapper(a, NULL);			\
+}
+
 #define SWIGPY_BINARYFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
-wrapper##_closure(PyObject *a, PyObject *b) {	\
+wrapper##_binaryfunc_closure(PyObject *a, PyObject *b) {	\
     PyObject *tuple, *result;			\
     tuple = PyTuple_New(1);			\
     assert(tuple);				\
@@ -58,7 +64,7 @@ typedef ternaryfunc ternarycallfunc;
 
 #define SWIGPY_TERNARYFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
-wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
+wrapper##_ternaryfunc_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     PyObject *tuple, *result;					\
     tuple = PyTuple_New(2);					\
     assert(tuple);						\
@@ -73,13 +79,13 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
 
 #define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
-wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) { \
+wrapper##_ternarycallfunc_closure(PyObject *callable_object, PyObject *args, PyObject *) { \
     return wrapper(callable_object, args);			\
 }
 
 #define SWIGPY_LENFUNC_CLOSURE(wrapper)			\
 SWIGINTERN Py_ssize_t					\
-wrapper##_closure(PyObject *a) {			\
+wrapper##_lenfunc_closure(PyObject *a) {		\
     PyObject *resultobj;				\
     Py_ssize_t result;					\
     resultobj = wrapper(a, NULL);			\
@@ -90,7 +96,7 @@ wrapper##_closure(PyObject *a) {			\
 
 #define SWIGPY_SSIZESSIZEARGFUNC_CLOSURE(wrapper)		\
 SWIGINTERN PyObject *						\
-wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
+wrapper##_ssizessizeargfunc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) { \
     PyObject *tuple, *result;					\
     tuple = PyTuple_New(2);					\
     assert(tuple);						\
@@ -103,7 +109,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
 
 #define SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int								\
-wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
+wrapper##_ssizessizeobjargproc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
     PyObject *tuple, *resultobj;					\
     int result;								\
     tuple = PyTuple_New(d ? 3 : 2);					\
@@ -123,7 +129,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
 
 #define SWIGPY_SSIZEARGFUNC_CLOSURE(wrapper)		\
 SWIGINTERN PyObject *					\
-wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
+wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) { \
     PyObject *tuple, *result;				\
     tuple = PyTuple_New(1);				\
     assert(tuple);					\
@@ -135,7 +141,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
 
 #define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *					\
-wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
+wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) { \
     PyObject *arg, *result;				\
     arg = _PyLong_FromSsize_t(b);			\
     result = wrapper(a, arg);				\
@@ -145,7 +151,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
 
 #define SWIGPY_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
-wrapper##_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
+wrapper##_ssizeobjargproc_closure(PyObject *a, Py_ssize_t b, PyObject *c) { \
     PyObject *tuple, *resultobj;				\
     int result;							\
     tuple = PyTuple_New(2);					\
@@ -162,7 +168,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
 
 #define SWIGPY_OBJOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
-wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
+wrapper##_objobjargproc_closure(PyObject *a, PyObject *b, PyObject *c) { \
     PyObject *tuple, *resultobj;				\
     int result;							\
     tuple = PyTuple_New(c ? 2 : 1);				\
@@ -182,13 +188,13 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
 
 #define SWIGPY_REPRFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
-wrapper##_closure(PyObject *a) {		\
+wrapper##_reprfunc_closure(PyObject *a) {	\
     return wrapper(a, NULL);			\
 }
 
 #define SWIGPY_HASHFUNC_CLOSURE(wrapper)	\
 SWIGINTERN Py_hash_t				\
-wrapper##_closure(PyObject *a) {		\
+wrapper##_hashfunc_closure(PyObject *a) {	\
     PyObject *pyresult;				\
     Py_hash_t result;				\
     pyresult = wrapper(a, NULL);		\
@@ -197,6 +203,12 @@ wrapper##_closure(PyObject *a) {		\
     result = SWIG_PyNumber_AsPyHash(pyresult);	\
     Py_DECREF(pyresult);			\
     return result;				\
+}
+
+#define SWIGPY_ITERNEXTFUNC_CLOSURE(wrapper)	\
+SWIGINTERN PyObject *				\
+wrapper##_iternextfunc_closure(PyObject *a) {	\
+  return wrapper(a, NULL);			\
 }
 
 #ifdef __cplusplus

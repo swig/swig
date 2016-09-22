@@ -11,6 +11,24 @@ Version 3.0.11 (in progress)
             we checked an uninitialised value instead.  Fixes #627.  Based on
             patch from Sergey Seroshtan.
 
+2016-09-22: wsfulton
+            [Python] More flexible python builtin slots for overloaded C++ function.
+
+            The closure names used for builtin slots are mangled with their functype so
+            that overloaded C++ method names can be used for multiple slots.
+            For example:
+
+              %feature("python:slot", "mp_subscript", functype="binaryfunc") SimpleArray::__getitem__;
+              %feature("python:slot", "sq_item", functype="ssizeargfunc") SimpleArray::__getitem__(Py_ssize_t n);
+
+            will generate closures:
+
+              SWIGPY_SSIZEARGFUNC_CLOSURE(_wrap_SimpleArray___getitem__) /* defines _wrap_SimpleArray___getitem___ssizeargfunc_closure */
+              SWIGPY_BINARYFUNC_CLOSURE(_wrap_SimpleArray___getitem__) /* defines _wrap_SimpleArray___getitem___binaryfunc_closure */
+
+            Previously only one name was defined: _wrap_SimpleArray___getitem___closure.
+            Hence the overloaded __getitem__ method can be used to support both mp_subscript and sq_item slots.
+
 2016-09-17: wsfulton
             [Python] Fix iterators for containers of NULL pointers (or Python None) when using
             -builtin. Previously iteration would stop at the first element that was NULL.
