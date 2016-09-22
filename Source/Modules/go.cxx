@@ -2445,7 +2445,8 @@ private:
       }
 
       String *code = Copy(Getattr(n, "wrap:action"));
-      Replaceall(code, Getattr(parms, "lname"), current);
+      Replace(code, Getattr(parms, "lname"), current, DOH_REPLACE_ANY | DOH_REPLACE_ID);
+      Delete(current);
       Printv(actioncode, code, "\n", NULL);
     }
 
