@@ -29,9 +29,7 @@ static duk_idx_t $jswrapper(duk_context *ctx)
     SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
   }
   return 1;
-  fail:
-  duk_throw(ctx);
-  return 0;
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -50,8 +48,9 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     printf("Veto constructor for SWIGTYPE_$jsmangledtype\n");
   }
   #endif
+  int ret = 1;
   duk_push_string(ctx, "Cannot instantiate abstract class.");
-  duk_throw(ctx);
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -68,12 +67,13 @@ static duk_idx_t $jswrapper(duk_context *ctx)
   /* FRAGMENT: js_ctor_dispatcher */
 
   int argc = duk_get_top(ctx);
+  int ret = 1;
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
 
   // default:
   duk_push_string(ctx, "Illegal arguments for construction of $jswrapper");
-  duk_throw(ctx);
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -100,11 +100,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   SWIG_duk_NewPointerObj(ctx, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);  
 
   return 1;
-  fail:
-  if (ret == 1) {
-    duk_throw(ctx);
-  }
-  return -1;
+  SWIG_duk_ErrorHandlerOverloading();
 }
 %}
 
@@ -217,9 +213,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     $jscode
   }
   return 1;
-  fail:
-  duk_throw(ctx);
-  return 0;
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -245,9 +239,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   }
   return 1;
 
-  fail:
-  duk_throw(ctx);
-  return 0;
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -276,11 +268,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     $jscode
   }
   return 1;
-  fail:
-  
-  duk_throw(ctx);
-  return 0;
-  
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -302,11 +290,9 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     $jslocals
     $jscode
   }
-  fail:
   /* if we got there, we didn't find a matching function */
   duk_push_string(ctx, "No matching function found for $jswrapper");
-  duk_throw(ctx);
-  return 0;
+  SWIG_duk_ErrorHandlerDefault();
 }
 %}
 
@@ -327,11 +313,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     $jscode
   }
   return 1;
-  fail:
-  if (ret == 1) {
-      duk_throw(ctx);
-  }
-  return -1;
+  SWIG_duk_ErrorHandlerOverloading();
 }
 %}
 
