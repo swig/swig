@@ -182,35 +182,21 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 %enddef
 
 %typemap(in) (char *STRING, size_t LENGTH) {
-  if ($input) {
-    $1 = ($1_ltype) duk_get_string(ctx, -2);
-    $2 = ($2_type) duk_get_length(ctx, -1);
-  } else {
-    $1 = 0;
-    $2 = 0;
+  if (!duk_is_string(ctx, $input)) {
+    duk_push_string(ctx,"Expected (binary) string in $input argument");
+    goto fail;
   }
+  $1 = ($1_ltype) duk_get_string(ctx, $input);
+  $2 = ($2_type) duk_get_length(ctx, $input);
 }
 
-%typemap(argout) (char *STRING, size_t LENGTH) {
-  if (duk_is_string(ctx, $input)) {
-    duk_push_lstring(ctx, $2, $1);
-  }
+%typemap(out) (char *STRING, size_t LENGTH) {
+	duk_push_lstring(ctx, (const char*)$1, $2);
 }
 
-%typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
-  SWIG_duk_FromCharPtrAndSize(duk_context *ctx, const char* carray, size_t size);
-  jbyteArray jb = (jenv)->NewByteArray((jsize)$2);
-  (jenv)->SetByteArrayRegion(jb, 0, (jsize)$2, (jbyte *)$1);
-  $input = jb;
-}
-
-%typemap(directorargout) (char *STRING, size_t LENGTH)
-%{
-  (jenv)->GetByteArrayRegion($input, 0, (jsize)$2, (jbyte *)$1);
-  (jenv)->DeleteLocalRef($input);
-%}
-
-%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (      char *STRING, int LENGTH)    }
+%apply (char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH)    }
+%apply (char *STRING, size_t LENGTH) { (const char *STRING, size_t LENGTH) }
 
 %insert(runtime) %{
 #define SWIG_AsCharPtrAndSize(idx, cptr, psize, alloc)  SWIG_duk_AsCharPtrAndSize(ctx, idx, cptr, psize, alloc)

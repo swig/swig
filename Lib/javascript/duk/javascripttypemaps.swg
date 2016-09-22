@@ -145,13 +145,19 @@
 
 /*
  * char's
- *    currently treating chars as small strings, not as numbers
- *    (however signed & unsigned char's are numbers...)
+ *    currently treating chars as small strings, and numbers
  *
  */
 %typemap(in) char
-%{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected char/string in $input argument"); goto fail; }
-   $1 = (duk_to_string(ctx, $input))[0];%}
+%{ if (!(duk_is_string(ctx, $input) || duk_is_number(ctx, $input))) {
+		duk_push_string(ctx,"Expected char/string in $input argument");
+		goto fail;
+   }
+   if (duk_is_string(ctx, $input)) {
+     $1 = (duk_to_string(ctx, $input))[0];
+   } else {
+     $1 = duk_to_number(ctx, $input);
+   }%}
 
 %typemap(out) char
 %{
@@ -172,7 +178,7 @@
 %typemap(in) const char& (char temp)
 %{
   if (!duk_is_string(ctx, $input)) {
-    duk_push_string(ctx,"Expected string in $input argument");
+    duk_push_string(ctx,"Expected char/string in $input argument");
     goto fail;
   }
   temp = (duk_to_string(ctx, $input))[0]; $1=&temp;
@@ -268,8 +274,8 @@
 #ifdef SWIGRUNTIME_DEBUG
   printf("magic $input 005\n");
 #endif
-  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$argnum,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
-    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+  if (!SWIG_IsOK(SWIG_ConvertPtr(ctx,$input,(void**)&$1,$descriptor,SWIG_POINTER_DISOWN))){
+    SWIG_fail_ptr("$symname",$input,$descriptor);
   }
 %}
 
@@ -307,7 +313,7 @@
   printf("magic $input 004\n");
 #endif
   if (!SWIG_IsOK(SWIG_ConvertMember(ctx,$input,(void*)(&$1),sizeof($type),$descriptor)))
-    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+    SWIG_fail_ptr("$symname",$input,$descriptor);
 %}
 
 %typemap(out) SWIGTYPE (CLASS::*)
@@ -331,7 +337,7 @@
 %{
 
     if (!SWIG_IsOK(SWIG_ConvertMember(ctx,$input,(void*)(&$1),0,$descriptor)))
-      SWIG_fail_ptr("$symname",$argnum,$descriptor);
+      SWIG_fail_ptr("$symname",$input,$descriptor);
 %}
 
 /*
