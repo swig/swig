@@ -326,7 +326,7 @@ static duk_ret_t $jswrapper(duk_context *ctx)
     $jslocals
     $jscode
   }
-  return 0;
+  return 1;
   fail:
   if (ret == 1) {
       duk_throw(ctx);
