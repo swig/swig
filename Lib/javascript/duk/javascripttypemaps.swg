@@ -324,7 +324,10 @@
 
 
 // void (must be empty without the SWIG_arg++)
-%typemap(out) void "";
+%typemap(out) void
+%{
+	duk_push_null(ctx);
+%}
 
 /*
  * void* is a special case
