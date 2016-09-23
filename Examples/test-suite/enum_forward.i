@@ -1,7 +1,7 @@
 %module enum_forward
 
 /* This contains C code that is not valid C++03 and Octave, and Javascript(v8) wrappers are always compiled as C++ */
-#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8)
+#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8) && !defined(SWIG_JAVASCRIPT_DUK)
 %{
 enum ForwardEnum1 { AAA, BBB };
 enum ForwardEnum2 { CCC, DDD };
