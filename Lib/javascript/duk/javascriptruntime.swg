@@ -18,4 +18,6 @@
 %insert(runtime) "swigerrors.swg";    /* SWIG errors */
 %insert(runtime) "javascriptrun.swg"; /* Duktape runtime */
 
+%flatnested;
+
 /* Note: the initialization function is closed after all code is generated */

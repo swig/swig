@@ -144,7 +144,11 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->ptr) {
+		#ifdef __c_plus_plus
         delete ($jstype)t->ptr;
+        #else
+        free(($jstype)t->ptr);
+        #endif
         t->ptr = NULL;
     }
     duk_push_pointer(ctx, NULL);
@@ -177,7 +181,11 @@ static duk_ret_t $jswrapper(duk_context *ctx)
   swig_duk_userdata *t = (swig_duk_userdata*)duk_to_fixed_buffer(ctx, -1, &sz);
   if(t) {
     if (t->own) {
+		#ifdef __c_plus_plus
         delete ($jstype)t->ptr;
+        #else
+        free(($jstype)t->ptr);
+        #endif
         t->own = false;
     }
     duk_push_pointer(ctx, NULL);
