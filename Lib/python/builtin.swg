@@ -1,233 +1,6 @@
-#define SWIGPY_UNARYFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_unaryfunc_closure(PyObject *a) {	\
-  return wrapper(a, NULL);			\
-}
-
-#define SWIGPY_DESTRUCTOR_CLOSURE(wrapper)	\
-SWIGINTERN void					\
-wrapper##_destructor_closure(PyObject *a) {	\
-    SwigPyObject *sobj;				\
-    sobj = (SwigPyObject *)a;			\
-    Py_XDECREF(sobj->dict);			\
-    if (sobj->own) {				\
-	PyObject *o;				\
-	PyObject *val = 0, *type = 0, *tb = 0;	\
-	PyErr_Fetch(&val, &type, &tb);		\
-	o = wrapper(a, NULL);			\
-	if (!o) {				\
-	    PyObject *deallocname = PyString_FromString(#wrapper); \
-	    PyErr_WriteUnraisable(deallocname);	\
-	    Py_DECREF(deallocname);		\
-	}					\
-	PyErr_Restore(val, type, tb);		\
-	Py_XDECREF(o);				\
-    }						\
-    if (PyType_IS_GC(a->ob_type)) {		\
-	PyObject_GC_Del(a);			\
-    } else {					\
-	PyObject_Del(a);			\
-    }						\
-}
-
-#define SWIGPY_INQUIRY_CLOSURE(wrapper)				\
-SWIGINTERN int							\
-wrapper##_inquiry_closure(PyObject *a) {			\
-    PyObject *pyresult;						\
-    int result;							\
-    pyresult = wrapper(a, NULL);				\
-    result = pyresult && PyObject_IsTrue(pyresult) ? 1 : 0;	\
-    Py_XDECREF(pyresult);					\
-    return result;						\
-}
-
-#define SWIGPY_GETITERFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_getiterfunc_closure(PyObject *a) {	\
-  return wrapper(a, NULL);			\
-}
-
-#define SWIGPY_BINARYFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_binaryfunc_closure(PyObject *a, PyObject *b) {	\
-    PyObject *tuple, *result;			\
-    tuple = PyTuple_New(1);			\
-    assert(tuple);				\
-    PyTuple_SET_ITEM(tuple, 0, b);		\
-    Py_XINCREF(b);				\
-    result = wrapper(a, tuple);			\
-    Py_DECREF(tuple);				\
-    return result;				\
-}
-
-typedef ternaryfunc ternarycallfunc;
-
-#define SWIGPY_TERNARYFUNC_CLOSURE(wrapper)			\
-SWIGINTERN PyObject *						\
-wrapper##_ternaryfunc_closure(PyObject *a, PyObject *b, PyObject *c) {	\
-    PyObject *tuple, *result;					\
-    tuple = PyTuple_New(2);					\
-    assert(tuple);						\
-    PyTuple_SET_ITEM(tuple, 0, b);				\
-    PyTuple_SET_ITEM(tuple, 1, c);				\
-    Py_XINCREF(b);						\
-    Py_XINCREF(c);						\
-    result = wrapper(a, tuple);					\
-    Py_DECREF(tuple);						\
-    return result;						\
-}
-
-#define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)			\
-SWIGINTERN PyObject *						\
-wrapper##_ternarycallfunc_closure(PyObject *callable_object, PyObject *args, PyObject *) { \
-    return wrapper(callable_object, args);			\
-}
-
-#define SWIGPY_LENFUNC_CLOSURE(wrapper)			\
-SWIGINTERN Py_ssize_t					\
-wrapper##_lenfunc_closure(PyObject *a) {		\
-    PyObject *resultobj;				\
-    Py_ssize_t result;					\
-    resultobj = wrapper(a, NULL);			\
-    result = PyNumber_AsSsize_t(resultobj, NULL);	\
-    Py_DECREF(resultobj);				\
-    return result;					\
-}
-
-#define SWIGPY_SSIZESSIZEARGFUNC_CLOSURE(wrapper)		\
-SWIGINTERN PyObject *						\
-wrapper##_ssizessizeargfunc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) { \
-    PyObject *tuple, *result;					\
-    tuple = PyTuple_New(2);					\
-    assert(tuple);						\
-    PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));		\
-    PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));		\
-    result = wrapper(a, tuple);					\
-    Py_DECREF(tuple);						\
-    return result;						\
-}
-
-#define SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)			\
-SWIGINTERN int								\
-wrapper##_ssizessizeobjargproc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
-    PyObject *tuple, *resultobj;					\
-    int result;								\
-    tuple = PyTuple_New(d ? 3 : 2);					\
-    assert(tuple);							\
-    PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));			\
-    PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));			\
-    if (d) {								\
-        PyTuple_SET_ITEM(tuple, 2, d);					\
-        Py_INCREF(d);							\
-    }									\
-    resultobj = wrapper(a, tuple);					\
-    result = resultobj ? 0 : -1;					\
-    Py_DECREF(tuple);							\
-    Py_XDECREF(resultobj);						\
-    return result;							\
-}
-
-#define SWIGPY_SSIZEARGFUNC_CLOSURE(wrapper)		\
-SWIGINTERN PyObject *					\
-wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) { \
-    PyObject *tuple, *result;				\
-    tuple = PyTuple_New(1);				\
-    assert(tuple);					\
-    PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));	\
-    result = wrapper(a, tuple);				\
-    Py_DECREF(tuple);					\
-    return result;					\
-}
-
-#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *					\
-wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) { \
-    PyObject *arg, *result;				\
-    arg = _PyLong_FromSsize_t(b);			\
-    result = wrapper(a, arg);				\
-    Py_DECREF(arg);					\
-    return result;					\
-}
-
-#define SWIGPY_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
-SWIGINTERN int							\
-wrapper##_ssizeobjargproc_closure(PyObject *a, Py_ssize_t b, PyObject *c) { \
-    PyObject *tuple, *resultobj;				\
-    int result;							\
-    tuple = PyTuple_New(2);					\
-    assert(tuple);						\
-    PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));		\
-    PyTuple_SET_ITEM(tuple, 1, c);				\
-    Py_XINCREF(c);						\
-    resultobj = wrapper(a, tuple);				\
-    result = resultobj ? 0 : -1;				\
-    Py_XDECREF(resultobj);					\
-    Py_DECREF(tuple);						\
-    return result;						\
-}
-
-#define SWIGPY_OBJOBJARGPROC_CLOSURE(wrapper)			\
-SWIGINTERN int							\
-wrapper##_objobjargproc_closure(PyObject *a, PyObject *b, PyObject *c) { \
-    PyObject *tuple, *resultobj;				\
-    int result;							\
-    tuple = PyTuple_New(c ? 2 : 1);				\
-    assert(tuple);						\
-    PyTuple_SET_ITEM(tuple, 0, b);				\
-    Py_XINCREF(b);						\
-    if (c) {							\
-        PyTuple_SET_ITEM(tuple, 1, c);				\
-        Py_XINCREF(c);						\
-    }								\
-    resultobj = wrapper(a, tuple);				\
-    result = resultobj ? 0 : -1;				\
-    Py_XDECREF(resultobj);					\
-    Py_DECREF(tuple);						\
-    return result;						\
-}
-
-#define SWIGPY_REPRFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_reprfunc_closure(PyObject *a) {	\
-    return wrapper(a, NULL);			\
-}
-
-#define SWIGPY_HASHFUNC_CLOSURE(wrapper)	\
-SWIGINTERN Py_hash_t				\
-wrapper##_hashfunc_closure(PyObject *a) {	\
-    PyObject *pyresult;				\
-    Py_hash_t result;				\
-    pyresult = wrapper(a, NULL);		\
-    if (!pyresult)				\
-      return -1;				\
-    result = SWIG_PyNumber_AsPyHash(pyresult);	\
-    Py_DECREF(pyresult);			\
-    return result;				\
-}
-
-#define SWIGPY_ITERNEXTFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject *				\
-wrapper##_iternextfunc_closure(PyObject *a) {	\
-  return wrapper(a, NULL);			\
-}
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-SWIGINTERN int
-SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
-  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
-  return -1;
-}
-
-SWIGINTERN void
-SwigPyBuiltin_BadDealloc(PyObject *obj) {
-  SwigPyObject *sobj = (SwigPyObject *)obj;
-  if (sobj->own) {
-    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", obj->ob_type->tp_name);
-  }
-}
 
 SWIGINTERN Py_hash_t
 SwigPyObject_hash(PyObject *obj) {
@@ -249,6 +22,20 @@ SWIG_PyNumber_AsPyHash(PyObject *obj) {
   else
     PyErr_Format(PyExc_TypeError, "Wrong type for hash function");
   return result;
+}
+
+SWIGINTERN int
+SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
+  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
+  return -1;
+}
+
+SWIGINTERN void
+SwigPyBuiltin_BadDealloc(PyObject *obj) {
+  SwigPyObject *sobj = (SwigPyObject *)obj;
+  if (sobj->own) {
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", obj->ob_type->tp_name);
+  }
 }
 
 typedef struct {
@@ -546,6 +333,295 @@ SwigPyBuiltin_SetMetaType (PyTypeObject *type, PyTypeObject *metatype)
     type->ob_type = metatype;
 #endif
 }
+
+
+/* Start of callback function macros for use in PyTypeObject */
+
+typedef PyObject *(*SwigPyWrapperFunction)(PyObject *, PyObject *);
+
+#define SWIGPY_UNARYFUNC_CLOSURE(wrapper)		\
+SWIGINTERN PyObject *					\
+wrapper##_unaryfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_unaryfunc_closure(wrapper, a);	\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_unaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  return wrapper(a, NULL);
+}
+
+#define SWIGPY_DESTRUCTOR_CLOSURE(wrapper)			\
+SWIGINTERN void							\
+wrapper##_destructor_closure(PyObject *a) {			\
+    SwigPyBuiltin_destructor_closure(wrapper, #wrapper, a);	\
+}
+SWIGINTERN void
+SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrappername, PyObject *a) {
+  SwigPyObject *sobj;
+  sobj = (SwigPyObject *)a;
+  Py_XDECREF(sobj->dict);
+  if (sobj->own) {
+    PyObject *o;
+    PyObject *val = 0, *type = 0, *tb = 0;
+    PyErr_Fetch(&val, &type, &tb);
+    o = wrapper(a, NULL);
+    if (!o) {
+      PyObject *deallocname = PyString_FromString(wrappername);
+      PyErr_WriteUnraisable(deallocname);
+      Py_DECREF(deallocname);
+    }
+    PyErr_Restore(val, type, tb);
+    Py_XDECREF(o);
+  }
+  if (PyType_IS_GC(a->ob_type)) {
+    PyObject_GC_Del(a);
+  } else {
+    PyObject_Del(a);
+  }
+}
+
+#define SWIGPY_INQUIRY_CLOSURE(wrapper)			\
+SWIGINTERN int						\
+wrapper##_inquiry_closure(PyObject *a) {		\
+  return SwigPyBuiltin_inquiry_closure(wrapper, a);	\
+}
+SWIGINTERN int
+SwigPyBuiltin_inquiry_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  PyObject *pyresult;
+  int result;
+  pyresult = wrapper(a, NULL);
+  result = pyresult && PyObject_IsTrue(pyresult) ? 1 : 0;
+  Py_XDECREF(pyresult);
+  return result;
+}
+
+#define SWIGPY_GETITERFUNC_CLOSURE(wrapper)		\
+SWIGINTERN PyObject *					\
+wrapper##_getiterfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_getiterfunc_closure(wrapper, a);	\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_getiterfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  return wrapper(a, NULL);
+}
+
+#define SWIGPY_BINARYFUNC_CLOSURE(wrapper)			\
+SWIGINTERN PyObject *						\
+wrapper##_binaryfunc_closure(PyObject *a, PyObject *b) {	\
+  return SwigPyBuiltin_binaryfunc_closure(wrapper, a, b);	\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_binaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
+  PyObject *tuple, *result;
+  tuple = PyTuple_New(1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, b);
+  Py_XINCREF(b);
+  result = wrapper(a, tuple);
+  Py_DECREF(tuple);
+  return result;
+}
+
+typedef ternaryfunc ternarycallfunc;
+
+#define SWIGPY_TERNARYFUNC_CLOSURE(wrapper)				\
+SWIGINTERN PyObject *							\
+wrapper##_ternaryfunc_closure(PyObject *a, PyObject *b, PyObject *c) {	\
+  return SwigPyBuiltin_ternaryfunc_closure(wrapper, a, b, c);		\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_ternaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b, PyObject *c) {
+  PyObject *tuple, *result;
+  tuple = PyTuple_New(2);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, b);
+  PyTuple_SET_ITEM(tuple, 1, c);
+  Py_XINCREF(b);
+  Py_XINCREF(c);
+  result = wrapper(a, tuple);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)					\
+SWIGINTERN PyObject *								\
+wrapper##_ternarycallfunc_closure(PyObject *a, PyObject *b, PyObject *c) {	\
+  return SwigPyBuiltin_ternarycallfunc_closure(wrapper, a, b, c);		\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_ternarycallfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b, PyObject *c) {
+  (void) c;
+  return wrapper(a, b);
+}
+
+#define SWIGPY_LENFUNC_CLOSURE(wrapper)			\
+SWIGINTERN Py_ssize_t					\
+wrapper##_lenfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_lenfunc_closure(wrapper, a);	\
+}
+SWIGINTERN Py_ssize_t
+SwigPyBuiltin_lenfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  PyObject *resultobj;
+  Py_ssize_t result;
+  resultobj = wrapper(a, NULL);
+  result = PyNumber_AsSsize_t(resultobj, NULL);
+  Py_DECREF(resultobj);
+  return result;
+}
+
+#define SWIGPY_SSIZESSIZEARGFUNC_CLOSURE(wrapper)				\
+SWIGINTERN PyObject *								\
+wrapper##_ssizessizeargfunc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
+  return SwigPyBuiltin_ssizessizeargfunc_closure(wrapper, a, b, c);		\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_ssizessizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py_ssize_t b, Py_ssize_t c) {
+  PyObject *tuple, *result;
+  tuple = PyTuple_New(2);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));
+  result = wrapper(a, tuple);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)						\
+SWIGINTERN int											\
+wrapper##_ssizessizeobjargproc_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) {	\
+  return SwigPyBuiltin_ssizessizeobjargproc_closure(wrapper, a, b, c, d);			\
+}
+SWIGINTERN int
+SwigPyBuiltin_ssizessizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) {
+  PyObject *tuple, *resultobj;
+  int result;
+  tuple = PyTuple_New(d ? 3 : 2);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));
+  if (d) {
+    PyTuple_SET_ITEM(tuple, 2, d);
+    Py_INCREF(d);
+  }
+  resultobj = wrapper(a, tuple);
+  result = resultobj ? 0 : -1;
+  Py_DECREF(tuple);
+  Py_XDECREF(resultobj);
+  return result;
+}
+
+#define SWIGPY_SSIZEARGFUNC_CLOSURE(wrapper)				\
+SWIGINTERN PyObject *							\
+wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) {		\
+  return SwigPyBuiltin_funpack_ssizeargfunc_closure(wrapper, a, b);	\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_funpack_ssizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py_ssize_t b) {
+  PyObject *tuple, *result;
+  tuple = PyTuple_New(1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  result = wrapper(a, tuple);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)			\
+SWIGINTERN PyObject *							\
+wrapper##_ssizeargfunc_closure(PyObject *a, Py_ssize_t b) {		\
+  return SwigPyBuiltin_ssizeargfunc_closure(wrapper, a, b);		\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_ssizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py_ssize_t b) {
+  PyObject *arg, *result;
+  arg = _PyLong_FromSsize_t(b);
+  result = wrapper(a, arg);
+  Py_DECREF(arg);
+  return result;
+}
+
+#define SWIGPY_SSIZEOBJARGPROC_CLOSURE(wrapper)					\
+SWIGINTERN int									\
+wrapper##_ssizeobjargproc_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
+  return SwigPyBuiltin_ssizeobjargproc_closure(wrapper, a, b, c);		\
+}
+SWIGINTERN int
+SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py_ssize_t b, PyObject *c) {
+  PyObject *tuple, *resultobj;
+  int result;
+  tuple = PyTuple_New(2);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
+  PyTuple_SET_ITEM(tuple, 1, c);
+  Py_XINCREF(c);
+  resultobj = wrapper(a, tuple);
+  result = resultobj ? 0 : -1;
+  Py_XDECREF(resultobj);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_OBJOBJARGPROC_CLOSURE(wrapper)					\
+SWIGINTERN int									\
+wrapper##_objobjargproc_closure(PyObject *a, PyObject *b, PyObject *c) {	\
+  return SwigPyBuiltin_objobjargproc_closure(wrapper, a, b, c);			\
+}
+SWIGINTERN int
+SwigPyBuiltin_objobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b, PyObject *c) {
+  PyObject *tuple, *resultobj;
+  int result;
+  tuple = PyTuple_New(c ? 2 : 1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, b);
+  Py_XINCREF(b);
+  if (c) {
+    PyTuple_SET_ITEM(tuple, 1, c);
+    Py_XINCREF(c);
+  }
+  resultobj = wrapper(a, tuple);
+  result = resultobj ? 0 : -1;
+  Py_XDECREF(resultobj);
+  Py_DECREF(tuple);
+  return result;
+}
+
+#define SWIGPY_REPRFUNC_CLOSURE(wrapper)		\
+SWIGINTERN PyObject *					\
+wrapper##_reprfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_reprfunc_closure(wrapper, a);	\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_reprfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  return wrapper(a, NULL);
+}
+
+#define SWIGPY_HASHFUNC_CLOSURE(wrapper)		\
+SWIGINTERN Py_hash_t					\
+wrapper##_hashfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_hashfunc_closure(wrapper, a);	\
+}
+SWIGINTERN Py_hash_t
+SwigPyBuiltin_hashfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  PyObject *pyresult;
+  Py_hash_t result;
+  pyresult = wrapper(a, NULL);
+  if (!pyresult)
+    return -1;
+  result = SWIG_PyNumber_AsPyHash(pyresult);
+  Py_DECREF(pyresult);
+  return result;
+}
+
+#define SWIGPY_ITERNEXTFUNC_CLOSURE(wrapper)		\
+SWIGINTERN PyObject *					\
+wrapper##_iternextfunc_closure(PyObject *a) {		\
+  return SwigPyBuiltin_iternextfunc_closure(wrapper, a);\
+}
+SWIGINTERN PyObject *
+SwigPyBuiltin_iternextfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
+  return wrapper(a, NULL);
+}
+
+/* End of callback function macros for use in PyTypeObject */
 
 #ifdef __cplusplus
 }
