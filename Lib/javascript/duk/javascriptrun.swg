@@ -176,13 +176,13 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   if (!(expr)) { duk_push_string(ctx, (char *) msg); goto fail; } else
 
 /* helper #defines */
-#define SWIG_Error(code,msg) { duk_push_sprintf(ctx, "C[%d] %s", code, msg); }
+#define SWIG_Error(code,msg) { duk_push_sprintf(ctx, "%s", msg); goto fail; }
 #define SWIG_exception SWIG_Error
 #define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(func_name,argnum,type) \
   {duk_push_sprintf(ctx,"Error in %s (arg %d), expected '%s' got '%s'",\
   func_name,argnum,type,SWIG_duk_typename(ctx, argnum));\
-  duk_throw(ctx);}
+  goto fail;}
 #define SWIG_fail_ptr(func_name,argnum,type) \
   {if (duk_is_object(ctx, argnum)) {\
    duk_get_prop_string(ctx, argnum, "\xFFprivate");\
@@ -191,11 +191,11 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
   }\
   duk_push_sprintf(ctx,"Error in %s (arg %d), expected '%s' got '%s'",\
   func_name,argnum,(type && type->str)?type->str:"void*",SWIG_duk_typename(ctx, -1));\
-  duk_throw(ctx);}
+  goto fail;}
 #define SWIG_check_num_args(func_name,a,b) \
   if (duk_get_top(ctx)<a || duk_get_top(ctx)>b) \
   {duk_push_sprintf(ctx,"Error in %s expected %d..%d args, got %d",func_name,a,b,duk_get_top(ctx));\
-  duk_throw(ctx);}
+   goto fail;}
 
 #define SWIG_duk_add_function(ctx,n,f) \
   (duk_pushstring(ctx, n), \
@@ -205,6 +205,32 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 #define SWIG_duk_add_boolean(ctx,n,b) \
   (duk_push_string(ctx, n), \
   duk_push_boolean(ctx, b)
+
+/*
+			  duk_push_object(ctx);                    \
+			  duk_swap(ctx, -2, -1);                   \
+			  duk_put_prop_string(ctx, -2, "message"); \
+*/
+#define SWIG_duk_ErrorHandlerOverloading() \
+			fail:\
+			{ \
+			  if (ret == 1) {                              \
+			  duk_push_object(ctx);                    \
+			  duk_swap(ctx, -2, -1);                   \
+			  duk_put_prop_string(ctx, -2, "message"); \
+				  duk_throw(ctx);                          \
+			  }                                            \
+			  return -1;                                   \
+			} while (0)
+#define SWIG_duk_ErrorHandlerDefault() \
+			fail:\
+			{ \
+			  duk_push_object(ctx);                    \
+			  duk_swap(ctx, -2, -1);                   \
+			  duk_put_prop_string(ctx, -2, "message"); \
+			  duk_throw(ctx);                          \
+			  return -1;                               \
+			} while (0)
 
 /* special helper for allowing 'undefined' for usertypes */
 #define SWIG_isptrtype(ctx,I) SWIG_duk_isptrtype(ctx, I)
