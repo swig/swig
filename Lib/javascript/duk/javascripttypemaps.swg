@@ -39,7 +39,7 @@
 
 %typemap(out) int
 %{
-  duk_push_int(ctx, $1);
+  duk_push_int(ctx, (int)$1);
 %}
 
 %apply int {
@@ -58,7 +58,7 @@
 
 %typemap(out) double
 %{
-  duk_push_number(ctx, $1);
+  duk_push_number(ctx, (double)$1);
 %}
 
 %apply double { float }
