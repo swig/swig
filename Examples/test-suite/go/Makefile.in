@@ -33,7 +33,8 @@ abs_top_srcdir = @abs_top_srcdir@
 
 CPP_TEST_CASES = \
 	go_inout \
-	go_director_inout
+	go_director_inout \
+	go_variable_replacement
 
 MULTI_CPP_TEST_CASES = \
 	go_subdir_import
