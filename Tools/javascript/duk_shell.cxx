@@ -121,8 +121,11 @@ bool DUKShell::ExecuteScript(const std::string& source, const std::string& scrip
       std::cout << "uninitialized context" << std::endl;
       return false;
   }
-    /*void duk_eval_string(duk_context *ctx, const char *src);*/
   if (duk_peval_string(ctx,source.c_str()) != 0) {
+	  if (duk_is_object(ctx, -1)) {
+		  duk_get_prop_string(ctx, -1, "message");
+		  if (duk_is_undefined(ctx, -1)) duk_pop(ctx);
+	  }
       std::cout << "" << scriptPath << ":" << duk_safe_to_string(ctx, -1) << std::endl;
       return false;
   } else {
