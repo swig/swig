@@ -38,6 +38,7 @@ namespace std {
 %typemap(out) string
 %{ duk_push_lstring(ctx,$1.data(),$1.size());%}
 
+
 %typemap(in) const string& ($*1_ltype temp)
 %{ if (!duk_is_string(ctx, $input)) { duk_push_string(ctx,"Expected string in $input argument"); goto fail; }
    temp.assign(duk_to_string(ctx,$input),duk_get_length(ctx,$input)); $1=&temp;%}
@@ -68,14 +69,6 @@ or
 typemaps to tell SWIG what to do.
 */
 
-%typemap(in) string &INPUT=const string &;
-%typemap(in, numinputs=0) string &OUTPUT ($*1_ltype temp)
-%{ $1 = &temp; %}
-%typemap(argout) string &OUTPUT
-%{ duk_push_lstring(ctx,$1->data(),$1->size()); %}
-%typemap(in) string &INOUT =const string &;
-%typemap(argout) string &INOUT = string &OUTPUT;
-
 /*
 A really cut down version of the string class
 
@@ -87,6 +80,7 @@ note: no fn's taking the const string&
 as this is overloaded by the const char* version
 */
 
+  %naturalvar string;
   class string {
     public:
       string();
@@ -104,4 +98,3 @@ as this is overloaded by the const char* version
       // no support for all the other features
   };
 }
-
