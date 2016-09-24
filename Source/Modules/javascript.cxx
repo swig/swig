@@ -1304,7 +1304,6 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
 
   return tm;
 }
-/* FIXME: Update V8 and JSC to provide 'jsresult' as cresult arg */
 void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   String *tm;
@@ -1349,7 +1348,7 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
     }
   }
 
-  Replaceall(wrapper->code, "$result", cresult);
+  Replaceall(wrapper->code, "$result", "jsresult");
 }
 
 void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
@@ -1856,6 +1855,7 @@ protected:
   virtual int exitFunction(Node *n);
   virtual int enterClass(Node *n);
   virtual int exitClass(Node *n);
+  virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable);
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
   virtual int emitNamespaces();
@@ -1882,7 +1882,52 @@ DuktapeEmitter::~DuktapeEmitter() {
   Delete(VETO_SET);
 }
 
+void DuktapeEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
+  SwigType *type = Getattr(n, "type");
+  String *tm;
+  Parm *p;
 
+  // adds a declaration for the result variable
+  if (emitReturnVariable)
+    emit_return_variable(n, type, wrapper);
+  // if not given, use default result identifier ('result') for output typemap
+  if (cresult == 0)
+    cresult = defaultResultName;
+
+  tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
+  bool should_own = GetFlag(n, "feature:new") != 0;
+
+  if (tm) {
+    Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
+
+    if (should_own) {
+      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+    } else {
+      Replaceall(tm, "$owner", "0");
+    }
+    Append(wrapper->code, tm);
+
+    if (Len(tm) > 0) {
+      Printf(wrapper->code, "\n");
+    }
+  } else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+  }
+
+  if (params) {
+    for (p = params; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(wrapper->code, tm, "\n", NIL);
+	p = Getattr(p, "tmap:argout:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
+
+  Replaceall(wrapper->code, "$result", cresult);
+}
 
 /* ---------------------------------------------------------------------
  * marshalInputArgs()
