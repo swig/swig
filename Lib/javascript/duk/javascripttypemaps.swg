@@ -129,8 +129,9 @@
 %}
 
 
-%typemap(in) const char *, char *,  const char[ANY], char[ANY]
+%typemap(in) char *, const char[ANY], char[ANY]
 %{
+  /* char* in */
   if (!duk_is_string(ctx, $input)) {
     duk_push_string(ctx,"Expected string in $input argument");
     goto fail;
@@ -138,11 +139,13 @@
   $1 = ($ltype)duk_to_string(ctx, $input);
 %}
 
-%typemap(out) const char *, char *, const char[ANY], char[ANY]
+%typemap(out) char *, const char[ANY], char[ANY]
 %{
+  /* char* out */
   duk_push_string(ctx,(const char *)$1);
 %}
 
+%apply char * { const char * }
 /*
  * char's
  *    currently treating chars as small strings, and numbers
@@ -161,17 +164,10 @@
 
 %typemap(out) char
 %{
-  const char *str = "$1";
-  int len = strlen(str)-2;
-  char tmp[len];
-  int j = 0;
-  for(int i = 1; i < len+1;i++) {
-    tmp[j] = str[i];
-    j++;
-  }
-  tmp[j] = '\0';
-  str = (const char *)tmp;
-  duk_push_string(ctx, str);
+  char tmp[2];
+  tmp[1] = '\0';
+  tmp[0] = $1;
+  duk_push_string(ctx, tmp);
 %}
 
 /* by const ref */
