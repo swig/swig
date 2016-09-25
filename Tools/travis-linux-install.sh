@@ -44,6 +44,24 @@ case "$SWIGLANG" in
 			"v8")
 				sudo apt-get install -qq libv8-dev
 				;;
+			"duk")
+				wget http://duktape.org/duktape-1.5.1.tar.xz
+				tar -xf duktape-1.5.1.tar.xz
+				cd duktape-1.5.1
+				
+				gcc -DDUK_OPT_VERBOSE_ERRORS -DDUK_OPT_PARANOID_ERRORS \
+					-DDUK_OPT_AUGMENT_ERRORS -DDUK_OPT_NO_BUFFEROBJECT_SUPPORT \
+					-DDUK_OPT_JSON_STRINGIFY_FASTPATH -DDUK_OPT_INTERRUPT_COUNTER \
+					-DDUK_OPT_FASTINT -DDUK_OPT_DEBUG -shared -fPIC \
+					-std=c99 src/duktape.c -o libduktape.so
+				sudo cp libduktape.so /usr/local/lib
+				sudo cp libduktape.so /usr/local/lib
+				sudo cp src/duktape.h /usr/local/include
+				sudo cp src/duk_config.h /usr/local/include
+				cd ..
+				rm -rf duktape-*
+				ldconfig
+				;;
 		esac
 		;;
 	"guile")
