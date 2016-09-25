@@ -258,6 +258,7 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
   }
 */
 %{
+#include <typeinfo>
 #include <stdexcept>
 %}
 %define SWIG_CATCH_STDEXCEPT
@@ -274,6 +275,8 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
     SWIG_exception(SWIG_IndexError, e.what() );
   } catch (std::runtime_error& e) {
     SWIG_exception(SWIG_RuntimeError, e.what() );
+  } catch (std::bad_cast& e) {
+    SWIG_exception(SWIG_TypeError, e.what() );
   } catch (std::exception& e) {
     SWIG_exception(SWIG_SystemError, e.what() );
   }
