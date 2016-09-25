@@ -322,7 +322,7 @@ swig_duk_install_properties(
     duk_push_string(ctx, prop->name);
     duk_push_c_function(ctx, prop->getter, 0 /* nargs */);
     duk_push_c_function(ctx, prop->setter, 1 /* nargs */);
-    duk_def_prop(ctx,obj_idx,DUK_DEFPROP_HAVE_GETTER|DUK_DEFPROP_HAVE_SETTER|DUK_DEFPROP_HAVE_CONFIGURABLE);
+    duk_def_prop(ctx,obj_idx,DUK_DEFPROP_HAVE_GETTER|DUK_DEFPROP_HAVE_SETTER|DUK_DEFPROP_HAVE_CONFIGURABLE |  DUK_DEFPROP_CONFIGURABLE);
   }
 }
 
