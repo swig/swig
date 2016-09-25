@@ -4,8 +4,8 @@
 
 %warnfilter(SWIGWARN_PARSE_KEYWORD) delete;
 
-#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8) && !defined(SWIG_JAVASCRIPT_DUK)
-          /* Octave, Javascript/v8 and Javascript/duk compile wrappers as C++ */
+#if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8)
+          /* Octave and Javascript/v8compile wrappers as C++ */
 
 %inline %{
 struct delete {

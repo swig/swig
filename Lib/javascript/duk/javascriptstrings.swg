@@ -107,9 +107,13 @@ SWIG_duk_FromCharPtrAndSize(duk_context *ctx, const char* carray, size_t size)
 	SWIG_FromCharPtrAndSize((const char*)$1, $2);
 }
 
-%apply (char *STRING, size_t LENGTH) { (      char *STRING, int LENGTH)    }
-%apply (char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH)    }
-%apply (char *STRING, size_t LENGTH) { (const char *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (      char *STRING, int LENGTH)    ,
+                                       (const char *STRING, int LENGTH)    ,
+                                       (const char *STRING, size_t LENGTH) ,
+                                       (      void *STRING, int LENGTH)    ,
+                                       (const void *STRING, int LENGTH)    ,
+                                       (const void *STRING, size_t LENGTH) ,
+                                       (      void *STRING, size_t LENGTH) }
 
 %insert(runtime) %{
 #define SWIG_AsCharPtrAndSize(idx, cptr, psize, alloc)  SWIG_duk_AsCharPtrAndSize(ctx, idx, cptr, psize, alloc)

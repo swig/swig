@@ -375,6 +375,12 @@
 %apply const unsigned long & { const size_t & };
 
 
+%typemap(freearg) SWIGTYPE "";
+%typemap(typecheck) SWIGTYPE "";
+%typemap(freearg) char * "";
+%typemap(typecheck) char *  "";
+
+
 /* -----------------------------------------------------------------------------
  *                          Specials
  * ----------------------------------------------------------------------------- */
