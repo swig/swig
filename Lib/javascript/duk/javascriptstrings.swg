@@ -94,7 +94,7 @@ SWIG_duk_FromCharPtrAndSize(duk_context *ctx, const char* carray, size_t size)
 }
 
 
-%typemap(in,fragment="SWIG_AsCharPtrAndSize") (char *STRING, size_t LENGTH) {
+%typemap(in,fragment="SWIG_AsCharPtrAndSize") (char *STRING, size_t SIZE) {
   {
 	  if (SWIG_AsCharPtrAndSize($input, (char**)&$1, (size_t*)&$2, NULL) != SWIG_OK) {
 			duk_push_string(ctx, "Expected binary string in $input");
@@ -103,17 +103,17 @@ SWIG_duk_FromCharPtrAndSize(duk_context *ctx, const char* carray, size_t size)
   }
 }
 
-%typemap(out, fragment="SWIG_FromCharPtrAndSize") (char *STRING, size_t LENGTH) {
+%typemap(out, fragment="SWIG_FromCharPtrAndSize") (char *STRING, size_t SIZE) {
 	SWIG_FromCharPtrAndSize((const char*)$1, $2);
 }
 
-%apply (char *STRING, size_t LENGTH) { (      char *STRING, int LENGTH)    ,
-                                       (const char *STRING, int LENGTH)    ,
-                                       (const char *STRING, size_t LENGTH) ,
-                                       (      void *STRING, int LENGTH)    ,
-                                       (const void *STRING, int LENGTH)    ,
-                                       (const void *STRING, size_t LENGTH) ,
-                                       (      void *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t SIZE) { (      char *STRING, int SIZE)    ,
+                                       (const char *STRING, int SIZE)    ,
+                                       (const char *STRING, size_t SIZE) ,
+                                       (      void *STRING, int SIZE)    ,
+                                       (const void *STRING, int SIZE)    ,
+                                       (const void *STRING, size_t SIZE) ,
+                                       (      void *STRING, size_t SIZE) }
 
 %insert(runtime) %{
 #define SWIG_AsCharPtrAndSize(idx, cptr, psize, alloc)  SWIG_duk_AsCharPtrAndSize(ctx, idx, cptr, psize, alloc)

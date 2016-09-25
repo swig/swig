@@ -15,6 +15,7 @@
 %include <javascriptcode.swg>
 %include <javascriptinit.swg>
 
+#define %set_output(obj) (void)obj
 /* -----------------------------------------------------------------------------
  *                          constants typemaps
  * ----------------------------------------------------------------------------- */
