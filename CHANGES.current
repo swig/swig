@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-24: olly
+            [PHP] Fix code generated for feature("director:except") -
+            previously the return value of call_user_function() was ignored and
+            we checked an uninitialised value instead.  Fixes #627.  Based on
+            patch from Sergey Seroshtan.
+
 2016-09-17: wsfulton
             [Python] Fix iterators for containers of NULL pointers (or Python None) when using
             -builtin. Previously iteration would stop at the first element that was NULL.

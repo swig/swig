@@ -2625,6 +2625,7 @@ done:
       }
 
       /* exception handling */
+      bool error_used_in_typemap = false;
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
 	tm = Getattr(n, "feature:director:except");
@@ -2634,6 +2635,7 @@ done:
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
 	if (Replaceall(tm, "$error", "error")) {
 	  /* Only declare error if it is used by the typemap. */
+	  error_used_in_typemap = true;
 	  Append(w->code, "int error;\n");
 	}
       } else {
@@ -2657,6 +2659,9 @@ done:
       /* wrap complex arguments to zvals */
       Printv(w->code, wrap_args, NIL);
 
+      if (error_used_in_typemap) {
+	Append(w->code, "error = ");
+      }
       Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,");
       Printf(w->code, " %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
