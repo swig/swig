@@ -18,7 +18,7 @@
 
 /* Include fundamental fragemt definitions */
 %include <typemaps/fragments.swg>
-/* Javascript fragments for char* strings (hypothetically) */
+/* Javascript fragments for char* strings */
 %include <javascriptstrings.swg>
 /* Look for user fragments file. */
 %include <javascriptfragments.swg>
@@ -129,21 +129,18 @@
 %}
 
 
-%typemap(in) char *, const char[ANY], char[ANY]
-%{
-  /* char* in */
-  if (!duk_is_string(ctx, $input)) {
-    duk_push_string(ctx,"Expected string in $input argument");
-    goto fail;
+%typemap(in,fragment="SWIG_AsCharPtrAndSize") char *, const char[ANY], char[ANY] {
+  {
+	  if (SWIG_AsCharPtrAndSize($input, (char**)&$1, NULL, NULL) != SWIG_OK) {
+			duk_push_string(ctx, "Expected string in $input");
+			goto fail;
+	  }
   }
-  $1 = ($ltype)duk_to_string(ctx, $input);
-%}
+}
 
-%typemap(out) char *, const char[ANY], char[ANY]
-%{
-  /* char* out */
-  duk_push_string(ctx,(const char *)$1);
-%}
+%typemap(out, fragment="SWIG_FromCharPtrAndSize") char *, const char[ANY], char[ANY] {
+	SWIG_FromCharPtrAndSize((const char*)$1, strlen((const char*)$1));
+}
 
 %apply char * { const char * }
 /*
@@ -393,3 +390,7 @@
   }
 %}
 #endif
+
+/* Include the unified typemap library */
+//%include <typemaps/swigtypemaps.swg>
+/* Lots of "proper" typemaps come from this place, we simply adapt those to Duktape's stack */
