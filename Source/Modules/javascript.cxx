@@ -580,10 +580,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       emitter = swig_javascript_create_DuktapeEmitter();
       Preprocessor_define("SWIG_JAVASCRIPT_DUK 1", 0);
       SWIG_library_directory("javascript/duk");
-      // We only generate C++ code so output must be C++ compatibile even when wrapping C code
-      if (!cparse_cplusplus) {
-	Swig_cparse_cplusplusout(1);
-      }
       break;
     }
   case JSEmitter::NodeJS:

@@ -47,7 +47,7 @@
 %}
 
 %apply int {
-  short, long, signed char, unsigned int, unsigned short,
+  short, long, signed char, unsigned int, unsigned short, long long, unsigned long long,
   unsigned long, unsigned char, enum SWIGTYPE
 }
 
@@ -97,6 +97,8 @@
   const unsigned short&,
   const unsigned long&,
   const unsigned char&,
+  const long long&,
+  const unsigned long long,
   enum SIGTYPE &,
   enum SIGTYPE&&,
   const enum SIGTYPE&,
