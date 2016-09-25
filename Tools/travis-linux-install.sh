@@ -60,7 +60,7 @@ case "$SWIGLANG" in
 				sudo cp src/duk_config.h /usr/local/include
 				cd ..
 				rm -rf duktape-*
-				ldconfig
+				sudo ldconfig
 				;;
 		esac
 		;;
