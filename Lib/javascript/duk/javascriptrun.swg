@@ -171,9 +171,10 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 /* Runtime API */
 #define SWIG_MODULE_CLIENTDATA_TYPE duk_context*
 
-/* Contract support */
-#define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { duk_push_string(ctx, (char *) msg); goto fail; } else
+/* Contract support (defined on std_except in C++ mode) */
+#ifndef __cplusplus
+#define SWIG_contract_assert(expr, msg)  if (!(expr)) { duk_push_string(ctx, (char *) msg); goto fail; } else
+#endif
 
 /* helper #defines */
 #define SWIG_Error(code,msg) { duk_push_sprintf(ctx, "%s", msg); goto fail; }
