@@ -23,6 +23,10 @@
 /* Look for user fragments file. */
 %include <javascriptfragments.swg>
 
+/* we should conditionally exclude if it we're on C mode (which should be after we enable it, as we're in some weird mode currently */
+%include <typemaps/std_except.swg>
+
+
 /* ------------------------------------------------------------
  *  Unified typemap section
  * ------------------------------------------------------------ */
