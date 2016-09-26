@@ -2522,6 +2522,9 @@ public:
 
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
 
+    /* Avoid warning if the self parameter is not used.  */
+    Append(f->code, "(void) self;\n");
+
     Wrapper_add_local(f, "argc", "Py_ssize_t argc");
     Printf(tmp, "PyObject *argv[%d] = {0}", maxargs + 1);
     Wrapper_add_local(f, "argv", tmp);
@@ -2746,6 +2749,12 @@ public:
       }
       Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args, PyObject *kwargs) {", NIL);
     }
+
+    /* Avoid warning if the self parameter is not used.  */
+    Append(f->code, "(void) ");
+    Append(f->code, self_param);
+    Append(f->code, ";\n");
+
     if (!builtin || !in_class || tuple_arguments > 0) {
       if (!allow_kwargs) {
 	Append(parse_args, "    if (!PyArg_ParseTuple(args,(char *)\"");
