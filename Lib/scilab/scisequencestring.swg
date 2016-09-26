@@ -1,5 +1,5 @@
 /*
- *char
+ *
  * Scilab matrix of string <-> C++ std::string container
  *
  */
@@ -88,7 +88,7 @@ SWIG_AsVal_SequenceItem_dec(std::string)(SwigSciObject obj, char **pSequence, in
 
 SWIGINTERN int
 SWIG_From_SequenceItem_dec(std::string)(char **pSequence, int iItemIndex, std::string itemValue) {
-  char *pChar = new char(itemValue.size() + 1);
+  char *pChar = new char((int) itemValue.size() + 1);
   strcpy(pChar, itemValue.c_str());
   pSequence[iItemIndex] = pChar;
   return SWIG_OK;
