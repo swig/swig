@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-26: smarchetto
+            [Scilab] mlists that map pointers can be given a custom type name.
+
 2016-09-25: wsfulton
             Patch #793 from q-p to expand exception handling to include std::bad_cast
             in std_except.i.
