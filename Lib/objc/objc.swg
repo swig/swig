@@ -185,25 +185,32 @@
 }
 
 // Objects passed by value: convert from a pointer to the C++ value object.
-%typemap(in) SWIGTYPE ($&1_type argp)	
-%{ 
-  argp = ($&1_ltype)$input;
-  $1 = *argp; 
-%}
+%typemap(in) SWIGTYPE ($&1_type argp)
+%{ argp = ($&1_ltype)$input;
+   if (!argp) {
+     SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "$1_type is null");
+     return $null;
+   }
+   $1 = *argp; %}
 
 %typemap(directorout) SWIGTYPE ($&1_type argp)
-%{
-  argp = *($&1_ltype*)&$input; 
-  $result = *argp;
-%}
+%{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
+     SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "Unexpected null return for type $1_type");
+     return $null;
+   }
+   $result = *argp; %}
 
 // C/C++ Pointers, primary and object, are treated as pointers in ObjectiveC++
 %typemap(in) SWIGTYPE *
 %{ $1 = ($1_ltype)$input; %}
    
 // Object References
-%typemap(in) SWIGTYPE &
-%{ $1 = ($1_ltype)$input; %}
+%typemap(in) SWIGTYPE & %{ $1 = ($1_ltype)$input;
+  if (!$1) {
+    SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "$1_type reference is null");
+    return $null;
+  } %}
 
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
