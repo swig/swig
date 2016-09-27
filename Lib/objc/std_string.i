@@ -27,9 +27,7 @@ class string;
 %typemap(in) string 
 %{
     if(!$input) {
-        NSException* anException = [NSException exceptionWithName:@"NullPointerException"
-                                                           reason:@"null std::string" userInfo:nil];
-        @throw anException;
+        SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "null string");
     } else {
         $1.assign([$input UTF8String]);
     }
@@ -37,9 +35,7 @@ class string;
 %typemap(directorout) string 
 %{
     if(!$input) {
-        NSException* anException = [NSException exceptionWithName:@"NullPointerException"
-                                                           reason:@"null std::string" userInfo:nil];
-        @throw anException;
+        SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "Unexpected null string");
     } else {
         $result.assign([$input UTF8String]);
     }
@@ -66,9 +62,7 @@ class string;
 %{
     std::string $1_str;
     if(!$input) {
-        NSException* anException = [NSException exceptionWithName:@"NullPointerException"
-        reason:@"null std::string" userInfo:nil];
-        @throw anException;
+        SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "null string reference");
     } else {
         $1_str.assign([$input UTF8String]);
         $1 = &$1_str;
@@ -78,9 +72,7 @@ class string;
 %{
     std::string $1_str;
     if(!$input) {
-        NSException* anException = [NSException exceptionWithName:@"NullPointerException"
-        reason:@"null std::string" userInfo:nil];
-        @throw anException;
+        SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "Unexpected null string reference");
     } else {
         $1_str.assign([$input UTF8String]);
         $result = &$1_str;

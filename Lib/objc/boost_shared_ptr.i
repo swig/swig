@@ -12,6 +12,10 @@
 //plain value
 %typemap(in) CONST TYPE ($&1_type argp = 0) %{
   argp = ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input) ? ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input)->get() : 0;
+  if (!argp) {
+    SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "Attempt to dereference null $1_type");
+    return $null;
+  }
   $1 = *argp; %}
 
 %typemap(out) CONST TYPE
@@ -29,7 +33,10 @@
 // plain reference
 %typemap(in) CONST TYPE & %{
   $1 = ($1_ltype)(((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input) ? ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input)->get() : 0);
-  %}
+  if (!$1) {
+    SWIG_ObjcThrowException(SWIG_ObjcNullPointerException, "$1_type reference is null");
+    return $null;
+  } %}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE &
 %{ $result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner); %}
 
