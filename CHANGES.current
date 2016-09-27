@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-27: dontpanic92
+            [Go] Fix argument names in inherited functions taking more than 8
+            parameters.  Fixes #795.
+
 2016-09-26: smarchetto
             [Scilab] mlists that map pointers can be given a custom type name.
 
