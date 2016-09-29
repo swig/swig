@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-29: wsfulton
+            [Allegrocl, CFFI, GO, Javascript, Ocaml, R, Scilab]
+            Add missing support for the "ret" typemap in a few target languages.
+            The documentation also now has info on the "ret" typemap.
+
 2016-09-27: ahmed-usman
             [xml] Handle template parameters correctly.
 

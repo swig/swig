@@ -63,6 +63,7 @@
 <li><a href="#Typemaps_nn32">"argout" typemap</a>
 <li><a href="#Typemaps_nn33">"freearg" typemap</a>
 <li><a href="#Typemaps_nn34">"newfree" typemap</a>
+<li><a href="#Typemaps_ret">"ret" typemap</a>
 <li><a href="#Typemaps_nn35">"memberin" typemap</a>
 <li><a href="#Typemaps_nn36">"varin" typemap</a>
 <li><a href="#Typemaps_nn37">"varout" typemap</a>
@@ -2802,7 +2803,46 @@ string *foo();
 See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for further details.
 </p>
 
-<H3><a name="Typemaps_nn35">11.5.10 "memberin" typemap</a></H3>
+<H3><a name="Typemaps_ret">11.5.10 "ret" typemap</a></H3>
+
+
+<p>
+The "ret" typemap is not used very often, but can be useful for anything associated with
+the return type, such as resource management, return value error checking, etc.
+Usually this can all be done in the "out" typemap, but sometimes it is handy to use the
+"out" typemap code untouched and add to the generated code using the code in the "ret" typemap.
+One such case is memory clean up. For example, a <tt>stringheap_t</tt> type is defined indicating
+that the returned memory must be deleted and a <tt>string_t</tt> type is defined indicating
+that the returned memory must not be deleted.
+</p>
+
+<div class="code">
+<pre>
+%typemap(ret) stringheap_t %{
+  free($1);
+%}
+
+typedef char * string_t;
+typedef char * stringheap_t;
+
+string_t MakeString1();
+stringheap_t MakeString2();
+</pre>
+</div>
+
+<p>
+The "ret" typemap above will only be used for <tt>MakeString2</tt>, but both functions
+will use the default "out" typemap for <tt>char *</tt> provided by SWIG.
+The code above would ensure the appropriate memory is freed in all target languages as the need
+to provide custom "out" typemaps (which involve target language specific code) is not necessary.
+</p>
+
+<p>
+This approach is an alternative to using the "newfree" typemap and <tt>%newobject</tt> as there
+is no need to list all the functions that require the memory cleanup, it is purely done on types.
+</p>
+
+<H3><a name="Typemaps_nn35">11.5.11 "memberin" typemap</a></H3>
 
 
 <p>
@@ -2824,7 +2864,7 @@ It is rarely necessary to write "memberin" typemaps---SWIG already provides
 a default implementation for arrays, strings, and other objects.
 </p>
 
-<H3><a name="Typemaps_nn36">11.5.11 "varin" typemap</a></H3>
+<H3><a name="Typemaps_nn36">11.5.12 "varin" typemap</a></H3>
 
 
 <p>
@@ -2832,7 +2872,7 @@ The "varin" typemap is used to convert objects in the target language to C for t
 purposes of assigning to a C/C++ global variable.    This is implementation specific.
 </p>
 
-<H3><a name="Typemaps_nn37">11.5.12 "varout" typemap</a></H3>
+<H3><a name="Typemaps_nn37">11.5.13 "varout" typemap</a></H3>
 
 
 <p>
@@ -2840,7 +2880,7 @@ The "varout" typemap is used to convert a C/C++ object to an object in the targe
 language when reading a C/C++ global variable.  This is implementation specific.
 </p>
 
-<H3><a name="throws_typemap">11.5.13 "throws" typemap</a></H3>
+<H3><a name="throws_typemap">11.5.14 "throws" typemap</a></H3>
 
 
 <p>

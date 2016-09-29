@@ -1354,6 +1354,11 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
     }
   }
 
+  /* See if there is any return cleanup code */
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Printf(wrapper->code, "%s\n", tm);
+    Delete(tm);
+  }
 }
 
 int JSEmitter::switchNamespace(Node *n) {
