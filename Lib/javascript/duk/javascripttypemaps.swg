@@ -47,8 +47,16 @@
 %}
 
 %apply int {
-  short, long, signed char, unsigned int, unsigned short, long long, unsigned long long,
-  unsigned long, unsigned char, enum SWIGTYPE
+  short,
+  long,
+  signed char,
+  unsigned int,
+  unsigned short,
+  long long,
+  unsigned long long,
+  unsigned long,
+  unsigned char,
+  enum SWIGTYPE
 }
 
 %typemap(in) double
@@ -85,7 +93,9 @@
 %}
 
 %typemap(out) const int&
-%{duk_push_int(ctx, *$1); %}
+%{
+  duk_push_int(ctx, *$1);
+%}
 
 /* for the other numbers we can just use an apply statement to cover them */
 %apply const int & {
@@ -402,7 +412,3 @@
   }
 %}
 #endif
-
-/* Include the unified typemap library */
-//%include <typemaps/swigtypemaps.swg>
-/* Lots of "proper" typemaps come from this place, we simply adapt those to Duktape's stack */

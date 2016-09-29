@@ -50,10 +50,16 @@ namespace std {
 // for throwing of any kind of string, string ref's and string pointers
 // we convert all to Duktape strings
 %typemap(throws) string, string&, const string&
-%{ duk_push_lstring(ctx,$1.data(),$1.size()); %}
+%{
+  duk_push_lstring(ctx,$1.data(),$1.size());
+  duk_throw(ctx);
+%}
 
 %typemap(throws) string*, const string*
-%{ duk_push_lstring(ctx,$1->data(),$1->size()); %}
+%{
+  duk_push_lstring(ctx,$1->data(),$1->size());
+  duk_throw(ctx);
+%}
 
 /*
 std::string& can be wrapped, but you must inform SWIG if it is in or out

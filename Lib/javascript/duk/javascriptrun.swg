@@ -172,7 +172,7 @@ SWIGRUNTIME duk_function_list_entry _SwigObject_functions[] = {
 #define SWIG_MODULE_CLIENTDATA_TYPE duk_context*
 
 /* Contract support (defined on std_except in C++ mode) */
-#ifndef __cplusplus
+#if !defined(__cplusplus) && !defined(SWIG_contract_assert)
 #define SWIG_contract_assert(expr, msg)  if (!(expr)) { duk_push_string(ctx, (char *) msg); goto fail; } else
 #endif
 
@@ -314,8 +314,9 @@ swig_duk_install_properties(
   swig_duk_property *properties)
 {
   assert(duk_is_object(ctx, obj_idx)); /* This better be the right object! */
+  swig_duk_property *prop = NULL;
   /* The target object is on top of the value stack after each iteration. */
-  for(swig_duk_property *prop = properties; (*prop).name != NULL; prop++) {
+  for(prop = properties; (*prop).name != NULL; prop++) {
     #ifdef SWIGRUNTIME_DEBUG
     printf("Installing property: %s\n", prop->name);
     #endif
