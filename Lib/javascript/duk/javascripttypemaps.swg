@@ -108,6 +108,7 @@
   const unsigned long&,
   const unsigned char&,
   const long long&,
+  unsigned int const &,
   const unsigned long long,
   enum SIGTYPE &,
   enum SIGTYPE&&,
