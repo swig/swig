@@ -163,7 +163,19 @@ SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
   Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
 }
 
+/* Module initialization */
+
+static int swig_module_initialized = 0;
+
+SWIGRUNTIME int
+SWIG_Module_Initialized() {
+  return swig_module_initialized;
+}
+
 /* Pointer conversion functions */
+
+SWIGRUNTIME swig_type_info *
+SWIG_Scilab_TypeQuery(const char *name);
 
 SWIGINTERN int
 SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *fname) {
