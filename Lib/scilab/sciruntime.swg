@@ -1,29 +1,27 @@
 %insert(runtime) "swigrun.swg";
 %insert(runtime) "swigerrors.swg";
 
-#define %scilabcode %insert("scilab")
-
 %insert(runtime) "scirun.swg";
 
-%init %{
+%insert(init) %{
+/* Module management functions */
+
 #define SWIG_GetModule(clientdata) SWIG_Scilab_GetModule()
 #define SWIG_SetModule(clientdata, pointer) SWIG_Scilab_SetModule(pointer)
 
 SWIGRUNTIME swig_module_info*
-SWIG_Scilab_GetModule(void)
-{
+SWIG_Scilab_GetModule(void) {
   return NULL;
 }
 
 SWIGRUNTIME void
-SWIG_Scilab_SetModule(swig_module_info *swig_module)
-{
+SWIG_Scilab_SetModule(swig_module_info *swig_module) {
 }
 %}
 
 %insert(init) "swiginit.swg"
 
-%init %{
+%insert(init) %{
 #ifdef __cplusplus
 extern "C"
 #endif
