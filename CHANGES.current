@@ -5,6 +5,129 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-09-29: wsfulton
+            [Allegrocl, CFFI, GO, Javascript, Ocaml, R, Scilab]
+            Add missing support for the "ret" typemap in a few target languages.
+            The documentation also now has info on the "ret" typemap.
+
+2016-09-27: ahmed-usman
+            [xml] Handle template parameters correctly.
+
+2016-09-27: dontpanic92
+            [Go] Fix argument names in inherited functions taking more than 8
+            parameters.  Fixes #795.
+
+2016-09-26: smarchetto
+            [Scilab] mlists that map pointers can be given a custom type name.
+
+2016-09-25: wsfulton
+            Patch #793 from q-p to expand exception handling to include std::bad_cast
+            in std_except.i.
+
+2016-09-24: olly
+            [PHP] Fix code generated for feature("director:except") -
+            previously the return value of call_user_function() was ignored and
+            we checked an uninitialised value instead.  Fixes #627.  Based on
+            patch from Sergey Seroshtan.
+
+2016-09-22: wsfulton
+            [Python] More flexible python builtin slots for overloaded C++ function.
+
+            The closure names used for builtin slots are mangled with their functype so
+            that overloaded C++ method names can be used for multiple slots.
+            For example:
+
+              %feature("python:slot", "mp_subscript", functype="binaryfunc") SimpleArray::__getitem__;
+              %feature("python:slot", "sq_item", functype="ssizeargfunc") SimpleArray::__getitem__(Py_ssize_t n);
+
+            will generate closures:
+
+              SWIGPY_SSIZEARGFUNC_CLOSURE(_wrap_SimpleArray___getitem__) /* defines _wrap_SimpleArray___getitem___ssizeargfunc_closure */
+              SWIGPY_BINARYFUNC_CLOSURE(_wrap_SimpleArray___getitem__) /* defines _wrap_SimpleArray___getitem___binaryfunc_closure */
+
+            Previously only one name was defined: _wrap_SimpleArray___getitem___closure.
+            Hence the overloaded __getitem__ method can be used to support both mp_subscript and sq_item slots.
+
+2016-09-17: wsfulton
+            [Python] Fix iterators for containers of NULL pointers (or Python None) when using
+            -builtin. Previously iteration would stop at the first element that was NULL.
+
+2016-09-16: olly
+            [Javascript] Fix SWIG_exception() macro to return from the current
+            function.  Fixes #789, reported by Julien Dutriaux.
+
+2016-09-16: olly
+            [PHP] Fix SWIG_exception() macro to return from the current function.
+            Fixes #240, reported by Sergey Seroshtan.
+
+2016-09-12: xypron
+            [C#] Patch #786 Keyword rename to be CLS compliant by adding an underscore
+            suffix instead of an underscore suffix to the C symbol name. Please use an explicit
+            %rename to rename the symbol with a _ prefix if you want the old symbol name.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2016-09-09: olly
+            [Python] Fix import handling for Python 2.6 to work in a frozen
+            application.  Fixes #145, reported by Thomas Kluyver.
+
+2016-09-02: smarchetto
+            [Scilab] Pointers are mapped to mlist instead of tlist
+            (mlist better for scilab overloading)
+
+2016-09-02: olly
+            [PHP] Fix "out" typemap for member function pointers and "in"
+            typemap for char INPUT[ANY].
+
+2016-09-01: wsfulton
+            [Python] More efficient Python slicing.
+            Call reserve for container types that support it to avoid repeated
+            memory reallocations for new slices or slices that grow in size.
+
+2016-09-01: wsfulton
+            [Python] #771 - Make builtin types hashable by default.
+            Default hash is the underlying C/C++ pointer. This matches up with testing for
+            equivalence (Py_EQ in SwigPyObject_richcompare) which compares the pointers.
+
+2016-08-22: wsfulton
+            [Python] The following builtin slots can be customized like other slots via the
+            "python:<x>" and "python:slot" features where <x> is the appropriate slot name:
+              tp_allocs
+              tp_bases
+              tp_basicsize
+              tp_cache
+              tp_del
+              tp_dealloc
+              tp_flags
+              tp_frees
+              tp_getset
+              tp_is_gc
+              tp_maxalloc
+              tp_methods
+              tp_mro
+              tp_new
+              tp_next
+              tp_prev
+              tp_richcompare
+              tp_subclasses
+              tp_weaklist
+              was_sq_ass_slice
+              was_sq_slice
+
+            A few documentation improvements for slot customization.
+
+2016-08-09: joequant
+            [R] Patch #765 Fix extern "C" header includes for C++ code.
+
+2016-08-05: olly
+            [xml] Fix how the output filename is built to avoid problems when
+            it contains the embedded strings ".c", ".cpp" or ".cxx".
+            Fixes #540 reported by djack42.
+
+2016-07-01: wsfulton
+            Fix corner case of wrapping std::vector of T pointers where a pointer to a pointer of T
+            also exists in the wrapped code. SF Bug 2359417 (967).
+
 2016-06-26: wkalinin
             [Java, C#] Patch #681 Fix seg fault when ignoring nested classes.
 

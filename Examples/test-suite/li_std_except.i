@@ -24,6 +24,7 @@
     int foo3() throw(E1) { return 0; }
     int foo4() throw(E2) { return 0; }
     // all the STL exceptions...
+    void throw_bad_cast()         throw(std::bad_cast)          { throw std::bad_cast(); }
     void throw_bad_exception()    throw(std::bad_exception)     { throw std::bad_exception(); }
     void throw_domain_error()     throw(std::domain_error)      { throw std::domain_error("oops"); }
     void throw_exception()        throw(std::exception)         { throw std::exception(); }

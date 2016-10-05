@@ -17,6 +17,13 @@
     }
 
     template <class K, class T>
+    struct traits_reserve<std::unordered_multimap<K,T> >  {
+      static void reserve(std::unordered_multimap<K,T> &seq, typename std::unordered_multimap<K,T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class K, class T>
     struct traits_asptr<std::unordered_multimap<K,T> >  {
       typedef std::unordered_multimap<K,T> unordered_multimap_type;
       static int asptr(PyObject *obj, std::unordered_multimap<K,T> **val) {
@@ -26,7 +33,8 @@
 	  return traits_asptr_stdseq<std::unordered_multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  unordered_multimap_type *p;
-	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<unordered_multimap_type>(),0);
+	  swig_type_info *descriptor = swig::type_info<unordered_multimap_type>();
+	  res = descriptor ? SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0) : SWIG_ERROR;
 	  if (SWIG_IsOK(res) && val)  *val = p;
 	}
 	return res;

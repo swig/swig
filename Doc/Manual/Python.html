@@ -51,7 +51,7 @@
 <li><a href="#Python_builtin_types">Built-in Types</a>
 <ul>
 <li><a href="#Python_builtin_limitations">Limitations</a>
-<li><a href="#Python_builtin_overloads">Operator overloads -- use them!</a>
+<li><a href="#Python_builtin_overloads">Operator overloads and slots -- use them!</a>
 </ul>
 <li><a href="#Python_nn30">Memory management</a>
 <li><a href="#Python_nn31">Python 2.2 and classic classes</a>
@@ -2442,7 +2442,7 @@ assert(issubclass(B.Derived, A.Base))
 </li>
 </ul>
 
-<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads -- use them!</a></H4>
+<H4><a name="Python_builtin_overloads">36.4.2.2 Operator overloads and slots -- use them!</a></H4>
 
 
 <p>The entire justification for the <tt>-builtin</tt> option is improved
@@ -2494,52 +2494,110 @@ automatically converted to python slot operators, refer to the file
 <tt>python/pyopers.swig</tt> in the SWIG library.
 </p>
 
-<p>There are other very useful python slots that you
-may explicitly define using <tt>%feature</tt> directives.  For example,
-suppose you want to use instances of a wrapped class as keys in a native python
-<tt>dict</tt>.  That will work as long as you define a hash function for
-instances of your class, and use it to define the python <tt>tp_hash</tt>
-slot:
+
+<p>
+Read about all of the available python slots here:
+<a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
+
+<p>
+There are two ways to define a python slot function: dispatch to a
+statically defined function; or dispatch to a method defined on the
+operand.
+</p>
+
+<p>
+To dispatch to a statically defined function, use %feature("python:&lt;slot&gt;"),
+where &lt;slot&gt; is the name of a field in a <tt>PyTypeObject, PyNumberMethods,
+PyMappingMethods, PySequenceMethods</tt> or <tt>PyBufferProcs</tt>.
+You may override (almost) all of these slots.
+</p>
+
+
+<p>
+Let's consider an example setting the <tt>tp_hash</tt> slot for the <tt>MyClass</tt> type.
+This is akin to providing a <tt>__hash__</tt> method (for non-builtin types) to make a type hashable.
+The hashable type can then for example be added to a Python <tt>dict</tt>.
 </p>
 
 <div class="code">
 <pre>
-%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+%feature("python:tp_hash") MyClass "myHashFunc";
 
-class Cheese {
+class MyClass {
 public:
-    Cheese (const char *name);
-    long cheeseHashFunc () const;
+  long field1;
+  long field2;
+  ...
+};
+
+%{
+#if PY_VERSION_HEX &gt;= 0x03020000
+  static Py_hash_t myHashFunc(PyObject *pyobj)
+#else
+  static long myHashFunc(PyObject *pyobj)
+#endif
+  {
+    MyClass *cobj;
+    // Convert pyobj to cobj
+    return (cobj-&gt;field1 * (cobj-&gt;field2 &lt;&lt; 7));
+  }
+%}
+</pre>
+</div>
+
+<p>
+If you examine the generated code, the supplied hash function will now be 
+the function callback in the tp_hash slot for the builtin type for <tt>MyClass</tt>:
+</p>
+
+<div class="code">
+<pre>
+static PyHeapTypeObject SwigPyBuiltin__MyClass_type = {
+    ...
+    (hashfunc) myHashFunc,       /* tp_hash */
+    ...
+</pre>
+</div>
+
+<p>
+NOTE: It is the responsibility of the programmer (that's you!) to ensure
+that a statically defined slot function has the correct signature, the <tt>hashfunc</tt>
+typedef in this case.
+</p>
+
+<p>
+If, instead, you want to dispatch to an instance method, you can
+use %feature("python:slot").  For example:
+</p>
+
+<div class="code">
+<pre>
+%feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
+#if PY_VERSION_HEX &lt; 0x03020000
+  #define Py_hash_t long
+#endif
+
+class MyClass {
+  public:
+    Py_hash_t myHashFunc() const;
+    ...
 };
 </pre>
 </div>
 
-<p>This will allow you to write python code like this:</p>
+<p>
+NOTE: Some python slots use a method signature which does not
+match the signature of SWIG-wrapped methods.  For those slots,
+SWIG will automatically generate a "closure" function to re-marshal
+the arguments before dispatching to the wrapped method.  Setting
+the "functype" attribute of the feature enables SWIG to generate
+the chosen closure function.
+</p>
 
-<div class="targetlang">
-<pre>
-from my MyPackage import Cheese
-
-inventory = {
-    Cheese("cheddar") : 0,
-    Cheese("gouda") : 0,
-    Cheese("camembert") : 0
-}
-</pre>
-</div>
-
-<p>Because you defined the <tt>tp_hash</tt> slot, <tt>Cheese</tt> objects may
-be used as hash keys; and when the <tt>cheeseHashFunc</tt> method is invoked
-by a python <tt>dict</tt>, it will <b>not</b> go through named method dispatch.
-A more detailed discussion about <tt>%feature("python:slot")</tt> can be found
+<p>
+There is further information on <tt>%feature("python:slot")</tt>
 in the file <tt>python/pyopers.swig</tt> in the SWIG library.
-You can read about all of the available python slots here:</p>
-
-<p><a href="http://docs.python.org/c-api/typeobj.html">http://docs.python.org/c-api/typeobj.html</a></p>
-
-<p>You may override (almost) all of the slots defined in the <tt>PyTypeObject,
-PyNumberMethods, PyMappingMethods, PySequenceMethods</tt>, and <tt>PyBufferProcs</tt>
-structs.
 </p>
 
 

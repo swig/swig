@@ -464,8 +464,7 @@ namespace swig
   %typemap(in,noblock=1,fragment="RubySequence_Cont")
     const_iterator(swig::ConstIterator *iter = 0, int res),
     const_reverse_iterator(swig::ConstIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter),
-			  swig::ConstIterator::descriptor(), 0);
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::ConstIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
@@ -497,16 +496,14 @@ namespace swig
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="RubySequence_Cont")
     const_iterator, const_reverse_iterator {
     swig::ConstIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
-			      swig::ConstIterator::descriptor(), 0);
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::ConstIterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::ConstIterator_T<$type > *>(iter) != 0));
   }
 
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="RubySequence_Cont")
     iterator, reverse_iterator {
     swig::ConstIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), 
-			      swig::Iterator::descriptor(), 0);
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::Iterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::Iterator_T<$type > *>(iter) != 0));
   }
 
@@ -1037,8 +1034,8 @@ namespace swig {
 	}
       } else {
 	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	swig_type_info *descriptor = swig::type_info<sequence>();
+	if (descriptor && SWIG_IsOK(SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}
@@ -1077,8 +1074,8 @@ namespace swig {
 	}
       } else {
 	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
+	swig_type_info *descriptor = swig::type_info<sequence>();
+	if (descriptor && SWIG_IsOK(SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {
 	  if (seq) *seq = p;
 	  return SWIG_OLDOBJ;
 	}

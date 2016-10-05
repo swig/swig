@@ -120,7 +120,7 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -142,10 +142,10 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     if (descriptor) {
       swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info*)pvTypeinfo), descriptor);
       return (cast != NULL);
-    } 
+    }
     else {
       return SWIG_ERROR;
-    }    
+    }
   }
   else {
     return (iType == sci_pointer);
@@ -171,7 +171,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -232,34 +232,36 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
 }
 
 SWIGRUNTIMEINLINE int
-SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info *descriptor, int flags) {
+SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info *descriptor, int flags, const char *pstTypeName) {
   SciErr sciErr;
 
   if (descriptor) {
-    int *piTListAddr = NULL;
-    const char *pstString;
+    int *piMListAddr = NULL;
 
-    sciErr = createTList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piTListAddr);
+    sciErr = createMList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piMListAddr);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    pstString = SWIG_TypeName(descriptor);
-    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 1, 1, 1, &pstString);
+    if (pstTypeName == NULL) {
+       pstTypeName = SWIG_TypeName(descriptor);
+    }
+
+    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 1, 1, 1, &pstTypeName);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 2, descriptor);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 2, descriptor);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 3, pvObj);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 3, pvObj);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -451,7 +453,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     }
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0));
+      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0, NULL));
   }
   else {
     return SWIG_ERROR;

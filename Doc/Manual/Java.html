@@ -3359,20 +3359,20 @@ There is more than one macro in order to provide a choice for choosing the Java 
 </tr>
 <tr>
   <td><tt>%interface(CTYPE)</tt></td>
-  <td>Proxy class name is unchanged, interface name has <tt>SwigInterface</tt> added as a suffix for C++ class <tt>CTYPE</tt>.</td>
+  <td>For C++ class <tt>CTYPE</tt>, proxy class name is unchanged without any suffix added, interface name has <tt>SwigInterface</tt> added as a suffix.</td>
 </tr>
 <tr>
   <td><tt>%interface_impl(CTYPE)</tt></td>
-  <td>Proxy class name has <tt>SwigImpl</tt> as a suffix, interface name has <tt>SwigInterface</tt> added as a suffix for C++ class <tt>CTYPE</tt>.</td>
+  <td>For C++ class <tt>CTYPE</tt>, proxy class name has <tt>SwigImpl</tt> added as a suffix, interface name has no added suffix.</td>
 </tr>
 <tr>
   <td><tt>%interface_custom("PROXY", "INTERFACE", CTYPE)</tt></td>
-  <td>Proxy class name is given by the string <tt>PROXY</tt>, interface name is given by the string <tt>INTERFACE</tt> for C++ class <tt>CTYPE</tt>. The <tt>PROXY</tt> and <tt>INTERFACE</tt> names can use the <a href="SWIG.html#SWIG_advanced_renaming">string formatting functions</a> used in <tt>%rename</tt>.</td>
+  <td>For C++ class <tt>CTYPE</tt>, proxy class name is given by the string <tt>PROXY</tt>, interface name is given by the string <tt>INTERFACE</tt>. The <tt>PROXY</tt> and <tt>INTERFACE</tt> names can use the <a href="SWIG.html#SWIG_advanced_renaming">string formatting functions</a> used in <tt>%rename</tt>.</td>
 </tr>
 </table>
 
 <p>
-The table below has a few examples showing the resulting proxy and interface names.
+The table below has a few examples showing the resulting proxy and interface names for a C++ class called <tt>Base</tt>.
 </p>
 
 <table BORDER summary="Java interface macro examples">

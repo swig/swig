@@ -17,6 +17,13 @@
     }
 
     template <class T>
+    struct traits_reserve<std::unordered_set<T> >  {
+      static void reserve(std::unordered_set<T> &seq, typename std::unordered_set<T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class T>
     struct traits_asptr<std::unordered_set<T> >  {
       static int asptr(PyObject *obj, std::unordered_set<T> **s) {
 	return traits_asptr_stdseq<std::unordered_set<T> >::asptr(obj, s);

@@ -18,17 +18,21 @@
  where <slot> is the name of a field in a PyTypeObject, PyNumberMethods,
  PyMappingMethods, PySequenceMethods, or PyBufferProcs.  For example:
 
-   %{
-   
-   static long myHashFunc (PyObject *pyobj) {
-     MyClass *cobj;
-     // Convert pyobj to cobj
-     return (cobj->field1 * (cobj->field2 << 7));
-   }
-   
-   %}
-
    %feature("python:tp_hash") MyClass "myHashFunc";
+
+   class MyClass {
+     public:
+       ...
+   };
+
+   %{
+     // Note: Py_hash_t was introduced in Python 3.2
+     static Py_hash_t myHashFunc(PyObject *pyobj) {
+       MyClass *cobj;
+       // Convert pyobj to cobj
+       return (cobj->field1 * (cobj->field2 << 7));
+     }
+   %}
 
  NOTE: It is the responsibility of the programmer (that's you) to ensure
  that a statically defined slot function has the correct signature.
@@ -36,13 +40,13 @@
  If, instead, you want to dispatch to an instance method, you can
  use %feature("python:slot").  For example:
 
+   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
    class MyClass {
      public:
-       long myHashFunc () const;
+       Py_hash_t myHashFunc () const;
        ...
    };
-   
-   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
 
  NOTE: Some python slots use a method signature which does not
  match the signature of SWIG-wrapped methods.  For those slots,
@@ -58,20 +62,21 @@
  operator overloads for comparison (operator==, operator<, etc.), they
  will be called from the generated rich compare function.  If you
  want to explicitly choose a method to handle a certain comparison
- operation, you may use %feature("python:slot") like this:
+ operation, you may use a different feature, %feature("python:compare")
+ like this:
+
+   %feature("python:compare", "Py_LT") MyClass::lessThan;
 
    class MyClass {
      public:
-       bool lessThan (const MyClass& x) const;
+       bool lessThan(const MyClass& other) const;
        ...
    };
    
-   %feature("python:slot", "Py_LT") MyClass::lessThan;
-
  ... where "Py_LT" is one of the rich comparison opcodes defined in the
  python header file object.h.
 
- If there's no method defined to handle a particular comparsion operation,
+ If there's no method defined to handle a particular comparison operation,
  the default behavior is to compare pointer values of the wrapped
  C++ objects.
 

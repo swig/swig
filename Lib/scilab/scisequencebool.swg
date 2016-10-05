@@ -84,7 +84,7 @@ SWIG_FromSet_Sequence_dec(bool)(int size, int *pSequence) {
 
 SWIGINTERN bool
 SWIG_AsVal_SequenceItem_dec(bool)(SwigSciObject obj, int *pSequence, int iItemIndex) {
-  return pSequence[iItemIndex];
+  return (bool) pSequence[iItemIndex];
 }
 }
 

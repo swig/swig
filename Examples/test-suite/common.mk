@@ -87,7 +87,6 @@ CPP_TEST_BROKEN += \
 	director_nested_class \
 	exception_partial_info \
 	extend_variable \
-	li_std_vector_ptr \
 	li_boost_shared_ptr_template \
 	nested_private \
 	overload_complicated \
@@ -390,6 +389,7 @@ CPP_TEST_CASES += \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
+	swig_exception \
 	symbol_clash \
 	template_arg_replace \
 	template_arg_scope \
@@ -520,6 +520,7 @@ CPP_TEST_CASES += \
 	valuewrapper_opaque \
 	varargs \
 	varargs_overload \
+	variable_replacement \
 	virtual_destructor \
 	virtual_poly \
 	virtual_vs_nonvirtual_base \
@@ -588,6 +589,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector \
 	li_std_vector_enum \
 	li_std_vector_member_var\
+	li_std_vector_ptr \
 	smart_pointer_inherit \
 	template_typedef_fnc \
 	template_type_namespace \
