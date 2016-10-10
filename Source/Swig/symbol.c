@@ -518,7 +518,6 @@ void Swig_symbol_inherit(Symtab *s) {
 
 void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   Node *append = 0;
-
   Node *cn;
   /* There are a few options for weak symbols.  A "weak" symbol 
      is any symbol that can be replaced by another symbol in the C symbol
@@ -1908,8 +1907,8 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   int i;
 #ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
   static Hash *deftype_cache = 0;
-  String *scopetype = tscope ? NewStringf("%s::%s", Getattr(tscope, "name"), type)
-      : NewStringf("%s::%s", Swig_symbol_getscopename(), type);
+  String *scopetype = tscope ? NewStringf("%s::%s", Swig_symbol_qualifiedscopename(tscope), type)
+      : NewStringf("%s::%s", Swig_symbol_qualifiedscopename(current_symtab), type);
   if (!deftype_cache) {
     deftype_cache = NewHash();
   }
@@ -1918,6 +1917,9 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
     if (cres) {
       Append(result, cres);
       Delete(scopetype);
+#ifdef SWIG_DEBUG
+      Printf(stderr, "found cached deftype %s -> %s\n", type, result);
+#endif
       return result;
     }
   }
