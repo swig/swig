@@ -2825,9 +2825,9 @@ private:
       if (quote != '\0') {
         Printf(get, "%c", quote);
       }
-
-      Printv(get, ";\n", NULL);
     }
+
+    Printv(get, ";\n", NULL);
 
     Setattr(n, "wrap:action", get);
 
