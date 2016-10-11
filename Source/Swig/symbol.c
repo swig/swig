@@ -1907,8 +1907,12 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
   int i;
 #ifdef SWIG_TEMPLATE_DEFTYPE_CACHE
   static Hash *deftype_cache = 0;
-  String *scopetype = tscope ? NewStringf("%s::%s", Swig_symbol_qualifiedscopename(tscope), type)
-      : NewStringf("%s::%s", Swig_symbol_qualifiedscopename(current_symtab), type);
+  /* The lookup depends on the current scope and potential namespace qualification.
+     Looking up x in namespace y is not the same as looking up x::y in outer scope.
+     -> we contruct an "artificial" key. */
+  String *scopetype = tscope
+      ? NewStringf("%s..%s::%s", Swig_symbol_qualifiedscopename(tscope), Getattr(tscope, "name"), type)
+      : NewStringf("%s..%s::%s", Swig_symbol_qualifiedscopename(current_symtab), Swig_symbol_getscopename(), type);
   if (!deftype_cache) {
     deftype_cache = NewHash();
   }
@@ -1916,10 +1920,10 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
     String *cres = Getattr(deftype_cache, scopetype);
     if (cres) {
       Append(result, cres);
-      Delete(scopetype);
 #ifdef SWIG_DEBUG
-      Printf(stderr, "found cached deftype %s -> %s\n", type, result);
+      Printf(stderr, "cached deftype %s(%s) -> %s\n", type, scopetype, result);
 #endif
+      Delete(scopetype);
       return result;
     }
   }
