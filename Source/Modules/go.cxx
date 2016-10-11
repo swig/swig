@@ -2802,6 +2802,10 @@ private:
 
     String *rawval = Getattr(n, "rawval");
     if (rawval && Len(rawval)) {
+      if (SwigType_type(type) == T_STRING) {
+        Printv(get, "(char *)", NULL);
+      }
+
       Printv(get, rawval, NULL);
     } else {
       char quote;
