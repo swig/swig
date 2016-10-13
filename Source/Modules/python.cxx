@@ -3339,6 +3339,8 @@ public:
 	    Printf(builtin_closures_code, "%s /* defines %s */\n\n", closure_decl, closure_name);
 	  SetFlag(builtin_closures, closure_name);
 	  Delete(closure_decl);
+	} else {
+	  closure_name = Copy(wrapper_name);
 	}
 	if (func_type) {
 	  String *s = NewStringf("(%s) %s", func_type, closure_name);
