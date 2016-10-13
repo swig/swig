@@ -48,4 +48,9 @@ struct PickleMe {
       std::cout << "In C++ constructor " << " [" << msg << "]" << std::endl;
   }
 };
+
+struct NotForPickling {
+  std::string msg;
+  NotForPickling(const std::string& msg) : msg(msg) {}
+};
 %}
