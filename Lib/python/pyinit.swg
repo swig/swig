@@ -380,6 +380,7 @@ SWIG_init(void) {
   PyObject *tuple;
   PyGetSetDescrObject *static_getset;
   PyTypeObject *metatype;
+  PyTypeObject *swigpyobject;
   SwigPyClientData *cd;
   PyObject *public_interface, *public_symbol;
   PyObject *this_descr;
@@ -414,13 +415,15 @@ SWIG_init(void) {
   SWIG_InitializeModule(0);
 
 #ifdef SWIGPYTHON_BUILTIN
+  swigpyobject = SwigPyObject_TypeOnce();
+
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
   cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
-    SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
-  } else if (SwigPyObject_TypeOnce()->tp_basicsize != cd->pytype->tp_basicsize) {
+    SwigPyObject_clientdata.pytype = swigpyobject;
+  } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
 # if PY_VERSION_HEX >= 0x03000000
     return NULL;
