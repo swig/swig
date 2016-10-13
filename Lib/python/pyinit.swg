@@ -374,7 +374,6 @@ SWIG_init(void) {
   static PyGetSetDef thisown_getset_def = {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
-  PyObject *metatype_args;
   PyTypeObject *builtin_pytype;
   int builtin_base_count;
   swig_type_info *builtin_basetype;
@@ -395,14 +394,9 @@ SWIG_init(void) {
   (void)static_getset;
   (void)self;
 
-  /* metatype is used to implement static member variables. */
-  metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
-  assert(metatype_args);
-  metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
+  /* Metaclass is used to implement static member variables */
+  metatype = SwigPyObjectType();
   assert(metatype);
-  Py_DECREF(metatype_args);
-  metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
-  assert(PyType_Ready(metatype) >= 0);
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
