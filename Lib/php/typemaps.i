@@ -271,7 +271,7 @@ INT_TYPEMAP(unsigned long long);
 %typemap(in) char INPUT[ANY] ( char temp[$1_dim0] )
 %{
   convert_to_string_ex($input);
-  strncpy(temp,Z_LVAL_PP($input),$1_dim0);
+  strncpy(temp,Z_STRVAL_PP($input),$1_dim0);
   $1 = temp;
 %}
 %typemap(in,numinputs=0) char OUTPUT[ANY] ( char temp[$1_dim0] )

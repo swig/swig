@@ -16,6 +16,13 @@
     }
 
     template <class K, class T>
+    struct traits_reserve<std::unordered_map<K,T> > {
+      static void reserve(std::unordered_map<K,T> &seq, typename std::unordered_map<K,T>::size_type n) {
+        seq.reserve(n);
+      }
+    };
+
+    template <class K, class T>
     struct traits_asptr<std::unordered_map<K,T> >  {
       typedef std::unordered_map<K,T> unordered_map_type;
       static int asptr(PyObject *obj, unordered_map_type **val) {

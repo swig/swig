@@ -28,6 +28,21 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 %include "std_string.i"
 
+#ifdef SWIGPHP
+
+%feature("director:except") {
+	if ($error == FAILURE) {
+		throw Swig::DirectorMethodException();
+	}
+}
+
+%exception {
+	try { $action }
+	catch (Swig::DirectorException &) { SWIG_fail; }
+}
+
+#endif
+
 #ifdef SWIGPYTHON
 
 %feature("director:except") {

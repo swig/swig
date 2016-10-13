@@ -100,7 +100,82 @@ SWIG_Scilab_SetOutput(void *pvApiCtx, SwigSciObject output) {
   return SWIG_OK;
 }
 
+/* Error functions */
+
+#define SCILAB_API_ARGUMENT_ERROR 999
+
+SWIGINTERN const char*
+SWIG_Scilab_ErrorType(int code) {
+  switch(code) {
+  case SWIG_MemoryError:
+    return "MemoryError";
+  case SWIG_IOError:
+    return "IOError";
+  case SWIG_RuntimeError:
+    return "RuntimeError";
+  case SWIG_IndexError:
+    return "IndexError";
+  case SWIG_TypeError:
+    return "TypeError";
+  case SWIG_DivisionByZero:
+    return "ZeroDivisionError";
+  case SWIG_OverflowError:
+    return "OverflowError";
+  case SWIG_SyntaxError:
+    return "SyntaxError";
+  case SWIG_ValueError:
+    return "ValueError";
+  case SWIG_SystemError:
+    return "SystemError";
+  case SWIG_AttributeError:
+    return "AttributeError";
+  default:
+    return "RuntimeError";
+  }
+}
+#define SWIG_ErrorType(code) SWIG_Scilab_ErrorType(code)
+
+#ifndef SWIG_SCILAB_ERROR
+#define SWIG_SCILAB_ERROR 20000
+#endif
+
+SWIGINTERN void
+SWIG_Scilab_Error(int code, const char *msg) {
+  Scierror(SWIG_SCILAB_ERROR - code, _("SWIG/Scilab: %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
+}
+
+#define SWIG_Error(code, msg) SWIG_Scilab_Error(code, msg)
+
+#define SWIG_fail return SWIG_ERROR;
+
+SWIGRUNTIME void
+SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
+  if (type) {
+    if (obj)
+      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured: %s\n", type, obj);
+    else
+      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
+  }
+}
+
+SWIGRUNTIME void
+SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
+  Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
+}
+
+/* Module initialization */
+
+static int swig_module_initialized = 0;
+
+SWIGRUNTIME int
+SWIG_Module_Initialized() {
+  return swig_module_initialized;
+}
+
 /* Pointer conversion functions */
+
+SWIGRUNTIME swig_type_info *
+SWIG_Scilab_TypeQuery(const char *name);
 
 SWIGINTERN int
 SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *fname) {
@@ -120,7 +195,7 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -142,10 +217,10 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     if (descriptor) {
       swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info*)pvTypeinfo), descriptor);
       return (cast != NULL);
-    } 
+    }
     else {
       return SWIG_ERROR;
-    }    
+    }
   }
   else {
     return (iType == sci_pointer);
@@ -171,7 +246,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
     return SWIG_ERROR;
   }
 
-  if (iType == sci_tlist) {
+  if (iType == sci_mlist) {
     int iItemCount = 0;
     void *pvTypeinfo = NULL;
 
@@ -232,34 +307,36 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
 }
 
 SWIGRUNTIMEINLINE int
-SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info *descriptor, int flags) {
+SwigScilabPtrFromObject(void *pvApiCtx, int iVarOut, void *pvObj, swig_type_info *descriptor, int flags, const char *pstTypeName) {
   SciErr sciErr;
 
   if (descriptor) {
-    int *piTListAddr = NULL;
-    const char *pstString;
+    int *piMListAddr = NULL;
 
-    sciErr = createTList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piTListAddr);
+    sciErr = createMList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 3, &piMListAddr);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    pstString = SWIG_TypeName(descriptor);
-    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 1, 1, 1, &pstString);
+    if (pstTypeName == NULL) {
+      pstTypeName = SWIG_TypeName(descriptor);
+    }
+
+    sciErr = createMatrixOfStringInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 1, 1, 1, &pstTypeName);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 2, descriptor);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 2, descriptor);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
 
 
-    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piTListAddr, 3, pvObj);
+    sciErr = createPointerInList(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, piMListAddr, 3, pvObj);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -342,69 +419,7 @@ SWIG_Scilab_NewMemberObj(void *pvApiCtx, int iVarOut, void *ptr, int sz, swig_ty
 }
 
 
-/* Error functions */
 
-#define SCILAB_API_ARGUMENT_ERROR 999
-
-SWIGINTERN const char*
-SWIG_Scilab_ErrorType(int code) {
-  switch(code) {
-  case SWIG_MemoryError:
-    return "MemoryError";
-  case SWIG_IOError:
-    return "IOError";
-  case SWIG_RuntimeError:
-    return "RuntimeError";
-  case SWIG_IndexError:
-    return "IndexError";
-  case SWIG_TypeError:
-    return "TypeError";
-  case SWIG_DivisionByZero:
-    return "ZeroDivisionError";
-  case SWIG_OverflowError:
-    return "OverflowError";
-  case SWIG_SyntaxError:
-    return "SyntaxError";
-  case SWIG_ValueError:
-    return "ValueError";
-  case SWIG_SystemError:
-    return "SystemError";
-  case SWIG_AttributeError:
-    return "AttributeError";
-  default:
-    return "RuntimeError";
-  }
-}
-#define SWIG_ErrorType(code) SWIG_Scilab_ErrorType(code)
-
-#ifndef SWIG_SCILAB_ERROR
-#define SWIG_SCILAB_ERROR 20000
-#endif
-
-SWIGINTERN void
-SWIG_Scilab_Error(int code, const char *msg)
-{
-  Scierror(SWIG_SCILAB_ERROR - code, _("SWIG/Scilab: %s: %s\n"), SWIG_Scilab_ErrorType(code), msg);
-}
-
-#define SWIG_Error(code, msg) SWIG_Scilab_Error(code, msg)
-
-#define SWIG_fail return SWIG_ERROR;
-
-SWIGRUNTIME void
-SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {
-  if (type) {
-    if (obj)
-      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured: %s\n", type, obj);
-    else
-      Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
-  }
-}
-
-SWIGRUNTIME void
-SWIG_Scilab_Raise(const int obj, const char *type, swig_type_info *descriptor) {
-  Scierror(SWIG_SCILAB_ERROR, "SWIG/Scilab: Exception (%s) occured.\n", type);
-}
 
 /*
  *  Pointer utility functions
@@ -451,7 +466,7 @@ int SWIG_ptr(SWIG_GatewayParameters) {
     }
     SWIG_Scilab_SetOutputPosition(1);
     return SWIG_Scilab_SetOutput(pvApiCtx,
-      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0));
+      SwigScilabPtrFromObject(pvApiCtx, 1, (void *) (uintptr_t)dValue, NULL, 0, NULL));
   }
   else {
     return SWIG_ERROR;

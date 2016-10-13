@@ -25,23 +25,33 @@ void foo1(Foo<int> f, const Foo<int>& ff) {}
 void foo2(Foo<short> f, const Foo<short>& ff) {}
 %}
 
-#ifdef SWIGUTL
-%typemap(ret) int Bar1::foo() { /* hello1 */ };
-%typemap(ret) int Bar2::foo() { /* hello2 */ };
-%typemap(ret) int foo() {/* hello3 */ };
-#endif
+// Check "ret" typemap is implemented
+%{
+  template<typename T> struct NeededForTest {};
+%}
+%fragment("NeededForTest", "header") %{
+  template<> struct NeededForTest<short> { NeededForTest(short) {} };
+%}
+
+%typemap(ret) short "_ret_typemap_for_short_no_compile"
+%typemap(ret, fragment="NeededForTest") short Bar1::foofunction() { /* ret typemap for short */ NeededForTest<short> needed($1); };
+%typemap(ret, fragment="NeededForTest") short globalfoofunction() { /* ret typemap for short */ NeededForTest<short> needed($1); };
 
 %inline %{
   struct Bar1 {
-    int foo() { return 1;}    
+    short foofunction() { return 1;}
   };
-
-  struct Bar2 {
-    int foo() { return 1;}    
-  };
+  short globalfoofunction() { return 1;}
 %}
 
-
+%{
+void CheckRetTypemapUsed() {
+  // If the "ret" typemap is not used, the NeededForTest template specialization will not have been
+  // generated and so the following code will result in a compile failure
+  NeededForTest<short> needed(111);
+  (void)needed;
+}
+%}
 
 %newobject FFoo::Bar(bool) const ;
 %typemap(newfree) char* Bar(bool)  {
@@ -62,7 +72,7 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
 #endif
 
 // Test obscure bug where named typemaps where not being applied when symbol name contained a number
-%typemap(out) double "_typemap_for_double_no_compile_"
+%typemap(out) double "_out_typemap_for_double_no_compile_"
 %typemap(out) double ABCD::meth {$1 = 0.0; TYPEMAP_OUT_INIT}
 %typemap(out) double ABCD::m1   {$1 = 0.0; TYPEMAP_OUT_INIT}
 %typemap(out) double ABCD::_x2  {$1 = 0.0; TYPEMAP_OUT_INIT}

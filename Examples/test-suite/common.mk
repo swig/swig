@@ -389,6 +389,7 @@ CPP_TEST_CASES += \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
+	swig_exception \
 	symbol_clash \
 	template_arg_replace \
 	template_arg_scope \
@@ -519,6 +520,7 @@ CPP_TEST_CASES += \
 	valuewrapper_opaque \
 	varargs \
 	varargs_overload \
+	variable_replacement \
 	virtual_destructor \
 	virtual_poly \
 	virtual_vs_nonvirtual_base \

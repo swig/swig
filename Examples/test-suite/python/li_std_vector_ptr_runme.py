@@ -36,3 +36,21 @@ try:
   raise RuntimeError("missed exception")
 except TypeError:
   pass
+
+b111 = makeB(111)
+bNones = BPtrVector([None, b111, None])
+
+bCount = 0
+noneCount = 0
+for b in bNones:
+  if b == None:
+    noneCount = noneCount + 1
+  else:
+    if b.val != 111:
+      raise RuntimeError("b.val is wrong")
+    bCount = bCount + 1
+
+if bCount != 1:
+  raise RuntimeError("bCount wrong")
+if noneCount != 2:
+  raise RuntimeError("noneCount wrong")

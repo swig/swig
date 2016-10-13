@@ -676,6 +676,14 @@ public:
 	Printv(f->code, tm, "\n", NIL);
       }
     }
+
+    /* See if there is any return cleanup code */
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
+      Printf(f->code, "%s\n", tm);
+      Delete(tm);
+    }
+
     // Free any memory allocated by the function being wrapped..
 
     if ((tm = Swig_typemap_lookup("swig_result", n, Swig_cresult_name(), 0))) {

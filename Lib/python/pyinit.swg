@@ -145,7 +145,6 @@ swig_varlink_type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else

@@ -164,9 +164,6 @@ matrix:
       env: SWIGLANG=go
     - compiler: clang
       os: osx
-      env: SWIGLANG=guile
-    - compiler: clang
-      os: osx
       env: SWIGLANG=java
     - compiler: clang
       os: osx
@@ -199,6 +196,10 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+    # brew install guile fails on Travis as OSX 10.9 is too old now, default osx_image needs changing
+    - compiler: clang
+      os: osx
+      env: SWIGLANG=guile
 before_install:
   - date -u
   - uname -a

@@ -125,7 +125,6 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCo
   }
 
   if (isBooleanType(pvApiCtx, piAddrVar)) {
-    int i;
     sciErr = getMatrixOfBoolean(pvApiCtx, piAddrVar, iRows, iCols, piValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
