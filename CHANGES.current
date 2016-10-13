@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-10-13: wsfulton
+            [Python] Fix Python pickling and metaclass for builtin wrappers
+
+            The metaclass (SwigPyObjectType) for SWIG objects was not defined in
+            a way that let importlib successfully import the Python wrappers.
+            The pickle module previously failed to pickle objects because it couldn't
+            determine what module the SWIG wrapped objects were in.
+
 2016-09-29: wsfulton
             [Allegrocl, CFFI, GO, Javascript, Ocaml, R, Scilab]
             Add missing support for the "ret" typemap in a few target languages.
