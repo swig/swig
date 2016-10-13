@@ -11,6 +11,18 @@
 
 #include <exception>
 
+# ifdef HAVE_PTHREAD_H
+#   include <pthread.h>
+# endif
+
+# ifdef HAVE_SYS_PRCTL_H
+#   include <sys/prctl.h>
+# endif
+
+# ifdef HAVE_STDIO_H
+#   include <stdio.h>
+# endif
+
 namespace Swig {
 
   /* Java object wrapper */
@@ -138,13 +150,65 @@ namespace Swig {
 #else
         void **jenv = (void **)&jenv_;
 #endif
+
+        char *thread_name = NULL;
+        char thread_name_array[16];
+        int result;
+# if defined(HAVE_PTHREAD_GETNAME_NP)
+        result = pthread_getname_np(pthread_self(), thread_name, sizeof(thread_name));
+        if (0 == result) {
+          thread_name = thread_name_array;
+        }
+        else {
+          errno = result;
+          perror("JNIEnvWrapper, pthread_getname_np(2)");
+        }
+# elif defined(HAVE_PRCTL) && defined(HAVE_PR_GET_NAME) // linux since Linux 2.6.11
+        result = prctl(PR_GET_NAME, (unsigned long)thread_name_array);
+        if (0 == result) {
+          thread_name = thread_name_array;
+        }
+        else {
+          perror("JNIEnvWrapper, prctl(2)");
+        }
+# elif defined(HAVE_PROCFS)
+        const char procfs_path_template[] = "/proc/self/task/%u/comm";
+        char* procfs_path[sizeof(procfs_path_template) + sizeof(pid_t) * 4]
+        if (0 > sprintf(procfs_path, procfs_path_template, gettid())) {
+          perror("JNIEnvWrapper, sprintf(3)")
+        }
+        else {
+          FILE* f = fopen(procfs_path, "r");
+          if (NULL == f) {
+            perror("JNIEnvWrapper, fopen(2)");
+          }
+          else {
+            size_t read = fread(thread_name_array, sizeof(thread_name_array) - 1, f);
+            if (read > 0) {
+              thread_name_array[read] = 0;
+              thread_name = thread_name_array;
+            }
+            fclose(f);
+          }
+        }
+# endif
+
+        void *thr_args = NULL;
+        JavaVMAttachArgs java_vm_attach_args;
+        if (NULL != thread_name) {
+          java_vm_attach_args.version = JNI_VERSION_1_2;
+          java_vm_attach_args.name = thread_name;
+          java_vm_attach_args.group = NULL;
+          thr_args = &java_vm_attach_args;
+        }
+
         env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
 #if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
         // Attach a daemon thread to the JVM. Useful when the JVM should not wait for
         // the thread to exit upon shutdown. Only for jdk-1.4 and later.
-        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, thr_args);
 #else
-        director_->swig_jvm_->AttachCurrentThread(jenv, NULL);
+        director_->swig_jvm_->AttachCurrentThread(jenv, thr_args);
 #endif
       }
       ~JNIEnvWrapper() {
