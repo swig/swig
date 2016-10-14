@@ -1,11 +1,18 @@
 import python_pickle
 
 import pickle
+import sys
+
+def is_new_style_class(cls):
+    return hasattr(cls, "__class__")
 
 def check(p):
     msg = p.msg
     if msg != "hi there":
         raise RuntimeError("Bad, got: " + msg)
+
+if not is_new_style_class(python_pickle.PickleMe):
+    sys.exit(0)
 
 python_pickle.cvar.debug = False
 
