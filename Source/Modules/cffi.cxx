@@ -34,6 +34,7 @@ CFFI Options (available with -cffi)\n\
 class CFFI:public Language {
 public:
   String *f_cl;
+  String *f_clos_defmethod;
   String *f_clhead;
   String *f_clwrap;
   bool CWrap;     // generate wrapper file for C code?  
@@ -118,6 +119,7 @@ void CFFI::main(int argc, char *argv[]) {
   f_clhead = NewString("");
   f_clwrap = NewString("");
   f_cl = NewString("");
+  f_clos_defmethod = NewString("");
 
   allow_overloading();
 }
@@ -178,6 +180,9 @@ int CFFI::top(Node *n) {
 
   Swig_banner_target_lang(f_lisp, ";;;");
 
+  Printf(f_cl, "(defpackage %s\n" "  (:use :common-lisp :cffi))\n\n(in-package :%s)\n\n", module, module);
+  Printf(f_clos, "\n(cl:in-package :%s)\n", module);
+
   Language::top(n);
   Printf(f_lisp, "%s\n", f_clhead);
   Printf(f_lisp, "%s\n", f_cl);
@@ -185,6 +190,7 @@ int CFFI::top(Node *n) {
 
   Delete(f_lisp);
   Delete(f_cl);
+  Delete(f_clos_defmethod);
   Delete(f_clhead);
   Delete(f_clwrap);
   Dump(f_runtime, f_begin);
@@ -292,7 +298,7 @@ void CFFI::emit_defmethod(Node *n) {
   if (x == 1)
     Printf(f_clos, "(cl:shadow \"%s\")\n", method_name);
 
-  Printf(f_clos, "(cl:defmethod %s (%s)\n  (%s%s))\n\n",
+  Printf(f_clos_defmethod, "(cl:defmethod %s (%s)\n  (%s%s))\n\n",
          lispify_name(n, lispy_name(Char(method_name)), "'method"), args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
@@ -318,9 +324,9 @@ void CFFI::emit_initialize_instance(Node *n) {
       argname = NewStringf("t-arg%d", argnum);
       tempargname = 1;
     }
-    if (Len(ffitype) > 0)
-      Printf(args_placeholder, " (%s %s)", argname, ffitype);
-    else
+    //if (Len(ffitype) > 0)
+    //  Printf(args_placeholder, " (%s %s)", argname, ffitype);
+    //else
       Printf(args_placeholder, " %s", argname);
 
     if (ffitype && Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
@@ -334,7 +340,7 @@ void CFFI::emit_initialize_instance(Node *n) {
       Delete(argname);
   }
 
-  Printf(f_clos, "(cl:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s)))\n\n",
+  Printf(f_clos_defmethod, "(cl:defmethod initialize-instance :after ((obj %s) &key%s)\n  (setf (slot-value obj 'ff-pointer) (%s%s)))\n\n",
          lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), args_placeholder,
          lispify_name(n, Getattr(n, "sym:name"), "'function"), args_call);
 
@@ -342,7 +348,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
 void CFFI::emit_setter(Node *n) {
   Node *parent = getCurrentClass();
-  Printf(f_clos, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
+  Printf(f_clos_defmethod, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
@@ -350,7 +356,7 @@ void CFFI::emit_setter(Node *n) {
 
 void CFFI::emit_getter(Node *n) {
   Node *parent = getCurrentClass();
-  Printf(f_clos, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
+  Printf(f_clos_defmethod, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
          lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
@@ -571,9 +577,11 @@ int CFFI::functionWrapper(Node *n) {
     if (Getattr(n, "cffi:memberfunction"))
       emit_defmethod(n);
     else if (Getattr(n, "cffi:membervariable")) {
-      if (Getattr(n, "memberget"))
+      if (Getattr(n, "memberget")) {
+        String *cname = lispify_name(n, Getattr(n, "name"), "'method");
+        Printf(f_clos, "\n   (%s :initarg :%s :initform (error \"must pass value of slot %s\"))", cname, cname, cname);
         emit_getter(n);
-      else if (Getattr(n, "memberset"))
+      } else if (Getattr(n, "memberset"))
         emit_setter(n);
     }
     else if (Getattr(n, "cffi:constructorfunction")) {
@@ -581,6 +589,11 @@ int CFFI::functionWrapper(Node *n) {
     }
   } else
     emit_defun(n, iname);
+
+  if (nextSibling(n) == NIL) {
+    Printf(f_clos, "))\n\n%s", f_clos_defmethod);
+    f_clos_defmethod = NewString("");
+  }
 
   //   if (!overloaded || !Getattr(n, "sym:nextSibling")) {
   //     update_package_if_needed(n);
@@ -666,6 +679,11 @@ int CFFI::constantWrapper(Node *n) {
   Printf(f_cl, "\n(cl:defconstant %s %s)\n", name, converted_value);
   Delete(converted_value);
 
+  if (nextSibling(n) == NIL) {
+    Printf(f_clos, "))\n\n%s", f_clos_defmethod);
+    f_clos_defmethod = NewString("");
+  }
+
   emit_export(n, name);
   return SWIG_OK;
 }
@@ -683,6 +701,12 @@ int CFFI::variableWrapper(Node *n) {
   Delete(lisp_type);
 
   emit_export(n, lisp_name);
+
+  if (nextSibling(n) == NIL) {
+    Printf(f_clos, "))\n\n%s", f_clos_defmethod);
+    f_clos_defmethod = NewString("");
+  }
+
   return SWIG_OK;
 }
 
@@ -780,7 +804,7 @@ void CFFI::emit_class(Node *n) {
 
   Printf(supers, ")");
   Printf(f_clos, "\n(cl:defclass %s%s", lisp_name, supers);
-  Printf(f_clos, "\n  ((ff-pointer :reader ff-pointer)))\n\n");
+  Printf(f_clos, "\n  ((ff-pointer :reader ff-pointer)");
 
   Parm *pattern = NewParm(Getattr(n, "name"), NULL, n);
 
@@ -816,26 +840,26 @@ void CFFI::emit_class(Node *n) {
       String *childDecl = Getattr(c, "decl");
       // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
       if (!Strcmp(childDecl, "0"))
-  childDecl = NewString("");
+        childDecl = NewString("");
 
       SwigType *childType = NewStringf("%s%s", childDecl,
                Getattr(c, "type"));
       String *cname = (access && Strcmp(access, "public")) ? NewString("nil") : Copy(Getattr(c, "name"));
 
       if (!SwigType_isfunction(childType)) {
-  // Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
-  // Printf(slotdefs, ";; ");
-  //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
-  String *ns = NewString("");
+        // Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
+        // Printf(slotdefs, ";; ");
+        //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
+        String *ns = NewString("");
 #ifdef CFFI_WRAP_DEBUG
-  Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n", cname, ns, name, childType);
+        Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n", cname, ns, name, childType);
 #endif
-  Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)", cname, ns, name, childType);  //compose_foreign_type(childType)
-  Delete(ns);
-  if (access && Strcmp(access, "public"))
-    Printf(slotdefs, " ;; %s member", access);
+        Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)", cname, ns, name, childType);  //compose_foreign_type(childType)
+        Delete(ns);
+        if (access && Strcmp(access, "public"))
+          Printf(slotdefs, " ;; %s member", access);
 
-  Printf(slotdefs, "\n   ");
+        Printf(slotdefs, "\n   ");
       }
       Delete(childType);
       Delete(cname);
