@@ -3925,8 +3925,14 @@ public:
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = modernargs && fastunpack;
+    static String *tp_new = NewString("PyType_GenericNew");
 
     Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
+
+    // We can’t statically initialize a structure member with a function defined in another C module
+    // So this is done in the initialization function instead, see https://docs.python.org/2/extending/newtypes.html
+    Printf(f_init, "  builtin_pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
+
     Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
     if (baselist) {
@@ -4064,7 +4070,6 @@ public:
 
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
-    static String *tp_new = NewString("PyType_GenericNew");
     static String *tp_hash = NewString("SwigPyObject_hash");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
@@ -4125,7 +4130,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default), "tp_dictoffset", "Py_ssize_t");
     printSlot(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
-    printSlot(f, getSlot(n, "feature:python:tp_new", tp_new), "tp_new", "newfunc");
+    printSlot(f, getSlot(), "tp_new", "newfunc");
     printSlot(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
     printSlot(f, getSlot(n, "feature:python:tp_is_gc"), "tp_is_gc", "inquiry");
     printSlot(f, getSlot(n, "feature:python:tp_bases"), "tp_bases", "PyObject *");

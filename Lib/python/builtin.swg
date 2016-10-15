@@ -322,7 +322,7 @@ SwigPyObjectType(void) {
       0,                                        /* tp_methods */
       0,                                        /* tp_members */
       0,                                        /* tp_getset */
-      &PyType_Type,                             /* tp_base */
+      0,                                        /* tp_base */
       0,                                        /* tp_dict */
       0,                                        /* tp_descr_get */
       0,                                        /* tp_descr_set */
@@ -358,6 +358,7 @@ SwigPyObjectType(void) {
     };
     swigpyobjecttype_type = tmp;
     type_init = 1;
+    swigpyobjecttype_type.tp_base = &PyType_Type;
 #if PY_VERSION_HEX < 0x02020000
     swigpyobjecttype_type.ob_type = &PyType_Type;
 #else
