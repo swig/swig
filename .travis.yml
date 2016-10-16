@@ -4,9 +4,16 @@ matrix:
     - compiler: clang
       os: linux
       env: SWIGLANG=
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG= SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
@@ -18,12 +25,18 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=csharp
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=d
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=go
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=go VER=1.5
@@ -32,21 +45,33 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=guile
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=java
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=node
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=jsc
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=javascript ENGINE=v8
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=lua
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=lua VER=5.3
@@ -64,69 +89,113 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=perl5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=php
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python VER=2.4
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python VER=2.5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python VER=2.6
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python # 2.7
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python PY3=3 # 3.2
+      env: SWIGLANG=python PY3=3 VER=3.2
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.3
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python PY3=3 VER=3.4
+      env: SWIGLANG=python PY3=3 # 3.4
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python PY3=3 VER=3.5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin VER=2.6
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3
+      env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 # 3.4
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-builtin PY3=3 VER=3.5 SWIGOPTPY3=
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-classic
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=r
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=ruby VER=2.3.0
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=scilab
+      sudo: required
+      dist: trusty
     - compiler: gcc
       os: linux
       env: SWIGLANG=tcl
+      sudo: required
+      dist: trusty
     - os: linux
       env: SWIGLANG=csharp SWIG_CC=gcc-5 SWIG_CXX=g++-5 CPP11=1
       sudo: required
@@ -196,10 +265,14 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=ocaml
+      sudo: required
+      dist: trusty
     # Not quite working yet
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+      sudo: required
+      dist: trusty
 before_install:
   - date -u
   - uname -a
