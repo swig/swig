@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # exit on failure
+set -e # exit on failure (same as -o errexit)
 
 sw_vers
 brew update
@@ -28,3 +28,6 @@ case "$SWIGLANG" in
 		fi
 		;;
 esac
+
+# Workaround for https://github.com/travis-ci/travis-ci/issues/6522
+set +e # turn off exit on failure (same as +o errexit)

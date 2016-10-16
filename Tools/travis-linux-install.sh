@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # exit on failure
+set -e # exit on failure (same as -o errexit)
 
 lsb_release -a
 sudo apt-get -qq update
@@ -108,3 +108,5 @@ case "$SWIGLANG" in
 		sudo apt-get -qq install tcl8.4-dev
 		;;
 esac
+
+set +e # turn off exit on failure (same as +o errexit)
