@@ -178,6 +178,9 @@ int CFFI::top(Node *n) {
 
   Swig_banner_target_lang(f_lisp, ";;;");
 
+  Printf(f_cl, "(defpackage %s\n" "  (:use :common-lisp :cffi))\n\n(in-package :%s)\n\n", module, module);
+  Printf(f_clos, "\n(cl:in-package :%s)\n", module);
+
   Language::top(n);
   Printf(f_lisp, "%s\n", f_clhead);
   Printf(f_lisp, "%s\n", f_cl);
@@ -318,9 +321,9 @@ void CFFI::emit_initialize_instance(Node *n) {
       argname = NewStringf("t-arg%d", argnum);
       tempargname = 1;
     }
-    if (Len(ffitype) > 0)
-      Printf(args_placeholder, " (%s %s)", argname, ffitype);
-    else
+    //if (Len(ffitype) > 0)
+    //  Printf(args_placeholder, " (%s %s)", argname, ffitype);
+    //else
       Printf(args_placeholder, " %s", argname);
 
     if (ffitype && Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
@@ -816,26 +819,26 @@ void CFFI::emit_class(Node *n) {
       String *childDecl = Getattr(c, "decl");
       // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
       if (!Strcmp(childDecl, "0"))
-  childDecl = NewString("");
+        childDecl = NewString("");
 
       SwigType *childType = NewStringf("%s%s", childDecl,
                Getattr(c, "type"));
       String *cname = (access && Strcmp(access, "public")) ? NewString("nil") : Copy(Getattr(c, "name"));
 
       if (!SwigType_isfunction(childType)) {
-  // Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
-  // Printf(slotdefs, ";; ");
-  //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
-  String *ns = NewString("");
+        // Printf(slotdefs, ";;; member functions don't appear as slots.\n ");
+        // Printf(slotdefs, ";; ");
+        //        String *ns = listify_namespace(Getattr(n, "cffi:package"));
+        String *ns = NewString("");
 #ifdef CFFI_WRAP_DEBUG
-  Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n", cname, ns, name, childType);
+        Printf(stderr, "slot name = '%s' ns = '%s' class-of '%s' and type = '%s'\n", cname, ns, name, childType);
 #endif
-  Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)", cname, ns, name, childType);  //compose_foreign_type(childType)
-  Delete(ns);
-  if (access && Strcmp(access, "public"))
-    Printf(slotdefs, " ;; %s member", access);
+        Printf(slotdefs, "(#.(swig-insert-id \"%s\" %s :type :slot :class \"%s\") %s)", cname, ns, name, childType);  //compose_foreign_type(childType)
+        Delete(ns);
+        if (access && Strcmp(access, "public"))
+          Printf(slotdefs, " ;; %s member", access);
 
-  Printf(slotdefs, "\n   ");
+        Printf(slotdefs, "\n   ");
       }
       Delete(childType);
       Delete(cname);
