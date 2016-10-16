@@ -151,10 +151,9 @@ matrix:
       env: SWIGLANG=python SWIG_CC=gcc-6 SWIG_CXX=g++-6 CPP14=1
       sudo: required
       dist: trusty
-  allow_failures:
-    # Turn off osx testing to fix numerous problems due to default xcode change from 6.1 to 7.3
-    - os: osx
-      env: SWIGLANG= SWIG_CC=gcc-4.2 SWIG_CXX=g++-4.2
+    - compiler: gcc
+      os: osx
+      env: SWIGLANG=
     - compiler: clang
       os: osx
       env: SWIGLANG=
@@ -192,6 +191,7 @@ matrix:
       os: osx
       env: SWIGLANG=tcl
 
+  allow_failures:
     # Lots of failing tests currently
     - compiler: gcc
       os: linux
