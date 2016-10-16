@@ -13,7 +13,7 @@ public class smart_pointer_ignore_runme {
 
   public static void main(String argv[]) {
     DerivedPtr d = smart_pointer_ignore.makeDerived();
-    d.base();
-    d.derived();
+    d.baseMethod();
+    d.derivedMethod();
   }
 }

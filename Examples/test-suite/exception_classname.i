@@ -1,7 +1,7 @@
 %module exception_classname
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME);
-#ifdef SWIGPHP
+#if defined(SWIGPHP) || defined(SWIGD)
 %rename(ExceptionClass) Exception;
 #endif
 
