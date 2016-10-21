@@ -517,7 +517,7 @@ like this:
   argc = PyTuple_Size(varargs);
   if (argc &gt; 10) {
     PyErr_SetString(PyExc_ValueError, "Too many arguments");
-    return NULL;
+    SWIG_fail;
   }
   for (i = 0; i &lt; argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
@@ -526,7 +526,7 @@ like this:
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
        PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+       SWIG_fail;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
     str = strdup(PyBytes_AsString(pystr));
@@ -534,7 +534,7 @@ like this:
 %#else  
     if (!PyString_Check(pyobj)) {
        PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+       SWIG_fail;
     }
     str = PyString_AsString(pyobj);
 %#endif
@@ -635,9 +635,9 @@ example. For example:
    for (i = 0; i &lt; argc; i++) {
       PyObject *o = PyTuple_GetItem(varargs,i);
       if (!PyString_Check(o)) {
-          PyErr_SetString(PyExc_ValueError,"Expected a string");
           free(argv);
-          return NULL;
+          PyErr_SetString(PyExc_ValueError,"Expected a string");
+          SWIG_fail;
       }
       argv[i] = PyString_AsString(o);
    }
@@ -676,11 +676,11 @@ example. For example:
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) execlp, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(arg3);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -744,8 +744,8 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
       argv[i].type = VT_POINTER;
       argv[i].val.pvalue = (void *) PyString_AsString(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       free(argv);
+      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       return NULL;
     }
   }
@@ -793,11 +793,11 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) printf, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(args);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);

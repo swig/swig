@@ -3717,7 +3717,7 @@ or a NULL pointer perhaps).  Here is a simple example of how you might handle th
   $action
   if (!result) {
      PyErr_SetString(PyExc_MemoryError,"Not enough memory");
-     return NULL;
+     SWIG_fail;
   }
 }
 void *malloc(size_t nbytes);
@@ -3749,7 +3749,7 @@ that.  For example:
    $action
    if (err_occurred()) {
       PyErr_SetString(PyExc_RuntimeError, err_message());
-      return NULL;
+      SWIG_fail;
    }
 }
 </pre>
@@ -3770,7 +3770,7 @@ C++ exceptions are also easy to handle.  For example, you can write code like th
       $action
    } catch (std::out_of_range &amp;e) {
       PyErr_SetString(PyExc_IndexError, const_cast&lt;char*&gt;(e.what()));
-      return NULL;
+      SWIG_fail;
    }
 }
 
@@ -3784,7 +3784,8 @@ public:
 
 <p>
 When raising a Python exception from C, use the <tt>PyErr_SetString()</tt>
-function as shown above.  The following exception types can be used as the first argument.
+function as shown above followed by <tt>SWIG_fail</tt>.
+The following exception types can be used as the first argument.
 </p>
 
 <div class="code">
@@ -3817,6 +3818,13 @@ PyExc_ValueError
 PyExc_ZeroDivisionError
 </pre>
 </div>
+
+<p>
+<tt>SWIG_fail</tt> is a C macro which when called within the context of SWIG wrapper function,
+will jump to the error handler code. This will call any cleanup code (freeing any temp variables)
+and then return from the wrapper function so that the Python interpreter can raise the Python exception.
+This macro should always be called after setting a Python error in code snippets, such as typemaps and <tt>%exception</tt>, that are ultimately generated into the wrapper function.
+</p>
 
 <p>
 The language-independent <tt>exception.i</tt> library file can also be used
@@ -4417,7 +4425,7 @@ You can refine this by supplying an optional parameter name.  For example:
   $1 = (int) PyLong_AsLong($input);
   if ($1 &lt; 0) {
     PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
-    return NULL;
+    SWIG_fail;
   }
 }
 %inline %{
@@ -4750,18 +4758,18 @@ object to be used as a <tt>char **</tt> object.
     $1 = (char **) malloc((size+1)*sizeof(char *));
     for (i = 0; i &lt; size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
+      if (PyString_Check(o)) {
         $1[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+      } else {
         free($1);
-        return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        SWIG_fail;
       }
     }
     $1[i] = 0;
   } else {
     PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
+    SWIG_fail;
   }
 }
 
@@ -4849,18 +4857,18 @@ previous example:
     $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i &lt; $1; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyString_Check(o))
+      if (PyString_Check(o)) {
         $2[i] = PyString_AsString(PyList_GetItem($input,i));
-      else {
-        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+      } else {
         free($2);
-        return NULL;
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        SWIG_fail;
       }
     }
     $2[i] = 0;
   } else {
     PyErr_SetString(PyExc_TypeError,"not a list");
-    return NULL;
+    SWIG_fail;
   }
 }
 
@@ -5038,12 +5046,12 @@ This too, can be handled used typemaps as follows :
   if (PyTuple_Check($input)) {
     if (!PyArg_ParseTuple($input,"dddd",temp,temp+1,temp+2,temp+3)) {
       PyErr_SetString(PyExc_TypeError,"tuple must have 4 elements");
-      return NULL;
+      SWIG_fail;
     }
     $1 = &amp;temp[0];
   } else {
     PyErr_SetString(PyExc_TypeError,"expected a tuple.");
-    return NULL;
+    SWIG_fail;
   }
 }
 
@@ -5078,18 +5086,18 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
   int i;
   if (!PySequence_Check($input)) {
       PyErr_SetString(PyExc_TypeError,"Expecting a sequence");
-      return NULL;
+      SWIG_fail;
   }
   if (PyObject_Length($input) != $1_dim0) {
       PyErr_SetString(PyExc_ValueError,"Expecting a sequence with $1_dim0 elements");
-      return NULL;
+      SWIG_fail;
   }
   for (i =0; i &lt; $1_dim0; i++) {
       PyObject *o = PySequence_GetItem($input,i);
       if (!PyFloat_Check(o)) {
          Py_XDECREF(o);
          PyErr_SetString(PyExc_ValueError,"Expecting a sequence of floats");
-         return NULL;
+         SWIG_fail;
       }
       temp[i] = PyFloat_AsDouble(o);
       Py_DECREF(o);
@@ -5146,7 +5154,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 
 %typemap(in) double [ANY](double temp[$1_dim0]) {
    if (!convert_darray($input,temp,$1_dim0)) {
-      return NULL;
+      SWIG_fail;
    }
    $1 = &amp;temp[0];
 }

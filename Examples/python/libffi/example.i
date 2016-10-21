@@ -20,7 +20,7 @@
       PyObject *o = PyTuple_GetItem(varargs,i);
       if (!PyString_Check(o)) {
           PyErr_SetString(PyExc_ValueError,"Expected a string");
-          return NULL;
+          SWIG_fail;
       }
       argv[i] = PyString_AsString(o);
    }
@@ -58,11 +58,11 @@
                    &ffi_type_uint, types) == FFI_OK) {
     ffi_call(&cif, (void (*)()) execlp, &result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(arg3);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -107,9 +107,9 @@ int execlp(const char *path, const char *arg1, ...);
       argv[i].type = VT_POINTER;
       argv[i].val.pvalue = (void *) PyString_AsString(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       free(argv);
-      return NULL;
+      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
+      SWIG_fail;
     }
   }
 
@@ -157,11 +157,11 @@ int execlp(const char *path, const char *arg1, ...);
                    &ffi_type_uint, types) == FFI_OK) {
     ffi_call(&cif, (void (*)()) printf, &result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(args);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);

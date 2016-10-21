@@ -373,11 +373,11 @@ example, you could write a typemap like this:
 <div class="code">
 <pre>
 %typemap(in) <b>double nonnegative</b> {
-   $1 = PyFloat_AsDouble($input);
-   if ($1 &lt; 0) {
-        PyErr_SetString(PyExc_ValueError,"argument must be nonnegative.");
-        return NULL;
-   }
+  $1 = PyFloat_AsDouble($input);
+  if ($1 &lt; 0) {
+    PyErr_SetString(PyExc_ValueError,"argument must be nonnegative.");
+    SWIG_fail;
+  }
 }
 
 ...
@@ -2964,11 +2964,11 @@ similar to this:
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
-    return NULL;
+    SWIG_fail;
   }
   if (PySequence_Length($input) != 4) {
     PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected 4 elements");
-    return NULL;
+    SWIG_fail;
   }
   for (i = 0; i &lt; 4; i++) {
     PyObject *o = PySequence_GetItem($input,i);
@@ -2976,7 +2976,7 @@ similar to this:
       temp[i] = (float) PyFloat_AsDouble(o);
     } else {
       PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
-      return NULL;
+      SWIG_fail;
     }
   }
   $1 = temp;
@@ -3009,11 +3009,11 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
-    return NULL;
+    SWIG_fail;
   }
   if (PySequence_Length($input) != $1_dim0) {
     PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
-    return NULL;
+    SWIG_fail;
   }
   for (i = 0; i &lt; $1_dim0; i++) {
     PyObject *o = PySequence_GetItem($input,i);
@@ -3021,7 +3021,7 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
       temp[i] = (float) PyFloat_AsDouble(o);
     } else {
       PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
-      return NULL;
+      SWIG_fail;
     }
   }
   $1 = temp;
@@ -3053,11 +3053,11 @@ as shown.   To work with heap allocated data, the following technique can be use
   int i;
   if (!PySequence_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a sequence");
-    return NULL;
+    SWIG_fail;
   }
   if (PySequence_Length($input) != $1_dim0) {
     PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
-    return NULL;
+    SWIG_fail;
   }
   $1 = (float *) malloc($1_dim0*sizeof(float));
   for (i = 0; i &lt; $1_dim0; i++) {
@@ -3065,9 +3065,9 @@ as shown.   To work with heap allocated data, the following technique can be use
     if (PyNumber_Check(o)) {
       $1[i] = (float) PyFloat_AsDouble(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
       free($1);
-      return NULL;
+      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");
+      SWIG_fail;
     }
   }
 }
@@ -3229,7 +3229,7 @@ pointers. For example:</p>
 %typemap(check) Vector * {
     if ($1 == 0) {
         PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
-        return NULL;
+        SWIG_fail;
    }
 }
 
@@ -3508,7 +3508,7 @@ maps perform the conversion described for the above example:
   int i;
   if (!PyList_Check($input)) {
     PyErr_SetString(PyExc_ValueError, "Expecting a list");
-    return NULL;
+    SWIG_fail;
   }
   $1 = PyList_Size($input);
   $2 = (char **) malloc(($1+1)*sizeof(char *));
@@ -3517,7 +3517,7 @@ maps perform the conversion described for the above example:
     if (!PyString_Check(s)) {
         free($2);
         PyErr_SetString(PyExc_ValueError, "List items must be strings");
-        return NULL;
+        SWIG_fail;
     }
     $2[i] = PyString_AsString(s);
   }
@@ -3633,7 +3633,7 @@ might write typemaps like this:
 %typemap(in) (void *wbuffer, size_t len) {
    if (!PyString_Check($input)) {
        PyErr_SetString(PyExc_ValueError, "Expecting a string");
-       return NULL;
+       SWIG_fail;
    }
    $1 = (void *) PyString_AsString($input);
    $2 = PyString_Size($input);
@@ -3643,12 +3643,12 @@ might write typemaps like this:
 %typemap(in) (void *rbuffer, size_t len) {
    if (!PyInt_Check($input)) {
        PyErr_SetString(PyExc_ValueError, "Expecting an integer");
-       return NULL;
+       SWIG_fail;
    }
    $2 = PyInt_AsLong($input);
    if ($2 &lt; 0) {
        PyErr_SetString(PyExc_ValueError, "Positive integer expected");
-       return NULL;
+       SWIG_fail;
    }
    $1 = (void *) malloc($2);
 }
