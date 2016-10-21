@@ -164,16 +164,16 @@ Inside the wrapper function, you might see these functions used like this:
 <div class="code">
 <pre>
 PyObject *wrap_factorial(PyObject *self, PyObject *args) {
-    int       arg1;
-    int       result;
-    PyObject *obj1;
-    PyObject *resultobj;
+  int       arg1;
+  int       result;
+  PyObject *obj1;
+  PyObject *resultobj;
 
-    if (!PyArg_ParseTuple("O:factorial", &amp;obj1)) return NULL;
-    <b>arg1 = PyInt_AsLong(obj1);</b>
-    result = factorial(arg1);
-    <b>resultobj = PyInt_FromLong(result);</b>
-    return resultobj;
+  if (!PyArg_ParseTuple("O:factorial", &amp;obj1)) return NULL;
+  <b>arg1 = PyInt_AsLong(obj1);</b>
+  result = factorial(arg1);
+  <b>resultobj = PyInt_FromLong(result);</b>
+  return resultobj;
 }
 </pre>
 </div>
@@ -222,12 +222,12 @@ a special <tt>%typemap</tt> directive is used.  For example:
 <pre>
 /* Convert from Python --&gt; C */
 %typemap(in) int {
-    $1 = PyInt_AsLong($input);
+  $1 = PyInt_AsLong($input);
 }
 
 /* Convert from C --&gt; Python */
 %typemap(out) int {
-    $result = PyInt_FromLong($1);
+  $result = PyInt_FromLong($1);
 }
 </pre>
 </div>
@@ -270,33 +270,33 @@ A wrapper function would look approximately like this:
 <div class="code">
 <pre>
 PyObject *wrap_gcd(PyObject *self, PyObject *args) {
-   int arg1;
-   int arg2;
-   int result;
-   PyObject *obj1;
-   PyObject *obj2;
-   PyObject *resultobj;
+  int arg1;
+  int arg2;
+  int result;
+  PyObject *obj1;
+  PyObject *obj2;
+  PyObject *resultobj;
 
-   if (!PyArg_ParseTuple("OO:gcd", &amp;obj1, &amp;obj2)) return NULL;
+  if (!PyArg_ParseTuple("OO:gcd", &amp;obj1, &amp;obj2)) return NULL;
 
-   /* "in" typemap, argument 1 */<b>   
-   {
-      arg1 = PyInt_AsLong(obj1);
-   }
+  /* "in" typemap, argument 1 */<b>
+  {
+    arg1 = PyInt_AsLong(obj1);
+  }
 </b>
-   /* "in" typemap, argument 2 */<b>
-   {
-      arg2 = PyInt_AsLong(obj2);
-   }
+  /* "in" typemap, argument 2 */<b>
+  {
+    arg2 = PyInt_AsLong(obj2);
+  }
 </b>
-   result = gcd(arg1,arg2);
+  result = gcd(arg1,arg2);
 
-   /* "out" typemap, return value */<b>
-   {
-      resultobj = PyInt_FromLong(result);
-   }
+  /* "out" typemap, return value */<b>
+  {
+    resultobj = PyInt_FromLong(result);
+  }
 </b>
-   return resultobj;
+  return resultobj;
 }
 </pre>
 </div>
@@ -323,7 +323,7 @@ it is applied to all future occurrences of that type in the input file.  For exa
 <pre>
 /* Convert from Perl --&gt; C */
 %typemap(in) <b>int</b> {
-   $1 = SvIV($input);
+  $1 = SvIV($input);
 }
 
 ...
@@ -344,12 +344,12 @@ underlying type.  For example, you could have code like this:
 <pre>
 /* Convert from Ruby--&gt; C */
 %typemap(in) <b>int</b> {
-   $1 = NUM2INT($input);
+  $1 = NUM2INT($input);
 }
 ...
 typedef int Integer;
 namespace foo {
-    typedef Integer Number;
+  typedef Integer Number;
 };
 
 int foo(<b>int</b> x);
@@ -399,8 +399,8 @@ consecutive arguments.    For example:
 <div class="code">
 <pre>
 %typemap(in) (<b>char *str, int len</b>) {
-    $1 = PyString_AsString($input);   /* char *str */
-    $2 = PyString_Size($input);       /* int len   */
+  $1 = PyString_AsString($input);   /* char *str */
+  $2 = PyString_Size($input);       /* int len   */
 }
 ...
 int count(<b>char *str, int len</b>, char c);
@@ -434,12 +434,12 @@ A more general form of copying is found in the <tt>%apply</tt> directive like th
 <div class="code">
 <pre>
 %typemap(in) int {
-   /* Convert an integer argument */
-   ...
+  /* Convert an integer argument */
+  ...
 }
 %typemap(out) int {
-   /* Return an integer value */
-   ...
+  /* Return an integer value */
+  ...
 }
 
 /* Apply all of the integer typemaps to size_t */
@@ -549,7 +549,7 @@ int foo(<b>int x, double y, char *s</b>);
 <div class="code">
 <pre>
 struct Foo {
-    <b>int x[20]</b>;
+  <b>int x[20]</b>;
 };
 </pre>
 </div>
@@ -637,7 +637,7 @@ function instead.  For example:
 %rename(foo) wrap_foo;
 %inline %{
 void wrap_foo(char *s, int x) {
-   foo(x,s);
+  foo(x,s);
 }
 %}
 </pre>
@@ -759,21 +759,21 @@ Here are some examples of valid typemap specifications:
 <pre>
 /* Simple typemap declarations */
 %typemap(in) int {
-   $1 = PyInt_AsLong($input);
+  $1 = PyInt_AsLong($input);
 }
 %typemap(in) int "$1 = PyInt_AsLong($input);";
 %typemap(in) int %{ 
-   $1 = PyInt_AsLong($input);
+  $1 = PyInt_AsLong($input);
 %}
 
 /* Typemap with extra argument name */
 %typemap(in) int nonnegative {
-   ...
+  ...
 }
 
 /* Multiple types in one typemap */
 %typemap(in) int, short, long { 
-   $1 = SvIV($input);
+  $1 = SvIV($input);
 }
 
 /* Typemap with modifiers */
@@ -783,15 +783,15 @@ Here are some examples of valid typemap specifications:
 %typemap(in) (char *str, int len),
              (char *buffer, int size)
 {
-   $1 = PyString_AsString($input);
-   $2 = PyString_Size($input);
+  $1 = PyString_AsString($input);
+  $2 = PyString_Size($input);
 }
 
 /* Typemap with extra pattern parameters */
 %typemap(in, numinputs=0) int *output (int temp),
                           long *output (long temp)
 {
-   $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 </pre>
 </div>
@@ -837,7 +837,7 @@ subject to the typemap rules that are in effect at the point where the class its
 <div class="code">
 <pre>
 class Foo {
-   ...
+  ...
 };
 
 %typemap(in) int {
@@ -845,8 +845,8 @@ class Foo {
 }
 
 %extend Foo {
-   int blah(int x);    // typemap has no effect.  Declaration is attached to Foo which 
-                       // appears before the %typemap declaration.
+  int blah(int x);    // typemap has no effect.  Declaration is attached to Foo which
+                      // appears before the %typemap declaration.
 };
 </pre>
 </div>
@@ -953,22 +953,22 @@ example:
 <div class="code">
 <pre>
 %typemap(in) int {
-   ...
+  ...
 }
 
 namespace std {
-    class string;
-    %typemap(in) string {
-        ...
-    }
+  class string;
+  %typemap(in) string {
+    ...
+  }
 }
 
 class Bar {
 public:
-    typedef const int &amp; const_reference;
-    %typemap(out) const_reference {
-         ...
-    }
+  typedef const int &amp; const_reference;
+  %typemap(out) const_reference {
+    ...
+  }
 };
 </pre>
 </div>
@@ -982,10 +982,10 @@ code
 <div class="code">
 <pre>
 namespace std {
-    class string;
-    %typemap(in) string {
-       ...
-    }
+  class string;
+  %typemap(in) string {
+    ...
+  }
 }
 </pre>
 </div>
@@ -997,17 +997,17 @@ is really defining a typemap for the type <tt>std::string</tt>.   You could have
 <div class="code">
 <pre>
 namespace std {
-    class string;
-    %typemap(in) string {          /* std::string */
-       ...
-    }
+  class string;
+  %typemap(in) string {          /* std::string */
+    ...
+  }
 }
 
 namespace Foo {
-    class string;
-    %typemap(in) string {          /* Foo::string */
-       ...
-    }
+  class string;
+  %typemap(in) string {          /* Foo::string */
+    ...
+  }
 }
 </pre>
 </div>
@@ -1096,23 +1096,23 @@ shows how some of the basic rules are applied:
 
 <div class="code"><pre>
 %typemap(in) int *x {
-   ... typemap 1
+  ... typemap 1
 }
 
 %typemap(in) int * {
-   ... typemap 2
+  ... typemap 2
 }
 
 %typemap(in) const int *z {
-   ... typemap 3
+  ... typemap 3
 }
 
 %typemap(in) int [4] {
-   ... typemap 4
+  ... typemap 4
 }
 
 %typemap(in) int [ANY] {
-   ... typemap 5
+  ... typemap 5
 }
 
 void A(int *x);        // int *x rule       (typemap 1)
@@ -1141,7 +1141,7 @@ for the reduced type.   To illustrate, suppose you had code like this:
 <div class="code">
 <pre>
 %typemap(in) int {
-   ... typemap 1
+  ... typemap 1
 }
 
 typedef int Integer;
@@ -1185,11 +1185,11 @@ typedef double  pdouble;     // Positive double
 
 // typemap 1
 %typemap(in) double {
-   ... get a double ...
+  ... get a double ...
 }
 // typemap 2
 %typemap(in) pdouble {
-   ... get a positive double ...
+  ... get a positive double ...
 }
 double sin(double x);           // typemap 1
 pdouble sqrt(pdouble x);        // typemap 2
@@ -1453,11 +1453,11 @@ any typemaps specified for a single type.  For example:
 <div class="code">
 <pre>
 %typemap(in) (char *buffer, int len) {
-   // typemap 1
+  // typemap 1
 }
 
 %typemap(in) char *buffer {
-   // typemap 2
+  // typemap 2
 }
 
 void foo(char *buffer, int len, int count); // (char *buffer, int len)
@@ -1804,7 +1804,7 @@ void set_value(const char* val) {}
 %typemap(check) const char* val = char* NON_NULL;
 
 %typemap(arginit, noblock=1) const char* val {
-   $1 = "";
+  $1 = "";
 }
 
 void set_value(const char* val);
@@ -1862,7 +1862,7 @@ When a typemap is defined like this:
 <div class="code">
 <pre>
 %typemap(in) int {
-   $1 = PyInt_AsLong($input);
+  $1 = PyInt_AsLong($input);
 }
 </pre>
 </div>
@@ -1875,12 +1875,12 @@ wrapper code will look like this:
 <div class="code">
 <pre>
 wrap_whatever() {
-    ...
-    // Typemap code
-    {                    
-       arg1 = PyInt_AsLong(obj1);
-    }
-    ...
+  ...
+  // Typemap code
+  {
+    arg1 = PyInt_AsLong(obj1);
+  }
+  ...
 }
 </pre>
 </div>
@@ -1893,11 +1893,11 @@ for use during typemap execution.  For example:
 <div class="code">
 <pre>
 %typemap(in) short {
-   long temp;          /* Temporary value */
-   if (Tcl_GetLongFromObj(interp, $input, &amp;temp) != TCL_OK) {
-      return TCL_ERROR;
-   }
-   $1 = (short) temp;
+  long temp;          /* Temporary value */
+  if (Tcl_GetLongFromObj(interp, $input, &amp;temp) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  $1 = (short) temp;
 }
 </pre>
 </div>
@@ -1966,11 +1966,11 @@ then pass a pointer to the object.   To do this, simply specify the typemap with
 <div class="code">
 <pre>
 %typemap(in) std::string * <b>(std::string temp)</b> {
-    unsigned int len;
-    char        *s;
-    s = SvPV($input,len);         /* Extract string data */
-    temp.assign(s,len);           /* Assign to temp */
-    $1 = &amp;temp;                   /* Set argument to point to temp */
+  unsigned int len;
+  char        *s;
+  s = SvPV($input,len);         /* Extract string data */
+  temp.assign(s,len);           /* Assign to temp */
+  $1 = &amp;temp;                   /* Set argument to point to temp */
 }
 </pre>
 </div>
@@ -1983,16 +1983,16 @@ the scope of the entire wrapper function.  For example:
 <div class="code">
 <pre>
 wrap_foo() {
-   std::string temp;    &lt;--- Declaration of temp goes here
-   ...
+  std::string temp;    &lt;--- Declaration of temp goes here
+  ...
 
-   /* Typemap code */
-   {
-      ...
-      temp.assign(s,len);
-      ...
-   } 
-   ...
+  /* Typemap code */
+  {
+    ...
+    temp.assign(s,len);
+    ...
+  }
+  ...
 }
 </pre>
 </div>
@@ -2021,35 +2021,35 @@ generated code would actually look like this:
 <div class="code">
 <pre>
 wrap_foo() {
-   int *arg1;    /* Actual arguments */
-   int *arg2;
-   int *arg3;
-   std::string temp1;    /* Locals declared in the typemap */
-   std::string temp2;
-   std::string temp3;
-   ...
-   {
-       char *s;
-       unsigned int len;
-       ...
-       temp1.assign(s,len);
-       arg1 = *temp1;
-   }
-   {
-       char *s;
-       unsigned int len;
-       ...
-       temp2.assign(s,len);
-       arg2 = &amp;temp2;
-   }
-   {
-       char *s;
-       unsigned int len;
-       ...
-       temp3.assign(s,len);
-       arg3 = &amp;temp3;
-   }
-   ...
+  int *arg1;    /* Actual arguments */
+  int *arg2;
+  int *arg3;
+  std::string temp1;    /* Locals declared in the typemap */
+  std::string temp2;
+  std::string temp3;
+  ...
+  {
+    char *s;
+    unsigned int len;
+    ...
+    temp1.assign(s,len);
+    arg1 = *temp1;
+  }
+  {
+    char *s;
+    unsigned int len;
+    ...
+    temp2.assign(s,len);
+    arg2 = &amp;temp2;
+  }
+  {
+    char *s;
+    unsigned int len;
+    ...
+    temp3.assign(s,len);
+    arg3 = &amp;temp3;
+  }
+  ...
 }
 </pre>
 </div>
@@ -2237,7 +2237,7 @@ This is useful when a typemap might match multiple C datatype.  For example:
 <div class="code">
 <pre>
 %typemap(in)  int, short, long {
-   $1 = ($1_ltype) PyInt_AsLong($input);
+  $1 = ($1_ltype) PyInt_AsLong($input);
 }
 </pre>
 </div>
@@ -2285,8 +2285,8 @@ If necessary, type related substitutions can also be used when declaring locals.
 <div class="code">
 <pre>
 %typemap(in) int * ($*1_type temp) {
-    temp = PyInt_AsLong($input);
-    $1 = &amp;temp;
+  temp = PyInt_AsLong($input);
+  $1 = &amp;temp;
 }
 </pre>
 </div>
@@ -2300,7 +2300,7 @@ kinds of pointers.   For example, if you wrote this,
 <div class="code">
 <pre>
 %typemap(in) int [10][20] {
-   $1_ltype temp;
+  $1_ltype temp;
 }
 </pre>
 </div>
@@ -2326,10 +2326,10 @@ casts to get the correct type when needed.  For example:
 <div class="code">
 <pre>
 %typemap(in) int [10][20] {
-   void *temp;
-   ...
-   (($1_ltype) temp)[i][j] = x;    /* set a value */
-   ...
+  void *temp;
+  ...
+  (($1_ltype) temp)[i][j] = x;    /* set a value */
+  ...
 }
 </pre>
 </div>
@@ -2341,10 +2341,10 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
 <div class="code">
 <pre>
 %typemap(in) int [10][20] {
-   $1_basetype temp[10][20];
-   ...
-   temp[i][j] = x;    /* set a value */
-   ...
+  $1_basetype temp[10][20];
+  ...
+  temp[i][j] = x;    /* set a value */
+  ...
 }
 </pre>
 </div>
@@ -2518,7 +2518,7 @@ to C.  For example:
 <div class="code">
 <pre>
 %typemap(in) int {
-   $1 = PyInt_AsLong($input);
+  $1 = PyInt_AsLong($input);
 }
 </pre>
 </div>
@@ -2548,7 +2548,7 @@ specified.  The <tt>numinputs</tt> attributes facilitates this. For example:
 <pre>
 // Ignored argument.
 %typemap(in, numinputs=0) int *out (int temp) {
-    $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 </pre>
 </div>
@@ -2578,7 +2578,7 @@ to see whether or not it matches a specific type.  For example:
 <div class="code">
 <pre>
 %typemap(typecheck,precedence=SWIG_TYPECHECK_INTEGER) int {
-   $1 = PyInt_Check($input) ? 1 : 0;
+  $1 = PyInt_Check($input) ? 1 : 0;
 }
 </pre>
 </div>
@@ -2604,7 +2604,7 @@ into the target language.  For example:
 <div class="code">
 <pre>
 %typemap(out) int {
-   $result = PyInt_FromLong($1);
+  $result = PyInt_FromLong($1);
 }
 </pre>
 </div>
@@ -2638,7 +2638,7 @@ For example:
 <pre>
 // Set argument to NULL before any conversion occurs
 %typemap(arginit) int *data {
-   $1 = NULL;
+  $1 = NULL;
 }
 </pre>
 </div>
@@ -2654,7 +2654,7 @@ argument.   For example:
 <div class="code">
 <pre>
 %typemap(default) int flags {
-   $1 = DEFAULT_FLAGS;
+  $1 = DEFAULT_FLAGS;
 }
 ...
 int foo(int x, int y, int flags);
@@ -2688,9 +2688,9 @@ converted.  For example:
 <div class="code">
 <pre>
 %typemap(check) int positive {
-   if ($1 &lt;= 0) {
-       SWIG_exception(SWIG_ValueError,"Expected positive value.");
-   }
+  if ($1 &lt;= 0) {
+    SWIG_exception(SWIG_ValueError,"Expected positive value.");
+  }
 }
 </pre>
 </div>
@@ -2709,12 +2709,12 @@ with an "in" typemap---possibly to ignore the input value.  For example:
 <pre>
 /* Set the input argument to point to a temporary variable */
 %typemap(in, numinputs=0) int *out (int temp) {
-   $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 
 %typemap(argout) int *out {
-   // Append output value $1 to $result
-   ...
+  // Append output value $1 to $result
+  ...
 }
 </pre>
 </div>
@@ -2756,12 +2756,12 @@ For example:
 <pre>
 // Get a list of integers
 %typemap(in) int *items {
-   int nitems = Length($input);    
-   $1 = (int *) malloc(sizeof(int)*nitems);
+  int nitems = Length($input);
+  $1 = (int *) malloc(sizeof(int)*nitems);
 }
 // Free the list 
 %typemap(freearg) int *items {
-   free($1);
+  free($1);
 }
 </pre>
 </div>
@@ -2786,10 +2786,10 @@ of a function.  For example:
 <div class="code">
 <pre>
 %typemap(newfree) string * {
-   delete $1;
+  delete $1;
 }
 %typemap(out) string * {
-   $result = PyString_FromString($1-&gt;c_str());
+  $result = PyString_FromString($1-&gt;c_str());
 }
 ...
 
@@ -2854,7 +2854,7 @@ cases.  For example:
 <div class="code">
 <pre>
 %typemap(memberin) int [4] {
-   memmove($1, $input, 4*sizeof(int));
+  memmove($1, $input, 4*sizeof(int));
 }
 </pre>
 </div>
@@ -2910,12 +2910,11 @@ with the catch block comprising the "throws" typemap content.
 <pre>
 ...
 try {
-    bar();
+  bar();
 }
 catch(char const *_e) {
-    PyErr_SetString(PyExc_RuntimeError, _e);
-    SWIG_fail;
-    
+  PyErr_SetString(PyExc_RuntimeError, _e);
+  SWIG_fail;
 }
 ...
 </pre>
@@ -3037,7 +3036,7 @@ array dimensions.   Multidimensional arrays can be matched in a similar manner. 
 <div class="code">
 <pre>
 %typemap(in) float matrix[ANY][ANY] (float temp[$1_dim0][$1_dim1]) {
-   ... convert a 2d array ...
+  ... convert a 2d array ...
 }
 </pre>
 </div>
@@ -3072,7 +3071,7 @@ as shown.   To work with heap allocated data, the following technique can be use
   }
 }
 %typemap(freearg) float value[ANY] {
-   if ($1) free($1);
+  if ($1) free($1);
 }
 </pre>
 </div>
@@ -3227,10 +3226,10 @@ pointers. For example:</p>
 
 <div class="code"><pre>
 %typemap(check) Vector * {
-    if ($1 == 0) {
-        PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
-        SWIG_fail;
-   }
+  if ($1 == 0) {
+    PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
+    SWIG_fail;
+  }
 }
 
 </pre></div>
@@ -3515,9 +3514,9 @@ maps perform the conversion described for the above example:
   for (i = 0; i &lt; $1; i++) {
     PyObject *s = PyList_GetItem($input,i);
     if (!PyString_Check(s)) {
-        free($2);
-        PyErr_SetString(PyExc_ValueError, "List items must be strings");
-        SWIG_fail;
+      free($2);
+      PyErr_SetString(PyExc_ValueError, "List items must be strings");
+      SWIG_fail;
     }
     $2[i] = PyString_AsString(s);
   }
@@ -3525,7 +3524,7 @@ maps perform the conversion described for the above example:
 }
 
 %typemap(freearg) (int argc, char *argv[]) {
-   if ($2) free($2);
+  if ($2) free($2);
 }
 
 /* Required for C++ method overloading */
@@ -3631,38 +3630,38 @@ might write typemaps like this:
 <pre>
 // typemap for an outgoing buffer
 %typemap(in) (void *wbuffer, size_t len) {
-   if (!PyString_Check($input)) {
-       PyErr_SetString(PyExc_ValueError, "Expecting a string");
-       SWIG_fail;
-   }
-   $1 = (void *) PyString_AsString($input);
-   $2 = PyString_Size($input);
+  if (!PyString_Check($input)) {
+    PyErr_SetString(PyExc_ValueError, "Expecting a string");
+    SWIG_fail;
+  }
+  $1 = (void *) PyString_AsString($input);
+  $2 = PyString_Size($input);
 }
 
 // typemap for an incoming buffer
 %typemap(in) (void *rbuffer, size_t len) {
-   if (!PyInt_Check($input)) {
-       PyErr_SetString(PyExc_ValueError, "Expecting an integer");
-       SWIG_fail;
-   }
-   $2 = PyInt_AsLong($input);
-   if ($2 &lt; 0) {
-       PyErr_SetString(PyExc_ValueError, "Positive integer expected");
-       SWIG_fail;
-   }
-   $1 = (void *) malloc($2);
+  if (!PyInt_Check($input)) {
+    PyErr_SetString(PyExc_ValueError, "Expecting an integer");
+    SWIG_fail;
+  }
+  $2 = PyInt_AsLong($input);
+  if ($2 &lt; 0) {
+    PyErr_SetString(PyExc_ValueError, "Positive integer expected");
+    SWIG_fail;
+  }
+  $1 = (void *) malloc($2);
 }
 
 // Return the buffer.  Discarding any previous return result
 %typemap(argout) (void *rbuffer, size_t len) {
-   Py_XDECREF($result);   /* Blow away any previous result */
-   if (result &lt; 0) {      /* Check for I/O error */
-       free($1);
-       PyErr_SetFromErrno(PyExc_IOError);
-       return NULL;
-   }
-   $result = PyString_FromStringAndSize($1,result);
-   free($1);
+  Py_XDECREF($result);   /* Blow away any previous result */
+  if (result &lt; 0) {      /* Check for I/O error */
+    free($1);
+    PyErr_SetFromErrno(PyExc_IOError);
+    return NULL;
+  }
+  $result = PyString_FromStringAndSize($1,result);
+  free($1);
 }
 </pre>
 </div>
@@ -3717,13 +3716,13 @@ this, you could write a multi-argument typemap like this:
 <div class="code">
 <pre>
 %typemap(in) (double *mat, int rows, int columns) {
-    MatrixObject *a;
-    a = GetMatrixFromObject($input);     /* Get matrix somehow */
+  MatrixObject *a;
+  a = GetMatrixFromObject($input);     /* Get matrix somehow */
 
-    /* Get matrix properties */
-    $1 = GetPointer(a);
-    $2 = GetRows(a);
-    $3 = GetColumns(a);
+  /* Get matrix properties */
+  $1 = GetPointer(a);
+  $2 = GetRows(a);
+  $3 = GetColumns(a);
 }
 </pre>
 </div>
@@ -3916,9 +3915,9 @@ A fragment can use one or more additional fragments, for example:
     ... some marshalling code  ...
 
     if  (ival &lt; CHAR_MIN /*defined in &lt;limits.h&gt;*/) {
-       ...
+      ...
     } else {
-       ...
+      ...
     }
     ...
     return value;
@@ -4026,7 +4025,7 @@ struct A {
   }
 
   %typemap(in, fragment="incode"{A&lt;T&gt;}) {
-     ... here we use the 'type specialized' fragment "incode"{A&lt;T&gt;} ...
+    ... here we use the 'type specialized' fragment "incode"{A&lt;T&gt;} ...
   }
 };
 </pre>
@@ -4139,15 +4138,15 @@ For example:
 <div class="code">
 <pre>
 class Foo {
-   int x;
+  int x;
 };
 
 class Bar {
-   int y;
+  int y;
 };
 
 class FooBar : public Foo, public Bar {
-   int z;
+  int z;
 };
 </pre>
 </div>
@@ -4339,11 +4338,11 @@ descriptor name for any C datatype.  For example:
 <pre>
 %typemap(in) Foo * {
   if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) {
-     Bar *temp;
-     if ((SWIG_ConvertPtr($input, (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
-         return NULL;
-     }
-     $1 = (Foo *) temp;
+    Bar *temp;
+    if ((SWIG_ConvertPtr($input, (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
+      return NULL;
+    }
+    $1 = (Foo *) temp;
   }
 }
 </pre>
@@ -4429,32 +4428,32 @@ For example, the above functions would produce something roughly like this:
 <pre>
 // wrapper pseudocode
 _wrap_foo_0(argc, args[]) {       // foo(int)
-   int arg1;
-   int result;
-   ...
-   arg1 = FromInteger(args[0]);
-   result = foo(arg1);
-   return ToInteger(result);
+  int arg1;
+  int result;
+  ...
+  arg1 = FromInteger(args[0]);
+  result = foo(arg1);
+  return ToInteger(result);
 }
 
 _wrap_foo_1(argc, args[]) {       // foo(double)
-   double arg1;
-   int result;
-   ...
-   arg1 = FromDouble(args[0]);
-   result = foo(arg1);
-   return ToInteger(result);
+  double arg1;
+  int result;
+  ...
+  arg1 = FromDouble(args[0]);
+  result = foo(arg1);
+  return ToInteger(result);
 }
 
 _wrap_foo_2(argc, args[]) {       // foo(char *, int)
-   char *arg1;
-   int   arg2;
-   int result;
-   ...
-   arg1 = FromString(args[0]);
-   arg2 = FromInteger(args[1]);
-   result = foo(arg1,arg2);
-   return ToInteger(result);
+  char *arg1;
+  int   arg2;
+  int result;
+  ...
+  arg1 = FromString(args[0]);
+  arg2 = FromInteger(args[1]);
+  result = foo(arg1,arg2);
+  return ToInteger(result);
 }
 
 </pre>
@@ -4467,20 +4466,20 @@ Next, a dynamic dispatch function is generated:
 <div class="code">
 <pre>
 _wrap_foo(argc, args[]) {
-   if (argc == 1) {
-       if (IsInteger(args[0])) {
-           return _wrap_foo_0(argc,args);
-       } 
-       if (IsDouble(args[0])) {
-           return _wrap_foo_1(argc,args);
-       }
-   }
-   if (argc == 2) {
-       if (IsString(args[0]) &amp;&amp; IsInteger(args[1])) {
-          return _wrap_foo_2(argc,args);
-       }
-   }
-   error("No matching function!\n");
+  if (argc == 1) {
+    if (IsInteger(args[0])) {
+      return _wrap_foo_0(argc,args);
+    }
+    if (IsDouble(args[0])) {
+      return _wrap_foo_1(argc,args);
+    }
+  }
+  if (argc == 2) {
+    if (IsString(args[0]) &amp;&amp; IsInteger(args[1])) {
+      return _wrap_foo_2(argc,args);
+    }
+  }
+  error("No matching function!\n");
 }
 </pre>
 </div>
@@ -4652,11 +4651,11 @@ Here is an example,
 <pre>
 // Typemap for a C++ string
 %typemap(in) std::string {
-    if (PyString_Check($input)) {
-         $1 = std::string(PyString_AsString($input));
-     } else {
-         SWIG_exception(SWIG_TypeError, "string expected");
-     }
+  if (PyString_Check($input)) {
+    $1 = std::string(PyString_AsString($input));
+  } else {
+    SWIG_exception(SWIG_TypeError, "string expected");
+  }
 }
 // Copy the typecheck code for "char *".  
 %typemap(typecheck) std::string = char *;
@@ -4675,7 +4674,7 @@ If you write a typecheck typemap and omit the precedence level, for example comm
 <div class="code">
 <pre>
 %typemap(typecheck /*,precedence=SWIG_TYPECHECK_INTEGER*/) int {
-   $1 = PyInt_Check($input) ? 1 : 0;
+  $1 = PyInt_Check($input) ? 1 : 0;
 }
 </pre>
 </div>
@@ -4727,10 +4726,10 @@ a set of typemaps like this:
 <div class="code">
 <pre>
 %typemap(in,numinputs=0) int *OUTPUT (int temp) {
-   $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 %typemap(argout) int *OUTPUT {
-   // return value somehow
+  // return value somehow
 }
 </pre>
 </div>
@@ -4771,15 +4770,15 @@ For example:
 <div class="code">
 <pre>
 %typemap(in) int *INPUT (int temp) {
-   temp = ... get value from $input ...;
-   $1 = &amp;temp;
+  temp = ... get value from $input ...;
+  $1 = &amp;temp;
 }
 
 %typemap(check) int *POSITIVE {
-   if (*$1 &lt;= 0) {
-      SWIG_exception(SWIG_ValueError,"Expected a positive number!\n");
-      return NULL;
-   }
+  if (*$1 &lt;= 0) {
+    SWIG_exception(SWIG_ValueError,"Expected a positive number!\n");
+    return NULL;
+  }
 }
 
 ...
@@ -4817,13 +4816,13 @@ to them.  For example, you could do this:
 <div class="code">
 <pre>
 %typemap(in) int *(int temp) {
-   temp = (int) PyInt_AsLong($input);
-   $1 = &amp;temp;
+  temp = (int) PyInt_AsLong($input);
+  $1 = &amp;temp;
 }
 
 %typemap(argout) int * {
-   PyObject *o = PyInt_FromLong(temp$argnum);
-   ...
+  PyObject *o = PyInt_FromLong(temp$argnum);
+  ...
 }
 </pre>
 </div>

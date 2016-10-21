@@ -229,8 +229,9 @@ void foo(SomeClass arg) {
 
   %newobject bar();
   SomeClass *bar();
-%}</pre></div>
-   <p>The code generated for <tt>foo()</tt> and <tt>bar()</tt> looks like this:</p>
+%}
+</pre></div>
+<p>The code generated for <tt>foo()</tt> and <tt>bar()</tt> looks like this:</p>
 <div class="targetlang"><pre>
 SomeClass foo() {
   return new SomeClass(example_im.foo(), false);

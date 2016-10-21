@@ -837,8 +837,8 @@ access constants in procedure bodies.  For example:
 <div class="code">
 <pre>
 proc blah {} {
-   global FOO
-   bar $FOO
+  global FOO
+  bar $FOO
 }
 </pre>
 </div>
@@ -865,7 +865,7 @@ its actual value or a symbolic identifier name.  For example:
 <div class="code">
 <pre>
 proc blah {} {
-   bar FOO
+  bar FOO
 }
 </pre>
 </div>
@@ -949,12 +949,12 @@ example:
 %inline %{
 /* C-style cast */
 Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
+  return (Bar *) f;
 }
 
 /* C++-style cast */
 Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
+  return dynamic_cast&lt;Foo*&gt;(b);
 }
 
 Foo *IncrFoo(Foo *f, int i) {
@@ -1028,12 +1028,12 @@ can also be forced to be read-only using the <tt>%immutable</tt> directive. For 
 <div class="code">
 <pre>
 struct Foo {
-   ...
-   %immutable;
-   int x;        /* Read-only members */
-   char *name;
-   %mutable;
-   ...
+  ...
+  %immutable;
+  int x;        /* Read-only members */
+  char *name;
+  %mutable;
+  ...
 };
 </pre>
 </div>
@@ -1100,11 +1100,11 @@ pointer.  For example, suppose you have two structures like this:
 <div class="code">
 <pre>
 struct Foo {
-   int a;
+  int a;
 };
 
 struct Bar {
-   Foo f;
+  Foo f;
 };
 </pre>
 </div>
@@ -1302,9 +1302,8 @@ To illustrate, suppose you have a class like this:
 <pre>
 class Spam {
 public:
-   static void foo();
-   static int bar;
-
+  static void foo();
+  static int bar;
 };
 </pre>
 </div>
@@ -1662,10 +1661,10 @@ submodules or packages.  For example, if you have a file like this,
 %module example
 
 namespace foo {
-   int fact(int n);
-   struct Vector {
-       double x,y,z;
-   };
+  int fact(int n);
+  struct Vector {
+    double x,y,z;
+  };
 };
 </pre>
 </div>
@@ -1731,12 +1730,12 @@ For example:
 
 template&lt;class T1, class T2&gt;
 struct pair {
-   typedef T1 first_type;
-   typedef T2 second_type;
-   T1 first;
-   T2 second;
-   pair();
-   pair(const T1&amp;, const T2&amp;);
+  typedef T1 first_type;
+  typedef T2 second_type;
+  T1 first;
+  T2 second;
+  pair();
+  pair(const T1&amp;, const T2&amp;);
   ~pair();
 };
 
@@ -1776,9 +1775,9 @@ that implements <tt>operator-&gt;()</tt> like this:
 <div class="code">
 <pre>
 template&lt;class T&gt; class SmartPtr {
-   ...
-   T *operator-&gt;();
-   ...
+  ...
+  T *operator-&gt;();
+  ...
 }
 </pre>
 </div>
@@ -1791,8 +1790,8 @@ Then, if you have a class like this,
 <pre>
 class Foo {
 public:
-     int x;
-     int bar();
+  int x;
+  int bar();
 };
 </pre>
 </div>
@@ -1874,9 +1873,9 @@ have a class like this
 <pre>
 class Foo {
 public:
-     int x;
-     int spam(int);
-     ...
+  int x;
+  int spam(int);
+  ...
 </pre>
 </div>
 
@@ -2065,10 +2064,10 @@ change the ownership of an object.  For instance, consider code like this:
 <div class="code">
 <pre>
 class Node {
-   Object *value;
+  Object *value;
 public:
-   void set_value(Object *v) { value = v; }
-   ...
+  void set_value(Object *v) { value = v; }
+  ...
 };
 </pre>
 </div>
@@ -2125,7 +2124,7 @@ example:
 <div class="code">
 <pre>
 void add(int x, int y, int *result) {
-   *result = x + y;
+  *result = x + y;
 }
 </pre>
 </div>
@@ -2137,7 +2136,7 @@ or perhaps
 <div class="code">
 <pre>
 int sub(int *x, int *y) {
-   return *x+*y;
+  return *x+*y;
 }
 </pre>
 </div>
@@ -2198,7 +2197,7 @@ If a function mutates one of its parameters like this,
 <div class="code">
 <pre>
 void negate(int *x) {
-   *x = -(*x);
+  *x = -(*x);
 }
 </pre>
 </div>
@@ -2328,7 +2327,7 @@ class DoubleArray {
     }
     // Destroy an array
     ~DoubleArray() {
-       delete ptr;
+      delete ptr;
     }
     // Return the length of the array
     int   length() {
@@ -2797,36 +2796,36 @@ used as a <tt>char **</tt> object.
 
 // This tells SWIG to treat char ** as a special case
 %typemap(in) char ** {
-     Tcl_Obj **listobjv;
-     int       nitems;
-     int       i;
-     if (Tcl_ListObjGetElements(interp, $input, &amp;nitems, &amp;listobjv) == TCL_ERROR) {
-        return TCL_ERROR;
-     }
-     $1 = (char **) malloc((nitems+1)*sizeof(char *));
-     for (i = 0; i &lt; nitems; i++) {
-        $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
-     }
-     $1[i] = 0;
+  Tcl_Obj **listobjv;
+  int       nitems;
+  int       i;
+  if (Tcl_ListObjGetElements(interp, $input, &amp;nitems, &amp;listobjv) == TCL_ERROR) {
+    return TCL_ERROR;
+  }
+  $1 = (char **) malloc((nitems+1)*sizeof(char *));
+  for (i = 0; i &lt; nitems; i++) {
+    $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
+  }
+  $1[i] = 0;
 }
 
 // This gives SWIG some cleanup code that will get called after the function call
 %typemap(freearg) char ** {
-     if ($1) {
-        free($1);
-     }
+  if ($1) {
+    free($1);
+  }
 }
 
 // Now a test functions
 %inline %{
-int print_args(char **argv) {
+  int print_args(char **argv) {
     int i = 0;
     while (argv[i]) {
-         printf("argv[%d] = %s\n", i,argv[i]);
-         i++;
+      printf("argv[%d] = %s\n", i,argv[i]);
+      i++;
     }
     return i;
-}
+  }
 %}
 %include "tclsh.i"
 
@@ -2855,21 +2854,21 @@ function argument. For example :
 <div class="code"><pre>
 // A typemap defining how to return an argument by appending it to the result
 %typemap(argout) double *outvalue {
-     Tcl_Obj *o = Tcl_NewDoubleObj($1);
-     Tcl_ListObjAppendElement(interp,$result,o);
+  Tcl_Obj *o = Tcl_NewDoubleObj($1);
+  Tcl_ListObjAppendElement(interp,$result,o);
 }
 
 // A typemap telling SWIG to ignore an argument for input
 // However, we still need to pass a pointer to the C function
 %typemap(in,numinputs=0) double *outvalue (double temp) {
-     $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 
 // Now a function returning two values
 int mypow(double a, double b, double *outvalue) {
-        if ((a &lt; 0) || (b &lt; 0)) return -1;
-        *outvalue = pow(a,b);
-        return 0;
+  if ((a &lt; 0) || (b &lt; 0)) return -1;
+  *outvalue = pow(a,b);
+  return 0;
 };
 </pre></div>
 
@@ -2992,7 +2991,7 @@ work)
 <div class="code">
 <pre>
 %typemap(out) int, short, long {
-   Tcl_SetIntObj($result,(int) $1);
+  Tcl_SetIntObj($result,(int) $1);
 }
 </pre>
 </div>
@@ -3004,10 +3003,10 @@ work)
 <div class="code">
 <pre>
 %typemap(in) float, double {
-   double temp;
-   if (Tcl_GetDoubleFromObj(interp, $input, &amp;temp) == TCL_ERROR)
-       return TCL_ERROR;
-   $1 = ($1_ltype) temp;
+  double temp;
+  if (Tcl_GetDoubleFromObj(interp, $input, &amp;temp) == TCL_ERROR)
+    return TCL_ERROR;
+  $1 = ($1_ltype) temp;
 }
 </pre>
 </div>
@@ -3017,7 +3016,7 @@ work)
 <div class="code">
 <pre>
 %typemap(out) float, double {
-   Tcl_SetDoubleObj($result, $1);
+  Tcl_SetDoubleObj($result, $1);
 }
 </pre>
 </div>
@@ -3029,9 +3028,8 @@ work)
 <div class="code">
 <pre>
 %typemap(in) char * {
-   int len;
-   $1 = Tcl_GetStringFromObj(interp, &amp;len);
-   }
+  int len;
+  $1 = Tcl_GetStringFromObj(interp, &amp;len);
 }
 </pre>
 </div>
@@ -3105,7 +3103,7 @@ variable <tt>$1_descriptor</tt>.  For example:
 <div class="indent">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
+  if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
 }
 </pre>
 </div>
@@ -3118,7 +3116,7 @@ For example:
 <div class="indent">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
+  if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
 }
 </pre>
 </div>

@@ -300,34 +300,34 @@ extern bool example_initialize(JSGlobalContextRef context);
 
 int main(int argc, char* argv[])
 {
-    // Initialize GTK+
-    gtk_init(&amp;argc, &amp;argv);
+  // Initialize GTK+
+  gtk_init(&amp;argc, &amp;argv);
 
-    ...
+  ...
 
-    // Create a browser instance
-    WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
-    WebFrame *webframe = webkit_web_view_get_main_frame(webView);
-    JSGlobalContextRef context = webkit_web_frame_get_global_context(webFrame);
-    JSObjectRef global = JSContextGetGlobalObject(context);
+  // Create a browser instance
+  WebKitWebView *webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
+  WebFrame *webframe = webkit_web_view_get_main_frame(webView);
+  JSGlobalContextRef context = webkit_web_frame_get_global_context(webFrame);
+  JSObjectRef global = JSContextGetGlobalObject(context);
 
-    JSObjectRef exampleModule;
-    example_initialize(context, &amp;exampleModule);
-    JSStringRef jsName = JSStringCreateWithUTF8CString("example");
-    JSObjectSetProperty(context, global, jsName, exampleModule, kJSPropertyAttributeReadOnly, NULL);
-    JSStringRelease(jsName);
+  JSObjectRef exampleModule;
+  example_initialize(context, &amp;exampleModule);
+  JSStringRef jsName = JSStringCreateWithUTF8CString("example");
+  JSObjectSetProperty(context, global, jsName, exampleModule, kJSPropertyAttributeReadOnly, NULL);
+  JSStringRelease(jsName);
 
-    ...
+  ...
 
-    // Load a web page into the browser instance
-    webkit_web_view_load_uri(webView, "http://www.webkitgtk.org/");
+  // Load a web page into the browser instance
+  webkit_web_view_load_uri(webView, "http://www.webkitgtk.org/");
 
-    ...
+  ...
 
-    // Run the main GTK+ event loop
-    gtk_main();
+  // Run the main GTK+ event loop
+  gtk_main();
 
-    return 0;
+  return 0;
 }</pre>
 </div>
 

@@ -218,13 +218,13 @@ interface is as follows:
 <div class="code">
 <pre>
 struct name {
-   name();                            // Create pointer object
-  ~name();                            // Delete pointer object
-   void assign(type value);           // Assign value
-   type value();                      // Get value
-   type *cast();                      // Cast the pointer to original type
-   static name *frompointer(type *);  // Create class wrapper from existing
-                                      // pointer
+  name();                            // Create pointer object
+  ~name();                           // Delete pointer object
+  void assign(type value);           // Assign value
+  type value();                      // Get value
+  type *cast();                      // Cast the pointer to original type
+  static name *frompointer(type *);  // Create class wrapper from existing
+                                     // pointer
 };
 </pre>
 </div>
@@ -384,10 +384,10 @@ function like this:
 <div class="code">
 <pre>
 void print_array(double x[10]) {
-   int i;
-   for (i = 0; i &lt; 10; i++) {
-      printf("[%d] = %g\n", i, x[i]);
-   }
+  int i;
+  for (i = 0; i &lt; 10; i++) {
+    printf("[%d] = %g\n", i, x[i]);
+  }
 }
 </pre>
 </div>
@@ -436,13 +436,13 @@ interface is as follows:
 <div class="code">
 <pre>
 struct name {
-   name(int nelements);                  // Create an array
-  ~name();                               // Delete array
-   type getitem(int index);              // Return item
-   void setitem(int index, type value);  // Set item
-   type *cast();                         // Cast to original type
-   static name *frompointer(type *);     // Create class wrapper from
-                                         // existing pointer
+  name(int nelements);                  // Create an array
+  ~name();                              // Delete array
+  type getitem(int index);              // Return item
+  void setitem(int index, type value);  // Set item
+  type *cast();                         // Cast to original type
+  static name *frompointer(type *);     // Create class wrapper from
+                                        // existing pointer
 };
 </pre>
 </div>
@@ -874,9 +874,9 @@ If you have a function that allocates memory like this,
 <div class="code">
 <pre>
 char *foo() {
-   char *result = (char *) malloc(...);
-   ...
-   return result;
+  char *result = (char *) malloc(...);
+  ...
+  return result;
 }
 </pre>
 </div>
@@ -919,16 +919,16 @@ implementation:
 <div class="code">
 <pre>
 void get_path(char *s) {
-    // Potential buffer overflow---uh, oh.
-    sprintf(s,"%s/%s", base_directory, sub_directory);
+  // Potential buffer overflow---uh, oh.
+  sprintf(s,"%s/%s", base_directory, sub_directory);
 }
 ...
 // Somewhere else in the C program
 {
-    char path[1024];
-    ...
-    get_path(path);
-    ...
+  char path[1024];
+  ...
+  get_path(path);
+  ...
 }
 </pre>
 </div>
@@ -1236,8 +1236,8 @@ returned in a parameter of type <tt>char **</tt>.  For example:
 <div class="code">
 <pre>
 void foo(char **s) {
-    *s = (char *) malloc(64);
-    sprintf(*s, "Hello world\n");
+  *s = (char *) malloc(64);
+  sprintf(*s, "Hello world\n");
 }
 </pre>
 </div>
@@ -1284,10 +1284,10 @@ returned in two parameters of type <tt>char **</tt> and <tt>int *</tt>.  For exa
 <div class="code">
 <pre>
 void foo(char **s, int *sz) {
-    *s = (char *) malloc(64);
-    *sz = 64;
-    // Write some binary data
-    ...
+  *s = (char *) malloc(64);
+  *sz = 64;
+  // Write some binary data
+  ...
 }
 </pre>
 </div>
@@ -1337,7 +1337,7 @@ You could wrap it with a function like this:
 <div class="code">
 <pre>
 void my_get_data(char **result, int *len) {
-   *result = get_data(len);
+  *result = get_data(len);
 }
 </pre>
 </div>
@@ -1503,8 +1503,8 @@ instantiate different versions of <tt>vector</tt> for the types that you want to
 %include "std_vector.i"
 
 namespace std {
-   %template(vectori) vector&lt;int&gt;;
-   %template(vectord) vector&lt;double&gt;;
+  %template(vectori) vector&lt;int&gt;;
+  %template(vectord) vector&lt;double&gt;;
 };
 </pre>
 </div>
@@ -1554,19 +1554,19 @@ To illustrate the use of this library, consider the following functions:
 #include &lt;numeric&gt;
 
 double average(std::vector&lt;int&gt; v) {
-    return std::accumulate(v.begin(),v.end(),0.0)/v.size();
+  return std::accumulate(v.begin(),v.end(),0.0)/v.size();
 }
 
 std::vector&lt;double&gt; half(const std::vector&lt;double&gt;&amp; v) {
-    std::vector&lt;double&gt; w(v);
-    for (unsigned int i=0; i&lt;w.size(); i++)
-        w[i] /= 2.0;
-    return w;
+  std::vector&lt;double&gt; w(v);
+  for (unsigned int i=0; i&lt;w.size(); i++)
+    w[i] /= 2.0;
+  return w;
 }
 
 void halve_in_place(std::vector&lt;double&gt;&amp; v) {
-    std::transform(v.begin(),v.end(),v.begin(),
-                   std::bind2nd(std::divides&lt;double&gt;(),2.0));
+  std::transform(v.begin(),v.end(),v.begin(),
+                 std::bind2nd(std::divides&lt;double&gt;(),2.0));
 }
 </pre>
 </div>
@@ -1585,8 +1585,8 @@ To wrap with SWIG, you might write the following:
 %include "std_vector.i"
 // Instantiate templates used by example
 namespace std {
-   %template(IntVector) vector&lt;int&gt;;
-   %template(DoubleVector) vector&lt;double&gt;;
+  %template(IntVector) vector&lt;int&gt;;
+  %template(DoubleVector) vector&lt;double&gt;;
 }
 
 // Include the header file with above prototypes
@@ -1645,7 +1645,7 @@ make sure you include the appropriate <tt>using</tt> or typedef directives.  For
 %include "std_vector.i"
 
 namespace std {
-    %template(IntVector) vector&lt;int&gt;;
+  %template(IntVector) vector&lt;int&gt;;
 }
 
 using namespace std;
@@ -2011,11 +2011,11 @@ For example:
 <pre>
 %include "exception.i"
 %exception std::vector::getitem {
-    try {
-        $action
-    } catch (std::out_of_range&amp; e) {
-        SWIG_exception(SWIG_IndexError,const_cast&lt;char*&gt;(e.what()));
-    }
+  try {
+    $action
+  } catch (std::out_of_range&amp; e) {
+    SWIG_exception(SWIG_IndexError,const_cast&lt;char*&gt;(e.what()));
+  }
 }
 </pre>
 </div>

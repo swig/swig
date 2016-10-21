@@ -225,16 +225,16 @@ For example:
 %define ARRAYHELPER(type,name)
 %inline %{
 type *new_ ## name (int nitems) {
-   return (type *) malloc(sizeof(type)*nitems);
+  return (type *) malloc(sizeof(type)*nitems);
 }
 void delete_ ## name(type *t) {
-   free(t);
+  free(t);
 }
 type name ## _get(type *t, int index) {
-   return t[index];
+  return t[index];
 }
 void name ## _set(type *t, int index, type val) {
-   t[index] = val;
+  t[index] = val;
 }
 %}
 %enddef
@@ -334,7 +334,7 @@ if you write code like this,
 %{
 #ifdef NEED_BLAH
 int blah() {
-   ...
+  ...
 }
 #endif
 %}
@@ -358,11 +358,11 @@ file.  For example:
 <div class="code">
 <pre>
 %extend Foo {
-   void bar() {
-      #ifdef DEBUG
-       printf("I'm in bar\n");
-      #endif
-   }
+  void bar() {
+    #ifdef DEBUG
+      printf("I'm in bar\n");
+    #endif
+  }
 }
 </pre>
 </div>
@@ -375,11 +375,11 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 <div class="code">
 <pre>
 %extend Foo {
-   void bar() {
-      %#ifdef DEBUG
-       printf("I'm in bar\n");
-      %#endif
-   }
+  void bar() {
+    %#ifdef DEBUG
+      printf("I'm in bar\n");
+    %#endif
+  }
 }
 </pre>
 </div>

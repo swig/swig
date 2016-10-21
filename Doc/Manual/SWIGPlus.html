@@ -256,11 +256,11 @@ C++ class like this:
 <div class="code">
 <pre>
 class Foo {
-public:
-      Foo();
-     ~Foo();
-      int  bar(int x);
-      int  x;
+  public:
+    Foo();
+    ~Foo();
+    int  bar(int x);
+    int  x;
 };
 </pre>
 </div>
@@ -272,24 +272,24 @@ Using C++ as pseudocode, a proxy class looks something like this:
 <div class="code">
 <pre>
 class FooProxy {
-private:
-      Foo    *self;
-public:
-      FooProxy() {
-            self = new_Foo();
-      }
-     ~FooProxy() {
-            delete_Foo(self);
-      }
-      int bar(int x) {
-            return Foo_bar(self,x);
-      }
-      int x_get() {
-            return Foo_x_get(self);
-      }
-      void x_set(int x) {
-            Foo_x_set(self,x);
-      }
+  private:
+    Foo    *self;
+  public:
+    FooProxy() {
+      self = new_Foo();
+    }
+    ~FooProxy() {
+      delete_Foo(self);
+    }
+    int bar(int x) {
+      return Foo_bar(self,x);
+    }
+    int x_get() {
+      return Foo_x_get(self);
+    }
+    void x_set(int x) {
+      Foo_x_set(self,x);
+    }
 };
 </pre>
 </div>
@@ -303,19 +303,19 @@ For example, in Python, the proxy might look roughly like this:
 <pre>
 class Foo:
     def __init__(self):
-         self.this = new_Foo()
+        self.this = new_Foo()
     def __del__(self):
-         delete_Foo(self.this)
+        delete_Foo(self.this)
     def bar(self,x):
-         return Foo_bar(self.this,x)
+        return Foo_bar(self.this,x)
     def __getattr__(self,name):
-         if name == 'x':
-              return Foo_x_get(self.this)
-         ...
+        if name == 'x':
+            return Foo_x_get(self.this)
+        ...
     def __setattr__(self,name,value):
-         if name == 'x':
-              Foo_x_set(self.this,value)
-         ...
+        if name == 'x':
+            Foo_x_set(self.this,value)
+        ...
 </pre>
 </div>
 
@@ -338,10 +338,10 @@ C++ code:
 <pre>
 class Foo {
 public:
-      Foo();
-     ~Foo();
-      int bar(int x);
-      int x;
+  Foo();
+  ~Foo();
+  int bar(int x);
+  int x;
 };
 
 class Spam {
@@ -407,45 +407,45 @@ roughly like this:
 <div class="code">
 <pre>
 class FooProxy {
-public:
-      Foo    *self;
-      int     thisown;
+  public:
+    Foo    *self;
+    int     thisown;
 
-      FooProxy() {
-            self = new_Foo();
-            thisown = 1;       // Newly created object
-      }
-     ~FooProxy() {
-            if (thisown) delete_Foo(self);
-      }
-      ...
-      // Ownership control API
-      void disown() {
-           thisown = 0;
-      }
-      void acquire() {
-           thisown = 1;
-      }
+    FooProxy() {
+      self = new_Foo();
+      thisown = 1;       // Newly created object
+    }
+    ~FooProxy() {
+      if (thisown) delete_Foo(self);
+    }
+    ...
+    // Ownership control API
+    void disown() {
+      thisown = 0;
+    }
+    void acquire() {
+      thisown = 1;
+    }
 };
 
 class FooPtrProxy: public FooProxy {
 public:
-      FooPtrProxy(Foo *s) {
-          self = s;
-          thisown = 0;
-      }
+  FooPtrProxy(Foo *s) {
+    self = s;
+    thisown = 0;
+  }
 };
 
 class SpamProxy {
-     ...
-     FooProxy *value_get() {
-          return FooPtrProxy(Spam_value_get(self));
-     }
-     void value_set(FooProxy *v) {
-          Spam_value_set(self,v-&gt;self);
-          v-&gt;disown();
-     }
-     ...
+  ...
+  FooProxy *value_get() {
+    return FooPtrProxy(Spam_value_get(self));
+  }
+  void value_set(FooProxy *v) {
+    Spam_value_set(self,v-&gt;self);
+    v-&gt;disown();
+  }
+  ...
 };
 </pre>
 </div>
@@ -704,9 +704,9 @@ First, SWIG won't generate wrappers for protected or private constructors.  For 
 <pre>
 class Foo {
 protected:
-     Foo();         // Not wrapped.
+  Foo();         // Not wrapped.
 public:
-      ...
+    ...
 };
 </pre>
 </div>
@@ -720,8 +720,8 @@ pure virtual methods.  Here are some examples:
 <pre>
 class Bar {
 public:
-     Bar();               // Not wrapped.  Bar is abstract.
-     virtual void spam(void) = 0; 
+  Bar();               // Not wrapped.  Bar is abstract.
+  virtual void spam(void) = 0;
 };
 
 class Grok : public Bar {
@@ -754,8 +754,8 @@ non-abstract using this:
 
 class Foo : public Bar {
 public:
-     Foo();    // Generated no matter what---not abstract. 
-     ...
+  Foo();    // Generated no matter what---not abstract.
+  ...
 };
 </pre>
 </div>
@@ -948,9 +948,9 @@ Alternatively, you can specify an immutable member in advance like this:
 %immutable List::length;
 ...
 class List {
-   ...
-   int length;         // Immutable by above directive
-   ...
+  ...
+  int length;         // Immutable by above directive
+  ...
 };
 </pre>
 </div>
@@ -1078,7 +1078,7 @@ like this
 <div class="code">
 <pre>
 struct Foo {
-   size_t  len;
+  size_t  len;
 };
 </pre>
 </div>
@@ -1176,10 +1176,10 @@ The following example illustrates this:
 <pre>
 class Foo {
 private:
-   static const int spam;
+  static const int spam;
 public:
-   void bar(int x, int y = spam);   // Won't work with %feature("compactdefaultargs") -
-                                    // private default value
+  void bar(int x, int y = spam);   // Won't work with %feature("compactdefaultargs") -
+                                   // private default value
 };
 </pre>
 </div>
@@ -1262,9 +1262,9 @@ you have this code:
 <pre>
 class Foo {
 public:
-     ...
-     friend void blah(Foo *f);
-     ...
+  ...
+  friend void blah(Foo *f);
+  ...
 };
 </pre>
 </div>
@@ -1299,9 +1299,9 @@ namespace bar {
 
   class Foo {
   public:
-     ...
-     friend void blah(Foo *f);
-     ...
+    ...
+    friend void blah(Foo *f);
+    ...
   };
 }
 </pre>
@@ -1364,7 +1364,7 @@ For example:
 <div class="code"><pre>
 class Bar {
 public:
-     Foo &amp;spam();
+  Foo &amp;spam();
 };
 </pre>
 </div>
@@ -1376,8 +1376,8 @@ Generates an accessor like this:
 <div class="code">
 <pre>
 Foo *Bar_spam(Bar *obj) {
-   Foo &amp;result = obj-&gt;spam();
-   return &amp;result;
+  Foo &amp;result = obj-&gt;spam();
+  return &amp;result;
 }
 </pre>
 </div>
@@ -1433,10 +1433,10 @@ following:
 <div class="code">
 <pre>
 Vector *wrap_cross_product(Vector *a, Vector *b) {
-   Vector x = *a;
-   Vector y = *b;
-   Vector r = cross_product(x,y);
-   return new Vector(r);
+  Vector x = *a;
+  Vector y = *b;
+  Vector r = cross_product(x,y);
+  return new Vector(r);
 }</pre>
 </div>
 
@@ -1455,10 +1455,10 @@ called the "Fulton Transform".  This produces a wrapper that looks like this:
 <div class="code">
 <pre>
 Vector cross_product(Vector *a, Vector *b) {
-   SwigValueWrapper&lt;Vector&gt; x = *a;
-   SwigValueWrapper&lt;Vector&gt; y = *b;
-   SwigValueWrapper&lt;Vector&gt; r = cross_product(x,y);
-   return new Vector(r);
+  SwigValueWrapper&lt;Vector&gt; x = *a;
+  SwigValueWrapper&lt;Vector&gt; y = *b;
+  SwigValueWrapper&lt;Vector&gt; r = cross_product(x,y);
+  return new Vector(r);
 }
 </pre>
 </div>
@@ -1672,7 +1672,7 @@ Similarly, <tt>typedef</tt> allows unnamed structures to be used as base classes
 <div class="code">
 <pre>
 typedef struct {
-   ...
+  ...
 } Foo;
 
 class Bar : public Foo {    // Ok. 
@@ -1741,23 +1741,23 @@ inheritance.  For example, suppose you had code like this:
 <pre>
 class A {
 public:
-   int x;
+  int x;
 };
 
 class B {
 public:
-   int y;
+  int y;
 };
 
 class C : public A, public B {
 };
 
 int A_function(A *a) {
-   return a-&gt;x;
+  return a-&gt;x;
 }
 
 int B_function(B *b) {
-   return b-&gt;y;
+  return b-&gt;y;
 }
 </pre>
 </div>
@@ -1844,10 +1844,10 @@ constructors.  For example, if you supply SWIG with overloaded functions like th
 <div class="code">
 <pre>
 void foo(int x) {
-   printf("x is %d\n", x);
+  printf("x is %d\n", x);
 }
 void foo(char *x) {
-   printf("x is '%s'\n", x);
+  printf("x is '%s'\n", x);
 }
 </pre>
 </div>
@@ -1875,10 +1875,10 @@ this code,
 <pre>
 class Foo {
 public:
-     Foo();
-     Foo(const Foo &amp;);   // Copy constructor
-     void bar(int x);
-     void bar(char *s, int y);
+  Foo();
+  Foo(const Foo &amp;);   // Copy constructor
+  void bar(int x);
+  void bar(char *s, int y);
 };
 </pre>
 </div>
@@ -2193,9 +2193,9 @@ void foo(char *c);       // Stays 'foo' (not renamed)
 
 class Spam {
 public:
-   void foo(int);      // Becomes 'foo_i'
-   void foo(double);   // Becomes 'foo_d'
-   ...
+  void foo(int);      // Becomes 'foo_i'
+  void foo(double);   // Becomes 'foo_d'
+  ...
 };
 </pre>
 </div>
@@ -2227,23 +2227,23 @@ an entire class hierarchy with only a few declarations.  For example:
 
 class Spam {
 public:
-   virtual void foo(int);      // Renamed to foo_i
-   virtual void foo(double);   // Renamed to foo_d
-   ...
+  virtual void foo(int);      // Renamed to foo_i
+  virtual void foo(double);   // Renamed to foo_d
+  ...
 };
 
 class Bar : public Spam {
 public:
-   virtual void foo(int);      // Renamed to foo_i
-   virtual void foo(double);   // Renamed to foo_d
-...
+  virtual void foo(int);      // Renamed to foo_i
+  virtual void foo(double);   // Renamed to foo_d
+  ...
 };
 
 class Grok : public Bar {
 public:
-   virtual void foo(int);      // Renamed to foo_i
-   virtual void foo(double);   // Renamed to foo_d
-...
+  virtual void foo(int);      // Renamed to foo_i
+  virtual void foo(double);   // Renamed to foo_d
+  ...
 };
 </pre>
 </div>
@@ -2256,18 +2256,18 @@ class definition itself. For example:
 <div class="code">
 <pre>
 class Spam {
-   %rename(foo_i) foo(int);
-   %rename(foo_d) foo(double);
+  %rename(foo_i) foo(int);
+  %rename(foo_d) foo(double);
 public:
-   virtual void foo(int);      // Renamed to foo_i
-   virtual void foo(double);   // Renamed to foo_d
-   ...
+  virtual void foo(int);      // Renamed to foo_i
+  virtual void foo(double);   // Renamed to foo_d
+  ...
 };
 
 class Bar : public Spam {
 public:
-   virtual void foo(int);      // Renamed to foo_i
-   virtual void foo(double);   // Renamed to foo_d
+  virtual void foo(int);      // Renamed to foo_i
+  virtual void foo(double);   // Renamed to foo_d
 ...
 };
 </pre>
@@ -2406,9 +2406,9 @@ For example, if you have a class like this:</p>
 <pre>
 class Spam {
 public:
-   ...
-   void bar() const;
-   ...
+  ...
+  void bar() const;
+  ...
 };
 </pre>
 </div>
@@ -2443,10 +2443,10 @@ that differ only in their qualifiers, like this:
 <pre>
 class Spam {
 public:
-   ...
-   void bar();         // Unqualified member
-   void bar() const;   // Qualified member
-   ...
+  ...
+  void bar();         // Unqualified member
+  void bar() const;   // Qualified member
+  ...
 };
 </pre>
 </div>
@@ -2492,11 +2492,11 @@ typedef int Integer;
 
 class Spam {
 public:
-   void foo(Integer);  // Stays 'foo' (not renamed)
+  void foo(Integer);  // Stays 'foo' (not renamed)
 };
 class Ham {
 public:
-   void foo(int);      // Renamed to foo_i
+  void foo(int);      // Renamed to foo_i
 };
 </pre>
 </div>
@@ -2511,9 +2511,9 @@ Let's consider the following example class:</p>
 <pre>
 class Spam {
 public:
-   ...
-   void bar(int i=-1, double d=0.0);
-   ...
+  ...
+  void bar(int i=-1, double d=0.0);
+  ...
 };
 </pre>
 </div>
@@ -2660,9 +2660,9 @@ something like this pseudocode:
 <div class="code">
 <pre>
 _wrap_Complex___add__(args) {
-   ... get args ...
-   obj-&gt;operator+(args);
-   ...
+  ... get args ...
+  obj-&gt;operator+(args);
+  ...
 }
 </pre>
 </div>
@@ -3126,7 +3126,7 @@ For example, if you wrote code like this,
 %template(intList) List&lt;int&gt;;
 ...
 class UltraList : public List&lt;int&gt; {
-   ...
+  ...
 };
 </pre>
 </div>
@@ -3314,8 +3314,8 @@ look like this:
 <pre>
 class Foo {
 public:
-     template&lt;class T&gt; void bar(T x, T y) { ... };
-     ...
+  template&lt;class T&gt; void bar(T x, T y) { ... };
+  ...
 };
 </pre>
 </div>
@@ -3328,10 +3328,10 @@ To expand the template, simply use <tt>%template</tt> inside the class.
 <pre>
 class Foo {
 public:
-     template&lt;class T&gt; void bar(T x, T y) { ... };
-     ...
-     %template(barint)    bar&lt;int&gt;;
-     %template(bardouble) bar&lt;double&gt;;
+  template&lt;class T&gt; void bar(T x, T y) { ... };
+  ...
+  %template(barint)    bar&lt;int&gt;;
+  %template(bardouble) bar&lt;double&gt;;
 };
 </pre>
 </div>
@@ -3344,13 +3344,13 @@ Or, if you want to leave the original class definition alone, just do this:
 <pre>
 class Foo {
 public:
-     template&lt;class T&gt; void bar(T x, T y) { ... };
-     ...
+  template&lt;class T&gt; void bar(T x, T y) { ... };
+  ...
 };
 ...
 %extend Foo {
-     %template(barint)    bar&lt;int&gt;;
-     %template(bardouble) bar&lt;double&gt;;
+  %template(barint)    bar&lt;int&gt;;
+  %template(bardouble) bar&lt;double&gt;;
 };
 </pre>
 </div>
@@ -3363,8 +3363,8 @@ or simply
 <pre>
 class Foo {
 public:
-     template&lt;class T&gt; void bar(T x, T y) { ... };
-     ...
+  template&lt;class T&gt; void bar(T x, T y) { ... };
+  ...
 };
 ...
 
@@ -3413,9 +3413,9 @@ template class.  Here is a slightly perverse example:
 // A template
 template&lt;class T&gt; class Foo {
 public:
-     // A member template
-     template&lt;class S&gt; T bar(S x, S y) { ... };
-     ...
+  // A member template
+  template&lt;class S&gt; T bar(S x, S y) { ... };
+  ...
 };
 
 // Expand a few member templates
@@ -3443,12 +3443,12 @@ and conversions. For example:
 <div class="code">
 <pre>
 template&lt;class T1, class T2&gt; struct pair {
-   T1 first;
-   T2 second;
-   pair() : first(T1()), second(T2()) { }
-   pair(const T1 &amp;x, const T2 &amp;y) : first(x), second(y) { }
-   template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &amp;x) 
-                                        : first(x.first),second(x.second) { }
+  T1 first;
+  T2 second;
+  pair() : first(T1()), second(T2()) { }
+  pair(const T1 &amp;x, const T2 &amp;y) : first(x), second(y) { }
+  template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &amp;x)
+                                       : first(x.first),second(x.second) { }
 };
 </pre>
 </div>
@@ -3462,7 +3462,7 @@ in the template class itself.  For example:
 <div class="code">
 <pre>
 %extend pair {
-   %template(pair) pair&lt;T1,T2&gt;;        // Generate default copy constructor
+  %template(pair) pair&lt;T1,T2&gt;;        // Generate default copy constructor
 };
 </pre>
 </div>
@@ -3484,13 +3484,13 @@ Alternatively, you could expand the constructor template in selected instantiati
 
 // Create a default constructor only 
 %extend pair&lt;int,int&gt; {
-   %template(paird) pair&lt;int,int&gt;;         // Default constructor
+  %template(paird) pair&lt;int,int&gt;;         // Default constructor
 };
 
 // Create default and conversion constructors 
 %extend pair&lt;double,double&gt; {
-   %template(paird) pair&lt;double,dobule&gt;;   // Default constructor
-   %template(pairc) pair&lt;int,int&gt;;         // Conversion constructor
+  %template(paird) pair&lt;double,dobule&gt;;   // Default constructor
+  %template(pairc) pair&lt;int,int&gt;;         // Conversion constructor
 };
 </pre>
 </div>
@@ -3504,8 +3504,8 @@ instead:
 <pre>
 // Create default and conversion constructors 
 %extend pair&lt;double,double&gt; {
-   %template(pair) pair&lt;double,dobule&gt;;   // Default constructor
-   %template(pair) pair&lt;int,int&gt;;         // Conversion constructor
+  %template(pair) pair&lt;double,dobule&gt;;   // Default constructor
+  %template(pair) pair&lt;int,int&gt;;         // Conversion constructor
 };
 </pre>
 </div>
@@ -3527,19 +3527,19 @@ included directly in template definitions.  For example:
 <div class="code"><pre>
 // File : list.h
 template&lt;class T&gt; class List {
-   ...
+  ...
 public:
-    %rename(__getitem__) get(int);
-    List(int max);
-    ~List();
-    ...
-    T get(int index);
-    %extend {
-        char *__str__() {
-            /* Make a string representation */
-            ...
-        }
+  %rename(__getitem__) get(int);
+  List(int max);
+  ~List();
+  ...
+  T get(int index);
+  %extend {
+    char *__str__() {
+      /* Make a string representation */
+      ...
     }
+  }
 };
 </pre></div>
 
@@ -3556,14 +3556,14 @@ It is also possible to separate these declarations from the template class.  For
 <pre>
 %rename(__getitem__) List::get;
 %extend List {
-    char *__str__() {
-        /* Make a string representation */
-        ...
-    }
-    /* Make a copy */
-    T *__copy__() {
-       return new List&lt;T&gt;(*$self);
-    }
+  char *__str__() {
+    /* Make a string representation */
+    ...
+  }
+  /* Make a copy */
+  T *__copy__() {
+    return new List&lt;T&gt;(*$self);
+  }
 };
 
 ...
@@ -3722,15 +3722,15 @@ encapsulate common functionality.  For example:
 <div class="code">
 <pre>
 namespace math {
-   double sin(double);
-   double cos(double);
+  double sin(double);
+  double cos(double);
 
-   class Complex {
-      double im,re;
-   public:
-      ...
-   };
-   ...
+  class Complex {
+    double im,re;
+  public:
+    ...
+  };
+  ...
 };
 </pre>
 </div>
@@ -3798,18 +3798,18 @@ namespace A {
 }
 
 namespace B {
-   namespace C {
-      using namespace A;
-   }
-   typedef C::Foo FooClass;
+  namespace C {
+    using namespace A;
+  }
+  typedef C::Foo FooClass;
 }
 
 namespace BIGB = B;
 
 namespace D {
-   using BIGB::FooClass;
-   class Bar : public FooClass {
-   }
+  using BIGB::FooClass;
+  class Bar : public FooClass {
+  }
 };
 
 class Spam : public D::Bar {
@@ -3843,12 +3843,12 @@ you have code like this,
 <pre>
 %module foo
 namespace foo {
-   void bar(int);
-   void spam();
+  void bar(int);
+  void spam();
 }
 
 namespace bar {
-   void blah();
+  void blah();
 }
 
 </pre>
@@ -3882,10 +3882,10 @@ namespaces to generate a name conflict in the target language. For example:
 <div class="code">
 <pre>
 namespace A {
-   void foo(int);
+  void foo(int);
 }
 namespace B {
-   void foo(double);
+  void foo(double);
 }
 </pre>
 </div>
@@ -3910,10 +3910,10 @@ To resolve this error, simply use <tt>%rename</tt> to disambiguate the declarati
 %rename(B_foo) B::foo;
 ...
 namespace A {
-   void foo(int);
+  void foo(int);
 }
 namespace B {
-   void foo(double);     // Gets renamed to B_foo
+  void foo(double);     // Gets renamed to B_foo
 }
 </pre>
 </div>
@@ -3932,7 +3932,7 @@ system to track type-names. Therefore, if you have code like this:
 <div class="code">
 <pre>
 namespace A {
-   typedef int Integer;
+  typedef int Integer;
 }
 using namespace A;
 void foo(Integer x);
@@ -3981,18 +3981,18 @@ typemaps, exception handlers, and so forth.  For example, consider the following
 <div class="code">
 <pre>
 namespace foo {
-    typedef int Integer;
-    class bar {
+  typedef int Integer;
+  class bar {
     public:
-       ...
-    };
+      ...
+  };
 }
 
 %extend foo::bar {
-   Integer add(Integer x, Integer y) {
-       Integer r = x + y;        // Error. Integer not defined in this scope
-       return r;
-   }
+  Integer add(Integer x, Integer y) {
+    Integer r = x + y;        // Error. Integer not defined in this scope
+    return r;
+  }
 };
 </pre>
 </div>
@@ -4007,10 +4007,10 @@ To fix the problem, make sure you use fully qualified names.  For example:
 <div class="code">
 <pre>
 %extend foo::bar {
-   Integer add(Integer x, Integer y) {
-       foo::Integer r = x + y;        // Ok.
-       return r;
-   }
+  Integer add(Integer x, Integer y) {
+    foo::Integer r = x + y;        // Ok.
+    return r;
+  }
 };
 </pre>
 </div>
@@ -4037,17 +4037,17 @@ these directives, consider the following:
 // Good version
 %inline %{
 namespace foo {
-     void bar(int) { ... }
-     ...
+  void bar(int) { ... }
+  ...
 }
 %}
 
 // Bad version.  Emitted code not placed in namespace.
 namespace foo {
 %inline %{
-     void bar(int) { ... }   /* I'm bad */
-     ...
-%}
+  void bar(int) { ... }   /* I'm bad */
+  ...
+  %}
 }
 </pre>
 </div>
@@ -4060,12 +4060,12 @@ included in the generated functions. For example, if you have code like this,
 <div class="code">
 <pre>
 namespace foo {
-   class bar {
-   public:
-        %extend {
-           int blah(int x);
-        };
-   };
+  class bar {
+    public:
+      %extend {
+        int blah(int x);
+      };
+  };
 }
 </pre>
 </div>
@@ -4088,13 +4088,13 @@ conflicts in the input, there will be no conflicts in the generated code.
 <div class="code">
 <pre>
 namespace foo {
-   class bar;
-   class spam {
-   public:
-        ...
-        operator bar();      // Conversion of spam -&gt; bar
-        ...
-   };
+  class bar;
+  class spam {
+    public:
+    ...
+    operator bar();      // Conversion of spam -&gt; bar
+    ...
+  };
 }
 </pre>
 </div>
@@ -4128,13 +4128,13 @@ Note, however, that if the operator is defined using a qualifier in its name, th
 %rename(tofoo) foo::spam::operator bar();      // will not match
 %rename(tofoo) foo::spam::operator foo::bar(); // will match
 namespace foo {
-   class bar;
-   class spam {
-   public:
-        ...
-        operator foo::bar();
-        ...
-   };
+  class bar;
+  class spam {
+    public:
+    ...
+    operator foo::bar();
+    ...
+  };
 }
 </pre>
 </div>
@@ -4346,7 +4346,7 @@ f = Foo()
 try:
     f.blah()
 except Error,e:
-     # e is a wrapped instance of "Error"
+    # e is a wrapped instance of "Error"
 </pre>
 </div>
 
@@ -4550,13 +4550,13 @@ code produces wrappers like this:
 <div class="code">
 <pre>
 int Foo_x_get(Foo *f) {
-   return (*f)-&gt;x;
+  return (*f)-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-   (*f)-&gt;x = value;
+  (*f)-&gt;x = value;
 }
 void Foo_bar(Foo *f) {
-   (*f)-&gt;bar();
+  (*f)-&gt;bar();
 }
 </pre>
 </div>
@@ -4636,8 +4636,8 @@ class Foo {       // Ignored
 
 class Bar {
 public:
-   Foo *operator-&gt;();
-   ...
+  Foo *operator-&gt;();
+  ...
 };
 </pre>
 </div>
@@ -4785,14 +4785,14 @@ different to any other regular instance:
 <div class="targetlang">
 <pre>
 def create_A():
-  a = A()         # SWIG ref 'a' - new object is passed to python (count: 1)
-  b1 = B(a)       # C++ ref 'a (count: 2)
-  if 1 + 1 == 2:
-     b2 = B(a)    # C++ ref 'a' (count: 3)
-  return a        # 'b1' and 'b2' are released and deleted, C++ unref 'a' twice (count: 1)
+    a = A()         # SWIG ref 'a' - new object is passed to python (count: 1)
+    b1 = B(a)       # C++ ref 'a (count: 2)
+    if 1 + 1 == 2:
+        b2 = B(a)   # C++ ref 'a' (count: 3)
+    return a        # 'b1' and 'b2' are released and deleted, C++ unref 'a' twice (count: 1)
 
-a = create_A()    # (count: 1)
-exit              # 'a' is released, SWIG unref 'a' called in the destructor wrapper (count: 0)
+a = create_A()      # (count: 1)
+exit                # 'a' is released, SWIG unref 'a' called in the destructor wrapper (count: 0)
 </pre>
 </div>
 
@@ -4976,14 +4976,14 @@ won't cause a conflict.  For example:</p>
 <pre>
 class Foo {
 public:
-       int blah(int );
-       double blah(double);
+  int blah(int );
+  double blah(double);
 };
 
 class Bar : public Foo {
 public:
-       using Foo::blah;    // Only imports blah(double);
-       int blah(int);
+  using Foo::blah;    // Only imports blah(double);
+  int blah(int);
 };
 </pre>
 </div>
@@ -4997,14 +4997,14 @@ imported by <tt>using</tt>.  For example:
 %rename(blah_long) Foo::blah(long);
 class Foo {
 public:
-     int blah(int);
-     long blah(long);  // Renamed to blah_long
+  int blah(int);
+  long blah(long);  // Renamed to blah_long
 };
 
 class Bar : public Foo {
 public:
-     using Foo::blah;     // Only imports blah(int)
-     double blah(double x);
+  using Foo::blah;     // Only imports blah(int)
+  double blah(double x);
 };
 </pre>
 </div>
@@ -5101,7 +5101,7 @@ void bar(Object *);
 ...
 // C++ code
 void blah() {
-   bar(foo());         // Error: bar discards const
+  bar(foo());         // Error: bar discards const
 };
 </pre>
 </div>
