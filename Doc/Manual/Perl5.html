@@ -2477,7 +2477,9 @@ is usually accessed as follows:
 <div class="code">
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
+if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0))) {
+  SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+}
 
 SV *sv = sv_newmortal();
 SWIG_MakePtr(sv, f, SWIGTYPE_p_Foo, 0);
@@ -2492,7 +2494,9 @@ variable <tt>$1_descriptor</tt>.  For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -2505,7 +2509,9 @@ For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $descriptor(Foo *), 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>

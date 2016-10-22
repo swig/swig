@@ -489,7 +489,7 @@ int foo(<b>int x, double y, char *s</b>);
 
 <ul>
 <li>Input argument conversion ("in" typemap).</li>
-<li>Input argument type checking ("typecheck" typemap).</li>
+<li>Input argument type checking for types used in overloaded methods ("typecheck" typemap).</li>
 <li>Output argument handling ("argout" typemap).</li>
 <li>Input argument value checking ("check" typemap).</li>
 <li>Input argument initialization ("arginit" typemap).</li>
@@ -2586,6 +2586,7 @@ to see whether or not it matches a specific type.  For example:
 <p>
 For typechecking, the $1 variable is always a simple integer that is set to 1 or 0 depending on whether or not
 the input argument is the correct type.
+Set to 1 if the input argument is the correct type otherwise set to 0.
 </p>
 
 <p>
@@ -4138,14 +4139,17 @@ For example:
 <div class="code">
 <pre>
 class Foo {
+public:
   int x;
 };
 
 class Bar {
+public:
   int y;
 };
 
 class FooBar : public Foo, public Bar {
+public:
   int z;
 };
 </pre>
@@ -4180,12 +4184,15 @@ handling of pointer values (and to make adjustments when needed).
 <p>
 In the wrapper code generated for each language, pointers are handled through
 the use of special type descriptors and conversion functions.  For example,
-if you look at the wrapper code for Python, you will see code like this:
+if you look at the wrapper code for Python, you will see code similar to the following
+(simplified for brevity):
 </p>
 
 <div class="code">
 <pre>
-if ((SWIG_ConvertPtr(obj0,(void **) &amp;arg1, SWIGTYPE_p_Foo,1)) == -1) return NULL;
+if (!SWIG_IsOK(SWIG_ConvertPtr(obj0, (void **) &amp;arg1, SWIGTYPE_p_Foo, 0))) {
+  SWIG_exception_fail(SWIG_TypeError, "in method 'GrabVal', expecting type Foo");
+}
 </pre>
 </div>
 
@@ -4197,8 +4204,10 @@ target language, a list of equivalent typenames (via typedef or
 inheritance), and pointer value handling information (if applicable).
 The <tt>SWIG_ConvertPtr()</tt> function is simply a utility function
 that takes a pointer object in the target language and a
-type-descriptor objects and uses this information to generate a C++
-pointer.  However, the exact name and calling conventions of the conversion
+type-descriptor object and uses this information to generate a C++ pointer.
+The <tt>SWIG_IsOK</tt> macro checks the return value for errors and
+<tt>SWIG_exception_fail</tt> can be called to raise an exception in the target language.
+However, the exact name and calling conventions of the conversion
 function depends on the target language (see language specific chapters for details). 
 </p>
 
@@ -4304,7 +4313,9 @@ similar to this:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -4337,12 +4348,12 @@ descriptor name for any C datatype.  For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-  if ((SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor)) == -1) {
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
     Bar *temp;
-    if ((SWIG_ConvertPtr($input, (void **) &amp;temp, <b>$descriptor(Bar *)</b>) == -1) {
-      return NULL;
+    if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;temp, $descriptor(Bar *), 0))) {
+      SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo or Bar");
     }
-    $1 = (Foo *) temp;
+    $1 = (Foo *)temp;
   }
 }
 </pre>
@@ -4588,38 +4599,13 @@ The following excerpt from the Python module illustrates this:
   $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [] {
-  void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, $1_descriptor, 0) == -1) {
-    $1 = 0;
-    PyErr_Clear();
-  } else {
-    $1 = 1;
-  }
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE * {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr($input, &amp;vptr, $1_descriptor, 0);
+  $1 = SWIG_IsOK(res) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
-  void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, $&amp;1_descriptor, 0) == -1) {
-    $1 = 0;
-    PyErr_Clear();
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
-  void *ptr;
-  if (SWIG_ConvertPtr($input, (void **) &amp;ptr, 0, 0) == -1) {
-    $1 = 0;
-    PyErr_Clear();
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) PyObject *
-{
+%typecheck(SWIG_TYPECHECK_POINTER) PyObject * {
   $1 = ($input != 0);
 }
 </pre>

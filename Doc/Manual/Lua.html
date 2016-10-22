@@ -1740,7 +1740,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 <div class="indent">
 This is the standard function used for converting a Lua userdata to a void*. It takes the value at the given index in the Lua state and converts it to a userdata. It will then provide the necessary type checks, confirming that the pointer is compatible with the type given in 'type'. Then finally setting '*ptr' to the pointer.
 If flags is set to SWIG_POINTER_DISOWN, this is will clear any ownership flag set on the object.<br>
-The returns a value which can be checked with the macro SWIG_IsOK()
+This returns a value which can be checked with the macro SWIG_IsOK()
 </div>
 
 <p><tt>void SWIG_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type,int own);</tt></p>

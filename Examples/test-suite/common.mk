@@ -487,6 +487,7 @@ CPP_TEST_CASES += \
 	typemap_array_qualifiers \
 	typemap_delete \
 	typemap_directorout \
+	typemap_documentation \
 	typemap_global_scope \
 	typemap_manyargs \
 	typemap_namespace \
