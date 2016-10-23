@@ -5,6 +5,17 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-10-23: jiulongw
+            Patch #781 - Fix wrapping of C compound expressions containing char constants
+            in quotes such as:
+
+              #define H_SUPPRESS_SCALING_MAGIC (('s'<<24) | ('u'<<16) | ('p'<<8) | 'p')
+
+              enum DifferentTypes {
+                typecharcompound='A'+1,
+                typecharcompound2='B' << 2
+              };
+
 2016-10-13: wsfulton
             [Python] Issue #808 - fix Python pickling and metaclass for builtin wrappers.
 
