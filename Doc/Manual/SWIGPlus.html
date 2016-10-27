@@ -2766,6 +2766,16 @@ have to handle it like a normal function. For example:
 are ignored as well as conversion operators.
 </p></li>
 
+<li>The index operator, <tt>operator[]</tt>, is particularly difficult to overload due to the C++
+implementation. Specifically, the get and set operators in other languages typically are separated
+into two methods such that additional logic can be packed into the operations; C# uses
+<tt>this[type key] { get { ... } set { ... }}</tt>, Python uses
+<tt>__getitem__</tt> and <tt>__setitem__</tt>, etc. In C++, the <i>setter</i> only exists if the return
+type of <tt>operator[]</tt> is a reference, and if the creator of the method wanted unique logic when
+getting or setting a value, they need to use a
+<a href="https://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Temporary_Proxy">temporary proxy</a>.
+</li>
+
 <li>The semantics of certain C++ operators may not match those in the target language.
 </li>
 </ul>
