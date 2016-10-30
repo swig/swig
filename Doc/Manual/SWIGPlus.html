@@ -2763,8 +2763,28 @@ have to handle it like a normal function. For example:
 </li>
 
 <li><p>Certain operators are ignored by default. For instance, <tt>new</tt> and <tt>delete</tt> operators
-are ignored as well as conversion operators.
-</p></li>
+are ignored as well as conversion and index operators. A warning such as the one below is shown:
+</p>
+
+<p>
+<div class="shell">
+<pre>
+example.i:12: Warning 503: Can't wrap 'operator []' unless renamed to a valid identifier.
+</pre>
+</div>
+</li>
+
+<li><p>The index operator, <tt>operator[]</tt>, is particularly difficult to overload due to differences in C++
+implementations. Specifically, the get and set operators in other languages typically are separated
+into two methods such that additional logic can be packed into the operations; C# uses
+<tt>this[type key] { get { ... } set { ... }}</tt>, Python uses
+<tt>__getitem__</tt> and <tt>__setitem__</tt>, etc. In C++ if the return
+type of <tt>operator[]</tt> is a reference and the method is const, it is often indicative of the <i>setter</i>,
+and and the <i>getter</i> is usually a const function return an object by value.
+In the absence of any hard and fast rules and the fact that there may be multiple index operators,
+it is up to the user to choose the getter and setter to use by using %rename as shown earlier.
+</p>
+</li>
 
 <li>The semantics of certain C++ operators may not match those in the target language.
 </li>
