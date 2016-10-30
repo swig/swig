@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-10-30: tobilau
+            [Java] Fix wrappers for wstring parameters in director methods to cleanup local
+            ref after director callback has finished.
+
 2016-10-23: wsfulton
             [C#] Add missing csdirectorin VOID_INT_PTR and csdirectorout VOID_INT_PTR typemaps.
 
