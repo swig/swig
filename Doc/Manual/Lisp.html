@@ -134,17 +134,16 @@ typedef int days;
 
 struct bar {
   short p, q;
-    char a, b;
-    int *z[1000];
-    struct bar * n;
+  char a, b;
+  int *z[1000];
+  struct bar * n;
 };
   
 struct   bar * my_struct;
 
 struct foo {
-    int a;
-    struct foo * b[100];
-  
+  int a;
+  struct foo * b[100];
 };
 
 int pointer_func(void (*ClosureFun)( void* _fun, void* _data, void* _evt ), int p);
@@ -436,44 +435,41 @@ Various features which were available for C headers can also be used
 <div class="code"><pre>
 namespace OpenDemo {
   class Test
-    {
+  {
     public:
-        float x;
-        // constructors
-        Test (void) {x = 0;}
-        Test (float X) {x = X;}
+      float x;
+      // constructors
+      Test (void) {x = 0;}
+      Test (float X) {x = X;}
 
-        // vector addition
-        Test operator+ (const Test&amp; v) const {return Test (x+v.x);}
+      // vector addition
+      Test operator+ (const Test&amp; v) const {return Test (x+v.x);}
 
       // length squared
-        float lengthSquared (void) const {return this-&gt;dot (*this);}
+      float lengthSquared (void) const {return this-&gt;dot (*this);}
 
-        static float distance (const Test&amp; a, const Test&amp; b){return(a-b).length();}
+      static float distance (const Test&amp; a, const Test&amp; b){return(a-b).length();}
 
-        inline Test parallelComponent (const Test&amp; unitBasis) const {
-          return unitBasis * projection;
-        }
+      inline Test parallelComponent (const Test&amp; unitBasis) const {
+        return unitBasis * projection;
+      }
 
-        Test setYtoZero (void) const {return Test (this-&gt;x);}
+      Test setYtoZero (void) const {return Test (this-&gt;x);}
 
-        static const Test zero;
-    };
+      static const Test zero;
+  };
 
+  inline Test operator* (float s, const Test&amp; v) {return v*s;}
 
-   inline Test operator* (float s, const Test&amp; v) {return v*s;}
+  inline std::ostream&amp; operator&lt;&lt; (std::ostream&amp; o, const Test&amp; v)
+  {
+    return o &lt;&lt; "(" &lt;&lt; v.x &lt;&lt; ")";
+  }
 
-
-    inline std::ostream&amp; operator&lt;&lt; (std::ostream&amp; o, const Test&amp; v)
-    {
-        return o &lt;&lt; "(" &lt;&lt; v.x &lt;&lt; ")";
-    }
-
-
-    inline Test RandomUnitVectorOnXZPlane (void)
-    {
-        return RandomVectorInUnitRadiusSphere().setYtoZero().normalize();
-    }
+  inline Test RandomUnitVectorOnXZPlane (void)
+  {
+    return RandomVectorInUnitRadiusSphere().setYtoZero().normalize();
+  }
 }
 </pre></div>
 <p>The interface used is: </p>
@@ -778,10 +774,10 @@ The module also handles strutcures and #define constants as shown
 </p>
 <div class="code"><pre>
 struct bar {
-    short x, y;
-    char a, b;
-    int *z[1000];
-    struct bar * n;
+  short x, y;
+  char a, b;
+  int *z[1000];
+  struct bar * n;
 };
 
 #define max 1000

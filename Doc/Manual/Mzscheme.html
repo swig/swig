@@ -36,12 +36,12 @@ Example interface file:
 /* define a macro for the struct creation */
 %define handle_ptr(TYPE,NAME)
 %typemap(argout) TYPE *NAME{
-    Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
-    SWIG_APPEND_VALUE(o);
+  Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
+  SWIG_APPEND_VALUE(o);
 }
 
 %typemap(in,numinputs=0) TYPE *NAME (TYPE temp) {
-    $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 %enddef
 

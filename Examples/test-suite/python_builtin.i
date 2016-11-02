@@ -2,6 +2,12 @@
 
 %module python_builtin
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+%}
+
 %inline %{
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
@@ -156,12 +162,12 @@ void Dealloc2Destroyer(PyObject *v) {
 %feature("python:slot", "sq_length", functype="lenfunc") SimpleArray::__len__;
 %inline %{
   class SimpleArray {
-    size_t size;
+    Py_ssize_t size;
     int numbers[5];
   public:
-    SimpleArray(size_t size) : size(size) {
-      for (size_t x = 0; x<size; ++x)
-        numbers[x] = x*10;
+    SimpleArray(Py_ssize_t size) : size(size) {
+      for (Py_ssize_t x = 0; x<size; ++x)
+        numbers[x] = (int)x*10;
     }
 
     Py_ssize_t __len__() {
@@ -192,7 +198,7 @@ void Dealloc2Destroyer(PyObject *v) {
         if (ii > jj)
           throw std::invalid_argument("getitem i should not be larger than j");
         SimpleArray n(jj-ii);
-        for (size_t x = 0; x<size; ++x)
+        for (Py_ssize_t x = 0; x<size; ++x)
           n.numbers[x] = numbers[x+ii];
         return n;
       }

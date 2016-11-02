@@ -50,7 +50,7 @@ namespace test {
 			 PyComplex_ImagAsDouble($input));
     } else {
 	PyErr_SetString(PyExc_TypeError,"Expected test_complex.\n");
-	return NULL;
+	SWIG_fail;
     }
 }
 %typemap(freearg) test::test_complex * {
@@ -242,7 +242,7 @@ namespace Split {
 	$1 = PyInt_AsLong($input);
 	if ($1 < 0) {
 	    PyErr_SetString(PyExc_ValueError,"domain error\n");
-	    return NULL;
+	    SWIG_fail;
 	}
     }	
 #endif

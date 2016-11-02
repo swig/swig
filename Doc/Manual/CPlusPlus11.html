@@ -457,10 +457,10 @@ This kind of initialization is handled by SWIG.
 <div class="code"><pre>
 class SomeClass {
 public:
-    SomeClass() {}
-    explicit SomeClass(int new_value) : value(new_value) {}
+  SomeClass() {}
+  explicit SomeClass(int new_value) : value(new_value) {}
 
-    int value = 5;
+  int value = 5;
 };
 </pre></div>
 
@@ -688,7 +688,7 @@ initializers) with some limitations. The following code is correctly parsed:</p>
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
 }
 </pre></div>
 
@@ -818,7 +818,7 @@ reachable by the current thread can be defined as:</p>
 
 <div class="code"><pre>
 struct A {
-   static thread_local int val;
+  static thread_local int val;
 };
 thread_local int global_val;
 </pre></div>
@@ -858,8 +858,8 @@ For example, the C++ compiler will not compile any code which attempts to use an
 
 <div class="code"><pre>
 struct NoInt {
-    void f(double i);
-    void f(int) = delete;
+  void f(double i);
+  void f(int) = delete;
 };
 </pre></div>
 

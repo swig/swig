@@ -5,6 +5,38 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-10-30: myd7349
+            [C#] Patch #740 Add std_array.i for C# for wrapping std::array.
+
+            Patch also enhances std::vector<std::wstring> C# wrappers with additional functions
+            (Contains, IndexOf, LastIndexOf and Remove).
+
+2016-10-30: tobilau
+            [Java] Fix wrappers for wstring parameters in director methods to cleanup local
+            ref after director callback has finished.
+
+2016-10-23: wsfulton
+            [C#] Add missing csdirectorin VOID_INT_PTR and csdirectorout VOID_INT_PTR typemaps.
+
+2016-10-23: jiulongw
+            Patch #781 - Fix wrapping of C compound expressions containing char constants
+            in quotes such as:
+
+              #define H_SUPPRESS_SCALING_MAGIC (('s'<<24) | ('u'<<16) | ('p'<<8) | 'p')
+
+              enum DifferentTypes {
+                typecharcompound='A'+1,
+                typecharcompound2='B' << 2
+              };
+
+2016-10-13: wsfulton
+            [Python] Issue #808 - fix Python pickling and metaclass for builtin wrappers.
+
+            The metaclass (SwigPyObjectType) for SWIG objects was not defined in
+            a way that let importlib successfully import the Python wrappers.
+            The pickle module previously failed to pickle objects because it couldn't
+            determine what module the SWIG wrapped objects were in.
+
 2016-09-29: wsfulton
             [Allegrocl, CFFI, GO, Javascript, Ocaml, R, Scilab]
             Add missing support for the "ret" typemap in a few target languages.

@@ -443,14 +443,15 @@ The example below shows this for a C function returning 2 values and a result:
 int divide(int n, int d, int *OUTPUT, int *OUTPUT);
 
 %{
-int divide(int n, int d, int q*, int *r) {
-   if (d != 0) {
-     *q = n / d;
-     *r = n % d;
-     return 1;
-   }
-   else return 0;
-}
+  int divide(int n, int d, int q*, int *r) {
+    if (d != 0) {
+      *q = n / d;
+      *r = n % d;
+      return 1;
+    } else {
+      return 0;
+    }
+  }
 %}
 </pre></div>
 

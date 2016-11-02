@@ -1021,18 +1021,18 @@ Now let's analyse the generated code to gain a fuller understanding of the typem
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    
-    if (arg1 &lt; 0) {
-        SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
-                                               "only positive numbers accepted", "number");
-        return ;
-    }
-    
-    positivesonly(arg1);
-    
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+
+  if (arg1 &lt; 0) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException,
+      "only positive numbers accepted", "number");
+    return ;
+  }
+
+  positivesonly(arg1);
+
 }
 </pre>
 </div>
@@ -1155,18 +1155,17 @@ The generated unmanaged code this time catches the C++ exception and converts it
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    
-    try {
-        negativesonly(arg1);
-        
-    } catch (std::out_of_range e) {
-        SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
-        return ;
-    }
-    
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+
+  try {
+    negativesonly(arg1);
+
+  } catch (std::out_of_range e) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
+    return ;
+  }
 }
 </pre>
 </div>
@@ -1221,19 +1220,18 @@ SWIG generates a try catch block with the throws typemap code in the catch handl
 <div class="code">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
-    int arg1 ;
-    
-    arg1 = (int)jarg1; 
-    try {
-        evensonly(arg1);
+  int arg1 ;
+
+  arg1 = (int)jarg1;
+  try {
+    evensonly(arg1);
+  }
+  catch(std::out_of_range &amp;_e) {
+    {
+      SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
+      return ;
     }
-    catch(std::out_of_range &amp;_e) {
-      {
-          SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
-          return ;
-      }
-    }
-    
+  }
 }
 </pre>
 </div>
@@ -1643,20 +1641,20 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg,
 
 class SwigDirector_Base : public Base, public Swig::Director {
 public:
-    SwigDirector_Base();
-    virtual unsigned int UIntMethod(unsigned int x);
-    virtual ~SwigDirector_Base();
-    virtual void BaseBoolMethod(Base const &amp;b, bool flag);
+  SwigDirector_Base();
+  virtual unsigned int UIntMethod(unsigned int x);
+  virtual ~SwigDirector_Base();
+  virtual void BaseBoolMethod(Base const &amp;b, bool flag);
 
-    typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
-    typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
-    void swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
-                               SWIG_Callback1_t callbackBaseBoolMethod);
+  typedef unsigned int (SWIGSTDCALL* SWIG_Callback0_t)(unsigned int);
+  typedef void (SWIGSTDCALL* SWIG_Callback1_t)(void *, unsigned int);
+  void swig_connect_director(SWIG_Callback0_t callbackUIntMethod,
+                             SWIG_Callback1_t callbackBaseBoolMethod);
 
 private:
-    SWIG_Callback0_t swig_callbackUIntMethod;
-    SWIG_Callback1_t swig_callbackBaseBoolMethod;
-    void swig_init_callbacks();
+  SWIG_Callback0_t swig_callbackUIntMethod;
+  SWIG_Callback1_t swig_callbackBaseBoolMethod;
+  void swig_init_callbacks();
 };
 
 void SwigDirector_Base::swig_connect_director(SWIG_Callback0_t callbackUIntMethod, 
@@ -1940,10 +1938,10 @@ and usage from C++
 
 <div class="code">
 <pre>
-    Container container;
-    Element element(20);
-    container.setElement(&amp;element);
-    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
+  Container container;
+  Element element(20);
+  container.setElement(&amp;element);
+  cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
 </pre>
 </div>
 

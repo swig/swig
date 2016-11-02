@@ -56,12 +56,12 @@ handler. For example, you can specify the following:
 
 <div class="code"><pre>
 %exception {
-    try {
-        $action
-    }
-    catch (RangeError) {
-        ... handle error ...
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    ... handle error ...
+  }
 }
 </pre></div>
 
@@ -71,13 +71,13 @@ How the exception is handled depends on the target language, for example, Python
 
 <div class="code"><pre>
 %exception {
-    try {
-        $action
-    }
-    catch (RangeError) {
-        PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-        SWIG_fail;
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
+    SWIG_fail;
+  }
 }
 </pre></div>
 
@@ -341,12 +341,12 @@ to specific declaration name. For example:
 <div class="code">
 <pre>
 %exception allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -364,12 +364,12 @@ an exception handler for a specific class, you might write this:
 <div class="code">
 <pre>
 %exception Object::allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -386,12 +386,12 @@ in the specified class as well as for identically named functions appearing in d
 <div class="code">
 <pre>
 %exception Object::allocate(int) {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 </pre>
 </div>
@@ -410,21 +410,21 @@ to attach exceptions to specific parts of a header file. For example:
 
 // Define a few exception handlers for specific declarations
 %exception Object::allocate(int) {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 
 %exception Object::getitem {
-    try {
-       $action
-    }
-    catch (RangeError) {
-       croak("Index out of range");
-    }
+  try {
+    $action
+  }
+  catch (RangeError) {
+    croak("Index out of range");
+  }
 }
 ...
 // Read a raw header file
@@ -560,17 +560,17 @@ common scripting language exceptions in a portable manner.  For example :</p>
 %include exception.i       
 
 %exception {
-    try {
-        $action
-    } catch(RangeError) {
-        SWIG_exception(SWIG_ValueError, "Range Error");
-    } catch(DivisionByZero) {
-        SWIG_exception(SWIG_DivisionByZero, "Division by zero");
-    } catch(OutOfMemory) {
-        SWIG_exception(SWIG_MemoryError, "Out of memory");
-    } catch(...) {
-        SWIG_exception(SWIG_RuntimeError,"Unknown exception");
-    }
+  try {
+    $action
+  } catch(RangeError) {
+    SWIG_exception(SWIG_ValueError, "Range Error");
+  } catch(DivisionByZero) {
+    SWIG_exception(SWIG_DivisionByZero, "Division by zero");
+  } catch(OutOfMemory) {
+    SWIG_exception(SWIG_MemoryError, "Out of memory");
+  } catch(...) {
+    SWIG_exception(SWIG_RuntimeError,"Unknown exception");
+  }
 }
 
 </pre></div>
@@ -611,8 +611,8 @@ example, consider a function like this:
 <div class="code">
 <pre>
 Foo *blah() {
-   Foo *f = new Foo();
-   return f;
+  Foo *f = new Foo();
+  return f;
 }
 </pre>
 </div>
@@ -771,12 +771,12 @@ using the <tt>%feature</tt> directive. For example:
 <div class="code">
 <pre>
 %feature("except") Object::allocate {
-    try {
-        $action
-    } 
-    catch (MemoryError) {
-        croak("Out of memory");
-    }
+  try {
+    $action
+  }
+  catch (MemoryError) {
+    croak("Out of memory");
+  }
 }
 
 %feature("new","1") *::copy;
@@ -811,10 +811,10 @@ are defined.  For example:
 <pre>
 /* Define a global exception handler */
 %feature("except") {
-   try {
-     $action
-   }
-   ...
+  try {
+    $action
+  }
+  ...
 }
 
 ... bunch of declarations ...
@@ -867,11 +867,11 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 <div class="code">
 <pre>
 %feature("except", throws="MyExceptionClass") Object::method { 
-   try {
-     $action
-   } catch (...) {
-     ... code to throw a MyExceptionClass Java exception ...
-   }
+  try {
+    $action
+  } catch (...) {
+    ... code to throw a MyExceptionClass Java exception ...
+  }
 };
 </pre>
 </div>
@@ -993,21 +993,21 @@ To clarify, let's consider the <tt>except</tt> feature again (<tt>%exception</tt
 <pre>
 // Define global exception handler
 %feature("except") {
-    try {
-        $action
-    } catch (...) {
-        croak("Unknown C++ exception");
-    }
+  try {
+    $action
+  } catch (...) {
+    croak("Unknown C++ exception");
+  }
 }
 
 // Define exception handler for all clone methods to log the method calls
 %feature("except") *::clone() {
-    try {
-        logger.info("$action");
-        $action
-    } catch (...) {
-        croak("Unknown C++ exception");
-    }
+  try {
+    logger.info("$action");
+    $action
+  } catch (...) {
+    croak("Unknown C++ exception");
+  }
 }
 
 ... initial set of class declarations with clone methods ...
@@ -1165,14 +1165,14 @@ in the Python module. You might use <tt>%feature</tt> to rewrite proxy/shadow cl
 %feature("shadow") Foo::bar(int) %{
 def bar(*args):
     if len(args) == 3:
-         return apply(examplec.Foo_bar_id,args)
+        return apply(examplec.Foo_bar_id,args)
     return apply(examplec.Foo_bar,args)
 %}
     
 class Foo {
 public:
-    int bar(int x);
-    int bar(int x, double y);
+  int bar(int x);
+  int bar(int x, double y);
 }
 </pre>
 </div>
