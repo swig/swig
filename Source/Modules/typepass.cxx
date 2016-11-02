@@ -566,6 +566,10 @@ class TypePass:private Dispatcher {
       SwigType_typedef_class(rname);
       Delete(rname);
       /*      SwigType_typedef_class(name); */
+    } else if (Strcmp(ttype, "cdecl") == 0) {
+      String *rname = SwigType_typedef_resolve_all(name);
+      SwigType_typedef_class(rname);
+      Delete(rname);
     }
     return SWIG_OK;
   }

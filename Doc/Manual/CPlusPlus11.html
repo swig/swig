@@ -623,19 +623,14 @@ typedef void (*PFD)(double);  // The old style
 </pre></div>
 
 <p>
-SWIG supports type aliasing.
-</p>
-
-<p>
 The following is an example of an alias template:
 
 <div class="code"><pre>
-template&lt; typename T1, typename T2, int &gt;
+template&lt; typename T1, typename T2, int N &gt;
 class SomeType {
 public:
   T1 a;
   T2 b;
-  int c;
 };
 
 template&lt; typename T2 &gt;
@@ -643,14 +638,14 @@ using TypedefName = SomeType&lt;char*, T2, 5&gt;;
 </pre></div>
 
 <p>
-These are partially supported as SWIG will parse these and identify them, however, they are ignored as they are not added to the type system. A warning such as the following is issued:
+SWIG supports both type aliasing and alias templates.
+However, in order to use an alias template, the <tt>%template</tt> directive must be used:
 </p>
 
-<div class="shell">
-<pre>
-example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
-</pre>
-</div>
+<div class="code"><pre>
+%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
+%template() TypedefName&lt;bool&gt;;
+</pre></div>
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 

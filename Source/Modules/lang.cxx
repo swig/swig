@@ -870,7 +870,7 @@ int Language::cDeclaration(Node *n) {
     } else {
       // Found an unignored templated method that has an empty template instantiation (%template())
       // Ignore it unless it has been %rename'd
-      if (Strncmp(symname, "__dummy_", 8) == 0) {
+      if (Strncmp(symname, "__dummy_", 8) == 0 && Cmp(storage, "typedef") != 0) {
 	SetFlag(n, "feature:ignore");
 	Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
 	    "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
