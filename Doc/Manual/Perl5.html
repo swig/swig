@@ -940,12 +940,12 @@ example:
 %inline %{
 /* C-style cast */
 Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
+  return (Bar *) f;
 }
 
 /* C++-style cast */
 Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
+  return dynamic_cast&lt;Foo*&gt;(b);
 }
 
 Foo *IncrFoo(Foo *f, int i) {
@@ -1020,12 +1020,12 @@ can also be forced to be read-only using the <tt>%immutable</tt> directive. For 
 <div class="code">
 <pre>
 struct Foo {
-   ...
-   %immutable;
-   int x;        /* Read-only members */
-   char *name;
-   %mutable;
-   ...
+  ...
+  %immutable;
+  int x;        /* Read-only members */
+  char *name;
+  %mutable;
+  ...
 };
 </pre>
 </div>
@@ -1045,7 +1045,7 @@ Array members are normally wrapped as read-only.   For example,
 <div class="code">
 <pre>
 struct Foo {
-   int  x[50];
+  int x[50];
 };
 </pre>
 </div>
@@ -1076,11 +1076,11 @@ When structure members are wrapped, they are handled as pointers.   For example,
 <div class="code">
 <pre>
 struct Foo {
-   ...
+  ...
 };
 
 struct Bar {
-   Foo f;
+  Foo f;
 };
 </pre>
 </div>
@@ -1222,9 +1222,9 @@ void foo(char *c);       // Stays 'foo' (not renamed)
 
 class Spam {
 public:
-   void foo(int);      // Becomes 'foo_i'
-   void foo(double);   // Becomes 'foo_d'
-   ...
+  void foo(int);      // Becomes 'foo_i'
+  void foo(double);   // Becomes 'foo_d'
+  ...
 };
 </pre>
 </div>
@@ -1380,7 +1380,7 @@ example:
 <div class="code">
 <pre>
 void add(int x, int y, int *result) {
-   *result = x + y;
+  *result = x + y;
 }
 </pre>
 </div>
@@ -1392,7 +1392,7 @@ or perhaps
 <div class="code">
 <pre>
 int sub(int *x, int *y) {
-   return *x+*y;
+  return *x+*y;
 }
 </pre>
 </div>
@@ -1456,7 +1456,7 @@ If a function mutates one of its parameters like this,
 <div class="code">
 <pre>
 void negate(int *x) {
-   *x = -(*x);
+  *x = -(*x);
 }
 </pre>
 </div>
@@ -1614,7 +1614,7 @@ class DoubleArray {
     }
     // Destroy an array
     ~DoubleArray() {
-       delete ptr;
+      delete ptr;
     }
     // Return the length of the array
     int   length() {
@@ -2173,11 +2173,11 @@ reference to be used as a char ** datatype.
   int i = 0,len = 0;
   /* Figure out how many elements we have */
   while ($1[len])
-     len++;
+    len++;
   svs = (SV **) malloc(len*sizeof(SV *));
   for (i = 0; i &lt; len ; i++) {
-      svs[i] = sv_newmortal();
-      sv_setpv((SV*)svs[i],$1[i]);
+    svs[i] = sv_newmortal();
+    sv_setpv((SV*)svs[i],$1[i]);
   };
   myav = av_make(len,svs);
   free(svs);
@@ -2188,20 +2188,20 @@ reference to be used as a char ** datatype.
 
 // Now a few test functions
 %inline %{
-int print_args(char **argv) {
+  int print_args(char **argv) {
     int i = 0;
     while (argv[i]) {
-         printf("argv[%d] = %s\n", i,argv[i]);
-         i++;
+      printf("argv[%d] = %s\n", i,argv[i]);
+      i++;
     }
     return i;
-}
+  }
 
-// Returns a char ** list 
-char **get_args() {
+  // Returns a char ** list
+  char **get_args() {
     static char *values[] = { "Dave", "Mike", "Susan", "John", "Michelle", 0};
     return &amp;values[0];
-}
+  }
 %}
 
 </pre></div>
@@ -2349,10 +2349,10 @@ For example:
 
 <div class="code"><pre>
 %typemap(memberin) int [ANY] {
-   int i;
-   for (i = 0; i &lt; $1_dim0; i++) {
-      $1[i] = $input[i];
-   }
+  int i;
+  for (i = 0; i &lt; $1_dim0; i++) {
+    $1[i] = $input[i];
+  }
 }
 </pre></div>
 
@@ -2477,7 +2477,9 @@ is usually accessed as follows:
 <div class="code">
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0) == -1) return NULL;
+if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0))) {
+  SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+}
 
 SV *sv = sv_newmortal();
 SWIG_MakePtr(sv, f, SWIGTYPE_p_Foo, 0);
@@ -2492,7 +2494,9 @@ variable <tt>$1_descriptor</tt>.  For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $1_descriptor,0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -2505,7 +2509,9 @@ For example:
 <div class="code">
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *), 0)) == -1) return NULL;
+  if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $descriptor(Foo *), 0))) {
+    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  }
 }
 </pre>
 </div>
@@ -2997,9 +3003,9 @@ low-level helper functions.  For example, this code now seems to work:
 <pre>
 my $a =
   [[1,0,0,0],
-   [0,1,0,0],
-   [0,0,1,0],
-   [0,0,0,1]];
+  [0,1,0,0],
+  [0,0,1,0],
+  [0,0,0,1]];
 set_transform($im, $a);
 </pre>
 </div>

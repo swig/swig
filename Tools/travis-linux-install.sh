@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e # exit on failure
+set -e # exit on failure (same as -o errexit)
 
 lsb_release -a
 sudo apt-get -qq update
@@ -51,7 +51,7 @@ case "$SWIGLANG" in
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
-			sudo apt-get -qq install lua5.1 liblua5.1-dev
+			sudo apt-get -qq install lua5.2 liblua5.2-dev
 		else
 			sudo add-apt-repository -y ppa:ubuntu-cloud-archive/mitaka-staging
 			sudo apt-get -qq update
@@ -72,16 +72,10 @@ case "$SWIGLANG" in
 		fi
 		;;
 	"php")
-		sudo apt-get install php5-cli php5-dev
+		sudo apt-get -qq install php5-cli php5-dev
 		;;
 	"python")
-		git clone https://github.com/jcrocholl/pep8.git
-		(
-			cd pep8
-			git checkout tags/1.5.7
-			python ./setup.py build
-			sudo python ./setup.py install
-		)
+		sudo apt-get -qq install pep8
 		if [[ "$PY3" ]]; then
 			sudo apt-get install -qq python3-dev
 		fi
@@ -105,6 +99,8 @@ case "$SWIGLANG" in
 		sudo apt-get -qq install scilab
 		;;
 	"tcl")
-		sudo apt-get -qq install tcl8.4-dev
+		sudo apt-get -qq install tcl-dev
 		;;
 esac
+
+set +e # turn off exit on failure (same as +o errexit)

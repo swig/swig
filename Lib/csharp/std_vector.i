@@ -398,4 +398,5 @@ SWIG_STD_VECTOR_ENHANCED(unsigned long long)
 SWIG_STD_VECTOR_ENHANCED(float)
 SWIG_STD_VECTOR_ENHANCED(double)
 SWIG_STD_VECTOR_ENHANCED(std::string) // also requires a %include <std_string.i>
+SWIG_STD_VECTOR_ENHANCED(std::wstring) // also requires a %include <std_wstring.i>
 

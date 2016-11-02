@@ -126,16 +126,16 @@ example:
 <div class="code">
 <pre>
 List make_list(const char *s, ...) {
-    va_list ap;
-    List    x;
-    ...
-    va_start(ap, s);
-    while (s) {
-       x.append(s);
-       s = va_arg(ap, const char *);
-    }
-    va_end(ap);
-    return x;
+  va_list ap;
+  List    x;
+  ...
+  va_start(ap, s);
+  while (s) {
+    x.append(s);
+    s = va_arg(ap, const char *);
+  }
+  va_end(ap);
+  return x;
 }
 </pre>
 </div>
@@ -188,12 +188,12 @@ In contrast, suppose you attempted to make some kind of wrapper around
 <div class="code">
 <pre>
 int wrap_printf(const char *fmt, ...) {
-   va_list ap;
-   va_start(ap,fmt);
-   ...
-   printf(fmt,ap);
-   ...
-   va_end(ap);
+  va_list ap;
+  va_start(ap,fmt);
+  ...
+  printf(fmt,ap);
+  ...
+  va_end(ap);
 };
 </pre>
 </div>
@@ -471,15 +471,15 @@ like this:
 <div class="code">
 <pre>
 wrap_printf() {
-   char *arg1;
-   void *arg2;
-   int   result;
+  char *arg1;
+  void *arg2;
+  int   result;
 
-   arg1 = "%s";
-   arg2 = (void *) PyString_AsString(arg2obj);
-   ...
-   result = printf(arg1,arg2);
-   ...
+  arg1 = "%s";
+  arg2 = (void *) PyString_AsString(arg2obj);
+  ...
+  result = printf(arg1,arg2);
+  ...
 }
 </pre>
 </div>
@@ -517,7 +517,7 @@ like this:
   argc = PyTuple_Size(varargs);
   if (argc &gt; 10) {
     PyErr_SetString(PyExc_ValueError, "Too many arguments");
-    return NULL;
+    SWIG_fail;
   }
   for (i = 0; i &lt; argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
@@ -525,16 +525,16 @@ like this:
 %#if PY_VERSION_HEX&gt;=0x03000000
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
-       PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
+      SWIG_fail;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
     str = strdup(PyBytes_AsString(pystr));
     Py_XDECREF(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
-       PyErr_SetString(PyExc_ValueError, "Expected a string");
-       return NULL;
+      PyErr_SetString(PyExc_ValueError, "Expected a string");
+      SWIG_fail;
     }
     str = PyString_AsString(pyobj);
 %#endif
@@ -626,23 +626,23 @@ example. For example:
    of strings */
 
 %typemap(in) (...) {
-   char **argv;
-   int    argc;
-   int    i;
+  char **argv;
+  int    argc;
+  int    i;
 
-   argc = PyTuple_Size(varargs);
-   argv = (char **) malloc(sizeof(char *)*(argc+1));
-   for (i = 0; i &lt; argc; i++) {
-      PyObject *o = PyTuple_GetItem(varargs,i);
-      if (!PyString_Check(o)) {
-          PyErr_SetString(PyExc_ValueError,"Expected a string");
-          free(argv);
-          return NULL;
-      }
-      argv[i] = PyString_AsString(o);
-   }
-   argv[i] = NULL;
-   $1 = (void *) argv;
+  argc = PyTuple_Size(varargs);
+  argv = (char **) malloc(sizeof(char *)*(argc+1));
+  for (i = 0; i &lt; argc; i++) {
+    PyObject *o = PyTuple_GetItem(varargs,i);
+    if (!PyString_Check(o)) {
+      free(argv);
+      PyErr_SetString(PyExc_ValueError,"Expected a string");
+      SWIG_fail;
+    }
+    argv[i] = PyString_AsString(o);
+  }
+  argv[i] = NULL;
+  $1 = (void *) argv;
 }
 
 /* Rewrite the function call, using libffi */    
@@ -676,11 +676,11 @@ example. For example:
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) execlp, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(arg3);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -744,8 +744,8 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
       argv[i].type = VT_POINTER;
       argv[i].val.pvalue = (void *) PyString_AsString(o);
     } else {
-      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       free(argv);
+      PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
       return NULL;
     }
   }
@@ -793,11 +793,11 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
                    &amp;ffi_type_uint, types) == FFI_OK) {
     ffi_call(&amp;cif, (void (*)()) printf, &amp;result, values);
   } else {
-    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
     free(types);
     free(values);
     free(args);
-    return NULL;
+    PyErr_SetString(PyExc_RuntimeError, "Whoa!!!!!");
+    SWIG_fail;
   }
   free(types);
   free(values);
@@ -912,12 +912,12 @@ and it fully supports classes much like the <tt>%rename</tt> directive.  For exa
 
 class Foo {
 public:
-     virtual void bar(char *arg, ...);   // gets varargs above
+  virtual void bar(char *arg, ...);   // gets varargs above
 };
 
 class Spam: public Foo {
 public:
-     virtual void bar(char *arg, ...);   // gets varargs above
+  virtual void bar(char *arg, ...);   // gets varargs above
 };
 </pre>
 </div>
@@ -952,9 +952,9 @@ are placed in <tt>arg2</tt>, <tt>arg3</tt>, and so forth.  For example:
 <div class="code">
 <pre>
 %feature("action") Foo::bar {
-   ...
-   result = arg1-&gt;bar(arg2, arg3, etc.);
-   ...
+  ...
+  result = arg1-&gt;bar(arg2, arg3, etc.);
+  ...
 }
 </pre>
 </div>
@@ -987,10 +987,10 @@ you might structure your interface like this:
 <div class="code">
 <pre>
 %typemap(const char *fmt, ...) {
-   ...
+  ...
 }
 %feature("action") traceprintf {
-   ...
+  ...
 }
 
 /* Include some header file with traceprintf in it */
@@ -1011,7 +1011,7 @@ to control this:
 <pre>
 #ifdef USE_LIBFFI
 %feature("action") printf {
-   ...
+  ...
 }
 #endif
 #ifdef USE_OTHERFFI

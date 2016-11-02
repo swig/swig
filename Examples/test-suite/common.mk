@@ -203,6 +203,7 @@ CPP_TEST_CASES += \
 	director_thread \
 	director_unroll \
 	director_using \
+	director_void \
 	director_wombat \
 	disown \
 	dynamic_cast \
@@ -259,7 +260,6 @@ CPP_TEST_CASES += \
 	langobj \
 	li_attribute \
 	li_attribute_template \
-	li_boost_array \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
@@ -487,6 +487,7 @@ CPP_TEST_CASES += \
 	typemap_array_qualifiers \
 	typemap_delete \
 	typemap_directorout \
+	typemap_documentation \
 	typemap_global_scope \
 	typemap_manyargs \
 	typemap_namespace \

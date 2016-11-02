@@ -1357,16 +1357,16 @@ SWIG generates the following code:
 <pre>
 /* C mode */
 void foo_set(char *value) {
-   if (foo) free(foo);
-   foo = (char *) malloc(strlen(value)+1);
-   strcpy(foo,value);
+  if (foo) free(foo);
+  foo = (char *) malloc(strlen(value)+1);
+  strcpy(foo,value);
 }
 
 /* C++ mode.  When -c++ option is used */
 void foo_set(char *value) {
-   if (foo) delete [] foo;
-   foo = new char[strlen(value)+1];
-   strcpy(foo,value);
+  if (foo) delete [] foo;
+  foo = new char[strlen(value)+1];
+  strcpy(foo,value);
 }
 </pre>
 </div>
@@ -1381,8 +1381,8 @@ exactly like you want.  For example:
 <pre>
 %inline %{
   void set_foo(char *value) {
-       strncpy(foo,value, 50);
-   }
+    strncpy(foo,value, 50);
+  }
 %}
 </pre>
 </div>
@@ -1538,10 +1538,10 @@ a few simple assist functions like this:
 <pre>
 %inline %{
 void a_set(int i, int j, int val) {
-   a[i][j] = val;
+  a[i][j] = val;
 }
 int a_get(int i, int j) {
-   return a[i][j];
+  return a[i][j];
 }
 %}
 </pre>
@@ -1558,11 +1558,11 @@ some helper functions in your interface.  For example:
 %inline %{
   /* Create any sort of [size] array */
   int *int_array(int size) {
-     return (int *) malloc(size*sizeof(int));
+    return (int *) malloc(size*sizeof(int));
   }
   /* Create a two-dimension array [size][10] */
   int (*int_array_10(int size))[10] {
-     return (int (*)[10]) malloc(size*10*sizeof(int));
+    return (int (*)[10]) malloc(size*10*sizeof(int));
   }
 %}
 </pre>
@@ -1587,10 +1587,10 @@ code:
 <div class="code">
 <pre>
 char *pathname_get() {
-   return pathname;
+  return pathname;
 }
 void pathname_set(char *value) {
-   strncpy(pathname,value,256);
+  strncpy(pathname,value,256);
 }
 </pre>
 </div>
@@ -2521,12 +2521,12 @@ Occasionally, a structure will contain data members that are themselves structur
 <div class="code">
 <pre>
 typedef struct Foo {
-   int x;
+  int x;
 } Foo;
 
 typedef struct Bar {
-   int y;
-   Foo f;           /* struct member */
+  int y;
+  Foo f;           /* struct member */
 } Bar;
 </pre>
 </div>
@@ -2540,10 +2540,10 @@ The accessors to the member variable as a pointer are effectively wrapped as fol
 <div class="code">
 <pre>
 Foo *Bar_f_get(Bar *b) {
-   return &amp;b-&gt;f;
+  return &amp;b-&gt;f;
 }
 void Bar_f_set(Bar *b, Foo *value) {
-   b-&gt;f = *value;
+  b-&gt;f = *value;
 }
 </pre>
 </div>
@@ -2588,7 +2588,7 @@ is a structure or class.   For instance, if you had a structure like this,
 <div class="code">
 <pre>
 struct Foo {
-   WORD   w;
+  WORD   w;
 };
 </pre>
 </div>
@@ -2843,10 +2843,10 @@ double Vector_magnitude(Vector *v) {
 typedef struct Vector {
   double x,y,z;
   %extend {
-     Vector(int,int,int); // This calls new_Vector()
-     ~Vector();           // This calls delete_Vector()
-     double magnitude();  // This will call Vector_magnitude()
-     ...
+    Vector(int,int,int); // This calls new_Vector()
+    ~Vector();           // This calls delete_Vector()
+    double magnitude();  // This will call Vector_magnitude()
+    ...
   }
 } Vector;
 </pre>
@@ -3083,7 +3083,7 @@ in terms of high-level accessor functions such as this,
 <div class="code">
 <pre>
 double Vector_x_get(Vector *v) {
-   return v-&gt;x;
+  return v-&gt;x;
 }
 </pre>
 </div>
@@ -3100,15 +3100,15 @@ the following function is generated instead:
 static int
 _wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp, 
                    int objc, Tcl_Obj *CONST objv[]) {
-    struct Vector *arg1 ;
-    double result ;
-    
-    if (SWIG_GetArgs(interp, objc, objv,"p:Vector_x_get self ",&amp;arg0,
-                     SWIGTYPE_p_Vector) == TCL_ERROR)
-         return TCL_ERROR;
-    result = (double ) (arg1-&gt;x);
-    Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));
-    return TCL_OK;
+  struct Vector *arg1 ;
+  double result ;
+
+  if (SWIG_GetArgs(interp, objc, objv,"p:Vector_x_get self ",&amp;arg0,
+                   SWIGTYPE_p_Vector) == TCL_ERROR)
+    return TCL_ERROR;
+  result = (double ) (arg1-&gt;x);
+  Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));
+  return TCL_OK;
 }
 </pre>
 </div>
@@ -3183,23 +3183,23 @@ the wrapper file is as shown:
 <div class="code">
 <pre>
 %begin %{
-   ... code in begin section ...
+  ... code in begin section ...
 %}
 
 %runtime %{
-   ... code in runtime section ...
+  ... code in runtime section ...
 %}
 
 %header %{
-   ... code in header section ...
+  ... code in header section ...
 %}
 
 %wrapper %{
-   ... code in wrapper section ...
+  ... code in wrapper section ...
 %}
 
 %init %{
-   ... code in init section ...
+  ... code in init section ...
 %}
 </pre>
 </div>

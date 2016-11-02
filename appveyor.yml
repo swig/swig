@@ -5,16 +5,16 @@ platform:
 environment:
   matrix:
   - SWIGLANG: csharp
-    VSVER: 14
+    VSVER: 12
   - SWIGLANG: csharp
-    VSVER: 12
+    VSVER: 14
   - SWIGLANG: java
-    VSVER: 12
+    VSVER: 14
   - SWIGLANG: python
-    VSVER: 12
+    VSVER: 14
     VER: 27
   - SWIGLANG: python
-    VSVER: 12
+    VSVER: 14
     VER: 35
     PY3: 1
 

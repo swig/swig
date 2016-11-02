@@ -772,8 +772,8 @@ low-level <tt>%feature</tt> directive.  For example:
 ...
 class Foo {
 public:
-    Object *getitem(int index) throws(badindex);
-    ...
+  Object *getitem(int index) throws(badindex);
+  ...
 };
 </pre>
 </div>
@@ -826,7 +826,7 @@ transformed. For example, suppose you are wrapping a class like this:
 <pre>
 class Foo {
 public:
-    virtual int *bar(int x);
+  virtual int *bar(int x);
 };
 </pre>
 </div>
@@ -1381,14 +1381,14 @@ List *l = (some list);
 Iterator i;
 
 for (i = First(l); i.item; i = Next(i)) {
-    Printf(stdout,"%s\n", i.item);
+  Printf(stdout,"%s\n", i.item);
 }
 
 Hash *h = (some hash);
 Iterator j;
 
 for (j = First(j); j.item; j= Next(j)) {
-    Printf(stdout,"%s : %s\n", j.key, j.item);
+  Printf(stdout,"%s : %s\n", j.key, j.item);
 }
 </pre>
 </div>
@@ -1517,7 +1517,7 @@ common to see small code fragments of code generated using code like this:
 String *s = NewString("");
 Printf(s,"Hello\n");
 for (i = 0; i &lt; 10; i++) {
-    Printf(s,"%d\n", i);
+  Printf(s,"%d\n", i);
 }
 ...
 /* Print string into a file */
@@ -1674,10 +1674,10 @@ Since parse tree nodes are just hash tables, attributes are accessed using the <
 <div class="code">
 <pre>
 int functionHandler(Node *n) {
-    String *name    = Getattr(n,"name");
-    String *symname = Getattr(n,"sym:name");
-    SwigType *type  = Getattr(n,"type");
-    ...
+  String *name    = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  ...
 }
 </pre>
 </div>
@@ -1703,8 +1703,8 @@ A quick way to check the value of an attribute is to use the <tt>checkAttribute(
 <div class="code">
 <pre>
 if (checkAttribute(n,"storage","virtual")) {
-   /* n is virtual */
-   ...
+  /* n is virtual */
+  ...
 }
 </pre>
 </div>
@@ -1750,17 +1750,17 @@ Calls can be nested if necessary.  Here is an example that shows how the functio
 <div class="code">
 <pre>
 int variableHandler(Node *n) {
-    Swig_save("variableHandler",n,"type","sym:name",NIL);
-    String *symname = Getattr(n,"sym:name");
-    SwigType *type  = Getattr(n,"type");
-    ...
-    Append(symname,"_global");         // Change symbol name
-    SwigType_add_pointer(type);        // Add pointer
-    ...
-    generate wrappers
-    ...
-    Swig_restore(n);                  // Restore original values
-    return SWIG_OK;
+  Swig_save("variableHandler",n,"type","sym:name",NIL);
+  String *symname = Getattr(n,"sym:name");
+  SwigType *type  = Getattr(n,"type");
+  ...
+  Append(symname,"_global");         // Change symbol name
+  SwigType_add_pointer(type);        // Add pointer
+  ...
+  generate wrappers
+  ...
+  Swig_restore(n);                  // Restore original values
+  return SWIG_OK;
 }
 </pre>
 </div>
@@ -2375,10 +2375,10 @@ code like this:
 Parm *parms;
 Parm *p;
 for (p = parms; p; p = nextSibling(p)) {
-    SwigType *type  = Getattr(p,"type");
-    String   *name  = Getattr(p,"name");
-    String   *value = Getattr(p,"value");
-    ...
+  SwigType *type  = Getattr(p,"type");
+  String   *name  = Getattr(p,"name");
+  String   *value = Getattr(p,"value");
+  ...
 }
 </pre>
 </div>
@@ -2650,19 +2650,19 @@ insert some code like this:
 <div class="code">
 <pre>
 void main(int argc, char *argv[]) {
-   ... command line options ...
+  ... command line options ...
 
-   /* Set language-specific subdirectory in SWIG library */
-   SWIG_library_directory("python");
+  /* Set language-specific subdirectory in SWIG library */
+  SWIG_library_directory("python");
 
-   /* Set language-specific preprocessing symbol */
-   Preprocessor_define("SWIGPYTHON 1", 0);
+  /* Set language-specific preprocessing symbol */
+  Preprocessor_define("SWIGPYTHON 1", 0);
 
-   /* Set language-specific configuration file */
-   SWIG_config_file("python.swg");
+  /* Set language-specific configuration file */
+  SWIG_config_file("python.swg");
 
-   /* Set typemap language (historical) */
-   SWIG_typemap_lang("python");
+  /* Set typemap language (historical) */
+  SWIG_typemap_lang("python");
 }
 </pre>
 </div>
@@ -2721,26 +2721,26 @@ An outline of <tt>top()</tt> might be as follows:
 <pre>
 int Python::top(Node *n) {
 
-   /* Get the module name */
-   String *module = Getattr(n,"name");
+  /* Get the module name */
+  String *module = Getattr(n,"name");
 
-   /* Get the output file name */
-   String *outfile = Getattr(n,"outfile");
+  /* Get the output file name */
+  String *outfile = Getattr(n,"outfile");
 
-   /* Initialize I/O (see next section) */
-   ...
+  /* Initialize I/O (see next section) */
+  ...
 
-   /* Output module initialization code */
-   ...
+  /* Output module initialization code */
+  ...
 
-   /* Emit code for children */
-   Language::top(n);
+  /* Emit code for children */
+  Language::top(n);
 
-   ...
-   /* Cleanup files */
-   ...
+  ...
+  /* Cleanup files */
+  ...
 
-   return SWIG_OK;
+  return SWIG_OK;
 }
 </pre>
 </div>
@@ -2777,62 +2777,62 @@ such as:
 <pre>
 class PYTHON : public Language {
 protected:
-   /* General DOH objects used for holding the strings */
-   File *f_begin;
-   File *f_runtime;
-   File *f_header;
-   File *f_wrappers;
-   File *f_init;
+  /* General DOH objects used for holding the strings */
+  File *f_begin;
+  File *f_runtime;
+  File *f_header;
+  File *f_wrappers;
+  File *f_init;
 
 public:
-   ...
+  ...
 
 };
 
 int Python::top(Node *n) {
 
-   ...
+  ...
 
-   /* Initialize I/O */
-   f_begin = NewFile(outfile, "w", SWIG_output_files());
-   if (!f_begin) {
-      FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
-   }
-   f_runtime = NewString("");
-   f_init = NewString("");
-   f_header = NewString("");
-   f_wrappers = NewString("");
+  /* Initialize I/O */
+  f_begin = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_begin) {
+    FileErrorDisplay(outfile);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  f_runtime = NewString("");
+  f_init = NewString("");
+  f_header = NewString("");
+  f_wrappers = NewString("");
 
-   /* Register file targets with the SWIG file handler */
-   Swig_register_filebyname("begin", f_begin);
-   Swig_register_filebyname("header", f_header);
-   Swig_register_filebyname("wrapper", f_wrappers);
-   Swig_register_filebyname("runtime", f_runtime);
-   Swig_register_filebyname("init", f_init);
+  /* Register file targets with the SWIG file handler */
+  Swig_register_filebyname("begin", f_begin);
+  Swig_register_filebyname("header", f_header);
+  Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("runtime", f_runtime);
+  Swig_register_filebyname("init", f_init);
 
-   /* Output module initialization code */
-   Swig_banner(f_begin);
-   ...
+  /* Output module initialization code */
+  Swig_banner(f_begin);
+  ...
 
-   /* Emit code for children */
-   Language::top(n);
+  /* Emit code for children */
+  Language::top(n);
 
-   ...
-   /* Write all to the file */
-   Dump(f_runtime, f_begin);
-   Dump(f_header, f_begin);
-   Dump(f_wrappers, f_begin);
-   Wrapper_pretty_print(f_init, f_begin);
+  ...
+  /* Write all to the file */
+  Dump(f_runtime, f_begin);
+  Dump(f_header, f_begin);
+  Dump(f_wrappers, f_begin);
+  Wrapper_pretty_print(f_init, f_begin);
 
-   /* Cleanup files */
-   Delete(f_runtime);
-   Delete(f_header);
-   Delete(f_wrappers);
-   Delete(f_init);
-   Delete(f_begin);
+  /* Cleanup files */
+  Delete(f_runtime);
+  Delete(f_header);
+  Delete(f_wrappers);
+  Delete(f_init);
+  Delete(f_begin);
 
-   return SWIG_OK;
+  return SWIG_OK;
 }
 </pre>
 </div>

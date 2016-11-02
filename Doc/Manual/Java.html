@@ -1109,7 +1109,7 @@ Typesafe enums have their advantages over using plain integers in that they can 
 However, there are limitations. For example, they cannot be used in switch statements and serialization is an issue.
 Please look at the following references for further information: 
 
-         http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums
+http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums
 <a href="http://java.sun.com/developer/Books/shiftintojava/page1.html#replaceenums">Replace Enums with Classes</a> in <i>Effective Java Programming</i> on the Sun website,
 <a href="http://www.javaworld.com/javaworld/jw-07-1997/jw-07-enumerated.html">Create enumerated constants in Java</a> JavaWorld article,
 <a href="http://www.javaworld.com/javaworld/javatips/jw-javatip133.html">Java Tip 133: More on typesafe enums</a> and
@@ -1309,16 +1309,16 @@ example:
 %inline %{
 /* C-style cast */
 Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
+  return (Bar *) f;
 }
 
 /* C++-style cast */
 Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
+  return dynamic_cast&lt;Foo*&gt;(b);
 }
 
 Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
+  return f+i;
 }
 %}
 </pre>
@@ -1377,12 +1377,12 @@ can also be forced to be read-only using the <tt>%immutable</tt> directive. For 
 <div class="code">
 <pre>
 struct Foo {
-   ...
-   %immutable;
-   int x;        /* Read-only members */
-   char *name;
-   %mutable;
-   ...
+  ...
+  %immutable;
+  int x;        /* Read-only members */
+  char *name;
+  %mutable;
+  ...
 };
 </pre>
 </div>
@@ -1403,7 +1403,7 @@ example, consider this:
 <div class="code">
 <pre>
 struct Bar {
-    int  x[16];
+  int  x[16];
 };
 </pre>
 </div>
@@ -1452,11 +1452,11 @@ pointer.  For example, suppose you have two structures like this:
 <div class="code">
 <pre>
 struct Foo {
-   int a;
+  int a;
 };
 
 struct Bar {
-   Foo f;
+  Foo f;
 };
 </pre>
 </div>
@@ -1544,8 +1544,8 @@ Static class members are unsurprisingly wrapped as static members of the Java cl
 <pre>
 class Spam {
 public:
-   static void foo();
-   static int bar;
+  static void foo();
+  static int bar;
 };
 </pre>
 </div>
@@ -1738,9 +1738,9 @@ Similarly, if you have a class like this,
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo(const Foo &amp;);
-    ...
+  Foo();
+  Foo(const Foo &amp;);
+  ...
 };
 </pre>
 </div>
@@ -1876,10 +1876,10 @@ submodules or packages.  For example, if you have a file like this,
 %module example
 
 namespace foo {
-   int fact(int n);
-   struct Vector {
-       double x,y,z;
-   };
+  int fact(int n);
+  struct Vector {
+    double x,y,z;
+  };
 };
 </pre>
 </div>
@@ -1907,11 +1907,11 @@ For example:
 %rename(Bar_spam) Bar::spam;
 
 namespace Foo {
-    int spam();
+  int spam();
 }
 
 namespace Bar {
-    int spam();
+  int spam();
 }
 </pre>
 </div>
@@ -1969,12 +1969,12 @@ For example:
 
 template&lt;class T1, class T2&gt;
 struct pair {
-   typedef T1 first_type;
-   typedef T2 second_type;
-   T1 first;
-   T2 second;
-   pair();
-   pair(const T1&amp;, const T2&amp;);
+  typedef T1 first_type;
+  typedef T2 second_type;
+  T1 first;
+  T2 second;
+  pair();
+  pair(const T1&amp;, const T2&amp;);
   ~pair();
 };
 
@@ -2025,9 +2025,9 @@ that implements <tt>operator-&gt;()</tt> like this:
 <div class="code">
 <pre>
 template&lt;class T&gt; class SmartPtr {
-   ...
-   T *operator-&gt;();
-   ...
+  ...
+  T *operator-&gt;();
+  ...
 }
 </pre>
 </div>
@@ -2040,8 +2040,8 @@ Then, if you have a class like this,
 <pre>
 class Foo {
 public:
-     int x;
-     int bar();
+  int x;
+  int bar();
 };
 </pre>
 </div>
@@ -2125,8 +2125,8 @@ have a global function and class like this
 <pre>
 class Foo {
 public:
-     int x;
-     int spam(int num, Foo* foo);
+  int x;
+  int spam(int num, Foo* foo);
 };
 void egg(Foo* chips);
 </pre>
@@ -2140,19 +2140,19 @@ These procedural wrappers essentially perform the equivalent of this C++ code:
 <div class="code">
 <pre>
 Foo *new_Foo() {
-    return new Foo();
+  return new Foo();
 }
 void delete_Foo(Foo *f) {
-    delete f;
+  delete f;
 }
 int Foo_x_get(Foo *f) {
-    return f-&gt;x;
+  return f-&gt;x;
 }
 void Foo_x_set(Foo *f, int value) {
-    f-&gt;x = value;
+  f-&gt;x = value;
 }
 int Foo_spam(Foo *f, int num, Foo* foo) {
-    return f-&gt;spam(num, foo);
+  return f-&gt;spam(num, foo);
 }
 </pre>
 </div>
@@ -2494,10 +2494,10 @@ they came from.  Therefore, the ownership is set to false.  For example:
 <pre>
 class Foo {
 public:
-    Foo();
-    Foo bar1();
-    Foo &amp;bar2();
-    Foo *bar2();
+  Foo();
+  Foo bar1();
+  Foo &amp;bar2();
+  Foo *bar2();
 };
 </pre>
 </div>
@@ -2532,9 +2532,9 @@ change the ownership of an object.  For instance, consider code like this:
 <pre>
 class Obj {};
 class Node {
-   Obj *value;
+  Obj *value;
 public:
-   void set_value(Obj *v) { value = v; }
+  void set_value(Obj *v) { value = v; }
 };
 </pre>
 </div>
@@ -2580,7 +2580,7 @@ However, you can tell the proxy class to manage the memory if you specify the <t
 class Obj {...};
 class Factory {
 public:
-    static Obj *createObj() { return new Obj(); }
+  static Obj *createObj() { return new Obj(); }
 };
 </pre>
 </div>
@@ -2608,7 +2608,7 @@ Now add in the %newobject directive:
 class Obj {...};
 class Factory {
 public:
-    static Obj *createObj() { return new Obj(); }
+  static Obj *createObj() { return new Obj(); }
 };
 </pre>
 </div>
@@ -3656,13 +3656,13 @@ In the following, class Bar will get a director class that handles the methods o
 %feature("director") Foo;
 class Foo {
 public:
-    virtual void one();
-    virtual void two();
+  virtual void one();
+  virtual void two();
 };
 
 class Bar: public Foo {
 public:
-    virtual void three();
+  virtual void three();
 };
 </pre>
 </div>
@@ -3918,12 +3918,12 @@ is used in the feature code. Consider the following, which also happens to be th
 <div class="code">
 <pre>
 %feature("director:except") %{
-   jthrowable $error = jenv-&gt;ExceptionOccurred();
-   if ($error) {
-     jenv-&gt;ExceptionClear();
-     $directorthrowshandlers
-     throw Swig::DirectorException(jenv, $error);
-   }
+  jthrowable $error = jenv-&gt;ExceptionOccurred();
+  if ($error) {
+    jenv-&gt;ExceptionClear();
+    $directorthrowshandlers
+    throw Swig::DirectorException(jenv, $error);
+  }
 %}
 </pre>
 </div>
@@ -3985,12 +3985,12 @@ unexpected exceptions, the default handling can be changed with:
 <div class="code">
 <pre>
 %feature("director:except") %{
-   jthrowable $error = jenv-&gt;ExceptionOccurred();
-   if ($error) {
-     jenv-&gt;ExceptionClear();
-     $directorthrowshandlers
-     return $null; // exception is ignored
-   }
+  jthrowable $error = jenv-&gt;ExceptionOccurred();
+  if ($error) {
+    jenv-&gt;ExceptionClear();
+    $directorthrowshandlers
+    return $null; // exception is ignored
+  }
 %}
 </pre>
 </div>
@@ -4003,7 +4003,7 @@ the <code>return&nbsp;$null;</code> could be changed to:
 
 <div class="code">
 <pre>
-   throw std::runtime_error(Swig::JavaExceptionMessage(jenv, $error).message());
+  throw std::runtime_error(Swig::JavaExceptionMessage(jenv, $error).message());
 </pre>
 </div>
 
@@ -4262,16 +4262,16 @@ functions.  Just use the <tt>%inline</tt> directive. For example:
 %inline %{
 /* Note: double[4][4] is equivalent to a pointer to an array double (*)[4] */
 double (*new_mat44())[4] {
-   return (double (*)[4]) malloc(16*sizeof(double));
+  return (double (*)[4]) malloc(16*sizeof(double));
 }
 void free_mat44(double (*x)[4]) {
-   free(x);
+  free(x);
 }
 void mat44_set(double x[4][4], int i, int j, double v) {
-   x[i][j] = v;
+  x[i][j] = v;
 }
 double mat44_get(double x[4][4], int i, int j) {
-   return x[i][j];
+  return x[i][j];
 }
 %}
 </pre>
@@ -4317,22 +4317,22 @@ Here is a simple example:
 %}
 
 struct Vector {
-   double x,y,z;
+  double x,y,z;
 };
 
 %extend Vector {
-   char *toString() {
-       static char tmp[1024];
-       sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
-       return tmp;
-   }
-   Vector(double x, double y, double z) {
-       Vector *v = (Vector *) malloc(sizeof(Vector));
-       v-&gt;x = x;
-       v-&gt;y = y;
-       v-&gt;z = z;
-       return v;
-   }
+  char *toString() {
+      static char tmp[1024];
+      sprintf(tmp,"Vector(%g,%g,%g)", $self-&gt;x,$self-&gt;y,$self-&gt;z);
+      return tmp;
+  }
+  Vector(double x, double y, double z) {
+      Vector *v = (Vector *) malloc(sizeof(Vector));
+      v-&gt;x = x;
+      v-&gt;y = y;
+      v-&gt;z = z;
+      return v;
+  }
 };
 </pre>
 </div>
@@ -4451,18 +4451,18 @@ We can catch the C++ exception and rethrow it as a Java exception like this:</p>
 <pre>
 %exception getitem {
   try {
-     $action
+    $action
   } catch (std::out_of_range &amp;e) {
     jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
     jenv-&gt;ThrowNew(clazz, "Range error");
     return $null;
-   }
+  }
 }
 
 class FooClass {
-public:
-     FooClass *getitem(int index);      // Might throw std::out_of_range exception
-     ...
+  public:
+    FooClass *getitem(int index);      // Might throw std::out_of_range exception
+    ...
 };
 </pre>
 </div>
@@ -4480,18 +4480,18 @@ See <a href="Customization.html#Customization_clearing_features">Clearing featur
 <pre>
 %javaexception("java.lang.Exception") getitem {
   try {
-     $action
+    $action
   } catch (std::out_of_range &amp;e) {
     jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
     jenv-&gt;ThrowNew(clazz, "Range error");
     return $null;
-   }
+  }
 }
 
 class FooClass {
 public:
-     FooClass *getitem(int index);      // Might throw std::out_of_range exception
-     ...
+  FooClass *getitem(int index);      // Might throw std::out_of_range exception
+  ...
 };
 </pre>
 </div>
@@ -4569,7 +4569,7 @@ example:
 <div class="code">
 <pre>
 void add(int x, int y, int *result) {
-   *result = x + y;
+  *result = x + y;
 }
 </pre>
 </div>
@@ -4581,7 +4581,7 @@ or perhaps
 <div class="code">
 <pre>
 int sub(int *x, int *y) {
-   return *x-*y;
+  return *x-*y;
 }
 </pre>
 </div>
@@ -4653,7 +4653,7 @@ If a function mutates one of its parameters like this,
 <div class="code">
 <pre>
 void negate(int *x) {
-   *x = -(*x);
+  *x = -(*x);
 }
 </pre>
 </div>
@@ -4811,9 +4811,9 @@ Let's consider an example:
 %include "arrays_java.i";
 int array[4];
 void populate(int x[]) {
-    int i;
-    for (i=0; i&lt;4; i++)
-        x[i] = 100 + i;
+  int i;
+  for (i=0; i&lt;4; i++)
+    x[i] = 100 + i;
 }
 </pre>
 </div>
@@ -4829,7 +4829,7 @@ example.populate(array);
 
 System.out.print("array: ");
 for (int i=0; i&lt;array.length; i++)
-    System.out.print(array[i] + " ");
+  System.out.print(array[i] + " ");
 
 example.setArray(array);
 
@@ -4837,7 +4837,7 @@ int[] global_array = example.getArray();
 
 System.out.print("\nglobal_array: ");
 for (int i=0; i&lt;array.length; i++)
-    System.out.print(global_array[i] + " ");
+  System.out.print(global_array[i] + " ");
 </pre>
 </div>
 
@@ -4875,11 +4875,11 @@ Sometimes a C function expects an array to be passed as a pointer.  For example,
 <div class="code">
 <pre>
 int sumitems(int *first, int nitems) {
-    int i, sum = 0;
-    for (i = 0; i &lt; nitems; i++) {
-        sum += first[i];
-    }
-    return sum;
+  int i, sum = 0;
+  for (i = 0; i &lt; nitems; i++) {
+    sum += first[i];
+  }
+  return sum;
 }
 </pre>
 </div>
@@ -4960,7 +4960,7 @@ In Java, you would use the functions like this:
 <pre>
 SWIGTYPE_p_int array = example.new_intArray(10000000);  // Array of 10-million integers
 for (int i=0; i&lt;10000; i++) {                           // Set some values
-    example.intArray_setitem(array,i,i);
+  example.intArray_setitem(array,i,i);
 }
 int sum = example.sumitems(array,10000);
 System.out.println("Sum = " + sum);
@@ -4989,7 +4989,7 @@ For instance, you will be able to do this in Java:
 <pre>
 intArray array = new intArray(10000000);  // Array of 10-million integers
 for (int i=0; i&lt;10000; i++) {             // Set some values
-    array.setitem(i,i);
+  array.setitem(i,i);
 }
 int sum = example.sumitems(array.cast(),10000);
 System.out.println("Sum = " + sum);
@@ -5604,12 +5604,12 @@ The following code snippet might aid in understand aliasing rules better:
 </p>
 
 <div class="code"><pre>
-    short a;
-    short* pa = 0;
-    int i = 0x1234;
+short a;
+short* pa = 0;
+int i = 0x1234;
 
-    a = (short)i;    /* okay */
-    a = *(short*)&amp;i; /* breaks aliasing rules */
+a = (short)i;    /* okay */
+a = *(short*)&amp;i; /* breaks aliasing rules */
 </pre></div>
 
 <p>
@@ -5618,15 +5618,15 @@ In SWIG, the "in" and "out" typemaps for pointers are typically
 </p>
 
 <div class="code"><pre>
-    %typemap(in) struct Foo * %{
-      $1 = *(struct Foo **)&amp;$input; /* cast jlong into C ptr */
-    %}
-    %typemap(out) struct Bar * %{
-      *(struct Bar **)&amp;$result = $1; /* cast C ptr into jlong */
-    %} 
-    struct Bar {...};
-    struct Foo {...};
-    struct Bar * FooBar(struct Foo *f);
+%typemap(in) struct Foo * %{
+  $1 = *(struct Foo **)&amp;$input; /* cast jlong into C ptr */
+%}
+%typemap(out) struct Bar * %{
+  *(struct Bar **)&amp;$result = $1; /* cast C ptr into jlong */
+%}
+struct Bar {...};
+struct Foo {...};
+struct Bar * FooBar(struct Foo *f);
 </pre></div>
 
 <p>
@@ -5863,10 +5863,10 @@ If the typemap gets put into a function with void as return, $null will expand t
 
 <div class="code"><pre>
 SWIGEXPORT void JNICALL Java_jnifn(...) {
-    if (error) {
-      SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
-      return ;
-    }
+  if (error) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
+    return ;
+  }
   ...
 }
 </pre></div>
@@ -5877,10 +5877,10 @@ otherwise $null expands to <i>NULL</i>
 
 <div class="code"><pre>
 SWIGEXPORT jobject JNICALL Java_jnifn(...) {
-    if (error) {
-      SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
-      return NULL;
-    }
+  if (error) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
+    return NULL;
+  }
   ...
 }
 </pre></div>
@@ -5905,8 +5905,8 @@ Here is an example:
   }
 
 %inline %{
-    class Class {...};
-    Class * bar(Class cls, unsigned short ush) { return new Class(); };
+  class Class {...};
+  Class * bar(Class cls, unsigned short ush) { return new Class(); };
 %}
 </pre></div>
 
@@ -6117,9 +6117,9 @@ Below shows an example modifying the finalizer, assuming the <tt>delete</tt> met
 
 <div class="code"><pre>
 %typemap(javafinalize) SWIGTYPE %{
-   protected void finalize() {
-     swig_delete();  // renamed to prevent conflict with existing delete method
-   }
+  protected void finalize() {
+    swig_delete();  // renamed to prevent conflict with existing delete method
+  }
 ]%
 </pre></div>
 
@@ -6965,45 +6965,45 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 /* This tells SWIG to treat char ** as a special case when used as a parameter
    in a function call */
 %typemap(in) char ** (jint size) {
-    int i = 0;
-    size = (*jenv)-&gt;GetArrayLength(jenv, $input);
-    $1 = (char **) malloc((size+1)*sizeof(char *));
-    /* make a copy of each string */
-    for (i = 0; i&lt;size; i++) {
-        jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
-        const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $1[i] = malloc((strlen(c_string)+1)*sizeof(char));
-        strcpy($1[i], c_string);
-        (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
-        (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
-    }
-    $1[i] = 0;
+  int i = 0;
+  size = (*jenv)-&gt;GetArrayLength(jenv, $input);
+  $1 = (char **) malloc((size+1)*sizeof(char *));
+  /* make a copy of each string */
+  for (i = 0; i&lt;size; i++) {
+    jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
+    const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
+    $1[i] = malloc((strlen(c_string)+1)*sizeof(char));
+    strcpy($1[i], c_string);
+    (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
+    (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
+  }
+  $1[i] = 0;
 }
 
 /* This cleans up the memory we malloc'd before the function call */
 %typemap(freearg) char ** {
-    int i;
-    for (i=0; i&lt;size$argnum-1; i++)
-      free($1[i]);
-    free($1);
+  int i;
+  for (i=0; i&lt;size$argnum-1; i++)
+    free($1[i]);
+  free($1);
 }
 
 /* This allows a C function to return a char ** as a Java String array */
 %typemap(out) char ** {
-    int i;
-    int len=0;
-    jstring temp_string;
-    const jclass clazz = (*jenv)-&gt;FindClass(jenv, "java/lang/String");
+  int i;
+  int len=0;
+  jstring temp_string;
+  const jclass clazz = (*jenv)-&gt;FindClass(jenv, "java/lang/String");
 
-    while ($1[len]) len++;    
-    jresult = (*jenv)-&gt;NewObjectArray(jenv, len, clazz, NULL);
-    /* exception checking omitted */
+  while ($1[len]) len++;
+  jresult = (*jenv)-&gt;NewObjectArray(jenv, len, clazz, NULL);
+  /* exception checking omitted */
 
-    for (i=0; i&lt;len; i++) {
-      temp_string = (*jenv)-&gt;NewStringUTF(jenv, *result++);
-      (*jenv)-&gt;SetObjectArrayElement(jenv, jresult, i, temp_string);
-      (*jenv)-&gt;DeleteLocalRef(jenv, temp_string);
-    }
+  for (i=0; i&lt;len; i++) {
+    temp_string = (*jenv)-&gt;NewStringUTF(jenv, *result++);
+    (*jenv)-&gt;SetObjectArrayElement(jenv, jresult, i, temp_string);
+    (*jenv)-&gt;DeleteLocalRef(jenv, temp_string);
+  }
 }
 
 /* These 3 typemaps tell SWIG what JNI and Java types to use */
@@ -7022,12 +7022,12 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 %inline %{
 
 int print_args(char **argv) {
-    int i = 0;
-    while (argv[i]) {
-         printf("argv[%d] = %s\n", i, argv[i]);
-         i++;
-    }
-    return i;
+  int i = 0;
+  while (argv[i]) {
+    printf("argv[%d] = %s\n", i, argv[i]);
+    i++;
+  }
+  return i;
 }
 
 char **get_args() {
@@ -7129,26 +7129,26 @@ previous example's typemaps:
 <div class="code">
 <pre>
 %typemap(in) (int argc, char **argv) {
-    int i = 0;
-    $1 = (*jenv)-&gt;GetArrayLength(jenv, $input);
-    $2 = (char **) malloc(($1+1)*sizeof(char *));
-    /* make a copy of each string */
-    for (i = 0; i&lt;$1; i++) {
-        jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
-        const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $2[i] = malloc((strlen(c_string)+1)*sizeof(char));
-        strcpy($2[i], c_string);
-        (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
-        (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
-    }
-    $2[i] = 0;
+  int i = 0;
+  $1 = (*jenv)-&gt;GetArrayLength(jenv, $input);
+  $2 = (char **) malloc(($1+1)*sizeof(char *));
+  /* make a copy of each string */
+  for (i = 0; i&lt;$1; i++) {
+    jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
+    const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
+    $2[i] = malloc((strlen(c_string)+1)*sizeof(char));
+    strcpy($2[i], c_string);
+    (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
+    (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
+  }
+  $2[i] = 0;
 }
 
 %typemap(freearg) (int argc, char **argv) {
-    int i;
-    for (i=0; i&lt;$1-1; i++)
-      free($2[i]);
-    free($2);
+  int i;
+  for (i=0; i&lt;$1-1; i++)
+    free($2[i]);
+  free($2);
 }
 
 %typemap(jni) (int argc, char **argv) "jobjectArray"
@@ -7211,7 +7211,7 @@ If we define a structure <tt>MyDouble</tt> containing a <tt>double</tt> member v
 /* Define a new structure to use instead of double * */
 %inline %{
 typedef struct {
-    double value;
+  double value;
 } MyDouble;
 %}
 
@@ -7232,12 +7232,12 @@ argument of MyDouble instead of double *. This will
 allow the calling function to read the double * value after returning from the function.
 */
 %typemap(in) double *OUTVALUE {
-    jclass clazz = jenv-&gt;FindClass("MyDouble");
-    jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
-    jlong cPtr = jenv-&gt;GetLongField($input, fid);
-    MyDouble *pMyDouble = NULL;
-    *(MyDouble **)&amp;pMyDouble = *(MyDouble **)&amp;cPtr;
-    $1 = &amp;pMyDouble-&gt;value;
+  jclass clazz = jenv-&gt;FindClass("MyDouble");
+  jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
+  jlong cPtr = jenv-&gt;GetLongField($input, fid);
+  MyDouble *pMyDouble = NULL;
+  *(MyDouble **)&amp;pMyDouble = *(MyDouble **)&amp;cPtr;
+  $1 = &amp;pMyDouble-&gt;value;
 }
 
 %typemap(jtype) double *OUTVALUE "MyDouble"
@@ -7310,25 +7310,25 @@ Let's examine this with the following code:
 using namespace std;
 class Vehicle {
 public:
-    virtual void start() = 0;
+  virtual void start() = 0;
 ...
 };
 
 class Ambulance : public Vehicle {
-    string vol;
+  string vol;
 public:
-    Ambulance(string volume) : vol(volume) {}
-    virtual void start() {
-        cout &lt;&lt; "Ambulance started" &lt;&lt; endl;
-    }
-    void sound_siren() {
-        cout &lt;&lt; vol &lt;&lt; " siren sounded!" &lt;&lt; endl;
-    }
+  Ambulance(string volume) : vol(volume) {}
+  virtual void start() {
+    cout &lt;&lt; "Ambulance started" &lt;&lt; endl;
+  }
+  void sound_siren() {
+    cout &lt;&lt; vol &lt;&lt; " siren sounded!" &lt;&lt; endl;
+  }
 ...
 };
 
 Vehicle *vehicle_factory() {
-    return new Ambulance("Very loud");
+  return new Ambulance("Very loud");
 }
 </pre></div>
 
@@ -7368,18 +7368,18 @@ The first is not to use a Java cast but a call to C++ to make the cast. Add this
 
 <div class="code"><pre>
 %exception Ambulance::dynamic_cast(Vehicle *vehicle) {
-    $action
+  $action
     if (!result) {
-        jclass excep = jenv-&gt;FindClass("java/lang/ClassCastException");
-        if (excep) {
-            jenv-&gt;ThrowNew(excep, "dynamic_cast exception");
-        }
+      jclass excep = jenv-&gt;FindClass("java/lang/ClassCastException");
+      if (excep) {
+        jenv-&gt;ThrowNew(excep, "dynamic_cast exception");
+      }
     }
 }
 %extend Ambulance {
-    static Ambulance *dynamic_cast(Vehicle *vehicle) {
-        return dynamic_cast&lt;Ambulance *&gt;(vehicle);
-    }
+  static Ambulance *dynamic_cast(Vehicle *vehicle) {
+    return dynamic_cast&lt;Ambulance *&gt;(vehicle);
+  }
 };
 </pre></div>
 
@@ -7400,8 +7400,8 @@ Add the following before the definition of <tt>vehicle_factory</tt>:
 
 <div class="code"><pre>
 %typemap(out) Vehicle * {
-    Ambulance *downcast = dynamic_cast&lt;Ambulance *&gt;($1);
-    *(Ambulance **)&amp;$result = downcast;
+  Ambulance *downcast = dynamic_cast&lt;Ambulance *&gt;($1);
+  *(Ambulance **)&amp;$result = downcast;
 }
 
 %typemap(javaout) Vehicle * {
@@ -7418,20 +7418,20 @@ Consider expanding our example with a new Vehicle type and a more flexible facto
 <div class="code"><pre>
 class FireEngine : public Vehicle {
 public:
-    FireEngine() {}
-    virtual void start() {
-        cout &lt;&lt; "FireEngine started" &lt;&lt; endl;
-    }
-    void roll_out_hose() {
-        cout &lt;&lt; "Hose rolled out" &lt;&lt; endl;
-    }
- ...
+  FireEngine() {}
+  virtual void start() {
+    cout &lt;&lt; "FireEngine started" &lt;&lt; endl;
+  }
+  void roll_out_hose() {
+    cout &lt;&lt; "Hose rolled out" &lt;&lt; endl;
+  }
+  ...
 };
 Vehicle *vehicle_factory(int vehicle_number) {
-    if (vehicle_number == 0)
-        return new Ambulance("Very loud");
-    else
-        return new FireEngine();
+  if (vehicle_number == 0)
+    return new Ambulance("Very loud");
+  else
+    return new FireEngine();
 }
 </pre></div>
 
@@ -7460,37 +7460,37 @@ Note that in this case, the Java class is constructed using JNI code rather than
   }
 
 %typemap(out) Vehicle *vehicle_factory {
-    Ambulance *ambulance = dynamic_cast&lt;Ambulance *&gt;($1);
-    FireEngine *fireengine = dynamic_cast&lt;FireEngine *&gt;($1);
-    if (ambulance) {
-        // call the Ambulance(long cPtr, boolean cMemoryOwn) constructor
-        jclass clazz = jenv-&gt;FindClass("Ambulance");
-        if (clazz) {
-            jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
-            if (mid) {
-                jlong cptr = 0;
-                *(Ambulance **)&amp;cptr = ambulance; 
-                $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
-            }
-        }
-    } else if (fireengine) {
-        // call the FireEngine(long cPtr, boolean cMemoryOwn) constructor
-        jclass clazz = jenv-&gt;FindClass("FireEngine");
-        if (clazz) {
-            jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
-            if (mid) {
-                jlong cptr = 0;
-                *(FireEngine **)&amp;cptr = fireengine; 
-                $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
-            }
-        }
+  Ambulance *ambulance = dynamic_cast&lt;Ambulance *&gt;($1);
+  FireEngine *fireengine = dynamic_cast&lt;FireEngine *&gt;($1);
+  if (ambulance) {
+    // call the Ambulance(long cPtr, boolean cMemoryOwn) constructor
+    jclass clazz = jenv-&gt;FindClass("Ambulance");
+    if (clazz) {
+      jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
+      if (mid) {
+        jlong cptr = 0;
+        *(Ambulance **)&amp;cptr = ambulance;
+        $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
+      }
     }
-    else {
-        cout &lt;&lt; "Unexpected type " &lt;&lt; endl;
+  } else if (fireengine) {
+    // call the FireEngine(long cPtr, boolean cMemoryOwn) constructor
+    jclass clazz = jenv-&gt;FindClass("FireEngine");
+    if (clazz) {
+      jmethodID mid = jenv-&gt;GetMethodID(clazz, "&lt;init&gt;", "(JZ)V");
+      if (mid) {
+        jlong cptr = 0;
+        *(FireEngine **)&amp;cptr = fireengine;
+        $result = jenv-&gt;NewObject(clazz, mid, cptr, false);
+      }
     }
+  }
+  else {
+    cout &lt;&lt; "Unexpected type " &lt;&lt; endl;
+  }
 
-    if (!$result)
-        cout &lt;&lt; "Failed to create new java object" &lt;&lt; endl;
+  if (!$result)
+    cout &lt;&lt; "Failed to create new java object" &lt;&lt; endl;
 }
 </pre></div>
 
@@ -7523,7 +7523,7 @@ Pure Java code methods like these can be easily added:
     return equal;
   }
   public int hashCode() {
-     return (int)getPointer();
+    return (int)getPointer();
   }
 %}
 
@@ -7656,11 +7656,11 @@ The following Java code shows how we intend the code to be used:
 
 <div class="code">
 <pre>
-    Butler jeeves = new Butler();
-    example.HireButler(jeeves);
-    System.out.println("Greeting:     " + jeeves.getGreeting());
-    System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
-    example.FireButler(jeeves);
+Butler jeeves = new Butler();
+example.HireButler(jeeves);
+System.out.println("Greeting:     " + jeeves.getGreeting());
+System.out.println("Availability: " + jeeves.getHoursAvailable() + " hours per day");
+example.FireButler(jeeves);
 </pre>
 </div>
 
@@ -7771,8 +7771,8 @@ To implement this, we use the above interface file code but remove the <tt>javac
     return pButler;
   }
   ~Butler() {
-     FireButler($self);
-   }
+    FireButler($self);
+  }
 }
 </pre>
 </div>
@@ -7818,12 +7818,12 @@ and the following usage from Java after running the code through SWIG:
 
 <div class="code">
 <pre>
-    Wheel wheel = new Bike(10).getWheel();
-    System.out.println("wheel size: " + wheel.getSize());
-    // Simulate a garbage collection
-    System.gc();
-    System.runFinalization();
-    System.out.println("wheel size: " + wheel.getSize());
+Wheel wheel = new Bike(10).getWheel();
+System.out.println("wheel size: " + wheel.getSize());
+// Simulate a garbage collection
+System.gc();
+System.runFinalization();
+System.out.println("wheel size: " + wheel.getSize());
 </pre>
 </div>
 
@@ -7861,13 +7861,13 @@ is called using the following typemaps.
 // of dangling C++ pointer. Intended for methods that return pointers or
 // references to a member variable.
 %typemap(javaout) Wheel&amp; getWheel {
-    long cPtr = $jnicall;
-    $javaclassname ret = null;
-    if (cPtr != 0) {
-      ret = new $javaclassname(cPtr, $owner);
-      ret.addReference(this);
-    }
-    return ret;
+  long cPtr = $jnicall;
+  $javaclassname ret = null;
+  if (cPtr != 0) {
+    ret = new $javaclassname(cPtr, $owner);
+    ret.addReference(this);
+  }
+  return ret;
   }
 </pre>
 </div>
@@ -7938,10 +7938,10 @@ and usage from C++
 
 <div class="code">
 <pre>
-    Container container;
-    Element element(20);
-    container.setElement(&amp;element);
-    cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
+Container container;
+Element element(20);
+container.setElement(&amp;element);
+cout &lt;&lt; "element.value: " &lt;&lt; container.getElement()-&gt;value &lt;&lt; endl;
 </pre>
 </div>
 
@@ -7951,9 +7951,9 @@ and more or less equivalent usage from Java
 
 <div class="code">
 <pre>
-    Container container = new Container();
-    container.setElement(new Element(20));
-    System.out.println("element value: " + container.getElement().getValue());
+Container container = new Container();
+container.setElement(new Element(20));
+System.out.println("element value: " + container.getElement().getValue());
 </pre>
 </div>
 
@@ -7964,12 +7964,12 @@ In order to understand why, consider a garbage collection occuring...
 
 <div class="code">
 <pre>
-    Container container = new Container();
-    container.setElement(new Element(20));
-    // Simulate a garbage collection
-    System.gc();
-    System.runFinalization();
-    System.out.println("element value: " + container.getElement().getValue());
+Container container = new Container();
+container.setElement(new Element(20));
+// Simulate a garbage collection
+System.gc();
+System.runFinalization();
+System.out.println("element value: " + container.getElement().getValue());
 </pre>
 </div>
 
@@ -8095,7 +8095,7 @@ From Java, the intention is then to call into a modifed API with something like:
 <div class="code">
 <pre>
 java.util.GregorianCalendar calendarIn = 
-    new java.util.GregorianCalendar(2011, java.util.Calendar.APRIL, 13, 0, 0, 0);
+  new java.util.GregorianCalendar(2011, java.util.Calendar.APRIL, 13, 0, 0, 0);
 java.util.GregorianCalendar calendarOut = new java.util.GregorianCalendar();
 
 // Note in calls below, calendarIn remains unchanged and calendarOut 
@@ -8315,7 +8315,7 @@ public class FooDerived extends Foo {
   public static FooDerived downcastFooDerived(Foo foo_object)
   {
     try {
-     return (foo_object != null ? (FooDerived) Foo.downcastFoo(foo_object);
+      return foo_object != null ? (FooDerived) Foo.downcastFoo(foo_object);
     }
 
     catch (ClassCastException exc) {
@@ -8366,10 +8366,8 @@ public abstract class UserVisibleFoo extends Foo {
   public static UserVisibleFoo downcastUserVisibleFoo(Foo foo_object)
   {
     try {
-     return (foo_object != null ? (FooDerived) Foo.downcastFoo(foo_object) : null);
-    }
-
-    catch (ClassCastException exc) {
+      return foo_object != null ? (FooDerived) Foo.downcastFoo(foo_object) : null;
+    } catch (ClassCastException exc) {
       // Wasn't a FooDerived object, some other subclass of Foo
       return null;
     }
@@ -8457,8 +8455,8 @@ Consider the example we looked at when examining proxy classes:
 <pre>
 class Foo {
 public:
-     int x;
-     int spam(int num, Foo* foo);
+  int x;
+  int spam(int num, Foo* foo);
 };
 </pre>
 </div>

@@ -280,39 +280,39 @@ actual function.
 
 <div class="code">example_wrap.i
 <pre>
-   ... lots of SWIG internals ...
+  ... lots of SWIG internals ...
 
 EXPORT int ACL___fact__SWIG_0 (char *larg1) {
-    int lresult = (int)0 ;
-    char *arg1 = (char *) 0 ;
-    int result;
-    
-    arg1 = larg1;
-    try {
-        result = (int)fact(arg1);
-        
-        lresult = result;
-        return lresult;
-    } catch (...) {
-        return (int)0;
-    }
+  int lresult = (int)0 ;
+  char *arg1 = (char *) 0 ;
+  int result;
+
+  arg1 = larg1;
+  try {
+    result = (int)fact(arg1);
+
+    lresult = result;
+    return lresult;
+  } catch (...) {
+    return (int)0;
+  }
 }
 
 
 EXPORT int ACL___fact__SWIG_1 (int larg1) {
-    int lresult = (int)0 ;
-    int arg1 ;
-    int result;
-    
-    arg1 = larg1;
-    try {
-        result = (int)fact(arg1);
-        
-        lresult = result;
-        return lresult;
-    } catch (...) {
-        return (int)0;
-    }
+  int lresult = (int)0 ;
+  int arg1 ;
+  int result;
+
+  arg1 = larg1;
+  try {
+    result = (int)fact(arg1);
+
+    lresult = result;
+    return lresult;
+  } catch (...) {
+    return (int)0;
+  }
 }
 </pre>
 </div>
@@ -324,7 +324,7 @@ what is generated when parsing C code:
 
 <div class="targetlang">
 <pre>
-   ...
+  ...
 
 (swig-in-package ())
 
@@ -688,10 +688,10 @@ char *xxx();
 %include "foo.h"
 
 namespace car {
-   ...
-   namespace tires {
-      int do_something(int n);
-   }
+  ...
+  namespace tires {
+    int do_something(int n);
+  }
 }
     </pre>
     </div>
@@ -1209,8 +1209,8 @@ class schema.
     <div class="code">synonyms.h
     <pre>
 class A { 
-   int x;
-   int y;
+  int x;
+  int y;
 };
 
 typedef A Foo;
@@ -1336,70 +1336,70 @@ float xxx(A *inst, int x);     /* return x + A-&gt;x + A-&gt;y */
     <div class="code">overload_wrap.cxx
     <pre>
 EXPORT void ACL___delete_A__SWIG_0 (A *larg1) {
-    A *arg1 = (A *) 0 ;
-    
-    arg1 = larg1;
-    try {
-        delete arg1;
-        
-    } catch (...) {
-        
-    }
+  A *arg1 = (A *) 0 ;
+
+  arg1 = larg1;
+  try {
+    delete arg1;
+
+  } catch (...) {
+
+  }
 }
 
 
 EXPORT float ACL___xxx__SWIG_0 (int larg1, int larg2) {
-    float lresult = (float)0 ;
-    int arg1 ;
-    int arg2 ;
-    float result;
-    
-    arg1 = larg1;
-    arg2 = larg2;
-    try {
-        result = (float)xxx(arg1,arg2);
-        
-        lresult = result;
-        return lresult;
-    } catch (...) {
-        return (float)0;
-    }
+  float lresult = (float)0 ;
+  int arg1 ;
+  int arg2 ;
+  float result;
+
+  arg1 = larg1;
+  arg2 = larg2;
+  try {
+    result = (float)xxx(arg1,arg2);
+
+    lresult = result;
+    return lresult;
+  } catch (...) {
+    return (float)0;
+  }
 }
 
 
 EXPORT float ACL___xxx__SWIG_1 (int larg1) {
-    float lresult = (float)0 ;
-    int arg1 ;
-    float result;
-    
-    arg1 = larg1;
-    try {
-        result = (float)xxx(arg1);
-        
-        lresult = result;
-        return lresult;
-    } catch (...) {
-        return (float)0;
-    }
+  float lresult = (float)0 ;
+  int arg1 ;
+  float result;
+
+  arg1 = larg1;
+  try {
+    result = (float)xxx(arg1);
+
+    lresult = result;
+    return lresult;
+  } catch (...) {
+    return (float)0;
+  }
 }
 
 
 EXPORT float ACL___xxx__SWIG_2 (A *larg1, int larg2) {
-    float lresult = (float)0 ;
-    A *arg1 = (A *) 0 ;
-    int arg2 ;
-    float result;
-    
-    arg1 = larg1;
-    arg2 = larg2;
-    try {
-        result = (float)xxx(arg1,arg2);
-        
-        lresult = result;
-        return lresult;
-    } catch (...) {
-        return (float)0;
-    }
+  float lresult = (float)0 ;
+  A *arg1 = (A *) 0 ;
+  int arg2 ;
+  float result;
+
+  arg1 = larg1;
+  arg2 = larg2;
+  try {
+    result = (float)xxx(arg1,arg2);
+
+    lresult = result;
+    return lresult;
+  } catch (...) {
+    return (float)0;
+  }
 }
     </pre>
     </div>
@@ -1675,21 +1675,21 @@ opoverload&gt;
     <pre>
 return-val wrapper-name(parm0, parm1, ..., parmN)
 {
-   return-val lresult;   /* return value from wrapper */
-   &lt;local-declaration&gt;
-   ... results;          /* return value from function call */
+  return-val lresult;   /* return value from wrapper */
+  &lt;local-declaration&gt;
+  ... results;          /* return value from function call */
 
-   &lt;binding locals to parameters&gt;
+  &lt;binding locals to parameters&gt;
 
-   try {
-      result = function-name(local0, local1, ..., localN);
+  try {
+    result = function-name(local0, local1, ..., localN);
 
-      &lt;convert and bind result to lresult&gt;
+    &lt;convert and bind result to lresult&gt;
 
-      return lresult;
-   catch (...) {
-      return (int)0;
-   }
+    return lresult;
+  catch (...) {
+    return (int)0;
+  }
     </pre>
     </div>
 
