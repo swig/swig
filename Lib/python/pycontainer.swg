@@ -1012,7 +1012,7 @@ namespace swig {
 %#ifdef SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
-	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
+	return SWIG_InternalNewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
 %#endif
       size_type size = seq.size();

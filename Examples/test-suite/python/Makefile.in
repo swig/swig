@@ -62,6 +62,7 @@ CPP_TEST_CASES += \
 	python_destructor_exception \
 	python_director \
 	python_docstring \
+	python_extranative \
 	python_nondynamic \
 	python_overload_simple_cast \
 	python_pickle \
