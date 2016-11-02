@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-11-02: liorgold
+            Patch #741 - Add support for C++11 alias templates, see updated CPlusPlus11.html
+            documentation.
+
 2016-10-30: myd7349
             [C#] Patch #740 Add std_array.i for C# for wrapping std::array.
 

@@ -639,13 +639,18 @@ using TypedefName = SomeType&lt;char*, T2, 5&gt;;
 
 <p>
 SWIG supports both type aliasing and alias templates.
-However, in order to use an alias template, the <tt>%template</tt> directive must be used:
+However, in order to use an alias template, two <tt>%template</tt> directives must be used:
 </p>
 
 <div class="code"><pre>
 %template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
 %template() TypedefName&lt;bool&gt;;
 </pre></div>
+
+<p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
+Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
+This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
+See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 
