@@ -6350,10 +6350,23 @@ A typemap for C character strings is:
 
 <div class="code">
 <pre>
-%typemap(directorin,descriptor="Ljava/lang/String;") char *
-  %{ $input = jenv-&gt;NewStringUTF($1); %}
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char * %{
+  $input = 0;
+  if ($1) {
+    $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
+    if (!$input) return $null;
+  }
+  Swig::LocalRefGuard $1_refguard(jenv, $input);
+%}
 </pre>
 </div>
+
+<p>
+The <tt>Swig::LocalRefGuard</tt> class should be used in directorin typemaps for newly allocated objects.
+It is used to control local reference counts ensuring the count is decremented after the call up into Java has completed.
+Its destructor simply calls <tt>jenv-&gt;DeleteLocalRef(obj)</tt> on the <tt>obj</tt>
+passed in during construction.
+</p>
 
 
 <p>
