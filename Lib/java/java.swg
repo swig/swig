@@ -1228,8 +1228,9 @@ SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
-  protected void finalize() {
+  protected void finalize() throws Throwable {
     delete();
+    super.finalize();
   }
 %}
 
