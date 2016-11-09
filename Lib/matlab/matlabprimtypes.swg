@@ -230,7 +230,7 @@ SWIG_AsVal_dec(bool)(mxArray* pm, bool *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(mxArray* pm, char** cptr, size_t* psize, int *alloc)
 {
-  if(!mxIsChar(pm) || mxGetM(pm)!=1) return SWIG_TypeError;
+  if(!mxIsChar(pm) || (mxGetNumberOfElements(pm) != 0 && mxGetM(pm)!=1)) return SWIG_TypeError;
   size_t len=mxGetN(pm);
   static char buf[256];
   int flag = mxGetString(pm,buf,(mwSize)sizeof(buf));
