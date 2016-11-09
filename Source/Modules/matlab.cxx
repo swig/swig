@@ -593,7 +593,7 @@ int MATLAB::top(Node *n) {
   Printf(f_begin,"}\n\n");
 
   // Touch module
-  Printf(f_begin,"int swigTouch(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_begin,"int swigTouch(int resc, mxArray** /*resv*/, int argc, mxArray** /*argv*/) {\n");
 
   // Make sure no inputs or outputs
   Printf(f_begin,"  if (argc!=0 || resc!=0) {\n");
@@ -919,7 +919,10 @@ int MATLAB::functionWrapper(Node *n) {
 
   Printf(f->code, "if (!SWIG_check_num_args(\"%s\",argc,%i,%i,%i)) "
          "{\n SWIG_fail;\n }\n", iname, num_arguments, num_required, varargs);
-  if (constructor && num_arguments == 1 && num_required == 1) {
+  if (num_arguments == 0 && num_required == 0) {
+    Printf(f->code, "(void)argv; // Unused variable\n");
+  }
+  else if (constructor && num_arguments == 1 && num_required == 1) {
     if (Cmp(storage, "explicit") == 0) {
       Node *parent = Swig_methodclass(n);
       if (GetFlag(parent, "feature:implicitconv")) {
@@ -2314,7 +2317,7 @@ void MATLAB::finalizeGateway() {
 
 void MATLAB::initConstant() {
   if (CPlusPlus) Printf(f_constants,"extern \"C\"\n");
-  Printf(f_constants,"int swigConstant(int resc, mxArray *resv[], int argc, mxArray *argv[]) {\n");
+  Printf(f_constants,"int swigConstant(int /*resc*/, mxArray *resv[], int argc, mxArray *argv[]) {\n");
 
   // The first argument is always the ID
   Printf(f_constants,"  if (--argc < 0 || !mxIsDouble(*argv) || mxGetNumberOfElements(*argv)!=1) {\n");
@@ -2344,6 +2347,9 @@ void MATLAB::finalizeConstant() {
   Printf(f_constants,"    SWIG_Error(SWIG_RuntimeError, \"No such constant.\");\n");
   Printf(f_constants,"    return 1;\n");
   Printf(f_constants,"  }\n");
+  if (num_constant == 0) {
+    Printf(f_constants,"  (void)resv; // Unused variable\n");
+  }
   Printf(f_constants,"  return 0;\n");
   Printf(f_constants,"}\n");
 }
