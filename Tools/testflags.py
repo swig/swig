@@ -32,7 +32,7 @@ def get_cflags(language, std, compiler):
 def get_cxxflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wshadow -Wstrict-prototypes"
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wshadow"
     cxxflags = {
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
