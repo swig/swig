@@ -3,7 +3,7 @@
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers"
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wdeclaration-after-statement -Wmissing-field-initializers -Wshadow -Wstrict-prototypes"
     cflags = {
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
@@ -32,7 +32,7 @@ def get_cflags(language, std, compiler):
 def get_cxxflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wshadow -Wstrict-prototypes"
     cxxflags = {
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
