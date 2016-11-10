@@ -3,7 +3,7 @@
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wshadow -Wstrict-prototypes"
     if std == "gnu89" or std == "gnu90":
         # gnu89 standard allows declaration after headers
         # use c99 or gnu99 if feature is necessary for using target language
@@ -38,7 +38,7 @@ def get_cflags(language, std, compiler):
 def get_cxxflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wshadow"
     cxxflags = {
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
