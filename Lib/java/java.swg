@@ -1206,7 +1206,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 
 %typemap(javabody) TYPE (CLASS::*) %{
-  private String swigCMemberPtr;
+  private transient String swigCMemberPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, @SuppressWarnings("unused") boolean futureUse) {
     swigCMemberPtr = cMemberPtr;
