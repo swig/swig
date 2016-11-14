@@ -1040,7 +1040,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
       varaccessor++;
 
     String *pitem;
-    if (!Strncmp(item, "operator ()")) {
+    if (!Strcmp(item, "operator ()")) {
       pitem = NewString("call");
     } else if (!Strcmp(item, "operator ->")) {
       pitem = NewString("deref");
