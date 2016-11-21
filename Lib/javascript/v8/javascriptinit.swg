@@ -7,13 +7,24 @@ SWIG_V8_SetModule(void *, swig_module_info *swig_module) {
   v8::Local<v8::Object> global_obj = SWIGV8_CURRENT_CONTEXT()->Global();
   v8::Local<v8::External> mod = SWIGV8_EXTERNAL_NEW(swig_module);
   assert(!mod.IsEmpty());
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
   global_obj->SetHiddenValue(SWIGV8_STRING_NEW("swig_module_info_data"), mod);
+#else
+  v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("swig_module_info_data"));
+  global_obj->SetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey, mod);
+#endif
 }
 
 SWIGRUNTIME swig_module_info *
 SWIG_V8_GetModule(void *) {
   v8::Local<v8::Object> global_obj = SWIGV8_CURRENT_CONTEXT()->Global();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
   v8::Local<v8::Value> moduleinfo = global_obj->GetHiddenValue(SWIGV8_STRING_NEW("swig_module_info_data"));
+#else
+  v8::Local<v8::Value> moduleinfo;
+  v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("swig_module_info_data"));
+  global_obj->GetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey).ToLocal(&moduleinfo);
+#endif
 
   if (moduleinfo.IsEmpty())
   {

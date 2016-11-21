@@ -131,11 +131,13 @@ static void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031900)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Value> object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
+static void $jswrapper(const v8::WeakCallbackInfo<v8::Object, SWIGV8_Proxy> &data) {
+  SWIGV8_Proxy *proxy = data.GetParameter();
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Object> *object, SWIGV8_Proxy *proxy) {
 #else
-static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
-  v8::Local<v8::Object> object = data.GetValue();
+static void $jswrapper(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
   SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
 
@@ -147,7 +149,9 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
   }
   delete proxy;
 
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
   object.Clear();
+#endif
   
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
   object.Dispose();
@@ -155,7 +159,7 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
   object.Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x032100)
   object->Dispose(isolate);
-#else
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
   object->Dispose();
 #endif
 }
@@ -178,8 +182,7 @@ static void $jswrapper(v8::Isolate *isolate, v8::Persistent<v8::Value> object, v
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
 static void $jswrapper(v8::Isolate *isolate, v8::Persistent< v8::Object> *object, SWIGV8_Proxy *proxy) {
 #else
-static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &data) {
-  v8::Local<v8::Object> object = data.GetValue();
+static void $jswrapper(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
   SWIGV8_Proxy *proxy = data.GetParameter();
 #endif
 
@@ -197,7 +200,7 @@ static void $jswrapper(const v8::WeakCallbackData<v8::Object, SWIGV8_Proxy> &dat
   object->Dispose(isolate);
 #elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < SWIGV8_SETWEAK_VERSION)
   object->Dispose();
-#else
+#elif (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x054500)
   object.Clear();
 #endif
 }
