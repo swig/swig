@@ -989,9 +989,10 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     int klen = Len(key);
     int isSet = 0;
     if (klen > 4) {
-      ptr = &ptr[Len(key) - 4];
+      ptr = &ptr[klen - 4];
       isSet = strcmp(ptr, "_set") == 0;
     }
+
     //        OutputArrayMethod(className, el, out);        
     OutputMemberReferenceMethod(className, isSet, el, out);
     
@@ -1278,7 +1279,9 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   if(isSet < 0) {
     int n = Len(name);
     char *ptr = Char(name);
-    isSet = Strcmp(NewString(&ptr[n-3]), "set") == 0;
+    if (n>4) {
+      isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
+    }
   }
   
   List *l = isSet ? class_member_set_functions : class_member_functions;
@@ -1758,7 +1761,8 @@ int R::functionWrapper(Node *n) {
     
     int n = Len(iname);
     char *ptr = Char(iname);
-    bool isSet(Strcmp(NewString(&ptr[n-3]), "set") == 0);
+    bool isSet(0);
+    if (n > 4) isSet = Strcmp(NewString(&ptr[n-4]), "_set") == 0;
     
     
     String *tmp = NewString("");
