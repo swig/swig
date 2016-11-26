@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-11-26: m7thon
+            [Python] Issue #709 - improved wrapping of division operators
+            'from __future__ import division' now works in Python 2 whether or not the
+            -py3 flag is used.
+
 2016-11-12: joequant
             [R] Issue #697 - fix comma issue with overload methods
 
