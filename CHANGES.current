@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-11-28: Volker Diels-Grabsch, vadz
+            [Java] Implement java.util.List<> for std::vector. This notably allows to
+            iterate over wrapped vectors in a natural way.
+
 2016-11-28: wsfulton
             Fix %rename override of wildcard %rename for templates. For example:
 
