@@ -5,6 +5,21 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-11-28: wsfulton
+            Fix %rename override of wildcard %rename for templates. For example:
+
+              %rename(GlobalIntOperator) *::operator bool; // wildcard %rename
+
+              %rename(XIntOperator) X::operator bool; // fix now overrides first %rename above
+              OR
+              %rename(XIntOperator) X<int>::operator bool; // fix now overrides first %rename above
+
+              template<typename T> struct X {
+                operator bool();
+                ...
+              };
+              %template(Xint) X<int>;
+
 2016-11-26: m7thon
             [Python] Issue #709 - improved wrapping of division operators
             'from __future__ import division' now works in Python 2 whether or not the

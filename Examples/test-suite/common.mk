@@ -353,6 +353,7 @@ CPP_TEST_CASES += \
 	rename_pcre_encoder \
 	rename_pcre_enum \
 	rename_predicates \
+	rename_wildcard \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
