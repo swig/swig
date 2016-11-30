@@ -191,7 +191,6 @@ public:
 
   virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("php");
-    SWIG_config_cppext("cpp");
 
     for (int i = 1; i < argc; i++) {
       if (strcmp(argv[i], "-prefix") == 0) {

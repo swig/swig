@@ -1188,7 +1188,7 @@ php: $(SRCDIR_SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php7 -cppext cxx -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -php7 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 

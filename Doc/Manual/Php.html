@@ -106,7 +106,12 @@ also contain PHP class wrappers.
 <p>
 SWIG can generate PHP extensions from C++ libraries as well when
 given the <tt>-c++</tt> option.  The support for C++ is discussed in
-more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
+more detail in <a href="#Php_nn2_6">section 27.2.6</a>.  The generated
+C++ wrapper will be called example_wrap.cpp (for PHP5) or
+example_wrap.cxx (for PHP7 where the default has been changed to align
+with SWIG's default for every other language).  You can specify a
+different extension for the C++ wrapper using <tt>-cppext</tt> -
+e.g. if you want example_wrap.cc use <tt>-cppext cc</tt>.
 </p>
 
 <p>
