@@ -8,13 +8,13 @@ LIBS       =
 SWIGOPT    = -noproxy
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php5_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' \
-	php
+	php5
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php5_clean

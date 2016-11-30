@@ -8,12 +8,12 @@ LIBS       = -lm
 SWIGOPT    =
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_run
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php5_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' $(SWIGLIB) CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php_cpp
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php5_cpp
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' php5_clean
