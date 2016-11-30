@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-11-30: olly
+	    [PHP] Add support for PHP7.  PHP5's C extension API has changed substantially
+	    so you need to use -php7 to specify you want PHP7 compatible wrappers.
+	    Fixes https://github.com/swig/swig/issues/571
+
 2016-11-28: wsfulton
             Fix %rename override of wildcard %rename for templates. For example:
 

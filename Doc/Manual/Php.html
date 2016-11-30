@@ -50,19 +50,6 @@
 
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
-in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
-and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 now.  If you
-really need to continue to use PHP4, just stick with SWIG 1.3.36.
-</p>
-
-<p>
-Currently any PHP5 release should work, but we don't regularly test with
-PHP &lt; 5.3.
-</p>
-
-<p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
 OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
@@ -70,7 +57,17 @@ of the features available in some of the other languages.
 </p>
 
 <p>
-In order to use this module, you will need to have a copy of the PHP5
+SWIG supports generating wrappers for PHP5 and PHP7.  Support for PHP4 was removed
+in SWIG 1.3.37.
+</p>
+
+<p>
+Currently any PHP5 or PHP7 release should work, but we don't regularly test with
+PHP &lt; 5.3.
+</p>
+
+<p>
+In order to use this module, you will need to have a copy of the PHP
 include files to compile the SWIG generated files.  If you installed
 PHP from a binary package, you may need to install a "php-dev" or "php-devel"
 package for these to be installed.  You can find out where these files are
@@ -84,12 +81,13 @@ available.
 
 
 <p>
-To build a PHP extension, run swig using the <tt>-php</tt> option as
-follows:
+To build a PHP extension, run swig using the <tt>-php5</tt> or
+<tt>-php7</tt> option as follows (<tt>-php</tt> is also supported
+and currently is an alias for <tt>-php5</tt>):
 </p>
 
 <div class="code"><pre>
-swig -php example.i
+swig -php7 example.i
 </pre></div>
 
 <p>
@@ -102,7 +100,7 @@ The third file,
 <tt>example.php</tt> can be included by PHP scripts.  It attempts to
 dynamically load the extension and contains extra php code specified
 in the interface file.  If wrapping C++ code with PHP classes, it will
-also contain PHP5 class wrappers.
+also contain PHP class wrappers.
 </p>
 
 <p>
@@ -611,7 +609,7 @@ struct Complex {
 </pre></div>
 
 <p>
-Would be used in the following way from PHP5:
+Would be used in the following way from PHP:
 </p>
 
 <div class="code"><pre>
@@ -646,7 +644,7 @@ Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 <p>
 The <tt>-noproxy</tt> option flattens the object structure and
 generates collections of named functions (these are the functions
-which the PHP5 class wrappers call).  The above example results
+which the PHP class wrappers call).  The above example results
 in the following PHP functions:
 </p>
 
