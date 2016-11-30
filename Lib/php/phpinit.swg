@@ -6,7 +6,7 @@
 %insert(init) "swiginit.swg"
 
 %init %{
-  SWIG_php_minit {
+SWIG_php_minit {
     SWIG_InitializeModule(0);
 %}
 
