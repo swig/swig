@@ -11,6 +11,11 @@ extern "C" {
 #include "zend_API.h"
 #include "zend_exceptions.h"
 #include "php.h"
+
+#if PHP_MAJOR_VERSION != 5
+# error These bindings need PHP5 - to generate PHP7 bindings use: swig -php7
+#endif
+
 #include "ext/standard/php_string.h"
 #include <stdlib.h> /* for abort(), used in generated code. */
 
