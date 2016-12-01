@@ -165,7 +165,7 @@ static void SwigPHP_emit_resource_registrations() {
     }
 
     if (!rsrc_dtor_name) {
-      rsrc_dtor_name = NewString("_wrap_default_rsrc_destroy");
+      rsrc_dtor_name = NewString("_swig_default_rsrc_destroy");
       if (!emitted_default_dtor) {
 	// Write out custom destructor function
 	Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
