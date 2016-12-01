@@ -12,6 +12,16 @@ Version 3.0.11 (in progress)
 	    for every other language - to generate foo_wrap.cpp you can run SWIG with
 	    -cppext cpp).  Fixes https://github.com/swig/swig/issues/571
 
+2016-11-30: olly
+	    [PHP] Only emit one copy of each distinct arginfo.  Previously we
+	    emitted a separate one for every wrapped function, but typically
+	    many functions have the same number of parameters and combinations
+	    of parameters passed by reference or not.
+
+	    This change significantly reduces both the size of the generated
+	    wrapper, and of the compiled PHP extension module (e.g. by ~6% for
+	    the stripped extension module for Xapian's PHP7 bindings).
+
 2016-11-28: wsfulton
             Fix %rename override of wildcard %rename for templates. For example:
 

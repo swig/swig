@@ -100,6 +100,11 @@ static String *s_oowrappers;
 static String *s_fakeoowrappers;
 static String *s_phpclasses;
 
+/* To reduce code size (generated and compiled) we only want to emit each
+ * different arginfo once, so we need to track which have been used.
+ */
+static Hash *arginfo_used;
+
 /* Variables for using PHP classes */
 static Node *current_class = 0;
 
@@ -473,6 +478,7 @@ public:
 
     /* start the arginfo section */
     s_arginfo = NewString("/* arginfo subsection */\n");
+    arginfo_used = NewHash();
 
     /* start the function entry section */
     s_entry = NewString("/* entry subsection */\n");
@@ -633,22 +639,35 @@ public:
   void create_command(String *cname, String *iname, Node *n) {
     // This is for the single main zend_function_entry record
     Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
-    String * s = cs_entry;
-    if (!s) s = s_entry;
-    Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%(lower)s)\n", cname, iname, cname);
 
-    // This is the above referenced arginfo structure.
+    // We want to only emit each different arginfo once, as that reduces the
+    // size of both the generated source code and the compiled extension
+    // module.  To do this, we name the arginfo to encode the number of
+    // parameters and which (if any) are passed by reference by using a
+    // sequence of 0s (for non-reference) and 1s (for by references).
     ParmList *l = Getattr(n, "parms");
-    Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%(lower)s, 0, 0, 0)\n", cname);
+    String * arginfo_code = NewStringEmpty();
     for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
       /* Ignored parameters */
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	continue;
       }
-      int byref = GetFlag(p, "tmap:in:byref");
-      Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%d)\n", byref);
+      Append(arginfo_code, GetFlag(p, "tmap:in:byref") ? "1" : "0");
     }
-    Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
+
+    if (!GetFlag(arginfo_used, arginfo_code)) {
+      // Not had this one before, so emit it.
+      SetFlag(arginfo_used, arginfo_code);
+      Printf(s_arginfo, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_%s, 0, 0, 0)\n", arginfo_code);
+      for (const char * p = Char(arginfo_code); *p; ++p) {
+	Printf(s_arginfo, " ZEND_ARG_PASS_INFO(%c)\n", *p);
+      }
+      Printf(s_arginfo, "ZEND_END_ARG_INFO()\n");
+    }
+
+    String * s = cs_entry;
+    if (!s) s = s_entry;
+    Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", cname, iname, arginfo_code);
   }
 
   /* ------------------------------------------------------------
