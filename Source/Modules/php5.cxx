@@ -134,6 +134,7 @@ extern "C" {
 
 static void SwigPHP_emit_resource_registrations() {
   Iterator ki;
+  bool emitted_default_dtor = false;
 
   if (!zend_types)
     return;
@@ -145,9 +146,7 @@ static void SwigPHP_emit_resource_registrations() {
     DOH *key = ki.key;
     Node *class_node = ki.item;
     String *human_name = key;
-
-    // Write out destructor function header
-    Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
+    String *rsrc_dtor_name = NULL;
 
     // write out body
     if (class_node != NOTCLASS) {
@@ -157,28 +156,36 @@ static void SwigPHP_emit_resource_registrations() {
         human_name = Getattr(class_node, "name");
       // Do we have a known destructor for this type?
       if (destructor) {
+	rsrc_dtor_name = NewStringf("_wrap_destroy%s", key);
+	// Write out custom destructor function
+	Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
         Printf(s_wrappers, "  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n", destructor, key);
-      } else {
-        Printf(s_wrappers, "  /* No destructor for class %s */\n", human_name);
-        Printf(s_wrappers, "  efree(rsrc->ptr);\n");
+	Printf(s_wrappers, "}\n");
       }
-    } else {
-      Printf(s_wrappers, "  /* No destructor for simple type %s */\n", key);
-      Printf(s_wrappers, "  efree(rsrc->ptr);\n");
     }
 
-    // close function
-    Printf(s_wrappers, "}\n");
+    if (!rsrc_dtor_name) {
+      rsrc_dtor_name = NewString("_wrap_default_rsrc_destroy");
+      if (!emitted_default_dtor) {
+	// Write out custom destructor function
+	Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(%s) {\n", rsrc_dtor_name);
+	Printf(s_wrappers, "  efree(rsrc->ptr);\n");
+	Printf(s_wrappers, "}\n");
+	emitted_default_dtor = true;
+      }
+    }
 
     // declare le_swig_<mangled> to store php registration
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
     Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
-		    "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
+		    "(%s, NULL, (char *)SWIGTYPE%s->name, module_number);\n", key, rsrc_dtor_name, key);
 
     // store php type in class struct
     Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
+
+    Delete(rsrc_dtor_name);
 
     ki = Next(ki);
   }
