@@ -509,7 +509,7 @@ If using static linking, you might want to rely on a different approach
 
 <p>
 To use your module, simply use the Python <tt>import</tt> statement. If
-all goes well, you will be able to this:
+all goes well, you will be able to run this:
 </p>
 
 <div class="targetlang"><pre>
@@ -6037,7 +6037,7 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 <p>
 When SWIG creates wrappers from an interface file, say foo.i, two Python modules are
 created.  There is a pure Python module module (foo.py) and C/C++ code which is
-built and linked into a dynamically (or statically) loaded module _foo
+built and linked into a dynamically (or statically) loaded low-level module _foo
 (see the <a href="Python.html#Python_nn3">Preliminaries section</a> for details).  So, the interface
 file really defines two Python modules.   How these two modules are loaded is
 covered next.
@@ -6064,7 +6064,43 @@ pure Python module uses to find the C/C++ module is as follows:
 </ol>
 
 <p>
-As an example suppose foo.i is compiled into foo.py and _foo.so.  Assuming
+The Python code implementing the loading logic described above is quite complex to handle multiple
+versions of Python, but it can be replaced with custom code.
+This is not recommended unless you understand the full intricacies of importing Python modules.
+The custom code can be specified by setting the <tt>moduleimport</tt> option of the <tt>%module</tt> directive with the appropriate import code.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module(moduleimport="import _foo") foo
+</pre>
+</div>
+
+<p>
+The special variable <tt>$module</tt> will also be expanded into the low-level C/C++ module name, <tt>_foo</tt> in the case above.
+When you have more than just a line or so then you can retain the easy
+readability of the <tt>%module</tt> directive by using a macro.  For
+example:
+</p>
+
+<div class="code">
+<pre>
+%define MODULEIMPORT
+"
+print 'Loading low-level module $module'
+import $module
+print 'Module has loaded'
+"
+%enddef
+
+%module(moduleimport=MODULEIMPORT) foo
+</pre>
+</div>
+
+
+<p>
+Now let's consider an example using the SWIG default loading logic.
+Suppose foo.i is compiled into foo.py and _foo.so.  Assuming
 /dir is on PYTHONPATH, then the two modules can be installed and used in the
 following ways:
 </p>

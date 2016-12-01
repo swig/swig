@@ -5,6 +5,19 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 3.0.11 (in progress)
 ============================
 
+2016-12-01: wsfulton
+            [Python] Issue https://github.com/swig/swig/issues/769
+            Add optional moduleimport attribute to %module so that the
+            default module import code can be overridden. See the "Searching for the wrapper module"
+            documentation in Python.html. Example:
+
+              %module(moduleimport="import _foo") foo
+
+            $module also expands to the low-level C/C++ module name, so the following is the
+            same as above
+
+              %module(moduleimport="import $module") foo
+
 2016-11-30: olly
 	    [PHP] Add support for PHP7.  PHP5's C extension API has changed substantially
 	    so you need to use -php7 to specify you want PHP7 compatible wrappers.  The
