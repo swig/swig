@@ -654,6 +654,7 @@ public:
     Delete(s_arginfo);
     Delete(f_runtime);
     Delete(f_begin);
+    Delete(arginfo_used);
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
     if (s_fakeoowrappers) {
@@ -702,6 +703,7 @@ public:
     String * s = cs_entry;
     if (!s) s = s_entry;
     Printf(s, " SWIG_ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", cname, iname, arginfo_code);
+    Delete(arginfo_code);
   }
 
   /* ------------------------------------------------------------
