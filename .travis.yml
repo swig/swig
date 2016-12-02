@@ -91,7 +91,7 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
-      env: SWIGLANG=php
+      env: SWIGLANG=php5
       sudo: required
       dist: trusty
     - compiler: gcc
@@ -249,7 +249,7 @@ matrix:
       env: SWIGLANG=perl5
     - compiler: clang
       os: osx
-      env: SWIGLANG=php
+      env: SWIGLANG=php5
     - compiler: clang
       os: osx
       env: SWIGLANG=python

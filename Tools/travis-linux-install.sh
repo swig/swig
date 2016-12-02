@@ -71,7 +71,7 @@ case "$SWIGLANG" in
 			sudo apt-get -qq install liboctave${VER}-dev
 		fi
 		;;
-	"php")
+	"php5")
 		sudo apt-get -qq install php5-cli php5-dev
 		;;
 	"python")
