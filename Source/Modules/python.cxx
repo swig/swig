@@ -44,7 +44,7 @@ static File *f_shadow_py = 0;
 static String *f_shadow = 0;
 static String *f_shadow_begin = 0;
 static Hash *f_shadow_imports = 0;
-static String *f_shadow_builtin_imports = 0;
+static String *f_shadow_after_begin = 0;
 static String *f_shadow_stubs = 0;
 static Hash *builtin_getset = 0;
 static Hash *builtin_closures = 0;
@@ -799,7 +799,7 @@ public:
       f_shadow = NewString("");
       f_shadow_begin = NewString("");
       f_shadow_imports = NewHash();
-      f_shadow_builtin_imports = NewString("");
+      f_shadow_after_begin = NewString("");
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow", f_shadow);
@@ -811,13 +811,13 @@ public:
 	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
 	  // reported by pep257: https://github.com/GreenSteam/pep257
 	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-	  Printv(f_shadow, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
+	  Printv(f_shadow_after_begin, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
 	}
 	Delete(mod_docstring);
 	mod_docstring = NULL;
       }
 
-      Printv(default_import_code, "from sys import version_info as _swig_python_version_info\n", NULL);
+      Printv(default_import_code, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
 
       if (!builtin && fastproxy) {
 	Printv(default_import_code, "if _swig_python_version_info >= (3, 0, 0):\n", NULL);
@@ -1053,13 +1053,14 @@ public:
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
       Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
+      Printv(f_shadow_py, "\n", f_shadow_after_begin, "\n", NIL);
       if (moduleimport) {
 	Replaceall(moduleimport, "$module", module);
-	Printv(f_shadow_py, moduleimport, NIL);
+	Printv(f_shadow_py, "\n", moduleimport, NIL);
       } else {
 	Printv(f_shadow_py, default_import_code, NIL);
       }
-      Printv(f_shadow_py, "\n", f_shadow, "\n", NIL);
+      Printv(f_shadow_py, f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
       Delete(f_shadow_py);
     }
@@ -1083,6 +1084,8 @@ public:
     Wrapper_pretty_print(f_init, f_begin);
 
     Delete(default_import_code);
+    Delete(f_shadow_after_begin);
+    Delete(f_shadow_imports);
     Delete(f_shadow_begin);
     Delete(f_shadow);
     Delete(f_header);
@@ -1393,7 +1396,7 @@ public:
 	    String *_import = import_directive_string(package, pkg, modname, "_");
 	    if (!GetFlagAttr(f_shadow_imports, _import)) {
 	      String *import = import_directive_string(package, pkg, modname);
-	      Printf(builtin ? f_shadow_builtin_imports : f_shadow, "%s", import);
+	      Printf(builtin ? f_shadow_after_begin : f_shadow, "%s", import);
 	      Delete(import);
 	      SetFlag(f_shadow_imports, _import);
 	    }
