@@ -811,7 +811,7 @@ public:
 	  // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
 	  // reported by pep257: https://github.com/GreenSteam/pep257
 	  bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-	  Printv(f_shadow_after_begin, triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n\n", NIL);
+	  Printv(f_shadow_after_begin, "\n", triple_double, multi_line_ds ? "\n":"", mod_docstring, multi_line_ds ? "\n":"", triple_double, "\n", NIL);
 	}
 	Delete(mod_docstring);
 	mod_docstring = NULL;
@@ -905,7 +905,7 @@ public:
 
       /* Delete the _swig_python_version_info symbol since we don't use it elsewhere in the
        * module. */
-      Printv(default_import_code, "del _swig_python_version_info\n", NULL);
+      Printv(default_import_code, "del _swig_python_version_info\n\n", NULL);
 
       if (modern || !classic) {
 	Printv(f_shadow, "try:\n", tab4, "_swig_property = property\n", "except NameError:\n", tab4, "pass  # Python < 2.2 doesn't have 'property'.\n\n", NULL);
@@ -1052,11 +1052,13 @@ public:
       if (!modern && !classic) {
 	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
-      Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
-      Printv(f_shadow_py, "\n", f_shadow_after_begin, "\n", NIL);
+      if (Len(f_shadow_begin) > 0)
+	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
+      if (Len(f_shadow_after_begin) > 0)
+      Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
       if (moduleimport) {
 	Replaceall(moduleimport, "$module", module);
-	Printv(f_shadow_py, "\n", moduleimport, NIL);
+	Printv(f_shadow_py, "\n", moduleimport, "\n", NIL);
       } else {
 	Printv(f_shadow_py, default_import_code, NIL);
       }
