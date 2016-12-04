@@ -96,6 +96,16 @@ matrix:
       dist: trusty
     - compiler: gcc
       os: linux
+      env: SWIGLANG=php VER=7.0
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=php VER=7.1
+      sudo: required
+      dist: trusty
+    - compiler: gcc
+      os: linux
       env: SWIGLANG=python VER=2.4
       sudo: required
       dist: trusty
@@ -274,6 +284,12 @@ matrix:
     - compiler: gcc
       os: linux
       env: SWIGLANG=python SWIG_FEATURES=-O
+      sudo: required
+      dist: trusty
+    # php7.1 nearly working
+    - compiler: gcc
+      os: linux
+      env: SWIGLANG=php VER=7.1
       sudo: required
       dist: trusty
 before_install:
