@@ -1478,6 +1478,9 @@ public:
 	      Replaceall(value, "$", "\\$");
 	    }
 	    Printf(args, "$%s=%s", arg_names[i], value);
+	  } else if (constructor && i >= 1 && i < min_num_of_arguments) {
+	    // We need to be able to call __construct($resource).
+	    Printf(args, "$%s=null", arg_names[i]);
 	  } else {
 	    Printf(args, "$%s", arg_names[i]);
 	  }
@@ -1498,6 +1501,15 @@ public:
 	    Printf(invoke_args, ",");
 	}
 	Printf(invoke_args, "%s", args);
+	if (constructor && min_num_of_arguments > 1) {
+	  // We need to be able to call __construct($resource).
+	  Clear(args);
+	  Printf(args, "$%s", arg_names[0]);
+	  for (i = 1; i < min_num_of_arguments; ++i) {
+	    Printf(args, ",");
+	    Printf(args, "$%s=null", arg_names[i]);
+	  }
+	}
 	bool had_a_case = false;
 	int last_handled_i = i - 1;
 	for (; i < max_num_of_arguments; ++i) {
